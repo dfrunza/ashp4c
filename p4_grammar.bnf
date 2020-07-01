@@ -1,0 +1,101 @@
+<p4program> := <declaration> { <declaration> }*
+
+<declaration> := <struct_type_decl> | <header_type_decl> |
+          <error_type_decl> | <typedef_decl> | <parser_decl> |
+          <control_decl> | <extern_decl> | <instantiation>
+
+<extern_decl> := 'extern' ( <extern_object> | <function_prototype> )
+
+<extern_object> := identifier '{' { <function_prototype> }* '}'
+
+<function_prototype> := type_identifier identifier { type_parameter_list } '(' <parameter_list> ')' ';'
+
+<type_parameter_list> := '<' identifier { ',' <identifier> } '>'
+
+<instantiation> := <typeref> '(' <argument_list> ')' identifier ';'
+
+<control_decl> := <control_type_decl> '{' { <control_local_decl> }* 'apply' <control_body> '}'
+
+<control_type_decl> := 'control' identifier '(' <parameter_list> ')'
+
+<control_local_decl> := <action_decl> | <table_decl> | <var_decl>
+
+<var_decl> := type_identifier identifier { '=' <expression> } ';'
+
+<action_decl> := 'action' identifier '(' <parameter_list> ')' '{' <block_statement> '}'
+
+<table_decl> := 'table' identifier '{' <table_prop> { <table_prop> }* '}'
+
+<table_prop> := 'key' '=' '{' { <key_element> }* '}' |
+  'actions' '=' '{' { <action> }* '}' |
+  identifier '=' <expression>  ';'
+
+<key_element> := <expression> ':' identifier ';'
+
+<action> := identifier { '(' <argument_list> ')' } ';'
+
+<control_body> := <block_statement>
+
+<block_statement> := '{' { <stmt_or_decl> }* '}'
+
+<stmt_or_decl> := <statement>
+
+<statement> := <expression>
+
+<parser_decl> := <parser_type_decl> '{' { <parser_local_elements> } <parser_state> { <parser_state> }* '}'
+
+<parser_type_decl> := 'parser' identifier '(' { <parameter_list> } ')'
+
+<parser_state> := 'state' identifier '{' { <parser_statement> }* <transition_statement> '}'
+
+<parser_statement> := <expression> ';'
+
+<transition_statement> := 'transition' <state_expression>
+
+<state_expression> := ( identifier ';' ) | <select_expression>
+
+<select_expression> := 'select' '(' { <expression> } ')' '{' { <select_case_list> } '}'
+
+<select_case_list> := <select_case> { <select_case> }*
+
+<select_case> := <simple_keyset_expression> ':' identifier ';'
+
+<simple_keyset_expression> := <expression> | 'default'
+
+<parameter_list> := <parameter> { ',' <parameter> }
+
+<parameter> := { <direction> } <typeref> identifier
+
+<direction> := 'in' | 'out' | 'inout'
+
+<expression> := <expression_primary> { <operator> <expression> }*
+
+<expression_primary> := identifier | integer | 'true' | 'false' | 'string' |
+    'error' | '(' <expression> ')'
+
+<operator> := '.' | '==' | '(' { <argument_list> } ')'
+
+<argument_list> := <argument> { ',' <argument> }*
+
+<argument> := <expression>
+
+<error_type_decl> := 'error' '{' <identifier_list> '}'
+
+<identifier_list> := identifier { ',' identifier }*
+
+<struct_field> := <typeref> identifier ';'
+
+<struct_type_decl> := 'struct' identifier '{' { <struct_field> }* '}'
+
+<header_type_decl> := 'header' identifier '{' { <struct_field> }* '}'
+
+<typedef_decl> := 'typedef' <typeref> identifier ';'
+
+<typeref> := identifier | <bit_typeref> | <int_typeref>
+
+<bit_typeref> := 'bit' { '<' integer '>' }
+
+<int_typeref> := 'int' { '<' integer '>' }
+
+--------------------------------------------------------------------------------
+
