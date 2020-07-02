@@ -110,13 +110,6 @@ typedef struct
 }
 Ast_Typeref;
 
-//typedef struct
-//{
-//  Ast_Typeref;
-//  char* name;
-//}
-//Ast_IdentTyperef;
-
 typedef struct
 {
   Ast_Typeref;

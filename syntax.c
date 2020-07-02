@@ -253,18 +253,6 @@ syn_type_size()
   return result;
 }
 
-//internal Ast_IdentTyperef*
-//syn_ident_typeref()
-//{
-//  assert (token_at.klass == TOK_TYPE_IDENT);
-//  Ast_IdentTyperef* result = arena_push_struct(arena, Ast_IdentTyperef);
-//  zero_struct(result, Ast_IdentTyperef);
-//  result->kind = AST_IDENT_TYPEREF;
-//  result->name = token_at.lexeme;
-//  lex_next_token(&token_at);
-//  return result;
-//}
-
 internal Ast_BitTyperef*
 syn_bit_typeref()
 {

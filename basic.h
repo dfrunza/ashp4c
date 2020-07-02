@@ -14,7 +14,8 @@
 #define KILOBYTE 1024
 #define MEGABYTE 1024*KILOBYTE
 
-#define sizeof_array(array) (sizeof(array)/sizeof(array[0]))
+#define sizeof_array(ARRAY) (sizeof(ARRAY)/sizeof(ARRAY[0]))
+#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE*)0)->MEMBER)
 #define assert(EXPR) do { if(!(EXPR)) assert_(#EXPR, __FILE__, __LINE__); } while(0)
 void assert_(char* message, char* file, int line);
 bool cstr_is_letter(char c);

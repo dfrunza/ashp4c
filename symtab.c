@@ -125,9 +125,9 @@ sym_scope_pop_level()
       if (ident && ident->scope_level >= scope_level)
       {
         ns->ns_type = ident->next_in_scope;
-        ident->next_in_scope = 0;
         if (ident->next_in_scope)
           assert (ident->next_in_scope->scope_level < scope_level);
+        ident->next_in_scope = 0;
       }
       ns = ns->next;
     }
