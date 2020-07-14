@@ -7,7 +7,7 @@
 SEC("proc")
 int xdp_dummy(struct xdp_md *ctx)
 {
-    return XDP_PASS;
+  return XDP_PASS;
 }
 
 char _license[] SEC("license") = "GPL";
