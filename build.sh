@@ -3,10 +3,14 @@
 C_FLAGS="-g -ggdb -std=gnu89 -m32 -Winline -Wno-write-strings -Wreturn-type -fms-extensions"
 L_FLAGS=""
 
-rm -f *.o
-gcc $C_FLAGS -I . -c basic.c
-gcc $C_FLAGS -I . -c arena.c
-gcc $C_FLAGS -I . -c lex.c
-gcc $C_FLAGS -I . -c syntax.c
-gcc $C_FLAGS -I . -c symtab.c 
-gcc $C_FLAGS -I. -o dp4c dp4c.c basic.o arena.o lex.o syntax.o symtab.o
+SRC=`pwd`
+mkdir -p build
+rm -f build/*
+pushd build
+gcc $C_FLAGS -I . -c $SRC/basic.c
+gcc $C_FLAGS -I . -c $SRC/arena.c
+gcc $C_FLAGS -I . -c $SRC/lex.c
+gcc $C_FLAGS -I . -c $SRC/syntax.c
+gcc $C_FLAGS -I . -c $SRC/symtab.c 
+gcc $C_FLAGS -I. -o dp4c $SRC/dp4c.c basic.o arena.o lex.o syntax.o symtab.o
+popd
