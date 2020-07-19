@@ -87,8 +87,11 @@ syn_header_type_decl()
       }
       else
         error("type identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
+
       if (token_at.klass == TOK_BRACE_CLOSE)
         lex_next_token(&token_at);
+      else if (token_at.klass == TOK_IDENT)
+        error("at line %d: unknown type '%s'", lex_line_nr(), token_at.lexeme);
       else
         error("'}' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
       sym_scope_pop_level();
@@ -97,7 +100,7 @@ syn_header_type_decl()
       error("'{' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
   else if (token_at.klass == TOK_TYPE_IDENT)
-    error ("at line %d: type '%s' has been previously declared", lex_line_nr(), token_at.lexeme);
+    error("at line %d: type '%s' has been previously declared", lex_line_nr(), token_at.lexeme);
   else
     error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
@@ -145,16 +148,19 @@ syn_struct_type_decl()
           field = (Ast_StructField*)field->next;
         }
       }
+
       if (token_at.klass == TOK_BRACE_CLOSE)
         lex_next_token(&token_at);
+      else if (token_at.klass == TOK_IDENT)
+        error("at line %d: unknown type '%s'", lex_line_nr(), token_at.lexeme);
       else
-        error("} expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
+        error("'}' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
     }
     else
       error("'{' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
   else if (token_at.klass == TOK_TYPE_IDENT)
-    error ("at line %d: type '%s' has been previously declared", lex_line_nr(), token_at.lexeme);
+    error("at line %d: type '%s' has been previously declared", lex_line_nr(), token_at.lexeme);
   else
     error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
@@ -170,7 +176,7 @@ syn_error_code()
   id->name = token_at.lexeme;
   IdentInfo_Selector* id_info = sym_get_selector(id->name);
   if (id_info && id_info->scope_level >= sym_scope_get_level())
-    error ("at line %d: selector '%s' has been previously declared", lex_line_nr(), id->name);
+    error("at line %d: selector '%s' has been previously declared", lex_line_nr(), id->name);
   id->selector = sym_add_selector(id->name);
   lex_next_token(&token_at);
   return id;
@@ -204,6 +210,8 @@ syn_error_type_decl()
           field = next_code;
           result->code_count++;
         }
+        else if (token_at.klass == TOK_COMMA)
+          error("missing parameter at line %d", lex_line_nr());
         else
           error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
       }
@@ -255,6 +263,8 @@ syn_type_parameter_list()
         // TODO
         lex_next_token(&token_at);
       }
+      else if (token_at.klass == TOK_COMMA)
+        error("missing parameter at line %d", lex_line_nr());
       else if (token_at.klass == TOK_TYPE_IDENT)
         error("at line %d: type '%s' has been previously declared", lex_line_nr(), token_at.lexeme);
       else
@@ -299,8 +309,10 @@ syn_typeref_argument_list()
         // TODO
         lex_next_token(&token_at);
       }
+      else if (token_at.klass == TOK_COMMA)
+        error("missing parameter at line %d", lex_line_nr());
       else if (token_at.klass == TOK_IDENT)
-        error ("at line %d: unknown type '%s'", lex_line_nr(), token_at.lexeme);
+        error("at line %d: unknown type '%s'", lex_line_nr(), token_at.lexeme);
       else
         error("type identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
     }
@@ -311,7 +323,7 @@ syn_typeref_argument_list()
     lex_next_token(&token_at);
   }
   else if (token_at.klass == TOK_IDENT)
-    error ("at line %d: unknown type '%s'", lex_line_nr(), token_at.lexeme);
+    error("at line %d: unknown type '%s'", lex_line_nr(), token_at.lexeme);
   else
     error("type identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
 
@@ -405,7 +417,7 @@ syn_parameter()
   if (token_at.klass == TOK_TYPE_IDENT)
     result->typeref = syn_typeref();
   else
-    error ("at line %d: unknown type '%s'", lex_line_nr(), token_at.lexeme);
+    error("at line %d: unknown type '%s'", lex_line_nr(), token_at.lexeme);
   if (token_at.klass == TOK_IDENT)
   {
     result->name = token_at.lexeme;
@@ -431,6 +443,8 @@ syn_parameter_list()
       parameter->next = next_parameter;
       parameter = next_parameter;
     }
+    else if (token_at.klass == TOK_COMMA)
+      error("missing parameter at line %d", lex_line_nr());
     else
       error("type identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
@@ -468,7 +482,7 @@ syn_parser_type_decl()
     sym_scope_pop_level();
   }
   else if (token_at.klass == TOK_TYPE_IDENT)
-    error ("at line %d: type '%s' has been previously declared", lex_line_nr(), token_at.lexeme);
+    error("at line %d: type '%s' has been previously declared", lex_line_nr(), token_at.lexeme);
   else
       error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
@@ -684,7 +698,7 @@ syn_expression(int priority_threshold)
         if (token_is_expression(&token_at))
           binary_expr->r_operand = syn_expression(priority_threshold + 1);
         else
-          error("operand expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
+          error("expression term expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
         result = (Ast_Expression*)binary_expr;
       }
       else if (op == OP_FUNCTION_CALL)
@@ -707,6 +721,8 @@ syn_expression(int priority_threshold)
               argument = next_argument;
               function_call->argument_count++;
             }
+            else if (token_at.klass == TOK_COMMA)
+              error("missing parameter at line %d", lex_line_nr());
             else
               error("at line %d: expected an expression term, got '%s'", lex_line_nr(), token_at.lexeme);
           }
@@ -990,7 +1006,7 @@ syn_control_type_decl()
     sym_scope_pop_level();
   }
   else if (token_at.klass == TOK_TYPE_IDENT)
-    error ("at line %d: type '%s' has been previously declared", lex_line_nr(), token_at.lexeme);
+    error("at line %d: type '%s' has been previously declared", lex_line_nr(), token_at.lexeme);
   else
     error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
@@ -1122,8 +1138,10 @@ syn_action_ref()
           argument->next = next_argument;
           argument = next_argument;
         }
+        else if (token_at.klass == TOK_COMMA)
+          error("missing parameter at line %d", lex_line_nr());
         else
-          error("operand expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
+          error("expression term expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
       }
     }
     if (token_at.klass == TOK_PARENTH_CLOSE)
@@ -1167,7 +1185,7 @@ syn_table_property()
           }
         }
         else
-          error("operand expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
+          error("expression term expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
         if (token_at.klass == TOK_BRACE_CLOSE)
           lex_next_token(&token_at);
         else
@@ -1293,7 +1311,7 @@ syn_var_decl()
             error("';' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
         }
         else
-          error("operand expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
+          error("expression term expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
       }
     }
     else
@@ -1410,7 +1428,7 @@ syn_package_type_decl()
     sym_scope_pop_level();
   }
   else if (token_at.klass == TOK_TYPE_IDENT)
-    error ("at line %d: type '%s' has been previously declared", lex_line_nr(), token_at.lexeme);
+    error("at line %d: type '%s' has been previously declared", lex_line_nr(), token_at.lexeme);
   else
     error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
 
@@ -1445,6 +1463,8 @@ syn_instantiation()
           argument->next = next_argument;
           argument = next_argument;
         }
+        else if (token_at.klass == TOK_COMMA)
+          error("missing parameter at line %d", lex_line_nr());
       }
     }
     if (token_at.klass == TOK_PARENTH_CLOSE)
@@ -1537,7 +1557,7 @@ syn_extern_object_decl()
       }
     }
     else
-      error ("at line %d: unknown type '%s'", lex_line_nr(), token_at.lexeme);
+      error("at line %d: unknown type '%s'", lex_line_nr(), token_at.lexeme);
     if (token_at.klass == TOK_BRACE_CLOSE)
       lex_next_token(&token_at);
     else
