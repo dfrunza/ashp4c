@@ -50,6 +50,7 @@ enum AstKind
   AST_SIMPLE_PROP,
   AST_VAR_DECL,
   AST_VAR_CONTROL_LDECL,
+  AST_PACKAGE_TYPE_DECL,
   AST_INSTANTIATION,
   AST_EXTERN_OBJECT_DECL,
   AST_EXTERN_FUNCTION_DECL,
@@ -418,6 +419,16 @@ typedef struct
   Ast_ParserState* parser_state;
 }
 Ast_ParserDecl;
+
+typedef struct
+{
+  Ast_Declaration;
+  char* name;
+  Ast_Parameter* parameter;
+  int param_count;
+  IdentInfo_Type* type;
+}
+Ast_PackageTypeDecl;
 
 typedef struct
 {

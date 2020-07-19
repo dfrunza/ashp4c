@@ -2,7 +2,10 @@
 
 <declaration> := <struct_type_decl> | <header_type_decl> |
           <error_type_decl> | <typedef_decl> | <parser_decl> |
-          <control_decl> | <extern_decl> | <instantiation>
+          <control_decl> | <extern_decl> | <package_type_decl> |
+          <instantiation>
+
+<package_type_decl> := 'package' identifier { type_parameter_list } '(' <parameter_list> ')' ';'
 
 <extern_decl> := 'extern' ( <extern_object> | <function_prototype> )
 
@@ -10,7 +13,7 @@
 
 <function_prototype> := type_identifier identifier { type_parameter_list } '(' <parameter_list> ')' ';'
 
-<type_parameter_list> := '<' identifier { ',' <identifier> } '>'
+<type_parameter_list> := '<' identifier { ',' <identifier> }* '>'
 
 <instantiation> := <typeref> '(' <argument_list> ')' identifier ';'
 
@@ -91,7 +94,11 @@
 
 <typedef_decl> := 'typedef' <typeref> identifier ';'
 
-<typeref> := identifier | <bit_typeref> | <int_typeref>
+<typeref> := type_identifier | <specialized_typeref> | <bit_typeref> | <int_typeref>
+
+<typeref_parameter_list> := '<' <type_identifier> { ',' <type_identifier> } '>'
+
+<specialized_typeref> := type_identifier { '.' type_identifier } <typeref_parameter_list>
 
 <bit_typeref> := 'bit' { '<' integer '>' }
 
