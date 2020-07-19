@@ -233,26 +233,6 @@ syn_error_type_decl()
   return result;
 }
 
-internal int
-syn_type_size()
-{
-  assert (token_at.klass == TOK_ANGLE_OPEN);
-  lex_next_token(&token_at);
-  int result = 0;
-  if (token_at.klass == TOK_INTEGER)
-  {
-    //TODO: String-to-Integer conversion.
-    lex_next_token(&token_at);
-    if (token_at.klass == TOK_ANGLE_CLOSE)
-      lex_next_token(&token_at);
-    else
-      error(0);
-  }
-  else
-    error(0);
-  return result;
-}
-
 internal void
 syn_type_parameter_list()
 {
@@ -425,14 +405,14 @@ syn_parameter()
   if (token_at.klass == TOK_TYPE_IDENT)
     result->typeref = syn_typeref();
   else
-    error(0);
+    error ("at line %d: unknown type '%s'", lex_line_nr(), token_at.lexeme);
   if (token_at.klass == TOK_IDENT)
   {
     result->name = token_at.lexeme;
     lex_next_token(&token_at);
   }
   else
-    error(0);
+    error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
 }
 
@@ -452,7 +432,7 @@ syn_parameter_list()
       parameter = next_parameter;
     }
     else
-      error(0);
+      error("type identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
   return result;
 }
@@ -601,11 +581,9 @@ syn_expression_primary()
     if (token_is_expression(&token_at))
       result = syn_expression(1);
     if (token_at.klass == TOK_PARENTH_CLOSE)
-    {
       lex_next_token(&token_at);
-    }
     else
-      error(0);
+      error("')' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
 //  else if (token_at.klass == TOK_KW_TRUE || token_at.klass == TOK_KW_FALSE)
 //  {
@@ -706,7 +684,7 @@ syn_expression(int priority_threshold)
         if (token_is_expression(&token_at))
           binary_expr->r_operand = syn_expression(priority_threshold + 1);
         else
-          error(0);
+          error("operand expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
         result = (Ast_Expression*)binary_expr;
       }
       else if (op == OP_FUNCTION_CALL)
@@ -760,7 +738,7 @@ syn_ident_state()
   if (token_at.klass == TOK_SEMICOLON)
     lex_next_token(&token_at);
   else
-    error(0);
+    error("';' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
 }
 
@@ -804,13 +782,13 @@ syn_select_case()
       if (token_at.klass == TOK_SEMICOLON)
         lex_next_token(&token_at);
       else
-        error(0);
+        error("';' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
     }
     else
-      error(0);
+      error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
   else
-    error(0);
+    error("':' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
 }
 
@@ -845,10 +823,10 @@ syn_select_state()
     if (token_at.klass == TOK_PARENTH_CLOSE)
       lex_next_token(&token_at);
     else
-      error(0);
+      error("')' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
   else
-    error(0);
+    error("'(' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   if (token_at.klass == TOK_BRACE_OPEN)
   {
     lex_next_token(&token_at);
@@ -856,10 +834,10 @@ syn_select_state()
     if (token_at.klass == TOK_BRACE_CLOSE)
       lex_next_token(&token_at);
     else
-      error(0);
+      error("'}' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
   else
-    error(0);
+    error("'{' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
 }
 
@@ -876,7 +854,7 @@ syn_transition_stmt()
   else if (token_at.klass == TOK_KW_SELECT)
     result->state_expr = (Ast_StateExpr*)syn_select_state();
   else
-    error(0);
+    error("transition stmt expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
 }
 
@@ -899,11 +877,11 @@ syn_statement_list()
         if (token_at.klass == TOK_SEMICOLON)
           lex_next_token(&token_at);
         else
-          error(0);
+          error("';' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
       }
     }
     else
-      error(0);
+      error("';' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
   return result;
 }
@@ -1031,7 +1009,7 @@ syn_block_statement()
   if (token_at.klass == TOK_BRACE_CLOSE)
     lex_next_token(&token_at);
   else
-    error(0);
+    error("block stmt expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
 }
 
@@ -1063,17 +1041,17 @@ syn_action_decl()
       if (token_at.klass == TOK_PARENTH_CLOSE)
         lex_next_token(&token_at);
       else
-        error(0);
+        error("')' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
     }
     else
-      error(0);
+      error("'(' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
     if (token_at.klass == TOK_BRACE_OPEN)
       result->action_body = syn_block_statement();
     else
-      error(0);
+      error("'{' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
   else
-    error(0);
+    error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
 }
 
@@ -1094,13 +1072,13 @@ syn_key_elem()
       if (token_at.klass == TOK_SEMICOLON)
         lex_next_token(&token_at);
       else
-        error(0);
+        error("';' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
     }
     else
-      error(0);
+      error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
   else
-    error(0);
+    error("':' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
 }
 
@@ -1115,7 +1093,7 @@ syn_simple_prop()
   if (token_at.klass == TOK_SEMICOLON)
     lex_next_token(&token_at);
   else
-    error(0);
+    error("';' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
 }
 
@@ -1145,18 +1123,21 @@ syn_action_ref()
           argument = next_argument;
         }
         else
-          error(0);
+          error("operand expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
       }
     }
     if (token_at.klass == TOK_PARENTH_CLOSE)
       lex_next_token(&token_at);
     else
-      assert (false);
+      error("')' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
+  else
+    error("'(' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
+
   if (token_at.klass == TOK_SEMICOLON)
     lex_next_token(&token_at);
   else
-    error(0);
+    error("';' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
 }
 
@@ -1186,17 +1167,17 @@ syn_table_property()
           }
         }
         else
-          error(0);
+          error("operand expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
         if (token_at.klass == TOK_BRACE_CLOSE)
           lex_next_token(&token_at);
         else
-          error(0);
+          error("'}' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
       }
       else
-        error(0);
+        error("'{' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
     }
     else
-      error(0);
+      error("'=' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
   else if (cstr_match(token_at.lexeme, "actions"))
   {
@@ -1221,13 +1202,13 @@ syn_table_property()
         if (token_at.klass == TOK_BRACE_CLOSE)
           lex_next_token(&token_at);
         else
-          error(0);
+          error("'}' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
       }
       else
-        error(0);
+        error("'{' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
     }
     else
-      error(0);
+      error("'=' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
   else
   {
@@ -1270,17 +1251,17 @@ syn_table_decl()
         }
       }
       else
-        error(0);
+        error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
       if (token_at.klass == TOK_BRACE_CLOSE)
         lex_next_token(&token_at);
       else
-        error(0);
+        error("'}' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
     }
     else
-      error(0);
+      error("'{' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
   else
-    error(0);
+    error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
 }
 
@@ -1309,17 +1290,17 @@ syn_var_decl()
           if (token_at.klass == TOK_SEMICOLON)
             lex_next_token(&token_at);
           else
-            error(0);
+            error("';' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
         }
         else
-          error(0);
+          error("operand expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
       }
     }
     else
-      error(0);
+      error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
   else
-    error(0);
+    error("';' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
 }
 
@@ -1431,7 +1412,7 @@ syn_package_type_decl()
   else if (token_at.klass == TOK_TYPE_IDENT)
     error ("at line %d: type '%s' has been previously declared", lex_line_nr(), token_at.lexeme);
   else
-      error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
+    error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
 
   if (token_at.klass == TOK_SEMICOLON)
     lex_next_token(&token_at);
