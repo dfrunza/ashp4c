@@ -75,13 +75,11 @@ enum TokenClass
   //TOK_KW_BOOL,
   //TOK_KW_FALSE,
   //TOK_KW_TRUE,
-  TOK_KW_VERIFY,
-  TOK_KW_VAR,
+  //TOK_KW_VERIFY,
+  //TOK_KW_VAR,
 
   TOK_UNKNOWN,
   TOK_EOI,    // End Of Input
-
-  TOK__COUNT
 };
 
 enum IdentObjectKind

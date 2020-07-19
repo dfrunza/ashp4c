@@ -25,7 +25,7 @@ lex_read_input(char* filename)
 }
 
 internal char
-lex_char_get(int pos)
+lex_char_lookahead(int pos)
 {
   char* char_pos = lexeme_end + pos;
   assert (char_pos >= 0 && char_pos <= (input_text + input_size));
@@ -151,7 +151,7 @@ lex_next_token(Token* token)
   state = 1;
   while (state)
   {
-    char c = lex_char_get(0);
+    char c = lex_char_lookahead(0);
     switch (state)
     {
       default:
@@ -163,7 +163,7 @@ lex_next_token(Token* token)
           lex_lexeme_advance();
           if (c == '\n' || c == '\r')
           {
-            char cc = lex_char_get(0);
+            char cc = lex_char_lookahead(0);
             if (c + cc == '\n' + '\r')
               lex_lexeme_advance();
             line_nr++;
@@ -350,7 +350,7 @@ lex_next_token(Token* token)
 
       case 115:
       {
-        if (lex_char_get(1) == '=')
+        if (lex_char_lookahead(1) == '=')
         {
           lex_char_advance();
           token->klass = TOK_EQUAL_EQUAL;
@@ -367,20 +367,27 @@ lex_next_token(Token* token)
       {
         if (c == '0')
         {
-          c = lex_char_advance();
-          if (cstr_is_digit(c))
-            state = 401;
-          else if (c == 'x' || c == 'X')
+          c = lex_char_lookahead(1);
+          if (c == 'x' || c == 'X')
+          {
             state = 402;
+            lex_lexeme_advance();
+            break;
+          }
           else if (c == 'o' || c == 'O')
+          {
             state = 403;
+            lex_lexeme_advance();
+            break;
+          }
           else if (c == 'b' || c == 'B')
+          {
             state = 404;
-          else
-            state = 2;
+            lex_lexeme_advance();
+            break;
+          }
         }
-        else
-          state = 401;
+        state = 401;
       }
       break;
 

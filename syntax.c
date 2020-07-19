@@ -85,8 +85,6 @@ syn_header_type_decl()
           field = (Ast_StructField*)field->next;
         }
       }
-      else
-        error("type identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
 
       if (token_at.klass == TOK_BRACE_CLOSE)
         lex_next_token(&token_at);
@@ -155,6 +153,7 @@ syn_struct_type_decl()
         error("at line %d: unknown type '%s'", lex_line_nr(), token_at.lexeme);
       else
         error("'}' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
+      sym_scope_pop_level();
     }
     else
       error("'{' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
@@ -608,18 +607,18 @@ syn_expression_primary()
 //      boolean->value = true;
 //    token_at++;
 //  }
-  else if (token_at.klass == TOK_KW_APPLY || token_at.klass == TOK_KW_VERIFY)
+  else if (token_at.klass == TOK_KW_APPLY)
   {
-    // FIXME: HACK
-    Ast_IdentExpr* expression = arena_push_struct(arena, Ast_IdentExpr);
-    zero_struct(expression, Ast_IdentExpr);
-    expression->kind = AST_IDENT_EXPR;
-    if (token_at.klass == TOK_KW_APPLY)
-      expression->name = "apply";
-    else if (token_at.klass == TOK_KW_VERIFY)
-      expression->name = "verify";
-    result = (Ast_Expression*)expression;
-    lex_next_token(&token_at);
+    error("TODO");
+    //Ast_IdentExpr* expression = arena_push_struct(arena, Ast_IdentExpr);
+    //zero_struct(expression, Ast_IdentExpr);
+    //expression->kind = AST_IDENT_EXPR;
+    //if (token_at.klass == TOK_KW_APPLY)
+    //  expression->name = "apply";
+    //else if (token_at.klass == TOK_KW_VERIFY)
+    //  expression->name = "verify";
+    //result = (Ast_Expression*)expression;
+    //lex_next_token(&token_at);
   }
   else
     assert (false);
@@ -1286,39 +1285,31 @@ syn_table_decl()
 internal Ast_VarDecl*
 syn_var_decl()
 {
-  assert (token_at.klass == TOK_KW_VAR);
-  lex_next_token(&token_at);
+  assert (token_at.klass == TOK_TYPE_IDENT);
   Ast_VarDecl* result = arena_push_struct(arena, Ast_VarDecl);
   zero_struct(result, Ast_VarDecl);
   result->kind = AST_VAR_DECL;
+  syn_typeref();
   if (token_at.klass == TOK_IDENT)
   {
-    result->typename = token_at.lexeme;
+    result->name = token_at.lexeme;
     lex_next_token(&token_at);
-    if (token_at.klass == TOK_IDENT)
+    if (token_at.klass == TOK_EQUAL)
     {
-      result->name = token_at.lexeme;
       lex_next_token(&token_at);
-      if (token_at.klass == TOK_EQUAL)
-      {
-        lex_next_token(&token_at);
-        if (token_is_expression(&token_at))
-        {
-          result->initializer = syn_expression(1);
-          if (token_at.klass == TOK_SEMICOLON)
-            lex_next_token(&token_at);
-          else
-            error("';' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
-        }
-        else
-          error("expression term expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
-      }
+      if (token_is_expression(&token_at))
+        result->initializer = syn_expression(1);
+      else
+        error("expression term expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
     }
+
+    if (token_at.klass == TOK_SEMICOLON)
+      lex_next_token(&token_at);
     else
-      error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
+      error("';' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   }
   else
-    error("';' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
+    error("identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
   return result;
 }
 
@@ -1337,7 +1328,7 @@ syn_control_local_decl()
     Ast_TableDecl* table_decl = syn_table_decl();
     result = (Ast_Declaration*)table_decl;
   }
-  else if (token_at.klass == TOK_KW_VAR)
+  else if (token_at.klass == TOK_TYPE_IDENT)
   {
     Ast_VarDecl* var_decl = syn_var_decl();
     result = (Ast_Declaration*)var_decl;

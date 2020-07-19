@@ -79,6 +79,7 @@ parser my_parser(packet_in pkt, out headers_t hdr)
 
 control my_filter(inout headers_t hdr, out bool accept)
 {
+  int i;
   apply
   {
   }
