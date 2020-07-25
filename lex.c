@@ -1,28 +1,15 @@
+#include "dp4c.h"
 #include "lex.h"
+#include "symtab.h"
 
-internal Arena* arena = 0;
-char* input_text = 0;
-uint32_t input_size = 0;
+external Arena arena;
+external Token token_at;
+external char* input_text;
+external uint32_t input_size;
 internal char* lexeme_start = 0;
 internal char* lexeme_end = 0;
 internal int state = 0;
 internal int line_nr = 1;
-
-internal char*
-lex_read_input(char* filename)
-{
-  FILE* f_stream = fopen(filename, "rb");
-  fseek(f_stream, 0, SEEK_END);
-  uint32_t f_size = ftell(f_stream);
-  fseek(f_stream, 0, SEEK_SET);
-  char* data = arena_push_array(arena, char, f_size + 1);
-  fread(data, sizeof(char), f_size, f_stream);
-  data[f_size] = '\0';
-  input_size = f_size;
-  fclose(f_stream);
-  arena_print_usage(arena, "Main arena (lex_read_input): ");
-  return data;
-}
 
 internal char
 lex_char_lookahead(int pos)
@@ -49,7 +36,7 @@ lex_char_retract()
   return result;
 }
 
-internal void
+void
 lex_lexeme_init(char* input_text)
 {
   lexeme_start = input_text;
@@ -123,18 +110,10 @@ internal char*
 lex_lexeme_to_cstring()
 {
   int lexeme_len = lexeme_end - lexeme_start + 1;   // not counting the NULL terminator
-  char* lexeme = arena_push_array(arena, char, lexeme_len + 1);   // +1 the NULL terminator
+  char* lexeme = arena_push_array(&arena, char, lexeme_len + 1);   // +1 the NULL terminator
   lexeme_copy(lexeme, lexeme_start, lexeme_end);
   lexeme[lexeme_len] = '\0';
   return lexeme;
-}
-
-void
-lex_init(Arena* arena_, char* filename)
-{
-  arena = arena_;
-  input_text = lex_read_input(filename);
-  lex_lexeme_init(input_text);
 }
 
 int
@@ -144,9 +123,9 @@ lex_line_nr()
 }
 
 void
-lex_next_token(Token* token)
+lex_next_token()
 {
-  zero_struct(token, Token);
+  zero_struct(&token_at, Token);
   bool stop = false;
   state = 1;
   while (state)
@@ -215,8 +194,8 @@ lex_next_token(Token* token)
 
       case 100:
       {
-        token->klass = TOK_SEMICOLON;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_SEMICOLON;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -224,8 +203,8 @@ lex_next_token(Token* token)
 
       case 101:
       {
-        token->klass = TOK_ANGLE_OPEN;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_ANGLE_OPEN;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -233,8 +212,8 @@ lex_next_token(Token* token)
 
       case 102:
       {
-        token->klass = TOK_ANGLE_CLOSE;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_ANGLE_CLOSE;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -242,8 +221,8 @@ lex_next_token(Token* token)
 
       case 103:
       {
-        token->klass = TOK_DONTCARE;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_DONTCARE;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -251,8 +230,8 @@ lex_next_token(Token* token)
 
       case 104:
       {
-        token->klass = TOK_COLON;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_COLON;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -260,8 +239,8 @@ lex_next_token(Token* token)
 
       case 105:
       {
-        token->klass = TOK_PARENTH_OPEN;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_PARENTH_OPEN;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -269,8 +248,8 @@ lex_next_token(Token* token)
 
       case 106:
       {
-        token->klass = TOK_PARENTH_CLOSE;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_PARENTH_CLOSE;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -278,8 +257,8 @@ lex_next_token(Token* token)
 
       case 107:
       {
-        token->klass = TOK_PERIOD;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_PERIOD;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -287,8 +266,8 @@ lex_next_token(Token* token)
 
       case 108:
       {
-        token->klass = TOK_BRACE_OPEN;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_BRACE_OPEN;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -296,8 +275,8 @@ lex_next_token(Token* token)
 
       case 109:
       {
-        token->klass = TOK_BRACE_CLOSE;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_BRACE_CLOSE;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -305,8 +284,8 @@ lex_next_token(Token* token)
 
       case 110:
       {
-        token->klass = TOK_COMMA;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_COMMA;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -314,8 +293,8 @@ lex_next_token(Token* token)
 
       case 111:
       {
-        token->klass = TOK_MINUS;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_MINUS;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -323,8 +302,8 @@ lex_next_token(Token* token)
 
       case 112:
       {
-        token->klass = TOK_PLUS;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_PLUS;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -332,8 +311,8 @@ lex_next_token(Token* token)
 
       case 113:
       {
-        token->klass = TOK_STAR;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_STAR;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -341,8 +320,8 @@ lex_next_token(Token* token)
 
       case 114:
       {
-        token->klass = TOK_SLASH;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_SLASH;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -353,11 +332,11 @@ lex_next_token(Token* token)
         if (lex_char_lookahead(1) == '=')
         {
           lex_char_advance();
-          token->klass = TOK_EQUAL_EQUAL;
+          token_at.klass = TOK_EQUAL_EQUAL;
         }
         else
-          token->klass = TOK_EQUAL;
-        token->lexeme = lex_lexeme_to_cstring();
+          token_at.klass = TOK_EQUAL;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -403,8 +382,8 @@ lex_next_token(Token* token)
         else
         {
           lex_char_retract();
-          token->klass = TOK_INTEGER;
-          token->lexeme = lex_lexeme_to_cstring();
+          token_at.klass = TOK_INTEGER;
+          token_at.lexeme = lex_lexeme_to_cstring();
           lex_lexeme_advance();
           state = 0;
         }
@@ -423,8 +402,8 @@ lex_next_token(Token* token)
         else
         {
           lex_char_retract();
-          token->klass = TOK_INTEGER_HEX;
-          token->lexeme = lex_lexeme_to_cstring();
+          token_at.klass = TOK_INTEGER_HEX;
+          token_at.lexeme = lex_lexeme_to_cstring();
           lex_lexeme_advance();
           state = 0;
         }
@@ -443,8 +422,8 @@ lex_next_token(Token* token)
         else
         {
           lex_char_retract();
-          token->klass = TOK_INTEGER_OCT;
-          token->lexeme = lex_lexeme_to_cstring();
+          token_at.klass = TOK_INTEGER_OCT;
+          token_at.lexeme = lex_lexeme_to_cstring();
           lex_lexeme_advance();
           state = 0;
         }
@@ -463,8 +442,8 @@ lex_next_token(Token* token)
         else
         {
           lex_char_retract();
-          token->klass = TOK_INTEGER_BIN;
-          token->lexeme = lex_lexeme_to_cstring();
+          token_at.klass = TOK_INTEGER_BIN;
+          token_at.lexeme = lex_lexeme_to_cstring();
           lex_lexeme_advance();
           state = 0;
         }
@@ -477,8 +456,8 @@ lex_next_token(Token* token)
           c = lex_char_advance();
         while (cstr_is_digit(c));
         lex_char_retract();
-        token->klass = TOK_WINTEGER;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_WINTEGER;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -490,8 +469,8 @@ lex_next_token(Token* token)
           c = lex_char_advance();
         while (cstr_is_digit(c));
         lex_char_retract();
-        token->klass = TOK_SINTEGER;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_SINTEGER;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -503,8 +482,8 @@ lex_next_token(Token* token)
           c = lex_char_advance();
         while (cstr_is_hex_digit(c));
         lex_char_retract();
-        token->klass = TOK_WINTEGER_HEX;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_WINTEGER_HEX;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -516,8 +495,8 @@ lex_next_token(Token* token)
           c = lex_char_advance();
         while (cstr_is_hex_digit(c));
         lex_char_retract();
-        token->klass = TOK_SINTEGER_HEX;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_SINTEGER_HEX;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -529,8 +508,8 @@ lex_next_token(Token* token)
           c = lex_char_advance();
         while (cstr_is_oct_digit(c));
         lex_char_retract();
-        token->klass = TOK_WINTEGER_OCT;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_WINTEGER_OCT;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -542,8 +521,8 @@ lex_next_token(Token* token)
           c = lex_char_advance();
         while (cstr_is_oct_digit(c));
         lex_char_retract();
-        token->klass = TOK_SINTEGER_OCT;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_SINTEGER_OCT;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -555,8 +534,8 @@ lex_next_token(Token* token)
           c = lex_char_advance();
         while (cstr_is_bin_digit(c) || c == '_');
         lex_char_retract();
-        token->klass = TOK_WINTEGER_BIN;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_WINTEGER_BIN;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -568,8 +547,8 @@ lex_next_token(Token* token)
           c = lex_char_advance();
         while (cstr_is_bin_digit(c) || c == '_');
         lex_char_retract();
-        token->klass = TOK_SINTEGER_BIN;
-        token->lexeme = lex_lexeme_to_cstring();
+        token_at.klass = TOK_SINTEGER_BIN;
+        token_at.lexeme = lex_lexeme_to_cstring();
         lex_lexeme_advance();
         state = 0;
       }
@@ -581,20 +560,20 @@ lex_next_token(Token* token)
           c = lex_char_advance();
         while (cstr_is_letter(c) || cstr_is_digit(c) || c == '_');
         lex_char_retract();
-        token->klass = TOK_IDENT;
-        token->lexeme = lex_lexeme_to_cstring();
-        NamespaceInfo* ns = sym_get_namespace(token->lexeme);
+        token_at.klass = TOK_IDENT;
+        token_at.lexeme = lex_lexeme_to_cstring();
+        NamespaceInfo* ns = sym_get_namespace(token_at.lexeme);
         if (ns->ns_global)
         {
           IdentInfo* id_info = ns->ns_global;
           if (id_info->object_kind == IDOBJ_KEYWORD)
-            token->klass = ((IdentInfo_Keyword*)id_info)->token_klass;
+            token_at.klass = ((IdentInfo_Keyword*)id_info)->token_klass;
         }
         else if (ns->ns_type)
         {
           IdentInfo* id_info = ns->ns_type;
           if (id_info->object_kind == IDOBJ_TYPE || id_info->object_kind == IDOBJ_TYPEVAR)
-            token->klass = TOK_TYPE_IDENT;
+            token_at.klass = TOK_TYPE_IDENT;
         }
         lex_lexeme_advance();
         state = 0;
@@ -603,16 +582,16 @@ lex_next_token(Token* token)
 
       case 2:
       {
-        token->klass = TOK_EOI;
-        token->lexeme = "<end-of-input>";
+        token_at.klass = TOK_EOI;
+        token_at.lexeme = "<end-of-input>";
         state = 0;
       }
       break;
 
       case 3:
       {
-        token->klass = TOK_UNKNOWN;
-        token->lexeme = "<unknown>";
+        token_at.klass = TOK_UNKNOWN;
+        token_at.lexeme = "<unknown>";
         lex_lexeme_advance();
         state = 0;
       }

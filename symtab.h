@@ -1,9 +1,7 @@
 #pragma once
-#include "basic.h"
-#include "arena.h"
-#include "lex.h"
+#include "dp4c.h"
 
-void sym_init(Arena* arena_);
+void sym_init();
 NamespaceInfo* sym_get_namespace(char* name);
 IdentInfo_Type* sym_get_type(char* name);
 int sym_scope_get_level();

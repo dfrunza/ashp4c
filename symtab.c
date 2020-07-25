@@ -1,9 +1,10 @@
+#include "dp4c.h"
 #include "symtab.h"
 
-internal Arena* arena = 0;
-internal NamespaceInfo** symtab = 0;
-internal int symtab_len = 997;
-internal int scope_level = 0;
+external Arena arena;
+external NamespaceInfo** symtab;
+external int symtab_len;
+external int scope_level;
 internal IdentInfo_Keyword* error_kw = 0;
 internal IdentInfo_Var* error_var = 0;
 internal IdentInfo_Type* error_type = 0;
@@ -13,7 +14,7 @@ add_keyword(char* name, enum TokenClass token_klass)
 {
   NamespaceInfo* namespace = sym_get_namespace(name);
   assert (namespace->ns_global == 0);
-  IdentInfo_Keyword* ident = arena_push_struct(arena, IdentInfo_Keyword);
+  IdentInfo_Keyword* ident = arena_push_struct(&arena, IdentInfo_Keyword);
   zero_struct(ident, IdentInfo_Keyword);
   ident->name = name;
   ident->scope_level = scope_level;
@@ -24,14 +25,8 @@ add_keyword(char* name, enum TokenClass token_klass)
 }
 
 void
-sym_init(Arena* arena_)
+sym_init()
 {
-  arena = arena_;
-  symtab = arena_push_array(arena, NamespaceInfo*, symtab_len);
-  int i = 0;
-  while (i < symtab_len)
-    symtab[i++] = 0;
-
   add_keyword("action", TOK_KW_ACTION);
   add_keyword("const", TOK_KW_CONST);
   add_keyword("enum", TOK_KW_ENUM);
@@ -71,7 +66,7 @@ sym_init(Arena* arena_)
   sym_add_type("int");
   sym_add_type("string");
 
-  error_var = arena_push_struct(arena, IdentInfo_Var);
+  error_var = arena_push_struct(&arena, IdentInfo_Var);
   zero_struct(error_var, IdentInfo_Var);
   error_var->name = "error";
   error_var->object_kind = IDOBJ_VAR;
@@ -88,12 +83,6 @@ name_hash(char* name)
     sum += (uint32_t)(*c++);
   result = sum % symtab_len;
   return result;
-}
-
-int
-sym_scope_get_level()
-{
-  return scope_level;
 }
 
 int
@@ -150,7 +139,7 @@ sym_get_namespace(char* name)
   }
   if (!name_info)
   {
-    name_info = arena_push_struct(arena, NamespaceInfo);
+    name_info = arena_push_struct(&arena, NamespaceInfo);
     zero_struct(name_info, NamespaceInfo);
     name_info->name = name;
     name_info->next = symtab[h];
@@ -173,7 +162,7 @@ IdentInfo_Type*
 sym_add_type(char* name)
 {
   NamespaceInfo* ns = sym_get_namespace(name);
-  IdentInfo_Type* new_ident = arena_push_struct(arena, IdentInfo_Type);
+  IdentInfo_Type* new_ident = arena_push_struct(&arena, IdentInfo_Type);
   zero_struct(new_ident, IdentInfo_Type);
   new_ident->name = name;
   new_ident->scope_level = scope_level;
@@ -188,7 +177,7 @@ IdentInfo*
 sym_add_typevar(char* name)
 {
   NamespaceInfo* ns = sym_get_namespace(name);
-  IdentInfo* new_ident = arena_push_struct(arena, IdentInfo);
+  IdentInfo* new_ident = arena_push_struct(&arena, IdentInfo);
   zero_struct(new_ident, IdentInfo);
   new_ident->name = name;
   new_ident->scope_level = scope_level;
@@ -203,7 +192,7 @@ IdentInfo*
 sym_add_error_code(char* name)
 {
   NamespaceInfo* ns = sym_get_namespace(name);
-  IdentInfo* new_ident = arena_push_struct(arena, IdentInfo);
+  IdentInfo* new_ident = arena_push_struct(&arena, IdentInfo);
   zero_struct(new_ident, IdentInfo);
   new_ident->name = name;
   new_ident->scope_level = scope_level;
@@ -282,7 +271,7 @@ IdentInfo_Selector*
 sym_add_selector(char* name)
 {
   NamespaceInfo* ns = sym_get_namespace(name);
-  IdentInfo_Selector* new_ident = arena_push_struct(arena, IdentInfo_Selector);
+  IdentInfo_Selector* new_ident = arena_push_struct(&arena, IdentInfo_Selector);
   zero_struct(new_ident, IdentInfo_Selector);
   new_ident->name = name;
   new_ident->scope_level = scope_level;

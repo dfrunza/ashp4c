@@ -1,6 +1,6 @@
 #!/bin/bash
 
-C_FLAGS="-g -ggdb -std=gnu89 -m32 -Winline -Wno-write-strings -Wreturn-type -fms-extensions"
+C_FLAGS="-g -ggdb -std=gnu89 -Winline -Wno-write-strings -Wreturn-type -fms-extensions"
 L_FLAGS=""
 
 SRC=`pwd`

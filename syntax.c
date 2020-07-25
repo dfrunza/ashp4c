@@ -1,8 +1,9 @@
-#include "syntax.h"
+#include "dp4c.h"
+#include "symtab.h"
 
-internal Arena* arena = 0;
-internal int token_pos = 0;
-internal Token token_at = {};
+external Arena arena;
+external Token token_at;
+external int scope_level;
 
 internal Ast_Typeref* syn_typeref();
 internal Ast_Expression* syn_expression(int priority_threshold);
@@ -11,7 +12,7 @@ internal Ast_StructField*
 syn_struct_field()
 {
   assert (token_at.klass == TOK_TYPE_IDENT);
-  Ast_StructField* result = arena_push_struct(arena, Ast_StructField);
+  Ast_StructField* result = arena_push_struct(&arena, Ast_StructField);
   zero_struct(result, Ast_StructField);
   result->kind = AST_STRUCT_FIELD;
   result->typeref = syn_typeref();
@@ -19,7 +20,7 @@ syn_struct_field()
   {
     result->name = token_at.lexeme;
     IdentInfo_Selector* id_info = sym_get_selector(result->name);
-    if (id_info && id_info->scope_level >= sym_scope_get_level())
+    if (id_info && id_info->scope_level >= scope_level)
       error("at line %d: selector '%s' has been previously declared", lex_line_nr(), result->name);
     result->selector = sym_add_selector(result->name);
     lex_next_token(&token_at);
@@ -48,7 +49,7 @@ syn_header_type_decl()
 {
   assert (token_at.klass == TOK_KW_HEADER);
   lex_next_token(&token_at);
-  Ast_HeaderTypeDecl* result = arena_push_struct(arena, Ast_HeaderTypeDecl);
+  Ast_HeaderTypeDecl* result = arena_push_struct(&arena, Ast_HeaderTypeDecl);
   zero_struct(result, Ast_HeaderTypeDecl);
   result->kind = AST_HEADER_TYPE_DECL;
   if (token_at.klass == TOK_IDENT)
@@ -109,7 +110,7 @@ syn_struct_type_decl()
 {
   assert (token_at.klass == TOK_KW_STRUCT);
   lex_next_token(&token_at);
-  Ast_StructTypeDecl* result = arena_push_struct(arena, Ast_StructTypeDecl);
+  Ast_StructTypeDecl* result = arena_push_struct(&arena, Ast_StructTypeDecl);
   zero_struct(result, Ast_StructTypeDecl);
   result->kind = AST_STRUCT_TYPE_DECL;
   if (token_at.klass == TOK_IDENT)
@@ -169,12 +170,12 @@ internal Ast_ErrorCode*
 syn_error_code()
 {
   assert (token_at.klass == TOK_IDENT);
-  Ast_ErrorCode* id = arena_push_struct(arena, Ast_ErrorCode);
+  Ast_ErrorCode* id = arena_push_struct(&arena, Ast_ErrorCode);
   zero_struct(id, Ast_ErrorCode);
   id->kind = AST_ERROR_CODE;
   id->name = token_at.lexeme;
   IdentInfo_Selector* id_info = sym_get_selector(id->name);
-  if (id_info && id_info->scope_level >= sym_scope_get_level())
+  if (id_info && id_info->scope_level >= scope_level)
     error("at line %d: selector '%s' has been previously declared", lex_line_nr(), id->name);
   id->selector = sym_add_selector(id->name);
   lex_next_token(&token_at);
@@ -186,7 +187,7 @@ syn_error_type_decl()
 {
   assert (token_at.klass == TOK_KW_ERROR);
   lex_next_token(&token_at);
-  Ast_ErrorTypeDecl* result = arena_push_struct(arena, Ast_ErrorTypeDecl);
+  Ast_ErrorTypeDecl* result = arena_push_struct(&arena, Ast_ErrorTypeDecl);
   zero_struct(result, Ast_ErrorTypeDecl);
   result->kind = AST_ERROR_TYPE_DECL;
   result->type = sym_get_error_type();
@@ -336,7 +337,7 @@ internal Ast_Typeref*
 syn_typeref()
 {
   assert (token_at.klass == TOK_TYPE_IDENT);
-  Ast_Typeref* result = arena_push_struct(arena, Ast_Typeref);
+  Ast_Typeref* result = arena_push_struct(&arena, Ast_Typeref);
   zero_struct(result, Ast_Typeref);
   result->kind = AST_TYPEREF;
   result->name = token_at.lexeme;
@@ -351,7 +352,7 @@ syn_typedef_decl()
 {
   assert (token_at.klass == TOK_KW_TYPEDEF);
   lex_next_token(&token_at);
-  Ast_TypedefDecl* result = arena_push_struct(arena, Ast_TypedefDecl);
+  Ast_TypedefDecl* result = arena_push_struct(&arena, Ast_TypedefDecl);
   zero_struct(result, Ast_TypedefDecl);
   result->kind = AST_TYPEDEF_DECL;
   if (token_at.klass == TOK_TYPE_IDENT)
@@ -408,7 +409,7 @@ internal Ast_Parameter*
 syn_parameter()
 {
   assert(token_is_parameter(&token_at));
-  Ast_Parameter* result = arena_push_struct(arena, Ast_Parameter);
+  Ast_Parameter* result = arena_push_struct(&arena, Ast_Parameter);
   zero_struct(result, Ast_Parameter);
   result->kind = AST_PARAMETER;
   if (token_is_direction(&token_at))
@@ -455,7 +456,7 @@ syn_parser_type_decl()
 {
   assert (token_at.klass == TOK_KW_PARSER);
   lex_next_token(&token_at);
-  Ast_ParserTypeDecl* result = arena_push_struct(arena, Ast_ParserTypeDecl);
+  Ast_ParserTypeDecl* result = arena_push_struct(&arena, Ast_ParserTypeDecl);
   zero_struct(result, Ast_ParserTypeDecl);
   result->kind = AST_PARSER_TYPE_DECL;
   if (token_at.klass == TOK_IDENT)
@@ -474,7 +475,12 @@ syn_parser_type_decl()
       if (token_at.klass == TOK_PARENTH_CLOSE)
         lex_next_token(&token_at);
       else
-        error("')' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
+      {
+        if (token_at.klass == TOK_IDENT)
+          error("type identifier expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
+        else
+          error("')' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
+      }
     }
     else
       error("'(' expected at line %d, got '%s'", lex_line_nr(), token_at.lexeme);
@@ -537,7 +543,7 @@ syn_expression_primary()
   Ast_Expression* result = 0;
   if (token_at.klass == TOK_IDENT)
   {
-    Ast_IdentExpr* expression = arena_push_struct(arena, Ast_IdentExpr);
+    Ast_IdentExpr* expression = arena_push_struct(&arena, Ast_IdentExpr);
     zero_struct(expression, Ast_IdentExpr);
     expression->kind = AST_IDENT_EXPR;
     expression->name = token_at.lexeme;
@@ -546,7 +552,7 @@ syn_expression_primary()
   }
   else if (token_at.klass == TOK_TYPE_IDENT)
   {
-    Ast_IdentExpr* expression = arena_push_struct(arena, Ast_IdentExpr);
+    Ast_IdentExpr* expression = arena_push_struct(&arena, Ast_IdentExpr);
     zero_struct(expression, Ast_IdentExpr);
     expression->kind = AST_IDENT_EXPR;
     expression->name = token_at.lexeme;
@@ -555,7 +561,7 @@ syn_expression_primary()
   }
   else if (token_is_integer(&token_at))
   {
-    Ast_IntegerExpr* expression = arena_push_struct(arena, Ast_IntegerExpr);
+    Ast_IntegerExpr* expression = arena_push_struct(&arena, Ast_IntegerExpr);
     zero_struct(expression, Ast_IntegerExpr);
     expression->kind = AST_INTEGER_EXPR;
     expression->value = 0; //TODO
@@ -564,7 +570,7 @@ syn_expression_primary()
   }
   else if (token_is_winteger(&token_at))
   {
-    Ast_WIntegerExpr* expression = arena_push_struct(arena, Ast_WIntegerExpr);
+    Ast_WIntegerExpr* expression = arena_push_struct(&arena, Ast_WIntegerExpr);
     zero_struct(expression, Ast_WIntegerExpr);
     expression->kind = AST_WINTEGER_EXPR;
     expression->value = 0; //TODO
@@ -573,7 +579,7 @@ syn_expression_primary()
   }
   else if (token_is_sinteger(&token_at))
   {
-    Ast_SIntegerExpr* expression = arena_push_struct(arena, Ast_SIntegerExpr);
+    Ast_SIntegerExpr* expression = arena_push_struct(&arena, Ast_SIntegerExpr);
     zero_struct(expression, Ast_SIntegerExpr);
     expression->kind = AST_SINTEGER_EXPR;
     expression->value = 0; //TODO
@@ -582,7 +588,7 @@ syn_expression_primary()
   }
   else if (token_at.klass == TOK_KW_ERROR)
   {
-    Ast_ErrorExpr* expression = arena_push_struct(arena, Ast_ErrorExpr);
+    Ast_ErrorExpr* expression = arena_push_struct(&arena, Ast_ErrorExpr);
     zero_struct(expression, Ast_ErrorExpr);
     expression->kind = AST_ERROR_EXPR;
     result = (Ast_Expression*)expression;
@@ -600,7 +606,7 @@ syn_expression_primary()
   }
 //  else if (token_at.klass == TOK_KW_TRUE || token_at.klass == TOK_KW_FALSE)
 //  {
-//    Ast_Bool* boolean = arena_push_struct(arena, Ast_Bool);
+//    Ast_Bool* boolean = arena_push_struct(&arena, Ast_Bool);
 //    *boolean = (Ast_Bool){};
 //    boolean->kind = AST_BOOL;
 //    if (token_at.klass == TOK_KW_TRUE)
@@ -610,7 +616,7 @@ syn_expression_primary()
   else if (token_at.klass == TOK_KW_APPLY)
   {
     error("TODO");
-    //Ast_IdentExpr* expression = arena_push_struct(arena, Ast_IdentExpr);
+    //Ast_IdentExpr* expression = arena_push_struct(&arena, Ast_IdentExpr);
     //zero_struct(expression, Ast_IdentExpr);
     //expression->kind = AST_IDENT_EXPR;
     //if (token_at.klass == TOK_KW_APPLY)
@@ -689,7 +695,7 @@ syn_expression(int priority_threshold)
       lex_next_token(&token_at);
       if (op_is_binary(op))
       {
-        Ast_BinaryExpr* binary_expr = arena_push_struct(arena, Ast_BinaryExpr);
+        Ast_BinaryExpr* binary_expr = arena_push_struct(&arena, Ast_BinaryExpr);
         zero_struct(binary_expr, Ast_BinaryExpr)
         binary_expr->kind = AST_BINARY_EXPR;
         binary_expr->l_operand = result;
@@ -702,7 +708,7 @@ syn_expression(int priority_threshold)
       }
       else if (op == OP_FUNCTION_CALL)
       {
-        Ast_FunctionCallExpr* function_call = arena_push_struct(arena, Ast_FunctionCallExpr);
+        Ast_FunctionCallExpr* function_call = arena_push_struct(&arena, Ast_FunctionCallExpr);
         zero_struct(function_call, Ast_FunctionCallExpr);
         function_call->kind = AST_FUNCTION_CALL;
         if (token_is_expression(&token_at))
@@ -745,7 +751,7 @@ internal Ast_IdentState*
 syn_ident_state()
 {
   assert (token_at.klass == TOK_IDENT);
-  Ast_IdentState* result = arena_push_struct(arena, Ast_IdentState);
+  Ast_IdentState* result = arena_push_struct(&arena, Ast_IdentState);
   zero_struct(result, Ast_IdentState);
   result->kind = AST_IDENT_STATE;
   result->name = token_at.lexeme;
@@ -771,7 +777,7 @@ syn_select_case()
   Ast_SelectCase* result = 0;
   if (token_is_expression(&token_at))
   {
-    Ast_ExprSelectCase* expr_select = arena_push_struct(arena, Ast_ExprSelectCase);
+    Ast_ExprSelectCase* expr_select = arena_push_struct(&arena, Ast_ExprSelectCase);
     zero_struct(expr_select, Ast_ExprSelectCase);
     expr_select->kind = AST_EXPR_SELECT_CASE;
     expr_select->key_expr = syn_expression(1);
@@ -780,7 +786,7 @@ syn_select_case()
   else if (token_at.klass = TOK_KW_DEFAULT)
   {
     lex_next_token(&token_at);
-    Ast_DefaultSelectCase* default_select = arena_push_struct(arena, Ast_DefaultSelectCase);
+    Ast_DefaultSelectCase* default_select = arena_push_struct(&arena, Ast_DefaultSelectCase);
     zero_struct(default_select, Ast_DefaultSelectCase);
     default_select->kind = AST_DEFAULT_SELECT_CASE;
     result = (Ast_SelectCase*)default_select;
@@ -827,7 +833,7 @@ syn_select_state()
 {
   assert (token_at.klass == TOK_KW_SELECT);
   lex_next_token(&token_at);
-  Ast_SelectState* result = arena_push_struct(arena, Ast_SelectState);
+  Ast_SelectState* result = arena_push_struct(&arena, Ast_SelectState);
   zero_struct(result, Ast_SelectState);
   result->kind = AST_SELECT_STATE;
   if (token_at.klass == TOK_PARENTH_OPEN)
@@ -861,7 +867,7 @@ syn_transition_stmt()
 {
   assert (token_at.klass == TOK_KW_TRANSITION);
   lex_next_token(&token_at);
-  Ast_TransitionStmt* result = arena_push_struct(arena, Ast_TransitionStmt);
+  Ast_TransitionStmt* result = arena_push_struct(&arena, Ast_TransitionStmt);
   zero_struct(result, Ast_TransitionStmt);
   result->kind = AST_TRANSITION_STMT;
   if (token_at.klass == TOK_IDENT)
@@ -906,7 +912,7 @@ syn_parser_state()
 {
   assert (token_at.klass == TOK_KW_STATE);
   lex_next_token(&token_at);
-  Ast_ParserState* result = arena_push_struct(arena, Ast_ParserState);
+  Ast_ParserState* result = arena_push_struct(&arena, Ast_ParserState);
   zero_struct(result, Ast_ParserState);
   result->kind = AST_PARSER_STATE;
   if (token_at.klass == TOK_IDENT)
@@ -937,7 +943,7 @@ syn_parser_decl()
 {
   assert (token_at.klass == TOK_KW_PARSER);
   sym_remove_error_kw();
-  Ast_ParserDecl* result = arena_push_struct(arena, Ast_ParserDecl);
+  Ast_ParserDecl* result = arena_push_struct(&arena, Ast_ParserDecl);
   zero_struct(result, Ast_ParserDecl);
   result->kind = AST_PARSER_DECL;
   result->parser_type_decl = syn_parser_type_decl();
@@ -979,7 +985,7 @@ syn_control_type_decl()
 {
   assert (token_at.klass == TOK_KW_CONTROL);
   lex_next_token(&token_at);
-  Ast_ControlTypeDecl* result = arena_push_struct(arena, Ast_ControlTypeDecl);
+  Ast_ControlTypeDecl* result = arena_push_struct(&arena, Ast_ControlTypeDecl);
   zero_struct(result, Ast_ControlTypeDecl);
   result->kind = AST_CONTROL_TYPE_DECL;
   if (token_at.klass == TOK_IDENT)
@@ -1016,7 +1022,7 @@ syn_block_statement()
 {
   assert (token_at.klass == TOK_BRACE_OPEN);
   lex_next_token(&token_at);
-  Ast_BlockStmt* result = arena_push_struct(arena, Ast_BlockStmt);
+  Ast_BlockStmt* result = arena_push_struct(&arena, Ast_BlockStmt);
   zero_struct(result, Ast_BlockStmt);
   result->kind = AST_BLOCK_STMT;
   if (token_is_expression(&token_at))
@@ -1041,7 +1047,7 @@ syn_action_decl()
 {
   assert (token_at.klass == TOK_KW_ACTION);
   lex_next_token(&token_at);
-  Ast_ActionDecl* result = arena_push_struct(arena, Ast_ActionDecl);
+  Ast_ActionDecl* result = arena_push_struct(&arena, Ast_ActionDecl);
   zero_struct(result, Ast_ActionDecl);
   result->kind = AST_ACTION_DECL;
   if (token_at.klass == TOK_IDENT)
@@ -1074,7 +1080,7 @@ internal Ast_Key*
 syn_key_elem()
 {
   assert (token_is_expression(&token_at));
-  Ast_Key* result = arena_push_struct(arena, Ast_Key);
+  Ast_Key* result = arena_push_struct(&arena, Ast_Key);
   zero_struct(result, Ast_Key);
   result->kind = AST_TABLE_KEY;
   result->expression = syn_expression(1);
@@ -1101,7 +1107,7 @@ internal Ast_SimpleProp*
 syn_simple_prop()
 {
   assert (token_is_expression(&token_at));
-  Ast_SimpleProp* result = arena_push_struct(arena, Ast_SimpleProp);
+  Ast_SimpleProp* result = arena_push_struct(&arena, Ast_SimpleProp);
   zero_struct(result, Ast_SimpleProp);
   result->kind = AST_SIMPLE_PROP;
   result->expression = syn_expression(1);
@@ -1116,7 +1122,7 @@ internal Ast_ActionRef*
 syn_action_ref()
 {
   assert (token_at.klass == TOK_IDENT);
-  Ast_ActionRef* result = arena_push_struct(arena, Ast_ActionRef);
+  Ast_ActionRef* result = arena_push_struct(&arena, Ast_ActionRef);
   zero_struct(result, Ast_ActionRef);
   result->kind = AST_ACTION_REF;
   result->name = token_at.lexeme;
@@ -1246,7 +1252,7 @@ syn_table_decl()
 {
   assert (token_at.klass == TOK_KW_TABLE);
   lex_next_token(&token_at);
-  Ast_TableDecl* result = arena_push_struct(arena, Ast_TableDecl);
+  Ast_TableDecl* result = arena_push_struct(&arena, Ast_TableDecl);
   zero_struct(result, Ast_TableDecl);
   result->kind = AST_TABLE_DECL;
   if (token_at.klass == TOK_IDENT)
@@ -1286,7 +1292,7 @@ internal Ast_VarDecl*
 syn_var_decl()
 {
   assert (token_at.klass == TOK_TYPE_IDENT);
-  Ast_VarDecl* result = arena_push_struct(arena, Ast_VarDecl);
+  Ast_VarDecl* result = arena_push_struct(&arena, Ast_VarDecl);
   zero_struct(result, Ast_VarDecl);
   result->kind = AST_VAR_DECL;
   syn_typeref();
@@ -1343,7 +1349,7 @@ syn_control_decl()
 {
   assert (token_at.klass == TOK_KW_CONTROL);
   sym_remove_error_kw();
-  Ast_ControlDecl* result = arena_push_struct(arena, Ast_ControlDecl);
+  Ast_ControlDecl* result = arena_push_struct(&arena, Ast_ControlDecl);
   zero_struct(result, Ast_ControlDecl);
   result->kind = AST_CONTROL_DECL;
   result->type_decl = syn_control_type_decl();
@@ -1393,7 +1399,7 @@ syn_package_type_decl()
 {
   assert (token_at.klass == TOK_KW_PACKAGE);
   lex_next_token(&token_at);
-  Ast_PackageTypeDecl* result = arena_push_struct(arena, Ast_PackageTypeDecl);
+  Ast_PackageTypeDecl* result = arena_push_struct(&arena, Ast_PackageTypeDecl);
   zero_struct(result, Ast_PackageTypeDecl);
   result->kind = AST_PACKAGE_TYPE_DECL;
   if (token_at.klass == TOK_IDENT)
@@ -1434,7 +1440,7 @@ internal Ast_Instantiation*
 syn_instantiation()
 {
   assert (token_at.klass == TOK_TYPE_IDENT);
-  Ast_Instantiation* result = arena_push_struct(arena, Ast_Instantiation);
+  Ast_Instantiation* result = arena_push_struct(&arena, Ast_Instantiation);
   zero_struct(result, Ast_Instantiation);
   result->kind = AST_INSTANTIATION;
   result->typeref = syn_typeref();
@@ -1483,7 +1489,7 @@ internal Ast_FunctionPrototype*
 syn_function_prototype_decl()
 {
   assert (token_at.klass == TOK_TYPE_IDENT);
-  Ast_FunctionPrototype* result = arena_push_struct(arena, Ast_FunctionPrototype);
+  Ast_FunctionPrototype* result = arena_push_struct(&arena, Ast_FunctionPrototype);
   zero_struct(result, Ast_FunctionPrototype);
   result->kind = AST_FUNCTION_PROTOTYPE_DECL;
   result->return_type = sym_get_type(token_at.lexeme);
@@ -1522,7 +1528,7 @@ internal Ast_ExternObjectDecl*
 syn_extern_object_decl()
 {
   assert (token_at.klass == TOK_IDENT);
-  Ast_ExternObjectDecl* result = arena_push_struct(arena, Ast_ExternObjectDecl);
+  Ast_ExternObjectDecl* result = arena_push_struct(&arena, Ast_ExternObjectDecl);
   zero_struct(result, Ast_ExternObjectDecl);
   result->kind = AST_EXTERN_OBJECT_DECL;
   result->name = token_at.lexeme;
@@ -1621,7 +1627,7 @@ syn_p4program()
   Ast_P4Program* result = 0;
   if (token_is_declaration(&token_at))
   {
-    result = arena_push_struct(arena, Ast_P4Program);
+    result = arena_push_struct(&arena, Ast_P4Program);
     zero_struct(result, Ast_P4Program);
     result->kind = AST_P4PROGRAM;
     Ast_Declaration* declaration = syn_declaration();
@@ -1642,12 +1648,6 @@ syn_p4program()
   return result;
 }
 
-void
-syn_init(Arena* arena_)
-{
-  arena = arena_;
-}
-
 Ast_P4Program*
 syn_parse()
 {
@@ -1655,6 +1655,6 @@ syn_parse()
   lex_next_token(&token_at);
   Ast_P4Program* result = syn_p4program();
   sym_scope_pop_level();
-  arena_print_usage(arena, "Main arena (syn_parse): ");
+  arena_print_usage(&arena, "Main arena (syn_parse): ");
   return result;
 }
