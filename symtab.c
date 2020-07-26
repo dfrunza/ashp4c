@@ -4,6 +4,7 @@ external Arena arena;
 external NamespaceInfo** symtab;
 external int symtab_len;
 external int scope_level;
+
 internal IdentInfo_Keyword* error_kw = 0;
 internal IdentInfo_Var* error_var = 0;
 internal IdentInfo_Type* error_type = 0;

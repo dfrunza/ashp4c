@@ -79,6 +79,7 @@ enum TokenClass
   //TOK_KW_VAR,
 
   TOK_UNKNOWN,
+  TOK_SOI,    // Start Of Input
   TOK_EOI,    // End Of Input
 };
 
