@@ -615,4 +615,3 @@ typedef struct
   int decl_count;
 }
 Ast_P4Program;
-
