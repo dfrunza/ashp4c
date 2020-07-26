@@ -1,5 +1,4 @@
 #pragma once
-#include <stdio.h>
 #include "basic.h"
 #include "arena.h"
 
@@ -578,8 +577,7 @@ Ast_PackageTypeDecl;
 typedef struct
 {
   Ast_Declaration;
-  Ast_Typeref* typeref;
-  Ast_Expression* argument;
+  Ast_Expression* package;
   char* name;
 }
 Ast_Instantiation;

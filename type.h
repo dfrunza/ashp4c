@@ -1,7 +1,5 @@
 #pragma once
-#include "basic.h"
-#include "arena.h"
-#include "lex.h"
+#include "dp4c.h"
 
-void typ_init(Arena* arena_);
+void resolve_types();
 

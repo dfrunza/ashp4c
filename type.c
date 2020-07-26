@@ -1,13 +1,13 @@
-#include "type.h"
+#include "dp4c.h"
 
-internal Arena* arena = 0;
-internal int typetable_len = 1000;
-internal uint64_t* typetable = 0;
+external Arena* arena;
+external int typetable_len;
+external int max_typetable_len;
+external IdentInfo_Type* typetable;
+external Ast_P4Program* p4program;
 
 void
-typ_init(Arena* arena_)
+resolve_types()
 {
-  arena = arena_;
-  typetable = arena_push_array(arena, uint64_t, typetable_len);
 }
 

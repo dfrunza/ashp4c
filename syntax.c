@@ -1478,45 +1478,18 @@ syn_instantiation()
   Ast_Instantiation* result = arena_push_struct(&arena, Ast_Instantiation);
   zero_struct(result, Ast_Instantiation);
   result->kind = AST_INSTANTIATION;
-  result->typeref = syn_typeref();
-  if (token_at->klass == TOK_PARENTH_OPEN)
+  result->package = syn_expression(1);
+  if (token_at->klass == TOK_IDENT)
   {
+    result->name = token_at->lexeme;
     next_token();
-    if (token_is_expression(token_at))
-    {
-      Ast_Expression* argument = syn_expression(1);
-      result->argument = argument;
-      while (token_at->klass == TOK_COMMA)
-      {
-        next_token();
-        if (token_is_expression(token_at))
-        {
-          Ast_Expression* next_argument = syn_expression(1);
-          argument->next = next_argument;
-          argument = next_argument;
-        }
-        else if (token_at->klass == TOK_COMMA)
-          error("missing parameter at line %d", token_at->line_nr);
-      }
-    }
-    if (token_at->klass == TOK_PARENTH_CLOSE)
+    if (token_at->klass == TOK_SEMICOLON)
       next_token();
     else
-      error("'(' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
-    if (token_at->klass == TOK_IDENT)
-    {
-      result->name = token_at->lexeme;
-      next_token();
-      if (token_at->klass == TOK_SEMICOLON)
-        next_token();
-      else
-        error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
-    }
-    else
-      error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-    error("')' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1687,6 +1660,7 @@ syn_p4program()
 void
 syn_parse()
 {
+  sym_init();
   scope_push_level();
   token_at = tokenized_input;
   next_token();

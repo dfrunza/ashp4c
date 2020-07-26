@@ -12,5 +12,6 @@ gcc $C_FLAGS -I . -c $SRC/arena.c
 gcc $C_FLAGS -I . -c $SRC/lex.c
 gcc $C_FLAGS -I . -c $SRC/syntax.c 
 gcc $C_FLAGS -I . -c $SRC/symtab.c 
-gcc $C_FLAGS -I. -o dp4c $SRC/dp4c.c basic.o arena.o lex.o syntax.o symtab.o
+gcc $C_FLAGS -I . -c $SRC/type.c 
+gcc $C_FLAGS -I. -o dp4c $SRC/dp4c.c basic.o arena.o lex.o syntax.o symtab.o type.o
 popd

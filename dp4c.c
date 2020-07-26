@@ -11,7 +11,7 @@ int max_tokenized_input_len = 1000;
 int max_symtab_len = 997;
 NamespaceInfo** symtab = 0;
 int scope_level = 0;
-uint64_t* typetable = 0;
+IdentInfo_Type* typetable = 0;
 int typetable_len = 0;
 int max_typetable_len = 1000;
 Ast_P4Program* p4program = 0;
@@ -33,20 +33,21 @@ read_input(char* filename)
 int
 main(int arg_count, char* args[])
 {
-  arena_new(&arena, 128*KILOBYTE);
+  arena_new(&arena, 192*KILOBYTE);
 
   tokenized_input = arena_push_array(&arena, Token, max_tokenized_input_len);
   symtab = arena_push_array(&arena, NamespaceInfo*, max_symtab_len);
   int i = 0;
   while (i < max_symtab_len)
     symtab[i++] = 0;
-  typetable = arena_push_array(&arena, uint64_t, max_typetable_len);
+  typetable = arena_push_array(&arena, IdentInfo_Type, max_typetable_len);
+  arena_print_usage(&arena, "Memory (data structures): ");
 
   read_input("test.p4");
   lex_input_init(input_text);
   lex_tokenize_input();
-  sym_init();
   syn_parse();
+  resolve_types();
   return 0;
 }
 

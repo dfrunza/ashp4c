@@ -16,6 +16,9 @@
 
 #define sizeof_array(ARRAY) (sizeof(ARRAY)/sizeof(ARRAY[0]))
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE*)0)->MEMBER)
+#define containerof(PTR, TYPE, MEMBER) ({ \
+	const typeof( ((TYPE* )0)->MEMBER )* __mptr = (PTR); \
+	(TYPE* )( (char *)__mptr - offsetof(TYPE, MEMBER) );})
 #define assert(EXPR) do { if(!(EXPR)) assert_(#EXPR, __FILE__, __LINE__); } while(0)
 void assert_(char* message, char* file, int line);
 bool cstr_is_letter(char c);

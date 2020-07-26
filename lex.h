@@ -1,7 +1,5 @@
 #pragma once
-#include <stdio.h>
-#include "basic.h"
-#include "arena.h"
+#include "dp4c.h"
 
 void lex_input_init(char* input_text);
 void lex_tokenize_input();
