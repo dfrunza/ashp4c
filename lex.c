@@ -3,10 +3,10 @@
 external Arena arena;
 external char* input_text;
 external uint32_t input_size;
-external int line_nr;
 external Token* tokenized_input;
 external int tokenized_input_len;
 
+internal int line_nr = 1;
 internal char* lexeme_start = 0;
 internal char* lexeme_end = 0;
 internal int state = 0;
@@ -579,6 +579,7 @@ next_token(Token* token_at)
       break;
     }
   }
+  token_at->line_nr = line_nr;
 }
 
 void
@@ -594,7 +595,7 @@ lex_tokenize_input()
   while (token_at->klass != TOK_EOI)
   {
     if (token_at->klass == TOK_UNKNOWN)
-      error("at line %d: unknown token", line_nr);
+      error("at line %d: unknown token", token_at->line_nr);
     token_at++;
     next_token(token_at);
     tokenized_input_len++;

@@ -143,6 +143,7 @@ typedef struct
 {
   enum TokenClass klass;
   char* lexeme;
+  int line_nr;
   struct IdentInfo* ident;
 }
 Token;

@@ -2,7 +2,7 @@
 
 external Arena arena;
 external NamespaceInfo** symtab;
-external int symtab_len;
+external int max_symtab_len;
 external int scope_level;
 
 internal IdentInfo_Keyword* error_kw = 0;
@@ -17,7 +17,7 @@ name_hash(char* name)
   char* c = name;
   while (*c)
     sum += (uint32_t)(*c++);
-  result = sum % symtab_len;
+  result = sum % max_symtab_len;
   return result;
 }
 
@@ -33,7 +33,7 @@ int
 scope_pop_level()
 {
   int i = 0;
-  while (i < symtab_len)
+  while (i < max_symtab_len)
   {
     NamespaceInfo* ns = symtab[i];
     while (ns)
