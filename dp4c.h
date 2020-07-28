@@ -125,18 +125,18 @@ IdentInfo_Keyword;
 typedef struct
 {
   IdentInfo;
-  IdentInfo_Type* type;
+  IdentInfo_Type* id_info;
 }
 IdentInfo_Var;
 
-typedef struct NamespaceInfo
+typedef struct SymbolTable_Entry
 {
   char* name;
   IdentInfo* ns_global;
   IdentInfo* ns_type;
-  struct NamespaceInfo* next;
+  struct SymbolTable_Entry* next;
 }
-NamespaceInfo;
+SymbolTable_Entry;
 
 typedef struct
 {
@@ -274,7 +274,7 @@ typedef struct
   Ast_Declaration;
   Ast_Typeref* typeref;
   char* name;
-  IdentInfo_Type* type;
+  IdentInfo_Type* id_info;
 }
 Ast_TypedefDecl;
 
@@ -292,7 +292,7 @@ typedef struct
   char* name;
   Ast_StructField* field;
   int field_count;
-  IdentInfo_Type* type;
+  IdentInfo_Type* id_info;
 }
 Ast_StructTypeDecl;
 
@@ -302,7 +302,7 @@ typedef struct
   char* name;
   Ast_StructField* field;
   int field_count;
-  IdentInfo_Type* type;
+  IdentInfo_Type* id_info;
 }
 Ast_HeaderTypeDecl;
 
@@ -311,7 +311,7 @@ typedef struct
   Ast_Declaration;
   Ast_ErrorCode* error_code;
   int code_count;
-  IdentInfo_Type* type;
+  IdentInfo_Type* id_info;
 }
 Ast_ErrorTypeDecl;
 
@@ -331,7 +331,7 @@ typedef struct
   char* name;
   Ast_Parameter* parameter;
   int param_count;
-  IdentInfo_Type* type;
+  IdentInfo_Type* id_info;
 }
 Ast_ParserTypeDecl;
 
@@ -486,7 +486,7 @@ typedef struct
   Ast;
   char* name;
   Ast_Parameter* parameter;
-  IdentInfo_Type* type;
+  IdentInfo_Type* id_info;
 }
 Ast_ControlTypeDecl;
 
@@ -570,7 +570,7 @@ typedef struct
   char* name;
   Ast_Parameter* parameter;
   int param_count;
-  IdentInfo_Type* type;
+  IdentInfo_Type* id_info;
 }
 Ast_PackageTypeDecl;
 
@@ -598,13 +598,17 @@ typedef struct
   char* name;
   Ast_FunctionPrototype* method;
   int method_count;
-  IdentInfo_Type* type;
+  IdentInfo_Type* id_info;
 }
 Ast_ExternObjectDecl;
 
 typedef struct
 {
-  Ast_FunctionPrototype;
+  Ast_Declaration;
+  char* name;
+  Ast_Parameter* parameter;
+  int param_count;
+  IdentInfo_Type* return_type;
 }
 Ast_ExternFunctionDecl;
 
@@ -615,3 +619,24 @@ typedef struct
   int decl_count;
 }
 Ast_P4Program;
+
+enum TypeTable_TypeCtor
+{
+  TYP_NONE,
+  TYP_FUNCTION,
+  TYP_ENUM,
+  TYP_PARSER,
+  TYP_CONTROL,
+  TYP_PACKAGE,
+  TYP_TYPEDEF,
+  TYP_HEADER,
+  TYP_STRUCT,
+};
+
+typedef struct
+{
+  enum TypeTable_TypeCtor kind;
+  char* name;
+}
+TypeTable_Entry;
+

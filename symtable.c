@@ -1,8 +1,8 @@
 #include "dp4c.h"
 
 external Arena arena;
-external NamespaceInfo** symtab;
-external int max_symtab_len;
+external SymbolTable_Entry** symtable;
+external int max_symtable_len;
 external int scope_level;
 
 internal IdentInfo_Keyword* error_kw = 0;
@@ -17,7 +17,7 @@ name_hash(char* name)
   char* c = name;
   while (*c)
     sum += (uint32_t)(*c++);
-  result = sum % max_symtab_len;
+  result = sum % max_symtable_len;
   return result;
 }
 
@@ -33,9 +33,9 @@ int
 scope_pop_level()
 {
   int i = 0;
-  while (i < max_symtab_len)
+  while (i < max_symtable_len)
   {
-    NamespaceInfo* ns = symtab[i];
+    SymbolTable_Entry* ns = symtable[i];
     while (ns)
     {
       IdentInfo* ident = ns->ns_global;
@@ -62,11 +62,11 @@ scope_pop_level()
   return --scope_level;
 }
 
-NamespaceInfo*
+SymbolTable_Entry*
 sym_get_namespace(char* name)
 {
   uint32_t h = name_hash(name);
-  NamespaceInfo* name_info = symtab[h];
+  SymbolTable_Entry* name_info = symtable[h];
   while(name_info)
   {
     if (cstr_match(name_info->name, name))
@@ -75,11 +75,11 @@ sym_get_namespace(char* name)
   }
   if (!name_info)
   {
-    name_info = arena_push_struct(&arena, NamespaceInfo);
-    zero_struct(name_info, NamespaceInfo);
+    name_info = arena_push_struct(&arena, SymbolTable_Entry);
+    zero_struct(name_info, SymbolTable_Entry);
     name_info->name = name;
-    name_info->next = symtab[h];
-    symtab[h] = name_info;
+    name_info->next = symtable[h];
+    symtable[h] = name_info;
   }
   return name_info;
 }
@@ -87,7 +87,7 @@ sym_get_namespace(char* name)
 IdentInfo_Type*
 sym_get_type(char* name)
 {
-  NamespaceInfo* ns = sym_get_namespace(name);
+  SymbolTable_Entry* ns = sym_get_namespace(name);
   IdentInfo_Type* result = (IdentInfo_Type*)ns->ns_type;
   if (result)
     assert (result->object_kind == IDOBJ_TYPE);
@@ -97,7 +97,7 @@ sym_get_type(char* name)
 IdentInfo_Type*
 sym_add_type(char* name)
 {
-  NamespaceInfo* ns = sym_get_namespace(name);
+  SymbolTable_Entry* ns = sym_get_namespace(name);
   IdentInfo_Type* new_ident = arena_push_struct(&arena, IdentInfo_Type);
   zero_struct(new_ident, IdentInfo_Type);
   new_ident->name = name;
@@ -112,7 +112,7 @@ sym_add_type(char* name)
 IdentInfo*
 sym_add_typevar(char* name)
 {
-  NamespaceInfo* ns = sym_get_namespace(name);
+  SymbolTable_Entry* ns = sym_get_namespace(name);
   IdentInfo* new_ident = arena_push_struct(&arena, IdentInfo);
   zero_struct(new_ident, IdentInfo);
   new_ident->name = name;
@@ -127,7 +127,7 @@ sym_add_typevar(char* name)
 IdentInfo*
 sym_add_error_code(char* name)
 {
-  NamespaceInfo* ns = sym_get_namespace(name);
+  SymbolTable_Entry* ns = sym_get_namespace(name);
   IdentInfo* new_ident = arena_push_struct(&arena, IdentInfo);
   zero_struct(new_ident, IdentInfo);
   new_ident->name = name;
@@ -142,7 +142,7 @@ sym_add_error_code(char* name)
 IdentInfo_Type*
 sym_get_error_type()
 {
-  NamespaceInfo* ns = sym_get_namespace("error");
+  SymbolTable_Entry* ns = sym_get_namespace("error");
   IdentInfo_Type* result = (IdentInfo_Type*)ns->ns_type;
   if (result)
     assert (result->object_kind == IDOBJ_TYPE);
@@ -152,7 +152,7 @@ sym_get_error_type()
 void
 sym_remove_error_kw()
 {
-  NamespaceInfo* ns = sym_get_namespace("error");
+  SymbolTable_Entry* ns = sym_get_namespace("error");
   IdentInfo* id_info = ns->ns_global;
   assert (id_info->object_kind == IDOBJ_KEYWORD);
   ns->ns_global = id_info->next_in_scope;
@@ -161,7 +161,7 @@ sym_remove_error_kw()
 void
 sym_add_error_kw()
 {
-  NamespaceInfo* ns = sym_get_namespace("error");
+  SymbolTable_Entry* ns = sym_get_namespace("error");
   error_kw->scope_level = scope_level;
   error_kw->next_in_scope = ns->ns_global;
   ns->ns_global = (IdentInfo*)error_kw;
@@ -170,7 +170,7 @@ sym_add_error_kw()
 void
 sym_add_error_var()
 {
-  NamespaceInfo* ns = sym_get_namespace("error");
+  SymbolTable_Entry* ns = sym_get_namespace("error");
   error_var->scope_level = scope_level;
   error_var->next_in_scope = ns->ns_global;
   ns->ns_global = (IdentInfo*)error_var;
@@ -179,7 +179,7 @@ sym_add_error_var()
 void
 sym_remove_error_var()
 {
-  NamespaceInfo* ns = sym_get_namespace("error");
+  SymbolTable_Entry* ns = sym_get_namespace("error");
   IdentInfo* id_info = ns->ns_global;
   assert (id_info->object_kind == IDOBJ_VAR);
   ns->ns_global = id_info->next_in_scope;
@@ -188,7 +188,7 @@ sym_remove_error_var()
 internal void
 sym_add_error_type()
 {
-  NamespaceInfo* ns = sym_get_namespace("error");
+  SymbolTable_Entry* ns = sym_get_namespace("error");
   error_type->scope_level = scope_level;
   error_type->next_in_scope = ns->ns_type;
   ns->ns_type = (IdentInfo*)error_type;
@@ -197,7 +197,7 @@ sym_add_error_type()
 internal void
 sym_remove_error_type()
 {
-  NamespaceInfo* ns = sym_get_namespace("error");
+  SymbolTable_Entry* ns = sym_get_namespace("error");
   IdentInfo* id_info = ns->ns_type;
   assert (id_info->object_kind == IDOBJ_TYPE);
   ns->ns_type = id_info->next_in_scope;
@@ -206,7 +206,7 @@ sym_remove_error_type()
 IdentInfo_Selector*
 sym_add_selector(char* name)
 {
-  NamespaceInfo* ns = sym_get_namespace(name);
+  SymbolTable_Entry* ns = sym_get_namespace(name);
   IdentInfo_Selector* new_ident = arena_push_struct(&arena, IdentInfo_Selector);
   zero_struct(new_ident, IdentInfo_Selector);
   new_ident->name = name;
@@ -221,7 +221,7 @@ sym_add_selector(char* name)
 IdentInfo_Selector*
 sym_get_selector(char* name)
 {
-  NamespaceInfo* ns = sym_get_namespace(name);
+  SymbolTable_Entry* ns = sym_get_namespace(name);
   IdentInfo_Selector* result = (IdentInfo_Selector*)ns->ns_global;
   if (result)
     assert (result->object_kind == IDOBJ_FIELD);
@@ -231,7 +231,7 @@ sym_get_selector(char* name)
 internal IdentInfo_Keyword*
 add_keyword(char* name, enum TokenClass token_klass)
 {
-  NamespaceInfo* namespace = sym_get_namespace(name);
+  SymbolTable_Entry* namespace = sym_get_namespace(name);
   assert (namespace->ns_global == 0);
   IdentInfo_Keyword* ident = arena_push_struct(&arena, IdentInfo_Keyword);
   zero_struct(ident, IdentInfo_Keyword);
@@ -289,6 +289,6 @@ sym_init()
   zero_struct(error_var, IdentInfo_Var);
   error_var->name = "error";
   error_var->object_kind = IDOBJ_VAR;
-  error_var->type = sym_get_type("error");
+  error_var->id_info = sym_get_type("error");
 }
 

@@ -1,6 +1,6 @@
 #include "dp4c.h"
 #include "lex.h"
-#include "symtab.h"
+#include "symtable.h"
 
 external Arena arena;
 external Token* tokenized_input;
@@ -20,7 +20,7 @@ next_token()
   token_at++;
   if (token_at->klass == TOK_IDENT)
   {
-    NamespaceInfo* ns = sym_get_namespace(token_at->lexeme);
+    SymbolTable_Entry* ns = sym_get_namespace(token_at->lexeme);
     if (ns->ns_global)
     {
       IdentInfo* id_info = ns->ns_global;
@@ -83,7 +83,7 @@ syn_header_type_decl()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    result->type = sym_add_type(result->name);
+    result->id_info = sym_add_type(result->name);
     next_token();
     if (token_at->klass == TOK_BRACE_OPEN)
     {
@@ -146,7 +146,7 @@ syn_struct_type_decl()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    result->type = sym_add_type(result->name);
+    result->id_info = sym_add_type(result->name);
     next_token();
     if (token_at->klass == TOK_BRACE_OPEN)
     {
@@ -222,7 +222,7 @@ syn_error_type_decl()
   Ast_ErrorTypeDecl* result = arena_push_struct(&arena, Ast_ErrorTypeDecl);
   zero_struct(result, Ast_ErrorTypeDecl);
   result->kind = AST_ERROR_TYPE_DECL;
-  result->type = sym_get_error_type();
+  result->id_info = sym_get_error_type();
   if (token_at->klass == TOK_BRACE_OPEN)
   {
     scope_push_level();
@@ -395,7 +395,7 @@ syn_typedef_decl()
     if (token_at->klass == TOK_IDENT)
     {
       result->name = token_at->lexeme;
-      result->type = sym_add_type(result->name);
+      result->id_info = sym_add_type(result->name);
       next_token();
       if (token_at->klass == TOK_SEMICOLON)
         next_token();
@@ -496,7 +496,7 @@ syn_parser_type_decl()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    result->type = sym_add_type(result->name);
+    result->id_info = sym_add_type(result->name);
     next_token();
     scope_push_level();
     if (token_at->klass == TOK_ANGLE_OPEN)
@@ -1025,7 +1025,7 @@ syn_control_type_decl()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    result->type = sym_add_type(result->name);
+    result->id_info = sym_add_type(result->name);
     next_token();
     scope_push_level();
     if (token_at->klass == TOK_ANGLE_OPEN)
@@ -1440,7 +1440,7 @@ syn_package_type_decl()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    result->type = sym_add_type(result->name);
+    result->id_info = sym_add_type(result->name);
     next_token();
     scope_push_level();
     if (token_at->klass == TOK_ANGLE_OPEN)
@@ -1540,7 +1540,7 @@ syn_extern_object_decl()
   zero_struct(result, Ast_ExternObjectDecl);
   result->kind = AST_EXTERN_OBJECT_DECL;
   result->name = token_at->lexeme;
-  result->type = sym_add_type(result->name);
+  result->id_info = sym_add_type(result->name);
   next_token();
   if (token_at->klass == TOK_ANGLE_OPEN)
     syn_type_parameter_list();
@@ -1653,7 +1653,7 @@ syn_p4program()
   }
   else
     error("expected a declaration at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
-  arena_print_usage(&arena, "Memory (main): ");
+  arena_print_usage(&arena, "Memory (syn_p4program): ");
   return result;
 }
 
