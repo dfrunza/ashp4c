@@ -18,6 +18,9 @@ next_token()
 {
   assert (token_at < tokenized_input + tokenized_input_len);
   token_at++;
+  while (token_at->klass == TOK_COMMENT)
+    token_at++;
+
   if (token_at->klass == TOK_IDENT)
   {
     SymbolTable_Entry* ns = sym_get_namespace(token_at->lexeme);

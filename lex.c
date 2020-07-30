@@ -314,10 +314,18 @@ next_token(Token* token_at)
 
       case 114:
       {
-        token_at->klass = TOK_SLASH;
-        token_at->lexeme = lexeme_to_cstring();
-        lexeme_advance();
-        state = 0;
+        if (char_lookahead(1) == '*')
+        {
+          char_advance();
+          state = 314;
+        }
+        else
+        {
+          token_at->klass = TOK_SLASH;
+          token_at->lexeme = lexeme_to_cstring();
+          lexeme_advance();
+          state = 0;
+        }
       }
       break;
 
@@ -333,6 +341,24 @@ next_token(Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
+      }
+      break;
+
+      case 314:
+      {
+        do
+          c = char_advance();
+        while (c != '*');
+        if (char_lookahead(1) == '/')
+        {
+          char_advance();
+          token_at->klass = TOK_COMMENT;
+          token_at->lexeme = lexeme_to_cstring();
+          lexeme_advance();
+          state = 0;
+        }
+        else
+          state = 314;
       }
       break;
 
