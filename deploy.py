@@ -32,7 +32,7 @@ def main(args):
     novitest_exclude_patterns = []
     common_exclude_patterns = ["deploy.py", "build.sh", "*.log",
                                ".idea/", ".vimprj/", ".git/", ".gitignore",
-                               "__pycache__/", "*.pyc", "*.bak"]
+                               "__pycache__/", "*.pyc", "*.bak", "doc/"]
     exclude_patterns = common_exclude_patterns + cybermapper_exclude_patterns + novitest_exclude_patterns
     rsync_parameters = ["--delete"]
     rsync_cmd = f"rsync " + " ".join(rsync_parameters) + \
