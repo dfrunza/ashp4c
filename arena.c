@@ -66,6 +66,6 @@ arena_print_usage(Arena* arena, char* caption)
 {
   ArenaUsage usage = arena_get_usage(arena);
   float free_ratio = usage.free / (float)usage.total;
-  printf("%s free:%d, in_use:%d -> %.2f\n", caption, usage.free, usage.in_use, free_ratio);
+  printf("%s free:%d, in_use:%d -> %d%%\n", caption, usage.free, usage.in_use, (int)(free_ratio*100.f));
 }
 

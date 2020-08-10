@@ -153,10 +153,12 @@ enum AstKind
   AST_NONE,
   AST_P4PROGRAM,
   AST_DECLARATION,
-  AST_ERROR_TYPE_DECL,
+  AST_ERROR_TYPE,
   AST_STRUCT_TYPE_DECL,
+  AST_STRUCT_TYPE,
   AST_HEADER_TYPE_DECL,
-  AST_TYPEDEF_DECL,
+  AST_HEADER_TYPE,
+  AST_TYPEDEF,
   AST_TYPEREF,
   AST_IDENT_TYPEREF,
   AST_BIT_TYPEREF,
@@ -167,7 +169,7 @@ enum AstKind
   AST_PARAMETER,
   AST_PARAMETER_LIST,
   AST_PARSER_TYPE_DECL,
-  AST_PARSER_DECL,
+  AST_PARSER_TYPE,
   AST_PARSER_STATE,
   AST_IDENT_EXPR,
   AST_INTEGER_EXPR,
@@ -183,23 +185,22 @@ enum AstKind
   AST_EXPR_SELECT_CASE,
   AST_DEFAULT_SELECT_CASE,
   AST_TRANSITION_STMT,
-  AST_CONTROL_DECL,
   AST_CONTROL_TYPE_DECL,
+  AST_CONTROL_TYPE,
   AST_BLOCK_STMT,
   AST_EXPR_STMT,
   AST_BOOL,
-  AST_ACTION_DECL,
-  AST_TABLE_DECL,
+  AST_ACTION,
+  AST_TABLE,
   AST_TABLE_KEY,
   AST_ACTION_REF,
   AST_SIMPLE_PROP,
   AST_VAR_DECL,
-  AST_VAR_CONTROL_LDECL,
   AST_PACKAGE_TYPE_DECL,
   AST_INSTANTIATION,
   AST_EXTERN_OBJECT_DECL,
   AST_EXTERN_FUNCTION_DECL,
-  AST_FUNCTION_PROTOTYPE_DECL,
+  AST_FUNCTION_PROTOTYPE,
 };
 
 enum AstDirection
@@ -277,7 +278,7 @@ typedef struct
   char* name;
   IdentInfo_Type* id_info;
 }
-Ast_TypedefDecl;
+Ast_Typedef;
 
 typedef struct Ast_StructField
 {
@@ -295,7 +296,7 @@ typedef struct
   int field_count;
   IdentInfo_Type* id_info;
 }
-Ast_StructTypeDecl;
+Ast_StructType;
 
 typedef struct
 {
@@ -305,7 +306,7 @@ typedef struct
   int field_count;
   IdentInfo_Type* id_info;
 }
-Ast_HeaderTypeDecl;
+Ast_HeaderType;
 
 typedef struct
 {
@@ -325,16 +326,6 @@ typedef struct Ast_Parameter
   struct Ast_Parameter* next;
 }
 Ast_Parameter;
-
-typedef struct
-{
-  Ast;
-  char* name;
-  Ast_Parameter* parameter;
-  int param_count;
-  IdentInfo_Type* id_info;
-}
-Ast_ParserTypeDecl;
 
 typedef struct Ast_Expression
 {
@@ -485,15 +476,6 @@ Ast_BlockStmt;
 typedef struct
 {
   Ast;
-  char* name;
-  Ast_Parameter* parameter;
-  IdentInfo_Type* id_info;
-}
-Ast_ControlTypeDecl;
-
-typedef struct
-{
-  Ast;
   bool value;
 }
 Ast_Bool;
@@ -550,20 +532,25 @@ Ast_TableDecl;
 typedef struct
 {
   Ast;
-  Ast_ControlTypeDecl* type_decl;
+  char* name;
+  Ast_Parameter* parameter;
+  IdentInfo_Type* id_info;
   Ast_Declaration* local_decl;
   int local_decl_count;
   Ast_BlockStmt* control_body;
 }
-Ast_ControlDecl;
+Ast_ControlType;
 
 typedef struct
 {
   Ast;
-  Ast_ParserTypeDecl* parser_type_decl;
+  char* name;
+  Ast_Parameter* parameter;
+  int param_count;
+  IdentInfo_Type* id_info;
   Ast_ParserState* parser_state;
 }
-Ast_ParserDecl;
+Ast_ParserType;
 
 typedef struct
 {
@@ -625,13 +612,19 @@ enum TypeTable_TypeCtor
 {
   TYP_NONE,
   TYP_FUNCTION,
+  TYP_FUNCTION_DECL,
   TYP_ENUM,
   TYP_PARSER,
+  TYP_PARSER_DECL,
   TYP_CONTROL,
-  TYP_PACKAGE,
+  TYP_CONTROL_DECL,
+  TYP_PACKAGE_DECL,
   TYP_TYPEDEF,
   TYP_HEADER,
+  TYP_HEADER_DECL,
   TYP_STRUCT,
+  TYP_STRUCT_DECL,
+  TYP_EXTERN_OBJECT_DECL,
 };
 
 typedef struct
