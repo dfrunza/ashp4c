@@ -5,6 +5,7 @@ external TypeTable_Entry* typetable;
 external TypeTable_Entry* typetable_free;
 external int max_typetable_len;
 external Ast_P4Program* p4program;
+internal TypeTable_Entry* error_type;
 
 internal TypeTable_Entry*
 new_table_entry()
@@ -87,6 +88,22 @@ visit_header_type(Ast_HeaderType* decl)
 }
 
 internal void
+visit_error_type(Ast_ErrorType* decl)
+{
+  if (decl->code_count != 0)
+  {
+    Ast_ErrorCode* field;
+    field = decl->error_code;
+    while (field)
+    {
+      field = (Ast_ErrorCode*)field->next_id;
+    }
+  }
+  else
+    error("at line %d: empty error definition is disallowed", decl->line_nr);
+}
+
+internal void
 visit_struct_type_decl(Ast_StructType* decl)
 {
   TypeTable_Entry* tb_entry = new_table_entry();
@@ -112,7 +129,7 @@ visit_declaration(Ast_Declaration* decl)
   else if (decl->kind == AST_HEADER_TYPE)
     visit_header_type((Ast_HeaderType*)decl);
   else if (decl->kind == AST_ERROR_TYPE)
-    ;//TODO
+    visit_error_type((Ast_ErrorType*)decl);
   else if (decl->kind == AST_TYPEDEF)
     visit_typedef((Ast_Typedef*)decl);
   else if (decl->kind == AST_PARSER_TYPE_DECL)
@@ -150,9 +167,9 @@ visit_p4program(Ast_P4Program* p4program)
 void
 build_typetable()
 {
-  TypeTable_Entry* tb_entry = new_table_entry();
-  tb_entry->kind = TYP_ENUM;
-  tb_entry->name = "error";
+  error_type = new_table_entry();
+  error_type->kind = TYP_ENUM;
+  error_type->name = "error";
   visit_p4program(p4program);
   arena_print_usage(&arena, "Memory (build_typetable): ");
 }

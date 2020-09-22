@@ -101,7 +101,7 @@ syn_header_type_decl()
         while (token_at->klass == TOK_TYPE_IDENT)
         {
           Ast_StructField* next_field = syn_struct_field();
-          field->next = (Ast_Ident*)next_field;
+          field->next_id = (Ast_Ident*)next_field;
           field = next_field;
           result->field_count++;
         }
@@ -111,12 +111,12 @@ syn_header_type_decl()
         IdentInfo_Selector* selector = field->selector;
         IdentInfo_Type* type = result->type;
         type->selector = field->selector;
-        field = (Ast_StructField*)field->next;
+        field = (Ast_StructField*)field->next_id;
         while (field)
         {
           selector->next_selector = field->selector;
           selector = selector->next_selector;
-          field = (Ast_StructField*)field->next;
+          field = (Ast_StructField*)field->next_id;
         }
 #endif
       }
@@ -165,7 +165,7 @@ syn_struct_type_decl()
         while (token_at->klass == TOK_TYPE_IDENT)
         {
           Ast_StructField* next_field = syn_struct_field();
-          field->next = (Ast_Ident*)next_field;
+          field->next_id = (Ast_Ident*)next_field;
           field = next_field;
           result->field_count++;
         }
@@ -175,12 +175,12 @@ syn_struct_type_decl()
         IdentInfo_Selector* selector = field->selector;
         IdentInfo_Type* type = result->type;
         type->selector = field->selector;
-        field = (Ast_StructField*)field->next;
+        field = (Ast_StructField*)field->next_id;
         while (field)
         {
           selector->next_selector = field->selector;
           selector = selector->next_selector;
-          field = (Ast_StructField*)field->next;
+          field = (Ast_StructField*)field->next_id;
         }
 #endif
       }
@@ -219,15 +219,16 @@ syn_error_code()
   return id;
 }
 
-internal Ast_ErrorTypeDecl*
+internal Ast_ErrorType*
 syn_error_type_decl()
 {
   assert (token_at->klass == TOK_KW_ERROR);
-  next_token();
-  Ast_ErrorTypeDecl* result = arena_push_struct(&arena, Ast_ErrorTypeDecl);
-  zero_struct(result, Ast_ErrorTypeDecl);
+  Ast_ErrorType* result = arena_push_struct(&arena, Ast_ErrorType);
+  zero_struct(result, Ast_ErrorType);
   result->kind = AST_ERROR_TYPE;
+  result->line_nr = token_at->line_nr;
   result->id_info = sym_get_error_type();
+  next_token();
   if (token_at->klass == TOK_BRACE_OPEN)
   {
     scope_push_level();
@@ -243,7 +244,7 @@ syn_error_type_decl()
         if (token_at->klass == TOK_IDENT)
         {
           Ast_ErrorCode* next_code = syn_error_code();
-          field->next = (Ast_Ident*)next_code;
+          field->next_id = (Ast_Ident*)next_code;
           field = next_code;
           result->code_count++;
         }
@@ -258,12 +259,12 @@ syn_error_type_decl()
       IdentInfo_Selector* selector = field->selector;
       IdentInfo_Type* type = result->type;
       type->selector = field->selector;
-      field = (Ast_ErrorCode*)field->next;
+      field = (Ast_ErrorCode*)field->next_id;
       while (field)
       {
         selector->next_selector = field->selector;
         selector = selector->next_selector;
-        field = (Ast_ErrorCode*)field->next;
+        field = (Ast_ErrorCode*)field->next_id;
       }
 #endif
     }

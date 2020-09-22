@@ -225,6 +225,7 @@ enum AstExprOperator
 typedef struct Ast
 {
   enum AstKind kind;
+  int line_nr;
 }
 Ast;
 
@@ -239,7 +240,7 @@ typedef struct Ast_Ident
 {
   Ast;
   char* name;
-  struct Ast_Ident* next;
+  struct Ast_Ident* next_id;
 }
 Ast_Ident;
 
@@ -315,7 +316,7 @@ typedef struct
   int code_count;
   IdentInfo_Type* id_info;
 }
-Ast_ErrorTypeDecl;
+Ast_ErrorType;
 
 typedef struct Ast_Parameter
 {
@@ -611,9 +612,11 @@ Ast_P4Program;
 enum TypeTable_TypeCtor
 {
   TYP_NONE,
+  TYP_BASIC,
   TYP_FUNCTION,
   TYP_FUNCTION_DECL,
   TYP_ENUM,
+  TYP_ENUM_FIELD,
   TYP_PARSER,
   TYP_PARSER_DECL,
   TYP_CONTROL,
@@ -627,10 +630,34 @@ enum TypeTable_TypeCtor
   TYP_EXTERN_OBJECT_DECL,
 };
 
+enum TypeBasic_Kind
+{
+  BASTYP_NONE,
+  BASTYP_INT,
+  BASTYP_VOID,
+  BASTYP_BOOL,
+};
+
 typedef struct
 {
   enum TypeTable_TypeCtor kind;
   char* name;
+
+  union
+  {
+    struct TypeTable_ErrorType
+    {
+      struct TypeTable_Entry* field;
+      int field_count;
+    }
+    error_type;
+
+    struct TypeTable_Field
+    {
+      struct TypeTable_Entry* next_field;
+    }
+    field;
+  };
 }
 TypeTable_Entry;
 
