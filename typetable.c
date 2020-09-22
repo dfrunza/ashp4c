@@ -10,81 +10,81 @@ internal TypeTable_Entry* error_type;
 internal TypeTable_Entry*
 new_table_entry()
 {
-  TypeTable_Entry* tb_entry = typetable_free;
-  zero_struct(tb_entry, TypeTable_Entry);
+  TypeTable_Entry* ttb_entry = typetable_free;
+  zero_struct(ttb_entry, TypeTable_Entry);
   typetable_free++;
   assert (typetable_free <= (typetable + max_typetable_len-1));
-  return tb_entry;
+  return ttb_entry;
 }
 
 internal void
 visit_extern_object_decl(Ast_ExternObjectDecl* decl)
 {
-  TypeTable_Entry* tb_entry = new_table_entry();
-  tb_entry->kind = TYP_STRUCT;
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_STRUCT;
 }
 
 internal void
 visit_function_prototype(Ast_FunctionPrototype* decl)
 {
-  TypeTable_Entry* tb_entry = new_table_entry();
-  tb_entry->kind = TYP_FUNCTION;
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_FUNCTION;
 }
 
 internal void
 visit_parser_type_decl(Ast_ParserType* decl)
 {
-  TypeTable_Entry* tb_entry = new_table_entry();
-  tb_entry->kind = TYP_PARSER_DECL;
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_PARSER_DECL;
 }
 
 internal void
 visit_parser_type(Ast_ParserType* decl)
 {
-  TypeTable_Entry* tb_entry = new_table_entry();
-  tb_entry->kind = TYP_PARSER;
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_PARSER;
 }
 
 internal void
 visit_control_type_decl(Ast_ControlType* decl)
 {
-  TypeTable_Entry* tb_entry = new_table_entry();
-  tb_entry->kind = TYP_CONTROL_DECL;
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_CONTROL_DECL;
 }
 
 internal void
 visit_control_type(Ast_ControlType* decl)
 {
-  TypeTable_Entry* tb_entry = new_table_entry();
-  tb_entry->kind = TYP_CONTROL;
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_CONTROL;
 }
 
 internal void
 visit_package_type_decl(Ast_PackageTypeDecl* decl)
 {
-  TypeTable_Entry* tb_entry = new_table_entry();
-  tb_entry->kind = TYP_PACKAGE_DECL;
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_PACKAGE_DECL;
 }
 
 internal void
 visit_typedef(Ast_Typedef* decl)
 {
-  TypeTable_Entry* tb_entry = new_table_entry();
-  tb_entry->kind = TYP_TYPEDEF;
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_TYPEDEF;
 }
 
 internal void
 visit_header_type_decl(Ast_HeaderType* decl)
 {
-  TypeTable_Entry* tb_entry = new_table_entry();
-  tb_entry->kind = TYP_HEADER_DECL;
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_HEADER_DECL;
 }
 
 internal void
 visit_header_type(Ast_HeaderType* decl)
 {
-  TypeTable_Entry* tb_entry = new_table_entry();
-  tb_entry->kind = TYP_HEADER;
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_HEADER;
 }
 
 internal void
@@ -92,11 +92,17 @@ visit_error_type(Ast_ErrorType* decl)
 {
   if (decl->code_count != 0)
   {
-    Ast_ErrorCode* field;
-    field = decl->error_code;
-    while (field)
+    Ast_ErrorCode* code = decl->error_code;
+    while (code)
     {
-      field = (Ast_ErrorCode*)field->next_id;
+      TypeTable_Entry* ttb_entry = new_table_entry();
+      ttb_entry->kind = TYP_ENUM_FIELD;
+      ttb_entry->name = code->name;
+      TypeTable_Entry* last_field = error_type->enum_type.last_field;
+      last_field->enum_field.next_field = ttb_entry;
+      error_type->enum_type.last_field = ttb_entry;
+      error_type->enum_type.field_count += 1;
+      code = (Ast_ErrorCode*)code->next_id;
     }
   }
   else
@@ -106,15 +112,15 @@ visit_error_type(Ast_ErrorType* decl)
 internal void
 visit_struct_type_decl(Ast_StructType* decl)
 {
-  TypeTable_Entry* tb_entry = new_table_entry();
-  tb_entry->kind = TYP_STRUCT_DECL;
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_STRUCT_DECL;
 }
 
 internal void
 visit_struct_type(Ast_StructType* decl)
 {
-  TypeTable_Entry* tb_entry = new_table_entry();
-  tb_entry->kind = TYP_STRUCT;
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_STRUCT;
 }
 
 internal void
@@ -170,6 +176,9 @@ build_typetable()
   error_type = new_table_entry();
   error_type->kind = TYP_ENUM;
   error_type->name = "error";
+  error_type->enum_type.enum_field = new_table_entry();
+  error_type->enum_type.enum_field->kind = TYP_ENUM_FIELD;
+  error_type->enum_type.last_field = error_type->enum_type.enum_field;
   visit_p4program(p4program);
   arena_print_usage(&arena, "Memory (build_typetable): ");
 }

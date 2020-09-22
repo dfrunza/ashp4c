@@ -106,10 +106,10 @@ syn_header_type_decl()
           result->field_count++;
         }
 
-#if 0
+#if 1
         field = result->field;
         IdentInfo_Selector* selector = field->selector;
-        IdentInfo_Type* type = result->type;
+        IdentInfo_Type* type = result->id_info;
         type->selector = field->selector;
         field = (Ast_StructField*)field->next_id;
         while (field)
@@ -170,10 +170,10 @@ syn_struct_type_decl()
           result->field_count++;
         }
 
-#if 0
+#if 1
         field = result->field;
         IdentInfo_Selector* selector = field->selector;
-        IdentInfo_Type* type = result->type;
+        IdentInfo_Type* type = result->id_info;
         type->selector = field->selector;
         field = (Ast_StructField*)field->next_id;
         while (field)
@@ -254,10 +254,10 @@ syn_error_type_decl()
           error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
       }
 
-#if 0
+#if 1
       field = result->error_code;
       IdentInfo_Selector* selector = field->selector;
-      IdentInfo_Type* type = result->type;
+      IdentInfo_Type* type = result->id_info;
       type->selector = field->selector;
       field = (Ast_ErrorCode*)field->next_id;
       while (field)
@@ -268,8 +268,6 @@ syn_error_type_decl()
       }
 #endif
     }
-    else
-      error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
     if (token_at->klass == TOK_BRACE_CLOSE)
       next_token();
     else

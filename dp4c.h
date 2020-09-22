@@ -638,25 +638,26 @@ enum TypeBasic_Kind
   BASTYP_BOOL,
 };
 
-typedef struct
+typedef struct TypeTable_Entry
 {
   enum TypeTable_TypeCtor kind;
   char* name;
 
   union
   {
-    struct TypeTable_ErrorType
+    struct TypeTable_EnumType
     {
-      struct TypeTable_Entry* field;
+      struct TypeTable_Entry* enum_field;  // sentinel
+      struct TypeTable_Entry* last_field;
       int field_count;
     }
-    error_type;
+    enum_type;
 
-    struct TypeTable_Field
+    struct TypeTable_EnumField
     {
       struct TypeTable_Entry* next_field;
     }
-    field;
+    enum_field;
   };
 }
 TypeTable_Entry;
