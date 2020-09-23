@@ -17,145 +17,185 @@ new_table_entry()
   return ttb_entry;
 }
 
-internal void
-visit_extern_object_decl(Ast_ExternObjectDecl* decl)
-{
-  TypeTable_Entry* ttb_entry = new_table_entry();
-  ttb_entry->kind = TYP_STRUCT;
-}
-
-internal void
+internal TypeTable_Entry*
 visit_function_prototype(Ast_FunctionPrototype* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
   ttb_entry->kind = TYP_FUNCTION;
+  ttb_entry->name = decl->name;
+  ttb_entry->is_decl = true;
+  return ttb_entry;
 }
 
-internal void
+internal TypeTable_Entry*
+visit_extern_object_decl(Ast_ExternObjectDecl* decl)
+{
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_STRUCT;
+  ttb_entry->name = decl->name;
+  ttb_entry->is_decl = true;
+
+  Ast_FunctionPrototype* method = decl->method;
+  while (method)
+  {
+    TypeTable_Entry* method_ttb_entry = visit_function_prototype(method);
+    method = (Ast_FunctionPrototype*)method->next_decl;
+  }
+  return ttb_entry;
+}
+
+internal TypeTable_Entry*
 visit_parser_type_decl(Ast_ParserType* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
-  ttb_entry->kind = TYP_PARSER_DECL;
+  ttb_entry->kind = TYP_PARSER;
+  ttb_entry->is_decl = true;
+  return ttb_entry;
 }
 
-internal void
+internal TypeTable_Entry*
 visit_parser_type(Ast_ParserType* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
   ttb_entry->kind = TYP_PARSER;
+  return ttb_entry;
 }
 
-internal void
+internal TypeTable_Entry*
 visit_control_type_decl(Ast_ControlType* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
-  ttb_entry->kind = TYP_CONTROL_DECL;
+  ttb_entry->kind = TYP_CONTROL;
+  ttb_entry->is_decl = true;
+  return ttb_entry;
 }
 
-internal void
+internal TypeTable_Entry*
 visit_control_type(Ast_ControlType* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
   ttb_entry->kind = TYP_CONTROL;
+  return ttb_entry;
 }
 
-internal void
+internal TypeTable_Entry*
 visit_package_type_decl(Ast_PackageTypeDecl* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
-  ttb_entry->kind = TYP_PACKAGE_DECL;
+  ttb_entry->kind = TYP_PACKAGE;
+  ttb_entry->is_decl = true;
+  return ttb_entry;
 }
 
-internal void
+internal TypeTable_Entry*
 visit_typedef(Ast_Typedef* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
   ttb_entry->kind = TYP_TYPEDEF;
+  return ttb_entry;
 }
 
-internal void
+internal TypeTable_Entry*
 visit_header_type_decl(Ast_HeaderType* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
-  ttb_entry->kind = TYP_HEADER_DECL;
+  ttb_entry->kind = TYP_HEADER;
+  ttb_entry->is_decl = true;
+  return ttb_entry;
 }
 
-internal void
+internal TypeTable_Entry*
 visit_header_type(Ast_HeaderType* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
   ttb_entry->kind = TYP_HEADER;
+  return ttb_entry;
 }
 
-internal void
+internal TypeTable_Entry*
+visit_error_code(Ast_ErrorCode* decl)
+{
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_ENUM_FIELD;
+  ttb_entry->name = decl->name;
+  return ttb_entry;
+}
+
+internal TypeTable_Entry*
 visit_error_type(Ast_ErrorType* decl)
 {
+  TypeTable_Entry* ttb_entry = error_type;
   if (decl->code_count != 0)
   {
-    Ast_ErrorCode* code = decl->error_code;
-    while (code)
+    Ast_ErrorCode* error_code = decl->error_code;
+    while (error_code)
     {
-      TypeTable_Entry* ttb_entry = new_table_entry();
-      ttb_entry->kind = TYP_ENUM_FIELD;
-      ttb_entry->name = code->name;
-      TypeTable_Entry* last_field = error_type->enum_type.last_field;
+      TypeTable_Entry* error_code_ttb_entry = visit_error_code(error_code);
+      TypeTable_Entry* last_field = ttb_entry->enum_type.last_field;
       last_field->enum_field.next_field = ttb_entry;
-      error_type->enum_type.last_field = ttb_entry;
-      error_type->enum_type.field_count += 1;
-      code = (Ast_ErrorCode*)code->next_id;
+      ttb_entry->enum_type.last_field = ttb_entry;
+      ttb_entry->enum_type.field_count += 1;
+
+      error_code = (Ast_ErrorCode*)error_code->next_id;
     }
   }
   else
     error("at line %d: empty error definition is disallowed", decl->line_nr);
+  return ttb_entry;
 }
 
-internal void
+internal TypeTable_Entry*
 visit_struct_type_decl(Ast_StructType* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
-  ttb_entry->kind = TYP_STRUCT_DECL;
+  ttb_entry->kind = TYP_STRUCT;
+  ttb_entry->is_decl = true;
+  return ttb_entry;
 }
 
-internal void
+internal TypeTable_Entry*
 visit_struct_type(Ast_StructType* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
   ttb_entry->kind = TYP_STRUCT;
+  return ttb_entry;
 }
 
-internal void
+internal TypeTable_Entry*
 visit_declaration(Ast_Declaration* decl)
 {
+  TypeTable_Entry* ttb_entry = 0;
   if (decl->kind == AST_STRUCT_TYPE_DECL)
-    visit_struct_type_decl((Ast_StructType*)decl);
+    ttb_entry = visit_struct_type_decl((Ast_StructType*)decl);
   else if (decl->kind == AST_STRUCT_TYPE)
-    visit_struct_type((Ast_StructType*)decl);
+    ttb_entry = visit_struct_type((Ast_StructType*)decl);
   else if (decl->kind == AST_HEADER_TYPE_DECL)
-    visit_header_type_decl((Ast_HeaderType*)decl);
+    ttb_entry = visit_header_type_decl((Ast_HeaderType*)decl);
   else if (decl->kind == AST_HEADER_TYPE)
-    visit_header_type((Ast_HeaderType*)decl);
+    ttb_entry = visit_header_type((Ast_HeaderType*)decl);
   else if (decl->kind == AST_ERROR_TYPE)
-    visit_error_type((Ast_ErrorType*)decl);
+    ttb_entry = visit_error_type((Ast_ErrorType*)decl);
   else if (decl->kind == AST_TYPEDEF)
-    visit_typedef((Ast_Typedef*)decl);
+    ttb_entry = visit_typedef((Ast_Typedef*)decl);
   else if (decl->kind == AST_PARSER_TYPE_DECL)
-    visit_parser_type_decl((Ast_ParserType*)decl);
+    ttb_entry = visit_parser_type_decl((Ast_ParserType*)decl);
   else if (decl->kind == AST_PARSER_TYPE)
-    visit_parser_type((Ast_ParserType*)decl);
+    ttb_entry = visit_parser_type((Ast_ParserType*)decl);
   else if (decl->kind == AST_CONTROL_TYPE_DECL)
-    visit_control_type_decl((Ast_ControlType*)decl);
+    ttb_entry = visit_control_type_decl((Ast_ControlType*)decl);
   else if (decl->kind == AST_CONTROL_TYPE)
-    visit_control_type((Ast_ControlType*)decl);
+    ttb_entry = visit_control_type((Ast_ControlType*)decl);
   else if (decl->kind == AST_PACKAGE_TYPE_DECL)
-    visit_package_type_decl((Ast_PackageTypeDecl*)decl);
+    ttb_entry = visit_package_type_decl((Ast_PackageTypeDecl*)decl);
   else if (decl->kind == AST_EXTERN_OBJECT_DECL)
-    visit_extern_object_decl((Ast_ExternObjectDecl*)decl);
+    ttb_entry = visit_extern_object_decl((Ast_ExternObjectDecl*)decl);
   else if (decl->kind == AST_FUNCTION_PROTOTYPE)
-    visit_function_prototype((Ast_FunctionPrototype*)decl);
+    ttb_entry = visit_function_prototype((Ast_FunctionPrototype*)decl);
   else if (decl->kind == AST_INSTANTIATION)
     ;
   else
     assert (false);
+  return ttb_entry;
 }
 
 internal void

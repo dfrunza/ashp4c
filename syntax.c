@@ -279,50 +279,60 @@ syn_error_type_decl()
   return result;
 }
 
-internal void
-syn_type_parameter_list()
+internal bool
+token_is_type_parameter(Token* token)
 {
-  assert (token_at->klass == TOK_ANGLE_OPEN);
-  next_token();
+  bool result = (token->klass == TOK_IDENT) || (token->klass == TOK_INTEGER);
+  return result;
+}
+
+internal Ast_TypeParameter*
+syn_type_parameter()
+{
+  assert (token_is_type_parameter(token_at));
+  Ast_TypeParameter* result = arena_push_struct(&arena, Ast_TypeParameter);
+  zero_struct(result, Ast_TypeParameter);
+  result->kind = AST_TYPE_PARAMETER;
   if (token_at->klass == TOK_IDENT)
   {
-    sym_add_typevar(token_at->lexeme);
+    result->parameter_kind = TYPPARAM_VAR;
+    result->var_name = token_at->lexeme;
+    sym_add_typevar(result->var_name);
     next_token();
-    while (token_at->klass == TOK_COMMA)
-    {
-      next_token();
-      if (token_at->klass == TOK_IDENT)
-      {
-        sym_add_typevar(token_at->lexeme);
-        next_token();
-      }
-      else if (token_at->klass == TOK_INTEGER)
-      {
-        // TODO
-        next_token();
-      }
-      else if (token_at->klass == TOK_COMMA)
-        error("missing parameter at line %d", token_at->line_nr);
-      else if (token_at->klass == TOK_TYPE_IDENT)
-        error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
-      else
-        error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
-    }
   }
   else if (token_at->klass == TOK_INTEGER)
   {
+    result->parameter_kind = TYPPARAM_INT;
     // TODO
     next_token();
   }
-  else if (token_at->klass == TOK_TYPE_IDENT)
-    error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
-  else
-    error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+  else assert (false);
+  return result;
+}
 
-  if (token_at->klass == TOK_ANGLE_CLOSE)
+internal Ast_TypeParameter*
+syn_type_parameter_list()
+{
+  assert (token_is_type_parameter(token_at));
+  Ast_TypeParameter* parameter = syn_type_parameter();
+  Ast_TypeParameter* result = parameter;
+  while (token_at->klass == TOK_COMMA)
+  {
     next_token();
-  else
-    error("'>' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    if (token_is_type_parameter(token_at))
+    {
+      Ast_TypeParameter* next_parameter = syn_type_parameter();
+      parameter->next_param = next_parameter;
+      parameter = next_parameter;
+    }
+    else if (token_at->klass == TOK_COMMA)
+      error("missing parameter at line %d", token_at->line_nr);
+    else if (token_at->klass == TOK_TYPE_IDENT)
+      error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
+    else
+      error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+  }
+  return result;
 }
 
 internal void
@@ -446,7 +456,7 @@ syn_direction()
 internal Ast_Parameter*
 syn_parameter()
 {
-  assert(token_is_parameter(token_at));
+  assert (token_is_parameter(token_at));
   Ast_Parameter* result = arena_push_struct(&arena, Ast_Parameter);
   zero_struct(result, Ast_Parameter);
   result->kind = AST_PARAMETER;
@@ -478,7 +488,7 @@ syn_parameter_list()
     if (token_is_parameter(token_at))
     {
       Ast_Parameter* next_parameter = syn_parameter();
-      parameter->next = next_parameter;
+      parameter->next_param = next_parameter;
       parameter = next_parameter;
     }
     else if (token_at->klass == TOK_COMMA)
@@ -504,7 +514,20 @@ syn_parser_type_decl()
     next_token();
     scope_push_level();
     if (token_at->klass == TOK_ANGLE_OPEN)
-      syn_type_parameter_list();
+    {
+      next_token();
+      if (token_is_type_parameter(token_at))
+        result->type_parameter = syn_type_parameter_list();
+      else if (token_at->klass == TOK_TYPE_IDENT)
+        error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
+      else
+        error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+
+      if (token_at->klass == TOK_ANGLE_CLOSE)
+        next_token();
+      else
+        error("'>' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    }
     if (token_at->klass == TOK_PARENTH_OPEN)
     {
       next_token();
@@ -1499,7 +1522,7 @@ syn_instantiation()
 }
 
 internal Ast_FunctionPrototype*
-syn_function_prototype_decl()
+syn_function_prototype()
 {
   assert (token_at->klass == TOK_TYPE_IDENT);
   Ast_FunctionPrototype* result = arena_push_struct(&arena, Ast_FunctionPrototype);
@@ -1513,7 +1536,20 @@ syn_function_prototype_decl()
     next_token();
     scope_push_level();
     if (token_at->klass == TOK_ANGLE_OPEN)
-      syn_type_parameter_list();
+    {
+      next_token();
+      if (token_is_type_parameter(token_at))
+        result->type_parameter = syn_type_parameter_list();
+      else if (token_at->klass == TOK_TYPE_IDENT)
+        error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
+      else
+        error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+
+      if (token_at->klass == TOK_ANGLE_CLOSE)
+        next_token();
+      else
+        error("'>' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    }
     if (token_at->klass == TOK_PARENTH_OPEN)
     {
       next_token();
@@ -1555,19 +1591,17 @@ syn_extern_object_decl()
     next_token();
     if (token_at->klass == TOK_TYPE_IDENT)
     {
-      Ast_FunctionPrototype* method = syn_function_prototype_decl();
+      Ast_FunctionPrototype* method = syn_function_prototype();
       result->method = method;
       result->method_count++;
       while (token_at->klass == TOK_TYPE_IDENT)
       {
-        Ast_FunctionPrototype* next_method = syn_function_prototype_decl();
+        Ast_FunctionPrototype* next_method = syn_function_prototype();
         method->next_decl = (Ast_Declaration*)next_method;
         method = next_method;
         result->method_count++;
       }
     }
-    else
-      error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
     if (token_at->klass == TOK_BRACE_CLOSE)
       next_token();
     else
@@ -1583,7 +1617,7 @@ internal Ast_ExternFunctionDecl*
 syn_extern_function_decl()
 {
   assert (token_at->klass == TOK_TYPE_IDENT);
-  Ast_ExternFunctionDecl* result = (Ast_ExternFunctionDecl*)syn_function_prototype_decl();
+  Ast_ExternFunctionDecl* result = (Ast_ExternFunctionDecl*)syn_function_prototype();
   return result;
 }
 

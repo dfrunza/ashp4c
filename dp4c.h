@@ -168,6 +168,8 @@ enum AstKind
   AST_IDENT,
   AST_PARAMETER,
   AST_PARAMETER_LIST,
+  AST_TYPE_PARAMETER,
+  AST_TYPE_PARAMETER_LIST,
   AST_PARSER_TYPE_DECL,
   AST_PARSER_TYPE,
   AST_PARSER_STATE,
@@ -220,6 +222,13 @@ enum AstExprOperator
   OP_ASSIGN,
   OP_ADDITION,
   OP_SUBTRACT,
+};
+
+enum AstTypeParameterKind
+{
+  TYPPARAM_NONE,
+  TYPPARAM_VAR,
+  TYPPARAM_INT,
 };
 
 typedef struct Ast
@@ -324,9 +333,22 @@ typedef struct Ast_Parameter
   enum AstDirection direction;
   Ast_Typeref* typeref;
   char* name;
-  struct Ast_Parameter* next;
+  struct Ast_Parameter* next_param;
 }
 Ast_Parameter;
+
+typedef struct Ast_TypeParameter
+{
+  Ast;
+  enum AstTypeParameterKind parameter_kind;
+  struct Ast_TypeParameter* next_param;
+  union
+  {
+    char* var_name;
+    char* int_value;
+  };
+}
+Ast_TypeParameter;
 
 typedef struct Ast_Expression
 {
@@ -546,6 +568,7 @@ typedef struct
 {
   Ast;
   char* name;
+  Ast_TypeParameter* type_parameter;
   Ast_Parameter* parameter;
   int param_count;
   IdentInfo_Type* id_info;
@@ -575,6 +598,7 @@ typedef struct Ast_FunctionPrototype
 {
   Ast_Declaration;
   char* name;
+  Ast_TypeParameter* type_parameter;
   Ast_Parameter* parameter;
   int param_count;
   IdentInfo_Type* return_type;
@@ -614,20 +638,15 @@ enum TypeTable_TypeCtor
   TYP_NONE,
   TYP_BASIC,
   TYP_FUNCTION,
-  TYP_FUNCTION_DECL,
   TYP_ENUM,
   TYP_ENUM_FIELD,
   TYP_PARSER,
-  TYP_PARSER_DECL,
   TYP_CONTROL,
-  TYP_CONTROL_DECL,
-  TYP_PACKAGE_DECL,
+  TYP_PACKAGE,
   TYP_TYPEDEF,
   TYP_HEADER,
-  TYP_HEADER_DECL,
   TYP_STRUCT,
-  TYP_STRUCT_DECL,
-  TYP_EXTERN_OBJECT_DECL,
+  TYP_EXTERN_OBJECT,
 };
 
 enum TypeBasic_Kind
@@ -641,6 +660,7 @@ enum TypeBasic_Kind
 typedef struct TypeTable_Entry
 {
   enum TypeTable_TypeCtor kind;
+  bool is_decl;
   char* name;
 
   union
