@@ -12,14 +12,17 @@ pushd build
 
 LINUX_INCLUDE=-I/usr/include/x86_64-linux-gnu
 
-#clang $LINUX_INCLUDE -O2 -Wall -target bpf -c xdp_example_drop.c -o xdp_example_drop.o
+clang -g -ggdb $LINUX_INCLUDE -O0 -Wall -c $SRC/bpf_load.c -o bpf_load.o
+
+#clang $LINUX_INCLUDE -O0 -Wall -target bpf -c xdp_example_drop.c -o xdp_example_drop.o
+#clang $LINUX_INCLUDE -O0 -Wall -target bpf -c xdp_parse_kern.c -o xdp_parse_kern.o
 
 clang $LINUX_INCLUDE -O2 -Wall -target bpf -c $SRC/xdp_redirect_user_kern.c -o xdp_redirect_user_kern.o
-clang -g -ggdb $LINUX_INCLUDE -O2 -Wall -c $SRC/bpf_load.c -o bpf_load.o
-clang -g -ggdb -static $LINUX_INCLUDE -O2 -Wall $SRC/xdp_redirect_user.c -o xdp_redirect_user -L $SRC bpf_load.o -lbpf -lelf -lz
+clang -g -ggdb -static $LINUX_INCLUDE -O0 -Wall $SRC/xdp_redirect_user.c -o xdp_redirect_user -L $SRC bpf_load.o -lbpf -lelf -lz
 
-#clang $LINUX_INCLUDE -O2 -Wall -target bpf -c xdp_parse_kern.c -o xdp_parse_kern.o
+clang $LINUX_INCLUDE -O2 -Wall -target bpf -c $SRC/xdp_ip_fixup_kern.c -o xdp_ip_fixup_kern.o
+clang -g -ggdb -static $LINUX_INCLUDE -O0 -Wall $SRC/xdp_ip_fixup.c -o xdp_ip_fixup -L $SRC bpf_load.o -lbpf -lelf -lz
 
 clang $LINUX_INCLUDE -O2 -Wall -target bpf -c $SRC/count_packets_kern.c -o count_packets_kern.o
-clang -g -ggdb -static $LINUX_INCLUDE -O2 -Wall $SRC/count_packets.c -o count_packets -L $SRC bpf_load.o -lbpf -lelf -lz
+clang -g -ggdb -static $LINUX_INCLUDE -O0 -Wall $SRC/count_packets.c -o count_packets -L $SRC bpf_load.o -lbpf -lelf -lz
 popd
