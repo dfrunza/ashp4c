@@ -1,12 +1,18 @@
 == XDP ==
 
-
 ip link set dev eth0 xdp obj xdp-example.o
 ip link set dev eth0 xdp obj xdp-example.o sec my_prog
 ip link set dev eth0 xdp off
+
+ip link add dev veth0 type veth peer name veth1
 for i in {0..3}; do sudo ip link set dev veth$i xdp off; done
 
+/* Debugging */
+sudo echo 1 > /sys/kernel/debug/tracing/tracing_on
 sudo cat /sys/kernel/debug/tracing/trace_pipe
+
+The XDP kernel program should be compiled with -02, or else there's a high chance that the BPF loader is going to reject it.
+
 llvm-objdump -S -no-show-raw-insn xdp-example.o
 readelf -a xde-example.o
 
@@ -18,6 +24,7 @@ pktv6=Ether(src="fc:75:16:8d:86:17",dst="1c:6f:65:2c:b5:3c")/IPv6(src="ff02::1",
 
 pkt/=Raw("W"*(100-len(pkt)))
 
+./xdp_redirect_user -S 61 10
 =========================
 
 #include <"net/if.h"> /* if_nametoindex */
