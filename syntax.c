@@ -1056,7 +1056,20 @@ syn_control_type_decl()
     next_token();
     scope_push_level();
     if (token_at->klass == TOK_ANGLE_OPEN)
-      syn_type_parameter_list();
+    {
+      next_token();
+      if (token_is_type_parameter(token_at))
+        result->type_parameter = syn_type_parameter_list();
+      else if (token_at->klass == TOK_TYPE_IDENT)
+        error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
+      else
+        error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+
+      if (token_at->klass == TOK_ANGLE_CLOSE)
+        next_token();
+      else
+        error("'>' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    }
     if (token_at->klass == TOK_PARENTH_OPEN)
     {
       next_token();
@@ -1472,7 +1485,20 @@ syn_package_type_decl()
     next_token();
     scope_push_level();
     if (token_at->klass == TOK_ANGLE_OPEN)
-      syn_type_parameter_list();
+    {
+      next_token();
+      if (token_is_type_parameter(token_at))
+        result->type_parameter = syn_type_parameter_list();
+      else if (token_at->klass == TOK_TYPE_IDENT)
+        error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
+      else
+        error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+
+      if (token_at->klass == TOK_ANGLE_CLOSE)
+        next_token();
+      else
+        error("'>' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    }
     if (token_at->klass == TOK_PARENTH_OPEN)
     {
       next_token();

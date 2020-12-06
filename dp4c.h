@@ -167,9 +167,7 @@ enum AstKind
   AST_ERROR_CODE,
   AST_IDENT,
   AST_PARAMETER,
-  AST_PARAMETER_LIST,
   AST_TYPE_PARAMETER,
-  AST_TYPE_PARAMETER_LIST,
   AST_PARSER_TYPE_DECL,
   AST_PARSER_TYPE,
   AST_PARSER_STATE,
@@ -556,6 +554,7 @@ typedef struct
 {
   Ast;
   char* name;
+  Ast_TypeParameter* type_parameter;
   Ast_Parameter* parameter;
   IdentInfo_Type* id_info;
   Ast_Declaration* local_decl;
@@ -580,6 +579,7 @@ typedef struct
 {
   Ast_Declaration;
   char* name;
+  Ast_TypeParameter* type_parameter;
   Ast_Parameter* parameter;
   int param_count;
   IdentInfo_Type* id_info;
