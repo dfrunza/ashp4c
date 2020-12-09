@@ -154,9 +154,9 @@ enum AstKind
   AST_P4PROGRAM,
   AST_DECLARATION,
   AST_ERROR_TYPE,
-  AST_STRUCT_TYPE_DECL,
+  AST_STRUCT_PROTOTYPE,
   AST_STRUCT_TYPE,
-  AST_HEADER_TYPE_DECL,
+  AST_HEADER_PROTOTYPE,
   AST_HEADER_TYPE,
   AST_TYPEDEF,
   AST_TYPEREF,
@@ -168,7 +168,7 @@ enum AstKind
   AST_IDENT,
   AST_PARAMETER,
   AST_TYPE_PARAMETER,
-  AST_PARSER_TYPE_DECL,
+  AST_PARSER_PROTOTYPE,
   AST_PARSER_TYPE,
   AST_PARSER_STATE,
   AST_IDENT_EXPR,
@@ -185,7 +185,7 @@ enum AstKind
   AST_EXPR_SELECT_CASE,
   AST_DEFAULT_SELECT_CASE,
   AST_TRANSITION_STMT,
-  AST_CONTROL_TYPE_DECL,
+  AST_CONTROL_PROTOTYPE,
   AST_CONTROL_TYPE,
   AST_BLOCK_STMT,
   AST_EXPR_STMT,
@@ -196,10 +196,10 @@ enum AstKind
   AST_ACTION_REF,
   AST_SIMPLE_PROP,
   AST_VAR_DECL,
-  AST_PACKAGE_TYPE_DECL,
+  AST_PACKAGE_PROTOTYPE,
   AST_INSTANTIATION,
-  AST_EXTERN_OBJECT_DECL,
-  AST_EXTERN_FUNCTION_DECL,
+  AST_EXTERN_OBJECT_PROTOTYPE,
+  AST_EXTERN_FUNCTION_PROTOTYPE,
   AST_FUNCTION_PROTOTYPE,
 };
 
@@ -304,7 +304,7 @@ typedef struct
   int field_count;
   IdentInfo_Type* id_info;
 }
-Ast_StructType;  // AST_STRUCT_TYPE_DECL
+Ast_StructDecl;  // AST_STRUCT_PROTOTYPE
                  // AST_STRUCT_TYPE
 
 typedef struct
@@ -315,7 +315,7 @@ typedef struct
   int field_count;
   IdentInfo_Type* id_info;
 }
-Ast_HeaderType;  // AST_HEADER_TYPE_DECL
+Ast_HeaderDecl;  // AST_HEADER_PROTOTYPE
                  // AST_HEADER_TYPE
 
 typedef struct
@@ -563,7 +563,7 @@ typedef struct
   int local_decl_count;
   Ast_BlockStmt* control_body;
 }
-Ast_ControlType;  // AST_CONTROL_TYPE_DECL
+Ast_ControlDecl;  // AST_CONTROL_PROTOTYPE
                   // AST_CONTROL_TYPE
 
 typedef struct
@@ -576,7 +576,7 @@ typedef struct
   IdentInfo_Type* id_info;
   Ast_ParserState* parser_state;
 }
-Ast_ParserType;  // AST_PARSER_TYPE_DECL
+Ast_ParserDecl;  // AST_PARSER_PROTOTYPE
                  // AST_PARSER_TYPE
 
 typedef struct
@@ -588,7 +588,7 @@ typedef struct
   int param_count;
   IdentInfo_Type* id_info;
 }
-Ast_PackageTypeDecl;  // AST_PACKAGE_TYPE_DECL
+Ast_PackageDecl;  // AST_PACKAGE_PROTOTYPE
 
 typedef struct
 {
@@ -617,7 +617,7 @@ typedef struct
   int method_count;
   IdentInfo_Type* id_info;
 }
-Ast_ExternObjectDecl;  // AST_EXTERN_OBJECT_DECL
+Ast_ExternObjectDecl;  // AST_EXTERN_OBJECT_PROTOTYPE
 
 typedef struct
 {
@@ -627,7 +627,7 @@ typedef struct
   int param_count;
   IdentInfo_Type* return_type;
 }
-Ast_ExternFunctionDecl;  // AST_EXTERN_FUNCTION_DECL
+Ast_ExternFunctionDecl;  // AST_EXTERN_FUNCTION_PROTOTYPE
 
 typedef struct
 {

@@ -7,7 +7,6 @@ let g:indexer_ctagsCommandLineOptions="--fields=+iaSl --C-kinds=+p --C++-kinds=+
 
 " Specify the project's 'indexer_files'"
 let g:indexer_indexerListFilename = s:sPath.'/indexer_files'
-let g:easytags_file=s:sPath.'/indexer_files_tags/tags'
 
 set errorformat=
 set errorformat+=%E%f:%l:%c:\ %t\rror:\ %m,%-C,%-Z%p^
@@ -18,7 +17,7 @@ set errorformat+=%X%*\\a:\ Leaving\ directory\ [`']%f'
 
 " Linker error 'undefined reference'
 set errorformat+=%f:%l:\ %m,%-C,%-Z%p^
-"set errorformat+=collect2:\ %t\rror:\ ld\ returned\ 1\ exit\ status
+set errorformat+=collect2:\ %t\rror:\ ld\ returned\ 1\ exit\ status
 
 set shiftwidth=2 " indendation level
 set tabstop=2
