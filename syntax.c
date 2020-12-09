@@ -76,7 +76,7 @@ token_is_declaration(Token* token)
 }
 
 internal Ast_HeaderDecl*
-syn_header_decl()
+syn_header_decl_or_prototype()
 {
   assert(token_at->klass == TOK_KW_HEADER);
   next_token();
@@ -90,7 +90,7 @@ syn_header_decl()
     next_token();
     if (token_at->klass == TOK_BRACE_OPEN)
     {
-      result->kind = AST_HEADER_TYPE;
+      result->kind = AST_HEADER_DECL;
       scope_push_level();
       next_token();
       if (token_at->klass == TOK_TYPE_IDENT)
@@ -140,7 +140,7 @@ syn_header_decl()
 }
 
 internal Ast_StructDecl*
-syn_struct_decl()
+syn_struct_decl_or_prototype()
 {
   assert(token_at->klass == TOK_KW_STRUCT);
   next_token();
@@ -154,7 +154,7 @@ syn_struct_decl()
     next_token();
     if (token_at->klass == TOK_BRACE_OPEN)
     {
-      result->kind = AST_STRUCT_TYPE;
+      result->kind = AST_STRUCT_DECL;
       scope_push_level();
       next_token();
       if (token_at->klass == TOK_TYPE_IDENT)
@@ -1007,7 +1007,7 @@ syn_parser_decl()
   Ast_ParserDecl* result = syn_parser_prototype();
   if (token_at->klass == TOK_BRACE_OPEN)
   {
-    result->kind = AST_PARSER_TYPE;
+    result->kind = AST_PARSER_DECL;
     next_token();
     scope_push_level();
     sym_add_error_var();
@@ -1418,14 +1418,14 @@ syn_control_local_decl()
 }
 
 internal Ast_ControlDecl*
-syn_control_decl()
+syn_control_decl_or_prototype()
 {
   assert(token_at->klass == TOK_KW_CONTROL);
   sym_remove_error_kw();
   Ast_ControlDecl* result = syn_control_prototype();
   if (token_at->klass == TOK_BRACE_OPEN)
   {
-    result->kind = AST_CONTROL_TYPE;
+    result->kind = AST_CONTROL_DECL;
     next_token();
     scope_push_level();
     sym_add_error_var();
@@ -1466,7 +1466,7 @@ syn_control_decl()
 }
 
 internal Ast_PackageDecl*
-syn_package_decl()
+syn_package_prototype()
 {
   assert(token_at->klass == TOK_KW_PACKAGE);
   next_token();
@@ -1666,9 +1666,9 @@ syn_declaration()
   Ast_Declaration* result = 0;
   assert(token_is_declaration(token_at));
   if (token_at->klass == TOK_KW_STRUCT)
-    result = (Ast_Declaration*)syn_struct_decl();
+    result = (Ast_Declaration*)syn_struct_decl_or_prototype();
   else if (token_at->klass == TOK_KW_HEADER)
-    result = (Ast_Declaration*)syn_header_decl();
+    result = (Ast_Declaration*)syn_header_decl_or_prototype();
   else if (token_at->klass == TOK_KW_ERROR)
     result = (Ast_Declaration*)syn_error_type_decl();
   else if (token_at->klass == TOK_KW_TYPEDEF)
@@ -1676,11 +1676,11 @@ syn_declaration()
   else if (token_at->klass == TOK_KW_PARSER)
     result = (Ast_Declaration*)syn_parser_decl();
   else if (token_at->klass == TOK_KW_CONTROL)
-    result = (Ast_Declaration*)syn_control_decl();
+    result = (Ast_Declaration*)syn_control_decl_or_prototype();
   else if (token_at->klass == TOK_KW_ACTION)
     result = (Ast_Declaration*)syn_action_decl();
   else if (token_at->klass == TOK_KW_PACKAGE)
-    result = (Ast_Declaration*)syn_package_decl();
+    result = (Ast_Declaration*)syn_package_prototype();
   else if (token_at->klass == TOK_KW_EXTERN)
     result = (Ast_Declaration*)syn_extern_decl();
   else if (token_at->klass == TOK_TYPE_IDENT)

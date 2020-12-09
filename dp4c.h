@@ -155,9 +155,9 @@ enum AstKind
   AST_DECLARATION,
   AST_ERROR_TYPE,
   AST_STRUCT_PROTOTYPE,
-  AST_STRUCT_TYPE,
+  AST_STRUCT_DECL,
   AST_HEADER_PROTOTYPE,
-  AST_HEADER_TYPE,
+  AST_HEADER_DECL,
   AST_TYPEDEF,
   AST_TYPEREF,
   AST_IDENT_TYPEREF,
@@ -169,7 +169,7 @@ enum AstKind
   AST_PARAMETER,
   AST_TYPE_PARAMETER,
   AST_PARSER_PROTOTYPE,
-  AST_PARSER_TYPE,
+  AST_PARSER_DECL,
   AST_PARSER_STATE,
   AST_IDENT_EXPR,
   AST_INTEGER_EXPR,
@@ -186,7 +186,7 @@ enum AstKind
   AST_DEFAULT_SELECT_CASE,
   AST_TRANSITION_STMT,
   AST_CONTROL_PROTOTYPE,
-  AST_CONTROL_TYPE,
+  AST_CONTROL_DECL,
   AST_BLOCK_STMT,
   AST_EXPR_STMT,
   AST_BOOL,
@@ -305,7 +305,7 @@ typedef struct
   IdentInfo_Type* id_info;
 }
 Ast_StructDecl;  // AST_STRUCT_PROTOTYPE
-                 // AST_STRUCT_TYPE
+                 // AST_STRUCT_DECL
 
 typedef struct
 {
@@ -316,7 +316,7 @@ typedef struct
   IdentInfo_Type* id_info;
 }
 Ast_HeaderDecl;  // AST_HEADER_PROTOTYPE
-                 // AST_HEADER_TYPE
+                 // AST_HEADER_DECL
 
 typedef struct
 {
@@ -564,7 +564,7 @@ typedef struct
   Ast_BlockStmt* control_body;
 }
 Ast_ControlDecl;  // AST_CONTROL_PROTOTYPE
-                  // AST_CONTROL_TYPE
+                  // AST_CONTROL_DECL
 
 typedef struct
 {
@@ -577,7 +577,7 @@ typedef struct
   Ast_ParserState* parser_state;
 }
 Ast_ParserDecl;  // AST_PARSER_PROTOTYPE
-                 // AST_PARSER_TYPE
+                 // AST_PARSER_DECL
 
 typedef struct
 {

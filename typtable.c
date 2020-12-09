@@ -167,11 +167,11 @@ visit_declaration(Ast_Declaration* decl)
   TypeTable_Entry* ttb_entry = 0;
   if (decl->kind == AST_STRUCT_PROTOTYPE)
     ttb_entry = visit_struct_type_decl((Ast_StructDecl*)decl);
-  else if (decl->kind == AST_STRUCT_TYPE)
+  else if (decl->kind == AST_STRUCT_DECL)
     ttb_entry = visit_struct_type((Ast_StructDecl*)decl);
   else if (decl->kind == AST_HEADER_PROTOTYPE)
     ttb_entry = visit_header_type_decl((Ast_HeaderDecl*)decl);
-  else if (decl->kind == AST_HEADER_TYPE)
+  else if (decl->kind == AST_HEADER_DECL)
     ttb_entry = visit_header_type((Ast_HeaderDecl*)decl);
   else if (decl->kind == AST_ERROR_TYPE)
     ttb_entry = visit_error_type((Ast_ErrorType*)decl);
@@ -179,11 +179,11 @@ visit_declaration(Ast_Declaration* decl)
     ttb_entry = visit_typedef((Ast_Typedef*)decl);
   else if (decl->kind == AST_PARSER_PROTOTYPE)
     ttb_entry = visit_parser_type_decl((Ast_ParserDecl*)decl);
-  else if (decl->kind == AST_PARSER_TYPE)
+  else if (decl->kind == AST_PARSER_DECL)
     ttb_entry = visit_parser_type((Ast_ParserDecl*)decl);
   else if (decl->kind == AST_CONTROL_PROTOTYPE)
     ttb_entry = visit_control_type_decl((Ast_ControlDecl*)decl);
-  else if (decl->kind == AST_CONTROL_TYPE)
+  else if (decl->kind == AST_CONTROL_DECL)
     ttb_entry = visit_control_type((Ast_ControlDecl*)decl);
   else if (decl->kind == AST_PACKAGE_PROTOTYPE)
     ttb_entry = visit_package_type_decl((Ast_PackageDecl*)decl);
