@@ -13,7 +13,7 @@ new_table_entry()
   TypeTable_Entry* ttb_entry = typetable_free;
   zero_struct(ttb_entry, TypeTable_Entry);
   typetable_free++;
-  assert (typetable_free <= (typetable + max_typetable_len-1));
+  assert(typetable_free <= (typetable + max_typetable_len-1));
   return ttb_entry;
 }
 
