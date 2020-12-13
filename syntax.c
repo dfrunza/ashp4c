@@ -362,7 +362,7 @@ syn_typeref_argument_list()
       else if (token_at->klass == TOK_IDENT)
         error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
       else
-        error("type identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("type expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
     }
   }
   else if (token_at->klass == TOK_INTEGER)
@@ -373,7 +373,7 @@ syn_typeref_argument_list()
   else if (token_at->klass == TOK_IDENT)
     error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
   else
-    error("type identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("type expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
 
   if (token_at->klass == TOK_ANGLE_CLOSE)
     next_token();
@@ -417,10 +417,15 @@ syn_typedef_decl()
         error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else if (token_at->klass == TOK_TYPE_IDENT)
-      error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
+      error("at line %d : type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
     else
       error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
   }
+  else if (token_at->klass == TOK_IDENT)
+    error("type expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+  else
+    error("at line %d : unexpected token '%s'", token_at->line_nr, token_at->lexeme);
+
   return result;
 }
 
@@ -494,7 +499,7 @@ syn_parameter_list()
     else if (token_at->klass == TOK_COMMA)
       error("missing parameter at line %d", token_at->line_nr);
     else
-      error("type identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("type expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   return result;
 }

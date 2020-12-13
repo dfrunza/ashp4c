@@ -275,7 +275,6 @@ sym_init()
   add_keyword("struct", TOK_KW_STRUCT);
   add_keyword("apply", TOK_KW_APPLY);
   //add_keyword("verify", TOK_KW_VERIFY);
-  //add_keyword("var", TOK_KW_VAR);
 
   error_type = sym_add_type("error");
   sym_add_type("void");

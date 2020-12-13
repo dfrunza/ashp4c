@@ -23,7 +23,7 @@ visit_function_prototype(Ast_FunctionPrototype* decl)
   TypeTable_Entry* ttb_entry = new_table_entry();
   ttb_entry->kind = TYP_FUNCTION;
   ttb_entry->name = decl->name;
-  ttb_entry->is_decl = true;
+  ttb_entry->is_prototype = true;
   return ttb_entry;
 }
 
@@ -33,7 +33,7 @@ visit_extern_object_decl(Ast_ExternObjectDecl* decl)
   TypeTable_Entry* ttb_entry = new_table_entry();
   ttb_entry->kind = TYP_STRUCT;
   ttb_entry->name = decl->name;
-  ttb_entry->is_decl = true;
+  ttb_entry->is_prototype = true;
 
   Ast_FunctionPrototype* method = decl->method;
   while (method)
@@ -45,11 +45,21 @@ visit_extern_object_decl(Ast_ExternObjectDecl* decl)
 }
 
 internal TypeTable_Entry*
+visit_extern_function_prototype(Ast_ExternFunctionDecl* decl)
+{
+  TypeTable_Entry* ttb_entry = new_table_entry();
+  ttb_entry->kind = TYP_FUNCTION;
+  ttb_entry->name = decl->name;
+  ttb_entry->is_prototype = true;
+  return ttb_entry;
+}
+
+internal TypeTable_Entry*
 visit_parser_type_decl(Ast_ParserDecl* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
   ttb_entry->kind = TYP_PARSER;
-  ttb_entry->is_decl = true;
+  ttb_entry->is_prototype = true;
   return ttb_entry;
 }
 
@@ -66,7 +76,7 @@ visit_control_type_decl(Ast_ControlDecl* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
   ttb_entry->kind = TYP_CONTROL;
-  ttb_entry->is_decl = true;
+  ttb_entry->is_prototype = true;
   return ttb_entry;
 }
 
@@ -83,7 +93,7 @@ visit_package_type_decl(Ast_PackageDecl* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
   ttb_entry->kind = TYP_PACKAGE;
-  ttb_entry->is_decl = true;
+  ttb_entry->is_prototype = true;
   return ttb_entry;
 }
 
@@ -100,7 +110,7 @@ visit_header_type_decl(Ast_HeaderDecl* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
   ttb_entry->kind = TYP_HEADER;
-  ttb_entry->is_decl = true;
+  ttb_entry->is_prototype = true;
   return ttb_entry;
 }
 
@@ -149,7 +159,7 @@ visit_struct_type_decl(Ast_StructDecl* decl)
 {
   TypeTable_Entry* ttb_entry = new_table_entry();
   ttb_entry->kind = TYP_STRUCT;
-  ttb_entry->is_decl = true;
+  ttb_entry->is_prototype = true;
   return ttb_entry;
 }
 
@@ -189,6 +199,8 @@ visit_declaration(Ast_Declaration* decl)
     ttb_entry = visit_package_type_decl((Ast_PackageDecl*)decl);
   else if (decl->kind == AST_EXTERN_OBJECT_PROTOTYPE)
     ttb_entry = visit_extern_object_decl((Ast_ExternObjectDecl*)decl);
+  else if (decl->kind == AST_EXTERN_FUNCTION_PROTOTYPE)
+    ttb_entry = visit_extern_function_prototype((Ast_ExternFunctionDecl*)decl);
   else if (decl->kind == AST_FUNCTION_PROTOTYPE)
     ttb_entry = visit_function_prototype((Ast_FunctionPrototype*)decl);
   else if (decl->kind == AST_INSTANTIATION)

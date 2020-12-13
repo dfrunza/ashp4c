@@ -76,7 +76,6 @@ enum TokenClass
   //TOK_KW_FALSE,
   //TOK_KW_TRUE,
   //TOK_KW_VERIFY,
-  //TOK_KW_VAR,
 
   TOK_UNKNOWN,
   TOK_SOI,    // Start Of Input
@@ -178,7 +177,6 @@ enum AstKind
   AST_ERROR_EXPR,
   AST_BINARY_EXPR,
   AST_FUNCTION_CALL,
-  AST_SELECT_TRANS,
   AST_IDENT_STATE,
   AST_SELECT_STATE,
   AST_SELECT_CASE,
@@ -664,7 +662,7 @@ enum TypeBasic_Kind
 typedef struct TypeTable_Entry
 {
   enum TypeTable_TypeCtor kind;
-  bool is_decl;
+  bool is_prototype;
   char* name;
 
   union
