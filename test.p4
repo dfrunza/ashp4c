@@ -18,11 +18,11 @@ extern packet_in
 
 extern void verify(in bool check, in error to_signal);
 
-parser ebpf_parser<H>(packet_in packet, out H parsed_headers);
+parser xdp_parser<H>(packet_in packet, out H parsed_headers);
 
-control ebpf_filter<H>(inout H headers, out bool accept);
+control xdp_pipe<H>(inout H headers, out bool accept);
 
-package ebpf_package<H>(ebpf_parser<H> parser_, ebpf_filter<H> filter);
+package xdp_package<H>(xdp_parser<H> parser_, xdp_pipe<H> filter);
 
 typedef bit<48> EthernetAddress;
 typedef bit<32> IPv4Address;
@@ -56,7 +56,7 @@ struct headers_t
   ipv4_t ipv4;
 }
 
-parser my_parser(packet_in pkt, out headers_t hdr)
+parser xdp_parser_impl(packet_in pkt, out headers_t hdr)
 {
   state start
   {
@@ -77,7 +77,7 @@ parser my_parser(packet_in pkt, out headers_t hdr)
   }
 }
 
-control my_filter(inout headers_t hdr, out bool accept)
+control xdp_pipe_impl(inout headers_t hdr, out bool accept)
 {
   int i;
   apply
@@ -85,5 +85,5 @@ control my_filter(inout headers_t hdr, out bool accept)
   }
 }
 
-ebpf_package(my_parser(), my_filter()) main;
+xdp_package(xdp_parser_impl(), xdp_filter_impl()) main;
 
