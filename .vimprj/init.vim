@@ -12,12 +12,16 @@ set errorformat=
 set errorformat+=%E%f:%l:%c:\ %t\rror:\ %m,%-C,%-Z%p^
 set errorformat+=%f:%l:%c:\ fatal\ %t\rror:\ %m,%-C,%-Z%p^
 set errorformat+=%f:%l:%c:\ %t\arning:\ %m,%-C,%-Z%p^
+
+" Makefile
 set errorformat+=%D%*\\a:\ Entering\ directory\ [`']%f'
 set errorformat+=%X%*\\a:\ Leaving\ directory\ [`']%f'
 
 " Linker error 'undefined reference'
 set errorformat+=%f:%l:\ %m,%-C,%-Z%p^
 set errorformat+=collect2:\ %t\rror:\ ld\ returned\ 1\ exit\ status
+
+set errorformat+=gcc:\ error:\ %f
 
 set shiftwidth=2 " indendation level
 set tabstop=2

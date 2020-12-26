@@ -5,10 +5,10 @@ import sys, subprocess, os
 # can then be selected by the user. The profiles are persisted (as data appended to this file) and one
 # of those is set as default.
 
-USERNAME="dumitru"
+USERNAME="testteam"
 PASSWORD="noviflow"
 SOURCE_PATH=os.getcwd()
-DEPLOY_PATH="/home/dumitru/work/dp4c"
+DEPLOY_PATH="/home/testteam/dumitru/dp4c"
 
 def stdout_print(text):
     sys.stdout.write(text)

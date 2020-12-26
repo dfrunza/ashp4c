@@ -5,15 +5,15 @@
 Arena arena = {};
 char* input_text = 0;
 int input_size = 0;
+
 Token* tokenized_input = 0;
 int tokenized_input_len = 0;
-int max_tokenized_input_len = 1000;
-int max_symtable_len = 997;
+int max_tokenized_input_len = 1000;  // table entry units
+int max_symtable_len = 997;  // table entry units
+
 SymbolTable_Entry** symtable = 0;
 int scope_level = 0;
-TypeTable_Entry* typetable = 0;
-TypeTable_Entry* typetable_free = 0;
-int max_typetable_len = 1000;
+
 Ast_P4Program* p4program = 0;
 
 internal void
@@ -39,14 +39,15 @@ main(int arg_count, char* args[])
   tokenized_input = arena_push_array(&arena, Token, max_tokenized_input_len);
   lex_input_init(input_text);
   lex_tokenize_input();
+
   symtable = arena_push_array(&arena, SymbolTable_Entry*, max_symtable_len);
   int i = 0;
   while (i < max_symtable_len)
     symtable[i++] = 0;
   syn_parse();
-  typetable = arena_push_array(&arena, TypeTable_Entry, max_typetable_len);
-  typetable_free = typetable;
-  build_typetable();
+
+  build_typexpr();
+
   arena_print_usage(&arena, "Memory (@exit): ");
   return 0;
 }

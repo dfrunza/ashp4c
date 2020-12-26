@@ -665,22 +665,38 @@ typedef struct TypeTable_Entry
   bool is_prototype;
   char* name;
 
-  union
-  {
-    struct TypeTable_EnumType
-    {
-      struct TypeTable_Entry* enum_field;  // sentinel
-      struct TypeTable_Entry* last_field;
-      int field_count;
-    }
-    enum_type;
-
-    struct TypeTable_EnumField
-    {
-      struct TypeTable_Entry* next_field;
-    }
-    enum_field;
-  };
+//  union
+//  {
+//    struct TypeTable_EnumType
+//    {
+//      struct TypeTable_Entry* enum_field;  // sentinel
+//      struct TypeTable_Entry* last_field;
+//      int field_count;
+//    }
+//    enum_type;
+//
+//    struct TypeTable_EnumField
+//    {
+//      struct TypeTable_Entry* next_field;
+//    }
+//    enum_field;
+//  };
 }
 TypeTable_Entry;
+
+typedef struct TypeTable_EnumField
+{
+  TypeTable_Entry;
+  struct TypeTable_EnumField* next_field;
+}
+TypeTable_EnumField;  // TYP_ENUM_FIELD
+
+typedef struct TypeTable_EnumType
+{
+  TypeTable_Entry;
+  struct TypeTable_EnumField* enum_field;  // sentinel
+  struct TypeTable_EnumField* last_field;
+  int field_count;
+}
+TypeTable_EnumType;  // TYP_ENUM
 
