@@ -1,14 +1,12 @@
 #include "dp4c.h"
 
 external Arena arena;
-external TypeTable_Entry** typetable;
-external int max_typetable_len;
 external Ast_P4Program* p4program;
 
 internal TypeTable_EnumType* error_type;
 
 internal TypeTable_Entry*
-visit_function_prototype(Ast_FunctionPrototype* decl)
+visit_function_prototype(Ast_FunctionDecl* decl)
 {
   TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
   ttb_entry->kind = TYP_FUNCTION;
@@ -18,24 +16,24 @@ visit_function_prototype(Ast_FunctionPrototype* decl)
 }
 
 internal TypeTable_Entry*
-visit_extern_object_decl(Ast_ExternObjectDecl* decl)
+visit_extern_object_prototype(Ast_ExternObjectDecl* decl)
 {
   TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
-  ttb_entry->kind = TYP_STRUCT;
+  ttb_entry->kind = TYP_EXTERN_OBJECT;
   ttb_entry->name = decl->name;
   ttb_entry->is_prototype = true;
 
-  Ast_FunctionPrototype* method = decl->method;
+  Ast_FunctionDecl* method = decl->method;
   while (method)
   {
     TypeTable_Entry* method_ttb_entry = visit_function_prototype(method);
-    method = (Ast_FunctionPrototype*)method->next_decl;
+    method = (Ast_FunctionDecl*)method->next_decl;
   }
   return ttb_entry;
 }
 
 internal TypeTable_Entry*
-visit_extern_function_prototype(Ast_ExternFunctionDecl* decl)
+visit_extern_function_prototype(Ast_FunctionDecl* decl)
 {
   TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
   ttb_entry->kind = TYP_FUNCTION;
@@ -45,7 +43,7 @@ visit_extern_function_prototype(Ast_ExternFunctionDecl* decl)
 }
 
 internal TypeTable_Entry*
-visit_parser_type_decl(Ast_ParserDecl* decl)
+visit_parser_prototype(Ast_ParserDecl* decl)
 {
   TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
   ttb_entry->kind = TYP_PARSER;
@@ -62,7 +60,7 @@ visit_parser_type(Ast_ParserDecl* decl)
 }
 
 internal TypeTable_Entry*
-visit_control_type_decl(Ast_ControlDecl* decl)
+visit_control_prototype(Ast_ControlDecl* decl)
 {
   TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
   ttb_entry->kind = TYP_CONTROL;
@@ -79,7 +77,7 @@ visit_control_type(Ast_ControlDecl* decl)
 }
 
 internal TypeTable_Entry*
-visit_package_type_decl(Ast_PackageDecl* decl)
+visit_package_prototype(Ast_PackageDecl* decl)
 {
   TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
   ttb_entry->kind = TYP_PACKAGE;
@@ -96,7 +94,7 @@ visit_typedef(Ast_Typedef* decl)
 }
 
 internal TypeTable_Entry*
-visit_header_type_decl(Ast_HeaderDecl* decl)
+visit_header_prototype(Ast_HeaderDecl* decl)
 {
   TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
   ttb_entry->kind = TYP_HEADER;
@@ -145,7 +143,7 @@ visit_error_type(Ast_ErrorType* decl)
 }
 
 internal TypeTable_Entry*
-visit_struct_type_decl(Ast_StructDecl* decl)
+visit_struct_prototype(Ast_StructDecl* decl)
 {
   TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
   ttb_entry->kind = TYP_STRUCT;
@@ -162,15 +160,15 @@ visit_struct_type(Ast_StructDecl* decl)
 }
 
 internal TypeTable_Entry*
-visit_declaration(Ast_Declaration* decl)
+visit_p4declaration(Ast_Declaration* decl)
 {
   TypeTable_Entry* ttb_entry = 0;
   if (decl->kind == AST_STRUCT_PROTOTYPE)
-    ttb_entry = visit_struct_type_decl((Ast_StructDecl*)decl);
+    ttb_entry = visit_struct_prototype((Ast_StructDecl*)decl);
   else if (decl->kind == AST_STRUCT_DECL)
     ttb_entry = visit_struct_type((Ast_StructDecl*)decl);
   else if (decl->kind == AST_HEADER_PROTOTYPE)
-    ttb_entry = visit_header_type_decl((Ast_HeaderDecl*)decl);
+    ttb_entry = visit_header_prototype((Ast_HeaderDecl*)decl);
   else if (decl->kind == AST_HEADER_DECL)
     ttb_entry = visit_header_type((Ast_HeaderDecl*)decl);
   else if (decl->kind == AST_ERROR_TYPE)
@@ -178,23 +176,21 @@ visit_declaration(Ast_Declaration* decl)
   else if (decl->kind == AST_TYPEDEF)
     ttb_entry = visit_typedef((Ast_Typedef*)decl);
   else if (decl->kind == AST_PARSER_PROTOTYPE)
-    ttb_entry = visit_parser_type_decl((Ast_ParserDecl*)decl);
+    ttb_entry = visit_parser_prototype((Ast_ParserDecl*)decl);
   else if (decl->kind == AST_PARSER_DECL)
     ttb_entry = visit_parser_type((Ast_ParserDecl*)decl);
   else if (decl->kind == AST_CONTROL_PROTOTYPE)
-    ttb_entry = visit_control_type_decl((Ast_ControlDecl*)decl);
+    ttb_entry = visit_control_prototype((Ast_ControlDecl*)decl);
   else if (decl->kind == AST_CONTROL_DECL)
     ttb_entry = visit_control_type((Ast_ControlDecl*)decl);
   else if (decl->kind == AST_PACKAGE_PROTOTYPE)
-    ttb_entry = visit_package_type_decl((Ast_PackageDecl*)decl);
+    ttb_entry = visit_package_prototype((Ast_PackageDecl*)decl);
   else if (decl->kind == AST_EXTERN_OBJECT_PROTOTYPE)
-    ttb_entry = visit_extern_object_decl((Ast_ExternObjectDecl*)decl);
+    ttb_entry = visit_extern_object_prototype((Ast_ExternObjectDecl*)decl);
   else if (decl->kind == AST_EXTERN_FUNCTION_PROTOTYPE)
-    ttb_entry = visit_extern_function_prototype((Ast_ExternFunctionDecl*)decl);
-  else if (decl->kind == AST_FUNCTION_PROTOTYPE)
-    ttb_entry = visit_function_prototype((Ast_FunctionPrototype*)decl);
-  else if (decl->kind == AST_INSTANTIATION)
-    ;
+    ttb_entry = visit_extern_function_prototype((Ast_FunctionDecl*)decl);
+  else if (decl->kind == AST_PACKAGE_INSTANCE)
+    ; // not a type declataration - pass.
   else
     assert (false);
   return ttb_entry;
@@ -207,7 +203,7 @@ visit_p4program(Ast_P4Program* p4program)
   Ast_Declaration* decl = p4program->declaration;
   while (decl)
   {
-    visit_declaration(decl);
+    visit_p4declaration(decl);
     decl = decl->next_decl;
   }
 }
@@ -218,9 +214,9 @@ build_typexpr()
   error_type = arena_push_struct(&arena, TypeTable_EnumType);
   error_type->kind = TYP_ENUM;
   error_type->name = "error";
-  error_type->enum_field = arena_push_struct(&arena, TypeTable_EnumField);
-  error_type->enum_field->kind = TYP_ENUM_FIELD;
-  error_type->last_field = error_type->enum_field;
+  error_type->sentinel_field = arena_push_struct(&arena, TypeTable_EnumField);
+  error_type->sentinel_field->kind = TYP_ENUM_FIELD;
+  error_type->last_field = error_type->sentinel_field;
   visit_p4program(p4program);
   arena_print_usage(&arena, "Memory (build_typexpr): ");
 }

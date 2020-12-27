@@ -50,7 +50,7 @@ syn_struct_field()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    IdentInfo_Selector* id_info = sym_get_selector(result->name);
+    IdentInfo_MemberSelector* id_info = sym_get_selector(result->name);
     if (id_info && id_info->scope_level >= scope_level)
       error("at line %d: selector '%s' has been previously declared", token_at->line_nr, result->name);
     result->selector = sym_add_selector(result->name);
@@ -108,7 +108,7 @@ syn_header_decl_or_prototype()
 
 #if 1
         field = result->field;
-        IdentInfo_Selector* selector = field->selector;
+        IdentInfo_MemberSelector* selector = field->selector;
         IdentInfo_Type* type = result->id_info;
         type->selector = field->selector;
         field = (Ast_StructField*)field->next_id;
@@ -172,7 +172,7 @@ syn_struct_decl_or_prototype()
 
 #if 1
         field = result->field;
-        IdentInfo_Selector* selector = field->selector;
+        IdentInfo_MemberSelector* selector = field->selector;
         IdentInfo_Type* type = result->id_info;
         type->selector = field->selector;
         field = (Ast_StructField*)field->next_id;
@@ -211,7 +211,7 @@ syn_error_code()
   zero_struct(id, Ast_ErrorCode);
   id->kind = AST_ERROR_CODE;
   id->name = token_at->lexeme;
-  IdentInfo_Selector* id_info = sym_get_selector(id->name);
+  IdentInfo_MemberSelector* id_info = sym_get_selector(id->name);
   if (id_info && id_info->scope_level >= scope_level)
     error("at line %d: selector '%s' has been previously declared", token_at->line_nr, id->name);
   id->selector = sym_add_selector(id->name);
@@ -256,7 +256,7 @@ syn_error_type_decl()
 
 #if 1
       field = result->error_code;
-      IdentInfo_Selector* selector = field->selector;
+      IdentInfo_MemberSelector* selector = field->selector;
       IdentInfo_Type* type = result->id_info;
       type->selector = field->selector;
       field = (Ast_ErrorCode*)field->next_id;
@@ -1525,13 +1525,13 @@ syn_package_prototype()
   return result;
 }
 
-internal Ast_Instantiation*
+internal Ast_PackageInstance*
 syn_instantiation()
 {
   assert(token_at->klass == TOK_TYPE_IDENT);
-  Ast_Instantiation* result = arena_push_struct(&arena, Ast_Instantiation);
-  zero_struct(result, Ast_Instantiation);
-  result->kind = AST_INSTANTIATION;
+  Ast_PackageInstance* result = arena_push_struct(&arena, Ast_PackageInstance);
+  zero_struct(result, Ast_PackageInstance);
+  result->kind = AST_PACKAGE_INSTANCE;
   result->package = syn_expression(1);
   if (token_at->klass == TOK_IDENT)
   {
@@ -1547,12 +1547,12 @@ syn_instantiation()
   return result;
 }
 
-internal Ast_FunctionPrototype*
+internal Ast_FunctionDecl*
 syn_function_prototype()
 {
   assert(token_at->klass == TOK_TYPE_IDENT);
-  Ast_FunctionPrototype* result = arena_push_struct(&arena, Ast_FunctionPrototype);
-  zero_struct(result, Ast_FunctionPrototype);
+  Ast_FunctionDecl* result = arena_push_struct(&arena, Ast_FunctionDecl);
+  zero_struct(result, Ast_FunctionDecl);
   result->kind = AST_FUNCTION_PROTOTYPE;
   result->return_type = sym_get_type(token_at->lexeme);
   next_token();
@@ -1617,12 +1617,12 @@ syn_extern_object_prototype()
     next_token();
     if (token_at->klass == TOK_TYPE_IDENT)
     {
-      Ast_FunctionPrototype* method = syn_function_prototype();
+      Ast_FunctionDecl* method = syn_function_prototype();
       result->method = method;
       result->method_count++;
       while (token_at->klass == TOK_TYPE_IDENT)
       {
-        Ast_FunctionPrototype* next_method = syn_function_prototype();
+        Ast_FunctionDecl* next_method = syn_function_prototype();
         method->next_decl = (Ast_Declaration*)next_method;
         method = next_method;
         result->method_count++;
@@ -1639,11 +1639,11 @@ syn_extern_object_prototype()
   return result;
 }
 
-internal Ast_ExternFunctionDecl*
+internal Ast_FunctionDecl*
 syn_extern_function_prototype()
 {
   assert(token_at->klass == TOK_TYPE_IDENT);
-  Ast_ExternFunctionDecl* result = (Ast_ExternFunctionDecl*)syn_function_prototype();
+  Ast_FunctionDecl* result = syn_function_prototype();
   result->kind = AST_EXTERN_FUNCTION_PROTOTYPE;
   return result;
 }

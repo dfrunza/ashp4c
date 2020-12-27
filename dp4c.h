@@ -89,7 +89,7 @@ enum IdentObjectKind
   IDOBJ_TYPE,
   IDOBJ_TYPEVAR,
   IDOBJ_VAR,
-  IDOBJ_FIELD,
+  IDOBJ_STRUCT_MEMBER,
 };
 
 typedef struct IdentInfo
@@ -101,17 +101,17 @@ typedef struct IdentInfo
 }
 IdentInfo;
 
-typedef struct IdentInfo_Selector
+typedef struct IdentInfo_MemberSelector
 {
   IdentInfo;
-  struct IdentInfo_Selector* next_selector;
+  struct IdentInfo_MemberSelector* next_selector;
 }
-IdentInfo_Selector;
+IdentInfo_MemberSelector;
 
 typedef struct
 {
   IdentInfo;
-  IdentInfo_Selector* selector;
+  IdentInfo_MemberSelector* selector;
 }
 IdentInfo_Type;
 
@@ -195,7 +195,7 @@ enum AstKind
   AST_SIMPLE_PROP,
   AST_VAR_DECL,
   AST_PACKAGE_PROTOTYPE,
-  AST_INSTANTIATION,
+  AST_PACKAGE_INSTANCE,
   AST_EXTERN_OBJECT_PROTOTYPE,
   AST_EXTERN_FUNCTION_PROTOTYPE,
   AST_FUNCTION_PROTOTYPE,
@@ -252,7 +252,7 @@ Ast_Ident;  // AST_IDENT
 typedef struct
 {
   Ast_Ident;
-  IdentInfo_Selector* selector;
+  IdentInfo_MemberSelector* selector;
 }
 Ast_ErrorCode;  // AST_ERROR_CODE
 
@@ -290,7 +290,7 @@ typedef struct Ast_StructField
 {
   Ast_Ident;
   Ast_Typeref* typeref;
-  IdentInfo_Selector* selector;
+  IdentInfo_MemberSelector* selector;
 }
 Ast_StructField;  // AST_STRUCT_FIELD
 
@@ -552,7 +552,7 @@ Ast_TableDecl;  // AST_TABLE
 
 typedef struct
 {
-  Ast;
+  Ast_Declaration;
   char* name;
   Ast_TypeParameter* type_parameter;
   Ast_Parameter* parameter;
@@ -566,11 +566,10 @@ Ast_ControlDecl;  // AST_CONTROL_PROTOTYPE
 
 typedef struct
 {
-  Ast;
+  Ast_Declaration;
   char* name;
   Ast_TypeParameter* type_parameter;
   Ast_Parameter* parameter;
-  int param_count;
   IdentInfo_Type* id_info;
   Ast_ParserState* parser_state;
 }
@@ -583,7 +582,6 @@ typedef struct
   char* name;
   Ast_TypeParameter* type_parameter;
   Ast_Parameter* parameter;
-  int param_count;
   IdentInfo_Type* id_info;
 }
 Ast_PackageDecl;  // AST_PACKAGE_PROTOTYPE
@@ -594,7 +592,7 @@ typedef struct
   Ast_Expression* package;
   char* name;
 }
-Ast_Instantiation;  // AST_INSTANTIATION
+Ast_PackageInstance;  // AST_PACKAGE_INSTANCE
 
 typedef struct Ast_FunctionPrototype
 {
@@ -602,30 +600,20 @@ typedef struct Ast_FunctionPrototype
   char* name;
   Ast_TypeParameter* type_parameter;
   Ast_Parameter* parameter;
-  int param_count;
   IdentInfo_Type* return_type;
 }
-Ast_FunctionPrototype;  // AST_FUNCTION_PROTOTYPE
+Ast_FunctionDecl;  // AST_FUNCTION_PROTOTYPE
+                   // AST_EXTERN_FUNCTION_PROTOTYPE
 
 typedef struct
 {
   Ast_Declaration;
   char* name;
-  Ast_FunctionPrototype* method;
+  Ast_FunctionDecl* method;
   int method_count;
   IdentInfo_Type* id_info;
 }
 Ast_ExternObjectDecl;  // AST_EXTERN_OBJECT_PROTOTYPE
-
-typedef struct
-{
-  Ast_Declaration;
-  char* name;
-  Ast_Parameter* parameter;
-  int param_count;
-  IdentInfo_Type* return_type;
-}
-Ast_ExternFunctionDecl;  // AST_EXTERN_FUNCTION_PROTOTYPE
 
 typedef struct
 {
@@ -664,23 +652,6 @@ typedef struct TypeTable_Entry
   enum TypeTable_TypeCtor kind;
   bool is_prototype;
   char* name;
-
-//  union
-//  {
-//    struct TypeTable_EnumType
-//    {
-//      struct TypeTable_Entry* enum_field;  // sentinel
-//      struct TypeTable_Entry* last_field;
-//      int field_count;
-//    }
-//    enum_type;
-//
-//    struct TypeTable_EnumField
-//    {
-//      struct TypeTable_Entry* next_field;
-//    }
-//    enum_field;
-//  };
 }
 TypeTable_Entry;
 
@@ -694,7 +665,7 @@ TypeTable_EnumField;  // TYP_ENUM_FIELD
 typedef struct TypeTable_EnumType
 {
   TypeTable_Entry;
-  struct TypeTable_EnumField* enum_field;  // sentinel
+  struct TypeTable_EnumField* sentinel_field;
   struct TypeTable_EnumField* last_field;
   int field_count;
 }

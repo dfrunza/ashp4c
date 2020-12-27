@@ -132,7 +132,7 @@ sym_add_error_code(char* name)
   zero_struct(new_ident, IdentInfo);
   new_ident->name = name;
   new_ident->scope_level = scope_level;
-  new_ident->object_kind = IDOBJ_FIELD;
+  new_ident->object_kind = IDOBJ_STRUCT_MEMBER;
   new_ident->next_in_scope = ns->ns_global;
   ns->ns_global = new_ident;
   printf("add error '%s'\n", new_ident->name);
@@ -203,28 +203,28 @@ sym_remove_error_type()
   ns->ns_type = id_info->next_in_scope;
 }
 
-IdentInfo_Selector*
+IdentInfo_MemberSelector*
 sym_add_selector(char* name)
 {
   SymbolTable_Entry* ns = sym_get_namespace(name);
-  IdentInfo_Selector* new_ident = arena_push_struct(&arena, IdentInfo_Selector);
-  zero_struct(new_ident, IdentInfo_Selector);
+  IdentInfo_MemberSelector* new_ident = arena_push_struct(&arena, IdentInfo_MemberSelector);
+  zero_struct(new_ident, IdentInfo_MemberSelector);
   new_ident->name = name;
   new_ident->scope_level = scope_level;
-  new_ident->object_kind = IDOBJ_FIELD;
+  new_ident->object_kind = IDOBJ_STRUCT_MEMBER;
   new_ident->next_in_scope = ns->ns_global;
   ns->ns_global = (IdentInfo*)new_ident;
   printf("add selector '%s'\n", new_ident->name);
   return new_ident;
 }
 
-IdentInfo_Selector*
+IdentInfo_MemberSelector*
 sym_get_selector(char* name)
 {
   SymbolTable_Entry* ns = sym_get_namespace(name);
-  IdentInfo_Selector* result = (IdentInfo_Selector*)ns->ns_global;
+  IdentInfo_MemberSelector* result = (IdentInfo_MemberSelector*)ns->ns_global;
   if (result)
-    assert (result->object_kind == IDOBJ_FIELD);
+    assert (result->object_kind == IDOBJ_STRUCT_MEMBER);
   return result;
 }
 
