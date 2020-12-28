@@ -23,16 +23,16 @@ next_token()
 
   if (token_at->klass == TOK_IDENT)
   {
-    SymbolTable_Entry* ns = sym_get_namespace(token_at->lexeme);
+    Namespace_Entry* ns = sym_get_namespace(token_at->lexeme);
     if (ns->ns_global)
     {
-      IdentInfo* id_info = ns->ns_global;
+      Ident_Entry* id_info = ns->ns_global;
       if (id_info->object_kind == IDOBJ_KEYWORD)
-        token_at->klass = ((IdentInfo_Keyword*)id_info)->token_klass;
+        token_at->klass = ((Ident_Keyword*)id_info)->token_klass;
     }
     else if (ns->ns_type)
     {
-      IdentInfo* id_info = ns->ns_type;
+      Ident_Entry* id_info = ns->ns_type;
       if (id_info->object_kind == IDOBJ_TYPE || id_info->object_kind == IDOBJ_TYPEVAR)
         token_at->klass = TOK_TYPE_IDENT;
     }
@@ -50,7 +50,7 @@ syn_struct_field()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    IdentInfo_MemberSelector* id_info = sym_get_selector(result->name);
+    Ident_MemberSelector* id_info = sym_get_selector(result->name);
     if (id_info && id_info->scope_level >= scope_level)
       error("at line %d: selector '%s' has been previously declared", token_at->line_nr, result->name);
     result->selector = sym_add_selector(result->name);
@@ -106,8 +106,8 @@ syn_header_decl_or_prototype()
 
 #if 1
         field = result->field;
-        IdentInfo_MemberSelector* selector = field->selector;
-        IdentInfo_Type* type = result->id_info;
+        Ident_MemberSelector* selector = field->selector;
+        Ident_Type* type = result->id_info;
         type->selector = field->selector;
         field = (Ast_StructField*)field->next_ident;
         while (field)
@@ -168,8 +168,8 @@ syn_struct_decl_or_prototype()
 
 #if 1
         field = result->field;
-        IdentInfo_MemberSelector* selector = field->selector;
-        IdentInfo_Type* type = result->id_info;
+        Ident_MemberSelector* selector = field->selector;
+        Ident_Type* type = result->id_info;
         type->selector = field->selector;
         field = (Ast_StructField*)field->next_ident;
         while (field)
@@ -207,7 +207,7 @@ syn_error_code()
   zero_struct(id, Ast_ErrorCode);
   id->kind = AST_ERROR_CODE;
   id->name = token_at->lexeme;
-  IdentInfo_MemberSelector* id_info = sym_get_selector(id->name);
+  Ident_MemberSelector* id_info = sym_get_selector(id->name);
   if (id_info && id_info->scope_level >= scope_level)
     error("at line %d: selector '%s' has been previously declared", token_at->line_nr, id->name);
   id->selector = sym_add_selector(id->name);
@@ -250,8 +250,8 @@ syn_error_type_decl()
 
 #if 1
       field = result->error_code;
-      IdentInfo_MemberSelector* selector = field->selector;
-      IdentInfo_Type* type = result->id_info;
+      Ident_MemberSelector* selector = field->selector;
+      Ident_Type* type = result->id_info;
       type->selector = field->selector;
       field = (Ast_ErrorCode*)field->next_ident;
       while (field)

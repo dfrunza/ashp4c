@@ -11,7 +11,7 @@ int tokenized_input_len = 0;
 int max_tokenized_input_len = 1000;  // table entry units
 int max_symtable_len = 997;  // table entry units
 
-SymbolTable_Entry** symtable = 0;
+Namespace_Entry** symtable = 0;
 int scope_level = 0;
 
 Ast_P4Program* p4program = 0;
@@ -40,7 +40,7 @@ main(int arg_count, char* args[])
   lex_input_init(input_text);
   lex_tokenize_input();
 
-  symtable = arena_push_array(&arena, SymbolTable_Entry*, max_symtable_len);
+  symtable = arena_push_array(&arena, Namespace_Entry*, max_symtable_len);
   int i = 0;
   while (i < max_symtable_len)
     symtable[i++] = 0;

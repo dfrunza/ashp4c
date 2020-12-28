@@ -94,58 +94,58 @@ enum IdentObjectKind
   IDOBJ_STRUCT_MEMBER,
 };
 
-typedef struct IdentInfo
+typedef struct Ident_Entry
 {
   enum IdentObjectKind object_kind;
   char* name;
   int scope_level;
-  struct IdentInfo* next_in_scope;
+  struct Ident_Entry* next_in_scope;
 }
-IdentInfo;
+Ident_Entry;
 
-typedef struct IdentInfo_MemberSelector
+typedef struct Ident_MemberSelector
 {
-  IdentInfo;
-  struct IdentInfo_MemberSelector* next_selector;
+  Ident_Entry;
+  struct Ident_MemberSelector* next_selector;
 }
-IdentInfo_MemberSelector;
-
-typedef struct
-{
-  IdentInfo;
-  IdentInfo_MemberSelector* selector;
-}
-IdentInfo_Type;
+Ident_MemberSelector;
 
 typedef struct
 {
-  IdentInfo;
+  Ident_Entry;
+  Ident_MemberSelector* selector;
+}
+Ident_Type;
+
+typedef struct
+{
+  Ident_Entry;
   enum TokenClass token_klass;
 }
-IdentInfo_Keyword;
+Ident_Keyword;
 
 typedef struct
 {
-  IdentInfo;
-  IdentInfo_Type* id_info;
+  Ident_Entry;
+  Ident_Type* id_info;
 }
-IdentInfo_Var;
+Ident_Var;
 
-typedef struct SymbolTable_Entry
+typedef struct Namespace_Entry
 {
   char* name;
-  IdentInfo* ns_global;
-  IdentInfo* ns_type;
-  struct SymbolTable_Entry* next;
+  Ident_Entry* ns_global;
+  Ident_Entry* ns_type;
+  struct Namespace_Entry* next;
 }
-SymbolTable_Entry;
+Namespace_Entry;
 
 typedef struct
 {
   enum TokenClass klass;
   char* lexeme;
   int line_nr;
-  struct IdentInfo* ident;
+  struct Ident_Entry* ident;
 }
 Token;
 
@@ -320,7 +320,7 @@ Ast_Ident;  // AST_IDENT
 typedef struct
 {
   Ast_Ident;
-  IdentInfo_MemberSelector* selector;
+  Ident_MemberSelector* selector;
 }
 Ast_ErrorCode;  // AST_ERROR_CODE
 
@@ -350,7 +350,7 @@ typedef struct
   Ast_Declaration;
   Ast_Typeref* typeref;
   char* name;
-  IdentInfo_Type* id_info;
+  Ident_Type* id_info;
 }
 Ast_Typedef;  // AST_TYPEDEF
 
@@ -358,7 +358,7 @@ typedef struct Ast_StructField
 {
   Ast_Ident;
   Ast_Typeref* typeref;
-  IdentInfo_MemberSelector* selector;
+  Ident_MemberSelector* selector;
 }
 Ast_StructField;  // AST_STRUCT_FIELD
 
@@ -367,7 +367,7 @@ typedef struct
   Ast_Declaration;
   char* name;
   Ast_StructField* field;
-  IdentInfo_Type* id_info;
+  Ident_Type* id_info;
 }
 Ast_StructDecl;  // AST_STRUCT_PROTOTYPE
                  // AST_STRUCT_DECL
@@ -377,7 +377,7 @@ typedef struct
   Ast_Declaration;
   char* name;
   Ast_StructField* field;
-  IdentInfo_Type* id_info;
+  Ident_Type* id_info;
 }
 Ast_HeaderDecl;  // AST_HEADER_PROTOTYPE
                  // AST_HEADER_DECL
@@ -386,7 +386,7 @@ typedef struct
 {
   Ast_Declaration;
   Ast_ErrorCode* error_code;
-  IdentInfo_Type* id_info;
+  Ident_Type* id_info;
 }
 Ast_ErrorType;  // AST_ERROR_TYPE
 
@@ -620,7 +620,7 @@ typedef struct
   char* name;
   Ast_TypeParameter* type_parameter;
   Ast_Parameter* parameter;
-  IdentInfo_Type* id_info;
+  Ident_Type* id_info;
   Ast_Declaration* local_decl;
   Ast_BlockStmt* control_body;
 }
@@ -633,7 +633,7 @@ typedef struct
   char* name;
   Ast_TypeParameter* type_parameter;
   Ast_Parameter* parameter;
-  IdentInfo_Type* id_info;
+  Ident_Type* id_info;
   Ast_ParserState* parser_state;
 }
 Ast_ParserDecl;  // AST_PARSER_PROTOTYPE
@@ -645,7 +645,7 @@ typedef struct
   char* name;
   Ast_TypeParameter* type_parameter;
   Ast_Parameter* parameter;
-  IdentInfo_Type* id_info;
+  Ident_Type* id_info;
 }
 Ast_PackageDecl;  // AST_PACKAGE_PROTOTYPE
 
@@ -663,7 +663,7 @@ typedef struct Ast_FunctionPrototype
   char* name;
   Ast_TypeParameter* type_parameter;
   Ast_Parameter* parameter;
-  IdentInfo_Type* return_type;
+  Ident_Type* return_type;
 }
 Ast_FunctionDecl;  // AST_FUNCTION_PROTOTYPE
                    // AST_EXTERN_FUNCTION_PROTOTYPE
@@ -673,7 +673,7 @@ typedef struct
   Ast_Declaration;
   char* name;
   Ast_FunctionDecl* first_method;
-  IdentInfo_Type* id_info;
+  Ident_Type* id_info;
 }
 Ast_ExternObjectDecl;  // AST_EXTERN_OBJECT_PROTOTYPE
 
