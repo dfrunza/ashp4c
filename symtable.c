@@ -38,7 +38,7 @@ scope_pop_level()
     Namespace_Entry* ns = symtable[i];
     while (ns)
     {
-      Ident_Entry* ident = ns->ns_global;
+      Ident* ident = ns->ns_global;
       if (ident && ident->scope_level >= scope_level)
       {
         ns->ns_global = ident->next_in_scope;
@@ -90,7 +90,7 @@ sym_get_type(char* name)
   Namespace_Entry* ns = sym_get_namespace(name);
   Ident_Type* result = (Ident_Type*)ns->ns_type;
   if (result)
-    assert (result->object_kind == IDOBJ_TYPE);
+    assert (result->object_kind == ID_TYPE);
   return result;
 }
 
@@ -102,37 +102,37 @@ sym_add_type(char* name)
   zero_struct(new_ident, Ident_Type);
   new_ident->name = name;
   new_ident->scope_level = scope_level;
-  new_ident->object_kind = IDOBJ_TYPE;
+  new_ident->object_kind = ID_TYPE;
   new_ident->next_in_scope = ns->ns_type;
-  ns->ns_type = (Ident_Entry*)new_ident;
+  ns->ns_type = (Ident*)new_ident;
   printf("add type '%s'\n", new_ident->name);
   return new_ident;
 }
 
-Ident_Entry*
+Ident*
 sym_add_typevar(char* name)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
-  Ident_Entry* new_ident = arena_push_struct(&arena, Ident_Entry);
-  zero_struct(new_ident, Ident_Entry);
+  Ident* new_ident = arena_push_struct(&arena, Ident);
+  zero_struct(new_ident, Ident);
   new_ident->name = name;
   new_ident->scope_level = scope_level;
-  new_ident->object_kind = IDOBJ_TYPEVAR;
+  new_ident->object_kind = ID_TYPEVAR;
   new_ident->next_in_scope = ns->ns_type;
   ns->ns_type = new_ident;
   printf("add typevar '%s'\n", new_ident->name);
   return new_ident;
 }
 
-Ident_Entry*
+Ident*
 sym_add_error_code(char* name)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
-  Ident_Entry* new_ident = arena_push_struct(&arena, Ident_Entry);
-  zero_struct(new_ident, Ident_Entry);
+  Ident* new_ident = arena_push_struct(&arena, Ident);
+  zero_struct(new_ident, Ident);
   new_ident->name = name;
   new_ident->scope_level = scope_level;
-  new_ident->object_kind = IDOBJ_STRUCT_MEMBER;
+  new_ident->object_kind = ID_STRUCT_MEMBER;
   new_ident->next_in_scope = ns->ns_global;
   ns->ns_global = new_ident;
   printf("add error '%s'\n", new_ident->name);
@@ -145,7 +145,7 @@ sym_get_error_type()
   Namespace_Entry* ns = sym_get_namespace("error");
   Ident_Type* result = (Ident_Type*)ns->ns_type;
   if (result)
-    assert (result->object_kind == IDOBJ_TYPE);
+    assert (result->object_kind == ID_TYPE);
   return result;
 }
 
@@ -157,7 +157,7 @@ sym_remove_error_kw()
   if (!ns->ns_global)
     return;
 
-  assert (ns->ns_global == (Ident_Entry*)error_kw);
+  assert (ns->ns_global == (Ident*)error_kw);
   ns->ns_global = ns->ns_global->next_in_scope;
 }
 
@@ -168,12 +168,12 @@ sym_add_error_kw()
 
   if (ns->ns_global)
   {
-    assert (ns->ns_global == (Ident_Entry*)error_kw);
+    assert (ns->ns_global == (Ident*)error_kw);
     return;
   }
 
   error_kw->next_in_scope = ns->ns_global;
-  ns->ns_global = (Ident_Entry*)error_kw;
+  ns->ns_global = (Ident*)error_kw;
 }
 
 void
@@ -183,13 +183,13 @@ sym_add_error_var()
 
   if (ns->ns_global)
   {
-    assert (ns->ns_global == (Ident_Entry*)error_var);
+    assert (ns->ns_global == (Ident*)error_var);
     return;
   }
 
   error_var->scope_level = scope_level;
   error_var->next_in_scope = ns->ns_global;
-  ns->ns_global = (Ident_Entry*)error_var;
+  ns->ns_global = (Ident*)error_var;
 }
 
 void
@@ -200,7 +200,7 @@ sym_remove_error_var()
   if (!ns->ns_global)
     return;
 
-  assert (ns->ns_global == (Ident_Entry*)error_var);
+  assert (ns->ns_global == (Ident*)error_var);
   ns->ns_global = ns->ns_global->next_in_scope;
 }
 
@@ -211,12 +211,12 @@ sym_add_error_type()
 
   if (ns->ns_type)
   {
-    assert (ns->ns_type == (Ident_Entry*)error_type);
+    assert (ns->ns_type == (Ident*)error_type);
     return;
   }
 
   error_type->next_in_scope = ns->ns_type;
-  ns->ns_type = (Ident_Entry*)error_type;
+  ns->ns_type = (Ident*)error_type;
 }
 
 internal void
@@ -227,7 +227,7 @@ sym_remove_error_type()
   if (!ns->ns_type)
     return;
 
-  assert (ns->ns_type == (Ident_Entry*)error_type);
+  assert (ns->ns_type == (Ident*)error_type);
   ns->ns_type = ns->ns_type->next_in_scope;
 }
 
@@ -239,9 +239,9 @@ sym_add_selector(char* name)
   zero_struct(new_ident, Ident_MemberSelector);
   new_ident->name = name;
   new_ident->scope_level = scope_level;
-  new_ident->object_kind = IDOBJ_STRUCT_MEMBER;
+  new_ident->object_kind = ID_STRUCT_MEMBER;
   new_ident->next_in_scope = ns->ns_global;
-  ns->ns_global = (Ident_Entry*)new_ident;
+  ns->ns_global = (Ident*)new_ident;
   printf("add selector '%s'\n", new_ident->name);
   return new_ident;
 }
@@ -252,7 +252,7 @@ sym_get_selector(char* name)
   Namespace_Entry* ns = sym_get_namespace(name);
   Ident_MemberSelector* result = (Ident_MemberSelector*)ns->ns_global;
   if (result)
-    assert (result->object_kind == IDOBJ_STRUCT_MEMBER);
+    assert (result->object_kind == ID_STRUCT_MEMBER);
   return result;
 }
 
@@ -266,8 +266,8 @@ add_keyword(char* name, enum TokenClass token_klass)
   ident->name = name;
   ident->scope_level = scope_level;
   ident->token_klass = token_klass;
-  ident->object_kind = IDOBJ_KEYWORD;
-  namespace->ns_global = (Ident_Entry*)ident;
+  ident->object_kind = ID_KEYWORD;
+  namespace->ns_global = (Ident*)ident;
   return ident;
 }
 
@@ -315,7 +315,7 @@ sym_init()
   error_var = arena_push_struct(&arena, Ident_Var);
   zero_struct(error_var, Ident_Var);
   error_var->name = "error";
-  error_var->object_kind = IDOBJ_VAR;
+  error_var->object_kind = ID_VAR;
   error_var->id_info = sym_get_type("error");
 }
 

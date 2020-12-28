@@ -84,49 +84,49 @@ enum TokenClass
   TOK_EOI,    // End Of Input
 };
 
-enum IdentObjectKind
+enum IdentKind
 {
-  IDOBJ_NONE,
-  IDOBJ_KEYWORD,
-  IDOBJ_TYPE,
-  IDOBJ_TYPEVAR,
-  IDOBJ_VAR,
-  IDOBJ_STRUCT_MEMBER,
+  ID_NONE,
+  ID_KEYWORD,
+  ID_TYPE,
+  ID_TYPEVAR,
+  ID_VAR,
+  ID_STRUCT_MEMBER,
 };
 
-typedef struct Ident_Entry
+typedef struct Ident
 {
-  enum IdentObjectKind object_kind;
+  enum IdentKind object_kind;
   char* name;
   int scope_level;
-  struct Ident_Entry* next_in_scope;
+  struct Ident* next_in_scope;
 }
-Ident_Entry;
+Ident;
 
 typedef struct Ident_MemberSelector
 {
-  Ident_Entry;
+  Ident;
   struct Ident_MemberSelector* next_selector;
 }
 Ident_MemberSelector;
 
 typedef struct
 {
-  Ident_Entry;
+  Ident;
   Ident_MemberSelector* selector;
 }
 Ident_Type;
 
 typedef struct
 {
-  Ident_Entry;
+  Ident;
   enum TokenClass token_klass;
 }
 Ident_Keyword;
 
 typedef struct
 {
-  Ident_Entry;
+  Ident;
   Ident_Type* id_info;
 }
 Ident_Var;
@@ -134,8 +134,8 @@ Ident_Var;
 typedef struct Namespace_Entry
 {
   char* name;
-  Ident_Entry* ns_global;
-  Ident_Entry* ns_type;
+  Ident* ns_global;
+  Ident* ns_type;
   struct Namespace_Entry* next;
 }
 Namespace_Entry;
@@ -145,11 +145,11 @@ typedef struct
   enum TokenClass klass;
   char* lexeme;
   int line_nr;
-  struct Ident_Entry* ident;
+  struct Ident* ident;
 }
 Token;
 
-enum TypeTable_TypeCtor
+enum Typexpr_TypeCtor
 {
   TYP_NONE,
   TYP_BASIC,
@@ -173,46 +173,48 @@ enum TypeBasic_Kind
   BASTYP_BOOL,
 };
 
-typedef struct TypeTable_Entry
+typedef struct Typexpr 
 {
-  enum TypeTable_TypeCtor kind;
+  enum Typexpr_TypeCtor kind;
   bool is_prototype;
   char* name;
   struct Ast* ast;
 }
-TypeTable_Entry;
+Typexpr;
 
-typedef struct TypeTable_EnumField
+typedef struct Typexpr_EnumField
 {
-  TypeTable_Entry;
-  struct TypeTable_EnumField* next_field;
+  Typexpr;
+  struct Typexpr_EnumField* next_field;
 }
-TypeTable_EnumField;  // TYP_ENUM_FIELD
+Typexpr_EnumField;  // TYP_ENUM_FIELD
 
-typedef struct TypeTable_EnumType
+typedef struct Typexpr_EnumType
 {
-  TypeTable_Entry;
-  TypeTable_EnumField* sentinel_field;
-  TypeTable_EnumField* last_field;
+  Typexpr;
+  Typexpr_EnumField* sentinel_field;
+  Typexpr_EnumField* last_field;
   int field_count;
 }
-TypeTable_EnumType;  // TYP_ENUM
+Typexpr_EnumType;  // TYP_ENUM
 
-typedef struct TypeTable_Function
+typedef struct Typexpr_Function
 {
-  TypeTable_Entry;
-  struct TypeTable_Function* next_function;  // TYP_FUNCTION
+  Typexpr;
+  struct Typexpr_Function* next_function;  // TYP_FUNCTION
+  Typexpr* sentinel_argument;
+  Typexpr* last_argument;
 }
-TypeTable_Function;
+Typexpr_Function;
 
-typedef struct TypeTable_ExternObject
+typedef struct Typexpr_ExternObject
 {
-  TypeTable_Entry;
-  TypeTable_Function* sentinel_function;
-  TypeTable_Function* last_function;
+  Typexpr;
+  Typexpr_Function* sentinel_function;
+  Typexpr_Function* last_function;
   int method_count;
 }
-TypeTable_ExternObject;  // TYP_EXTERN_OBJECT
+Typexpr_ExternObject;  // TYP_EXTERN_OBJECT
 
 enum AstKind
 {
@@ -298,7 +300,7 @@ typedef struct Ast
 {
   enum AstKind kind;
   int line_nr;
-  TypeTable_Entry* typexpr;
+  Typexpr* typexpr;
 }
 Ast;
 

@@ -3,46 +3,46 @@
 external Arena arena;
 external Ast_P4Program* p4program;
 
-internal TypeTable_EnumType* error_type;
+internal Typexpr_EnumType* error_type;
 
 internal void
-link_ast_to_typexpr(Ast* ast, TypeTable_Entry* typexpr)
+link_ast_to_typexpr(Ast* ast, Typexpr* typexpr)
 {
   ast->typexpr = typexpr;
   typexpr->ast = ast;
 }
 
-internal TypeTable_Function*
+internal Typexpr_Function*
 visit_function_prototype(Ast_FunctionDecl* decl)
 {
-  TypeTable_Function* ttb_entry = arena_push_struct(&arena, TypeTable_Function);
-  zero_struct(ttb_entry, TypeTable_Function);
+  Typexpr_Function* ttb_entry = arena_push_struct(&arena, Typexpr_Function);
+  zero_struct(ttb_entry, Typexpr_Function);
   ttb_entry->kind = TYP_FUNCTION;
   ttb_entry->name = decl->name;
   ttb_entry->is_prototype = true;
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
-internal TypeTable_ExternObject*
+internal Typexpr_ExternObject*
 visit_extern_object_prototype(Ast_ExternObjectDecl* decl)
 {
-  TypeTable_ExternObject* ttb_entry = arena_push_struct(&arena, TypeTable_ExternObject);
-  zero_struct(ttb_entry, TypeTable_ExternObject);
+  Typexpr_ExternObject* ttb_entry = arena_push_struct(&arena, Typexpr_ExternObject);
+  zero_struct(ttb_entry, Typexpr_ExternObject);
   ttb_entry->kind = TYP_EXTERN_OBJECT;
   ttb_entry->name = decl->name;
   ttb_entry->is_prototype = true;
 
-  ttb_entry->sentinel_function = arena_push_struct(&arena, TypeTable_Function);
-  zero_struct(ttb_entry->sentinel_function, TypeTable_Function);
+  ttb_entry->sentinel_function = arena_push_struct(&arena, Typexpr_Function);
+  zero_struct(ttb_entry->sentinel_function, Typexpr_Function);
   ttb_entry->sentinel_function->kind = TYP_FUNCTION;
   ttb_entry->last_function = ttb_entry->sentinel_function;
 
   Ast_FunctionDecl* method_ast = decl->first_method;
   while (method_ast)
   {
-    TypeTable_Function* method_typexpr = visit_function_prototype(method_ast);
+    Typexpr_Function* method_typexpr = visit_function_prototype(method_ast);
     ttb_entry->last_function->next_function = method_typexpr;
     ttb_entry->last_function = method_typexpr;
     ttb_entry->method_count += 1;
@@ -50,131 +50,131 @@ visit_extern_object_prototype(Ast_ExternObjectDecl* decl)
     method_ast = (Ast_FunctionDecl*)method_ast->next_decl;
   }
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
-internal TypeTable_Entry*
+internal Typexpr*
 visit_extern_function_prototype(Ast_FunctionDecl* decl)
 {
-  TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
-  zero_struct(ttb_entry, TypeTable_Entry);
+  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
+  zero_struct(ttb_entry, Typexpr);
   ttb_entry->kind = TYP_FUNCTION;
   ttb_entry->name = decl->name;
   ttb_entry->is_prototype = true;
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
-internal TypeTable_Entry*
+internal Typexpr*
 visit_parser_prototype(Ast_ParserDecl* decl)
 {
-  TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
-  zero_struct(ttb_entry, TypeTable_Entry);
+  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
+  zero_struct(ttb_entry, Typexpr);
   ttb_entry->kind = TYP_PARSER;
   ttb_entry->is_prototype = true;
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
-internal TypeTable_Entry*
+internal Typexpr*
 visit_parser_type(Ast_ParserDecl* decl)
 {
-  TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
-  zero_struct(ttb_entry, TypeTable_Entry);
+  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
+  zero_struct(ttb_entry, Typexpr);
   ttb_entry->kind = TYP_PARSER;
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
-internal TypeTable_Entry*
+internal Typexpr*
 visit_control_prototype(Ast_ControlDecl* decl)
 {
-  TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
-  zero_struct(ttb_entry, TypeTable_Entry);
+  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
+  zero_struct(ttb_entry, Typexpr);
   ttb_entry->kind = TYP_CONTROL;
   ttb_entry->is_prototype = true;
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
-internal TypeTable_Entry*
+internal Typexpr*
 visit_control_type(Ast_ControlDecl* decl)
 {
-  TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
-  zero_struct(ttb_entry, TypeTable_Entry);
+  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
+  zero_struct(ttb_entry, Typexpr);
   ttb_entry->kind = TYP_CONTROL;
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
-internal TypeTable_Entry*
+internal Typexpr*
 visit_package_prototype(Ast_PackageDecl* decl)
 {
-  TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
-  zero_struct(ttb_entry, TypeTable_Entry);
+  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
+  zero_struct(ttb_entry, Typexpr);
   ttb_entry->kind = TYP_PACKAGE;
   ttb_entry->is_prototype = true;
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
-internal TypeTable_Entry*
+internal Typexpr*
 visit_typedef(Ast_Typedef* decl)
 {
-  TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
-  zero_struct(ttb_entry, TypeTable_Entry);
+  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
+  zero_struct(ttb_entry, Typexpr);
   ttb_entry->kind = TYP_TYPEDEF;
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
-internal TypeTable_Entry*
+internal Typexpr*
 visit_header_prototype(Ast_HeaderDecl* decl)
 {
-  TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
-  zero_struct(ttb_entry, TypeTable_Entry);
+  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
+  zero_struct(ttb_entry, Typexpr);
   ttb_entry->kind = TYP_HEADER;
   ttb_entry->is_prototype = true;
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
-internal TypeTable_Entry*
+internal Typexpr*
 visit_header_type(Ast_HeaderDecl* decl)
 {
-  TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
-  zero_struct(ttb_entry, TypeTable_Entry);
+  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
+  zero_struct(ttb_entry, Typexpr);
   ttb_entry->kind = TYP_HEADER;
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
-internal TypeTable_EnumField*
+internal Typexpr_EnumField*
 visit_error_code(Ast_ErrorCode* decl)
 {
-  TypeTable_EnumField* ttb_entry = arena_push_struct(&arena, TypeTable_EnumField);
-  zero_struct(ttb_entry, TypeTable_EnumField);
+  Typexpr_EnumField* ttb_entry = arena_push_struct(&arena, Typexpr_EnumField);
+  zero_struct(ttb_entry, Typexpr_EnumField);
   ttb_entry->kind = TYP_ENUM_FIELD;
   ttb_entry->name = decl->name;
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
-internal TypeTable_EnumType*
+internal Typexpr_EnumType*
 visit_error_type(Ast_ErrorType* decl)
 {
-  TypeTable_EnumType* ttb_entry = error_type;
+  Typexpr_EnumType* ttb_entry = error_type;
 
   if (!decl->error_code)
     error("at line %d: error declaration must have at least one error code", decl->line_nr);
@@ -182,7 +182,7 @@ visit_error_type(Ast_ErrorType* decl)
   Ast_ErrorCode* error_code_ast = decl->error_code;
   while (error_code_ast)
   {
-    TypeTable_EnumField* error_code_typexpr = visit_error_code(error_code_ast);
+    Typexpr_EnumField* error_code_typexpr = visit_error_code(error_code_ast);
     ttb_entry->last_field->next_field = error_code_typexpr;
     ttb_entry->last_field = error_code_typexpr;
     ttb_entry->field_count += 1;
@@ -190,30 +190,30 @@ visit_error_type(Ast_ErrorType* decl)
     error_code_ast = (Ast_ErrorCode*)error_code_ast->next_ident;
   }
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
-internal TypeTable_Entry*
+internal Typexpr*
 visit_struct_prototype(Ast_StructDecl* decl)
 {
-  TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
-  zero_struct(ttb_entry, TypeTable_Entry);
+  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
+  zero_struct(ttb_entry, Typexpr);
   ttb_entry->kind = TYP_STRUCT;
   ttb_entry->is_prototype = true;
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
-internal TypeTable_Entry*
+internal Typexpr*
 visit_struct_type(Ast_StructDecl* decl)
 {
-  TypeTable_Entry* ttb_entry = arena_push_struct(&arena, TypeTable_Entry);
-  zero_struct(ttb_entry, TypeTable_Entry);
+  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
+  zero_struct(ttb_entry, Typexpr);
   ttb_entry->kind = TYP_STRUCT;
 
-  link_ast_to_typexpr((Ast*)decl, (TypeTable_Entry*)ttb_entry);
+  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
   return ttb_entry;
 }
 
@@ -267,13 +267,13 @@ visit_p4program(Ast_P4Program* p4program)
 void
 build_typexpr()
 {
-  error_type = arena_push_struct(&arena, TypeTable_EnumType);
-  zero_struct(error_type, TypeTable_EnumType);
+  error_type = arena_push_struct(&arena, Typexpr_EnumType);
+  zero_struct(error_type, Typexpr_EnumType);
   error_type->kind = TYP_ENUM;
   error_type->name = "error";
 
-  error_type->sentinel_field = arena_push_struct(&arena, TypeTable_EnumField);
-  zero_struct(error_type->sentinel_field, TypeTable_EnumField);
+  error_type->sentinel_field = arena_push_struct(&arena, Typexpr_EnumField);
+  zero_struct(error_type->sentinel_field, Typexpr_EnumField);
   error_type->sentinel_field->kind = TYP_ENUM_FIELD;
   error_type->last_field = error_type->sentinel_field;
 

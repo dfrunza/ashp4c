@@ -26,14 +26,14 @@ next_token()
     Namespace_Entry* ns = sym_get_namespace(token_at->lexeme);
     if (ns->ns_global)
     {
-      Ident_Entry* id_info = ns->ns_global;
-      if (id_info->object_kind == IDOBJ_KEYWORD)
+      Ident* id_info = ns->ns_global;
+      if (id_info->object_kind == ID_KEYWORD)
         token_at->klass = ((Ident_Keyword*)id_info)->token_klass;
     }
     else if (ns->ns_type)
     {
-      Ident_Entry* id_info = ns->ns_type;
-      if (id_info->object_kind == IDOBJ_TYPE || id_info->object_kind == IDOBJ_TYPEVAR)
+      Ident* id_info = ns->ns_type;
+      if (id_info->object_kind == ID_TYPE || id_info->object_kind == ID_TYPEVAR)
         token_at->klass = TOK_TYPE_IDENT;
     }
   }
