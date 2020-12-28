@@ -97,13 +97,11 @@ syn_header_decl_or_prototype()
       {
         Ast_StructField* field = syn_struct_field();
         result->field = field;
-        result->field_count++;
         while (token_at->klass == TOK_TYPE_IDENT)
         {
           Ast_StructField* next_field = syn_struct_field();
-          field->next_id = (Ast_Ident*)next_field;
+          field->next_ident = (Ast_Ident*)next_field;
           field = next_field;
-          result->field_count++;
         }
 
 #if 1
@@ -111,12 +109,12 @@ syn_header_decl_or_prototype()
         IdentInfo_MemberSelector* selector = field->selector;
         IdentInfo_Type* type = result->id_info;
         type->selector = field->selector;
-        field = (Ast_StructField*)field->next_id;
+        field = (Ast_StructField*)field->next_ident;
         while (field)
         {
           selector->next_selector = field->selector;
           selector = selector->next_selector;
-          field = (Ast_StructField*)field->next_id;
+          field = (Ast_StructField*)field->next_ident;
         }
 #endif
       }
@@ -161,13 +159,11 @@ syn_struct_decl_or_prototype()
       {
         Ast_StructField* field = syn_struct_field();
         result->field = field;
-        result->field_count++;
         while (token_at->klass == TOK_TYPE_IDENT)
         {
           Ast_StructField* next_field = syn_struct_field();
-          field->next_id = (Ast_Ident*)next_field;
+          field->next_ident = (Ast_Ident*)next_field;
           field = next_field;
-          result->field_count++;
         }
 
 #if 1
@@ -175,12 +171,12 @@ syn_struct_decl_or_prototype()
         IdentInfo_MemberSelector* selector = field->selector;
         IdentInfo_Type* type = result->id_info;
         type->selector = field->selector;
-        field = (Ast_StructField*)field->next_id;
+        field = (Ast_StructField*)field->next_ident;
         while (field)
         {
           selector->next_selector = field->selector;
           selector = selector->next_selector;
-          field = (Ast_StructField*)field->next_id;
+          field = (Ast_StructField*)field->next_ident;
         }
 #endif
       }
@@ -237,16 +233,14 @@ syn_error_type_decl()
     {
       Ast_ErrorCode* field = syn_error_code();
       result->error_code = field;
-      result->code_count++;
       while (token_at->klass == TOK_COMMA)
       {
         next_token();
         if (token_at->klass == TOK_IDENT)
         {
           Ast_ErrorCode* next_code = syn_error_code();
-          field->next_id = (Ast_Ident*)next_code;
+          field->next_ident = (Ast_Ident*)next_code;
           field = next_code;
-          result->code_count++;
         }
         else if (token_at->klass == TOK_COMMA)
           error("missing parameter at line %d", token_at->line_nr);
@@ -259,12 +253,12 @@ syn_error_type_decl()
       IdentInfo_MemberSelector* selector = field->selector;
       IdentInfo_Type* type = result->id_info;
       type->selector = field->selector;
-      field = (Ast_ErrorCode*)field->next_id;
+      field = (Ast_ErrorCode*)field->next_ident;
       while (field)
       {
         selector->next_selector = field->selector;
         selector = selector->next_selector;
-        field = (Ast_ErrorCode*)field->next_id;
+        field = (Ast_ErrorCode*)field->next_ident;
       }
 #endif
     }
@@ -781,7 +775,6 @@ syn_expression(int priority_threshold)
         {
           Ast_Expression* argument = syn_expression(1);
           function_call->argument = argument;
-          function_call->argument_count++;
           while (token_at->klass == TOK_COMMA)
           {
             next_token();
@@ -790,7 +783,6 @@ syn_expression(int priority_threshold)
               Ast_Expression* next_argument = syn_expression(1);
               argument->next = next_argument;
               argument = next_argument;
-              function_call->argument_count++;
             }
             else if (token_at->klass == TOK_COMMA)
               error("missing parameter at line %d", token_at->line_nr);
@@ -1008,14 +1000,15 @@ internal Ast_ParserDecl*
 syn_parser_decl()
 {
   assert(token_at->klass == TOK_KW_PARSER);
-  sym_remove_error_kw();
   Ast_ParserDecl* result = syn_parser_prototype();
   if (token_at->klass == TOK_BRACE_OPEN)
   {
     result->kind = AST_PARSER_DECL;
+    sym_remove_error_kw();
+    sym_add_error_var();
     next_token();
     scope_push_level();
-    sym_add_error_var();
+
     if (token_at->klass == TOK_KW_STATE)
     {
       Ast_ParserState* state = syn_parser_state();
@@ -1029,18 +1022,21 @@ syn_parser_decl()
     }
     else
       error("'state' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+
     if (token_at->klass == TOK_BRACE_CLOSE)
+    {
+      sym_remove_error_var();
+      sym_add_error_kw();
       next_token();
+    }
     else
       error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
-    sym_remove_error_var();
     scope_pop_level();
   }
   else if (token_at->klass == TOK_SEMICOLON)
     next_token();
   else
     error("'{' or ';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
-  sym_add_error_kw();
   return result;
 }
 
@@ -1102,8 +1098,10 @@ syn_block_statement()
   Ast_BlockStmt* result = arena_push_struct(&arena, Ast_BlockStmt);
   zero_struct(result, Ast_BlockStmt);
   result->kind = AST_BLOCK_STMT;
+
   if (token_is_expression(token_at))
     result->statement = syn_statement_list();
+
   if (token_at->klass == TOK_BRACE_CLOSE)
     next_token();
   else
@@ -1426,27 +1424,27 @@ internal Ast_ControlDecl*
 syn_control_decl_or_prototype()
 {
   assert(token_at->klass == TOK_KW_CONTROL);
-  sym_remove_error_kw();
   Ast_ControlDecl* result = syn_control_prototype();
   if (token_at->klass == TOK_BRACE_OPEN)
   {
     result->kind = AST_CONTROL_DECL;
+    sym_remove_error_kw();
+    sym_add_error_var();
     next_token();
     scope_push_level();
-    sym_add_error_var();
+
     if (token_is_control_local_decl(token_at))
     {
       Ast_Declaration* local_decl = syn_control_local_decl();
       result->local_decl = local_decl;
-      result->local_decl_count++;
       while (token_is_control_local_decl(token_at))
       {
         Ast_Declaration* next_local_decl = syn_control_local_decl(result);
         local_decl->next_decl = local_decl;
         local_decl = next_local_decl;
-        result->local_decl_count++;
       }
     }
+
     if (token_at->klass == TOK_KW_APPLY)
     {
       next_token();
@@ -1454,19 +1452,23 @@ syn_control_decl_or_prototype()
         result->control_body = syn_block_statement();
       else
         error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
-      if (token_at->klass == TOK_BRACE_CLOSE)
-        next_token();
-      else
-        error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
     }
-    sym_remove_error_var();
+
+    if (token_at->klass == TOK_BRACE_CLOSE)
+    {
+      sym_remove_error_var();
+      sym_add_error_kw();
+      next_token();
+    }
+    else
+      error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+
     scope_pop_level();
   }
   else if (token_at->klass == TOK_SEMICOLON)
     next_token();
   else
     error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
-  sym_add_error_kw();
   return result;
 }
 
@@ -1526,7 +1528,7 @@ syn_package_prototype()
 }
 
 internal Ast_PackageInstance*
-syn_instantiation()
+syn_package_instance()
 {
   assert(token_at->klass == TOK_TYPE_IDENT);
   Ast_PackageInstance* result = arena_push_struct(&arena, Ast_PackageInstance);
@@ -1561,6 +1563,7 @@ syn_function_prototype()
     result->name = token_at->lexeme;
     next_token();
     scope_push_level();
+
     if (token_at->klass == TOK_ANGLE_OPEN)
     {
       next_token();
@@ -1576,15 +1579,22 @@ syn_function_prototype()
       else
         error("'>' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
     }
+
     if (token_at->klass == TOK_PARENTH_OPEN)
     {
+      sym_remove_error_kw();
       next_token();
       if (token_is_parameter(token_at))
         result->parameter = syn_parameter_list();
+
       if (token_at->klass == TOK_PARENTH_CLOSE)
+      {
+        sym_add_error_kw();
         next_token();
+      }
       else
         error("')' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+
       if (token_at->klass == TOK_SEMICOLON)
         next_token();
       else
@@ -1614,22 +1624,24 @@ syn_extern_object_prototype()
   if (token_at->klass == TOK_BRACE_OPEN)
   {
     scope_push_level();
+    sym_remove_error_kw();
     next_token();
     if (token_at->klass == TOK_TYPE_IDENT)
     {
       Ast_FunctionDecl* method = syn_function_prototype();
-      result->method = method;
-      result->method_count++;
+      result->first_method = method;
       while (token_at->klass == TOK_TYPE_IDENT)
       {
         Ast_FunctionDecl* next_method = syn_function_prototype();
         method->next_decl = (Ast_Declaration*)next_method;
         method = next_method;
-        result->method_count++;
       }
     }
     if (token_at->klass == TOK_BRACE_CLOSE)
+    {
+      sym_add_error_kw();
       next_token();
+    }
     else
       error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
     scope_pop_level();
@@ -1652,7 +1664,6 @@ internal Ast_Declaration*
 syn_extern_decl()
 {
   assert(token_at->klass == TOK_KW_EXTERN);
-  sym_remove_error_kw();
   Ast_Declaration* result = 0;
   next_token();
   if (token_at->klass == TOK_IDENT)
@@ -1661,12 +1672,11 @@ syn_extern_decl()
     result = (Ast_Declaration*)syn_extern_function_prototype();
   else
     error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
-  sym_add_error_kw();
   return result;
 }
 
 internal Ast_Declaration*
-syn_declaration()
+syn_p4declaration()
 {
   Ast_Declaration* result = 0;
   assert(token_is_declaration(token_at));
@@ -1689,7 +1699,7 @@ syn_declaration()
   else if (token_at->klass == TOK_KW_EXTERN)
     result = (Ast_Declaration*)syn_extern_decl();
   else if (token_at->klass == TOK_TYPE_IDENT)
-    result = (Ast_Declaration*)syn_instantiation();
+    result = (Ast_Declaration*)syn_package_instance();
   else
     assert(false);
   return result;
@@ -1704,15 +1714,13 @@ syn_p4program()
     result = arena_push_struct(&arena, Ast_P4Program);
     zero_struct(result, Ast_P4Program);
     result->kind = AST_P4PROGRAM;
-    Ast_Declaration* declaration = syn_declaration();
+    Ast_Declaration* declaration = syn_p4declaration();
     result->declaration = declaration;
-    result->decl_count++;
     while (token_is_declaration(token_at))
     {
-      Ast_Declaration* next_declaration = syn_declaration();
+      Ast_Declaration* next_declaration = syn_p4declaration();
       declaration->next_decl = next_declaration;
       declaration = next_declaration;
-      result->decl_count++;
     }
     if (token_at->klass != TOK_EOI)
       error("expected end of input at line %d, got '%s'", token_at->line_nr, token_at->lexeme);

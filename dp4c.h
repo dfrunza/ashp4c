@@ -2,6 +2,8 @@
 #include "basic.h"
 #include "arena.h"
 
+struct Ast;
+
 enum TokenClass
 {
   TOK_NONE,
@@ -147,6 +149,71 @@ typedef struct
 }
 Token;
 
+enum TypeTable_TypeCtor
+{
+  TYP_NONE,
+  TYP_BASIC,
+  TYP_FUNCTION,
+  TYP_ENUM,
+  TYP_ENUM_FIELD,
+  TYP_PARSER,
+  TYP_CONTROL,
+  TYP_PACKAGE,
+  TYP_TYPEDEF,
+  TYP_HEADER,
+  TYP_STRUCT,
+  TYP_EXTERN_OBJECT,
+};
+
+enum TypeBasic_Kind
+{
+  BASTYP_NONE,
+  BASTYP_INT,
+  BASTYP_VOID,
+  BASTYP_BOOL,
+};
+
+typedef struct TypeTable_Entry
+{
+  enum TypeTable_TypeCtor kind;
+  bool is_prototype;
+  char* name;
+  struct Ast* ast;
+}
+TypeTable_Entry;
+
+typedef struct TypeTable_EnumField
+{
+  TypeTable_Entry;
+  struct TypeTable_EnumField* next_field;
+}
+TypeTable_EnumField;  // TYP_ENUM_FIELD
+
+typedef struct TypeTable_EnumType
+{
+  TypeTable_Entry;
+  TypeTable_EnumField* sentinel_field;
+  TypeTable_EnumField* last_field;
+  int field_count;
+}
+TypeTable_EnumType;  // TYP_ENUM
+
+typedef struct TypeTable_Function
+{
+  TypeTable_Entry;
+  struct TypeTable_Function* next_function;  // TYP_FUNCTION
+}
+TypeTable_Function;
+
+typedef struct TypeTable_ExternObject
+{
+  TypeTable_Entry;
+  TypeTable_Function* sentinel_function;
+  TypeTable_Function* last_function;
+  int method_count;
+}
+TypeTable_ExternObject;  // TYP_EXTERN_OBJECT
+
 enum AstKind
 {
   AST_NONE,
@@ -231,6 +298,7 @@ typedef struct Ast
 {
   enum AstKind kind;
   int line_nr;
+  TypeTable_Entry* typexpr;
 }
 Ast;
 
@@ -245,7 +313,7 @@ typedef struct Ast_Ident
 {
   Ast;
   char* name;
-  struct Ast_Ident* next_id;
+  struct Ast_Ident* next_ident;
 }
 Ast_Ident;  // AST_IDENT
 
@@ -299,7 +367,6 @@ typedef struct
   Ast_Declaration;
   char* name;
   Ast_StructField* field;
-  int field_count;
   IdentInfo_Type* id_info;
 }
 Ast_StructDecl;  // AST_STRUCT_PROTOTYPE
@@ -310,7 +377,6 @@ typedef struct
   Ast_Declaration;
   char* name;
   Ast_StructField* field;
-  int field_count;
   IdentInfo_Type* id_info;
 }
 Ast_HeaderDecl;  // AST_HEADER_PROTOTYPE
@@ -320,7 +386,6 @@ typedef struct
 {
   Ast_Declaration;
   Ast_ErrorCode* error_code;
-  int code_count;
   IdentInfo_Type* id_info;
 }
 Ast_ErrorType;  // AST_ERROR_TYPE
@@ -359,7 +424,6 @@ typedef struct
 {
   Ast_Expression;
   Ast_Expression* argument;
-  int argument_count;
 }
 Ast_FunctionCallExpr;  // AST_FUNCTION_CALL
 
@@ -558,7 +622,6 @@ typedef struct
   Ast_Parameter* parameter;
   IdentInfo_Type* id_info;
   Ast_Declaration* local_decl;
-  int local_decl_count;
   Ast_BlockStmt* control_body;
 }
 Ast_ControlDecl;  // AST_CONTROL_PROTOTYPE
@@ -609,8 +672,7 @@ typedef struct
 {
   Ast_Declaration;
   char* name;
-  Ast_FunctionDecl* method;
-  int method_count;
+  Ast_FunctionDecl* first_method;
   IdentInfo_Type* id_info;
 }
 Ast_ExternObjectDecl;  // AST_EXTERN_OBJECT_PROTOTYPE
@@ -619,55 +681,6 @@ typedef struct
 {
   Ast;
   Ast_Declaration* declaration;
-  int decl_count;
 }
 Ast_P4Program;  // AST_P4PROGRAM
-
-enum TypeTable_TypeCtor
-{
-  TYP_NONE,
-  TYP_BASIC,
-  TYP_FUNCTION,
-  TYP_ENUM,
-  TYP_ENUM_FIELD,
-  TYP_PARSER,
-  TYP_CONTROL,
-  TYP_PACKAGE,
-  TYP_TYPEDEF,
-  TYP_HEADER,
-  TYP_STRUCT,
-  TYP_EXTERN_OBJECT,
-};
-
-enum TypeBasic_Kind
-{
-  BASTYP_NONE,
-  BASTYP_INT,
-  BASTYP_VOID,
-  BASTYP_BOOL,
-};
-
-typedef struct TypeTable_Entry
-{
-  enum TypeTable_TypeCtor kind;
-  bool is_prototype;
-  char* name;
-}
-TypeTable_Entry;
-
-typedef struct TypeTable_EnumField
-{
-  TypeTable_Entry;
-  struct TypeTable_EnumField* next_field;
-}
-TypeTable_EnumField;  // TYP_ENUM_FIELD
-
-typedef struct TypeTable_EnumType
-{
-  TypeTable_Entry;
-  struct TypeTable_EnumField* sentinel_field;
-  struct TypeTable_EnumField* last_field;
-  int field_count;
-}
-TypeTable_EnumType;  // TYP_ENUM
 

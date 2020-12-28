@@ -153,16 +153,25 @@ void
 sym_remove_error_kw()
 {
   SymbolTable_Entry* ns = sym_get_namespace("error");
-  IdentInfo* id_info = ns->ns_global;
-  assert (id_info->object_kind == IDOBJ_KEYWORD);
-  ns->ns_global = id_info->next_in_scope;
+
+  if (!ns->ns_global)
+    return;
+
+  assert (ns->ns_global == (IdentInfo*)error_kw);
+  ns->ns_global = ns->ns_global->next_in_scope;
 }
 
 void
 sym_add_error_kw()
 {
   SymbolTable_Entry* ns = sym_get_namespace("error");
-  error_kw->scope_level = scope_level;
+
+  if (ns->ns_global)
+  {
+    assert (ns->ns_global == (IdentInfo*)error_kw);
+    return;
+  }
+
   error_kw->next_in_scope = ns->ns_global;
   ns->ns_global = (IdentInfo*)error_kw;
 }
@@ -171,6 +180,13 @@ void
 sym_add_error_var()
 {
   SymbolTable_Entry* ns = sym_get_namespace("error");
+
+  if (ns->ns_global)
+  {
+    assert (ns->ns_global == (IdentInfo*)error_var);
+    return;
+  }
+
   error_var->scope_level = scope_level;
   error_var->next_in_scope = ns->ns_global;
   ns->ns_global = (IdentInfo*)error_var;
@@ -180,16 +196,25 @@ void
 sym_remove_error_var()
 {
   SymbolTable_Entry* ns = sym_get_namespace("error");
-  IdentInfo* id_info = ns->ns_global;
-  assert (id_info->object_kind == IDOBJ_VAR);
-  ns->ns_global = id_info->next_in_scope;
+
+  if (!ns->ns_global)
+    return;
+
+  assert (ns->ns_global == (IdentInfo*)error_var);
+  ns->ns_global = ns->ns_global->next_in_scope;
 }
 
 internal void
 sym_add_error_type()
 {
   SymbolTable_Entry* ns = sym_get_namespace("error");
-  error_type->scope_level = scope_level;
+
+  if (ns->ns_type)
+  {
+    assert (ns->ns_type == (IdentInfo*)error_type);
+    return;
+  }
+
   error_type->next_in_scope = ns->ns_type;
   ns->ns_type = (IdentInfo*)error_type;
 }
@@ -198,9 +223,12 @@ internal void
 sym_remove_error_type()
 {
   SymbolTable_Entry* ns = sym_get_namespace("error");
-  IdentInfo* id_info = ns->ns_type;
-  assert (id_info->object_kind == IDOBJ_TYPE);
-  ns->ns_type = id_info->next_in_scope;
+
+  if (!ns->ns_type)
+    return;
+
+  assert (ns->ns_type == (IdentInfo*)error_type);
+  ns->ns_type = ns->ns_type->next_in_scope;
 }
 
 IdentInfo_MemberSelector*
