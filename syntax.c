@@ -104,25 +104,25 @@ syn_header_decl_or_prototype()
       if (token_at->klass == TOK_TYPE_IDENT)
       {
         Ast_StructField* field = syn_struct_field();
-        result->field = field;
+        result->first_field = field;
         while (token_at->klass == TOK_TYPE_IDENT)
         {
           Ast_StructField* next_field = syn_struct_field();
-          field->next_ident = (Ast_Ident*)next_field;
+          field->next_field = next_field;
           field = next_field;
         }
 
 #if 1
-        field = result->field;
+        field = result->first_field;
         Ident_MemberSelector* selector = field->selector;
         Ident_Type* type_ident = result->type_ident;
         type_ident->selector = field->selector;
-        field = (Ast_StructField*)field->next_ident;
+        field = (Ast_StructField*)field->next_field;
         while (field)
         {
           selector->next_selector = field->selector;
           selector = selector->next_selector;
-          field = (Ast_StructField*)field->next_ident;
+          field = (Ast_StructField*)field->next_field;
         }
 #endif
       }
@@ -166,25 +166,25 @@ syn_struct_decl_or_prototype()
       if (token_at->klass == TOK_TYPE_IDENT)
       {
         Ast_StructField* field = syn_struct_field();
-        result->field = field;
+        result->first_field = field;
         while (token_at->klass == TOK_TYPE_IDENT)
         {
           Ast_StructField* next_field = syn_struct_field();
-          field->next_ident = (Ast_Ident*)next_field;
+          field->next_field = next_field;
           field = next_field;
         }
 
 #if 1
-        field = result->field;
+        field = result->first_field;
         Ident_MemberSelector* selector = field->selector;
         Ident_Type* type_ident = result->type_ident;
         type_ident->selector = field->selector;
-        field = (Ast_StructField*)field->next_ident;
+        field = (Ast_StructField*)field->next_field;
         while (field)
         {
           selector->next_selector = field->selector;
           selector = selector->next_selector;
-          field = (Ast_StructField*)field->next_ident;
+          field = (Ast_StructField*)field->next_field;
         }
 #endif
       }
@@ -248,7 +248,7 @@ syn_error_type_decl()
         if (token_at->klass == TOK_IDENT)
         {
           Ast_ErrorCode* next_code = syn_error_code();
-          field->next_ident = (Ast_Ident*)next_code;
+          field->next_code = next_code;
           field = next_code;
         }
         else if (token_at->klass == TOK_COMMA)
@@ -262,12 +262,12 @@ syn_error_type_decl()
       Ident_MemberSelector* selector = field->selector;
       Ident_Type* type_ident = result->type_ident;
       type_ident->selector = field->selector;
-      field = (Ast_ErrorCode*)field->next_ident;
+      field = (Ast_ErrorCode*)field->next_code;
       while (field)
       {
         selector->next_selector = field->selector;
         selector = selector->next_selector;
-        field = (Ast_ErrorCode*)field->next_ident;
+        field = (Ast_ErrorCode*)field->next_code;
       }
 #endif
     }
@@ -527,7 +527,7 @@ syn_parser_prototype()
     {
       next_token();
       if (token_is_type_parameter(token_at))
-        result->type_parameter = syn_type_parameter_list();
+        result->first_type_parameter = syn_type_parameter_list();
       else if (token_at->klass == TOK_TYPE_IDENT)
         error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
       else
@@ -542,7 +542,7 @@ syn_parser_prototype()
     {
       next_token();
       if (token_is_parameter(token_at))
-        result->parameter = syn_parameter_list();
+        result->first_parameter = syn_parameter_list();
       if (token_at->klass == TOK_PARENTH_CLOSE)
         next_token();
       else
@@ -1069,7 +1069,7 @@ syn_control_prototype()
     {
       next_token();
       if (token_is_type_parameter(token_at))
-        result->type_parameter = syn_type_parameter_list();
+        result->first_type_parameter = syn_type_parameter_list();
       else if (token_at->klass == TOK_TYPE_IDENT)
         error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
       else
@@ -1084,7 +1084,7 @@ syn_control_prototype()
     {
       next_token();
       if (token_is_parameter(token_at))
-        result->parameter = syn_parameter_list();
+        result->first_parameter = syn_parameter_list();
       if (token_at->klass == TOK_PARENTH_CLOSE)
         next_token();
       else
@@ -1501,7 +1501,7 @@ syn_package_prototype()
     {
       next_token();
       if (token_is_type_parameter(token_at))
-        result->type_parameter = syn_type_parameter_list();
+        result->first_type_parameter = syn_type_parameter_list();
       else if (token_at->klass == TOK_TYPE_IDENT)
         error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
       else
@@ -1516,7 +1516,7 @@ syn_package_prototype()
     {
       next_token();
       if (token_is_parameter(token_at))
-        result->parameter = syn_parameter_list();
+        result->first_parameter = syn_parameter_list();
       if (token_at->klass == TOK_PARENTH_CLOSE)
         next_token();
       else

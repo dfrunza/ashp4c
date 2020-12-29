@@ -4,7 +4,7 @@ external Arena arena;
 external Ast_P4Program* p4program;
 
 external Ast_Ident* error_type_ast;
-internal Typexpr_EnumType* error_typexpr;
+internal Typexpr_Enum* error_typexpr;
 external Ast_Ident* void_type_ast;
 internal Typexpr_Basic* void_typexpr;
 external Ast_Ident* bool_type_ast;
@@ -150,15 +150,48 @@ visit_extern_function_prototype(Ast_FunctionDecl* function_ast)
   return function_typexpr;
 }
 
-internal Typexpr*
+internal Typexpr_Parser*
 visit_parser_prototype(Ast_ParserDecl* parser_ast)
 {
   assert (!parser_ast->typexpr);
-  Typexpr* parser_typexpr = arena_push_struct(&arena, Typexpr);
-  zero_struct(parser_typexpr, Typexpr);
-  parser_ast->typexpr = parser_typexpr;
+  Typexpr_Parser* parser_typexpr = arena_push_struct(&arena, Typexpr_Parser);
+  zero_struct(parser_typexpr, Typexpr_Parser);
+  parser_ast->typexpr = (Typexpr*)parser_typexpr;
   parser_typexpr->kind = TYP_PARSER;
   parser_typexpr->is_prototype = true;
+
+  parser_typexpr->sentinel_type_parameter = arena_push_struct(&arena, Typexpr_TypeParameter);
+  zero_struct(parser_typexpr->sentinel_type_parameter, Typexpr_TypeParameter);
+  parser_typexpr->sentinel_type_parameter->kind = TYP_TYPE_PARAMETER;
+  parser_typexpr->last_type_parameter = parser_typexpr->sentinel_type_parameter;
+
+  Ast_TypeParameter* type_parameter_ast = parser_ast->first_type_parameter;
+  while (type_parameter_ast)
+  {
+    Typexpr_TypeParameter* type_parameter_typexpr = visit_type_parameter(type_parameter_ast);
+    parser_typexpr->last_type_parameter->next_type_parameter = type_parameter_typexpr;
+    parser_typexpr->last_type_parameter = type_parameter_typexpr;
+    parser_typexpr->type_parameter_count += 1;
+
+    type_parameter_ast = (Ast_TypeParameter*)type_parameter_ast->next_parameter;
+  }
+
+  parser_typexpr->sentinel_parameter = arena_push_struct(&arena, Typexpr_Parameter);
+  zero_struct(parser_typexpr->sentinel_parameter, Typexpr_Parameter);
+  parser_typexpr->sentinel_parameter->kind = TYP_PARAMETER;
+  parser_typexpr->last_parameter = parser_typexpr->sentinel_parameter;
+  
+  Ast_Parameter* parameter_ast = parser_ast->first_parameter;
+  while (parameter_ast)
+  {
+    Typexpr_Parameter* parameter_typexpr = visit_parameter(parameter_ast);
+    parser_typexpr->last_parameter->next_parameter = parameter_typexpr;
+    parser_typexpr->last_parameter = parameter_typexpr;
+    parser_typexpr->parameter_count += 1;
+
+    parameter_ast = (Ast_Parameter*)parameter_ast->next_parameter;
+  }
+
   return parser_typexpr;
 }
 
@@ -173,15 +206,48 @@ visit_parser_type(Ast_ParserDecl* parser_ast)
   return parser_typexpr;
 }
 
-internal Typexpr*
+internal Typexpr_Control*
 visit_control_prototype(Ast_ControlDecl* control_ast)
 {
   assert (!control_ast->typexpr);
-  Typexpr* control_typexpr = arena_push_struct(&arena, Typexpr);
-  zero_struct(control_typexpr, Typexpr);
-  control_ast->typexpr = control_typexpr;
+  Typexpr_Control* control_typexpr = arena_push_struct(&arena, Typexpr_Control);
+  zero_struct(control_typexpr, Typexpr_Control);
+  control_ast->typexpr = (Typexpr*)control_typexpr;
   control_typexpr->kind = TYP_CONTROL;
   control_typexpr->is_prototype = true;
+
+  control_typexpr->sentinel_type_parameter = arena_push_struct(&arena, Typexpr_TypeParameter);
+  zero_struct(control_typexpr->sentinel_type_parameter, Typexpr_TypeParameter);
+  control_typexpr->sentinel_type_parameter->kind = TYP_TYPE_PARAMETER;
+  control_typexpr->last_type_parameter = control_typexpr->sentinel_type_parameter;
+
+  Ast_TypeParameter* type_parameter_ast = control_ast->first_type_parameter;
+  while (type_parameter_ast)
+  {
+    Typexpr_TypeParameter* type_parameter_typexpr = visit_type_parameter(type_parameter_ast);
+    control_typexpr->last_type_parameter->next_type_parameter = type_parameter_typexpr;
+    control_typexpr->last_type_parameter = type_parameter_typexpr;
+    control_typexpr->type_parameter_count += 1;
+
+    type_parameter_ast = (Ast_TypeParameter*)type_parameter_ast->next_parameter;
+  }
+
+  control_typexpr->sentinel_parameter = arena_push_struct(&arena, Typexpr_Parameter);
+  zero_struct(control_typexpr->sentinel_parameter, Typexpr_Parameter);
+  control_typexpr->sentinel_parameter->kind = TYP_PARAMETER;
+  control_typexpr->last_parameter = control_typexpr->sentinel_parameter;
+  
+  Ast_Parameter* parameter_ast = control_ast->first_parameter;
+  while (parameter_ast)
+  {
+    Typexpr_Parameter* parameter_typexpr = visit_parameter(parameter_ast);
+    control_typexpr->last_parameter->next_parameter = parameter_typexpr;
+    control_typexpr->last_parameter = parameter_typexpr;
+    control_typexpr->parameter_count += 1;
+
+    parameter_ast = (Ast_Parameter*)parameter_ast->next_parameter;
+  }
+
   return control_typexpr;
 }
 
@@ -196,49 +262,116 @@ visit_control_type(Ast_ControlDecl* control_ast)
   return control_typexpr;
 }
 
-internal Typexpr*
+internal Typexpr_Package*
 visit_package_prototype(Ast_PackageDecl* package_ast)
 {
   assert (!package_ast->typexpr);
-  Typexpr* package_typexpr = arena_push_struct(&arena, Typexpr);
-  zero_struct(package_typexpr, Typexpr);
-  package_ast->typexpr = package_typexpr;
+  Typexpr_Package* package_typexpr = arena_push_struct(&arena, Typexpr_Package);
+  zero_struct(package_typexpr, Typexpr_Package);
+  package_ast->typexpr = (Typexpr*)package_typexpr;
   package_typexpr->kind = TYP_PACKAGE;
   package_typexpr->is_prototype = true;
+
+  package_typexpr->sentinel_type_parameter = arena_push_struct(&arena, Typexpr_TypeParameter);
+  zero_struct(package_typexpr->sentinel_type_parameter, Typexpr_TypeParameter);
+  package_typexpr->sentinel_type_parameter->kind = TYP_TYPE_PARAMETER;
+  package_typexpr->last_type_parameter = package_typexpr->sentinel_type_parameter;
+
+  Ast_TypeParameter* type_parameter_ast = package_ast->first_type_parameter;
+  while (type_parameter_ast)
+  {
+    Typexpr_TypeParameter* type_parameter_typexpr = visit_type_parameter(type_parameter_ast);
+    package_typexpr->last_type_parameter->next_type_parameter = type_parameter_typexpr;
+    package_typexpr->last_type_parameter = type_parameter_typexpr;
+    package_typexpr->type_parameter_count += 1;
+
+    type_parameter_ast = (Ast_TypeParameter*)type_parameter_ast->next_parameter;
+  }
+
+  package_typexpr->sentinel_parameter = arena_push_struct(&arena, Typexpr_Parameter);
+  zero_struct(package_typexpr->sentinel_parameter, Typexpr_Parameter);
+  package_typexpr->sentinel_parameter->kind = TYP_PARAMETER;
+  package_typexpr->last_parameter = package_typexpr->sentinel_parameter;
+  
+  Ast_Parameter* parameter_ast = package_ast->first_parameter;
+  while (parameter_ast)
+  {
+    Typexpr_Parameter* parameter_typexpr = visit_parameter(parameter_ast);
+    package_typexpr->last_parameter->next_parameter = parameter_typexpr;
+    package_typexpr->last_parameter = parameter_typexpr;
+    package_typexpr->parameter_count += 1;
+
+    parameter_ast = (Ast_Parameter*)parameter_ast->next_parameter;
+  }
+
   return package_typexpr;
 }
 
-internal Typexpr*
+internal Typexpr_Typedef*
 visit_typedef(Ast_Typedef* typedef_ast)
 {
   assert (!typedef_ast->typexpr);
-  Typexpr* typedef_typexpr = arena_push_struct(&arena, Typexpr);
-  zero_struct(typedef_typexpr, Typexpr);
-  typedef_ast->typexpr = typedef_typexpr;
+  Typexpr_Typedef* typedef_typexpr = arena_push_struct(&arena, Typexpr_Typedef);
+  zero_struct(typedef_typexpr, Typexpr_Typedef);
+  typedef_ast->typexpr = (Typexpr*)typedef_typexpr;
   typedef_typexpr->kind = TYP_TYPEDEF;
+  typedef_typexpr->name = typedef_ast->name;
+
+  typedef_typexpr->type = visit_typeref(typedef_ast->typeref);
+
   return typedef_typexpr;
 }
 
-internal Typexpr*
+internal Typexpr_StructField*
+visit_struct_field(Ast_StructField* field_ast)
+{
+  assert (!field_ast->typexpr);
+  Typexpr_StructField* field_typexpr = arena_push_struct(&arena, Typexpr_StructField);
+  zero_struct(field_typexpr, Typexpr_StructField);
+  field_ast->typexpr = (Typexpr*)field_typexpr;
+  field_typexpr->kind = TYP_STRUCT_FIELD;
+  field_typexpr->name = field_ast->name;
+
+  field_typexpr->type = visit_typeref(field_ast->typeref);
+
+  return field_typexpr;
+}
+
+internal Typexpr_Header*
 visit_header_prototype(Ast_HeaderDecl* header_ast)
 {
   assert (!header_ast->typexpr);
-  Typexpr* header_typexpr = arena_push_struct(&arena, Typexpr);
-  zero_struct(header_typexpr, Typexpr);
-  header_ast->typexpr = header_typexpr;
+  Typexpr_Header* header_typexpr = arena_push_struct(&arena, Typexpr_Header);
+  zero_struct(header_typexpr, Typexpr_Header);
+  header_ast->typexpr = (Typexpr*)header_typexpr;
   header_typexpr->kind = TYP_HEADER;
   header_typexpr->is_prototype = true;
   return header_typexpr;
 }
 
-internal Typexpr*
+internal Typexpr_Header*
 visit_header_type(Ast_HeaderDecl* header_ast)
 {
   assert (!header_ast->typexpr);
-  Typexpr* header_typexpr = arena_push_struct(&arena, Typexpr);
-  zero_struct(header_typexpr, Typexpr);
-  header_ast->typexpr = header_typexpr;
-  header_typexpr->kind = TYP_HEADER;
+  Typexpr_Header* header_typexpr = visit_header_prototype(header_ast);
+  header_typexpr->is_prototype = false;
+
+  header_typexpr->sentinel_field = arena_push_struct(&arena, Typexpr_StructField);
+  zero_struct(header_typexpr->sentinel_field, Typexpr_StructField);
+  header_typexpr->sentinel_field->kind = TYP_STRUCT_FIELD;
+  header_typexpr->last_field = header_typexpr->sentinel_field;
+
+  Ast_StructField* field_ast = header_ast->first_field;
+  while (field_ast)
+  {
+    Typexpr_StructField* field_typexpr = visit_struct_field(field_ast);
+    header_typexpr->last_field->next_field = field_typexpr;
+    header_typexpr->last_field = field_typexpr;
+    header_typexpr->field_count += 1;
+
+    field_ast = (Ast_StructField*)field_ast->next_field;
+  }
+
   return header_typexpr;
 }
 
@@ -254,7 +387,7 @@ visit_error_code(Ast_ErrorCode* code_ast)
   return code_typexpr;
 }
 
-internal Typexpr_EnumType*
+internal Typexpr_Enum*
 visit_error_type(Ast_ErrorType* error_ast)
 {
   assert (!error_ast->typexpr);
@@ -276,26 +409,41 @@ visit_error_type(Ast_ErrorType* error_ast)
   return error_typexpr;
 }
 
-internal Typexpr*
+internal Typexpr_Struct*
 visit_struct_prototype(Ast_StructDecl* struct_ast)
 {
   assert (!struct_ast->typexpr);
-  Typexpr* struct_typexpr = arena_push_struct(&arena, Typexpr);
-  zero_struct(struct_typexpr, Typexpr);
-  struct_ast->typexpr = struct_typexpr;
+  Typexpr_Struct* struct_typexpr = arena_push_struct(&arena, Typexpr_Struct);
+  zero_struct(struct_typexpr, Typexpr_Struct);
+  struct_ast->typexpr = (Typexpr*)struct_typexpr;
   struct_typexpr->kind = TYP_STRUCT;
   struct_typexpr->is_prototype = true;
   return struct_typexpr;
 }
 
-internal Typexpr*
+internal Typexpr_Struct*
 visit_struct_type(Ast_StructDecl* struct_ast)
 {
   assert (!struct_ast->typexpr);
-  Typexpr* struct_typexpr = arena_push_struct(&arena, Typexpr);
-  zero_struct(struct_typexpr, Typexpr);
-  struct_ast->typexpr = struct_typexpr;
-  struct_typexpr->kind = TYP_STRUCT;
+  Typexpr_Struct* struct_typexpr = visit_struct_prototype(struct_ast);
+  struct_typexpr->is_prototype = false;
+
+  struct_typexpr->sentinel_field = arena_push_struct(&arena, Typexpr_StructField);
+  zero_struct(struct_typexpr->sentinel_field, Typexpr_StructField);
+  struct_typexpr->sentinel_field->kind = TYP_STRUCT_FIELD;
+  struct_typexpr->last_field = struct_typexpr->sentinel_field;
+
+  Ast_StructField* field_ast = struct_ast->first_field;
+  while (field_ast)
+  {
+    Typexpr_StructField* field_typexpr = visit_struct_field(field_ast);
+    struct_typexpr->last_field->next_field = field_typexpr;
+    struct_typexpr->last_field = field_typexpr;
+    struct_typexpr->field_count += 1;
+
+    field_ast = (Ast_StructField*)field_ast->next_field;
+  }
+
   return struct_typexpr;
 }
 
@@ -349,8 +497,8 @@ void
 build_typexpr()
 {
   // 'error' type
-  error_typexpr = arena_push_struct(&arena, Typexpr_EnumType);
-  zero_struct(error_typexpr, Typexpr_EnumType);
+  error_typexpr = arena_push_struct(&arena, Typexpr_Enum);
+  zero_struct(error_typexpr, Typexpr_Enum);
   error_type_ast->typexpr = (Typexpr*)error_typexpr;
   error_typexpr->kind = TYP_ENUM;
   error_typexpr->name = error_type_ast->name;

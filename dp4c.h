@@ -158,12 +158,13 @@ enum Typexpr_TypeCtor
   TYP_TYPE_PARAMETER,
   TYP_PARAMETER,
   TYP_FUNCTION,
-  TYP_ENUM,
   TYP_ENUM_FIELD,
+  TYP_ENUM,
   TYP_PARSER,
   TYP_CONTROL,
   TYP_PACKAGE,
   TYP_TYPEDEF,
+  TYP_STRUCT_FIELD,
   TYP_HEADER,
   TYP_STRUCT,
   TYP_EXTERN_OBJECT,
@@ -202,21 +203,22 @@ typedef struct Typexpr_EnumField
 }
 Typexpr_EnumField;  // TYP_ENUM_FIELD
 
-typedef struct Typexpr_EnumType
+typedef struct Typexpr_Enum
 {
   Typexpr;
+
   Typexpr_EnumField* sentinel_field;
   Typexpr_EnumField* last_field;
   int field_count;
 }
-Typexpr_EnumType;  // TYP_ENUM
+Typexpr_Enum;  // TYP_ENUM
 
 typedef struct Typexpr_TypeParameter
 {
   Typexpr;
   struct Typexpr_TypeParameter* next_type_parameter;
 }
-Typexpr_TypeParameter;
+Typexpr_TypeParameter;  // TYP_TYPE_PARAMETER
 
 typedef enum Typexpr_ParameterDirection
 {
@@ -234,12 +236,12 @@ typedef struct Typexpr_Parameter
   Typexpr* type;
   struct Typexpr_Parameter* next_parameter;
 }
-Typexpr_Parameter;
+Typexpr_Parameter;  // TYP_PARAMETER
 
 typedef struct Typexpr_Function
 {
   Typexpr;
-  struct Typexpr_Function* next_function;  // TYP_FUNCTION
+  struct Typexpr_Function* next_function;
 
   Typexpr_TypeParameter* sentinel_type_parameter;
   Typexpr_TypeParameter* last_type_parameter;
@@ -251,7 +253,7 @@ typedef struct Typexpr_Function
 
   Typexpr* return_type;
 }
-Typexpr_Function;
+Typexpr_Function;  // TYP_FUNCTION
 
 typedef struct Typexpr_ExternObject
 {
@@ -261,6 +263,83 @@ typedef struct Typexpr_ExternObject
   int method_count;
 }
 Typexpr_ExternObject;  // TYP_EXTERN_OBJECT
+
+typedef struct Typexpr_Parser
+{
+  Typexpr;
+
+  Typexpr_TypeParameter* sentinel_type_parameter;
+  Typexpr_TypeParameter* last_type_parameter;
+  int type_parameter_count;
+
+  Typexpr_Parameter* sentinel_parameter;
+  Typexpr_Parameter* last_parameter;
+  int parameter_count;
+}
+Typexpr_Parser;  // TYP_PARSER
+
+typedef struct Typexpr_Control
+{
+  Typexpr;
+
+  Typexpr_TypeParameter* sentinel_type_parameter;
+  Typexpr_TypeParameter* last_type_parameter;
+  int type_parameter_count;
+
+  Typexpr_Parameter* sentinel_parameter;
+  Typexpr_Parameter* last_parameter;
+  int parameter_count;
+}
+Typexpr_Control;  // TYP_CONTROL
+
+typedef struct Typexpr_Package
+{
+  Typexpr;
+
+  Typexpr_TypeParameter* sentinel_type_parameter;
+  Typexpr_TypeParameter* last_type_parameter;
+  int type_parameter_count;
+
+  Typexpr_Parameter* sentinel_parameter;
+  Typexpr_Parameter* last_parameter;
+  int parameter_count;
+}
+Typexpr_Package;  // TYP_PACKAGE
+
+typedef struct Typexpr_Typedef
+{
+  Typexpr;
+  Typexpr* type;
+}
+Typexpr_Typedef;  // TYP_TYPEDEF
+
+typedef struct Typexpr_StructField
+{
+  Typexpr;
+  struct Typexpr_StructField* next_field;
+  Typexpr* type;
+}
+Typexpr_StructField;  // TYP_STRUCT_FIELD
+
+typedef struct Typexpr_Header
+{
+  Typexpr;
+
+  Typexpr_StructField* sentinel_field;
+  Typexpr_StructField* last_field;
+  int field_count;
+}
+Typexpr_Header;  // TYP_HEADER
+
+typedef struct Typexpr_Struct
+{
+  Typexpr;
+
+  Typexpr_StructField* sentinel_field;
+  Typexpr_StructField* last_field;
+  int field_count;
+}
+Typexpr_Struct;  // TYP_STRUCT
 
 #define ast_cast(TYPE, KIND, EXPR) ({\
   if ((EXPR)) assert((EXPR)->kind == KIND); \
@@ -370,9 +449,10 @@ typedef struct Ast_Ident
 }
 Ast_Ident;  // AST_IDENT
 
-typedef struct
+typedef struct Ast_ErrorCode
 {
   Ast_Ident;
+  struct Ast_ErrorCode* next_code;
   Ident_MemberSelector* selector;
 }
 Ast_ErrorCode;  // AST_ERROR_CODE
@@ -412,6 +492,7 @@ Ast_Typedef;  // AST_TYPEDEF
 typedef struct Ast_StructField
 {
   Ast_Ident;
+  struct Ast_StructField* next_field;
   Ast_Typeref* typeref;
   Ident_MemberSelector* selector;
 }
@@ -421,7 +502,7 @@ typedef struct
 {
   Ast_Declaration;
   char* name;
-  Ast_StructField* field;
+  Ast_StructField* first_field;
   Ident_Type* type_ident;
 }
 Ast_StructDecl;  // AST_STRUCT_PROTOTYPE
@@ -431,7 +512,7 @@ typedef struct
 {
   Ast_Declaration;
   char* name;
-  Ast_StructField* field;
+  Ast_StructField* first_field;
   Ident_Type* type_ident;
 }
 Ast_HeaderDecl;  // AST_HEADER_PROTOTYPE
@@ -675,8 +756,8 @@ typedef struct
 {
   Ast_Declaration;
   char* name;
-  Ast_TypeParameter* type_parameter;
-  Ast_Parameter* parameter;
+  Ast_TypeParameter* first_type_parameter;
+  Ast_Parameter* first_parameter;
   Ident_Type* type_ident;
   Ast_Declaration* local_decl;
   Ast_BlockStmt* control_body;
@@ -688,8 +769,8 @@ typedef struct
 {
   Ast_Declaration;
   char* name;
-  Ast_TypeParameter* type_parameter;
-  Ast_Parameter* parameter;
+  Ast_TypeParameter* first_type_parameter;
+  Ast_Parameter* first_parameter;
   Ident_Type* type_ident;
   Ast_ParserState* parser_state;
 }
@@ -700,8 +781,8 @@ typedef struct
 {
   Ast_Declaration;
   char* name;
-  Ast_TypeParameter* type_parameter;
-  Ast_Parameter* parameter;
+  Ast_TypeParameter* first_type_parameter;
+  Ast_Parameter* first_parameter;
   Ident_Type* type_ident;
 }
 Ast_PackageDecl;  // AST_PACKAGE_PROTOTYPE
