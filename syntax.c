@@ -70,6 +70,7 @@ syn_struct_field()
   zero_struct(result, Ast_StructField);
   result->kind = AST_STRUCT_FIELD;
   result->typeref = syn_typeref();
+
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
@@ -82,10 +83,10 @@ syn_struct_field()
     if (token_at->klass == TOK_SEMICOLON)
       next_token();
     else
-      error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-    error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: non-type identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -153,14 +154,14 @@ syn_header_decl()
       else if (token_at->klass == TOK_IDENT)
         error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
       else
-        error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
       scope_pop_level();
     }
     else
-      error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-    error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -219,14 +220,14 @@ syn_struct_decl()
       else if (token_at->klass == TOK_IDENT)
         error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
       else
-        error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
       scope_pop_level();
     }
     else
-      error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-    error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -258,10 +259,12 @@ syn_error_type_decl()
   result->type_ident = sym_get_error_type();
   result->type_ident->ast = (Ast*)result;
   next_token();
+
   if (token_at->klass == TOK_BRACE_OPEN)
   {
     scope_push_level();
     next_token();
+
     if (token_at->klass == TOK_IDENT)
     {
       Ast_ErrorCode* field = syn_error_code();
@@ -276,9 +279,9 @@ syn_error_type_decl()
           field = next_code;
         }
         else if (token_at->klass == TOK_COMMA)
-          error("missing parameter at line %d", token_at->line_nr);
+          error("at line %d: missing parameter", token_at->line_nr);
         else
-          error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+          error("at line %d: non-type identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
       }
 
 #if 1
@@ -298,11 +301,11 @@ syn_error_type_decl()
     if (token_at->klass == TOK_BRACE_CLOSE)
       next_token();
     else
-      error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     scope_pop_level();
   }
   else
-    error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -359,9 +362,9 @@ syn_type_parameter_list()
       parameter = next_parameter;
     }
     else if (token_at->klass == TOK_COMMA)
-      error("missing parameter at line %d", token_at->line_nr);
+      error("at line %d: missing parameter", token_at->line_nr);
     else
-      error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   return result;
 }
@@ -449,13 +452,13 @@ syn_typedef_decl()
       if (token_at->klass == TOK_SEMICOLON)
         next_token();
       else
-        error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else
-      error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else if (token_at->klass == TOK_IDENT)
-    error("type expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
   else
     error("at line %d : unexpected token '%s'", token_at->line_nr, token_at->lexeme);
 
@@ -498,12 +501,14 @@ syn_parameter()
   Ast_Parameter* result = arena_push_struct(&arena, Ast_Parameter);
   zero_struct(result, Ast_Parameter);
   result->kind = AST_PARAMETER;
+
   if (token_is_direction(token_at))
     result->direction = syn_direction();
   if (token_at->klass == TOK_TYPE_IDENT)
     result->typeref = syn_typeref();
   else
     error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
+
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
@@ -515,7 +520,7 @@ syn_parameter()
     next_token();
   }
   else
-    error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -535,9 +540,9 @@ syn_parameter_list()
       parameter = next_parameter;
     }
     else if (token_at->klass == TOK_COMMA)
-      error("missing parameter at line %d", token_at->line_nr);
+      error("at line %d: missing parameter", token_at->line_nr);
     else
-      error("type expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: type expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   return result;
 }
@@ -570,12 +575,12 @@ syn_parser_prototype()
       else if (token_at->klass == TOK_TYPE_IDENT)
         error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
       else
-        error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
       if (token_at->klass == TOK_ANGLE_CLOSE)
         next_token();
       else
-        error("'>' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: '>' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
 
     if (token_at->klass == TOK_PARENTH_OPEN)
@@ -592,14 +597,14 @@ syn_parser_prototype()
         if (token_at->klass == TOK_IDENT)
           error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
         else
-          error("')' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+          error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
       }
     }
     else
-      error("'(' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '(' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-      error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -651,6 +656,7 @@ syn_expression_primary()
 {
   assert(token_is_expression(token_at));
   Ast_Expression* result = 0;
+
   if (token_at->klass == TOK_IDENT)
   {
     Ast_IdentExpr* expression = arena_push_struct(&arena, Ast_IdentExpr);
@@ -714,7 +720,7 @@ syn_expression_primary()
     if (token_at->klass == TOK_PARENTH_CLOSE)
       next_token();
     else
-      error("')' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
 //  else if (token_at->klass == TOK_KW_TRUE || token_at->klass == TOK_KW_FALSE)
 //  {
@@ -815,7 +821,7 @@ syn_expression(int priority_threshold)
         if (token_is_expression(token_at))
           binary_expr->r_operand = syn_expression(priority_threshold + 1);
         else
-          error("expression term expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+          error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
         result = (Ast_Expression*)binary_expr;
       }
       else if (op == OP_FUNCTION_CALL)
@@ -837,9 +843,9 @@ syn_expression(int priority_threshold)
               argument = next_argument;
             }
             else if (token_at->klass == TOK_COMMA)
-              error("missing parameter at line %d", token_at->line_nr);
+              error("at line %d: missing parameter", token_at->line_nr);
             else
-              error("at line %d: expected an expression term, got '%s'", token_at->line_nr, token_at->lexeme);
+              error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
           }
         }
         if (token_at->klass == TOK_PARENTH_CLOSE)
@@ -869,7 +875,7 @@ syn_ident_state()
   if (token_at->klass == TOK_SEMICOLON)
     next_token();
   else
-    error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -913,13 +919,13 @@ syn_select_case()
       if (token_at->klass == TOK_SEMICOLON)
         next_token();
       else
-        error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else
-      error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-    error("':' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: ':' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -954,10 +960,10 @@ syn_select_state()
     if (token_at->klass == TOK_PARENTH_CLOSE)
       next_token();
     else
-      error("')' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-    error("'(' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: '(' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   if (token_at->klass == TOK_BRACE_OPEN)
   {
     next_token();
@@ -965,10 +971,10 @@ syn_select_state()
     if (token_at->klass == TOK_BRACE_CLOSE)
       next_token();
     else
-      error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-    error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -980,12 +986,13 @@ syn_transition_stmt()
   Ast_TransitionStmt* result = arena_push_struct(&arena, Ast_TransitionStmt);
   zero_struct(result, Ast_TransitionStmt);
   result->kind = AST_TRANSITION_STMT;
+
   if (token_at->klass == TOK_IDENT)
     result->state_expr = (Ast_StateExpr*)syn_ident_state();
   else if (token_at->klass == TOK_KW_SELECT)
     result->state_expr = (Ast_StateExpr*)syn_select_state();
   else
-    error("transition stmt expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: transition stmt expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1008,11 +1015,11 @@ syn_statement_list()
         if (token_at->klass == TOK_SEMICOLON)
           next_token();
         else
-          error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+          error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
       }
     }
     else
-      error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   return result;
 }
@@ -1025,6 +1032,7 @@ syn_parser_state()
   Ast_ParserState* result = arena_push_struct(&arena, Ast_ParserState);
   zero_struct(result, Ast_ParserState);
   result->kind = AST_PARSER_STATE;
+
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
@@ -1036,14 +1044,14 @@ syn_parser_state()
       if (token_at->klass == TOK_KW_TRANSITION)
         result->transition_stmt = syn_transition_stmt();
       else
-        error("'transition' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: 'transition' expected, got '%s'", token_at->line_nr, token_at->lexeme);
       if (token_at->klass == TOK_BRACE_CLOSE)
         next_token();
       else
-        error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else
-      error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   return result;
 }
@@ -1074,7 +1082,7 @@ syn_parser_decl()
       }
     }
     else
-      error("'state' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: 'state' keyword expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
     if (token_at->klass == TOK_BRACE_CLOSE)
     {
@@ -1083,13 +1091,13 @@ syn_parser_decl()
       next_token();
     }
     else
-      error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     scope_pop_level();
   }
   else if (token_at->klass == TOK_SEMICOLON)
     next_token();
   else
-    error("'{' or ';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: '{' or ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
   scope_pop_level();
   return result;
@@ -1119,15 +1127,13 @@ syn_control_prototype()
       next_token();
       if (token_is_type_parameter(token_at))
         result->first_type_parameter = syn_type_parameter_list();
-      else if (token_at->klass == TOK_TYPE_IDENT)
-        error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
       else
-        error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: identifier expected , got '%s'", token_at->line_nr, token_at->lexeme);
 
       if (token_at->klass == TOK_ANGLE_CLOSE)
         next_token();
       else
-        error("'>' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: '>' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     if (token_at->klass == TOK_PARENTH_OPEN)
     {
@@ -1137,14 +1143,14 @@ syn_control_prototype()
       if (token_at->klass == TOK_PARENTH_CLOSE)
         next_token();
       else
-        error("')' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else
-      error("'(' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '(' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     scope_pop_level();
   }
   else
-    error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1163,7 +1169,7 @@ syn_block_statement()
   if (token_at->klass == TOK_BRACE_CLOSE)
     next_token();
   else
-    error("block stmt expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: block stmt expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1183,6 +1189,7 @@ syn_action_decl()
   Ast_ActionDecl* result = arena_push_struct(&arena, Ast_ActionDecl);
   zero_struct(result, Ast_ActionDecl);
   result->kind = AST_ACTION;
+
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
@@ -1195,17 +1202,17 @@ syn_action_decl()
       if (token_at->klass == TOK_PARENTH_CLOSE)
         next_token();
       else
-        error("')' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else
-      error("'(' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '(' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     if (token_at->klass == TOK_BRACE_OPEN)
       result->action_body = syn_block_statement();
     else
-      error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-    error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: non-type identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1217,6 +1224,7 @@ syn_key_elem()
   zero_struct(result, Ast_Key);
   result->kind = AST_TABLE_KEY;
   result->expression = syn_expression(1);
+
   if (token_at->klass == TOK_COLON)
   {
     next_token();
@@ -1226,13 +1234,13 @@ syn_key_elem()
       if (token_at->klass == TOK_SEMICOLON)
         next_token();
       else
-        error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else
-      error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: non-type identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-    error("':' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: ':' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1247,7 +1255,7 @@ syn_simple_prop()
   if (token_at->klass == TOK_SEMICOLON)
     next_token();
   else
-    error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1260,6 +1268,7 @@ syn_action_ref()
   result->kind = AST_ACTION_REF;
   result->name = token_at->lexeme;
   next_token();
+
   if (token_at->klass == TOK_PARENTH_OPEN)
   {
     next_token();
@@ -1277,23 +1286,23 @@ syn_action_ref()
           argument = next_argument;
         }
         else if (token_at->klass == TOK_COMMA)
-          error("missing parameter at line %d", token_at->line_nr);
+          error("at line %d: missing parameter", token_at->line_nr);
         else
-          error("expression term expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+          error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
       }
     }
     if (token_at->klass == TOK_PARENTH_CLOSE)
       next_token();
     else
-      error("')' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-    error("'(' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: '(' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
   if (token_at->klass == TOK_SEMICOLON)
     next_token();
   else
-    error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1324,17 +1333,17 @@ syn_table_property()
           }
         }
         else
-          error("expression term expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+          error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
         if (token_at->klass == TOK_BRACE_CLOSE)
           next_token();
         else
-          error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+          error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
       }
       else
-        error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else
-      error("'=' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '=' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else if (cstr_match(token_at->lexeme, "actions"))
   {
@@ -1359,13 +1368,13 @@ syn_table_property()
         if (token_at->klass == TOK_BRACE_CLOSE)
           next_token();
         else
-          error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+          error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
       }
       else
-        error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else
-      error("'=' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '=' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
   {
@@ -1389,6 +1398,7 @@ syn_table_decl()
   Ast_TableDecl* result = arena_push_struct(&arena, Ast_TableDecl);
   zero_struct(result, Ast_TableDecl);
   result->kind = AST_TABLE;
+
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
@@ -1408,17 +1418,17 @@ syn_table_decl()
         }
       }
       else
-        error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: non-type identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
       if (token_at->klass == TOK_BRACE_CLOSE)
         next_token();
       else
-        error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else
-      error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-    error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: non-type identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1430,6 +1440,7 @@ syn_var_decl()
   zero_struct(result, Ast_VarDecl);
   result->kind = AST_VAR_DECL;
   syn_typeref();
+
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
@@ -1445,16 +1456,16 @@ syn_var_decl()
       if (token_is_expression(token_at))
         result->initializer = syn_expression(1);
       else
-        error("expression term expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
 
     if (token_at->klass == TOK_SEMICOLON)
       next_token();
     else
-      error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-    error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: non-type identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1515,7 +1526,7 @@ syn_control_decl()
       if (token_at->klass == TOK_BRACE_OPEN)
         result->control_body = syn_block_statement();
       else
-        error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
 
     if (token_at->klass == TOK_BRACE_CLOSE)
@@ -1525,14 +1536,14 @@ syn_control_decl()
       next_token();
     }
     else
-      error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
     scope_pop_level();
   }
   else if (token_at->klass == TOK_SEMICOLON)
     next_token();
   else
-    error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1558,17 +1569,16 @@ syn_package_prototype()
     if (token_at->klass == TOK_ANGLE_OPEN)
     {
       next_token();
+
       if (token_is_type_parameter(token_at))
         result->first_type_parameter = syn_type_parameter_list();
-      else if (token_at->klass == TOK_TYPE_IDENT)
-        error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
       else
-        error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
       if (token_at->klass == TOK_ANGLE_CLOSE)
         next_token();
       else
-        error("'>' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: '>' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     if (token_at->klass == TOK_PARENTH_OPEN)
     {
@@ -1578,19 +1588,19 @@ syn_package_prototype()
       if (token_at->klass == TOK_PARENTH_CLOSE)
         next_token();
       else
-        error("')' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else
-      error("'(' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '(' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     scope_pop_level();
   }
   else
-    error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
   if (token_at->klass == TOK_SEMICOLON)
     next_token();
   else
-    error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1602,6 +1612,7 @@ syn_package_instance()
   zero_struct(result, Ast_PackageInstance);
   result->kind = AST_PACKAGE_INSTANCE;
   result->package = syn_expression(1);
+
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
@@ -1609,10 +1620,10 @@ syn_package_instance()
     if (token_at->klass == TOK_SEMICOLON)
       next_token();
     else
-      error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-    error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: non-type identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1629,7 +1640,7 @@ syn_function_prototype()
 
   next_token();
 
-  if (token_at->klass == TOK_IDENT)
+  if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
   {
     result->name = token_at->lexeme;
 
@@ -1643,17 +1654,16 @@ syn_function_prototype()
     if (token_at->klass == TOK_ANGLE_OPEN)
     {
       next_token();
+
       if (token_is_type_parameter(token_at))
         result->first_type_parameter = syn_type_parameter_list();
-      else if (token_at->klass == TOK_TYPE_IDENT)
-        error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
       else
-        error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
       if (token_at->klass == TOK_ANGLE_CLOSE)
         next_token();
       else
-        error("'>' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: '>' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
 
     if (token_at->klass == TOK_PARENTH_OPEN)
@@ -1669,19 +1679,19 @@ syn_function_prototype()
         next_token();
       }
       else
-        error("')' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
       if (token_at->klass == TOK_SEMICOLON)
         next_token();
       else
-        error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else
-      error("'(' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '(' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     scope_pop_level();
   }
   else
-    error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1728,11 +1738,11 @@ syn_extern_object_prototype()
       next_token();
     }
     else
-      error("'}' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     scope_pop_level();
   }
   else
-    error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1767,7 +1777,7 @@ syn_extern_decl()
     }
   }
   else
-    error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1819,10 +1829,10 @@ syn_p4program()
       declaration = next_declaration;
     }
     if (token_at->klass != TOK_EOI)
-      error("expected end of input at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: expected end of input, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
-    error("expected a declaration at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: declaration expected, got '%s'", token_at->line_nr, token_at->lexeme);
   arena_print_usage(&arena, "Memory (syn_p4program): ");
   return result;
 }
