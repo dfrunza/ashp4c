@@ -532,7 +532,7 @@ typedef struct Ast_Parameter
   enum AstParameterDirection direction;
   Ast_Typeref* typeref;
   char* name;
-  Ident_Var* ident_var;
+  Ident_Var* var_ident;
   struct Ast_Parameter* next_parameter;
 }
 Ast_Parameter;  // AST_PARAMETER
@@ -578,6 +578,7 @@ typedef struct
 {
   Ast_Expression;
   char* name;
+  Ident* ident;
 }
 Ast_IdentExpr;  // AST_IDENT_EXPR
 
@@ -617,9 +618,9 @@ Ast_StateExpr;
 typedef struct
 {
   Ast_Declaration;
-  char* typename;
   char* name;
   Ast_Expression* initializer;
+  Ident_Var* var_ident;
 }
 Ast_VarDecl;  // AST_VAR_DECL
 
@@ -758,9 +759,9 @@ typedef struct
   char* name;
   Ast_TypeParameter* first_type_parameter;
   Ast_Parameter* first_parameter;
-  Ident_Type* type_ident;
   Ast_Declaration* local_decl;
   Ast_BlockStmt* control_body;
+  Ident_Type* type_ident;
 }
 Ast_ControlDecl;  // AST_CONTROL_PROTOTYPE
                   // AST_CONTROL_DECL
@@ -771,8 +772,8 @@ typedef struct
   char* name;
   Ast_TypeParameter* first_type_parameter;
   Ast_Parameter* first_parameter;
-  Ident_Type* type_ident;
   Ast_ParserState* parser_state;
+  Ident_Type* type_ident;
 }
 Ast_ParserDecl;  // AST_PARSER_PROTOTYPE
                  // AST_PARSER_DECL
@@ -803,6 +804,8 @@ typedef struct Ast_FunctionPrototype
   Ast_Parameter* first_parameter;
   Ident_Type* return_type_ident;
   Ast* return_type_ast;
+  Ident_Type* type_ident;
+  Ident_Var* var_ident;
 }
 Ast_FunctionDecl;  // AST_FUNCTION_PROTOTYPE
                    // AST_EXTERN_FUNCTION_PROTOTYPE

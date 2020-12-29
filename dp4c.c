@@ -44,7 +44,7 @@ main(int arg_count, char* args[])
   int i = 0;
   while (i < max_symtable_len)
     symtable[i++] = 0;
-  syn_parse();
+  syn_build_ast();
 
   build_typexpr();
 

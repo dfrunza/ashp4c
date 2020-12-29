@@ -4,6 +4,7 @@ external Arena arena;
 external Ast_P4Program* p4program;
 
 external Ast_Ident* error_type_ast;
+external Ast_VarDecl* error_var_ast;
 internal Typexpr_Enum* error_typexpr;
 external Ast_Ident* void_type_ast;
 internal Typexpr_Basic* void_typexpr;
@@ -500,6 +501,7 @@ build_typexpr()
   error_typexpr = arena_push_struct(&arena, Typexpr_Enum);
   zero_struct(error_typexpr, Typexpr_Enum);
   error_type_ast->typexpr = (Typexpr*)error_typexpr;
+  error_var_ast->typexpr = (Typexpr*)error_typexpr;
   error_typexpr->kind = TYP_ENUM;
   error_typexpr->name = error_type_ast->name;
 

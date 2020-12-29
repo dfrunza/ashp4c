@@ -8,6 +8,7 @@ external int scope_level;
 internal Ident_Keyword* error_kw = 0;
 internal Ident_Var* error_var_ident = 0;
 external Ast_Ident* error_type_ast;
+external Ast_VarDecl* error_var_ast;
 Ident_Type* error_type_ident = 0;
 external Ast_Ident* void_type_ast;
 Ident_Type* void_type_ident = 0;
@@ -341,6 +342,8 @@ sym_init()
 
   error_var_ident = arena_push_struct(&arena, Ident_Var);
   zero_struct(error_var_ident, Ident_Var);
+  error_var_ident->ast = (Ast*)error_var_ast;
+  error_var_ast->var_ident = error_var_ident;
   error_var_ident->name = "error";
   error_var_ident->ident_kind = ID_VAR;
   error_var_ident->type_ident = sym_get_type("error");

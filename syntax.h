@@ -1,5 +1,5 @@
 #pragma once
 #include "dp4c.h"
 
-Ast_P4Program* syn_p4program();
+void syn_build_ast();
 
