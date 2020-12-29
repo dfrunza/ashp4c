@@ -9,6 +9,7 @@ external int scope_level;
 external Ast_P4Program* p4program;
 
 internal Token* token_at = 0;
+internal Token* prev_token_at = 0;
 
 internal Ast_Typeref* syn_typeref();
 internal Ast_Expression* syn_expression(int priority_threshold);
@@ -26,7 +27,7 @@ internal void
 next_token()
 {
   assert(token_at < tokenized_input + tokenized_input_len);
-  token_at++;
+  prev_token_at = token_at++;
   while (token_at->klass == TOK_COMMENT)
     token_at++;
 
@@ -55,6 +56,12 @@ next_token()
   }
 }
 
+internal void
+rewind_token()
+{
+  token_at = prev_token_at;
+}
+
 internal Ast_StructField*
 syn_struct_field()
 {
@@ -66,10 +73,11 @@ syn_struct_field()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    Ident_MemberSelector* ident = sym_get_selector(result->name);
-    if (ident && ident->scope_level >= scope_level)
-      error("at line %d: selector '%s' has been previously declared", token_at->line_nr, result->name);
+
+    if (sym_ident_is_declared((Ident*)sym_get_selector(result->name)))
+      error("at line %d: member '%s' has been previously declared", token_at->line_nr, result->name);
     result->selector = sym_add_selector(result->name, (Ast*)result);
+
     next_token();
     if (token_at->klass == TOK_SEMICOLON)
       next_token();
@@ -99,10 +107,15 @@ syn_header_decl()
   Ast_HeaderDecl* result = arena_push_struct(&arena, Ast_HeaderDecl);
   zero_struct(result, Ast_HeaderDecl);
   result->kind = AST_HEADER_PROTOTYPE;
-  if (token_at->klass == TOK_IDENT)
+
+  if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
   {
     result->name = token_at->lexeme;
+
+    if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
+      error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
+
     next_token();
     if (token_at->klass == TOK_BRACE_OPEN)
     {
@@ -146,8 +159,6 @@ syn_header_decl()
     else
       error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
   }
-  else if (token_at->klass == TOK_TYPE_IDENT)
-    error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
   else
     error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
@@ -161,11 +172,17 @@ syn_struct_decl()
   Ast_StructDecl* result = arena_push_struct(&arena, Ast_StructDecl);
   zero_struct(result, Ast_StructDecl);
   result->kind = AST_STRUCT_PROTOTYPE;
-  if (token_at->klass == TOK_IDENT)
+
+  if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
   {
     result->name = token_at->lexeme;
+
+    if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
+      error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
+
     next_token();
+
     if (token_at->klass == TOK_BRACE_OPEN)
     {
       result->kind = AST_STRUCT_DECL;
@@ -208,8 +225,6 @@ syn_struct_decl()
     else
       error("'{' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
   }
-  else if (token_at->klass == TOK_TYPE_IDENT)
-    error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
   else
     error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
@@ -219,16 +234,17 @@ internal Ast_ErrorCode*
 syn_error_code()
 {
   assert(token_at->klass == TOK_IDENT);
-  Ast_ErrorCode* id = arena_push_struct(&arena, Ast_ErrorCode);
-  zero_struct(id, Ast_ErrorCode);
-  id->kind = AST_ERROR_CODE;
-  id->name = token_at->lexeme;
-  Ident_MemberSelector* ident = sym_get_selector(id->name);
-  if (ident && ident->scope_level >= scope_level)
-    error("at line %d: selector '%s' has been previously declared", token_at->line_nr, id->name);
-  id->selector = sym_add_selector(id->name, (Ast*)id);
+  Ast_ErrorCode* code = arena_push_struct(&arena, Ast_ErrorCode);
+  zero_struct(code, Ast_ErrorCode);
+  code->kind = AST_ERROR_CODE;
+  code->name = token_at->lexeme;
+
+  if (sym_ident_is_declared((Ident*)sym_get_selector(code->name)))
+    error("at line %d: member '%s' has been previously declared", token_at->line_nr, code->name);
+  code->selector = sym_add_selector(code->name, (Ast*)code);
+
   next_token();
-  return id;
+  return code;
 }
 
 internal Ast_ErrorType*
@@ -293,7 +309,7 @@ syn_error_type_decl()
 internal bool
 token_is_type_parameter(Token* token)
 {
-  bool result = (token->klass == TOK_IDENT) || (token->klass == TOK_INTEGER);
+  bool result = (token->klass == TOK_IDENT) || (token->klass == TOK_TYPE_IDENT) || (token->klass == TOK_INTEGER);
   return result;
 }
 
@@ -304,11 +320,16 @@ syn_type_parameter()
   Ast_TypeParameter* result = arena_push_struct(&arena, Ast_TypeParameter);
   zero_struct(result, Ast_TypeParameter);
   result->kind = AST_TYPE_PARAMETER;
-  if (token_at->klass == TOK_IDENT)
+
+  if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
   {
     result->parameter_kind = AST_TYPPARAM_VAR;
     result->name = token_at->lexeme;
+
+    if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
+      error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_typevar(result->name, (Ast*)result);
+
     next_token();
   }
   else if (token_at->klass == TOK_INTEGER)
@@ -318,6 +339,7 @@ syn_type_parameter()
     next_token();
   }
   else assert(false);
+
   return result;
 }
 
@@ -338,8 +360,6 @@ syn_type_parameter_list()
     }
     else if (token_at->klass == TOK_COMMA)
       error("missing parameter at line %d", token_at->line_nr);
-    else if (token_at->klass == TOK_TYPE_IDENT)
-      error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
     else
       error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
   }
@@ -412,21 +432,25 @@ syn_typedef_decl()
   Ast_Typedef* result = arena_push_struct(&arena, Ast_Typedef);
   zero_struct(result, Ast_Typedef);
   result->kind = AST_TYPEDEF;
+
   if (token_at->klass == TOK_TYPE_IDENT)
   {
     result->typeref = syn_typeref();
-    if (token_at->klass == TOK_IDENT)
+
+    if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
     {
       result->name = token_at->lexeme;
+
+      if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
+        error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
       result->type_ident = sym_add_type(result->name, (Ast*)result);
+
       next_token();
       if (token_at->klass == TOK_SEMICOLON)
         next_token();
       else
         error("';' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
     }
-    else if (token_at->klass == TOK_TYPE_IDENT)
-      error("at line %d : type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
     else
       error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
   }
@@ -483,10 +507,11 @@ syn_parameter()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    Ident_Var* ident = sym_get_var(result->name);
-    if (ident && ident->scope_level >= scope_level)
-      error("at line %d: variable '%s' has been previously declared", token_at->line_nr, result->name);
+
+    if (sym_ident_is_declared((Ident*)sym_get_var(result->name)))
+      error("at line %d: parameter '%s' has been previously declared", token_at->line_nr, result->name);
     result->var_ident = sym_add_var(result->name, (Ast*)result);
+
     next_token();
   }
   else
@@ -526,12 +551,11 @@ syn_parser_prototype()
   zero_struct(result, Ast_ParserDecl);
   result->kind = AST_PARSER_PROTOTYPE;
 
-  if (token_at->klass == TOK_IDENT)
+  if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
   {
     result->name = token_at->lexeme;
 
-    Ident_Type* type_ident = sym_get_type(result->name);
-    if (type_ident && type_ident->scope_level >= scope_level)
+    if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
@@ -557,8 +581,10 @@ syn_parser_prototype()
     if (token_at->klass == TOK_PARENTH_OPEN)
     {
       next_token();
+
       if (token_is_parameter(token_at))
         result->first_parameter = syn_parameter_list();
+
       if (token_at->klass == TOK_PARENTH_CLOSE)
         next_token();
       else
@@ -572,8 +598,6 @@ syn_parser_prototype()
     else
       error("'(' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
   }
-  else if (token_at->klass == TOK_TYPE_IDENT)
-    error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
   else
       error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
@@ -1080,12 +1104,11 @@ syn_control_prototype()
   zero_struct(result, Ast_ControlDecl);
   result->kind = AST_CONTROL_PROTOTYPE;
 
-  if (token_at->klass == TOK_IDENT)
+  if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
   {
     result->name = token_at->lexeme;
 
-    Ident_Type* type_ident = sym_get_type(result->name);
-    if (type_ident && type_ident->scope_level >= scope_level)
+    if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
@@ -1120,8 +1143,6 @@ syn_control_prototype()
       error("'(' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
     scope_pop_level();
   }
-  else if (token_at->klass == TOK_TYPE_IDENT)
-    error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
   else
     error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
@@ -1412,10 +1433,11 @@ syn_var_decl()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    Ident_Var* ident = sym_get_var(result->name);
-    if (ident && ident->scope_level >= scope_level)
+
+    if (sym_ident_is_declared((Ident*)sym_get_var(result->name)))
       error("at line %d: variable '%s' has been previously declared", token_at->line_nr, result->name);
     result->var_ident = sym_add_var(result->name, (Ast*)result);
+
     next_token();
     if (token_at->klass == TOK_EQUAL)
     {
@@ -1523,12 +1545,11 @@ syn_package_prototype()
   zero_struct(result, Ast_PackageDecl);
   result->kind = AST_PACKAGE_PROTOTYPE;
 
-  if (token_at->klass == TOK_IDENT)
+  if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
   {
     result->name = token_at->lexeme;
 
-    Ident_Type* type_ident = sym_get_type(result->name);
-    if (type_ident && type_ident->scope_level >= scope_level)
+    if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
@@ -1563,8 +1584,6 @@ syn_package_prototype()
       error("'(' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
     scope_pop_level();
   }
-  else if (token_at->klass == TOK_TYPE_IDENT)
-    error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
   else
     error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
 
@@ -1607,21 +1626,16 @@ syn_function_prototype()
 
   result->return_type_ident = sym_get_type(token_at->lexeme);
   result->return_type_ast = result->return_type_ident->ast;
+
   next_token();
 
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
 
-    Ident_Type* type_ident = sym_get_type(result->name);
-    if (type_ident && type_ident->scope_level >= scope_level)
+    if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
-
-    Ident_Var* var_ident = sym_get_var(result->name);
-    if (var_ident && var_ident->scope_level >= scope_level)
-      error("at line %d: variable '%s' has been previously declared", token_at->line_nr, result->name);
-    result->var_ident = sym_add_var(result->name, (Ast*)result);
 
     next_token();
     scope_push_level();
@@ -1674,20 +1688,28 @@ syn_function_prototype()
 internal Ast_ExternObjectDecl*
 syn_extern_object_prototype()
 {
-  assert(token_at->klass == TOK_IDENT);
+  assert(token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT);
   Ast_ExternObjectDecl* result = arena_push_struct(&arena, Ast_ExternObjectDecl);
   zero_struct(result, Ast_ExternObjectDecl);
   result->kind = AST_EXTERN_OBJECT_PROTOTYPE;
+
   result->name = token_at->lexeme;
+
+  if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
+      error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
   result->type_ident = sym_add_type(result->name, (Ast*)result);
+
   next_token();
+
   if (token_at->klass == TOK_ANGLE_OPEN)
     syn_type_parameter_list();
+
   if (token_at->klass == TOK_BRACE_OPEN)
   {
     scope_push_level();
     sym_remove_error_kw();
     next_token();
+
     if (token_at->klass == TOK_TYPE_IDENT)
     {
       Ast_FunctionDecl* method = syn_function_prototype();
@@ -1699,6 +1721,7 @@ syn_extern_object_prototype()
         method = next_method;
       }
     }
+
     if (token_at->klass == TOK_BRACE_CLOSE)
     {
       sym_add_error_kw();
@@ -1728,10 +1751,21 @@ syn_extern_decl()
   assert(token_at->klass == TOK_KW_EXTERN);
   Ast_Declaration* result = 0;
   next_token();
-  if (token_at->klass == TOK_IDENT)
-    result = (Ast_Declaration*)syn_extern_object_prototype();
-  else if (token_at->klass == TOK_TYPE_IDENT)
-    result = (Ast_Declaration*)syn_extern_function_prototype();
+
+  if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
+  {
+    next_token();
+    if (token_at->klass == TOK_ANGLE_OPEN || token_at->klass == TOK_BRACE_OPEN)
+    {
+      rewind_token();
+      result = (Ast_Declaration*)syn_extern_object_prototype();
+    }
+    else if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
+    {
+      rewind_token();
+      result = (Ast_Declaration*)syn_extern_function_prototype();
+    }
+  }
   else
     error("identifier expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;

@@ -76,6 +76,13 @@ scope_pop_level()
   return --scope_level;
 }
 
+bool
+sym_ident_is_declared(Ident* ident)
+{
+  bool is_declared = (ident && ident->scope_level >= scope_level);
+  return is_declared;
+}
+
 Namespace_Entry*
 sym_get_namespace(char* name)
 {
