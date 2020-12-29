@@ -98,6 +98,7 @@ typedef struct Ident
 {
   enum IdentKind object_kind;
   char* name;
+  struct Ast* ast;
   int scope_level;
   struct Ident* next_in_scope;
 }
@@ -127,7 +128,7 @@ Ident_Keyword;
 typedef struct
 {
   Ident;
-  Ident_Type* id_info;
+  Ident_Type* type_ident;
 }
 Ident_Var;
 
@@ -153,6 +154,8 @@ enum Typexpr_TypeCtor
 {
   TYP_NONE,
   TYP_BASIC,
+  TYP_TYPE_PARAMETER,
+  TYP_PARAMETER,
   TYP_FUNCTION,
   TYP_ENUM,
   TYP_ENUM_FIELD,
@@ -171,6 +174,9 @@ enum TypeBasic_Kind
   BASTYP_INT,
   BASTYP_VOID,
   BASTYP_BOOL,
+  BASTYP_BIT,
+  BASTYP_VARBIT,
+  BASTYP_STRING,
 };
 
 typedef struct Typexpr 
@@ -181,6 +187,13 @@ typedef struct Typexpr
   struct Ast* ast;
 }
 Typexpr;
+
+typedef struct Typexpr_Basic
+{
+  Typexpr;
+  enum TypeBasic_Kind basic_type;
+}
+Typexpr_Basic;
 
 typedef struct Typexpr_EnumField
 {
@@ -198,12 +211,33 @@ typedef struct Typexpr_EnumType
 }
 Typexpr_EnumType;  // TYP_ENUM
 
+typedef struct Typexpr_TypeParameter
+{
+  Typexpr;
+  struct Typexpr_TypeParameter* next_type_parameter;
+}
+Typexpr_TypeParameter;
+
+typedef struct Typexpr_Parameter
+{
+  Typexpr;
+}
+Typexpr_Parameter;
+
 typedef struct Typexpr_Function
 {
   Typexpr;
   struct Typexpr_Function* next_function;  // TYP_FUNCTION
-  Typexpr* sentinel_argument;
-  Typexpr* last_argument;
+
+  Typexpr_TypeParameter* sentinel_type_parameter;
+  Typexpr_TypeParameter* last_type_parameter;
+  int type_parameter_count;
+
+  Typexpr_Parameter* sentinel_parameter;
+  Typexpr_Parameter* last_parameter;
+  int parameter_count;
+
+  Typexpr* return_type;
 }
 Typexpr_Function;
 
@@ -301,6 +335,7 @@ typedef struct Ast
   enum AstKind kind;
   int line_nr;
   Typexpr* typexpr;
+  bool is_builtin;
 }
 Ast;
 
@@ -663,9 +698,9 @@ typedef struct Ast_FunctionPrototype
 {
   Ast_Declaration;
   char* name;
-  Ast_TypeParameter* type_parameter;
-  Ast_Parameter* parameter;
-  Ident_Type* return_type;
+  Ast_TypeParameter* first_type_parameter;
+  Ast_Parameter* first_parameter;
+  Ast* return_type;
 }
 Ast_FunctionDecl;  // AST_FUNCTION_PROTOTYPE
                    // AST_EXTERN_FUNCTION_PROTOTYPE

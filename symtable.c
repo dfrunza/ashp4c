@@ -6,8 +6,11 @@ external int max_symtable_len;
 external int scope_level;
 
 internal Ident_Keyword* error_kw = 0;
-internal Ident_Var* error_var = 0;
-internal Ident_Type* error_type = 0;
+internal Ident_Var* error_var_ident = 0;
+external Ast_Ident* error_type_ast;
+Ident_Type* error_type_ident = 0;
+external Ast_Ident* void_type_ast;
+Ident_Type* void_type_ident = 0;
 
 internal uint32_t
 name_hash(char* name)
@@ -183,13 +186,13 @@ sym_add_error_var()
 
   if (ns->ns_global)
   {
-    assert (ns->ns_global == (Ident*)error_var);
+    assert (ns->ns_global == (Ident*)error_var_ident);
     return;
   }
 
-  error_var->scope_level = scope_level;
-  error_var->next_in_scope = ns->ns_global;
-  ns->ns_global = (Ident*)error_var;
+  error_var_ident->scope_level = scope_level;
+  error_var_ident->next_in_scope = ns->ns_global;
+  ns->ns_global = (Ident*)error_var_ident;
 }
 
 void
@@ -200,7 +203,7 @@ sym_remove_error_var()
   if (!ns->ns_global)
     return;
 
-  assert (ns->ns_global == (Ident*)error_var);
+  assert (ns->ns_global == (Ident*)error_var_ident);
   ns->ns_global = ns->ns_global->next_in_scope;
 }
 
@@ -211,12 +214,12 @@ sym_add_error_type()
 
   if (ns->ns_type)
   {
-    assert (ns->ns_type == (Ident*)error_type);
+    assert (ns->ns_type == (Ident*)error_type_ident);
     return;
   }
 
-  error_type->next_in_scope = ns->ns_type;
-  ns->ns_type = (Ident*)error_type;
+  error_type_ident->next_in_scope = ns->ns_type;
+  ns->ns_type = (Ident*)error_type_ident;
 }
 
 internal void
@@ -227,7 +230,7 @@ sym_remove_error_type()
   if (!ns->ns_type)
     return;
 
-  assert (ns->ns_type == (Ident*)error_type);
+  assert (ns->ns_type == (Ident*)error_type_ident);
   ns->ns_type = ns->ns_type->next_in_scope;
 }
 
@@ -304,18 +307,20 @@ sym_init()
   add_keyword("apply", TOK_KW_APPLY);
   //add_keyword("verify", TOK_KW_VERIFY);
 
-  error_type = sym_add_type("error");
-  sym_add_type("void");
+  error_type_ident = sym_add_type(error_type_ast->name);
+  error_type_ident->ast = (Ast*)error_type_ast;
+  void_type_ident = sym_add_type(void_type_ast->name);
+  void_type_ident->ast = (Ast*)void_type_ast;
   sym_add_type("bool");
   sym_add_type("bit");
   sym_add_type("varbit");
   sym_add_type("int");
   sym_add_type("string");
 
-  error_var = arena_push_struct(&arena, Ident_Var);
-  zero_struct(error_var, Ident_Var);
-  error_var->name = "error";
-  error_var->object_kind = ID_VAR;
-  error_var->id_info = sym_get_type("error");
+  error_var_ident = arena_push_struct(&arena, Ident_Var);
+  zero_struct(error_var_ident, Ident_Var);
+  error_var_ident->name = "error";
+  error_var_ident->object_kind = ID_VAR;
+  error_var_ident->type_ident = sym_get_type("error");
 }
 

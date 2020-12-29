@@ -3,7 +3,10 @@
 external Arena arena;
 external Ast_P4Program* p4program;
 
-internal Typexpr_EnumType* error_type;
+external Ast_Ident* error_type_ast;
+internal Typexpr_EnumType* error_typexpr;
+external Ast_Ident* void_type_ast;
+internal Typexpr_Basic* void_typexpr;
 
 internal void
 link_ast_to_typexpr(Ast* ast, Typexpr* typexpr)
@@ -12,241 +15,329 @@ link_ast_to_typexpr(Ast* ast, Typexpr* typexpr)
   typexpr->ast = ast;
 }
 
-internal Typexpr_Function*
-visit_function_prototype(Ast_FunctionDecl* decl)
+internal Typexpr*
+visit_type_typexpr(Ast* ast)
 {
-  Typexpr_Function* ttb_entry = arena_push_struct(&arena, Typexpr_Function);
-  zero_struct(ttb_entry, Typexpr_Function);
-  ttb_entry->kind = TYP_FUNCTION;
-  ttb_entry->name = decl->name;
-  ttb_entry->is_prototype = true;
+  if (ast->typexpr)
+    return ast->typexpr;
+  assert (0 && "todo");
+  return 0;
+}
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+internal Typexpr_TypeParameter*
+visit_type_parameter(Ast_TypeParameter* parameter_ast)
+{
+  if (parameter_ast->typexpr)
+    return (Typexpr_TypeParameter*)parameter_ast->typexpr;
+
+  assert (0 && "todo");
+  return 0;
+}
+
+internal Typexpr_Function*
+visit_function_prototype(Ast_FunctionDecl* function_ast)
+{
+  if (function_ast->typexpr)
+    return (Typexpr_Function*)function_ast->typexpr;
+
+  Typexpr_Function* function_typexpr = arena_push_struct(&arena, Typexpr_Function);
+  zero_struct(function_typexpr, Typexpr_Function);
+  function_ast->typexpr = (Typexpr*)function_typexpr;
+  function_typexpr->kind = TYP_FUNCTION;
+  function_typexpr->name = function_ast->name;
+  function_typexpr->is_prototype = true;
+
+  function_typexpr->return_type = visit_type_typexpr(function_ast->return_type);
+
+  function_typexpr->sentinel_type_parameter = arena_push_struct(&arena, Typexpr_TypeParameter);
+  zero_struct(function_typexpr->sentinel_type_parameter, Typexpr_TypeParameter);
+  function_typexpr->sentinel_type_parameter->kind = TYP_TYPE_PARAMETER;
+  function_typexpr->last_type_parameter = function_typexpr->sentinel_type_parameter;
+
+  Ast_TypeParameter* parameter_ast = function_ast->first_type_parameter;
+  while (parameter_ast)
+  {
+    Typexpr_TypeParameter* parameter_typexpr = visit_type_parameter(parameter_ast);
+    function_typexpr->last_type_parameter->next_type_parameter = parameter_typexpr;
+    function_typexpr->last_type_parameter = parameter_typexpr;
+    function_typexpr->type_parameter_count += 1;
+  }
+
+  link_ast_to_typexpr((Ast*)function_ast, (Typexpr*)function_typexpr);
+  return function_typexpr;
 }
 
 internal Typexpr_ExternObject*
-visit_extern_object_prototype(Ast_ExternObjectDecl* decl)
+visit_extern_object_prototype(Ast_ExternObjectDecl* object_ast)
 {
-  Typexpr_ExternObject* ttb_entry = arena_push_struct(&arena, Typexpr_ExternObject);
-  zero_struct(ttb_entry, Typexpr_ExternObject);
-  ttb_entry->kind = TYP_EXTERN_OBJECT;
-  ttb_entry->name = decl->name;
-  ttb_entry->is_prototype = true;
+  if (object_ast->typexpr)
+    return (Typexpr_ExternObject*)object_ast->typexpr;
 
-  ttb_entry->sentinel_function = arena_push_struct(&arena, Typexpr_Function);
-  zero_struct(ttb_entry->sentinel_function, Typexpr_Function);
-  ttb_entry->sentinel_function->kind = TYP_FUNCTION;
-  ttb_entry->last_function = ttb_entry->sentinel_function;
+  Typexpr_ExternObject* object_typexpr = arena_push_struct(&arena, Typexpr_ExternObject);
+  zero_struct(object_typexpr, Typexpr_ExternObject);
+  object_ast->typexpr = (Typexpr*)object_typexpr;
+  object_typexpr->kind = TYP_EXTERN_OBJECT;
+  object_typexpr->name = object_ast->name;
+  object_typexpr->is_prototype = true;
 
-  Ast_FunctionDecl* method_ast = decl->first_method;
+  object_typexpr->sentinel_function = arena_push_struct(&arena, Typexpr_Function);
+  zero_struct(object_typexpr->sentinel_function, Typexpr_Function);
+  object_typexpr->sentinel_function->kind = TYP_FUNCTION;
+  object_typexpr->last_function = object_typexpr->sentinel_function;
+
+  Ast_FunctionDecl* method_ast = object_ast->first_method;
   while (method_ast)
   {
     Typexpr_Function* method_typexpr = visit_function_prototype(method_ast);
-    ttb_entry->last_function->next_function = method_typexpr;
-    ttb_entry->last_function = method_typexpr;
-    ttb_entry->method_count += 1;
+    object_typexpr->last_function->next_function = method_typexpr;
+    object_typexpr->last_function = method_typexpr;
+    object_typexpr->method_count += 1;
 
     method_ast = (Ast_FunctionDecl*)method_ast->next_decl;
   }
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+  link_ast_to_typexpr((Ast*)object_ast, (Typexpr*)object_typexpr);
+  return object_typexpr;
 }
 
 internal Typexpr*
-visit_extern_function_prototype(Ast_FunctionDecl* decl)
+visit_extern_function_prototype(Ast_FunctionDecl* function_ast)
 {
-  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
-  zero_struct(ttb_entry, Typexpr);
-  ttb_entry->kind = TYP_FUNCTION;
-  ttb_entry->name = decl->name;
-  ttb_entry->is_prototype = true;
+  if (function_ast->typexpr)
+    return function_ast->typexpr;
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+  Typexpr* function_typexpr = arena_push_struct(&arena, Typexpr);
+  zero_struct(function_typexpr, Typexpr);
+  function_ast->typexpr = function_typexpr;
+  function_typexpr->kind = TYP_FUNCTION;
+  function_typexpr->name = function_ast->name;
+  function_typexpr->is_prototype = true;
+
+  link_ast_to_typexpr((Ast*)function_ast, (Typexpr*)function_typexpr);
+  return function_typexpr;
 }
 
 internal Typexpr*
-visit_parser_prototype(Ast_ParserDecl* decl)
+visit_parser_prototype(Ast_ParserDecl* parser_ast)
 {
-  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
-  zero_struct(ttb_entry, Typexpr);
-  ttb_entry->kind = TYP_PARSER;
-  ttb_entry->is_prototype = true;
+  if (parser_ast->typexpr)
+    return parser_ast->typexpr;
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+  Typexpr* parser_typexpr = arena_push_struct(&arena, Typexpr);
+  zero_struct(parser_typexpr, Typexpr);
+  parser_ast->typexpr = parser_typexpr;
+  parser_typexpr->kind = TYP_PARSER;
+  parser_typexpr->is_prototype = true;
+
+  link_ast_to_typexpr((Ast*)parser_ast, (Typexpr*)parser_typexpr);
+  return parser_typexpr;
 }
 
 internal Typexpr*
-visit_parser_type(Ast_ParserDecl* decl)
+visit_parser_type(Ast_ParserDecl* parser_ast)
 {
-  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
-  zero_struct(ttb_entry, Typexpr);
-  ttb_entry->kind = TYP_PARSER;
+  if (parser_ast->typexpr)
+    return parser_ast->typexpr;
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+  Typexpr* parser_typexpr = arena_push_struct(&arena, Typexpr);
+  zero_struct(parser_typexpr, Typexpr);
+  parser_ast->typexpr = parser_typexpr;
+  parser_typexpr->kind = TYP_PARSER;
+
+  link_ast_to_typexpr((Ast*)parser_ast, (Typexpr*)parser_typexpr);
+  return parser_typexpr;
 }
 
 internal Typexpr*
-visit_control_prototype(Ast_ControlDecl* decl)
+visit_control_prototype(Ast_ControlDecl* control_ast)
 {
-  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
-  zero_struct(ttb_entry, Typexpr);
-  ttb_entry->kind = TYP_CONTROL;
-  ttb_entry->is_prototype = true;
+  if (control_ast->typexpr)
+    return control_ast->typexpr;
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+  Typexpr* control_typexpr = arena_push_struct(&arena, Typexpr);
+  zero_struct(control_typexpr, Typexpr);
+  control_ast->typexpr = control_typexpr;
+  control_typexpr->kind = TYP_CONTROL;
+  control_typexpr->is_prototype = true;
+
+  link_ast_to_typexpr((Ast*)control_ast, (Typexpr*)control_typexpr);
+  return control_typexpr;
 }
 
 internal Typexpr*
-visit_control_type(Ast_ControlDecl* decl)
+visit_control_type(Ast_ControlDecl* control_ast)
 {
-  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
-  zero_struct(ttb_entry, Typexpr);
-  ttb_entry->kind = TYP_CONTROL;
+  if (control_ast->typexpr)
+    return control_ast->typexpr;
+  Typexpr* control_typexpr = arena_push_struct(&arena, Typexpr);
+  zero_struct(control_typexpr, Typexpr);
+  control_ast->typexpr = control_typexpr;
+  control_typexpr->kind = TYP_CONTROL;
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+  link_ast_to_typexpr((Ast*)control_ast, (Typexpr*)control_typexpr);
+  return control_typexpr;
 }
 
 internal Typexpr*
-visit_package_prototype(Ast_PackageDecl* decl)
+visit_package_prototype(Ast_PackageDecl* package_ast)
 {
-  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
-  zero_struct(ttb_entry, Typexpr);
-  ttb_entry->kind = TYP_PACKAGE;
-  ttb_entry->is_prototype = true;
+  if (package_ast->typexpr)
+    return package_ast->typexpr;
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+  Typexpr* package_typexpr = arena_push_struct(&arena, Typexpr);
+  zero_struct(package_typexpr, Typexpr);
+  package_ast->typexpr = package_typexpr;
+  package_typexpr->kind = TYP_PACKAGE;
+  package_typexpr->is_prototype = true;
+
+  link_ast_to_typexpr((Ast*)package_ast, (Typexpr*)package_typexpr);
+  return package_typexpr;
 }
 
 internal Typexpr*
-visit_typedef(Ast_Typedef* decl)
+visit_typedef(Ast_Typedef* typedef_ast)
 {
-  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
-  zero_struct(ttb_entry, Typexpr);
-  ttb_entry->kind = TYP_TYPEDEF;
+  if (typedef_ast->typexpr)
+    return typedef_ast->typexpr;
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+  Typexpr* typedef_typexpr = arena_push_struct(&arena, Typexpr);
+  zero_struct(typedef_typexpr, Typexpr);
+  typedef_ast->typexpr = typedef_typexpr;
+  typedef_typexpr->kind = TYP_TYPEDEF;
+
+  link_ast_to_typexpr((Ast*)typedef_ast, (Typexpr*)typedef_typexpr);
+  return typedef_typexpr;
 }
 
 internal Typexpr*
-visit_header_prototype(Ast_HeaderDecl* decl)
+visit_header_prototype(Ast_HeaderDecl* header_ast)
 {
-  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
-  zero_struct(ttb_entry, Typexpr);
-  ttb_entry->kind = TYP_HEADER;
-  ttb_entry->is_prototype = true;
+  if (header_ast->typexpr)
+    return header_ast->typexpr;
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+  Typexpr* header_typexpr = arena_push_struct(&arena, Typexpr);
+  zero_struct(header_typexpr, Typexpr);
+  header_ast->typexpr = header_typexpr;
+  header_typexpr->kind = TYP_HEADER;
+  header_typexpr->is_prototype = true;
+
+  link_ast_to_typexpr((Ast*)header_ast, (Typexpr*)header_typexpr);
+  return header_typexpr;
 }
 
 internal Typexpr*
-visit_header_type(Ast_HeaderDecl* decl)
+visit_header_type(Ast_HeaderDecl* header_ast)
 {
-  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
-  zero_struct(ttb_entry, Typexpr);
-  ttb_entry->kind = TYP_HEADER;
+  if (header_ast->typexpr)
+    return header_ast->typexpr;
+  
+  Typexpr* header_typexpr = arena_push_struct(&arena, Typexpr);
+  zero_struct(header_typexpr, Typexpr);
+  header_ast->typexpr = header_typexpr;
+  header_typexpr->kind = TYP_HEADER;
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+  link_ast_to_typexpr((Ast*)header_ast, (Typexpr*)header_typexpr);
+  return header_typexpr;
 }
 
 internal Typexpr_EnumField*
-visit_error_code(Ast_ErrorCode* decl)
+visit_error_code(Ast_ErrorCode* error_ast)
 {
-  Typexpr_EnumField* ttb_entry = arena_push_struct(&arena, Typexpr_EnumField);
-  zero_struct(ttb_entry, Typexpr_EnumField);
-  ttb_entry->kind = TYP_ENUM_FIELD;
-  ttb_entry->name = decl->name;
+  if (error_ast->typexpr)
+    return (Typexpr_EnumField*)error_ast->typexpr;
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+  Typexpr_EnumField* error_typexpr = arena_push_struct(&arena, Typexpr_EnumField);
+  zero_struct(error_typexpr, Typexpr_EnumField);
+  error_ast->typexpr = (Typexpr*)error_typexpr;
+  error_typexpr->kind = TYP_ENUM_FIELD;
+  error_typexpr->name = error_ast->name;
+
+  link_ast_to_typexpr((Ast*)error_ast, (Typexpr*)error_typexpr);
+  return error_typexpr;
 }
 
 internal Typexpr_EnumType*
-visit_error_type(Ast_ErrorType* decl)
+visit_error_type(Ast_ErrorType* error_ast)
 {
-  Typexpr_EnumType* ttb_entry = error_type;
+  if (!error_ast->error_code)
+    error("at line %d: error declaration must have at least one error code", error_ast->line_nr);
 
-  if (!decl->error_code)
-    error("at line %d: error declaration must have at least one error code", decl->line_nr);
-
-  Ast_ErrorCode* error_code_ast = decl->error_code;
+  Ast_ErrorCode* error_code_ast = error_ast->error_code;
   while (error_code_ast)
   {
     Typexpr_EnumField* error_code_typexpr = visit_error_code(error_code_ast);
-    ttb_entry->last_field->next_field = error_code_typexpr;
-    ttb_entry->last_field = error_code_typexpr;
-    ttb_entry->field_count += 1;
+    error_typexpr->last_field->next_field = error_code_typexpr;
+    error_typexpr->last_field = error_code_typexpr;
+    error_typexpr->field_count += 1;
 
     error_code_ast = (Ast_ErrorCode*)error_code_ast->next_ident;
   }
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+  link_ast_to_typexpr((Ast*)error_ast, (Typexpr*)error_typexpr);
+  return error_typexpr;
 }
 
 internal Typexpr*
-visit_struct_prototype(Ast_StructDecl* decl)
+visit_struct_prototype(Ast_StructDecl* struct_ast)
 {
-  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
-  zero_struct(ttb_entry, Typexpr);
-  ttb_entry->kind = TYP_STRUCT;
-  ttb_entry->is_prototype = true;
+  if (struct_ast->typexpr)
+    return struct_ast->typexpr;
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+  Typexpr* struct_typexpr = arena_push_struct(&arena, Typexpr);
+  zero_struct(struct_typexpr, Typexpr);
+  struct_ast->typexpr = struct_typexpr;
+  struct_typexpr->kind = TYP_STRUCT;
+  struct_typexpr->is_prototype = true;
+
+  link_ast_to_typexpr((Ast*)struct_ast, (Typexpr*)struct_typexpr);
+  return struct_typexpr;
 }
 
 internal Typexpr*
-visit_struct_type(Ast_StructDecl* decl)
+visit_struct_type(Ast_StructDecl* struct_ast)
 {
-  Typexpr* ttb_entry = arena_push_struct(&arena, Typexpr);
-  zero_struct(ttb_entry, Typexpr);
-  ttb_entry->kind = TYP_STRUCT;
+  if (struct_ast->typexpr)
+    return struct_ast->typexpr;
 
-  link_ast_to_typexpr((Ast*)decl, (Typexpr*)ttb_entry);
-  return ttb_entry;
+  Typexpr* struct_typexpr = arena_push_struct(&arena, Typexpr);
+  zero_struct(struct_typexpr, Typexpr);
+  struct_ast->typexpr = struct_typexpr;
+  struct_typexpr->kind = TYP_STRUCT;
+
+  link_ast_to_typexpr((Ast*)struct_ast, (Typexpr*)struct_typexpr);
+  return struct_typexpr;
 }
 
 internal void
-visit_p4declaration(Ast_Declaration* decl)
+visit_p4declaration(Ast_Declaration* p4decl_ast)
 {
-  if (decl->kind == AST_STRUCT_PROTOTYPE)
-    visit_struct_prototype((Ast_StructDecl*)decl);
-  else if (decl->kind == AST_STRUCT_DECL)
-    visit_struct_type((Ast_StructDecl*)decl);
-  else if (decl->kind == AST_HEADER_PROTOTYPE)
-    visit_header_prototype((Ast_HeaderDecl*)decl);
-  else if (decl->kind == AST_HEADER_DECL)
-    visit_header_type((Ast_HeaderDecl*)decl);
-  else if (decl->kind == AST_ERROR_TYPE)
-    visit_error_type((Ast_ErrorType*)decl);
-  else if (decl->kind == AST_TYPEDEF)
-    visit_typedef((Ast_Typedef*)decl);
-  else if (decl->kind == AST_PARSER_PROTOTYPE)
-    visit_parser_prototype((Ast_ParserDecl*)decl);
-  else if (decl->kind == AST_PARSER_DECL)
-    visit_parser_type((Ast_ParserDecl*)decl);
-  else if (decl->kind == AST_CONTROL_PROTOTYPE)
-    visit_control_prototype((Ast_ControlDecl*)decl);
-  else if (decl->kind == AST_CONTROL_DECL)
-    visit_control_type((Ast_ControlDecl*)decl);
-  else if (decl->kind == AST_PACKAGE_PROTOTYPE)
-    visit_package_prototype((Ast_PackageDecl*)decl);
-  else if (decl->kind == AST_EXTERN_OBJECT_PROTOTYPE)
-    visit_extern_object_prototype((Ast_ExternObjectDecl*)decl);
-  else if (decl->kind == AST_EXTERN_FUNCTION_PROTOTYPE)
-    visit_extern_function_prototype((Ast_FunctionDecl*)decl);
-  else if (decl->kind == AST_PACKAGE_INSTANCE)
+  if (p4decl_ast->kind == AST_STRUCT_PROTOTYPE)
+    visit_struct_prototype((Ast_StructDecl*)p4decl_ast);
+  else if (p4decl_ast->kind == AST_STRUCT_DECL)
+    visit_struct_type((Ast_StructDecl*)p4decl_ast);
+  else if (p4decl_ast->kind == AST_HEADER_PROTOTYPE)
+    visit_header_prototype((Ast_HeaderDecl*)p4decl_ast);
+  else if (p4decl_ast->kind == AST_HEADER_DECL)
+    visit_header_type((Ast_HeaderDecl*)p4decl_ast);
+  else if (p4decl_ast->kind == AST_ERROR_TYPE)
+    visit_error_type((Ast_ErrorType*)p4decl_ast);
+  else if (p4decl_ast->kind == AST_TYPEDEF)
+    visit_typedef((Ast_Typedef*)p4decl_ast);
+  else if (p4decl_ast->kind == AST_PARSER_PROTOTYPE)
+    visit_parser_prototype((Ast_ParserDecl*)p4decl_ast);
+  else if (p4decl_ast->kind == AST_PARSER_DECL)
+    visit_parser_type((Ast_ParserDecl*)p4decl_ast);
+  else if (p4decl_ast->kind == AST_CONTROL_PROTOTYPE)
+    visit_control_prototype((Ast_ControlDecl*)p4decl_ast);
+  else if (p4decl_ast->kind == AST_CONTROL_DECL)
+    visit_control_type((Ast_ControlDecl*)p4decl_ast);
+  else if (p4decl_ast->kind == AST_PACKAGE_PROTOTYPE)
+    visit_package_prototype((Ast_PackageDecl*)p4decl_ast);
+  else if (p4decl_ast->kind == AST_EXTERN_OBJECT_PROTOTYPE)
+    visit_extern_object_prototype((Ast_ExternObjectDecl*)p4decl_ast);
+  else if (p4decl_ast->kind == AST_EXTERN_FUNCTION_PROTOTYPE)
+    visit_extern_function_prototype((Ast_FunctionDecl*)p4decl_ast);
+  else if (p4decl_ast->kind == AST_PACKAGE_INSTANCE)
     ; // not a type declataration - pass.
   else
     assert (false);
@@ -256,26 +347,37 @@ internal void
 visit_p4program(Ast_P4Program* p4program)
 {
   assert (p4program->kind == AST_P4PROGRAM);
-  Ast_Declaration* decl = p4program->declaration;
-  while (decl)
+  Ast_Declaration* p4decl_ast = p4program->declaration;
+  while (p4decl_ast)
   {
-    visit_p4declaration(decl);
-    decl = decl->next_decl;
+    visit_p4declaration(p4decl_ast);
+    p4decl_ast = p4decl_ast->next_decl;
   }
 }
 
 void
 build_typexpr()
 {
-  error_type = arena_push_struct(&arena, Typexpr_EnumType);
-  zero_struct(error_type, Typexpr_EnumType);
-  error_type->kind = TYP_ENUM;
-  error_type->name = "error";
+  // 'error' type
+  error_typexpr = arena_push_struct(&arena, Typexpr_EnumType);
+  zero_struct(error_typexpr, Typexpr_EnumType);
+  error_typexpr->kind = TYP_ENUM;
+  error_typexpr->name = error_type_ast->name;
 
-  error_type->sentinel_field = arena_push_struct(&arena, Typexpr_EnumField);
-  zero_struct(error_type->sentinel_field, Typexpr_EnumField);
-  error_type->sentinel_field->kind = TYP_ENUM_FIELD;
-  error_type->last_field = error_type->sentinel_field;
+  error_typexpr->sentinel_field = arena_push_struct(&arena, Typexpr_EnumField);
+  zero_struct(error_typexpr->sentinel_field, Typexpr_EnumField);
+  error_typexpr->sentinel_field->kind = TYP_ENUM_FIELD;
+  error_typexpr->last_field = error_typexpr->sentinel_field;
+
+  link_ast_to_typexpr((Ast*)error_type_ast, (Typexpr*)error_typexpr);
+
+  // 'void' type
+  void_typexpr = arena_push_struct(&arena, Typexpr_Basic);
+  zero_struct(void_typexpr, Typexpr_Basic);
+  void_typexpr->kind = TYP_BASIC;
+  void_typexpr->name = void_type_ast->name;
+
+  link_ast_to_typexpr((Ast*)void_type_ast, (Typexpr*)void_typexpr);
 
   visit_p4program(p4program);
 

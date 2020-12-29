@@ -13,6 +13,9 @@ internal Token* token_at = 0;
 internal Ast_Typeref* syn_typeref();
 internal Ast_Expression* syn_expression(int priority_threshold);
 
+Ast_Ident* error_type_ast = 0;
+Ast_Ident* void_type_ast = 0;
+
 internal void
 next_token()
 {
@@ -1556,7 +1559,7 @@ syn_function_prototype()
   Ast_FunctionDecl* result = arena_push_struct(&arena, Ast_FunctionDecl);
   zero_struct(result, Ast_FunctionDecl);
   result->kind = AST_FUNCTION_PROTOTYPE;
-  result->return_type = sym_get_type(token_at->lexeme);
+  result->return_type = sym_get_type(token_at->lexeme)->ast;
   next_token();
   if (token_at->klass == TOK_IDENT)
   {
@@ -1568,7 +1571,7 @@ syn_function_prototype()
     {
       next_token();
       if (token_is_type_parameter(token_at))
-        result->type_parameter = syn_type_parameter_list();
+        result->first_type_parameter = syn_type_parameter_list();
       else if (token_at->klass == TOK_TYPE_IDENT)
         error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
       else
@@ -1585,7 +1588,7 @@ syn_function_prototype()
       sym_remove_error_kw();
       next_token();
       if (token_is_parameter(token_at))
-        result->parameter = syn_parameter_list();
+        result->first_parameter = syn_parameter_list();
 
       if (token_at->klass == TOK_PARENTH_CLOSE)
       {
@@ -1734,7 +1737,20 @@ syn_p4program()
 void
 syn_parse()
 {
+  error_type_ast = arena_push_struct(&arena, Ast_Ident);
+  zero_struct(error_type_ast, Ast_Ident);
+  error_type_ast->kind = AST_IDENT_EXPR;
+  error_type_ast->name = "error";
+  error_type_ast->is_builtin = true;
+
+  void_type_ast = arena_push_struct(&arena, Ast_Ident);
+  zero_struct(void_type_ast, Ast_Ident);
+  void_type_ast->kind = AST_IDENT_EXPR;
+  void_type_ast->name = "void";
+  void_type_ast->is_builtin = true;
+
   sym_init();
+
   scope_push_level();
   token_at = tokenized_input;
   next_token();
