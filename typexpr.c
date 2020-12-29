@@ -8,20 +8,24 @@ internal Typexpr_EnumType* error_typexpr;
 external Ast_Ident* void_type_ast;
 internal Typexpr_Basic* void_typexpr;
 
-internal void
-link_ast_to_typexpr(Ast* ast, Typexpr* typexpr)
-{
-  ast->typexpr = typexpr;
-  typexpr->ast = ast;
-}
-
 internal Typexpr*
-visit_type_typexpr(Ast* ast)
+visit_type(Ast* ast)
 {
   if (ast->typexpr)
     return ast->typexpr;
   assert (0 && "todo");
   return 0;
+}
+
+internal Typexpr*
+visit_typeref(Ast_Typeref* typeref_ast)
+{
+  if (typeref_ast->typexpr)
+    return typeref_ast->typexpr;
+
+  Typexpr* typeref_typexpr = visit_type(typeref_ast->type_ident->ast);
+  typeref_ast->typexpr = typeref_typexpr;
+  return typeref_typexpr;
 }
 
 internal Typexpr_TypeParameter*
@@ -30,8 +34,41 @@ visit_type_parameter(Ast_TypeParameter* parameter_ast)
   if (parameter_ast->typexpr)
     return (Typexpr_TypeParameter*)parameter_ast->typexpr;
 
-  assert (0 && "todo");
-  return 0;
+  Typexpr_TypeParameter* parameter_typexpr = 0;
+  if (parameter_ast->parameter_kind == AST_TYPPARAM_VAR)
+  {
+    parameter_typexpr = arena_push_struct(&arena, Typexpr_TypeParameter);
+    zero_struct(parameter_typexpr, Typexpr_TypeParameter);
+    parameter_ast->typexpr = (Typexpr*)parameter_typexpr;
+    parameter_typexpr->kind = TYP_TYPE_PARAMETER;
+    parameter_typexpr->name = parameter_ast->name;
+  }
+  else
+    error("at line %d: type variable was expected");
+  return parameter_typexpr;
+}
+
+internal Typexpr_Parameter*
+visit_parameter(Ast_Parameter* parameter_ast)
+{
+  if (parameter_ast->typexpr)
+    return (Typexpr_Parameter*)parameter_ast->typexpr;
+
+  Typexpr_Parameter* parameter_typexpr = arena_push_struct(&arena, Typexpr_Parameter);
+  zero_struct(parameter_typexpr, Typexpr_Parameter);
+  parameter_ast->typexpr = (Typexpr*)parameter_typexpr;
+  parameter_typexpr->kind = TYP_PARAMETER;
+
+  if (parameter_ast->direction == AST_DIR_IN)
+    parameter_typexpr->direction = TYP_DIR_IN;
+  else if (parameter_ast->direction == AST_DIR_OUT)
+    parameter_typexpr->direction = TYP_DIR_OUT;
+  else if (parameter_ast->direction == AST_DIR_INOUT)
+    parameter_typexpr->direction = TYP_DIR_INOUT;
+
+  parameter_typexpr->type = visit_typeref(parameter_ast->typeref);
+
+  return parameter_typexpr;
 }
 
 internal Typexpr_Function*
@@ -47,23 +84,39 @@ visit_function_prototype(Ast_FunctionDecl* function_ast)
   function_typexpr->name = function_ast->name;
   function_typexpr->is_prototype = true;
 
-  function_typexpr->return_type = visit_type_typexpr(function_ast->return_type);
+  function_typexpr->return_type = visit_type(function_ast->return_type_ident->ast);
 
   function_typexpr->sentinel_type_parameter = arena_push_struct(&arena, Typexpr_TypeParameter);
   zero_struct(function_typexpr->sentinel_type_parameter, Typexpr_TypeParameter);
   function_typexpr->sentinel_type_parameter->kind = TYP_TYPE_PARAMETER;
   function_typexpr->last_type_parameter = function_typexpr->sentinel_type_parameter;
 
-  Ast_TypeParameter* parameter_ast = function_ast->first_type_parameter;
-  while (parameter_ast)
+  Ast_TypeParameter* type_parameter_ast = function_ast->first_type_parameter;
+  while (type_parameter_ast)
   {
-    Typexpr_TypeParameter* parameter_typexpr = visit_type_parameter(parameter_ast);
-    function_typexpr->last_type_parameter->next_type_parameter = parameter_typexpr;
-    function_typexpr->last_type_parameter = parameter_typexpr;
+    Typexpr_TypeParameter* type_parameter_typexpr = visit_type_parameter(type_parameter_ast);
+    function_typexpr->last_type_parameter->next_type_parameter = type_parameter_typexpr;
+    function_typexpr->last_type_parameter = type_parameter_typexpr;
     function_typexpr->type_parameter_count += 1;
+
+    type_parameter_ast = (Ast_TypeParameter*)type_parameter_ast->next_parameter;
   }
 
-  link_ast_to_typexpr((Ast*)function_ast, (Typexpr*)function_typexpr);
+  function_typexpr->sentinel_parameter = arena_push_struct(&arena, Typexpr_Parameter);
+  zero_struct(function_typexpr->sentinel_parameter, Typexpr_Parameter);
+  function_typexpr->sentinel_parameter->kind = TYP_PARAMETER;
+  function_typexpr->last_parameter = function_typexpr->sentinel_parameter;
+  
+  Ast_Parameter* parameter_ast = function_ast->first_parameter;
+  while (parameter_ast)
+  {
+    Typexpr_Parameter* parameter_typexpr = visit_parameter(parameter_ast);
+    function_typexpr->last_parameter->next_parameter = parameter_typexpr;
+    function_typexpr->last_parameter = parameter_typexpr;
+    function_typexpr->parameter_count += 1;
+
+    parameter_ast = (Ast_Parameter*)parameter_ast->next_parameter;
+  }
   return function_typexpr;
 }
 
@@ -95,8 +148,6 @@ visit_extern_object_prototype(Ast_ExternObjectDecl* object_ast)
 
     method_ast = (Ast_FunctionDecl*)method_ast->next_decl;
   }
-
-  link_ast_to_typexpr((Ast*)object_ast, (Typexpr*)object_typexpr);
   return object_typexpr;
 }
 
@@ -112,8 +163,6 @@ visit_extern_function_prototype(Ast_FunctionDecl* function_ast)
   function_typexpr->kind = TYP_FUNCTION;
   function_typexpr->name = function_ast->name;
   function_typexpr->is_prototype = true;
-
-  link_ast_to_typexpr((Ast*)function_ast, (Typexpr*)function_typexpr);
   return function_typexpr;
 }
 
@@ -128,8 +177,6 @@ visit_parser_prototype(Ast_ParserDecl* parser_ast)
   parser_ast->typexpr = parser_typexpr;
   parser_typexpr->kind = TYP_PARSER;
   parser_typexpr->is_prototype = true;
-
-  link_ast_to_typexpr((Ast*)parser_ast, (Typexpr*)parser_typexpr);
   return parser_typexpr;
 }
 
@@ -143,8 +190,6 @@ visit_parser_type(Ast_ParserDecl* parser_ast)
   zero_struct(parser_typexpr, Typexpr);
   parser_ast->typexpr = parser_typexpr;
   parser_typexpr->kind = TYP_PARSER;
-
-  link_ast_to_typexpr((Ast*)parser_ast, (Typexpr*)parser_typexpr);
   return parser_typexpr;
 }
 
@@ -159,8 +204,6 @@ visit_control_prototype(Ast_ControlDecl* control_ast)
   control_ast->typexpr = control_typexpr;
   control_typexpr->kind = TYP_CONTROL;
   control_typexpr->is_prototype = true;
-
-  link_ast_to_typexpr((Ast*)control_ast, (Typexpr*)control_typexpr);
   return control_typexpr;
 }
 
@@ -173,8 +216,6 @@ visit_control_type(Ast_ControlDecl* control_ast)
   zero_struct(control_typexpr, Typexpr);
   control_ast->typexpr = control_typexpr;
   control_typexpr->kind = TYP_CONTROL;
-
-  link_ast_to_typexpr((Ast*)control_ast, (Typexpr*)control_typexpr);
   return control_typexpr;
 }
 
@@ -189,8 +230,6 @@ visit_package_prototype(Ast_PackageDecl* package_ast)
   package_ast->typexpr = package_typexpr;
   package_typexpr->kind = TYP_PACKAGE;
   package_typexpr->is_prototype = true;
-
-  link_ast_to_typexpr((Ast*)package_ast, (Typexpr*)package_typexpr);
   return package_typexpr;
 }
 
@@ -204,8 +243,6 @@ visit_typedef(Ast_Typedef* typedef_ast)
   zero_struct(typedef_typexpr, Typexpr);
   typedef_ast->typexpr = typedef_typexpr;
   typedef_typexpr->kind = TYP_TYPEDEF;
-
-  link_ast_to_typexpr((Ast*)typedef_ast, (Typexpr*)typedef_typexpr);
   return typedef_typexpr;
 }
 
@@ -220,8 +257,6 @@ visit_header_prototype(Ast_HeaderDecl* header_ast)
   header_ast->typexpr = header_typexpr;
   header_typexpr->kind = TYP_HEADER;
   header_typexpr->is_prototype = true;
-
-  link_ast_to_typexpr((Ast*)header_ast, (Typexpr*)header_typexpr);
   return header_typexpr;
 }
 
@@ -235,8 +270,6 @@ visit_header_type(Ast_HeaderDecl* header_ast)
   zero_struct(header_typexpr, Typexpr);
   header_ast->typexpr = header_typexpr;
   header_typexpr->kind = TYP_HEADER;
-
-  link_ast_to_typexpr((Ast*)header_ast, (Typexpr*)header_typexpr);
   return header_typexpr;
 }
 
@@ -251,8 +284,6 @@ visit_error_code(Ast_ErrorCode* error_ast)
   error_ast->typexpr = (Typexpr*)error_typexpr;
   error_typexpr->kind = TYP_ENUM_FIELD;
   error_typexpr->name = error_ast->name;
-
-  link_ast_to_typexpr((Ast*)error_ast, (Typexpr*)error_typexpr);
   return error_typexpr;
 }
 
@@ -272,8 +303,6 @@ visit_error_type(Ast_ErrorType* error_ast)
 
     error_code_ast = (Ast_ErrorCode*)error_code_ast->next_ident;
   }
-
-  link_ast_to_typexpr((Ast*)error_ast, (Typexpr*)error_typexpr);
   return error_typexpr;
 }
 
@@ -288,8 +317,6 @@ visit_struct_prototype(Ast_StructDecl* struct_ast)
   struct_ast->typexpr = struct_typexpr;
   struct_typexpr->kind = TYP_STRUCT;
   struct_typexpr->is_prototype = true;
-
-  link_ast_to_typexpr((Ast*)struct_ast, (Typexpr*)struct_typexpr);
   return struct_typexpr;
 }
 
@@ -303,8 +330,6 @@ visit_struct_type(Ast_StructDecl* struct_ast)
   zero_struct(struct_typexpr, Typexpr);
   struct_ast->typexpr = struct_typexpr;
   struct_typexpr->kind = TYP_STRUCT;
-
-  link_ast_to_typexpr((Ast*)struct_ast, (Typexpr*)struct_typexpr);
   return struct_typexpr;
 }
 
@@ -361,6 +386,7 @@ build_typexpr()
   // 'error' type
   error_typexpr = arena_push_struct(&arena, Typexpr_EnumType);
   zero_struct(error_typexpr, Typexpr_EnumType);
+  error_type_ast->typexpr = (Typexpr*)error_typexpr;
   error_typexpr->kind = TYP_ENUM;
   error_typexpr->name = error_type_ast->name;
 
@@ -369,15 +395,12 @@ build_typexpr()
   error_typexpr->sentinel_field->kind = TYP_ENUM_FIELD;
   error_typexpr->last_field = error_typexpr->sentinel_field;
 
-  link_ast_to_typexpr((Ast*)error_type_ast, (Typexpr*)error_typexpr);
-
   // 'void' type
   void_typexpr = arena_push_struct(&arena, Typexpr_Basic);
   zero_struct(void_typexpr, Typexpr_Basic);
+  void_type_ast->typexpr = (Typexpr*)void_typexpr;
   void_typexpr->kind = TYP_BASIC;
   void_typexpr->name = void_type_ast->name;
-
-  link_ast_to_typexpr((Ast*)void_type_ast, (Typexpr*)void_typexpr);
 
   visit_p4program(p4program);
 

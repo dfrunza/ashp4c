@@ -93,53 +93,40 @@ sym_get_type(char* name)
   Namespace_Entry* ns = sym_get_namespace(name);
   Ident_Type* result = (Ident_Type*)ns->ns_type;
   if (result)
-    assert (result->object_kind == ID_TYPE);
+    assert (result->object_kind == ID_TYPE || result->object_kind == ID_TYPEVAR);
   return result;
 }
 
 Ident_Type*
-sym_add_type(char* name)
+sym_add_type(char* name, Ast* ast)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
-  Ident_Type* new_ident = arena_push_struct(&arena, Ident_Type);
-  zero_struct(new_ident, Ident_Type);
-  new_ident->name = name;
-  new_ident->scope_level = scope_level;
-  new_ident->object_kind = ID_TYPE;
-  new_ident->next_in_scope = ns->ns_type;
-  ns->ns_type = (Ident*)new_ident;
-  printf("add type '%s'\n", new_ident->name);
-  return new_ident;
+  Ident_Type* ident = arena_push_struct(&arena, Ident_Type);
+  zero_struct(ident, Ident_Type);
+  ident->ast = ast;
+  ident->name = name;
+  ident->scope_level = scope_level;
+  ident->object_kind = ID_TYPE;
+  ident->next_in_scope = ns->ns_type;
+  ns->ns_type = (Ident*)ident;
+  printf("add type '%s'\n", ident->name);
+  return ident;
 }
 
-Ident*
-sym_add_typevar(char* name)
+Ident_Type*
+sym_add_typevar(char* name, Ast* ast)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
-  Ident* new_ident = arena_push_struct(&arena, Ident);
-  zero_struct(new_ident, Ident);
-  new_ident->name = name;
-  new_ident->scope_level = scope_level;
-  new_ident->object_kind = ID_TYPEVAR;
-  new_ident->next_in_scope = ns->ns_type;
-  ns->ns_type = new_ident;
-  printf("add typevar '%s'\n", new_ident->name);
-  return new_ident;
-}
-
-Ident*
-sym_add_error_code(char* name)
-{
-  Namespace_Entry* ns = sym_get_namespace(name);
-  Ident* new_ident = arena_push_struct(&arena, Ident);
-  zero_struct(new_ident, Ident);
-  new_ident->name = name;
-  new_ident->scope_level = scope_level;
-  new_ident->object_kind = ID_STRUCT_MEMBER;
-  new_ident->next_in_scope = ns->ns_global;
-  ns->ns_global = new_ident;
-  printf("add error '%s'\n", new_ident->name);
-  return new_ident;
+  Ident_Type* ident = arena_push_struct(&arena, Ident_Type);
+  zero_struct(ident, Ident_Type);
+  ident->ast = ast;
+  ident->name = name;
+  ident->scope_level = scope_level;
+  ident->object_kind = ID_TYPEVAR;
+  ident->next_in_scope = ns->ns_type;
+  ns->ns_type = (Ident*)ident;
+  printf("add typevar '%s'\n", ident->name);
+  return ident;
 }
 
 Ident_Type*
@@ -235,18 +222,19 @@ sym_remove_error_type()
 }
 
 Ident_MemberSelector*
-sym_add_selector(char* name)
+sym_add_selector(char* name, Ast* ast)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
-  Ident_MemberSelector* new_ident = arena_push_struct(&arena, Ident_MemberSelector);
-  zero_struct(new_ident, Ident_MemberSelector);
-  new_ident->name = name;
-  new_ident->scope_level = scope_level;
-  new_ident->object_kind = ID_STRUCT_MEMBER;
-  new_ident->next_in_scope = ns->ns_global;
-  ns->ns_global = (Ident*)new_ident;
-  printf("add selector '%s'\n", new_ident->name);
-  return new_ident;
+  Ident_MemberSelector* ident = arena_push_struct(&arena, Ident_MemberSelector);
+  zero_struct(ident, Ident_MemberSelector);
+  ident->ast = ast;
+  ident->name = name;
+  ident->scope_level = scope_level;
+  ident->object_kind = ID_STRUCT_MEMBER;
+  ident->next_in_scope = ns->ns_global;
+  ns->ns_global = (Ident*)ident;
+  printf("add selector '%s'\n", ident->name);
+  return ident;
 }
 
 Ident_MemberSelector*
@@ -307,15 +295,13 @@ sym_init()
   add_keyword("apply", TOK_KW_APPLY);
   //add_keyword("verify", TOK_KW_VERIFY);
 
-  error_type_ident = sym_add_type(error_type_ast->name);
-  error_type_ident->ast = (Ast*)error_type_ast;
-  void_type_ident = sym_add_type(void_type_ast->name);
-  void_type_ident->ast = (Ast*)void_type_ast;
-  sym_add_type("bool");
-  sym_add_type("bit");
-  sym_add_type("varbit");
-  sym_add_type("int");
-  sym_add_type("string");
+  error_type_ident = sym_add_type(error_type_ast->name, (Ast*)error_type_ast);
+  void_type_ident = sym_add_type(void_type_ast->name, (Ast*)void_type_ast);
+  sym_add_type("bool", 0);
+  sym_add_type("bit", 0);
+  sym_add_type("varbit", 0);
+  sym_add_type("int", 0);
+  sym_add_type("string", 0);
 
   error_var_ident = arena_push_struct(&arena, Ident_Var);
   zero_struct(error_var_ident, Ident_Var);

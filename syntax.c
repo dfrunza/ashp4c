@@ -29,14 +29,14 @@ next_token()
     Namespace_Entry* ns = sym_get_namespace(token_at->lexeme);
     if (ns->ns_global)
     {
-      Ident* id_info = ns->ns_global;
-      if (id_info->object_kind == ID_KEYWORD)
-        token_at->klass = ((Ident_Keyword*)id_info)->token_klass;
+      Ident* ident = ns->ns_global;
+      if (ident->object_kind == ID_KEYWORD)
+        token_at->klass = ((Ident_Keyword*)ident)->token_klass;
     }
     else if (ns->ns_type)
     {
-      Ident* id_info = ns->ns_type;
-      if (id_info->object_kind == ID_TYPE || id_info->object_kind == ID_TYPEVAR)
+      Ident* ident = ns->ns_type;
+      if (ident->object_kind == ID_TYPE || ident->object_kind == ID_TYPEVAR)
         token_at->klass = TOK_TYPE_IDENT;
     }
   }
@@ -53,10 +53,10 @@ syn_struct_field()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    Ident_MemberSelector* id_info = sym_get_selector(result->name);
-    if (id_info && id_info->scope_level >= scope_level)
+    Ident_MemberSelector* ident = sym_get_selector(result->name);
+    if (ident && ident->scope_level >= scope_level)
       error("at line %d: selector '%s' has been previously declared", token_at->line_nr, result->name);
-    result->selector = sym_add_selector(result->name);
+    result->selector = sym_add_selector(result->name, (Ast*)result);
     next_token();
     if (token_at->klass == TOK_SEMICOLON)
       next_token();
@@ -89,7 +89,7 @@ syn_header_decl_or_prototype()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    result->id_info = sym_add_type(result->name);
+    result->type_ident = sym_add_type(result->name, (Ast*)result);
     next_token();
     if (token_at->klass == TOK_BRACE_OPEN)
     {
@@ -110,8 +110,8 @@ syn_header_decl_or_prototype()
 #if 1
         field = result->field;
         Ident_MemberSelector* selector = field->selector;
-        Ident_Type* type = result->id_info;
-        type->selector = field->selector;
+        Ident_Type* type_ident = result->type_ident;
+        type_ident->selector = field->selector;
         field = (Ast_StructField*)field->next_ident;
         while (field)
         {
@@ -151,7 +151,7 @@ syn_struct_decl_or_prototype()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    result->id_info = sym_add_type(result->name);
+    result->type_ident = sym_add_type(result->name, (Ast*)result);
     next_token();
     if (token_at->klass == TOK_BRACE_OPEN)
     {
@@ -172,8 +172,8 @@ syn_struct_decl_or_prototype()
 #if 1
         field = result->field;
         Ident_MemberSelector* selector = field->selector;
-        Ident_Type* type = result->id_info;
-        type->selector = field->selector;
+        Ident_Type* type_ident = result->type_ident;
+        type_ident->selector = field->selector;
         field = (Ast_StructField*)field->next_ident;
         while (field)
         {
@@ -210,10 +210,10 @@ syn_error_code()
   zero_struct(id, Ast_ErrorCode);
   id->kind = AST_ERROR_CODE;
   id->name = token_at->lexeme;
-  Ident_MemberSelector* id_info = sym_get_selector(id->name);
-  if (id_info && id_info->scope_level >= scope_level)
+  Ident_MemberSelector* ident = sym_get_selector(id->name);
+  if (ident && ident->scope_level >= scope_level)
     error("at line %d: selector '%s' has been previously declared", token_at->line_nr, id->name);
-  id->selector = sym_add_selector(id->name);
+  id->selector = sym_add_selector(id->name, (Ast*)id);
   next_token();
   return id;
 }
@@ -226,7 +226,8 @@ syn_error_type_decl()
   zero_struct(result, Ast_ErrorType);
   result->kind = AST_ERROR_TYPE;
   result->line_nr = token_at->line_nr;
-  result->id_info = sym_get_error_type();
+  result->type_ident = sym_get_error_type();
+  result->type_ident->ast = (Ast*)result;
   next_token();
   if (token_at->klass == TOK_BRACE_OPEN)
   {
@@ -254,8 +255,8 @@ syn_error_type_decl()
 #if 1
       field = result->error_code;
       Ident_MemberSelector* selector = field->selector;
-      Ident_Type* type = result->id_info;
-      type->selector = field->selector;
+      Ident_Type* type_ident = result->type_ident;
+      type_ident->selector = field->selector;
       field = (Ast_ErrorCode*)field->next_ident;
       while (field)
       {
@@ -292,14 +293,14 @@ syn_type_parameter()
   result->kind = AST_TYPE_PARAMETER;
   if (token_at->klass == TOK_IDENT)
   {
-    result->parameter_kind = TYPPARAM_VAR;
-    result->var_name = token_at->lexeme;
-    sym_add_typevar(result->var_name);
+    result->parameter_kind = AST_TYPPARAM_VAR;
+    result->name = token_at->lexeme;
+    result->type_ident = sym_add_typevar(result->name, (Ast*)result);
     next_token();
   }
   else if (token_at->klass == TOK_INTEGER)
   {
-    result->parameter_kind = TYPPARAM_INT;
+    result->parameter_kind = AST_TYPPARAM_INT;
     // TODO
     next_token();
   }
@@ -319,7 +320,7 @@ syn_type_parameter_list()
     if (token_is_type_parameter(token_at))
     {
       Ast_TypeParameter* next_parameter = syn_type_parameter();
-      parameter->next_param = next_parameter;
+      parameter->next_parameter = next_parameter;
       parameter = next_parameter;
     }
     else if (token_at->klass == TOK_COMMA)
@@ -355,11 +356,9 @@ syn_typeref_argument_list()
         next_token();
       }
       else if (token_at->klass == TOK_COMMA)
-        error("missing parameter at line %d", token_at->line_nr);
-      else if (token_at->klass == TOK_IDENT)
-        error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: missing parameter", token_at->line_nr);
       else
-        error("type expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+        error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
     }
   }
   else if (token_at->klass == TOK_INTEGER)
@@ -367,15 +366,13 @@ syn_typeref_argument_list()
     // TODO
     next_token();
   }
-  else if (token_at->klass == TOK_IDENT)
-    error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
   else
-    error("type expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
 
   if (token_at->klass == TOK_ANGLE_CLOSE)
     next_token();
   else
-    error("'>' expected at line %d, got '%s'", token_at->line_nr, token_at->lexeme);
+    error("at line %d: '>' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 }
 
 internal Ast_Typeref*
@@ -386,6 +383,7 @@ syn_typeref()
   zero_struct(result, Ast_Typeref);
   result->kind = AST_TYPEREF;
   result->name = token_at->lexeme;
+  result->type_ident = sym_get_type(token_at->lexeme);
   next_token();
   if (token_at->klass == TOK_ANGLE_OPEN)
     syn_typeref_argument_list();
@@ -406,7 +404,7 @@ syn_typedef_decl()
     if (token_at->klass == TOK_IDENT)
     {
       result->name = token_at->lexeme;
-      result->id_info = sym_add_type(result->name);
+      result->type_ident = sym_add_type(result->name, (Ast*)result);
       next_token();
       if (token_at->klass == TOK_SEMICOLON)
         next_token();
@@ -440,17 +438,17 @@ token_is_parameter(Token* token)
   return result;
 }
 
-internal enum AstDirection
+internal enum AstParameterDirection
 syn_direction()
 {
   assert(token_is_direction(token_at));
-  enum AstDirection result = 0;
+  enum AstParameterDirection result = 0;
   if (token_at->klass == TOK_KW_IN)
-    result = DIR_IN;
+    result = AST_DIR_IN;
   else if (token_at->klass == TOK_KW_OUT)
-    result = DIR_OUT;
+    result = AST_DIR_OUT;
   else if (token_at->klass == TOK_KW_INOUT)
-    result = DIR_INOUT;
+    result = AST_DIR_INOUT;
   next_token();
   return result;
 }
@@ -490,7 +488,7 @@ syn_parameter_list()
     if (token_is_parameter(token_at))
     {
       Ast_Parameter* next_parameter = syn_parameter();
-      parameter->next_param = next_parameter;
+      parameter->next_parameter = next_parameter;
       parameter = next_parameter;
     }
     else if (token_at->klass == TOK_COMMA)
@@ -512,7 +510,7 @@ syn_parser_prototype()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    result->id_info = sym_add_type(result->name);
+    result->type_ident = sym_add_type(result->name, (Ast*)result);
     next_token();
     scope_push_level();
     if (token_at->klass == TOK_ANGLE_OPEN)
@@ -1054,7 +1052,7 @@ syn_control_prototype()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    result->id_info = sym_add_type(result->name);
+    result->type_ident = sym_add_type(result->name, (Ast*)result);
     next_token();
     scope_push_level();
     if (token_at->klass == TOK_ANGLE_OPEN)
@@ -1486,7 +1484,7 @@ syn_package_prototype()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
-    result->id_info = sym_add_type(result->name);
+    result->type_ident = sym_add_type(result->name, (Ast*)result);
     next_token();
     scope_push_level();
     if (token_at->klass == TOK_ANGLE_OPEN)
@@ -1559,7 +1557,7 @@ syn_function_prototype()
   Ast_FunctionDecl* result = arena_push_struct(&arena, Ast_FunctionDecl);
   zero_struct(result, Ast_FunctionDecl);
   result->kind = AST_FUNCTION_PROTOTYPE;
-  result->return_type = sym_get_type(token_at->lexeme)->ast;
+  result->return_type_ident = sym_get_type(token_at->lexeme);
   next_token();
   if (token_at->klass == TOK_IDENT)
   {
@@ -1620,7 +1618,7 @@ syn_extern_object_prototype()
   zero_struct(result, Ast_ExternObjectDecl);
   result->kind = AST_EXTERN_OBJECT_PROTOTYPE;
   result->name = token_at->lexeme;
-  result->id_info = sym_add_type(result->name);
+  result->type_ident = sym_add_type(result->name, (Ast*)result);
   next_token();
   if (token_at->klass == TOK_ANGLE_OPEN)
     syn_type_parameter_list();

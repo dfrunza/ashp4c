@@ -17,8 +17,8 @@
 #define sizeof_array(ARRAY) (sizeof(ARRAY)/sizeof(ARRAY[0]))
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE*)0)->MEMBER)
 #define containerof(PTR, TYPE, MEMBER) ({ \
-	const typeof( ((TYPE* )0)->MEMBER )* __mptr = (PTR); \
-	(TYPE* )( (char *)__mptr - offsetof(TYPE, MEMBER) );})
+	const typeof(((TYPE* )0)->MEMBER)* mptr = (PTR); \
+	(TYPE*)((char *)mptr - offsetof(TYPE, MEMBER)); })
 #define assert(EXPR) do { if(!(EXPR)) assert_(#EXPR, __FILE__, __LINE__); } while(0)
 void assert_(char* message, char* file, int line);
 bool cstr_is_letter(char c);
@@ -30,4 +30,3 @@ bool cstr_match(char* str_a, char* str_b);
 void cstr_print_substr(char* begin_char, char* end_char);
 #define error(MESSAGE, ...) error_(__FILE__, __LINE__, (MESSAGE), ## __VA_ARGS__)
 void error_(char* file, int line, char* message, ...);
-
