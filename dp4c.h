@@ -96,7 +96,7 @@ enum IdentKind
 
 typedef struct Ident
 {
-  enum IdentKind object_kind;
+  enum IdentKind ident_kind;
   char* name;
   struct Ast* ast;
   int scope_level;
@@ -382,6 +382,7 @@ typedef struct
   Ast;
   char* name;
   Ident_Type* type_ident;
+  Ast* type_ast;
 }
 Ast_Typeref;  // AST_TYPEREF
 
@@ -450,6 +451,7 @@ typedef struct Ast_Parameter
   enum AstParameterDirection direction;
   Ast_Typeref* typeref;
   char* name;
+  Ident_Var* ident_var;
   struct Ast_Parameter* next_parameter;
 }
 Ast_Parameter;  // AST_PARAMETER
@@ -719,6 +721,7 @@ typedef struct Ast_FunctionPrototype
   Ast_TypeParameter* first_type_parameter;
   Ast_Parameter* first_parameter;
   Ident_Type* return_type_ident;
+  Ast* return_type_ast;
 }
 Ast_FunctionDecl;  // AST_FUNCTION_PROTOTYPE
                    // AST_EXTERN_FUNCTION_PROTOTYPE

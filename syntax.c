@@ -15,6 +15,11 @@ internal Ast_Expression* syn_expression(int priority_threshold);
 
 Ast_Ident* error_type_ast = 0;
 Ast_Ident* void_type_ast = 0;
+Ast_Ident* bool_type_ast = 0;
+Ast_Ident* bit_type_ast = 0;
+Ast_Ident* varbit_type_ast = 0;
+Ast_Ident* int_type_ast = 0;
+Ast_Ident* string_type_ast = 0;
 
 internal void
 next_token()
@@ -30,13 +35,13 @@ next_token()
     if (ns->ns_global)
     {
       Ident* ident = ns->ns_global;
-      if (ident->object_kind == ID_KEYWORD)
+      if (ident->ident_kind == ID_KEYWORD)
         token_at->klass = ((Ident_Keyword*)ident)->token_klass;
     }
     else if (ns->ns_type)
     {
       Ident* ident = ns->ns_type;
-      if (ident->object_kind == ID_TYPE || ident->object_kind == ID_TYPEVAR)
+      if (ident->ident_kind == ID_TYPE || ident->ident_kind == ID_TYPEVAR)
         token_at->klass = TOK_TYPE_IDENT;
     }
   }
@@ -384,6 +389,7 @@ syn_typeref()
   result->kind = AST_TYPEREF;
   result->name = token_at->lexeme;
   result->type_ident = sym_get_type(token_at->lexeme);
+  result->type_ast = result->type_ident->ast;
   next_token();
   if (token_at->klass == TOK_ANGLE_OPEN)
     syn_typeref_argument_list();
@@ -469,6 +475,10 @@ syn_parameter()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
+    Ident_Var* ident = sym_get_var(result->name);
+    if (ident && ident->scope_level >= scope_level)
+      error("at line %d: variable '%s' has been previously declared", token_at->line_nr, result->name);
+    result->ident_var = sym_add_var(result->name, (Ast*)result);
     next_token();
   }
   else
@@ -1558,6 +1568,7 @@ syn_function_prototype()
   zero_struct(result, Ast_FunctionDecl);
   result->kind = AST_FUNCTION_PROTOTYPE;
   result->return_type_ident = sym_get_type(token_at->lexeme);
+  result->return_type_ast = result->return_type_ident->ast;
   next_token();
   if (token_at->klass == TOK_IDENT)
   {
@@ -1746,6 +1757,36 @@ syn_parse()
   void_type_ast->kind = AST_IDENT_EXPR;
   void_type_ast->name = "void";
   void_type_ast->is_builtin = true;
+
+  bool_type_ast = arena_push_struct(&arena, Ast_Ident);
+  zero_struct(bool_type_ast, Ast_Ident);
+  bool_type_ast->kind = AST_IDENT_EXPR;
+  bool_type_ast->name = "bool";
+  bool_type_ast->is_builtin = true;
+
+  bit_type_ast = arena_push_struct(&arena, Ast_Ident);
+  zero_struct(bit_type_ast, Ast_Ident);
+  bit_type_ast->kind = AST_IDENT_EXPR;
+  bit_type_ast->name = "bit";
+  bit_type_ast->is_builtin = true;
+
+  varbit_type_ast = arena_push_struct(&arena, Ast_Ident);
+  zero_struct(varbit_type_ast, Ast_Ident);
+  varbit_type_ast->kind = AST_IDENT_EXPR;
+  varbit_type_ast->name = "varbit";
+  varbit_type_ast->is_builtin = true;
+
+  int_type_ast = arena_push_struct(&arena, Ast_Ident);
+  zero_struct(int_type_ast, Ast_Ident);
+  int_type_ast->kind = AST_IDENT_EXPR;
+  int_type_ast->name = "int";
+  int_type_ast->is_builtin = true;
+
+  string_type_ast = arena_push_struct(&arena, Ast_Ident);
+  zero_struct(string_type_ast, Ast_Ident);
+  string_type_ast->kind = AST_IDENT_EXPR;
+  string_type_ast->name = "string";
+  string_type_ast->is_builtin = true;
 
   sym_init();
 

@@ -3,6 +3,8 @@
 
 void sym_init();
 Namespace_Entry* sym_get_namespace(char* name);
+Ident_Var* sym_get_var(char* name);
+Ident_Var* sym_add_var(char* name, Ast* ast);
 Ident_Type* sym_get_type(char* name);
 Ident_Type* sym_add_type(char* name, Ast* ast);
 Ident_Type* sym_add_typevar(char* name, Ast* ast);
