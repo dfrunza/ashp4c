@@ -8,7 +8,7 @@ external int scope_level;
 internal void visit_expression(Ast_Expression* expr_ast);
 
 internal void
-visit_ident_expression(Ast_Ident* ident_ast)
+visit_ident(Ast_Ident* ident_ast)
 {
   if (ident_ast->is_member)
     return;
@@ -17,10 +17,11 @@ visit_ident_expression(Ast_Ident* ident_ast)
   if (!var_ident)
     error("at line %d: unknown identifier '%s'", ident_ast->line_nr, ident_ast->name);
   ident_ast->var_ident = var_ident;
+  printf("resolved id '%s'\n", ident_ast->name);
 }
 
 internal void
-visit_type_ident_expression(Ast_TypeIdent* ident_ast)
+visit_type_ident(Ast_TypeIdent* ident_ast)
 {
   if (ident_ast->is_member)
     return;
@@ -29,6 +30,7 @@ visit_type_ident_expression(Ast_TypeIdent* ident_ast)
   if (!type_ident)
     error("at line %d: unknown type '%s'", ident_ast->line_nr, ident_ast->name);
   ident_ast->type_ident = type_ident;
+  printf("resolved id '%s'\n", ident_ast->name);
 }
 
 internal void
@@ -41,10 +43,14 @@ visit_binary_expression(Ast_BinaryExpr* expr_ast)
 internal void
 visit_function_call(Ast_FunctionCall* call_ast)
 {
-  if (call_ast->is_member)
-    return;
-
   visit_expression(call_ast->function);
+
+  Ast_Expression* argument_ast = call_ast->first_argument;
+  while (argument_ast)
+  {
+    visit_expression(argument_ast);
+    argument_ast = argument_ast->next_expression;
+  }
 }
 
 internal void
@@ -59,12 +65,12 @@ visit_expression(Ast_Expression* expr_ast)
 
     case (AST_IDENT):
     {
-      visit_ident_expression((Ast_Ident*)expr_ast);
+      visit_ident((Ast_Ident*)expr_ast);
     } break;
 
     case (AST_TYPE_IDENT):
     {
-      visit_type_ident_expression((Ast_TypeIdent*)expr_ast);
+      visit_type_ident((Ast_TypeIdent*)expr_ast);
     } break;
 
     case (AST_FUNCTION_CALL):

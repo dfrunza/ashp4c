@@ -12,7 +12,7 @@ internal Token* token_at = 0;
 internal Token* prev_token_at = 0;
 
 internal Ast_Typeref* build_typeref();
-internal Ast_Expression* build_expression(int priority_threshold);
+internal Ast_Expression* build_expression(int priority_threshold, bool is_member);
 
 external Ident_Keyword* error_kw;
 Ast_TypeIdent* error_type_ast = 0;
@@ -659,6 +659,7 @@ build_expression_primary()
     Ast_Integer* expression = arena_push_struct(&arena, Ast_Integer);
     zero_struct(expression, Ast_Integer);
     expression->kind = AST_INTEGER;
+    expression->lexeme = token_at->lexeme;
     expression->value = 0; //TODO
     result = (Ast_Expression*)expression;
     next_token();
@@ -668,6 +669,7 @@ build_expression_primary()
     Ast_WInteger* expression = arena_push_struct(&arena, Ast_WInteger);
     zero_struct(expression, Ast_WInteger);
     expression->kind = AST_WINTEGER;
+    expression->lexeme = token_at->lexeme;
     expression->value = 0; //TODO
     result = (Ast_Expression*)expression;
     next_token();
@@ -677,6 +679,7 @@ build_expression_primary()
     Ast_SInteger* expression = arena_push_struct(&arena, Ast_SInteger);
     zero_struct(expression, Ast_SInteger);
     expression->kind = AST_SINTEGER;
+    expression->lexeme = token_at->lexeme;
     expression->value = 0; //TODO
     result = (Ast_Expression*)expression;
     next_token();
@@ -685,7 +688,7 @@ build_expression_primary()
   {
     next_token();
     if (token_is_expression(token_at))
-      result = build_expression(1);
+      result = build_expression(1, false);
     if (token_at->klass == TOK_PARENTH_CLOSE)
       next_token();
     else
@@ -746,10 +749,11 @@ op_is_binary(enum Ast_ExprOperator op)
 }
 
 internal Ast_Expression*
-build_expression(int priority_threshold)
+build_expression(int priority_threshold, bool is_member)
 {
   assert(token_is_expression(token_at));
   Ast_Expression* primary = build_expression_primary();
+  primary->is_member = is_member;
   Ast_Expression* result = primary;
   while (token_is_expression_operator(token_at))
   {
@@ -767,11 +771,7 @@ build_expression(int priority_threshold)
         binary_expr->op = op;
 
         if (token_is_expression(token_at))
-        {
-          Ast_Expression* r_operand = build_expression(priority_threshold + 1);
-          r_operand->is_member = (op == AST_OP_MEMBER_SELECTOR);
-          binary_expr->r_operand = r_operand;
-        }
+          binary_expr->r_operand = build_expression(priority_threshold + 1, (op == AST_OP_MEMBER_SELECTOR));
         else
           error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
         result = (Ast_Expression*)binary_expr;
@@ -785,14 +785,14 @@ build_expression(int priority_threshold)
 
         if (token_is_expression(token_at))
         {
-          Ast_Expression* argument = build_expression(1);
+          Ast_Expression* argument = build_expression(1, false);
           function_call->first_argument = argument;
           while (token_at->klass == TOK_COMMA)
           {
             next_token();
             if (token_is_expression(token_at))
             {
-              Ast_Expression* next_argument = build_expression(1);
+              Ast_Expression* next_argument = build_expression(1, false);
               argument->next_expression = next_argument;
               argument = next_argument;
             }
@@ -853,7 +853,7 @@ build_select_case()
     Ast_SelectCase_Expr* select_expr = arena_push_struct(&arena, Ast_SelectCase_Expr);
     zero_struct(select_expr, Ast_SelectCase_Expr);
     select_expr->kind = AST_SELECT_CASE_EXPR;
-    select_expr->key_expr = build_expression(1);
+    select_expr->key_expr = build_expression(1, false);
     result = (Ast_SelectCase*)select_expr;
   }
   else if (token_at->klass = TOK_KW_DEFAULT)
@@ -913,7 +913,7 @@ build_select_state()
   {
     next_token();
     if (token_is_expression(token_at))
-      result->expression = build_expression(1);
+      result->expression = build_expression(1, false);
     if (token_at->klass == TOK_PARENTH_CLOSE)
       next_token();
     else
@@ -959,14 +959,14 @@ build_statement_list()
   Ast_Expression* result = 0;
   if (token_is_expression(token_at))
   {
-    Ast_Expression* expression = build_expression(1);
+    Ast_Expression* expression = build_expression(1, false);
     result = expression;
     if (token_at->klass == TOK_SEMICOLON)
     {
       next_token();
       while (token_is_expression(token_at))
       {
-        Ast_Expression* next_expression = build_expression(1);
+        Ast_Expression* next_expression = build_expression(1, false);
         expression->next_expression = next_expression;
         expression = next_expression;
         if (token_at->klass == TOK_SEMICOLON)
@@ -1205,14 +1205,14 @@ build_key_elem()
   Ast_Key* result = arena_push_struct(&arena, Ast_Key);
   zero_struct(result, Ast_Key);
   result->kind = AST_TABLE_KEY;
-  result->expression = build_expression(1);
+  result->expression = build_expression(1, false);
 
   if (token_at->klass == TOK_COLON)
   {
     next_token();
     if (token_at->klass == TOK_IDENT)
     {
-      result->name = build_expression(1);
+      result->name = build_expression(1, false);
       if (token_at->klass == TOK_SEMICOLON)
         next_token();
       else
@@ -1233,7 +1233,7 @@ build_simple_prop()
   Ast_SimpleProp* result = arena_push_struct(&arena, Ast_SimpleProp);
   zero_struct(result, Ast_SimpleProp);
   result->kind = AST_SIMPLE_PROP;
-  result->expression = build_expression(1);
+  result->expression = build_expression(1, false);
   if (token_at->klass == TOK_SEMICOLON)
     next_token();
   else
@@ -1256,14 +1256,14 @@ build_action_ref()
     next_token();
     if (token_is_expression(token_at))
     {
-      Ast_Expression* argument = build_expression(1);
+      Ast_Expression* argument = build_expression(1, false);
       result->argument = argument;
       while (token_at->klass == TOK_COMMA)
       {
         next_token();
         if (token_is_expression(token_at))
         {
-          Ast_Expression* next_argument = build_expression(1);
+          Ast_Expression* next_argument = build_expression(1, false);
           argument->next_expression = next_argument;
           argument = next_argument;
         }
@@ -1436,7 +1436,7 @@ build_var_decl()
     {
       next_token();
       if (token_is_expression(token_at))
-        result->initializer = build_expression(1);
+        result->initializer = build_expression(1, false);
       else
         error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
@@ -1610,7 +1610,7 @@ build_package_instantiation()
   Ast_PackageInstantiation* result = arena_push_struct(&arena, Ast_PackageInstantiation);
   zero_struct(result, Ast_PackageInstantiation);
   result->kind = AST_PACKAGE_INSTANCE;
-  result->package_ctor = build_expression(1);
+  result->package_ctor = build_expression(1, false);
 
   if (token_at->klass == TOK_IDENT)
   {
