@@ -794,6 +794,7 @@ typedef struct Ast_ExternObjectDecl
 {
   Ast_Declaration;
   char* name;
+  Ast_TypeParameter* first_type_parameter;
   Ast_FunctionDecl* first_method;
   Ident* type_ident;
 }

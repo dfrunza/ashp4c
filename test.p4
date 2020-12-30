@@ -16,6 +16,11 @@ extern TPacketIn
   void extract<T>(out T hdr);
 }
 
+extern TPacketOut<T>
+{
+  void emit(in T hdr);
+}
+
 extern void verify(in bool check, in error error_to_signal);
 
 parser TXdpParser<H>(TPacketIn packet, out H parsed_headers);

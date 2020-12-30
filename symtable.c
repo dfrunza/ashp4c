@@ -44,8 +44,11 @@ scope_push_level()
 }
 
 int
-scope_pop_level()
+scope_pop_level(int to_level)
 {
+  if (scope_level <= to_level)
+    return scope_level;
+
   int i = 0;
   while (i < max_symtable_len)
   {
@@ -53,27 +56,28 @@ scope_pop_level()
     while (ns)
     {
       Ident* ident = ns->ns_global;
-      if (ident && ident->scope_level >= scope_level)
+      if (ident && ident->scope_level > to_level)
       {
         ns->ns_global = ident->next_in_scope;
         if (ident->next_in_scope)
-          assert (ident->next_in_scope->scope_level < scope_level);
+          assert (ident->next_in_scope->scope_level <= to_level);
         ident->next_in_scope = 0;
       }
       ident = ns->ns_type;
-      if (ident && ident->scope_level >= scope_level)
+      if (ident && ident->scope_level > to_level)
       {
         ns->ns_type = ident->next_in_scope;
         if (ident->next_in_scope)
-          assert (ident->next_in_scope->scope_level < scope_level);
+          assert (ident->next_in_scope->scope_level <= to_level);
         ident->next_in_scope = 0;
       }
       ns = ns->next;
     }
     i++;
   }
-  printf("pop scope %d\n", scope_level);
-  return --scope_level;
+  printf("pop scope %d\n", to_level);
+  scope_level = to_level;
+  return scope_level;
 }
 
 bool

@@ -14,5 +14,5 @@ void sym_add_error_var();
 void sym_remove_error_var();
 void sym_add_error_kw();
 int scope_push_level();
-int scope_pop_level();
+int scope_pop_level(int to_level);
 bool sym_ident_is_declared(Ident* ident);

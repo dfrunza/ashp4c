@@ -110,6 +110,7 @@ syn_header_decl()
   Ast_HeaderDecl* result = arena_push_struct(&arena, Ast_HeaderDecl);
   zero_struct(result, Ast_HeaderDecl);
   result->kind = AST_HEADER_PROTOTYPE;
+  int header_scope_level = scope_level;
 
   if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
   {
@@ -125,6 +126,7 @@ syn_header_decl()
       result->kind = AST_HEADER_DECL;
       scope_push_level();
       next_token();
+
       if (token_at->klass == TOK_TYPE_IDENT)
       {
         field = syn_struct_field();
@@ -135,29 +137,19 @@ syn_header_decl()
           field->next_field = next_field;
           field = next_field;
         }
-
-#if 0
-        field = result->first_field;
-        Ident_MemberSelector* selector = field->selector;
-        Ident_Type* type_ident = result->type_ident;
-        type_ident->selector = field->selector;
-        field = (Ast_StructField*)field->next_field;
-        while (field)
-        {
-          selector->next_selector = field->selector;
-          selector = selector->next_selector;
-          field = (Ast_StructField*)field->next_field;
-        }
-#endif
       }
 
       if (token_at->klass == TOK_BRACE_CLOSE)
+      {
+        scope_pop_level(header_scope_level);
         next_token(token_at);
+      }
       else if (token_at->klass == TOK_IDENT)
         error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
       else
         error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
-      scope_pop_level();
+
+      scope_pop_level(header_scope_level);
     }
     else
       error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
@@ -175,6 +167,7 @@ syn_struct_decl()
   Ast_StructDecl* result = arena_push_struct(&arena, Ast_StructDecl);
   zero_struct(result, Ast_StructDecl);
   result->kind = AST_STRUCT_PROTOTYPE;
+  int struct_scope_level = scope_level;
 
   if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
   {
@@ -189,8 +182,10 @@ syn_struct_decl()
     if (token_at->klass == TOK_BRACE_OPEN)
     {
       result->kind = AST_STRUCT_DECL;
+
       scope_push_level();
       next_token();
+
       if (token_at->klass == TOK_TYPE_IDENT)
       {
         Ast_StructField* field = syn_struct_field();
@@ -204,18 +199,23 @@ syn_struct_decl()
       }
 
       if (token_at->klass == TOK_BRACE_CLOSE)
+      {
+        scope_pop_level(struct_scope_level);
         next_token();
+      }
       else if (token_at->klass == TOK_IDENT)
         error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
       else
         error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
-      scope_pop_level();
+
+      scope_pop_level(struct_scope_level);
     }
     else
       error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
     error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
+
   return result;
 }
 
@@ -247,6 +247,7 @@ syn_error_type_decl()
   result->type_ident = sym_get_error_type();
   result->type_ident->ast = (Ast*)result;
   next_token();
+  int error_scope_level = scope_level;
 
   if (token_at->klass == TOK_BRACE_OPEN)
   {
@@ -274,10 +275,14 @@ syn_error_type_decl()
     }
 
     if (token_at->klass == TOK_BRACE_CLOSE)
+    {
+      scope_pop_level(error_scope_level);
       next_token();
+    }
     else
       error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
-    scope_pop_level();
+
+    scope_pop_level(error_scope_level);
   }
   else
     error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
@@ -539,16 +544,15 @@ syn_parser_prototype()
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
-    next_token();
     scope_push_level();
+    next_token();
 
     if (token_at->klass == TOK_ANGLE_OPEN)
     {
       next_token();
+
       if (token_is_type_parameter(token_at))
         result->first_type_parameter = syn_type_parameter_list();
-      else if (token_at->klass == TOK_TYPE_IDENT)
-        error("at line %d: type '%s' has been previously declared", token_at->line_nr, token_at->lexeme);
       else
         error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
@@ -1036,6 +1040,8 @@ internal Ast_ParserDecl*
 syn_parser_decl()
 {
   assert(token_at->klass == TOK_KW_PARSER);
+
+  int parser_scope_level = scope_level;
   Ast_ParserDecl* result = syn_parser_prototype();
 
   if (token_at->klass == TOK_BRACE_OPEN)
@@ -1044,7 +1050,6 @@ syn_parser_decl()
     sym_remove_error_kw();
     sym_add_error_var();
     next_token();
-    scope_push_level();
 
     if (token_at->klass == TOK_KW_STATE)
     {
@@ -1062,20 +1067,23 @@ syn_parser_decl()
 
     if (token_at->klass == TOK_BRACE_CLOSE)
     {
+      scope_pop_level(parser_scope_level);
       sym_remove_error_var();
       sym_add_error_kw();
       next_token();
     }
     else
       error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
-    scope_pop_level();
   }
   else if (token_at->klass == TOK_SEMICOLON)
+  {
+    scope_pop_level(parser_scope_level);
     next_token();
+  }
   else
     error("at line %d: '{' or ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
-  scope_pop_level();
+  scope_pop_level(parser_scope_level);
   return result;
 }
 
@@ -1096,11 +1104,13 @@ syn_control_prototype()
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
-    next_token();
     scope_push_level();
+    next_token();
+
     if (token_at->klass == TOK_ANGLE_OPEN)
     {
       next_token();
+
       if (token_is_type_parameter(token_at))
         result->first_type_parameter = syn_type_parameter_list();
       else
@@ -1111,19 +1121,26 @@ syn_control_prototype()
       else
         error("at line %d: '>' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
+
     if (token_at->klass == TOK_PARENTH_OPEN)
     {
       next_token();
+
       if (token_is_parameter(token_at))
         result->first_parameter = syn_parameter_list();
+
       if (token_at->klass == TOK_PARENTH_CLOSE)
         next_token();
       else
-        error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+      {
+        if (token_at->klass == TOK_IDENT)
+          error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
+        else
+          error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+      }
     }
     else
       error("at line %d: '(' expected, got '%s'", token_at->line_nr, token_at->lexeme);
-    scope_pop_level();
   }
   else
     error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
@@ -1474,6 +1491,8 @@ internal Ast_ControlDecl*
 syn_control_decl()
 {
   assert(token_at->klass == TOK_KW_CONTROL);
+
+  int control_scope_level = scope_level;
   Ast_ControlDecl* result = syn_control_prototype();
 
   if (token_at->klass == TOK_BRACE_OPEN)
@@ -1482,7 +1501,6 @@ syn_control_decl()
     sym_remove_error_kw();
     sym_add_error_var();
     next_token();
-    scope_push_level();
 
     if (token_is_control_local_decl(token_at))
     {
@@ -1507,19 +1525,23 @@ syn_control_decl()
 
     if (token_at->klass == TOK_BRACE_CLOSE)
     {
+      scope_pop_level(control_scope_level);
       sym_remove_error_var();
       sym_add_error_kw();
       next_token();
     }
     else
       error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
-
-    scope_pop_level();
   }
   else if (token_at->klass == TOK_SEMICOLON)
+  {
+    scope_pop_level(control_scope_level);
     next_token();
+  }
   else
     error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+
+  scope_pop_level(control_scope_level);
   return result;
 }
 
@@ -1531,6 +1553,7 @@ syn_package_prototype()
   Ast_PackageDecl* result = arena_push_struct(&arena, Ast_PackageDecl);
   zero_struct(result, Ast_PackageDecl);
   result->kind = AST_PACKAGE_PROTOTYPE;
+  int package_scope_level = scope_level;
 
   if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
   {
@@ -1540,8 +1563,9 @@ syn_package_prototype()
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
-    next_token();
     scope_push_level();
+    next_token();
+
     if (token_at->klass == TOK_ANGLE_OPEN)
     {
       next_token();
@@ -1556,27 +1580,39 @@ syn_package_prototype()
       else
         error("at line %d: '>' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
+
     if (token_at->klass == TOK_PARENTH_OPEN)
     {
       next_token();
+
       if (token_is_parameter(token_at))
         result->first_parameter = syn_parameter_list();
+
       if (token_at->klass == TOK_PARENTH_CLOSE)
         next_token();
       else
-        error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+      {
+        if (token_at->klass == TOK_IDENT)
+          error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
+        else
+          error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+      }
     }
     else
       error("at line %d: '(' expected, got '%s'", token_at->line_nr, token_at->lexeme);
-    scope_pop_level();
   }
   else
     error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
   if (token_at->klass == TOK_SEMICOLON)
+  {
+    scope_pop_level(package_scope_level);
     next_token();
+  }
   else
     error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+
+  scope_pop_level(package_scope_level);
   return result;
 }
 
@@ -1619,6 +1655,7 @@ syn_function_prototype()
   result->return_type_ident = sym_get_type(token_at->lexeme);
   result->return_type_ast = result->return_type_ident->ast;
 
+  int function_scope_level = scope_level;
   next_token();
 
   if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
@@ -1629,8 +1666,8 @@ syn_function_prototype()
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
-    next_token();
     scope_push_level();
+    next_token();
 
     if (token_at->klass == TOK_ANGLE_OPEN)
     {
@@ -1651,6 +1688,7 @@ syn_function_prototype()
     {
       sym_remove_error_kw();
       next_token();
+
       if (token_is_parameter(token_at))
         result->first_parameter = syn_parameter_list();
 
@@ -1663,16 +1701,20 @@ syn_function_prototype()
         error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
       if (token_at->klass == TOK_SEMICOLON)
+      {
+        scope_pop_level(function_scope_level);
         next_token();
+      }
       else
         error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else
       error("at line %d: '(' expected, got '%s'", token_at->line_nr, token_at->lexeme);
-    scope_pop_level();
   }
   else
     error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
+
+  scope_pop_level(function_scope_level);
   return result;
 }
 
@@ -1692,14 +1734,27 @@ syn_extern_object_prototype()
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
   result->type_ident = sym_add_type(result->name, (Ast*)result);
 
+  int object_scope_level = scope_level;
+  scope_push_level();
   next_token();
 
   if (token_at->klass == TOK_ANGLE_OPEN)
-    syn_type_parameter_list();
+  {
+    next_token();
+
+    if (token_is_type_parameter(token_at))
+      result->first_type_parameter = syn_type_parameter_list();
+    else
+      error("at line %d: identifier expected , got '%s'", token_at->line_nr, token_at->lexeme);
+
+    if (token_at->klass == TOK_ANGLE_CLOSE)
+      next_token();
+    else
+      error("at line %d: '>' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+  }
 
   if (token_at->klass == TOK_BRACE_OPEN)
   {
-    scope_push_level();
     sym_remove_error_kw();
     next_token();
 
@@ -1718,14 +1773,18 @@ syn_extern_object_prototype()
     if (token_at->klass == TOK_BRACE_CLOSE)
     {
       sym_add_error_kw();
+      scope_pop_level(object_scope_level);
       next_token();
     }
+    else if (token_at->klass == TOK_IDENT)
+      error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
     else
       error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
-    scope_pop_level();
   }
   else
     error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+
+  scope_pop_level(object_scope_level);
   return result;
 }
 
@@ -1873,9 +1932,10 @@ build_ast()
 
   sym_init();
 
-  scope_push_level();
+  int top_scope_level = scope_push_level();
   token_at = tokenized_input;
   next_token();
   p4program = syn_p4program();
-  scope_pop_level();
+  assert (scope_level == top_scope_level);
+  scope_pop_level(top_scope_level - 1);
 }
