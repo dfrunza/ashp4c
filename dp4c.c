@@ -44,8 +44,9 @@ main(int arg_count, char* args[])
   int i = 0;
   while (i < max_symtable_len)
     symtable[i++] = 0;
-  syn_build_ast();
+  build_ast();
 
+  semcheck1();
   build_typexpr();
 
   arena_print_usage(&arena, "Memory (@exit): ");

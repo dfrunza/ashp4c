@@ -793,6 +793,7 @@ typedef struct
   Ast_Declaration;
   Ast_Expression* package;
   char* name;
+  Ident_Var* var_ident;
 }
 Ast_PackageInstance;  // AST_PACKAGE_INSTANCE
 

@@ -542,7 +542,7 @@ syn_parameter_list()
     else if (token_at->klass == TOK_COMMA)
       error("at line %d: missing parameter", token_at->line_nr);
     else
-      error("at line %d: type expected, got '%s'", token_at->line_nr, token_at->lexeme);
+      error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
   }
   return result;
 }
@@ -1616,6 +1616,11 @@ syn_package_instance()
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
+
+    if (sym_ident_is_declared((Ident*)sym_get_var(result->name)))
+      error("at line %d: variable '%s' has been previously declared", token_at->line_nr, result->name);
+    result->var_ident = sym_add_var(result->name, (Ast*)result);
+
     next_token();
     if (token_at->klass == TOK_SEMICOLON)
       next_token();
@@ -1838,7 +1843,7 @@ syn_p4program()
 }
 
 void
-syn_build_ast()
+build_ast()
 {
   error_type_ast = arena_push_struct(&arena, Ast_Ident);
   zero_struct(error_type_ast, Ast_Ident);
