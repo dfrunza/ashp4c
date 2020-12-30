@@ -579,6 +579,7 @@ typedef struct Ast_Expression
 {
   Ast;
   struct Ast_Expression* next_expression;
+  bool is_member;
 }
 Ast_Expression;
 
@@ -603,7 +604,6 @@ typedef struct Ast_Ident
 {
   Ast_Expression;
   char* name;
-  bool is_member;
   Ident* var_ident;
 }
 Ast_Ident;  // AST_IDENT

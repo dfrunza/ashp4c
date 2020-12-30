@@ -767,7 +767,11 @@ build_expression(int priority_threshold)
         binary_expr->op = op;
 
         if (token_is_expression(token_at))
-          binary_expr->r_operand = build_expression(priority_threshold + 1);
+        {
+          Ast_Expression* r_operand = build_expression(priority_threshold + 1);
+          r_operand->is_member = (op == AST_OP_MEMBER_SELECTOR);
+          binary_expr->r_operand = r_operand;
+        }
         else
           error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
         result = (Ast_Expression*)binary_expr;

@@ -10,6 +10,9 @@ internal void visit_expression(Ast_Expression* expr_ast);
 internal void
 visit_ident_expression(Ast_Ident* ident_ast)
 {
+  if (ident_ast->is_member)
+    return;
+
   Ident* var_ident = sym_get_var(ident_ast->name);
   if (!var_ident)
     error("at line %d: unknown identifier '%s'", ident_ast->line_nr, ident_ast->name);
@@ -19,6 +22,9 @@ visit_ident_expression(Ast_Ident* ident_ast)
 internal void
 visit_type_ident_expression(Ast_TypeIdent* ident_ast)
 {
+  if (ident_ast->is_member)
+    return;
+
   Ident* type_ident = sym_get_type(ident_ast->name);
   if (!type_ident)
     error("at line %d: unknown type '%s'", ident_ast->line_nr, ident_ast->name);
@@ -28,25 +34,17 @@ visit_type_ident_expression(Ast_TypeIdent* ident_ast)
 internal void
 visit_binary_expression(Ast_BinaryExpr* expr_ast)
 {
-  Ast_Expression* l_operand = expr_ast->l_operand;
-  Ast_Expression* r_operand = expr_ast->r_operand;
-
-  if (expr_ast->op == AST_OP_MEMBER_SELECTOR)
-    visit_expression(l_operand);
-  else
-  {
-    visit_expression(l_operand);
-    visit_expression(r_operand);
-  }
+  visit_expression(expr_ast->l_operand);
+  visit_expression(expr_ast->r_operand);
 }
 
 internal void
 visit_function_call(Ast_FunctionCall* call_ast)
 {
-  if (call_ast->function->kind == AST_IDENT)
-    visit_ident_expression((Ast_Ident*)call_ast->function);
-  else if (call_ast->function->kind == AST_TYPE_IDENT)
-    visit_type_ident_expression((Ast_TypeIdent*)call_ast->function);
+  if (call_ast->is_member)
+    return;
+
+  visit_expression(call_ast->function);
 }
 
 internal void
