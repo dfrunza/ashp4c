@@ -13,8 +13,10 @@ gcc $C_FLAGS -I . -c $SRC/lex.c
 gcc $C_FLAGS -I . -c $SRC/syntax.c 
 gcc $C_FLAGS -I . -c $SRC/symtable.c 
 gcc $C_FLAGS -I . -c $SRC/resolve_member_ident.c
+gcc $C_FLAGS -I . -c $SRC/resolve_toplevel_ident.c
 gcc $C_FLAGS -I . -c $SRC/typexpr.c 
-gcc $C_FLAGS -I. -o dp4c $SRC/dp4c.c basic.o arena.o lex.o syntax.o symtable.o \
-  resolve_member_ident.o \
+gcc $C_FLAGS -I. -o dp4c $SRC/dp4c.c \
+  basic.o arena.o lex.o syntax.o symtable.o \
+  resolve_toplevel_ident.o resolve_member_ident.o \
   typexpr.o
 popd

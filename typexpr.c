@@ -592,6 +592,12 @@ visit_struct_decl(Ast_StructDecl* struct_ast)
 }
 
 internal Typexpr*
+visit_package_instantiation(Ast_PackageInstantiation* instance_ast)
+{
+  return 0;  // not a type declaration
+}
+
+internal Typexpr*
 visit_p4declaration(Ast_Declaration* p4decl_ast)
 {
   assert (!p4decl_ast->typexpr);
@@ -623,7 +629,7 @@ visit_p4declaration(Ast_Declaration* p4decl_ast)
   else if (p4decl_ast->kind == AST_EXTERN_FUNCTION_PROTOTYPE)
     visit_extern_function_prototype((Ast_FunctionDecl*)p4decl_ast);
   else if (p4decl_ast->kind == AST_PACKAGE_INSTANCE)
-    ; // not a type declataration - pass.
+    visit_package_instantiation((Ast_PackageInstantiation*)p4decl_ast);
   else
     assert (false);
 
@@ -709,7 +715,5 @@ build_typexpr()
   string_typexpr->name = string_type_ast->name;
 
   visit_p4program(p4program);
-
-  arena_print_usage(&arena, "Memory (build_typexpr): ");
 }
 

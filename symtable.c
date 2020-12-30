@@ -5,7 +5,7 @@ external Namespace_Entry** symtable;
 external int max_symtable_len;
 external int scope_level;
 
-internal Ident_Keyword* error_kw = 0;
+Ident_Keyword* error_kw = 0;
 external Ast_Ident* error_type_ast;
 Ident* error_type_ident = 0;
 external Ast_Ident* void_type_ast;
@@ -118,7 +118,7 @@ sym_get_var(char* name)
 }
 
 Ident*
-sym_add_var(char* name, Ast* ast)
+sym_new_var(char* name, Ast* ast)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
   Ident* ident = arena_push_struct(&arena, Ident);
@@ -129,8 +129,35 @@ sym_add_var(char* name, Ast* ast)
   ident->ident_kind = ID_VAR;
   ident->next_in_scope = ns->ns_global;
   ns->ns_global = (Ident*)ident;
-  printf("add var '%s'\n", ident->name);
+  printf("new var '%s'\n", ident->name);
   return ident;
+}
+
+void
+sym_import_var(Ident* var_ident)
+{
+  Namespace_Entry* ns = sym_get_namespace(var_ident->name);
+
+  if (ns->ns_global)
+  {
+    assert (ns->ns_global == (Ident*)var_ident);
+    return;
+  }
+
+  var_ident->next_in_scope = ns->ns_global;
+  ns->ns_global = (Ident*)var_ident;
+}
+
+void
+sym_unimport_var(Ident* var_ident)
+{
+  Namespace_Entry* ns = sym_get_namespace(var_ident->name);
+
+  if (!ns->ns_global)
+    return;
+
+  assert (ns->ns_global == (Ident*)var_ident);
+  ns->ns_global = ns->ns_global->next_in_scope;
 }
 
 Ident*
@@ -144,7 +171,7 @@ sym_get_type(char* name)
 }
 
 Ident*
-sym_add_type(char* name, Ast* ast)
+sym_new_type(char* name, Ast* ast)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
   Ident* ident = arena_push_struct(&arena, Ident);
@@ -155,12 +182,12 @@ sym_add_type(char* name, Ast* ast)
   ident->ident_kind = ID_TYPE;
   ident->next_in_scope = ns->ns_type;
   ns->ns_type = (Ident*)ident;
-  printf("add type '%s'\n", ident->name);
+  printf("new type '%s'\n", ident->name);
   return ident;
 }
 
 Ident*
-sym_add_typevar(char* name, Ast* ast)
+sym_new_typevar(char* name, Ast* ast)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
   Ident* ident = arena_push_struct(&arena, Ident);
@@ -171,7 +198,7 @@ sym_add_typevar(char* name, Ast* ast)
   ident->ident_kind = ID_TYPEVAR;
   ident->next_in_scope = ns->ns_type;
   ns->ns_type = (Ident*)ident;
-  printf("add typevar '%s'\n", ident->name);
+  printf("new typevar '%s'\n", ident->name);
   return ident;
 }
 
@@ -186,56 +213,29 @@ sym_get_error_type()
 }
 
 void
-sym_remove_error_kw()
+sym_import_type(Ident* type_ident)
 {
-  Namespace_Entry* ns = sym_get_namespace("error");
-
-  if (!ns->ns_global)
-    return;
-
-  assert (ns->ns_global == (Ident*)error_kw);
-  ns->ns_global = ns->ns_global->next_in_scope;
-}
-
-void
-sym_add_error_kw()
-{
-  Namespace_Entry* ns = sym_get_namespace("error");
-
-  if (ns->ns_global)
-  {
-    assert (ns->ns_global == (Ident*)error_kw);
-    return;
-  }
-
-  error_kw->next_in_scope = ns->ns_global;
-  ns->ns_global = (Ident*)error_kw;
-}
-
-internal void
-sym_add_error_type()
-{
-  Namespace_Entry* ns = sym_get_namespace("error");
+  Namespace_Entry* ns = sym_get_namespace(type_ident->name);
 
   if (ns->ns_type)
   {
-    assert (ns->ns_type == (Ident*)error_type_ident);
+    assert (ns->ns_type == (Ident*)type_ident);
     return;
   }
 
-  error_type_ident->next_in_scope = ns->ns_type;
-  ns->ns_type = (Ident*)error_type_ident;
+  type_ident->next_in_scope = ns->ns_type;
+  ns->ns_type = (Ident*)type_ident;
 }
 
-internal void
-sym_remove_error_type()
+void
+sym_unimport_type(Ident* type_ident)
 {
-  Namespace_Entry* ns = sym_get_namespace("error");
+  Namespace_Entry* ns = sym_get_namespace(type_ident->name);
 
   if (!ns->ns_type)
     return;
 
-  assert (ns->ns_type == (Ident*)error_type_ident);
+  assert (ns->ns_type == (Ident*)type_ident);
   ns->ns_type = ns->ns_type->next_in_scope;
 }
 
@@ -287,12 +287,12 @@ sym_init()
   add_keyword("apply", TOK_KW_APPLY);
   //add_keyword("verify", TOK_KW_VERIFY);
 
-  error_type_ident = sym_add_type(error_type_ast->name, (Ast*)error_type_ast);
-  void_type_ident = sym_add_type(void_type_ast->name, (Ast*)void_type_ast);
-  bool_type_ident = sym_add_type("bool", (Ast*)bool_type_ast);
-  bit_type_ident = sym_add_type("bit", (Ast*)bit_type_ast);
-  varbit_type_ident = sym_add_type("varbit", (Ast*)varbit_type_ident);
-  int_type_ident = sym_add_type("int", (Ast*)int_type_ident);
-  string_type_ident = sym_add_type("string", (Ast*)string_type_ident);
+  error_type_ident = sym_new_type(error_type_ast->name, (Ast*)error_type_ast);
+  void_type_ident = sym_new_type(void_type_ast->name, (Ast*)void_type_ast);
+  bool_type_ident = sym_new_type("bool", (Ast*)bool_type_ast);
+  bit_type_ident = sym_new_type("bit", (Ast*)bit_type_ast);
+  varbit_type_ident = sym_new_type("varbit", (Ast*)varbit_type_ident);
+  int_type_ident = sym_new_type("int", (Ast*)int_type_ident);
+  string_type_ident = sym_new_type("string", (Ast*)string_type_ident);
 }
 

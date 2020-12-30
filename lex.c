@@ -626,6 +626,5 @@ lex_tokenize_input()
     next_token(token_at);
     tokenized_input_len++;
   }
-  arena_print_usage(&arena, "Memory (lex_tokenize_input): ");
 }
 

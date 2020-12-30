@@ -108,12 +108,14 @@ typedef struct Ident_Keyword
 }
 Ident_Keyword;  // ID_KEYWORD
 
+/*
 typedef struct Ident_Type
 {
   Ident;
   struct Ident* first_member;
 }
 Ident_Type;
+*/
 
 typedef struct Namespace_Entry
 {
@@ -819,14 +821,14 @@ typedef struct Ast_PackageDecl
 }
 Ast_PackageDecl;  // AST_PACKAGE_PROTOTYPE
 
-typedef struct Ast_PackageInstance
+typedef struct Ast_PackageInstantiation
 {
   Ast_Declaration;
-  Ast_Expression* package;
+  Ast_Expression* package_ctor;
   char* name;
   Ident* var_ident;
 }
-Ast_PackageInstance;  // AST_PACKAGE_INSTANCE
+Ast_PackageInstantiation;  // AST_PACKAGE_INSTANTIATION
 
 typedef struct Ast_FunctionPrototype
 {

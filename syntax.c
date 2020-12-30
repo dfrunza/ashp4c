@@ -11,9 +11,10 @@ external Ast_P4Program* p4program;
 internal Token* token_at = 0;
 internal Token* prev_token_at = 0;
 
-internal Ast_Typeref* syn_typeref();
-internal Ast_Expression* syn_expression(int priority_threshold);
+internal Ast_Typeref* build_typeref();
+internal Ast_Expression* build_expression(int priority_threshold);
 
+external Ident_Keyword* error_kw;
 Ast_Ident* error_type_ast = 0;
 Ast_Ident* void_type_ast = 0;
 Ast_Ident* bool_type_ast = 0;
@@ -62,21 +63,21 @@ rewind_token()
 }
 
 internal Ast_StructField*
-syn_struct_field()
+build_struct_field()
 {
   assert(token_at->klass == TOK_TYPE_IDENT);
   Ast_StructField* result = arena_push_struct(&arena, Ast_StructField);
   zero_struct(result, Ast_StructField);
   result->kind = AST_STRUCT_FIELD;
-  result->typeref = syn_typeref();
+  result->typeref = build_typeref();
 
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: member '%s' re-declared", token_at->line_nr, result->name);
-    result->var_ident = sym_add_var(result->name, (Ast*)result);
+      error("at line %d: member '%s' re-declared", result->line_nr, result->name);
+    result->var_ident = sym_new_var(result->name, (Ast*)result);
 
     next_token();
     if (token_at->klass == TOK_SEMICOLON)
@@ -100,7 +101,7 @@ token_is_declaration(Token* token)
 }
 
 internal Ast_HeaderDecl*
-syn_header_decl()
+build_header_decl()
 {
   Ast_StructField* field;
 
@@ -116,8 +117,8 @@ syn_header_decl()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
-    result->type_ident = sym_add_type(result->name, (Ast*)result);
+      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
+    result->type_ident = sym_new_type(result->name, (Ast*)result);
 
     next_token();
     if (token_at->klass == TOK_BRACE_OPEN)
@@ -128,11 +129,11 @@ syn_header_decl()
 
       if (token_at->klass == TOK_TYPE_IDENT)
       {
-        field = syn_struct_field();
+        field = build_struct_field();
         result->first_field = field;
         while (token_at->klass == TOK_TYPE_IDENT)
         {
-          Ast_StructField* next_field = syn_struct_field();
+          Ast_StructField* next_field = build_struct_field();
           field->next_field = next_field;
           field = next_field;
         }
@@ -159,7 +160,7 @@ syn_header_decl()
 }
 
 internal Ast_StructDecl*
-syn_struct_decl()
+build_struct_decl()
 {
   assert(token_at->klass == TOK_KW_STRUCT);
   next_token();
@@ -173,8 +174,8 @@ syn_struct_decl()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
-    result->type_ident = sym_add_type(result->name, (Ast*)result);
+      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
+    result->type_ident = sym_new_type(result->name, (Ast*)result);
 
     next_token();
 
@@ -187,11 +188,11 @@ syn_struct_decl()
 
       if (token_at->klass == TOK_TYPE_IDENT)
       {
-        Ast_StructField* field = syn_struct_field();
+        Ast_StructField* field = build_struct_field();
         result->first_field = field;
         while (token_at->klass == TOK_TYPE_IDENT)
         {
-          Ast_StructField* next_field = syn_struct_field();
+          Ast_StructField* next_field = build_struct_field();
           field->next_field = next_field;
           field = next_field;
         }
@@ -219,7 +220,7 @@ syn_struct_decl()
 }
 
 internal Ast_ErrorCode*
-syn_error_code()
+build_error_code()
 {
   assert(token_at->klass == TOK_IDENT);
   Ast_ErrorCode* code = arena_push_struct(&arena, Ast_ErrorCode);
@@ -229,14 +230,14 @@ syn_error_code()
 
   if (sym_ident_is_declared(sym_get_var(code->name)))
     error("at line %d: error '%s' re-declared", token_at->line_nr, code->name);
-  code->var_ident = sym_add_var(code->name, (Ast*)code);
+  code->var_ident = sym_new_var(code->name, (Ast*)code);
 
   next_token();
   return code;
 }
 
 internal Ast_ErrorType*
-syn_error_type_decl()
+build_error_type_decl()
 {
   assert(token_at->klass == TOK_KW_ERROR);
   Ast_ErrorType* result = arena_push_struct(&arena, Ast_ErrorType);
@@ -255,14 +256,14 @@ syn_error_type_decl()
 
     if (token_at->klass == TOK_IDENT)
     {
-      Ast_ErrorCode* field = syn_error_code();
+      Ast_ErrorCode* field = build_error_code();
       result->error_code = field;
       while (token_at->klass == TOK_COMMA)
       {
         next_token();
         if (token_at->klass == TOK_IDENT)
         {
-          Ast_ErrorCode* next_code = syn_error_code();
+          Ast_ErrorCode* next_code = build_error_code();
           field->next_code = next_code;
           field = next_code;
         }
@@ -296,7 +297,7 @@ token_is_type_parameter(Token* token)
 }
 
 internal Ast_TypeParameter*
-syn_type_parameter()
+build_type_parameter()
 {
   assert(token_is_type_parameter(token_at));
   Ast_TypeParameter* result = arena_push_struct(&arena, Ast_TypeParameter);
@@ -309,8 +310,8 @@ syn_type_parameter()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
-    result->type_ident = sym_add_typevar(result->name, (Ast*)result);
+      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
+    result->type_ident = sym_new_typevar(result->name, (Ast*)result);
 
     next_token();
   }
@@ -326,17 +327,17 @@ syn_type_parameter()
 }
 
 internal Ast_TypeParameter*
-syn_type_parameter_list()
+build_type_parameter_list()
 {
   assert(token_is_type_parameter(token_at));
-  Ast_TypeParameter* parameter = syn_type_parameter();
+  Ast_TypeParameter* parameter = build_type_parameter();
   Ast_TypeParameter* result = parameter;
   while (token_at->klass == TOK_COMMA)
   {
     next_token();
     if (token_is_type_parameter(token_at))
     {
-      Ast_TypeParameter* next_parameter = syn_type_parameter();
+      Ast_TypeParameter* next_parameter = build_type_parameter();
       parameter->next_parameter = next_parameter;
       parameter = next_parameter;
     }
@@ -349,7 +350,7 @@ syn_type_parameter_list()
 }
 
 internal void
-syn_typeref_argument_list()
+build_typeref_argument_list()
 {
   assert(token_at->klass == TOK_ANGLE_OPEN);
   next_token();
@@ -391,7 +392,7 @@ syn_typeref_argument_list()
 }
 
 internal Ast_Typeref*
-syn_typeref()
+build_typeref()
 {
   assert(token_at->klass == TOK_TYPE_IDENT);
   Ast_Typeref* result = arena_push_struct(&arena, Ast_Typeref);
@@ -402,12 +403,12 @@ syn_typeref()
   result->type_ast = result->type_ident->ast;
   next_token();
   if (token_at->klass == TOK_ANGLE_OPEN)
-    syn_typeref_argument_list();
+    build_typeref_argument_list();
   return result;
 }
 
 internal Ast_Typedef*
-syn_typedef_decl()
+build_typedef_decl()
 {
   assert(token_at->klass == TOK_KW_TYPEDEF);
   next_token();
@@ -417,15 +418,15 @@ syn_typedef_decl()
 
   if (token_at->klass == TOK_TYPE_IDENT)
   {
-    result->typeref = syn_typeref();
+    result->typeref = build_typeref();
 
     if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
     {
       result->name = token_at->lexeme;
 
       if (sym_ident_is_declared(sym_get_type(result->name)))
-        error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
-      result->type_ident = sym_add_type(result->name, (Ast*)result);
+        error("at line %d: type '%s' re-declared", result->line_nr, result->name);
+      result->type_ident = sym_new_type(result->name, (Ast*)result);
 
       next_token();
       if (token_at->klass == TOK_SEMICOLON)
@@ -459,7 +460,7 @@ token_is_parameter(Token* token)
 }
 
 internal enum Ast_ParameterDirection
-syn_direction()
+build_direction()
 {
   assert(token_is_direction(token_at));
   enum Ast_ParameterDirection result = 0;
@@ -474,7 +475,7 @@ syn_direction()
 }
 
 internal Ast_Parameter*
-syn_parameter()
+build_parameter()
 {
   assert(token_is_parameter(token_at));
   Ast_Parameter* result = arena_push_struct(&arena, Ast_Parameter);
@@ -482,9 +483,9 @@ syn_parameter()
   result->kind = AST_PARAMETER;
 
   if (token_is_direction(token_at))
-    result->direction = syn_direction();
+    result->direction = build_direction();
   if (token_at->klass == TOK_TYPE_IDENT)
-    result->typeref = syn_typeref();
+    result->typeref = build_typeref();
   else
     error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
 
@@ -493,8 +494,8 @@ syn_parameter()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: parameter '%s' re-declared", token_at->line_nr, result->name);
-    result->var_ident = sym_add_var(result->name, (Ast*)result);
+      error("at line %d: parameter '%s' re-declared", result->line_nr, result->name);
+    result->var_ident = sym_new_var(result->name, (Ast*)result);
 
     next_token();
   }
@@ -504,17 +505,17 @@ syn_parameter()
 }
 
 internal Ast_Parameter*
-syn_parameter_list()
+build_parameter_list()
 {
   assert(token_is_parameter(token_at));
-  Ast_Parameter* parameter = syn_parameter();
+  Ast_Parameter* parameter = build_parameter();
   Ast_Parameter* result = parameter;
   while (token_at->klass == TOK_COMMA)
   {
     next_token();
     if (token_is_parameter(token_at))
     {
-      Ast_Parameter* next_parameter = syn_parameter();
+      Ast_Parameter* next_parameter = build_parameter();
       parameter->next_parameter = next_parameter;
       parameter = next_parameter;
     }
@@ -527,21 +528,21 @@ syn_parameter_list()
 }
 
 internal Ast_ParserDecl*
-syn_parser_prototype()
+build_parser_prototype()
 {
   assert(token_at->klass == TOK_KW_PARSER);
-  next_token();
   Ast_ParserDecl* result = arena_push_struct(&arena, Ast_ParserDecl);
   zero_struct(result, Ast_ParserDecl);
   result->kind = AST_PARSER_PROTOTYPE;
 
+  next_token();
   if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
   {
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
-    result->type_ident = sym_add_type(result->name, (Ast*)result);
+      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
+    result->type_ident = sym_new_type(result->name, (Ast*)result);
 
     scope_push_level();
     next_token();
@@ -551,7 +552,7 @@ syn_parser_prototype()
       next_token();
 
       if (token_is_type_parameter(token_at))
-        result->first_type_parameter = syn_type_parameter_list();
+        result->first_type_parameter = build_type_parameter_list();
       else
         error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
@@ -566,7 +567,7 @@ syn_parser_prototype()
       next_token();
 
       if (token_is_parameter(token_at))
-        result->first_parameter = syn_parameter_list();
+        result->first_parameter = build_parameter_list();
 
       if (token_at->klass == TOK_PARENTH_CLOSE)
         next_token();
@@ -630,7 +631,7 @@ token_is_expression_operator(Token* token)
 }
 
 internal Ast_Expression*
-syn_expression_primary()
+build_expression_primary()
 {
   assert(token_is_expression(token_at));
   Ast_Expression* result = 0;
@@ -641,7 +642,6 @@ syn_expression_primary()
     zero_struct(expression, Ast_IdentExpr);
     expression->kind = AST_IDENT_EXPR;
     expression->name = token_at->lexeme;
-    //expression->var_ident = sym_get_var(expression->name);
     result = (Ast_Expression*)expression;
     next_token();
   }
@@ -651,7 +651,6 @@ syn_expression_primary()
     zero_struct(expression, Ast_TypeIdentExpr);
     expression->kind = AST_TYPE_IDENT_EXPR;
     expression->name = token_at->lexeme;
-    //expression->type_ident = sym_get_type(expression->name);
     result = (Ast_Expression*)expression;
     next_token();
   }
@@ -686,7 +685,7 @@ syn_expression_primary()
   {
     next_token();
     if (token_is_expression(token_at))
-      result = syn_expression(1);
+      result = build_expression(1);
     if (token_at->klass == TOK_PARENTH_CLOSE)
       next_token();
     else
@@ -698,7 +697,7 @@ syn_expression_primary()
 }
 
 internal enum Ast_ExprOperator
-syn_expression_operator()
+build_expression_operator()
 {
   assert(token_is_expression_operator(token_at));
   enum Ast_ExprOperator result = 0;
@@ -747,14 +746,14 @@ op_is_binary(enum Ast_ExprOperator op)
 }
 
 internal Ast_Expression*
-syn_expression(int priority_threshold)
+build_expression(int priority_threshold)
 {
   assert(token_is_expression(token_at));
-  Ast_Expression* primary = syn_expression_primary();
+  Ast_Expression* primary = build_expression_primary();
   Ast_Expression* result = primary;
   while (token_is_expression_operator(token_at))
   {
-    enum Ast_ExprOperator op = syn_expression_operator();
+    enum Ast_ExprOperator op = build_expression_operator();
     int priority = op_get_priority(op);
     if (priority >= priority_threshold)
     {
@@ -768,7 +767,7 @@ syn_expression(int priority_threshold)
         binary_expr->op = op;
 
         if (token_is_expression(token_at))
-          binary_expr->r_operand = syn_expression(priority_threshold + 1);
+          binary_expr->r_operand = build_expression(priority_threshold + 1);
         else
           error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
         result = (Ast_Expression*)binary_expr;
@@ -782,14 +781,14 @@ syn_expression(int priority_threshold)
 
         if (token_is_expression(token_at))
         {
-          Ast_Expression* argument = syn_expression(1);
+          Ast_Expression* argument = build_expression(1);
           function_call->first_argument = argument;
           while (token_at->klass == TOK_COMMA)
           {
             next_token();
             if (token_is_expression(token_at))
             {
-              Ast_Expression* next_argument = syn_expression(1);
+              Ast_Expression* next_argument = build_expression(1);
               argument->next_expression = next_argument;
               argument = next_argument;
             }
@@ -817,7 +816,7 @@ syn_expression(int priority_threshold)
 }
 
 internal Ast_IdentState*
-syn_ident_state()
+build_ident_state()
 {
   assert(token_at->klass == TOK_IDENT);
   Ast_IdentState* result = arena_push_struct(&arena, Ast_IdentState);
@@ -841,7 +840,7 @@ token_is_select_case(Token* token)
 }
 
 internal Ast_SelectCase*
-syn_select_case()
+build_select_case()
 {
   assert(token_is_select_case(token_at));
   Ast_SelectCase* result = 0;
@@ -850,7 +849,7 @@ syn_select_case()
     Ast_ExprSelectCase* expr_select = arena_push_struct(&arena, Ast_ExprSelectCase);
     zero_struct(expr_select, Ast_ExprSelectCase);
     expr_select->kind = AST_EXPR_SELECT_CASE;
-    expr_select->key_expr = syn_expression(1);
+    expr_select->key_expr = build_expression(1);
     result = (Ast_SelectCase*)expr_select;
   }
   else if (token_at->klass = TOK_KW_DEFAULT)
@@ -884,14 +883,14 @@ syn_select_case()
 }
 
 internal Ast_SelectCase*
-syn_select_case_list()
+build_select_case_list()
 {
   assert(token_is_select_case(token_at));
-  Ast_SelectCase* select_case = syn_select_case();
+  Ast_SelectCase* select_case = build_select_case();
   Ast_SelectCase* result = select_case;
   while (token_is_select_case(token_at))
   {
-    Ast_SelectCase* next_select_case = syn_select_case();
+    Ast_SelectCase* next_select_case = build_select_case();
     select_case->next = next_select_case;
     select_case = next_select_case;
   }
@@ -899,7 +898,7 @@ syn_select_case_list()
 }
 
 internal Ast_SelectState*
-syn_select_state()
+build_select_state()
 {
   assert(token_at->klass == TOK_KW_SELECT);
   next_token();
@@ -910,7 +909,7 @@ syn_select_state()
   {
     next_token();
     if (token_is_expression(token_at))
-      result->expression = syn_expression(1);
+      result->expression = build_expression(1);
     if (token_at->klass == TOK_PARENTH_CLOSE)
       next_token();
     else
@@ -921,7 +920,7 @@ syn_select_state()
   if (token_at->klass == TOK_BRACE_OPEN)
   {
     next_token();
-    result->select_case = syn_select_case_list();
+    result->select_case = build_select_case_list();
     if (token_at->klass == TOK_BRACE_CLOSE)
       next_token();
     else
@@ -933,7 +932,7 @@ syn_select_state()
 }
 
 internal Ast_TransitionStmt*
-syn_transition_stmt()
+build_transition_stmt()
 {
   assert(token_at->klass == TOK_KW_TRANSITION);
   Ast_TransitionStmt* result = arena_push_struct(&arena, Ast_TransitionStmt);
@@ -942,28 +941,28 @@ syn_transition_stmt()
 
   next_token();
   if (token_at->klass == TOK_IDENT)
-    result->state_expr = (Ast_StateExpr*)syn_ident_state();
+    result->state_expr = (Ast_StateExpr*)build_ident_state();
   else if (token_at->klass == TOK_KW_SELECT)
-    result->state_expr = (Ast_StateExpr*)syn_select_state();
+    result->state_expr = (Ast_StateExpr*)build_select_state();
   else
     error("at line %d: transition stmt expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
 internal Ast_Expression*
-syn_statement_list()
+build_statement_list()
 {
   Ast_Expression* result = 0;
   if (token_is_expression(token_at))
   {
-    Ast_Expression* expression = syn_expression(1);
+    Ast_Expression* expression = build_expression(1);
     result = expression;
     if (token_at->klass == TOK_SEMICOLON)
     {
       next_token();
       while (token_is_expression(token_at))
       {
-        Ast_Expression* next_expression = syn_expression(1);
+        Ast_Expression* next_expression = build_expression(1);
         expression->next_expression = next_expression;
         expression = next_expression;
         if (token_at->klass == TOK_SEMICOLON)
@@ -979,7 +978,7 @@ syn_statement_list()
 }
 
 internal Ast_ParserState*
-syn_parser_state()
+build_parser_state()
 {
   assert(token_at->klass == TOK_KW_STATE);
   Ast_ParserState* result = arena_push_struct(&arena, Ast_ParserState);
@@ -994,17 +993,17 @@ syn_parser_state()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: state '%s' re-declared", token_at->line_nr, result->name);
-    result->var_ident = sym_add_var(result->name, (Ast*)result);
+      error("at line %d: state '%s' re-declared", result->line_nr, result->name);
+    result->var_ident = sym_new_var(result->name, (Ast*)result);
 
     next_token();
     if (token_at->klass == TOK_BRACE_OPEN)
     {
       next_token();
-      result->first_statement = syn_statement_list();
+      result->first_statement = build_statement_list();
 
       if (token_at->klass == TOK_KW_TRANSITION)
-        result->transition_stmt = syn_transition_stmt();
+        result->transition_stmt = build_transition_stmt();
       else
         error("at line %d: 'transition' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
@@ -1025,26 +1024,26 @@ syn_parser_state()
 }
 
 internal Ast_ParserDecl*
-syn_parser_decl()
+build_parser_decl()
 {
   assert(token_at->klass == TOK_KW_PARSER);
 
   int parser_scope_level = scope_level;
-  Ast_ParserDecl* result = syn_parser_prototype();
+  Ast_ParserDecl* result = build_parser_prototype();
 
   if (token_at->klass == TOK_BRACE_OPEN)
   {
     result->kind = AST_PARSER_DECL;
-    sym_remove_error_kw();
+    sym_unimport_var((Ident*)error_kw);
     next_token();
 
     if (token_at->klass == TOK_KW_STATE)
     {
-      Ast_ParserState* state = syn_parser_state();
+      Ast_ParserState* state = build_parser_state();
       result->first_parser_state = state;
       while (token_at->klass == TOK_KW_STATE)
       {
-        Ast_ParserState* next_state = syn_parser_state();
+        Ast_ParserState* next_state = build_parser_state();
         state->next_state = next_state;
         state = next_state;
       }
@@ -1055,7 +1054,7 @@ syn_parser_decl()
     if (token_at->klass == TOK_BRACE_CLOSE)
     {
       scope_pop_level(parser_scope_level);
-      sym_add_error_kw();
+      sym_import_var((Ident*)error_kw);
       next_token();
     }
     else
@@ -1074,7 +1073,7 @@ syn_parser_decl()
 }
 
 internal Ast_ControlDecl*
-syn_control_prototype()
+build_control_prototype()
 {
   assert(token_at->klass == TOK_KW_CONTROL);
   next_token();
@@ -1087,8 +1086,8 @@ syn_control_prototype()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
-    result->type_ident = sym_add_type(result->name, (Ast*)result);
+      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
+    result->type_ident = sym_new_type(result->name, (Ast*)result);
 
     scope_push_level();
     next_token();
@@ -1098,7 +1097,7 @@ syn_control_prototype()
       next_token();
 
       if (token_is_type_parameter(token_at))
-        result->first_type_parameter = syn_type_parameter_list();
+        result->first_type_parameter = build_type_parameter_list();
       else
         error("at line %d: identifier expected , got '%s'", token_at->line_nr, token_at->lexeme);
 
@@ -1113,7 +1112,7 @@ syn_control_prototype()
       next_token();
 
       if (token_is_parameter(token_at))
-        result->first_parameter = syn_parameter_list();
+        result->first_parameter = build_parameter_list();
 
       if (token_at->klass == TOK_PARENTH_CLOSE)
         next_token();
@@ -1134,7 +1133,7 @@ syn_control_prototype()
 }
 
 internal Ast_BlockStmt*
-syn_block_statement()
+build_block_statement()
 {
   assert(token_at->klass == TOK_BRACE_OPEN);
   next_token();
@@ -1143,7 +1142,7 @@ syn_block_statement()
   result->kind = AST_BLOCK_STMT;
 
   if (token_is_expression(token_at))
-    result->statement = syn_statement_list();
+    result->statement = build_statement_list();
 
   if (token_at->klass == TOK_BRACE_CLOSE)
     next_token();
@@ -1161,7 +1160,7 @@ token_is_control_local_decl(Token* token)
 }
 
 internal Ast_ActionDecl*
-syn_action_decl()
+build_action_decl()
 {
   assert(token_at->klass == TOK_KW_ACTION);
   next_token();
@@ -1177,7 +1176,7 @@ syn_action_decl()
     {
       next_token();
       if (token_is_parameter(token_at))
-        result->parameter = syn_parameter_list();
+        result->parameter = build_parameter_list();
       if (token_at->klass == TOK_PARENTH_CLOSE)
         next_token();
       else
@@ -1186,7 +1185,7 @@ syn_action_decl()
     else
       error("at line %d: '(' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     if (token_at->klass == TOK_BRACE_OPEN)
-      result->action_body = syn_block_statement();
+      result->action_body = build_block_statement();
     else
       error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
@@ -1196,20 +1195,20 @@ syn_action_decl()
 }
 
 internal Ast_Key*
-syn_key_elem()
+build_key_elem()
 {
   assert(token_is_expression(token_at));
   Ast_Key* result = arena_push_struct(&arena, Ast_Key);
   zero_struct(result, Ast_Key);
   result->kind = AST_TABLE_KEY;
-  result->expression = syn_expression(1);
+  result->expression = build_expression(1);
 
   if (token_at->klass == TOK_COLON)
   {
     next_token();
     if (token_at->klass == TOK_IDENT)
     {
-      result->name = syn_expression(1);
+      result->name = build_expression(1);
       if (token_at->klass == TOK_SEMICOLON)
         next_token();
       else
@@ -1224,13 +1223,13 @@ syn_key_elem()
 }
 
 internal Ast_SimpleProp*
-syn_simple_prop()
+build_simple_prop()
 {
   assert(token_is_expression(token_at));
   Ast_SimpleProp* result = arena_push_struct(&arena, Ast_SimpleProp);
   zero_struct(result, Ast_SimpleProp);
   result->kind = AST_SIMPLE_PROP;
-  result->expression = syn_expression(1);
+  result->expression = build_expression(1);
   if (token_at->klass == TOK_SEMICOLON)
     next_token();
   else
@@ -1239,7 +1238,7 @@ syn_simple_prop()
 }
 
 internal Ast_ActionRef*
-syn_action_ref()
+build_action_ref()
 {
   assert(token_at->klass == TOK_IDENT);
   Ast_ActionRef* result = arena_push_struct(&arena, Ast_ActionRef);
@@ -1253,14 +1252,14 @@ syn_action_ref()
     next_token();
     if (token_is_expression(token_at))
     {
-      Ast_Expression* argument = syn_expression(1);
+      Ast_Expression* argument = build_expression(1);
       result->argument = argument;
       while (token_at->klass == TOK_COMMA)
       {
         next_token();
         if (token_is_expression(token_at))
         {
-          Ast_Expression* next_argument = syn_expression(1);
+          Ast_Expression* next_argument = build_expression(1);
           argument->next_expression = next_argument;
           argument = next_argument;
         }
@@ -1286,7 +1285,7 @@ syn_action_ref()
 }
 
 internal Ast_TableProperty*
-syn_table_property()
+build_table_property()
 {
   assert(token_at->klass == TOK_IDENT);
   Ast_TableProperty* result = 0;
@@ -1302,11 +1301,11 @@ syn_table_property()
         next_token();
         if (token_is_expression(token_at))
         {
-          Ast_Key* key_elem = syn_key_elem();
+          Ast_Key* key_elem = build_key_elem();
           result = (Ast_TableProperty*)key_elem;
           while (token_is_expression(token_at))
           {
-            Ast_Key* next_key_elem = syn_key_elem();
+            Ast_Key* next_key_elem = build_key_elem();
             key_elem->next_key = next_key_elem;
             key_elem = next_key_elem;
           }
@@ -1335,11 +1334,11 @@ syn_table_property()
         next_token();
         if (token_at->klass == TOK_IDENT)
         {
-          Ast_ActionRef* action_ref = syn_action_ref();
+          Ast_ActionRef* action_ref = build_action_ref();
           result = (Ast_TableProperty*)action_ref;
           while (token_at->klass == TOK_IDENT)
           {
-            Ast_ActionRef* next_action_ref = syn_action_ref();
+            Ast_ActionRef* next_action_ref = build_action_ref();
             action_ref->next_action = next_action_ref;
             action_ref = next_action_ref;
           }
@@ -1357,11 +1356,11 @@ syn_table_property()
   }
   else
   {
-    Ast_SimpleProp* prop = syn_simple_prop();
+    Ast_SimpleProp* prop = build_simple_prop();
     result = (Ast_TableProperty*)prop;
     while (token_at->klass == TOK_IDENT)
     {
-      Ast_SimpleProp* next_prop = syn_simple_prop();
+      Ast_SimpleProp* next_prop = build_simple_prop();
       prop->next = (Ast_TableProperty*)next_prop;
       prop = next_prop;
     }
@@ -1370,7 +1369,7 @@ syn_table_property()
 }
 
 internal Ast_TableDecl*
-syn_table_decl()
+build_table_decl()
 {
   assert(token_at->klass == TOK_KW_TABLE);
   next_token();
@@ -1387,11 +1386,11 @@ syn_table_decl()
       next_token();
       if (token_at->klass == TOK_IDENT)
       {
-        Ast_TableProperty* property = syn_table_property();
+        Ast_TableProperty* property = build_table_property();
         result->property = property;
         while (token_at->klass == TOK_IDENT)
         {
-          Ast_TableProperty* next_property = syn_table_property();
+          Ast_TableProperty* next_property = build_table_property();
           property->next = next_property;
           property = next_property;
         }
@@ -1412,28 +1411,28 @@ syn_table_decl()
 }
 
 internal Ast_VarDecl*
-syn_var_decl()
+build_var_decl()
 {
   assert(token_at->klass == TOK_TYPE_IDENT);
   Ast_VarDecl* result = arena_push_struct(&arena, Ast_VarDecl);
   zero_struct(result, Ast_VarDecl);
   result->kind = AST_VAR_DECL;
-  syn_typeref();
+  build_typeref();
 
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: variable '%s' re-declared", token_at->line_nr, result->name);
-    result->var_ident = sym_add_var(result->name, (Ast*)result);
+      error("at line %d: variable '%s' re-declared", result->line_nr, result->name);
+    result->var_ident = sym_new_var(result->name, (Ast*)result);
 
     next_token();
     if (token_at->klass == TOK_EQUAL)
     {
       next_token();
       if (token_is_expression(token_at))
-        result->initializer = syn_expression(1);
+        result->initializer = build_expression(1);
       else
         error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
@@ -1449,23 +1448,23 @@ syn_var_decl()
 }
 
 internal Ast_Declaration*
-syn_control_var_decl()
+build_control_var_decl()
 {
   assert(token_is_control_local_decl(token_at));
   Ast_Declaration* result = 0;
   if (token_at->klass == TOK_KW_ACTION)
   {
-    Ast_ActionDecl* action_decl = syn_action_decl();
+    Ast_ActionDecl* action_decl = build_action_decl();
     result = (Ast_Declaration*)action_decl;
   }
   else if (token_at->klass == TOK_KW_TABLE)
   {
-    Ast_TableDecl* table_decl = syn_table_decl();
+    Ast_TableDecl* table_decl = build_table_decl();
     result = (Ast_Declaration*)table_decl;
   }
   else if (token_at->klass == TOK_TYPE_IDENT)
   {
-    Ast_VarDecl* var_decl = syn_var_decl();
+    Ast_VarDecl* var_decl = build_var_decl();
     result = (Ast_Declaration*)var_decl;
   }
   else
@@ -1474,26 +1473,26 @@ syn_control_var_decl()
 }
 
 internal Ast_ControlDecl*
-syn_control_decl()
+build_control_decl()
 {
   assert(token_at->klass == TOK_KW_CONTROL);
 
   int control_scope_level = scope_level;
-  Ast_ControlDecl* result = syn_control_prototype();
+  Ast_ControlDecl* result = build_control_prototype();
 
   if (token_at->klass == TOK_BRACE_OPEN)
   {
     result->kind = AST_CONTROL_DECL;
-    sym_remove_error_kw();
+    sym_unimport_var((Ident*)error_kw);
     next_token();
 
     if (token_is_control_local_decl(token_at))
     {
-      Ast_Declaration* local_decl = syn_control_var_decl();
+      Ast_Declaration* local_decl = build_control_var_decl();
       result->local_decl = local_decl;
       while (token_is_control_local_decl(token_at))
       {
-        Ast_Declaration* next_local_decl = syn_control_var_decl(result);
+        Ast_Declaration* next_local_decl = build_control_var_decl(result);
         local_decl->next_decl = local_decl;
         local_decl = next_local_decl;
       }
@@ -1503,7 +1502,7 @@ syn_control_decl()
     {
       next_token();
       if (token_at->klass == TOK_BRACE_OPEN)
-        result->control_body = syn_block_statement();
+        result->control_body = build_block_statement();
       else
         error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
@@ -1511,7 +1510,7 @@ syn_control_decl()
     if (token_at->klass == TOK_BRACE_CLOSE)
     {
       scope_pop_level(control_scope_level);
-      sym_add_error_kw();
+      sym_import_var((Ident*)error_kw);
       next_token();
     }
     else
@@ -1530,7 +1529,7 @@ syn_control_decl()
 }
 
 internal Ast_PackageDecl*
-syn_package_prototype()
+build_package_prototype()
 {
   assert(token_at->klass == TOK_KW_PACKAGE);
   next_token();
@@ -1544,8 +1543,8 @@ syn_package_prototype()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
-    result->type_ident = sym_add_type(result->name, (Ast*)result);
+      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
+    result->type_ident = sym_new_type(result->name, (Ast*)result);
 
     scope_push_level();
     next_token();
@@ -1555,7 +1554,7 @@ syn_package_prototype()
       next_token();
 
       if (token_is_type_parameter(token_at))
-        result->first_type_parameter = syn_type_parameter_list();
+        result->first_type_parameter = build_type_parameter_list();
       else
         error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
@@ -1570,7 +1569,7 @@ syn_package_prototype()
       next_token();
 
       if (token_is_parameter(token_at))
-        result->first_parameter = syn_parameter_list();
+        result->first_parameter = build_parameter_list();
 
       if (token_at->klass == TOK_PARENTH_CLOSE)
         next_token();
@@ -1600,22 +1599,22 @@ syn_package_prototype()
   return result;
 }
 
-internal Ast_PackageInstance*
-syn_package_instance()
+internal Ast_PackageInstantiation*
+build_package_instantiation()
 {
   assert(token_at->klass == TOK_TYPE_IDENT);
-  Ast_PackageInstance* result = arena_push_struct(&arena, Ast_PackageInstance);
-  zero_struct(result, Ast_PackageInstance);
+  Ast_PackageInstantiation* result = arena_push_struct(&arena, Ast_PackageInstantiation);
+  zero_struct(result, Ast_PackageInstantiation);
   result->kind = AST_PACKAGE_INSTANCE;
-  result->package = syn_expression(1);
+  result->package_ctor = build_expression(1);
 
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: variable '%s' re-declared", token_at->line_nr, result->name);
-    result->var_ident = sym_add_var(result->name, (Ast*)result);
+      error("at line %d: variable '%s' re-declared", result->line_nr, result->name);
+    result->var_ident = sym_new_var(result->name, (Ast*)result);
 
     next_token();
     if (token_at->klass == TOK_SEMICOLON)
@@ -1629,7 +1628,7 @@ syn_package_instance()
 }
 
 internal Ast_FunctionDecl*
-syn_function_prototype()
+build_function_prototype()
 {
   assert(token_at->klass == TOK_TYPE_IDENT);
   Ast_FunctionDecl* result = arena_push_struct(&arena, Ast_FunctionDecl);
@@ -1647,8 +1646,8 @@ syn_function_prototype()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
-    result->type_ident = sym_add_type(result->name, (Ast*)result);
+      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
+    result->type_ident = sym_new_type(result->name, (Ast*)result);
 
     scope_push_level();
     next_token();
@@ -1658,7 +1657,7 @@ syn_function_prototype()
       next_token();
 
       if (token_is_type_parameter(token_at))
-        result->first_type_parameter = syn_type_parameter_list();
+        result->first_type_parameter = build_type_parameter_list();
       else
         error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
@@ -1670,15 +1669,15 @@ syn_function_prototype()
 
     if (token_at->klass == TOK_PARENTH_OPEN)
     {
-      sym_remove_error_kw();
+      sym_unimport_var((Ident*)error_kw);
       next_token();
 
       if (token_is_parameter(token_at))
-        result->first_parameter = syn_parameter_list();
+        result->first_parameter = build_parameter_list();
 
       if (token_at->klass == TOK_PARENTH_CLOSE)
       {
-        sym_add_error_kw();
+        sym_import_var((Ident*)error_kw);
         next_token();
       }
       else
@@ -1703,7 +1702,7 @@ syn_function_prototype()
 }
 
 internal Ast_ExternObjectDecl*
-syn_extern_object_prototype()
+build_extern_object_prototype()
 {
   Ast_FunctionDecl* method;
 
@@ -1715,8 +1714,8 @@ syn_extern_object_prototype()
   result->name = token_at->lexeme;
 
   if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
-  result->type_ident = sym_add_type(result->name, (Ast*)result);
+      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
+  result->type_ident = sym_new_type(result->name, (Ast*)result);
 
   int object_scope_level = scope_level;
   scope_push_level();
@@ -1727,7 +1726,7 @@ syn_extern_object_prototype()
     next_token();
 
     if (token_is_type_parameter(token_at))
-      result->first_type_parameter = syn_type_parameter_list();
+      result->first_type_parameter = build_type_parameter_list();
     else
       error("at line %d: identifier expected , got '%s'", token_at->line_nr, token_at->lexeme);
 
@@ -1739,16 +1738,16 @@ syn_extern_object_prototype()
 
   if (token_at->klass == TOK_BRACE_OPEN)
   {
-    sym_remove_error_kw();
+    sym_unimport_var((Ident*)error_kw);
     next_token();
 
     if (token_at->klass == TOK_TYPE_IDENT)
     {
-      method = syn_function_prototype();
+      method = build_function_prototype();
       result->first_method = method;
       while (token_at->klass == TOK_TYPE_IDENT)
       {
-        Ast_FunctionDecl* next_method = syn_function_prototype();
+        Ast_FunctionDecl* next_method = build_function_prototype();
         method->next_decl = (Ast_Declaration*)next_method;
         method = next_method;
       }
@@ -1756,7 +1755,7 @@ syn_extern_object_prototype()
 
     if (token_at->klass == TOK_BRACE_CLOSE)
     {
-      sym_add_error_kw();
+      sym_import_var((Ident*)error_kw);
       scope_pop_level(object_scope_level);
       next_token();
     }
@@ -1773,16 +1772,16 @@ syn_extern_object_prototype()
 }
 
 internal Ast_FunctionDecl*
-syn_extern_function_prototype()
+build_extern_function_prototype()
 {
   assert(token_at->klass == TOK_TYPE_IDENT);
-  Ast_FunctionDecl* result = syn_function_prototype();
+  Ast_FunctionDecl* result = build_function_prototype();
   result->kind = AST_EXTERN_FUNCTION_PROTOTYPE;
   return result;
 }
 
 internal Ast_Declaration*
-syn_extern_decl()
+build_extern_decl()
 {
   assert(token_at->klass == TOK_KW_EXTERN);
   Ast_Declaration* result = 0;
@@ -1794,12 +1793,12 @@ syn_extern_decl()
     if (token_at->klass == TOK_ANGLE_OPEN || token_at->klass == TOK_BRACE_OPEN)
     {
       rewind_token();
-      result = (Ast_Declaration*)syn_extern_object_prototype();
+      result = (Ast_Declaration*)build_extern_object_prototype();
     }
     else if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
     {
       rewind_token();
-      result = (Ast_Declaration*)syn_extern_function_prototype();
+      result = (Ast_Declaration*)build_extern_function_prototype();
     }
   }
   else
@@ -1808,37 +1807,37 @@ syn_extern_decl()
 }
 
 internal Ast_Declaration*
-syn_p4declaration()
+build_p4declaration()
 {
   Ast_Declaration* result = 0;
   assert(token_is_declaration(token_at));
   if (token_at->klass == TOK_KW_STRUCT)
-    result = (Ast_Declaration*)syn_struct_decl();
+    result = (Ast_Declaration*)build_struct_decl();
   else if (token_at->klass == TOK_KW_HEADER)
-    result = (Ast_Declaration*)syn_header_decl();
+    result = (Ast_Declaration*)build_header_decl();
   else if (token_at->klass == TOK_KW_ERROR)
-    result = (Ast_Declaration*)syn_error_type_decl();
+    result = (Ast_Declaration*)build_error_type_decl();
   else if (token_at->klass == TOK_KW_TYPEDEF)
-    result = (Ast_Declaration*)syn_typedef_decl();
+    result = (Ast_Declaration*)build_typedef_decl();
   else if (token_at->klass == TOK_KW_PARSER)
-    result = (Ast_Declaration*)syn_parser_decl();
+    result = (Ast_Declaration*)build_parser_decl();
   else if (token_at->klass == TOK_KW_CONTROL)
-    result = (Ast_Declaration*)syn_control_decl();
+    result = (Ast_Declaration*)build_control_decl();
   else if (token_at->klass == TOK_KW_ACTION)
-    result = (Ast_Declaration*)syn_action_decl();
+    result = (Ast_Declaration*)build_action_decl();
   else if (token_at->klass == TOK_KW_PACKAGE)
-    result = (Ast_Declaration*)syn_package_prototype();
+    result = (Ast_Declaration*)build_package_prototype();
   else if (token_at->klass == TOK_KW_EXTERN)
-    result = (Ast_Declaration*)syn_extern_decl();
+    result = (Ast_Declaration*)build_extern_decl();
   else if (token_at->klass == TOK_TYPE_IDENT)
-    result = (Ast_Declaration*)syn_package_instance();
+    result = (Ast_Declaration*)build_package_instantiation();
   else
     assert(false);
   return result;
 }
 
 internal Ast_P4Program*
-syn_p4program()
+build_p4program()
 {
   Ast_P4Program* result = 0;
   if (token_is_declaration(token_at))
@@ -1846,11 +1845,11 @@ syn_p4program()
     result = arena_push_struct(&arena, Ast_P4Program);
     zero_struct(result, Ast_P4Program);
     result->kind = AST_P4PROGRAM;
-    Ast_Declaration* declaration = syn_p4declaration();
+    Ast_Declaration* declaration = build_p4declaration();
     result->first_declaration = declaration;
     while (token_is_declaration(token_at))
     {
-      Ast_Declaration* next_declaration = syn_p4declaration();
+      Ast_Declaration* next_declaration = build_p4declaration();
       declaration->next_decl = next_declaration;
       declaration = next_declaration;
     }
@@ -1859,7 +1858,6 @@ syn_p4program()
   }
   else
     error("at line %d: declaration expected, got '%s'", token_at->line_nr, token_at->lexeme);
-  arena_print_usage(&arena, "Memory (syn_p4program): ");
   return result;
 }
 
@@ -1910,10 +1908,11 @@ build_ast()
 
   sym_init();
 
+  assert (scope_level == 0);
   int top_scope_level = scope_push_level();
   token_at = tokenized_input;
   next_token();
-  p4program = syn_p4program();
-  assert (scope_level == top_scope_level);
+  p4program = build_p4program();
   scope_pop_level(top_scope_level - 1);
+  assert (scope_level == 0);
 }

@@ -27,7 +27,6 @@ read_input(char* filename)
   fread(input_text, sizeof(char), input_size, f_stream);
   input_text[input_size] = '\0';
   fclose(f_stream);
-  arena_print_usage(&arena, "Memory (read_input): ");
 }
 
 int
@@ -36,20 +35,25 @@ main(int arg_count, char* args[])
   arena_new(&arena, 192*KILOBYTE);
 
   read_input("test.p4");
+  arena_print_usage(&arena, "Memory (read_input): ");
+
   tokenized_input = arena_push_array(&arena, Token, max_tokenized_input_len);
   lex_input_init(input_text);
   lex_tokenize_input();
+  arena_print_usage(&arena, "Memory (lex): ");
 
   symtable = arena_push_array(&arena, Namespace_Entry*, max_symtable_len);
   int i = 0;
   while (i < max_symtable_len)
     symtable[i++] = 0;
   build_ast();
+  arena_print_usage(&arena, "Memory (syntax): ");
 
   build_typexpr();
-  resolve_member_ident();
+  resolve_toplevel_ident();
+  //resolve_member_ident();
+  arena_print_usage(&arena, "Memory (typexpr): ");
 
-  arena_print_usage(&arena, "Memory (@exit): ");
   return 0;
 }
 
