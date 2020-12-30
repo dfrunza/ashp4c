@@ -4,7 +4,6 @@ external Arena arena;
 external Ast_P4Program* p4program;
 
 external Ast_Ident* error_type_ast;
-external Ast_VarDecl* error_var_ast;
 internal Typexpr_Enum* error_typexpr;
 external Ast_Ident* void_type_ast;
 internal Typexpr_Basic* void_typexpr;
@@ -18,6 +17,8 @@ external Ast_Ident* int_type_ast;
 internal Typexpr_Basic* int_typexpr;
 external Ast_Ident* string_type_ast;
 internal Typexpr_Basic* string_typexpr;
+
+internal Typexpr* visit_expression(Ast_Expression* expr_ast);
 
 internal Typexpr*
 visit_typeref(Ast_Typeref* typeref_ast)
@@ -53,6 +54,7 @@ visit_parameter(Ast_Parameter* parameter_ast)
   Typexpr_Parameter* parameter_typexpr = arena_push_struct(&arena, Typexpr_Parameter);
   zero_struct(parameter_typexpr, Typexpr_Parameter);
   parameter_ast->typexpr = (Typexpr*)parameter_typexpr;
+  parameter_typexpr->name = parameter_ast->name;
   parameter_typexpr->kind = TYP_PARAMETER;
 
   if (parameter_ast->direction == AST_DIR_IN)
@@ -196,14 +198,155 @@ visit_parser_prototype(Ast_ParserDecl* parser_ast)
   return parser_typexpr;
 }
 
+internal Typexpr_BinaryExpr*
+visit_binary_expression(Ast_BinaryExpr* expr_ast)
+{
+  assert (!expr_ast->typexpr);
+  Typexpr_BinaryExpr* expr_typexpr = arena_push_struct(&arena, Typexpr_BinaryExpr);
+  zero_struct(expr_typexpr, Typexpr_BinaryExpr);
+  expr_typexpr->kind = TYP_BINARY_EXPR;
+
+  expr_typexpr->l_type = visit_expression(expr_ast->l_operand);
+  expr_typexpr->r_type = visit_expression(expr_ast->r_operand);
+
+  if (expr_ast->op == AST_OP_MEMBER_SELECTOR)
+    expr_typexpr->op = TYP_OP_MEMBER_SELECTOR;
+  else if (expr_ast->op == AST_OP_LOGIC_EQUAL)
+    expr_typexpr->op = TYP_OP_LOGIC_EQUAL;
+  else if (expr_ast->op == AST_OP_FUNCTION_CALL)
+    expr_typexpr->op = TYP_OP_FUNCTION_CALL;
+  else if (expr_ast->op == AST_OP_ASSIGN)
+    expr_typexpr->op = TYP_OP_ASSIGN;
+  else if (expr_ast->op == AST_OP_ADDITION)
+    expr_typexpr->op = TYP_OP_ADDITION;
+  else if (expr_ast->op == AST_OP_SUBTRACT)
+    expr_typexpr->op = TYP_OP_SUBSTRACT;
+
+  return expr_typexpr;
+}
+
+internal Typexpr_Unknown*
+visit_ident_expression(Ast_IdentExpr* ident_ast)
+{
+  assert (!ident_ast->typexpr);
+  Typexpr_Unknown* ident_typexpr = arena_push_struct(&arena, Typexpr_Unknown);
+  zero_struct(ident_typexpr, Typexpr_Unknown);
+  ident_ast->typexpr = (Typexpr*)ident_typexpr;
+  ident_typexpr->kind = TYP_UNKNOWN;
+  ident_typexpr->ast = (Ast*)ident_ast;
+  return ident_typexpr;
+}
+
 internal Typexpr*
-visit_parser_type(Ast_ParserDecl* parser_ast)
+visit_type_ident_expression(Ast_TypeIdentExpr* ident_ast)
+{
+  assert (!ident_ast->typexpr);
+  Typexpr_Unknown* ident_typexpr = arena_push_struct(&arena, Typexpr_Unknown);
+  zero_struct(ident_typexpr, Typexpr_Unknown);
+  ident_ast->typexpr = (Typexpr*)ident_typexpr;
+  ident_typexpr->kind = TYP_UNKNOWN;
+  ident_typexpr->ast = (Ast*)ident_ast;
+  return (Typexpr*)ident_typexpr;
+}
+
+internal Typexpr_Argument*
+visit_argument(Ast_Expression* argument_ast)
+{
+  assert (!argument_ast->typexpr);
+  Typexpr_Argument* argument_typexpr = arena_push_struct(&arena, Typexpr_Argument);
+  zero_struct(argument_typexpr, Typexpr_Argument);
+  argument_typexpr->kind = TYP_ARGUMENT;
+
+  argument_typexpr->type = visit_expression(argument_ast);
+  
+  return argument_typexpr;
+}
+
+internal Typexpr_FunctionCall*
+visit_function_call(Ast_FunctionCall* call_ast)
+{
+  assert (!call_ast->typexpr);
+  Typexpr_FunctionCall* call_typexpr = arena_push_struct(&arena, Typexpr_FunctionCall);
+  zero_struct(call_typexpr, Typexpr_FunctionCall);
+  call_typexpr->kind = TYP_FUNCTION_CALL;
+
+  call_typexpr->function = visit_expression(call_ast->function);
+
+  call_typexpr->sentinel_argument = arena_push_struct(&arena, Typexpr_Argument);
+  zero_struct(call_typexpr->sentinel_argument, Typexpr_Argument);
+  call_typexpr->sentinel_argument->kind = TYP_ARGUMENT;
+  call_typexpr->last_argument = call_typexpr->sentinel_argument;
+
+  Ast_Expression* argument_ast = call_ast->first_argument;
+  while (argument_ast)
+  {
+    Typexpr_Argument* argument_typexpr = visit_argument(argument_ast);
+    call_typexpr->last_argument->next_argument = argument_typexpr;
+    call_typexpr->last_argument = argument_typexpr;
+    call_typexpr->argument_count += 1;
+
+    argument_ast = argument_ast->next_expression;
+  }
+  return call_typexpr;
+}
+
+internal Typexpr*
+visit_expression(Ast_Expression* expr_ast)
+{
+  assert (!expr_ast->typexpr);
+  Typexpr* expr_typexpr = 0;
+
+  if (expr_ast->kind == AST_FUNCTION_CALL)
+    expr_typexpr = (Typexpr*)visit_function_call((Ast_FunctionCall*)expr_ast);
+  else if (expr_ast->kind == AST_BINARY_EXPR)
+    expr_typexpr = (Typexpr*)visit_binary_expression((Ast_BinaryExpr*)expr_ast);
+  else if (expr_ast->kind == AST_IDENT_EXPR)
+    expr_typexpr = (Typexpr*)visit_ident_expression((Ast_IdentExpr*)expr_ast);
+  else if (expr_ast->kind == AST_TYPE_IDENT_EXPR)
+    expr_typexpr = (Typexpr*)visit_type_ident_expression((Ast_TypeIdentExpr*)expr_ast);
+  else if (expr_ast->kind == AST_INTEGER_EXPR)
+    ;
+  else if (expr_ast->kind == AST_WINTEGER_EXPR)
+    ;
+  else if (expr_ast->kind == AST_SINTEGER_EXPR)
+    ;
+  else
+    assert (false);
+
+  return expr_typexpr;
+}
+
+internal Typexpr*
+visit_parser_state(Ast_ParserState* state_ast)
+{
+  assert (!state_ast->typexpr);
+  Typexpr* state_typexpr = arena_push_struct(&arena, Typexpr);
+  zero_struct(state_typexpr, Typexpr);
+  state_ast->typexpr = state_typexpr;
+
+  Ast_Expression* expr_ast = state_ast->first_statement;
+  while (expr_ast)
+  {
+    visit_expression(expr_ast);
+    expr_ast = expr_ast->next_expression;
+  }
+
+  return state_typexpr;
+}
+
+internal Typexpr_Parser*
+visit_parser_decl(Ast_ParserDecl* parser_ast)
 {
   assert (!parser_ast->typexpr);
-  Typexpr* parser_typexpr = arena_push_struct(&arena, Typexpr);
-  zero_struct(parser_typexpr, Typexpr);
-  parser_ast->typexpr = parser_typexpr;
-  parser_typexpr->kind = TYP_PARSER;
+  Typexpr_Parser* parser_typexpr = visit_parser_prototype(parser_ast);
+  parser_typexpr->is_prototype = false;
+
+  Ast_ParserState* state_ast = parser_ast->first_parser_state;
+  while (state_ast)
+  {
+    visit_parser_state(state_ast);
+    state_ast = state_ast->next_state;
+  }
   return parser_typexpr;
 }
 
@@ -253,7 +396,7 @@ visit_control_prototype(Ast_ControlDecl* control_ast)
 }
 
 internal Typexpr*
-visit_control_type(Ast_ControlDecl* control_ast)
+visit_control_decl(Ast_ControlDecl* control_ast)
 {
   assert (!control_ast->typexpr);
   Typexpr* control_typexpr = arena_push_struct(&arena, Typexpr);
@@ -351,7 +494,7 @@ visit_header_prototype(Ast_HeaderDecl* header_ast)
 }
 
 internal Typexpr_Header*
-visit_header_type(Ast_HeaderDecl* header_ast)
+visit_header_decl(Ast_HeaderDecl* header_ast)
 {
   assert (!header_ast->typexpr);
   Typexpr_Header* header_typexpr = visit_header_prototype(header_ast);
@@ -423,7 +566,7 @@ visit_struct_prototype(Ast_StructDecl* struct_ast)
 }
 
 internal Typexpr_Struct*
-visit_struct_type(Ast_StructDecl* struct_ast)
+visit_struct_decl(Ast_StructDecl* struct_ast)
 {
   assert (!struct_ast->typexpr);
   Typexpr_Struct* struct_typexpr = visit_struct_prototype(struct_ast);
@@ -448,17 +591,19 @@ visit_struct_type(Ast_StructDecl* struct_ast)
   return struct_typexpr;
 }
 
-internal void
+internal Typexpr*
 visit_p4declaration(Ast_Declaration* p4decl_ast)
 {
+  assert (!p4decl_ast->typexpr);
+
   if (p4decl_ast->kind == AST_STRUCT_PROTOTYPE)
     visit_struct_prototype((Ast_StructDecl*)p4decl_ast);
   else if (p4decl_ast->kind == AST_STRUCT_DECL)
-    visit_struct_type((Ast_StructDecl*)p4decl_ast);
+    visit_struct_decl((Ast_StructDecl*)p4decl_ast);
   else if (p4decl_ast->kind == AST_HEADER_PROTOTYPE)
     visit_header_prototype((Ast_HeaderDecl*)p4decl_ast);
   else if (p4decl_ast->kind == AST_HEADER_DECL)
-    visit_header_type((Ast_HeaderDecl*)p4decl_ast);
+    visit_header_decl((Ast_HeaderDecl*)p4decl_ast);
   else if (p4decl_ast->kind == AST_ERROR_TYPE)
     visit_error_type((Ast_ErrorType*)p4decl_ast);
   else if (p4decl_ast->kind == AST_TYPEDEF)
@@ -466,11 +611,11 @@ visit_p4declaration(Ast_Declaration* p4decl_ast)
   else if (p4decl_ast->kind == AST_PARSER_PROTOTYPE)
     visit_parser_prototype((Ast_ParserDecl*)p4decl_ast);
   else if (p4decl_ast->kind == AST_PARSER_DECL)
-    visit_parser_type((Ast_ParserDecl*)p4decl_ast);
+    visit_parser_decl((Ast_ParserDecl*)p4decl_ast);
   else if (p4decl_ast->kind == AST_CONTROL_PROTOTYPE)
     visit_control_prototype((Ast_ControlDecl*)p4decl_ast);
   else if (p4decl_ast->kind == AST_CONTROL_DECL)
-    visit_control_type((Ast_ControlDecl*)p4decl_ast);
+    visit_control_decl((Ast_ControlDecl*)p4decl_ast);
   else if (p4decl_ast->kind == AST_PACKAGE_PROTOTYPE)
     visit_package_prototype((Ast_PackageDecl*)p4decl_ast);
   else if (p4decl_ast->kind == AST_EXTERN_OBJECT_PROTOTYPE)
@@ -481,17 +626,23 @@ visit_p4declaration(Ast_Declaration* p4decl_ast)
     ; // not a type declataration - pass.
   else
     assert (false);
+
+  return 0;
 }
 
-internal void
-visit_p4program(Ast_P4Program* p4program)
+internal Typexpr*
+visit_p4program(Ast_P4Program* p4program_ast)
 {
-  Ast_Declaration* p4decl_ast = p4program->first_declaration;
+  assert (!p4program_ast->typexpr);
+
+  Ast_Declaration* p4decl_ast = p4program_ast->first_declaration;
   while (p4decl_ast)
   {
     visit_p4declaration(p4decl_ast);
     p4decl_ast = p4decl_ast->next_decl;
   }
+
+  return 0;
 }
 
 void
@@ -501,7 +652,6 @@ build_typexpr()
   error_typexpr = arena_push_struct(&arena, Typexpr_Enum);
   zero_struct(error_typexpr, Typexpr_Enum);
   error_type_ast->typexpr = (Typexpr*)error_typexpr;
-  error_var_ast->typexpr = (Typexpr*)error_typexpr;
   error_typexpr->kind = TYP_ENUM;
   error_typexpr->name = error_type_ast->name;
 

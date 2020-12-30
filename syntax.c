@@ -15,7 +15,6 @@ internal Ast_Typeref* syn_typeref();
 internal Ast_Expression* syn_expression(int priority_threshold);
 
 Ast_Ident* error_type_ast = 0;
-Ast_VarDecl* error_var_ast = 0;
 Ast_Ident* void_type_ast = 0;
 Ast_Ident* bool_type_ast = 0;
 Ast_Ident* bit_type_ast = 0;
@@ -76,7 +75,7 @@ syn_struct_field()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: member '%s' has been previously declared", token_at->line_nr, result->name);
+      error("at line %d: member '%s' re-declared", token_at->line_nr, result->name);
     result->var_ident = sym_add_var(result->name, (Ast*)result);
 
     next_token();
@@ -117,7 +116,7 @@ syn_header_decl()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
+      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
     next_token();
@@ -174,7 +173,7 @@ syn_struct_decl()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
+      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
     next_token();
@@ -229,7 +228,7 @@ syn_error_code()
   code->name = token_at->lexeme;
 
   if (sym_ident_is_declared(sym_get_var(code->name)))
-    error("at line %d: member '%s' has been previously declared", token_at->line_nr, code->name);
+    error("at line %d: error '%s' re-declared", token_at->line_nr, code->name);
   code->var_ident = sym_add_var(code->name, (Ast*)code);
 
   next_token();
@@ -310,7 +309,7 @@ syn_type_parameter()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
+      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_typevar(result->name, (Ast*)result);
 
     next_token();
@@ -425,7 +424,7 @@ syn_typedef_decl()
       result->name = token_at->lexeme;
 
       if (sym_ident_is_declared(sym_get_type(result->name)))
-        error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
+        error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
       result->type_ident = sym_add_type(result->name, (Ast*)result);
 
       next_token();
@@ -459,11 +458,11 @@ token_is_parameter(Token* token)
   return result;
 }
 
-internal enum AstParameterDirection
+internal enum Ast_ParameterDirection
 syn_direction()
 {
   assert(token_is_direction(token_at));
-  enum AstParameterDirection result = 0;
+  enum Ast_ParameterDirection result = 0;
   if (token_at->klass == TOK_KW_IN)
     result = AST_DIR_IN;
   else if (token_at->klass == TOK_KW_OUT)
@@ -494,7 +493,7 @@ syn_parameter()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: parameter '%s' has been previously declared", token_at->line_nr, result->name);
+      error("at line %d: parameter '%s' re-declared", token_at->line_nr, result->name);
     result->var_ident = sym_add_var(result->name, (Ast*)result);
 
     next_token();
@@ -541,7 +540,7 @@ syn_parser_prototype()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
+      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
     scope_push_level();
@@ -642,7 +641,7 @@ syn_expression_primary()
     zero_struct(expression, Ast_IdentExpr);
     expression->kind = AST_IDENT_EXPR;
     expression->name = token_at->lexeme;
-    expression->var_ident = sym_get_var(expression->name);
+    //expression->var_ident = sym_get_var(expression->name);
     result = (Ast_Expression*)expression;
     next_token();
   }
@@ -652,7 +651,7 @@ syn_expression_primary()
     zero_struct(expression, Ast_TypeIdentExpr);
     expression->kind = AST_TYPE_IDENT_EXPR;
     expression->name = token_at->lexeme;
-    expression->type_ident = sym_get_type(expression->name);
+    //expression->type_ident = sym_get_type(expression->name);
     result = (Ast_Expression*)expression;
     next_token();
   }
@@ -683,14 +682,6 @@ syn_expression_primary()
     result = (Ast_Expression*)expression;
     next_token();
   }
-  else if (token_at->klass == TOK_KW_ERROR)
-  {
-    Ast_ErrorExpr* expression = arena_push_struct(&arena, Ast_ErrorExpr);
-    zero_struct(expression, Ast_ErrorExpr);
-    expression->kind = AST_ERROR_EXPR;
-    result = (Ast_Expression*)expression;
-    next_token();
-  }
   else if (token_at->klass == TOK_PARENTH_OPEN)
   {
     next_token();
@@ -701,68 +692,46 @@ syn_expression_primary()
     else
       error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
-//  else if (token_at->klass == TOK_KW_TRUE || token_at->klass == TOK_KW_FALSE)
-//  {
-//    Ast_Bool* boolean = arena_push_struct(&arena, Ast_Bool);
-//    *boolean = (Ast_Bool){};
-//    boolean->kind = AST_BOOL;
-//    if (token_at->klass == TOK_KW_TRUE)
-//      boolean->value = true;
-//    token_at++;
-//  }
-  else if (token_at->klass == TOK_KW_APPLY)
-  {
-    error("TODO");
-    //Ast_IdentExpr* expression = arena_push_struct(&arena, Ast_IdentExpr);
-    //zero_struct(expression, Ast_IdentExpr);
-    //expression->kind = AST_IDENT;
-    //if (token_at->klass == TOK_KW_APPLY)
-    //  expression->name = "apply";
-    //else if (token_at->klass == TOK_KW_VERIFY)
-    //  expression->name = "verify";
-    //result = (Ast_Expression*)expression;
-    //next_token();
-  }
   else
     assert(false);
   return result;
 }
 
-internal enum AstExprOperator
+internal enum Ast_ExprOperator
 syn_expression_operator()
 {
   assert(token_is_expression_operator(token_at));
-  enum AstExprOperator result = 0;
+  enum Ast_ExprOperator result = 0;
   if (token_at->klass == TOK_PERIOD)
-    result = OP_MEMBER_SELECTOR;
+    result = AST_OP_MEMBER_SELECTOR;
   else if (token_at->klass == TOK_EQUAL)
-    result = OP_ASSIGN;
+    result = AST_OP_ASSIGN;
   else if (token_at->klass == TOK_EQUAL_EQUAL)
-    result = OP_LOGIC_EQUAL;
+    result = AST_OP_LOGIC_EQUAL;
   else if (token_at->klass == TOK_PARENTH_OPEN)
-    result = OP_FUNCTION_CALL;
+    result = AST_OP_FUNCTION_CALL;
   else if (token_at->klass == TOK_MINUS)
-    result = OP_SUBTRACT;
+    result = AST_OP_SUBTRACT;
   else if (token_at->klass == TOK_PLUS)
-    result = OP_ADDITION;
+    result = AST_OP_ADDITION;
   else
     assert(false);
   return result;
 }
 
 internal int
-op_get_priority(enum AstExprOperator op)
+op_get_priority(enum Ast_ExprOperator op)
 {
   int result = 0;
-  if (op == OP_ASSIGN)
+  if (op == AST_OP_ASSIGN)
     result = 1;
-  else if (op == OP_LOGIC_EQUAL)
+  else if (op == AST_OP_LOGIC_EQUAL)
     result = 2;
-  else if (op == OP_ADDITION || op == OP_SUBTRACT)
+  else if (op == AST_OP_ADDITION || op == AST_OP_SUBTRACT)
     result = 3;
-  else if (op == OP_FUNCTION_CALL)
+  else if (op == AST_OP_FUNCTION_CALL)
     result = 4;
-  else if (op == OP_MEMBER_SELECTOR)
+  else if (op == AST_OP_MEMBER_SELECTOR)
     result = 5;
   else
     assert(false);
@@ -770,10 +739,10 @@ op_get_priority(enum AstExprOperator op)
 }
 
 internal bool
-op_is_binary(enum AstExprOperator op)
+op_is_binary(enum Ast_ExprOperator op)
 {
-  bool result = op == OP_LOGIC_EQUAL || op == OP_MEMBER_SELECTOR || op == OP_ASSIGN
-    || op == OP_ADDITION || op == OP_SUBTRACT;
+  bool result = op == AST_OP_LOGIC_EQUAL || op == AST_OP_MEMBER_SELECTOR || op == AST_OP_ASSIGN
+    || op == AST_OP_ADDITION || op == AST_OP_SUBTRACT;
   return result;
 }
 
@@ -785,7 +754,7 @@ syn_expression(int priority_threshold)
   Ast_Expression* result = primary;
   while (token_is_expression_operator(token_at))
   {
-    enum AstExprOperator op = syn_expression_operator();
+    enum Ast_ExprOperator op = syn_expression_operator();
     int priority = op_get_priority(op);
     if (priority >= priority_threshold)
     {
@@ -804,34 +773,38 @@ syn_expression(int priority_threshold)
           error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
         result = (Ast_Expression*)binary_expr;
       }
-      else if (op == OP_FUNCTION_CALL)
+      else if (op == AST_OP_FUNCTION_CALL)
       {
-        Ast_FunctionCallExpr* function_call = arena_push_struct(&arena, Ast_FunctionCallExpr);
-        zero_struct(function_call, Ast_FunctionCallExpr);
+        Ast_FunctionCall* function_call = arena_push_struct(&arena, Ast_FunctionCall);
+        zero_struct(function_call, Ast_FunctionCall);
         function_call->kind = AST_FUNCTION_CALL;
+        function_call->function = result;
+
         if (token_is_expression(token_at))
         {
           Ast_Expression* argument = syn_expression(1);
-          function_call->argument = argument;
+          function_call->first_argument = argument;
           while (token_at->klass == TOK_COMMA)
           {
             next_token();
             if (token_is_expression(token_at))
             {
               Ast_Expression* next_argument = syn_expression(1);
-              argument->next = next_argument;
+              argument->next_expression = next_argument;
               argument = next_argument;
             }
             else if (token_at->klass == TOK_COMMA)
-              error("at line %d: missing parameter", token_at->line_nr);
+              error("at line %d: missing argument", token_at->line_nr);
             else
               error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
           }
         }
+
         if (token_at->klass == TOK_PARENTH_CLOSE)
           next_token();
         else
           error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+
         result = (Ast_Expression*)function_call;
       }
       else
@@ -850,6 +823,7 @@ syn_ident_state()
   Ast_IdentState* result = arena_push_struct(&arena, Ast_IdentState);
   zero_struct(result, Ast_IdentState);
   result->kind = AST_IDENT_STATE;
+
   result->name = token_at->lexeme;
   next_token();
   if (token_at->klass == TOK_SEMICOLON)
@@ -962,11 +936,11 @@ internal Ast_TransitionStmt*
 syn_transition_stmt()
 {
   assert(token_at->klass == TOK_KW_TRANSITION);
-  next_token();
   Ast_TransitionStmt* result = arena_push_struct(&arena, Ast_TransitionStmt);
   zero_struct(result, Ast_TransitionStmt);
   result->kind = AST_TRANSITION_STMT;
 
+  next_token();
   if (token_at->klass == TOK_IDENT)
     result->state_expr = (Ast_StateExpr*)syn_ident_state();
   else if (token_at->klass == TOK_KW_SELECT)
@@ -990,7 +964,7 @@ syn_statement_list()
       while (token_is_expression(token_at))
       {
         Ast_Expression* next_expression = syn_expression(1);
-        expression->next = next_expression;
+        expression->next_expression = next_expression;
         expression = next_expression;
         if (token_at->klass == TOK_SEMICOLON)
           next_token();
@@ -1008,31 +982,45 @@ internal Ast_ParserState*
 syn_parser_state()
 {
   assert(token_at->klass == TOK_KW_STATE);
-  next_token();
   Ast_ParserState* result = arena_push_struct(&arena, Ast_ParserState);
   zero_struct(result, Ast_ParserState);
   result->kind = AST_PARSER_STATE;
 
+  int state_scope_level = scope_level;
+  next_token();
+
   if (token_at->klass == TOK_IDENT)
   {
     result->name = token_at->lexeme;
+
+    if (sym_ident_is_declared(sym_get_var(result->name)))
+      error("at line %d: state '%s' re-declared", token_at->line_nr, result->name);
+    result->var_ident = sym_add_var(result->name, (Ast*)result);
+
     next_token();
     if (token_at->klass == TOK_BRACE_OPEN)
     {
       next_token();
-      result->statement = syn_statement_list();
+      result->first_statement = syn_statement_list();
+
       if (token_at->klass == TOK_KW_TRANSITION)
         result->transition_stmt = syn_transition_stmt();
       else
         error("at line %d: 'transition' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+
       if (token_at->klass == TOK_BRACE_CLOSE)
+      {
+        scope_pop_level(state_scope_level);
         next_token();
+      }
       else
         error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else
       error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
+
+  scope_pop_level(state_scope_level);
   return result;
 }
 
@@ -1048,17 +1036,16 @@ syn_parser_decl()
   {
     result->kind = AST_PARSER_DECL;
     sym_remove_error_kw();
-    sym_add_error_var();
     next_token();
 
     if (token_at->klass == TOK_KW_STATE)
     {
       Ast_ParserState* state = syn_parser_state();
-      result->parser_state = state;
+      result->first_parser_state = state;
       while (token_at->klass == TOK_KW_STATE)
       {
         Ast_ParserState* next_state = syn_parser_state();
-        state->next = next_state;
+        state->next_state = next_state;
         state = next_state;
       }
     }
@@ -1068,7 +1055,6 @@ syn_parser_decl()
     if (token_at->klass == TOK_BRACE_CLOSE)
     {
       scope_pop_level(parser_scope_level);
-      sym_remove_error_var();
       sym_add_error_kw();
       next_token();
     }
@@ -1101,7 +1087,7 @@ syn_control_prototype()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
+      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
     scope_push_level();
@@ -1275,7 +1261,7 @@ syn_action_ref()
         if (token_is_expression(token_at))
         {
           Ast_Expression* next_argument = syn_expression(1);
-          argument->next = next_argument;
+          argument->next_expression = next_argument;
           argument = next_argument;
         }
         else if (token_at->klass == TOK_COMMA)
@@ -1439,7 +1425,7 @@ syn_var_decl()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: variable '%s' has been previously declared", token_at->line_nr, result->name);
+      error("at line %d: variable '%s' re-declared", token_at->line_nr, result->name);
     result->var_ident = sym_add_var(result->name, (Ast*)result);
 
     next_token();
@@ -1463,7 +1449,7 @@ syn_var_decl()
 }
 
 internal Ast_Declaration*
-syn_control_local_decl()
+syn_control_var_decl()
 {
   assert(token_is_control_local_decl(token_at));
   Ast_Declaration* result = 0;
@@ -1499,16 +1485,15 @@ syn_control_decl()
   {
     result->kind = AST_CONTROL_DECL;
     sym_remove_error_kw();
-    sym_add_error_var();
     next_token();
 
     if (token_is_control_local_decl(token_at))
     {
-      Ast_Declaration* local_decl = syn_control_local_decl();
+      Ast_Declaration* local_decl = syn_control_var_decl();
       result->local_decl = local_decl;
       while (token_is_control_local_decl(token_at))
       {
-        Ast_Declaration* next_local_decl = syn_control_local_decl(result);
+        Ast_Declaration* next_local_decl = syn_control_var_decl(result);
         local_decl->next_decl = local_decl;
         local_decl = next_local_decl;
       }
@@ -1526,7 +1511,6 @@ syn_control_decl()
     if (token_at->klass == TOK_BRACE_CLOSE)
     {
       scope_pop_level(control_scope_level);
-      sym_remove_error_var();
       sym_add_error_kw();
       next_token();
     }
@@ -1560,7 +1544,7 @@ syn_package_prototype()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
+      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
     scope_push_level();
@@ -1630,7 +1614,7 @@ syn_package_instance()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: variable '%s' has been previously declared", token_at->line_nr, result->name);
+      error("at line %d: variable '%s' re-declared", token_at->line_nr, result->name);
     result->var_ident = sym_add_var(result->name, (Ast*)result);
 
     next_token();
@@ -1663,7 +1647,7 @@ syn_function_prototype()
     result->name = token_at->lexeme;
 
     if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
+      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
     scope_push_level();
@@ -1731,7 +1715,7 @@ syn_extern_object_prototype()
   result->name = token_at->lexeme;
 
   if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
+      error("at line %d: type '%s' re-declared", token_at->line_nr, result->name);
   result->type_ident = sym_add_type(result->name, (Ast*)result);
 
   int object_scope_level = scope_level;
@@ -1887,12 +1871,6 @@ build_ast()
   error_type_ast->kind = AST_TYPE_IDENT_EXPR;
   error_type_ast->name = "error";
   error_type_ast->is_builtin = true;
-
-  error_var_ast = arena_push_struct(&arena, Ast_VarDecl);
-  zero_struct(error_var_ast, Ast_VarDecl);
-  error_var_ast->kind = AST_VAR_DECL;
-  error_var_ast->name = "error";
-  error_var_ast->is_builtin = true;
 
   void_type_ast = arena_push_struct(&arena, Ast_Ident);
   zero_struct(void_type_ast, Ast_Ident);

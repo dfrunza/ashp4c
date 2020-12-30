@@ -74,10 +74,6 @@ enum TokenClass
   TOK_KW_MATCH_KIND,
   TOK_KW_RETURN,
   TOK_KW_STRUCT,
-  //TOK_KW_BOOL,
-  //TOK_KW_FALSE,
-  //TOK_KW_TRUE,
-  //TOK_KW_VERIFY,
 
   TOK_UNKNOWN,
   TOK_SOI,    // Start Of Input
@@ -105,12 +101,19 @@ Ident;  // ID_TYPE
         // ID_TYPEVAR
         // ID_VAR
 
-typedef struct
+typedef struct Ident_Keyword
 {
   Ident;
   enum TokenClass token_klass;
 }
 Ident_Keyword;  // ID_KEYWORD
+
+typedef struct Ident_Type
+{
+  Ident;
+  struct Ident* first_member;
+}
+Ident_Type;
 
 typedef struct Namespace_Entry
 {
@@ -133,6 +136,7 @@ Token;
 enum Typexpr_TypeCtor
 {
   TYP_NONE,
+  TYP_UNKNOWN,
   TYP_BASIC,
   TYP_TYPE_PARAMETER,
   TYP_PARAMETER,
@@ -147,6 +151,9 @@ enum Typexpr_TypeCtor
   TYP_HEADER,
   TYP_STRUCT,
   TYP_EXTERN_OBJECT,
+  TYP_BINARY_EXPR,
+  TYP_ARGUMENT,
+  TYP_FUNCTION_CALL,
 };
 
 enum TypeBasic_Kind
@@ -167,6 +174,13 @@ typedef struct Typexpr
   char* name;
 }
 Typexpr;
+
+typedef struct Typexpr_Unknown
+{
+  Typexpr;
+  struct Ast* ast;
+}
+Typexpr_Unknown;
 
 typedef struct Typexpr_Basic
 {
@@ -212,8 +226,8 @@ typedef struct Typexpr_Parameter
 {
   Typexpr;
   enum Typexpr_ParameterDirection direction;
-  Typexpr* type;
   struct Typexpr_Parameter* next_parameter;
+  Typexpr* type;
 }
 Typexpr_Parameter;  // TYP_PARAMETER
 
@@ -237,6 +251,7 @@ Typexpr_Function;  // TYP_FUNCTION
 typedef struct Typexpr_ExternObject
 {
   Typexpr;
+
   Typexpr_Function* sentinel_function;
   Typexpr_Function* last_function;
   int method_count;
@@ -320,6 +335,47 @@ typedef struct Typexpr_Struct
 }
 Typexpr_Struct;  // TYP_STRUCT
 
+enum Typexpr_ExprOperator
+{
+  TYP_OP_NONE,
+  TYP_OP_MEMBER_SELECTOR,
+  TYP_OP_LOGIC_EQUAL,
+  TYP_OP_FUNCTION_CALL,
+  TYP_OP_ASSIGN,
+  TYP_OP_ADDITION,
+  TYP_OP_SUBSTRACT,
+};
+
+typedef struct Typexpr_BinaryExpr
+{
+  Typexpr;
+
+  enum Typexpr_ExprOperator op;
+  Typexpr* l_type;
+  Typexpr* r_type;
+}
+Typexpr_BinaryExpr;  // TYP_BINARY_EXPR
+
+typedef struct Typexpr_Argument
+{
+  Typexpr;
+  struct Typexpr_Argument* next_argument;
+  Typexpr* type;
+}
+Typexpr_Argument;  // TYP_ARGUMENT
+
+typedef struct Typexpr_FunctionCall
+{
+  Typexpr;
+
+  Typexpr* function;
+
+  Typexpr_Argument* sentinel_argument;
+  Typexpr_Argument* last_argument;
+  int argument_count;
+}
+Typexpr_FunctionCall;  // TYP_FUNCTION_CALL
+
 #define ast_cast(TYPE, KIND, EXPR) ({\
   if ((EXPR)) assert((EXPR)->kind == KIND); \
   (TYPE* )(EXPR);})
@@ -347,7 +403,6 @@ enum AstKind
   AST_INTEGER_EXPR,
   AST_WINTEGER_EXPR,
   AST_SINTEGER_EXPR,
-  AST_ERROR_EXPR,
   AST_BINARY_EXPR,
   AST_FUNCTION_CALL,
   AST_IDENT_STATE,
@@ -372,7 +427,7 @@ enum AstKind
   AST_FUNCTION_PROTOTYPE,
 };
 
-enum AstParameterDirection
+enum Ast_ParameterDirection
 {
   AST_DIR_NONE,
   AST_DIR_IN,
@@ -380,18 +435,18 @@ enum AstParameterDirection
   AST_DIR_INOUT,
 };
 
-enum AstExprOperator
+enum Ast_ExprOperator
 {
-  OP_NONE,
-  OP_MEMBER_SELECTOR,
-  OP_LOGIC_EQUAL,
-  OP_FUNCTION_CALL,
-  OP_ASSIGN,
-  OP_ADDITION,
-  OP_SUBTRACT,
+  AST_OP_NONE,
+  AST_OP_MEMBER_SELECTOR,
+  AST_OP_LOGIC_EQUAL,
+  AST_OP_FUNCTION_CALL,
+  AST_OP_ASSIGN,
+  AST_OP_ADDITION,
+  AST_OP_SUBTRACT,
 };
 
-enum AstTypeParameterKind
+enum Ast_TypeParameterKind
 {
   AST_TYPPARAM_NONE,
   AST_TYPPARAM_VAR,
@@ -501,7 +556,7 @@ Ast_ErrorType;  // AST_ERROR_TYPE
 typedef struct Ast_Parameter
 {
   Ast;
-  enum AstParameterDirection direction;
+  enum Ast_ParameterDirection direction;
   Ast_Typeref* typeref;
   char* name;
   Ident* var_ident;
@@ -512,7 +567,7 @@ Ast_Parameter;  // AST_PARAMETER
 typedef struct Ast_TypeParameter
 {
   Ast;
-  enum AstTypeParameterKind parameter_kind;
+  enum Ast_TypeParameterKind parameter_kind;
   struct Ast_TypeParameter* next_parameter;
   Ident* type_ident;
   union
@@ -526,21 +581,22 @@ Ast_TypeParameter;  // AST_TYPE_PARAMETER
 typedef struct Ast_Expression
 {
   Ast;
-  struct Ast_Expression* next;
+  struct Ast_Expression* next_expression;
 }
 Ast_Expression;
 
-typedef struct Ast_FunctionCallExpr
+typedef struct Ast_FunctionCall
 {
   Ast_Expression;
-  Ast_Expression* argument;
+  Ast_Expression* function;
+  Ast_Expression* first_argument;
 }
-Ast_FunctionCallExpr;  // AST_FUNCTION_CALL
+Ast_FunctionCall;  // AST_FUNCTION_CALL
 
 typedef struct Ast_BinaryExpr
 {
   Ast_Expression;
-  enum AstExprOperator op;
+  enum Ast_ExprOperator op;
   struct Ast_Expression* l_operand;
   struct Ast_Expression* r_operand;
 }
@@ -582,12 +638,6 @@ typedef struct Ast_SIntegerExpr
   int value;
 }
 Ast_SIntegerExpr;  // AST_SINTEGER_EXPR
-
-typedef struct Ast_ErrorExpr
-{
-  Ast_Expression;
-}
-Ast_ErrorExpr;  // AST_ERROR_EXPR
 
 typedef struct Ast_StateExpr
 {
@@ -651,9 +701,10 @@ typedef struct Ast_ParserState
 {
   Ast;
   char* name;
-  Ast_Expression* statement;
-  struct Ast_ParserState* next;
+  Ast_Expression* first_statement;
+  struct Ast_ParserState* next_state;
   Ast_TransitionStmt* transition_stmt;
+  Ident* var_ident;
 }
 Ast_ParserState;  // AST_PARSER_STATE
 
@@ -752,7 +803,7 @@ typedef struct Ast_ParserDecl
   char* name;
   Ast_TypeParameter* first_type_parameter;
   Ast_Parameter* first_parameter;
-  Ast_ParserState* parser_state;
+  Ast_ParserState* first_parser_state;
   Ident* type_ident;
 }
 Ast_ParserDecl;  // AST_PARSER_PROTOTYPE

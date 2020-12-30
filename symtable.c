@@ -6,9 +6,7 @@ external int max_symtable_len;
 external int scope_level;
 
 internal Ident_Keyword* error_kw = 0;
-internal Ident* error_var_ident = 0;
 external Ast_Ident* error_type_ast;
-external Ast_VarDecl* error_var_ast;
 Ident* error_type_ident = 0;
 external Ast_Ident* void_type_ast;
 Ident* void_type_ident = 0;
@@ -214,34 +212,6 @@ sym_add_error_kw()
   ns->ns_global = (Ident*)error_kw;
 }
 
-void
-sym_add_error_var()
-{
-  Namespace_Entry* ns = sym_get_namespace("error");
-
-  if (ns->ns_global)
-  {
-    assert (ns->ns_global == (Ident*)error_var_ident);
-    return;
-  }
-
-  error_var_ident->scope_level = scope_level;
-  error_var_ident->next_in_scope = ns->ns_global;
-  ns->ns_global = (Ident*)error_var_ident;
-}
-
-void
-sym_remove_error_var()
-{
-  Namespace_Entry* ns = sym_get_namespace("error");
-
-  if (!ns->ns_global)
-    return;
-
-  assert (ns->ns_global == (Ident*)error_var_ident);
-  ns->ns_global = ns->ns_global->next_in_scope;
-}
-
 internal void
 sym_add_error_type()
 {
@@ -324,12 +294,5 @@ sym_init()
   varbit_type_ident = sym_add_type("varbit", (Ast*)varbit_type_ident);
   int_type_ident = sym_add_type("int", (Ast*)int_type_ident);
   string_type_ident = sym_add_type("string", (Ast*)string_type_ident);
-
-  error_var_ident = arena_push_struct(&arena, Ident);
-  zero_struct(error_var_ident, Ident);
-  error_var_ident->ast = (Ast*)error_var_ast;
-  error_var_ast->var_ident = error_var_ident;
-  error_var_ident->name = "error";
-  error_var_ident->ident_kind = ID_VAR;
 }
 

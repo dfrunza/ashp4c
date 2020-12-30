@@ -46,8 +46,8 @@ main(int arg_count, char* args[])
     symtable[i++] = 0;
   build_ast();
 
-  semcheck1();
   build_typexpr();
+  resolve_member_ident();
 
   arena_print_usage(&arena, "Memory (@exit): ");
   return 0;
