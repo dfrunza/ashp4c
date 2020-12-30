@@ -75,9 +75,9 @@ syn_struct_field()
   {
     result->name = token_at->lexeme;
 
-    if (sym_ident_is_declared((Ident*)sym_get_selector(result->name)))
+    if (sym_ident_is_declared(sym_get_var(result->name)))
       error("at line %d: member '%s' has been previously declared", token_at->line_nr, result->name);
-    result->selector = sym_add_selector(result->name, (Ast*)result);
+    result->var_ident = sym_add_var(result->name, (Ast*)result);
 
     next_token();
     if (token_at->klass == TOK_SEMICOLON)
@@ -103,6 +103,8 @@ token_is_declaration(Token* token)
 internal Ast_HeaderDecl*
 syn_header_decl()
 {
+  Ast_StructField* field;
+
   assert(token_at->klass == TOK_KW_HEADER);
   next_token();
   Ast_HeaderDecl* result = arena_push_struct(&arena, Ast_HeaderDecl);
@@ -113,7 +115,7 @@ syn_header_decl()
   {
     result->name = token_at->lexeme;
 
-    if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
+    if (sym_ident_is_declared(sym_get_type(result->name)))
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
@@ -125,7 +127,7 @@ syn_header_decl()
       next_token();
       if (token_at->klass == TOK_TYPE_IDENT)
       {
-        Ast_StructField* field = syn_struct_field();
+        field = syn_struct_field();
         result->first_field = field;
         while (token_at->klass == TOK_TYPE_IDENT)
         {
@@ -134,7 +136,7 @@ syn_header_decl()
           field = next_field;
         }
 
-#if 1
+#if 0
         field = result->first_field;
         Ident_MemberSelector* selector = field->selector;
         Ident_Type* type_ident = result->type_ident;
@@ -178,7 +180,7 @@ syn_struct_decl()
   {
     result->name = token_at->lexeme;
 
-    if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
+    if (sym_ident_is_declared(sym_get_type(result->name)))
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
@@ -199,20 +201,6 @@ syn_struct_decl()
           field->next_field = next_field;
           field = next_field;
         }
-
-#if 1
-        field = result->first_field;
-        Ident_MemberSelector* selector = field->selector;
-        Ident_Type* type_ident = result->type_ident;
-        type_ident->selector = field->selector;
-        field = (Ast_StructField*)field->next_field;
-        while (field)
-        {
-          selector->next_selector = field->selector;
-          selector = selector->next_selector;
-          field = (Ast_StructField*)field->next_field;
-        }
-#endif
       }
 
       if (token_at->klass == TOK_BRACE_CLOSE)
@@ -240,9 +228,9 @@ syn_error_code()
   code->kind = AST_ERROR_CODE;
   code->name = token_at->lexeme;
 
-  if (sym_ident_is_declared((Ident*)sym_get_selector(code->name)))
+  if (sym_ident_is_declared(sym_get_var(code->name)))
     error("at line %d: member '%s' has been previously declared", token_at->line_nr, code->name);
-  code->selector = sym_add_selector(code->name, (Ast*)code);
+  code->var_ident = sym_add_var(code->name, (Ast*)code);
 
   next_token();
   return code;
@@ -283,21 +271,8 @@ syn_error_type_decl()
         else
           error("at line %d: non-type identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
       }
-
-#if 1
-      field = result->error_code;
-      Ident_MemberSelector* selector = field->selector;
-      Ident_Type* type_ident = result->type_ident;
-      type_ident->selector = field->selector;
-      field = (Ast_ErrorCode*)field->next_code;
-      while (field)
-      {
-        selector->next_selector = field->selector;
-        selector = selector->next_selector;
-        field = (Ast_ErrorCode*)field->next_code;
-      }
-#endif
     }
+
     if (token_at->klass == TOK_BRACE_CLOSE)
       next_token();
     else
@@ -329,7 +304,7 @@ syn_type_parameter()
     result->parameter_kind = AST_TYPPARAM_VAR;
     result->name = token_at->lexeme;
 
-    if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
+    if (sym_ident_is_declared(sym_get_type(result->name)))
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_typevar(result->name, (Ast*)result);
 
@@ -444,7 +419,7 @@ syn_typedef_decl()
     {
       result->name = token_at->lexeme;
 
-      if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
+      if (sym_ident_is_declared(sym_get_type(result->name)))
         error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
       result->type_ident = sym_add_type(result->name, (Ast*)result);
 
@@ -513,7 +488,7 @@ syn_parameter()
   {
     result->name = token_at->lexeme;
 
-    if (sym_ident_is_declared((Ident*)sym_get_var(result->name)))
+    if (sym_ident_is_declared(sym_get_var(result->name)))
       error("at line %d: parameter '%s' has been previously declared", token_at->line_nr, result->name);
     result->var_ident = sym_add_var(result->name, (Ast*)result);
 
@@ -560,7 +535,7 @@ syn_parser_prototype()
   {
     result->name = token_at->lexeme;
 
-    if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
+    if (sym_ident_is_declared(sym_get_type(result->name)))
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
@@ -663,17 +638,17 @@ syn_expression_primary()
     zero_struct(expression, Ast_IdentExpr);
     expression->kind = AST_IDENT_EXPR;
     expression->name = token_at->lexeme;
-    expression->ident = (Ident*)sym_get_var(expression->name);
+    expression->var_ident = sym_get_var(expression->name);
     result = (Ast_Expression*)expression;
     next_token();
   }
   else if (token_at->klass == TOK_TYPE_IDENT)
   {
-    Ast_IdentExpr* expression = arena_push_struct(&arena, Ast_IdentExpr);
-    zero_struct(expression, Ast_IdentExpr);
-    expression->kind = AST_IDENT_EXPR;
+    Ast_TypeIdentExpr* expression = arena_push_struct(&arena, Ast_TypeIdentExpr);
+    zero_struct(expression, Ast_TypeIdentExpr);
+    expression->kind = AST_TYPE_IDENT_EXPR;
     expression->name = token_at->lexeme;
-    expression->ident = (Ident*)sym_get_type(expression->name);
+    expression->type_ident = sym_get_type(expression->name);
     result = (Ast_Expression*)expression;
     next_token();
   }
@@ -736,7 +711,7 @@ syn_expression_primary()
     error("TODO");
     //Ast_IdentExpr* expression = arena_push_struct(&arena, Ast_IdentExpr);
     //zero_struct(expression, Ast_IdentExpr);
-    //expression->kind = AST_IDENT_EXPR;
+    //expression->kind = AST_IDENT;
     //if (token_at->klass == TOK_KW_APPLY)
     //  expression->name = "apply";
     //else if (token_at->klass == TOK_KW_VERIFY)
@@ -818,6 +793,7 @@ syn_expression(int priority_threshold)
         binary_expr->kind = AST_BINARY_EXPR;
         binary_expr->l_operand = result;
         binary_expr->op = op;
+
         if (token_is_expression(token_at))
           binary_expr->r_operand = syn_expression(priority_threshold + 1);
         else
@@ -1116,7 +1092,7 @@ syn_control_prototype()
   {
     result->name = token_at->lexeme;
 
-    if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
+    if (sym_ident_is_declared(sym_get_type(result->name)))
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
@@ -1445,7 +1421,7 @@ syn_var_decl()
   {
     result->name = token_at->lexeme;
 
-    if (sym_ident_is_declared((Ident*)sym_get_var(result->name)))
+    if (sym_ident_is_declared(sym_get_var(result->name)))
       error("at line %d: variable '%s' has been previously declared", token_at->line_nr, result->name);
     result->var_ident = sym_add_var(result->name, (Ast*)result);
 
@@ -1560,7 +1536,7 @@ syn_package_prototype()
   {
     result->name = token_at->lexeme;
 
-    if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
+    if (sym_ident_is_declared(sym_get_type(result->name)))
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
@@ -1617,7 +1593,7 @@ syn_package_instance()
   {
     result->name = token_at->lexeme;
 
-    if (sym_ident_is_declared((Ident*)sym_get_var(result->name)))
+    if (sym_ident_is_declared(sym_get_var(result->name)))
       error("at line %d: variable '%s' has been previously declared", token_at->line_nr, result->name);
     result->var_ident = sym_add_var(result->name, (Ast*)result);
 
@@ -1649,7 +1625,7 @@ syn_function_prototype()
   {
     result->name = token_at->lexeme;
 
-    if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
+    if (sym_ident_is_declared(sym_get_type(result->name)))
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
     result->type_ident = sym_add_type(result->name, (Ast*)result);
 
@@ -1703,6 +1679,8 @@ syn_function_prototype()
 internal Ast_ExternObjectDecl*
 syn_extern_object_prototype()
 {
+  Ast_FunctionDecl* method;
+
   assert(token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT);
   Ast_ExternObjectDecl* result = arena_push_struct(&arena, Ast_ExternObjectDecl);
   zero_struct(result, Ast_ExternObjectDecl);
@@ -1710,7 +1688,7 @@ syn_extern_object_prototype()
 
   result->name = token_at->lexeme;
 
-  if (sym_ident_is_declared((Ident*)sym_get_type(result->name)))
+  if (sym_ident_is_declared(sym_get_type(result->name)))
       error("at line %d: type '%s' has been previously declared", token_at->line_nr, result->name);
   result->type_ident = sym_add_type(result->name, (Ast*)result);
 
@@ -1727,7 +1705,7 @@ syn_extern_object_prototype()
 
     if (token_at->klass == TOK_TYPE_IDENT)
     {
-      Ast_FunctionDecl* method = syn_function_prototype();
+      method = syn_function_prototype();
       result->first_method = method;
       while (token_at->klass == TOK_TYPE_IDENT)
       {
@@ -1826,7 +1804,7 @@ syn_p4program()
     zero_struct(result, Ast_P4Program);
     result->kind = AST_P4PROGRAM;
     Ast_Declaration* declaration = syn_p4declaration();
-    result->declaration = declaration;
+    result->first_declaration = declaration;
     while (token_is_declaration(token_at))
     {
       Ast_Declaration* next_declaration = syn_p4declaration();
@@ -1847,7 +1825,7 @@ build_ast()
 {
   error_type_ast = arena_push_struct(&arena, Ast_Ident);
   zero_struct(error_type_ast, Ast_Ident);
-  error_type_ast->kind = AST_IDENT_EXPR;
+  error_type_ast->kind = AST_TYPE_IDENT_EXPR;
   error_type_ast->name = "error";
   error_type_ast->is_builtin = true;
 
@@ -1859,37 +1837,37 @@ build_ast()
 
   void_type_ast = arena_push_struct(&arena, Ast_Ident);
   zero_struct(void_type_ast, Ast_Ident);
-  void_type_ast->kind = AST_IDENT_EXPR;
+  void_type_ast->kind = AST_TYPE_IDENT_EXPR;
   void_type_ast->name = "void";
   void_type_ast->is_builtin = true;
 
   bool_type_ast = arena_push_struct(&arena, Ast_Ident);
   zero_struct(bool_type_ast, Ast_Ident);
-  bool_type_ast->kind = AST_IDENT_EXPR;
+  bool_type_ast->kind = AST_TYPE_IDENT_EXPR;
   bool_type_ast->name = "bool";
   bool_type_ast->is_builtin = true;
 
   bit_type_ast = arena_push_struct(&arena, Ast_Ident);
   zero_struct(bit_type_ast, Ast_Ident);
-  bit_type_ast->kind = AST_IDENT_EXPR;
+  bit_type_ast->kind = AST_TYPE_IDENT_EXPR;
   bit_type_ast->name = "bit";
   bit_type_ast->is_builtin = true;
 
   varbit_type_ast = arena_push_struct(&arena, Ast_Ident);
   zero_struct(varbit_type_ast, Ast_Ident);
-  varbit_type_ast->kind = AST_IDENT_EXPR;
+  varbit_type_ast->kind = AST_TYPE_IDENT_EXPR;
   varbit_type_ast->name = "varbit";
   varbit_type_ast->is_builtin = true;
 
   int_type_ast = arena_push_struct(&arena, Ast_Ident);
   zero_struct(int_type_ast, Ast_Ident);
-  int_type_ast->kind = AST_IDENT_EXPR;
+  int_type_ast->kind = AST_TYPE_IDENT_EXPR;
   int_type_ast->name = "int";
   int_type_ast->is_builtin = true;
 
   string_type_ast = arena_push_struct(&arena, Ast_Ident);
   zero_struct(string_type_ast, Ast_Ident);
-  string_type_ast->kind = AST_IDENT_EXPR;
+  string_type_ast->kind = AST_TYPE_IDENT_EXPR;
   string_type_ast->name = "string";
   string_type_ast->is_builtin = true;
 

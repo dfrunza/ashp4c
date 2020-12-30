@@ -6,22 +6,22 @@ external int max_symtable_len;
 external int scope_level;
 
 internal Ident_Keyword* error_kw = 0;
-internal Ident_Var* error_var_ident = 0;
+internal Ident* error_var_ident = 0;
 external Ast_Ident* error_type_ast;
 external Ast_VarDecl* error_var_ast;
-Ident_Type* error_type_ident = 0;
+Ident* error_type_ident = 0;
 external Ast_Ident* void_type_ast;
-Ident_Type* void_type_ident = 0;
+Ident* void_type_ident = 0;
 external Ast_Ident* bool_type_ast;
-Ident_Type* bool_type_ident = 0;
+Ident* bool_type_ident = 0;
 external Ast_Ident* bit_type_ast;
-Ident_Type* bit_type_ident = 0;
+Ident* bit_type_ident = 0;
 external Ast_Ident* varbit_type_ast;
-Ident_Type* varbit_type_ident;
+Ident* varbit_type_ident;
 external Ast_Ident* int_type_ast;
-Ident_Type* int_type_ident;
+Ident* int_type_ident;
 external Ast_Ident* string_type_ast;
-Ident_Type* string_type_ident;
+Ident* string_type_ident;
 
 internal uint32_t
 name_hash(char* name)
@@ -105,22 +105,22 @@ sym_get_namespace(char* name)
   return name_info;
 }
 
-Ident_Var*
+Ident*
 sym_get_var(char* name)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
-  Ident_Var* ident_var = (Ident_Var*)ns->ns_global;
+  Ident* ident_var = (Ident*)ns->ns_global;
   if (ident_var)
     assert (ident_var->ident_kind == ID_VAR);
   return ident_var;
 }
 
-Ident_Var*
+Ident*
 sym_add_var(char* name, Ast* ast)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
-  Ident_Var* ident = arena_push_struct(&arena, Ident_Var);
-  zero_struct(ident, Ident_Var);
+  Ident* ident = arena_push_struct(&arena, Ident);
+  zero_struct(ident, Ident);
   ident->ast = ast;
   ident->name = name;
   ident->scope_level = scope_level;
@@ -131,22 +131,22 @@ sym_add_var(char* name, Ast* ast)
   return ident;
 }
 
-Ident_Type*
+Ident*
 sym_get_type(char* name)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
-  Ident_Type* result = (Ident_Type*)ns->ns_type;
+  Ident* result = (Ident*)ns->ns_type;
   if (result)
     assert (result->ident_kind == ID_TYPE || result->ident_kind == ID_TYPEVAR);
   return result;
 }
 
-Ident_Type*
+Ident*
 sym_add_type(char* name, Ast* ast)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
-  Ident_Type* ident = arena_push_struct(&arena, Ident_Type);
-  zero_struct(ident, Ident_Type);
+  Ident* ident = arena_push_struct(&arena, Ident);
+  zero_struct(ident, Ident);
   ident->ast = ast;
   ident->name = name;
   ident->scope_level = scope_level;
@@ -157,12 +157,12 @@ sym_add_type(char* name, Ast* ast)
   return ident;
 }
 
-Ident_Type*
+Ident*
 sym_add_typevar(char* name, Ast* ast)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
-  Ident_Type* ident = arena_push_struct(&arena, Ident_Type);
-  zero_struct(ident, Ident_Type);
+  Ident* ident = arena_push_struct(&arena, Ident);
+  zero_struct(ident, Ident);
   ident->ast = ast;
   ident->name = name;
   ident->scope_level = scope_level;
@@ -173,11 +173,11 @@ sym_add_typevar(char* name, Ast* ast)
   return ident;
 }
 
-Ident_Type*
+Ident*
 sym_get_error_type()
 {
   Namespace_Entry* ns = sym_get_namespace("error");
-  Ident_Type* result = (Ident_Type*)ns->ns_type;
+  Ident* result = (Ident*)ns->ns_type;
   if (result)
     assert (result->ident_kind == ID_TYPE);
   return result;
@@ -265,32 +265,6 @@ sym_remove_error_type()
   ns->ns_type = ns->ns_type->next_in_scope;
 }
 
-Ident_MemberSelector*
-sym_add_selector(char* name, Ast* ast)
-{
-  Namespace_Entry* ns = sym_get_namespace(name);
-  Ident_MemberSelector* ident = arena_push_struct(&arena, Ident_MemberSelector);
-  zero_struct(ident, Ident_MemberSelector);
-  ident->ast = ast;
-  ident->name = name;
-  ident->scope_level = scope_level;
-  ident->ident_kind = ID_STRUCT_MEMBER;
-  ident->next_in_scope = ns->ns_global;
-  ns->ns_global = (Ident*)ident;
-  printf("add selector '%s'\n", ident->name);
-  return ident;
-}
-
-Ident_MemberSelector*
-sym_get_selector(char* name)
-{
-  Namespace_Entry* ns = sym_get_namespace(name);
-  Ident_MemberSelector* result = (Ident_MemberSelector*)ns->ns_global;
-  if (result)
-    assert (result->ident_kind == ID_STRUCT_MEMBER);
-  return result;
-}
-
 internal Ident_Keyword*
 add_keyword(char* name, enum TokenClass token_klass)
 {
@@ -347,12 +321,11 @@ sym_init()
   int_type_ident = sym_add_type("int", (Ast*)int_type_ident);
   string_type_ident = sym_add_type("string", (Ast*)string_type_ident);
 
-  error_var_ident = arena_push_struct(&arena, Ident_Var);
-  zero_struct(error_var_ident, Ident_Var);
+  error_var_ident = arena_push_struct(&arena, Ident);
+  zero_struct(error_var_ident, Ident);
   error_var_ident->ast = (Ast*)error_var_ast;
   error_var_ast->var_ident = error_var_ident;
   error_var_ident->name = "error";
   error_var_ident->ident_kind = ID_VAR;
-  error_var_ident->type_ident = sym_get_type("error");
 }
 

@@ -91,7 +91,6 @@ enum IdentKind
   ID_TYPE,
   ID_TYPEVAR,
   ID_VAR,
-  ID_STRUCT_MEMBER,
 };
 
 typedef struct Ident
@@ -102,22 +101,9 @@ typedef struct Ident
   int scope_level;
   struct Ident* next_in_scope;
 }
-Ident;
-
-typedef struct Ident_MemberSelector
-{
-  Ident;
-  struct Ident_MemberSelector* next_selector;
-}
-Ident_MemberSelector;  // ID_STRUCT_MEMBER
-
-typedef struct
-{
-  Ident;
-  Ident_MemberSelector* selector;
-}
-Ident_Type;  // ID_TYPE
-             // ID_TYPEVAR
+Ident;  // ID_TYPE
+        // ID_TYPEVAR
+        // ID_VAR
 
 typedef struct
 {
@@ -125,13 +111,6 @@ typedef struct
   enum TokenClass token_klass;
 }
 Ident_Keyword;  // ID_KEYWORD
-
-typedef struct
-{
-  Ident;
-  Ident_Type* type_ident;
-}
-Ident_Var;  // ID_VAR
 
 typedef struct Namespace_Entry
 {
@@ -349,7 +328,6 @@ enum AstKind
 {
   AST_NONE,
   AST_P4PROGRAM,
-  AST_DECLARATION,
   AST_ERROR_TYPE,
   AST_STRUCT_PROTOTYPE,
   AST_STRUCT_DECL,
@@ -357,18 +335,15 @@ enum AstKind
   AST_HEADER_DECL,
   AST_TYPEDEF,
   AST_TYPEREF,
-  AST_IDENT_TYPEREF,
-  AST_BIT_TYPEREF,
-  AST_INT_TYPEREF,
   AST_STRUCT_FIELD,
   AST_ERROR_CODE,
-  AST_IDENT,
   AST_PARAMETER,
   AST_TYPE_PARAMETER,
   AST_PARSER_PROTOTYPE,
   AST_PARSER_DECL,
   AST_PARSER_STATE,
   AST_IDENT_EXPR,
+  AST_TYPE_IDENT_EXPR,
   AST_INTEGER_EXPR,
   AST_WINTEGER_EXPR,
   AST_SINTEGER_EXPR,
@@ -377,14 +352,12 @@ enum AstKind
   AST_FUNCTION_CALL,
   AST_IDENT_STATE,
   AST_SELECT_STATE,
-  AST_SELECT_CASE,
   AST_EXPR_SELECT_CASE,
   AST_DEFAULT_SELECT_CASE,
   AST_TRANSITION_STMT,
   AST_CONTROL_PROTOTYPE,
   AST_CONTROL_DECL,
   AST_BLOCK_STMT,
-  AST_EXPR_STMT,
   AST_BOOL,
   AST_ACTION,
   AST_TABLE,
@@ -445,47 +418,46 @@ typedef struct Ast_Ident
 {
   Ast;
   char* name;
-  struct Ast_Ident* next_ident;
 }
-Ast_Ident;  // AST_IDENT
+Ast_Ident;
 
 typedef struct Ast_ErrorCode
 {
   Ast_Ident;
   struct Ast_ErrorCode* next_code;
-  Ident_MemberSelector* selector;
+  Ident* var_ident;
 }
 Ast_ErrorCode;  // AST_ERROR_CODE
 
-typedef struct
+typedef struct Ast_Typeref
 {
   Ast;
   char* name;
-  Ident_Type* type_ident;
+  Ident* type_ident;
   Ast* type_ast;
 }
 Ast_Typeref;  // AST_TYPEREF
 
-typedef struct
+typedef struct Ast_BitTyperef
 {
   Ast_Typeref;
   int size;
 }
 Ast_BitTyperef;  // AST_BIT_TYPEREF
 
-typedef struct
+typedef struct Ast_IntTyperef
 {
   Ast_Typeref;
   int size;
 }
 Ast_IntTyperef;  // AST_INT_TYPEREF
 
-typedef struct
+typedef struct Ast_Typedef
 {
   Ast_Declaration;
   Ast_Typeref* typeref;
   char* name;
-  Ident_Type* type_ident;
+  Ident* type_ident;
 }
 Ast_Typedef;  // AST_TYPEDEF
 
@@ -494,35 +466,35 @@ typedef struct Ast_StructField
   Ast_Ident;
   struct Ast_StructField* next_field;
   Ast_Typeref* typeref;
-  Ident_MemberSelector* selector;
+  Ident* var_ident;
 }
 Ast_StructField;  // AST_STRUCT_FIELD
 
-typedef struct
+typedef struct Ast_StructDecl
 {
   Ast_Declaration;
   char* name;
   Ast_StructField* first_field;
-  Ident_Type* type_ident;
+  Ident* type_ident;
 }
 Ast_StructDecl;  // AST_STRUCT_PROTOTYPE
                  // AST_STRUCT_DECL
 
-typedef struct
+typedef struct Ast_HeaderDecl
 {
   Ast_Declaration;
   char* name;
   Ast_StructField* first_field;
-  Ident_Type* type_ident;
+  Ident* type_ident;
 }
 Ast_HeaderDecl;  // AST_HEADER_PROTOTYPE
                  // AST_HEADER_DECL
 
-typedef struct
+typedef struct Ast_ErrorType
 {
   Ast_Declaration;
   Ast_ErrorCode* error_code;
-  Ident_Type* type_ident;
+  Ident* type_ident;
 }
 Ast_ErrorType;  // AST_ERROR_TYPE
 
@@ -532,7 +504,7 @@ typedef struct Ast_Parameter
   enum AstParameterDirection direction;
   Ast_Typeref* typeref;
   char* name;
-  Ident_Var* var_ident;
+  Ident* var_ident;
   struct Ast_Parameter* next_parameter;
 }
 Ast_Parameter;  // AST_PARAMETER
@@ -542,7 +514,7 @@ typedef struct Ast_TypeParameter
   Ast;
   enum AstTypeParameterKind parameter_kind;
   struct Ast_TypeParameter* next_parameter;
-  Ident_Type* type_ident;
+  Ident* type_ident;
   union
   {
     char* name;
@@ -558,7 +530,7 @@ typedef struct Ast_Expression
 }
 Ast_Expression;
 
-typedef struct
+typedef struct Ast_FunctionCallExpr
 {
   Ast_Expression;
   Ast_Expression* argument;
@@ -574,57 +546,65 @@ typedef struct Ast_BinaryExpr
 }
 Ast_BinaryExpr;  // AST_BINARY_EXPR
 
-typedef struct
+typedef struct Ast_IdentExpr
 {
   Ast_Expression;
   char* name;
-  Ident* ident;
+  Ident* var_ident;
 }
 Ast_IdentExpr;  // AST_IDENT_EXPR
 
-typedef struct
+typedef struct Ast_TypeIdentExpr
+{
+  Ast_Expression;
+  char* name;
+  Ident* type_ident;
+}
+Ast_TypeIdentExpr;  // AST_TYPE_IDENT_EXPR
+
+typedef struct Ast_IntegerExpr
 {
   Ast_Expression;
   int value;
 }
 Ast_IntegerExpr;  // AST_INTEGER_EXPR
 
-typedef struct
+typedef struct Ast_WIntegerExpr
 {
   Ast_Expression;
   int value;
 }
 Ast_WIntegerExpr;  // AST_WINTEGER_EXPR
 
-typedef struct
+typedef struct Ast_SIntegerExpr
 {
   Ast_Expression;
   int value;
 }
 Ast_SIntegerExpr;  // AST_SINTEGER_EXPR
 
-typedef struct
+typedef struct Ast_ErrorExpr
 {
   Ast_Expression;
 }
 Ast_ErrorExpr;  // AST_ERROR_EXPR
 
-typedef struct
+typedef struct Ast_StateExpr
 {
   Ast;
 }
 Ast_StateExpr;
 
-typedef struct
+typedef struct Ast_VarDecl
 {
   Ast_Declaration;
   char* name;
   Ast_Expression* initializer;
-  Ident_Var* var_ident;
+  Ident* var_ident;
 }
 Ast_VarDecl;  // AST_VAR_DECL
 
-typedef struct
+typedef struct Ast_IdentState
 {
   Ast_StateExpr;
   char* name;
@@ -639,20 +619,20 @@ typedef struct Ast_SelectCase
 }
 Ast_SelectCase;  // AST_SELECT_CASE
 
-typedef struct
+typedef struct Ast_ExprSelectCase
 {
   Ast_SelectCase;
   Ast_Expression* key_expr;
 }
 Ast_ExprSelectCase;  // AST_EXPR_SELECT_CASE
 
-typedef struct
+typedef struct Ast_DefaultSelectCase
 {
   Ast_SelectCase;
 }
 Ast_DefaultSelectCase;  // AST_DEFAULT_SELECT_CASE
 
-typedef struct
+typedef struct Ast_SelectState
 {
   Ast_StateExpr;
   Ast_Expression* expression;
@@ -660,7 +640,7 @@ typedef struct
 }
 Ast_SelectState;  // AST_SELECT_STATE
 
-typedef struct
+typedef struct Ast_TransitionStmt
 {
   Ast;
   Ast_StateExpr* state_expr;
@@ -677,27 +657,27 @@ typedef struct Ast_ParserState
 }
 Ast_ParserState;  // AST_PARSER_STATE
 
-typedef struct
+typedef struct Ast_Statement
 {
   Ast;
 }
 Ast_Statement;
 
-typedef struct
+typedef struct Ast_ExprStmt
 {
   Ast_Statement;
   Ast_Expression* expression;
 }
 Ast_ExprStmt;  // AST_EXPR_STMT
 
-typedef struct
+typedef struct Ast_BlockStmt
 {
   Ast_Statement;
   Ast_Expression* statement;
 }
 Ast_BlockStmt;  // AST_BLOCK_STMT
 
-typedef struct
+typedef struct Ast_Bool
 {
   Ast;
   bool value;
@@ -736,7 +716,7 @@ typedef struct Ast_SimpleProp
 }
 Ast_SimpleProp;  // AST_SIMPLE_PROP
 
-typedef struct
+typedef struct Ast_ActionDecl
 {
   Ast_Declaration;
   char* name;
@@ -745,7 +725,7 @@ typedef struct
 }
 Ast_ActionDecl;  // AST_ACTION
 
-typedef struct
+typedef struct Ast_TableDecl
 {
   Ast_Declaration;
   char* name;
@@ -753,7 +733,7 @@ typedef struct
 }
 Ast_TableDecl;  // AST_TABLE
 
-typedef struct
+typedef struct Ast_ControlDecl
 {
   Ast_Declaration;
   char* name;
@@ -761,39 +741,39 @@ typedef struct
   Ast_Parameter* first_parameter;
   Ast_Declaration* local_decl;
   Ast_BlockStmt* control_body;
-  Ident_Type* type_ident;
+  Ident* type_ident;
 }
 Ast_ControlDecl;  // AST_CONTROL_PROTOTYPE
                   // AST_CONTROL_DECL
 
-typedef struct
+typedef struct Ast_ParserDecl
 {
   Ast_Declaration;
   char* name;
   Ast_TypeParameter* first_type_parameter;
   Ast_Parameter* first_parameter;
   Ast_ParserState* parser_state;
-  Ident_Type* type_ident;
+  Ident* type_ident;
 }
 Ast_ParserDecl;  // AST_PARSER_PROTOTYPE
                  // AST_PARSER_DECL
 
-typedef struct
+typedef struct Ast_PackageDecl
 {
   Ast_Declaration;
   char* name;
   Ast_TypeParameter* first_type_parameter;
   Ast_Parameter* first_parameter;
-  Ident_Type* type_ident;
+  Ident* type_ident;
 }
 Ast_PackageDecl;  // AST_PACKAGE_PROTOTYPE
 
-typedef struct
+typedef struct Ast_PackageInstance
 {
   Ast_Declaration;
   Ast_Expression* package;
   char* name;
-  Ident_Var* var_ident;
+  Ident* var_ident;
 }
 Ast_PackageInstance;  // AST_PACKAGE_INSTANCE
 
@@ -803,27 +783,26 @@ typedef struct Ast_FunctionPrototype
   char* name;
   Ast_TypeParameter* first_type_parameter;
   Ast_Parameter* first_parameter;
-  Ident_Type* return_type_ident;
+  Ident* return_type_ident;
   Ast* return_type_ast;
-  Ident_Type* type_ident;
-  Ident_Var* var_ident;
+  Ident* type_ident;
 }
 Ast_FunctionDecl;  // AST_FUNCTION_PROTOTYPE
                    // AST_EXTERN_FUNCTION_PROTOTYPE
 
-typedef struct
+typedef struct Ast_ExternObjectDecl
 {
   Ast_Declaration;
   char* name;
   Ast_FunctionDecl* first_method;
-  Ident_Type* type_ident;
+  Ident* type_ident;
 }
 Ast_ExternObjectDecl;  // AST_EXTERN_OBJECT_PROTOTYPE
 
-typedef struct
+typedef struct Ast_P4Program
 {
   Ast;
-  Ast_Declaration* declaration;
+  Ast_Declaration* first_declaration;
 }
 Ast_P4Program;  // AST_P4PROGRAM
 

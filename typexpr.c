@@ -405,7 +405,7 @@ visit_error_type(Ast_ErrorType* error_ast)
     error_typexpr->last_field = error_code_typexpr;
     error_typexpr->field_count += 1;
 
-    error_code_ast = (Ast_ErrorCode*)error_code_ast->next_ident;
+    error_code_ast = (Ast_ErrorCode*)error_code_ast->next_code;
   }
   return error_typexpr;
 }
@@ -486,7 +486,7 @@ visit_p4declaration(Ast_Declaration* p4decl_ast)
 internal void
 visit_p4program(Ast_P4Program* p4program)
 {
-  Ast_Declaration* p4decl_ast = p4program->declaration;
+  Ast_Declaration* p4decl_ast = p4program->first_declaration;
   while (p4decl_ast)
   {
     visit_p4declaration(p4decl_ast);
