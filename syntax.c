@@ -15,13 +15,13 @@ internal Ast_Typeref* build_typeref();
 internal Ast_Expression* build_expression(int priority_threshold);
 
 external Ident_Keyword* error_kw;
-Ast_Ident* error_type_ast = 0;
-Ast_Ident* void_type_ast = 0;
-Ast_Ident* bool_type_ast = 0;
-Ast_Ident* bit_type_ast = 0;
-Ast_Ident* varbit_type_ast = 0;
-Ast_Ident* int_type_ast = 0;
-Ast_Ident* string_type_ast = 0;
+Ast_TypeIdent* error_type_ast = 0;
+Ast_TypeIdent* void_type_ast = 0;
+Ast_TypeIdent* bool_type_ast = 0;
+Ast_TypeIdent* bit_type_ast = 0;
+Ast_TypeIdent* varbit_type_ast = 0;
+Ast_TypeIdent* int_type_ast = 0;
+Ast_TypeIdent* string_type_ast = 0;
 
 internal void
 next_token()
@@ -638,45 +638,45 @@ build_expression_primary()
 
   if (token_at->klass == TOK_IDENT)
   {
-    Ast_IdentExpr* expression = arena_push_struct(&arena, Ast_IdentExpr);
-    zero_struct(expression, Ast_IdentExpr);
-    expression->kind = AST_IDENT_EXPR;
+    Ast_Ident* expression = arena_push_struct(&arena, Ast_Ident);
+    zero_struct(expression, Ast_Ident);
+    expression->kind = AST_IDENT;
     expression->name = token_at->lexeme;
     result = (Ast_Expression*)expression;
     next_token();
   }
   else if (token_at->klass == TOK_TYPE_IDENT)
   {
-    Ast_TypeIdentExpr* expression = arena_push_struct(&arena, Ast_TypeIdentExpr);
-    zero_struct(expression, Ast_TypeIdentExpr);
-    expression->kind = AST_TYPE_IDENT_EXPR;
+    Ast_TypeIdent* expression = arena_push_struct(&arena, Ast_TypeIdent);
+    zero_struct(expression, Ast_TypeIdent);
+    expression->kind = AST_TYPE_IDENT;
     expression->name = token_at->lexeme;
     result = (Ast_Expression*)expression;
     next_token();
   }
   else if (token_is_integer(token_at))
   {
-    Ast_IntegerExpr* expression = arena_push_struct(&arena, Ast_IntegerExpr);
-    zero_struct(expression, Ast_IntegerExpr);
-    expression->kind = AST_INTEGER_EXPR;
+    Ast_Integer* expression = arena_push_struct(&arena, Ast_Integer);
+    zero_struct(expression, Ast_Integer);
+    expression->kind = AST_INTEGER;
     expression->value = 0; //TODO
     result = (Ast_Expression*)expression;
     next_token();
   }
   else if (token_is_winteger(token_at))
   {
-    Ast_WIntegerExpr* expression = arena_push_struct(&arena, Ast_WIntegerExpr);
-    zero_struct(expression, Ast_WIntegerExpr);
-    expression->kind = AST_WINTEGER_EXPR;
+    Ast_WInteger* expression = arena_push_struct(&arena, Ast_WInteger);
+    zero_struct(expression, Ast_WInteger);
+    expression->kind = AST_WINTEGER;
     expression->value = 0; //TODO
     result = (Ast_Expression*)expression;
     next_token();
   }
   else if (token_is_sinteger(token_at))
   {
-    Ast_SIntegerExpr* expression = arena_push_struct(&arena, Ast_SIntegerExpr);
-    zero_struct(expression, Ast_SIntegerExpr);
-    expression->kind = AST_SINTEGER_EXPR;
+    Ast_SInteger* expression = arena_push_struct(&arena, Ast_SInteger);
+    zero_struct(expression, Ast_SInteger);
+    expression->kind = AST_SINTEGER;
     expression->value = 0; //TODO
     result = (Ast_Expression*)expression;
     next_token();
@@ -846,17 +846,17 @@ build_select_case()
   Ast_SelectCase* result = 0;
   if (token_is_expression(token_at))
   {
-    Ast_ExprSelectCase* expr_select = arena_push_struct(&arena, Ast_ExprSelectCase);
-    zero_struct(expr_select, Ast_ExprSelectCase);
-    expr_select->kind = AST_EXPR_SELECT_CASE;
-    expr_select->key_expr = build_expression(1);
-    result = (Ast_SelectCase*)expr_select;
+    Ast_SelectCase_Expr* select_expr = arena_push_struct(&arena, Ast_SelectCase_Expr);
+    zero_struct(select_expr, Ast_SelectCase_Expr);
+    select_expr->kind = AST_SELECT_CASE_EXPR;
+    select_expr->key_expr = build_expression(1);
+    result = (Ast_SelectCase*)select_expr;
   }
   else if (token_at->klass = TOK_KW_DEFAULT)
   {
     next_token();
-    Ast_DefaultSelectCase* default_select = arena_push_struct(&arena, Ast_DefaultSelectCase);
-    zero_struct(default_select, Ast_DefaultSelectCase);
+    Ast_SelectCase_Default* default_select = arena_push_struct(&arena, Ast_SelectCase_Default);
+    zero_struct(default_select, Ast_SelectCase_Default);
     default_select->kind = AST_DEFAULT_SELECT_CASE;
     result = (Ast_SelectCase*)default_select;
   }
@@ -1864,45 +1864,45 @@ build_p4program()
 void
 build_ast()
 {
-  error_type_ast = arena_push_struct(&arena, Ast_Ident);
-  zero_struct(error_type_ast, Ast_Ident);
-  error_type_ast->kind = AST_TYPE_IDENT_EXPR;
+  error_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
+  zero_struct(error_type_ast, Ast_TypeIdent);
+  error_type_ast->kind = AST_TYPE_IDENT;
   error_type_ast->name = "error";
   error_type_ast->is_builtin = true;
 
-  void_type_ast = arena_push_struct(&arena, Ast_Ident);
-  zero_struct(void_type_ast, Ast_Ident);
-  void_type_ast->kind = AST_TYPE_IDENT_EXPR;
+  void_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
+  zero_struct(void_type_ast, Ast_TypeIdent);
+  void_type_ast->kind = AST_TYPE_IDENT;
   void_type_ast->name = "void";
   void_type_ast->is_builtin = true;
 
-  bool_type_ast = arena_push_struct(&arena, Ast_Ident);
-  zero_struct(bool_type_ast, Ast_Ident);
-  bool_type_ast->kind = AST_TYPE_IDENT_EXPR;
+  bool_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
+  zero_struct(bool_type_ast, Ast_TypeIdent);
+  bool_type_ast->kind = AST_TYPE_IDENT;
   bool_type_ast->name = "bool";
   bool_type_ast->is_builtin = true;
 
-  bit_type_ast = arena_push_struct(&arena, Ast_Ident);
-  zero_struct(bit_type_ast, Ast_Ident);
-  bit_type_ast->kind = AST_TYPE_IDENT_EXPR;
+  bit_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
+  zero_struct(bit_type_ast, Ast_TypeIdent);
+  bit_type_ast->kind = AST_TYPE_IDENT;
   bit_type_ast->name = "bit";
   bit_type_ast->is_builtin = true;
 
-  varbit_type_ast = arena_push_struct(&arena, Ast_Ident);
-  zero_struct(varbit_type_ast, Ast_Ident);
-  varbit_type_ast->kind = AST_TYPE_IDENT_EXPR;
+  varbit_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
+  zero_struct(varbit_type_ast, Ast_TypeIdent);
+  varbit_type_ast->kind = AST_TYPE_IDENT;
   varbit_type_ast->name = "varbit";
   varbit_type_ast->is_builtin = true;
 
-  int_type_ast = arena_push_struct(&arena, Ast_Ident);
-  zero_struct(int_type_ast, Ast_Ident);
-  int_type_ast->kind = AST_TYPE_IDENT_EXPR;
+  int_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
+  zero_struct(int_type_ast, Ast_TypeIdent);
+  int_type_ast->kind = AST_TYPE_IDENT;
   int_type_ast->name = "int";
   int_type_ast->is_builtin = true;
 
-  string_type_ast = arena_push_struct(&arena, Ast_Ident);
-  zero_struct(string_type_ast, Ast_Ident);
-  string_type_ast->kind = AST_TYPE_IDENT_EXPR;
+  string_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
+  zero_struct(string_type_ast, Ast_TypeIdent);
+  string_type_ast->kind = AST_TYPE_IDENT;
   string_type_ast->name = "string";
   string_type_ast->is_builtin = true;
 

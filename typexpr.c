@@ -3,19 +3,19 @@
 external Arena arena;
 external Ast_P4Program* p4program;
 
-external Ast_Ident* error_type_ast;
+external Ast_TypeIdent* error_type_ast;
 internal Typexpr_Enum* error_typexpr;
-external Ast_Ident* void_type_ast;
+external Ast_TypeIdent* void_type_ast;
 internal Typexpr_Basic* void_typexpr;
-external Ast_Ident* bool_type_ast;
+external Ast_TypeIdent* bool_type_ast;
 internal Typexpr_Basic* bool_typexpr;
-external Ast_Ident* bit_type_ast;
+external Ast_TypeIdent* bit_type_ast;
 internal Typexpr_Basic* bit_typexpr;
-external Ast_Ident* varbit_type_ast;
+external Ast_TypeIdent* varbit_type_ast;
 internal Typexpr_Basic* varbit_typexpr;
-external Ast_Ident* int_type_ast;
+external Ast_TypeIdent* int_type_ast;
 internal Typexpr_Basic* int_typexpr;
-external Ast_Ident* string_type_ast;
+external Ast_TypeIdent* string_type_ast;
 internal Typexpr_Basic* string_typexpr;
 
 internal Typexpr* visit_expression(Ast_Expression* expr_ast);
@@ -226,7 +226,7 @@ visit_binary_expression(Ast_BinaryExpr* expr_ast)
 }
 
 internal Typexpr_Unknown*
-visit_ident_expression(Ast_IdentExpr* ident_ast)
+visit_ident_expression(Ast_Ident* ident_ast)
 {
   assert (!ident_ast->typexpr);
   Typexpr_Unknown* ident_typexpr = arena_push_struct(&arena, Typexpr_Unknown);
@@ -238,7 +238,7 @@ visit_ident_expression(Ast_IdentExpr* ident_ast)
 }
 
 internal Typexpr*
-visit_type_ident_expression(Ast_TypeIdentExpr* ident_ast)
+visit_type_ident_expression(Ast_TypeIdent* ident_ast)
 {
   assert (!ident_ast->typexpr);
   Typexpr_Unknown* ident_typexpr = arena_push_struct(&arena, Typexpr_Unknown);
@@ -300,15 +300,15 @@ visit_expression(Ast_Expression* expr_ast)
     expr_typexpr = (Typexpr*)visit_function_call((Ast_FunctionCall*)expr_ast);
   else if (expr_ast->kind == AST_BINARY_EXPR)
     expr_typexpr = (Typexpr*)visit_binary_expression((Ast_BinaryExpr*)expr_ast);
-  else if (expr_ast->kind == AST_IDENT_EXPR)
-    expr_typexpr = (Typexpr*)visit_ident_expression((Ast_IdentExpr*)expr_ast);
-  else if (expr_ast->kind == AST_TYPE_IDENT_EXPR)
-    expr_typexpr = (Typexpr*)visit_type_ident_expression((Ast_TypeIdentExpr*)expr_ast);
-  else if (expr_ast->kind == AST_INTEGER_EXPR)
+  else if (expr_ast->kind == AST_IDENT)
+    expr_typexpr = (Typexpr*)visit_ident_expression((Ast_Ident*)expr_ast);
+  else if (expr_ast->kind == AST_TYPE_IDENT)
+    expr_typexpr = (Typexpr*)visit_type_ident_expression((Ast_TypeIdent*)expr_ast);
+  else if (expr_ast->kind == AST_INTEGER)
     ;
-  else if (expr_ast->kind == AST_WINTEGER_EXPR)
+  else if (expr_ast->kind == AST_WINTEGER)
     ;
-  else if (expr_ast->kind == AST_SINTEGER_EXPR)
+  else if (expr_ast->kind == AST_SINTEGER)
     ;
   else
     assert (false);

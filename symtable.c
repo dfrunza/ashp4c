@@ -6,19 +6,19 @@ external int max_symtable_len;
 external int scope_level;
 
 Ident_Keyword* error_kw = 0;
-external Ast_Ident* error_type_ast;
+external Ast_TypeIdent* error_type_ast;
 Ident* error_type_ident = 0;
-external Ast_Ident* void_type_ast;
+external Ast_TypeIdent* void_type_ast;
 Ident* void_type_ident = 0;
-external Ast_Ident* bool_type_ast;
+external Ast_TypeIdent* bool_type_ast;
 Ident* bool_type_ident = 0;
-external Ast_Ident* bit_type_ast;
+external Ast_TypeIdent* bit_type_ast;
 Ident* bit_type_ident = 0;
-external Ast_Ident* varbit_type_ast;
+external Ast_TypeIdent* varbit_type_ast;
 Ident* varbit_type_ident;
-external Ast_Ident* int_type_ast;
+external Ast_TypeIdent* int_type_ast;
 Ident* int_type_ident;
-external Ast_Ident* string_type_ast;
+external Ast_TypeIdent* string_type_ast;
 Ident* string_type_ident;
 
 internal uint32_t

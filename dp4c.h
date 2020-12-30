@@ -400,16 +400,16 @@ enum AstKind
   AST_PARSER_PROTOTYPE,
   AST_PARSER_DECL,
   AST_PARSER_STATE,
-  AST_IDENT_EXPR,
-  AST_TYPE_IDENT_EXPR,
-  AST_INTEGER_EXPR,
-  AST_WINTEGER_EXPR,
-  AST_SINTEGER_EXPR,
+  AST_IDENT,
+  AST_TYPE_IDENT,
+  AST_INTEGER,
+  AST_WINTEGER,
+  AST_SINTEGER,
   AST_BINARY_EXPR,
   AST_FUNCTION_CALL,
   AST_IDENT_STATE,
   AST_SELECT_STATE,
-  AST_EXPR_SELECT_CASE,
+  AST_SELECT_CASE_EXPR,
   AST_DEFAULT_SELECT_CASE,
   AST_TRANSITION_STMT,
   AST_CONTROL_PROTOTYPE,
@@ -471,17 +471,11 @@ typedef struct Ast_Declaration
 }
 Ast_Declaration;
 
-typedef struct Ast_Ident
-{
-  Ast;
-  char* name;
-}
-Ast_Ident;
-
 typedef struct Ast_ErrorCode
 {
-  Ast_Ident;
+  Ast;
   struct Ast_ErrorCode* next_code;
+  char* name;
   Ident* var_ident;
 }
 Ast_ErrorCode;  // AST_ERROR_CODE
@@ -520,8 +514,9 @@ Ast_Typedef;  // AST_TYPEDEF
 
 typedef struct Ast_StructField
 {
-  Ast_Ident;
+  Ast;
   struct Ast_StructField* next_field;
+  char* name;
   Ast_Typeref* typeref;
   Ident* var_ident;
 }
@@ -604,42 +599,43 @@ typedef struct Ast_BinaryExpr
 }
 Ast_BinaryExpr;  // AST_BINARY_EXPR
 
-typedef struct Ast_IdentExpr
+typedef struct Ast_Ident
 {
   Ast_Expression;
   char* name;
+  bool is_member;
   Ident* var_ident;
 }
-Ast_IdentExpr;  // AST_IDENT_EXPR
+Ast_Ident;  // AST_IDENT
 
-typedef struct Ast_TypeIdentExpr
+typedef struct Ast_TypeIdent
 {
   Ast_Expression;
   char* name;
   Ident* type_ident;
 }
-Ast_TypeIdentExpr;  // AST_TYPE_IDENT_EXPR
+Ast_TypeIdent;  // AST_TYPE_IDENT
 
-typedef struct Ast_IntegerExpr
+typedef struct Ast_Integer
 {
   Ast_Expression;
   int value;
 }
-Ast_IntegerExpr;  // AST_INTEGER_EXPR
+Ast_Integer;  // AST_INTEGER
 
-typedef struct Ast_WIntegerExpr
+typedef struct Ast_WInteger
 {
   Ast_Expression;
   int value;
 }
-Ast_WIntegerExpr;  // AST_WINTEGER_EXPR
+Ast_WInteger;  // AST_WINTEGER
 
-typedef struct Ast_SIntegerExpr
+typedef struct Ast_SInteger
 {
   Ast_Expression;
   int value;
 }
-Ast_SIntegerExpr;  // AST_SINTEGER_EXPR
+Ast_SInteger;  // AST_SINTEGER
 
 typedef struct Ast_StateExpr
 {
@@ -671,18 +667,18 @@ typedef struct Ast_SelectCase
 }
 Ast_SelectCase;  // AST_SELECT_CASE
 
-typedef struct Ast_ExprSelectCase
+typedef struct Ast_SelectCase_Expr
 {
   Ast_SelectCase;
   Ast_Expression* key_expr;
 }
-Ast_ExprSelectCase;  // AST_EXPR_SELECT_CASE
+Ast_SelectCase_Expr;  // AST_SELECT_CASE_EXPR
 
-typedef struct Ast_DefaultSelectCase
+typedef struct Ast_SelectCase_Default
 {
   Ast_SelectCase;
 }
-Ast_DefaultSelectCase;  // AST_DEFAULT_SELECT_CASE
+Ast_SelectCase_Default;  // AST_SELECT_CASE_DEFAULT
 
 typedef struct Ast_SelectState
 {

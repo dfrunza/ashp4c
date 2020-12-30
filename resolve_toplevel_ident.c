@@ -8,7 +8,7 @@ external int scope_level;
 internal void visit_expression(Ast_Expression* expr_ast);
 
 internal void
-visit_ident_expression(Ast_IdentExpr* ident_ast)
+visit_ident_expression(Ast_Ident* ident_ast)
 {
   Ident* var_ident = sym_get_var(ident_ast->name);
   if (!var_ident)
@@ -17,7 +17,7 @@ visit_ident_expression(Ast_IdentExpr* ident_ast)
 }
 
 internal void
-visit_type_ident_expression(Ast_TypeIdentExpr* ident_ast)
+visit_type_ident_expression(Ast_TypeIdent* ident_ast)
 {
   Ident* type_ident = sym_get_type(ident_ast->name);
   if (!type_ident)
@@ -43,10 +43,10 @@ visit_binary_expression(Ast_BinaryExpr* expr_ast)
 internal void
 visit_function_call(Ast_FunctionCall* call_ast)
 {
-  if (call_ast->function->kind == AST_IDENT_EXPR)
-    visit_ident_expression((Ast_IdentExpr*)call_ast->function);
-  else if (call_ast->function->kind == AST_TYPE_IDENT_EXPR)
-    visit_type_ident_expression((Ast_TypeIdentExpr*)call_ast->function);
+  if (call_ast->function->kind == AST_IDENT)
+    visit_ident_expression((Ast_Ident*)call_ast->function);
+  else if (call_ast->function->kind == AST_TYPE_IDENT)
+    visit_type_ident_expression((Ast_TypeIdent*)call_ast->function);
 }
 
 internal void
@@ -59,14 +59,14 @@ visit_expression(Ast_Expression* expr_ast)
       visit_binary_expression((Ast_BinaryExpr*)expr_ast);
     } break;
 
-    case (AST_IDENT_EXPR):
+    case (AST_IDENT):
     {
-      visit_ident_expression((Ast_IdentExpr*)expr_ast);
+      visit_ident_expression((Ast_Ident*)expr_ast);
     } break;
 
-    case (AST_TYPE_IDENT_EXPR):
+    case (AST_TYPE_IDENT):
     {
-      visit_type_ident_expression((Ast_TypeIdentExpr*)expr_ast);
+      visit_type_ident_expression((Ast_TypeIdent*)expr_ast);
     } break;
 
     case (AST_FUNCTION_CALL):

@@ -11,9 +11,9 @@ visit_binary_expression(Ast_BinaryExpr* expr_ast)
     Ast_Expression* l_operand = expr_ast->l_operand;
     Ast_Expression* r_operand = expr_ast->r_operand;
 
-    if (l_operand->kind == AST_IDENT_EXPR)
+    if (l_operand->kind == AST_IDENT)
     {
-      Ast_IdentExpr* l_ident_ast = (Ast_IdentExpr*)l_operand;
+      Ast_Ident* l_ident_ast = (Ast_Ident*)l_operand;
       int x = 0;
     }
   }
