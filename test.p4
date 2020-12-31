@@ -68,6 +68,7 @@ parser XdpParser(TPacketIn pkt, out Header hdr)
   {
     j = 19;
     pkt.extract(hdr.ethernet);
+
     transition select(hdr.ethernet.ether_type)
     {
       0x0800: parse_ipv4;
@@ -80,6 +81,7 @@ parser XdpParser(TPacketIn pkt, out Header hdr)
     pkt.extract(hdr.ipv4);
     verify(hdr.ipv4.version == 4w4, error.IPv4IncorrectVersion);
     verify(hdr.ipv4.ihl == 4w5, error.IPv4OptionsNotSupported);
+
     transition accept;
   }
 };

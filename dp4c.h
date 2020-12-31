@@ -569,7 +569,6 @@ typedef struct Ast_Expression
 {
   Ast_Declaration;
   struct Ast_Expression* next_expression;
-  bool is_member;
 }
 Ast_Expression;
 
