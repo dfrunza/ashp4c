@@ -5,22 +5,6 @@ external Namespace_Entry** symtable;
 external int max_symtable_len;
 external int scope_level;
 
-Ident_Keyword* error_kw = 0;
-external Ast_TypeIdent* error_type_ast;
-Ident* error_type_ident = 0;
-external Ast_TypeIdent* void_type_ast;
-Ident* void_type_ident = 0;
-external Ast_TypeIdent* bool_type_ast;
-Ident* bool_type_ident = 0;
-external Ast_TypeIdent* bit_type_ast;
-Ident* bit_type_ident = 0;
-external Ast_TypeIdent* varbit_type_ast;
-Ident* varbit_type_ident;
-external Ast_TypeIdent* int_type_ast;
-Ident* int_type_ident;
-external Ast_TypeIdent* string_type_ast;
-Ident* string_type_ident;
-
 internal uint32_t
 name_hash(char* name)
 {
@@ -99,7 +83,6 @@ sym_get_namespace(char* name)
   if (!name_info)
   {
     name_info = arena_push_struct(&arena, Namespace_Entry);
-    zero_struct(name_info, Namespace_Entry);
     name_info->name = name;
     name_info->next = symtable[h];
     symtable[h] = name_info;
@@ -122,7 +105,6 @@ sym_new_var(char* name, Ast* ast)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
   Ident* ident = arena_push_struct(&arena, Ident);
-  zero_struct(ident, Ident);
   ident->ast = ast;
   ident->name = name;
   ident->scope_level = scope_level;
@@ -175,7 +157,6 @@ sym_new_type(char* name, Ast* ast)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
   Ident* ident = arena_push_struct(&arena, Ident);
-  zero_struct(ident, Ident);
   ident->ast = ast;
   ident->name = name;
   ident->scope_level = scope_level;
@@ -191,7 +172,6 @@ sym_new_typevar(char* name, Ast* ast)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
   Ident* ident = arena_push_struct(&arena, Ident);
-  zero_struct(ident, Ident);
   ident->ast = ast;
   ident->name = name;
   ident->scope_level = scope_level;
@@ -239,13 +219,12 @@ sym_unimport_type(Ident* type_ident)
   ns->ns_type = ns->ns_type->next_in_scope;
 }
 
-internal Ident_Keyword*
+Ident_Keyword*
 add_keyword(char* name, enum TokenClass token_klass)
 {
   Namespace_Entry* namespace = sym_get_namespace(name);
   assert (namespace->ns_global == 0);
   Ident_Keyword* ident = arena_push_struct(&arena, Ident_Keyword);
-  zero_struct(ident, Ident_Keyword);
   ident->name = name;
   ident->scope_level = scope_level;
   ident->token_klass = token_klass;
@@ -257,42 +236,5 @@ add_keyword(char* name, enum TokenClass token_klass)
 void
 sym_init()
 {
-  add_keyword("action", TOK_KW_ACTION);
-  add_keyword("const", TOK_KW_CONST);
-  add_keyword("enum", TOK_KW_ENUM);
-  add_keyword("in", TOK_KW_IN);
-  add_keyword("package", TOK_KW_PACKAGE);
-  add_keyword("select", TOK_KW_SELECT);
-  add_keyword("switch", TOK_KW_SWITCH);
-  add_keyword("tuple", TOK_KW_TUPLE);
-  add_keyword("control", TOK_KW_CONTROL);
-  error_kw = add_keyword("error", TOK_KW_ERROR);
-  add_keyword("header", TOK_KW_HEADER);
-  add_keyword("inout", TOK_KW_INOUT);
-  add_keyword("parser", TOK_KW_PARSER);
-  add_keyword("state", TOK_KW_STATE);
-  add_keyword("table", TOK_KW_TABLE);
-  add_keyword("typedef", TOK_KW_TYPEDEF);
-  add_keyword("default", TOK_KW_DEFAULT);
-  add_keyword("extern", TOK_KW_EXTERN);
-  add_keyword("header_union", TOK_KW_HEADER_UNION);
-  add_keyword("out", TOK_KW_OUT);
-  add_keyword("transition", TOK_KW_TRANSITION);
-  add_keyword("else", TOK_KW_ELSE);
-  add_keyword("exit", TOK_KW_EXIT);
-  add_keyword("if", TOK_KW_IF);
-  add_keyword("match_kind", TOK_KW_MATCH_KIND);
-  add_keyword("return", TOK_KW_RETURN);
-  add_keyword("struct", TOK_KW_STRUCT);
-  add_keyword("apply", TOK_KW_APPLY);
-  //add_keyword("verify", TOK_KW_VERIFY);
-
-  error_type_ident = sym_new_type(error_type_ast->name, (Ast*)error_type_ast);
-  void_type_ident = sym_new_type(void_type_ast->name, (Ast*)void_type_ast);
-  bool_type_ident = sym_new_type("bool", (Ast*)bool_type_ast);
-  bit_type_ident = sym_new_type("bit", (Ast*)bit_type_ast);
-  varbit_type_ident = sym_new_type("varbit", (Ast*)varbit_type_ast);
-  int_type_ident = sym_new_type("int", (Ast*)int_type_ast);
-  string_type_ident = sym_new_type("string", (Ast*)string_type_ast);
 }
 

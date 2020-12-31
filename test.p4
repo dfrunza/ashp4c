@@ -66,7 +66,7 @@ parser XdpParser(TPacketIn pkt, out Header hdr)
 {
   state start
   {
-    j = 10;
+    j = 19;
     pkt.extract(hdr.ethernet);
     transition select(hdr.ethernet.ether_type)
     {
@@ -89,6 +89,7 @@ control XdpPipe(inout Header hdr, out bool accept)
   int i;
   apply
   {
+    accept = false;
     i = 10;
   }
 };

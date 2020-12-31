@@ -11,17 +11,35 @@ external Ast_P4Program* p4program;
 internal Token* token_at = 0;
 internal Token* prev_token_at = 0;
 
+Ident_Keyword* error_kw = 0;
+Ast_TypeIdent* error_type_ast = 0;
+Ident* error_type_ident = 0;
+
+Ast_TypeIdent* void_type_ast = 0;
+Ident* void_type_ident = 0;
+
+Ast_TypeIdent* bool_type_ast = 0;
+Ident* bool_type_ident = 0;
+
+Ast_TypeIdent* bit_type_ast = 0;
+Ident* bit_type_ident = 0;
+
+Ast_TypeIdent* varbit_type_ast = 0;
+Ident* varbit_type_ident;
+
+Ast_TypeIdent* int_type_ast = 0;
+Ident* int_type_ident;
+
+Ast_TypeIdent* string_type_ast = 0;
+Ident* string_type_ident;
+
+Ast_Integer* bool_true_ast = 0;
+Ident* bool_true_ident = 0;
+Ast_Integer* bool_false_ast = 0;
+Ident* bool_false_ident = 0;
+
 internal Ast_Typeref* build_typeref();
 internal Ast_Expression* build_expression(int priority_threshold, bool is_member);
-
-external Ident_Keyword* error_kw;
-Ast_TypeIdent* error_type_ast = 0;
-Ast_TypeIdent* void_type_ast = 0;
-Ast_TypeIdent* bool_type_ast = 0;
-Ast_TypeIdent* bit_type_ast = 0;
-Ast_TypeIdent* varbit_type_ast = 0;
-Ast_TypeIdent* int_type_ast = 0;
-Ast_TypeIdent* string_type_ast = 0;
 
 internal void
 next_token()
@@ -67,7 +85,6 @@ build_struct_field()
 {
   assert(token_at->klass == TOK_TYPE_IDENT);
   Ast_StructField* result = arena_push_struct(&arena, Ast_StructField);
-  zero_struct(result, Ast_StructField);
   result->kind = AST_STRUCT_FIELD;
   result->member_type = build_typeref();
 
@@ -108,7 +125,6 @@ build_header_decl()
   assert(token_at->klass == TOK_KW_HEADER);
   next_token();
   Ast_HeaderDecl* result = arena_push_struct(&arena, Ast_HeaderDecl);
-  zero_struct(result, Ast_HeaderDecl);
   result->kind = AST_HEADER_PROTOTYPE;
   int header_scope_level = scope_level;
 
@@ -165,7 +181,6 @@ build_struct_decl()
   assert(token_at->klass == TOK_KW_STRUCT);
   next_token();
   Ast_StructDecl* result = arena_push_struct(&arena, Ast_StructDecl);
-  zero_struct(result, Ast_StructDecl);
   result->kind = AST_STRUCT_PROTOTYPE;
   int struct_scope_level = scope_level;
 
@@ -224,7 +239,6 @@ build_error_code()
 {
   assert(token_at->klass == TOK_IDENT);
   Ast_ErrorCode* code = arena_push_struct(&arena, Ast_ErrorCode);
-  zero_struct(code, Ast_ErrorCode);
   code->kind = AST_ERROR_CODE;
   code->name = token_at->lexeme;
 
@@ -241,7 +255,6 @@ build_error_type_decl()
 {
   assert(token_at->klass == TOK_KW_ERROR);
   Ast_ErrorType* result = arena_push_struct(&arena, Ast_ErrorType);
-  zero_struct(result, Ast_ErrorType);
   result->kind = AST_ERROR_TYPE;
   result->line_nr = token_at->line_nr;
   result->type_ident = sym_get_error_type();
@@ -301,7 +314,6 @@ build_type_parameter()
 {
   assert(token_is_type_parameter(token_at));
   Ast_TypeParameter* result = arena_push_struct(&arena, Ast_TypeParameter);
-  zero_struct(result, Ast_TypeParameter);
   result->kind = AST_TYPE_PARAMETER;
 
   if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
@@ -396,7 +408,6 @@ build_typeref()
 {
   assert(token_at->klass == TOK_TYPE_IDENT);
   Ast_Typeref* result = arena_push_struct(&arena, Ast_Typeref);
-  zero_struct(result, Ast_Typeref);
   result->kind = AST_TYPEREF;
   result->name = token_at->lexeme;
 
@@ -415,7 +426,6 @@ build_typedef_decl()
   assert(token_at->klass == TOK_KW_TYPEDEF);
   next_token();
   Ast_Typedef* result = arena_push_struct(&arena, Ast_Typedef);
-  zero_struct(result, Ast_Typedef);
   result->kind = AST_TYPEDEF;
 
   if (token_at->klass == TOK_TYPE_IDENT)
@@ -477,7 +487,6 @@ build_parameter()
 {
   assert(token_is_parameter(token_at));
   Ast_Parameter* result = arena_push_struct(&arena, Ast_Parameter);
-  zero_struct(result, Ast_Parameter);
   result->kind = AST_PARAMETER;
 
   if (token_is_direction(token_at))
@@ -530,7 +539,6 @@ build_parser_prototype()
 {
   assert(token_at->klass == TOK_KW_PARSER);
   Ast_ParserDecl* result = arena_push_struct(&arena, Ast_ParserDecl);
-  zero_struct(result, Ast_ParserDecl);
   result->kind = AST_PARSER_PROTOTYPE;
 
   next_token();
@@ -614,7 +622,6 @@ token_is_expression(Token* token)
 {
   bool result = token->klass == TOK_IDENT || token->klass == TOK_TYPE_IDENT ||
     token_is_integer(token) || token_is_winteger(token) || token_is_sinteger(token) ||
-    //token->klass == TOK_KW_TRUE || token->klass == TOK_KW_FALSE ||
     token->klass == TOK_STRING || token->klass == TOK_PARENTH_OPEN;
   return result;
 }
@@ -637,7 +644,6 @@ build_expression_primary(bool is_member)
   if (token_at->klass == TOK_IDENT)
   {
     Ast_Ident* ident_ast = arena_push_struct(&arena, Ast_Ident);
-    zero_struct(ident_ast, Ast_Ident);
     ident_ast->kind = AST_IDENT;
     ident_ast->name = token_at->lexeme;
     ident_ast->is_member = is_member;
@@ -654,7 +660,6 @@ build_expression_primary(bool is_member)
   else if (token_at->klass == TOK_TYPE_IDENT)
   {
     Ast_TypeIdent* ident_ast = arena_push_struct(&arena, Ast_TypeIdent);
-    zero_struct(ident_ast, Ast_TypeIdent);
     ident_ast->kind = AST_TYPE_IDENT;
     ident_ast->name = token_at->lexeme;
     ident_ast->is_member = is_member;
@@ -671,7 +676,6 @@ build_expression_primary(bool is_member)
   else if (token_is_integer(token_at))
   {
     Ast_Integer* expression = arena_push_struct(&arena, Ast_Integer);
-    zero_struct(expression, Ast_Integer);
     expression->kind = AST_INTEGER;
     expression->lexeme = token_at->lexeme;
     expression->value = 0; //TODO
@@ -681,7 +685,6 @@ build_expression_primary(bool is_member)
   else if (token_is_winteger(token_at))
   {
     Ast_WInteger* expression = arena_push_struct(&arena, Ast_WInteger);
-    zero_struct(expression, Ast_WInteger);
     expression->kind = AST_WINTEGER;
     expression->lexeme = token_at->lexeme;
     expression->value = 0; //TODO
@@ -691,7 +694,6 @@ build_expression_primary(bool is_member)
   else if (token_is_sinteger(token_at))
   {
     Ast_SInteger* expression = arena_push_struct(&arena, Ast_SInteger);
-    zero_struct(expression, Ast_SInteger);
     expression->kind = AST_SINTEGER;
     expression->lexeme = token_at->lexeme;
     expression->value = 0; //TODO
@@ -808,7 +810,6 @@ build_expression(int priority_threshold, bool is_member)
         if (op_is_binary(op))
         {
           Ast_BinaryExpr* binary_expr = arena_push_struct(&arena, Ast_BinaryExpr);
-          zero_struct(binary_expr, Ast_BinaryExpr)
           binary_expr->kind = AST_BINARY_EXPR;
           binary_expr->l_operand = result;
           binary_expr->op = op;
@@ -822,7 +823,6 @@ build_expression(int priority_threshold, bool is_member)
         else if (op == AST_OP_FUNCTION_CALL)
         {
           Ast_FunctionCall* function_call = arena_push_struct(&arena, Ast_FunctionCall);
-          zero_struct(function_call, Ast_FunctionCall);
           function_call->kind = AST_FUNCTION_CALL;
           function_call->function = result;
 
@@ -864,7 +864,6 @@ build_expression(int priority_threshold, bool is_member)
       if (priority >= priority_threshold)
       {
         Ast_VarDecl* var_decl = arena_push_struct(&arena, Ast_VarDecl);
-        zero_struct(var_decl, Ast_VarDecl);
         var_decl->kind = AST_VAR_DECL;
 
         var_decl->type = result;
@@ -894,7 +893,6 @@ build_ident_state()
 {
   assert(token_at->klass == TOK_IDENT);
   Ast_IdentState* result = arena_push_struct(&arena, Ast_IdentState);
-  zero_struct(result, Ast_IdentState);
   result->kind = AST_IDENT_STATE;
 
   result->name = token_at->lexeme;
@@ -923,7 +921,6 @@ build_select_case()
   if (token_is_expression(token_at))
   {
     Ast_SelectCase_Expr* select_expr = arena_push_struct(&arena, Ast_SelectCase_Expr);
-    zero_struct(select_expr, Ast_SelectCase_Expr);
     select_expr->kind = AST_SELECT_CASE_EXPR;
     select_expr->key_expr = build_expression(1, false);
     result = (Ast_SelectCase*)select_expr;
@@ -932,7 +929,6 @@ build_select_case()
   {
     next_token();
     Ast_SelectCase_Default* default_select = arena_push_struct(&arena, Ast_SelectCase_Default);
-    zero_struct(default_select, Ast_SelectCase_Default);
     default_select->kind = AST_DEFAULT_SELECT_CASE;
     result = (Ast_SelectCase*)default_select;
   }
@@ -982,7 +978,6 @@ build_select_state()
   assert(token_at->klass == TOK_KW_SELECT);
   next_token();
   Ast_SelectState* result = arena_push_struct(&arena, Ast_SelectState);
-  zero_struct(result, Ast_SelectState);
   result->kind = AST_SELECT_STATE;
   if (token_at->klass == TOK_PARENTH_OPEN)
   {
@@ -1015,7 +1010,6 @@ build_transition_stmt()
 {
   assert(token_at->klass == TOK_KW_TRANSITION);
   Ast_TransitionStmt* result = arena_push_struct(&arena, Ast_TransitionStmt);
-  zero_struct(result, Ast_TransitionStmt);
   result->kind = AST_TRANSITION_STMT;
 
   next_token();
@@ -1066,7 +1060,6 @@ build_parser_state()
 {
   assert(token_at->klass == TOK_KW_STATE);
   Ast_ParserState* result = arena_push_struct(&arena, Ast_ParserState);
-  zero_struct(result, Ast_ParserState);
   result->kind = AST_PARSER_STATE;
 
   int state_scope_level = scope_level;
@@ -1160,7 +1153,6 @@ build_control_prototype()
   assert(token_at->klass == TOK_KW_CONTROL);
   next_token();
   Ast_ControlDecl* result = arena_push_struct(&arena, Ast_ControlDecl);
-  zero_struct(result, Ast_ControlDecl);
   result->kind = AST_CONTROL_PROTOTYPE;
 
   if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
@@ -1219,7 +1211,6 @@ build_block_statement()
 {
   assert(token_at->klass == TOK_BRACE_OPEN);
   Ast_BlockStmt* result = arena_push_struct(&arena, Ast_BlockStmt);
-  zero_struct(result, Ast_BlockStmt);
   result->kind = AST_BLOCK_STMT;
 
   next_token();
@@ -1237,8 +1228,8 @@ build_block_statement()
 bool
 token_is_control_local_decl(Token* token)
 {
-  bool result = token->klass == TOK_KW_ACTION || token->klass == TOK_KW_TABLE ||
-    token->klass == TOK_TYPE_IDENT;
+  bool result = (token->klass == TOK_KW_ACTION) || (token->klass == TOK_KW_TABLE) \
+                || token_is_expression(token);
   return result;
 }
 
@@ -1248,7 +1239,6 @@ build_action_decl()
   assert(token_at->klass == TOK_KW_ACTION);
   next_token();
   Ast_ActionDecl* result = arena_push_struct(&arena, Ast_ActionDecl);
-  zero_struct(result, Ast_ActionDecl);
   result->kind = AST_ACTION;
 
   if (token_at->klass == TOK_IDENT)
@@ -1282,7 +1272,6 @@ build_key_elem()
 {
   assert(token_is_expression(token_at));
   Ast_Key* result = arena_push_struct(&arena, Ast_Key);
-  zero_struct(result, Ast_Key);
   result->kind = AST_TABLE_KEY;
   result->expression = build_expression(1, false);
 
@@ -1311,7 +1300,6 @@ build_simple_prop()
 {
   assert(token_is_expression(token_at));
   Ast_SimpleProp* result = arena_push_struct(&arena, Ast_SimpleProp);
-  zero_struct(result, Ast_SimpleProp);
   result->kind = AST_SIMPLE_PROP;
   result->expression = build_expression(1, false);
 
@@ -1327,7 +1315,6 @@ build_action_ref()
 {
   assert(token_at->klass == TOK_IDENT);
   Ast_ActionRef* result = arena_push_struct(&arena, Ast_ActionRef);
-  zero_struct(result, Ast_ActionRef);
   result->kind = AST_ACTION_REF;
   result->name = token_at->lexeme;
   next_token();
@@ -1460,7 +1447,6 @@ build_table_decl()
   assert(token_at->klass == TOK_KW_TABLE);
   next_token();
   Ast_TableDecl* result = arena_push_struct(&arena, Ast_TableDecl);
-  zero_struct(result, Ast_TableDecl);
   result->kind = AST_TABLE;
 
   if (token_at->klass == TOK_IDENT)
@@ -1547,7 +1533,7 @@ build_control_decl()
       while (token_is_control_local_decl(token_at))
       {
         Ast_Declaration* next_local_decl = build_control_local_decl(result);
-        local_decl->next_decl = local_decl;
+        local_decl->next_decl = next_local_decl;
         local_decl = next_local_decl;
       }
     }
@@ -1585,7 +1571,6 @@ build_package_prototype()
   assert(token_at->klass == TOK_KW_PACKAGE);
   next_token();
   Ast_PackageDecl* result = arena_push_struct(&arena, Ast_PackageDecl);
-  zero_struct(result, Ast_PackageDecl);
   result->kind = AST_PACKAGE_PROTOTYPE;
   int package_scope_level = scope_level;
 
@@ -1652,7 +1637,6 @@ build_function_prototype()
 {
   assert(token_at->klass == TOK_TYPE_IDENT);
   Ast_FunctionDecl* result = arena_push_struct(&arena, Ast_FunctionDecl);
-  zero_struct(result, Ast_FunctionDecl);
   result->kind = AST_FUNCTION_PROTOTYPE;
 
   result->return_type_ident = sym_get_type(token_at->lexeme);
@@ -1725,7 +1709,6 @@ build_extern_object_prototype()
 
   assert(token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT);
   Ast_ExternObjectDecl* result = arena_push_struct(&arena, Ast_ExternObjectDecl);
-  zero_struct(result, Ast_ExternObjectDecl);
   result->kind = AST_EXTERN_OBJECT_PROTOTYPE;
 
   result->name = token_at->lexeme;
@@ -1870,7 +1853,7 @@ build_p4declaration()
       result = (Ast_Declaration*)build_extern_decl();
       break;
     case (TOK_TYPE_IDENT):
-      result = (Ast_Declaration*)build_expression(1, false); //(Ast_Declaration*)build_package_instantiation();
+      result = (Ast_Declaration*)build_expression(1, false);
       break;
 
     default: assert(false);
@@ -1891,7 +1874,6 @@ build_p4program()
   if (token_is_declaration(token_at))
   {
     result = arena_push_struct(&arena, Ast_P4Program);
-    zero_struct(result, Ast_P4Program);
     result->kind = AST_P4PROGRAM;
     Ast_Declaration* declaration = build_p4declaration();
     result->first_declaration = declaration;
@@ -1913,48 +1895,90 @@ void
 build_ast()
 {
   error_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
-  zero_struct(error_type_ast, Ast_TypeIdent);
   error_type_ast->kind = AST_TYPE_IDENT;
   error_type_ast->name = "error";
   error_type_ast->is_builtin = true;
 
   void_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
-  zero_struct(void_type_ast, Ast_TypeIdent);
   void_type_ast->kind = AST_TYPE_IDENT;
   void_type_ast->name = "void";
   void_type_ast->is_builtin = true;
 
   bool_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
-  zero_struct(bool_type_ast, Ast_TypeIdent);
   bool_type_ast->kind = AST_TYPE_IDENT;
   bool_type_ast->name = "bool";
   bool_type_ast->is_builtin = true;
 
   bit_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
-  zero_struct(bit_type_ast, Ast_TypeIdent);
   bit_type_ast->kind = AST_TYPE_IDENT;
   bit_type_ast->name = "bit";
   bit_type_ast->is_builtin = true;
 
   varbit_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
-  zero_struct(varbit_type_ast, Ast_TypeIdent);
   varbit_type_ast->kind = AST_TYPE_IDENT;
   varbit_type_ast->name = "varbit";
   varbit_type_ast->is_builtin = true;
 
   int_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
-  zero_struct(int_type_ast, Ast_TypeIdent);
   int_type_ast->kind = AST_TYPE_IDENT;
   int_type_ast->name = "int";
   int_type_ast->is_builtin = true;
 
   string_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
-  zero_struct(string_type_ast, Ast_TypeIdent);
   string_type_ast->kind = AST_TYPE_IDENT;
   string_type_ast->name = "string";
   string_type_ast->is_builtin = true;
 
-  sym_init();
+  bool_true_ast = arena_push_struct(&arena, Ast_Integer);
+  bool_true_ast->kind = AST_INTEGER;
+  bool_true_ast->lexeme = "true";
+  bool_true_ast->value = 1;
+
+  bool_false_ast = arena_push_struct(&arena, Ast_Integer);
+  bool_false_ast->kind = AST_INTEGER;
+  bool_false_ast->lexeme = "false";
+  bool_false_ast->value = 0;
+
+  add_keyword("action", TOK_KW_ACTION);
+  add_keyword("const", TOK_KW_CONST);
+  add_keyword("enum", TOK_KW_ENUM);
+  add_keyword("in", TOK_KW_IN);
+  add_keyword("package", TOK_KW_PACKAGE);
+  add_keyword("select", TOK_KW_SELECT);
+  add_keyword("switch", TOK_KW_SWITCH);
+  add_keyword("tuple", TOK_KW_TUPLE);
+  add_keyword("control", TOK_KW_CONTROL);
+  error_kw = add_keyword("error", TOK_KW_ERROR);
+  add_keyword("header", TOK_KW_HEADER);
+  add_keyword("inout", TOK_KW_INOUT);
+  add_keyword("parser", TOK_KW_PARSER);
+  add_keyword("state", TOK_KW_STATE);
+  add_keyword("table", TOK_KW_TABLE);
+  add_keyword("typedef", TOK_KW_TYPEDEF);
+  add_keyword("default", TOK_KW_DEFAULT);
+  add_keyword("extern", TOK_KW_EXTERN);
+  add_keyword("header_union", TOK_KW_HEADER_UNION);
+  add_keyword("out", TOK_KW_OUT);
+  add_keyword("transition", TOK_KW_TRANSITION);
+  add_keyword("else", TOK_KW_ELSE);
+  add_keyword("exit", TOK_KW_EXIT);
+  add_keyword("if", TOK_KW_IF);
+  add_keyword("match_kind", TOK_KW_MATCH_KIND);
+  add_keyword("return", TOK_KW_RETURN);
+  add_keyword("struct", TOK_KW_STRUCT);
+  add_keyword("apply", TOK_KW_APPLY);
+  //add_keyword("verify", TOK_KW_VERIFY);
+
+  error_type_ident = sym_new_type(error_type_ast->name, (Ast*)error_type_ast);
+  void_type_ident = sym_new_type(void_type_ast->name, (Ast*)void_type_ast);
+  bool_type_ident = sym_new_type("bool", (Ast*)bool_type_ast);
+  bit_type_ident = sym_new_type("bit", (Ast*)bit_type_ast);
+  varbit_type_ident = sym_new_type("varbit", (Ast*)varbit_type_ast);
+  int_type_ident = sym_new_type("int", (Ast*)int_type_ast);
+  string_type_ident = sym_new_type("string", (Ast*)string_type_ast);
+
+  bool_true_ident = sym_new_var("true", (Ast*)bool_true_ast);
+  bool_false_ident = sym_new_var("false", (Ast*)bool_false_ast);
 
   assert(scope_level == 0);
   int top_scope_level = scope_push_level();
