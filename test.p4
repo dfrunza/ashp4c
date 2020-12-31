@@ -61,10 +61,12 @@ struct Header
   IPv4 ipv4;
 }
 
+int i;
 parser XdpParser(TPacketIn pkt, out Header hdr)
 {
   state start
   {
+    i = 10;
     pkt.extract(hdr.ethernet);
     transition select(hdr.ethernet.ether_type)
     {
@@ -87,7 +89,7 @@ control XdpPipe(inout Header hdr, out bool accept)
   int i;
   apply
   {
-    i = 0;
+    i = 10;
   }
 }
 

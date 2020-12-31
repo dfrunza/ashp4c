@@ -6,16 +6,17 @@ external Ast_P4Program* p4program;
 internal void
 visit_binary_expression(Ast_BinaryExpr* expr_ast)
 {
-  if (expr_ast->op == AST_OP_MEMBER_SELECTOR)
-  {
-    Ast_Expression* l_operand = expr_ast->l_operand;
-    Ast_Expression* r_operand = expr_ast->r_operand;
+  Ast_Expression* l_operand = expr_ast->l_operand;
+  Ast_Expression* r_operand = expr_ast->r_operand;
+  Typexpr* l_type = l_operand->typexpr;
+  Typexpr* r_type = r_operand->typexpr;
 
-    if (l_operand->kind == AST_IDENT)
-    {
-      Ast_Ident* l_ident_ast = (Ast_Ident*)l_operand;
-      int x = 0;
-    }
+  switch (expr_ast->op)
+  {
+    case (AST_OP_ASSIGN):
+      break;
+
+    default: ;
   }
 }
 
@@ -25,9 +26,8 @@ visit_expression(Ast_Expression* expr_ast)
   switch (expr_ast->kind)
   {
     case (AST_BINARY_EXPR):
-    {
       visit_binary_expression((Ast_BinaryExpr*)expr_ast);
-    } break;
+      break;
 
     default: break;
   }
@@ -74,7 +74,7 @@ visit_p4program(Ast_P4Program* program)
 }
 
 void
-resolve_member_ident()
+typecheck()
 {
   visit_p4program(p4program);
 }

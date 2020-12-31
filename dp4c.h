@@ -330,6 +330,7 @@ typedef struct Typexpr_Struct
 }
 Typexpr_Struct;  // TYP_STRUCT
 
+/*
 enum Typexpr_ExprOperator
 {
   TYP_OP_NONE,
@@ -340,12 +341,13 @@ enum Typexpr_ExprOperator
   TYP_OP_ADDITION,
   TYP_OP_SUBSTRACT,
 };
+*/
 
 typedef struct Typexpr_BinaryExpr
 {
   Typexpr;
 
-  enum Typexpr_ExprOperator op;
+//  enum Typexpr_ExprOperator op;
   Typexpr* l_type;
   Typexpr* r_type;
 }

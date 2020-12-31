@@ -50,7 +50,7 @@ main(int arg_count, char* args[])
   arena_print_usage(&arena, "Memory (syntax): ");
 
   build_typexpr();
-  //resolve_member_ident();
+  typecheck();
   arena_print_usage(&arena, "Memory (typexpr): ");
 
   return 0;

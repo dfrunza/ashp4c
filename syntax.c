@@ -728,20 +728,31 @@ build_expression_operator()
 {
   assert(token_is_expression_operator(token_at));
   enum Ast_ExprOperator result = 0;
-  if (token_at->klass == TOK_PERIOD)
-    result = AST_OP_MEMBER_SELECTOR;
-  else if (token_at->klass == TOK_EQUAL)
-    result = AST_OP_ASSIGN;
-  else if (token_at->klass == TOK_EQUAL_EQUAL)
-    result = AST_OP_LOGIC_EQUAL;
-  else if (token_at->klass == TOK_PARENTH_OPEN)
-    result = AST_OP_FUNCTION_CALL;
-  else if (token_at->klass == TOK_MINUS)
-    result = AST_OP_SUBTRACT;
-  else if (token_at->klass == TOK_PLUS)
-    result = AST_OP_ADDITION;
-  else
-    assert(false);
+
+  switch (token_at->klass)
+  {
+    case (TOK_PERIOD):
+      result = AST_OP_MEMBER_SELECTOR;
+      break;
+    case (TOK_EQUAL):
+      result = AST_OP_ASSIGN;
+      break;
+    case (TOK_EQUAL_EQUAL):
+      result = AST_OP_LOGIC_EQUAL;
+      break;
+    case (TOK_PARENTH_OPEN):
+      result = AST_OP_FUNCTION_CALL;
+      break;
+    case (TOK_MINUS):
+      result = AST_OP_SUBTRACT;
+      break;
+    case (TOK_PLUS):
+      result = AST_OP_ADDITION;
+      break;
+
+    default: assert(false);
+  }
+
   return result;
 }
 
@@ -749,18 +760,29 @@ internal int
 op_get_priority(enum Ast_ExprOperator op)
 {
   int result = 0;
-  if (op == AST_OP_ASSIGN)
-    result = 1;
-  else if (op == AST_OP_LOGIC_EQUAL)
-    result = 2;
-  else if (op == AST_OP_ADDITION || op == AST_OP_SUBTRACT)
-    result = 3;
-  else if (op == AST_OP_FUNCTION_CALL)
-    result = 4;
-  else if (op == AST_OP_MEMBER_SELECTOR)
-    result = 5;
-  else
-    assert(false);
+
+  switch (op)
+  {
+    case (AST_OP_ASSIGN):
+      result = 1;
+      break;
+    case (AST_OP_LOGIC_EQUAL):
+      result = 2;
+      break;
+    case (AST_OP_ADDITION):
+    case (AST_OP_SUBTRACT):
+      result = 3;
+      break;
+    case (AST_OP_FUNCTION_CALL):
+      result = 4;
+      break;
+    case (AST_OP_MEMBER_SELECTOR):
+      result = 5;
+      break;
+
+    default: assert(false);
+  }
+
   return result;
 }
 
@@ -1839,28 +1861,43 @@ build_p4declaration()
 {
   Ast_Declaration* result = 0;
   assert(token_is_declaration(token_at));
-  if (token_at->klass == TOK_KW_STRUCT)
-    result = (Ast_Declaration*)build_struct_decl();
-  else if (token_at->klass == TOK_KW_HEADER)
-    result = (Ast_Declaration*)build_header_decl();
-  else if (token_at->klass == TOK_KW_ERROR)
-    result = (Ast_Declaration*)build_error_type_decl();
-  else if (token_at->klass == TOK_KW_TYPEDEF)
-    result = (Ast_Declaration*)build_typedef_decl();
-  else if (token_at->klass == TOK_KW_PARSER)
-    result = (Ast_Declaration*)build_parser_decl();
-  else if (token_at->klass == TOK_KW_CONTROL)
-    result = (Ast_Declaration*)build_control_decl();
-  else if (token_at->klass == TOK_KW_ACTION)
-    result = (Ast_Declaration*)build_action_decl();
-  else if (token_at->klass == TOK_KW_PACKAGE)
-    result = (Ast_Declaration*)build_package_prototype();
-  else if (token_at->klass == TOK_KW_EXTERN)
-    result = (Ast_Declaration*)build_extern_decl();
-  else if (token_at->klass == TOK_TYPE_IDENT)
-    result = (Ast_Declaration*)build_package_instantiation();
-  else
-    assert(false);
+
+  switch (token_at->klass)
+  {
+    case (TOK_KW_STRUCT):
+      result = (Ast_Declaration*)build_struct_decl();
+      break;
+    case (TOK_KW_HEADER):
+      result = (Ast_Declaration*)build_header_decl();
+      break;
+    case (TOK_KW_ERROR):
+      result = (Ast_Declaration*)build_error_type_decl();
+      break;
+    case (TOK_KW_TYPEDEF):
+      result = (Ast_Declaration*)build_typedef_decl();
+      break;
+    case (TOK_KW_PARSER):
+      result = (Ast_Declaration*)build_parser_decl();
+      break;
+    case (TOK_KW_CONTROL):
+      result = (Ast_Declaration*)build_control_decl();
+      break;
+    case (TOK_KW_ACTION):
+      result = (Ast_Declaration*)build_action_decl();
+      break;
+    case (TOK_KW_PACKAGE):
+      result = (Ast_Declaration*)build_package_prototype();
+      break;
+    case (TOK_KW_EXTERN):
+      result = (Ast_Declaration*)build_extern_decl();
+      break;
+    case (TOK_TYPE_IDENT):
+      result = (Ast_Declaration*)build_package_instantiation();
+      break;
+
+    default: assert(false);
+  }
+
   return result;
 }
 
@@ -1936,11 +1973,11 @@ build_ast()
 
   sym_init();
 
-  assert (scope_level == 0);
+  assert(scope_level == 0);
   int top_scope_level = scope_push_level();
   token_at = tokenized_input;
   next_token();
   p4program = build_p4program();
   scope_pop_level(top_scope_level - 1);
-  assert (scope_level == 0);
+  assert(scope_level == 0);
 }
