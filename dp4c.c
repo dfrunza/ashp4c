@@ -49,7 +49,6 @@ main(int arg_count, char* args[])
   build_ast();
   arena_print_usage(&arena, "Memory (syntax): ");
 
-  resolve_toplevel_ident();
   build_typexpr();
   //resolve_member_ident();
   arena_print_usage(&arena, "Memory (typexpr): ");

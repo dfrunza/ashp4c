@@ -631,27 +631,49 @@ token_is_expression_operator(Token* token)
 }
 
 internal Ast_Expression*
-build_expression_primary()
+build_expression_primary(bool is_member)
 {
   assert(token_is_expression(token_at));
   Ast_Expression* result = 0;
 
   if (token_at->klass == TOK_IDENT)
   {
-    Ast_Ident* expression = arena_push_struct(&arena, Ast_Ident);
-    zero_struct(expression, Ast_Ident);
-    expression->kind = AST_IDENT;
-    expression->name = token_at->lexeme;
-    result = (Ast_Expression*)expression;
+    Ast_Ident* ident_ast = arena_push_struct(&arena, Ast_Ident);
+    zero_struct(ident_ast, Ast_Ident);
+    ident_ast->kind = AST_IDENT;
+    ident_ast->name = token_at->lexeme;
+    ident_ast->is_member = is_member;
+
+    if (!ident_ast->is_member)
+    {
+      Ident* var_ident = sym_get_var(ident_ast->name);
+      if (!var_ident)
+        error("at line %d: unknown identifier '%s'", ident_ast->line_nr, ident_ast->name);
+      ident_ast->var_ident = var_ident;
+      printf("resolved id '%s'\n", ident_ast->name);
+    }
+
+    result = (Ast_Expression*)ident_ast;
     next_token();
   }
   else if (token_at->klass == TOK_TYPE_IDENT)
   {
-    Ast_TypeIdent* expression = arena_push_struct(&arena, Ast_TypeIdent);
-    zero_struct(expression, Ast_TypeIdent);
-    expression->kind = AST_TYPE_IDENT;
-    expression->name = token_at->lexeme;
-    result = (Ast_Expression*)expression;
+    Ast_TypeIdent* ident_ast = arena_push_struct(&arena, Ast_TypeIdent);
+    zero_struct(ident_ast, Ast_TypeIdent);
+    ident_ast->kind = AST_TYPE_IDENT;
+    ident_ast->name = token_at->lexeme;
+    ident_ast->is_member = is_member;
+
+    if (!ident_ast->is_member)
+    {
+      Ident* type_ident = sym_get_type(ident_ast->name);
+      if (!type_ident)
+        error("at line %d: unknown type '%s'", ident_ast->line_nr, ident_ast->name);
+      ident_ast->type_ident = type_ident;
+      printf("resolved id '%s'\n", ident_ast->name);
+    }
+
+    result = (Ast_Expression*)ident_ast;
     next_token();
   }
   else if (token_is_integer(token_at))
@@ -752,8 +774,7 @@ internal Ast_Expression*
 build_expression(int priority_threshold, bool is_member)
 {
   assert(token_is_expression(token_at));
-  Ast_Expression* primary = build_expression_primary();
-  primary->is_member = is_member;
+  Ast_Expression* primary = build_expression_primary(is_member);
   Ast_Expression* result = primary;
   while (token_is_expression_operator(token_at))
   {
