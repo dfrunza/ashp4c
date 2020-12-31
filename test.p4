@@ -9,17 +9,17 @@ error
   ParserInvalidArgument,
   IPv4IncorrectVersion,
   IPv4OptionsNotSupported
-}
+};
 
 extern TPacketIn
 {
   void extract<T>(out T hdr);
-}
+};
 
 extern TPacketOut<T>
 {
   void emit(in T hdr);
-}
+};
 
 extern void verify(in bool check, in error error_to_signal);
 
@@ -37,7 +37,7 @@ header Ethernet
   EthernetAddress dst_addr;
   EthernetAddress src_addr;
   bit<16> ether_type;
-}
+};
 
 header IPv4
 {
@@ -53,20 +53,20 @@ header IPv4
   bit<16> hdr_checksum;
   IPv4Address src_addr;
   IPv4Address dst_addr;
-}
+};
 
 struct Header
 {
   Ethernet ethernet;
   IPv4 ipv4;
-}
+};
 
-int i;
+int j;
 parser XdpParser(TPacketIn pkt, out Header hdr)
 {
   state start
   {
-    i = 10;
+    j = 10;
     pkt.extract(hdr.ethernet);
     transition select(hdr.ethernet.ether_type)
     {
@@ -82,7 +82,7 @@ parser XdpParser(TPacketIn pkt, out Header hdr)
     verify(hdr.ipv4.ihl == 4w5, error.IPv4OptionsNotSupported);
     transition accept;
   }
-}
+};
 
 control XdpPipe(inout Header hdr, out bool accept)
 {
@@ -91,7 +91,7 @@ control XdpPipe(inout Header hdr, out bool accept)
   {
     i = 10;
   }
-}
+};
 
 TXdpPackage(XdpParser(), XdpPipe()) main;
 

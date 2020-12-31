@@ -256,13 +256,13 @@ internal Typexpr*
 visit_ident(Ast_Ident* ident_ast)
 {
   assert(!ident_ast->typexpr);
-  if (ident_ast->is_member)
-    printf("type unknown: '%s'\n", ident_ast->name);
+
+  Ident* var_ident = ident_ast->var_ident;
+  if (var_ident)
+    ident_ast->typexpr = var_ident->ast->typexpr;
   else
-  {
-    Ast* var_ast = ident_ast->var_ident->ast;
-    ident_ast->typexpr = var_ast->typexpr;
-  }
+    printf("type unknown: '%s'\n", ident_ast->name);
+
   return ident_ast->typexpr;
 }
 
@@ -270,13 +270,13 @@ internal Typexpr*
 visit_type_ident(Ast_TypeIdent* ident_ast)
 {
   assert(!ident_ast->typexpr);
-  if (ident_ast->is_member)
-    printf("type unknown: '%s'\n", ident_ast->name);
+
+  Ident* type_ident = ident_ast->type_ident;
+  if (type_ident)
+    ident_ast->typexpr = type_ident->ast->typexpr;
   else
-  {
-     Ast* type_ast = ident_ast->type_ident->ast;
-     ident_ast->typexpr = type_ast->typexpr;
-  }
+    printf("type unknown: '%s'\n", ident_ast->name);
+
   return ident_ast->typexpr;
 }
 
@@ -483,9 +483,8 @@ visit_var_decl(Ast_VarDecl* decl_ast)
   zero_struct(decl_typexpr, Typexpr_VarDecl);
   decl_ast->typexpr = (Typexpr*)decl_typexpr;
   decl_typexpr->kind = AST_VAR_DECL;
-  decl_typexpr->name = decl_ast->name;
 
-  decl_typexpr->var_type = visit_typeref(decl_ast->var_type);
+  decl_typexpr->var_type = visit_expression(decl_ast->type);
 
   if (decl_ast->initializer)
     decl_typexpr->initializer_type = visit_expression(decl_ast->initializer);
@@ -714,14 +713,6 @@ visit_struct_decl(Ast_StructDecl* struct_ast)
 }
 
 internal Typexpr*
-visit_package_instantiation(Ast_PackageInstantiation* instance_ast)
-{
-  assert(!instance_ast->typexpr);
-  visit_expression(instance_ast->package_ctor);
-  return 0;
-}
-
-internal Typexpr*
 visit_p4declaration(Ast_Declaration* p4decl_ast)
 {
   assert(!p4decl_ast->typexpr);
@@ -767,7 +758,7 @@ visit_p4declaration(Ast_Declaration* p4decl_ast)
     case (AST_EXTERN_FUNCTION_PROTOTYPE):
       visit_extern_function_prototype((Ast_FunctionDecl*)p4decl_ast);
       break;
-    case (AST_PACKAGE_INSTANCE):
+    case (AST_VAR_DECL):
       break;
 
     default: assert(false);

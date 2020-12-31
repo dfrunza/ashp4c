@@ -431,10 +431,6 @@ build_typedef_decl()
       result->type_ident = sym_new_type(result->name, (Ast*)result);
 
       next_token();
-      if (token_at->klass == TOK_SEMICOLON)
-        next_token();
-      else
-        error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
     else
       error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
@@ -646,14 +642,11 @@ build_expression_primary(bool is_member)
     ident_ast->name = token_at->lexeme;
     ident_ast->is_member = is_member;
 
-    if (!ident_ast->is_member)
-    {
-      Ident* var_ident = sym_get_var(ident_ast->name);
-      if (!var_ident)
-        error("at line %d: unknown identifier '%s'", ident_ast->line_nr, ident_ast->name);
-      ident_ast->var_ident = var_ident;
+    ident_ast->var_ident = sym_get_var(ident_ast->name);
+    if (ident_ast->var_ident)
       printf("resolved id '%s'\n", ident_ast->name);
-    }
+    else
+      printf("unknown id '%s'\n", ident_ast->name);
 
     result = (Ast_Expression*)ident_ast;
     next_token();
@@ -666,14 +659,11 @@ build_expression_primary(bool is_member)
     ident_ast->name = token_at->lexeme;
     ident_ast->is_member = is_member;
 
-    if (!ident_ast->is_member)
-    {
-      Ident* type_ident = sym_get_type(ident_ast->name);
-      if (!type_ident)
-        error("at line %d: unknown type '%s'", ident_ast->line_nr, ident_ast->name);
-      ident_ast->type_ident = type_ident;
+    ident_ast->type_ident = sym_get_type(ident_ast->name);
+    if (ident_ast->type_ident)
       printf("resolved id '%s'\n", ident_ast->name);
-    }
+    else
+      printf("unknown id '%s'\n", ident_ast->name);
 
     result = (Ast_Expression*)ident_ast;
     next_token();
@@ -779,6 +769,9 @@ op_get_priority(enum Ast_ExprOperator op)
     case (AST_OP_MEMBER_SELECTOR):
       result = 5;
       break;
+    case (AST_OP_VAR_DECL):
+      result = 6;
+      break;
 
     default: assert(false);
   }
@@ -800,66 +793,98 @@ build_expression(int priority_threshold, bool is_member)
   assert(token_is_expression(token_at));
   Ast_Expression* primary = build_expression_primary(is_member);
   Ast_Expression* result = primary;
-  while (token_is_expression_operator(token_at))
+
+  while (token_is_expression_operator(token_at) || token_at->klass == TOK_IDENT)
   {
-    enum Ast_ExprOperator op = build_expression_operator();
-    int priority = op_get_priority(op);
-    if (priority >= priority_threshold)
+    if (token_is_expression_operator(token_at))
     {
-      next_token();
-      if (op_is_binary(op))
-      {
-        Ast_BinaryExpr* binary_expr = arena_push_struct(&arena, Ast_BinaryExpr);
-        zero_struct(binary_expr, Ast_BinaryExpr)
-        binary_expr->kind = AST_BINARY_EXPR;
-        binary_expr->l_operand = result;
-        binary_expr->op = op;
+      enum Ast_ExprOperator op = build_expression_operator();
+      int priority = op_get_priority(op);
 
-        if (token_is_expression(token_at))
-          binary_expr->r_operand = build_expression(priority_threshold + 1, (op == AST_OP_MEMBER_SELECTOR));
-        else
-          error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
-        result = (Ast_Expression*)binary_expr;
-      }
-      else if (op == AST_OP_FUNCTION_CALL)
+      if (priority >= priority_threshold)
       {
-        Ast_FunctionCall* function_call = arena_push_struct(&arena, Ast_FunctionCall);
-        zero_struct(function_call, Ast_FunctionCall);
-        function_call->kind = AST_FUNCTION_CALL;
-        function_call->function = result;
+        next_token();
 
-        if (token_is_expression(token_at))
+        if (op_is_binary(op))
         {
-          Ast_Expression* argument = build_expression(1, false);
-          function_call->first_argument = argument;
-          while (token_at->klass == TOK_COMMA)
-          {
-            next_token();
-            if (token_is_expression(token_at))
-            {
-              Ast_Expression* next_argument = build_expression(1, false);
-              argument->next_expression = next_argument;
-              argument = next_argument;
-            }
-            else if (token_at->klass == TOK_COMMA)
-              error("at line %d: missing argument", token_at->line_nr);
-            else
-              error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
-          }
+          Ast_BinaryExpr* binary_expr = arena_push_struct(&arena, Ast_BinaryExpr);
+          zero_struct(binary_expr, Ast_BinaryExpr)
+          binary_expr->kind = AST_BINARY_EXPR;
+          binary_expr->l_operand = result;
+          binary_expr->op = op;
+
+          if (token_is_expression(token_at))
+            binary_expr->r_operand = build_expression(priority_threshold + 1, (op == AST_OP_MEMBER_SELECTOR));
+          else
+            error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
+          result = (Ast_Expression*)binary_expr;
         }
+        else if (op == AST_OP_FUNCTION_CALL)
+        {
+          Ast_FunctionCall* function_call = arena_push_struct(&arena, Ast_FunctionCall);
+          zero_struct(function_call, Ast_FunctionCall);
+          function_call->kind = AST_FUNCTION_CALL;
+          function_call->function = result;
 
-        if (token_at->klass == TOK_PARENTH_CLOSE)
-          next_token();
-        else
-          error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+          if (token_is_expression(token_at))
+          {
+            Ast_Expression* argument = build_expression(1, false);
+            function_call->first_argument = argument;
+            while (token_at->klass == TOK_COMMA)
+            {
+              next_token();
+              if (token_is_expression(token_at))
+              {
+                Ast_Expression* next_argument = build_expression(1, false);
+                argument->next_expression = next_argument;
+                argument = next_argument;
+              }
+              else if (token_at->klass == TOK_COMMA)
+                error("at line %d: missing argument", token_at->line_nr);
+              else
+                error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
+            }
+          }
 
-        result = (Ast_Expression*)function_call;
+          if (token_at->klass == TOK_PARENTH_CLOSE)
+            next_token();
+          else
+            error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+
+          result = (Ast_Expression*)function_call;
+        }
+        else assert(false);
       }
-      else
-        assert(false);
+      else break;
     }
-    else
-      break;
+    else if (token_at->klass == TOK_IDENT)
+    {
+      int priority = op_get_priority(AST_OP_VAR_DECL);
+      
+      if (priority >= priority_threshold)
+      {
+        Ast_VarDecl* var_decl = arena_push_struct(&arena, Ast_VarDecl);
+        zero_struct(var_decl, Ast_VarDecl);
+        var_decl->kind = AST_VAR_DECL;
+
+        var_decl->type = result;
+        var_decl->name = build_expression(priority_threshold + 1, false);
+
+        if (var_decl->name->kind == AST_IDENT)
+        {
+          Ast_Ident* name_ident = (Ast_Ident*)var_decl->name;
+
+          if (sym_ident_is_declared(sym_get_var(name_ident->name)))
+            error("at line %d: variable '%s' re-declared", name_ident->line_nr, name_ident->name);
+          name_ident->var_ident = sym_new_var(name_ident->name, (Ast*)name_ident);
+        }
+        else
+          error("at line %d: identifier expected");
+
+        result = (Ast_Expression*)var_decl;
+      }
+      else break;
+    }
   }
   return result;
 }
@@ -874,6 +899,7 @@ build_ident_state()
 
   result->name = token_at->lexeme;
   next_token();
+
   if (token_at->klass == TOK_SEMICOLON)
     next_token();
   else
@@ -893,6 +919,7 @@ build_select_case()
 {
   assert(token_is_select_case(token_at));
   Ast_SelectCase* result = 0;
+
   if (token_is_expression(token_at))
   {
     Ast_SelectCase_Expr* select_expr = arena_push_struct(&arena, Ast_SelectCase_Expr);
@@ -911,9 +938,11 @@ build_select_case()
   }
   else
     assert(false);
+
   if (token_at->klass == TOK_COLON)
   {
     next_token();
+
     if (token_at->klass == TOK_IDENT)
     {
       result->end_state = token_at->lexeme;
@@ -928,6 +957,7 @@ build_select_case()
   }
   else
     error("at line %d: ':' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+
   return result;
 }
 
@@ -1002,18 +1032,22 @@ internal Ast_Expression*
 build_statement_list()
 {
   Ast_Expression* result = 0;
+
   if (token_is_expression(token_at))
   {
     Ast_Expression* expression = build_expression(1, false);
     result = expression;
+
     if (token_at->klass == TOK_SEMICOLON)
     {
       next_token();
+
       while (token_is_expression(token_at))
       {
         Ast_Expression* next_expression = build_expression(1, false);
         expression->next_expression = next_expression;
         expression = next_expression;
+
         if (token_at->klass == TOK_SEMICOLON)
           next_token();
         else
@@ -1023,6 +1057,7 @@ build_statement_list()
     else
       error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
+
   return result;
 }
 
@@ -1110,14 +1145,12 @@ build_parser_decl()
       error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else if (token_at->klass == TOK_SEMICOLON)
-  {
     scope_pop_level(parser_scope_level);
-    next_token();
-  }
   else
     error("at line %d: '{' or ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
   scope_pop_level(parser_scope_level);
+
   return result;
 }
 
@@ -1185,10 +1218,11 @@ internal Ast_BlockStmt*
 build_block_statement()
 {
   assert(token_at->klass == TOK_BRACE_OPEN);
-  next_token();
   Ast_BlockStmt* result = arena_push_struct(&arena, Ast_BlockStmt);
   zero_struct(result, Ast_BlockStmt);
   result->kind = AST_BLOCK_STMT;
+
+  next_token();
 
   if (token_is_expression(token_at))
     result->first_statement = build_statement_list();
@@ -1268,6 +1302,7 @@ build_key_elem()
   }
   else
     error("at line %d: ':' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+
   return result;
 }
 
@@ -1279,6 +1314,7 @@ build_simple_prop()
   zero_struct(result, Ast_SimpleProp);
   result->kind = AST_SIMPLE_PROP;
   result->expression = build_expression(1, false);
+
   if (token_at->klass == TOK_SEMICOLON)
     next_token();
   else
@@ -1330,6 +1366,7 @@ build_action_ref()
     next_token();
   else
     error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+
   return result;
 }
 
@@ -1459,44 +1496,6 @@ build_table_decl()
   return result;
 }
 
-internal Ast_VarDecl*
-build_var_decl()
-{
-  assert(token_at->klass == TOK_TYPE_IDENT);
-  Ast_VarDecl* result = arena_push_struct(&arena, Ast_VarDecl);
-  zero_struct(result, Ast_VarDecl);
-  result->kind = AST_VAR_DECL;
-
-  result->var_type = build_typeref();
-
-  if (token_at->klass == TOK_IDENT)
-  {
-    result->name = token_at->lexeme;
-
-    if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: variable '%s' re-declared", result->line_nr, result->name);
-    result->var_ident = sym_new_var(result->name, (Ast*)result);
-
-    next_token();
-    if (token_at->klass == TOK_EQUAL)
-    {
-      next_token();
-      if (token_is_expression(token_at))
-        result->initializer = build_expression(1, false);
-      else
-        error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
-    }
-
-    if (token_at->klass == TOK_SEMICOLON)
-      next_token();
-    else
-      error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
-  }
-  else
-    error("at line %d: non-type identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
-  return result;
-}
-
 internal Ast_Declaration*
 build_control_local_decl()
 {
@@ -1512,10 +1511,15 @@ build_control_local_decl()
     Ast_TableDecl* table_decl = build_table_decl();
     result = (Ast_Declaration*)table_decl;
   }
-  else if (token_at->klass == TOK_TYPE_IDENT)
+  else if (token_is_expression(token_at))
   {
-    Ast_VarDecl* local_decl = build_var_decl();
-    result = (Ast_Declaration*)local_decl;
+    Ast_Expression* expr_decl = build_expression(1, false);
+    result = (Ast_Declaration*)expr_decl;
+
+    if (token_at->klass == TOK_SEMICOLON)
+      next_token();
+    else
+      error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else
     assert(false);
@@ -1567,10 +1571,7 @@ build_control_decl()
       error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
   }
   else if (token_at->klass == TOK_SEMICOLON)
-  {
     scope_pop_level(control_scope_level);
-    next_token();
-  }
   else
     error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
@@ -1638,42 +1639,11 @@ build_package_prototype()
     error("at line %d: identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
   if (token_at->klass == TOK_SEMICOLON)
-  {
     scope_pop_level(package_scope_level);
-    next_token();
-  }
   else
     error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
   scope_pop_level(package_scope_level);
-  return result;
-}
-
-internal Ast_PackageInstantiation*
-build_package_instantiation()
-{
-  assert(token_at->klass == TOK_TYPE_IDENT);
-  Ast_PackageInstantiation* result = arena_push_struct(&arena, Ast_PackageInstantiation);
-  zero_struct(result, Ast_PackageInstantiation);
-  result->kind = AST_PACKAGE_INSTANCE;
-  result->package_ctor = build_expression(1, false);
-
-  if (token_at->klass == TOK_IDENT)
-  {
-    result->name = token_at->lexeme;
-
-    if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: variable '%s' re-declared", result->line_nr, result->name);
-    result->var_ident = sym_new_var(result->name, (Ast*)result);
-
-    next_token();
-    if (token_at->klass == TOK_SEMICOLON)
-      next_token();
-    else
-      error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
-  }
-  else
-    error("at line %d: non-type identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1734,10 +1704,7 @@ build_function_prototype()
         error("at line %d: ')' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
       if (token_at->klass == TOK_SEMICOLON)
-      {
         scope_pop_level(function_scope_level);
-        next_token();
-      }
       else
         error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
@@ -1795,11 +1762,22 @@ build_extern_object_prototype()
     {
       method = build_function_prototype();
       result->first_method = method;
+
+      if (token_at->klass == TOK_SEMICOLON)
+        next_token();
+      else
+        error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+
       while (token_at->klass == TOK_TYPE_IDENT)
       {
         Ast_FunctionDecl* next_method = build_function_prototype();
         method->next_decl = (Ast_Declaration*)next_method;
         method = next_method;
+
+        if (token_at->klass == TOK_SEMICOLON)
+          next_token();
+        else
+          error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
       }
     }
 
@@ -1892,11 +1870,16 @@ build_p4declaration()
       result = (Ast_Declaration*)build_extern_decl();
       break;
     case (TOK_TYPE_IDENT):
-      result = (Ast_Declaration*)build_package_instantiation();
+      result = (Ast_Declaration*)build_expression(1, false); //(Ast_Declaration*)build_package_instantiation();
       break;
 
     default: assert(false);
   }
+
+  if (token_at->klass == TOK_SEMICOLON)
+    next_token();
+  else
+    error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
   return result;
 }

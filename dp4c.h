@@ -330,24 +330,10 @@ typedef struct Typexpr_Struct
 }
 Typexpr_Struct;  // TYP_STRUCT
 
-/*
-enum Typexpr_ExprOperator
-{
-  TYP_OP_NONE,
-  TYP_OP_MEMBER_SELECTOR,
-  TYP_OP_LOGIC_EQUAL,
-  TYP_OP_FUNCTION_CALL,
-  TYP_OP_ASSIGN,
-  TYP_OP_ADDITION,
-  TYP_OP_SUBSTRACT,
-};
-*/
-
 typedef struct Typexpr_BinaryExpr
 {
   Typexpr;
 
-//  enum Typexpr_ExprOperator op;
   Typexpr* l_type;
   Typexpr* r_type;
 }
@@ -427,7 +413,6 @@ enum AstKind
   AST_SIMPLE_PROP,
   AST_VAR_DECL,
   AST_PACKAGE_PROTOTYPE,
-  AST_PACKAGE_INSTANCE,
   AST_EXTERN_OBJECT_PROTOTYPE,
   AST_EXTERN_FUNCTION_PROTOTYPE,
   AST_FUNCTION_PROTOTYPE,
@@ -450,6 +435,7 @@ enum Ast_ExprOperator
   AST_OP_ASSIGN,
   AST_OP_ADDITION,
   AST_OP_SUBTRACT,
+  AST_OP_VAR_DECL,
 };
 
 enum Ast_TypeParameterKind
@@ -581,7 +567,7 @@ Ast_TypeParameter;  // AST_TYPE_PARAMETER
 
 typedef struct Ast_Expression
 {
-  Ast;
+  Ast_Declaration;
   struct Ast_Expression* next_expression;
   bool is_member;
 }
@@ -652,9 +638,10 @@ Ast_StateExpr;
 
 typedef struct Ast_VarDecl
 {
-  Ast_Declaration;
-  char* name;
-  Ast_Typeref* var_type;
+  Ast_Expression;
+
+  Ast_Expression* type;
+  Ast_Expression* name;
   Ident* var_ident;
   Ast_Expression* initializer;
 }
@@ -824,15 +811,6 @@ typedef struct Ast_PackageDecl
   Ident* type_ident;
 }
 Ast_PackageDecl;  // AST_PACKAGE_PROTOTYPE
-
-typedef struct Ast_PackageInstantiation
-{
-  Ast_Declaration;
-  Ast_Expression* package_ctor;
-  char* name;
-  Ident* var_ident;
-}
-Ast_PackageInstantiation;  // AST_PACKAGE_INSTANTIATION
 
 typedef struct Ast_FunctionPrototype
 {
