@@ -108,15 +108,6 @@ typedef struct Ident_Keyword
 }
 Ident_Keyword;  // ID_KEYWORD
 
-/*
-typedef struct Ident_Type
-{
-  Ident;
-  struct Ident* first_member;
-}
-Ident_Type;
-*/
-
 typedef struct Namespace_Entry
 {
   char* name;
@@ -156,6 +147,7 @@ enum Typexpr_TypeCtor
   TYP_BINARY_EXPR,
   TYP_ARGUMENT,
   TYP_FUNCTION_CALL,
+  TYP_VAR_DECL,
 };
 
 enum TypeBasic_Kind
@@ -188,6 +180,7 @@ typedef struct Typexpr_Basic
 {
   Typexpr;
   enum TypeBasic_Kind basic_type;
+  bool is_signed;
 }
 Typexpr_Basic;
 
@@ -378,6 +371,15 @@ typedef struct Typexpr_FunctionCall
 }
 Typexpr_FunctionCall;  // TYP_FUNCTION_CALL
 
+typedef struct Typexpr_VarDecl
+{
+  Typexpr;
+
+  Typexpr* initializer_type;
+  Typexpr* var_type;
+}
+Typexpr_VarDecl;  // TYP_VAR_DECL
+
 #define ast_cast(TYPE, KIND, EXPR) ({\
   if ((EXPR)) assert((EXPR)->kind == KIND); \
   (TYPE* )(EXPR);})
@@ -506,7 +508,7 @@ Ast_IntTyperef;  // AST_INT_TYPEREF
 typedef struct Ast_Typedef
 {
   Ast_Declaration;
-  Ast_Typeref* typeref;
+  Ast_Typeref* type;
   char* name;
   Ident* type_ident;
 }
@@ -517,8 +519,8 @@ typedef struct Ast_StructField
   Ast;
   struct Ast_StructField* next_field;
   char* name;
-  Ast_Typeref* typeref;
-  Ident* var_ident;
+  Ast_Typeref* member_type;
+  Ident* member_ident;
 }
 Ast_StructField;  // AST_STRUCT_FIELD
 
@@ -554,7 +556,7 @@ typedef struct Ast_Parameter
 {
   Ast;
   enum Ast_ParameterDirection direction;
-  Ast_Typeref* typeref;
+  Ast_Typeref* param_type;
   char* name;
   Ident* var_ident;
   struct Ast_Parameter* next_parameter;
@@ -650,8 +652,9 @@ typedef struct Ast_VarDecl
 {
   Ast_Declaration;
   char* name;
-  Ast_Expression* initializer;
+  Ast_Typeref* var_type;
   Ident* var_ident;
+  Ast_Expression* initializer;
 }
 Ast_VarDecl;  // AST_VAR_DECL
 
@@ -725,7 +728,7 @@ Ast_ExprStmt;  // AST_EXPR_STMT
 typedef struct Ast_BlockStmt
 {
   Ast_Statement;
-  Ast_Expression* statement;
+  Ast_Expression* first_statement;
 }
 Ast_BlockStmt;  // AST_BLOCK_STMT
 
@@ -791,8 +794,8 @@ typedef struct Ast_ControlDecl
   char* name;
   Ast_TypeParameter* first_type_parameter;
   Ast_Parameter* first_parameter;
-  Ast_Declaration* local_decl;
-  Ast_BlockStmt* control_body;
+  Ast_Declaration* first_local_decl;
+  Ast_BlockStmt* apply_block;
   Ident* type_ident;
 }
 Ast_ControlDecl;  // AST_CONTROL_PROTOTYPE

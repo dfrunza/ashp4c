@@ -291,8 +291,8 @@ sym_init()
   void_type_ident = sym_new_type(void_type_ast->name, (Ast*)void_type_ast);
   bool_type_ident = sym_new_type("bool", (Ast*)bool_type_ast);
   bit_type_ident = sym_new_type("bit", (Ast*)bit_type_ast);
-  varbit_type_ident = sym_new_type("varbit", (Ast*)varbit_type_ident);
-  int_type_ident = sym_new_type("int", (Ast*)int_type_ident);
-  string_type_ident = sym_new_type("string", (Ast*)string_type_ident);
+  varbit_type_ident = sym_new_type("varbit", (Ast*)varbit_type_ast);
+  int_type_ident = sym_new_type("int", (Ast*)int_type_ast);
+  string_type_ident = sym_new_type("string", (Ast*)string_type_ast);
 }
 

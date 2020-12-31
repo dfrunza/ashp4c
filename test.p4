@@ -87,6 +87,7 @@ control XdpPipe(inout Header hdr, out bool accept)
   int i;
   apply
   {
+    i = 0;
   }
 }
 

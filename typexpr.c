@@ -81,7 +81,7 @@ visit_parameter(Ast_Parameter* parameter_ast)
   else if (parameter_ast->direction == AST_DIR_INOUT)
     parameter_typexpr->direction = TYP_DIR_INOUT;
 
-  parameter_typexpr->type = visit_typeref(parameter_ast->typeref);
+  parameter_typexpr->type = visit_typeref(parameter_ast->param_type);
 
   return parameter_typexpr;
 }
@@ -311,6 +311,45 @@ visit_function_call(Ast_FunctionCall* call_ast)
   return call_typexpr;
 }
 
+internal Typexpr_Basic*
+visit_integer(Ast_Expression* int_ast)
+{
+  assert (!int_ast->typexpr);
+  Typexpr_Basic* int_typexpr = arena_push_struct(&arena, Typexpr_Basic);
+  zero_struct(int_typexpr, Typexpr_Basic);
+  int_ast->typexpr = (Typexpr*)int_typexpr;
+  int_typexpr->kind = TYP_BASIC;
+  int_typexpr->basic_type = BASTYP_INT;
+  int_typexpr->is_signed = true;
+  return int_typexpr;
+}
+
+internal Typexpr_Basic*
+visit_winteger(Ast_Expression* wint_ast)
+{
+  assert (!wint_ast->typexpr);
+  Typexpr_Basic* wint_typexpr = arena_push_struct(&arena, Typexpr_Basic);
+  zero_struct(wint_typexpr, Typexpr_Basic);
+  wint_ast->typexpr = (Typexpr*)wint_typexpr;
+  wint_typexpr->kind = TYP_BASIC;
+  wint_typexpr->basic_type = BASTYP_INT;
+  wint_typexpr->is_signed = false;
+  return wint_typexpr;
+}
+
+internal Typexpr_Basic*
+visit_sinteger(Ast_Expression* sint_ast)
+{
+  assert (!sint_ast->typexpr);
+  Typexpr_Basic* sint_typexpr = arena_push_struct(&arena, Typexpr_Basic);
+  zero_struct(sint_typexpr, Typexpr_Basic);
+  sint_ast->typexpr = (Typexpr*)sint_typexpr;
+  sint_typexpr->kind = TYP_BASIC;
+  sint_typexpr->basic_type = BASTYP_INT;
+  sint_typexpr->is_signed = true;
+  return sint_typexpr;
+}
+
 internal Typexpr*
 visit_expression(Ast_Expression* expr_ast)
 {
@@ -326,11 +365,11 @@ visit_expression(Ast_Expression* expr_ast)
   else if (expr_ast->kind == AST_TYPE_IDENT)
     expr_typexpr = (Typexpr*)visit_type_ident((Ast_TypeIdent*)expr_ast);
   else if (expr_ast->kind == AST_INTEGER)
-    ;
+    expr_typexpr = (Typexpr*)visit_integer((Ast_Expression*)expr_ast);
   else if (expr_ast->kind == AST_WINTEGER)
-    ;
+    expr_typexpr = (Typexpr*)visit_winteger((Ast_Expression*)expr_ast);
   else if (expr_ast->kind == AST_SINTEGER)
-    ;
+    expr_typexpr = (Typexpr*)visit_sinteger((Ast_Expression*)expr_ast);
   else
     assert (false);
 
@@ -416,14 +455,56 @@ visit_control_prototype(Ast_ControlDecl* control_ast)
   return control_typexpr;
 }
 
+internal Typexpr_VarDecl*
+visit_var_decl(Ast_VarDecl* decl_ast)
+{
+  assert (!decl_ast->typexpr);
+  Typexpr_VarDecl* decl_typexpr = arena_push_struct(&arena, Typexpr_VarDecl);
+  zero_struct(decl_typexpr, Typexpr_VarDecl);
+  decl_ast->typexpr = (Typexpr*)decl_typexpr;
+  decl_typexpr->kind = AST_VAR_DECL;
+  decl_typexpr->name = decl_ast->name;
+
+  decl_typexpr->var_type = visit_typeref(decl_ast->var_type);
+
+  if (decl_ast->initializer)
+    decl_typexpr->initializer_type = visit_expression(decl_ast->initializer);
+
+  return decl_typexpr;
+}
+
 internal Typexpr*
+visit_block_statement(Ast_BlockStmt* block_ast)
+{
+  assert (!block_ast->typexpr);
+
+  Ast_Expression* stmt_ast = block_ast->first_statement;
+  while (stmt_ast)
+  {
+    visit_expression(stmt_ast);
+    stmt_ast = stmt_ast->next_expression;
+  }
+
+  return 0;
+}
+
+internal Typexpr_Control*
 visit_control_decl(Ast_ControlDecl* control_ast)
 {
   assert (!control_ast->typexpr);
-  Typexpr* control_typexpr = arena_push_struct(&arena, Typexpr);
-  zero_struct(control_typexpr, Typexpr);
-  control_ast->typexpr = control_typexpr;
-  control_typexpr->kind = TYP_CONTROL;
+  Typexpr_Control* control_typexpr = visit_control_prototype(control_ast);
+  control_typexpr->is_prototype = false;
+
+  Ast_Declaration* local_decl = control_ast->first_local_decl;
+  while (local_decl)
+  {
+    if (local_decl->kind == AST_VAR_DECL)
+      visit_var_decl((Ast_VarDecl*)local_decl);
+    local_decl = local_decl->next_decl;
+  }
+
+  visit_block_statement(control_ast->apply_block);
+
   return control_typexpr;
 }
 
@@ -482,7 +563,7 @@ visit_typedef(Ast_Typedef* typedef_ast)
   typedef_typexpr->kind = TYP_TYPEDEF;
   typedef_typexpr->name = typedef_ast->name;
 
-  typedef_typexpr->type = visit_typeref(typedef_ast->typeref);
+  typedef_typexpr->type = visit_typeref(typedef_ast->type);
 
   return typedef_typexpr;
 }
@@ -497,7 +578,7 @@ visit_struct_field(Ast_StructField* field_ast)
   field_typexpr->kind = TYP_STRUCT_FIELD;
   field_typexpr->name = field_ast->name;
 
-  field_typexpr->type = visit_typeref(field_ast->typeref);
+  field_typexpr->type = visit_typeref(field_ast->member_type);
 
   return field_typexpr;
 }

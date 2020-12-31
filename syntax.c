@@ -69,7 +69,7 @@ build_struct_field()
   Ast_StructField* result = arena_push_struct(&arena, Ast_StructField);
   zero_struct(result, Ast_StructField);
   result->kind = AST_STRUCT_FIELD;
-  result->typeref = build_typeref();
+  result->member_type = build_typeref();
 
   if (token_at->klass == TOK_IDENT)
   {
@@ -77,7 +77,7 @@ build_struct_field()
 
     if (sym_ident_is_declared(sym_get_var(result->name)))
       error("at line %d: member '%s' re-declared", result->line_nr, result->name);
-    result->var_ident = sym_new_var(result->name, (Ast*)result);
+    result->member_ident = sym_new_var(result->name, (Ast*)result);
 
     next_token();
     if (token_at->klass == TOK_SEMICOLON)
@@ -399,8 +399,10 @@ build_typeref()
   zero_struct(result, Ast_Typeref);
   result->kind = AST_TYPEREF;
   result->name = token_at->lexeme;
+
   result->type_ident = sym_get_type(token_at->lexeme);
   result->type_ast = result->type_ident->ast;
+
   next_token();
   if (token_at->klass == TOK_ANGLE_OPEN)
     build_typeref_argument_list();
@@ -418,7 +420,7 @@ build_typedef_decl()
 
   if (token_at->klass == TOK_TYPE_IDENT)
   {
-    result->typeref = build_typeref();
+    result->type = build_typeref();
 
     if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
     {
@@ -485,7 +487,7 @@ build_parameter()
   if (token_is_direction(token_at))
     result->direction = build_direction();
   if (token_at->klass == TOK_TYPE_IDENT)
-    result->typeref = build_typeref();
+    result->param_type = build_typeref();
   else
     error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
 
@@ -1167,7 +1169,7 @@ build_block_statement()
   result->kind = AST_BLOCK_STMT;
 
   if (token_is_expression(token_at))
-    result->statement = build_statement_list();
+    result->first_statement = build_statement_list();
 
   if (token_at->klass == TOK_BRACE_CLOSE)
     next_token();
@@ -1442,7 +1444,8 @@ build_var_decl()
   Ast_VarDecl* result = arena_push_struct(&arena, Ast_VarDecl);
   zero_struct(result, Ast_VarDecl);
   result->kind = AST_VAR_DECL;
-  build_typeref();
+
+  result->var_type = build_typeref();
 
   if (token_at->klass == TOK_IDENT)
   {
@@ -1473,7 +1476,7 @@ build_var_decl()
 }
 
 internal Ast_Declaration*
-build_control_var_decl()
+build_control_local_decl()
 {
   assert(token_is_control_local_decl(token_at));
   Ast_Declaration* result = 0;
@@ -1489,8 +1492,8 @@ build_control_var_decl()
   }
   else if (token_at->klass == TOK_TYPE_IDENT)
   {
-    Ast_VarDecl* var_decl = build_var_decl();
-    result = (Ast_Declaration*)var_decl;
+    Ast_VarDecl* local_decl = build_var_decl();
+    result = (Ast_Declaration*)local_decl;
   }
   else
     assert(false);
@@ -1513,11 +1516,11 @@ build_control_decl()
 
     if (token_is_control_local_decl(token_at))
     {
-      Ast_Declaration* local_decl = build_control_var_decl();
-      result->local_decl = local_decl;
+      Ast_Declaration* local_decl = build_control_local_decl();
+      result->first_local_decl = local_decl;
       while (token_is_control_local_decl(token_at))
       {
-        Ast_Declaration* next_local_decl = build_control_var_decl(result);
+        Ast_Declaration* next_local_decl = build_control_local_decl(result);
         local_decl->next_decl = local_decl;
         local_decl = next_local_decl;
       }
@@ -1527,7 +1530,7 @@ build_control_decl()
     {
       next_token();
       if (token_at->klass == TOK_BRACE_OPEN)
-        result->control_body = build_block_statement();
+        result->apply_block = build_block_statement();
       else
         error("at line %d: '{' expected, got '%s'", token_at->line_nr, token_at->lexeme);
     }
