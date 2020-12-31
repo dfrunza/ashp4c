@@ -57,12 +57,12 @@ get_ast_dbg_lexeme(Ast* ast)
 }
 
 internal Typexpr*
-visit_typeref(Ast_Typeref* typeref_ast)
+visit_type_expession(Ast_TypeExpression* type_ast)
 {
-  assert(!typeref_ast->typexpr);
-  Typexpr* typeref_typexpr = typeref_ast->type_ast->typexpr;
-  typeref_ast->typexpr = typeref_typexpr;
-  return typeref_typexpr;
+  assert(!type_ast->typexpr);
+  Typexpr* type_typexpr = type_ast->type_ast->typexpr;
+  type_ast->typexpr = type_typexpr;
+  return type_typexpr;
 }
 
 internal Typexpr_TypeParameter*
@@ -98,7 +98,7 @@ visit_parameter(Ast_Parameter* parameter_ast)
   else if (parameter_ast->direction == AST_DIR_INOUT)
     parameter_typexpr->direction = TYP_DIR_INOUT;
 
-  parameter_typexpr->type = visit_typeref(parameter_ast->param_type);
+  parameter_typexpr->type = visit_type_expession(parameter_ast->param_type);
 
   return parameter_typexpr;
 }
@@ -567,7 +567,7 @@ visit_typedef(Ast_Typedef* typedef_ast)
   typedef_typexpr->kind = TYP_TYPEDEF;
   typedef_typexpr->name = typedef_ast->name;
 
-  typedef_typexpr->type = visit_typeref(typedef_ast->type);
+  typedef_typexpr->type = visit_type_expession(typedef_ast->type);
 
   return typedef_typexpr;
 }
@@ -581,7 +581,7 @@ visit_struct_field(Ast_StructField* field_ast)
   field_typexpr->kind = TYP_STRUCT_FIELD;
   field_typexpr->name = field_ast->name;
 
-  field_typexpr->type = visit_typeref(field_ast->member_type);
+  field_typexpr->type = visit_type_expession(field_ast->member_type);
 
   return field_typexpr;
 }

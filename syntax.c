@@ -38,7 +38,7 @@ Ident* bool_true_ident = 0;
 Ast_Integer* bool_false_ast = 0;
 Ident* bool_false_ident = 0;
 
-internal Ast_Typeref* build_typeref();
+internal Ast_TypeExpression* build_type_expression();
 internal Ast_Expression* build_expression(int priority_threshold);
 
 internal void
@@ -86,7 +86,7 @@ build_struct_field()
   assert(token_at->klass == TOK_TYPE_IDENT);
   Ast_StructField* result = arena_push_struct(&arena, Ast_StructField);
   result->kind = AST_STRUCT_FIELD;
-  result->member_type = build_typeref();
+  result->member_type = build_type_expression();
 
   if (token_at->klass == TOK_IDENT)
   {
@@ -362,7 +362,7 @@ build_type_parameter_list()
 }
 
 internal void
-build_typeref_argument_list()
+build_type_expression_argument_list()
 {
   assert(token_at->klass == TOK_ANGLE_OPEN);
   next_token();
@@ -403,12 +403,12 @@ build_typeref_argument_list()
     error("at line %d: '>' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 }
 
-internal Ast_Typeref*
-build_typeref()
+internal Ast_TypeExpression*
+build_type_expression()
 {
   assert(token_at->klass == TOK_TYPE_IDENT);
-  Ast_Typeref* result = arena_push_struct(&arena, Ast_Typeref);
-  result->kind = AST_TYPEREF;
+  Ast_TypeExpression* result = arena_push_struct(&arena, Ast_TypeExpression);
+  result->kind = AST_TYPE_EXPRESSION;
   result->name = token_at->lexeme;
 
   result->type_ident = sym_get_type(token_at->lexeme);
@@ -416,7 +416,7 @@ build_typeref()
 
   next_token();
   if (token_at->klass == TOK_ANGLE_OPEN)
-    build_typeref_argument_list();
+    build_type_expression_argument_list();
   return result;
 }
 
@@ -430,7 +430,7 @@ build_typedef_decl()
 
   if (token_at->klass == TOK_TYPE_IDENT)
   {
-    result->type = build_typeref();
+    result->type = build_type_expression();
 
     if (token_at->klass == TOK_IDENT || token_at->klass == TOK_TYPE_IDENT)
     {
@@ -492,7 +492,7 @@ build_parameter()
   if (token_is_direction(token_at))
     result->direction = build_direction();
   if (token_at->klass == TOK_TYPE_IDENT)
-    result->param_type = build_typeref();
+    result->param_type = build_type_expression();
   else
     error("at line %d: unknown type '%s'", token_at->line_nr, token_at->lexeme);
 
@@ -677,6 +677,7 @@ build_expression_primary()
     expression->kind = AST_INTEGER;
     expression->lexeme = token_at->lexeme;
     expression->value = 0; //TODO
+
     result = (Ast_Expression*)expression;
     next_token();
   }
@@ -686,6 +687,7 @@ build_expression_primary()
     expression->kind = AST_WINTEGER;
     expression->lexeme = token_at->lexeme;
     expression->value = 0; //TODO
+
     result = (Ast_Expression*)expression;
     next_token();
   }
@@ -695,12 +697,14 @@ build_expression_primary()
     expression->kind = AST_SINTEGER;
     expression->lexeme = token_at->lexeme;
     expression->value = 0; //TODO
+
     result = (Ast_Expression*)expression;
     next_token();
   }
   else if (token_at->klass == TOK_PARENTH_OPEN)
   {
     next_token();
+
     if (token_is_expression(token_at))
       result = build_expression(1);
     if (token_at->klass == TOK_PARENTH_CLOSE)
@@ -791,8 +795,8 @@ internal Ast_Expression*
 build_expression(int priority_threshold)
 {
   assert(token_is_expression(token_at));
-  Ast_Expression* primary = build_expression_primary();
-  Ast_Expression* result = primary;
+
+  Ast_Expression* expr = build_expression_primary();
 
   while (token_is_expression_operator(token_at) || token_at->klass == TOK_IDENT)
   {
@@ -809,20 +813,20 @@ build_expression(int priority_threshold)
         {
           Ast_BinaryExpr* binary_expr = arena_push_struct(&arena, Ast_BinaryExpr);
           binary_expr->kind = AST_BINARY_EXPR;
-          binary_expr->l_operand = result;
+          binary_expr->l_operand = expr;
           binary_expr->op = op;
 
           if (token_is_expression(token_at))
             binary_expr->r_operand = build_expression(priority_threshold + 1);
           else
             error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
-          result = (Ast_Expression*)binary_expr;
+          expr = (Ast_Expression*)binary_expr;
         }
         else if (op == AST_OP_FUNCTION_CALL)
         {
           Ast_FunctionCall* function_call = arena_push_struct(&arena, Ast_FunctionCall);
           function_call->kind = AST_FUNCTION_CALL;
-          function_call->function = result;
+          function_call->function = expr;
 
           if (token_is_expression(token_at))
           {
@@ -849,7 +853,7 @@ build_expression(int priority_threshold)
           else
             error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
-          result = (Ast_Expression*)function_call;
+          expr = (Ast_Expression*)function_call;
         }
         else assert(false);
       }
@@ -864,7 +868,7 @@ build_expression(int priority_threshold)
         Ast_VarDecl* var_decl = arena_push_struct(&arena, Ast_VarDecl);
         var_decl->kind = AST_VAR_DECL;
 
-        var_decl->type = result;
+        var_decl->type = expr;
         var_decl->name = build_expression(priority_threshold + 1);
 
         if (var_decl->name->kind == AST_IDENT)
@@ -878,12 +882,12 @@ build_expression(int priority_threshold)
         else
           error("at line %d: identifier expected");
 
-        result = (Ast_Expression*)var_decl;
+        expr = (Ast_Expression*)var_decl;
       }
       else break;
     }
   }
-  return result;
+  return expr;
 }
 
 internal Ast_IdentState*

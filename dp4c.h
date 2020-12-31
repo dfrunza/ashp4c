@@ -382,7 +382,7 @@ enum AstKind
   AST_HEADER_PROTOTYPE,
   AST_HEADER_DECL,
   AST_TYPEDEF,
-  AST_TYPEREF,
+  AST_TYPE_EXPRESSION,
   AST_STRUCT_FIELD,
   AST_ERROR_CODE,
   AST_PARAMETER,
@@ -470,33 +470,33 @@ typedef struct Ast_ErrorCode
 }
 Ast_ErrorCode;  // AST_ERROR_CODE
 
-typedef struct Ast_Typeref
+typedef struct Ast_TypeExpression
 {
   Ast;
   char* name;
   Ident* type_ident;
   Ast* type_ast;
 }
-Ast_Typeref;  // AST_TYPEREF
+Ast_TypeExpression;  // AST_TYPE_EXPRESSION
 
-typedef struct Ast_BitTyperef
+typedef struct Ast_BitType
 {
-  Ast_Typeref;
+  Ast_TypeExpression;
   int size;
 }
-Ast_BitTyperef;  // AST_BIT_TYPEREF
+Ast_BitType;  // AST_BIT_TYPE
 
-typedef struct Ast_IntTyperef
+typedef struct Ast_IntType
 {
-  Ast_Typeref;
+  Ast_TypeExpression;
   int size;
 }
-Ast_IntTyperef;  // AST_INT_TYPEREF
+Ast_IntType;  // AST_INT_TYPE
 
 typedef struct Ast_Typedef
 {
   Ast_Declaration;
-  Ast_Typeref* type;
+  Ast_TypeExpression* type;
   char* name;
   Ident* type_ident;
 }
@@ -507,7 +507,7 @@ typedef struct Ast_StructField
   Ast;
   struct Ast_StructField* next_field;
   char* name;
-  Ast_Typeref* member_type;
+  Ast_TypeExpression* member_type;
   Ident* member_ident;
 }
 Ast_StructField;  // AST_STRUCT_FIELD
@@ -544,7 +544,7 @@ typedef struct Ast_Parameter
 {
   Ast;
   enum Ast_ParameterDirection direction;
-  Ast_Typeref* param_type;
+  Ast_TypeExpression* param_type;
   char* name;
   Ident* var_ident;
   struct Ast_Parameter* next_parameter;
