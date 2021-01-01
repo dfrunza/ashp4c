@@ -29,7 +29,7 @@ Typexpr_Basic* bool_true_typexpr;
 external Ast_Integer* bool_false_ast;
 Typexpr_Basic* bool_false_typexpr;
 
-internal Typexpr* visit_expression(Ast_Expression* expr_ast);
+internal Typexpr* visit_expression(Ast* expr_ast);
 
 internal char*
 get_ast_dbg_lexeme(Ast* ast)
@@ -37,19 +37,19 @@ get_ast_dbg_lexeme(Ast* ast)
   char* lexeme = "???";
   switch (ast->kind)
   {
-    case (AST_IDENT):
+    case AST_IDENT:
       lexeme = ((Ast_Ident*)ast)->name;
       break;
-    case (AST_TYPE_IDENT):
+    case AST_TYPE_IDENT:
       lexeme = ((Ast_TypeIdent*)ast)->name;
       break;
-    case (AST_INTEGER):
+    case AST_INTEGER:
       lexeme = ((Ast_Integer*)ast)->lexeme;
       break;
-    case (AST_WINTEGER):
+    case AST_WINTEGER:
       lexeme = ((Ast_WInteger*)ast)->lexeme;
       break;
-    case (AST_SINTEGER):
+    case AST_SINTEGER:
       lexeme = ((Ast_SInteger*)ast)->lexeme;
       break;
   }
@@ -266,7 +266,7 @@ visit_type_ident(Ast_TypeIdent* ident_ast)
 }
 
 internal Typexpr_Argument*
-visit_argument(Ast_Expression* argument_ast)
+visit_argument(Ast* argument_ast)
 {
   assert(!argument_ast->typexpr);
   Typexpr_Argument* argument_typexpr = arena_push_struct(&arena, Typexpr_Argument);
@@ -290,21 +290,21 @@ visit_function_call(Ast_FunctionCall* call_ast)
   call_typexpr->sentinel_argument->kind = TYP_ARGUMENT;
   call_typexpr->last_argument = call_typexpr->sentinel_argument;
 
-  Ast_Expression* argument_ast = call_ast->first_argument;
+  Ast_Declaration* argument_ast = call_ast->first_argument;
   while (argument_ast)
   {
-    Typexpr_Argument* argument_typexpr = visit_argument(argument_ast);
+    Typexpr_Argument* argument_typexpr = visit_argument((Ast*)argument_ast);
     call_typexpr->last_argument->next_argument = argument_typexpr;
     call_typexpr->last_argument = argument_typexpr;
     call_typexpr->argument_count += 1;
 
-    argument_ast = argument_ast->next_expression;
+    argument_ast = argument_ast->next_decl;
   }
   return call_typexpr;
 }
 
 internal Typexpr_Basic*
-visit_integer(Ast_Expression* int_ast)
+visit_integer(Ast* int_ast)
 {
   assert(!int_ast->typexpr);
   Typexpr_Basic* int_typexpr = arena_push_struct(&arena, Typexpr_Basic);
@@ -316,7 +316,7 @@ visit_integer(Ast_Expression* int_ast)
 }
 
 internal Typexpr_Basic*
-visit_winteger(Ast_Expression* wint_ast)
+visit_winteger(Ast* wint_ast)
 {
   assert(!wint_ast->typexpr);
   Typexpr_Basic* wint_typexpr = arena_push_struct(&arena, Typexpr_Basic);
@@ -328,7 +328,7 @@ visit_winteger(Ast_Expression* wint_ast)
 }
 
 internal Typexpr_Basic*
-visit_sinteger(Ast_Expression* sint_ast)
+visit_sinteger(Ast* sint_ast)
 {
   assert(!sint_ast->typexpr);
   Typexpr_Basic* sint_typexpr = arena_push_struct(&arena, Typexpr_Basic);
@@ -340,33 +340,33 @@ visit_sinteger(Ast_Expression* sint_ast)
 }
 
 internal Typexpr*
-visit_expression(Ast_Expression* expr_ast)
+visit_expression(Ast* expr_ast)
 {
   assert(!expr_ast->typexpr);
   Typexpr* expr_typexpr = 0;
 
   switch (expr_ast->kind)
   {
-    case (AST_FUNCTION_CALL):
+    case AST_FUNCTION_CALL:
       expr_typexpr = (Typexpr*)visit_function_call((Ast_FunctionCall*)expr_ast);
       break;
-    case (AST_BINARY_EXPR):
+    case AST_BINARY_EXPR:
       expr_typexpr = (Typexpr*)visit_binary_expression((Ast_BinaryExpr*)expr_ast);
       break;
-    case (AST_IDENT):
+    case AST_IDENT:
       expr_typexpr = (Typexpr*)visit_ident((Ast_Ident*)expr_ast);
       break;
-    case (AST_TYPE_IDENT):
+    case AST_TYPE_IDENT:
       expr_typexpr = (Typexpr*)visit_type_ident((Ast_TypeIdent*)expr_ast);
       break;
-    case (AST_INTEGER):
-      expr_typexpr = (Typexpr*)visit_integer((Ast_Expression*)expr_ast);
+    case AST_INTEGER:
+      expr_typexpr = (Typexpr*)visit_integer((Ast*)expr_ast);
       break;
-    case (AST_WINTEGER):
-      expr_typexpr = (Typexpr*)visit_winteger((Ast_Expression*)expr_ast);
+    case AST_WINTEGER:
+      expr_typexpr = (Typexpr*)visit_winteger((Ast*)expr_ast);
       break;
-    case (AST_SINTEGER):
-      expr_typexpr = (Typexpr*)visit_sinteger((Ast_Expression*)expr_ast);
+    case AST_SINTEGER:
+      expr_typexpr = (Typexpr*)visit_sinteger((Ast*)expr_ast);
       break;
 
     default: assert(false);
@@ -382,11 +382,11 @@ visit_parser_state(Ast_ParserState* state_ast)
   Typexpr* state_typexpr = arena_push_struct(&arena, Typexpr);
   state_ast->typexpr = state_typexpr;
 
-  Ast_Expression* expr_ast = state_ast->first_statement;
+  Ast_Declaration* expr_ast = state_ast->first_statement;
   while (expr_ast)
   {
-    visit_expression(expr_ast);
-    expr_ast = expr_ast->next_expression;
+    visit_expression((Ast*)expr_ast);
+    expr_ast = expr_ast->next_decl;
   }
 
   return state_typexpr;
@@ -466,11 +466,11 @@ visit_block_statement(Ast_BlockStmt* block_ast)
 {
   assert(!block_ast->typexpr);
 
-  Ast_Expression* stmt_ast = block_ast->first_statement;
+  Ast_Declaration* stmt_ast = block_ast->first_statement;
   while (stmt_ast)
   {
-    visit_expression(stmt_ast);
-    stmt_ast = stmt_ast->next_expression;
+    visit_expression((Ast*)stmt_ast);
+    stmt_ast = stmt_ast->next_decl;
   }
 
   return 0;
@@ -691,46 +691,46 @@ visit_p4declaration(Ast_Declaration* p4decl_ast)
 
   switch (p4decl_ast->kind)
   {
-    case (AST_STRUCT_PROTOTYPE):
+    case AST_STRUCT_PROTOTYPE:
       visit_struct_prototype((Ast_StructDecl*)p4decl_ast);
       break;
-    case (AST_STRUCT_DECL):
+    case AST_STRUCT_DECL:
       visit_struct_decl((Ast_StructDecl*)p4decl_ast);
       break;
-    case (AST_HEADER_PROTOTYPE):
+    case AST_HEADER_PROTOTYPE:
       visit_header_prototype((Ast_HeaderDecl*)p4decl_ast);
       break;
-    case (AST_HEADER_DECL):
+    case AST_HEADER_DECL:
       visit_header_decl((Ast_HeaderDecl*)p4decl_ast);
       break;
-    case (AST_ERROR_TYPE):
+    case AST_ERROR_TYPE:
       visit_error_type((Ast_ErrorType*)p4decl_ast);
       break;
-    case (AST_TYPEDEF):
+    case AST_TYPEDEF:
       visit_typedef((Ast_Typedef*)p4decl_ast);
       break;
-    case (AST_PARSER_PROTOTYPE):
+    case AST_PARSER_PROTOTYPE:
       visit_parser_prototype((Ast_ParserDecl*)p4decl_ast);
       break;
-    case (AST_PARSER_DECL):
+    case AST_PARSER_DECL:
       visit_parser_decl((Ast_ParserDecl*)p4decl_ast);
       break;
-    case (AST_CONTROL_PROTOTYPE):
+    case AST_CONTROL_PROTOTYPE:
       visit_control_prototype((Ast_ControlDecl*)p4decl_ast);
       break;
-    case (AST_CONTROL_DECL):
+    case AST_CONTROL_DECL:
       visit_control_decl((Ast_ControlDecl*)p4decl_ast);
       break;
-    case (AST_PACKAGE_PROTOTYPE):
+    case AST_PACKAGE_PROTOTYPE:
       visit_package_prototype((Ast_PackageDecl*)p4decl_ast);
       break;
-    case (AST_EXTERN_OBJECT_PROTOTYPE):
+    case AST_EXTERN_OBJECT_PROTOTYPE:
       visit_extern_object_prototype((Ast_ExternObjectDecl*)p4decl_ast);
       break;
-    case (AST_EXTERN_FUNCTION_PROTOTYPE):
+    case AST_EXTERN_FUNCTION_PROTOTYPE:
       visit_extern_function_prototype((Ast_FunctionDecl*)p4decl_ast);
       break;
-    case (AST_PACKAGE_INSTANTIATION):
+    case AST_PACKAGE_INSTANTIATION:
       visit_package_instantiation((Ast_PackageInstantiation*)p4decl_ast);
       break;
 

@@ -566,33 +566,26 @@ typedef struct Ast_TypeParameter
 }
 Ast_TypeParameter;  // AST_TYPE_PARAMETER
 
-typedef struct Ast_Expression
-{
-  Ast_Declaration;
-  struct Ast_Expression* next_expression;
-}
-Ast_Expression;
-
 typedef struct Ast_FunctionCall
 {
-  Ast_Expression;
-  Ast_Expression* function;
-  Ast_Expression* first_argument;
+  Ast_Declaration;
+  Ast* function;
+  Ast_Declaration* first_argument;
 }
 Ast_FunctionCall;  // AST_FUNCTION_CALL
 
 typedef struct Ast_BinaryExpr
 {
-  Ast_Expression;
+  Ast_Declaration;
   enum Ast_ExprOperator op;
-  struct Ast_Expression* l_operand;
-  struct Ast_Expression* r_operand;
+  struct Ast* l_operand;
+  struct Ast* r_operand;
 }
 Ast_BinaryExpr;  // AST_BINARY_EXPR
 
 typedef struct Ast_Ident
 {
-  Ast_Expression;
+  Ast_Declaration;
   char* name;
   Ident* var_ident;
 }
@@ -600,7 +593,7 @@ Ast_Ident;  // AST_IDENT
 
 typedef struct Ast_TypeIdent
 {
-  Ast_Expression;
+  Ast_Declaration;
   char* name;
   Ident* type_ident;
 }
@@ -608,21 +601,21 @@ Ast_TypeIdent;  // AST_TYPE_IDENT
 
 typedef struct Ast_Integer
 {
-  Ast_Expression;
+  Ast_Declaration;
   int value;
 }
 Ast_Integer;  // AST_INTEGER
 
 typedef struct Ast_WInteger
 {
-  Ast_Expression;
+  Ast_Declaration;
   int value;
 }
 Ast_WInteger;  // AST_WINTEGER
 
 typedef struct Ast_SInteger
 {
-  Ast_Expression;
+  Ast_Declaration;
   int value;
 }
 Ast_SInteger;  // AST_SINTEGER
@@ -640,7 +633,7 @@ typedef struct Ast_VarDecl
   Ast_TypeExpression* var_type;
   Ast_Ident* name;
   Ident* var_ident;
-  Ast_Expression* init_expr;
+  Ast* init_expr;
 }
 Ast_VarDecl;  // AST_VAR_DECL
 
@@ -662,7 +655,7 @@ Ast_SelectCase;  // AST_SELECT_CASE
 typedef struct Ast_SelectCase_Expr
 {
   Ast_SelectCase;
-  Ast_Expression* key_expr;
+  Ast* key_expr;
 }
 Ast_SelectCase_Expr;  // AST_SELECT_CASE_EXPR
 
@@ -675,7 +668,7 @@ Ast_SelectCase_Default;  // AST_SELECT_CASE_DEFAULT
 typedef struct Ast_SelectState
 {
   Ast_StateExpr;
-  Ast_Expression* expression;
+  Ast* expression;
   Ast_SelectCase* select_case;
 }
 Ast_SelectState;  // AST_SELECT_STATE
@@ -691,7 +684,7 @@ typedef struct Ast_ParserState
 {
   Ast;
   char* name;
-  Ast_Expression* first_statement;
+  Ast_Declaration* first_statement;
   struct Ast_ParserState* next_state;
   Ast_TransitionStmt* transition_stmt;
   Ident* var_ident;
@@ -701,14 +694,14 @@ Ast_ParserState;  // AST_PARSER_STATE
 typedef struct Ast_ExprStmt
 {
   Ast;
-  Ast_Expression* expression;
+  Ast* expression;
 }
 Ast_ExprStmt;  // AST_EXPR_STMT
 
 typedef struct Ast_BlockStmt
 {
   Ast;
-  Ast_Expression* first_statement;
+  Ast_Declaration* first_statement;
 }
 Ast_BlockStmt;  // AST_BLOCK_STMT
 
@@ -729,8 +722,8 @@ Ast_TableProperty;
 typedef struct Ast_Key
 {
   Ast_TableProperty;
-  Ast_Expression* expression;
-  Ast_Expression* name;
+  Ast* expression;
+  Ast* name;
   struct Ast_Key* next_key;
 }
 Ast_Key;  // AST_TABLE_KEY
@@ -739,7 +732,7 @@ typedef struct Ast_ActionRef
 {
   Ast_TableProperty;
   char* name;
-  Ast_Expression* argument;
+  Ast_Declaration* first_argument;
   struct Ast_ActionRef* next_action;
 }
 Ast_ActionRef;  // AST_ACTION_REF
@@ -747,7 +740,7 @@ Ast_ActionRef;  // AST_ACTION_REF
 typedef struct Ast_SimpleProp
 {
   Ast_TableProperty;
-  Ast_Expression* expression;
+  Ast* expression;
 }
 Ast_SimpleProp;  // AST_SIMPLE_PROP
 
@@ -806,7 +799,7 @@ Ast_PackageDecl;  // AST_PACKAGE_PROTOTYPE
 typedef struct Ast_PackageInstantiation
 {
   Ast_Declaration;
-  Ast_Expression* package_ctor;
+  Ast* package_ctor;
   char* name;
   Ident* var_ident;
 }

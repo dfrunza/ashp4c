@@ -89,16 +89,13 @@ parser XdpParser(TPacketIn pkt, out Header hdr)
   }
 };
 
-control XdpPipe(inout Header hdr, out bool accept)
-{
-  int i;
-  bit b;
-
-  apply
-  {
-    i = b;
-  }
+control pipe(inout Headers_t headers, out bool pass) {
+    bool x = true;
+    apply {
+      x == false;
+    }
 };
 
-TXdpPackage(XdpParser(), XdpPipe()) main;
+package ebpfFilter();
 
+ebpfFilter(prs(), pipe()) main;

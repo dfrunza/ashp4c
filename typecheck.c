@@ -23,8 +23,8 @@ internal bool type_equal(Typexpr* type_A, Typexpr* type_B)
 internal void
 visit_binary_expression(Ast_BinaryExpr* expr_ast)
 {
-  Ast_Expression* l_operand = expr_ast->l_operand;
-  Ast_Expression* r_operand = expr_ast->r_operand;
+  Ast* l_operand = expr_ast->l_operand;
+  Ast* r_operand = expr_ast->r_operand;
   Typexpr* l_type = l_operand->typexpr;
   Typexpr* r_type = r_operand->typexpr;
 
@@ -35,7 +35,7 @@ visit_binary_expression(Ast_BinaryExpr* expr_ast)
       if (type_equal(l_type, r_type))
         ; // ok
       else
-        error("at line %d: type error", expr_ast->line_nr);
+        error("at line %d: incompatible types in assignment expression", expr_ast->line_nr);
     } break;
 
     default: ;
@@ -43,7 +43,7 @@ visit_binary_expression(Ast_BinaryExpr* expr_ast)
 }
 
 internal void
-visit_expression(Ast_Expression* expr_ast)
+visit_expression(Ast* expr_ast)
 {
   switch (expr_ast->kind)
   {
@@ -58,11 +58,11 @@ visit_expression(Ast_Expression* expr_ast)
 internal void
 visit_parser_state(Ast_ParserState* state_ast)
 {
-  Ast_Expression* expr_ast = state_ast->first_statement;
+  Ast_Declaration* expr_ast = state_ast->first_statement;
   while (expr_ast)
   {
-    visit_expression(expr_ast);
-    expr_ast = expr_ast->next_expression;
+    visit_expression((Ast*)expr_ast);
+    expr_ast = expr_ast->next_decl;
   }
 }
 
@@ -86,11 +86,11 @@ visit_local_declaration(Ast_Declaration* decl_ast)
 internal void
 visit_apply_block(Ast_BlockStmt* block_ast)
 {
-  Ast_Expression* stmt = block_ast->first_statement;
+  Ast_Declaration* stmt = block_ast->first_statement;
   while (stmt)
   {
-    visit_expression(stmt);
-    stmt = stmt->next_expression;
+    visit_expression((Ast*)stmt);
+    stmt = stmt->next_decl;
   }
 }
 
