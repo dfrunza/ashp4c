@@ -448,6 +448,7 @@ typedef struct Ast
 {
   enum AstKind kind;
   int line_nr;
+  char* lexeme;
   Typexpr* typexpr;
   bool is_builtin;
 }
@@ -608,7 +609,6 @@ Ast_TypeIdent;  // AST_TYPE_IDENT
 typedef struct Ast_Integer
 {
   Ast_Expression;
-  char* lexeme;
   int value;
 }
 Ast_Integer;  // AST_INTEGER
@@ -616,7 +616,6 @@ Ast_Integer;  // AST_INTEGER
 typedef struct Ast_WInteger
 {
   Ast_Expression;
-  char* lexeme;
   int value;
 }
 Ast_WInteger;  // AST_WINTEGER
@@ -624,7 +623,6 @@ Ast_WInteger;  // AST_WINTEGER
 typedef struct Ast_SInteger
 {
   Ast_Expression;
-  char* lexeme;
   int value;
 }
 Ast_SInteger;  // AST_SINTEGER
