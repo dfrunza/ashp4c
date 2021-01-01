@@ -347,8 +347,18 @@ next_token(Token* token_at)
       case 314:
       {
         do
+        {
           c = char_advance();
+          if (c == '\n' || c == '\r')
+          {
+            char cc = char_lookahead(1);
+            if (c + cc == '\n' + '\r')
+              c = char_advance();
+            line_nr++;
+          }
+        }
         while (c != '*');
+
         if (char_lookahead(1) == '/')
         {
           char_advance();
