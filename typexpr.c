@@ -78,7 +78,7 @@ visit_type_parameter(Ast_TypeParameter* parameter_ast)
     parameter_typexpr->name = parameter_ast->name;
   }
   else
-    error("at line %d: type variable was expected");
+    error("at line %d: type variable was expected", parameter_ast->line_nr);
   return parameter_typexpr;
 }
 

@@ -35,7 +35,7 @@ visit_binary_expression(Ast_BinaryExpr* expr_ast)
       if (type_equal(l_type, r_type))
         ; // ok
       else
-        error("type error");
+        error("at line %d: type error", expr_ast->line_nr);
     } break;
 
     default: ;
