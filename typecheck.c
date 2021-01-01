@@ -80,7 +80,6 @@ visit_parser_decl(Ast_ParserDecl* parser_ast)
 internal void
 visit_local_declaration(Ast_Declaration* decl_ast)
 {
-  assert(decl_ast->kind == AST_VAR_DECL);
 }
 
 internal void

@@ -74,6 +74,7 @@ enum TokenClass
   TOK_KW_MATCH_KIND,
   TOK_KW_RETURN,
   TOK_KW_STRUCT,
+  TOK_KW_VAR,
 
   TOK_UNKNOWN,
   TOK_SOI,    // Start Of Input
