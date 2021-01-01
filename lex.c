@@ -215,10 +215,16 @@ next_token(Token* token_at)
 
       case 103:
       {
-        token_at->klass = TOK_DONTCARE;
-        token_at->lexeme = lexeme_to_cstring();
-        lexeme_advance();
-        state = 0;
+        char cc = char_lookahead(1);
+        if (cstr_is_letter(cc) || cstr_is_digit(cc))
+          state = 500;
+        else
+        {
+          token_at->klass = TOK_DONTCARE;
+          token_at->lexeme = lexeme_to_cstring();
+          lexeme_advance();
+          state = 0;
+        }
       }
       break;
 

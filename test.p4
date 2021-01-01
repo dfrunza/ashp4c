@@ -89,8 +89,8 @@ parser XdpParser(TPacketIn pkt, out Header hdr)
   }
 };
 
-control pipe(inout Headers_t headers, out bool pass) {
-    bool x = true;
+control pipe(inout Header headers, out bool pass) {
+    var bool x = true;
     apply {
       x == false;
     }

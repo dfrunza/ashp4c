@@ -1343,7 +1343,7 @@ build_statement_list()
     {
       next_token();
 
-      while (token_is_expression(token))
+      while (token_is_expression(token) || token->klass == TOK_KW_VAR)
       {
         Ast_Declaration* next_expression = (Ast_Declaration*)build_statement();
         expression->next_decl = next_expression;
@@ -1533,7 +1533,7 @@ build_block_statement()
   if (token->klass == TOK_BRACE_CLOSE)
     next_token();
   else
-    error("at line %d: block stmt expected, got '%s'", token->line_nr, token->lexeme);
+    error("at line %d: statement expected, got '%s'", token->line_nr, token->lexeme);
   return result;
 }
 
