@@ -1,3 +1,8 @@
+/* More examples:
+ *    p4c/testdata/p4_16_samples/calc-ebpf.p4
+ *    p4c/testdata/p4_16_samples/ml-headers.p4
+ */
+
 error
 {
   NoError,
@@ -61,12 +66,10 @@ struct Header
   IPv4 ipv4;
 };
 
-int j;
 parser XdpParser(TPacketIn pkt, out Header hdr)
 {
   state start
   {
-    j = 19;
     pkt.extract(hdr.ethernet);
 
     transition select(hdr.ethernet.ether_type)
@@ -89,6 +92,8 @@ parser XdpParser(TPacketIn pkt, out Header hdr)
 control XdpPipe(inout Header hdr, out bool accept)
 {
   int i;
+  bool dropped = false;
+
   apply
   {
     accept = false;

@@ -471,12 +471,10 @@ visit_var_decl(Ast_VarDecl* decl_ast)
   assert(!decl_ast->typexpr);
   Typexpr_VarDecl* decl_typexpr = arena_push_struct(&arena, Typexpr_VarDecl);
   decl_ast->typexpr = (Typexpr*)decl_typexpr;
-  decl_typexpr->kind = AST_VAR_DECL;
+  decl_typexpr->kind = TYP_VAR_DECL;
 
-  decl_typexpr->var_type = visit_expression(decl_ast->type);
-
-  if (decl_ast->initializer)
-    decl_typexpr->initializer_type = visit_expression(decl_ast->initializer);
+  decl_typexpr->var_type = visit_type_expession(decl_ast->var_type);
+  decl_typexpr->init_type = visit_expression(decl_ast->init_expr);
 
   return decl_typexpr;
 }
@@ -691,6 +689,19 @@ visit_struct_decl(Ast_StructDecl* struct_ast)
   return struct_typexpr;
 }
 
+internal Typexpr_PackageInstantiation*
+visit_package_instantiation(Ast_PackageInstantiation* pkg_ast)
+{
+  assert(!pkg_ast->typexpr);
+  Typexpr_PackageInstantiation* pkg_typexpr = arena_push_struct(&arena, Typexpr_PackageInstantiation);
+  pkg_ast->typexpr = (Typexpr*)pkg_typexpr;
+  pkg_typexpr->kind = TYP_PACKAGE_INSTANTIATION;
+
+  pkg_typexpr->ctor_type = visit_expression(pkg_ast->package_ctor);
+
+  return pkg_typexpr;
+}
+
 internal Typexpr*
 visit_p4declaration(Ast_Declaration* p4decl_ast)
 {
@@ -737,7 +748,8 @@ visit_p4declaration(Ast_Declaration* p4decl_ast)
     case (AST_EXTERN_FUNCTION_PROTOTYPE):
       visit_extern_function_prototype((Ast_FunctionDecl*)p4decl_ast);
       break;
-    case (AST_VAR_DECL):
+    case (AST_PACKAGE_INSTANTIATION):
+      visit_package_instantiation((Ast_PackageInstantiation*)p4decl_ast);
       break;
 
     default: assert(false);

@@ -773,9 +773,6 @@ op_get_priority(enum Ast_ExprOperator op)
     case (AST_OP_MEMBER_SELECTOR):
       result = 5;
       break;
-    case (AST_OP_VAR_DECL):
-      result = 6;
-      break;
 
     default: assert(false);
   }
@@ -798,94 +795,64 @@ build_expression(int priority_threshold)
 
   Ast_Expression* expr = build_expression_primary();
 
-  while (token_is_expression_operator(token_at) || token_at->klass == TOK_IDENT)
+  while (token_is_expression_operator(token_at))
   {
-    if (token_is_expression_operator(token_at))
+    enum Ast_ExprOperator op = build_expression_operator();
+    int priority = op_get_priority(op);
+
+    if (priority >= priority_threshold)
     {
-      enum Ast_ExprOperator op = build_expression_operator();
-      int priority = op_get_priority(op);
+      next_token();
 
-      if (priority >= priority_threshold)
+      if (op_is_binary(op))
       {
-        next_token();
+        Ast_BinaryExpr* binary_expr = arena_push_struct(&arena, Ast_BinaryExpr);
+        binary_expr->kind = AST_BINARY_EXPR;
+        binary_expr->l_operand = expr;
+        binary_expr->op = op;
 
-        if (op_is_binary(op))
-        {
-          Ast_BinaryExpr* binary_expr = arena_push_struct(&arena, Ast_BinaryExpr);
-          binary_expr->kind = AST_BINARY_EXPR;
-          binary_expr->l_operand = expr;
-          binary_expr->op = op;
-
-          if (token_is_expression(token_at))
-            binary_expr->r_operand = build_expression(priority_threshold + 1);
-          else
-            error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
-          expr = (Ast_Expression*)binary_expr;
-        }
-        else if (op == AST_OP_FUNCTION_CALL)
-        {
-          Ast_FunctionCall* function_call = arena_push_struct(&arena, Ast_FunctionCall);
-          function_call->kind = AST_FUNCTION_CALL;
-          function_call->function = expr;
-
-          if (token_is_expression(token_at))
-          {
-            Ast_Expression* argument = build_expression(1);
-            function_call->first_argument = argument;
-            while (token_at->klass == TOK_COMMA)
-            {
-              next_token();
-              if (token_is_expression(token_at))
-              {
-                Ast_Expression* next_argument = build_expression(1);
-                argument->next_expression = next_argument;
-                argument = next_argument;
-              }
-              else if (token_at->klass == TOK_COMMA)
-                error("at line %d: missing argument", token_at->line_nr);
-              else
-                error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
-            }
-          }
-
-          if (token_at->klass == TOK_PARENTH_CLOSE)
-            next_token();
-          else
-            error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
-
-          expr = (Ast_Expression*)function_call;
-        }
-        else assert(false);
-      }
-      else break;
-    }
-    else if (token_at->klass == TOK_IDENT)
-    {
-      int priority = op_get_priority(AST_OP_VAR_DECL);
-      
-      if (priority >= priority_threshold)
-      {
-        Ast_VarDecl* var_decl = arena_push_struct(&arena, Ast_VarDecl);
-        var_decl->kind = AST_VAR_DECL;
-
-        var_decl->type = expr;
-        var_decl->name = build_expression(priority_threshold + 1);
-
-        if (var_decl->name->kind == AST_IDENT)
-        {
-          Ast_Ident* name_ident = (Ast_Ident*)var_decl->name;
-
-          if (sym_ident_is_declared(sym_get_var(name_ident->name)))
-            error("at line %d: variable '%s' re-declared", name_ident->line_nr, name_ident->name);
-          name_ident->var_ident = sym_new_var(name_ident->name, (Ast*)name_ident);
-        }
+        if (token_is_expression(token_at))
+          binary_expr->r_operand = build_expression(priority_threshold + 1);
         else
-          error("at line %d: identifier expected");
-
-        expr = (Ast_Expression*)var_decl;
+          error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
+        expr = (Ast_Expression*)binary_expr;
       }
-      else break;
+      else if (op == AST_OP_FUNCTION_CALL)
+      {
+        Ast_FunctionCall* function_call = arena_push_struct(&arena, Ast_FunctionCall);
+        function_call->kind = AST_FUNCTION_CALL;
+        function_call->function = expr;
+
+        if (token_is_expression(token_at))
+        {
+          Ast_Expression* argument = build_expression(1);
+          function_call->first_argument = argument;
+          while (token_at->klass == TOK_COMMA)
+          {
+            next_token();
+            if (token_is_expression(token_at))
+            {
+              Ast_Expression* next_argument = build_expression(1);
+              argument->next_expression = next_argument;
+              argument = next_argument;
+            }
+            else if (token_at->klass == TOK_COMMA)
+              error("at line %d: missing argument", token_at->line_nr);
+            else
+              error("at line %d: expression term expected, got '%s'", token_at->line_nr, token_at->lexeme);
+          }
+        }
+
+        if (token_at->klass == TOK_PARENTH_CLOSE)
+          next_token();
+        else
+          error("at line %d: '}' expected, got '%s'", token_at->line_nr, token_at->lexeme);
+
+        expr = (Ast_Expression*)function_call;
+      }
+      else assert(false);
     }
+    else break;
   }
   return expr;
 }
@@ -1484,11 +1451,47 @@ build_table_decl()
   return result;
 }
 
+internal Ast_VarDecl*
+build_var_decl()
+{
+  Ast_Ident* name_ast = 0;
+
+  assert(token_at->klass == TOK_TYPE_IDENT);
+  Ast_VarDecl* var_decl = arena_push_struct(&arena, Ast_VarDecl);
+  var_decl->kind = AST_VAR_DECL;
+
+  var_decl->var_type = build_type_expression();
+  var_decl->init_expr = build_expression(1);
+
+  Ast_Expression* init_expr = var_decl->init_expr;
+  if (init_expr->kind == AST_BINARY_EXPR)
+  {
+    var_decl->init_expr = ((Ast_BinaryExpr*)init_expr)->r_operand;
+    init_expr = ((Ast_BinaryExpr*)init_expr)->l_operand;
+  }
+
+  if (init_expr->kind == AST_IDENT)
+  {
+    name_ast = (Ast_Ident*)init_expr;
+    var_decl->name = name_ast;
+  }
+  else
+    error("at line %d: identifier expected", init_expr->line_nr);
+
+  if (sym_ident_is_declared(sym_get_var(name_ast->name)))
+    error("at line %d: variable '%s' re-declared", name_ast->line_nr, name_ast->name);
+  name_ast->var_ident = sym_new_var(name_ast->name, (Ast*)name_ast);
+
+  return var_decl;
+}
+
 internal Ast_Declaration*
 build_control_local_decl()
 {
-  assert(token_is_control_local_decl(token_at));
   Ast_Declaration* result = 0;
+
+  assert(token_is_control_local_decl(token_at));
+
   if (token_at->klass == TOK_KW_ACTION)
   {
     Ast_ActionDecl* action_decl = build_action_decl();
@@ -1501,8 +1504,8 @@ build_control_local_decl()
   }
   else if (token_is_expression(token_at))
   {
-    Ast_Expression* expr_decl = build_expression(1);
-    result = (Ast_Declaration*)expr_decl;
+    Ast_VarDecl* var_decl = build_var_decl();
+    result = (Ast_Declaration*)var_decl;
 
     if (token_at->klass == TOK_SEMICOLON)
       next_token();
@@ -1631,6 +1634,30 @@ build_package_prototype()
     error("at line %d: ';' expected, got '%s'", token_at->line_nr, token_at->lexeme);
 
   scope_pop_level(package_scope_level);
+  return result;
+}
+
+internal Ast_PackageInstantiation*
+build_package_instantiation()
+{
+  assert(token_at->klass == TOK_TYPE_IDENT);
+  Ast_PackageInstantiation* result = arena_push_struct(&arena, Ast_PackageInstantiation);
+  zero_struct(result, Ast_PackageInstantiation);
+  result->kind = AST_PACKAGE_INSTANTIATION;
+  result->package_ctor = build_expression(1);
+
+  if (token_at->klass == TOK_IDENT)
+  {
+    result->name = token_at->lexeme;
+
+    if (sym_ident_is_declared(sym_get_var(result->name)))
+      error("at line %d: variable '%s' re-declared", result->line_nr, result->name);
+    result->var_ident = sym_new_var(result->name, (Ast*)result);
+
+    next_token();
+  }
+  else
+    error("at line %d: non-type identifier expected, got '%s'", token_at->line_nr, token_at->lexeme);
   return result;
 }
 
@@ -1855,7 +1882,7 @@ build_p4declaration()
       result = (Ast_Declaration*)build_extern_decl();
       break;
     case (TOK_TYPE_IDENT):
-      result = (Ast_Declaration*)build_expression(1);
+      result = (Ast_Declaration*)build_package_instantiation();
       break;
 
     default: assert(false);

@@ -148,6 +148,7 @@ enum Typexpr_TypeCtor
   TYP_ARGUMENT,
   TYP_FUNCTION_CALL,
   TYP_VAR_DECL,
+  TYP_PACKAGE_INSTANTIATION,
 };
 
 enum TypeBasic_Kind
@@ -363,10 +364,18 @@ typedef struct Typexpr_VarDecl
 {
   Typexpr;
 
-  Typexpr* initializer_type;
+  Typexpr* init_type;
   Typexpr* var_type;
 }
 Typexpr_VarDecl;  // TYP_VAR_DECL
+
+typedef struct Typexpr_PackageInstantiation
+{
+  Typexpr;
+
+  Typexpr* ctor_type;
+}
+Typexpr_PackageInstantiation;  // TYP_PACKAGE_INSTANTIATION
 
 #define ast_cast(TYPE, KIND, EXPR) ({\
   if ((EXPR)) assert((EXPR)->kind == KIND); \
@@ -413,6 +422,7 @@ enum AstKind
   AST_SIMPLE_PROP,
   AST_VAR_DECL,
   AST_PACKAGE_PROTOTYPE,
+  AST_PACKAGE_INSTANTIATION,
   AST_EXTERN_OBJECT_PROTOTYPE,
   AST_EXTERN_FUNCTION_PROTOTYPE,
   AST_FUNCTION_PROTOTYPE,
@@ -435,7 +445,6 @@ enum Ast_ExprOperator
   AST_OP_ASSIGN,
   AST_OP_ADDITION,
   AST_OP_SUBTRACT,
-  AST_OP_VAR_DECL,
 };
 
 enum Ast_TypeParameterKind
@@ -473,6 +482,7 @@ Ast_ErrorCode;  // AST_ERROR_CODE
 typedef struct Ast_TypeExpression
 {
   Ast;
+
   char* name;
   Ident* type_ident;
   Ast* type_ast;
@@ -637,12 +647,12 @@ Ast_StateExpr;
 
 typedef struct Ast_VarDecl
 {
-  Ast_Expression;
+  Ast_Declaration;
 
-  Ast_Expression* type;
-  Ast_Expression* name;
+  Ast_TypeExpression* var_type;
+  Ast_Ident* name;
   Ident* var_ident;
-  Ast_Expression* initializer;
+  Ast_Expression* init_expr;
 }
 Ast_VarDecl;  // AST_VAR_DECL
 
@@ -810,6 +820,15 @@ typedef struct Ast_PackageDecl
   Ident* type_ident;
 }
 Ast_PackageDecl;  // AST_PACKAGE_PROTOTYPE
+
+typedef struct Ast_PackageInstantiation
+{
+  Ast_Declaration;
+  Ast_Expression* package_ctor;
+  char* name;
+  Ident* var_ident;
+}
+Ast_PackageInstantiation;  // AST_PACKAGE_INSTANTIATION
 
 typedef struct Ast_FunctionPrototype
 {
