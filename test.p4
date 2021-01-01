@@ -92,12 +92,11 @@ parser XdpParser(TPacketIn pkt, out Header hdr)
 control XdpPipe(inout Header hdr, out bool accept)
 {
   int i;
-  bool dropped = false;
+  bit b;
 
   apply
   {
-    accept = false;
-    i = 10;
+    i = b;
   }
 };
 

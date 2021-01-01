@@ -234,21 +234,6 @@ visit_binary_expression(Ast_BinaryExpr* expr_ast)
   expr_typexpr->l_type = visit_expression(expr_ast->l_operand);
   expr_typexpr->r_type = visit_expression(expr_ast->r_operand);
 
-  /*
-  if (expr_ast->op == AST_OP_MEMBER_SELECTOR)
-    expr_typexpr->op = TYP_OP_MEMBER_SELECTOR;
-  else if (expr_ast->op == AST_OP_LOGIC_EQUAL)
-    expr_typexpr->op = TYP_OP_LOGIC_EQUAL;
-  else if (expr_ast->op == AST_OP_FUNCTION_CALL)
-    expr_typexpr->op = TYP_OP_FUNCTION_CALL;
-  else if (expr_ast->op == AST_OP_ASSIGN)
-    expr_typexpr->op = TYP_OP_ASSIGN;
-  else if (expr_ast->op == AST_OP_ADDITION)
-    expr_typexpr->op = TYP_OP_ADDITION;
-  else if (expr_ast->op == AST_OP_SUBTRACT)
-    expr_typexpr->op = TYP_OP_SUBSTRACT;
-  */
-
   return expr_typexpr;
 }
 
@@ -465,18 +450,15 @@ visit_control_prototype(Ast_ControlDecl* control_ast)
   return control_typexpr;
 }
 
-internal Typexpr_VarDecl*
+internal Typexpr*
 visit_var_decl(Ast_VarDecl* decl_ast)
 {
   assert(!decl_ast->typexpr);
-  Typexpr_VarDecl* decl_typexpr = arena_push_struct(&arena, Typexpr_VarDecl);
-  decl_ast->typexpr = (Typexpr*)decl_typexpr;
-  decl_typexpr->kind = TYP_VAR_DECL;
+  decl_ast->typexpr = visit_type_expession(decl_ast->var_type);
+  if (decl_ast->init_expr)
+    decl_ast->init_expr->typexpr = visit_expression(decl_ast->init_expr);
 
-  decl_typexpr->var_type = visit_type_expession(decl_ast->var_type);
-  decl_typexpr->init_type = visit_expression(decl_ast->init_expr);
-
-  return decl_typexpr;
+  return decl_ast->typexpr;
 }
 
 internal Typexpr*

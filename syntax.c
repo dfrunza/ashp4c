@@ -1198,7 +1198,7 @@ bool
 token_is_control_local_decl(Token* token)
 {
   bool result = (token->klass == TOK_KW_ACTION) || (token->klass == TOK_KW_TABLE) \
-                || token_is_expression(token);
+                || (token->klass == TOK_TYPE_IDENT);
   return result;
 }
 
@@ -1461,9 +1461,8 @@ build_var_decl()
   var_decl->kind = AST_VAR_DECL;
 
   var_decl->var_type = build_type_expression();
-  var_decl->init_expr = build_expression(1);
+  Ast_Expression* init_expr = build_expression(1);
 
-  Ast_Expression* init_expr = var_decl->init_expr;
   if (init_expr->kind == AST_BINARY_EXPR)
   {
     var_decl->init_expr = ((Ast_BinaryExpr*)init_expr)->r_operand;
@@ -1480,7 +1479,7 @@ build_var_decl()
 
   if (sym_ident_is_declared(sym_get_var(name_ast->name)))
     error("at line %d: variable '%s' re-declared", name_ast->line_nr, name_ast->name);
-  name_ast->var_ident = sym_new_var(name_ast->name, (Ast*)name_ast);
+  name_ast->var_ident = sym_new_var(name_ast->name, (Ast*)var_decl);
 
   return var_decl;
 }
@@ -1502,7 +1501,7 @@ build_control_local_decl()
     Ast_TableDecl* table_decl = build_table_decl();
     result = (Ast_Declaration*)table_decl;
   }
-  else if (token_is_expression(token_at))
+  else if (token_at->klass == TOK_TYPE_IDENT)
   {
     Ast_VarDecl* var_decl = build_var_decl();
     result = (Ast_Declaration*)var_decl;

@@ -147,7 +147,6 @@ enum Typexpr_TypeCtor
   TYP_BINARY_EXPR,
   TYP_ARGUMENT,
   TYP_FUNCTION_CALL,
-  TYP_VAR_DECL,
   TYP_PACKAGE_INSTANTIATION,
 };
 
@@ -359,15 +358,6 @@ typedef struct Typexpr_FunctionCall
   int argument_count;
 }
 Typexpr_FunctionCall;  // TYP_FUNCTION_CALL
-
-typedef struct Typexpr_VarDecl
-{
-  Typexpr;
-
-  Typexpr* init_type;
-  Typexpr* var_type;
-}
-Typexpr_VarDecl;  // TYP_VAR_DECL
 
 typedef struct Typexpr_PackageInstantiation
 {
@@ -710,22 +700,16 @@ typedef struct Ast_ParserState
 }
 Ast_ParserState;  // AST_PARSER_STATE
 
-typedef struct Ast_Statement
-{
-  Ast;
-}
-Ast_Statement;
-
 typedef struct Ast_ExprStmt
 {
-  Ast_Statement;
+  Ast;
   Ast_Expression* expression;
 }
 Ast_ExprStmt;  // AST_EXPR_STMT
 
 typedef struct Ast_BlockStmt
 {
-  Ast_Statement;
+  Ast;
   Ast_Expression* first_statement;
 }
 Ast_BlockStmt;  // AST_BLOCK_STMT
