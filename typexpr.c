@@ -734,6 +734,9 @@ visit_p4declaration(Ast_Declaration* p4decl_ast)
     case AST_PACKAGE_INSTANTIATION:
       visit_package_instantiation((Ast_PackageInstantiation*)p4decl_ast);
       break;
+    case AST_VAR_DECL:
+      visit_var_decl((Ast_VarDecl*)p4decl_ast);
+      break;
 
     default: assert(false);
   }

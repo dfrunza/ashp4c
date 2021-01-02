@@ -353,10 +353,11 @@ build_struct_field()
 internal bool
 token_is_p4declaration(Token* token)
 {
-  bool result = token->klass == TOK_KW_STRUCT || token->klass == TOK_KW_HEADER ||
-      token->klass == TOK_KW_ERROR || token->klass == TOK_KW_TYPEDEF ||
-      token->klass == TOK_KW_PARSER || token->klass == TOK_KW_CONTROL ||
-      token->klass == TOK_TYPE_IDENT || token->klass == TOK_KW_EXTERN || token->klass == TOK_KW_PACKAGE;
+  bool result = token->klass == TOK_KW_STRUCT || token->klass == TOK_KW_HEADER \
+      || token->klass == TOK_KW_ERROR || token->klass == TOK_KW_TYPEDEF \
+      || token->klass == TOK_KW_PARSER || token->klass == TOK_KW_CONTROL \
+      || token->klass == TOK_TYPE_IDENT || token->klass == TOK_KW_EXTERN \
+      || token->klass == TOK_KW_CONST || token->klass == TOK_KW_PACKAGE;
   return result;
 }
 
@@ -710,6 +711,8 @@ build_typedef_decl()
     error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
   else
     error("at line %d : unexpected token '%s'", token->line_nr, token->lexeme);
+
+  expect_semicolon();
 
   return result;
 }
@@ -1135,8 +1138,7 @@ build_var_decl()
 {
   Ast_Ident* name_ast = 0;
 
-  assert(token->klass == TOK_KW_VAR);
-
+  assert(token->klass == TOK_KW_VAR || token->klass == TOK_KW_CONST);
   next_token();
 
   Ast_VarDecl* var_decl = arena_push_struct(&arena, Ast_VarDecl);
@@ -1169,7 +1171,20 @@ build_var_decl()
     error("at line %d: variable '%s' re-declared", name_ast->line_nr, name_ast->name);
   name_ast->var_ident = sym_new_var(name_ast->name, (Ast*)var_decl);
 
+  expect_semicolon();
+
   return var_decl;
+}
+
+internal Ast_VarDecl*
+build_const_decl()
+{
+  assert (token->klass == TOK_KW_CONST);
+
+  Ast_VarDecl* const_decl = build_var_decl();
+  const_decl->is_const = true;
+
+  return const_decl;
 }
 
 internal Ast_IdentState*
@@ -1320,7 +1335,10 @@ build_statement()
   assert (token_is_expression(token) || token->klass == TOK_KW_VAR);
 
   if (token_is_expression(token))
+  {
     result = (Ast_Declaration*)build_expression(1);
+    expect_semicolon();
+  }
   else if (token->klass == TOK_KW_VAR)
     result = (Ast_Declaration*)build_var_decl();
   else
@@ -1339,21 +1357,12 @@ build_statement_list()
     Ast_Declaration* expression = (Ast_Declaration*)build_statement();
     result = expression;
 
-    if (token->klass == TOK_SEMICOLON)
+    while (token_is_expression(token) || token->klass == TOK_KW_VAR)
     {
-      next_token();
-
-      while (token_is_expression(token) || token->klass == TOK_KW_VAR)
-      {
-        Ast_Declaration* next_expression = (Ast_Declaration*)build_statement();
-        expression->next_decl = next_expression;
-        expression = next_expression;
-
-        expect_semicolon();
-      }
+      Ast_Declaration* next_expression = (Ast_Declaration*)build_statement();
+      expression->next_decl = next_expression;
+      expression = next_expression;
     }
-    else
-      error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
   }
 
   return result;
@@ -1445,7 +1454,10 @@ build_parser_decl()
       error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
   }
   else if (token->klass == TOK_SEMICOLON)
+  {
     scope_pop_level(parser_scope_level);
+    next_token();
+  }
   else
     error("at line %d: '{' or ';' expected, got '%s'", token->line_nr, token->lexeme);
 
@@ -1619,8 +1631,8 @@ build_simple_prop()
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_SIMPLE_PROP;
   result->expression = build_expression(1);
-
   expect_semicolon();
+
   return result;
 }
 
@@ -1820,13 +1832,12 @@ build_control_local_decl()
   {
     Ast_VarDecl* var_decl = build_var_decl();
     result = (Ast_Declaration*)var_decl;
-
-    expect_semicolon();
   }
   else if (token->klass == TOK_IDENT || token->klass == TOK_TYPE_IDENT)
   {
     Ast_Declaration* expression = (Ast_Declaration*)build_expression(1);
     result = (Ast_Declaration*)expression;
+
     expect_semicolon();
   }
   else
@@ -1882,9 +1893,12 @@ build_control_decl()
       error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
   }
   else if (token->klass == TOK_SEMICOLON)
+  {
     scope_pop_level(control_scope_level);
+    next_token();
+  }
   else
-    error("at line %d: '{' expected, got '%s'", token->line_nr, token->lexeme);
+    error("at line %d: '{' or ';' expected, got '%s'", token->line_nr, token->lexeme);
 
   scope_pop_level(control_scope_level);
   return result;
@@ -1952,7 +1966,10 @@ build_package_prototype()
     error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
 
   if (token->klass == TOK_SEMICOLON)
+  {
     scope_pop_level(package_scope_level);
+    next_token();
+  }
   else
     error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
 
@@ -1983,6 +2000,9 @@ build_package_instantiation()
   }
   else
     error("at line %d: non-type identifier expected, got '%s'", token->line_nr, token->lexeme);
+
+  expect_semicolon();
+
   return result;
 }
 
@@ -2043,7 +2063,10 @@ build_function_prototype()
         error("at line %d: ')' expected, got '%s'", token->line_nr, token->lexeme);
 
       if (token->klass == TOK_SEMICOLON)
+      {
         scope_pop_level(function_scope_level);
+        next_token();
+      }
       else
         error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
     }
@@ -2102,21 +2125,17 @@ build_extern_object_prototype()
       method = build_function_prototype();
       result->first_method = method;
 
-      expect_semicolon();
-
       while (token->klass == TOK_TYPE_IDENT)
       {
         Ast_FunctionDecl* next_method = build_function_prototype();
         method->next_decl = (Ast_Declaration*)next_method;
         method = next_method;
-
-        expect_semicolon();
       }
     }
 
+    sym_import_var((Ident*)error_kw);
     if (token->klass == TOK_BRACE_CLOSE)
     {
-      sym_import_var((Ident*)error_kw);
       scope_pop_level(object_scope_level);
       next_token();
     }
@@ -2125,8 +2144,13 @@ build_extern_object_prototype()
     else
       error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
   }
+  else if (token->klass == TOK_SEMICOLON)
+  {
+    scope_pop_level(object_scope_level);
+    next_token();
+  }
   else
-    error("at line %d: '{' expected, got '%s'", token->line_nr, token->lexeme);
+    error("at line %d: '{' or ';' expected, got '%s'", token->line_nr, token->lexeme);
 
   scope_pop_level(object_scope_level);
   return result;
@@ -2197,14 +2221,15 @@ build_p4declaration()
     case TOK_KW_EXTERN:
       result = (Ast_Declaration*)build_extern_decl();
       break;
+    case TOK_KW_CONST:
+      result = (Ast_Declaration*)build_const_decl();
+      break;
     case TOK_TYPE_IDENT:
       result = (Ast_Declaration*)build_package_instantiation();
       break;
 
     default: assert(false);
   }
-
-  expect_semicolon();
 
   return result;
 }
@@ -2229,7 +2254,7 @@ build_p4program()
       declaration = next_declaration;
     }
     if (token->klass != TOK_EOI)
-      error("at line %d: expected end of input, got '%s'", token->line_nr, token->lexeme);
+      error("at line %d: unexpected token '%s'", token->line_nr, token->lexeme);
   }
   else
     error("at line %d: declaration expected, got '%s'", token->line_nr, token->lexeme);
@@ -2292,7 +2317,6 @@ build_ast()
   bool_false_ast->value = 0;
 
   add_keyword("action", TOK_KW_ACTION);
-  add_keyword("const", TOK_KW_CONST);
   add_keyword("enum", TOK_KW_ENUM);
   add_keyword("in", TOK_KW_IN);
   add_keyword("package", TOK_KW_PACKAGE);
@@ -2320,6 +2344,7 @@ build_ast()
   add_keyword("struct", TOK_KW_STRUCT);
   apply_kw = add_keyword("apply", TOK_KW_APPLY);
   add_keyword("var", TOK_KW_VAR);
+  add_keyword("const", TOK_KW_CONST);
 
   error_type_ident = sym_new_type(error_type_ast->name, (Ast*)error_type_ast);
   void_type_ident = sym_new_type(void_type_ast->name, (Ast*)void_type_ast);

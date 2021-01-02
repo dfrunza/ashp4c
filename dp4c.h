@@ -42,7 +42,6 @@ enum TokenClass
   TOK_COMMENT,
 
   TOK_KW_ACTION,
-  TOK_KW_CONST,
   TOK_KW_ENUM,
   TOK_KW_IN,
   TOK_KW_PACKAGE,
@@ -75,6 +74,7 @@ enum TokenClass
   TOK_KW_RETURN,
   TOK_KW_STRUCT,
   TOK_KW_VAR,
+  TOK_KW_CONST,
 
   TOK_UNKNOWN,
   TOK_SOI,    // Start Of Input
@@ -624,6 +624,7 @@ typedef struct Ast_VarDecl
   Ast_Ident* name;
   Ident* var_ident;
   Ast* init_expr;
+  bool is_const;
 }
 Ast_VarDecl;  // AST_VAR_DECL
 
