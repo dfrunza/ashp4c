@@ -45,6 +45,7 @@ Ast_Integer* bool_false_ast = 0;
 Ident* bool_false_ident = 0;
 
 internal Ast_TypeExpression* build_type_expression();
+internal Ast_TypeParameter* build_type_parameter();
 internal Ast* build_expression(int priority_threshold);
 internal Ast_BlockStmt* build_block_statement();
 
@@ -566,6 +567,32 @@ token_is_type_parameter(Token* token)
 }
 
 internal Ast_TypeParameter*
+build_type_parameter_list()
+{
+  assert(token_is_type_parameter(token));
+
+  Ast_TypeParameter* parameter = build_type_parameter();
+  Ast_TypeParameter* result = parameter;
+
+  while (token->klass == TOK_COMMA)
+  {
+    next_token();
+    if (token_is_type_parameter(token))
+    {
+      Ast_TypeParameter* next_parameter = build_type_parameter();
+      parameter->next_parameter = next_parameter;
+      parameter = next_parameter;
+    }
+    else if (token->klass == TOK_COMMA)
+      error("at line %d: missing parameter", token->line_nr);
+    else
+      error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
+  }
+
+  return result;
+}
+
+internal Ast_TypeParameter*
 build_type_parameter()
 {
   assert(token_is_type_parameter(token));
@@ -594,29 +621,21 @@ build_type_parameter()
   else
     assert(false);
 
-  return result;
-}
-
-internal Ast_TypeParameter*
-build_type_parameter_list()
-{
-  assert(token_is_type_parameter(token));
-  Ast_TypeParameter* parameter = build_type_parameter();
-  Ast_TypeParameter* result = parameter;
-  while (token->klass == TOK_COMMA)
+  if (token->klass == TOK_ANGLE_OPEN)
   {
     next_token();
+
     if (token_is_type_parameter(token))
-    {
-      Ast_TypeParameter* next_parameter = build_type_parameter();
-      parameter->next_parameter = next_parameter;
-      parameter = next_parameter;
-    }
-    else if (token->klass == TOK_COMMA)
-      error("at line %d: missing parameter", token->line_nr);
+      result->first_type_parameter = build_type_parameter_list();
     else
-      error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
+      error("at line %d: type parameter expected, got '%s'", token->line_nr, token->lexeme);
+
+    if (token->klass == TOK_ANGLE_CLOSE)
+      next_token();
+    else
+      error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
   }
+
   return result;
 }
 
@@ -669,10 +688,12 @@ build_type_expression()
   Ast_TypeExpression* result = arena_push_struct(&arena, Ast_TypeExpression);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_TYPE_EXPRESSION;
-  result->name = token->lexeme;
 
   if (token->klass == TOK_IDENT || token->klass == TOK_TYPE_IDENT)
   {
+    result->argument_kind = AST_TYPPARAM_VAR;
+    result->name = token->lexeme;
+
     result->type_ident = sym_get_type(token->lexeme);
     if (result->type_ident)
       result->type_ast = result->type_ident->ast;
@@ -683,6 +704,8 @@ build_type_expression()
   }
   else if (token->klass == TOK_INTEGER)
   {
+    result->argument_kind = AST_TYPPARAM_INT;
+
     Ast* size_ast = build_expression(1);
     result->type_ast = size_ast;
     if (size_ast->kind != AST_INTEGER)

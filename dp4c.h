@@ -464,6 +464,7 @@ typedef struct Ast_TypeParameter
 {
   Ast;
   enum Ast_TypeParameterKind parameter_kind;
+  struct Ast_TypeParameter* first_type_parameter;
   struct Ast_TypeParameter* next_parameter;
   Ident* type_ident;
 
@@ -478,10 +479,11 @@ Ast_TypeParameter;  // AST_TYPE_PARAMETER
 typedef struct Ast_TypeExpression
 {
   Ast;
-  char* name;
+  enum Ast_TypeParameterKind argument_kind;
   struct Ast_TypeExpression* first_type_argument;
   struct Ast_TypeExpression* next_argument;
   
+  char* name;
   Ast* type_ast;
   Ident* type_ident;
 }
