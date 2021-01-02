@@ -581,6 +581,7 @@ Ast_BinaryExpr;  // AST_BINARY_EXPR
 typedef struct Ast_Ident
 {
   Ast_Declaration;
+  Ast_TypeExpression* first_type_argument;
   char* name;
   Ident* var_ident;
 }
@@ -589,6 +590,7 @@ Ast_Ident;  // AST_IDENT
 typedef struct Ast_TypeIdent
 {
   Ast_Declaration;
+  Ast_TypeExpression* first_type_argument;
   char* name;
   Ident* type_ident;
 }
@@ -615,12 +617,6 @@ typedef struct Ast_SInteger
 }
 Ast_SInteger;  // AST_SINTEGER
 
-typedef struct Ast_StateExpr
-{
-  Ast;
-}
-Ast_StateExpr;
-
 typedef struct Ast_VarDecl
 {
   Ast_Declaration;
@@ -635,7 +631,7 @@ Ast_VarDecl;  // AST_VAR_DECL
 
 typedef struct Ast_IdentState
 {
-  Ast_StateExpr;
+  Ast;
   char* name;
 }
 Ast_IdentState;  // AST_IDENT_STATE
@@ -663,7 +659,7 @@ Ast_SelectCase_Default;  // AST_SELECT_CASE_DEFAULT
 
 typedef struct Ast_SelectState
 {
-  Ast_StateExpr;
+  Ast;
   Ast* expression;
   Ast_SelectCase* select_case;
 }
@@ -672,7 +668,7 @@ Ast_SelectState;  // AST_SELECT_STATE
 typedef struct Ast_TransitionStmt
 {
   Ast;
-  Ast_StateExpr* state_expr;
+  Ast* state_expr;
 }
 Ast_TransitionStmt;  // AST_TRANSITION_STMT
 

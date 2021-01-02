@@ -945,11 +945,37 @@ token_is_expression_operator(Token* token)
   return result;
 }
 
+internal Ast_TypeExpression*
+build_primaryexpr_type_arguments()
+{
+  Ast_TypeExpression* result = 0;
+
+  assert(token->klass == TOK_ANGLE_OPEN);
+
+  if (token->klass == TOK_ANGLE_OPEN)
+  {
+    next_token();
+
+    if (token_is_type_parameter(token))
+      result = build_type_expression();
+    else
+      error("at line %d: type parameter expected, got '%s'", token->line_nr, token->lexeme);
+
+    if (token->klass == TOK_ANGLE_CLOSE)
+      next_token();
+    else
+      error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
+  }
+
+  return result;
+}
+
 internal Ast*
 build_expression_primary()
 {
-  assert(token_is_expression(token));
   Ast* result = 0;
+
+  assert(token_is_expression(token));
 
   if (token->klass == TOK_IDENT)
   {
@@ -966,6 +992,9 @@ build_expression_primary()
 
     result = (Ast*)ident_ast;
     next_token();
+
+    if (token->klass == TOK_ANGLE_OPEN)
+      ident_ast->first_type_argument = build_primaryexpr_type_arguments();
   }
   else if (token->klass == TOK_TYPE_IDENT)
   {
@@ -982,6 +1011,9 @@ build_expression_primary()
 
     result = (Ast*)ident_ast;
     next_token();
+
+    if (token->klass == TOK_ANGLE_OPEN)
+      ident_ast->first_type_argument = build_primaryexpr_type_arguments();
   }
   else if (token_is_integer(token))
   {
@@ -1360,9 +1392,9 @@ build_transition_stmt()
 
   next_token();
   if (token->klass == TOK_IDENT)
-    result->state_expr = (Ast_StateExpr*)build_ident_state();
+    result->state_expr = (Ast*)build_ident_state();
   else if (token->klass == TOK_KW_SELECT)
-    result->state_expr = (Ast_StateExpr*)build_select_state();
+    result->state_expr = (Ast*)build_select_state();
   else
     error("at line %d: transition stmt expected, got '%s'", token->line_nr, token->lexeme);
   return result;
