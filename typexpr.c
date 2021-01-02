@@ -487,12 +487,12 @@ visit_control_decl(Ast_ControlDecl* control_ast)
   Ast_Declaration* local_decl = control_ast->first_local_decl;
   while (local_decl)
   {
-    if (local_decl->kind == AST_VAR_DECL)
-      visit_var_decl((Ast_VarDecl*)local_decl);
+    visit_statement((Ast*)local_decl);
     local_decl = local_decl->next_decl;
   }
 
-  visit_block_statement(control_ast->apply_block);
+  if (control_ast->apply_block)
+    visit_block_statement(control_ast->apply_block);
 
   return control_typexpr;
 }

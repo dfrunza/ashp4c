@@ -1553,7 +1553,7 @@ bool
 token_is_control_local_decl(Token* token)
 {
   bool result = (token->klass == TOK_KW_ACTION) || (token->klass == TOK_KW_TABLE) \
-                || (token->klass == TOK_TYPE_IDENT) || (token->klass == TOK_TYPE_IDENT) \
+                || (token->klass == TOK_IDENT) || (token->klass == TOK_TYPE_IDENT) \
                 || (token->klass == TOK_KW_VAR);
   return result;
 }
