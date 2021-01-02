@@ -209,19 +209,9 @@ typedef struct Typexpr_TypeParameter
 }
 Typexpr_TypeParameter;  // TYP_TYPE_PARAMETER
 
-typedef enum Typexpr_ParameterDirection
-{
-  TYP_DIR_NONE,
-  TYP_DIR_IN,
-  TYP_DIR_OUT,
-  TYP_DIR_INOUT,
-}
-Typexpr_ParameterDirection;
-
 typedef struct Typexpr_Parameter
 {
   Typexpr;
-  enum Typexpr_ParameterDirection direction;
   struct Typexpr_Parameter* next_parameter;
   Typexpr* type;
 }
@@ -474,7 +464,6 @@ Ast_ErrorCode;  // AST_ERROR_CODE
 typedef struct Ast_TypeExpression
 {
   Ast;
-
   char* name;
   Ident* type_ident;
   Ast* type_ast;

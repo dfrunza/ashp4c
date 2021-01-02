@@ -91,13 +91,6 @@ visit_parameter(Ast_Parameter* parameter_ast)
   parameter_typexpr->name = parameter_ast->name;
   parameter_typexpr->kind = TYP_PARAMETER;
 
-  if (parameter_ast->direction == AST_DIR_IN)
-    parameter_typexpr->direction = TYP_DIR_IN;
-  else if (parameter_ast->direction == AST_DIR_OUT)
-    parameter_typexpr->direction = TYP_DIR_OUT;
-  else if (parameter_ast->direction == AST_DIR_INOUT)
-    parameter_typexpr->direction = TYP_DIR_INOUT;
-
   parameter_typexpr->type = visit_type_expession(parameter_ast->param_type);
 
   return parameter_typexpr;
@@ -244,7 +237,12 @@ visit_ident(Ast_Ident* ident_ast)
 
   Ident* var_ident = ident_ast->var_ident;
   if (var_ident)
-    ident_ast->typexpr = var_ident->ast->typexpr;
+  {
+    Typexpr* ident_typexpr = var_ident->ast->typexpr;
+    if (ident_typexpr->kind == TYP_PARAMETER)
+      ident_typexpr = ((Typexpr_Parameter*)ident_typexpr)->type;
+    ident_ast->typexpr = ident_typexpr;
+  }
   else
     printf("type unknown: '%s'\n", ident_ast->name);
 
