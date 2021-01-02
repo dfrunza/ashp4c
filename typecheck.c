@@ -43,12 +43,12 @@ visit_binary_expression(Ast_BinaryExpr* expr_ast)
 }
 
 internal void
-visit_statement(Ast* expr_ast)
+visit_statement(Ast* stmt_ast)
 {
-  switch (expr_ast->kind)
+  switch (stmt_ast->kind)
   {
     case (AST_BINARY_EXPR):
-      visit_binary_expression((Ast_BinaryExpr*)expr_ast);
+      visit_binary_expression((Ast_BinaryExpr*)stmt_ast);
       break;
 
     default:
@@ -60,11 +60,11 @@ visit_statement(Ast* expr_ast)
 internal void
 visit_parser_state(Ast_ParserState* state_ast)
 {
-  Ast_Declaration* expr_ast = state_ast->first_statement;
-  while (expr_ast)
+  Ast_Declaration* stmt_ast = state_ast->first_statement;
+  while (stmt_ast)
   {
-    visit_statement((Ast*)expr_ast);
-    expr_ast = expr_ast->next_decl;
+    visit_statement((Ast*)stmt_ast);
+    stmt_ast = stmt_ast->next_decl;
   }
 }
 

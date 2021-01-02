@@ -123,7 +123,6 @@ typedef struct
   enum TokenClass klass;
   char* lexeme;
   int line_nr;
-  struct Ident* ident;
 }
 Token;
 
@@ -461,26 +460,44 @@ typedef struct Ast_ErrorCode
 }
 Ast_ErrorCode;  // AST_ERROR_CODE
 
+typedef struct Ast_TypeParameter
+{
+  Ast;
+  enum Ast_TypeParameterKind parameter_kind;
+  struct Ast_TypeParameter* next_parameter;
+  Ident* type_ident;
+
+  union
+  {
+    char* name;
+    char* width;
+  };
+}
+Ast_TypeParameter;  // AST_TYPE_PARAMETER
+
 typedef struct Ast_TypeExpression
 {
   Ast;
   char* name;
-  Ident* type_ident;
+  struct Ast_TypeExpression* first_type_argument;
+  struct Ast_TypeExpression* next_argument;
+  
   Ast* type_ast;
+  Ident* type_ident;
 }
 Ast_TypeExpression;  // AST_TYPE_EXPRESSION
 
 typedef struct Ast_BitType
 {
   Ast_TypeExpression;
-  int size;
+  int width;
 }
 Ast_BitType;  // AST_BIT_TYPE
 
 typedef struct Ast_IntType
 {
   Ast_TypeExpression;
-  int size;
+  int width;
 }
 Ast_IntType;  // AST_INT_TYPE
 
@@ -541,20 +558,6 @@ typedef struct Ast_Parameter
   struct Ast_Parameter* next_parameter;
 }
 Ast_Parameter;  // AST_PARAMETER
-
-typedef struct Ast_TypeParameter
-{
-  Ast;
-  enum Ast_TypeParameterKind parameter_kind;
-  struct Ast_TypeParameter* next_parameter;
-  Ident* type_ident;
-  union
-  {
-    char* name;
-    char* int_value;
-  };
-}
-Ast_TypeParameter;  // AST_TYPE_PARAMETER
 
 typedef struct Ast_FunctionCall
 {
@@ -691,7 +694,7 @@ Ast_ExprStmt;  // AST_EXPR_STMT
 
 typedef struct Ast_BlockStmt
 {
-  Ast;
+  Ast_Declaration;
   Ast_Declaration* first_statement;
 }
 Ast_BlockStmt;  // AST_BLOCK_STMT

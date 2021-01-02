@@ -46,6 +46,7 @@ Ident* bool_false_ident = 0;
 
 internal Ast_TypeExpression* build_type_expression();
 internal Ast* build_expression(int priority_threshold);
+internal Ast_BlockStmt* build_block_statement();
 
 internal uint32_t
 name_hash(char* name)
@@ -560,7 +561,7 @@ build_error_type_decl()
 internal bool
 token_is_type_parameter(Token* token)
 {
-  bool result = (token->klass == TOK_IDENT) || (token->klass == TOK_TYPE_IDENT) || (token->klass == TOK_INTEGER);
+  bool result = token->klass == TOK_IDENT || token->klass == TOK_TYPE_IDENT || token->klass == TOK_INTEGER;
   return result;
 }
 
@@ -587,10 +588,11 @@ build_type_parameter()
   else if (token->klass == TOK_INTEGER)
   {
     result->parameter_kind = AST_TYPPARAM_INT;
-    // TODO
+    result->width = 0; // TODO
     next_token();
   }
-  else assert(false);
+  else
+    assert(false);
 
   return result;
 }
@@ -618,64 +620,92 @@ build_type_parameter_list()
   return result;
 }
 
-internal void
-build_type_expression_argument_list()
+internal bool
+token_is_direction(Token* token)
 {
-  assert(token->klass == TOK_ANGLE_OPEN);
-  next_token();
-  if (token->klass == TOK_TYPE_IDENT)
-  {
-    //TODO
-    next_token();
-    while (token->klass == TOK_COMMA)
-    {
-      next_token();
-      if (token->klass == TOK_TYPE_IDENT)
-      {
-        //TODO:
-        next_token();
-      }
-      else if (token->klass == TOK_INTEGER)
-      {
-        // TODO
-        next_token();
-      }
-      else if (token->klass == TOK_COMMA)
-        error("at line %d: missing parameter", token->line_nr);
-      else
-        error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
-    }
-  }
-  else if (token->klass == TOK_INTEGER)
-  {
-    // TODO
-    next_token();
-  }
-  else
-    error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
+  bool result = token->klass == TOK_KW_IN || token->klass == TOK_KW_OUT || token->klass == TOK_KW_INOUT;
+  return result;
+}
 
-  if (token->klass == TOK_ANGLE_CLOSE)
+internal bool
+token_is_parameter(Token* token)
+{
+  bool result = token_is_direction(token) || token->klass == TOK_IDENT \
+                || token->klass == TOK_TYPE_IDENT || token->klass == TOK_INTEGER;
+  return result;
+}
+
+internal Ast_TypeExpression*
+build_type_argument_list()
+{
+  assert(token_is_type_parameter(token));
+
+  Ast_TypeExpression* argument = build_type_expression();
+  Ast_TypeExpression* result = argument;
+
+  while (token->klass == TOK_COMMA)
+  {
     next_token();
-  else
-    error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
+    if (token_is_type_parameter(token))
+    {
+      Ast_TypeExpression* next_argument = build_type_expression();
+      argument->next_argument = next_argument;
+      argument = next_argument;
+    }
+    else if (token->klass == TOK_COMMA)
+      error("at line %d: missing type argument", token->line_nr);
+    else
+      error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
+  }
+
+  return result;
 }
 
 internal Ast_TypeExpression*
 build_type_expression()
 {
-  assert(token->klass == TOK_TYPE_IDENT);
+  assert(token_is_type_parameter(token));
 
   Ast_TypeExpression* result = arena_push_struct(&arena, Ast_TypeExpression);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_TYPE_EXPRESSION;
   result->name = token->lexeme;
 
-  result->type_ident = sym_get_type(token->lexeme);
-  result->type_ast = result->type_ident->ast;
+  if (token->klass == TOK_IDENT || token->klass == TOK_TYPE_IDENT)
+  {
+    result->type_ident = sym_get_type(token->lexeme);
+    if (result->type_ident)
+      result->type_ast = result->type_ident->ast;
+    else
+      error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
 
-  next_token();
+    next_token();
+  }
+  else if (token->klass == TOK_INTEGER)
+  {
+    Ast* size_ast = build_expression(1);
+    result->type_ast = size_ast;
+    if (size_ast->kind != AST_INTEGER)
+      error("at line %d: type width must be a integer literal, got '%s'", size_ast->line_nr, size_ast->lexeme);
+  }
+  else
+    assert(false);
+
   if (token->klass == TOK_ANGLE_OPEN)
-    build_type_expression_argument_list();
+  {
+    next_token();
+
+    if (token_is_type_parameter(token))
+      result->first_type_argument = build_type_argument_list();
+    else
+      error("at line %d: type parameter expected, got '%s'", token->line_nr, token->lexeme);
+
+    if (token->klass == TOK_ANGLE_CLOSE)
+      next_token();
+    else
+      error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
+  }
+
   return result;
 }
 
@@ -714,20 +744,6 @@ build_typedef_decl()
 
   expect_semicolon();
 
-  return result;
-}
-
-internal bool
-token_is_direction(Token* token)
-{
-  bool result = token->klass == TOK_KW_IN || token->klass == TOK_KW_OUT || token->klass == TOK_KW_INOUT;
-  return result;
-}
-
-internal bool
-token_is_parameter(Token* token)
-{
-  bool result = token_is_direction(token) || token->klass == TOK_TYPE_IDENT;
   return result;
 }
 
@@ -781,8 +797,10 @@ internal Ast_Parameter*
 build_parameter_list()
 {
   assert(token_is_parameter(token));
+
   Ast_Parameter* parameter = build_parameter();
   Ast_Parameter* result = parameter;
+
   while (token->klass == TOK_COMMA)
   {
     next_token();
@@ -1327,12 +1345,20 @@ build_transition_stmt()
   return result;
 }
 
+internal bool
+token_is_statement(Token* token)
+{
+  bool result = token_is_expression(token) || token->klass == TOK_KW_VAR \
+                || token->klass == TOK_BRACE_OPEN;
+  return result;
+}
+
 internal Ast_Declaration*
 build_statement()
 {
   Ast_Declaration* result = 0;
 
-  assert (token_is_expression(token) || token->klass == TOK_KW_VAR);
+  assert (token_is_statement(token));
 
   if (token_is_expression(token))
   {
@@ -1341,6 +1367,8 @@ build_statement()
   }
   else if (token->klass == TOK_KW_VAR)
     result = (Ast_Declaration*)build_var_decl();
+  else if (token->klass == TOK_BRACE_OPEN)
+    result = (Ast_Declaration*)build_block_statement();
   else
     assert(false);
 
@@ -1352,12 +1380,12 @@ build_statement_list()
 {
   Ast_Declaration* result = 0;
 
-  if (token_is_expression(token) || token->klass == TOK_KW_VAR)
+  if (token_is_statement(token))
   {
     Ast_Declaration* expression = (Ast_Declaration*)build_statement();
     result = expression;
 
-    while (token_is_expression(token) || token->klass == TOK_KW_VAR)
+    while (token_is_statement(token))
     {
       Ast_Declaration* next_expression = (Ast_Declaration*)build_statement();
       expression->next_decl = next_expression;
@@ -1539,7 +1567,7 @@ build_block_statement()
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_BLOCK_STMT;
 
-  if (token_is_expression(token) || token->klass == TOK_KW_VAR);
+  if (token_is_statement(token))
     result->first_statement = build_statement_list();
 
   if (token->klass == TOK_BRACE_CLOSE)
@@ -1573,6 +1601,7 @@ build_action_decl()
   {
     result->name = token->lexeme;
     next_token();
+
     if (token->klass == TOK_PARENTH_OPEN)
     {
       next_token();
@@ -1585,6 +1614,7 @@ build_action_decl()
     }
     else
       error("at line %d: '(' expected, got '%s'", token->line_nr, token->lexeme);
+
     if (token->klass == TOK_BRACE_OPEN)
       result->action_body = build_block_statement();
     else

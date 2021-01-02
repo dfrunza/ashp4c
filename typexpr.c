@@ -349,6 +349,21 @@ visit_var_decl(Ast_VarDecl* decl_ast)
 }
 
 internal Typexpr*
+visit_block_statement(Ast_BlockStmt* block_ast)
+{
+  assert(!block_ast->typexpr);
+
+  Ast_Declaration* stmt_ast = block_ast->first_statement;
+  while (stmt_ast)
+  {
+    visit_statement((Ast*)stmt_ast);
+    stmt_ast = stmt_ast->next_decl;
+  }
+
+  return 0;
+}
+
+internal Typexpr*
 visit_statement(Ast* stmt_ast)
 {
   assert(!stmt_ast->typexpr);
@@ -379,6 +394,9 @@ visit_statement(Ast* stmt_ast)
       break;
     case AST_VAR_DECL:
       expr_typexpr = (Typexpr*)visit_var_decl((Ast_VarDecl*)stmt_ast);
+      break;
+    case AST_BLOCK_STMT:
+      expr_typexpr = (Typexpr*)visit_block_statement((Ast_BlockStmt*)stmt_ast);
       break;
 
     default: assert(false);
@@ -460,21 +478,6 @@ visit_control_prototype(Ast_ControlDecl* control_ast)
   }
 
   return control_typexpr;
-}
-
-internal Typexpr*
-visit_block_statement(Ast_BlockStmt* block_ast)
-{
-  assert(!block_ast->typexpr);
-
-  Ast_Declaration* stmt_ast = block_ast->first_statement;
-  while (stmt_ast)
-  {
-    visit_statement((Ast*)stmt_ast);
-    stmt_ast = stmt_ast->next_decl;
-  }
-
-  return 0;
 }
 
 internal Typexpr_Control*
