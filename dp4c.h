@@ -803,7 +803,6 @@ typedef struct Ast_FunctionPrototype
   char* name;
   Ast_TypeParameter* first_type_parameter;
   Ast_Parameter* first_parameter;
-  Ident* return_type_ident;
   Ast* return_type_ast;
   Ident* type_ident;
 }

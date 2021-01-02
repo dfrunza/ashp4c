@@ -1005,9 +1005,9 @@ build_expression_primary()
 
     ident_ast->type_ident = sym_get_type(ident_ast->name);
     if (ident_ast->type_ident)
-      printf("resolved id '%s'\n", ident_ast->name);
+      printf("resolved type '%s'\n", ident_ast->name);
     else
-      printf("unknown id '%s'\n", ident_ast->name);
+      printf("unknown type '%s'\n", ident_ast->name);
 
     result = (Ast*)ident_ast;
     next_token();
@@ -2094,14 +2094,18 @@ build_package_instantiation()
 internal Ast_FunctionDecl*
 build_function_prototype()
 {
-  assert(token->klass == TOK_TYPE_IDENT);
+  assert(token->klass == TOK_IDENT || token->klass == TOK_TYPE_IDENT);
 
   Ast_FunctionDecl* result = arena_push_struct(&arena, Ast_FunctionDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_FUNCTION_PROTOTYPE;
 
-  result->return_type_ast = build_type_expression()->type_ast;
-  result->return_type_ident = sym_get_type(token->lexeme);
+  if (token->klass == TOK_IDENT)
+    result->return_type_ast = (Ast*)build_type_parameter();
+  else if (token->klass == TOK_TYPE_IDENT)
+    result->return_type_ast = (Ast*)build_type_expression();
+  else
+    assert(false);
 
   int function_scope_level = scope_level;
 
@@ -2205,12 +2209,12 @@ build_extern_object_prototype()
     sym_unimport_var((Ident*)error_kw);
     next_token();
 
-    if (token->klass == TOK_TYPE_IDENT)
+    if (token->klass == TOK_IDENT || token->klass == TOK_TYPE_IDENT)
     {
       method = build_function_prototype();
       result->first_method = method;
 
-      while (token->klass == TOK_TYPE_IDENT)
+      while (token->klass == TOK_IDENT || token->klass == TOK_TYPE_IDENT)
       {
         Ast_FunctionDecl* next_method = build_function_prototype();
         method->next_decl = (Ast_Declaration*)next_method;
