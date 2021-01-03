@@ -45,7 +45,6 @@ Ast_Integer* bool_false_ast = 0;
 Ident* bool_false_ident = 0;
 
 internal Ast_TypeExpression* build_type_expression();
-internal Ast_TypeParameter* build_type_parameter();
 internal Ast* build_expression(int priority_threshold);
 internal Ast_BlockStmt* build_block_statement();
 
@@ -333,79 +332,6 @@ token_is_type_parameter(Token* token)
   return result;
 }
 
-internal Ast_TypeParameter*
-build_type_parameter_list()
-{
-  assert(token_is_type_parameter(token));
-
-  Ast_TypeParameter* parameter = build_type_parameter();
-  Ast_TypeParameter* result = parameter;
-
-  while (token->klass == TOK_COMMA)
-  {
-    next_token();
-    if (token_is_type_parameter(token))
-    {
-      Ast_TypeParameter* next_parameter = build_type_parameter();
-      parameter->next_parameter = next_parameter;
-      parameter = next_parameter;
-    }
-    else if (token->klass == TOK_COMMA)
-      error("at line %d: missing parameter", token->line_nr);
-    else
-      error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
-  }
-
-  return result;
-}
-
-internal Ast_TypeParameter*
-build_type_parameter()
-{
-  assert(token_is_type_parameter(token));
-
-  Ast_TypeParameter* result = arena_push_struct(&arena, Ast_TypeParameter);
-  copy_tokenattr_to_ast(token, (Ast*)result);
-  result->kind = AST_TYPE_PARAMETER;
-
-  if (token->klass == TOK_IDENT || token->klass == TOK_TYPE_IDENT)
-  {
-    result->parameter_kind = AST_TYPPARAM_VAR;
-    result->name = token->lexeme;
-
-    if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
-    result->type_ident = sym_new_typevar(result->name, (Ast*)result);
-
-    next_token();
-  }
-  else if (token->klass == TOK_INTEGER)
-  {
-    result->parameter_kind = AST_TYPPARAM_INT;
-    result->width = 0; // TODO
-    next_token();
-  }
-  else
-    assert(false);
-
-  if (token->klass == TOK_ANGLE_OPEN)
-  {
-    next_token();
-
-    if (token_is_type_parameter(token))
-      result->first_type_parameter = build_type_parameter_list();
-    else
-      error("at line %d: type parameter expected, got '%s'", token->line_nr, token->lexeme);
-
-    if (token->klass == TOK_ANGLE_CLOSE)
-      next_token();
-    else
-      error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
-  }
-
-  return result;
-}
-
 internal bool
 token_is_direction(Token* token)
 {
@@ -422,27 +348,40 @@ token_is_parameter(Token* token)
 }
 
 internal Ast_TypeExpression*
-build_type_argument_list()
+build_type_parameter_list()
 {
-  assert(token_is_type_parameter(token));
+  assert(token->klass == TOK_ANGLE_OPEN);
 
-  Ast_TypeExpression* argument = build_type_expression();
-  Ast_TypeExpression* result = argument;
+  Ast_TypeExpression* result = 0;
 
-  while (token->klass == TOK_COMMA)
+  next_token();
+
+  if (token_is_type_parameter(token))
   {
-    next_token();
-    if (token_is_type_parameter(token))
+    Ast_TypeExpression* argument = build_type_expression();
+    result = argument;
+
+    while (token->klass == TOK_COMMA)
     {
-      Ast_TypeExpression* next_argument = build_type_expression();
-      argument->next_argument = next_argument;
-      argument = next_argument;
+      next_token();
+
+      if (token_is_type_parameter(token))
+      {
+        Ast_TypeExpression* next_argument = build_type_expression();
+        argument->next_argument = next_argument;
+        argument = next_argument;
+      }
+      else if (token->klass == TOK_COMMA)
+        error("at line %d: missing type argument", token->line_nr);
+      else
+        error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
     }
-    else if (token->klass == TOK_COMMA)
-      error("at line %d: missing type argument", token->line_nr);
-    else
-      error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
   }
+
+  if (token->klass == TOK_ANGLE_CLOSE)
+    next_token();
+  else
+    error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
 
   return result;
 }
@@ -482,19 +421,7 @@ build_type_expression()
     assert(false);
 
   if (token->klass == TOK_ANGLE_OPEN)
-  {
-    next_token();
-
-    if (token_is_type_parameter(token))
-      result->first_type_argument = build_type_argument_list();
-    else
-      error("at line %d: type parameter expected, got '%s'", token->line_nr, token->lexeme);
-
-    if (token->klass == TOK_ANGLE_CLOSE)
-      next_token();
-    else
-      error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
-  }
+    result->first_type_argument = build_type_parameter_list();
 
   return result;
 }
@@ -562,19 +489,7 @@ build_header_decl()
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
-    {
-      next_token();
-
-      if (token_is_type_parameter(token))
-        result->first_type_parameter = build_type_argument_list();
-      else
-        error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
-
-      if (token->klass == TOK_ANGLE_CLOSE)
-        next_token();
-      else
-        error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
-    }
+      result->first_type_parameter = build_type_parameter_list();
 
     if (token->klass == TOK_BRACE_OPEN)
     {
@@ -638,19 +553,7 @@ build_struct_decl()
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
-    {
-      next_token();
-
-      if (token_is_type_parameter(token))
-        result->first_type_parameter = build_type_argument_list();
-      else
-        error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
-
-      if (token->klass == TOK_ANGLE_CLOSE)
-        next_token();
-      else
-        error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
-    }
+      result->first_type_parameter = build_type_parameter_list();
 
     if (token->klass == TOK_BRACE_OPEN)
     {
@@ -896,19 +799,7 @@ build_parser_prototype()
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
-    {
-      next_token();
-
-      if (token_is_type_parameter(token))
-        result->first_type_parameter = build_type_argument_list();
-      else
-        error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
-
-      if (token->klass == TOK_ANGLE_CLOSE)
-        next_token();
-      else
-        error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
-    }
+      result->first_type_parameter = build_type_parameter_list();
 
     if (token->klass == TOK_PARENTH_OPEN)
     {
@@ -977,31 +868,6 @@ token_is_expression_operator(Token* token)
   return result;
 }
 
-internal Ast_TypeExpression*
-build_primaryexpr_type_arguments()
-{
-  Ast_TypeExpression* result = 0;
-
-  assert(token->klass == TOK_ANGLE_OPEN);
-
-  if (token->klass == TOK_ANGLE_OPEN)
-  {
-    next_token();
-
-    if (token_is_type_parameter(token))
-      result = build_type_argument_list();
-    else
-      error("at line %d: type parameter expected, got '%s'", token->line_nr, token->lexeme);
-
-    if (token->klass == TOK_ANGLE_CLOSE)
-      next_token();
-    else
-      error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
-  }
-
-  return result;
-}
-
 internal Ast*
 build_expression_primary()
 {
@@ -1026,7 +892,7 @@ build_expression_primary()
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
-      ident_ast->first_type_argument = build_primaryexpr_type_arguments();
+      ident_ast->first_type_argument = build_type_parameter_list();
   }
   else if (token->klass == TOK_TYPE_IDENT)
   {
@@ -1045,7 +911,7 @@ build_expression_primary()
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
-      ident_ast->first_type_argument = build_primaryexpr_type_arguments();
+      ident_ast->first_type_argument = build_type_parameter_list();
   }
   else if (token_is_integer(token))
   {
@@ -1610,19 +1476,7 @@ build_control_prototype()
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
-    {
-      next_token();
-
-      if (token_is_type_parameter(token))
-        result->first_type_parameter = build_type_argument_list();
-      else
-        error("at line %d: identifier expected , got '%s'", token->line_nr, token->lexeme);
-
-      if (token->klass == TOK_ANGLE_CLOSE)
-        next_token();
-      else
-        error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
-    }
+      result->first_type_parameter = build_type_parameter_list();
 
     if (token->klass == TOK_PARENTH_OPEN)
     {
@@ -2051,19 +1905,7 @@ build_package_prototype()
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
-    {
-      next_token();
-
-      if (token_is_type_parameter(token))
-        result->first_type_parameter = build_type_argument_list();
-      else
-        error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
-
-      if (token->klass == TOK_ANGLE_CLOSE)
-        next_token();
-      else
-        error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
-    }
+      result->first_type_parameter = build_type_parameter_list();
 
     if (token->klass == TOK_PARENTH_OPEN)
     {
@@ -2138,7 +1980,7 @@ build_function_prototype()
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_FUNCTION_PROTOTYPE;
 
-  result->return_type_ast = (Ast*)build_type_expression();
+  result->return_type_ast = build_type_expression();
 
   int function_scope_level = scope_level;
 
@@ -2154,19 +1996,7 @@ build_function_prototype()
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
-    {
-      next_token();
-
-      if (token_is_type_parameter(token))
-        result->first_type_parameter = build_type_argument_list();
-      else
-        error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
-
-      if (token->klass == TOK_ANGLE_CLOSE)
-        next_token();
-      else
-        error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
-    }
+      result->first_type_parameter = build_type_parameter_list();
 
     if (token->klass == TOK_PARENTH_OPEN)
     {
@@ -2223,19 +2053,7 @@ build_extern_object_prototype()
   next_token();
 
   if (token->klass == TOK_ANGLE_OPEN)
-  {
-    next_token();
-
-    if (token_is_type_parameter(token))
-      result->first_type_parameter = build_type_argument_list();
-    else
-      error("at line %d: identifier expected , got '%s'", token->line_nr, token->lexeme);
-
-    if (token->klass == TOK_ANGLE_CLOSE)
-      next_token();
-    else
-      error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
-  }
+    result->first_type_parameter = build_type_parameter_list();
 
   if (token->klass == TOK_BRACE_OPEN)
   {

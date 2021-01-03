@@ -460,22 +460,6 @@ typedef struct Ast_ErrorCode
 }
 Ast_ErrorCode;  // AST_ERROR_CODE
 
-typedef struct Ast_TypeParameter
-{
-  Ast;
-  enum Ast_TypeParameterKind parameter_kind;
-  struct Ast_TypeParameter* first_type_parameter;
-  struct Ast_TypeParameter* next_parameter;
-  Ident* type_ident;
-
-  union
-  {
-    char* name;
-    char* width;
-  };
-}
-Ast_TypeParameter;  // AST_TYPE_PARAMETER
-
 typedef struct Ast_TypeExpression
 {
   Ast;
@@ -805,7 +789,7 @@ typedef struct Ast_FunctionPrototype
   char* name;
   Ast_TypeExpression* first_type_parameter;
   Ast_Parameter* first_parameter;
-  Ast* return_type_ast;
+  Ast_TypeExpression* return_type_ast;
   Ident* type_ident;
 }
 Ast_FunctionDecl;  // AST_FUNCTION_PROTOTYPE
