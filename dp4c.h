@@ -526,6 +526,7 @@ typedef struct Ast_StructDecl
 {
   Ast_Declaration;
   char* name;
+  Ast_TypeParameter* first_type_parameter;
   Ast_StructField* first_field;
   Ident* type_ident;
 }
@@ -535,6 +536,7 @@ Ast_StructDecl;  // AST_STRUCT_PROTOTYPE
 typedef struct Ast_HeaderDecl
 {
   Ast_Declaration;
+  Ast_TypeParameter* first_type_parameter;
   char* name;
   Ast_StructField* first_field;
   Ident* type_ident;
