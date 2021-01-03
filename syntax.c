@@ -566,7 +566,7 @@ build_header_decl()
       next_token();
 
       if (token_is_type_parameter(token))
-        result->first_type_parameter = build_type_parameter_list();
+        result->first_type_parameter = build_type_argument_list();
       else
         error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
 
@@ -642,7 +642,7 @@ build_struct_decl()
       next_token();
 
       if (token_is_type_parameter(token))
-        result->first_type_parameter = build_type_parameter_list();
+        result->first_type_parameter = build_type_argument_list();
       else
         error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
 
@@ -900,7 +900,7 @@ build_parser_prototype()
       next_token();
 
       if (token_is_type_parameter(token))
-        result->first_type_parameter = build_type_parameter_list();
+        result->first_type_parameter = build_type_argument_list();
       else
         error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
 
@@ -1614,7 +1614,7 @@ build_control_prototype()
       next_token();
 
       if (token_is_type_parameter(token))
-        result->first_type_parameter = build_type_parameter_list();
+        result->first_type_parameter = build_type_argument_list();
       else
         error("at line %d: identifier expected , got '%s'", token->line_nr, token->lexeme);
 
@@ -2055,7 +2055,7 @@ build_package_prototype()
       next_token();
 
       if (token_is_type_parameter(token))
-        result->first_type_parameter = build_type_parameter_list();
+        result->first_type_parameter = build_type_argument_list();
       else
         error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
 
@@ -2158,7 +2158,7 @@ build_function_prototype()
       next_token();
 
       if (token_is_type_parameter(token))
-        result->first_type_parameter = build_type_parameter_list();
+        result->first_type_parameter = build_type_argument_list();
       else
         error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
 
@@ -2227,7 +2227,7 @@ build_extern_object_prototype()
     next_token();
 
     if (token_is_type_parameter(token))
-      result->first_type_parameter = build_type_parameter_list();
+      result->first_type_parameter = build_type_argument_list();
     else
       error("at line %d: identifier expected , got '%s'", token->line_nr, token->lexeme);
 

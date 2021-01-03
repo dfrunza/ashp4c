@@ -526,7 +526,7 @@ typedef struct Ast_StructDecl
 {
   Ast_Declaration;
   char* name;
-  Ast_TypeParameter* first_type_parameter;
+  Ast_TypeExpression* first_type_parameter;
   Ast_StructField* first_field;
   Ident* type_ident;
 }
@@ -536,7 +536,7 @@ Ast_StructDecl;  // AST_STRUCT_PROTOTYPE
 typedef struct Ast_HeaderDecl
 {
   Ast_Declaration;
-  Ast_TypeParameter* first_type_parameter;
+  Ast_TypeExpression* first_type_parameter;
   char* name;
   Ast_StructField* first_field;
   Ident* type_ident;
@@ -759,7 +759,7 @@ typedef struct Ast_ControlDecl
 {
   Ast_Declaration;
   char* name;
-  Ast_TypeParameter* first_type_parameter;
+  Ast_TypeExpression* first_type_parameter;
   Ast_Parameter* first_parameter;
   Ast_Declaration* first_local_decl;
   Ast_BlockStmt* apply_block;
@@ -772,7 +772,7 @@ typedef struct Ast_ParserDecl
 {
   Ast_Declaration;
   char* name;
-  Ast_TypeParameter* first_type_parameter;
+  Ast_TypeExpression* first_type_parameter;
   Ast_Parameter* first_parameter;
   Ast_ParserState* first_parser_state;
   Ident* type_ident;
@@ -784,7 +784,7 @@ typedef struct Ast_PackageDecl
 {
   Ast_Declaration;
   char* name;
-  Ast_TypeParameter* first_type_parameter;
+  Ast_TypeExpression* first_type_parameter;
   Ast_Parameter* first_parameter;
   Ident* type_ident;
 }
@@ -803,7 +803,7 @@ typedef struct Ast_FunctionPrototype
 {
   Ast_Declaration;
   char* name;
-  Ast_TypeParameter* first_type_parameter;
+  Ast_TypeExpression* first_type_parameter;
   Ast_Parameter* first_parameter;
   Ast* return_type_ast;
   Ident* type_ident;
@@ -815,7 +815,7 @@ typedef struct Ast_ExternObjectDecl
 {
   Ast_Declaration;
   char* name;
-  Ast_TypeParameter* first_type_parameter;
+  Ast_TypeExpression* first_type_parameter;
   Ast_FunctionDecl* first_method;
   Ident* type_ident;
 }

@@ -66,11 +66,11 @@ visit_type_expession(Ast_TypeExpression* type_ast)
 }
 
 internal Typexpr_TypeParameter*
-visit_type_parameter(Ast_TypeParameter* parameter_ast)
+visit_type_parameter(Ast_TypeExpression* parameter_ast)
 {
   assert(!parameter_ast->typexpr);
   Typexpr_TypeParameter* parameter_typexpr = 0;
-  if (parameter_ast->parameter_kind == AST_TYPPARAM_VAR)
+  if (parameter_ast->argument_kind == AST_TYPPARAM_VAR)
   {
     parameter_typexpr = arena_push_struct(&arena, Typexpr_TypeParameter);
     parameter_ast->typexpr = (Typexpr*)parameter_typexpr;
@@ -112,7 +112,7 @@ visit_function_prototype(Ast_FunctionDecl* function_ast)
   function_typexpr->sentinel_type_parameter->kind = TYP_TYPE_PARAMETER;
   function_typexpr->last_type_parameter = function_typexpr->sentinel_type_parameter;
 
-  Ast_TypeParameter* type_parameter_ast = function_ast->first_type_parameter;
+  Ast_TypeExpression* type_parameter_ast = function_ast->first_type_parameter;
   while (type_parameter_ast)
   {
     Typexpr_TypeParameter* type_parameter_typexpr = visit_type_parameter(type_parameter_ast);
@@ -120,7 +120,7 @@ visit_function_prototype(Ast_FunctionDecl* function_ast)
     function_typexpr->last_type_parameter = type_parameter_typexpr;
     function_typexpr->type_parameter_count += 1;
 
-    type_parameter_ast = (Ast_TypeParameter*)type_parameter_ast->next_parameter;
+    type_parameter_ast = type_parameter_ast->next_argument;
   }
 
   function_typexpr->sentinel_parameter = arena_push_struct(&arena, Typexpr_Parameter);
@@ -188,7 +188,7 @@ visit_parser_prototype(Ast_ParserDecl* parser_ast)
   parser_typexpr->sentinel_type_parameter->kind = TYP_TYPE_PARAMETER;
   parser_typexpr->last_type_parameter = parser_typexpr->sentinel_type_parameter;
 
-  Ast_TypeParameter* type_parameter_ast = parser_ast->first_type_parameter;
+  Ast_TypeExpression* type_parameter_ast = parser_ast->first_type_parameter;
   while (type_parameter_ast)
   {
     Typexpr_TypeParameter* type_parameter_typexpr = visit_type_parameter(type_parameter_ast);
@@ -196,7 +196,7 @@ visit_parser_prototype(Ast_ParserDecl* parser_ast)
     parser_typexpr->last_type_parameter = type_parameter_typexpr;
     parser_typexpr->type_parameter_count += 1;
 
-    type_parameter_ast = (Ast_TypeParameter*)type_parameter_ast->next_parameter;
+    type_parameter_ast = type_parameter_ast->next_argument;
   }
 
   parser_typexpr->sentinel_parameter = arena_push_struct(&arena, Typexpr_Parameter);
@@ -451,7 +451,7 @@ visit_control_prototype(Ast_ControlDecl* control_ast)
   control_typexpr->sentinel_type_parameter->kind = TYP_TYPE_PARAMETER;
   control_typexpr->last_type_parameter = control_typexpr->sentinel_type_parameter;
 
-  Ast_TypeParameter* type_parameter_ast = control_ast->first_type_parameter;
+  Ast_TypeExpression* type_parameter_ast = control_ast->first_type_parameter;
   while (type_parameter_ast)
   {
     Typexpr_TypeParameter* type_parameter_typexpr = visit_type_parameter(type_parameter_ast);
@@ -459,7 +459,7 @@ visit_control_prototype(Ast_ControlDecl* control_ast)
     control_typexpr->last_type_parameter = type_parameter_typexpr;
     control_typexpr->type_parameter_count += 1;
 
-    type_parameter_ast = (Ast_TypeParameter*)type_parameter_ast->next_parameter;
+    type_parameter_ast = type_parameter_ast->next_argument;
   }
 
   control_typexpr->sentinel_parameter = arena_push_struct(&arena, Typexpr_Parameter);
@@ -513,7 +513,7 @@ visit_package_prototype(Ast_PackageDecl* package_ast)
   package_typexpr->sentinel_type_parameter->kind = TYP_TYPE_PARAMETER;
   package_typexpr->last_type_parameter = package_typexpr->sentinel_type_parameter;
 
-  Ast_TypeParameter* type_parameter_ast = package_ast->first_type_parameter;
+  Ast_TypeExpression* type_parameter_ast = package_ast->first_type_parameter;
   while (type_parameter_ast)
   {
     Typexpr_TypeParameter* type_parameter_typexpr = visit_type_parameter(type_parameter_ast);
@@ -521,7 +521,7 @@ visit_package_prototype(Ast_PackageDecl* package_ast)
     package_typexpr->last_type_parameter = type_parameter_typexpr;
     package_typexpr->type_parameter_count += 1;
 
-    type_parameter_ast = (Ast_TypeParameter*)type_parameter_ast->next_parameter;
+    type_parameter_ast = type_parameter_ast->next_argument;
   }
 
   package_typexpr->sentinel_parameter = arena_push_struct(&arena, Typexpr_Parameter);
