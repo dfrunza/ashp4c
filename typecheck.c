@@ -7,6 +7,8 @@ internal bool type_equal(Typexpr* type_A, Typexpr* type_B)
 {
   bool is_equal = false;
 
+  assert(type_A && type_B);
+
   if (type_A == type_B)
     return true;
 

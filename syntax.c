@@ -410,7 +410,10 @@ build_type_expression()
     if (result->type_ident)
       result->type_ast = result->type_ident->ast;
     else
+    {
       result->type_ident = sym_new_typevar(result->name, (Ast*)result);
+      result->type_ast = (Ast*)result;
+    }
 
     next_token();
   }
@@ -1385,6 +1388,7 @@ build_parser_state()
 
     if (token->klass == TOK_BRACE_OPEN)
     {
+      scope_push_level();
       next_token();
       result->first_statement = build_statement_list();
 

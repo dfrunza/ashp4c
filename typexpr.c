@@ -398,6 +398,10 @@ visit_statement(Ast* stmt_ast)
     case AST_BLOCK_STMT:
       expr_typexpr = (Typexpr*)visit_block_statement((Ast_BlockStmt*)stmt_ast);
       break;
+    case AST_ACTION:
+    case AST_TABLE:
+      printf("TODO\n");
+      break;
 
     default: assert(false);
   }
