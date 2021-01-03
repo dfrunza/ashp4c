@@ -409,8 +409,6 @@ internal Typexpr*
 visit_parser_state(Ast_ParserState* state_ast)
 {
   assert(!state_ast->typexpr);
-  Typexpr* state_typexpr = arena_push_struct(&arena, Typexpr);
-  state_ast->typexpr = state_typexpr;
 
   Ast_Declaration* expr_ast = state_ast->first_statement;
   while (expr_ast)
@@ -419,7 +417,7 @@ visit_parser_state(Ast_ParserState* state_ast)
     expr_ast = expr_ast->next_decl;
   }
 
-  return state_typexpr;
+  return 0;
 }
 
 internal Typexpr_Parser*
@@ -427,13 +425,25 @@ visit_parser_decl(Ast_ParserDecl* parser_ast)
 {
   assert(!parser_ast->typexpr);
   Typexpr_Parser* parser_typexpr = visit_parser_prototype(parser_ast);
+  parser_ast->typexpr = (Typexpr*)parser_typexpr;
   parser_typexpr->is_prototype = false;
 
-  Ast_ParserState* state_ast = parser_ast->first_parser_state;
-  while (state_ast)
+  Ast_Declaration* decl_ast = parser_ast->first_local_decl;
+  while (decl_ast)
   {
-    visit_parser_state(state_ast);
-    state_ast = state_ast->next_state;
+    switch (decl_ast->kind)
+    {
+      case AST_PARSER_STATE:
+        visit_parser_state((Ast_ParserState*)decl_ast);
+        break;
+      case AST_VAR_DECL:
+        visit_var_decl((Ast_VarDecl*)decl_ast);
+        break;
+      case AST_BINARY_EXPR:
+        visit_binary_expression((Ast_BinaryExpr*)decl_ast);
+        break;
+    }
+    decl_ast = decl_ast->next_decl;
   }
   return parser_typexpr;
 }

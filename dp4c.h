@@ -660,10 +660,9 @@ Ast_TransitionStmt;  // AST_TRANSITION_STMT
 
 typedef struct Ast_ParserState
 {
-  Ast;
+  Ast_Declaration;
   char* name;
   Ast_Declaration* first_statement;
-  struct Ast_ParserState* next_state;
   Ast_TransitionStmt* transition_stmt;
   Ident* var_ident;
 }
@@ -758,7 +757,7 @@ typedef struct Ast_ParserDecl
   char* name;
   Ast_TypeExpression* first_type_parameter;
   Ast_Parameter* first_parameter;
-  Ast_ParserState* first_parser_state;
+  Ast_Declaration* first_local_decl;
   Ident* type_ident;
 }
 Ast_ParserDecl;  // AST_PARSER_PROTOTYPE

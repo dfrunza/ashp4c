@@ -71,11 +71,16 @@ visit_parser_state(Ast_ParserState* state_ast)
 internal void
 visit_parser_decl(Ast_ParserDecl* parser_ast)
 {
-  Ast_ParserState* state_ast = parser_ast->first_parser_state;
-  while (state_ast)
+  Ast_Declaration* decl_ast = parser_ast->first_local_decl;
+  while (decl_ast)
   {
-    visit_parser_state(state_ast);
-    state_ast = state_ast->next_state;
+    switch (decl_ast->kind)
+    {
+      case AST_PARSER_STATE:
+        visit_parser_state((Ast_ParserState*)decl_ast);
+        break;
+    }
+    decl_ast = decl_ast->next_decl;
   }
 }
 
