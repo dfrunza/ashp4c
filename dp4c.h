@@ -788,7 +788,7 @@ typedef struct Ast_FunctionPrototype
   char* name;
   Ast_TypeExpression* first_type_parameter;
   Ast_Parameter* first_parameter;
-  Ast_TypeExpression* return_type_ast;
+  Ast_TypeExpression* return_type;
   Ident* type_ident;
 }
 Ast_FunctionDecl;  // AST_FUNCTION_PROTOTYPE

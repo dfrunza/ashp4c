@@ -49,8 +49,8 @@ main(int arg_count, char* args[])
   build_ast();
   arena_print_usage(&arena, "Memory (syntax): ");
 
-  build_typexpr();
-  typecheck();
+  //build_typexpr();
+  //typecheck();
   arena_print_usage(&arena, "Memory (typexpr): ");
 
   return 0;

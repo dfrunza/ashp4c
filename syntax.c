@@ -287,6 +287,7 @@ next_token()
       }
     }
 
+    /*
     if (ns->ns_type)
     {
       Ident* ident = ns->ns_type;
@@ -296,6 +297,7 @@ next_token()
         return token;
       }
     }
+    */
   }
   return token;
 }
@@ -405,16 +407,6 @@ build_type_expression()
   {
     result->argument_kind = AST_TYPPARAM_VAR;
     result->name = token->lexeme;
-
-    result->type_ident = sym_get_type(token->lexeme);
-    if (result->type_ident)
-      result->type_ast = result->type_ident->ast;
-    else
-    {
-      result->type_ident = sym_new_typevar(result->name, (Ast*)result);
-      result->type_ast = (Ast*)result;
-    }
-
     next_token();
   }
   else if (token->klass == TOK_INTEGER)
@@ -438,8 +430,7 @@ build_type_expression()
 internal Ast_StructField*
 build_struct_field()
 {
-  assert(token->klass == TOK_TYPE_IDENT);
-
+  assert(token_is_ident(token));
   Ast_StructField* result = arena_push_struct(&arena, Ast_StructField);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_STRUCT_FIELD;
@@ -448,11 +439,6 @@ build_struct_field()
   if (token_is_ident(token))
   {
     result->name = token->lexeme;
-
-    if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: member '%s' re-declared", result->line_nr, result->name);
-    result->member_ident = sym_new_var(result->name, (Ast*)result);
-
     next_token();
     expect_semicolon();
   }
@@ -467,7 +453,7 @@ token_is_p4declaration(Token* token)
   bool result = token->klass == TOK_KW_STRUCT || token->klass == TOK_KW_HEADER \
       || token->klass == TOK_KW_ERROR || token->klass == TOK_KW_TYPEDEF \
       || token->klass == TOK_KW_PARSER || token->klass == TOK_KW_CONTROL \
-      || token->klass == TOK_TYPE_IDENT || token->klass == TOK_KW_EXTERN \
+      || token_is_ident(token) || token->klass == TOK_KW_EXTERN \
       || token->klass == TOK_KW_CONST || token->klass == TOK_KW_PACKAGE;
   return result;
 }
@@ -478,23 +464,14 @@ build_header_decl()
   Ast_StructField* field;
 
   assert(token->klass == TOK_KW_HEADER);
-
   next_token();
-
   Ast_HeaderDecl* result = arena_push_struct(&arena, Ast_HeaderDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_HEADER_PROTOTYPE;
-  int header_scope_level = scope_level;
 
   if (token_is_ident(token))
   {
     result->name = token->lexeme;
-
-    if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
-    result->type_ident = sym_new_type(result->name, (Ast*)result);
-
-    scope_push_level();
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
@@ -503,14 +480,13 @@ build_header_decl()
     if (token->klass == TOK_BRACE_OPEN)
     {
       result->kind = AST_HEADER_DECL;
-
       next_token();
 
-      if (token->klass == TOK_TYPE_IDENT)
+      if (token_is_ident(token))
       {
         field = build_struct_field();
         result->first_field = field;
-        while (token->klass == TOK_TYPE_IDENT)
+        while (token_is_ident(token))
         {
           Ast_StructField* next_field = build_struct_field();
           field->next_field = next_field;
@@ -519,16 +495,11 @@ build_header_decl()
       }
 
       if (token->klass == TOK_BRACE_CLOSE)
-      {
-        scope_pop_level(header_scope_level);
         next_token(token);
-      }
       else if (token->klass == TOK_IDENT)
         error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
       else
         error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
-
-      scope_pop_level(header_scope_level);
     }
     else
       error("at line %d: '{' expected, got '%s'", token->line_nr, token->lexeme);
@@ -542,23 +513,15 @@ internal Ast_StructDecl*
 build_struct_decl()
 {
   assert(token->klass == TOK_KW_STRUCT);
-
   next_token();
-
   Ast_StructDecl* result = arena_push_struct(&arena, Ast_StructDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_STRUCT_PROTOTYPE;
-  int struct_scope_level = scope_level;
 
   if (token_is_ident(token))
   {
     result->name = token->lexeme;
 
-    if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
-    result->type_ident = sym_new_type(result->name, (Ast*)result);
-
-    scope_push_level();
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
@@ -570,11 +533,11 @@ build_struct_decl()
 
       next_token();
 
-      if (token->klass == TOK_TYPE_IDENT)
+      if (token_is_ident(token))
       {
         Ast_StructField* field = build_struct_field();
         result->first_field = field;
-        while (token->klass == TOK_TYPE_IDENT)
+        while (token_is_ident(token))
         {
           Ast_StructField* next_field = build_struct_field();
           field->next_field = next_field;
@@ -583,16 +546,11 @@ build_struct_decl()
       }
 
       if (token->klass == TOK_BRACE_CLOSE)
-      {
-        scope_pop_level(struct_scope_level);
         next_token();
-      }
       else if (token->klass == TOK_IDENT)
         error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
       else
         error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
-
-      scope_pop_level(struct_scope_level);
     }
     else
       error("at line %d: '{' expected, got '%s'", token->line_nr, token->lexeme);
@@ -612,11 +570,6 @@ build_error_code()
   copy_tokenattr_to_ast(token, (Ast*)code);
   code->kind = AST_ERROR_CODE;
   code->name = token->lexeme;
-
-  if (sym_ident_is_declared(sym_get_var(code->name)))
-    error("at line %d: error '%s' re-declared", token->line_nr, code->name);
-  code->var_ident = sym_new_var(code->name, (Ast*)code);
-
   next_token();
   return code;
 }
@@ -625,20 +578,14 @@ internal Ast_ErrorType*
 build_error_type_decl()
 {
   assert(token->klass == TOK_KW_ERROR);
-
   next_token();
-
   Ast_ErrorType* result = arena_push_struct(&arena, Ast_ErrorType);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_ERROR_TYPE;
   result->line_nr = token->line_nr;
-  result->type_ident = sym_get_type("error");
-  result->type_ident->ast = (Ast*)result;
-  int error_scope_level = scope_level;
 
   if (token->klass == TOK_BRACE_OPEN)
   {
-    scope_push_level();
     next_token();
 
     if (token_is_ident(token))
@@ -662,14 +609,9 @@ build_error_type_decl()
     }
 
     if (token->klass == TOK_BRACE_CLOSE)
-    {
-      scope_pop_level(error_scope_level);
       next_token();
-    }
     else
       error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
-
-    scope_pop_level(error_scope_level);
   }
   else
     error("at line %d: '{' expected, got '%s'", token->line_nr, token->lexeme);
@@ -694,11 +636,6 @@ build_typedef_decl()
     if (token_is_ident(token))
     {
       result->name = token->lexeme;
-
-      if (sym_ident_is_declared(sym_get_type(result->name)))
-        error("at line %d: type '%s' re-declared", result->line_nr, result->name);
-      result->type_ident = sym_new_type(result->name, (Ast*)result);
-
       next_token();
     }
     else
@@ -738,19 +675,15 @@ build_parameter()
 
   if (token_is_direction(token))
     result->direction = build_direction();
-  if (token->klass == TOK_TYPE_IDENT)
+
+  if (token_is_ident(token))
     result->param_type = build_type_expression();
   else
-    error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
+    error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
 
   if (token_is_ident(token))
   {
     result->name = token->lexeme;
-
-    if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: parameter '%s' re-declared", result->line_nr, result->name);
-    result->var_ident = sym_new_var(result->name, (Ast*)result);
-
     next_token();
   }
   else
@@ -787,9 +720,7 @@ internal Ast_ParserDecl*
 build_parser_prototype()
 {
   assert(token->klass == TOK_KW_PARSER);
-
   next_token();
-
   Ast_ParserDecl* result = arena_push_struct(&arena, Ast_ParserDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_PARSER_PROTOTYPE;
@@ -797,12 +728,6 @@ build_parser_prototype()
   if (token_is_ident(token))
   {
     result->name = token->lexeme;
-
-    if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
-    result->type_ident = sym_new_type(result->name, (Ast*)result);
-
-    scope_push_level();
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
@@ -811,7 +736,6 @@ build_parser_prototype()
     if (token->klass == TOK_PARENTH_OPEN)
     {
       next_token();
-
       if (token_is_parameter(token))
         result->first_parameter = build_parameter_list();
 
@@ -888,13 +812,6 @@ build_expression_primary()
     copy_tokenattr_to_ast(token, (Ast*)ident_ast);
     ident_ast->kind = AST_IDENT;
     ident_ast->name = token->lexeme;
-
-    ident_ast->var_ident = sym_get_var(ident_ast->name);
-    if (ident_ast->var_ident)
-      printf("resolved id '%s'\n", ident_ast->name);
-    else
-      printf("unknown id '%s'\n", ident_ast->name);
-
     result = (Ast*)ident_ast;
     next_token();
 
@@ -907,13 +824,6 @@ build_expression_primary()
     copy_tokenattr_to_ast(token, (Ast*)ident_ast);
     ident_ast->kind = AST_TYPE_IDENT;
     ident_ast->name = token->lexeme;
-
-    ident_ast->type_ident = sym_get_type(ident_ast->name);
-    if (ident_ast->type_ident)
-      printf("resolved type '%s'\n", ident_ast->name);
-    else
-      printf("unknown type '%s'\n", ident_ast->name);
-
     result = (Ast*)ident_ast;
     next_token();
 
@@ -1119,13 +1029,10 @@ build_var_decl()
 
   assert(token->klass == TOK_KW_VAR || token->klass == TOK_KW_CONST);
   next_token();
-
   Ast_VarDecl* var_decl = arena_push_struct(&arena, Ast_VarDecl);
   copy_tokenattr_to_ast(token, (Ast*)var_decl);
   var_decl->kind = AST_VAR_DECL;
-
   var_decl->var_type = build_type_expression();
-
   Token* name_token = token;
 
   if (token_is_expression(token))
@@ -1150,13 +1057,7 @@ build_var_decl()
   }
   else
     error("at line %d: identifier expected", init_expr->line_nr);
-
-  if (sym_ident_is_declared(sym_get_var(name_ast->name)))
-    error("at line %d: variable '%s' re-declared", name_ast->line_nr, name_ast->name);
-  name_ast->var_ident = sym_new_var(name_ast->name, (Ast*)var_decl);
-
   expect_semicolon();
-
   return var_decl;
 }
 
@@ -1366,29 +1267,19 @@ internal Ast_ParserState*
 build_parser_state()
 {
   assert(token->klass == TOK_KW_STATE);
-
   next_token();
-
   Ast_ParserState* result = arena_push_struct(&arena, Ast_ParserState);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_PARSER_STATE;
 
-  int state_scope_level = scope_level;
-
   if (token_is_ident(token))
   {
     result->name = token->lexeme;
-
-    if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: state '%s' re-declared", result->line_nr, result->name);
-    result->var_ident = sym_new_var(result->name, (Ast*)result);
-
     sym_unimport_var((Ident*)apply_kw);
     next_token();
 
     if (token->klass == TOK_BRACE_OPEN)
     {
-      scope_push_level();
       next_token();
       result->first_statement = build_statement_list();
 
@@ -1398,10 +1289,7 @@ build_parser_state()
         error("at line %d: 'transition' expected, got '%s'", token->line_nr, token->lexeme);
 
       if (token->klass == TOK_BRACE_CLOSE)
-      {
-        scope_pop_level(state_scope_level);
         next_token();
-      }
       else
         error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
     }
@@ -1410,8 +1298,6 @@ build_parser_state()
 
     sym_import_var((Ident*)apply_kw);
   }
-
-  scope_pop_level(state_scope_level);
   return result;
 }
 
@@ -1458,7 +1344,6 @@ build_parser_decl()
 {
   assert(token->klass == TOK_KW_PARSER);
 
-  int parser_scope_level = scope_level;
   Ast_ParserDecl* result = build_parser_prototype();
 
   if (token->klass == TOK_BRACE_OPEN)
@@ -1481,7 +1366,6 @@ build_parser_decl()
 
     if (token->klass == TOK_BRACE_CLOSE)
     {
-      scope_pop_level(parser_scope_level);
       sym_import_var((Ident*)error_kw);
       next_token();
     }
@@ -1489,15 +1373,9 @@ build_parser_decl()
       error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
   }
   else if (token->klass == TOK_SEMICOLON)
-  {
-    scope_pop_level(parser_scope_level);
     next_token();
-  }
   else
     error("at line %d: '{' or ';' expected, got '%s'", token->line_nr, token->lexeme);
-
-  scope_pop_level(parser_scope_level);
-
   return result;
 }
 
@@ -1505,9 +1383,7 @@ internal Ast_ControlDecl*
 build_control_prototype()
 {
   assert(token->klass == TOK_KW_CONTROL);
-
   next_token();
-
   Ast_ControlDecl* result = arena_push_struct(&arena, Ast_ControlDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_CONTROL_PROTOTYPE;
@@ -1515,12 +1391,6 @@ build_control_prototype()
   if (token_is_ident(token))
   {
     result->name = token->lexeme;
-
-    if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
-    result->type_ident = sym_new_type(result->name, (Ast*)result);
-
-    scope_push_level();
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
@@ -1555,10 +1425,7 @@ internal Ast_BlockStmt*
 build_block_statement()
 {
   assert(token->klass == TOK_BRACE_OPEN);
-
-  scope_push_level();
   next_token();
-
   Ast_BlockStmt* result = arena_push_struct(&arena, Ast_BlockStmt);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_BLOCK_STMT;
@@ -1567,10 +1434,7 @@ build_block_statement()
     result->first_statement = build_statement_list();
 
   if (token->klass == TOK_BRACE_CLOSE)
-  {
-    scope_pop_level(scope_level - 1);
     next_token();
-  }
   else
     error("at line %d: statement expected, got '%s'", token->line_nr, token->lexeme);
 
@@ -1879,8 +1743,6 @@ internal Ast_ControlDecl*
 build_control_decl()
 {
   assert(token->klass == TOK_KW_CONTROL);
-
-  int control_scope_level = scope_level;
   Ast_ControlDecl* result = build_control_prototype();
 
   if (token->klass == TOK_BRACE_OPEN)
@@ -1916,7 +1778,6 @@ build_control_decl()
 
     if (token->klass == TOK_BRACE_CLOSE)
     {
-      scope_pop_level(control_scope_level);
       sym_import_var((Ident*)error_kw);
       next_token();
     }
@@ -1924,14 +1785,9 @@ build_control_decl()
       error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
   }
   else if (token->klass == TOK_SEMICOLON)
-  {
-    scope_pop_level(control_scope_level);
     next_token();
-  }
   else
     error("at line %d: '{' or ';' expected, got '%s'", token->line_nr, token->lexeme);
-
-  scope_pop_level(control_scope_level);
   return result;
 }
 
@@ -1939,23 +1795,14 @@ internal Ast_PackageDecl*
 build_package_prototype()
 {
   assert(token->klass == TOK_KW_PACKAGE);
-
   next_token();
-
   Ast_PackageDecl* result = arena_push_struct(&arena, Ast_PackageDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_PACKAGE_PROTOTYPE;
-  int package_scope_level = scope_level;
 
   if (token_is_ident(token))
   {
     result->name = token->lexeme;
-
-    if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
-    result->type_ident = sym_new_type(result->name, (Ast*)result);
-
-    scope_push_level();
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
@@ -1985,43 +1832,30 @@ build_package_prototype()
     error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
 
   if (token->klass == TOK_SEMICOLON)
-  {
-    scope_pop_level(package_scope_level);
     next_token();
-  }
   else
     error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
-
-  scope_pop_level(package_scope_level);
   return result;
 }
 
 internal Ast_PackageInstantiation*
 build_package_instantiation()
 {
-  assert(token->klass == TOK_TYPE_IDENT);
-
+  assert(token_is_ident(token));
   Ast_PackageInstantiation* result = arena_push_struct(&arena, Ast_PackageInstantiation);
   copy_tokenattr_to_ast(token, (Ast*)result);
   zero_struct(result, Ast_PackageInstantiation);
   result->kind = AST_PACKAGE_INSTANTIATION;
   result->package_ctor = build_expression(1);
 
-  if (token_is_ident)
+  if (token_is_ident(token))
   {
     result->name = token->lexeme;
-
-    if (sym_ident_is_declared(sym_get_var(result->name)))
-      error("at line %d: variable '%s' re-declared", result->line_nr, result->name);
-    result->var_ident = sym_new_var(result->name, (Ast*)result);
-
     next_token();
   }
   else
     error("at line %d: non-type identifier expected, got '%s'", token->line_nr, token->lexeme);
-
   expect_semicolon();
-
   return result;
 }
 
@@ -2029,24 +1863,16 @@ internal Ast_FunctionDecl*
 build_function_prototype()
 {
   assert(token_is_ident);
-
   Ast_FunctionDecl* result = arena_push_struct(&arena, Ast_FunctionDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_FUNCTION_PROTOTYPE;
 
-  result->return_type_ast = build_type_expression();
-
-  int function_scope_level = scope_level;
+  if (token_is_ident(peek_token()))
+    result->return_type = build_type_expression();
 
   if (token_is_ident(token))
   {
     result->name = token->lexeme;
-
-    if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
-    result->type_ident = sym_new_type(result->name, (Ast*)result);
-
-    scope_push_level();
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
@@ -2069,10 +1895,7 @@ build_function_prototype()
         error("at line %d: ')' expected, got '%s'", token->line_nr, token->lexeme);
 
       if (token->klass == TOK_SEMICOLON)
-      {
-        scope_pop_level(function_scope_level);
         next_token();
-      }
       else
         error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
     }
@@ -2081,8 +1904,6 @@ build_function_prototype()
   }
   else
     error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
-
-  scope_pop_level(function_scope_level);
   return result;
 }
 
@@ -2090,20 +1911,11 @@ internal Ast_ExternObjectDecl*
 build_extern_object_prototype()
 {
   Ast_FunctionDecl* method;
-
   assert(token_is_ident(token));
   Ast_ExternObjectDecl* result = arena_push_struct(&arena, Ast_ExternObjectDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_EXTERN_OBJECT_PROTOTYPE;
-
   result->name = token->lexeme;
-
-  if (sym_ident_is_declared(sym_get_type(result->name)))
-      error("at line %d: type '%s' re-declared", result->line_nr, result->name);
-  result->type_ident = sym_new_type(result->name, (Ast*)result);
-
-  int object_scope_level = scope_level;
-  scope_push_level();
   next_token();
 
   if (token->klass == TOK_ANGLE_OPEN)
@@ -2129,24 +1941,16 @@ build_extern_object_prototype()
 
     sym_import_var((Ident*)error_kw);
     if (token->klass == TOK_BRACE_CLOSE)
-    {
-      scope_pop_level(object_scope_level);
       next_token();
-    }
     else if (token->klass == TOK_IDENT)
       error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
     else
       error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
   }
   else if (token->klass == TOK_SEMICOLON)
-  {
-    scope_pop_level(object_scope_level);
     next_token();
-  }
   else
     error("at line %d: '{' or ';' expected, got '%s'", token->line_nr, token->lexeme);
-
-  scope_pop_level(object_scope_level);
   return result;
 }
 
@@ -2169,8 +1973,7 @@ build_extern_decl()
 
   if (token_is_ident(token))
   {
-    Token* next_token = peek_token();
-    if (token_is_ident(next_token))
+    if (token_is_ident(peek_token()))
       result = (Ast_Declaration*)build_extern_function_prototype();
     else
       result = (Ast_Declaration*)build_extern_object_prototype();
@@ -2218,6 +2021,7 @@ build_p4declaration()
     case TOK_KW_CONST:
       result = (Ast_Declaration*)build_const_decl();
       break;
+    case TOK_IDENT:
     case TOK_TYPE_IDENT:
       result = (Ast_Declaration*)build_package_instantiation();
       break;
@@ -2258,6 +2062,7 @@ build_p4program()
 void
 build_ast()
 {
+  /*
   error_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
   error_type_ast->kind = AST_TYPE_IDENT;
   error_type_ast->name = "error";
@@ -2309,6 +2114,7 @@ build_ast()
   bool_false_ast->kind = AST_INTEGER;
   bool_false_ast->lexeme = "false";
   bool_false_ast->value = 0;
+  */
 
   add_keyword("action", TOK_KW_ACTION);
   add_keyword("enum", TOK_KW_ENUM);
@@ -2340,6 +2146,7 @@ build_ast()
   add_keyword("var", TOK_KW_VAR);
   add_keyword("const", TOK_KW_CONST);
 
+  /*
   error_type_ident = sym_new_type(error_type_ast->name, (Ast*)error_type_ast);
   void_type_ident = sym_new_type(void_type_ast->name, (Ast*)void_type_ast);
   bool_type_ident = sym_new_type("bool", (Ast*)bool_type_ast);
@@ -2350,12 +2157,9 @@ build_ast()
 
   bool_true_ident = sym_new_var("true", (Ast*)bool_true_ast);
   bool_false_ident = sym_new_var("false", (Ast*)bool_false_ast);
+  */
 
-  assert(scope_level == 0);
-  int top_scope_level = scope_push_level();
   token = tokenized_input;
   next_token();
   p4program = build_p4program();
-  scope_pop_level(top_scope_level - 1);
-  assert(scope_level == 0);
 }

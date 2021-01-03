@@ -19,7 +19,9 @@ error
 
 extern TPacketIn
 {
+  TPacketIn();
   void extract<T>(out T hdr);
+  T lookup<T>(out T hdr);
 }
 
 extern TPacketOut<T>

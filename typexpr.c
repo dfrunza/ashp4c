@@ -106,7 +106,7 @@ visit_function_prototype(Ast_FunctionDecl* function_ast)
   function_typexpr->name = function_ast->name;
   function_typexpr->is_prototype = true;
 
-  function_typexpr->return_type = function_ast->return_type_ast->typexpr;
+  function_typexpr->return_type = function_ast->return_type->typexpr;
 
   function_typexpr->sentinel_type_parameter = arena_push_struct(&arena, Typexpr_TypeParameter);
   function_typexpr->sentinel_type_parameter->kind = TYP_TYPE_PARAMETER;
