@@ -11,9 +11,7 @@
 
 /* DF: <optAnnotations>... are ommited */
 
-<parameterList> := { <nonEmptyParameterList> }
-
-<nonEmptyParameterList> := <parameter> { ',' <parameter> }*
+<parameterList> := { <parameter> { ',' <parameter> }* }
 
 <parameter> := <direction> <typeRef> <name> { '=' <expression> }
 
@@ -91,7 +89,8 @@
 
 <functionPrototype> := <typeOrVoid> <name> <optTypeParameters> '(' <parameterList> ')'
 
-<methodPrototype> := <functionPrototype> ';' | TYPE_IDENTIFIER '(' parameterList ')' ';'
+<methodPrototype> := <functionPrototype> ';'
+  | TYPE_IDENTIFIER '(' <parameterList> ')' ';' /* constructor */
 
 
 /*****  TYPES  *****/
@@ -130,7 +129,7 @@
 <typeArgumentList> := { <typeArg> { ',' <typeArg> }* }
 
 <typeDeclaration> := <derivedTypeDeclaration> | <typedefDeclaration> | <parserTypeDeclaration> ';'
-  | <controlTypeDeclaration> ';' | <packageDeclaration> ';'
+  | <controlTypeDeclaration> ';' | <packageTypeDeclaration> ';'
 
 <derivedTypeDeclaration> := <headerTypeDeclaration> | <headerUnionDeclaration> | <structTypeDeclaration> | <enumDeclaration>
 

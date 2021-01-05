@@ -163,18 +163,22 @@ next_token(Token* token_at)
           state = 108;
         else if (c == '}')
           state = 109;
-        else if (c == ',')
+        else if (c == '[')
           state = 110;
-        else if (c == '-')
+        else if (c == ']')
           state = 111;
-        else if (c == '+')
+        else if (c == ',')
           state = 112;
-        else if (c == '*')
+        else if (c == '-')
           state = 113;
-        else if (c == '/')
+        else if (c == '+')
           state = 114;
-        else if (c == '=')
+        else if (c == '*')
           state = 115;
+        else if (c == '/')
+          state = 116;
+        else if (c == '=')
+          state = 117;
         else if (cstr_is_digit(c))
           state = 400;
         else if (cstr_is_letter(c))
@@ -257,7 +261,7 @@ next_token(Token* token_at)
 
       case 107:
       {
-        token_at->klass = TOK_PERIOD;
+        token_at->klass = TOK_DOTPREFIX;
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -284,7 +288,7 @@ next_token(Token* token_at)
 
       case 110:
       {
-        token_at->klass = TOK_COMMA;
+        token_at->klass = TOK_BRACKET_OPEN;
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -293,7 +297,7 @@ next_token(Token* token_at)
 
       case 111:
       {
-        token_at->klass = TOK_MINUS;
+        token_at->klass = TOK_BRACKET_CLOSE;
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -302,7 +306,7 @@ next_token(Token* token_at)
 
       case 112:
       {
-        token_at->klass = TOK_PLUS;
+        token_at->klass = TOK_COMMA;
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -311,7 +315,7 @@ next_token(Token* token_at)
 
       case 113:
       {
-        token_at->klass = TOK_STAR;
+        token_at->klass = TOK_MINUS;
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -319,6 +323,24 @@ next_token(Token* token_at)
       break;
 
       case 114:
+      {
+        token_at->klass = TOK_PLUS;
+        token_at->lexeme = lexeme_to_cstring();
+        lexeme_advance();
+        state = 0;
+      }
+      break;
+
+      case 115:
+      {
+        token_at->klass = TOK_STAR;
+        token_at->lexeme = lexeme_to_cstring();
+        lexeme_advance();
+        state = 0;
+      }
+      break;
+
+      case 116:
       {
         if (char_lookahead(1) == '*')
         {
@@ -335,7 +357,7 @@ next_token(Token* token_at)
       }
       break;
 
-      case 115:
+      case 117:
       {
         if (char_lookahead(1) == '=')
         {
@@ -596,7 +618,7 @@ next_token(Token* token_at)
           c = char_advance();
         while (cstr_is_letter(c) || cstr_is_digit(c) || c == '_');
         char_retract();
-        token_at->klass = TOK_IDENT;
+        token_at->klass = TOK_IDENTIFIER;
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;

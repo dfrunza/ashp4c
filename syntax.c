@@ -19,34 +19,32 @@ Ident_Keyword* error_kw = 0;
 Ident_Keyword* apply_kw = 0;
 
 Ast_TypeIdent* error_type_ast = 0;
-Ident* error_type_ident = 0;
-
 Ast_TypeIdent* void_type_ast = 0;
-Ident* void_type_ident = 0;
-
 Ast_TypeIdent* bool_type_ast = 0;
-Ident* bool_type_ident = 0;
-
 Ast_TypeIdent* bit_type_ast = 0;
-Ident* bit_type_ident = 0;
-
 Ast_TypeIdent* varbit_type_ast = 0;
-Ident* varbit_type_ident;
-
 Ast_TypeIdent* int_type_ast = 0;
-Ident* int_type_ident;
-
 Ast_TypeIdent* string_type_ast = 0;
-Ident* string_type_ident;
-
 Ast_Integer* bool_true_ast = 0;
-Ident* bool_true_ident = 0;
 Ast_Integer* bool_false_ast = 0;
+
+/*
+Ident* error_type_ident = 0;
+Ident* void_type_ident = 0;
+Ident* bool_type_ident = 0;
+Ident* bit_type_ident = 0;
+Ident* varbit_type_ident;
+Ident* int_type_ident;
+Ident* string_type_ident;
+Ident* bool_true_ident = 0;
 Ident* bool_false_ident = 0;
+*/
 
 internal Ast_TypeExpression* build_type_expression();
 internal Ast* build_expression(int priority_threshold);
 internal Ast_BlockStmt* build_block_statement();
+internal Ast* build_typeRef();
+internal Ast* build_typedefDeclaration();
 
 internal uint32_t
 name_hash(char* name)
@@ -274,7 +272,7 @@ next_token()
   while (token->klass == TOK_COMMENT)
     token++;
 
-  if (token->klass == TOK_IDENT)
+  if (token->klass == TOK_IDENTIFIER)
   {
     Namespace_Entry* ns = sym_get_namespace(token->lexeme);
     if (ns->ns_global)
@@ -287,17 +285,15 @@ next_token()
       }
     }
 
-    /*
     if (ns->ns_type)
     {
       Ident* ident = ns->ns_type;
       if (ident->ident_kind == ID_TYPE || ident->ident_kind == ID_TYPEVAR)
       {
-        token->klass = TOK_TYPE_IDENT;
+        token->klass = TOK_TYPE_IDENTIFIER;
         return token;
       }
     }
-    */
   }
   return token;
 }
@@ -328,30 +324,16 @@ expect_semicolon()
 }
 
 internal bool
-token_is_ident(Token* token)
-{
-  bool result = token->klass == TOK_IDENT || token->klass == TOK_TYPE_IDENT;
-  return result;
-}
-
-internal bool
-token_is_type_parameter(Token* token)
-{
-  bool result = token_is_ident(token) || token->klass == TOK_INTEGER;
-  return result;
-}
-
-internal bool
 token_is_direction(Token* token)
 {
-  bool result = token->klass == TOK_KW_IN || token->klass == TOK_KW_OUT || token->klass == TOK_KW_INOUT;
+  bool result = token->klass == TOK_IN || token->klass == TOK_OUT || token->klass == TOK_INOUT;
   return result;
 }
 
 internal bool
 token_is_parameter(Token* token)
 {
-  bool result = token_is_direction(token) || token_is_ident(token) || token->klass == TOK_INTEGER;
+  bool result = token_is_direction(token) || token->klass == TOK_TYPE_IDENTIFIER || token->klass == TOK_INTEGER;
   return result;
 }
 
@@ -359,12 +341,10 @@ internal Ast_TypeExpression*
 build_type_parameter_list()
 {
   assert(token->klass == TOK_ANGLE_OPEN);
-
   Ast_TypeExpression* result = 0;
-
   next_token();
 
-  if (token_is_type_parameter(token))
+  if (token->klass == TOK_TYPE_IDENTIFIER)
   {
     Ast_TypeExpression* argument = build_type_expression();
     result = argument;
@@ -373,7 +353,7 @@ build_type_parameter_list()
     {
       next_token();
 
-      if (token_is_type_parameter(token))
+      if (token->klass == TOK_TYPE_IDENTIFIER)
       {
         Ast_TypeExpression* next_argument = build_type_expression();
         argument->next_argument = next_argument;
@@ -397,14 +377,14 @@ build_type_parameter_list()
 internal Ast_TypeExpression*
 build_type_expression()
 {
-  assert(token_is_type_parameter(token));
-
+  assert(token->klass == TOK_TYPE_IDENTIFIER);
   Ast_TypeExpression* result = arena_push_struct(&arena, Ast_TypeExpression);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_TYPE_EXPRESSION;
 
-  if (token_is_ident(token))
+  if (token->klass == TOK_TYPE_IDENTIFIER)
   {
+    // TODO: Ast_Ident
     result->argument_kind = AST_TYPPARAM_VAR;
     result->name = token->lexeme;
     next_token();
@@ -430,13 +410,13 @@ build_type_expression()
 internal Ast_StructField*
 build_struct_field()
 {
-  assert(token_is_ident(token));
+  assert(token->klass == TOK_TYPE_IDENTIFIER);
   Ast_StructField* result = arena_push_struct(&arena, Ast_StructField);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_STRUCT_FIELD;
   result->member_type = build_type_expression();
 
-  if (token_is_ident(token))
+  if (token->klass == TOK_IDENTIFIER)
   {
     result->name = token->lexeme;
     next_token();
@@ -447,29 +427,19 @@ build_struct_field()
   return result;
 }
 
-internal bool
-token_is_p4declaration(Token* token)
-{
-  bool result = token->klass == TOK_KW_STRUCT || token->klass == TOK_KW_HEADER \
-      || token->klass == TOK_KW_ERROR || token->klass == TOK_KW_TYPEDEF \
-      || token->klass == TOK_KW_PARSER || token->klass == TOK_KW_CONTROL \
-      || token_is_ident(token) || token->klass == TOK_KW_EXTERN \
-      || token->klass == TOK_KW_CONST || token->klass == TOK_KW_PACKAGE;
-  return result;
-}
-
+/*
 internal Ast_HeaderDecl*
 build_header_decl()
 {
   Ast_StructField* field;
 
-  assert(token->klass == TOK_KW_HEADER);
+  assert(token->klass == TOK_HEADER);
   next_token();
   Ast_HeaderDecl* result = arena_push_struct(&arena, Ast_HeaderDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_HEADER_PROTOTYPE;
 
-  if (token_is_ident(token))
+  if (token->klass == TOK_IDENTIFIER)
   {
     result->name = token->lexeme;
     next_token();
@@ -482,11 +452,11 @@ build_header_decl()
       result->kind = AST_HEADER_DECL;
       next_token();
 
-      if (token_is_ident(token))
+      if (token->klass == TOK_TYPE_IDENTIFIER)
       {
         field = build_struct_field();
         result->first_field = field;
-        while (token_is_ident(token))
+        while (token->klass == TOK_TYPE_IDENTIFIER)
         {
           Ast_StructField* next_field = build_struct_field();
           field->next_field = next_field;
@@ -496,7 +466,7 @@ build_header_decl()
 
       if (token->klass == TOK_BRACE_CLOSE)
         next_token(token);
-      else if (token->klass == TOK_IDENT)
+      else if (token->klass == TOK_IDENTIFIER)
         error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
       else
         error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
@@ -508,20 +478,20 @@ build_header_decl()
     error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
   return result;
 }
+*/
 
 internal Ast_StructDecl*
 build_struct_decl()
 {
-  assert(token->klass == TOK_KW_STRUCT);
+  assert(token->klass == TOK_STRUCT);
   next_token();
   Ast_StructDecl* result = arena_push_struct(&arena, Ast_StructDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_STRUCT_PROTOTYPE;
 
-  if (token_is_ident(token))
+  if (token->klass == TOK_IDENTIFIER)
   {
     result->name = token->lexeme;
-
     next_token();
 
     if (token->klass == TOK_ANGLE_OPEN)
@@ -530,14 +500,13 @@ build_struct_decl()
     if (token->klass == TOK_BRACE_OPEN)
     {
       result->kind = AST_STRUCT_DECL;
-
       next_token();
 
-      if (token_is_ident(token))
+      if (token->klass == TOK_TYPE_IDENTIFIER)
       {
         Ast_StructField* field = build_struct_field();
         result->first_field = field;
-        while (token_is_ident(token))
+        while (token->klass == TOK_TYPE_IDENTIFIER)
         {
           Ast_StructField* next_field = build_struct_field();
           field->next_field = next_field;
@@ -547,7 +516,7 @@ build_struct_decl()
 
       if (token->klass == TOK_BRACE_CLOSE)
         next_token();
-      else if (token->klass == TOK_IDENT)
+      else if (token->klass == TOK_IDENTIFIER)
         error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
       else
         error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
@@ -564,8 +533,7 @@ build_struct_decl()
 internal Ast_ErrorCode*
 build_error_code()
 {
-  assert(token_is_ident(token));
-
+  assert(token->klass == TOK_IDENTIFIER);
   Ast_ErrorCode* code = arena_push_struct(&arena, Ast_ErrorCode);
   copy_tokenattr_to_ast(token, (Ast*)code);
   code->kind = AST_ERROR_CODE;
@@ -575,9 +543,9 @@ build_error_code()
 }
 
 internal Ast_ErrorType*
-build_error_type_decl()
+build_errorDeclaration()
 {
-  assert(token->klass == TOK_KW_ERROR);
+  assert(token->klass == TOK_ERROR);
   next_token();
   Ast_ErrorType* result = arena_push_struct(&arena, Ast_ErrorType);
   copy_tokenattr_to_ast(token, (Ast*)result);
@@ -587,15 +555,14 @@ build_error_type_decl()
   if (token->klass == TOK_BRACE_OPEN)
   {
     next_token();
-
-    if (token_is_ident(token))
+    if (token->klass == TOK_IDENTIFIER)
     {
       Ast_ErrorCode* field = build_error_code();
       result->error_code = field;
       while (token->klass == TOK_COMMA)
       {
         next_token();
-        if (token_is_ident(token))
+        if (token->klass == TOK_IDENTIFIER)
         {
           Ast_ErrorCode* next_code = build_error_code();
           field->next_code = next_code;
@@ -621,20 +588,18 @@ build_error_type_decl()
 internal Ast_Typedef*
 build_typedef_decl()
 {
-  assert(token->klass == TOK_KW_TYPEDEF);
-
+  assert(token->klass == TOK_TYPEDEF);
   next_token();
-
   Ast_Typedef* result = arena_push_struct(&arena, Ast_Typedef);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_TYPEDEF;
 
-  if (token_is_type_parameter(token))
+  if (token->klass == TOK_TYPE_IDENTIFIER)
   {
     result->type = build_type_expression();
-
-    if (token_is_ident(token))
+    if (token->klass == TOK_TYPE_IDENTIFIER)
     {
+      // TODO: Ast_Ident
       result->name = token->lexeme;
       next_token();
     }
@@ -645,7 +610,6 @@ build_typedef_decl()
     error("at line %d : unexpected token '%s'", token->line_nr, token->lexeme);
 
   expect_semicolon();
-
   return result;
 }
 
@@ -654,11 +618,11 @@ build_direction()
 {
   assert(token_is_direction(token));
   enum Ast_ParameterDirection result = 0;
-  if (token->klass == TOK_KW_IN)
+  if (token->klass == TOK_IN)
     result = AST_DIR_IN;
-  else if (token->klass == TOK_KW_OUT)
+  else if (token->klass == TOK_OUT)
     result = AST_DIR_OUT;
-  else if (token->klass == TOK_KW_INOUT)
+  else if (token->klass == TOK_INOUT)
     result = AST_DIR_INOUT;
   next_token();
   return result;
@@ -668,7 +632,6 @@ internal Ast_Parameter*
 build_parameter()
 {
   assert(token_is_parameter(token));
-
   Ast_Parameter* result = arena_push_struct(&arena, Ast_Parameter);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_PARAMETER;
@@ -676,13 +639,14 @@ build_parameter()
   if (token_is_direction(token))
     result->direction = build_direction();
 
-  if (token_is_ident(token))
+  if (token->klass == TOK_TYPE_IDENTIFIER)
     result->param_type = build_type_expression();
   else
     error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
 
-  if (token_is_ident(token))
+  if (token->klass == TOK_IDENTIFIER)
   {
+    // TODO: Ast_Ident
     result->name = token->lexeme;
     next_token();
   }
@@ -719,14 +683,15 @@ build_parameter_list()
 internal Ast_ParserDecl*
 build_parser_prototype()
 {
-  assert(token->klass == TOK_KW_PARSER);
+  assert(token->klass == TOK_PARSER);
   next_token();
   Ast_ParserDecl* result = arena_push_struct(&arena, Ast_ParserDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_PARSER_PROTOTYPE;
 
-  if (token_is_ident(token))
+  if (token->klass == TOK_IDENTIFIER)
   {
+    // TODO: Ast_Ident
     result->name = token->lexeme;
     next_token();
 
@@ -743,7 +708,7 @@ build_parser_prototype()
         next_token();
       else
       {
-        if (token->klass == TOK_IDENT)
+        if (token->klass == TOK_IDENTIFIER)
           error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
         else
           error("at line %d: ')' expected, got '%s'", token->line_nr, token->lexeme);
@@ -784,7 +749,7 @@ token_is_integer(Token* token)
 internal bool
 token_is_expression(Token* token)
 {
-  bool result = token_is_ident(token) \
+  bool result = token->klass == TOK_IDENTIFIER || token->klass == TOK_TYPE_IDENTIFIER \
     || token_is_integer(token) || token_is_winteger(token) || token_is_sinteger(token) \
     || token->klass == TOK_STRING || token->klass == TOK_PARENTH_OPEN;
   return result;
@@ -793,7 +758,7 @@ token_is_expression(Token* token)
 internal bool
 token_is_expression_operator(Token* token)
 {
-  bool result = token->klass == TOK_PERIOD || token->klass == TOK_EQUAL_EQUAL
+  bool result = token->klass == TOK_DOTPREFIX || token->klass == TOK_EQUAL_EQUAL
     || token->klass == TOK_PARENTH_OPEN || token->klass == TOK_EQUAL
     || token->klass == TOK_MINUS || token->klass == TOK_PLUS;
   return result;
@@ -806,7 +771,7 @@ build_expression_primary()
 
   assert(token_is_expression(token));
 
-  if (token->klass == TOK_IDENT)
+  if (token->klass == TOK_IDENTIFIER)
   {
     Ast_Ident* ident_ast = arena_push_struct(&arena, Ast_Ident);
     copy_tokenattr_to_ast(token, (Ast*)ident_ast);
@@ -818,7 +783,7 @@ build_expression_primary()
     if (token->klass == TOK_ANGLE_OPEN)
       ident_ast->first_type_argument = build_type_parameter_list();
   }
-  else if (token->klass == TOK_TYPE_IDENT)
+  else if (token->klass == TOK_TYPE_IDENTIFIER)
   {
     Ast_TypeIdent* ident_ast = arena_push_struct(&arena, Ast_TypeIdent);
     copy_tokenattr_to_ast(token, (Ast*)ident_ast);
@@ -887,7 +852,7 @@ build_expression_operator()
 
   switch (token->klass)
   {
-    case TOK_PERIOD:
+    case TOK_DOTPREFIX:
       result = AST_OP_MEMBER_SELECTOR;
       break;
     case TOK_EQUAL:
@@ -954,7 +919,6 @@ internal Ast*
 build_expression(int priority_threshold)
 {
   assert(token_is_expression(token));
-
   Ast* expr = build_expression_primary();
 
   while (token_is_expression_operator(token))
@@ -1027,7 +991,7 @@ build_var_decl()
   Ast_Ident* name_ast = 0;
   Ast* init_expr = 0;
 
-  assert(token->klass == TOK_KW_VAR || token->klass == TOK_KW_CONST);
+  assert(token->klass == TOK_VAR || token->klass == TOK_CONST);
   next_token();
   Ast_VarDecl* var_decl = arena_push_struct(&arena, Ast_VarDecl);
   copy_tokenattr_to_ast(token, (Ast*)var_decl);
@@ -1061,37 +1025,23 @@ build_var_decl()
   return var_decl;
 }
 
-internal Ast_VarDecl*
-build_const_decl()
-{
-  assert (token->klass == TOK_KW_CONST);
-
-  Ast_VarDecl* const_decl = build_var_decl();
-  const_decl->is_const = true;
-
-  return const_decl;
-}
-
 internal Ast_IdentState*
 build_ident_state()
 {
-  assert(token_is_ident(token));
-
+  assert(token->klass == TOK_IDENTIFIER);
   Ast_IdentState* result = arena_push_struct(&arena, Ast_IdentState);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_IDENT_STATE;
   result->name = token->lexeme;
-
   next_token();
   expect_semicolon();
-
   return result;
 }
 
 internal bool
 token_is_select_case(Token* token)
 {
-  bool result = token_is_expression(token) || token->klass == TOK_KW_DEFAULT;
+  bool result = token_is_expression(token) || token->klass == TOK_DEFAULT;
   return result;
 }
 
@@ -1109,10 +1059,9 @@ build_select_case()
     select_expr->key_expr = build_expression(1);
     result = (Ast_SelectCase*)select_expr;
   }
-  else if (token->klass = TOK_KW_DEFAULT)
+  else if (token->klass = TOK_DEFAULT)
   {
     next_token();
-
     Ast_SelectCase_Default* default_select = arena_push_struct(&arena, Ast_SelectCase_Default);
     copy_tokenattr_to_ast(token, (Ast*)default_select);
     default_select->kind = AST_DEFAULT_SELECT_CASE;
@@ -1124,8 +1073,7 @@ build_select_case()
   if (token->klass == TOK_COLON)
   {
     next_token();
-
-    if (token_is_ident(token))
+    if (token->klass == TOK_IDENTIFIER)
     {
       result->end_state = token->lexeme;
       next_token();
@@ -1158,10 +1106,8 @@ build_select_case_list()
 internal Ast_SelectState*
 build_select_state()
 {
-  assert(token->klass == TOK_KW_SELECT);
-
+  assert(token->klass == TOK_SELECT);
   next_token();
-
   Ast_SelectState* result = arena_push_struct(&arena, Ast_SelectState);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_SELECT_STATE;
@@ -1196,16 +1142,15 @@ build_select_state()
 internal Ast_TransitionStmt*
 build_transition_stmt()
 {
-  assert(token->klass == TOK_KW_TRANSITION);
-
+  assert(token->klass == TOK_TRANSITION);
   Ast_TransitionStmt* result = arena_push_struct(&arena, Ast_TransitionStmt);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_TRANSITION_STMT;
-
   next_token();
-  if (token_is_ident(token))
+
+  if (token->klass == TOK_IDENTIFIER)
     result->state_expr = (Ast*)build_ident_state();
-  else if (token->klass == TOK_KW_SELECT)
+  else if (token->klass == TOK_SELECT)
     result->state_expr = (Ast*)build_select_state();
   else
     error("at line %d: transition stmt expected, got '%s'", token->line_nr, token->lexeme);
@@ -1215,7 +1160,7 @@ build_transition_stmt()
 internal bool
 token_is_statement(Token* token)
 {
-  bool result = token_is_expression(token) || token->klass == TOK_KW_VAR \
+  bool result = token_is_expression(token) || token->klass == TOK_VAR \
                 || token->klass == TOK_BRACE_OPEN;
   return result;
 }
@@ -1224,7 +1169,6 @@ internal Ast_Declaration*
 build_statement()
 {
   Ast_Declaration* result = 0;
-
   assert (token_is_statement(token));
 
   if (token_is_expression(token))
@@ -1232,7 +1176,7 @@ build_statement()
     result = (Ast_Declaration*)build_expression(1);
     expect_semicolon();
   }
-  else if (token->klass == TOK_KW_VAR)
+  else if (token->klass == TOK_VAR)
     result = (Ast_Declaration*)build_var_decl();
   else if (token->klass == TOK_BRACE_OPEN)
     result = (Ast_Declaration*)build_block_statement();
@@ -1266,13 +1210,13 @@ build_statement_list()
 internal Ast_ParserState*
 build_parser_state()
 {
-  assert(token->klass == TOK_KW_STATE);
+  assert(token->klass == TOK_STATE);
   next_token();
   Ast_ParserState* result = arena_push_struct(&arena, Ast_ParserState);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_PARSER_STATE;
 
-  if (token_is_ident(token))
+  if (token->klass == TOK_IDENTIFIER)
   {
     result->name = token->lexeme;
     sym_unimport_var((Ident*)apply_kw);
@@ -1283,7 +1227,7 @@ build_parser_state()
       next_token();
       result->first_statement = build_statement_list();
 
-      if (token->klass == TOK_KW_TRANSITION)
+      if (token->klass == TOK_TRANSITION)
         result->transition_stmt = build_transition_stmt();
       else
         error("at line %d: 'transition' expected, got '%s'", token->line_nr, token->lexeme);
@@ -1304,8 +1248,8 @@ build_parser_state()
 internal bool
 token_is_parser_local_decl(Token* token)
 {
-  bool result = token->klass == TOK_KW_STATE || token->klass == TOK_KW_VAR \
-                || token_is_ident(token);
+  bool result = token->klass == TOK_STATE || token->klass == TOK_VAR \
+                || token->klass == TOK_IDENTIFIER || token->klass == TOK_TYPE_IDENTIFIER;
   return result;
 }
 
@@ -1313,20 +1257,19 @@ internal Ast_Declaration*
 build_parser_local_decl()
 {
   Ast_Declaration* result = 0;
-
   assert(token_is_parser_local_decl(token));
   
-  if (token->klass == TOK_KW_STATE)
+  if (token->klass == TOK_STATE)
   {
     Ast_ParserState* state_decl = build_parser_state();
     result = (Ast_Declaration*)state_decl;
   }
-  else if (token->klass == TOK_KW_VAR)
+  else if (token->klass == TOK_VAR)
   {
     Ast_VarDecl* var_decl = build_var_decl();
     result = (Ast_Declaration*)var_decl;
   }
-  else if (token_is_ident(token))
+  else if (token->klass == TOK_IDENTIFIER)
   {
     Ast_Declaration* expression = (Ast_Declaration*)build_expression(1);
     result = (Ast_Declaration*)expression;
@@ -1340,10 +1283,9 @@ build_parser_local_decl()
 }
 
 internal Ast_ParserDecl*
-build_parser_decl()
+build_parserDeclaration()
 {
-  assert(token->klass == TOK_KW_PARSER);
-
+  assert(token->klass == TOK_PARSER);
   Ast_ParserDecl* result = build_parser_prototype();
 
   if (token->klass == TOK_BRACE_OPEN)
@@ -1382,13 +1324,13 @@ build_parser_decl()
 internal Ast_ControlDecl*
 build_control_prototype()
 {
-  assert(token->klass == TOK_KW_CONTROL);
+  assert(token->klass == TOK_CONTROL);
   next_token();
   Ast_ControlDecl* result = arena_push_struct(&arena, Ast_ControlDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_CONTROL_PROTOTYPE;
 
-  if (token_is_ident(token))
+  if (token->klass == TOK_IDENTIFIER)
   {
     result->name = token->lexeme;
     next_token();
@@ -1407,7 +1349,7 @@ build_control_prototype()
         next_token();
       else
       {
-        if (token->klass == TOK_IDENT)
+        if (token->klass == TOK_IDENTIFIER)
           error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
         else
           error("at line %d: ')' expected, got '%s'", token->line_nr, token->lexeme);
@@ -1444,15 +1386,16 @@ build_block_statement()
 bool
 token_is_control_local_decl(Token* token)
 {
-  bool result = token->klass == TOK_KW_ACTION || token->klass == TOK_KW_TABLE \
-                || token_is_ident(token) || token->klass == TOK_KW_VAR;
+  bool result = token->klass == TOK_ACTION || token->klass == TOK_TABLE \
+                || token->klass == TOK_IDENTIFIER || token->klass == TOK_VAR;
   return result;
 }
 
+/*
 internal Ast_ActionDecl*
-build_action_decl()
+build_actionDeclaration()
 {
-  assert(token->klass == TOK_KW_ACTION);
+  assert(token->klass == TOK_ACTION);
 
   next_token();
 
@@ -1460,7 +1403,7 @@ build_action_decl()
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_ACTION;
 
-  if (token_is_ident(token))
+  if (token->klass == TOK_IDENTIFIER)
   {
     result->name = token->lexeme;
     next_token();
@@ -1501,7 +1444,7 @@ build_key_elem()
   if (token->klass == TOK_COLON)
   {
     next_token();
-    if (token_is_ident(token))
+    if (token->klass == TOK_IDENTIFIER)
     {
       result->name = build_expression(1);
       expect_semicolon();
@@ -1532,7 +1475,7 @@ build_simple_prop()
 internal Ast_ActionRef*
 build_action_ref()
 {
-  assert(token_is_ident(token));
+  assert(token->klass == TOK_IDENTIFIER);
 
   Ast_ActionRef* result = arena_push_struct(&arena, Ast_ActionRef);
   copy_tokenattr_to_ast(token, (Ast*)result);
@@ -1579,7 +1522,7 @@ build_action_ref()
 internal Ast_TableProperty*
 build_table_property()
 {
-  assert(token_is_ident(token));
+  assert(token->klass == TOK_IDENTIFIER);
   Ast_TableProperty* result = 0;
   // FIXME: WTF is this nonsense?
   if (cstr_match(token->lexeme, "key"))
@@ -1624,11 +1567,11 @@ build_table_property()
       if (token->klass == TOK_BRACE_OPEN)
       {
         next_token();
-        if (token_is_ident(token))
+        if (token->klass == TOK_IDENTIFIER)
         {
           Ast_ActionRef* action_ref = build_action_ref();
           result = (Ast_TableProperty*)action_ref;
-          while (token_is_ident(token))
+          while (token->klass == TOK_IDENTIFIER)
           {
             Ast_ActionRef* next_action_ref = build_action_ref();
             action_ref->next_action = next_action_ref;
@@ -1650,7 +1593,7 @@ build_table_property()
   {
     Ast_SimpleProp* prop = build_simple_prop();
     result = (Ast_TableProperty*)prop;
-    while (token_is_ident(token))
+    while (token->klass == TOK_IDENTIFIER)
     {
       Ast_SimpleProp* next_prop = build_simple_prop();
       prop->next = (Ast_TableProperty*)next_prop;
@@ -1663,7 +1606,7 @@ build_table_property()
 internal Ast_TableDecl*
 build_table_decl()
 {
-  assert(token->klass == TOK_KW_TABLE);
+  assert(token->klass == TOK_TABLE);
 
   next_token();
 
@@ -1671,18 +1614,18 @@ build_table_decl()
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_TABLE;
 
-  if (token_is_ident(token))
+  if (token->klass == TOK_IDENTIFIER)
   {
     result->name = token->lexeme;
     next_token();
     if (token->klass == TOK_BRACE_OPEN)
     {
       next_token();
-      if (token_is_ident(token))
+      if (token->klass == TOK_IDENTIFIER)
       {
         Ast_TableProperty* property = build_table_property();
         result->property = property;
-        while (token_is_ident(token))
+        while (token->klass == TOK_IDENTIFIER)
         {
           Ast_TableProperty* next_property = build_table_property();
           property->next = next_property;
@@ -1703,46 +1646,51 @@ build_table_decl()
     error("at line %d: non-type identifier expected, got '%s'", token->line_nr, token->lexeme);
   return result;
 }
+*/
 
 internal Ast_Declaration*
 build_control_local_decl()
 {
   Ast_Declaration* result = 0;
-
   assert(token_is_control_local_decl(token));
 
-  if (token->klass == TOK_KW_ACTION)
+  switch (token->klass)
   {
-    Ast_ActionDecl* action_decl = build_action_decl();
-    result = (Ast_Declaration*)action_decl;
+    /*
+    case TOK_ACTION:
+    {
+      Ast_ActionDecl* action_decl = build_action_decl();
+      result = (Ast_Declaration*)action_decl;
+    } break;
+    case TOK_TABLE:
+    {
+      Ast_TableDecl* table_decl = build_table_decl();
+      result = (Ast_Declaration*)table_decl;
+    } break;
+    */
+    case TOK_VAR:
+    {
+      Ast_VarDecl* var_decl = build_var_decl();
+      result = (Ast_Declaration*)var_decl;
+    } break;
+    case TOK_IDENTIFIER:
+    case TOK_TYPE_IDENTIFIER:
+    {
+      Ast_Declaration* expression = (Ast_Declaration*)build_expression(1);
+      result = (Ast_Declaration*)expression;
+      expect_semicolon();
+    } break;
+    default:
+      assert(false);
   }
-  else if (token->klass == TOK_KW_TABLE)
-  {
-    Ast_TableDecl* table_decl = build_table_decl();
-    result = (Ast_Declaration*)table_decl;
-  }
-  else if (token->klass == TOK_KW_VAR)
-  {
-    Ast_VarDecl* var_decl = build_var_decl();
-    result = (Ast_Declaration*)var_decl;
-  }
-  else if (token_is_ident(token))
-  {
-    Ast_Declaration* expression = (Ast_Declaration*)build_expression(1);
-    result = (Ast_Declaration*)expression;
-
-    expect_semicolon();
-  }
-  else
-    assert(false);
 
   return result;
 }
 
 internal Ast_ControlDecl*
-build_control_decl()
+build_controlDeclaration()
 {
-  assert(token->klass == TOK_KW_CONTROL);
+  assert(token->klass == TOK_CONTROL);
   Ast_ControlDecl* result = build_control_prototype();
 
   if (token->klass == TOK_BRACE_OPEN)
@@ -1763,7 +1711,7 @@ build_control_decl()
       }
     }
 
-    if (token->klass == TOK_KW_APPLY)
+    if (token->klass == TOK_APPLY)
     {
       sym_unimport_var((Ident*)apply_kw);
       next_token();
@@ -1794,13 +1742,13 @@ build_control_decl()
 internal Ast_PackageDecl*
 build_package_prototype()
 {
-  assert(token->klass == TOK_KW_PACKAGE);
+  assert(token->klass == TOK_PACKAGE);
   next_token();
   Ast_PackageDecl* result = arena_push_struct(&arena, Ast_PackageDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_PACKAGE_PROTOTYPE;
 
-  if (token_is_ident(token))
+  if (token->klass == TOK_IDENTIFIER)
   {
     result->name = token->lexeme;
     next_token();
@@ -1819,7 +1767,7 @@ build_package_prototype()
         next_token();
       else
       {
-        if (token->klass == TOK_IDENT)
+        if (token->klass == TOK_IDENTIFIER)
           error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
         else
           error("at line %d: ')' expected, got '%s'", token->line_nr, token->lexeme);
@@ -1841,14 +1789,14 @@ build_package_prototype()
 internal Ast_PackageInstantiation*
 build_package_instantiation()
 {
-  assert(token_is_ident(token));
+  assert(token->klass == TOK_IDENTIFIER);
   Ast_PackageInstantiation* result = arena_push_struct(&arena, Ast_PackageInstantiation);
   copy_tokenattr_to_ast(token, (Ast*)result);
   zero_struct(result, Ast_PackageInstantiation);
   result->kind = AST_PACKAGE_INSTANTIATION;
   result->package_ctor = build_expression(1);
 
-  if (token_is_ident(token))
+  if (token->klass == TOK_IDENTIFIER)
   {
     result->name = token->lexeme;
     next_token();
@@ -1862,15 +1810,16 @@ build_package_instantiation()
 internal Ast_FunctionDecl*
 build_function_prototype()
 {
-  assert(token_is_ident);
+  assert(token->klass == TOK_IDENTIFIER);
   Ast_FunctionDecl* result = arena_push_struct(&arena, Ast_FunctionDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_FUNCTION_PROTOTYPE;
 
-  if (token_is_ident(peek_token()))
+  Token* lookahead_token = peek_token();
+  if (lookahead_token->klass == TOK_IDENTIFIER)
     result->return_type = build_type_expression();
 
-  if (token_is_ident(token))
+  if (token->klass == TOK_IDENTIFIER)
   {
     result->name = token->lexeme;
     next_token();
@@ -1911,7 +1860,7 @@ internal Ast_ExternObjectDecl*
 build_extern_object_prototype()
 {
   Ast_FunctionDecl* method;
-  assert(token_is_ident(token));
+  assert(token->klass == TOK_IDENTIFIER);
   Ast_ExternObjectDecl* result = arena_push_struct(&arena, Ast_ExternObjectDecl);
   copy_tokenattr_to_ast(token, (Ast*)result);
   result->kind = AST_EXTERN_OBJECT_PROTOTYPE;
@@ -1926,12 +1875,12 @@ build_extern_object_prototype()
     sym_unimport_var((Ident*)error_kw);
     next_token();
 
-    if (token_is_ident(token))
+    if (token->klass == TOK_IDENTIFIER)
     {
       method = build_function_prototype();
       result->first_method = method;
 
-      while (token_is_ident(token))
+      while (token->klass == TOK_IDENTIFIER)
       {
         Ast_FunctionDecl* next_method = build_function_prototype();
         method->next_decl = (Ast_Declaration*)next_method;
@@ -1942,7 +1891,7 @@ build_extern_object_prototype()
     sym_import_var((Ident*)error_kw);
     if (token->klass == TOK_BRACE_CLOSE)
       next_token();
-    else if (token->klass == TOK_IDENT)
+    else if (token->klass == TOK_IDENTIFIER)
       error("at line %d: unknown type '%s'", token->line_nr, token->lexeme);
     else
       error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
@@ -1957,112 +1906,738 @@ build_extern_object_prototype()
 internal Ast_FunctionDecl*
 build_extern_function_prototype()
 {
-  assert(token_is_ident(token));
+  assert(token->klass == TOK_IDENTIFIER);
   Ast_FunctionDecl* result = build_function_prototype();
   result->kind = AST_EXTERN_FUNCTION_PROTOTYPE;
   return result;
 }
 
-internal Ast_Declaration*
-build_extern_decl()
+internal bool
+token_is_baseType(Token* token)
 {
-  Ast_Declaration* result = 0;
+  bool result = token->klass == TOK_BOOL || token->klass == TOK_ERROR || token->klass == TOK_INT
+    || token->klass == TOK_BIT || token->klass == TOK_VARBIT;
+  return result;
+}
 
-  assert(token->klass == TOK_KW_EXTERN);
-  next_token();
+internal bool
+token_is_typeRef(Token* token)
+{
+  bool result = token_is_baseType(token) || token->klass == TOK_TYPE_IDENTIFIER || token->klass == TOK_TUPLE;
+  return result;
+}
 
-  if (token_is_ident(token))
+internal bool
+token_is_functionPrototype()
+{
+  bool result = token_is_typeRef(token) || token->klass == TOK_VOID || token->klass == TOK_IDENTIFIER;
+  return result;
+}
+
+internal bool
+token_is_derivedTypeDeclaration(Token* token)
+{
+  bool result = token->klass == TOK_HEADER || token->klass == TOK_HEADER_UNION || token->klass == TOK_STRUCT
+    || token->klass == TOK_ENUM;
+  return result;
+}
+
+internal bool
+token_is_typeDeclaration(Token* token)
+{
+  bool result = token_is_derivedTypeDeclaration(token) || token->klass == TOK_TYPEDEF || token->klass == TOK_TYPE
+    || token->klass == TOK_PARSER || token->klass == TOK_CONTROL || token->klass == TOK_PACKAGE;
+  return result;
+}
+
+internal bool
+token_is_nonTypeName(Token* token)
+{
+  bool result = token->klass == TOK_IDENTIFIER || token->klass == TOK_APPLY || token->klass == TOK_KEY
+    || token->klass == TOK_ACTIONS || token->klass == TOK_STATE || token->klass == TOK_ENTRIES || token->klass == TOK_TYPE;
+  return result;
+}
+
+internal bool
+token_is_name(Token* token)
+{
+  bool result = token_is_nonTypeName(token) || token->klass == TOK_TYPE_IDENTIFIER;
+  return result;
+}
+
+internal bool
+token_is_nonTableKwName(Token* token)
+{
+  bool result = token->klass == TOK_IDENTIFIER || token->klass == TOK_TYPE_IDENTIFIER
+    || token->klass == TOK_APPLY || token->klass == TOK_STATE || token->klass == TOK_TYPE;
+  return result;
+}
+
+internal bool
+token_is_typeArg(Token* token)
+{
+  bool result = token->klass == TOK_DONTCARE || token_is_typeRef(token) || token_is_nonTypeName(token);
+  return result;
+}
+
+internal bool
+token_is_typeParameterList(Token* token)
+{
+  return token_is_name(token);
+}
+
+internal bool
+token_is_typeOrVoid(Token* token)
+{
+  bool result = token_is_typeRef(token) || token->klass == TOK_VOID || token->klass == TOK_IDENTIFIER;
+  return result;
+}
+
+internal Ast*
+build_nonTypeName()
+{
+  assert(token_is_nonTypeName(token));
+  if (token->klass == TOK_IDENTIFIER)
+    next_token();
+  else if (token->klass == TOK_APPLY)
+    next_token();
+  else if (token->klass == TOK_KEY)
+    next_token();
+  else if (token->klass == TOK_ACTIONS)
+    next_token();
+  else if (token->klass == TOK_STATE)
+    next_token();
+  else if (token->klass == TOK_ENTRIES)
+    next_token();
+  else if (token->klass == TOK_TYPE)
+    next_token();
+  else assert(false);
+  return 0;
+}
+
+internal Ast*
+build_name()
+{
+  assert(token_is_name(token));
+  if (token_is_nonTypeName(token))
+    build_nonTypeName();
+  else if (token->klass == TOK_TYPE_IDENTIFIER)
+    next_token();
+  else assert(false);
+  return 0;
+}
+
+internal Ast*
+build_typeParameterList()
+{
+  assert(token_is_typeParameterList(token));
+  build_name();
+  while (token->klass == TOK_COMMA)
   {
-    if (token_is_ident(peek_token()))
-      result = (Ast_Declaration*)build_extern_function_prototype();
+    next_token();
+    if (token_is_name(token))
+      build_name();
+    else error("");
+  }
+  return 0;
+}
+
+internal Ast*
+build_optTypeParameters()
+{
+  if (token->klass == TOK_ANGLE_OPEN)
+  {
+    next_token();
+    if (token_is_typeParameterList(token))
+      build_typeParameterList();
+    else error("");
+    if (token->klass == TOK_ANGLE_CLOSE)
+      next_token;
+    else error("");
+  }
+  return 0;
+}
+
+internal Ast*
+build_typeArg()
+{
+  assert(token_is_typeArg(token));
+  if (token->klass == TOK_DONTCARE)
+    next_token();
+  else if (token_is_typeRef(token))
+    build_typeRef();
+  else if (token_is_nonTypeName(token))
+    build_nonTypeName();
+  else assert(false);
+  return 0;
+}
+
+internal bool
+token_is_methodPrototype(Token* token)
+{
+  return token_is_functionPrototype() | token->klass == TOK_TYPE_IDENTIFIER;
+}
+
+internal Ast*
+build_parameterList()
+{
+  if (token_is_parameter(token))
+  {
+    build_parameter();
+    while (token->klass == TOK_COMMA)
+    {
+      next_token();
+      if (token_is_parameter(token))
+        build_parameter();
+      else {
+        error("");
+        break;
+      }
+    }
+  }
+  return 0;
+}
+
+internal Ast*
+build_typeOrVoid()
+{
+  assert(token_is_typeOrVoid(token));
+  if (token_is_typeRef(token))
+    build_typeRef();
+  else if (token->klass == TOK_VOID)
+    next_token();
+  else if (token->klass == TOK_IDENTIFIER)
+    next_token();
+  else error("");
+  return 0;
+}
+
+internal Ast*
+build_functionPrototype()
+{
+  if (token_is_typeOrVoid(token))
+  {
+    build_typeOrVoid();
+    if (token_is_name(token))
+    {
+      build_name();
+      build_optTypeParameters();
+      if (token->klass == TOK_PARENTH_OPEN)
+      {
+        next_token();
+        build_parameterList();
+        if (token->klass == TOK_PARENTH_CLOSE)
+          next_token();
+        else error("");
+      }
+      else error("");
+    }
+    else error("");
+  }
+  else error("");
+  return 0;
+}
+
+internal Ast*
+build_methodPrototype()
+{
+  assert(token_is_methodPrototype(token));
+  if (token->klass == TOK_TYPE_IDENTIFIER && peek_token()->klass == TOK_BRACE_OPEN)
+  {
+    next_token();
+    if (token->klass == TOK_PARENTH_OPEN)
+    {
+      next_token();
+      build_parameterList();
+      if (token->klass == TOK_PARENTH_CLOSE)
+        next_token();
+      else error("");
+    }
+    else error("");
+  }
+  else if (token_is_functionPrototype(token))
+  {
+    build_functionPrototype();
+    expect_semicolon();
+  }
+  else error("");
+  return 0;
+}
+
+internal Ast*
+build_methodPrototypes()
+{
+  while (token_is_methodPrototype(token))
+    build_methodPrototype();
+  return 0;
+}
+
+internal Ast_Declaration*
+build_externDeclaration()
+{
+  assert(token->klass == TOK_EXTERN);
+  next_token();
+  if (token_is_nonTypeName(token))
+    build_nonTypeName();
+  else error("");
+  build_optTypeParameters();
+  if (token->klass == TOK_BRACE_OPEN)
+  {
+    next_token();
+    build_methodPrototypes();
+    if (token->klass == TOK_BRACE_CLOSE)
+      next_token();
+    else error("");
+  }
+  else if (token_is_functionPrototype(token))
+    build_functionPrototype();
+  else error("");
+  return 0;
+}
+
+internal Ast*
+build_baseType()
+{
+  assert(token_is_baseType(token));
+  if (token->klass == TOK_BOOL)
+    ; // TODO
+  else if (token->klass == TOK_ERROR)
+    ; // TODO
+  else if (token->klass == TOK_INT)
+    ; // TODO
+  else if (token->klass == TOK_BIT)
+    ; // TODO
+  else if (token->klass == TOK_VARBIT)
+    ; // TODO
+  else assert(false);
+  return 0;
+}
+
+internal Ast*
+build_prefixedType()
+{
+  assert(token->klass == TOK_DOTPREFIX);
+  next_token();
+  if (token->klass == TOK_TYPE_IDENTIFIER)
+    next_token();
+  else error("");
+  return 0;
+}
+
+internal Ast*
+build_typeArgumentList()
+{
+  while (token_is_typeArg(token))
+  {
+    build_typeArg();
+    if (token->klass == TOK_COMMA)
+    {
+      next_token();
+      if (!token_is_typeArg(token))
+        error("");
+    }
+  }
+  return 0;
+}
+
+internal Ast*
+build_tupleType()
+{
+  assert(token->klass == TOK_TUPLE);
+  next_token();
+  if (token->klass == TOK_ANGLE_OPEN)
+  {
+    next_token();
+    build_typeArgumentList();
+    if (token->klass == TOK_ANGLE_CLOSE)
+      next_token();
     else
-      result = (Ast_Declaration*)build_extern_object_prototype();
+      error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
   }
   else
-    error("at line %d: identifier expected, got '%s'", token->line_nr, token->lexeme);
+    error("at line %d: '<' expected, got '%s'", token->line_nr, token->lexeme);
+  return 0;
+}
+
+internal Ast*
+build_headerStackType()
+{
+  assert(token->klass == TOK_BRACKET_OPEN);
+  next_token();
+  if (token_is_expression(token))
+    build_expression(1);
+  else
+    error("at line %d: expression expected, got '%s'", token->line_nr, token->lexeme);
+  if (token->klass != TOK_BRACKET_CLOSE)
+    error("at line %d: ']' expected, got '%s'", token->line_nr, token->lexeme);
+  return 0;
+}
+
+internal Ast*
+build_specializedType()
+{
+  assert(token->klass == TOK_ANGLE_OPEN);
+  next_token();
+  build_typeArgumentList();
+  if (token->klass == TOK_ANGLE_CLOSE)
+    next_token();
+  else
+    error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
+  return 0;
+}
+
+internal Ast*
+build_typeName()
+{
+  assert(token->klass == TOK_TYPE_IDENTIFIER);
+  next_token();
+  if (token->klass == TOK_DOTPREFIX)
+    build_prefixedType();
+  if (token->klass == TOK_ANGLE_OPEN)
+    build_specializedType();
+  if (token->klass == TOK_BRACKET_OPEN)
+    build_headerStackType();
+  return 0;
+}
+
+internal Ast*
+build_typeRef()
+{
+  assert(token_is_typeRef(token));
+  if (token_is_baseType(token))
+    build_baseType();
+  else if (token->klass == TOK_TYPE_IDENTIFIER)
+    /* <typeName> | <specializedType> | <headerStackType> */
+    build_typeName();
+  else if (token->klass == TOK_TUPLE)
+    build_tupleType();
+  else assert(false);
+  return 0;
+}
+
+internal bool
+token_is_structField(Token* token)
+{
+  bool result = token_is_typeRef(token);
   return result;
 }
 
-internal Ast_Declaration*
-build_p4declaration()
+internal Ast*
+build_structField()
 {
-  Ast_Declaration* result = 0;
-  assert(token_is_p4declaration(token));
-
-  switch (token->klass)
+  assert(token_is_structField(token));
+  next_token();
+  while (token->klass == TOK_COMMA)
   {
-    case TOK_KW_STRUCT:
+    next_token();
+    if (!token_is_structField(token))
+      error("");
+  }
+  return 0;
+}
+
+internal Ast*
+build_structFieldList()
+{
+  while (token_is_structField(token))
+  {
+    build_structField();
+    if (token->klass == TOK_COMMA)
+    {
+      next_token();
+      if (!token_is_structField(token))
+        error("");
+    }
+  }
+  return 0;
+}
+
+internal Ast*
+build_headerTypeDeclaration()
+{
+  assert(token->klass == TOK_HEADER);
+  next_token();
+  if (token_is_name(token))
+    build_name();
+  else error("");
+  if (token->klass == TOK_BRACE_OPEN)
+  {
+    next_token();
+    build_structFieldList();
+    if (token->klass == TOK_BRACE_CLOSE)
+      next_token(token);
+    else
+      error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
+  }
+  return 0;
+}
+
+internal Ast*
+build_headerUnionDeclaration()
+{
+  assert(token->klass == TOK_HEADER_UNION);
+  next_token();
+  if (token_is_name(token))
+    build_name();
+  else error("");
+  if (token->klass == TOK_BRACE_OPEN)
+  {
+    next_token();
+    build_structFieldList();
+    if (token->klass == TOK_BRACE_CLOSE)
+      next_token();
+    else error("");
+  }
+  else error("");
+  return 0;
+}
+
+internal Ast*
+build_structTypeDeclaration()
+{
+  assert(token->klass == TOK_STRUCT);
+  next_token();
+  if (token_is_name(token))
+    build_name();
+  else error("");
+  if (token->klass == TOK_BRACE_OPEN)
+  {
+    next_token();
+    build_structFieldList();
+    if (token->klass == TOK_BRACE_CLOSE)
+      next_token();
+    else error("");
+  }
+  else error("");
+  return 0;
+}
+
+internal bool
+token_is_specifiedIdentifier(Token* token)
+{
+  return token_is_name(token);
+}
+
+internal Ast*
+build_initializer()
+{
+  return build_expression(1);
+}
+
+internal Ast*
+build_specifiedIdentifier()
+{
+  assert(token_is_specifiedIdentifier(token));
+  build_name();
+  if (token->klass == TOK_EQUAL)
+  {
+    next_token();
+    if (token_is_expression(token))
+      build_initializer();
+    else error("");
+  }
+  else error("");
+  return 0;
+}
+
+internal Ast*
+build_specifiedIdentifierList()
+{
+  assert(token_is_specifiedIdentifier(token));
+  build_specifiedIdentifier();
+  while (token->klass == TOK_COMMA)
+  {
+    next_token();
+    if (token_is_specifiedIdentifier(token))
+      build_specifiedIdentifier();
+    else error("");
+  }
+  return 0;
+}
+
+internal Ast*
+build_enumDeclaration()
+{
+  assert(token->klass == TOK_ENUM);
+  next_token();
+  if (token->klass == TOK_BIT)
+    ; // TODO
+  if (token_is_name)
+    build_name();
+  else error("");
+  if (token->klass == TOK_BRACE_OPEN)
+  {
+    next_token();
+    if (token_is_specifiedIdentifier(token))
+      build_specifiedIdentifierList();
+    else error("");
+    if (token->klass == TOK_BRACE_CLOSE)
+      next_token();
+    else error("");
+  }
+  return 0;
+}
+
+internal Ast*
+build_derivedTypeDeclaration()
+{
+  assert(token_is_derivedTypeDeclaration(token));
+  if (token->klass == TOK_HEADER)
+    build_headerTypeDeclaration();
+  else if (token->klass == TOK_HEADER_UNION)
+    build_headerUnionDeclaration();
+  else if (token->klass == TOK_STRUCT)
+    build_structTypeDeclaration();
+  else if (token->klass == TOK_ENUM)
+    build_enumDeclaration();
+  else assert(false);
+  return 0;
+}
+
+internal Ast*
+build_typeDeclaration()
+{
+  assert(token_is_typeDeclaration(token));
+  if (token_is_derivedTypeDeclaration(token))
+    build_derivedTypeDeclaration();
+  if (token->klass == TOK_TYPEDEF)
+    build_typedefDeclaration();
+  else if (token->klass == TOK_PARSER)
+    ;
+  return 0;
+}
+
+internal Ast*
+build_typedefDeclaration()
+{
+  assert(token->klass == TOK_TYPEDEF || token->klass == TOK_TYPE);
+  if (token->klass == TOK_TYPEDEF)
+    next_token();
+  else if (token->klass == TOK_TYPE)
+    next_token();
+  else assert(false);
+  if (token_is_typeRef(token))
+    build_typeRef();
+  else if (token_is_derivedTypeDeclaration(token))
+    build_derivedTypeDeclaration();
+  else error("");
+  if (token_is_name(token))
+    build_name();
+  else error("");
+  expect_semicolon();
+  return 0;
+}
+
+internal bool
+token_is_declaration(Token* token)
+{
+  bool result = token->klass == TOK_CONST || token->klass == TOK_EXTERN || token->klass == TOK_ACTION
+    || token->klass == TOK_PARSER || token_is_typeDeclaration(token) || token->klass == TOK_CONTROL
+    /* || token_is_instantiation(token) */ || token->klass == TOK_ERROR || token->klass == TOK_MATCH_KIND
+    /* || token_is_functionDeclaration(token) */ ;
+  return result;
+}
+
+internal Ast*
+build_constantDeclaration()
+{
+  assert(token->klass == TOK_CONST);
+  next_token();
+  if (token_is_typeRef(token))
+  {
+    build_typeRef();
+    if (token_is_name(token))
+    {
+      build_name();
+      if (token->klass == TOK_EQUAL)
+      {
+        next_token();
+        if (token_is_expression(token))
+        {
+          build_expression(1);
+          expect_semicolon();
+        }
+        else error("");
+      }
+      else error("");
+    }
+    else error("");
+  }
+  else error("");
+  return 0;
+}
+
+internal Ast*
+build_declaration()
+{
+  assert(token_is_declaration(token));
+  if (token->klass == TOK_CONST)
+    build_constantDeclaration();
+  else if (token->klass == TOK_EXTERN)
+    build_externDeclaration();
+  else if (token->klass == TOK_ACTION)
+    ; /* TODO
+    build_actionDeclaration(); */
+  else if (token_is_typeDeclaration(token))
+    /* <parserDeclaration> | <controlDeclaration> */
+    build_typeDeclaration();
+  /*
+  else if (token_is_instantiation(token))
+    ; TODO */
+  else if (token->klass == TOK_ERROR)
+    build_errorDeclaration();
+  else if (token->klass == TOK_MATCH_KIND)
+      ; // TODO
+  /*
+  else if (token_is_functionDeclaration(token))
+    ; TODO */
+  else assert(false);
+
+    /*
+    case TOK_STRUCT:
       result = (Ast_Declaration*)build_struct_decl();
       break;
-    case TOK_KW_HEADER:
+    case TOK_HEADER:
       result = (Ast_Declaration*)build_header_decl();
       break;
-    case TOK_KW_ERROR:
-      result = (Ast_Declaration*)build_error_type_decl();
-      break;
-    case TOK_KW_TYPEDEF:
+    case TOK_TYPEDEF:
       result = (Ast_Declaration*)build_typedef_decl();
       break;
-    case TOK_KW_PARSER:
-      result = (Ast_Declaration*)build_parser_decl();
-      break;
-    case TOK_KW_CONTROL:
-      result = (Ast_Declaration*)build_control_decl();
-      break;
-    case TOK_KW_ACTION:
-      result = (Ast_Declaration*)build_action_decl();
-      break;
-    case TOK_KW_PACKAGE:
+    case TOK_PACKAGE:
       result = (Ast_Declaration*)build_package_prototype();
       break;
-    case TOK_KW_EXTERN:
-      result = (Ast_Declaration*)build_extern_decl();
-      break;
-    case TOK_KW_CONST:
-      result = (Ast_Declaration*)build_const_decl();
-      break;
-    case TOK_IDENT:
-    case TOK_TYPE_IDENT:
+    case TOK_IDENTIFIER:
+    case TOK_TYPE_IDENTIFIER:
       result = (Ast_Declaration*)build_package_instantiation();
       break;
+    */
 
-    default: assert(false);
-  }
-
-  return result;
+  return 0;
 }
 
-internal Ast_P4Program*
+internal Ast*
 build_p4program()
 {
-  Ast_P4Program* result = 0;
-  if (token_is_p4declaration(token))
+  if (token->klass == TOK_SEMICOLON)
+    return 0;
+  if (token_is_declaration(token))
   {
-    result = arena_push_struct(&arena, Ast_P4Program);
-    copy_tokenattr_to_ast(token, (Ast*)result);
-    result->kind = AST_P4PROGRAM;
-
-    Ast_Declaration* declaration = build_p4declaration();
-
-    result->first_declaration = declaration;
-    while (token_is_p4declaration(token))
+    build_declaration();
+    while (token_is_declaration(token))
     {
-      Ast_Declaration* next_declaration = build_p4declaration();
-      declaration->next_decl = next_declaration;
-      declaration = next_declaration;
+      build_declaration();
     }
     if (token->klass != TOK_EOI)
       error("at line %d: unexpected token '%s'", token->line_nr, token->lexeme);
   }
   else
     error("at line %d: declaration expected, got '%s'", token->line_nr, token->lexeme);
-  return result;
+  return 0;
 }
 
 void
 build_ast()
 {
-  /*
   error_type_ast = arena_push_struct(&arena, Ast_TypeIdent);
   error_type_ast->kind = AST_TYPE_IDENT;
   error_type_ast->name = "error";
@@ -2114,37 +2689,41 @@ build_ast()
   bool_false_ast->kind = AST_INTEGER;
   bool_false_ast->lexeme = "false";
   bool_false_ast->value = 0;
-  */
 
-  add_keyword("action", TOK_KW_ACTION);
-  add_keyword("enum", TOK_KW_ENUM);
-  add_keyword("in", TOK_KW_IN);
-  add_keyword("package", TOK_KW_PACKAGE);
-  add_keyword("select", TOK_KW_SELECT);
-  add_keyword("switch", TOK_KW_SWITCH);
-  add_keyword("tuple", TOK_KW_TUPLE);
-  add_keyword("control", TOK_KW_CONTROL);
-  error_kw = add_keyword("error", TOK_KW_ERROR);
-  add_keyword("header", TOK_KW_HEADER);
-  add_keyword("inout", TOK_KW_INOUT);
-  add_keyword("parser", TOK_KW_PARSER);
-  add_keyword("state", TOK_KW_STATE);
-  add_keyword("table", TOK_KW_TABLE);
-  add_keyword("typedef", TOK_KW_TYPEDEF);
-  add_keyword("default", TOK_KW_DEFAULT);
-  add_keyword("extern", TOK_KW_EXTERN);
-  add_keyword("header_union", TOK_KW_HEADER_UNION);
-  add_keyword("out", TOK_KW_OUT);
-  add_keyword("transition", TOK_KW_TRANSITION);
-  add_keyword("else", TOK_KW_ELSE);
-  add_keyword("exit", TOK_KW_EXIT);
-  add_keyword("if", TOK_KW_IF);
-  add_keyword("match_kind", TOK_KW_MATCH_KIND);
-  add_keyword("return", TOK_KW_RETURN);
-  add_keyword("struct", TOK_KW_STRUCT);
-  apply_kw = add_keyword("apply", TOK_KW_APPLY);
-  add_keyword("var", TOK_KW_VAR);
-  add_keyword("const", TOK_KW_CONST);
+  add_keyword("action", TOK_ACTION);
+  add_keyword("enum", TOK_ENUM);
+  add_keyword("in", TOK_IN);
+  add_keyword("package", TOK_PACKAGE);
+  add_keyword("select", TOK_SELECT);
+  add_keyword("switch", TOK_SWITCH);
+  add_keyword("tuple", TOK_TUPLE);
+  add_keyword("control", TOK_CONTROL);
+  error_kw = add_keyword("error", TOK_ERROR);
+  add_keyword("header", TOK_HEADER);
+  add_keyword("inout", TOK_INOUT);
+  add_keyword("parser", TOK_PARSER);
+  add_keyword("state", TOK_STATE);
+  add_keyword("table", TOK_TABLE);
+  add_keyword("key", TOK_KEY);
+  add_keyword("typedef", TOK_TYPEDEF);
+  add_keyword("default", TOK_DEFAULT);
+  add_keyword("extern", TOK_EXTERN);
+  add_keyword("header_union", TOK_HEADER_UNION);
+  add_keyword("out", TOK_OUT);
+  add_keyword("transition", TOK_TRANSITION);
+  add_keyword("else", TOK_ELSE);
+  add_keyword("exit", TOK_EXIT);
+  add_keyword("if", TOK_IF);
+  add_keyword("match_kind", TOK_MATCH_KIND);
+  add_keyword("return", TOK_RETURN);
+  add_keyword("struct", TOK_STRUCT);
+  apply_kw = add_keyword("apply", TOK_APPLY);
+  add_keyword("var", TOK_VAR);
+  add_keyword("const", TOK_CONST);
+  add_keyword("bool", TOK_BOOL);
+  add_keyword("true", TOK_TRUE);
+  add_keyword("false", TOK_FALSE);
+  add_keyword("tuple", TOK_TUPLE);
 
   /*
   error_type_ident = sym_new_type(error_type_ast->name, (Ast*)error_type_ast);
@@ -2161,5 +2740,5 @@ build_ast()
 
   token = tokenized_input;
   next_token();
-  p4program = build_p4program();
+  build_p4program();
 }
