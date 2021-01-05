@@ -1,11 +1,267 @@
-<p4program> := <declaration> { <declaration> }*
+<p4program> := <declaration> { <declaration> }* | ';'
 
-<declaration> := <struct_type_decl> | <header_type_decl> |
-          <error_type_decl> | <typedef_decl> | <parser_decl> |
-          <control_decl> | <extern_decl> | <package_type_decl> |
-          <instantiation>
+<declaration> := <constantDeclaration> | <externDeclaration> | <actionDeclaration> | <parserDeclaration> | <typeDeclaration>
+    | <controlDeclaration> | <instantiation> | <errorDeclaration> | <matchKindDeclaration> | <functionDeclaration>
 
-<package_type_decl> := 'package' identifier { type_parameter_list } '(' <parameter_list> ')' ';'
+<nonTypeName> := IDENTIFIER | APPLY | KEY | ACTIONS | STATE | ENTRIES | TYPE
+
+<name> := <nonTypeName> | TYPE_IDENTIFIER
+
+<nonTableKwName> := IDENTIFIER | TYPE_IDENTIFIER | APPLY | STATE | TYPE
+
+/* DF: <optAnnotations>... are ommited */
+
+<parameterList> := { <nonEmptyParameterList> }
+
+<nonEmptyParameterList> := <parameter> { ',' <parameter> }*
+
+<parameter> := <direction> <typeRef> <name> { '=' <expression> }
+
+<direction> := { IN | OUT | INOUT }
+
+<packageTypeDeclaration> := PACKAGE <name> <optTypeParameters> '(' <parameterList> ')'
+
+<instantiation> := <typeRef> '(' <argumentList> ')' <name> ';'
+
+<optConstructorParameters> := { '(' <parameterList> ')' }
+
+
+/*****  PARSER  *****/
+
+<parserDeclaration> := <parserTypeDeclaration> <optConstructorParameters> '{' <parserLocalElements> <parserStates> '}'
+
+<parserLocalElements> := { <parserLocalElement> { <parserLocalElement> }* }
+
+<parserLocalElement> := <constantDeclaration> | <variableDeclaration> | <instantiation> | <valueSetDeclaration>
+
+<parserTypeDeclaration> := PARSER <name> <optTypeParameters> '(' <parameterList> ')'
+
+<parserStates> := <parserState> { <parserState> }*
+
+<parserState> := STATE name '{' <parserStatements> <transitionStatement> '}'
+
+<parserStatements> := { <parserStatement> { <parserStatement }* }
+
+<parserStatement> := <assignmentOrMethodCallStatement> | <directApplication> | <parserBlockStatement>
+  | <constantDeclaration> | <variableDeclaration> | <emptyStatement>
+
+<parserBlockStatement> := '{' <parserStatements> '}'
+
+<transitionStatement> := { TRANSITION <stateExpression> }
+
+<stateExpression> := <name> ';' | <selectExpression>
+
+<selectExpression> := SELECT '(' <expressionList> ')' '{' <selectCaseList> '}'
+
+<selectCaseList> := { <selectCase> { <selectCase> }* }
+
+<selectCase> := <keysetExpression> ':' <name> ';'
+
+<keysetExpression> := <tupleKeysetExpression> | <simpleKeysetExpression>
+
+<tupleKeysetExpression> := '(' <simpleKeysetExpression> ',' <simpleExpressionList> ')'
+
+<simpleExpressionList> := <simpleKeysetExpression> { ',' <simpleKeysetExpression }*
+
+<simpleKeysetExpression> := <expression> { ( MASK | RANGE ) <expression> } | DEFAULT | DONTCARE
+
+<valueSetDeclaration> := VALUESET '<' ( <baseType> | <tupleType> | <typeName> ) '>' '(' <expression> ')' <name> ';'
+
+
+/*****  CONTROL  *****/
+
+<controlDeclaration> := <controlTypeDeclaration> { <optConstructorParameters> } '{' <controlLocalDeclarations> APPLY <controlBody> '}'
+
+<controlTypeDeclaration> := CONTROL <name> { <optTypeParameters> } '(' <parameterList> ')'
+
+<controlLocalDeclarations> := { <controlLocalDeclaration> }*
+
+<controlLocalDeclaration> := <constantDeclaration> | <actionDeclaration> /* | <tableDeclaration> */ | <instantiation> | <variableDeclaration>
+
+<controlBody> := <blockStatement>
+
+
+/*****  EXTERN  *****/
+
+<externDeclaration> := EXTERN (
+    <nonTypeName> <optTypeParameters> '{' <methodPrototypes> '}'
+  | <functionPrototype> ';' )
+
+<methodPrototypes> := { <methodPrototype> }*
+
+<functionPrototype> := <typeOrVoid> <name> <optTypeParameters> '(' <parameterList> ')'
+
+<methodPrototype> := <functionPrototype> ';' | TYPE_IDENTIFIER '(' parameterList ')' ';'
+
+
+/*****  TYPES  *****/
+
+<typeRef> := <baseType> | <typeName> | <specializedType> | <headerStackType> | <tupleType>
+
+<namedType> := <typeName> | <specializedType>
+
+<prefixedType> := TYPE_IDENTIFIER { '.' TYPE_IDENTIFIER }
+
+<typeName> := <prefixedType>
+
+<tupleType> := TUPLE '<' <typeArgumentList> '>'
+
+<headerStackType> := <typeName> '[' <expression> ']'
+
+<specializedType> := <prefixedType> '<' <typeArgumentList> '>'
+
+<baseType> := BOOL | ERROR
+  | INT { '<' ( INTEGER | '(' <expression> ')' ) '>' }
+  | BIT { '<' ( INTEGER | '(' <expression> ')' ) '>' }
+  | VARBIT { '<' ( INTEGER | '(' <expression> ')' ) '>' }
+
+<typeOrVoid> := <typeRef> | VOID | IDENTIFIER /* may be a type variable */
+
+<optTypeParameters> := { '<' <typeParameterList> '>' }
+
+<typeParameterList> := <name> { ',' <name> }*
+
+<realTypeArg> := DONTCARE | <typeRef>
+
+<typeArg> := DONTCARE | <typeRef> | <nonTypeName>
+
+<realTypeArgumentList> := <realTypeArg> { ',' <realTypeArg> /* DF: the spec says it should be <typeArg> */ }*
+
+<typeArgumentList> := { <typeArg> { ',' <typeArg> }* }
+
+<typeDeclaration> := <derivedTypeDeclaration> | <typedefDeclaration> | <parserTypeDeclaration> ';'
+  | <controlTypeDeclaration> ';' | <packageDeclaration> ';'
+
+<derivedTypeDeclaration> := <headerTypeDeclaration> | <headerUnionDeclaration> | <structTypeDeclaration> | <enumDeclaration>
+
+<headerTypeDeclaration> := HEADER <name> '{' <structFieldList> '}'
+
+<headerUnionDeclaration> := HEADER_UNION <name> '{' <structFieldList> '}'
+
+<structTypeDeclaration> := STRUCT <name> '{' <structFieldList> '}'
+
+<structFieldList> := { <structField> { ',' <structField> }* }
+
+<structField> := <typeRef> <name> ';'
+
+<enumDeclaration> := ENUM { BIT '<' INTEGER '>' } <name> '{' <specifiedIdentifierList> '}'
+
+<errorDeclaration> := ERROR '{' <identifierList> '}'
+
+<matchKindDeclaration> := MATCH_KIND '{' <identifierList> '}'
+
+<identifierList> := <name> { ',' <name> }*
+
+<specifiedIdentifierList> := <specifiedIdentifier> { ',' <specifiedIdentifier> }*
+
+<specifiedIdentifier> := <name> '=' <initializer>
+
+<typedefDeclaration> :=
+    TYPEDEF ( <typeRef> | <derivedTypeDeclaration> ) <name> ';'
+  | TYPE ( <typeRef> | <derivedTypeDeclaration> ) <name> ';'
+
+
+/*****  TYPES  *****/
+
+<assignmentOrMethodCallStatement> := <lvalue> (
+    '(' <argumentList> ')' ';'
+  | '<' <typeArgumentList> '>' '(' <argumentList> ')' ';'
+  | '=' <expression> ';' )
+
+<emptyStatement> := ';'
+
+<returnStatement> := RETURN { expression } ';'
+
+<exitStatement> := EXIT ';'
+
+<conditionalStatement> := IF '(' <expression> ')' <statement> { ELSE <statement> }
+
+/* To support direct invocation of a control or parser without instantiation */
+<directApplication> := <typeName> '.' APPLY '(' <argumentList> ')' ';'
+
+<statement> := <assignmentOrMethodCallStatement> | <directApplication> | <conditionalStatement>
+  | <emptyStatement> | <blockStatement> | <exitStatement> | <returnStatement> /* | <switchStatement> */
+
+<blockStatement> := '{' <statementOrDeclList> '}'
+
+<statementOrDeclList> := { <statementOrDeclaration> }*
+
+/* DF: <switchStatement> etc... is ommited */
+
+<statementOrDeclaration> := <variableDeclaration> | <constantDeclaration> | <statement> | <instantiation>
+
+
+/*****  TABLES  *****/
+/* DF: Tables are ommited */
+
+
+/*****  ACTION  *****/
+
+<actionDeclaration> := ACTION <name> '(' <parameterList> ')' <blockStatement>
+
+
+/*****  VARIABLES  *****/
+
+<variableDeclaration> := <typeRef> <name> <optInitializer> ';'
+
+<constantDeclaration> := CONST <typeRef> <name> '=' <initializer> ';'
+
+<optInitializer> := { '=' <initializer> }
+
+<initializer> := <expression>
+
+
+/*****  EXPRESSIONS  *****/
+
+<functionDeclaration> := <functionPrototype> <blockStatement>
+
+<argumentList> := { <nonEmptyArgList> }
+
+<nonEmptyArgList> := <argument> { ',' <argument> }
+
+<argument> := <expression> | <name> '=' <expression> | DONTCARE
+
+<kvList> := <kvPair> { ',' <kvPair> }*
+
+<kvPair> := <name> '=' <expression>
+
+<expressionList> := { <expression> { ',' <expression> }* }
+
+/* DF: <annotationBody> etc... is ommited */
+
+<member> := <name>
+
+<prefixedNonTypeName> := <nonTypeName> | '.' <nonTypeName>
+
+<lvalue> := <prefixedNonTypeName>
+  | <lvalue> (
+      '.' <member>
+    | '[' <expression> { ':' <expression> } ']' )
+
+<expression> := 
+    <expressionPrimary> { <operator> <expression> }*
+
+<expressionPrimary> := INTEGER | TRUE | FALSE | STRING_LITERAL
+  | { '.' } <nonTypeName>
+  | '{' <expressionList> | <kvList> '}'
+  | '(' <expression> ')'
+  | '!' <expression>
+  | '-' <expression> /* unary minus */
+  | ( <typeName> | ERROR ) '.' <member>
+  | <namedType> '(' <argumentList> ')'
+  | '(' <typeRef> ')' <expression> /* cast */
+
+<operator> := '.' | '*' | '/' | '+' | '-' | '<=' | '>=' | '<' | '>' | '!=' | '==' | '||'
+  | '[' <expression> { ':' <expression> } ']' /* array indexer */
+  | { '<' <realTypeArgumentList> '>' } '(' <argumentList> ')' /* function call */
+
+
+
+/**************    OLD STUFF   *************/
+
+<const_decl> := 'const' <typeref> <name> '=' <initializer> ';'
+
+<package_prototype> := 'package' identifier { type_parameter_list } '(' <parameter_list> ')' ';'
 
 <extern_decl> := 'extern' ( <extern_object> | <function_prototype> )
 
@@ -15,15 +271,15 @@
 
 <type_parameter_list> := '<' identifier { ',' <identifier> }* '>'
 
-<instantiation> := <typeref> '(' <argument_list> ')' identifier ';'
+<instantiation> := <type_expression> '(' <argument_list> ')' identifier ';'
 
-<control_decl> := <control_type_decl> '{' { <control_local_decl> }* 'apply' <control_body> '}'
+<control_decl> := <control_prototype> '{' { <control_local_decl> }* 'apply' <control_body> '}'
 
-<control_type_decl> := 'control' identifier '(' <parameter_list> ')'
+<control_prototype> := 'control' identifier '(' <parameter_list> ')'
 
 <control_local_decl> := <action_decl> | <table_decl> | <var_decl>
 
-<var_decl> := type_identifier identifier { '=' <expression> } ';'
+<var_decl> := 'var' type_identifier identifier { '=' <expression> } ';'
 
 <action_decl> := 'action' identifier '(' <parameter_list> ')' '{' <block_statement> '}'
 
@@ -41,13 +297,15 @@
 
 <block_statement> := '{' { <stmt_or_decl> }* '}'
 
-<stmt_or_decl> := <statement>
+<stmt_or_decl> := <statement> | <var_decl>
 
-<statement> := <expression>
+<statement> := <expression> /* <if_statement> | ..? */
 
-<parser_decl> := <parser_type_decl> '{' { <parser_local_elements> } <parser_state> { <parser_state> }* '}'
+<parser_decl> := <parser_prototype> '{' { <parser_local_elements> } { <parser_state> }* '}'
 
-<parser_type_decl> := 'parser' identifier '(' { <parameter_list> } ')'
+<parser_local_elements> := { <block_statement> | <statement> }*
+
+<parser_prototype> := 'parser' identifier { type_parameter_list } '(' { <parameter_list> } ')'
 
 <parser_state> := 'state' identifier '{' { <parser_statement> }* <transition_statement> '}'
 
@@ -67,7 +325,7 @@
 
 <parameter_list> := <parameter> { ',' <parameter> }
 
-<parameter> := { <direction> } <typeref> identifier
+<parameter> := { <direction> } <type_expression> identifier
 
 <direction> := 'in' | 'out' | 'inout'
 
@@ -86,23 +344,21 @@
 
 <identifier_list> := identifier { ',' identifier }*
 
-<struct_field> := <typeref> identifier ';'
+<struct_field> := <type_expression> identifier ';'
 
-<struct_type_decl> := 'struct' identifier '{' { <struct_field> }* '}'
+<struct_decl> := 'struct' identifier '{' { <struct_field> }* '}'
 
-<header_type_decl> := 'header' identifier '{' { <struct_field> }* '}'
+<header_decl> := 'header' identifier '{' { <struct_field> }* '}'
 
-<typedef_decl> := 'typedef' <typeref> identifier ';'
+<typedef_decl> := 'typedef' <type_expression> identifier ';'
 
-<typeref> := type_identifier | <specialized_typeref> | <bit_typeref> | <int_typeref>
+<type_expression> := type_identifier | <typexpr_parameter_list> | <bit_typexpr> | <int_typexpr>
 
-<typeref_parameter_list> := '<' <type_identifier> { ',' <type_identifier> } '>'
+<typexpr_parameter_list> := '<' <type_identifier> { ',' <type_identifier> } '>'
 
-<specialized_typeref> := type_identifier { '.' type_identifier } <typeref_parameter_list>
+<bit_type_expr> := 'bit' { '<' integer '>' }
 
-<bit_typeref> := 'bit' { '<' integer '>' }
-
-<int_typeref> := 'int' { '<' integer '>' }
+<int_type_expr> := 'int' { '<' integer '>' }
 
 --------------------------------------------------------------------------------
 
