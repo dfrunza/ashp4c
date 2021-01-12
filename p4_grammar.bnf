@@ -30,7 +30,7 @@
 
 <parserLocalElements> := { <parserLocalElement> { <parserLocalElement> }* }
 
-<parserLocalElement> := <constantDeclaration> | <variableDeclaration> | <instantiation> | <valueSetDeclaration>
+<parserLocalElement> := <constantDeclaration> | <variableDeclaration> | <instantiation> /* | <valueSetDeclaration> */
 
 <parserTypeDeclaration> := PARSER <name> <optTypeParameters> '(' <parameterList> ')'
 
@@ -68,9 +68,9 @@
 
 /*****  CONTROL  *****/
 
-<controlDeclaration> := <controlTypeDeclaration> { <optConstructorParameters> } '{' <controlLocalDeclarations> APPLY <controlBody> '}'
+<controlDeclaration> := <controlTypeDeclaration> <optConstructorParameters> '{' <controlLocalDeclarations> APPLY <controlBody> '}'
 
-<controlTypeDeclaration> := CONTROL <name> { <optTypeParameters> } '(' <parameterList> ')'
+<controlTypeDeclaration> := CONTROL <name> <optTypeParameters> '(' <parameterList> ')'
 
 <controlLocalDeclarations> := { <controlLocalDeclaration> }*
 
@@ -163,8 +163,7 @@
 /*****  TYPES  *****/
 
 <assignmentOrMethodCallStatement> := <lvalue> (
-    '(' <argumentList> ')' ';'
-  | '<' <typeArgumentList> '>' '(' <argumentList> ')' ';'
+  | { '<' <typeArgumentList> '>' } '(' <argumentList> ')' ';'
   | '=' <expression> ';' )
 
 <emptyStatement> := ';'
@@ -201,7 +200,7 @@
 
 /*****  VARIABLES  *****/
 
-<variableDeclaration> := <typeRef> <name> <optInitializer> ';'
+<variableDeclaration> := VAR <typeRef> <name> <optInitializer> ';'
 
 <constantDeclaration> := CONST <typeRef> <name> '=' <initializer> ';'
 
@@ -214,9 +213,7 @@
 
 <functionDeclaration> := <functionPrototype> <blockStatement>
 
-<argumentList> := { <nonEmptyArgList> }
-
-<nonEmptyArgList> := <argument> { ',' <argument> }
+<argumentList> := { <argument> { ',' <argument> } }
 
 <argument> := <expression> | <name> '=' <expression> | DONTCARE
 
@@ -230,29 +227,29 @@
 
 <member> := <name>
 
-<prefixedNonTypeName> := <nonTypeName> | '.' <nonTypeName>
+<prefixedNonTypeName> := { '.' } <nonTypeName>
 
-<lvalue> := <prefixedNonTypeName>
-  | <lvalue> (
+<lvalue> := <prefixedNonTypeName> {
       '.' <member>
-    | '[' <expression> { ':' <expression> } ']' )
+    | '[' <expression> { ':' <expression> } ']' }*
 
-<expression> := 
-    <expressionPrimary> { <operator> <expression> }*
+<expression> := <expressionPrimary> { <binaryOperator> <expression> }*
 
 <expressionPrimary> := INTEGER | TRUE | FALSE | STRING_LITERAL
-  | { '.' } <nonTypeName>
-  | '{' <expressionList> | <kvList> '}'
+  | { '.' /* TOK_UNARY_DOTPREFIX */ } <nonTypeName>
+  | '{' <expressionList> /* | <kvList> */ '}'
   | '(' <expression> ')'
   | '!' <expression>
-  | '-' <expression> /* unary minus */
-  | ( <typeName> | ERROR ) '.' <member>
-  | <namedType> '(' <argumentList> ')'
-  | '(' <typeRef> ')' <expression> /* cast */
+  | '-' /* TOK_UNARY_MINUS */ <expression>
+  | <typeName> | ERROR
+  | '<' /* TOK_TYPE_SPECIALIZER */ <typeArgumentList> '>' /* <specializedType> */
+  | CAST '(' <typeRef> ')' <expression>
 
-<operator> := '.' | '*' | '/' | '+' | '-' | '<=' | '>=' | '<' | '>' | '!=' | '==' | '||'
+<binaryOperator> := '*' | '/' | '+' | '-' | '<=' | '>=' | '<' | '>' | '!=' | '==' | '||'
+  | '.' <member>
   | '[' <expression> { ':' <expression> } ']' /* array indexer */
-  | { '<' <realTypeArgumentList> '>' } '(' <argumentList> ')' /* function call */
+  | '(' <argumentList> ')' /* function call */
+  | '<' <realTypeArgumentList> '>'
 
 
 

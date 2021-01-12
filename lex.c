@@ -179,6 +179,8 @@ next_token(Token* token_at)
           state = 116;
         else if (c == '=')
           state = 117;
+        else if (c == '!')
+          state = 118;
         else if (cstr_is_digit(c))
           state = 400;
         else if (cstr_is_letter(c))
@@ -372,6 +374,15 @@ next_token(Token* token_at)
       }
       break;
 
+      case 118:
+      {
+        token_at->klass = TOK_EXCLAMATION;
+        token_at->lexeme = lexeme_to_cstring();
+        lexeme_advance();
+        state = 0;
+      }
+      break;
+
       case 314:
       {
         do
@@ -460,7 +471,7 @@ next_token(Token* token_at)
         else
         {
           char_retract();
-          token_at->klass = TOK_INTEGER_HEX;
+          token_at->klass = TOK_INTEGER;
           token_at->lexeme = lexeme_to_cstring();
           lexeme_advance();
           state = 0;
@@ -480,7 +491,7 @@ next_token(Token* token_at)
         else
         {
           char_retract();
-          token_at->klass = TOK_INTEGER_OCT;
+          token_at->klass = TOK_INTEGER;
           token_at->lexeme = lexeme_to_cstring();
           lexeme_advance();
           state = 0;
@@ -500,7 +511,7 @@ next_token(Token* token_at)
         else
         {
           char_retract();
-          token_at->klass = TOK_INTEGER_BIN;
+          token_at->klass = TOK_INTEGER;
           token_at->lexeme = lexeme_to_cstring();
           lexeme_advance();
           state = 0;
@@ -514,7 +525,7 @@ next_token(Token* token_at)
           c = char_advance();
         while (cstr_is_digit(c));
         char_retract();
-        token_at->klass = TOK_WINTEGER;
+        token_at->klass = TOK_INTEGER;
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -527,7 +538,7 @@ next_token(Token* token_at)
           c = char_advance();
         while (cstr_is_digit(c));
         char_retract();
-        token_at->klass = TOK_SINTEGER;
+        token_at->klass = TOK_INTEGER;
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -540,7 +551,7 @@ next_token(Token* token_at)
           c = char_advance();
         while (cstr_is_hex_digit(c));
         char_retract();
-        token_at->klass = TOK_WINTEGER_HEX;
+        token_at->klass = TOK_INTEGER;
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -553,7 +564,7 @@ next_token(Token* token_at)
           c = char_advance();
         while (cstr_is_hex_digit(c));
         char_retract();
-        token_at->klass = TOK_SINTEGER_HEX;
+        token_at->klass = TOK_INTEGER;
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -566,7 +577,7 @@ next_token(Token* token_at)
           c = char_advance();
         while (cstr_is_oct_digit(c));
         char_retract();
-        token_at->klass = TOK_WINTEGER_OCT;
+        token_at->klass = TOK_INTEGER;
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -579,7 +590,7 @@ next_token(Token* token_at)
           c = char_advance();
         while (cstr_is_oct_digit(c));
         char_retract();
-        token_at->klass = TOK_SINTEGER_OCT;
+        token_at->klass = TOK_INTEGER;
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -592,7 +603,7 @@ next_token(Token* token_at)
           c = char_advance();
         while (cstr_is_bin_digit(c) || c == '_');
         char_retract();
-        token_at->klass = TOK_WINTEGER_BIN;
+        token_at->klass = TOK_INTEGER;
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -605,7 +616,7 @@ next_token(Token* token_at)
           c = char_advance();
         while (cstr_is_bin_digit(c) || c == '_');
         char_retract();
-        token_at->klass = TOK_SINTEGER_BIN;
+        token_at->klass = TOK_INTEGER;
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
