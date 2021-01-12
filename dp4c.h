@@ -76,7 +76,6 @@ enum TokenClass {
   TOK_CONST,
   TOK_VAR,
   TOK_CAST,
-  TOK_TYPE_SPECIALIZER,
 
   TOK_UNKNOWN,
   TOK_SOI,    // Start Of Input
@@ -88,7 +87,7 @@ enum IdentKind
   ID_NONE,
   ID_KEYWORD,
   ID_TYPE,
-  ID_TYPEVAR,
+//  ID_TYPEVAR,
   ID_VAR,
 };
 
@@ -407,6 +406,7 @@ enum AstKind {
   Ast_NonTypeName,
   Ast_TypeName,
   Ast_PrefixedType,
+  Ast_BaseType,
 };
 
 enum Ast_ParameterDirection {
@@ -452,6 +452,21 @@ struct Ast_PrefixedType {
   Ast;
   struct Ast_TypeName* first_name;
   struct Ast_TypeName* second_name;
+};
+
+enum BaseTypeKind {
+  BASETYPE_NONE,
+  BASETYPE_BOOL,
+  BASETYPE_ERROR,
+  BASETYPE_INT,
+  BASETYPE_BIT,
+  BASETYPE_VARBIT,
+};
+
+struct Ast_BaseType {
+  Ast;
+  enum BaseTypeKind base_type;
+  Ast* size;
 };
 
 /*******   Old stuff below    *********/

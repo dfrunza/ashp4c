@@ -55,7 +55,7 @@ name_hash(char* name)
   return result;
 }
 
-int
+internal int
 scope_push_level()
 {
   int new_scope_level = ++scope_level;
@@ -63,7 +63,7 @@ scope_push_level()
   return new_scope_level;
 }
 
-int
+internal int
 scope_pop_level(int to_level)
 {
   if (scope_level <= to_level)
@@ -100,8 +100,8 @@ scope_pop_level(int to_level)
   return scope_level;
 }
 
-bool
-sym_ident_is_declared(Ident* ident)
+internal bool
+ident_is_declared(Ident* ident)
 {
   bool is_declared = (ident && ident->scope_level >= scope_level);
   return is_declared;
@@ -128,7 +128,7 @@ sym_get_namespace(char* name)
   return name_info;
 }
 
-Ident*
+internal Ident*
 sym_get_var(char* name)
 {
   Namespace_Entry* ns = sym_get_namespace(name);
@@ -138,13 +138,13 @@ sym_get_var(char* name)
   return ident_var;
 }
 
-Ident*
+internal Ident*
 sym_new_var(char* name)
 {
   Ident* ident = 0;
   Namespace_Entry* ns = sym_get_namespace(name);
   ident = (Ident*)ns->ns_global;
-  if (sym_ident_is_declared(ident)) {
+  if (ident_is_declared(ident)) {
     error("redeclaration of var");
   } else {
     Ident* ident = arena_push_struct(&arena, Ident);
@@ -158,6 +158,7 @@ sym_new_var(char* name)
   return ident;
 }
 
+/*
 void
 sym_import_var(Ident* var_ident)
 {
@@ -184,6 +185,7 @@ sym_unimport_var(Ident* var_ident)
   assert (ns->ns_global == (Ident*)var_ident);
   ns->ns_global = ns->ns_global->next_in_scope;
 }
+*/
 
 Ident*
 sym_get_type(char* name)
@@ -191,7 +193,7 @@ sym_get_type(char* name)
   Namespace_Entry* ns = sym_get_namespace(name);
   Ident* result = (Ident*)ns->ns_type;
   if (result)
-    assert (result->ident_kind == ID_TYPE || result->ident_kind == ID_TYPEVAR);
+    assert(result->ident_kind == ID_TYPE);
   return result;
 }
 
@@ -200,7 +202,7 @@ sym_new_type(char* name)
 {
   Ident* ident = 0;
   Namespace_Entry* ns = sym_get_namespace(name);
-  if (sym_ident_is_declared(ident)) {
+  if (ident_is_declared(ident)) {
     error("redeclaration of type");
   } else {
     Ident* ident = arena_push_struct(&arena, Ident);
@@ -214,6 +216,7 @@ sym_new_type(char* name)
   return ident;
 }
 
+/*
 Ident*
 sym_new_typevar(char* name)
 {
@@ -227,7 +230,9 @@ sym_new_typevar(char* name)
   printf("new typevar '%s'\n", ident->name);
   return ident;
 }
+*/
 
+/*
 void
 sym_import_type(Ident* type_ident)
 {
@@ -254,6 +259,7 @@ sym_unimport_type(Ident* type_ident)
   assert (ns->ns_type == (Ident*)type_ident);
   ns->ns_type = ns->ns_type->next_in_scope;
 }
+*/
 
 internal Ident_Keyword*
 add_keyword(char* name, enum TokenClass token_klass)
@@ -277,24 +283,19 @@ next_token()
   while (token->klass == TOK_COMMENT)
     token++;
 
-  if (token->klass == TOK_IDENTIFIER)
-  {
+  if (token->klass == TOK_IDENTIFIER) {
     Namespace_Entry* ns = sym_get_namespace(token->lexeme);
-    if (ns->ns_global)
-    {
+    if (ns->ns_global) {
       Ident* ident = ns->ns_global;
-      if (ident->ident_kind == ID_KEYWORD)
-      {
+      if (ident->ident_kind == ID_KEYWORD) {
         token->klass = ((Ident_Keyword*)ident)->token_klass;
         return token;
       }
     }
 
-    if (ns->ns_type)
-    {
+    if (ns->ns_type) {
       Ident* ident = ns->ns_type;
-      if (ident->ident_kind == ID_TYPE || ident->ident_kind == ID_TYPEVAR)
-      {
+      if (ident->ident_kind == ID_TYPE) {
         token->klass = TOK_TYPE_IDENTIFIER;
         return token;
       }
@@ -2078,6 +2079,7 @@ build_name()
       name = (Ast*)build_nonTypeName();
     } else if (token->klass == TOK_TYPE_IDENTIFIER) {
       struct Ast_TypeName* type_name = arena_push_struct(&arena, struct Ast_TypeName);
+      type_name->kind = Ast_TypeName;
       type_name->name = token->lexeme;
       name = (Ast*)type_name;
       next_token();
@@ -2155,7 +2157,7 @@ build_parameter()
     build_typeRef();
     if (token_is_name(token)) {
       build_name();
-      if (token->klass == TOK_COMMA) {
+      if (token->klass == TOK_EQUAL) {
         next_token();
         if (token_is_expression(token)) {
           build_expression(1);
@@ -2207,13 +2209,14 @@ internal Ast*
 build_functionPrototype()
 {
   if (token_is_typeOrVoid(token)) {
+    scope_push_level();
     Ast* return_type = build_typeOrVoid();
     if (return_type->kind == Ast_NonTypeName)
       sym_new_type(((struct Ast_NonTypeName*)return_type)->name);
     if (token_is_name(token)) {
       Ast* function_name = build_name();
       if (function_name->kind == Ast_NonTypeName)
-        sym_new_type(((struct Ast_NonTypeName*)function_name)->name);
+        sym_new_var(((struct Ast_NonTypeName*)function_name)->name);
       build_optTypeParameters();
       if (token->klass == TOK_PARENTH_OPEN) {
         next_token();
@@ -2225,6 +2228,7 @@ build_functionPrototype()
         } else error("");
       } else error("");
     } else error("");
+    scope_pop_level(scope_level-1);
   } else error("");
   return 0;
 }
@@ -2308,26 +2312,34 @@ build_integerTypeSize()
 internal Ast*
 build_baseType()
 {
+  struct Ast_BaseType* base_type = 0;
   if (token_is_baseType(token)) {
+    base_type = arena_push_struct(&arena, struct Ast_BaseType);
+    base_type->kind = Ast_BaseType;
     if (token->klass == TOK_BOOL) {
+      base_type->base_type = BASETYPE_BOOL;
       next_token();
     } else if (token->klass == TOK_ERROR) {
+      base_type->base_type = BASETYPE_ERROR;
       next_token();
     } else if (token->klass == TOK_INT) {
+      base_type->base_type = BASETYPE_INT;
       next_token();
       if (token->klass == TOK_ANGLE_OPEN)
-        build_integerTypeSize();
+        base_type->size = build_integerTypeSize();
     } else if (token->klass == TOK_BIT) {
+      base_type->base_type = BASETYPE_BIT;
       next_token();
       if (token->klass == TOK_ANGLE_OPEN)
-        build_integerTypeSize();
+        base_type->size = build_integerTypeSize();
     } else if (token->klass == TOK_VARBIT) {
+      base_type->base_type = BASETYPE_VARBIT;
       next_token();
       if (token->klass == TOK_ANGLE_OPEN)
-        build_integerTypeSize();
+        base_type->size = build_integerTypeSize();
     } else assert(false);
   }
-  return 0;
+  return (Ast*)base_type;
 }
 
 internal Ast*
@@ -3121,7 +3133,7 @@ build_parserDeclaration()
   assert(token->klass == TOK_PARSER);
   build_parserTypeDeclaration();
   if (token->klass == TOK_SEMICOLON) {
-    ; /* <parserTypeDeclaration> */
+    next_token(); /* <parserTypeDeclaration> */
   } else {
     build_optConstructorParameters();
     if (token->klass == TOK_BRACE_OPEN) {
@@ -3164,7 +3176,7 @@ build_controlDeclaration()
   if (token->klass == TOK_CONTROL) {
     build_controlTypeDeclaration();
     if (token->klass == TOK_SEMICOLON) {
-      ; /* <controlTypeDeclaration> */
+      next_token(); /* <controlTypeDeclaration> */
     } else {
       build_optConstructorParameters();
       if (token->klass == TOK_BRACE_OPEN) {
@@ -3189,10 +3201,10 @@ build_packageTypeDeclaration()
     if (token_is_name(token)) {
       build_name();
       build_optTypeParameters();
-      if (token->klass == TOK_BRACE_OPEN) {
+      if (token->klass == TOK_PARENTH_OPEN) {
         next_token();
         build_parameterList();
-        if (token->klass == TOK_BRACE_CLOSE) {
+        if (token->klass == TOK_PARENTH_CLOSE) {
           next_token();
         } else error("");
       } else error("");
@@ -3563,12 +3575,12 @@ build_expressionPrimary()
       build_typeName();
     } else if (token->klass == TOK_ERROR) {
       next_token();
-    } else if (token->klass == TOK_TYPE_SPECIALIZER) {
+    /* } else if (token->klass == TOK_TYPE_SPECIALIZER) {
       next_token();
       build_typeArgumentList();
       if (token->klass == TOK_ANGLE_OPEN) {
         next_token();
-      } else error("");
+      } else error(""); */
     } else if (token->klass == TOK_CAST) {
       next_token();
       if (token->klass == TOK_PARENTH_OPEN) {

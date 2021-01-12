@@ -9,7 +9,7 @@
 
 <nonTableKwName> := IDENTIFIER | TYPE_IDENTIFIER | APPLY | STATE | TYPE
 
-/* DF: <optAnnotations>... are ommited */
+/* DF: <optAnnotations> et al. have been ommited */
 
 <parameterList> := { <parameter> { ',' <parameter> }* }
 
@@ -19,7 +19,7 @@
 
 <packageTypeDeclaration> := PACKAGE <name> <optTypeParameters> '(' <parameterList> ')'
 
-<instantiation> := <typeRef> '(' <argumentList> ')' <name> ';'
+<instantiation> := typeRef> '(' <argumentList> ')' <name> ';'
 
 <optConstructorParameters> := { '(' <parameterList> ')' }
 
@@ -160,7 +160,7 @@
   | TYPE ( <typeRef> | <derivedTypeDeclaration> ) <name> ';'
 
 
-/*****  TYPES  *****/
+/*****  STATEMENTS  *****/
 
 <assignmentOrMethodCallStatement> := <lvalue> (
   | { '<' <typeArgumentList> '>' } '(' <argumentList> ')' ';'
@@ -184,13 +184,13 @@
 
 <statementOrDeclList> := { <statementOrDeclaration> }*
 
-/* DF: <switchStatement> etc... is ommited */
+/* DF: <switchStatement> et al. have been ommited */
 
 <statementOrDeclaration> := <variableDeclaration> | <constantDeclaration> | <statement> | <instantiation>
 
 
 /*****  TABLES  *****/
-/* DF: Tables are ommited */
+/* DF: Tables have been ommited */
 
 
 /*****  ACTION  *****/
@@ -223,7 +223,7 @@
 
 <expressionList> := { <expression> { ',' <expression> }* }
 
-/* DF: <annotationBody> etc... is ommited */
+/* DF: <annotationBody> et al. have been ommited */
 
 <member> := <name>
 
@@ -241,8 +241,8 @@
   | '(' <expression> ')'
   | '!' <expression>
   | '-' /* TOK_UNARY_MINUS */ <expression>
-  | <typeName> | ERROR
-  | '<' /* TOK_TYPE_SPECIALIZER */ <typeArgumentList> '>' /* <specializedType> */
+  | ( <typeName> | ERROR ) '.' <member>
+  | <namedType> '(' <argumentList> ')'
   | CAST '(' <typeRef> ')' <expression>
 
 <binaryOperator> := '*' | '/' | '+' | '-' | '<=' | '>=' | '<' | '>' | '!=' | '==' | '||'
