@@ -75,7 +75,7 @@ scope_pop_level(int to_level)
     Namespace_Entry* ns = symtable[i];
     while (ns)
     {
-      Ident* ident = ns->ns_global;
+      struct Ident* ident = ns->ns_global;
       if (ident && ident->scope_level > to_level)
       {
         ns->ns_global = ident->next_in_scope;
@@ -101,14 +101,14 @@ scope_pop_level(int to_level)
 }
 
 internal bool
-ident_is_declared(Ident* ident)
+ident_is_declared(struct Ident* ident)
 {
   bool is_declared = (ident && ident->scope_level >= scope_level);
   return is_declared;
 }
 
 internal Namespace_Entry*
-sym_get_namespace(char* name)
+get_namespace(char* name)
 {
   uint32_t h = name_hash(name);
   Namespace_Entry* name_info = symtable[h];
@@ -128,150 +128,76 @@ sym_get_namespace(char* name)
   return name_info;
 }
 
-internal Ident*
-sym_get_var(char* name)
+internal struct Ident*
+lookup_ident(char* name)
 {
-  Namespace_Entry* ns = sym_get_namespace(name);
-  Ident* ident_var = (Ident*)ns->ns_global;
+  Namespace_Entry* ns = get_namespace(name);
+  struct Ident* ident_var = (struct Ident*)ns->ns_global;
   if (ident_var)
-    assert (ident_var->ident_kind == ID_VAR);
+    assert (ident_var->ident_kind == ID_IDENT);
   return ident_var;
 }
 
-internal Ident*
-sym_new_var(char* name)
+internal struct Ident*
+new_ident(char* name)
 {
-  Ident* ident = 0;
-  Namespace_Entry* ns = sym_get_namespace(name);
-  ident = (Ident*)ns->ns_global;
+  struct Ident* ident = 0;
+  Namespace_Entry* ns = get_namespace(name);
+  ident = (struct Ident*)ns->ns_global;
   if (ident_is_declared(ident)) {
     error("redeclaration of var");
   } else {
-    Ident* ident = arena_push_struct(&arena, Ident);
+    struct Ident* ident = arena_push_struct(&arena, struct Ident);
     ident->name = name;
     ident->scope_level = scope_level;
-    ident->ident_kind = ID_VAR;
+    ident->ident_kind = ID_IDENT;
     ident->next_in_scope = ns->ns_global;
-    ns->ns_global = (Ident*)ident;
+    ns->ns_global = (struct Ident*)ident;
     printf("new var '%s'\n", ident->name);
   }
   return ident;
 }
 
-/*
-void
-sym_import_var(Ident* var_ident)
+struct Ident*
+lookup_type(char* name)
 {
-  Namespace_Entry* ns = sym_get_namespace(var_ident->name);
-
-  if (ns->ns_global)
-  {
-    assert (ns->ns_global == (Ident*)var_ident);
-    return;
-  }
-
-  var_ident->next_in_scope = ns->ns_global;
-  ns->ns_global = (Ident*)var_ident;
-}
-
-void
-sym_unimport_var(Ident* var_ident)
-{
-  Namespace_Entry* ns = sym_get_namespace(var_ident->name);
-
-  if (!ns->ns_global)
-    return;
-
-  assert (ns->ns_global == (Ident*)var_ident);
-  ns->ns_global = ns->ns_global->next_in_scope;
-}
-*/
-
-Ident*
-sym_get_type(char* name)
-{
-  Namespace_Entry* ns = sym_get_namespace(name);
-  Ident* result = (Ident*)ns->ns_type;
+  Namespace_Entry* ns = get_namespace(name);
+  struct Ident* result = (struct Ident*)ns->ns_type;
   if (result)
     assert(result->ident_kind == ID_TYPE);
   return result;
 }
 
-Ident*
-sym_new_type(char* name)
+struct Ident*
+new_type(char* name)
 {
-  Ident* ident = 0;
-  Namespace_Entry* ns = sym_get_namespace(name);
+  struct Ident* ident = 0;
+  Namespace_Entry* ns = get_namespace(name);
   if (ident_is_declared(ident)) {
     error("redeclaration of type");
   } else {
-    Ident* ident = arena_push_struct(&arena, Ident);
+    struct Ident* ident = arena_push_struct(&arena, struct Ident);
     ident->name = name;
     ident->scope_level = scope_level;
     ident->ident_kind = ID_TYPE;
     ident->next_in_scope = ns->ns_type;
-    ns->ns_type = (Ident*)ident;
+    ns->ns_type = (struct Ident*)ident;
     printf("new type '%s'\n", ident->name);
   }
   return ident;
 }
 
-/*
-Ident*
-sym_new_typevar(char* name)
-{
-  Namespace_Entry* ns = sym_get_namespace(name);
-  Ident* ident = arena_push_struct(&arena, Ident);
-  ident->name = name;
-  ident->scope_level = scope_level;
-  ident->ident_kind = ID_TYPEVAR;
-  ident->next_in_scope = ns->ns_type;
-  ns->ns_type = (Ident*)ident;
-  printf("new typevar '%s'\n", ident->name);
-  return ident;
-}
-*/
-
-/*
-void
-sym_import_type(Ident* type_ident)
-{
-  Namespace_Entry* ns = sym_get_namespace(type_ident->name);
-
-  if (ns->ns_type)
-  {
-    assert (ns->ns_type == (Ident*)type_ident);
-    return;
-  }
-
-  type_ident->next_in_scope = ns->ns_type;
-  ns->ns_type = (Ident*)type_ident;
-}
-
-void
-sym_unimport_type(Ident* type_ident)
-{
-  Namespace_Entry* ns = sym_get_namespace(type_ident->name);
-
-  if (!ns->ns_type)
-    return;
-
-  assert (ns->ns_type == (Ident*)type_ident);
-  ns->ns_type = ns->ns_type->next_in_scope;
-}
-*/
-
 internal Ident_Keyword*
 add_keyword(char* name, enum TokenClass token_klass)
 {
-  Namespace_Entry* namespace = sym_get_namespace(name);
+  Namespace_Entry* namespace = get_namespace(name);
   assert (namespace->ns_global == 0);
   Ident_Keyword* ident = arena_push_struct(&arena, Ident_Keyword);
   ident->name = name;
   ident->scope_level = scope_level;
   ident->token_klass = token_klass;
   ident->ident_kind = ID_KEYWORD;
-  namespace->ns_global = (Ident*)ident;
+  namespace->ns_global = (struct Ident*)ident;
   return ident;
 }
 
@@ -284,9 +210,9 @@ next_token()
     token++;
 
   if (token->klass == TOK_IDENTIFIER) {
-    Namespace_Entry* ns = sym_get_namespace(token->lexeme);
+    Namespace_Entry* ns = get_namespace(token->lexeme);
     if (ns->ns_global) {
-      Ident* ident = ns->ns_global;
+      struct Ident* ident = ns->ns_global;
       if (ident->ident_kind == ID_KEYWORD) {
         token->klass = ((Ident_Keyword*)ident)->token_klass;
         return token;
@@ -294,7 +220,7 @@ next_token()
     }
 
     if (ns->ns_type) {
-      Ident* ident = ns->ns_type;
+      struct Ident* ident = ns->ns_type;
       if (ident->ident_kind == ID_TYPE) {
         token->klass = TOK_TYPE_IDENTIFIER;
         return token;
@@ -2094,7 +2020,7 @@ build_typeParameterList()
   if (token_is_typeParameterList(token)) {
     Ast* name = build_name();
     if (name->kind == Ast_NonTypeName)
-      sym_new_type(((struct Ast_NonTypeName*)name)->name);
+      new_type(((struct Ast_NonTypeName*)name)->name);
     while (token->klass == TOK_COMMA) {
       next_token();
       build_name();
@@ -2212,11 +2138,11 @@ build_functionPrototype()
     scope_push_level();
     Ast* return_type = build_typeOrVoid();
     if (return_type->kind == Ast_NonTypeName)
-      sym_new_type(((struct Ast_NonTypeName*)return_type)->name);
+      new_type(((struct Ast_NonTypeName*)return_type)->name);
     if (token_is_name(token)) {
       Ast* function_name = build_name();
       if (function_name->kind == Ast_NonTypeName)
-        sym_new_var(((struct Ast_NonTypeName*)function_name)->name);
+        new_ident(((struct Ast_NonTypeName*)function_name)->name);
       build_optTypeParameters();
       if (token->klass == TOK_PARENTH_OPEN) {
         next_token();
@@ -2272,7 +2198,7 @@ build_externDeclaration()
     next_token();
     if (token_is_nonTypeName(token)) {
       struct Ast_NonTypeName* decl_name = build_nonTypeName();
-      sym_new_type(decl_name->name);
+      new_type(decl_name->name);
       build_optTypeParameters();
       if (token->klass == TOK_BRACE_OPEN) {
         scope_push_level();

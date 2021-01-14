@@ -87,31 +87,27 @@ enum IdentKind
   ID_NONE,
   ID_KEYWORD,
   ID_TYPE,
-//  ID_TYPEVAR,
-  ID_VAR,
+  ID_IDENT,
 };
 
-typedef struct Ident {
-  enum IdentKind ident_kind;
+struct Ident {
+  enum IdentKind ident_kind;  // ID_TYPE | ID_IDENT | ID_KEYWORD
   char* name;
   struct Ast* ast;
   int scope_level;
   struct Ident* next_in_scope;
-}
-Ident;  // ID_TYPE
-        // ID_TYPEVAR
-        // ID_VAR
+};  
 
 typedef struct Ident_Keyword {
-  Ident;
+  struct Ident;
   enum TokenClass token_klass;
 }
 Ident_Keyword;  // ID_KEYWORD
 
 typedef struct Namespace_Entry {
   char* name;
-  Ident* ns_global;
-  Ident* ns_type;
+  struct Ident* ns_global;
+  struct Ident* ns_type;
   struct Namespace_Entry* next;
 }
 Namespace_Entry;
@@ -354,9 +350,9 @@ typedef struct Typexpr_PackageInstantiation
 }
 Typexpr_PackageInstantiation;  // TYP_PACKAGE_INSTANTIATION
 
-#define ast_cast(TYPE, KIND, EXPR) ({\
-  if ((EXPR)) assert((EXPR)->kind == KIND); \
-  (TYPE* )(EXPR);})
+#define cast(TYPE, EXPR) ({\
+  if ((EXPR)) assert((EXPR)->kind == TYPE); \
+  (struct TYPE*)(EXPR);})
 
 enum AstKind {
   AST_NONE,
@@ -481,7 +477,7 @@ typedef struct Ast_ErrorCode {
   Ast;
   struct Ast_ErrorCode* next_code;
   char* name;
-  Ident* var_ident;
+  struct Ident* var_ident;
 }
 Ast_ErrorCode;  // AST_ERROR_CODE
 
@@ -493,7 +489,7 @@ typedef struct Ast_TypeExpression {
   
   char* name;
   Ast* type_ast;
-  Ident* type_ident;
+  struct Ident* type_ident;
 }
 Ast_TypeExpression;  // AST_TYPE_EXPRESSION
 
@@ -513,7 +509,7 @@ typedef struct Ast_Typedef {
   Ast_Declaration;
   Ast_TypeExpression* type;
   char* name;
-  Ident* type_ident;
+  struct Ident* type_ident;
 }
 Ast_Typedef;  // AST_TYPEDEF
 
@@ -522,7 +518,7 @@ typedef struct Ast_StructField {
   struct Ast_StructField* next_field;
   char* name;
   Ast_TypeExpression* member_type;
-  Ident* member_ident;
+  struct Ident* member_ident;
 }
 Ast_StructField;  // AST_STRUCT_FIELD
 
@@ -531,7 +527,7 @@ typedef struct Ast_StructDecl {
   char* name;
   Ast_TypeExpression* first_type_parameter;
   Ast_StructField* first_field;
-  Ident* type_ident;
+  struct Ident* type_ident;
 }
 Ast_StructDecl;  // AST_STRUCT_PROTOTYPE
                  // AST_STRUCT_DECL
@@ -541,7 +537,7 @@ typedef struct Ast_HeaderDecl {
   Ast_TypeExpression* first_type_parameter;
   char* name;
   Ast_StructField* first_field;
-  Ident* type_ident;
+  struct Ident* type_ident;
 }
 Ast_HeaderDecl;  // AST_HEADER_PROTOTYPE
                  // AST_HEADER_DECL
@@ -549,7 +545,7 @@ Ast_HeaderDecl;  // AST_HEADER_PROTOTYPE
 typedef struct Ast_ErrorType {
   Ast_Declaration;
   Ast_ErrorCode* error_code;
-  Ident* type_ident;
+  struct Ident* type_ident;
 }
 Ast_ErrorType;  // AST_ERROR_TYPE
 
@@ -558,7 +554,7 @@ typedef struct Ast_Parameter {
   enum Ast_ParameterDirection direction;
   Ast_TypeExpression* param_type;
   char* name;
-  Ident* var_ident;
+  struct Ident* var_ident;
   struct Ast_Parameter* next_parameter;
 }
 Ast_Parameter;  // AST_PARAMETER
@@ -582,7 +578,7 @@ typedef struct Ast_Ident {
   Ast_Declaration;
   Ast_TypeExpression* first_type_argument;
   char* name;
-  Ident* var_ident;
+  struct Ident* var_ident;
 }
 Ast_Ident;  // AST_IDENT
 
@@ -590,7 +586,7 @@ typedef struct Ast_TypeIdent {
   Ast_Declaration;
   Ast_TypeExpression* first_type_argument;
   char* name;
-  Ident* type_ident;
+  struct Ident* type_ident;
 }
 Ast_TypeIdent;  // AST_TYPE_IDENT
 
@@ -617,7 +613,7 @@ typedef struct Ast_VarDecl {
 
   Ast_TypeExpression* var_type;
   Ast_Ident* name;
-  Ident* var_ident;
+  struct Ident* var_ident;
   Ast* init_expr;
   bool is_const;
 }
@@ -665,7 +661,7 @@ typedef struct Ast_ParserState {
   char* name;
   Ast_Declaration* first_statement;
   Ast_TransitionStmt* transition_stmt;
-  Ident* var_ident;
+  struct Ident* var_ident;
 }
 Ast_ParserState;  // AST_PARSER_STATE
 
@@ -737,7 +733,7 @@ typedef struct Ast_ControlDecl {
   Ast_Parameter* first_parameter;
   Ast_Declaration* first_local_decl;
   Ast_BlockStmt* apply_block;
-  Ident* type_ident;
+  struct Ident* type_ident;
 }
 Ast_ControlDecl;  // AST_CONTROL_PROTOTYPE
                   // AST_CONTROL_DECL
@@ -748,7 +744,7 @@ typedef struct Ast_ParserDecl {
   Ast_TypeExpression* first_type_parameter;
   Ast_Parameter* first_parameter;
   Ast_Declaration* first_local_decl;
-  Ident* type_ident;
+  struct Ident* type_ident;
 }
 Ast_ParserDecl;  // AST_PARSER_PROTOTYPE
                  // AST_PARSER_DECL
@@ -758,7 +754,7 @@ typedef struct Ast_PackageDecl {
   char* name;
   Ast_TypeExpression* first_type_parameter;
   Ast_Parameter* first_parameter;
-  Ident* type_ident;
+  struct Ident* type_ident;
 }
 Ast_PackageDecl;  // AST_PACKAGE_PROTOTYPE
 
@@ -766,7 +762,7 @@ typedef struct Ast_PackageInstantiation {
   Ast_Declaration;
   Ast* package_ctor;
   char* name;
-  Ident* var_ident;
+  struct Ident* var_ident;
 }
 Ast_PackageInstantiation;  // AST_PACKAGE_INSTANTIATION
 
@@ -776,7 +772,7 @@ typedef struct Ast_FunctionPrototype {
   Ast_TypeExpression* first_type_parameter;
   Ast_Parameter* first_parameter;
   Ast_TypeExpression* return_type;
-  Ident* type_ident;
+  struct Ident* type_ident;
 }
 Ast_FunctionDecl;  // AST_FUNCTION_PROTOTYPE
                    // AST_EXTERN_FUNCTION_PROTOTYPE
@@ -786,7 +782,7 @@ typedef struct Ast_ExternObjectDecl {
   char* name;
   Ast_TypeExpression* first_type_parameter;
   Ast_FunctionDecl* first_method;
-  Ident* type_ident;
+  struct Ident* type_ident;
 }
 Ast_ExternObjectDecl;  // AST_EXTERN_OBJECT_PROTOTYPE
 
