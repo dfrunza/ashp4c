@@ -19,7 +19,7 @@
 
 <packageTypeDeclaration> := PACKAGE <name> <optTypeParameters> '(' <parameterList> ')'
 
-<instantiation> := typeRef> '(' <argumentList> ')' <name> ';'
+<instantiation> := <typeRef> '(' <argumentList> ')' <name> ';'
 
 <optConstructorParameters> := { '(' <parameterList> ')' }
 
@@ -57,22 +57,18 @@
 
 <keysetExpression> := <tupleKeysetExpression> | <simpleKeysetExpression>
 
-<tupleKeysetExpression> := '(' <simpleKeysetExpression> ',' <simpleExpressionList> ')'
+<tupleKeysetExpression> := '(' <simpleKeysetExpression> { ',' <simpleKeysetExpression }* ')'
 
-<simpleExpressionList> := <simpleKeysetExpression> { ',' <simpleKeysetExpression }*
-
-<simpleKeysetExpression> := <expression> { ( MASK | RANGE ) <expression> } | DEFAULT | DONTCARE
+<simpleKeysetExpression> := <expression> /* { ( MASK | RANGE ) <expression> } */ | DEFAULT | DONTCARE
 
 <valueSetDeclaration> := VALUESET '<' ( <baseType> | <tupleType> | <typeName> ) '>' '(' <expression> ')' <name> ';'
 
 
 /*****  CONTROL  *****/
 
-<controlDeclaration> := <controlTypeDeclaration> <optConstructorParameters> '{' <controlLocalDeclarations> APPLY <controlBody> '}'
+<controlDeclaration> := <controlTypeDeclaration> <optConstructorParameters> '{' { <controlLocalDeclaration> }* APPLY <controlBody> '}'
 
 <controlTypeDeclaration> := CONTROL <name> <optTypeParameters> '(' <parameterList> ')'
-
-<controlLocalDeclarations> := { <controlLocalDeclaration> }*
 
 <controlLocalDeclaration> := <constantDeclaration> | <actionDeclaration> /* | <tableDeclaration> */ | <instantiation> | <variableDeclaration>
 
@@ -247,7 +243,8 @@
   | <namedType> '(' <argumentList> ')'
   | CAST '(' <typeRef> ')' <expression>
 
-<binaryOperator> := '*' | '/' | '+' | '-' | '<=' | '>=' | '<' | '>' | '!=' | '==' | '||'
+<binaryOperator> := '*' | '/' | '+' | '-' | '<=' | '>=' | '<' | '>'
+  | '!=' | '==' | '||' | '&&'
   | '.' <member>
   | '[' <expression> { ':' <expression> } ']' /* array indexer */
   | '(' <argumentList> ')' /* function call */

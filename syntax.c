@@ -1967,7 +1967,7 @@ token_is_expressionPrimary(Token* token)
 {
   bool result = token->klass == TOK_INTEGER || token->klass == TOK_TRUE || token->klass == TOK_FALSE
     || token->klass == TOK_STRING_LITERAL || token->klass == TOK_UNARY_DOTPREFIX || token_is_nonTypeName(token)
-    || token->klass == TOK_BRACE_OPEN || token->klass == TOK_PARENTH_OPEN || token->klass == TOK_EXCLAMATION
+    || token->klass == TOK_BRACE_OPEN || token->klass == TOK_PARENTH_OPEN || token->klass == TOK_LOGIC_NOT
     || token->klass == TOK_UNARY_MINUS || token_is_typeName(token) || token->klass == TOK_ERROR
     || token_is_prefixedType(token);
   return result;
@@ -2712,9 +2712,15 @@ token_is_parserStatement(Token* token)
 }
 
 internal bool
+token_is_simpleKeysetExpression(Token* token) {
+  bool result = token_is_expression(token) || token->klass == TOK_DEFAULT || token->klass == TOK_DONTCARE;
+  return result;
+}
+
+internal bool
 token_is_keysetExpression(Token* token)
 {
-  bool result = token->klass == TOK_TUPLE || token_is_expression(token);
+  bool result = token->klass == TOK_TUPLE || token_is_simpleKeysetExpression(token);
   return result;
 }
 
@@ -2722,6 +2728,14 @@ internal bool
 token_is_selectCase(Token* token)
 {
   return token_is_keysetExpression(token);
+}
+
+internal bool
+token_is_controlLocalDeclaration(Token* token)
+{
+  bool result = token->klass == TOK_CONST || token->klass == TOK_ACTION
+    || token_is_typeRef(token) || token->klass == TOK_VAR;
+  return result;
 }
 
 internal struct Ast*
@@ -2767,6 +2781,9 @@ build_variableDeclaration()
       if (token_is_name(token)) {
         build_name();
         build_optInitializer();
+        if (token->klass == TOK_SEMICOLON) {
+          next_token();
+        } else error("");
       } else error("");
     } else error("");
   } else error("");
@@ -2779,12 +2796,16 @@ build_instantiation()
   if (token_is_typeRef(token)) {
     build_typeRef();
     if (token->klass == TOK_PARENTH_OPEN) {
+      next_token();
       build_argumentList();
-      if (token_is_name(token)) {
-        build_name();
-      } else error("");
       if (token->klass == TOK_PARENTH_CLOSE) {
         next_token();
+        if (token_is_name(token)) {
+          build_name();
+          if (token->klass == TOK_SEMICOLON) {
+            next_token();
+          } else error("");
+        } else error("");
       } else error("");
     } else error("");
   } else error("");
@@ -2962,10 +2983,47 @@ build_expressionList()
 }
 
 internal struct Ast*
+build_simpleKeysetExpression()
+{
+  struct Ast* expr = 0;
+  if (token_is_expression(token)) {
+    expr = build_expression(1);
+  } else if (token->klass == TOK_DEFAULT) {
+    next_token();
+  } else if (token->klass == TOK_DONTCARE) {
+    next_token();
+  } else error("");
+  return expr;
+}
+
+internal struct Ast*
+build_tupleKeysetExpression()
+{
+  struct Ast* expr = 0;
+  if (token->klass == TOK_PARENTH_OPEN) {
+    next_token();
+    build_simpleKeysetExpression();
+    while (token->klass == TOK_COMMA) {
+      next_token();
+      build_simpleKeysetExpression();
+    }
+    if (token->klass == TOK_PARENTH_CLOSE) {
+      next_token();
+    } else error("");
+  } else error("");
+  return expr;
+}
+
+internal struct Ast*
 build_keysetExpression()
 {
-
-  return 0;
+  struct Ast* expr = 0;
+  if (token->klass == TOK_PARENTH_OPEN) {
+    build_tupleKeysetExpression();
+  } else if (token_is_simpleKeysetExpression(token)) {
+    build_simpleKeysetExpression();
+  } else error("");
+  return expr;
 }
 
 internal struct Ast*
@@ -3002,15 +3060,17 @@ build_selectExpression()
     next_token();
     if (token->klass == TOK_PARENTH_OPEN) {
       next_token();
+      build_expressionList();
       if (token->klass == TOK_PARENTH_CLOSE) {
         next_token();
-        build_expressionList();
         if (token->klass == TOK_BRACE_OPEN) {
+          scope_push_level();
           next_token();
           build_selectCaseList();
           if (token->klass == TOK_BRACE_CLOSE) {
             next_token();
           } else error("");
+          scope_pop_level(scope_level-1);
         } else error("");
       } else error("");
     } else error("");
@@ -3124,6 +3184,43 @@ build_controlTypeDeclaration()
 }
 
 internal struct Ast*
+build_actionDeclaration()
+{
+  if (token->klass == TOK_ACTION) {
+    next_token();
+    if (token_is_name(token)) {
+      build_name();
+      if (token->klass == TOK_PARENTH_OPEN) {
+        build_parameterList();
+        if (token->klass == TOK_PARENTH_CLOSE) {
+          next_token();
+          if (token->klass == TOK_BRACE_OPEN) {
+            build_blockStatement();
+          } else error("");
+        } else error("");
+      } else error("");
+    } else error("");
+  } else error("");
+  return 0;
+}
+
+internal struct Ast*
+build_controlLocalDeclaration()
+{
+  struct Ast* decl = 0;
+  if (token->klass == TOK_CONST) {
+    decl = build_constantDeclaration();
+  } else if (token->klass == TOK_ACTION) {
+    decl = build_actionDeclaration();
+  } else if (token_is_typeRef(token)) {
+    decl = build_instantiation();
+  } else if (token->klass == TOK_VAR) {
+    decl = build_variableDeclaration();
+  } else error("");
+  return decl;
+}
+
+internal struct Ast*
 build_controlDeclaration()
 {
   if (token->klass == TOK_CONTROL) {
@@ -3134,8 +3231,12 @@ build_controlDeclaration()
       build_optConstructorParameters();
       if (token->klass == TOK_BRACE_OPEN) {
         next_token();
-        if (token_is_parameter(token)) {
-          build_parameterList();
+        while (token_is_controlLocalDeclaration(token)) {
+          build_controlLocalDeclaration();
+        }
+        if (token->klass == TOK_APPLY) {
+          next_token();
+          build_blockStatement();
           if (token->klass == TOK_BRACE_CLOSE) {
             next_token();
           } else error("");
@@ -3152,7 +3253,9 @@ build_packageTypeDeclaration()
   if (token->klass == TOK_PACKAGE) {
     next_token();
     if (token_is_name(token)) {
-      build_name();
+      struct Ast_Name* name = build_name();
+      if (name->kind == Ast_NonTypeName)
+        new_type(name->name);
       build_optTypeParameters();
       if (token->klass == TOK_PARENTH_OPEN) {
         next_token();
@@ -3315,32 +3418,13 @@ internal struct Ast*
 build_blockStatement()
 {
   if (token->klass == TOK_BRACE_OPEN) {
+    scope_push_level();
     next_token();
     build_statementOrDeclList();
     if (token->klass == TOK_BRACE_CLOSE) {
       next_token();
     } else error("");
-  } else error("");
-  return 0;
-}
-
-internal struct Ast*
-build_actionDeclaration()
-{
-  if (token->klass == TOK_ACTION) {
-    next_token();
-    if (token_is_name(token)) {
-      build_name();
-      if (token->klass == TOK_PARENTH_OPEN) {
-        build_parameterList();
-        if (token->klass == TOK_PARENTH_CLOSE) {
-          next_token();
-          if (token->klass == TOK_BRACE_OPEN) {
-            build_blockStatement();
-          } else error("");
-        } else error("");
-      } else error("");
-    } else error("");
+    scope_pop_level(scope_level-1);
   } else error("");
   return 0;
 }
@@ -3457,8 +3541,12 @@ token_is_realTypeArg(Token* token)
 internal bool
 token_is_binaryOperator(Token* token)
 {
-  bool result = token->klass == TOK_DOTPREFIX || token->klass == TOK_STAR || token->klass == TOK_SLASH
-    || token->klass == TOK_PLUS || token->klass == TOK_ANGLE_OPEN || token->klass == TOK_ANGLE_CLOSE
+  bool result = token->klass == TOK_STAR || token->klass == TOK_SLASH
+    || token->klass == TOK_PLUS || token->klass == TOK_MINUS
+    || token->klass == TOK_ANGLE_OPEN || token->klass == TOK_ANGLE_CLOSE
+    /* || token->klass == TOK_NOT_EQUAL */ || token->klass == TOK_LOGIC_EQUAL
+    || token->klass == TOK_DOTPREFIX
+    || token->klass == TOK_ANGLE_OPEN || token->klass == TOK_ANGLE_CLOSE
     || token->klass == TOK_BRACKET_OPEN || token->klass == TOK_PARENTH_OPEN;
   return result;
 }
@@ -3518,7 +3606,7 @@ build_expressionPrimary()
       if (token->klass == TOK_PARENTH_CLOSE) {
         next_token();
       } else error("");
-    } else if (token->klass == TOK_EXCLAMATION) {
+    } else if (token->klass == TOK_LOGIC_NOT) {
       next_token();
       build_expression(1);
     } else if (token->klass == TOK_UNARY_MINUS) {
@@ -3551,7 +3639,7 @@ internal int
 get_operator_priority(Token* token)
 {
   int prio = 0;
-  if (token->klass == TOK_EQUAL_EQUAL)
+  if (token->klass == TOK_LOGIC_EQUAL)
     prio = 1;
   else if (token->klass == TOK_PLUS || token->klass == TOK_MINUS)
     prio = 2;
@@ -3570,12 +3658,12 @@ get_operator_priority(Token* token)
 internal struct Ast*
 build_expression(int priority_threshold)
 {
+  struct Ast* expr = 0;
   if (token_is_expression(token) || token_is_binaryOperator(token)) {
     build_expressionPrimary();
     while (token_is_binaryOperator(token)) {
       int priority = get_operator_priority(token);
       if (priority >= priority_threshold) {
-        next_token();
         if (token->klass == TOK_DOTPREFIX) {
           next_token();
           if (token_is_name(token)) {
@@ -3609,11 +3697,16 @@ build_expression(int priority_threshold)
           if (token_is_realTypeArg(token)) {
             build_realTypeArgumentList();
           } else error("");
-        } else assert(false);
+        } else {
+          next_token();
+          if (token_is_expression(token)) {
+            build_expression(priority_threshold + 1);
+          } else error("");
+        }
       } else break;
     }
   } else error("");
-  return 0;
+  return expr;
 }
 
 void

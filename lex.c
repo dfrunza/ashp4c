@@ -54,31 +54,25 @@ internal void
 lexeme_copy(char* dest, char* begin, char* end)
 {
   char* src = begin;
-  do
-  {
-    if (*src == '\\')
-    {
+  do {
+    if (*src == '\\') {
       src++;
-      if (*src == 'n')
-      {
+      if (*src == 'n') {
         *dest++ = '\n';
         src++;
-      }
-      else if (*src == 'r')
-      {
+      } else if (*src == 'r') {
         *dest++ = '\r';
         src++;
-      }
-      else if (*src == 't')
-      {
+      } else if (*src == 't') {
         *dest++ = '\t';
         src++;
-      }
-      else
+      } else {
         *dest++ = *src++;
+      }
     }
-    else
+    else {
       *dest++ = *src++;
+    }
   }
   while (src <= end);
 }
@@ -95,8 +89,7 @@ lexeme_match_cstr(char* lexeme_start, char* lexeme_end, char* str)
 {
   char* l = lexeme_start;
   char* s = str;
-  while (*l == *s)
-  {
+  while (*l == *s) {
     l++;
     s++;
     if (*s == '\0')
@@ -121,21 +114,17 @@ next_token(Token* token_at)
 {
   zero_struct(token_at, Token);
   state = 1;
-  while (state)
-  {
+  while (state) {
     char c = char_lookahead(0);
-    switch (state)
-    {
+    switch (state) {
       default:
         assert (false);
 
       case 1:
       {
-        if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
-        {
+        if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
           lexeme_advance();
-          if (c == '\n' || c == '\r')
-          {
+          if (c == '\n' || c == '\r') {
             char cc = char_lookahead(0);
             if (c + cc == '\n' + '\r')
               lexeme_advance();
@@ -224,8 +213,7 @@ next_token(Token* token_at)
         char cc = char_lookahead(1);
         if (cstr_is_letter(cc) || cstr_is_digit(cc))
           state = 500;
-        else
-        {
+        else {
           token_at->klass = TOK_DONTCARE;
           token_at->lexeme = lexeme_to_cstring();
           lexeme_advance();
@@ -344,13 +332,10 @@ next_token(Token* token_at)
 
       case 116:
       {
-        if (char_lookahead(1) == '*')
-        {
+        if (char_lookahead(1) == '*') {
           char_advance();
           state = 314;
-        }
-        else
-        {
+        } else {
           token_at->klass = TOK_SLASH;
           token_at->lexeme = lexeme_to_cstring();
           lexeme_advance();
@@ -361,13 +346,12 @@ next_token(Token* token_at)
 
       case 117:
       {
-        if (char_lookahead(1) == '=')
-        {
+        if (char_lookahead(1) == '=') {
           char_advance();
-          token_at->klass = TOK_EQUAL_EQUAL;
-        }
-        else
+          token_at->klass = TOK_LOGIC_EQUAL;
+        } else {
           token_at->klass = TOK_EQUAL;
+        }
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -376,7 +360,12 @@ next_token(Token* token_at)
 
       case 118:
       {
-        token_at->klass = TOK_EXCLAMATION;
+        if (char_lookahead(1) == '=') {
+          char_advance();
+          token_at->klass = TOK_LOGIC_NOT_EQUAL;
+        } else {
+          token_at->klass = TOK_LOGIC_NOT;
+        }
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -385,11 +374,9 @@ next_token(Token* token_at)
 
       case 314:
       {
-        do
-        {
+        do {
           c = char_advance();
-          if (c == '\n' || c == '\r')
-          {
+          if (c == '\n' || c == '\r') {
             char cc = char_lookahead(1);
             if (c + cc == '\n' + '\r')
               c = char_advance();
@@ -398,38 +385,33 @@ next_token(Token* token_at)
         }
         while (c != '*');
 
-        if (char_lookahead(1) == '/')
-        {
+        if (char_lookahead(1) == '/') {
           char_advance();
           token_at->klass = TOK_COMMENT;
           token_at->lexeme = lexeme_to_cstring();
           lexeme_advance();
           state = 0;
-        }
-        else
+        } else {
           state = 314;
+        }
       }
       break;
 
       case 400:
       {
-        if (c == '0')
-        {
+        if (c == '0') {
           c = char_lookahead(1);
-          if (c == 'x' || c == 'X')
-          {
+          if (c == 'x' || c == 'X') {
             state = 402;
             lexeme_advance();
             break;
           }
-          else if (c == 'o' || c == 'O')
-          {
+          else if (c == 'o' || c == 'O') {
             state = 403;
             lexeme_advance();
             break;
           }
-          else if (c == 'b' || c == 'B')
-          {
+          else if (c == 'b' || c == 'B') {
             state = 404;
             lexeme_advance();
             break;
@@ -448,8 +430,7 @@ next_token(Token* token_at)
           state = 405;
         else if (c == 's')
           state = 406;
-        else
-        {
+        else {
           char_retract();
           token_at->klass = TOK_INTEGER;
           token_at->lexeme = lexeme_to_cstring();
@@ -468,8 +449,7 @@ next_token(Token* token_at)
           state = 407;
         else if (c == 's')
           state = 408;
-        else
-        {
+        else {
           char_retract();
           token_at->klass = TOK_INTEGER;
           token_at->lexeme = lexeme_to_cstring();
@@ -488,8 +468,7 @@ next_token(Token* token_at)
           state = 409;
         else if (c == 's')
           state = 410;
-        else
-        {
+        else {
           char_retract();
           token_at->klass = TOK_INTEGER;
           token_at->lexeme = lexeme_to_cstring();
@@ -508,8 +487,7 @@ next_token(Token* token_at)
           state = 411;
         else if (c == 's')
           state = 412;
-        else
-        {
+        else {
           char_retract();
           token_at->klass = TOK_INTEGER;
           token_at->lexeme = lexeme_to_cstring();
@@ -667,8 +645,7 @@ lex_tokenize_input()
 
   next_token(token_at);
   tokenized_input_len++;
-  while (token_at->klass != TOK_EOI)
-  {
+  while (token_at->klass != TOK_EOI) {
     if (token_at->klass == TOK_UNKNOWN)
       error("at line %d: unknown token", token_at->line_nr);
     token_at++;
