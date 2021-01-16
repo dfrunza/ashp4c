@@ -110,9 +110,11 @@
 <specializedType> := <prefixedType> '<' <typeArgumentList> '>'
 
 <baseType> := BOOL | ERROR
-  | INT { '<' ( INTEGER | '(' <expression> ')' ) '>' }
-  | BIT { '<' ( INTEGER | '(' <expression> ')' ) '>' }
-  | VARBIT { '<' ( INTEGER | '(' <expression> ')' ) '>' }
+  | INT { '<' <integerTypeSize> '>' }
+  | BIT { '<' <integerTypeSize> '>' }
+  | VARBIT { '<' <integerTypeSize> '>' }
+
+<integerTypeSize> := INTEGER | '(' <expression> ')'
 
 <typeOrVoid> := <typeRef> | VOID | IDENTIFIER /* may be a type variable */
 

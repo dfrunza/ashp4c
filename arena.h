@@ -26,8 +26,8 @@ void arena_free(Arena* arena);
 void* arena_push(Arena* arena, uint32_t size);
 
 #define arena_push_struct(ARENA, TYPE) ({\
-  TYPE* object = arena_push((ARENA), sizeof(TYPE)); \
-  *object = (TYPE){}; \
+  struct TYPE* object = arena_push((ARENA), sizeof(struct TYPE)); \
+  *object = (struct TYPE){}; \
   object;})
 
 #define arena_push_array(ARENA, TYPE, COUNT) \

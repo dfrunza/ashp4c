@@ -37,11 +37,11 @@ Ident* bool_true_ident = 0;
 Ident* bool_false_ident = 0;
 */
 
-internal Ast* build_expression(int priority_threshold);
-internal Ast* build_typeRef();
-internal Ast* build_blockStatement();
-internal Ast* build_statement();
-internal Ast* build_parserStatement();
+internal struct Ast* build_expression(int priority_threshold);
+internal struct Ast* build_typeRef();
+internal struct Ast* build_blockStatement();
+internal struct Ast* build_statement();
+internal struct Ast* build_parserStatement();
 
 internal uint32_t
 name_hash(char* name)
@@ -70,22 +70,18 @@ scope_pop_level(int to_level)
     return scope_level;
 
   int i = 0;
-  while (i < max_symtable_len)
-  {
+  while (i < max_symtable_len) {
     Namespace_Entry* ns = symtable[i];
-    while (ns)
-    {
+    while (ns) {
       struct Ident* ident = ns->ns_global;
-      if (ident && ident->scope_level > to_level)
-      {
+      if (ident && ident->scope_level > to_level) {
         ns->ns_global = ident->next_in_scope;
         if (ident->next_in_scope)
           assert (ident->next_in_scope->scope_level <= to_level);
         ident->next_in_scope = 0;
       }
       ident = ns->ns_type;
-      if (ident && ident->scope_level > to_level)
-      {
+      if (ident && ident->scope_level > to_level) {
         ns->ns_type = ident->next_in_scope;
         if (ident->next_in_scope)
           assert (ident->next_in_scope->scope_level <= to_level);
@@ -147,7 +143,7 @@ new_ident(char* name)
   if (ident_is_declared(ident)) {
     error("redeclaration of var");
   } else {
-    struct Ident* ident = arena_push_struct(&arena, struct Ident);
+    struct Ident* ident = arena_push_struct(&arena, Ident);
     ident->name = name;
     ident->scope_level = scope_level;
     ident->ident_kind = ID_IDENT;
@@ -176,7 +172,7 @@ new_type(char* name)
   if (ident_is_declared(ident)) {
     error("redeclaration of type");
   } else {
-    struct Ident* ident = arena_push_struct(&arena, struct Ident);
+    struct Ident* ident = arena_push_struct(&arena, Ident);
     ident->name = name;
     ident->scope_level = scope_level;
     ident->ident_kind = ID_TYPE;
@@ -1988,7 +1984,7 @@ build_nonTypeName()
 {
   struct Ast_NonTypeName* name = 0;
   if (token_is_nonTypeName(token)) {
-    name = arena_push_struct(&arena, struct Ast_NonTypeName);
+    name = arena_push_struct(&arena, Ast_NonTypeName);
     name->kind = Ast_NonTypeName;
     name->name = token->lexeme;
     next_token();
@@ -1996,29 +1992,29 @@ build_nonTypeName()
   return name;
 }
 
-internal Ast*
+internal struct Ast_Name*
 build_name()
 {
-  Ast* name = 0;
+  struct Ast_Name* name = 0;
   if (token_is_name(token)) {
     if (token_is_nonTypeName(token)) {
-      name = (Ast*)build_nonTypeName();
+      name = (struct Ast_Name*)build_nonTypeName();
     } else if (token->klass == TOK_TYPE_IDENTIFIER) {
-      struct Ast_TypeName* type_name = arena_push_struct(&arena, struct Ast_TypeName);
+      struct Ast_TypeName* type_name = arena_push_struct(&arena, Ast_TypeName);
       type_name->kind = Ast_TypeName;
       type_name->name = token->lexeme;
-      name = (Ast*)type_name;
+      name = (struct Ast_Name*)type_name;
       next_token();
     } else assert(false);
   } else error("");
   return name;
 }
 
-internal Ast*
+internal struct Ast*
 build_typeParameterList()
 {
   if (token_is_typeParameterList(token)) {
-    Ast* name = build_name();
+    struct Ast_Name* name = build_name();
     if (name->kind == Ast_NonTypeName)
       new_type(((struct Ast_NonTypeName*)name)->name);
     while (token->klass == TOK_COMMA) {
@@ -2029,7 +2025,7 @@ build_typeParameterList()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_optTypeParameters()
 {
   if (token->klass == TOK_ANGLE_OPEN) {
@@ -2044,7 +2040,7 @@ build_optTypeParameters()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_typeArg()
 {
   if (token_is_typeArg(token))
@@ -2066,7 +2062,7 @@ token_is_methodPrototype(Token* token)
   return token_is_functionPrototype() | token->klass == TOK_TYPE_IDENTIFIER;
 }
 
-internal Ast*
+internal struct Ast*
 build_direction()
 {
   if (token_is_direction(token)) {
@@ -2075,7 +2071,7 @@ build_direction()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_parameter()
 {
   build_direction();
@@ -2094,7 +2090,7 @@ build_parameter()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_parameterList()
 {
   if (token_is_parameter(token)) {
@@ -2107,42 +2103,41 @@ build_parameterList()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_typeOrVoid()
 {
-  Ast* type = 0;
+  struct Ast* type = 0;
   if (token_is_typeOrVoid(token)) {
     if (token_is_typeRef(token)) {
       type = build_typeRef();
     } else if (token->klass == TOK_VOID) {
-      struct Ast_TypeName* void_name = arena_push_struct(&arena, struct Ast_TypeName);
+      struct Ast_TypeName* void_name = arena_push_struct(&arena, Ast_TypeName);
       void_name->kind = Ast_TypeName;
       void_name->name = token->lexeme;
-      type = (Ast*)void_name;
+      type = (struct Ast*)void_name;
       next_token();
     } else if (token->klass == TOK_IDENTIFIER) {
-      struct Ast_NonTypeName* name = arena_push_struct(&arena, struct Ast_NonTypeName);
+      struct Ast_NonTypeName* name = arena_push_struct(&arena, Ast_NonTypeName);
       name->kind = Ast_NonTypeName;
       name->name = token->lexeme;
-      type = (Ast*)name;
+      type = (struct Ast*)name;
       next_token();
     } else error("");
   } else error("");
   return type;
 }
 
-internal Ast*
+internal struct Ast*
 build_functionPrototype()
 {
   if (token_is_typeOrVoid(token)) {
     scope_push_level();
-    Ast* return_type = build_typeOrVoid();
+    struct Ast* return_type = build_typeOrVoid();
     if (return_type->kind == Ast_NonTypeName)
       new_type(((struct Ast_NonTypeName*)return_type)->name);
     if (token_is_name(token)) {
-      Ast* function_name = build_name();
-      if (function_name->kind == Ast_NonTypeName)
-        new_ident(((struct Ast_NonTypeName*)function_name)->name);
+      struct Ast_Name* function_name = build_name();
+      new_ident(function_name->name);
       build_optTypeParameters();
       if (token->klass == TOK_PARENTH_OPEN) {
         next_token();
@@ -2159,7 +2154,7 @@ build_functionPrototype()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_methodPrototype()
 {
   if (token_is_methodPrototype(token)) {
@@ -2183,7 +2178,7 @@ build_methodPrototype()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_methodPrototypes()
 {
   while (token_is_methodPrototype(token))
@@ -2198,7 +2193,8 @@ build_externDeclaration()
     next_token();
     if (token_is_nonTypeName(token)) {
       struct Ast_NonTypeName* decl_name = build_nonTypeName();
-      new_type(decl_name->name);
+      if (decl_name->kind == Ast_NonTypeName)
+        new_type(((struct Ast_NonTypeName*)decl_name)->name);
       build_optTypeParameters();
       if (token->klass == TOK_BRACE_OPEN) {
         scope_push_level();
@@ -2221,26 +2217,23 @@ build_externDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_integerTypeSize()
 {
-  if (token->klass == TOK_ANGLE_OPEN) {
+  if (token->klass == TOK_INTEGER) {
     next_token();
-    if (token->klass == TOK_INTEGER) {
-      next_token();
-    } else if (token->klass == TOK_PARENTH_OPEN) {
-      build_expression(1);
-    } else error("");
-  }
+  } else if (token->klass == TOK_PARENTH_OPEN) {
+    build_expression(1);
+  } else error("");
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_baseType()
 {
   struct Ast_BaseType* base_type = 0;
   if (token_is_baseType(token)) {
-    base_type = arena_push_struct(&arena, struct Ast_BaseType);
+    base_type = arena_push_struct(&arena, Ast_BaseType);
     base_type->kind = Ast_BaseType;
     if (token->klass == TOK_BOOL) {
       base_type->base_type = BASETYPE_BOOL;
@@ -2251,24 +2244,39 @@ build_baseType()
     } else if (token->klass == TOK_INT) {
       base_type->base_type = BASETYPE_INT;
       next_token();
-      if (token->klass == TOK_ANGLE_OPEN)
+      if (token->klass == TOK_ANGLE_OPEN) {
+        next_token();
         base_type->size = build_integerTypeSize();
+        if (token->klass == TOK_ANGLE_CLOSE) {
+          next_token();
+        } else error("");
+      }
     } else if (token->klass == TOK_BIT) {
       base_type->base_type = BASETYPE_BIT;
       next_token();
-      if (token->klass == TOK_ANGLE_OPEN)
+      if (token->klass == TOK_ANGLE_OPEN) {
+        next_token();
         base_type->size = build_integerTypeSize();
+        if (token->klass == TOK_ANGLE_CLOSE) {
+          next_token();
+        } else error("");
+      }
     } else if (token->klass == TOK_VARBIT) {
       base_type->base_type = BASETYPE_VARBIT;
       next_token();
-      if (token->klass == TOK_ANGLE_OPEN)
+      if (token->klass == TOK_ANGLE_OPEN) {
+        next_token();
         base_type->size = build_integerTypeSize();
+        if (token->klass == TOK_ANGLE_CLOSE) {
+          next_token();
+        } else error("");
+      }
     } else assert(false);
   }
-  return (Ast*)base_type;
+  return (struct Ast*)base_type;
 }
 
-internal Ast*
+internal struct Ast*
 build_typeArgumentList()
 {
   if (token_is_typeArg(token)) {
@@ -2281,7 +2289,7 @@ build_typeArgumentList()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_tupleType()
 {
   if (token->klass == TOK_TUPLE) {
@@ -2297,7 +2305,7 @@ build_tupleType()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_headerStackType()
 {
   if (token->klass == TOK_BRACKET_OPEN) {
@@ -2312,7 +2320,7 @@ build_headerStackType()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_specializedType()
 {
   if (token->klass == TOK_ANGLE_OPEN) {
@@ -2325,35 +2333,35 @@ build_specializedType()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_prefixedType()
 {
   struct Ast_TypeName* name = 0;
   if (token->klass == TOK_TYPE_IDENTIFIER) {
-    name = arena_push_struct(&arena, struct Ast_TypeName);
+    name = arena_push_struct(&arena, Ast_TypeName);
     name->kind = Ast_TypeName;
     name->name = token->lexeme;
     next_token();
     if (token->klass == TOK_DOTPREFIX) {
       next_token();
       if (token->klass == TOK_TYPE_IDENTIFIER) {
-        struct Ast_PrefixedType* pfx_type = arena_push_struct(&arena, struct Ast_PrefixedType);
+        struct Ast_PrefixedType* pfx_type = arena_push_struct(&arena, Ast_PrefixedType);
         pfx_type->kind = Ast_PrefixedType;
         pfx_type->first_name = name;
-        pfx_type->second_name = arena_push_struct(&arena, struct Ast_TypeName);
+        pfx_type->second_name = arena_push_struct(&arena, Ast_TypeName);
         pfx_type->second_name->kind = Ast_TypeName;
         pfx_type->second_name->name = token->lexeme;
         next_token();
       } else error("");
     }
   } else error("");
-  return (Ast*)name;
+  return (struct Ast*)name;
 }
 
-internal Ast*
+internal struct Ast*
 build_typeName()
 {
-  Ast* name = 0;
+  struct Ast* name = 0;
   if (token->klass == TOK_TYPE_IDENTIFIER) {
     name = build_prefixedType();
     if (token->klass == TOK_ANGLE_OPEN) {
@@ -2365,10 +2373,10 @@ build_typeName()
   return name;
 }
 
-internal Ast*
+internal struct Ast*
 build_typeRef()
 {
-  Ast* ref = 0;
+  struct Ast* ref = 0;
   if (token_is_typeRef(token)) {
     if (token_is_baseType(token)) {
       ref = build_baseType();
@@ -2389,13 +2397,14 @@ token_is_structField(Token* token)
   return result;
 }
 
-internal Ast*
+internal struct Ast*
 build_structField()
 {
   if (token_is_typeRef(token)) {
     build_typeRef();
     if (token_is_name(token)) {
-      build_name();
+      struct Ast_Name* name = build_name();
+      new_ident(name->name);
       if (token->klass == TOK_SEMICOLON) {
         next_token();
       } else error("");
@@ -2404,7 +2413,7 @@ build_structField()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_structFieldList()
 {
   while (token_is_structField(token)) {
@@ -2417,27 +2426,30 @@ build_structFieldList()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_headerTypeDeclaration()
 {
   if (token->klass == TOK_HEADER) {
     next_token();
     if (token_is_name(token)) {
-      build_name();
-      if (token->klass == TOK_BRACE_OPEN)
-      {
+      struct Ast_Name* name = build_name();
+      if (name->kind == Ast_NonTypeName)
+        new_type(((struct Ast_NonTypeName*)name)->name);
+      if (token->klass == TOK_BRACE_OPEN) {
+        scope_push_level();
         next_token();
         build_structFieldList();
         if (token->klass == TOK_BRACE_CLOSE) {
           next_token(token);
         } else error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
+        scope_pop_level(scope_level-1);
       } else error("");
     } else error("");
   } else error("");
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_headerUnionDeclaration()
 {
   if (token->klass == TOK_HEADER_UNION) {
@@ -2456,13 +2468,15 @@ build_headerUnionDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_structTypeDeclaration()
 {
   if (token->klass == TOK_STRUCT) {
     next_token();
     if (token_is_name(token)) {
-      build_name();
+      struct Ast_Name* name = build_name();
+      if (name->kind == Ast_NonTypeName)
+        new_type(((struct Ast_NonTypeName*)name)->name);
       if (token->klass == TOK_BRACE_OPEN) {
         next_token();
         build_structFieldList();
@@ -2481,13 +2495,13 @@ token_is_specifiedIdentifier(Token* token)
   return token_is_name(token);
 }
 
-internal Ast*
+internal struct Ast*
 build_initializer()
 {
   return build_expression(1);
 }
 
-internal Ast*
+internal struct Ast*
 build_optInitializer()
 {
   if (token->klass == TOK_EQUAL) {
@@ -2497,7 +2511,7 @@ build_optInitializer()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_specifiedIdentifier()
 {
   if (token_is_specifiedIdentifier(token)) {
@@ -2512,7 +2526,7 @@ build_specifiedIdentifier()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_specifiedIdentifierList()
 {
   if (token_is_specifiedIdentifier(token)) {
@@ -2525,7 +2539,7 @@ build_specifiedIdentifierList()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_enumDeclaration()
 {
   if (token->klass == TOK_ENUM) {
@@ -2557,7 +2571,7 @@ build_enumDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_derivedTypeDeclaration()
 {
   if (token_is_derivedTypeDeclaration(token)) {
@@ -2574,13 +2588,15 @@ build_derivedTypeDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_parserTypeDeclaration()
 {
   if (token->klass == TOK_PARSER) {
     next_token();
     if (token_is_name(token)) {
-      build_name();
+      struct Ast_Name* name = build_name();
+      if (name->kind == Ast_NonTypeName)
+        new_type(((struct Ast_NonTypeName*)name)->name);
       build_optTypeParameters();
       if (token->klass == TOK_PARENTH_OPEN) {
         next_token();
@@ -2594,7 +2610,7 @@ build_parserTypeDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_optConstructorParameters()
 {
   if (token->klass == TOK_PARENTH_OPEN) {
@@ -2607,7 +2623,7 @@ build_optConstructorParameters()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_constantDeclaration()
 {
   if (token->klass == TOK_CONST) {
@@ -2708,7 +2724,7 @@ token_is_selectCase(Token* token)
   return token_is_keysetExpression(token);
 }
 
-internal Ast*
+internal struct Ast*
 build_argument()
 {
   assert(token_is_argument(token));
@@ -2728,7 +2744,7 @@ build_argument()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_argumentList()
 {
   if (token_is_argument(token)) {
@@ -2741,7 +2757,7 @@ build_argumentList()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_variableDeclaration()
 {
   if (token->klass == TOK_VAR) {
@@ -2757,7 +2773,7 @@ build_variableDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_instantiation()
 {
   if (token_is_typeRef(token)) {
@@ -2775,7 +2791,7 @@ build_instantiation()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_parserLocalElement()
 {
   if (token_is_parserLocalElement(token)) {
@@ -2790,7 +2806,7 @@ build_parserLocalElement()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_parserLocalElements()
 {
   while (token_is_parserLocalElement(token)) {
@@ -2799,7 +2815,7 @@ build_parserLocalElements()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_directApplication()
 {
   if (token_is_typeName(token)) {
@@ -2821,19 +2837,23 @@ build_directApplication()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_prefixedNonTypeName()
 {
+  struct Ast* name = 0;
   if (token->klass == TOK_DOTPREFIX) {
+    struct Ast_DotPrefix* dot_prefix = arena_push_struct(&arena, Ast_DotPrefix);
+    dot_prefix->kind = Ast_DotPrefix;
+    name = (struct Ast*)dot_prefix;
     next_token();
   }
   if (token_is_nonTypeName) {
-    build_nonTypeName();
+    name = (struct Ast*)build_nonTypeName();
   } else error("");
-  return 0;
+  return name;
 }
 
-internal Ast*
+internal struct Ast*
 build_lvalue()
 {
   if (token_is_lvalue(token)) {
@@ -2861,7 +2881,7 @@ build_lvalue()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_assignmentOrMethodCallStatement()
 {
   if (token_is_lvalue(token)) {
@@ -2888,7 +2908,7 @@ build_assignmentOrMethodCallStatement()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_parserStatements()
 {
   while (token_is_parserStatement(token)) {
@@ -2897,7 +2917,7 @@ build_parserStatements()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_parserBlockStatements()
 {
   if (token->klass == TOK_BRACE_OPEN) {
@@ -2910,7 +2930,7 @@ build_parserBlockStatements()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_parserStatement()
 {
   if (token_is_assignmentOrMethodCallStatement(token)) {
@@ -2929,7 +2949,7 @@ build_parserStatement()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_expressionList()
 {
   if (token_is_expression(token)) {
@@ -2941,14 +2961,14 @@ build_expressionList()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_keysetExpression()
 {
 
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_selectCase()
 {
   if (token_is_keysetExpression(token)) {
@@ -2966,7 +2986,7 @@ build_selectCase()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_selectCaseList()
 {
   while (token_is_selectCase(token)) {
@@ -2975,7 +2995,7 @@ build_selectCaseList()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_selectExpression()
 {
   if (token->klass == TOK_SELECT) {
@@ -2998,7 +3018,7 @@ build_selectExpression()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_stateExpression()
 {
   if (token_is_name(token)) {
@@ -3013,7 +3033,7 @@ build_stateExpression()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_transitionStatement()
 {
   if (token->klass == TOK_TRANSITION) {
@@ -3023,25 +3043,28 @@ build_transitionStatement()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_parserState()
 {
   if (token->klass == TOK_STATE) {
     next_token();
-    build_name();
+    struct Ast_Name* name = build_name();
+    new_ident(name->name);
     if (token->klass == TOK_BRACE_OPEN) {
+      scope_push_level();
       next_token();
       build_parserStatements();
       build_transitionStatement();
       if (token->klass == TOK_BRACE_CLOSE) {
         next_token();
       } else error("");
+      scope_pop_level(scope_level-1);
     } else error("");
   } else error("");
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_parserStates()
 {
   if (token->klass == TOK_STATE) {
@@ -3053,7 +3076,7 @@ build_parserStates()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_parserDeclaration()
 {
   assert(token->klass == TOK_PARSER);
@@ -3063,24 +3086,28 @@ build_parserDeclaration()
   } else {
     build_optConstructorParameters();
     if (token->klass == TOK_BRACE_OPEN) {
+      scope_push_level();
       next_token();
       build_parserLocalElements();
       build_parserStates();
       if (token->klass == TOK_BRACE_CLOSE) {
         next_token();
       } else error("");
+      scope_pop_level(scope_level-1);
     } else error("");
   }
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_controlTypeDeclaration()
 {
   if (token->klass == TOK_CONTROL) {
     next_token();
     if (token_is_name(token)) {
-      build_name();
+      struct Ast_Name* name = build_name();
+      if (name->kind == Ast_NonTypeName)
+        new_type(((struct Ast_NonTypeName*)name)->name);
       build_optTypeParameters();
       if (token->klass == TOK_PARENTH_OPEN) {
         next_token();
@@ -3096,7 +3123,7 @@ build_controlTypeDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_controlDeclaration()
 {
   if (token->klass == TOK_CONTROL) {
@@ -3119,7 +3146,7 @@ build_controlDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_packageTypeDeclaration()
 {
   if (token->klass == TOK_PACKAGE) {
@@ -3139,7 +3166,7 @@ build_packageTypeDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_typedefDeclaration()
 {
   if (token->klass == TOK_TYPEDEF || token->klass == TOK_TYPE) {
@@ -3149,18 +3176,17 @@ build_typedefDeclaration()
       next_token();
     } else assert(false);
 
-    if (token_is_typeRef(token) || token_is_derivedTypeDeclaration(token))
-    {
+    if (token_is_typeRef(token) || token_is_derivedTypeDeclaration(token)) {
       if (token_is_typeRef(token)) {
         build_typeRef();
-      }
-      else if (token_is_derivedTypeDeclaration(token)) {
+      } else if (token_is_derivedTypeDeclaration(token)) {
         build_derivedTypeDeclaration();
-      }
-      else assert(false);
+      } else assert(false);
 
       if (token_is_name(token)) {
-        build_name();
+        struct Ast_Name* name = build_name();
+        if (name->kind == Ast_NonTypeName)
+          new_type(((struct Ast_NonTypeName*)name)->name);
         if (token->klass == TOK_SEMICOLON) {
           next_token();
         } else error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
@@ -3170,7 +3196,7 @@ build_typedefDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_typeDeclaration()
 {
   if (token_is_typeDeclaration(token)) {
@@ -3194,7 +3220,7 @@ build_typeDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_conditionalStatement()
 {
   if (token->klass == TOK_IF) {
@@ -3221,7 +3247,7 @@ build_conditionalStatement()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_exitStatement()
 {
   if (token->klass == TOK_EXIT) {
@@ -3233,7 +3259,7 @@ build_exitStatement()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_returnStatement()
 {
   if (token->klass == TOK_RETURN) {
@@ -3247,7 +3273,7 @@ build_returnStatement()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_statement()
 {
   if (token_is_assignmentOrMethodCallStatement(token))
@@ -3268,7 +3294,7 @@ build_statement()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_statementOrDeclList()
 {
   if (token_is_statementOrDeclaration(token)) {
@@ -3285,7 +3311,7 @@ build_statementOrDeclList()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_blockStatement()
 {
   if (token->klass == TOK_BRACE_OPEN) {
@@ -3298,7 +3324,7 @@ build_blockStatement()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_actionDeclaration()
 {
   if (token->klass == TOK_ACTION) {
@@ -3319,7 +3345,7 @@ build_actionDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_identifierList()
 {
   if (token_is_name(token)) {
@@ -3332,7 +3358,7 @@ build_identifierList()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_errorDeclaration()
 {
   if (token->klass == TOK_ERROR) {
@@ -3352,7 +3378,7 @@ build_errorDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_matchKindDeclaration()
 {
   if (token->klass == TOK_MATCH_KIND) {
@@ -3367,7 +3393,7 @@ build_matchKindDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_functionDeclaration()
 {
   if (token_is_typeOrVoid(token)) {
@@ -3379,7 +3405,7 @@ build_functionDeclaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_declaration()
 {
   if (token_is_declaration(token)) {
@@ -3405,7 +3431,7 @@ build_declaration()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_p4program()
 {
   if (token_is_declaration(token)) {
@@ -3437,7 +3463,7 @@ token_is_binaryOperator(Token* token)
   return result;
 }
 
-internal Ast*
+internal struct Ast*
 build_realTypeArg()
 {
   if (token->klass == TOK_DONTCARE) {
@@ -3448,7 +3474,7 @@ build_realTypeArg()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_realTypeArgumentList()
 {
   if (token_is_realTypeArg(token)) {
@@ -3461,9 +3487,10 @@ build_realTypeArgumentList()
   return 0;
 }
 
-internal Ast*
+internal struct Ast*
 build_expressionPrimary()
 {
+  struct Ast* primary = 0;
   if (token_is_expression(token)) {
     if (token->klass == TOK_INTEGER) {
       next_token();
@@ -3477,7 +3504,7 @@ build_expressionPrimary()
       next_token();
       build_nonTypeName();
     } else if (token_is_nonTypeName(token)) {
-      build_nonTypeName();
+      primary = (struct Ast*)build_nonTypeName();
     } else if (token->klass == TOK_BRACE_OPEN) {
       next_token();
       build_expressionList();
@@ -3501,12 +3528,6 @@ build_expressionPrimary()
       build_typeName();
     } else if (token->klass == TOK_ERROR) {
       next_token();
-    /* } else if (token->klass == TOK_TYPE_SPECIALIZER) {
-      next_token();
-      build_typeArgumentList();
-      if (token->klass == TOK_ANGLE_OPEN) {
-        next_token();
-      } else error(""); */
     } else if (token->klass == TOK_CAST) {
       next_token();
       if (token->klass == TOK_PARENTH_OPEN) {
@@ -3523,7 +3544,7 @@ build_expressionPrimary()
       } else error("");
     } else assert(false);
   } else error("");
-  return 0;
+  return primary;
 }
 
 internal int
@@ -3546,7 +3567,7 @@ get_operator_priority(Token* token)
   return prio;
 }
 
-internal Ast*
+internal struct Ast*
 build_expression(int priority_threshold)
 {
   if (token_is_expression(token) || token_is_binaryOperator(token)) {
@@ -3669,6 +3690,9 @@ build_ast()
   add_keyword("true", TOK_TRUE);
   add_keyword("false", TOK_FALSE);
   add_keyword("void", TOK_VOID);
+  add_keyword("int", TOK_INT);
+  add_keyword("bit", TOK_BIT);
+  add_keyword("varbit", TOK_VARBIT);
 
   /*
   error_type_ident = sym_new_type(error_type_ast->name, (Ast*)error_type_ast);
