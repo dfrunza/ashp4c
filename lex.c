@@ -3,7 +3,7 @@
 external Arena arena;
 external char* input_text;
 external uint32_t input_size;
-external Token* tokenized_input;
+external struct Token* tokenized_input;
 external int tokenized_input_len;
 
 internal int line_nr = 1;
@@ -110,7 +110,7 @@ lexeme_to_cstring()
 }
 
 internal void
-next_token(Token* token_at)
+next_token(struct Token* token_at)
 {
   zero_struct(token_at, Token);
   state = 1;
@@ -638,7 +638,7 @@ next_token(Token* token_at)
 void
 lex_tokenize_input()
 {
-  Token* token_at = tokenized_input;
+  struct Token* token_at = tokenized_input;
   token_at->klass = TOK_SOI;
   token_at++;
   tokenized_input_len++;

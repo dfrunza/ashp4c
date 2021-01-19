@@ -6,12 +6,12 @@ Arena arena = {};
 char* input_text = 0;
 int input_size = 0;
 
-Token* tokenized_input = 0;
+struct Token* tokenized_input = 0;
 int tokenized_input_len = 0;
 int max_tokenized_input_len = 1000;  // table entry units
 int max_symtable_len = 997;  // table entry units
 
-Namespace_Entry** symtable = 0;
+struct Namespace_Entry** symtable = 0;
 int scope_level = 0;
 
 Ast_P4Program* p4program = 0;
@@ -37,12 +37,12 @@ main(int arg_count, char* args[])
   read_input("test.p4");
   arena_print_usage(&arena, "Memory (read_input): ");
 
-  tokenized_input = arena_push_array(&arena, Token, max_tokenized_input_len);
+  tokenized_input = arena_push_array(&arena, struct Token, max_tokenized_input_len);
   lex_input_init(input_text);
   lex_tokenize_input();
   arena_print_usage(&arena, "Memory (lex): ");
 
-  symtable = arena_push_array(&arena, Namespace_Entry*, max_symtable_len);
+  symtable = arena_push_array(&arena, struct Namespace_Entry*, max_symtable_len);
   int i = 0;
   while (i < max_symtable_len)
     symtable[i++] = 0;

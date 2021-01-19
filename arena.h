@@ -37,4 +37,4 @@ ArenaUsage arena_get_usage(Arena* arena);
 void arena_print_usage(Arena* arena, char* title);
 
 #define zero_struct(PTR, TYPE) \
-  *PTR = (TYPE){};
+  *PTR = (struct TYPE){};

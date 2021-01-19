@@ -101,26 +101,23 @@ struct Ident {
   struct Ident* next_in_scope;
 };  
 
-typedef struct Ident_Keyword {
+struct Ident_Keyword {
   struct Ident;
   enum TokenClass token_klass;
-}
-Ident_Keyword;  // ID_KEYWORD
+};  // ID_KEYWORD
 
-typedef struct Namespace_Entry {
+struct Namespace_Entry {
   char* name;
   struct Ident* ns_global;
   struct Ident* ns_type;
   struct Namespace_Entry* next;
-}
-Namespace_Entry;
+};
 
-typedef struct {
+struct Token {
   enum TokenClass klass;
   char* lexeme;
   int line_nr;
-}
-Token;
+};
 
 enum Typexpr_TypeCtor
 {
