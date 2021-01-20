@@ -14,7 +14,7 @@ int max_symtable_len = 997;  // table entry units
 struct Namespace_Entry** symtable = 0;
 int scope_level = 0;
 
-Ast_P4Program* p4program = 0;
+struct Cst_P4Program* p4program = 0;
 
 internal void
 read_input(char* filename)
