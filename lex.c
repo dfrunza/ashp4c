@@ -178,8 +178,7 @@ next_token(struct Token* token_at)
           state = 2;
         else
           state = 3;
-      }
-      break;
+      } break;
 
       case 100:
       {
@@ -187,8 +186,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 101:
       {
@@ -196,8 +194,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 102:
       {
@@ -205,8 +202,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 103:
       {
@@ -219,8 +215,7 @@ next_token(struct Token* token_at)
           lexeme_advance();
           state = 0;
         }
-      }
-      break;
+      } break;
 
       case 104:
       {
@@ -228,8 +223,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 105:
       {
@@ -246,8 +240,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 107:
       {
@@ -255,8 +248,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 108:
       {
@@ -264,8 +256,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 109:
       {
@@ -273,8 +264,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 110:
       {
@@ -282,8 +272,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 111:
       {
@@ -291,8 +280,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 112:
       {
@@ -300,8 +288,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 113:
       {
@@ -309,8 +296,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 114:
       {
@@ -318,8 +304,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 115:
       {
@@ -327,8 +312,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 116:
       {
@@ -341,8 +325,7 @@ next_token(struct Token* token_at)
           lexeme_advance();
           state = 0;
         }
-      }
-      break;
+      } break;
 
       case 117:
       {
@@ -355,8 +338,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 118:
       {
@@ -369,8 +351,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 314:
       {
@@ -394,8 +375,7 @@ next_token(struct Token* token_at)
         } else {
           state = 314;
         }
-      }
-      break;
+      } break;
 
       case 400:
       {
@@ -418,18 +398,17 @@ next_token(struct Token* token_at)
           }
         }
         state = 401;
-      }
-      break;
+      } break;
 
       case 401:
       {
         do
           c = char_advance();
         while (cstr_is_digit(c));
-        if (c == 'w')
+        if (c == 'w' || c == 's') {
+          char_advance();
           state = 405;
-        else if (c == 's')
-          state = 406;
+        }
         else {
           char_retract();
           token_at->klass = Token_Integer;
@@ -437,81 +416,109 @@ next_token(struct Token* token_at)
           lexeme_advance();
           state = 0;
         }
-      }
-      break;
+      } break;
 
       case 402:
       {
         do
           c = char_advance();
         while (cstr_is_hex_digit(c));
-        if (c == 'w')
-          state = 407;
-        else if (c == 's')
-          state = 408;
-        else {
-          char_retract();
-          token_at->klass = Token_Integer;
-          token_at->lexeme = lexeme_to_cstring();
-          lexeme_advance();
-          state = 0;
-        }
-      }
-      break;
+        char_retract();
+        token_at->klass = Token_Integer;
+        token_at->lexeme = lexeme_to_cstring();
+        lexeme_advance();
+        state = 0;
+      } break;
 
       case 403:
       {
         do
           c = char_advance();
         while (cstr_is_oct_digit(c));
-        if (c == 'w')
-          state = 409;
-        else if (c == 's')
-          state = 410;
-        else {
-          char_retract();
-          token_at->klass = Token_Integer;
-          token_at->lexeme = lexeme_to_cstring();
-          lexeme_advance();
-          state = 0;
-        }
-      }
-      break;
+        char_retract();
+        token_at->klass = Token_Integer;
+        token_at->lexeme = lexeme_to_cstring();
+        lexeme_advance();
+        state = 0;
+      } break;
 
       case 404:
       {
         do
           c = char_advance();
         while (cstr_is_bin_digit(c));
-        if (c == 'w')
-          state = 411;
-        else if (c == 's')
-          state = 412;
-        else {
-          char_retract();
-          token_at->klass = Token_Integer;
-          token_at->lexeme = lexeme_to_cstring();
-          lexeme_advance();
-          state = 0;
-        }
-      }
-      break;
+        char_retract();
+        token_at->klass = Token_Integer;
+        token_at->lexeme = lexeme_to_cstring();
+        lexeme_advance();
+        state = 0;
+      } break;
 
       case 405:
       {
-        do
-          c = char_advance();
-        while (cstr_is_digit(c));
-        char_retract();
-        token_at->klass = Token_Integer;
-        token_at->lexeme = lexeme_to_cstring();
-        lexeme_advance();
-        state = 0;
-      }
-      break;
+        if (c == '0') {
+          c = char_lookahead(1);
+          if (c == 'x' || c == 'X') {
+            state = 406;
+            lexeme_advance();
+            break;
+          }
+          else if (c == 'o' || c == 'O') {
+            state = 407;
+            lexeme_advance();
+            break;
+          }
+          else if (c == 'b' || c == 'B') {
+            state = 408;
+            lexeme_advance();
+            break;
+          }
+        }
+        state = 409;
+      } break;
 
       case 406:
       {
+        /* 32w0xAA */
+        do
+          c = char_advance();
+        while (cstr_is_hex_digit(c));
+        char_retract();
+        token_at->klass = Token_Integer;
+        token_at->lexeme = lexeme_to_cstring();
+        lexeme_advance();
+        state = 0;
+      } break;
+
+      case 407:
+      {
+        /* 32w0o77 */
+        do
+          c = char_advance();
+        while (cstr_is_oct_digit(c));
+        char_retract();
+        token_at->klass = Token_Integer;
+        token_at->lexeme = lexeme_to_cstring();
+        lexeme_advance();
+        state = 0;
+      } break;
+
+      case 408:
+      {
+        /* 32w0b11 */
+        do
+          c = char_advance();
+        while (cstr_is_bin_digit(c));
+        char_retract();
+        token_at->klass = Token_Integer;
+        token_at->lexeme = lexeme_to_cstring();
+        lexeme_advance();
+        state = 0;
+      } break;
+
+      case 409:
+      {
+        /* 32w99 */
         do
           c = char_advance();
         while (cstr_is_digit(c));
@@ -520,86 +527,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
-
-      case 407:
-      {
-        do
-          c = char_advance();
-        while (cstr_is_hex_digit(c));
-        char_retract();
-        token_at->klass = Token_Integer;
-        token_at->lexeme = lexeme_to_cstring();
-        lexeme_advance();
-        state = 0;
-      }
-      break;
-
-      case 408:
-      {
-        do
-          c = char_advance();
-        while (cstr_is_hex_digit(c));
-        char_retract();
-        token_at->klass = Token_Integer;
-        token_at->lexeme = lexeme_to_cstring();
-        lexeme_advance();
-        state = 0;
-      }
-      break;
-
-      case 409:
-      {
-        do
-          c = char_advance();
-        while (cstr_is_oct_digit(c));
-        char_retract();
-        token_at->klass = Token_Integer;
-        token_at->lexeme = lexeme_to_cstring();
-        lexeme_advance();
-        state = 0;
-      }
-      break;
-
-      case 410:
-      {
-        do
-          c = char_advance();
-        while (cstr_is_oct_digit(c));
-        char_retract();
-        token_at->klass = Token_Integer;
-        token_at->lexeme = lexeme_to_cstring();
-        lexeme_advance();
-        state = 0;
-      }
-      break;
-
-      case 411:
-      {
-        do
-          c = char_advance();
-        while (cstr_is_bin_digit(c) || c == '_');
-        char_retract();
-        token_at->klass = Token_Integer;
-        token_at->lexeme = lexeme_to_cstring();
-        lexeme_advance();
-        state = 0;
-      }
-      break;
-
-      case 412:
-      {
-        do
-          c = char_advance();
-        while (cstr_is_bin_digit(c) || c == '_');
-        char_retract();
-        token_at->klass = Token_Integer;
-        token_at->lexeme = lexeme_to_cstring();
-        lexeme_advance();
-        state = 0;
-      }
-      break;
+      } break;
 
       case 500:
       {
@@ -611,16 +539,14 @@ next_token(struct Token* token_at)
         token_at->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
 
       case 2:
       {
         token_at->klass = Token_EndOfInput;
         token_at->lexeme = "<end-of-input>";
         state = 0;
-      }
-      break;
+      } break;
 
       case 3:
       {
@@ -628,8 +554,7 @@ next_token(struct Token* token_at)
         token_at->lexeme = "<unknown>";
         lexeme_advance();
         state = 0;
-      }
-      break;
+      } break;
     }
   }
   token_at->line_nr = line_nr;
