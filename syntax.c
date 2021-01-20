@@ -350,7 +350,7 @@ build_nonTypeName()
     name = new_ast_node(Cst_NonTypeName);
     name->name = token->lexeme;
     next_token();
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return name;
 }
 
@@ -367,7 +367,7 @@ build_name()
       name = (struct Cst_Name*)type_name;
       next_token();
     } else assert(false);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return name;
 }
 
@@ -382,7 +382,7 @@ build_typeParameterList()
       next_token();
       build_name();
     }
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -395,8 +395,8 @@ build_optTypeParameters()
       build_typeParameterList();
       if (token->klass == Token_AngleClose) {
         next_token();
-      } else error("");
-    } else error("");
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
   }
   return 0;
 }
@@ -413,7 +413,7 @@ build_typeArg()
     } else if (token_is_nonTypeName(token)) {
       build_nonTypeName();
     } else assert(false);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -444,10 +444,10 @@ build_parameter()
         next_token();
         if (token_is_expression(token)) {
           build_expression(1);
-        } else error("");
+        } else error("at line %d: ", token->line_nr);
       }
-    } else error("");
-  } else error("");
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -481,8 +481,8 @@ build_typeOrVoid()
       name->name = token->lexeme;
       type = (struct Cst*)name;
       next_token();
-    } else error("");
-  } else error("");
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return type;
 }
 
@@ -504,12 +504,12 @@ build_functionPrototype()
           build_parameterList();
           if (token->klass == Token_ParenthClose) {
             next_token();
-          } else error("");
-        } else error("");
-      } else error("");
-    } else error("");
+          } else error("at line %d: ", token->line_nr);
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
     scope_pop_level(scope_level-1);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -524,16 +524,16 @@ build_methodPrototype()
         build_parameterList();
         if (token->klass == Token_ParenthClose) {
           next_token();
-        } else error("");
-      } else error("");
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
     } else if (token_is_functionPrototype(token)) {
       build_functionPrototype();
-    } else error("");
+    } else error("at line %d: ", token->line_nr);
 
     if (token->klass == Token_Semicolon) {
       next_token();
     } else error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -562,17 +562,17 @@ build_externDeclaration()
           build_methodPrototypes();
           if (token->klass == Token_BraceClose) {
             next_token();
-          } else error("");
-        } else error("");
+          } else error("at line %d: ", token->line_nr);
+        } else error("at line %d: ", token->line_nr);
         scope_pop_level(scope_level-1);
-      } else error("");
+      } else error("at line %d: ", token->line_nr);
     } else if (token_is_functionPrototype(token)) {
       build_functionPrototype();
       if (token->klass == Token_Semicolon) {
         next_token();
       } else error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
-    } else error("");
-  } else error("");
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -583,7 +583,7 @@ build_integerTypeSize()
     next_token();
   } else if (token->klass == Token_ParenthOpen) {
     build_expression(1);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -607,7 +607,7 @@ build_baseType()
         base_type->size = build_integerTypeSize();
         if (token->klass == Token_AngleClose) {
           next_token();
-        } else error("");
+        } else error("at line %d: ", token->line_nr);
       }
     } else if (token->klass == Token_Bit) {
       base_type->base_type = BASETYPE_BIT;
@@ -617,7 +617,7 @@ build_baseType()
         base_type->size = build_integerTypeSize();
         if (token->klass == Token_AngleClose) {
           next_token();
-        } else error("");
+        } else error("at line %d: ", token->line_nr);
       }
     } else if (token->klass == Token_Varbit) {
       base_type->base_type = BASETYPE_VARBIT;
@@ -627,7 +627,7 @@ build_baseType()
         base_type->size = build_integerTypeSize();
         if (token->klass == Token_AngleClose) {
           next_token();
-        } else error("");
+        } else error("at line %d: ", token->line_nr);
       }
     } else assert(false);
   }
@@ -659,7 +659,7 @@ build_tupleType()
         next_token();
       } else error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
     } else error("at line %d: '<' expected, got '%s'", token->line_nr, token->lexeme);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -674,7 +674,7 @@ build_headerStackType()
         next_token();
       } else error("at line %d: ']' expected, got '%s'", token->line_nr, token->lexeme);
     } else error("at line %d: expression expected, got '%s'", token->line_nr, token->lexeme);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -687,7 +687,7 @@ build_specializedType()
     if (token->klass == Token_AngleClose) {
       next_token();
     } else error("at line %d: '>' expected, got '%s'", token->line_nr, token->lexeme);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -707,9 +707,9 @@ build_prefixedType()
         pfx_type->second_name = new_ast_node(Cst_TypeName);
         pfx_type->second_name->name = token->lexeme;
         next_token();
-      } else error("");
+      } else error("at line %d: ", token->line_nr);
     }
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return (struct Cst*)name;
 }
 
@@ -724,7 +724,7 @@ build_typeName()
     } if (token->klass == Token_BracketOpen) {
       name = build_headerStackType();
     }
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return name;
 }
 
@@ -741,7 +741,7 @@ build_typeRef()
     } else if (token->klass == Token_Tuple) {
       ref = build_tupleType();
     } else assert(false);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return ref;
 }
 
@@ -762,9 +762,9 @@ build_structField()
       new_ident(name->name);
       if (token->klass == Token_Semicolon) {
         next_token();
-      } else error("");
-    } else error("");
-  } else error("");
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -798,9 +798,9 @@ build_headerTypeDeclaration()
           next_token(token);
         } else error("at line %d: '}' expected, got '%s'", token->line_nr, token->lexeme);
         scope_pop_level(scope_level-1);
-      } else error("");
-    } else error("");
-  } else error("");
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -816,10 +816,10 @@ build_headerUnionDeclaration()
         build_structFieldList();
         if (token->klass == Token_BraceClose) {
           next_token();
-        } else error("");
-      } else error("");
-    } else error("");
-  } else error("");
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -837,10 +837,10 @@ build_structTypeDeclaration()
         build_structFieldList();
         if (token->klass == Token_BraceClose) {
           next_token();
-        } else error("");
-      } else error("");
-    } else error("");
-  } else error("");
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -875,9 +875,9 @@ build_specifiedIdentifier()
       next_token();
       if (token_is_expression(token)) {
         build_initializer();
-      } else error("");
-    } else error("");
-  } else error("");
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -906,9 +906,9 @@ build_enumDeclaration()
           next_token();
           if (token->klass == Token_AngleClose) {
             next_token();
-          } else error("");
-        } else error("");
-      } else error("");
+          } else error("at line %d: ", token->line_nr);
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
     }
     if (token_is_name) {
       build_name();
@@ -918,11 +918,11 @@ build_enumDeclaration()
           build_specifiedIdentifierList();
           if (token->klass == Token_BraceClose) {
             next_token();
-          } else error("");
-        } else error("");
-      } else error("");
-    } else error("");
-  } else error("");
+          } else error("at line %d: ", token->line_nr);
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -939,7 +939,7 @@ build_derivedTypeDeclaration()
     } else if (token->klass == Token_Enum) {
       build_enumDeclaration();
     } else assert(false);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -958,10 +958,10 @@ build_parserTypeDeclaration()
         build_parameterList();
         if (token->klass == Token_ParenthClose) {
           next_token();
-        } else error("");
-      } else error("");
-    } else error("");
-  } else error("");
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -973,7 +973,7 @@ build_optConstructorParameters()
     build_parameterList();
     if (token->klass == Token_ParenthClose) {
       next_token();
-    } else error("");
+    } else error("at line %d: ", token->line_nr);
   }
   return 0;
 }
@@ -994,11 +994,11 @@ build_constantDeclaration()
             if (token->klass == Token_Semicolon) {
               next_token();
             } else error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
-          } else error("");
-        } else error("");
-      } else error("");
-    } else error("");
-  } else error("");
+          } else error("at line %d: ", token->line_nr);
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1105,11 +1105,11 @@ build_argument()
       next_token();
       if (token_is_expression(token)) {
         build_expression(1);
-      } else error("");
-    } else error("");
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
   } else if (token->klass == Token_Dontcare) {
     next_token();
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1138,10 +1138,10 @@ build_variableDeclaration()
         build_optInitializer();
         if (token->klass == Token_Semicolon) {
           next_token();
-        } else error("");
-      } else error("");
-    } else error("");
-  } else error("");
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1159,11 +1159,11 @@ build_instantiation()
           build_name();
           if (token->klass == Token_Semicolon) {
             next_token();
-          } else error("");
-        } else error("");
-      } else error("");
-    } else error("");
-  } else error("");
+          } else error("at line %d: ", token->line_nr);
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1177,8 +1177,8 @@ build_parserLocalElement()
       build_variableDeclaration();
     } else if (token_is_typeRef(token)) {
       build_instantiation();
-    } else error("");
-  } else error("");
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1205,11 +1205,11 @@ build_directApplication()
           build_argumentList();
           if (token->klass == Token_ParenthClose) {
             next_token();
-          } else error("");
-        } else error("");
-      } else error("");
-    } else error("");
-  } else error("");
+          } else error("at line %d: ", token->line_nr);
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1224,7 +1224,7 @@ build_prefixedNonTypeName()
   }
   if (token_is_nonTypeName) {
     name = (struct Cst*)build_nonTypeName();
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return name;
 }
 
@@ -1245,14 +1245,14 @@ build_lvalue()
           next_token();
           if (token_is_expression(token)) {
             build_expression(1);
-          } else error("");
+          } else error("at line %d: ", token->line_nr);
         }
         if (token->klass == Token_BracketClose) {
           next_token();
-        } else error("");
-      } else error("");
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
     }
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1266,19 +1266,28 @@ build_assignmentOrMethodCallStatement()
       build_typeArgumentList();
       if (token->klass == Token_AngleClose) {
         next_token();
-      } else error("");
+        if (token->klass == Token_ParenthOpen) {
+          next_token();
+          build_argumentList();
+          if (token->klass == Token_ParenthClose) {
+            next_token();
+          } else error("at line %d: ", token->line_nr);
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
     }
-
     if (token->klass == Token_ParenthOpen) {
       next_token();
       build_argumentList();
       if (token->klass == Token_ParenthClose) {
         next_token();
-        if (token->klass == Token_Semicolon) {
-          next_token();
-        } else error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
-      } else error("");
-    } else error("");
+      } else error("at line %d: ", token->line_nr);
+    } else if (token->klass == Token_Equal) {
+      next_token();
+      build_expression(1);
+    } else error("at line %d: ", token->line_nr);
+    if (token->klass == Token_Semicolon) {
+      next_token();
+    } else error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
   }
   return 0;
 }
@@ -1300,8 +1309,8 @@ build_parserBlockStatements()
     build_parserStatements();
     if (token->klass == Token_BraceClose) {
       next_token();
-    } else error("");
-  } else error("");
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1320,7 +1329,7 @@ build_parserStatement()
     build_variableDeclaration();
   } else if (token->klass == Token_Semicolon) {
     ; // <emptyStatement>
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1346,7 +1355,7 @@ build_simpleKeysetExpression()
     next_token();
   } else if (token->klass == Token_Dontcare) {
     next_token();
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return expr;
 }
 
@@ -1363,8 +1372,8 @@ build_tupleKeysetExpression()
     }
     if (token->klass == Token_ParenthClose) {
       next_token();
-    } else error("");
-  } else error("");
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return expr;
 }
 
@@ -1376,7 +1385,7 @@ build_keysetExpression()
     build_tupleKeysetExpression();
   } else if (token_is_simpleKeysetExpression(token)) {
     build_simpleKeysetExpression();
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return expr;
 }
 
@@ -1392,9 +1401,9 @@ build_selectCase()
         if (token->klass == Token_Semicolon) {
           next_token();
         } else error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
-      } else error("");
-    } else error("");
-  } else error("");
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1423,12 +1432,12 @@ build_selectExpression()
           build_selectCaseList();
           if (token->klass == Token_BraceClose) {
             next_token();
-          } else error("");
+          } else error("at line %d: ", token->line_nr);
           scope_pop_level(scope_level-1);
-        } else error("");
-      } else error("");
-    } else error("");
-  } else error("");
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1439,11 +1448,11 @@ build_stateExpression()
     build_name();
     if (token->klass == Token_Semicolon) {
       next_token();
-    } else error("");
+    } else error("at line %d: ", token->line_nr);
   } else if (token->klass == Token_Select) {
     build_selectExpression();
   }
-  else error("");
+  else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1453,7 +1462,7 @@ build_transitionStatement()
   if (token->klass == Token_Transition) {
     next_token();
     build_stateExpression();
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1471,10 +1480,10 @@ build_parserState()
       build_transitionStatement();
       if (token->klass == Token_BraceClose) {
         next_token();
-      } else error("");
+      } else error("at line %d: ", token->line_nr);
       scope_pop_level(scope_level-1);
-    } else error("");
-  } else error("");
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1486,7 +1495,7 @@ build_parserStates()
     while (token->klass == Token_State) {
       build_parserState();
     }
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1506,9 +1515,9 @@ build_parserDeclaration()
       build_parserStates();
       if (token->klass == Token_BraceClose) {
         next_token();
-      } else error("");
+      } else error("at line %d: ", token->line_nr);
       scope_pop_level(scope_level-1);
-    } else error("");
+    } else error("at line %d: ", token->line_nr);
   }
   return 0;
 }
@@ -1529,11 +1538,11 @@ build_controlTypeDeclaration()
           build_parameterList();
           if (token->klass == Token_ParenthClose) {
             next_token();
-          } else error("");
+          } else error("at line %d: ", token->line_nr);
         }
-      } else error("");
-    } else error("");
-  } else error("");
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1545,16 +1554,17 @@ build_actionDeclaration()
     if (token_is_name(token)) {
       build_name();
       if (token->klass == Token_ParenthOpen) {
+        next_token();
         build_parameterList();
         if (token->klass == Token_ParenthClose) {
           next_token();
           if (token->klass == Token_BraceOpen) {
             build_blockStatement();
-          } else error("");
-        } else error("");
-      } else error("");
-    } else error("");
-  } else error("");
+          } else error("at line %d: ", token->line_nr);
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1570,7 +1580,7 @@ build_controlLocalDeclaration()
     decl = build_instantiation();
   } else if (token->klass == Token_Var) {
     decl = build_variableDeclaration();
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return decl;
 }
 
@@ -1593,11 +1603,11 @@ build_controlDeclaration()
           build_blockStatement();
           if (token->klass == Token_BraceClose) {
             next_token();
-          } else error("");
-        } else error("");
-      } else error("");
+          } else error("at line %d: ", token->line_nr);
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
     }
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1616,10 +1626,10 @@ build_packageTypeDeclaration()
         build_parameterList();
         if (token->klass == Token_ParenthClose) {
           next_token();
-        } else error("");
-      } else error("");
-    } else error("");
-  } else error("");
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1647,9 +1657,9 @@ build_typedefDeclaration()
         if (token->klass == Token_Semicolon) {
           next_token();
         } else error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
-      } else error("");
-    } else error("");
-  } else error("");
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1672,8 +1682,8 @@ build_typeDeclaration()
       if (token->klass == Token_Semicolon) {
         next_token();
       } else error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
-    } else error("");
-  } else error("");
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1694,13 +1704,13 @@ build_conditionalStatement()
               next_token();
               if (token_is_statement(token))
                 build_statement();
-              else error("");
+              else error("at line %d: ", token->line_nr);
             }
-          } else error("");
-        } else error("");
-      } else error("");
-    } else error("");
-  } else error("");
+          } else error("at line %d: ", token->line_nr);
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1712,7 +1722,7 @@ build_exitStatement()
     if (token->klass == Token_Semicolon) {
       next_token();
     } else error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1726,7 +1736,7 @@ build_returnStatement()
     if (token->klass == Token_Semicolon) {
       next_token();
     } else error("at line %d: ';' expected, got '%s'", token->line_nr, token->lexeme);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1747,7 +1757,7 @@ build_statement()
     build_exitStatement();
   else if (token->klass == Token_Return)
     build_returnStatement();
-  else error("");
+  else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1777,9 +1787,9 @@ build_blockStatement()
     build_statementOrDeclList();
     if (token->klass == Token_BraceClose) {
       next_token();
-    } else error("");
+    } else error("at line %d: ", token->line_nr);
     scope_pop_level(scope_level-1);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1792,7 +1802,7 @@ build_identifierList()
       next_token();
       build_name();
     }
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1808,11 +1818,11 @@ build_errorDeclaration()
         build_identifierList();
         if (token->klass == Token_BraceClose) {
           next_token();
-        } else error("");
-      } else error("");
-    } else error("");
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
     scope_pop_level(scope_level-1);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1825,9 +1835,9 @@ build_matchKindDeclaration()
       next_token();
       if (token_is_name(token)) {
         build_identifierList();
-      } else error("");
-    } else error("");
-  } else error("");
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1838,8 +1848,8 @@ build_functionDeclaration()
     build_functionPrototype();
     if (token->klass == Token_BraceOpen) {
       build_blockStatement();
-    } else error("");
-  } else error("");
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1865,7 +1875,7 @@ build_declaration()
     else if (token_is_typeOrVoid(token))
       build_functionDeclaration();
     else assert(false);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1912,7 +1922,7 @@ build_realTypeArg()
     next_token();
   } else if (token_is_typeRef(token)) {
     build_typeRef();
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 
@@ -1952,14 +1962,14 @@ build_expressionPrimary()
       build_expressionList();
       if (token->klass == Token_BraceClose) {
         next_token();
-      } else error("");
+      } else error("at line %d: ", token->line_nr);
     } else if (token->klass == Token_ParenthOpen) {
       next_token();
       if (token_is_expression(token))
         build_expression(1);
       if (token->klass == Token_ParenthClose) {
         next_token();
-      } else error("");
+      } else error("at line %d: ", token->line_nr);
     } else if (token->klass == Token_LogicNot) {
       next_token();
       build_expression(1);
@@ -1980,12 +1990,12 @@ build_expressionPrimary()
             next_token();
             if (token_is_expression(token)) {
               build_expression(1);
-            } else error("");
-          } else error("");
-        } else error("");
-      } else error("");
+            } else error("at line %d: ", token->line_nr);
+          } else error("at line %d: ", token->line_nr);
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
     } else assert(false);
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return primary;
 }
 
@@ -2013,7 +2023,7 @@ internal struct Cst*
 build_expression(int priority_threshold)
 {
   struct Cst* expr = 0;
-  if (token_is_expression(token) || token_is_binaryOperator(token)) {
+  if (token_is_expression(token)/* || token_is_binaryOperator(token)*/) {
     build_expressionPrimary();
     while (token_is_binaryOperator(token)) {
       int priority = get_operator_priority(token);
@@ -2022,7 +2032,7 @@ build_expression(int priority_threshold)
           next_token();
           if (token_is_name(token)) {
             build_name();
-          } else error("");
+          } else error("at line %d: ", token->line_nr);
         }
         else if (token->klass == Token_BracketOpen) {
           next_token();
@@ -2032,34 +2042,34 @@ build_expression(int priority_threshold)
               next_token();
               if (token_is_expression(token)) {
                 build_expression(1);
-              } else error("");
+              } else error("at line %d: ", token->line_nr);
             }
             if (token->klass == Token_BracketClose) {
               next_token();
-            } else error("");
-          } else error("");
+            } else error("at line %d: ", token->line_nr);
+          } else error("at line %d: ", token->line_nr);
         }
         else if (token->klass == Token_ParenthOpen) {
           next_token();
           build_argumentList();
           if (token->klass == Token_ParenthClose) {
             next_token();
-          } else error("");
+          } else error("at line %d: ", token->line_nr);
         }
         else if (token->klass == Token_AngleOpen) {
           next_token();
           if (token_is_realTypeArg(token)) {
             build_realTypeArgumentList();
-          } else error("");
+          } else error("at line %d: ", token->line_nr);
         } else {
           next_token();
           if (token_is_expression(token)) {
             build_expression(priority_threshold + 1);
-          } else error("");
+          } else error("at line %d: ", token->line_nr);
         }
       } else break;
     }
-  } else error("");
+  } else error("at line %d: ", token->line_nr);
   return expr;
 }
 
