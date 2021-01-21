@@ -256,11 +256,11 @@
   | { '.' } <nonTypeName>
   | '{' <expressionList> /* | <kvList> */ '}'
   | '(' <expression> ')'
-  | '!' <expression>
+  | ( '!' | '~' ) <expression>
   | '-' /* Token_UnaryMinus */ <expression>
   | ( <typeName> | ERROR ) '.' <member>
   | <namedType> '(' <argumentList> ')'
-  | CAST '(' <typeRef> ')' <expression>
+  | '(' <typeRef> ')' <expression> /* cast */
 
 <exprOperator> :=
   | <binaryOperator>
@@ -270,5 +270,5 @@
   | '<' <realTypeArgumentList> '>'
 
 <binaryOperator> := '*' | '/' | '+' | '-' | '<=' | '>=' | '<' | '>' | '!='
-  | '==' | '||' | '&&' | '|' | '&'
+  | '==' | '||' | '&&' | '|' | '&' | '<<' | '>>'
 

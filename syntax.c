@@ -348,8 +348,8 @@ token_is_expressionPrimary(struct Token* token)
   bool result = token->klass == Token_Integer || token->klass == Token_True || token->klass == Token_False
     || token->klass == Token_StringLiteral || token->klass == Token_Dotprefix || token_is_nonTypeName(token)
     || token->klass == Token_BraceOpen || token->klass == Token_ParenthOpen || token->klass == Token_LogicNot
-    || token->klass == Token_UnaryMinus || token_is_typeName(token) || token->klass == Token_Error
-    || token_is_prefixedType(token) || token->klass == Token_Cast;
+    || token->klass == Token_BitwiseNot || token->klass == Token_UnaryMinus || token_is_typeName(token)
+    || token->klass == Token_Error || token_is_prefixedType(token);
   return result;
 }
 
@@ -712,15 +712,13 @@ build_prefixedType()
     name = new_ast_node(Cst_TypeName);
     name->name = token->lexeme;
     next_token();
-    if (token->klass == Token_Dotprefix) {
+    if (token->klass == Token_Dotprefix && peek_token()->klass == Token_TypeIdentifier) {
       next_token();
-      if (token->klass == Token_TypeIdentifier) {
-        struct Cst_PrefixedType* pfx_type = new_ast_node(Cst_PrefixedType);
-        pfx_type->first_name = name;
-        pfx_type->second_name = new_ast_node(Cst_TypeName);
-        pfx_type->second_name->name = token->lexeme;
-        next_token();
-      } else error("at line %d: ", token->line_nr);
+      struct Cst_PrefixedType* pfx_type = new_ast_node(Cst_PrefixedType);
+      pfx_type->first_name = name;
+      pfx_type->second_name = new_ast_node(Cst_TypeName);
+      pfx_type->second_name->name = token->lexeme;
+      next_token();
     }
   } else error("at line %d: ", token->line_nr);
   return (struct Cst*)name;
@@ -1218,6 +1216,9 @@ build_directApplication()
           build_argumentList();
           if (token->klass == Token_ParenthClose) {
             next_token();
+            if (token->klass == Token_Semicolon) {
+              next_token();
+            } else error("at line %d: ", token->line_nr);
           } else error("at line %d: ", token->line_nr);
         } else error("at line %d: ", token->line_nr);
       } else error("at line %d: ", token->line_nr);
@@ -1933,7 +1934,7 @@ build_statement()
   else if (token->klass == Token_If)
     build_conditionalStatement();
   else if (token->klass == Token_Semicolon)
-    ; // empty statement
+    next_token(); // empty statement
   else if (token->klass == Token_BraceOpen)
     build_blockStatement();
   else if (token->klass == Token_Exit)
@@ -2081,7 +2082,7 @@ build_p4program()
 internal bool
 token_is_realTypeArg(struct Token* token)
 {
-  bool result = token->klass == Token_Dontcare || token_is_typeRef(token) || token_is_nonTypeName(token);
+  bool result = token->klass == Token_Dontcare || token_is_typeRef(token);
   return result;
 }
 
@@ -2095,7 +2096,8 @@ token_is_binaryOperator(struct Token* token)
     || token->klass == Token_LogicNotEqual || token->klass == Token_LogicEqual
     || token->klass == Token_LogicOr || token->klass == Token_LogicAnd
     || token->klass == Token_BitwiseOr || token->klass == Token_BitwiseAnd
-    || token->klass == Token_BitwiseXor;
+    || token->klass == Token_BitwiseXor || token->klass == Token_BitshiftLeft
+    || token->klass == Token_BitshiftRight;
   return result;
 }
 
@@ -2158,12 +2160,22 @@ build_expressionPrimary()
       } else error("at line %d: ", token->line_nr);
     } else if (token->klass == Token_ParenthOpen) {
       next_token();
-      if (token_is_expression(token))
+      if (token_is_typeRef(token)) {
+        build_typeRef();
+        if (token->klass == Token_ParenthClose) {
+          next_token();
+          build_expression(1);
+        } else error("at line %d: ", token->line_nr);
+      } else if (token_is_expression(token)) {
         build_expression(1);
-      if (token->klass == Token_ParenthClose) {
-        next_token();
+        if (token->klass == Token_ParenthClose) {
+          next_token();
+        } else error("at line %d: ", token->line_nr);
       } else error("at line %d: ", token->line_nr);
     } else if (token->klass == Token_LogicNot) {
+      next_token();
+      build_expression(1);
+    } else if (token->klass == Token_BitwiseNot) {
       next_token();
       build_expression(1);
     } else if (token->klass == Token_UnaryMinus) {
@@ -2173,20 +2185,6 @@ build_expressionPrimary()
       build_typeName();
     } else if (token->klass == Token_Error) {
       next_token();
-    } else if (token->klass == Token_Cast) {
-      next_token();
-      if (token->klass == Token_ParenthOpen) {
-        next_token();
-        if (token_is_typeRef(token)) {
-          build_typeRef();
-          if (token->klass == Token_ParenthClose) {
-            next_token();
-            if (token_is_expression(token)) {
-              build_expression(1);
-            } else error("at line %d: ", token->line_nr);
-          } else error("at line %d: ", token->line_nr);
-        } else error("at line %d: ", token->line_nr);
-      } else error("at line %d: ", token->line_nr);
     } else assert(false);
   } else error("at line %d: ", token->line_nr);
   return primary;
@@ -2205,7 +2203,8 @@ get_operator_priority(struct Token* token)
   }
   else if (token->klass == Token_Plus || token->klass == Token_Minus
            || token->klass == Token_BitwiseAnd || token->klass == Token_BitwiseOr
-           || token->klass == Token_BitwiseXor) {
+           || token->klass == Token_BitwiseXor || token->klass == Token_BitshiftLeft
+           || token->klass == Token_BitshiftRight) {
     prio = 3;
   }
   else if (token->klass == Token_Star || token->klass == Token_Slash) {
@@ -2302,7 +2301,6 @@ build_ast()
   add_keyword("struct", Token_Struct);
   add_keyword("apply", Token_Apply);
   add_keyword("var", Token_Var);
-  add_keyword("cast", Token_Cast);
   add_keyword("const", Token_Const);
   add_keyword("bool", Token_Bool);
   add_keyword("true", Token_True);

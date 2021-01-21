@@ -40,6 +40,8 @@ enum TokenClass {
   Token_BitwiseAnd,
   Token_BitwiseOr,
   Token_BitwiseXor,
+  Token_BitshiftLeft,
+  Token_BitshiftRight,
   Token_Comment,
 
   Token_Action,
@@ -83,7 +85,6 @@ enum TokenClass {
   Token_Struct,
   Token_Const,
   Token_Var,
-  Token_Cast,
 
   Token_Unknown,
   Token_StartOfInput,

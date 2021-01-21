@@ -6,6 +6,7 @@ external uint32_t input_size;
 external struct Token* tokenized_input;
 external int tokenized_input_len;
 
+internal struct Token* prev_token;
 internal int line_nr = 1;
 internal char* lexeme_start = 0;
 internal char* lexeme_end = 0;
@@ -176,6 +177,8 @@ next_token(struct Token* token)
           state = 120;
         else if (c == '^')
           state = 121;
+        else if (c == '~')
+          state = 122;
         else if (cstr_is_digit(c))
           state = 400;
         else if (cstr_is_letter(c))
@@ -196,7 +199,15 @@ next_token(struct Token* token)
 
       case 101:
       {
-        token->klass = Token_AngleOpen;
+        if (char_lookahead(1) == '=') {
+          char_advance();
+          token->klass = Token_LessEqual;
+        } else if (char_lookahead(1) == '<') {
+          char_advance();
+          token->klass = Token_BitshiftLeft;
+        } else {
+          token->klass = Token_AngleOpen;
+        }
         token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -204,7 +215,15 @@ next_token(struct Token* token)
 
       case 102:
       {
-        token->klass = Token_AngleClose;
+        if (char_lookahead(1) == '=') {
+          char_advance();
+          token->klass = Token_GreaterEqual;
+        } else if (char_lookahead(1) == '>') {
+          char_advance();
+          token->klass = Token_BitshiftRight;
+        } else {
+          token->klass = Token_AngleClose;
+        }
         token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -298,7 +317,11 @@ next_token(struct Token* token)
 
       case 113:
       {
-        token->klass = Token_Minus;
+        if (prev_token->klass == Token_ParenthOpen) {
+          token->klass = Token_UnaryMinus;
+        } else {
+          token->klass = Token_Minus;
+        }
         token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -388,6 +411,14 @@ next_token(struct Token* token)
       case 121:
       {
         token->klass = Token_BitwiseXor;
+        token->lexeme = lexeme_to_cstring();
+        lexeme_advance();
+        state = 0;
+      } break;
+
+      case 122:
+      {
+        token->klass = Token_BitwiseNot;
         token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
@@ -598,6 +629,7 @@ next_token(struct Token* token)
     }
   }
   token->line_nr = line_nr;
+  prev_token = token;
 }
 
 void
