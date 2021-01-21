@@ -500,11 +500,9 @@ build_functionPrototype()
       build_optTypeParameters();
       if (token->klass == Token_ParenthOpen) {
         next_token();
-        if (token_is_parameter(token)) {
-          build_parameterList();
-          if (token->klass == Token_ParenthClose) {
-            next_token();
-          } else error("at line %d: ", token->line_nr);
+        build_parameterList();
+        if (token->klass == Token_ParenthClose) {
+          next_token();
         } else error("at line %d: ", token->line_nr);
       } else error("at line %d: ", token->line_nr);
     } else error("at line %d: ", token->line_nr);
@@ -558,11 +556,9 @@ build_externDeclaration()
       if (token->klass == Token_BraceOpen) {
         scope_push_level();
         next_token();
-        if (token_is_methodPrototype(token)) {
-          build_methodPrototypes();
-          if (token->klass == Token_BraceClose) {
-            next_token();
-          } else error("at line %d: ", token->line_nr);
+        build_methodPrototypes();
+        if (token->klass == Token_BraceClose) {
+          next_token();
         } else error("at line %d: ", token->line_nr);
         scope_pop_level(scope_level-1);
       } else error("at line %d: ", token->line_nr);
@@ -1341,6 +1337,7 @@ build_expressionList()
   if (token_is_expression(token)) {
     build_expression(1);
     while (token->klass == Token_Comma) {
+      next_token();
       build_expression(1);
     }
   }
@@ -1911,7 +1908,8 @@ token_is_binaryOperator(struct Token* token)
     || token->klass == Token_AngleOpen || token->klass == Token_AngleClose
     || token->klass == Token_LogicNotEqual || token->klass == Token_LogicEqual
     || token->klass == Token_LogicOr || token->klass == Token_LogicAnd
-    || token->klass == Token_BitwiseOr || token->klass == Token_BitwiseAnd;
+    || token->klass == Token_BitwiseOr || token->klass == Token_BitwiseAnd
+    || token->klass == Token_BitwiseXor;
   return result;
 }
 
@@ -2019,7 +2017,8 @@ get_operator_priority(struct Token* token)
   }
   else if (token->klass == Token_LogicAnd || token->klass == Token_LogicOr
            || token->klass == Token_Plus || token->klass == Token_Minus
-           || token->klass == Token_BitwiseAnd || token->klass == Token_BitwiseOr) {
+           || token->klass == Token_BitwiseAnd || token->klass == Token_BitwiseOr
+           || token->klass == Token_BitwiseXor) {
     prio = 2;
   }
   else if (token->klass == Token_Star || token->klass == Token_Slash) {
@@ -2036,46 +2035,49 @@ build_expression(int priority_threshold)
   if (token_is_expression(token)) {
     build_expressionPrimary();
     while (token_is_exprOperator(token)) {
-      int priority = get_operator_priority(token);
-      if (priority >= priority_threshold) {
-        if (token->klass == Token_Dotprefix) {
-          next_token();
-          if (token_is_name(token)) {
-            build_name();
-          } else error("at line %d: ", token->line_nr);
-        }
-        else if (token->klass == Token_BracketOpen) {
-          next_token();
-          if (token_is_expression(token)) {
-            build_expression(1);
-            if (token->klass == Token_Colon) {
-              next_token();
-              if (token_is_expression(token)) {
-                build_expression(1);
-              } else error("at line %d: ", token->line_nr);
-            }
-            if (token->klass == Token_BracketClose) {
-              next_token();
+      if (token->klass == Token_Dotprefix) {
+        next_token();
+        if (token_is_name(token)) {
+          build_name();
+        } else error("at line %d: ", token->line_nr);
+      }
+      else if (token->klass == Token_BracketOpen) {
+        next_token();
+        if (token_is_expression(token)) {
+          build_expression(1);
+          if (token->klass == Token_Colon) {
+            next_token();
+            if (token_is_expression(token)) {
+              build_expression(1);
             } else error("at line %d: ", token->line_nr);
-          } else error("at line %d: ", token->line_nr);
-        }
-        else if (token->klass == Token_ParenthOpen) {
-          next_token();
-          build_argumentList();
-          if (token->klass == Token_ParenthClose) {
+          }
+          if (token->klass == Token_BracketClose) {
             next_token();
           } else error("at line %d: ", token->line_nr);
-        }
-        else if (token->klass == Token_AngleOpen) {
+        } else error("at line %d: ", token->line_nr);
+      }
+      else if (token->klass == Token_ParenthOpen) {
+        next_token();
+        build_argumentList();
+        if (token->klass == Token_ParenthClose) {
           next_token();
-          if (token_is_realTypeArg(token)) {
-            build_realTypeArgumentList();
+        } else error("at line %d: ", token->line_nr);
+      }
+      else if (token->klass == Token_AngleOpen) {
+        next_token();
+        if (token_is_realTypeArg(token)) {
+          build_realTypeArgumentList();
+          if (token->klass == Token_AngleClose) {
+            next_token();
           } else error("at line %d: ", token->line_nr);
-        } else if (token_is_binaryOperator(token)){
-          next_token();
+        } else error("at line %d: ", token->line_nr);
+      } else if (token_is_binaryOperator(token)){
+        int priority = get_operator_priority(token);
+        next_token();
+        if (priority >= priority_threshold) {
           build_expression(priority_threshold + 1);
-        } else assert(0);
-      } else break;
+        } else break;
+      } else assert(0);
     }
   } else error("at line %d: ", token->line_nr);
   return expr;

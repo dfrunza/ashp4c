@@ -40,6 +40,7 @@ enum TokenClass {
   Token_BitwiseNot,
   Token_BitwiseAnd,
   Token_BitwiseOr,
+  Token_BitwiseXor,
   Token_Comment,
 
   Token_Action,

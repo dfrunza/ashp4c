@@ -174,6 +174,8 @@ next_token(struct Token* token)
           state = 119;
         else if (c == '|')
           state = 120;
+        else if (c == '^')
+          state = 121;
         else if (cstr_is_digit(c))
           state = 400;
         else if (cstr_is_letter(c))
@@ -378,6 +380,14 @@ next_token(struct Token* token)
         } else {
           token->klass = Token_LogicOr;
         }
+        token->lexeme = lexeme_to_cstring();
+        lexeme_advance();
+        state = 0;
+      } break;
+
+      case 121:
+      {
+        token->klass = Token_BitwiseXor;
         token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
