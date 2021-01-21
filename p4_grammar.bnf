@@ -231,7 +231,7 @@
       '.' <member>
     | '[' <expression> { ':' <expression> } ']' }*
 
-<expression> := <expressionPrimary> { <binaryOperator> <expression> }*
+<expression> := <expressionPrimary> { <exprOperator> <expression> }*
 
 <expressionPrimary> := INTEGER | TRUE | FALSE | STRING_LITERAL
   | { '.' /* TOK_UNARY_DOTPREFIX */ } <nonTypeName>
@@ -243,12 +243,15 @@
   | <namedType> '(' <argumentList> ')'
   | CAST '(' <typeRef> ')' <expression>
 
-<binaryOperator> := '*' | '/' | '+' | '-' | '<=' | '>=' | '<' | '>'
-  | '!=' | '==' | '||' | '&&'
+<exprOperator> :=
+  | <binaryOperator>
   | '.' <member>
   | '[' <expression> { ':' <expression> } ']' /* array indexer */
   | '(' <argumentList> ')' /* function call */
   | '<' <realTypeArgumentList> '>'
+
+<binaryOperator> := '*' | '/' | '+' | '-' | '<=' | '>=' | '<' | '>' | '!='
+  | '==' | '||' | '&&' | '|' | '&'
 
 
 

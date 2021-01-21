@@ -1907,11 +1907,20 @@ token_is_binaryOperator(struct Token* token)
 {
   bool result = token->klass == Token_Star || token->klass == Token_Slash
     || token->klass == Token_Plus || token->klass == Token_Minus
+    || token->klass == Token_LessEqual || token->klass == Token_GreaterEqual
     || token->klass == Token_AngleOpen || token->klass == Token_AngleClose
-    /* || token->klass == Token_NotEqual */ || token->klass == Token_LogicEqual
-    || token->klass == Token_Dotprefix
-    || token->klass == Token_AngleOpen || token->klass == Token_AngleClose
-    || token->klass == Token_BracketOpen || token->klass == Token_ParenthOpen;
+    || token->klass == Token_LogicNotEqual || token->klass == Token_LogicEqual
+    || token->klass == Token_LogicOr || token->klass == Token_LogicAnd
+    || token->klass == Token_BitwiseOr || token->klass == Token_BitwiseAnd;
+  return result;
+}
+
+internal bool
+token_is_exprOperator(struct Token* token)
+{
+  bool result = token_is_binaryOperator(token) || token->klass == Token_Dotprefix
+    || token->klass == Token_BracketOpen || token->klass == Token_ParenthOpen
+    || token->klass == Token_AngleOpen;
   return result;
 }
 
@@ -2003,17 +2012,18 @@ internal int
 get_operator_priority(struct Token* token)
 {
   int prio = 0;
-  if (token->klass == Token_LogicEqual)
+  if (token->klass == Token_LogicEqual || token->klass == Token_LogicNotEqual
+      || token->klass == Token_AngleOpen /* Less */ || token->klass == Token_AngleClose /* Greater */
+      || token->klass == Token_LessEqual || token->klass == Token_GreaterEqual) {
     prio = 1;
-  else if (token->klass == Token_Plus || token->klass == Token_Minus)
-    prio = 2;
-  else if (token->klass == Token_BracketOpen
-           || token->klass == Token_ParenthOpen
-           || token->klass == Token_AngleOpen) {
-    prio = 3;
   }
-  else if (token->klass == Token_Dotprefix) {
-    prio = 4;
+  else if (token->klass == Token_LogicAnd || token->klass == Token_LogicOr
+           || token->klass == Token_Plus || token->klass == Token_Minus
+           || token->klass == Token_BitwiseAnd || token->klass == Token_BitwiseOr) {
+    prio = 2;
+  }
+  else if (token->klass == Token_Star || token->klass == Token_Slash) {
+    prio = 3;
   }
   else assert(false);
   return prio;
@@ -2023,9 +2033,9 @@ internal struct Cst*
 build_expression(int priority_threshold)
 {
   struct Cst* expr = 0;
-  if (token_is_expression(token)/* || token_is_binaryOperator(token)*/) {
+  if (token_is_expression(token)) {
     build_expressionPrimary();
-    while (token_is_binaryOperator(token)) {
+    while (token_is_exprOperator(token)) {
       int priority = get_operator_priority(token);
       if (priority >= priority_threshold) {
         if (token->klass == Token_Dotprefix) {
@@ -2061,12 +2071,10 @@ build_expression(int priority_threshold)
           if (token_is_realTypeArg(token)) {
             build_realTypeArgumentList();
           } else error("at line %d: ", token->line_nr);
-        } else {
+        } else if (token_is_binaryOperator(token)){
           next_token();
-          if (token_is_expression(token)) {
-            build_expression(priority_threshold + 1);
-          } else error("at line %d: ", token->line_nr);
-        }
+          build_expression(priority_threshold + 1);
+        } else assert(0);
       } else break;
     }
   } else error("at line %d: ", token->line_nr);

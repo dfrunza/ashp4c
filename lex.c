@@ -110,9 +110,9 @@ lexeme_to_cstring()
 }
 
 internal void
-next_token(struct Token* token_at)
+next_token(struct Token* token)
 {
-  zero_struct(token_at, Token);
+  zero_struct(token, Token);
   state = 1;
   while (state) {
     char c = char_lookahead(0);
@@ -170,6 +170,10 @@ next_token(struct Token* token_at)
           state = 117;
         else if (c == '!')
           state = 118;
+        else if (c == '&')
+          state = 119;
+        else if (c == '|')
+          state = 120;
         else if (cstr_is_digit(c))
           state = 400;
         else if (cstr_is_letter(c))
@@ -182,24 +186,24 @@ next_token(struct Token* token_at)
 
       case 100:
       {
-        token_at->klass = Token_Semicolon;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Semicolon;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
 
       case 101:
       {
-        token_at->klass = Token_AngleOpen;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_AngleOpen;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
 
       case 102:
       {
-        token_at->klass = Token_AngleClose;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_AngleClose;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
@@ -210,8 +214,8 @@ next_token(struct Token* token_at)
         if (cstr_is_letter(cc) || cstr_is_digit(cc))
           state = 500;
         else {
-          token_at->klass = Token_Dontcare;
-          token_at->lexeme = lexeme_to_cstring();
+          token->klass = Token_Dontcare;
+          token->lexeme = lexeme_to_cstring();
           lexeme_advance();
           state = 0;
         }
@@ -219,16 +223,16 @@ next_token(struct Token* token_at)
 
       case 104:
       {
-        token_at->klass = Token_Colon;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Colon;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
 
       case 105:
       {
-        token_at->klass = Token_ParenthOpen;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_ParenthOpen;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       }
@@ -236,80 +240,80 @@ next_token(struct Token* token_at)
 
       case 106:
       {
-        token_at->klass = Token_ParenthClose;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_ParenthClose;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
 
       case 107:
       {
-        token_at->klass = Token_Dotprefix;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Dotprefix;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
 
       case 108:
       {
-        token_at->klass = Token_BraceOpen;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_BraceOpen;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
 
       case 109:
       {
-        token_at->klass = Token_BraceClose;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_BraceClose;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
 
       case 110:
       {
-        token_at->klass = Token_BracketOpen;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_BracketOpen;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
 
       case 111:
       {
-        token_at->klass = Token_BracketClose;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_BracketClose;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
 
       case 112:
       {
-        token_at->klass = Token_Comma;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Comma;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
 
       case 113:
       {
-        token_at->klass = Token_Minus;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Minus;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
 
       case 114:
       {
-        token_at->klass = Token_Plus;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Plus;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
 
       case 115:
       {
-        token_at->klass = Token_Star;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Star;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
@@ -320,8 +324,8 @@ next_token(struct Token* token_at)
           char_advance();
           state = 314;
         } else {
-          token_at->klass = Token_Slash;
-          token_at->lexeme = lexeme_to_cstring();
+          token->klass = Token_Slash;
+          token->lexeme = lexeme_to_cstring();
           lexeme_advance();
           state = 0;
         }
@@ -331,11 +335,11 @@ next_token(struct Token* token_at)
       {
         if (char_lookahead(1) == '=') {
           char_advance();
-          token_at->klass = Token_LogicEqual;
+          token->klass = Token_LogicEqual;
         } else {
-          token_at->klass = Token_Equal;
+          token->klass = Token_Equal;
         }
-        token_at->lexeme = lexeme_to_cstring();
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
@@ -344,11 +348,37 @@ next_token(struct Token* token_at)
       {
         if (char_lookahead(1) == '=') {
           char_advance();
-          token_at->klass = Token_LogicNotEqual;
+          token->klass = Token_LogicNotEqual;
         } else {
-          token_at->klass = Token_LogicNot;
+          token->klass = Token_LogicNot;
         }
-        token_at->lexeme = lexeme_to_cstring();
+        token->lexeme = lexeme_to_cstring();
+        lexeme_advance();
+        state = 0;
+      } break;
+
+      case 119:
+      {
+        if (char_lookahead(1) == '&') {
+          char_advance();
+          token->klass = Token_BitwiseAnd;
+        } else {
+          token->klass = Token_LogicAnd;
+        }
+        token->lexeme = lexeme_to_cstring();
+        lexeme_advance();
+        state = 0;
+      } break;
+
+      case 120:
+      {
+        if (char_lookahead(1) == '|') {
+          char_advance();
+          token->klass = Token_BitwiseOr;
+        } else {
+          token->klass = Token_LogicOr;
+        }
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
@@ -368,8 +398,8 @@ next_token(struct Token* token_at)
 
         if (char_lookahead(1) == '/') {
           char_advance();
-          token_at->klass = Token_Comment;
-          token_at->lexeme = lexeme_to_cstring();
+          token->klass = Token_Comment;
+          token->lexeme = lexeme_to_cstring();
           lexeme_advance();
           state = 0;
         } else {
@@ -411,8 +441,8 @@ next_token(struct Token* token_at)
         }
         else {
           char_retract();
-          token_at->klass = Token_Integer;
-          token_at->lexeme = lexeme_to_cstring();
+          token->klass = Token_Integer;
+          token->lexeme = lexeme_to_cstring();
           lexeme_advance();
           state = 0;
         }
@@ -424,8 +454,8 @@ next_token(struct Token* token_at)
           c = char_advance();
         while (cstr_is_hex_digit(c));
         char_retract();
-        token_at->klass = Token_Integer;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Integer;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
@@ -436,8 +466,8 @@ next_token(struct Token* token_at)
           c = char_advance();
         while (cstr_is_oct_digit(c));
         char_retract();
-        token_at->klass = Token_Integer;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Integer;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
@@ -448,8 +478,8 @@ next_token(struct Token* token_at)
           c = char_advance();
         while (cstr_is_bin_digit(c));
         char_retract();
-        token_at->klass = Token_Integer;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Integer;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
@@ -484,8 +514,8 @@ next_token(struct Token* token_at)
           c = char_advance();
         while (cstr_is_hex_digit(c));
         char_retract();
-        token_at->klass = Token_Integer;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Integer;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
@@ -497,8 +527,8 @@ next_token(struct Token* token_at)
           c = char_advance();
         while (cstr_is_oct_digit(c));
         char_retract();
-        token_at->klass = Token_Integer;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Integer;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
@@ -510,8 +540,8 @@ next_token(struct Token* token_at)
           c = char_advance();
         while (cstr_is_bin_digit(c));
         char_retract();
-        token_at->klass = Token_Integer;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Integer;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
@@ -523,8 +553,8 @@ next_token(struct Token* token_at)
           c = char_advance();
         while (cstr_is_digit(c));
         char_retract();
-        token_at->klass = Token_Integer;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Integer;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
@@ -535,46 +565,46 @@ next_token(struct Token* token_at)
           c = char_advance();
         while (cstr_is_letter(c) || cstr_is_digit(c) || c == '_');
         char_retract();
-        token_at->klass = Token_Identifier;
-        token_at->lexeme = lexeme_to_cstring();
+        token->klass = Token_Identifier;
+        token->lexeme = lexeme_to_cstring();
         lexeme_advance();
         state = 0;
       } break;
 
       case 2:
       {
-        token_at->klass = Token_EndOfInput;
-        token_at->lexeme = "<end-of-input>";
+        token->klass = Token_EndOfInput;
+        token->lexeme = "<end-of-input>";
         state = 0;
       } break;
 
       case 3:
       {
-        token_at->klass = Token_Unknown;
-        token_at->lexeme = "<unknown>";
+        token->klass = Token_Unknown;
+        token->lexeme = "<unknown>";
         lexeme_advance();
         state = 0;
       } break;
     }
   }
-  token_at->line_nr = line_nr;
+  token->line_nr = line_nr;
 }
 
 void
 lex_tokenize_input()
 {
-  struct Token* token_at = tokenized_input;
-  token_at->klass = Token_StartOfInput;
-  token_at++;
+  struct Token* token = tokenized_input;
+  token->klass = Token_StartOfInput;
+  token++;
   tokenized_input_len++;
 
-  next_token(token_at);
+  next_token(token);
   tokenized_input_len++;
-  while (token_at->klass != Token_EndOfInput) {
-    if (token_at->klass == Token_Unknown)
-      error("at line %d: unknown token", token_at->line_nr);
-    token_at++;
-    next_token(token_at);
+  while (token->klass != Token_EndOfInput) {
+    if (token->klass == Token_Unknown)
+      error("at line %d: unknown token", token->line_nr);
+    token++;
+    next_token(token);
     tokenized_input_len++;
   }
 }
