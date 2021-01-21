@@ -70,7 +70,7 @@
 
 <controlTypeDeclaration> := CONTROL <name> <optTypeParameters> '(' <parameterList> ')'
 
-<controlLocalDeclaration> := <constantDeclaration> | <actionDeclaration> /* | <tableDeclaration> */ | <instantiation> | <variableDeclaration>
+<controlLocalDeclaration> := <constantDeclaration> | <actionDeclaration> | <tableDeclaration> | <instantiation> | <variableDeclaration>
 
 <controlBody> := <blockStatement>
 
@@ -188,8 +188,27 @@
 
 
 /*****  TABLES  *****/
-/* DF: Tables have been ommited */
 
+<tableDeclaration> := TABLE <name> '{' <tablePropertyList> '}'
+
+<tablePropertyList> := <tableProperty> { <tableProperty> }*
+
+<tableProperty> := KEY '=' '{' <keyElementList> '}'
+  | ACTIONS '=' '{' <actionList> '}'
+  | CONST ENTRIES '=' '{' <entriesList> '}'  /* immutable entries */
+  | { CONST } <nonTableKwName> '=' <initializer> ';'
+
+<keyElementList> := { <keyElement> }*
+
+<keyElement> := <expression> ':' <name> ';'
+
+<actionList> := { <actionRef> ';' }*
+
+<actionRef> := { <prefixedNonTypeName> } '(' <argumentList> ')'
+
+<entriesList> := <entry> { <entry> }*
+
+<entry> := <keysetExpression> ':' <actionRef> ';'
 
 /*****  ACTION  *****/
 
@@ -234,11 +253,11 @@
 <expression> := <expressionPrimary> { <exprOperator> <expression> }*
 
 <expressionPrimary> := INTEGER | TRUE | FALSE | STRING_LITERAL
-  | { '.' /* TOK_UNARY_DOTPREFIX */ } <nonTypeName>
+  | { '.' } <nonTypeName>
   | '{' <expressionList> /* | <kvList> */ '}'
   | '(' <expression> ')'
   | '!' <expression>
-  | '-' /* TOK_UNARY_MINUS */ <expression>
+  | '-' /* Token_UnaryMinus */ <expression>
   | ( <typeName> | ERROR ) '.' <member>
   | <namedType> '(' <argumentList> ')'
   | CAST '(' <typeRef> ')' <expression>
@@ -252,111 +271,4 @@
 
 <binaryOperator> := '*' | '/' | '+' | '-' | '<=' | '>=' | '<' | '>' | '!='
   | '==' | '||' | '&&' | '|' | '&'
-
-
-
-/**************    OLD STUFF   *************/
-
-<const_decl> := 'const' <typeref> <name> '=' <initializer> ';'
-
-<package_prototype> := 'package' identifier { type_parameter_list } '(' <parameter_list> ')' ';'
-
-<extern_decl> := 'extern' ( <extern_object> | <function_prototype> )
-
-<extern_object> := identifier '{' { <function_prototype> }* '}'
-
-<function_prototype> := type_identifier identifier { type_parameter_list } '(' <parameter_list> ')' ';'
-
-<type_parameter_list> := '<' identifier { ',' <identifier> }* '>'
-
-<instantiation> := <type_expression> '(' <argument_list> ')' identifier ';'
-
-<control_decl> := <control_prototype> '{' { <control_local_decl> }* 'apply' <control_body> '}'
-
-<control_prototype> := 'control' identifier '(' <parameter_list> ')'
-
-<control_local_decl> := <action_decl> | <table_decl> | <var_decl>
-
-<var_decl> := 'var' type_identifier identifier { '=' <expression> } ';'
-
-<action_decl> := 'action' identifier '(' <parameter_list> ')' '{' <block_statement> '}'
-
-<table_decl> := 'table' identifier '{' <table_prop> { <table_prop> }* '}'
-
-<table_prop> := 'key' '=' '{' { <key_element> }* '}' |
-  'actions' '=' '{' { <action> }* '}' |
-  identifier '=' <expression>  ';'
-
-<key_element> := <expression> ':' identifier ';'
-
-<action> := identifier { '(' <argument_list> ')' } ';'
-
-<control_body> := <block_statement>
-
-<block_statement> := '{' { <stmt_or_decl> }* '}'
-
-<stmt_or_decl> := <statement> | <var_decl>
-
-<statement> := <expression> /* <if_statement> | ..? */
-
-<parser_decl> := <parser_prototype> '{' { <parser_local_elements> } { <parser_state> }* '}'
-
-<parser_local_elements> := { <block_statement> | <statement> }*
-
-<parser_prototype> := 'parser' identifier { type_parameter_list } '(' { <parameter_list> } ')'
-
-<parser_state> := 'state' identifier '{' { <parser_statement> }* <transition_statement> '}'
-
-<parser_statement> := <expression> ';'
-
-<transition_statement> := 'transition' <state_expression>
-
-<state_expression> := ( identifier ';' ) | <select_expression>
-
-<select_expression> := 'select' '(' { <expression> } ')' '{' { <select_case_list> } '}'
-
-<select_case_list> := <select_case> { <select_case> }*
-
-<select_case> := <simple_keyset_expression> ':' identifier ';'
-
-<simple_keyset_expression> := <expression> | 'default'
-
-<parameter_list> := <parameter> { ',' <parameter> }
-
-<parameter> := { <direction> } <type_expression> identifier
-
-<direction> := 'in' | 'out' | 'inout'
-
-<expression> := <expression_primary> { <operator> <expression> }*
-
-<expression_primary> := identifier | integer | 'true' | 'false' | 'string' |
-    'error' | '(' <expression> ')'
-
-<operator> := '.' | '==' | '(' { <argument_list> } ')'
-
-<argument_list> := <argument> { ',' <argument> }*
-
-<argument> := <expression>
-
-<error_type_decl> := 'error' '{' <identifier_list> '}'
-
-<identifier_list> := identifier { ',' identifier }*
-
-<struct_field> := <type_expression> identifier ';'
-
-<struct_decl> := 'struct' identifier '{' { <struct_field> }* '}'
-
-<header_decl> := 'header' identifier '{' { <struct_field> }* '}'
-
-<typedef_decl> := 'typedef' <type_expression> identifier ';'
-
-<type_expression> := type_identifier | <typexpr_parameter_list> | <bit_typexpr> | <int_typexpr>
-
-<typexpr_parameter_list> := '<' <type_identifier> { ',' <type_identifier> } '>'
-
-<bit_type_expr> := 'bit' { '<' integer '>' }
-
-<int_type_expr> := 'int' { '<' integer '>' }
-
---------------------------------------------------------------------------------
 

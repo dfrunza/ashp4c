@@ -22,7 +22,6 @@ enum TokenClass {
   Token_Dontcare,
   Token_Colon,
   Token_Dotprefix,
-  Token_UnaryDotprefix,
   Token_Comma,
   Token_Minus,
   Token_UnaryMinus,
