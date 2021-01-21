@@ -513,7 +513,6 @@ build_functionPrototype()
       new_type(((struct Cst_NonTypeName*)return_type)->name);
     if (token_is_name(token)) {
       struct Cst_Name* function_name = build_name();
-      new_ident(function_name->name);
       build_optTypeParameters();
       if (token->klass == Token_ParenthOpen) {
         next_token();
@@ -770,7 +769,6 @@ build_structField()
     build_typeRef();
     if (token_is_name(token)) {
       struct Cst_Name* name = build_name();
-      new_ident(name->name);
       if (token->klass == Token_Semicolon) {
         next_token();
       } else error("at line %d: ", token->line_nr);
@@ -1282,13 +1280,6 @@ build_assignmentOrMethodCallStatement()
       build_typeArgumentList();
       if (token->klass == Token_AngleClose) {
         next_token();
-        if (token->klass == Token_ParenthOpen) {
-          next_token();
-          build_argumentList();
-          if (token->klass == Token_ParenthClose) {
-            next_token();
-          } else error("at line %d: ", token->line_nr);
-        } else error("at line %d: ", token->line_nr);
       } else error("at line %d: ", token->line_nr);
     }
     if (token->klass == Token_ParenthOpen) {
@@ -1489,7 +1480,6 @@ build_parserState()
   if (token->klass == Token_State) {
     next_token();
     struct Cst_Name* name = build_name();
-    new_ident(name->name);
     if (token->klass == Token_BraceOpen) {
       scope_push_level();
       next_token();
