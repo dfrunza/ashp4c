@@ -343,6 +343,13 @@ token_is_tableProperty(struct Token* token)
 }
 
 internal bool
+token_is_switchLabel(struct Token* token)
+{
+  bool result = token_is_name(token) || token->klass == Token_Default;
+  return result;
+}
+
+internal bool
 token_is_expressionPrimary(struct Token* token)
 {
   bool result = token->klass == Token_Integer || token->klass == Token_True || token->klass == Token_False
@@ -1041,7 +1048,7 @@ token_is_statement(struct Token* token)
 {
   bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token) || token->klass == Token_If
     || token->klass == Token_Semicolon || token->klass == Token_BraceOpen || token->klass == Token_Exit
-    || token->klass == Token_Return;
+    || token->klass == Token_Return || token->klass == Token_Switch;
   return result;
 }
 
@@ -1603,13 +1610,13 @@ build_actionRef()
 {
   if (token->klass == Token_Dotprefix || token_is_nonTypeName(token)) {
     build_prefixedNonTypeName();
-  }
-  if (token->klass == Token_ParenthOpen) {
-    next_token();
-    build_argumentList();
-    if (token->klass == Token_ParenthClose) {
+    if (token->klass == Token_ParenthOpen) {
       next_token();
-    } else error("at line %d: ", token->line_nr);
+      build_argumentList();
+      if (token->klass == Token_ParenthClose) {
+        next_token();
+      } else error("at line %d: ", token->line_nr);
+    }
   } else error("at line %d: ", token->line_nr);
   return 0;
 }
@@ -1915,23 +1922,83 @@ build_returnStatement()
 }
 
 internal struct Cst*
+build_switchLabel()
+{
+  if (token_is_name(token)) {
+    build_name();
+  } else if (token->klass == Token_Default) {
+    next_token();
+  } else error("at line %d: ", token->line_nr);
+  return 0;
+}
+
+internal struct Cst*
+build_switchCase()
+{
+  if (token_is_switchLabel(token)) {
+    build_switchLabel();
+    if (token->klass == Token_Colon) {
+      next_token();
+      if (token->klass == Token_BraceOpen) {
+        build_blockStatement();
+      }
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
+  return 0;
+}
+
+internal struct Cst*
+build_switchCases()
+{
+  while (token_is_switchLabel(token)) {
+    build_switchCase();
+  }
+  return 0;
+}
+
+internal struct Cst*
+build_switchStatement()
+{
+  if (token->klass == Token_Switch) {
+    next_token();
+    if (token->klass == Token_ParenthOpen) {
+      next_token();
+      build_expression(1);
+      if (token->klass == Token_ParenthClose) {
+        next_token();
+        if (token->klass == Token_BraceOpen) {
+          next_token();
+          build_switchCases();
+          if (token->klass == Token_BraceClose) {
+            next_token();
+          } else error("at line %d: ", token->line_nr);
+        } else error("at line %d: ", token->line_nr);
+      } else error("at line %d: ", token->line_nr);
+    } else error("at line %d: ", token->line_nr);
+  } else error("at line %d: ", token->line_nr);
+  return 0;
+}
+
+internal struct Cst*
 build_statement()
 {
-  if (token_is_assignmentOrMethodCallStatement(token))
+  if (token_is_assignmentOrMethodCallStatement(token)) {
     build_assignmentOrMethodCallStatement();
-  else if (token_is_typeName(token))
+  } else if (token_is_typeName(token)) {
     build_directApplication();
-  else if (token->klass == Token_If)
+  } else if (token->klass == Token_If) {
     build_conditionalStatement();
-  else if (token->klass == Token_Semicolon)
+  } else if (token->klass == Token_Semicolon) {
     next_token(); // empty statement
-  else if (token->klass == Token_BraceOpen)
+  } else if (token->klass == Token_BraceOpen) {
     build_blockStatement();
-  else if (token->klass == Token_Exit)
+  } else if (token->klass == Token_Exit) {
     build_exitStatement();
-  else if (token->klass == Token_Return)
+  } else if (token->klass == Token_Return) {
     build_returnStatement();
-  else error("at line %d: ", token->line_nr);
+  } else if (token->klass == Token_Switch) {
+    build_switchStatement();
+  } else error("at line %d: ", token->line_nr);
   return 0;
 }
 

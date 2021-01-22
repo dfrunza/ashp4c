@@ -122,7 +122,7 @@
 
 <typeArg> := DONTCARE | <typeRef> | <nonTypeName>
 
-<realTypeArgumentList> := <realTypeArg> { ',' <realTypeArg> /* DF: the spec says it should be <typeArg> */ }*
+<realTypeArgumentList> := <realTypeArg> { ',' <realTypeArg> }*
 
 <typeArgumentList> := { <typeArg> { ',' <typeArg> }* }
 
@@ -176,13 +176,19 @@
 <directApplication> := <typeName> '.' APPLY '(' <argumentList> ')' ';'
 
 <statement> := <assignmentOrMethodCallStatement> | <directApplication> | <conditionalStatement>
-  | <emptyStatement> | <blockStatement> | <exitStatement> | <returnStatement> /* | <switchStatement> */
+  | <emptyStatement> | <blockStatement> | <exitStatement> | <returnStatement> | <switchStatement>
 
 <blockStatement> := '{' <statementOrDeclList> '}'
 
 <statementOrDeclList> := { <statementOrDeclaration> }*
 
-/* DF: <switchStatement> et al. have been ommited */
+<switchStatement> := SWITCH '(' <expression> ')' '{' <switchCases> '}'
+
+<switchCases> := { switchCase }*
+
+<switchCase> := <switchLabel> ':' { <blockStatement> }
+
+<switchLabel> := <name> | DEFAULT
 
 <statementOrDeclaration> := <variableDeclaration> | <constantDeclaration> | <statement> | <instantiation>
 
@@ -204,7 +210,7 @@
 
 <actionList> := { <actionRef> ';' }*
 
-<actionRef> := { <prefixedNonTypeName> } '(' <argumentList> ')'
+<actionRef> := <prefixedNonTypeName> { '(' <argumentList> ')' }
 
 <entriesList> := <entry> { <entry> }*
 

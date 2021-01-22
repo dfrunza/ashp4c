@@ -347,8 +347,11 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '*') {
           char_advance();
-          state = 314;
-        } else {
+          state = 310;
+        } else if (char_lookahead(1) == '/') {
+          state = 311;
+        }
+        else {
           token->klass = Token_Slash;
           token->lexeme = lexeme_to_cstring();
           lexeme_advance();
@@ -424,7 +427,7 @@ next_token(struct Token* token)
         state = 0;
       } break;
 
-      case 314:
+      case 310:
       {
         do {
           c = char_advance();
@@ -434,8 +437,7 @@ next_token(struct Token* token)
               c = char_advance();
             line_nr++;
           }
-        }
-        while (c != '*');
+        } while (c != '*');
 
         if (char_lookahead(1) == '/') {
           char_advance();
@@ -444,8 +446,20 @@ next_token(struct Token* token)
           lexeme_advance();
           state = 0;
         } else {
-          state = 314;
+          state = 310;
         }
+      } break;
+
+      case 311:
+      {
+        do {
+          c = char_advance();
+        } while (c != '\n' && c != '\r');
+        line_nr++;
+        token->klass = Token_Comment;
+        token->lexeme = lexeme_to_cstring();
+        lexeme_advance();
+        state = 0;
       } break;
 
       case 400:
