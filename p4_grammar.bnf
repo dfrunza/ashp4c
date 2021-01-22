@@ -1,4 +1,4 @@
-<p4program> := <declaration> { <declaration> }* | ';'
+<p4program> := { <declaration> | ';' /* empty declaration */ }*
 
 <declaration> := <constantDeclaration> | <externDeclaration> | <actionDeclaration> | <parserDeclaration> | <typeDeclaration>
     | <controlDeclaration> | <instantiation> | <errorDeclaration> | <matchKindDeclaration> | <functionDeclaration>
@@ -8,8 +8,6 @@
 <name> := <nonTypeName> | TYPE_IDENTIFIER
 
 <nonTableKwName> := IDENTIFIER | TYPE_IDENTIFIER | APPLY | STATE | TYPE
-
-/* DF: <optAnnotations> et al. have been ommited */
 
 <parameterList> := { <parameter> { ',' <parameter> }* }
 
@@ -216,8 +214,6 @@
 
 <entry> := <keysetExpression> ':' <actionRef> ';'
 
-/*****  ACTION  *****/
-
 <actionDeclaration> := ACTION <name> '(' <parameterList> ')' <blockStatement>
 
 
@@ -245,8 +241,6 @@
 <kvPair> := <name> '=' <expression>
 
 <expressionList> := { <expression> { ',' <expression> }* }
-
-/* DF: <annotationBody> et al. have been ommited */
 
 <member> := <name>
 
