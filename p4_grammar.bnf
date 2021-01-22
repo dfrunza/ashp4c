@@ -219,7 +219,7 @@
 
 /*****  VARIABLES  *****/
 
-<variableDeclaration> := VAR <typeRef> <name> <optInitializer> ';'
+<variableDeclaration> := <typeRef> <name> <optInitializer> ';'
 
 <constantDeclaration> := CONST <typeRef> <name> '=' <initializer> ';'
 
@@ -257,7 +257,7 @@
   | '{' <expressionList> /* | <kvList> */ '}'
   | '(' <expression> ')'
   | ( '!' | '~' ) <expression>
-  | '-' /* Token_UnaryMinus */ <expression>
+  | '-' /* UnaryMinus */ <expression>
   | ( <typeName> | ERROR ) '.' <member>
   | <namedType> '(' <argumentList> ')'
   | '(' <typeRef> ')' <expression> /* cast */

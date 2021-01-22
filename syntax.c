@@ -100,46 +100,6 @@ get_namespace(char* name)
   return name_info;
 }
 
-internal struct Ident*
-lookup_ident(char* name)
-{
-  struct Namespace_Entry* ns = get_namespace(name);
-  struct Ident* ident_var = (struct Ident*)ns->ns_global;
-  if (ident_var)
-    assert (ident_var->ident_kind == Ident_Ident);
-  return ident_var;
-}
-
-internal struct Ident*
-new_ident(char* name)
-{
-  struct Ident* ident = 0;
-  struct Namespace_Entry* ns = get_namespace(name);
-  ident = (struct Ident*)ns->ns_global;
-  if (ident_is_declared(ident)) {
-    error("redeclaration of ident");
-  } else {
-    struct Ident* ident = arena_push_struct(&arena, Ident);
-    ident->name = name;
-    ident->scope_level = scope_level;
-    ident->ident_kind = Ident_Ident;
-    ident->next_in_scope = ns->ns_global;
-    ns->ns_global = (struct Ident*)ident;
-    printf("new ident '%s'\n", ident->name);
-  }
-  return ident;
-}
-
-struct Ident*
-lookup_type(char* name)
-{
-  struct Namespace_Entry* ns = get_namespace(name);
-  struct Ident* result = (struct Ident*)ns->ns_type;
-  if (result)
-    assert(result->ident_kind == Ident_Type);
-  return result;
-}
-
 struct Ident*
 new_type(char* name)
 {
@@ -1049,7 +1009,7 @@ token_is_statement(struct Token* token)
 internal bool
 token_is_statementOrDeclaration(struct Token* token)
 {
-  bool result = token->klass == Token_Var || token->klass == Token_Const || token_is_statement(token);
+  bool result = token_is_typeRef(token) || token->klass == Token_Const || token_is_statement(token);
   return result;
 }
 
@@ -1063,7 +1023,7 @@ token_is_argument(struct Token* token)
 internal bool
 token_is_parserLocalElement(struct Token* token)
 {
-  bool result = token->klass == Token_Const || token->klass == Token_Var || token_is_typeRef(token);
+  bool result = token->klass == Token_Const || token_is_typeRef(token);
   return result;
 }
 
@@ -1071,7 +1031,7 @@ internal bool
 token_is_parserStatement(struct Token* token)
 {
   bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token)
-    || token->klass == Token_BraceOpen || token->klass == Token_Const || token->klass == Token_Var
+    || token->klass == Token_BraceOpen || token->klass == Token_Const || token_is_typeRef(token)
     || token->klass == Token_Semicolon;
   return result;
 }
@@ -1099,7 +1059,7 @@ internal bool
 token_is_controlLocalDeclaration(struct Token* token)
 {
   bool result = token->klass == Token_Const || token->klass == Token_Action
-    || token->klass == Token_Table || token_is_typeRef(token) || token->klass == Token_Var ;
+    || token->klass == Token_Table || token_is_typeRef(token) || token_is_typeRef(token);
   return result;
 }
 
@@ -1139,16 +1099,13 @@ build_argumentList()
 internal struct Cst*
 build_variableDeclaration()
 {
-  if (token->klass == Token_Var) {
-    next_token();
-    if (token_is_typeRef(token)) {
-      build_typeRef();
-      if (token_is_name(token)) {
-        build_name(false);
-        build_optInitializer();
-        if (token->klass == Token_Semicolon) {
-          next_token();
-        } else error("at line %d: ", token->line_nr);
+  if (token_is_typeRef(token)) {
+    build_typeRef();
+    if (token_is_name(token)) {
+      build_name(false);
+      build_optInitializer();
+      if (token->klass == Token_Semicolon) {
+        next_token();
       } else error("at line %d: ", token->line_nr);
     } else error("at line %d: ", token->line_nr);
   } else error("at line %d: ", token->line_nr);
@@ -1183,10 +1140,12 @@ build_parserLocalElement()
   if (token_is_parserLocalElement(token)) {
     if (token->klass == Token_Const) {
       build_constantDeclaration();
-    } else if (token->klass == Token_Var) {
-      build_variableDeclaration();
     } else if (token_is_typeRef(token)) {
-      build_instantiation();
+      if (peek_token()->klass == Token_ParenthOpen) {
+        build_instantiation();
+      } else {
+        build_variableDeclaration();
+      }
     } else error("at line %d: ", token->line_nr);
   } else error("at line %d: ", token->line_nr);
   return 0;
@@ -1333,7 +1292,7 @@ build_parserStatement()
     build_parserBlockStatements();
   } else if (token->klass == Token_Const) {
     build_constantDeclaration();
-  } else if (token->klass == Token_Var) {
+  } else if (token_is_typeRef(token)) {
     build_variableDeclaration();
   } else if (token->klass == Token_Semicolon) {
     ; // <emptyStatement>
@@ -1750,9 +1709,11 @@ build_controlLocalDeclaration()
   } else if (token->klass == Token_Table) {
     decl = build_tableDeclaration();
   } else if (token_is_typeRef(token)) {
-    decl = build_instantiation();
-  } else if (token->klass == Token_Var) {
-    decl = build_variableDeclaration();
+    if (peek_token()->klass == Token_ParenthOpen) {
+      decl = build_instantiation();
+    } else {
+      decl = build_variableDeclaration();
+    }
   } else error("at line %d: ", token->line_nr);
   return decl;
 }
@@ -1994,10 +1955,12 @@ internal struct Cst*
 build_statementOrDeclList()
 {
   while (token_is_statementOrDeclaration(token)) {
-    if (token->klass == Token_Var) {
-      build_variableDeclaration();
-    } else if (token_is_typeRef(token) && peek_token()->klass == Token_ParenthOpen) {
-      build_instantiation();
+    if (token_is_typeRef(token)) {
+      if (peek_token()->klass == Token_ParenthOpen) {
+        build_instantiation();
+      } else {
+        build_variableDeclaration();
+      }
     } else if (token_is_statement(token)) {
       build_statement();
     } else if (token->klass == Token_Const)
@@ -2344,7 +2307,6 @@ build_ast()
   add_keyword("return", Token_Return);
   add_keyword("struct", Token_Struct);
   add_keyword("apply", Token_Apply);
-  add_keyword("var", Token_Var);
   add_keyword("const", Token_Const);
   add_keyword("bool", Token_Bool);
   add_keyword("true", Token_True);

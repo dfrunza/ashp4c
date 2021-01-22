@@ -84,7 +84,6 @@ enum TokenClass {
   Token_Return,
   Token_Struct,
   Token_Const,
-  Token_Var,
 
   Token_Unknown,
   Token_StartOfInput,

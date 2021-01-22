@@ -94,8 +94,8 @@ parser XdpParser(TPacketIn pkt, out Header hdr)
 
 control XdpPipe(inout Header hdr, out bool accept)
 {
-  var int<1> i;
-  var bit<1> b;
+  int<1> i;
+  bit<1> b;
 
   apply
   {
