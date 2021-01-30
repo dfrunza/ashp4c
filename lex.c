@@ -78,14 +78,14 @@ lexeme_copy(char* dest, char* begin, char* end)
   while (src <= end);
 }
 
-bool
+internal bool
 lexeme_len(char* lexeme_start, char* lexeme_end)
 {
   int result = lexeme_end - lexeme_start + 1;
   return result;
 }
 
-bool
+internal bool
 lexeme_match_cstr(char* lexeme_start, char* lexeme_end, char* str)
 {
   char* l = lexeme_start;

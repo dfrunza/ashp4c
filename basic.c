@@ -84,8 +84,7 @@ cstr_copy_substr(char* dest_str, char* begin_char, char* end_char)
 bool
 cstr_match(char* str_a, char* str_b)
 {
-  while (*str_a == *str_b)
-  {
+  while (*str_a == *str_b) {
     str_a++;
     str_b++;
     if (*str_a == '\0')
@@ -105,7 +104,8 @@ cstr_print_substr(char* begin_char, char* end_char)
   }
 }
 
-void error_(char* file, int line, char* message, ...)
+void
+error_(char* file, int line, char* message, ...)
 {
   printf("ERROR: ");
   if (!message) {
@@ -118,4 +118,13 @@ void error_(char* file, int line, char* message, ...)
     printf("\n");
   }
   exit(1);
+}
+
+void
+list_append_item(struct List* l_a, struct List* l_b)
+{
+  assert(l_a->next_item == 0);
+  assert(l_b->prev_item == 0);
+  l_a->next_item = l_b;
+  l_b->prev_item = l_a;
 }

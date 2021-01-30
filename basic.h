@@ -14,6 +14,11 @@
 #define KILOBYTE 1024
 #define MEGABYTE 1024*KILOBYTE
 
+struct List {
+  struct List* prev_item;
+  struct List* next_item;
+};
+
 #if DEBUG_ENABLED
 #define DEBUG(msg, ...) \
   printf((msg), ## __VA_ARGS__);
@@ -28,13 +33,4 @@
 	(type*)((char *)mptr - offsetof(type, member)); })
 #define assert(expr) \
   do { if(!(expr)) assert_(#expr, __FILE__, __LINE__); } while(0)
-void assert_(char* message, char* file, int line);
-bool cstr_is_letter(char c);
-bool cstr_is_digit(char c);
-bool cstr_is_ascii_printable(char c);
-char* cstr_copy(char* dest_str, char* src_str);
-void cstr_copy_substr(char* dest_str, char* begin_char, char* end_char);
-bool cstr_match(char* str_a, char* str_b);
-void cstr_print_substr(char* begin_char, char* end_char);
 #define error(msg, ...) error_(__FILE__, __LINE__, (msg), ## __VA_ARGS__)
-void error_(char* file, int line, char* message, ...);

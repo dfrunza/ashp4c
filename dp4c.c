@@ -1,4 +1,5 @@
-#define DEBUG_ENABLED 0
+#define DEBUG_ENABLED 1
+
 #include "basic.h"
 #include "arena.h"
 #include "lex.h"
