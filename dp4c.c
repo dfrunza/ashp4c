@@ -1,6 +1,7 @@
 #include "dp4c.h"
 #include "lex.h"
 #include "syntax.h"
+#include <sys/stat.h>
 
 Arena arena = {};
 char* input_text = 0;
@@ -29,12 +30,26 @@ read_input(char* filename)
   fclose(f_stream);
 }
 
+internal char*
+get_filename_arg(int arg_count, char* args[])
+{
+  char* filename = 0;
+  if (arg_count <= 1) {
+    printf("The <filename> argument is missing\n");
+    exit(1);
+  } else {
+    filename = args[1];
+  }
+  return filename;
+}
+
 int
 main(int arg_count, char* args[])
 {
   arena_new(&arena, 192*KILOBYTE);
 
-  read_input("test.p4");
+  char* filename = get_filename_arg(arg_count, args);
+  read_input(filename);
   arena_print_usage(&arena, "Memory (read_input): ");
 
   tokenized_input = arena_push_array(&arena, struct Token, max_tokenized_input_len);
@@ -48,11 +63,6 @@ main(int arg_count, char* args[])
     symtable[i++] = 0;
   build_ast();
   arena_print_usage(&arena, "Memory (syntax): ");
-
-  //build_typexpr();
-  //typecheck();
-  arena_print_usage(&arena, "Memory (typexpr): ");
-
   return 0;
 }
 
