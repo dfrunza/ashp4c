@@ -1,5 +1,3 @@
-#include "dp4c.h"
-#include "lex.h"
 #include "syntax.h"
 
 external Arena arena;
@@ -171,7 +169,7 @@ peek_token()
   return peek_token;
 }
 
-#define new_ast_node(TYPE) ({ \
+#define new_cst_node(TYPE) ({ \
   struct TYPE* node = arena_push(&arena, sizeof(struct TYPE)); \
   *node = (struct TYPE){}; \
   node->kind = TYPE; \
@@ -331,7 +329,7 @@ build_nonTypeName(bool is_type)
 {
   struct Cst_NonTypeName* name = 0;
   if (token_is_nonTypeName(token)) {
-    name = new_ast_node(Cst_NonTypeName);
+    name = new_cst_node(Cst_NonTypeName);
     name->name = token->lexeme;
     if (is_type) {
       new_type(name->name, token->line_nr);
@@ -349,7 +347,7 @@ build_name(bool is_type)
     if (token_is_nonTypeName(token)) {
       name = (struct Cst_Name*)build_nonTypeName(is_type);
     } else if (token->klass == Token_TypeIdentifier) {
-      struct Cst_TypeName* type_name = new_ast_node(Cst_TypeName);
+      struct Cst_TypeName* type_name = new_cst_node(Cst_TypeName);
       type_name->name = token->lexeme;
       name = (struct Cst_Name*)type_name;
       next_token();
@@ -457,12 +455,12 @@ build_typeOrVoid(bool is_type)
     if (token_is_typeRef(token)) {
       type = build_typeRef();
     } else if (token->klass == Token_Void) {
-      struct Cst_TypeName* void_name = new_ast_node(Cst_TypeName);
+      struct Cst_TypeName* void_name = new_cst_node(Cst_TypeName);
       void_name->name = token->lexeme;
       type = (struct Cst*)void_name;
       next_token();
     } else if (token->klass == Token_Identifier) {
-      struct Cst_NonTypeName* name = new_ast_node(Cst_NonTypeName);
+      struct Cst_NonTypeName* name = new_cst_node(Cst_NonTypeName);
       name->name = token->lexeme;
       type = (struct Cst*)name;
       if (is_type) {
@@ -571,7 +569,7 @@ build_baseType()
 {
   struct Cst_BaseType* base_type = 0;
   if (token_is_baseType(token)) {
-    base_type = new_ast_node(Cst_BaseType);
+    base_type = new_cst_node(Cst_BaseType);
     if (token->klass == Token_Bool) {
       base_type->base_type = BASETYPE_BOOL;
       next_token();
@@ -675,14 +673,14 @@ build_prefixedType()
 {
   struct Cst_TypeName* name = 0;
   if (token->klass == Token_TypeIdentifier) {
-    name = new_ast_node(Cst_TypeName);
+    name = new_cst_node(Cst_TypeName);
     name->name = token->lexeme;
     next_token();
     if (token->klass == Token_Dotprefix && peek_token()->klass == Token_TypeIdentifier) {
       next_token();
-      struct Cst_PrefixedType* pfx_type = new_ast_node(Cst_PrefixedType);
+      struct Cst_PrefixedType* pfx_type = new_cst_node(Cst_PrefixedType);
       pfx_type->first_name = name;
-      pfx_type->second_name = new_ast_node(Cst_TypeName);
+      pfx_type->second_name = new_cst_node(Cst_TypeName);
       pfx_type->second_name->name = token->lexeme;
       next_token();
     }
@@ -1191,7 +1189,7 @@ build_prefixedNonTypeName()
 {
   struct Cst* name = 0;
   if (token->klass == Token_Dotprefix) {
-    struct Cst_DotPrefix* dot_prefix = new_ast_node(Cst_DotPrefix);
+    struct Cst_DotPrefix* dot_prefix = new_cst_node(Cst_DotPrefix);
     name = (struct Cst*)dot_prefix;
     next_token();
   }
@@ -2275,7 +2273,7 @@ build_expression(int priority_threshold)
 }
 
 void
-build_ast()
+build_cst()
 {
   add_keyword("action", Token_Action);
   add_keyword("actions", Token_Actions);

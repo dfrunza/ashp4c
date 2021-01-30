@@ -1,4 +1,4 @@
-#include "dp4c.h"
+#include "lex.h"
 
 external Arena arena;
 external char* input_text;

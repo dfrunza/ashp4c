@@ -1,4 +1,6 @@
-#include "dp4c.h"
+#define DEBUG_ENABLED 0
+#include "basic.h"
+#include "arena.h"
 #include "lex.h"
 #include "syntax.h"
 #include <sys/stat.h>
@@ -63,7 +65,7 @@ main(int arg_count, char* args[])
   int i = 0;
   while (i < max_symtable_len)
     symtable[i++] = 0;
-  build_ast();
+  build_cst();
   if (DEBUG_ENABLED)
     arena_print_usage(&arena, "Memory (syntax): ");
   return 0;
