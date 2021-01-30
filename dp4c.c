@@ -50,19 +50,22 @@ main(int arg_count, char* args[])
 
   char* filename = get_filename_arg(arg_count, args);
   read_input(filename);
-  arena_print_usage(&arena, "Memory (read_input): ");
+  if (DEBUG_ENABLED)
+    arena_print_usage(&arena, "Memory (read_input): ");
 
   tokenized_input = arena_push_array(&arena, struct Token, max_tokenized_input_len);
   lex_input_init(input_text);
   lex_tokenize_input();
-  arena_print_usage(&arena, "Memory (lex): ");
+  if (DEBUG_ENABLED)
+    arena_print_usage(&arena, "Memory (lex): ");
 
   symtable = arena_push_array(&arena, struct Namespace_Entry*, max_symtable_len);
   int i = 0;
   while (i < max_symtable_len)
     symtable[i++] = 0;
   build_ast();
-  arena_print_usage(&arena, "Memory (syntax): ");
+  if (DEBUG_ENABLED)
+    arena_print_usage(&arena, "Memory (syntax): ");
   return 0;
 }
 

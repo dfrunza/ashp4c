@@ -37,7 +37,7 @@ internal int
 scope_push_level()
 {
   int new_scope_level = ++scope_level;
-  printf("push scope %d\n", new_scope_level);
+  DEBUG("push scope %d\n", new_scope_level);
   return new_scope_level;
 }
 
@@ -69,7 +69,7 @@ scope_pop_level(int to_level)
     }
     i++;
   }
-  printf("pop scope %d\n", to_level);
+  DEBUG("pop scope %d\n", to_level);
   scope_level = to_level;
   return scope_level;
 }
@@ -114,7 +114,7 @@ new_type(char* name)
     ident->ident_kind = Ident_Type;
     ident->next_in_scope = ns->ns_type;
     ns->ns_type = (struct Ident*)ident;
-    printf("new type '%s'\n", ident->name);
+    DEBUG("new type '%s'\n", ident->name);
   }
   return ident;
 }

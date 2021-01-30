@@ -1,4 +1,5 @@
 #pragma once
+#define DEBUG_ENABLED 0
 #include "basic.h"
 #include "arena.h"
 

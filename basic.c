@@ -4,8 +4,7 @@ void
 assert_(char* message, char* file, int line)
 {
   printf("%s:%d: ", file, line);
-  if(!message || message[0] == '\0')
-  {
+  if(!message || message[0] == '\0') {
     message = "";
   }
   printf("assert(%s)\n", message);
@@ -100,8 +99,7 @@ void
 cstr_print_substr(char* begin_char, char* end_char)
 {
   char* c = begin_char;
-  while (c <= end_char)
-  {
+  while (c <= end_char) {
     printf("%c", *c);
     c++;
   }
@@ -110,10 +108,9 @@ cstr_print_substr(char* begin_char, char* end_char)
 void error_(char* file, int line, char* message, ...)
 {
   printf("ERROR: ");
-  if (!message)
+  if (!message) {
     printf("at %s:%d\n", file, line);
-  else
-  {
+  } else {
     va_list args;
     va_start(args, message);
     vprintf(message, args);
