@@ -19,7 +19,7 @@ enum TokenClass {
   Token_BracketClose,
   Token_Dontcare,
   Token_Colon,
-  Token_Dotprefix,
+  Token_DotPrefix,
   Token_Comma,
   Token_Minus,
   Token_UnaryMinus,

@@ -265,7 +265,7 @@
 <exprOperator> :=
   | <binaryOperator>
   | '.' <member>
-  | '[' <expression> { ':' <expression> } ']' /* array index */
+  | '[' <expression> { ':' <expression> } ']' /* indexed array */
   | '(' <argumentList> ')' /* function call */
   | '<' <realTypeArgumentList> '>'
 
