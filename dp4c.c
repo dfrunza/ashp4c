@@ -18,7 +18,7 @@ int max_symtable_len = 997;  // table entry units
 struct Namespace_Entry** symtable = 0;
 int scope_level = 0;
 
-struct Cst_P4Program* p4program = 0;
+struct Cst* p4program = 0;
 
 struct CmdlineArg {
   char* name;
@@ -122,12 +122,12 @@ main(int arg_count, char* args[])
   int i = 0;
   while (i < max_symtable_len)
     symtable[i++] = 0;
-  build_cst();
+  p4program = build_cst();
   if (DEBUG_ENABLED)
     arena_print_usage(&arena, "Memory (syntax): ");
 
   if (find_named_arg("dump-cst", cmdline_args)) {
-    printf("DUMP-CST\n");
+    dump_cst(p4program);
   }
   return 0;
 }

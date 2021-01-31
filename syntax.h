@@ -3,8 +3,6 @@
 #include "arena.h"
 #include "lex.h"
 
-struct Cst;
-
 enum IdentKind
 {
   Ident_None,
@@ -16,7 +14,6 @@ enum IdentKind
 struct Ident {
   enum IdentKind ident_kind;
   char* name;
-  struct Cst* ast;
   int scope_level;
   struct Ident* next_in_scope;
 };  
@@ -41,8 +38,6 @@ enum CstKind {
   Cst_DotPrefixedName,
   Cst_ConstDecl,
   Cst_ExternDecl,
-  Cst_ExternFuncDecl,
-  Cst_TypeParam,
   Cst_Constructor,
   Cst_FunctionProto,
   Cst_Action,
@@ -84,7 +79,6 @@ enum CstKind {
   Cst_KeyElement,
   Cst_ActionRef,
   Cst_TableEntry,
-  Cst_TableProperty,
   Cst_TableProp_Key,
   Cst_TableProp_Actions,
   Cst_TableProp_Entries,
@@ -152,6 +146,7 @@ struct CstLink {
 
 struct Cst {
   enum CstKind kind;
+  int id;
   int line_nr;
   struct CstLink link;
 };
@@ -572,3 +567,4 @@ struct Cst_P4Program {
   struct Cst* decl_list;
 };
 
+struct Cst* build_cst();

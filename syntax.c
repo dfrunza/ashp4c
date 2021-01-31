@@ -13,7 +13,7 @@ external struct Namespace_Entry** symtable;
 external int max_symtable_len;
 external int scope_level;
 
-external struct Cst_P4Program* p4program;
+internal int node_id = 1;
 
 internal struct Cst* build_expression(int priority_threshold);
 internal struct Cst* build_typeRef();
@@ -184,6 +184,7 @@ peek_token()
   struct type* node = arena_push(&arena, sizeof(struct type)); \
   *node = (struct type){}; \
   node->kind = type; \
+  node->id = node_id++; \
   node->line_nr = token->line_nr; \
   node; })
 
@@ -2697,7 +2698,7 @@ build_expression(int priority_threshold)
   return expr;
 }
 
-void
+struct Cst*
 build_cst()
 {
   add_keyword("action", Token_Action);
@@ -2741,5 +2742,5 @@ build_cst()
 
   token = tokenized_input;
   next_token();
-  build_p4program();
+  return (struct Cst*)build_p4program();
 }
