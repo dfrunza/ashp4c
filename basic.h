@@ -14,11 +14,6 @@
 #define KILOBYTE 1024
 #define MEGABYTE 1024*KILOBYTE
 
-struct List {
-  struct List* prev_item;
-  struct List* next_item;
-};
-
 #if DEBUG_ENABLED
 #define DEBUG(msg, ...) \
   printf((msg), ## __VA_ARGS__);

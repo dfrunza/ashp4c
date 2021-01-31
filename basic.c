@@ -119,12 +119,3 @@ error_(char* file, int line, char* message, ...)
   }
   exit(1);
 }
-
-void
-list_append_item(struct List* l_a, struct List* l_b)
-{
-  assert(l_a->next_item == 0);
-  assert(l_b->prev_item == 0);
-  l_a->next_item = l_b;
-  l_b->prev_item = l_a;
-}

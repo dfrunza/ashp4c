@@ -21,6 +21,15 @@ internal struct Cst* build_blockStatement();
 internal struct Cst* build_statement();
 internal struct Cst* build_parserStatement();
 
+void
+link_cst_nodes(struct Cst* node_a, struct Cst* node_b)
+{
+  assert(node_a->link.next_node == 0);
+  assert(node_b->link.prev_node == 0);
+  node_a->link.next_node = node_b;
+  node_b->link.prev_node = node_a;
+}
+
 internal uint32_t
 name_hash(char* name)
 {
@@ -363,14 +372,11 @@ build_typeParameterList()
 {
   struct Cst* params = 0;
   if (token_is_typeParameterList(token)) {
-    struct Cst_TypeParam* prev_param = new_cst_node(Cst_TypeParam);
-    params = (struct Cst*)prev_param;
-    prev_param->name = build_name(true);
+    struct Cst* prev_param = build_name(true);
     while (token->klass == Token_Comma) {
       next_token();
-      struct Cst_TypeParam* next_param = new_cst_node(Cst_TypeParam);
-      next_param->name = build_name(true);
-      list_append_item(&prev_param->link, &next_param->link);
+      struct Cst* next_param = build_name(true);
+      link_cst_nodes(prev_param, next_param);
       prev_param = next_param;
     }
   } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -466,7 +472,7 @@ build_parameterList()
     while (token->klass == Token_Comma) {
       next_token();
       struct Cst* next_param = build_parameter();
-      list_append_item(&prev_param->link, &next_param->link);
+      link_cst_nodes(prev_param, next_param);
       prev_param = next_param;
     }
   }
@@ -557,7 +563,7 @@ build_methodPrototypes()
     protos = prev_proto;
     while (token_is_methodPrototype(token)) {
       struct Cst* next_proto = build_methodPrototype();
-      list_append_item(&prev_proto->link, &next_proto->link);
+      link_cst_nodes(prev_proto, next_proto);
       prev_proto = next_proto;
     }
   }
@@ -699,7 +705,7 @@ build_typeArgumentList()
     while (token->klass == Token_Comma) {
       next_token();
       struct Cst* next_arg = build_typeArg();
-      list_append_item(&prev_arg->link, &next_arg->link);
+      link_cst_nodes(prev_arg, next_arg);
       prev_arg = next_arg;
     }
   }
@@ -841,7 +847,7 @@ build_structFieldList()
     if (token->klass == Token_Comma) {
       next_token();
       struct Cst* next_field = build_structField();
-      list_append_item(&prev_field->link, &next_field->link);
+      link_cst_nodes(prev_field, next_field);
       prev_field = next_field;
     }
   }
@@ -881,11 +887,13 @@ build_headerUnionDeclaration()
     if (token_is_name(token)) {
       decl->name = build_name(true);
       if (token->klass == Token_BraceOpen) {
+        scope_push_level();
         next_token();
         decl->fields = build_structFieldList();
         if (token->klass == Token_BraceClose) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
+        scope_pop_level(scope_level-1);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `header_union` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -902,11 +910,13 @@ build_structTypeDeclaration()
     if (token_is_name(token)) {
       decl->name = build_name(true);
       if (token->klass == Token_BraceOpen) {
+        scope_push_level();
         next_token();
         decl->fields = build_structFieldList();
         if (token->klass == Token_BraceClose) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
+        scope_pop_level(scope_level-1);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `struct` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -963,7 +973,7 @@ build_specifiedIdentifierList()
     while (token->klass == Token_Comma) {
       next_token();
       struct Cst* next_id = build_specifiedIdentifier();
-      list_append_item(&prev_id->link, &next_id->link);
+      link_cst_nodes(prev_id, next_id);
       prev_id = next_id;
     }
   }
@@ -993,6 +1003,7 @@ build_enumDeclaration()
     if (token_is_name(token)) {
       decl->name = build_name(true);
       if (token->klass == Token_BraceOpen) {
+        scope_push_level();
         next_token();
         if (token_is_specifiedIdentifier(token)) {
           decl->id_list = build_specifiedIdentifierList();
@@ -1000,6 +1011,7 @@ build_enumDeclaration()
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
         } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
+        scope_pop_level(scope_level-1);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `enum` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1212,7 +1224,7 @@ build_argumentList()
     while (token->klass == Token_Comma) {
       next_token();
       struct Cst* next_arg = build_argument();
-      list_append_item(&prev_arg->link, &next_arg->link);
+      link_cst_nodes(prev_arg, next_arg);
       prev_arg = next_arg;
     }
   }
@@ -1288,7 +1300,7 @@ build_parserLocalElements()
     elem_list = prev_elem;
     while (token_is_parserLocalElement(token)) {
       struct Cst* next_elem = build_parserLocalElement();
-      list_append_item(&prev_elem->link, &next_elem->link);
+      link_cst_nodes(prev_elem, next_elem);
       prev_elem = next_elem;
     }
   }
@@ -1370,7 +1382,7 @@ build_lvalue()
       if (token->klass == Token_DotPrefix) {
         next_token();
         struct Cst* next_name = build_name(false);
-        list_append_item(&prev_name->link, &next_name->link);
+        link_cst_nodes(prev_name, next_name);
         prev_name = next_name;
       }
       if (token->klass == Token_BracketOpen) {
@@ -1433,7 +1445,7 @@ build_parserStatements()
     stmts = prev_stmt;
     while (token_is_parserStatement(token)) {
       struct Cst* next_stmt = build_parserStatement();
-      list_append_item(&prev_stmt->link, &next_stmt->link);
+      link_cst_nodes(prev_stmt, next_stmt);
       prev_stmt = next_stmt;
     }
   }
@@ -1445,11 +1457,13 @@ build_parserBlockStatements()
 {
   struct Cst* stmts = 0;
   if (token->klass == Token_BraceOpen) {
+    scope_push_level();
     next_token();
     stmts = build_parserStatements();
     if (token->klass == Token_BraceClose) {
       next_token();
     } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
+    scope_pop_level(scope_level-1);
   } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   return stmts;
 }
@@ -1484,7 +1498,7 @@ build_expressionList()
     while (token->klass == Token_Comma) {
       next_token();
       struct Cst* next_expr = build_expression(1);
-      list_append_item(&prev_expr->link, &next_expr->link);
+      link_cst_nodes(prev_expr, next_expr);
       prev_expr = next_expr;
     }
   }
@@ -1518,7 +1532,7 @@ build_tupleKeysetExpression()
     while (token->klass == Token_Comma) {
       next_token();
       struct Cst* next_keyset = build_simpleKeysetExpression();
-      list_append_item(&prev_keyset->link, &next_keyset->link);
+      link_cst_nodes(prev_keyset, next_keyset);
       prev_keyset = next_keyset;
     }
     if (token->klass == Token_ParenthClose) {
@@ -1569,7 +1583,7 @@ build_selectCaseList()
     case_list = prev_case;
     while (token_is_selectCase(token)) {
       struct Cst* next_case = build_selectCase();
-      list_append_item(&prev_case->link, &next_case->link);
+      link_cst_nodes(prev_case, next_case);
       prev_case = next_case;
     }
   }
@@ -1659,7 +1673,7 @@ build_parserStates()
     states = prev_state;
     while (token->klass == Token_State) {
       struct Cst* next_state = build_parserState();
-      list_append_item(&prev_state->link, &next_state->link);
+      link_cst_nodes(prev_state, next_state);
       prev_state = next_state;
     }
   } else error("at line %d: `state` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1765,7 +1779,7 @@ build_keyElementList()
     elem_list = prev_elem;
     while (token_is_expression(token)) {
       struct Cst* next_elem = build_keyElement();
-      list_append_item(&prev_elem->link, &next_elem->link);
+      link_cst_nodes(prev_elem, next_elem);
       prev_elem = next_elem;
     }
   }
@@ -1802,7 +1816,7 @@ build_actionList()
     } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
     while (token_is_actionRef(token)) {
       struct Cst* next_action = build_actionRef();
-      list_append_item(&prev_action->link, &next_action->link);
+      link_cst_nodes(prev_action, next_action);
       prev_action = next_action;
       if (token->klass == Token_Semicolon) {
         next_token();
@@ -1839,7 +1853,7 @@ build_entriesList()
     entry_list = prev_entry;
     while (token_is_keysetExpression(token)) {
       struct Cst* next_entry = build_entry();
-      list_append_item(&prev_entry->link, &next_entry->link);
+      link_cst_nodes(prev_entry, next_entry);
       prev_entry = next_entry;
     }
   } else error("at line %d: keyset expression was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1923,7 +1937,7 @@ build_tablePropertyList()
     prop_list = prev_prop;
     while (token_is_tableProperty(token)) {
       struct Cst* next_prop = build_tableProperty();
-      list_append_item(&prev_prop->link, &next_prop->link);
+      link_cst_nodes(prev_prop, next_prop);
       prev_prop = next_prop;
     }
   } else error("at line %d: table property was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1938,11 +1952,13 @@ build_tableDeclaration()
     next_token();
     table->name = build_name(false);
     if (token->klass == Token_BraceOpen) {
+      scope_push_level();
       next_token();
       table->prop_list = build_tablePropertyList();
       if (token->klass == Token_BraceClose) {
         next_token();
       } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
+      scope_pop_level(scope_level-1);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `table` was expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)table;
@@ -1977,7 +1993,7 @@ build_controlLocalDeclarations()
     decls = prev_decl;
     while (token_is_controlLocalDeclaration(token)) {
       struct Cst* next_decl = build_controlLocalDeclaration();
-      list_append_item(&prev_decl->link, &next_decl->link);
+      link_cst_nodes(prev_decl, next_decl);
       prev_decl = next_decl;
     }
   }
@@ -1996,6 +2012,7 @@ build_controlDeclaration()
     } else {
       decl->ctor_params = build_optConstructorParameters();
       if (token->klass == Token_BraceOpen) {
+        scope_push_level();
         next_token();
         decl->local_decls = build_controlLocalDeclarations();
         if (token->klass == Token_Apply) {
@@ -2005,6 +2022,7 @@ build_controlDeclaration()
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
         } else error("at line %d: `apply` was expected, got `%s`.", token->line_nr, token->lexeme);
+        scope_pop_level(scope_level-1);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     }
   } else error("at line %d: `control` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -2186,7 +2204,7 @@ build_switchCases()
     switch_cases = prev_case;
     while (token_is_switchLabel(token)) {
       struct Cst* next_case = build_switchCase();
-      list_append_item(&prev_case->link, &next_case->link);
+      link_cst_nodes(prev_case, next_case);
       prev_case = next_case;
     }
   }
@@ -2272,7 +2290,7 @@ build_statementOrDeclList()
     stmt_list = prev_stmt;
     while (token_is_statementOrDeclaration(token)) {
       struct Cst* next_stmt = build_statementOrDecl();
-      list_append_item(&prev_stmt->link, &next_stmt->link);
+      link_cst_nodes(prev_stmt, next_stmt);
       prev_stmt = next_stmt;
     }
   }
@@ -2306,7 +2324,7 @@ build_identifierList()
     while (token->klass == Token_Comma) {
       next_token();
       struct Cst* next_id = build_name(false);
-      list_append_item(&prev_id->link, &next_id->link);
+      link_cst_nodes(prev_id, next_id);
       prev_id = next_id;
     }
   } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -2321,6 +2339,7 @@ build_errorDeclaration()
     decl = new_cst_node(Cst_Error);
     next_token();
     if (token->klass == Token_BraceOpen) {
+      scope_push_level();
       next_token();
       if (token_is_name(token)) {
         decl->id_list = build_identifierList();
@@ -2328,6 +2347,7 @@ build_errorDeclaration()
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
+      scope_pop_level(scope_level-1);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `error` was expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)decl;
@@ -2341,10 +2361,12 @@ build_matchKindDeclaration()
     next_token();
     decl = new_cst_node(Cst_MatchKind);
     if (token->klass == Token_BraceOpen) {
+      scope_push_level();
       next_token();
       if (token_is_name(token)) {
         decl->fields = build_identifierList();
       } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
+      scope_pop_level(scope_level-1);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `match_kind` was expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)decl;
@@ -2399,13 +2421,15 @@ build_p4program()
   while (token_is_declaration(token) || token->klass == Token_Semicolon) {
     if (token_is_declaration(token)) {
       struct Cst* next_decl = build_declaration();
-      list_append_item(&prev_decl->link, &next_decl->link);
+      link_cst_nodes(prev_decl, next_decl);
       prev_decl = next_decl;
     } else if (token->klass == Token_Semicolon) {
       next_token(); /* empty declaration */
     }
   }
-  //prog->decls = ...;
+  struct Cst* first_decl = sentinel_decl->link.next_node;
+  first_decl->link.prev_node = 0;
+  prog->decl_list = first_decl;
   if (token->klass != Token_EndOfInput)
     error("at line %d: unexpected token `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)prog;
@@ -2465,7 +2489,7 @@ build_realTypeArgumentList()
     while (token->klass == Token_Comma) {
       next_token();
       struct Cst* next_arg = build_realTypeArg();
-      list_append_item(&prev_arg->link, &next_arg->link);
+      link_cst_nodes(prev_arg, next_arg);
       prev_arg = next_arg;
     }
   }

@@ -33,10 +33,6 @@ struct Namespace_Entry {
   struct Namespace_Entry* next;
 };
 
-#define cast(TYPE, EXPR) ({\
-  if ((EXPR)) assert((EXPR)->kind == TYPE); \
-  (struct TYPE*)(EXPR);})
-
 enum CstKind {
   Cst_NonTypeName,
   Cst_TypeName,
@@ -149,10 +145,15 @@ enum Cst_TypeParameterKind {
   Cst_TypeParamInt,
 };
 
+struct CstLink {
+  struct Cst* prev_node;
+  struct Cst* next_node;
+};
+
 struct Cst {
   enum CstKind kind;
   int line_nr;
-  struct List link;
+  struct CstLink link;
 };
 
 struct Cst_NonTypeName {
@@ -203,11 +204,6 @@ struct Cst_ExternDecl {
   struct Cst* name;
   struct Cst* type_params;
   struct Cst* method_protos;
-};
-
-struct Cst_TypeParam {
-  struct Cst;
-  struct Cst* name;
 };
 
 struct Cst_Constructor {
