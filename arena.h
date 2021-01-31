@@ -25,16 +25,16 @@ Arena* arena_branch_new_ratio(Arena* arena, float size_ratio);
 void arena_free(Arena* arena);
 void* arena_push(Arena* arena, uint32_t size);
 
-#define arena_push_struct(ARENA, TYPE) ({\
-  struct TYPE* object = arena_push((ARENA), sizeof(struct TYPE)); \
-  *object = (struct TYPE){}; \
+#define arena_push_struct(arena, type) ({\
+  struct type* object = arena_push((arena), sizeof(struct type)); \
+  *object = (struct type){}; \
   object;})
 
-#define arena_push_array(ARENA, TYPE, COUNT) \
-  (TYPE*)arena_push((ARENA), sizeof(TYPE)*(COUNT))
+#define arena_push_array(arena, type, COUNT) \
+  (type*)arena_push((arena), sizeof(type)*(COUNT))
 
 ArenaUsage arena_get_usage(Arena* arena);
 void arena_print_usage(Arena* arena, char* title);
 
-#define zero_struct(PTR, TYPE) \
-  *PTR = (struct TYPE){};
+#define zero_struct(ptr, type) \
+  *ptr = (struct type){};

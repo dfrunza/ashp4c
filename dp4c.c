@@ -20,6 +20,12 @@ int scope_level = 0;
 
 struct Cst_P4Program* p4program = 0;
 
+struct CmdlineArg {
+  char* name;
+  char* value;
+  struct CmdlineArg* next_arg;
+};
+
 internal void
 read_input(char* filename)
 {
@@ -33,17 +39,62 @@ read_input(char* filename)
   fclose(f_stream);
 }
 
-internal char*
-get_filename_arg(int arg_count, char* args[])
+internal struct CmdlineArg*
+find_unnamed_arg(struct CmdlineArg* args)
 {
-  char* filename = 0;
-  if (arg_count <= 1) {
-    printf("The <filename> argument is missing\n");
-    exit(1);
-  } else {
-    filename = args[1];
+  struct CmdlineArg* unnamed_arg = 0;
+  struct CmdlineArg* arg = args;
+  while (arg) {
+    if (!arg->name) {
+      unnamed_arg = arg;
+      break;
+    }
+    arg = arg->next_arg;
   }
-  return filename;
+  return unnamed_arg;
+}
+
+internal struct CmdlineArg*
+find_named_arg(char* name, struct CmdlineArg* args)
+{
+  struct CmdlineArg* named_arg = 0;
+  struct CmdlineArg* arg = args;
+  while (arg) {
+    if (arg->name && cstr_match(name, arg->name)) {
+      named_arg = arg;
+      break;
+    }
+    arg = arg->next_arg;
+  }
+  return named_arg;
+}
+
+internal struct CmdlineArg*
+parse_cmdline_args(int arg_count, char* args[])
+{
+  struct CmdlineArg* arg_list = 0;
+  if (arg_count <= 1) {
+    return arg_list;
+  }
+  
+  struct CmdlineArg sentinel_arg = {};
+  struct CmdlineArg* prev_arg = &sentinel_arg;
+  int i = 1;
+  while (i < arg_count) {
+    struct CmdlineArg* cmdline_arg = arena_push_struct(&arena, CmdlineArg);
+    zero_struct(cmdline_arg, CmdlineArg);
+    if (cstr_start_with(args[i], "--")) {
+      char* raw_arg = args[i] + 2;  /* skip the `--` prefix */
+      cmdline_arg->name = raw_arg;
+    } else {
+      cmdline_arg->value = args[i];
+    }
+    prev_arg->next_arg = cmdline_arg;
+    prev_arg = cmdline_arg;
+    i += 1;
+  }
+  arg_list = sentinel_arg.next_arg;
+  return arg_list;
 }
 
 int
@@ -51,8 +102,13 @@ main(int arg_count, char* args[])
 {
   arena_new(&arena, 192*KILOBYTE);
 
-  char* filename = get_filename_arg(arg_count, args);
-  read_input(filename);
+  struct CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
+  struct CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
+  if (!filename_arg) {
+    printf("<filename> argument is missing\n");
+    exit(1);
+  }
+  read_input(filename_arg->value);
   if (DEBUG_ENABLED)
     arena_print_usage(&arena, "Memory (read_input): ");
 
@@ -69,6 +125,10 @@ main(int arg_count, char* args[])
   build_cst();
   if (DEBUG_ENABLED)
     arena_print_usage(&arena, "Memory (syntax): ");
+
+  if (find_named_arg("dump-cst", cmdline_args)) {
+    printf("DUMP-CST\n");
+  }
   return 0;
 }
 

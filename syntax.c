@@ -2416,8 +2416,8 @@ internal struct Cst*
 build_p4program()
 {
   struct Cst_P4Program* prog = new_cst_node(Cst_P4Program);
-  struct Cst_EmptyStmt* sentinel_decl = new_cst_node(Cst_EmptyStmt);
-  struct Cst* prev_decl = (struct Cst*)sentinel_decl;
+  struct Cst_EmptyStmt sentinel_decl = {};
+  struct Cst* prev_decl = (struct Cst*)&sentinel_decl;
   while (token_is_declaration(token) || token->klass == Token_Semicolon) {
     if (token_is_declaration(token)) {
       struct Cst* next_decl = build_declaration();
@@ -2427,7 +2427,7 @@ build_p4program()
       next_token(); /* empty declaration */
     }
   }
-  struct Cst* first_decl = sentinel_decl->link.next_node;
+  struct Cst* first_decl = sentinel_decl.link.next_node;
   first_decl->link.prev_node = 0;
   prog->decl_list = first_decl;
   if (token->klass != Token_EndOfInput)

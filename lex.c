@@ -70,8 +70,7 @@ lexeme_copy(char* dest, char* begin, char* end)
       } else {
         *dest++ = *src++;
       }
-    }
-    else {
+    } else {
       *dest++ = *src++;
     }
   }
@@ -189,6 +188,21 @@ next_token(struct Token* token)
           state = 3;
       } break;
 
+      case 2:
+      {
+        token->klass = Token_EndOfInput;
+        token->lexeme = "<end-of-input>";
+        state = 0;
+      } break;
+
+      case 3:
+      {
+        token->klass = Token_Unknown;
+        token->lexeme = "<unknown>";
+        lexeme_advance();
+        state = 0;
+      } break;
+
       case 100:
       {
         token->klass = Token_Semicolon;
@@ -232,9 +246,9 @@ next_token(struct Token* token)
       case 103:
       {
         char cc = char_lookahead(1);
-        if (cstr_is_letter(cc) || cstr_is_digit(cc))
+        if (cstr_is_letter(cc) || cstr_is_digit(cc)) {
           state = 500;
-        else {
+        } else {
           token->klass = Token_Dontcare;
           token->lexeme = lexeme_to_cstring();
           lexeme_advance();
@@ -350,8 +364,7 @@ next_token(struct Token* token)
           state = 310;
         } else if (char_lookahead(1) == '/') {
           state = 311;
-        }
-        else {
+        } else {
           token->klass = Token_Slash;
           token->lexeme = lexeme_to_cstring();
           lexeme_advance();
@@ -622,21 +635,6 @@ next_token(struct Token* token)
         char_retract();
         token->klass = Token_Identifier;
         token->lexeme = lexeme_to_cstring();
-        lexeme_advance();
-        state = 0;
-      } break;
-
-      case 2:
-      {
-        token->klass = Token_EndOfInput;
-        token->lexeme = "<end-of-input>";
-        state = 0;
-      } break;
-
-      case 3:
-      {
-        token->klass = Token_Unknown;
-        token->lexeme = "<unknown>";
         lexeme_advance();
         state = 0;
       } break;

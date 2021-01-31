@@ -81,6 +81,18 @@ cstr_copy_substr(char* dest_str, char* begin_char, char* end_char)
   while(src_str <= end_char);
 }
 
+bool cstr_start_with(char* str, char* prefix)
+{
+  while(*str == *prefix) {
+    str++;
+    prefix++;
+    if(*prefix == '\0')
+      break;
+  }
+  bool result = (*prefix == '\0');
+  return result;
+}
+
 bool
 cstr_match(char* str_a, char* str_b)
 {
