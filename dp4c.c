@@ -1,4 +1,4 @@
-#define DEBUG_ENABLED 1
+#define DEBUG_ENABLED 0
 
 #include "basic.h"
 #include "arena.h"
@@ -105,7 +105,7 @@ main(int arg_count, char* args[])
   struct CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
   struct CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
   if (!filename_arg) {
-    printf("<filename> argument is missing\n");
+    printf("<filename> argument is required\n");
     exit(1);
   }
   read_input(filename_arg->value);
@@ -123,11 +123,12 @@ main(int arg_count, char* args[])
   while (i < max_symtable_len)
     symtable[i++] = 0;
   p4program = build_cst();
+  assert(p4program->kind == Cst_P4Program);
   if (DEBUG_ENABLED)
     arena_print_usage(&arena, "Memory (syntax): ");
 
   if (find_named_arg("dump-cst", cmdline_args)) {
-    dump_cst(p4program);
+    dump_P4Program((struct Cst_P4Program*)p4program);
   }
   return 0;
 }

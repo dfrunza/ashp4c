@@ -94,8 +94,8 @@ parser XdpParser(TPacketIn pkt, out Header hdr)
 
 control XdpPipe(inout Header hdr, out bool accept)
 {
-  int<1> i;
-  bit<1> b;
+  int<16> i;
+  bit<16> b;
 
   apply
   {
@@ -103,4 +103,3 @@ control XdpPipe(inout Header hdr, out bool accept)
 }
 
 TXdpPackage(XdpParser(), XdpPipe()) main;
-

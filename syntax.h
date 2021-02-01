@@ -40,11 +40,12 @@ enum CstKind {
   Cst_ExternDecl,
   Cst_Constructor,
   Cst_FunctionProto,
-  Cst_Action,
+  Cst_ActionDecl,
   Cst_HeaderDecl,
   Cst_HeaderUnionDecl,
   Cst_StructDecl,
   Cst_EnumDecl,
+  Cst_TypeDecl,
   Cst_Parser,
   Cst_Control,
   Cst_Package,
@@ -214,7 +215,7 @@ struct Cst_FunctionProto {
   struct Cst* params;
 };
 
-struct Cst_Action {
+struct Cst_ActionDecl {
   struct Cst;
   struct Cst* name;
   struct Cst* params;
@@ -244,6 +245,13 @@ struct Cst_EnumDecl {
   struct Cst* type_size;
   struct Cst* name;
   struct Cst* id_list;
+};
+
+struct Cst_TypeDecl {
+  struct Cst;
+  bool is_typedef;
+  struct Cst* type_ref;
+  struct Cst* name;
 };
 
 struct Cst_Parser {

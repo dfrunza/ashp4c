@@ -1,4 +1,4 @@
-#define DEBUG_ENABLED 1
+#define DEBUG_ENABLED 0
 
 #include "syntax.h"
 
@@ -523,7 +523,7 @@ build_functionPrototype()
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `(` was expected, got `%s`.", token->line_nr, token->lexeme);
-    } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
+    } else error("at line %d: function name was expected, got `%s`.", token->line_nr, token->lexeme);
     scope_pop_level(scope_level-1);
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)proto;
@@ -1267,7 +1267,7 @@ build_instantiation()
           if (token->klass == Token_Semicolon) {
             next_token();
           } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
-        } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
+        } else error("at line %d: instance name was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `(` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1732,10 +1732,10 @@ build_controlTypeDeclaration()
 internal struct Cst*
 build_actionDeclaration()
 {
-  struct Cst_Action* decl = 0;
+  struct Cst_ActionDecl* decl = 0;
   if (token->klass == Token_Action) {
     next_token();
-    decl = new_cst_node(Cst_Action);
+    decl = new_cst_node(Cst_ActionDecl);
     if (token_is_name(token)) {
       decl->name = build_name(false);
       if (token->klass == Token_ParenthOpen) {
@@ -2057,21 +2057,26 @@ build_typedefDeclaration()
 {
   struct Cst* decl = 0;
   if (token->klass == Token_Typedef || token->klass == Token_Type) {
+    bool is_typedef = true;
     if (token->klass == Token_Typedef) {
       next_token();
     } else if (token->klass == Token_Type) {
+      is_typedef = false;
       next_token();
     } else assert(false);
 
     if (token_is_typeRef(token) || token_is_derivedTypeDeclaration(token)) {
+      struct Cst_TypeDecl* type_decl = new_cst_node(Cst_TypeDecl);
+      type_decl->is_typedef = is_typedef;
+      decl = (struct Cst*)type_decl;
       if (token_is_typeRef(token)) {
-        decl = build_typeRef();
+        type_decl->type_ref = build_typeRef();
       } else if (token_is_derivedTypeDeclaration(token)) {
-        decl = build_derivedTypeDeclaration();
+        type_decl->type_ref = build_derivedTypeDeclaration();
       } else assert(false);
 
       if (token_is_name(token)) {
-        build_name(true);
+        type_decl->name = build_name(true);
         if (token->klass == Token_Semicolon) {
           next_token();
         } else error("at line %d: `;` expected, got `%s`.", token->line_nr, token->lexeme);
@@ -2337,8 +2342,8 @@ build_errorDeclaration()
 {
   struct Cst_Error* decl = 0;
   if (token->klass == Token_Error) {
-    decl = new_cst_node(Cst_Error);
     next_token();
+    decl = new_cst_node(Cst_Error);
     if (token->klass == Token_BraceOpen) {
       scope_push_level();
       next_token();
