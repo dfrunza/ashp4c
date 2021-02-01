@@ -230,13 +230,6 @@ token_is_parameter(struct Token* token)
 }
 
 internal bool
-token_is_functionPrototype()
-{
-  bool result = token_is_typeRef(token) || token->klass == Token_Void || token->klass == Token_Identifier;
-  return result;
-}
-
-internal bool
 token_is_derivedTypeDeclaration(struct Token* token)
 {
   bool result = token->klass == Token_Header || token->klass == Token_HeaderUnion || token->klass == Token_Struct
@@ -422,7 +415,7 @@ build_typeArg()
 internal bool
 token_is_methodPrototype(struct Token* token)
 {
-  return token_is_functionPrototype() | token->klass == Token_TypeIdentifier;
+  return token_is_typeOrVoid(token) | token->klass == Token_TypeIdentifier;
 }
 
 internal struct Cst*
@@ -545,7 +538,7 @@ build_methodPrototype()
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `(` as expected, got `%s`.", token->line_nr, token->lexeme);
-    } else if (token_is_functionPrototype(token)) {
+    } else if (token_is_typeOrVoid(token)) {
       proto = build_functionPrototype();
     } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
     if (token->klass == Token_Semicolon) {
@@ -579,7 +572,21 @@ build_externDeclaration()
     next_token();
     struct Cst_ExternDecl* extern_decl = new_cst_node(Cst_ExternDecl);
     decl = (struct Cst*)extern_decl;
-    if (token_is_nonTypeName(token)) {
+    bool is_function_proto = false;
+    if (token_is_typeOrVoid(token) && token_is_nonTypeName(token)) {
+      is_function_proto = token_is_typeOrVoid(token) && token_is_name(peek_token());
+    } else if (token_is_typeOrVoid(token)) {
+      is_function_proto = true;
+    } else if (token_is_nonTypeName(token)) {
+      is_function_proto = false;
+    } else error("at line %d: extern declaration was expected, got `%s`.", token->line_nr, token->lexeme);
+
+    if (is_function_proto) {
+      decl = build_functionPrototype();
+      if (token->klass == Token_Semicolon) {
+        next_token();
+      } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
+    } else {
       extern_decl->name = build_nonTypeName(true);
       extern_decl->type_params = build_optTypeParameters();
       if (token->klass == Token_BraceOpen) {
@@ -591,13 +598,8 @@ build_externDeclaration()
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
         scope_pop_level(scope_level-1);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
-    } else if (token_is_functionPrototype(token)) {
-      decl = build_functionPrototype();
-      if (token->klass == Token_Semicolon) {
-        next_token();
-      } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
-    } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
-  } else error("at line %d: `extern` was expected, got `%s`.", token->line_nr, token->lexeme);
+    }
+  }
   return decl;
 }
 
@@ -1079,6 +1081,7 @@ build_constantDeclaration()
   struct Cst_ConstDecl* decl = 0;
   if (token->klass == Token_Const) {
     next_token();
+    decl = new_cst_node(Cst_ConstDecl);
     if (token_is_typeRef(token)) {
       decl->type = build_typeRef();
       if (token_is_name(token)) {
@@ -1917,6 +1920,7 @@ build_tableProperty()
     } else if (token_is_nonTableKwName(token)) {
       struct Cst_TableProp_SingleEntry* entry_prop = new_cst_node(Cst_TableProp_SingleEntry);
       entry_prop->name = build_name(false);
+      prop = (struct Cst*)entry_prop;
       if (token->klass == Token_Equal) {
         next_token();
         entry_prop->init_expr = build_initializer();
@@ -1951,6 +1955,7 @@ build_tableDeclaration()
   struct Cst_TableDecl* table = 0;
   if (token->klass == Token_Table) {
     next_token();
+    table = new_cst_node(Cst_TableDecl);
     table->name = build_name(false);
     if (token->klass == Token_BraceOpen) {
       scope_push_level();
@@ -2117,6 +2122,7 @@ build_conditionalStatement()
   struct Cst_IfStmt* if_stmt = 0;
   if (token->klass == Token_If) {
     next_token();
+    if_stmt = new_cst_node(Cst_IfStmt);
     if (token->klass == Token_ParenthOpen) {
       next_token();
       if (token_is_expression(token)) {
