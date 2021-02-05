@@ -10,7 +10,13 @@ enum ValueType {
   Value_None,
   Value_Int,
   Value_String,
+  Value_Ref,
+  Value_RefList,
 };
+
+internal void dump_Cst(struct Cst*);
+internal void print_prop(char* name, enum ValueType type, ...);
+internal void print_list_elem(enum ValueType type, ...);
 
 internal char*
 cst_kind_to_string(enum CstKind kind)
@@ -154,6 +160,8 @@ cst_kind_to_string(enum CstKind kind)
       return "Cst_TypeArgsExpr";
     case Cst_P4Program:
       return "Cst_P4Program";
+    case Cst_TypeDecl:
+      return "Cst_TypeDecl";
     default:
       assert(0);
   }
@@ -202,6 +210,33 @@ newline()
 }
 
 internal void
+print_value(enum ValueType type, va_list value, char* terminator)
+{
+  if (type == Value_Int) {
+    int i = va_arg(value, int);
+    printf("%d%s", i, terminator);
+  } else if (type == Value_String) {
+    char* s = va_arg(value, char*);
+    printf("\"%s\"%s", s, terminator);
+  } else if (type == Value_Ref) {
+    struct Cst* cst = va_arg(value, struct Cst*);
+    if (cst) {
+      printf("\"$%d\"%s", cst->id, terminator);
+    } else {
+      printf("null%s", terminator);
+    }
+  } else if (type == Value_RefList) {
+    struct Cst* cst = va_arg(value, struct Cst*);
+    list_open();
+    while (cst) {
+      print_list_elem(Value_Ref, cst);
+      cst = cst->link.next_node;
+    }
+    list_close();
+  } else assert(0);
+}
+
+internal void
 print_prop(char* name, enum ValueType type, ...)
 {
   indent_right();
@@ -209,11 +244,7 @@ print_prop(char* name, enum ValueType type, ...)
   if (type != Value_None) {
     va_list value;
     va_start(value, type);
-    if (type == Value_Int) {
-      vprintf("%d\n", value);
-    } else if (type == Value_String) {
-      vprintf("\"%s\"\n", value);
-    }
+    print_value(type, value, "\n");
     va_end(value);
   }
 }
@@ -224,19 +255,15 @@ print_list_elem(enum ValueType type, ...)
   if (type != Value_None) {
     va_list value;
     va_start(value, type);
-    if (type == Value_Int) {
-      vprintf("%d, ", value);
-    } else if (type == Value_String) {
-      vprintf("\"%s\", ", value);
-    }
+    print_value(type, value, ", ");
     va_end(value);
   }
 }
 
 internal void
-print_cst_common(struct Cst* cst)
+print_prop_common(struct Cst* cst)
 {
-  print_prop("id", Value_Int, cst->id);
+  print_prop("id", Value_Ref, cst);
   print_prop("kind", Value_String, cst_kind_to_string(cst->kind));
   print_prop("line_nr", Value_Int, cst->line_nr);
 }
@@ -245,7 +272,7 @@ internal void
 dump_NonTypeName(struct Cst_NonTypeName* name)
 {
   object_start();
-  print_cst_common((struct Cst*)name);
+  print_prop_common((struct Cst*)name);
   print_prop("name", Value_String, name->name);
   object_end();
 }
@@ -254,7 +281,7 @@ internal void
 dump_TypeName(struct Cst_TypeName* name)
 {
   object_start();
-  print_cst_common((struct Cst*)name);
+  print_prop_common((struct Cst*)name);
   print_prop("name", Value_String, name->name);
   object_end();
 }
@@ -263,78 +290,119 @@ internal void
 dump_Error(struct Cst_Error* error)
 {
   object_start();
-  print_cst_common((struct Cst*)error);
-  print_prop("id_list", Value_None);
-  list_open();
-  struct Cst* id = error->id_list;
-  while (id) {
-    print_list_elem(Value_Int, id->id);
-    id = id->link.next_node;
-  }
-  list_close();
+  print_prop_common((struct Cst*)error);
+  print_prop("id_list", Value_RefList, error->id_list);
   object_end();
+  dump_Cst(error->id_list);
+}
 
-  id = error->id_list;
-  while (id) {
-    if (id->kind == Cst_NonTypeName) {
-      dump_NonTypeName((struct Cst_NonTypeName*)id);
-    } else if (id->kind == Cst_TypeName) {
-      dump_TypeName((struct Cst_TypeName*)id);
-    } else assert(0);
-    id = id->link.next_node;
-  }
+internal void
+dump_Control(struct Cst_Control* control)
+{
+  object_start();
+  print_prop_common((struct Cst*)control);
+  print_prop("type_decl", Value_Ref, control->type_decl);
+  print_prop("ctor_params", Value_RefList, control->ctor_params);
+  print_prop("local_decls", Value_RefList, control->local_decls);
+  print_prop("apply_stmt", Value_Ref, control->apply_stmt);
+  object_end();
+  dump_Cst(control->type_decl);
+  dump_Cst(control->ctor_params);
+  dump_Cst(control->local_decls);
+  dump_Cst(control->apply_stmt);
+}
+
+internal void
+dump_ControlType(struct Cst_ControlType* control)
+{
+  object_start();
+  print_prop_common((struct Cst*)control);
+  print_prop("name", Value_Ref, control->name);
+  print_prop("type_params", Value_RefList, control->type_params);
+  print_prop("params", Value_RefList, control->params);
+  object_end();
+  dump_Cst(control->name);
+  dump_Cst(control->type_params);
+  dump_Cst(control->params);
+}
+
+void
+dump_Package(struct Cst_Package* package)
+{
+  object_start();
+  print_prop_common((struct Cst*)package);
+  print_prop("name", Value_Ref, package->name);
+  print_prop("type_params", Value_RefList, package->type_params);
+  object_end();
+  dump_Cst(package->name);
+  dump_Cst(package->type_params);
+  dump_Cst(package->params);
 }
 
 void
 dump_P4Program(struct Cst_P4Program* prog)
 {
   object_start();
-  print_cst_common((struct Cst*)prog);
-  print_prop("decl_list", Value_None);
-  list_open();
-  struct Cst* decl = prog->decl_list;
-  while (decl) {
-    print_list_elem(Value_Int, decl->id);
-    decl = decl->link.next_node;
-  }
-  list_close();
+  print_prop_common((struct Cst*)prog);
+  print_prop("decl_list", Value_RefList, prog->decl_list);
   object_end();
+  dump_Cst(prog->decl_list);
+}
 
-  decl = prog->decl_list;
-  while (decl) {
-    if (decl->kind == Cst_ConstDecl) {
-      printf("TODO: Cst_ConstDecl\n");
-    } else if (decl->kind == Cst_ExternDecl) {
-      printf("TODO: Cst_ExternDecl\n");
-    } else if (decl->kind == Cst_FunctionProto) {
-      printf("TODO: Cst_FunctionProto\n");
-    } else if (decl->kind == Cst_ActionDecl) {
-      printf("TODO: Cst_ActionDecl\n");
-    } else if (decl->kind == Cst_HeaderDecl) {
-      printf("TODO: Cst_HeaderDecl\n");
-    } else if (decl->kind == Cst_HeaderUnionDecl) {
-      printf("TODO: Cst_HeaderUnionDecl\n");
-    } else if (decl->kind == Cst_StructDecl) {
-      printf("TODO: Cst_StructDecl\n");
-    } else if (decl->kind == Cst_EnumDecl) {
-      printf("TODO: Cst_EnumDecl\n");
-    } else if (decl->kind == Cst_TypeDecl) {
-      printf("TODO: Cst_TypeDecl\n");
-    } else if (decl->kind == Cst_Parser) {
-      printf("TODO: Cst_Parser\n");
-    } else if (decl->kind == Cst_Control) {
-      printf("TODO: Cst_Control\n");
-    } else if (decl->kind == Cst_Package) {
-      printf("TODO: Cst_Package\n");
-    } else if (decl->kind == Cst_Instantiation) {
-      printf("TODO: Cst_Instantiation\n");
-    } else if (decl->kind == Cst_Error) {
-      dump_Error((struct Cst_Error*)decl);
-    } else if (decl->kind == Cst_MatchKind) {
-      printf("TODO: Cst_MatchKind\n");
-    } else if (decl->kind == Cst_FunctionDecl) {
-      printf("TODO: Cst_FunctionDecl\n");
-    } else assert(0);
-    decl = decl->link.next_node;
+void
+dump_Instantiation(struct Cst_Instantiation* inst)
+{
+  object_start();
+  print_prop_common((struct Cst*)inst);
+  print_prop("type", Value_Ref, inst->type);
+  print_prop("args", Value_RefList, inst->args);
+  print_prop("name", Value_Ref, inst->name);
+  object_end();
+  dump_Cst(inst->type);
+  dump_Cst(inst->args);
+  dump_Cst(inst->name);
+}
+
+void
+dump_Parameter(struct Cst_Parameter* param)
+{
+  object_start();
+  print_prop_common((struct Cst*)param);
+  print_prop("direction", Value_Ref, param->direction);
+  print_prop("type", Value_Ref, param->type);
+  print_prop("name", Value_Ref, param->name);
+  print_prop("init_expr", Value_Ref, param->init_expr);
+  object_end();
+  dump_Cst(param->direction);
+  dump_Cst(param->type);
+  dump_Cst(param->name);
+  dump_Cst(param->init_expr);
+}
+
+internal void
+dump_Cst(struct Cst* cst)
+{
+  while (cst) {
+    if (cst->kind == Cst_Control) {
+      dump_Control((struct Cst_Control*)cst);
+    } else if (cst->kind == Cst_Package) {
+      dump_Package((struct Cst_Package*)cst);
+    } else if (cst->kind == Cst_Error) {
+      dump_Error((struct Cst_Error*)cst);
+    } else if (cst->kind == Cst_Instantiation) {
+      dump_Instantiation((struct Cst_Instantiation*)cst);
+    } else if (cst->kind == Cst_NonTypeName) {
+      dump_NonTypeName((struct Cst_NonTypeName*)cst);
+    } else if (cst->kind == Cst_TypeName) {
+      dump_TypeName((struct Cst_TypeName*)cst);
+    } else if (cst->kind == Cst_Parameter) {
+      dump_Parameter((struct Cst_Parameter*)cst);
+    } else if (cst->kind == Cst_ControlType) {
+      dump_ControlType((struct Cst_ControlType*)cst);
+    } else {
+      printf("TODO: %s\n", cst_kind_to_string(cst->kind));
+    }
+    cst = cst->link.next_node;
   }
 }
+
