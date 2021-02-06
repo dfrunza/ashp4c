@@ -200,30 +200,30 @@ list_open()
 internal void
 list_close()
 {
-  printf("]\n");
+  printf("]");
 }
 
 internal void
-newline()
+print_nl()
 {
   printf("\n");
 }
 
 internal void
-print_value(enum ValueType type, va_list value, char* terminator)
+print_value(enum ValueType type, va_list value)
 {
   if (type == Value_Int) {
     int i = va_arg(value, int);
-    printf("%d%s", i, terminator);
+    printf("%d", i);
   } else if (type == Value_String) {
     char* s = va_arg(value, char*);
-    printf("\"%s\"%s", s, terminator);
+    printf("\"%s\"", s);
   } else if (type == Value_Ref) {
     struct Cst* cst = va_arg(value, struct Cst*);
     if (cst) {
-      printf("\"$%d\"%s", cst->id, terminator);
+      printf("\"$%d\"", cst->id);
     } else {
-      printf("null%s", terminator);
+      printf("null");
     }
   } else if (type == Value_RefList) {
     struct Cst* cst = va_arg(value, struct Cst*);
@@ -231,6 +231,9 @@ print_value(enum ValueType type, va_list value, char* terminator)
     while (cst) {
       print_list_elem(Value_Ref, cst);
       cst = cst->link.next_node;
+      if (cst) {
+        printf(", ");
+      }
     }
     list_close();
   } else assert(0);
@@ -244,7 +247,8 @@ print_prop(char* name, enum ValueType type, ...)
   if (type != Value_None) {
     va_list value;
     va_start(value, type);
-    print_value(type, value, "\n");
+    print_value(type, value);
+    print_nl();
     va_end(value);
   }
 }
@@ -255,7 +259,7 @@ print_list_elem(enum ValueType type, ...)
   if (type != Value_None) {
     va_list value;
     va_start(value, type);
-    print_value(type, value, ", ");
+    print_value(type, value);
     va_end(value);
   }
 }
