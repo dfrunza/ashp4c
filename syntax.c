@@ -404,9 +404,9 @@ build_typeArg()
       arg = (struct Cst*)dontcare;
       next_token();
     } else if (token_is_typeRef(token)) {
-      build_typeRef();
+      arg = build_typeRef();
     } else if (token_is_nonTypeName(token)) {
-      build_nonTypeName(false);
+      arg = build_nonTypeName(false);
     } else assert(false);
   } else error("at line %d: type argument was expected, got `%s`.", token->line_nr, token->lexeme);
   return arg;
@@ -425,11 +425,11 @@ build_direction()
   if (token_is_direction(token)) {
     dir = new_cst_node(Cst_ParamDir);
     if (token->klass == Token_In) {
-      dir->dir = Cst_DirIn;
+      dir->dir_kind = Cst_DirIn;
     } else if (token->klass == Token_Out) {
-      dir->dir = Cst_DirOut;
+      dir->dir_kind = Cst_DirOut;
     } else if (token->klass == Token_InOut) {
-      dir->dir = Cst_DirInOut;
+      dir->dir_kind = Cst_DirInOut;
     } else assert(0);
     next_token();
   }
@@ -836,7 +836,7 @@ build_structField()
         next_token();
       } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
-  } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
+  } else error("at line %d: struct field was expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)field;
 }
 
@@ -844,11 +844,10 @@ internal struct Cst*
 build_structFieldList()
 {
   struct Cst* field_list = 0;
-  while (token_is_structField(token)) {
+  if (token_is_structField(token)) {
     struct Cst* prev_field = build_structField();
     field_list = prev_field;
-    if (token->klass == Token_Comma) {
-      next_token();
+    while (token_is_structField(token)) {
       struct Cst* next_field = build_structField();
       link_cst_nodes(prev_field, next_field);
       prev_field = next_field;
@@ -1597,18 +1596,19 @@ build_selectCaseList()
 internal struct Cst*
 build_selectExpression()
 {
-  struct Cst* select_expr = 0;
+  struct Cst_SelectExpr* select_expr = 0;
   if (token->klass == Token_Select) {
     next_token();
+    select_expr = new_cst_node(Cst_SelectExpr);
     if (token->klass == Token_ParenthOpen) {
       next_token();
-      select_expr = build_expressionList();
+      select_expr->expr_list = build_expressionList();
       if (token->klass == Token_ParenthClose) {
         next_token();
         if (token->klass == Token_BraceOpen) {
           scope_push_level();
           next_token();
-          select_expr = build_selectCaseList();
+          select_expr->case_list = build_selectCaseList();
           if (token->klass == Token_BraceClose) {
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);

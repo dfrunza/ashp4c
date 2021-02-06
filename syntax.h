@@ -74,6 +74,7 @@ enum CstKind {
   Cst_MethodCallStmt,
   Cst_EmptyStmt,
   Cst_Default,
+  Cst_SelectExpr,
   Cst_SelectCase,
   Cst_ParserState,
   Cst_ControlType,
@@ -302,7 +303,7 @@ struct Cst_FunctionDecl {
 
 struct Cst_ParamDir {
   struct Cst;
-  enum Cst_ParamDirKind dir;
+  enum Cst_ParamDirKind dir_kind;
 };
 
 struct Cst_Parameter {
@@ -416,6 +417,12 @@ struct Cst_EmptyStmt {
 
 struct Cst_Default {
   struct Cst;
+};
+
+struct Cst_SelectExpr {
+  struct Cst;
+  struct Cst* expr_list;
+  struct Cst* case_list;
 };
 
 struct Cst_SelectCase {
