@@ -367,6 +367,7 @@ build_typeParameterList()
   struct Cst* params = 0;
   if (token_is_typeParameterList(token)) {
     struct Cst* prev_param = build_name(true);
+    params = prev_param;
     while (token->klass == Token_Comma) {
       next_token();
       struct Cst* next_param = build_name(true);
@@ -741,7 +742,7 @@ build_headerStackType()
     next_token();
     stack = new_cst_node(Cst_HeaderStack);
     if (token_is_expression(token)) {
-      stack->expr = build_expression(1);
+      stack->stack_expr = build_expression(1);
       if (token->klass == Token_BracketClose) {
         next_token();
       } else error("at line %d: `]` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -792,9 +793,13 @@ build_typeName()
   if (token->klass == Token_TypeIdentifier) {
     name = build_prefixedType();
     if (token->klass == Token_AngleOpen) {
-      name = build_specializedType();
+      struct Cst_SpecdType* specd_type = (struct Cst_SpecdType*)build_specializedType();
+      specd_type->name = name;
+      name = (struct Cst*)specd_type;
     } if (token->klass == Token_BracketOpen) {
-      name = build_headerStackType();
+      struct Cst_HeaderStack* stack_type = (struct Cst_HeaderStack*)build_headerStackType();
+      stack_type->name = name;
+      name = (struct Cst*)stack_type;
     }
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
   return name;
@@ -1374,29 +1379,41 @@ build_arrayIndex()
 }
 
 internal struct Cst*
+build_lvalueExpr()
+{
+  struct Cst* expr = 0;
+  if (token->klass == Token_DotPrefix) {
+    next_token();
+    struct Cst_DotPrefixedName* dot_member = new_cst_node(Cst_DotPrefixedName);
+    dot_member->name = build_name(false);
+    expr = (struct Cst*)dot_member;
+  } else if (token->klass == Token_BracketOpen) {
+    next_token();
+    expr = (struct Cst*)build_arrayIndex();
+    if (token->klass == Token_BracketClose) {
+      next_token();
+    } else error("at line %d: `]` was expected, got `%s`.", token->line_nr, token->lexeme);
+  } else error("at line %d: lvalue was expected, got `%s`.", token->line_nr, token->lexeme);
+  return expr;
+}
+
+internal struct Cst*
 build_lvalue()
 {
   struct Cst_Lvalue* lvalue = 0;
   if (token_is_lvalue(token)) {
     lvalue = new_cst_node(Cst_Lvalue);
     lvalue->name = build_prefixedNonTypeName();
-    struct Cst* prev_name = lvalue->name;
-    while (token->klass == Token_DotPrefix || token->klass == Token_BracketOpen) {
-      if (token->klass == Token_DotPrefix) {
-        next_token();
-        struct Cst* next_name = build_name(false);
-        link_cst_nodes(prev_name, next_name);
-        prev_name = next_name;
-      }
-      if (token->klass == Token_BracketOpen) {
-        next_token();
-        lvalue->array_index = build_arrayIndex();
-        if (token->klass == Token_BracketClose) {
-          next_token();
-        } else error("at line %d: `]` was expected, got `%s`.", token->line_nr, token->lexeme);
+    if (token->klass == Token_DotPrefix || token->klass == Token_BracketOpen) {
+      struct Cst* prev_expr = build_lvalueExpr(); 
+      lvalue->expr = prev_expr;
+      while (token->klass == Token_DotPrefix || token->klass == Token_BracketOpen) {
+        struct Cst* next_expr = build_lvalueExpr();
+        link_cst_nodes(prev_expr, next_expr);
+        prev_expr = next_expr;
       }
     }
-  } else error("at line %d: an lvalue was expected, got `%s`.", token->line_nr, token->lexeme);
+  } else error("at line %d: lvalue was expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)lvalue;
 }
 
@@ -2541,6 +2558,7 @@ build_expressionPrimary()
       if (token_is_typeRef(token)) {
         struct Cst_CastExpr* cast = new_cst_node(Cst_CastExpr);
         cast->to_type = build_typeRef();
+        primary = (struct Cst*)cast;
         if (token->klass == Token_ParenthClose) {
           next_token();
           cast->expr = build_expression(1);
@@ -2650,15 +2668,14 @@ convert_token_binop(struct Token* token)
 internal struct Cst*
 build_expression(int priority_threshold)
 {
-  struct Cst* expr, *primary_expr = 0;
+  struct Cst* expr = 0;
   if (token_is_expression(token)) {
-    primary_expr = build_expressionPrimary();
-    expr = primary_expr;
+    expr = build_expressionPrimary();
     while (token_is_exprOperator(token)) {
       if (token->klass == Token_DotPrefix) {
         next_token();
         struct Cst_MemberSelectExpr* select_expr = new_cst_node(Cst_MemberSelectExpr);
-        select_expr->expr = primary_expr;
+        select_expr->expr = expr;
         expr = (struct Cst*)select_expr;
         if (token_is_name(token)) {
           select_expr->member_name = build_name(false);
@@ -2667,7 +2684,7 @@ build_expression(int priority_threshold)
       else if (token->klass == Token_BracketOpen) {
         next_token();
         struct Cst_IndexedArrayExpr* index_expr = new_cst_node(Cst_IndexedArrayExpr);
-        index_expr->expr = primary_expr;
+        index_expr->expr = expr;
         index_expr->index_expr = build_arrayIndex();
         expr = (struct Cst*)index_expr;
         if (token->klass == Token_BracketClose) {
@@ -2677,7 +2694,7 @@ build_expression(int priority_threshold)
       else if (token->klass == Token_ParenthOpen) {
         next_token();
         struct Cst_FunctionCallExpr* call_expr = new_cst_node(Cst_FunctionCallExpr);
-        call_expr->expr = primary_expr;
+        call_expr->expr = expr;
         call_expr->args = build_argumentList();
         expr = (struct Cst*)call_expr;
         if (token->klass == Token_ParenthClose) {
@@ -2687,7 +2704,7 @@ build_expression(int priority_threshold)
       else if (token->klass == Token_AngleOpen && token_is_realTypeArg(peek_token())) {
         next_token();
         struct Cst_TypeArgsExpr* args_expr = new_cst_node(Cst_TypeArgsExpr);
-        args_expr->expr = primary_expr;
+        args_expr->expr = expr;
         args_expr->type_args = build_realTypeArgumentList();
         expr = (struct Cst*)args_expr;
         if (token->klass == Token_AngleClose) {
@@ -2696,10 +2713,10 @@ build_expression(int priority_threshold)
       } else if (token_is_binaryOperator(token)){
         int priority = get_operator_priority(token);
         if (priority >= priority_threshold) {
-          next_token();
           struct Cst_BinaryExpr* bin_expr = new_cst_node(Cst_BinaryExpr);
-          bin_expr->left_operand = primary_expr;
+          bin_expr->left_operand = expr;
           bin_expr->op = convert_token_binop(token);
+          next_token();
           bin_expr->right_operand = build_expression(priority_threshold + 1);
           expr = (struct Cst*)bin_expr;
         } else break;

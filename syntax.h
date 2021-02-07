@@ -340,11 +340,13 @@ struct Cst_Tuple {
 
 struct Cst_HeaderStack {
   struct Cst;
-  struct Cst* expr;
+  struct Cst* name;
+  struct Cst* stack_expr;
 };
 
 struct Cst_SpecdType {
   struct Cst;
+  struct Cst* name;
   struct Cst* type_args;
 };
 
@@ -389,7 +391,7 @@ struct Cst_DirectApplic {
 struct Cst_Lvalue {
   struct Cst;
   struct Cst* name;
-  struct Cst* array_index;
+  struct Cst* expr;
 };
 
 struct Cst_ArrayIndex {

@@ -402,9 +402,9 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '&') {
           char_advance();
-          token->klass = Token_BitwiseAnd;
-        } else {
           token->klass = Token_LogicAnd;
+        } else {
+          token->klass = Token_BitwiseAnd;
         }
         token->lexeme = lexeme_to_cstring();
         lexeme_advance();
@@ -415,9 +415,9 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '|') {
           char_advance();
-          token->klass = Token_BitwiseOr;
-        } else {
           token->klass = Token_LogicOr;
+        } else {
+          token->klass = Token_BitwiseOr;
         }
         token->lexeme = lexeme_to_cstring();
         lexeme_advance();
