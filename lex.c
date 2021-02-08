@@ -109,6 +109,24 @@ lexeme_to_cstring()
   return lexeme;
 }
 
+internal int
+parse_integer(char* str)
+{
+  int result = 0;
+  char c = *str++;
+  assert(cstr_is_digit(c));
+  result = (int)(c - '0');
+  for (c = *str++; c != '\0'; c = *str++) {
+    if (cstr_is_digit(c)) {
+      int digit = (int)(c - '0');
+      result = result*10 + digit;
+    } else {
+      break;
+    }
+  }
+  return result;
+}
+
 internal void
 next_token(struct Token* token)
 {
@@ -504,6 +522,13 @@ next_token(struct Token* token)
           c = char_advance();
         while (cstr_is_digit(c));
         if (c == 'w' || c == 's') {
+          token->klass = Token_Integer;
+          token->i.flags |= IntFlags_HasWidth;
+          if (c == 's') {
+            token->i.flags |= IntFlags_Signed;
+          }
+          char* lexeme = lexeme_to_cstring();
+          token->i.width = parse_integer(lexeme);
           char_advance();
           state = 405;
         }
@@ -511,6 +536,8 @@ next_token(struct Token* token)
           char_retract();
           token->klass = Token_Integer;
           token->lexeme = lexeme_to_cstring();
+          token->i.flags |= IntFlags_Signed;
+          token->i.value = parse_integer(token->lexeme);
           lexeme_advance();
           state = 0;
         }
