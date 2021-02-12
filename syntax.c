@@ -610,7 +610,7 @@ build_integer()
   struct Cst_Int* int_node = 0;
   if (token->klass == Token_Integer) {
     int_node = new_cst_node(Cst_Int);
-    // TODO: int_node->value = ...
+    int_node->value = token->i.value;
     next_token();
   }
   return (struct Cst*)int_node;
@@ -2623,6 +2623,12 @@ get_operator_priority(struct Token* token)
   return prio;
 }
 
+internal bool
+is_operator_right_associative(struct Token* token)
+{
+  return token->klass == Token_Equal;
+}
+
 internal enum Cst_ExprOperator
 convert_token_binop(struct Token* token)
 {
@@ -2717,7 +2723,7 @@ build_expression(int priority_threshold)
           bin_expr->left_operand = expr;
           bin_expr->op = convert_token_binop(token);
           next_token();
-          bin_expr->right_operand = build_expression(priority_threshold + 1);
+          bin_expr->right_operand = build_expression(priority + 1);
           expr = (struct Cst*)bin_expr;
         } else break;
       } else assert(0);
