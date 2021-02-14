@@ -18,27 +18,18 @@ cstr_is_letter(char c)
 }
 
 bool
-cstr_is_digit(char c)
+cstr_is_digit(char c, int base)
 {
-  return '0' <= c && c <= '9';
-}
-
-bool
-cstr_is_hex_digit(char c)
-{
-  return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
-}
-
-bool
-cstr_is_oct_digit(char c)
-{
-  return '0' <= c && c <= '7';
-}
-
-bool
-cstr_is_bin_digit(char c)
-{
-  return c == '0' || c == '1';
+  if (base == 10) {
+    return '0' <= c && c <= '9';
+  } else if (base == 16) {
+    return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
+  } else if (base == 8) {
+    return '0' <= c && c <= '7';
+  } else if (base == 2) {
+    return c == '0' || c == '1';
+  } else assert(0);
+  return false;
 }
 
 bool
