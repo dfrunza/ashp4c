@@ -1,5 +1,6 @@
 #define DEBUG_ENABLED 0
 
+#include "lex.h"
 #include "syntax.h"
 
 enum IdentKind
@@ -30,10 +31,10 @@ struct Symtable_Entry {
 
 external Arena arena;
 
-external struct Token* tokenized_input;
+internal struct Token* tokens;
+internal int token_count;
 internal struct Token* token = 0;
 internal struct Token* prev_token = 0;
-external int tokenized_input_len;
 
 internal struct Symtable_Entry** symtable;
 internal int max_symtable_len = 997;  // table entry units
@@ -168,7 +169,7 @@ add_keyword(char* name, enum TokenClass token_klass)
 internal struct Token*
 next_token()
 {
-  assert(token < tokenized_input + tokenized_input_len);
+  assert(token < tokens + token_count);
   prev_token = token++;
   while (token->klass == Token_Comment) {
     token++;
@@ -2734,8 +2735,10 @@ init_symtable()
 }
 
 struct Cst*
-build_cst()
+build_cst(struct Token* tokens_, int token_count_)
 {
+  tokens = tokens_;
+  token_count = token_count_;
   init_symtable();
   add_keyword("action", Token_Action);
   add_keyword("actions", Token_Actions);
@@ -2776,7 +2779,7 @@ build_cst()
   add_keyword("bit", Token_Bit);
   add_keyword("varbit", Token_Varbit);
 
-  token = tokenized_input;
+  token = tokens;
   next_token();
   return (struct Cst*)build_p4program();
 }

@@ -4,17 +4,12 @@
 #include "arena.h"
 #include "lex.h"
 #include "syntax.h"
+#include "ast.h"
 #include <sys/stat.h>
 
 Arena arena = {};
-char* input_text = 0;
-int input_size = 0;
-
-struct Token* tokenized_input = 0;
-int tokenized_input_len = 0;
-int max_tokenized_input_len = 1000;  // table entry units
-
-struct Cst* p4program = 0;
+internal char* input_text = 0;
+internal int input_size = 0;  // char units, excluding NULL
 
 struct CmdlineArg {
   char* name;
@@ -101,27 +96,27 @@ main(int arg_count, char* args[])
   struct CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
   struct CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
   if (!filename_arg) {
-    printf("<filename> argument is required\n");
+    printf("<filename> argument is required.\n");
     exit(1);
   }
   read_input(filename_arg->value);
   if (DEBUG_ENABLED)
     arena_print_usage(&arena, "Memory (read_input): ");
 
-  tokenized_input = arena_push_array(&arena, struct Token, max_tokenized_input_len);
-  lex_input_init(input_text);
-  lex_tokenize_input();
+  struct TokenSequence tksequence = lex_tokenize(input_text, input_size);
   if (DEBUG_ENABLED)
     arena_print_usage(&arena, "Memory (lex): ");
 
-  p4program = build_cst();
-  assert(p4program->kind == Cst_P4Program);
+  struct Cst* p4program_cst = build_cst(tksequence.tokens, tksequence.count);
+  assert(p4program_cst->kind == Cst_P4Program);
   if (DEBUG_ENABLED)
     arena_print_usage(&arena, "Memory (syntax): ");
 
   if (find_named_arg("dump-cst", cmdline_args)) {
-    dump_P4Program((struct Cst_P4Program*)p4program);
+    dump_P4Program((struct Cst_P4Program*)p4program_cst);
   }
+
+  struct Ast* p4program_ast = build_ast(p4program_cst);
   return 0;
 }
 

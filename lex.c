@@ -1,10 +1,8 @@
 #include "lex.h"
 
 external Arena arena;
-external char* input_text;
-external uint32_t input_size;
-external struct Token* tokenized_input;
-external int tokenized_input_len;
+internal char* input_text;
+internal uint32_t input_size;
 
 internal struct Token* prev_token;
 internal int line_nr = 1;
@@ -38,13 +36,6 @@ char_retract()
   char result = *(--lexeme->end);
   assert(lexeme->end >= 0);
   return result;
-}
-
-void
-lex_input_init(char* input_text)
-{
-  lexeme->start = input_text;
-  lexeme->end = lexeme->start;
 }
 
 internal void
@@ -738,23 +729,37 @@ next_token(struct Token* token)
   prev_token = token;
 }
 
-void
-lex_tokenize_input()
+struct TokenSequence
+lex_tokenize(char* input_text_, int input_size_)
 {
-  struct Token* token = tokenized_input;
+  input_text = input_text_;
+  input_size = input_size_;
+  lexeme->start = lexeme->end = input_text;
+
+  int max_tokens_count = 1000;  // table entry units
+  struct Token* tokens = arena_push_array(&arena, struct Token, max_tokens_count);
+  struct Token* token = tokens;
   token->klass = Token_StartOfInput;
   token++;
-  tokenized_input_len++;
+  int token_count = 1;
 
   next_token(token);
-  tokenized_input_len++;
+  token_count++;
   while (token->klass != Token_EndOfInput) {
+    if (token_count >= max_tokens_count) {
+      error("at line %d: out of memory.", token->line_nr);
+    }
     if (token->klass == Token_Unknown) {
-      error("at line %d: unknown token", token->line_nr);
+      error("at line %d: unknown token.", token->line_nr);
     }
     token++;
     next_token(token);
-    tokenized_input_len++;
+    token_count++;
   }
+  struct TokenSequence result = {
+    .tokens = tokens,
+    .count = token_count,
+  };
+  return result;
 }
 

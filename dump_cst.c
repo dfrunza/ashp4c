@@ -1,5 +1,6 @@
 #define DEBUG_ENABLED 1
 
+#include "arena.h"
 #include "syntax.h"
 
 external Arena arena;

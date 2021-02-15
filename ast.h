@@ -1,4 +1,5 @@
 #pragma once
+#include "basic.h"
 
 enum AstIntegerFlags
 {
@@ -46,3 +47,27 @@ enum AstBaseTypeKind {
   AstBaseType_Bit,
   AstBaseType_Varbit,
 };
+
+enum AstKind {
+  Ast_None,
+  Ast_P4Program,
+};
+
+struct AstLink {
+  struct Ast* prev_node;
+  struct Ast* next_node;
+};
+
+struct Ast {
+  enum AstKind kind;
+  int id;
+  int line_nr;
+};
+
+struct Ast_P4Program {
+  struct Ast;
+  struct Ast* decl_list;
+  int decl_count;
+};
+
+struct Ast* build_ast();

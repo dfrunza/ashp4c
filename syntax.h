@@ -1,10 +1,9 @@
 #pragma once
 #include "basic.h"
-#include "arena.h"
-#include "lex.h"
 #include "ast.h"
 
 enum CstKind {
+  Cst_None,
   Cst_NonTypeName,
   Cst_TypeName,
   Cst_PrefixedTypeName,
