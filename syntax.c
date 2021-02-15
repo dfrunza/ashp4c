@@ -426,11 +426,11 @@ build_direction()
   if (token_is_direction(token)) {
     dir = new_cst_node(Cst_ParamDir);
     if (token->klass == Token_In) {
-      dir->dir_kind = Cst_DirIn;
+      dir->dir_kind = AstDir_In;
     } else if (token->klass == Token_Out) {
-      dir->dir_kind = Cst_DirOut;
+      dir->dir_kind = AstDir_Out;
     } else if (token->klass == Token_InOut) {
-      dir->dir_kind = Cst_DirInOut;
+      dir->dir_kind = AstDir_InOut;
     } else assert(0);
     next_token();
   }
@@ -610,6 +610,8 @@ build_integer()
   struct Cst_Int* int_node = 0;
   if (token->klass == Token_Integer) {
     int_node = new_cst_node(Cst_Int);
+    int_node->flags = token->i.flags;
+    int_node->width = token->i.width;
     int_node->value = token->i.value;
     next_token();
   }
@@ -619,10 +621,12 @@ build_integer()
 internal struct Cst*
 build_boolean()
 {
-  struct Cst_Int* bool_node = 0;
+  struct Cst_Bool* bool_node = 0;
   if (token->klass == Token_True || token->klass == Token_False) {
-    bool_node = new_cst_node(Cst_Int);
-    // TODO: bool_node->value = ...
+    bool_node = new_cst_node(Cst_Bool);
+    if (token->klass == Token_True) {
+      bool_node->value = 1;
+    }
     next_token();
   }
   return (struct Cst*)bool_node;
@@ -659,13 +663,13 @@ build_baseType()
   if (token_is_baseType(token)) {
     base_type = new_cst_node(Cst_BaseType);
     if (token->klass == Token_Bool) {
-      base_type->base_type = Cst_BaseType_Bool;
+      base_type->base_type = AstBaseType_Bool;
       next_token();
     } else if (token->klass == Token_Error) {
-      base_type->base_type = Cst_BaseType_Error;
+      base_type->base_type = AstBaseType_Error;
       next_token();
     } else if (token->klass == Token_Int) {
-      base_type->base_type = Cst_BaseType_Int;
+      base_type->base_type = AstBaseType_Int;
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
@@ -675,7 +679,7 @@ build_baseType()
         } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
       }
     } else if (token->klass == Token_Bit) {
-      base_type->base_type = Cst_BaseType_Bit;
+      base_type->base_type = AstBaseType_Bit;
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
@@ -685,7 +689,7 @@ build_baseType()
         } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
       }
     } else if (token->klass == Token_Varbit) {
-      base_type->base_type = Cst_BaseType_Varbit;
+      base_type->base_type = AstBaseType_Varbit;
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
@@ -2572,19 +2576,19 @@ build_expressionPrimary()
     } else if (token->klass == Token_LogicNot) {
       next_token();
       struct Cst_UnaryExpr* unary_expr = new_cst_node(Cst_UnaryExpr);
-      unary_expr->op = Cst_UnaryOp_LogicNot;
+      unary_expr->op = AstUnOp_LogNot;
       unary_expr->expr = build_expression(1);
       primary = (struct Cst*)unary_expr;
     } else if (token->klass == Token_BitwiseNot) {
       next_token();
       struct Cst_UnaryExpr* unary_expr = new_cst_node(Cst_UnaryExpr);
-      unary_expr->op = Cst_UnaryOp_BitwiseNot;
+      unary_expr->op = AstUnOp_BitNot;
       unary_expr->expr = build_expression(1);
       primary = (struct Cst*)unary_expr;
     } else if (token->klass == Token_UnaryMinus) {
       next_token();
       struct Cst_UnaryExpr* unary_expr = new_cst_node(Cst_UnaryExpr);
-      unary_expr->op = Cst_UnaryOp_ArithMinus;
+      unary_expr->op = AstUnOp_ArMinus;
       unary_expr->expr = build_expression(1);
       primary = (struct Cst*)unary_expr;
     } else if (token_is_typeName(token)) {
@@ -2623,51 +2627,45 @@ get_operator_priority(struct Token* token)
   return prio;
 }
 
-internal bool
-is_operator_right_associative(struct Token* token)
-{
-  return token->klass == Token_Equal;
-}
-
-internal enum Cst_ExprOperator
-convert_token_binop(struct Token* token)
+internal enum AstExprOperator
+token_to_binop(struct Token* token)
 {
   switch (token->klass) {
     case Token_LogicAnd:
-      return Cst_BinaryOp_LogicAnd;
+      return AstBinOp_LogAnd;
     case Token_LogicOr:
-      return Cst_BinaryOp_LogicOr;
+      return AstBinOp_LogOr;
     case Token_LogicEqual:
-      return Cst_BinaryOp_LogicEqual;
+      return AstBinOp_LogEqual;
     case Token_LogicNotEqual:
-      return Cst_BinaryOp_LogicNotEqual;
+      return AstBinOp_LogNotEqual;
     case Token_AngleOpen:
-      return Cst_BinaryOp_LogicLess;
+      return AstBinOp_LogLess;
     case Token_AngleClose:
-      return Cst_BinaryOp_LogicGreater;
+      return AstBinOp_LogGreater;
     case Token_LessEqual:
-      return Cst_BinaryOp_LogicLessEqual;
+      return AstBinOp_LogLessEqual;
     case Token_GreaterEqual:
-      return Cst_BinaryOp_LogicGreaterEqual;
+      return AstBinOp_LogGreaterEqual;
     case Token_Plus:
-      return Cst_BinaryOp_ArithAdd;
+      return AstBinOp_ArAdd;
     case Token_Minus:
-      return Cst_BinaryOp_ArithSub;
+      return AstBinOp_ArSub;
     case Token_Star:
-      return Cst_BinaryOp_ArithMul;
+      return AstBinOp_ArMul;
     case Token_Slash:
-      return Cst_BinaryOp_ArithDiv;
+      return AstBinOp_ArDiv;
     case Token_BitwiseAnd:
-      return Cst_BinaryOp_BitwiseAnd;
+      return AstBinOp_BitAnd;
     case Token_BitwiseOr:
-      return Cst_BinaryOp_BitwiseOr;
+      return AstBinOp_BitOr;
     case Token_BitwiseXor:
-      return Cst_BinaryOp_BitwiseXor;
+      return AstBinOp_BitXor;
     case Token_BitshiftLeft:
-      return Cst_BinaryOp_BitshiftLeft;
+      return AstBinOp_BitShLeft;
     case Token_BitshiftRight:
-      return Cst_BinaryOp_BitshiftRight;
-    default: return Cst_Op_None;
+      return AstBinOp_BitShRight;
+    default: return AstOp_None;
   }
 }
 
@@ -2721,7 +2719,7 @@ build_expression(int priority_threshold)
         if (priority >= priority_threshold) {
           struct Cst_BinaryExpr* bin_expr = new_cst_node(Cst_BinaryExpr);
           bin_expr->left_operand = expr;
-          bin_expr->op = convert_token_binop(token);
+          bin_expr->op = token_to_binop(token);
           next_token();
           bin_expr->right_operand = build_expression(priority + 1);
           expr = (struct Cst*)bin_expr;

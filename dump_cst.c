@@ -70,6 +70,8 @@ cst_kind_to_string(enum CstKind kind)
       return "Cst_IntTypeSize";
     case Cst_Int:
       return "Cst_Int";
+    case Cst_Bool:
+      return "Cst_Bool";
     case Cst_StringLiteral:
       return "Cst_StringLiteral";
     case Cst_Tuple:
@@ -444,6 +446,16 @@ dump_Int(struct Cst_Int* node)
 {
   object_start();
   print_prop_common((struct Cst*)node);
+  char flags_str[256];
+  char* str = flags_str + sprintf(flags_str, "AstInteger_None");
+  if ((node->flags & AstInteger_HasWidth) != 0) {
+    str += sprintf(str, "|%s", "AstInteger_HasWidth");
+  }
+  if ((node->flags & AstInteger_IsSigned) != 0) {
+    str += sprintf(str, "|%s", "AstInteger_IsSigned");
+  }
+  print_prop("flags", Value_String, flags_str);
+  print_prop("width", Value_Int, node->width);
   print_prop("value", Value_Int, node->value);
   object_end();
 }
@@ -453,14 +465,14 @@ dump_ParamDir(struct Cst_ParamDir* dir)
 {
   object_start();
   print_prop_common((struct Cst*)dir);
-  char* dir_str = "Cst_DirNone";
-  if (dir->dir_kind == Cst_DirIn) {
-    dir_str = "Cst_DirIn";
-  } else if (dir->dir_kind == Cst_DirOut) {
-    dir_str = "Cst_DirOut";
-  } else if (dir->dir_kind == Cst_DirInOut) {
-    dir_str = "Cst_DirInOut";
-  } else assert(dir->dir_kind == Cst_DirNone);
+  char* dir_str = "CstDir_None";
+  if (dir->dir_kind == AstDir_In) {
+    dir_str = "AstDir_In";
+  } else if (dir->dir_kind == AstDir_Out) {
+    dir_str = "AstDir_Out";
+  } else if (dir->dir_kind == AstDir_InOut) {
+    dir_str = "AstDir_InOut";
+  } else assert(dir->dir_kind == AstDir_None);
   print_prop("dir", Value_String, dir_str);
   object_end();
 }
@@ -470,18 +482,18 @@ dump_BaseType(struct Cst_BaseType* type)
 {
   object_start();
   print_prop_common((struct Cst*)type);
-  char* type_str = "Cst_BaseType_None";
-  if (type->base_type == Cst_BaseType_Bool) {
-    type_str = "Cst_BaseType_Bool";
-  } else if (type->base_type == Cst_BaseType_Error) {
-    type_str = "Cst_BaseType_Error";
-  } else if (type->base_type == Cst_BaseType_Int) {
-    type_str = "Cst_BaseType_Int";
-  } else if (type->base_type == Cst_BaseType_Bit) {
-    type_str = "Cst_BaseType_Bit";
-  } else if (type->base_type == Cst_BaseType_Varbit) {
-    type_str = "Cst_BaseType_Varbit";
-  } else assert(type->base_type == Cst_BaseType_None);
+  char* type_str = "AstBaseType_None";
+  if (type->base_type == AstBaseType_Bool) {
+    type_str = "AstBaseType_Bool";
+  } else if (type->base_type == AstBaseType_Error) {
+    type_str = "AstBaseType_Error";
+  } else if (type->base_type == AstBaseType_Int) {
+    type_str = "AstBaseType_Int";
+  } else if (type->base_type == AstBaseType_Bit) {
+    type_str = "AstBaseType_Bit";
+  } else if (type->base_type == AstBaseType_Varbit) {
+    type_str = "AstBaseType_Varbit";
+  } else assert(type->base_type == AstBaseType_None);
   print_prop("base_type", Value_String, type_str);
   print_prop("size", Value_Ref, type->size);
   object_end();
@@ -673,50 +685,50 @@ dump_MemberSelectExpr(struct Cst_MemberSelectExpr* expr)
 }
 
 internal char*
-expr_operator_to_string(enum Cst_ExprOperator op)
+expr_operator_to_string(enum AstExprOperator op)
 {
   char* op_str = "Cst_Op_None";
-  if (op == Cst_BinaryOp_ArithAdd) {
-    op_str = "Cst_BinaryOp_ArithAdd";
-  } else if (op == Cst_BinaryOp_ArithSub) {
-    op_str = "Cst_BinaryOp_ArithSub";
-  } else if (op == Cst_BinaryOp_ArithMul) {
-    op_str = "Cst_BinaryOp_ArithMul";
-  } else if (op == Cst_BinaryOp_ArithDiv) {
-    op_str = "Cst_BinaryOp_ArithDiv";
-  } else if (op == Cst_BinaryOp_LogicAnd) {
-    op_str = "Cst_BinaryOp_LogicAnd";
-  } else if (op == Cst_BinaryOp_LogicOr) {
-    op_str = "Cst_BinaryOp_LogicOr";
-  } else if (op == Cst_BinaryOp_LogicEqual) {
-    op_str = "Cst_BinaryOp_LogicEqual";
-  } else if (op == Cst_BinaryOp_LogicNotEqual) {
-    op_str = "Cst_BinaryOp_LogicNotEqual";
-  } else if (op == Cst_BinaryOp_LogicLess) {
-    op_str = "Cst_BinaryOp_LogicLess";
-  } else if (op == Cst_BinaryOp_LogicGreater) {
-    op_str = "Cst_BinaryOp_LogicGreater";
-  } else if (op == Cst_BinaryOp_LogicLessEqual) {
-    op_str = "Cst_BinaryOp_LogicLessEqual";
-  } else if (op == Cst_BinaryOp_LogicGreaterEqual) {
-    op_str = "Cst_BinaryOp_LogicGreaterEqual";
-  } else if (op == Cst_BinaryOp_BitwiseAnd) {
-    op_str = "Cst_BinaryOp_BitwiseAnd";
-  } else if (op == Cst_BinaryOp_BitwiseOr) {
-    op_str = "Cst_BinaryOp_BitwiseOr";
-  } else if (op == Cst_BinaryOp_BitwiseXor) {
-    op_str = "Cst_BinaryOp_BitwiseXor";
-  } else if (op == Cst_BinaryOp_BitshiftLeft) {
-    op_str = "Cst_BinaryOp_BitshiftLeft";
-  } else if (op == Cst_BinaryOp_BitshiftRight) {
-    op_str = "Cst_BinaryOp_BitshiftRight";
-  } else if (op == Cst_UnaryOp_LogicNot) {
-    op_str = "Cst_UnaryOp_LogicNot";
-  } else if (op == Cst_UnaryOp_BitwiseNot) {
-    op_str = "Cst_UnaryOp_BitwiseNot";
-  } else if (op == Cst_UnaryOp_ArithMinus) {
-    op_str = "Cst_UnaryOp_ArithMinus";
-  } else assert(op == Cst_Op_None);
+  if (op == AstBinOp_ArAdd) {
+    op_str = "AstBinOp_ArAdd";
+  } else if (op == AstBinOp_ArSub) {
+    op_str = "AstBinOp_ArSub";
+  } else if (op == AstBinOp_ArMul) {
+    op_str = "AstBinOp_ArMul";
+  } else if (op == AstBinOp_ArDiv) {
+    op_str = "AstBinOp_ArDiv";
+  } else if (op == AstBinOp_LogAnd) {
+    op_str = "AstBinOp_LogAnd";
+  } else if (op == AstBinOp_LogOr) {
+    op_str = "AstBinOp_LogOr";
+  } else if (op == AstBinOp_LogEqual) {
+    op_str = "AstBinOp_LogEqual";
+  } else if (op == AstBinOp_LogNotEqual) {
+    op_str = "AstBinOp_LogNotEqual";
+  } else if (op == AstBinOp_LogLess) {
+    op_str = "AstBinOp_LogLess";
+  } else if (op == AstBinOp_LogGreater) {
+    op_str = "AstBinOp_LogGreater";
+  } else if (op == AstBinOp_LogLessEqual) {
+    op_str = "AstBinOp_LogLessEqual";
+  } else if (op == AstBinOp_LogGreaterEqual) {
+    op_str = "AstBinOp_LogGreaterEqual";
+  } else if (op == AstBinOp_BitAnd) {
+    op_str = "AstBinOp_BitAnd";
+  } else if (op == AstBinOp_BitOr) {
+    op_str = "AstBinOp_BitOr";
+  } else if (op == AstBinOp_BitXor) {
+    op_str = "AstBinOp_BitXor";
+  } else if (op == AstBinOp_BitShLeft) {
+    op_str = "AstBinOp_BitShLeft";
+  } else if (op == AstBinOp_BitShRight) {
+    op_str = "AstBinOp_BitShRight";
+  } else if (op == AstUnOp_LogNot) {
+    op_str = "AstUnOp_LogNot";
+  } else if (op == AstUnOp_BitNot) {
+    op_str = "AstUnOp_BitNot";
+  } else if (op == AstUnOp_ArMinus) {
+    op_str = "AstUnOp_ArMinus";
+  } else assert(op == AstOp_None);
   return op_str;
 }
 
@@ -970,6 +982,74 @@ dump_TypeArgsExpr(struct Cst_TypeArgsExpr* expr)
 }
 
 internal void
+dump_ConstDecl(struct Cst_ConstDecl* decl)
+{
+  object_start();
+  print_prop_common((struct Cst*)decl);
+  print_prop("type", Value_Ref, decl->type);
+  print_prop("name", Value_Ref, decl->name);
+  print_prop("expr", Value_Ref, decl->expr);
+  object_end();
+  dump_Cst(decl->type);
+  dump_Cst(decl->name);
+  dump_Cst(decl->expr);
+}
+
+internal void
+dump_Bool(struct Cst_Bool* node)
+{
+  object_start();
+  print_prop_common((struct Cst*)node);
+  print_prop("value", Value_Int, node->value);
+  object_end();
+}
+
+internal void
+dump_TableProp_Entries(struct Cst_TableProp_Entries* entries)
+{
+  object_start();
+  print_prop_common((struct Cst*)entries);
+  print_prop("is_const", Value_Int, entries->is_const);
+  print_prop("entries", Value_Ref, entries->entries);
+  object_end();
+  dump_Cst(entries->entries);
+}
+
+internal void
+dump_TableEntry(struct Cst_TableEntry* entry)
+{
+  object_start();
+  print_prop_common((struct Cst*)entry);
+  print_prop("keyset", Value_Ref, entry->keyset);
+  print_prop("action", Value_Ref, entry->action);
+  object_end();
+  dump_Cst(entry->keyset);
+  dump_Cst(entry->action);
+}
+
+internal void
+dump_TableProp_Key(struct Cst_TableProp_Key* key)
+{
+  object_start();
+  print_prop_common((struct Cst*)key);
+  print_prop("keyelem_list", Value_Ref, key->keyelem_list);
+  object_end();
+  dump_Cst(key->keyelem_list);
+}
+
+internal void
+dump_KeyElement(struct Cst_KeyElement* elem)
+{
+  object_start();
+  print_prop_common((struct Cst*)elem);
+  print_prop("expr", Value_Ref, elem->expr);
+  print_prop("name", Value_Ref, elem->name);
+  object_end();
+  dump_Cst(elem->expr);
+  dump_Cst(elem->name);
+}
+
+internal void
 dump_Cst(struct Cst* cst)
 {
   while (cst) {
@@ -1075,6 +1155,18 @@ dump_Cst(struct Cst* cst)
       dump_DotPrefixedName((struct Cst_DotPrefixedName*)cst);
     } else if (cst->kind == Cst_TypeArgsExpr) {
       dump_TypeArgsExpr((struct Cst_TypeArgsExpr*)cst);
+    } else if (cst->kind == Cst_ConstDecl) {
+      dump_ConstDecl((struct Cst_ConstDecl*)cst);
+    } else if (cst->kind == Cst_Bool) {
+      dump_Bool((struct Cst_Bool*)cst);
+    } else if (cst->kind == Cst_TableProp_Entries) {
+      dump_TableProp_Entries((struct Cst_TableProp_Entries*)cst);
+    } else if (cst->kind == Cst_TableEntry) {
+      dump_TableEntry((struct Cst_TableEntry*)cst);
+    } else if (cst->kind == Cst_TableProp_Key) {
+      dump_TableProp_Key((struct Cst_TableProp_Key*)cst);
+    } else if (cst->kind == Cst_KeyElement) {
+      dump_KeyElement((struct Cst_KeyElement*)cst);
     }
     else {
       printf("TODO: %s\n", cst_kind_to_string(cst->kind));

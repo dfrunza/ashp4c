@@ -557,14 +557,14 @@ next_token(struct Token* token)
         // 99
         // ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
-        do
+        do {
           c = char_advance(1);
-        while (cstr_is_digit(c, 10));
+        } while (cstr_is_digit(c, 10));
         if (c == 'w' || c == 's') {
           token->klass = Token_Integer;
-          token->i.flags |= IntFlags_HasWidth;
+          token->i.flags |= AstInteger_HasWidth;
           if (c == 's') {
-            token->i.flags |= IntFlags_Signed;
+            token->i.flags |= AstInteger_IsSigned;
           }
           lexeme[1].end = lexeme->end - 1;  // omit w|s
           token->i.width = parse_integer(lexeme_to_cstring(&lexeme[1]), 10);
@@ -574,7 +574,7 @@ next_token(struct Token* token)
           char_retract();
           lexeme[1].end = lexeme->end;
           token->klass = Token_Integer;
-          token->i.flags |= IntFlags_Signed;
+          token->i.flags |= AstInteger_IsSigned;
           token_install_integer(token, &lexeme[1], 10);
           token->lexeme = lexeme_to_cstring(lexeme);
           lexeme_advance();
@@ -587,13 +587,13 @@ next_token(struct Token* token)
         // 0xFF
         //   ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
-        do
+        do {
           c = char_advance(1);
-        while (cstr_is_digit(c, 16));
+        } while (cstr_is_digit(c, 16));
         char_retract();
         lexeme[1].end = lexeme->end;
         token->klass = Token_Integer;
-        token->i.flags |= IntFlags_Signed;
+        token->i.flags |= AstInteger_IsSigned;
         token_install_integer(token, &lexeme[1], 16);
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -605,13 +605,13 @@ next_token(struct Token* token)
         // 0o77
         //   ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
-        do
+        do {
           c = char_advance(1);
-        while (cstr_is_digit(c, 8));
+        } while (cstr_is_digit(c, 8));
         char_retract();
         lexeme[1].end = lexeme->end;
         token->klass = Token_Integer;
-        token->i.flags |= IntFlags_Signed;
+        token->i.flags |= AstInteger_IsSigned;
         token_install_integer(token, &lexeme[1], 8);
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -623,13 +623,13 @@ next_token(struct Token* token)
         // 0b11
         //   ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
-        do
+        do {
           c = char_advance(1);
-        while (cstr_is_digit(c, 2));
+        } while (cstr_is_digit(c, 2));
         char_retract();
         lexeme[1].end = lexeme->end;
         token->klass = Token_Integer;
-        token->i.flags |= IntFlags_Signed;
+        token->i.flags |= AstInteger_IsSigned;
         token_install_integer(token, &lexeme[1], 2);
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -662,9 +662,9 @@ next_token(struct Token* token)
         // ..(w|s)0xFF
         //          ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
-        do
+        do {
           c = char_advance(1);
-        while (cstr_is_digit(c, 16));
+        } while (cstr_is_digit(c, 16));
         char_retract();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 16);
@@ -678,9 +678,9 @@ next_token(struct Token* token)
         // ..(w|s)0o77
         //          ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
-        do
+        do {
           c = char_advance(1);
-        while (cstr_is_digit(c, 8));
+        } while (cstr_is_digit(c, 8));
         char_retract();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 8);
@@ -694,9 +694,9 @@ next_token(struct Token* token)
         // ..(w|s)0b11
         //          ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
-        do
+        do {
           c = char_advance(1);
-        while (cstr_is_digit(c, 2));
+        } while (cstr_is_digit(c, 2));
         char_retract();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 2);
@@ -710,9 +710,9 @@ next_token(struct Token* token)
         // ..(w|s)99
         //        ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
-        do
+        do {
           c = char_advance(1);
-        while (cstr_is_digit(c, 10));
+        } while (cstr_is_digit(c, 10));
         char_retract();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 10);
@@ -723,9 +723,9 @@ next_token(struct Token* token)
 
       case 500:
       {
-        do
+        do {
           c = char_advance(1);
-        while (cstr_is_letter(c) || cstr_is_digit(c, 10) || c == '_');
+        } while (cstr_is_letter(c) || cstr_is_digit(c, 10) || c == '_');
         char_retract();
         token->klass = Token_Identifier;
         token->lexeme = lexeme_to_cstring(lexeme);

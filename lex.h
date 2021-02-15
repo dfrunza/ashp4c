@@ -1,6 +1,7 @@
 #pragma once
 #include "basic.h"
 #include "arena.h"
+#include "ast.h"
 #include <stdint.h>
 
 enum TokenClass {
@@ -89,13 +90,6 @@ enum TokenClass {
   Token_EndOfInput,
 };
 
-enum IntegerFlags
-{
-  IntFlags_None,
-  IntFlags_HasWidth,
-  IntFlags_Signed,
-};
-
 struct Token {
   enum TokenClass klass;
   char* lexeme;
@@ -103,7 +97,7 @@ struct Token {
 
   union {
     struct {
-      enum IntegerFlags flags;
+      enum AstIntegerFlags flags;
       int width;
       int64_t value;
     } i;  /* integer */

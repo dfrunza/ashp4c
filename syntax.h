@@ -2,6 +2,7 @@
 #include "basic.h"
 #include "arena.h"
 #include "lex.h"
+#include "ast.h"
 
 enum IdentKind
 {
@@ -56,6 +57,7 @@ enum CstKind {
   Cst_Dontcare,
   Cst_IntTypeSize,
   Cst_Int,
+  Cst_Bool,
   Cst_StringLiteral,
   Cst_Tuple,
   Cst_HeaderStack,
@@ -104,43 +106,6 @@ enum CstKind {
   Cst_P4Program,
 };
 
-enum Cst_ParamDirKind {
-  Cst_DirNone,
-  Cst_DirIn,
-  Cst_DirOut,
-  Cst_DirInOut,
-};
-
-enum Cst_ExprOperator {
-  Cst_Op_None,
-  Cst_BinaryOp_ArithAdd,
-  Cst_BinaryOp_ArithSub,
-  Cst_BinaryOp_ArithMul,
-  Cst_BinaryOp_ArithDiv,
-  Cst_BinaryOp_LogicAnd,
-  Cst_BinaryOp_LogicOr,
-  Cst_BinaryOp_LogicEqual,
-  Cst_BinaryOp_LogicNotEqual,
-  Cst_BinaryOp_LogicLess,
-  Cst_BinaryOp_LogicGreater,
-  Cst_BinaryOp_LogicLessEqual,
-  Cst_BinaryOp_LogicGreaterEqual,
-  Cst_BinaryOp_BitwiseAnd,
-  Cst_BinaryOp_BitwiseOr,
-  Cst_BinaryOp_BitwiseXor,
-  Cst_BinaryOp_BitshiftLeft,
-  Cst_BinaryOp_BitshiftRight,
-  Cst_UnaryOp_LogicNot,
-  Cst_UnaryOp_BitwiseNot,
-  Cst_UnaryOp_ArithMinus,
-};
-
-enum Cst_TypeParameterKind {
-  Cst_TypeParamNone,
-  Cst_TypeParamVar,
-  Cst_TypeParamInt,
-};
-
 struct CstLink {
   struct Cst* prev_node;
   struct Cst* next_node;
@@ -174,18 +139,9 @@ struct Cst_PrefixedTypeName {
   struct Cst_TypeName* second_name;
 };
 
-enum Cst_BaseTypeKind {
-  Cst_BaseType_None,
-  Cst_BaseType_Bool,
-  Cst_BaseType_Error,
-  Cst_BaseType_Int,
-  Cst_BaseType_Bit,
-  Cst_BaseType_Varbit,
-};
-
 struct Cst_BaseType {
   struct Cst;
-  enum Cst_BaseTypeKind base_type;
+  enum AstBaseTypeKind base_type;
   struct Cst* size;
 };
 
@@ -303,7 +259,7 @@ struct Cst_FunctionDecl {
 
 struct Cst_ParamDir {
   struct Cst;
-  enum Cst_ParamDirKind dir_kind;
+  enum AstParamDirKind dir_kind;
 };
 
 struct Cst_Parameter {
@@ -324,6 +280,13 @@ struct Cst_IntTypeSize {
 };
 
 struct Cst_Int {
+  struct Cst;
+  enum AstIntegerFlags flags;
+  int width;
+  int value;
+};
+
+struct Cst_Bool {
   struct Cst;
   int value;
 };
@@ -544,13 +507,13 @@ struct Cst_CastExpr {
 
 struct Cst_UnaryExpr {
   struct Cst;
-  enum Cst_ExprOperator op;
+  enum AstExprOperator op;
   struct Cst* expr;
 };
 
 struct Cst_BinaryExpr {
   struct Cst;
-  enum Cst_ExprOperator op;
+  enum AstExprOperator op;
   struct Cst* left_operand;
   struct Cst* right_operand;
 };
