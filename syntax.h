@@ -4,33 +4,6 @@
 #include "lex.h"
 #include "ast.h"
 
-enum IdentKind
-{
-  Ident_None,
-  Ident_Keyword,
-  Ident_Type,
-  Ident_Ident,
-};
-
-struct Ident {
-  enum IdentKind ident_kind;
-  char* name;
-  int scope_level;
-  struct Ident* next_in_scope;
-};  
-
-struct Ident_Keyword {
-  struct Ident;
-  enum TokenClass token_klass;
-};
-
-struct Namespace_Entry {
-  char* name;
-  struct Ident* ns_global;
-  struct Ident* ns_type;
-  struct Namespace_Entry* next;
-};
-
 enum CstKind {
   Cst_NonTypeName,
   Cst_TypeName,

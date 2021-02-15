@@ -153,7 +153,7 @@ token_install_integer(struct Token* token, struct Lexeme* lexeme, int base)
     token->i.value = parse_integer(string, base);
   } else {
     if (base == 10) {
-      error("at line %d: expected one or more octal digits, got '%s'.", token->line_nr, string);
+      error("at line %d: expected one or more digits, got '%s'.", token->line_nr, string);
     } else if (base == 16) {
       error("at line %d: expected one or more hexadecimal digits, got '%s'.", token->line_nr, string);
     } else if (base == 8) {
@@ -271,10 +271,10 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '=') {
           char_advance(1);
-          token->klass = Token_LessEqual;
+          token->klass = Token_AngleOpenEqual;
         } else if (char_lookahead(1) == '<') {
           char_advance(1);
-          token->klass = Token_BitshiftLeft;
+          token->klass = Token_TwoAngleOpen;
         } else {
           token->klass = Token_AngleOpen;
         }
@@ -287,10 +287,10 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '=') {
           char_advance(1);
-          token->klass = Token_GreaterEqual;
+          token->klass = Token_AngleCloseEqual;
         } else if (char_lookahead(1) == '>') {
           char_advance(1);
-          token->klass = Token_BitshiftRight;
+          token->klass = Token_TwoAngleClose;
         } else {
           token->klass = Token_AngleClose;
         }
@@ -432,7 +432,7 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '=') {
           char_advance(1);
-          token->klass = Token_LogicEqual;
+          token->klass = Token_TwoEqual;
         } else {
           token->klass = Token_Equal;
         }
@@ -445,9 +445,9 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '=') {
           char_advance(1);
-          token->klass = Token_LogicNotEqual;
+          token->klass = Token_ExclamationEqual;
         } else {
-          token->klass = Token_LogicNot;
+          token->klass = Token_Exclamation;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -458,9 +458,9 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '&') {
           char_advance(1);
-          token->klass = Token_LogicAnd;
+          token->klass = Token_TwoAmpersand;
         } else {
-          token->klass = Token_BitwiseAnd;
+          token->klass = Token_Ampersand;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -471,9 +471,9 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '|') {
           char_advance(1);
-          token->klass = Token_LogicOr;
+          token->klass = Token_TwoPipe;
         } else {
-          token->klass = Token_BitwiseOr;
+          token->klass = Token_Pipe;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -482,7 +482,7 @@ next_token(struct Token* token)
 
       case 121:
       {
-        token->klass = Token_BitwiseXor;
+        token->klass = Token_Circumflex;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -490,7 +490,7 @@ next_token(struct Token* token)
 
       case 122:
       {
-        token->klass = Token_BitwiseNot;
+        token->klass = Token_Tilda;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -749,8 +749,9 @@ lex_tokenize_input()
   next_token(token);
   tokenized_input_len++;
   while (token->klass != Token_EndOfInput) {
-    if (token->klass == Token_Unknown)
+    if (token->klass == Token_Unknown) {
       error("at line %d: unknown token", token->line_nr);
+    }
     token++;
     next_token(token);
     tokenized_input_len++;

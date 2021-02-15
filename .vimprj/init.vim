@@ -23,6 +23,7 @@ set errorformat+=collect2:\ %t\rror:\ ld\ returned\ 1\ exit\ status
 
 set errorformat+=gcc:\ error:\ %f
 
-set shiftwidth=2 " indendation level
+set shiftwidth=2  " indendation level
 set tabstop=2
 set cindent
+set textwidth=99  " wrap width

@@ -2,6 +2,32 @@
 
 #include "syntax.h"
 
+enum IdentKind
+{
+  Ident_None,
+  Ident_Keyword,
+  Ident_Type,
+};
+
+struct Ident {
+  enum IdentKind ident_kind;
+  char* name;
+  int scope_level;
+  struct Ident* next_in_scope;
+};  
+
+struct Ident_Keyword {
+  struct Ident;
+  enum TokenClass token_klass;
+};
+
+struct Symtable_Entry {
+  char* name;
+  struct Ident* ns_kw;
+  struct Ident* ns_type;
+  struct Symtable_Entry* next;
+};
+
 external Arena arena;
 
 external struct Token* tokenized_input;
@@ -9,9 +35,9 @@ internal struct Token* token = 0;
 internal struct Token* prev_token = 0;
 external int tokenized_input_len;
 
-external struct Namespace_Entry** symtable;
-external int max_symtable_len;
-external int scope_level;
+internal struct Symtable_Entry** symtable;
+internal int max_symtable_len = 997;  // table entry units
+internal int scope_level = 0;
 
 internal int node_id = 1;
 
@@ -21,7 +47,7 @@ internal struct Cst* build_blockStatement();
 internal struct Cst* build_statement();
 internal struct Cst* build_parserStatement();
 
-void
+internal void
 link_cst_nodes(struct Cst* node_a, struct Cst* node_b)
 {
   assert(node_a->link.next_node == 0);
@@ -33,54 +59,53 @@ link_cst_nodes(struct Cst* node_a, struct Cst* node_b)
 internal uint32_t
 name_hash(char* name)
 {
-  uint32_t result = 0;
   uint32_t sum = 0;
-  char* c = name;
-  while (*c)
-    sum += (uint32_t)(*c++);
-  result = sum % max_symtable_len;
-  return result;
+  char* pc = name;
+  while (*pc) {
+    sum = (sum + (uint32_t)(*pc)*65599) % max_symtable_len;
+    pc++;
+  }
+  return sum;
 }
 
 internal int
-scope_push_level()
+new_scope()
 {
   int new_scope_level = ++scope_level;
   DEBUG("push scope %d\n", new_scope_level);
   return new_scope_level;
 }
 
-internal int
-scope_pop_level(int to_level)
+internal void
+delete_scope()
 {
-  if (scope_level <= to_level)
-    return scope_level;
+  int prev_level = scope_level - 1;
+  assert (prev_level >= 0);
 
   int i = 0;
   while (i < max_symtable_len) {
-    struct Namespace_Entry* ns = symtable[i];
+    struct Symtable_Entry* ns = symtable[i];
     while (ns) {
-      struct Ident* ident = ns->ns_global;
-      if (ident && ident->scope_level > to_level) {
-        ns->ns_global = ident->next_in_scope;
+      struct Ident* ident = ns->ns_kw;
+      if (ident && ident->scope_level > prev_level) {
+        ns->ns_kw = ident->next_in_scope;
         if (ident->next_in_scope)
-          assert (ident->next_in_scope->scope_level <= to_level);
+          assert (ident->next_in_scope->scope_level <= prev_level);
         ident->next_in_scope = 0;
       }
       ident = ns->ns_type;
-      if (ident && ident->scope_level > to_level) {
+      if (ident && ident->scope_level > prev_level) {
         ns->ns_type = ident->next_in_scope;
         if (ident->next_in_scope)
-          assert (ident->next_in_scope->scope_level <= to_level);
+          assert (ident->next_in_scope->scope_level <= prev_level);
         ident->next_in_scope = 0;
       }
       ns = ns->next;
     }
     i++;
   }
-  DEBUG("pop scope %d\n", to_level);
-  scope_level = to_level;
-  return scope_level;
+  DEBUG("pop scope %d\n", prev_level);
+  scope_level = prev_level;
 }
 
 internal bool
@@ -90,40 +115,38 @@ ident_is_declared(struct Ident* ident)
   return is_declared;
 }
 
-internal struct Namespace_Entry*
-get_namespace(char* name)
+internal struct Symtable_Entry*
+get_symtable_entry(char* name)
 {
   uint32_t h = name_hash(name);
-  struct Namespace_Entry* name_info = symtable[h];
-  while(name_info) {
-    if (cstr_match(name_info->name, name))
+  struct Symtable_Entry* entry = symtable[h];
+  while (entry) {
+    if (cstr_match(entry->name, name))
       break;
-    name_info = name_info->next;
+    entry = entry->next;
   }
-  if (!name_info) {
-    name_info = arena_push_struct(&arena, Namespace_Entry);
-    name_info->name = name;
-    name_info->next = symtable[h];
-    symtable[h] = name_info;
+  if (!entry) {
+    entry = arena_push_struct(&arena, Symtable_Entry);
+    entry->name = name;
+    entry->next = symtable[h];
+    symtable[h] = entry;
   }
-  return name_info;
+  return entry;
 }
 
 struct Ident*
 new_type(char* name, int line_nr)
 {
-  struct Ident* ident = 0;
-  struct Namespace_Entry* ns = get_namespace(name);
-  if (ident_is_declared(ident)) {
-    error("at line %d: redeclaration of type `%s`.", line_nr, ident->name);
-  } else {
-    struct Ident* ident = arena_push_struct(&arena, Ident);
+  struct Symtable_Entry* ns = get_symtable_entry(name);
+  struct Ident* ident = ns->ns_type;
+  if (!ident) {
+    ident = arena_push_struct(&arena, Ident);
     ident->name = name;
     ident->scope_level = scope_level;
     ident->ident_kind = Ident_Type;
     ident->next_in_scope = ns->ns_type;
     ns->ns_type = (struct Ident*)ident;
-    DEBUG("new type `%s`\n", ident->name);
+    DEBUG("new type `%s` at line %d.\n", ident->name, line_nr);
   }
   return ident;
 }
@@ -131,14 +154,14 @@ new_type(char* name, int line_nr)
 internal struct Ident_Keyword*
 add_keyword(char* name, enum TokenClass token_klass)
 {
-  struct Namespace_Entry* namespace = get_namespace(name);
-  assert (namespace->ns_global == 0);
+  struct Symtable_Entry* namespace = get_symtable_entry(name);
+  assert (namespace->ns_kw == 0);
   struct Ident_Keyword* ident = arena_push_struct(&arena, Ident_Keyword);
   ident->name = name;
   ident->scope_level = scope_level;
   ident->token_klass = token_klass;
   ident->ident_kind = Ident_Keyword;
-  namespace->ns_global = (struct Ident*)ident;
+  namespace->ns_kw = (struct Ident*)ident;
   return ident;
 }
 
@@ -147,19 +170,18 @@ next_token()
 {
   assert(token < tokenized_input + tokenized_input_len);
   prev_token = token++;
-  while (token->klass == Token_Comment)
+  while (token->klass == Token_Comment) {
     token++;
-
+  }
   if (token->klass == Token_Identifier) {
-    struct Namespace_Entry* ns = get_namespace(token->lexeme);
-    if (ns->ns_global) {
-      struct Ident* ident = ns->ns_global;
+    struct Symtable_Entry* ns = get_symtable_entry(token->lexeme);
+    if (ns->ns_kw) {
+      struct Ident* ident = ns->ns_kw;
       if (ident->ident_kind == Ident_Keyword) {
         token->klass = ((struct Ident_Keyword*)ident)->token_klass;
         return token;
       }
     }
-
     if (ns->ns_type) {
       struct Ident* ident = ns->ns_type;
       if (ident->ident_kind == Ident_Type) {
@@ -317,8 +339,8 @@ token_is_expressionPrimary(struct Token* token)
 {
   bool result = token->klass == Token_Integer || token->klass == Token_True || token->klass == Token_False
     || token->klass == Token_StringLiteral || token->klass == Token_DotPrefix || token_is_nonTypeName(token)
-    || token->klass == Token_BraceOpen || token->klass == Token_ParenthOpen || token->klass == Token_LogicNot
-    || token->klass == Token_BitwiseNot || token->klass == Token_UnaryMinus || token_is_typeName(token)
+    || token->klass == Token_BraceOpen || token->klass == Token_ParenthOpen || token->klass == Token_Exclamation
+    || token->klass == Token_Tilda || token->klass == Token_UnaryMinus || token_is_typeName(token)
     || token->klass == Token_Error || token_is_prefixedType(token);
   return result;
 }
@@ -356,7 +378,7 @@ build_name(bool is_type)
       type_name->name = token->lexeme;
       name = (struct Cst*)type_name;
       next_token();
-    } else assert(false);
+    } else assert(0);
   } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)name;
 }
@@ -408,7 +430,7 @@ build_typeArg()
       arg = build_typeRef();
     } else if (token_is_nonTypeName(token)) {
       arg = build_nonTypeName(false);
-    } else assert(false);
+    } else assert(0);
   } else error("at line %d: type argument was expected, got `%s`.", token->line_nr, token->lexeme);
   return arg;
 }
@@ -505,7 +527,6 @@ build_functionPrototype()
   struct Cst_FunctionProto* proto = 0;
   if (token_is_typeOrVoid(token)) {
     proto = new_cst_node(Cst_FunctionProto);
-    scope_push_level();
     proto->return_type = build_typeOrVoid(true);
     if (token_is_name(token)) {
       proto->name = build_name(false);
@@ -518,7 +539,6 @@ build_functionPrototype()
         } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `(` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: function name was expected, got `%s`.", token->line_nr, token->lexeme);
-    scope_pop_level(scope_level-1);
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)proto;
 }
@@ -591,13 +611,11 @@ build_externDeclaration()
       extern_decl->name = build_nonTypeName(true);
       extern_decl->type_params = build_optTypeParameters();
       if (token->klass == Token_BraceOpen) {
-        scope_push_level();
         next_token();
         extern_decl->method_protos = build_methodPrototypes();
         if (token->klass == Token_BraceClose) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
-        scope_pop_level(scope_level-1);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     }
   }
@@ -698,7 +716,7 @@ build_baseType()
           next_token();
         } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
       }
-    } else assert(false);
+    } else assert(0);
   } else error("at line %d: type as expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)base_type;
 }
@@ -821,7 +839,7 @@ build_typeRef()
       ref = build_typeName();
     } else if (token->klass == Token_Tuple) {
       ref = build_tupleType();
-    } else assert(false);
+    } else assert(0);
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
   return ref;
 }
@@ -875,13 +893,11 @@ build_headerTypeDeclaration()
     if (token_is_name(token)) {
       decl->name = build_name(true);
       if (token->klass == Token_BraceOpen) {
-        scope_push_level();
         next_token();
         decl->fields = build_structFieldList();
         if (token->klass == Token_BraceClose) {
           next_token(token);
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
-        scope_pop_level(scope_level-1);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `header` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -898,13 +914,11 @@ build_headerUnionDeclaration()
     if (token_is_name(token)) {
       decl->name = build_name(true);
       if (token->klass == Token_BraceOpen) {
-        scope_push_level();
         next_token();
         decl->fields = build_structFieldList();
         if (token->klass == Token_BraceClose) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
-        scope_pop_level(scope_level-1);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `header_union` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -921,13 +935,11 @@ build_structTypeDeclaration()
     if (token_is_name(token)) {
       decl->name = build_name(true);
       if (token->klass == Token_BraceOpen) {
-        scope_push_level();
         next_token();
         decl->fields = build_structFieldList();
         if (token->klass == Token_BraceClose) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
-        scope_pop_level(scope_level-1);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `struct` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1014,7 +1026,6 @@ build_enumDeclaration()
     if (token_is_name(token)) {
       decl->name = build_name(true);
       if (token->klass == Token_BraceOpen) {
-        scope_push_level();
         next_token();
         if (token_is_specifiedIdentifier(token)) {
           decl->id_list = build_specifiedIdentifierList();
@@ -1022,7 +1033,6 @@ build_enumDeclaration()
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
         } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
-        scope_pop_level(scope_level-1);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `enum` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1042,7 +1052,7 @@ build_derivedTypeDeclaration()
       decl = build_structTypeDeclaration();
     } else if (token->klass == Token_Enum) {
       decl = build_enumDeclaration();
-    } else assert(false);
+    } else assert(0);
   } else error("at line %d: structure declaration was expected, got `%s`.", token->line_nr, token->lexeme);
   return decl;
 }
@@ -1481,13 +1491,11 @@ build_parserBlockStatements()
 {
   struct Cst* stmts = 0;
   if (token->klass == Token_BraceOpen) {
-    scope_push_level();
     next_token();
     stmts = build_parserStatements();
     if (token->klass == Token_BraceClose) {
       next_token();
     } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
-    scope_pop_level(scope_level-1);
   } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   return stmts;
 }
@@ -1627,13 +1635,11 @@ build_selectExpression()
       if (token->klass == Token_ParenthClose) {
         next_token();
         if (token->klass == Token_BraceOpen) {
-          scope_push_level();
           next_token();
           select_expr->case_list = build_selectCaseList();
           if (token->klass == Token_BraceClose) {
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
-          scope_pop_level(scope_level-1);
         } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `(` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1676,14 +1682,12 @@ build_parserState()
     state = new_cst_node(Cst_ParserState);
     state->name = build_name(false);
     if (token->klass == Token_BraceOpen) {
-      scope_push_level();
       next_token();
       state->stmts = build_parserStatements();
       state->trans_stmt = build_transitionStatement();
       if (token->klass == Token_BraceClose) {
         next_token();
       } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
-      scope_pop_level(scope_level-1);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `state` was expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)state;
@@ -1717,14 +1721,12 @@ build_parserDeclaration()
     } else {
       decl->ctor_params = build_optConstructorParameters();
       if (token->klass == Token_BraceOpen) {
-        scope_push_level();
         next_token();
         decl->local_elements = build_parserLocalElements();
         decl->states = build_parserStates();
         if (token->klass == Token_BraceClose) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
-        scope_pop_level(scope_level-1);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     }
   } else error("at line %d: `parser` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1979,13 +1981,11 @@ build_tableDeclaration()
     table = new_cst_node(Cst_TableDecl);
     table->name = build_name(false);
     if (token->klass == Token_BraceOpen) {
-      scope_push_level();
       next_token();
       table->prop_list = build_tablePropertyList();
       if (token->klass == Token_BraceClose) {
         next_token();
       } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
-      scope_pop_level(scope_level-1);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `table` was expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)table;
@@ -2039,7 +2039,6 @@ build_controlDeclaration()
     } else {
       decl->ctor_params = build_optConstructorParameters();
       if (token->klass == Token_BraceOpen) {
-        scope_push_level();
         next_token();
         decl->local_decls = build_controlLocalDeclarations();
         if (token->klass == Token_Apply) {
@@ -2049,7 +2048,6 @@ build_controlDeclaration()
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
         } else error("at line %d: `apply` was expected, got `%s`.", token->line_nr, token->lexeme);
-        scope_pop_level(scope_level-1);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     }
   } else error("at line %d: `control` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -2089,7 +2087,7 @@ build_typedefDeclaration()
     } else if (token->klass == Token_Type) {
       is_typedef = false;
       next_token();
-    } else assert(false);
+    } else assert(0);
 
     if (token_is_typeRef(token) || token_is_derivedTypeDeclaration(token)) {
       struct Cst_TypeDecl* type_decl = new_cst_node(Cst_TypeDecl);
@@ -2099,7 +2097,7 @@ build_typedefDeclaration()
         type_decl->type_ref = build_typeRef();
       } else if (token_is_derivedTypeDeclaration(token)) {
         type_decl->type_ref = build_derivedTypeDeclaration();
-      } else assert(false);
+      } else assert(0);
 
       if (token_is_name(token)) {
         type_decl->name = build_name(true);
@@ -2309,7 +2307,7 @@ build_statementOrDecl()
       stmt = build_statement();
     } else if (token->klass == Token_Const) {
       stmt = build_constantDeclaration();
-    } else assert(false);
+    } else assert(0);
   }
   return stmt;
 }
@@ -2335,14 +2333,12 @@ build_blockStatement()
 {
   struct Cst_BlockStmt* stmt = 0;
   if (token->klass == Token_BraceOpen) {
-    scope_push_level();
     next_token();
     stmt = new_cst_node(Cst_BlockStmt);
     stmt->stmt_list = build_statementOrDeclList();
     if (token->klass == Token_BraceClose) {
       next_token();
     } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
-    scope_pop_level(scope_level-1);
   } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)stmt;
 }
@@ -2372,7 +2368,6 @@ build_errorDeclaration()
     next_token();
     decl = new_cst_node(Cst_Error);
     if (token->klass == Token_BraceOpen) {
-      scope_push_level();
       next_token();
       if (token_is_name(token)) {
         decl->id_list = build_identifierList();
@@ -2380,7 +2375,6 @@ build_errorDeclaration()
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
-      scope_pop_level(scope_level-1);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `error` was expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)decl;
@@ -2394,12 +2388,10 @@ build_matchKindDeclaration()
     next_token();
     decl = new_cst_node(Cst_MatchKind);
     if (token->klass == Token_BraceOpen) {
-      scope_push_level();
       next_token();
       if (token_is_name(token)) {
         decl->fields = build_identifierList();
       } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
-      scope_pop_level(scope_level-1);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `match_kind` was expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Cst*)decl;
@@ -2440,7 +2432,7 @@ build_declaration()
       decl = build_matchKindDeclaration();
     } else if (token_is_typeOrVoid(token)) {
       decl = build_functionDeclaration();
-    } else assert(false);
+    } else assert(0);
   } else error("at line %d: top-level declaration as expected, got `%s`.", token->line_nr, token->lexeme);
   return decl;
 }
@@ -2463,8 +2455,9 @@ build_p4program()
   struct Cst* first_decl = sentinel_decl.link.next_node;
   first_decl->link.prev_node = 0;
   prog->decl_list = first_decl;
-  if (token->klass != Token_EndOfInput)
+  if (token->klass != Token_EndOfInput) {
     error("at line %d: unexpected token `%s`.", token->line_nr, token->lexeme);
+  }
   return (struct Cst*)prog;
 }
 
@@ -2480,13 +2473,13 @@ token_is_binaryOperator(struct Token* token)
 {
   bool result = token->klass == Token_Star || token->klass == Token_Slash
     || token->klass == Token_Plus || token->klass == Token_Minus
-    || token->klass == Token_LessEqual || token->klass == Token_GreaterEqual
+    || token->klass == Token_AngleOpenEqual || token->klass == Token_AngleCloseEqual
     || token->klass == Token_AngleOpen || token->klass == Token_AngleClose
-    || token->klass == Token_LogicNotEqual || token->klass == Token_LogicEqual
-    || token->klass == Token_LogicOr || token->klass == Token_LogicAnd
-    || token->klass == Token_BitwiseOr || token->klass == Token_BitwiseAnd
-    || token->klass == Token_BitwiseXor || token->klass == Token_BitshiftLeft
-    || token->klass == Token_BitshiftRight;
+    || token->klass == Token_ExclamationEqual || token->klass == Token_TwoEqual
+    || token->klass == Token_TwoPipe || token->klass == Token_TwoAmpersand
+    || token->klass == Token_Pipe || token->klass == Token_Ampersand
+    || token->klass == Token_Circumflex || token->klass == Token_TwoAngleOpen
+    || token->klass == Token_TwoAngleClose;
   return result;
 }
 
@@ -2573,13 +2566,13 @@ build_expressionPrimary()
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: an expression was expected, got `%s`.", token->line_nr, token->lexeme);
-    } else if (token->klass == Token_LogicNot) {
+    } else if (token->klass == Token_Exclamation) {
       next_token();
       struct Cst_UnaryExpr* unary_expr = new_cst_node(Cst_UnaryExpr);
       unary_expr->op = AstUnOp_LogNot;
       unary_expr->expr = build_expression(1);
       primary = (struct Cst*)unary_expr;
-    } else if (token->klass == Token_BitwiseNot) {
+    } else if (token->klass == Token_Tilda) {
       next_token();
       struct Cst_UnaryExpr* unary_expr = new_cst_node(Cst_UnaryExpr);
       unary_expr->op = AstUnOp_BitNot;
@@ -2598,7 +2591,7 @@ build_expressionPrimary()
       struct Cst_NonTypeName* name = new_cst_node(Cst_NonTypeName);
       name->name = token->lexeme;
       primary = (struct Cst*)name;
-    } else assert(false);
+    } else assert(0);
   } else error("at line %d: an expression was expected, got `%s`.", token->line_nr, token->lexeme);
   return primary;
 }
@@ -2607,23 +2600,23 @@ internal int
 get_operator_priority(struct Token* token)
 {
   int prio = 0;
-  if (token->klass == Token_LogicAnd || token->klass == Token_LogicOr) {
+  if (token->klass == Token_TwoAmpersand || token->klass == Token_TwoPipe) {
     prio = 1;
-  } else if (token->klass == Token_LogicEqual || token->klass == Token_LogicNotEqual
+  } else if (token->klass == Token_TwoEqual || token->klass == Token_ExclamationEqual
       || token->klass == Token_AngleOpen /* Less */ || token->klass == Token_AngleClose /* Greater */
-      || token->klass == Token_LessEqual || token->klass == Token_GreaterEqual) {
+      || token->klass == Token_AngleOpenEqual /* LessEqual */ || token->klass == Token_AngleCloseEqual /* GreaterEqual */) {
     prio = 2;
   }
   else if (token->klass == Token_Plus || token->klass == Token_Minus
-           || token->klass == Token_BitwiseAnd || token->klass == Token_BitwiseOr
-           || token->klass == Token_BitwiseXor || token->klass == Token_BitshiftLeft
-           || token->klass == Token_BitshiftRight) {
+           || token->klass == Token_Ampersand || token->klass == Token_Pipe
+           || token->klass == Token_Circumflex || token->klass == Token_TwoAngleOpen /* BitshiftLeft */
+           || token->klass == Token_TwoAngleClose /* BitshiftRight */) {
     prio = 3;
   }
   else if (token->klass == Token_Star || token->klass == Token_Slash) {
     prio = 4;
   }
-  else assert(false);
+  else assert(0);
   return prio;
 }
 
@@ -2631,21 +2624,21 @@ internal enum AstExprOperator
 token_to_binop(struct Token* token)
 {
   switch (token->klass) {
-    case Token_LogicAnd:
+    case Token_TwoAmpersand:
       return AstBinOp_LogAnd;
-    case Token_LogicOr:
+    case Token_TwoPipe:
       return AstBinOp_LogOr;
-    case Token_LogicEqual:
+    case Token_TwoEqual:
       return AstBinOp_LogEqual;
-    case Token_LogicNotEqual:
+    case Token_ExclamationEqual:
       return AstBinOp_LogNotEqual;
     case Token_AngleOpen:
       return AstBinOp_LogLess;
     case Token_AngleClose:
       return AstBinOp_LogGreater;
-    case Token_LessEqual:
+    case Token_AngleOpenEqual:
       return AstBinOp_LogLessEqual;
-    case Token_GreaterEqual:
+    case Token_AngleCloseEqual:
       return AstBinOp_LogGreaterEqual;
     case Token_Plus:
       return AstBinOp_ArAdd;
@@ -2655,15 +2648,15 @@ token_to_binop(struct Token* token)
       return AstBinOp_ArMul;
     case Token_Slash:
       return AstBinOp_ArDiv;
-    case Token_BitwiseAnd:
+    case Token_Ampersand:
       return AstBinOp_BitAnd;
-    case Token_BitwiseOr:
+    case Token_Pipe:
       return AstBinOp_BitOr;
-    case Token_BitwiseXor:
+    case Token_Circumflex:
       return AstBinOp_BitXor;
-    case Token_BitshiftLeft:
+    case Token_TwoAngleOpen:
       return AstBinOp_BitShLeft;
-    case Token_BitshiftRight:
+    case Token_TwoAngleClose:
       return AstBinOp_BitShRight;
     default: return AstOp_None;
   }
@@ -2730,9 +2723,20 @@ build_expression(int priority_threshold)
   return expr;
 }
 
+internal void
+init_symtable()
+{
+  symtable = arena_push_array(&arena, struct Symtable_Entry*, max_symtable_len);
+  int i = 0;
+  while (i < max_symtable_len) {
+    symtable[i++] = 0;
+  }
+}
+
 struct Cst*
 build_cst()
 {
+  init_symtable();
   add_keyword("action", Token_Action);
   add_keyword("actions", Token_Actions);
   add_keyword("entries", Token_Entries);
