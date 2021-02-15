@@ -1,3 +1,4 @@
+#include "arena.h"
 #include "lex.h"
 
 external Arena arena;

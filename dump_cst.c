@@ -1,7 +1,7 @@
 #define DEBUG_ENABLED 1
 
 #include "arena.h"
-#include "syntax.h"
+#include "cst.h"
 
 external Arena arena;
 internal int tab_level = 0;
@@ -229,11 +229,11 @@ print_value(enum ValueType type, va_list value)
   } else if (type == Value_Ref) {
     struct Cst* cst = va_arg(value, struct Cst*);
     if (cst) {
-      if (cst->link.next_node) {
+      if (cst->next_node) {
         list_open();
         while (cst) {
           printf("\"$%d\"", cst->id);
-          cst = cst->link.next_node;
+          cst = cst->next_node;
           if (cst) {
             printf(", ");
           }
@@ -1172,7 +1172,7 @@ dump_Cst(struct Cst* cst)
     else {
       printf("TODO: %s\n", cst_kind_to_string(cst->kind));
     }
-    cst = cst->link.next_node;
+    cst = cst->next_node;
   }
 }
 

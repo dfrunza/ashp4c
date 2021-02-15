@@ -10,9 +10,9 @@ pushd build
 gcc $C_FLAGS -I . -c $SRC/basic.c
 gcc $C_FLAGS -I . -c $SRC/arena.c
 gcc $C_FLAGS -I . -c $SRC/lex.c
-gcc $C_FLAGS -I . -c $SRC/syntax.c 
+gcc $C_FLAGS -I . -c $SRC/build_cst.c
 gcc $C_FLAGS -I . -c $SRC/dump_cst.c 
-gcc $C_FLAGS -I . -c $SRC/ast.c 
+gcc $C_FLAGS -I . -c $SRC/build_ast.c 
 gcc $C_FLAGS -I. -o dp4c $SRC/dp4c.c $L_FLAGS \
-  basic.o arena.o lex.o syntax.o dump_cst.o ast.o
+  basic.o arena.o lex.o build_cst.o dump_cst.o build_ast.o
 popd

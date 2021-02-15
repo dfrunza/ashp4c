@@ -78,16 +78,12 @@ enum CstKind {
   Cst_P4Program,
 };
 
-struct CstLink {
-  struct Cst* prev_node;
-  struct Cst* next_node;
-};
-
 struct Cst {
   enum CstKind kind;
   int id;
   int line_nr;
-  struct CstLink link;
+  struct Cst* prev_node;
+  struct Cst* next_node;
 };
 
 struct Cst_NonTypeName {
@@ -519,4 +515,3 @@ struct Cst_P4Program {
   struct Cst* decl_list;
 };
 
-struct Cst* build_cst();

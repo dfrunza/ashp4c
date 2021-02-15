@@ -70,4 +70,3 @@ struct Ast_P4Program {
   int decl_count;
 };
 
-struct Ast* build_ast();

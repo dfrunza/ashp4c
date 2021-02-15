@@ -3,8 +3,8 @@
 #include "basic.h"
 #include "arena.h"
 #include "lex.h"
-#include "syntax.h"
-#include "ast.h"
+#include "build_cst.h"
+#include "build_ast.h"
 #include <sys/stat.h>
 
 Arena arena = {};
@@ -116,7 +116,8 @@ main(int arg_count, char* args[])
     dump_P4Program((struct Cst_P4Program*)p4program_cst);
   }
 
-  struct Ast* p4program_ast = build_ast(p4program_cst);
+  struct Ast* p4program_ast = build_ast((struct Cst_P4Program*)p4program_cst);
+  assert(p4program_ast->kind == Ast_P4Program);
   return 0;
 }
 
