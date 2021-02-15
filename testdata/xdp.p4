@@ -17,25 +17,25 @@ error
   IPv4OptionsNotSupported
 }
 
-extern TPacketIn
+extern PacketIn 
 {
-  TPacketIn();
+  PacketIn();
   void extract<T>(out T hdr);
   T lookup<T>(out T hdr);
 }
 
-extern TPacketOut<T>
+extern PacketOut<T>
 {
   void emit(in T hdr);
 }
 
 extern void verify(in bool check, in error error_to_signal);
 
-parser TXdpParser<H>(TPacketIn packet, out H parsed_headers);
+parser XdpParser<H>(PacketIn packet, out H parsed_headers);
 
-control TXdpPipe<H>(inout H headers, out bool accept);
+control XdpPipe<H>(inout H headers, out bool accept);
 
-package TXdpPackage<H>(TXdpParser<H> parser_, TXdpPipe<H> pipe);
+package XdpPackage<H>(XdpParser<H> parser_, XdpPipe<H> pipe);
 
 typedef bit<48> EthernetAddress;
 typedef bit<32> IPv4Address;
@@ -69,7 +69,7 @@ struct Header
   IPv4 ipv4;
 }
 
-parser XdpParser(TPacketIn pkt, out Header hdr)
+parser MyXdpParser(PacketIn pkt, out Header hdr)
 {
   state start
   {
@@ -92,7 +92,7 @@ parser XdpParser(TPacketIn pkt, out Header hdr)
   }
 }
 
-control XdpPipe(inout Header hdr, out bool accept)
+control MyXdpPipe(inout Header hdr, out bool accept)
 {
   int<16> i;
   bit<16> b;
@@ -102,4 +102,4 @@ control XdpPipe(inout Header hdr, out bool accept)
   }
 }
 
-TXdpPackage(XdpParser(), XdpPipe()) main;
+XdpPackage(MyXdpParser(), MyXdpPipe()) main;
