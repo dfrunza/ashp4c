@@ -1,7 +1,7 @@
 #define DEBUG_ENABLED 0
 
 #include "arena.h"
-#include "lex.h"
+#include "token.h"
 #include "build_cst.h"
 
 enum IdentKind

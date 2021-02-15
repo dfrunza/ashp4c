@@ -1,9 +1,9 @@
-#define DEBUG_ENABLED 1
-
 #include "basic.h"
 #include "arena.h"
 #include "cst.h"
 #include "ast.h"
+
+#define DEBUG_ENABLED 1
 
 external Arena arena;
 internal int node_id = 1;

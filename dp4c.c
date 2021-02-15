@@ -1,11 +1,11 @@
-#define DEBUG_ENABLED 0
-
 #include "basic.h"
 #include "arena.h"
 #include "lex.h"
 #include "build_cst.h"
 #include "build_ast.h"
 #include <sys/stat.h>
+
+#define DEBUG_ENABLED 0
 
 Arena arena = {};
 internal char* input_text = 0;

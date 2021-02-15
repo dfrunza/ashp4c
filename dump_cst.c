@@ -1,7 +1,7 @@
-#define DEBUG_ENABLED 1
-
 #include "arena.h"
 #include "cst.h"
+
+#define DEBUG_ENABLED 1
 
 external Arena arena;
 internal int tab_level = 0;
