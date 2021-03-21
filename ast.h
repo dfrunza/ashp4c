@@ -53,15 +53,12 @@ enum AstKind {
   Ast_P4Program,
 };
 
-struct AstLink {
-  struct Ast* prev_node;
-  struct Ast* next_node;
-};
-
 struct Ast {
   enum AstKind kind;
   int id;
   int line_nr;
+  struct Ast* prev_node;
+  struct Ast* next_node;
 };
 
 struct Ast_P4Program {

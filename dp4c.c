@@ -107,17 +107,17 @@ main(int arg_count, char* args[])
   if (DEBUG_ENABLED)
     arena_print_usage(&arena, "Memory (lex): ");
 
-  struct Cst* p4program_cst = build_cst(tksequence.tokens, tksequence.count);
-  assert(p4program_cst->kind == Cst_P4Program);
+  struct Cst* cst_p4program = build_CstP4Program(tksequence.tokens, tksequence.count);
+  assert(cst_p4program->kind == Cst_P4Program);
   if (DEBUG_ENABLED)
     arena_print_usage(&arena, "Memory (syntax): ");
 
   if (find_named_arg("dump-cst", cmdline_args)) {
-    dump_P4Program((struct Cst_P4Program*)p4program_cst);
+    dump_P4Program((struct Cst_P4Program*)cst_p4program);
   }
 
-  struct Ast* p4program_ast = build_ast((struct Cst_P4Program*)p4program_cst);
-  assert(p4program_ast->kind == Ast_P4Program);
+  struct Ast* ast_p4program = build_AstP4Program((struct Cst_P4Program*)cst_p4program);
+  assert(ast_p4program->kind == Ast_P4Program);
   return 0;
 }
 

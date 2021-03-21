@@ -43,7 +43,7 @@ internal int scope_level = 0;
 
 internal int node_id = 1;
 
-internal struct Cst* build_expression();
+internal struct Cst* build_expression(int priority_threshold);
 internal struct Cst* build_typeRef();
 internal struct Cst* build_blockStatement();
 internal struct Cst* build_statement();
@@ -2736,7 +2736,7 @@ init_symtable()
 }
 
 struct Cst*
-build_cst(struct Token* tokens_, int token_count_)
+build_CstP4Program(struct Token* tokens_, int token_count_)
 {
   tokens = tokens_;
   token_count = token_count_;
