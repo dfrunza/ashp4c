@@ -2,8 +2,8 @@
 #include "lex.h"
 
 external Arena arena;
-internal char* input_text;
-internal uint32_t input_size;
+internal char* source_text;
+internal int source_size;
 
 internal struct Token* prev_token;
 internal int line_nr = 1;
@@ -18,7 +18,7 @@ internal char
 char_lookahead(int pos)
 {
   char* char_pos = lexeme->end + pos;
-  assert(char_pos >= 0 && char_pos <= (input_text + input_size));
+  assert(char_pos >= 0 && char_pos <= (source_text + source_size));
   return *char_pos;
 }
 
@@ -26,7 +26,7 @@ internal char
 char_advance(int pos)
 {
   char* char_pos = lexeme->end + pos;
-  assert(char_pos >= 0 && char_pos <= (input_text + input_size));
+  assert(char_pos >= 0 && char_pos <= (source_text + source_size));
   lexeme->end = char_pos;
   return *char_pos;
 }
@@ -43,7 +43,7 @@ internal void
 lexeme_advance()
 {
   lexeme->start = ++lexeme->end;
-  assert (lexeme->start <= (input_text + input_size));
+  assert (lexeme->start <= (source_text + source_size));
 }
 
 internal void
@@ -731,11 +731,11 @@ next_token(struct Token* token)
 }
 
 struct TokenSequence
-lex_tokenize(char* input_text_, int input_size_)
+lex_tokenize(struct SourceText* source)
 {
-  input_text = input_text_;
-  input_size = input_size_;
-  lexeme->start = lexeme->end = input_text;
+  source_text = source->text;
+  source_size = source->size;
+  lexeme->start = lexeme->end = source_text;
 
   int max_tokens_count = 1000;  // table entry units
   struct Token* tokens = arena_push_array(&arena, struct Token, max_tokens_count);

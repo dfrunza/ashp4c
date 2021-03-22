@@ -2,6 +2,7 @@
 
 #include "arena.h"
 #include "token.h"
+#include "lex.h"
 #include "build_cst.h"
 
 enum IdentKind
@@ -42,6 +43,7 @@ internal int max_symtable_len = 997;  // table entry units
 internal int scope_level = 0;
 
 internal int node_id = 1;
+internal struct CstTree* cst_tree;
 
 internal struct Cst* build_expression(int priority_threshold);
 internal struct Cst* build_typeRef();
@@ -55,6 +57,8 @@ internal struct Cst* build_parserStatement();
   node->kind = type; \
   node->id = node_id++; \
   node->line_nr = token->line_nr; \
+  cst_tree->node_count += 1; \
+  cst_tree->size_in_bytes += sizeof (*node); \
   node; })
 
 internal void
@@ -2735,11 +2739,11 @@ init_symtable()
   }
 }
 
-struct Cst*
-build_CstP4Program(struct Token* tokens_, int token_count_)
+struct CstTree
+build_CstTree(struct TokenSequence* tksequence)
 {
-  tokens = tokens_;
-  token_count = token_count_;
+  tokens = tksequence->tokens;
+  token_count = tksequence->count;
   init_symtable();
   add_keyword("action", Token_Action);
   add_keyword("actions", Token_Actions);
@@ -2782,5 +2786,8 @@ build_CstP4Program(struct Token* tokens_, int token_count_)
 
   token = tokens;
   next_token();
-  return (struct Cst*)build_p4program();
+  cst_tree = arena_push_struct(&arena, CstTree);
+  cst_tree->arena = &arena;
+  cst_tree->p4program = (struct Cst*)build_p4program();
+  return *cst_tree;
 }

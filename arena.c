@@ -11,37 +11,6 @@ arena_new(Arena* arena, uint32_t size)
   return arena;
 }
 
-Arena*
-arena_branch_new(Arena* arena, uint32_t size)
-{
-  Arena* branch = arena_push_struct(arena, Arena);
-  arena_new(branch, size);
-  arena->last->next = branch;
-  arena->last = branch;
-  return branch;
-}
-
-Arena*
-arena_branch_new_ratio(Arena* arena, float ratio)
-{
-  ArenaUsage trunk_usage = arena_get_usage(arena);
-  uint32_t size = trunk_usage.total * ratio;
-  Arena* result = arena_branch_new(arena, size);
-  return result;
-}
-
-void
-arena_free(Arena* arena)
-{
-  // FIXME: Finish this and test it.
-  Arena* A = arena;
-  while (A)
-  {
-    free(A->memory);
-    A = A->next;
-  }
-}
-
 void*
 arena_push(Arena* arena, uint32_t size)
 {

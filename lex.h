@@ -8,4 +8,9 @@ struct TokenSequence {
   int count;
 };
 
-struct TokenSequence lex_tokenize(char* input_text_, int input_size_);
+struct SourceText {
+  char* text;
+  int size;
+};
+
+struct TokenSequence lex_tokenize(struct SourceText* source);

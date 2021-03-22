@@ -2,4 +2,11 @@
 #include "token.h"
 #include "cst.h"
 
-struct Cst* build_CstP4Program(struct Token* tokens_, int token_count_);
+struct CstTree {
+  struct Arena* arena;
+  struct Cst* p4program;
+  int node_count;
+  int size_in_bytes;
+};
+
+struct CstTree build_CstTree(struct TokenSequence* tksequence);

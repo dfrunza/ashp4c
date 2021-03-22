@@ -20,8 +20,6 @@ typedef struct
 ArenaUsage;
 
 Arena* arena_new(Arena* arena, uint32_t size);
-Arena* arena_branch_new(Arena* arena, uint32_t size);
-Arena* arena_branch_new_ratio(Arena* arena, float size_ratio);
 void arena_free(Arena* arena);
 void* arena_push(Arena* arena, uint32_t size);
 

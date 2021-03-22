@@ -5,11 +5,11 @@
 
 #define DEBUG_ENABLED 1
 
-external Arena arena;
+internal Arena ast_arena;
 internal int node_id = 1;
 
 #define new_ast_node(type, cst) ({ \
-  struct type* node = arena_push(&arena, sizeof(struct type)); \
+  struct type* node = arena_push(&ast_arena, sizeof(struct type)); \
   *node = (struct type){}; \
   node->kind = type; \
   node->id = node_id++; \

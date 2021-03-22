@@ -8,8 +8,6 @@
 #define DEBUG_ENABLED 0
 
 Arena arena = {};
-internal char* input_text = 0;
-internal int input_size = 0;  // char units, excluding NULL
 
 struct CmdlineArg {
   char* name;
@@ -17,17 +15,22 @@ struct CmdlineArg {
   struct CmdlineArg* next_arg;
 };
 
-internal void
-read_input(char* filename)
+internal struct SourceText
+read_source(char* filename)
 {
   FILE* f_stream = fopen(filename, "rb");
   fseek(f_stream, 0, SEEK_END);
-  input_size = ftell(f_stream);
+  int input_size = ftell(f_stream);
   fseek(f_stream, 0, SEEK_SET);
-  input_text = arena_push_array(&arena, char, input_size + 1);
+  char* input_text = arena_push_array(&arena, char, input_size + 1);
   fread(input_text, sizeof(char), input_size, f_stream);
   input_text[input_size] = '\0';
   fclose(f_stream);
+  struct SourceText result = {
+    .text = input_text,
+    .size = input_size,  // char units, excluding NULL
+  };
+  return result;
 }
 
 internal struct CmdlineArg*
@@ -99,15 +102,16 @@ main(int arg_count, char* args[])
     printf("<filename> argument is required.\n");
     exit(1);
   }
-  read_input(filename_arg->value);
+  struct SourceText source = read_source(filename_arg->value);
   if (DEBUG_ENABLED)
-    arena_print_usage(&arena, "Memory (read_input): ");
+    arena_print_usage(&arena, "Memory (read_source): ");
 
-  struct TokenSequence tksequence = lex_tokenize(input_text, input_size);
+  struct TokenSequence tksequence = lex_tokenize(&source);
   if (DEBUG_ENABLED)
     arena_print_usage(&arena, "Memory (lex): ");
 
-  struct Cst* cst_p4program = build_CstP4Program(tksequence.tokens, tksequence.count);
+  struct CstTree cst_tree = build_CstTree(&tksequence);
+  struct Cst* cst_p4program = cst_tree.p4program;
   assert(cst_p4program->kind == Cst_P4Program);
   if (DEBUG_ENABLED)
     arena_print_usage(&arena, "Memory (syntax): ");
