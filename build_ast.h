@@ -2,4 +2,4 @@
 #include "cst.h"
 #include "ast.h"
 
-struct Ast* build_AstP4Program(struct Cst_P4Program* cst);
+struct AstTree build_AstTree(struct CstTree* cst_tree);

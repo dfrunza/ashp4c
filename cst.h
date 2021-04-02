@@ -515,3 +515,8 @@ struct Cst_P4Program {
   struct Cst* decl_list;
 };
 
+struct CstTree {
+  struct Arena* arena;
+  struct Cst* p4program;
+  int node_count;
+};

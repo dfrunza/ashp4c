@@ -98,7 +98,7 @@ internal char*
 lexeme_to_cstring(struct Lexeme* lexeme)
 {
   int len = lexeme_len(lexeme);
-  char* string = arena_push_array(&arena, char, len + 1);   // +1 the NULL terminator
+  char* string = arena_push(&arena, (len + 1)*sizeof(char));   // +1 the NULL terminator
   lexeme_copy(string, lexeme);
   string[len] = '\0';
   return string;
@@ -738,7 +738,7 @@ lex_tokenize(struct SourceText* source)
   lexeme->start = lexeme->end = source_text;
 
   int max_tokens_count = 1000;  // table entry units
-  struct Token* tokens = arena_push_array(&arena, struct Token, max_tokens_count);
+  struct Token* tokens = arena_push(&arena, max_tokens_count*sizeof(struct Token));
   struct Token* token = tokens;
   token->klass = Token_StartOfInput;
   token++;

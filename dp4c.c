@@ -22,7 +22,7 @@ read_source(char* filename)
   fseek(f_stream, 0, SEEK_END);
   int input_size = ftell(f_stream);
   fseek(f_stream, 0, SEEK_SET);
-  char* input_text = arena_push_array(&arena, char, input_size + 1);
+  char* input_text = arena_push(&arena, (input_size + 1)*sizeof(char));
   fread(input_text, sizeof(char), input_size, f_stream);
   input_text[input_size] = '\0';
   fclose(f_stream);
@@ -75,7 +75,7 @@ parse_cmdline_args(int arg_count, char* args[])
   struct CmdlineArg* prev_arg = &sentinel_arg;
   int i = 1;
   while (i < arg_count) {
-    struct CmdlineArg* cmdline_arg = arena_push_struct(&arena, CmdlineArg);
+    struct CmdlineArg* cmdline_arg = arena_push(&arena, sizeof(struct CmdlineArg));
     zero_struct(cmdline_arg, CmdlineArg);
     if (cstr_start_with(args[i], "--")) {
       char* raw_arg = args[i] + 2;  /* skip the `--` prefix */
@@ -111,17 +111,17 @@ main(int arg_count, char* args[])
     arena_print_usage(&arena, "Memory (lex): ");
 
   struct CstTree cst_tree = build_CstTree(&tksequence);
-  struct Cst* cst_p4program = cst_tree.p4program;
-  assert(cst_p4program->kind == Cst_P4Program);
+  assert(cst_tree.p4program->kind == Cst_P4Program);
+  struct Cst_P4Program* cst_p4program = (struct Cst_P4Program*)cst_tree.p4program;
   if (DEBUG_ENABLED)
     arena_print_usage(&arena, "Memory (syntax): ");
 
   if (find_named_arg("dump-cst", cmdline_args)) {
-    dump_P4Program((struct Cst_P4Program*)cst_p4program);
+    dump_P4Program(cst_p4program);
   }
 
-  struct Ast* ast_p4program = build_AstP4Program((struct Cst_P4Program*)cst_p4program);
-  assert(ast_p4program->kind == Ast_P4Program);
+  struct AstTree ast_tree = build_AstTree(&cst_tree);
+  assert(ast_tree.p4program->kind == Ast_P4Program);
   return 0;
 }
 

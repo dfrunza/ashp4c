@@ -6,16 +6,14 @@ arena_new(Arena* arena, uint32_t size)
   arena->memory = malloc(size);
   arena->avail = arena->memory;
   arena->limit = arena->memory + size;
-  arena->next = 0;
-  arena->last = arena;
   return arena;
 }
 
 void*
 arena_push(Arena* arena, uint32_t size)
 {
-  void* object = arena->avail;
-  arena->avail += size;
+  uint8_t* object = arena->avail;
+  arena->avail = object + size;
   assert (arena->avail < arena->limit);
   return object;
 }

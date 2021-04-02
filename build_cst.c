@@ -58,7 +58,6 @@ internal struct Cst* build_parserStatement();
   node->id = node_id++; \
   node->line_nr = token->line_nr; \
   cst_tree->node_count += 1; \
-  cst_tree->size_in_bytes += sizeof (*node); \
   node; })
 
 internal void
@@ -140,7 +139,7 @@ get_symtable_entry(char* name)
     entry = entry->next;
   }
   if (!entry) {
-    entry = arena_push_struct(&arena, Symtable_Entry);
+    entry = arena_push(&arena, sizeof(struct Symtable_Entry));
     entry->name = name;
     entry->next = symtable[h];
     symtable[h] = entry;
@@ -154,7 +153,7 @@ new_type(char* name, int line_nr)
   struct Symtable_Entry* ns = get_symtable_entry(name);
   struct Ident* ident = ns->ns_type;
   if (!ident) {
-    ident = arena_push_struct(&arena, Ident);
+    ident = arena_push(&arena, sizeof(struct Ident));
     ident->name = name;
     ident->scope_level = scope_level;
     ident->ident_kind = Ident_Type;
@@ -170,7 +169,7 @@ add_keyword(char* name, enum TokenClass token_klass)
 {
   struct Symtable_Entry* namespace = get_symtable_entry(name);
   assert (namespace->ns_kw == 0);
-  struct Ident_Keyword* ident = arena_push_struct(&arena, Ident_Keyword);
+  struct Ident_Keyword* ident = arena_push(&arena, sizeof(struct Ident_Keyword));
   ident->name = name;
   ident->scope_level = scope_level;
   ident->token_klass = token_klass;
@@ -2732,7 +2731,7 @@ build_expression(int priority_threshold)
 internal void
 init_symtable()
 {
-  symtable = arena_push_array(&arena, struct Symtable_Entry*, max_symtable_len);
+  symtable = arena_push(&arena, max_symtable_len*sizeof(struct Symtable_Entry*));
   int i = 0;
   while (i < max_symtable_len) {
     symtable[i++] = 0;
@@ -2786,7 +2785,7 @@ build_CstTree(struct TokenSequence* tksequence)
 
   token = tokens;
   next_token();
-  cst_tree = arena_push_struct(&arena, CstTree);
+  cst_tree = arena_push(&arena, sizeof(struct CstTree));
   cst_tree->arena = &arena;
   cst_tree->p4program = (struct Cst*)build_p4program();
   return *cst_tree;

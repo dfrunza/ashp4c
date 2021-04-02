@@ -50,20 +50,37 @@ enum AstBaseTypeKind {
 
 enum AstKind {
   Ast_None,
+  Ast_HeaderDecl,
   Ast_P4Program,
+};
+
+struct ListLink
+{
+  struct ListLink* prev;
+  struct ListLink* next;
+  void* object;
 };
 
 struct Ast {
   enum AstKind kind;
   int id;
   int line_nr;
-  struct Ast* prev_node;
-  struct Ast* next_node;
+};
+
+struct Ast_HeaderDecl {
+  struct Ast;
+  char* name;
 };
 
 struct Ast_P4Program {
   struct Ast;
-  struct Ast* decl_list;
+  struct ListLink decl_list;
   int decl_count;
+};
+
+struct AstTree {
+  struct Arena* arena;
+  struct Ast* p4program;
+  int node_count;
 };
 
