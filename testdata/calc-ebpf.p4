@@ -90,36 +90,36 @@ parser Parser(packet_in packet, out headers hdr)
 control Ingress(inout headers hdr,
                 out bool xout) {
     action send_back(bit<32> result) {
-	bit<48> tmp;
-	tmp = hdr.ethernet.dstAddr;
-	hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
-	hdr.ethernet.srcAddr = tmp;
-	hdr.p4calc.res = result;
+		bit<48> tmp;
+		tmp = hdr.ethernet.dstAddr;
+		hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
+		hdr.ethernet.srcAddr = tmp;
+		hdr.p4calc.res = result;
     }
 
     action operation_add() {
         /* call send_back with operand_a + operand_b */
-	send_back(hdr.p4calc.operand_a + hdr.p4calc.operand_b);
+		send_back(hdr.p4calc.operand_a + hdr.p4calc.operand_b);
     }
 
     action operation_sub() {
         /* call send_back with operand_a - operand_b */
-	send_back(hdr.p4calc.operand_a - hdr.p4calc.operand_b);
+		send_back(hdr.p4calc.operand_a - hdr.p4calc.operand_b);
     }
 
     action operation_and() {
         /* call send_back with operand_a & operand_b */
-	send_back(hdr.p4calc.operand_a & hdr.p4calc.operand_b);
+		send_back(hdr.p4calc.operand_a & hdr.p4calc.operand_b);
     }
 
     action operation_or() {
         /* call send_back with operand_a | operand_b */
-	send_back(hdr.p4calc.operand_a | hdr.p4calc.operand_b);
+		send_back(hdr.p4calc.operand_a | hdr.p4calc.operand_b);
     }
 
     action operation_xor() {
         /* call send_back with operand_a ^ operand_b */
-	send_back(hdr.p4calc.operand_a ^ hdr.p4calc.operand_b);
+		send_back(hdr.p4calc.operand_a ^ hdr.p4calc.operand_b);
     }
 
     action operation_drop() {
@@ -146,12 +146,12 @@ control Ingress(inout headers hdr,
             P4CALC_OR   : operation_or();
             P4CALC_CARET: operation_xor();
         }
-	/* this is required in XDP model */
-	implementation = hash_table(8);
+		/* this is required in XDP model */
+		implementation = hash_table(8);
     }
 
     apply {
-	xout = true;
+		xout = true;
         if (hdr.p4calc.isValid()) {
             calculate.apply();
         } else {

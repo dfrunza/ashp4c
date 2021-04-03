@@ -367,11 +367,11 @@ dump_Instantiation(struct Cst_Instantiation* inst)
 {
   object_start();
   print_prop_common((struct Cst*)inst);
-  print_prop("type", Value_Ref, inst->type);
+  print_prop("type_ref", Value_Ref, inst->type_ref);
   print_prop("args", Value_Ref, inst->args);
   print_prop("name", Value_Ref, inst->name);
   object_end();
-  dump_Cst(inst->type);
+  dump_Cst(inst->type_ref);
   dump_Cst(inst->args);
   dump_Cst(inst->name);
 }
@@ -483,18 +483,18 @@ dump_BaseType(struct Cst_BaseType* type)
 {
   object_start();
   print_prop_common((struct Cst*)type);
-  char* type_str = "AstBaseType_None";
-  if (type->base_type == AstBaseType_Bool) {
-    type_str = "AstBaseType_Bool";
-  } else if (type->base_type == AstBaseType_Error) {
-    type_str = "AstBaseType_Error";
-  } else if (type->base_type == AstBaseType_Int) {
-    type_str = "AstBaseType_Int";
-  } else if (type->base_type == AstBaseType_Bit) {
-    type_str = "AstBaseType_Bit";
-  } else if (type->base_type == AstBaseType_Varbit) {
-    type_str = "AstBaseType_Varbit";
-  } else assert(type->base_type == AstBaseType_None);
+  char* type_str = "CstBaseType_None";
+  if (type->base_type == CstBaseType_Bool) {
+    type_str = "CstBaseType_Bool";
+  } else if (type->base_type == CstBaseType_Error) {
+    type_str = "CstBaseType_Error";
+  } else if (type->base_type == CstBaseType_Int) {
+    type_str = "CstBaseType_Int";
+  } else if (type->base_type == CstBaseType_Bit) {
+    type_str = "CstBaseType_Bit";
+  } else if (type->base_type == CstBaseType_Varbit) {
+    type_str = "CstBaseType_Varbit";
+  } else assert(type->base_type == CstBaseType_None);
   print_prop("base_type", Value_String, type_str);
   print_prop("size", Value_Ref, type->size);
   object_end();
@@ -539,6 +539,18 @@ dump_FunctionProto(struct Cst_FunctionProto* proto)
   dump_Cst(proto->name);
   dump_Cst(proto->type_params);
   dump_Cst(proto->params);
+}
+
+internal void
+dump_FunctionDecl(struct Cst_FunctionDecl* decl)
+{
+  object_start();
+  print_prop_common((struct Cst*)decl);
+  print_prop("proto", Value_Ref, decl->proto);
+  print_prop("stmt", Value_Ref, decl->stmt);
+  object_end();
+  dump_Cst(decl->proto);
+  dump_Cst(decl->stmt);
 }
 
 internal void
@@ -987,11 +999,11 @@ dump_ConstDecl(struct Cst_ConstDecl* decl)
 {
   object_start();
   print_prop_common((struct Cst*)decl);
-  print_prop("type", Value_Ref, decl->type);
+  print_prop("type_ref", Value_Ref, decl->type_ref);
   print_prop("name", Value_Ref, decl->name);
   print_prop("expr", Value_Ref, decl->expr);
   object_end();
-  dump_Cst(decl->type);
+  dump_Cst(decl->type_ref);
   dump_Cst(decl->name);
   dump_Cst(decl->expr);
 }
@@ -1090,6 +1102,8 @@ dump_Cst(struct Cst* cst)
       dump_Constructor((struct Cst_Constructor*)cst);
     } else if (cst->kind == Cst_FunctionProto) {
       dump_FunctionProto((struct Cst_FunctionProto*)cst);
+    } else if (cst->kind == Cst_FunctionDecl) {
+      dump_FunctionDecl((struct Cst_FunctionDecl*)cst);
     } else if (cst->kind == Cst_TableDecl) {
       dump_TableDecl((struct Cst_TableDecl*)cst);
     } else if (cst->kind == Cst_TableProp_Actions) {

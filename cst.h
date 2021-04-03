@@ -78,6 +78,15 @@ enum CstKind {
   Cst_P4Program,
 };
 
+enum CstBaseTypeKind {
+  CstBaseType_None,
+  CstBaseType_Bool,
+  CstBaseType_Error,
+  CstBaseType_Int,
+  CstBaseType_Bit,
+  CstBaseType_Varbit,
+};
+
 struct Cst {
   enum CstKind kind;
   int id;
@@ -109,13 +118,13 @@ struct Cst_PrefixedTypeName {
 
 struct Cst_BaseType {
   struct Cst;
-  enum AstBaseTypeKind base_type;
+  enum CstBaseTypeKind base_type;
   struct Cst* size;
 };
 
 struct Cst_ConstDecl {
   struct Cst;
-  struct Cst* type;
+  struct Cst* type_ref;
   struct Cst* name;
   struct Cst* expr;
 };
@@ -204,7 +213,7 @@ struct Cst_Package {
 
 struct Cst_Instantiation {
   struct Cst;
-  struct Cst* type;
+  struct Cst* type_ref;
   struct Cst* args;
   struct Cst* name;
 };

@@ -25,3 +25,8 @@ action a()
     bit<32> x;
     x = (bit<32>)f<bit<6> >(6w5);
 }
+
+bit<32> f(inout bit x, in bit b)
+{
+	bit<32> y;
+}

@@ -686,13 +686,13 @@ build_baseType()
   if (token_is_baseType(token)) {
     base_type = new_cst_node(Cst_BaseType, token);
     if (token->klass == Token_Bool) {
-      base_type->base_type = AstBaseType_Bool;
+      base_type->base_type = CstBaseType_Bool;
       next_token();
     } else if (token->klass == Token_Error) {
-      base_type->base_type = AstBaseType_Error;
+      base_type->base_type = CstBaseType_Error;
       next_token();
     } else if (token->klass == Token_Int) {
-      base_type->base_type = AstBaseType_Int;
+      base_type->base_type = CstBaseType_Int;
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
@@ -702,7 +702,7 @@ build_baseType()
         } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
       }
     } else if (token->klass == Token_Bit) {
-      base_type->base_type = AstBaseType_Bit;
+      base_type->base_type = CstBaseType_Bit;
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
@@ -712,7 +712,7 @@ build_baseType()
         } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
       }
     } else if (token->klass == Token_Varbit) {
-      base_type->base_type = AstBaseType_Varbit;
+      base_type->base_type = CstBaseType_Varbit;
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
@@ -1106,7 +1106,7 @@ build_constantDeclaration()
     next_token();
     decl = new_cst_node(Cst_ConstDecl, token);
     if (token_is_typeRef(token)) {
-      decl->type = build_typeRef();
+      decl->type_ref = build_typeRef();
       if (token_is_name(token)) {
         decl->name = build_name(false);
         if (token->klass == Token_Equal) {
@@ -1282,7 +1282,7 @@ build_instantiation()
   struct Cst_Instantiation* inst = 0;
   if (token_is_typeRef(token)) {
     inst = new_cst_node(Cst_Instantiation, token);
-    inst->type = build_typeRef();
+    inst->type_ref = build_typeRef();
     if (token->klass == Token_ParenthOpen) {
       next_token();
       inst->args = build_argumentList();
@@ -2407,6 +2407,7 @@ build_functionDeclaration()
 {
   struct Cst_FunctionDecl* decl = 0;
   if (token_is_typeOrVoid(token)) {
+    decl = new_cst_node(Cst_FunctionDecl, token);
     decl->proto = build_functionPrototype();
     if (token->klass == Token_BraceOpen) {
       decl->stmt = build_blockStatement();
