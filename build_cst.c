@@ -31,7 +31,7 @@ struct Symtable_Entry {
   struct Symtable_Entry* next;
 };
 
-external Arena arena;
+external struct Arena arena;
 
 internal struct Token* tokens;
 internal int token_count;

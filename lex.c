@@ -1,7 +1,7 @@
 #include "arena.h"
 #include "lex.h"
 
-external Arena arena;
+external struct Arena arena;
 internal char* source_text;
 internal int source_size;
 

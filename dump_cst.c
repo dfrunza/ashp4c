@@ -3,7 +3,7 @@
 
 #define DEBUG_ENABLED 1
 
-external Arena arena;
+external struct Arena arena;
 internal int tab_level = 0;
 internal int tab_size = 2;
 

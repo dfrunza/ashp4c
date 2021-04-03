@@ -7,7 +7,7 @@
 
 #define DEBUG_ENABLED 0
 
-Arena arena = {};
+struct Arena arena = {};
 
 struct CmdlineArg {
   char* name;
@@ -94,8 +94,6 @@ parse_cmdline_args(int arg_count, char* args[])
 int
 main(int arg_count, char* args[])
 {
-  arena_new(&arena, 192*KILOBYTE);
-
   struct CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
   struct CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
   if (!filename_arg) {

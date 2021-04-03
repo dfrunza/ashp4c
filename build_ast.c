@@ -5,7 +5,7 @@
 
 #define DEBUG_ENABLED 1
 
-internal Arena ast_arena;
+internal struct Arena ast_arena;
 internal int node_id = 1;
 internal struct AstTree* ast_tree;
 
@@ -99,7 +99,6 @@ visit_P4Program(struct Cst_P4Program* cst_p4program)
 struct AstTree
 build_AstTree(struct CstTree* cst_tree)
 {
-  arena_new(&ast_arena, 192*KILOBYTE);
   ast_tree = arena_push(&ast_arena, sizeof(struct AstTree));
   struct Cst_P4Program* cst_p4program = (struct Cst_P4Program*)cst_tree->p4program;
   ast_tree->p4program = visit_P4Program(cst_p4program);
