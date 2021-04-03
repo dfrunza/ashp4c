@@ -15,6 +15,7 @@ struct ArenaUsage
   int total;
   int free;
   int in_use;
+  int arena_count;
 };
 
 struct Arena* arena_new(struct Arena* arena, uint32_t size);

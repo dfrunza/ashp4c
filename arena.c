@@ -24,8 +24,13 @@ struct ArenaUsage
 arena_get_usage(struct Arena* arena)
 {
   struct ArenaUsage usage = {};
-  usage.total = arena->limit - arena->memory;
-  usage.in_use = arena->avail - arena->memory;
+  struct Arena* at_arena = arena;
+  while (at_arena) {
+    usage.total += at_arena->limit - at_arena->memory;
+    usage.in_use += at_arena->avail - at_arena->memory;
+    usage.arena_count += 1;
+    at_arena = at_arena->prev;
+  }
   usage.free = usage.total - usage.in_use;
   return usage;
 }
