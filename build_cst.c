@@ -31,7 +31,7 @@ struct Symtable_Entry {
   struct Symtable_Entry* next;
 };
 
-external struct Arena arena;
+internal struct Arena* arena;
 
 internal struct Token* tokens;
 internal int token_count;
@@ -52,7 +52,7 @@ internal struct Cst* build_statement();
 internal struct Cst* build_parserStatement();
 
 #define new_cst_node(type, token) ({ \
-  struct type* node = arena_push(&arena, sizeof(struct type)); \
+  struct type* node = arena_push(arena, sizeof(struct type)); \
   *node = (struct type){}; \
   node->kind = type; \
   node->id = node_id++; \
@@ -139,7 +139,7 @@ get_symtable_entry(char* name)
     entry = entry->next;
   }
   if (!entry) {
-    entry = arena_push(&arena, sizeof(struct Symtable_Entry));
+    entry = arena_push(arena, sizeof(struct Symtable_Entry));
     entry->name = name;
     entry->next = symtable[h];
     symtable[h] = entry;
@@ -153,7 +153,7 @@ new_type(char* name, int line_nr)
   struct Symtable_Entry* ns = get_symtable_entry(name);
   struct Ident* ident = ns->ns_type;
   if (!ident) {
-    ident = arena_push(&arena, sizeof(struct Ident));
+    ident = arena_push(arena, sizeof(struct Ident));
     ident->name = name;
     ident->scope_level = scope_level;
     ident->ident_kind = Ident_Type;
@@ -169,7 +169,7 @@ add_keyword(char* name, enum TokenClass token_klass)
 {
   struct Symtable_Entry* namespace = get_symtable_entry(name);
   assert (namespace->ns_kw == 0);
-  struct Ident_Keyword* ident = arena_push(&arena, sizeof(struct Ident_Keyword));
+  struct Ident_Keyword* ident = arena_push(arena, sizeof(struct Ident_Keyword));
   ident->name = name;
   ident->scope_level = scope_level;
   ident->token_klass = token_klass;
@@ -2732,7 +2732,7 @@ build_expression(int priority_threshold)
 internal void
 init_symtable()
 {
-  symtable = arena_push(&arena, max_symtable_len*sizeof(struct Symtable_Entry*));
+  symtable = arena_push(arena, max_symtable_len*sizeof(struct Symtable_Entry*));
   int i = 0;
   while (i < max_symtable_len) {
     symtable[i++] = 0;
@@ -2744,6 +2744,8 @@ build_CstTree(struct TokenSequence* tksequence)
 {
   tokens = tksequence->tokens;
   token_count = tksequence->count;
+  arena = tksequence->arena;
+
   init_symtable();
   add_keyword("action", Token_Action);
   add_keyword("actions", Token_Actions);
@@ -2786,8 +2788,8 @@ build_CstTree(struct TokenSequence* tksequence)
 
   token = tokens;
   next_token();
-  cst_tree = arena_push(&arena, sizeof(struct CstTree));
-  cst_tree->arena = &arena;
+  cst_tree = arena_push(arena, sizeof(struct CstTree));
   cst_tree->p4program = (struct Cst*)build_p4program();
+  cst_tree->arena = arena;
   return *cst_tree;
 }

@@ -1,9 +1,9 @@
 #include "arena.h"
 #include "lex.h"
 
-external struct Arena arena;
-internal char* source_text;
-internal int source_size;
+internal struct Arena* arena;
+internal char* text;
+internal int text_size;
 
 internal struct Token* prev_token;
 internal int line_nr = 1;
@@ -18,7 +18,7 @@ internal char
 char_lookahead(int pos)
 {
   char* char_pos = lexeme->end + pos;
-  assert(char_pos >= 0 && char_pos <= (source_text + source_size));
+  assert(char_pos >= 0 && char_pos <= (text + text_size));
   return *char_pos;
 }
 
@@ -26,7 +26,7 @@ internal char
 char_advance(int pos)
 {
   char* char_pos = lexeme->end + pos;
-  assert(char_pos >= 0 && char_pos <= (source_text + source_size));
+  assert(char_pos >= 0 && char_pos <= (text + text_size));
   lexeme->end = char_pos;
   return *char_pos;
 }
@@ -43,7 +43,7 @@ internal void
 lexeme_advance()
 {
   lexeme->start = ++lexeme->end;
-  assert (lexeme->start <= (source_text + source_size));
+  assert (lexeme->start <= (text + text_size));
 }
 
 internal void
@@ -98,7 +98,7 @@ internal char*
 lexeme_to_cstring(struct Lexeme* lexeme)
 {
   int len = lexeme_len(lexeme);
-  char* string = arena_push(&arena, (len + 1)*sizeof(char));   // +1 the NULL terminator
+  char* string = arena_push(arena, (len + 1)*sizeof(char));   // +1 the NULL terminator
   lexeme_copy(string, lexeme);
   string[len] = '\0';
   return string;
@@ -733,12 +733,13 @@ next_token(struct Token* token)
 struct TokenSequence
 lex_tokenize(struct SourceText* source)
 {
-  source_text = source->text;
-  source_size = source->size;
-  lexeme->start = lexeme->end = source_text;
+  text = source->text;
+  text_size = source->size;
+  arena = source->arena;
+  lexeme->start = lexeme->end = text;
 
   int max_tokens_count = 1000;  // table entry units
-  struct Token* tokens = arena_push(&arena, max_tokens_count*sizeof(struct Token));
+  struct Token* tokens = arena_push(arena, max_tokens_count*sizeof(struct Token));
   struct Token* token = tokens;
   token->klass = Token_StartOfInput;
   token++;
@@ -760,6 +761,7 @@ lex_tokenize(struct SourceText* source)
   struct TokenSequence result = {
     .tokens = tokens,
     .count = token_count,
+    .arena = arena,
   };
   return result;
 }

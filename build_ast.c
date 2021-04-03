@@ -5,12 +5,12 @@
 
 #define DEBUG_ENABLED 1
 
-internal struct Arena ast_arena;
+internal struct Arena arena;
 internal int node_id = 1;
 internal struct AstTree* ast_tree;
 
 #define new_ast_node(type, cst) ({ \
-  struct type* node = arena_push(&ast_arena, sizeof(struct type)); \
+  struct type* node = arena_push(&arena, sizeof(struct type)); \
   *node = (struct type){}; \
   node->kind = type; \
   node->id = node_id++; \
@@ -48,7 +48,7 @@ visit_Name(struct Cst* cst_name)
     cst_strname = ((struct Cst_TypeName*)cst_name)->name;
   }
   else assert(0);
-  char* ast_strname = arena_push(&ast_arena, cstr_len(cst_strname) + 1);
+  char* ast_strname = arena_push(&arena, cstr_len(cst_strname) + 1);
   cstr_copy(ast_strname, cst_strname);
   return ast_strname;
 }
@@ -75,21 +75,21 @@ visit_TypeRef(struct Cst* cst_type_ref)
   } else if (cst_type_ref->kind == Cst_TypeName) {
     struct Cst_TypeName* cst_type_name = (struct Cst_TypeName*)cst_type_ref;
     struct Ast_TypeName* ast_type_name = new_ast_node(Ast_TypeName, cst_type_name);
-    ast_type_name->name = arena_push(&ast_arena, cstr_len(cst_type_name->name) + 1);
+    ast_type_name->name = arena_push(&arena, cstr_len(cst_type_name->name) + 1);
     cstr_copy(ast_type_name->name, cst_type_name->name);
     return (struct Ast*)ast_type_name;
   } else if (cst_type_ref->kind == Cst_PrefixedTypeName) {
     struct Cst_PrefixedTypeName* cst_type_name = (struct Cst_PrefixedTypeName*)cst_type_ref;
     struct Ast_TypeName* ast_type_name = new_ast_node(Ast_TypeName, cst_type_name);
-    ast_type_name->name = arena_push(&ast_arena, cstr_len(cst_type_name->first_name) + 1);
+    ast_type_name->name = arena_push(&arena, cstr_len(cst_type_name->first_name) + 1);
     cstr_copy(ast_type_name->name, cst_type_name->first_name);
-    ast_type_name->dot_name = arena_push(&ast_arena, cstr_len(cst_type_name->second_name) + 1);
+    ast_type_name->dot_name = arena_push(&arena, cstr_len(cst_type_name->second_name) + 1);
     cstr_copy(ast_type_name->dot_name, cst_type_name->second_name);
     return (struct Ast*)ast_type_name;
   } else if (cst_type_ref->kind == Cst_NonTypeName) {
     struct Cst_NonTypeName* cst_type_name = (struct Cst_NonTypeName*)cst_type_ref;
     struct Ast_TypeName* ast_type_name = new_ast_node(Ast_TypeName, cst_type_name);
-    ast_type_name->name = arena_push(&ast_arena, cstr_len(cst_type_name->name) + 1);
+    ast_type_name->name = arena_push(&arena, cstr_len(cst_type_name->name) + 1);
     cstr_copy(ast_type_name->name, cst_type_name->name);
     return (struct Ast*)ast_type_name;
   }
@@ -276,7 +276,7 @@ visit_P4Program(struct Cst_P4Program* cst_p4program)
     }
     else assert(0);
     
-    struct ListLink* llink = arena_push(&ast_arena, sizeof(struct ListLink));
+    struct ListLink* llink = arena_push(&arena, sizeof(struct ListLink));
     llink->object = ast_decl;
     list_append_link(&ast_p4program->decl_list, llink);
     cst_decl = cst_decl->next_node;
@@ -287,8 +287,9 @@ visit_P4Program(struct Cst_P4Program* cst_p4program)
 struct AstTree
 build_AstTree(struct CstTree* cst_tree)
 {
-  ast_tree = arena_push(&ast_arena, sizeof(struct AstTree));
+  ast_tree = arena_push(&arena, sizeof(struct AstTree));
   struct Cst_P4Program* cst_p4program = (struct Cst_P4Program*)cst_tree->p4program;
   ast_tree->p4program = visit_P4Program(cst_p4program);
+  ast_tree->arena = &arena;
   return *ast_tree;
 }

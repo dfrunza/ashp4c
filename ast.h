@@ -178,8 +178,8 @@ struct Ast_P4Program {
 };
 
 struct AstTree {
-  struct Arena* arena;
   struct Ast* p4program;
   int node_count;
+  struct Arena* arena;
 };
 

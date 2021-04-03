@@ -1,6 +1,6 @@
 #include "arena.h"
 
-internal int DEFAULT_SIZE_KB = 4*KILOBYTE;
+internal int DEFAULT_SIZE_KB = 8*KILOBYTE;
 
 void*
 arena_push(struct Arena* arena, uint32_t size)
@@ -18,6 +18,27 @@ arena_push(struct Arena* arena, uint32_t size)
   }
   arena->avail = object + size;
   return object;
+}
+
+void
+arena_free(struct Arena* arena)
+{
+  struct Arena at_arena = *arena;
+  int arena_count = 0;
+  struct ArenaUsage usage = arena_get_usage(arena);
+  while (1) {
+    struct Arena prev_save = {};
+    if (at_arena.prev) {
+      prev_save = *(at_arena.prev);
+    }
+    if (at_arena.memory) {
+      free(at_arena.memory);
+    }
+    arena_count += 1;
+    if (!at_arena.prev) break;
+    at_arena = prev_save;
+  }
+  printf("\nfreed a total of %d bytes, in %d arenas.\n", usage.total, arena_count);
 }
 
 struct ArenaUsage
@@ -39,8 +60,11 @@ void
 arena_print_usage(struct Arena* arena, char* caption)
 {
   struct ArenaUsage usage = arena_get_usage(arena);
-  float free_ratio = usage.free / (float)usage.total;
+  float free_fraction = 1.f;
+  if (usage.total > 0) {
+    free_fraction = usage.free / (float)usage.total;
+  }
   printf("%s\nfree: %d bytes, in_use: %d bytes, free: %.2f%%\n", \
-         caption, usage.free, usage.in_use, free_ratio*100.f);
+         caption, usage.free, usage.in_use, free_fraction*100.f);
 }
 

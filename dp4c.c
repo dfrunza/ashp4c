@@ -7,7 +7,7 @@
 
 #define DEBUG_ENABLED 1
 
-struct Arena arena = {};
+internal struct Arena arena = {};
 
 struct CmdlineArg {
   char* name;
@@ -18,17 +18,19 @@ struct CmdlineArg {
 internal struct SourceText
 read_source(char* filename)
 {
+  struct Arena* text_arena = arena_push(&arena, sizeof(struct Arena));
   FILE* f_stream = fopen(filename, "rb");
   fseek(f_stream, 0, SEEK_END);
   int input_size = ftell(f_stream);
   fseek(f_stream, 0, SEEK_SET);
-  char* input_text = arena_push(&arena, (input_size + 1)*sizeof(char));
+  char* input_text = arena_push(text_arena, (input_size + 1)*sizeof(char));
   fread(input_text, sizeof(char), input_size, f_stream);
   input_text[input_size] = '\0';
   fclose(f_stream);
   struct SourceText result = {
     .text = input_text,
     .size = input_size,  // char units, excluding NULL
+    .arena = text_arena,
   };
   return result;
 }
@@ -101,25 +103,28 @@ main(int arg_count, char* args[])
     exit(1);
   }
   struct SourceText source = read_source(filename_arg->value);
-  if (DEBUG_ENABLED)
-    arena_print_usage(&arena, "Memory (read_source): ");
-
+  if (DEBUG_ENABLED) {
+    arena_print_usage(source.arena, "Memory [text]: ");
+  }
   struct TokenSequence tksequence = lex_tokenize(&source);
-  if (DEBUG_ENABLED)
-    arena_print_usage(&arena, "Memory (lex): ");
-
+  if (DEBUG_ENABLED) {
+    arena_print_usage(tksequence.arena, "Memory [lex]: ");
+  }
   struct CstTree cst_tree = build_CstTree(&tksequence);
   assert(cst_tree.p4program->kind == Cst_P4Program);
   struct Cst_P4Program* cst_p4program = (struct Cst_P4Program*)cst_tree.p4program;
-  if (DEBUG_ENABLED)
-    arena_print_usage(&arena, "Memory (syntax): ");
-
+  if (DEBUG_ENABLED) {
+    arena_print_usage(cst_tree.arena, "Memory [CST]: ");
+  }
   if (find_named_arg("dump-cst", cmdline_args)) {
     dump_P4Program(cst_p4program);
   }
-
   struct AstTree ast_tree = build_AstTree(&cst_tree);
   assert(ast_tree.p4program->kind == Ast_P4Program);
+  if (DEBUG_ENABLED) {
+    arena_print_usage(ast_tree.arena, "Memory [AST]:");
+  }
+  arena_free(source.arena);
   return 0;
 }
 
