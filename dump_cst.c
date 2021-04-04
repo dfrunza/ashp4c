@@ -27,12 +27,8 @@ cst_kind_to_string(enum CstKind kind)
       return "Cst_NonTypeName";
     case Cst_TypeName:
       return "Cst_TypeName";
-    case Cst_PrefixedTypeName:
-      return "Cst_PrefixedTypeName";
     case Cst_BaseType:
       return "Cst_BaseType";
-    case Cst_DotPrefixedName:
-      return "Cst_DotPrefixedName";
     case Cst_ConstDecl:
       return "Cst_ConstDecl";
     case Cst_ExternDecl:
@@ -155,6 +151,8 @@ cst_kind_to_string(enum CstKind kind)
       return "Cst_UnaryExpr";
     case Cst_BinaryExpr:
       return "Cst_BinaryExpr";
+    case Cst_KvPair:
+      return "Cst_KvPair";
     case Cst_MemberSelectExpr:
       return "Cst_MemberSelectExpr";
     case Cst_IndexedArrayExpr:
@@ -287,6 +285,7 @@ dump_NonTypeName(struct Cst_NonTypeName* name)
   object_start();
   print_prop_common((struct Cst*)name);
   print_prop("name", Value_String, name->name);
+  print_prop("is_dotprefixed", Value_String, name->is_dotprefixed ? "true" : "false" );
   object_end();
 }
 
@@ -296,6 +295,7 @@ dump_TypeName(struct Cst_TypeName* name)
   object_start();
   print_prop_common((struct Cst*)name);
   print_prop("name", Value_String, name->name);
+  print_prop("is_dotprefixed", Value_String, name->is_dotprefixed ? "true" : "false" );
   object_end();
 }
 
@@ -307,6 +307,16 @@ dump_Error(struct Cst_Error* error)
   print_prop("id_list", Value_Ref, error->id_list);
   object_end();
   dump_Cst(error->id_list);
+}
+
+internal void
+dump_MatchKind(struct Cst_MatchKind* match_kind)
+{
+  object_start();
+  print_prop_common((struct Cst*)match_kind);
+  print_prop("id_list", Value_Ref, match_kind->id_list);
+  object_end();
+  dump_Cst(match_kind->id_list);
 }
 
 internal void
@@ -494,7 +504,10 @@ dump_BaseType(struct Cst_BaseType* type)
     type_str = "CstBaseType_Bit";
   } else if (type->base_type == CstBaseType_Varbit) {
     type_str = "CstBaseType_Varbit";
-  } else assert(type->base_type == CstBaseType_None);
+  } else if (type->base_type == CstBaseType_String) {
+    type_str = "CstBaseType_String";
+  }
+  else assert(type->base_type == CstBaseType_None);
   print_prop("base_type", Value_String, type_str);
   print_prop("size", Value_Ref, type->size);
   object_end();
@@ -741,7 +754,10 @@ expr_operator_to_string(enum AstExprOperator op)
     op_str = "AstUnOp_BitNot";
   } else if (op == AstUnOp_ArMinus) {
     op_str = "AstUnOp_ArMinus";
-  } else assert(op == AstOp_None);
+  } else if (op == AstBinOp_Mask) {
+    op_str = "AstBinOp_Mask";
+  }
+  else assert(op == AstOp_None);
   return op_str;
 }
 
@@ -756,6 +772,18 @@ dump_BinaryExpr(struct Cst_BinaryExpr* expr)
   object_end();
   dump_Cst(expr->left_operand);
   dump_Cst(expr->right_operand);
+}
+
+internal void
+dump_KvPair(struct Cst_KvPair* kv_pair)
+{
+  object_start();
+  print_prop_common((struct Cst*)kv_pair);
+  print_prop("name", Value_Ref, kv_pair->name);
+  print_prop("expr", Value_Ref, kv_pair->expr);
+  object_end();
+  dump_Cst(kv_pair->name);
+  dump_Cst(kv_pair->expr);
 }
 
 internal void
@@ -973,16 +1001,6 @@ dump_IntTypeSize(struct Cst_IntTypeSize* size)
 }
 
 internal void
-dump_DotPrefixedName(struct Cst_DotPrefixedName* name)
-{
-  object_start();
-  print_prop_common((struct Cst*)name);
-  print_prop("name", Value_Ref, name->name);
-  object_end();
-  dump_Cst(name->name);
-}
-
-internal void
 dump_TypeArgsExpr(struct Cst_TypeArgsExpr* expr)
 {
   object_start();
@@ -1072,6 +1090,8 @@ dump_Cst(struct Cst* cst)
       dump_Package((struct Cst_Package*)cst);
     } else if (cst->kind == Cst_Error) {
       dump_Error((struct Cst_Error*)cst);
+    } else if (cst->kind == Cst_MatchKind) {
+      dump_MatchKind((struct Cst_MatchKind*)cst);
     } else if (cst->kind == Cst_Instantiation) {
       dump_Instantiation((struct Cst_Instantiation*)cst);
     } else if (cst->kind == Cst_NonTypeName) {
@@ -1166,8 +1186,6 @@ dump_Cst(struct Cst* cst)
       dump_Default((struct Cst_Default*)cst);
     } else if (cst->kind == Cst_IntTypeSize) {
       dump_IntTypeSize((struct Cst_IntTypeSize*)cst);
-    } else if (cst->kind == Cst_DotPrefixedName) {
-      dump_DotPrefixedName((struct Cst_DotPrefixedName*)cst);
     } else if (cst->kind == Cst_TypeArgsExpr) {
       dump_TypeArgsExpr((struct Cst_TypeArgsExpr*)cst);
     } else if (cst->kind == Cst_ConstDecl) {
@@ -1182,6 +1200,8 @@ dump_Cst(struct Cst* cst)
       dump_TableProp_Key((struct Cst_TableProp_Key*)cst);
     } else if (cst->kind == Cst_KeyElement) {
       dump_KeyElement((struct Cst_KeyElement*)cst);
+    } else if (cst->kind == Cst_KvPair) {
+      dump_KvPair((struct Cst_KvPair*)cst);
     }
     else {
       printf("TODO: %s\n", cst_kind_to_string(cst->kind));

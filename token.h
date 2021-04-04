@@ -30,12 +30,13 @@ enum TokenClass {
   Token_TwoEqual,
   Token_ExclamationEqual,
   Token_Exclamation,
-  Token_TwoAmpersand,
   Token_TwoPipe,
   Token_AngleOpenEqual,
   Token_AngleCloseEqual,
   Token_Tilda,
   Token_Ampersand,
+  Token_TwoAmpersand,
+  Token_ThreeAmpersand,
   Token_Pipe,
   Token_Circumflex,
   Token_TwoAngleOpen,
@@ -83,9 +84,10 @@ enum TokenClass {
   Token_Struct,
   Token_Const,
 
-  Token_Unknown,
-  Token_StartOfInput,
-  Token_EndOfInput,
+  Token_Unknown_,
+  Token_StartOfInput_,
+  Token_EndOfInput_,
+  Token_LexicalError_,
 };
 
 struct Token {

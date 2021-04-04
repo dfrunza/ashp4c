@@ -9,6 +9,8 @@ internal struct Arena arena;
 internal int node_id = 1;
 internal struct AstTree* ast_tree;
 
+internal struct Ast* visit_TypeRef(struct Cst* cst_type_ref);
+
 #define new_ast_node(type, cst) ({ \
   struct type* node = arena_push(&arena, sizeof(struct type)); \
   *node = (struct type){}; \
@@ -48,53 +50,10 @@ visit_Name(struct Cst* cst_name)
     cst_strname = ((struct Cst_TypeName*)cst_name)->name;
   }
   else assert(0);
+  // FIXME: dot prefix
   char* ast_strname = arena_push(&arena, cstr_len(cst_strname) + 1);
   cstr_copy(ast_strname, cst_strname);
   return ast_strname;
-}
-
-internal struct Ast*
-visit_TypeRef(struct Cst* cst_type_ref)
-{
-  if (cst_type_ref->kind == Cst_BaseType) {
-    struct Cst_BaseType* cst_base_type = (struct Cst_BaseType*)cst_type_ref;
-    struct Ast_BaseType* ast_base_type = new_ast_node(Ast_BaseType, cst_base_type);
-    if (cst_base_type->base_type == CstBaseType_Bool) {
-      ast_base_type->name = "bool";
-    } else if (cst_base_type->base_type == CstBaseType_Error) {
-      ast_base_type->name = "error";
-    } else if (cst_base_type->base_type == CstBaseType_Int) {
-      ast_base_type->name = "int";
-    } else if (cst_base_type->base_type == CstBaseType_Bit) {
-      ast_base_type->name = "bit";
-    } else if (cst_base_type->base_type == CstBaseType_Varbit) {
-      ast_base_type->name = "varbit";
-    }
-    else assert(0);
-    return (struct Ast*)ast_base_type;
-  } else if (cst_type_ref->kind == Cst_TypeName) {
-    struct Cst_TypeName* cst_type_name = (struct Cst_TypeName*)cst_type_ref;
-    struct Ast_TypeName* ast_type_name = new_ast_node(Ast_TypeName, cst_type_name);
-    ast_type_name->name = arena_push(&arena, cstr_len(cst_type_name->name) + 1);
-    cstr_copy(ast_type_name->name, cst_type_name->name);
-    return (struct Ast*)ast_type_name;
-  } else if (cst_type_ref->kind == Cst_PrefixedTypeName) {
-    struct Cst_PrefixedTypeName* cst_type_name = (struct Cst_PrefixedTypeName*)cst_type_ref;
-    struct Ast_TypeName* ast_type_name = new_ast_node(Ast_TypeName, cst_type_name);
-    ast_type_name->name = arena_push(&arena, cstr_len(cst_type_name->first_name) + 1);
-    cstr_copy(ast_type_name->name, cst_type_name->first_name);
-    ast_type_name->dot_name = arena_push(&arena, cstr_len(cst_type_name->second_name) + 1);
-    cstr_copy(ast_type_name->dot_name, cst_type_name->second_name);
-    return (struct Ast*)ast_type_name;
-  } else if (cst_type_ref->kind == Cst_NonTypeName) {
-    struct Cst_NonTypeName* cst_type_name = (struct Cst_NonTypeName*)cst_type_ref;
-    struct Ast_TypeName* ast_type_name = new_ast_node(Ast_TypeName, cst_type_name);
-    ast_type_name->name = arena_push(&arena, cstr_len(cst_type_name->name) + 1);
-    cstr_copy(ast_type_name->name, cst_type_name->name);
-    return (struct Ast*)ast_type_name;
-  }
-  else assert(0);
-  return 0;
 }
 
 internal struct Ast*
@@ -131,6 +90,15 @@ visit_HeaderDecl(struct Cst_HeaderDecl* cst_header_decl)
   struct Ast_HeaderDecl* ast_header_decl = new_ast_node(Ast_HeaderDecl, cst_header_decl);
   ast_header_decl->name = visit_Name(cst_header_decl->name);
   return (struct Ast*)ast_header_decl;
+}
+
+internal struct Ast*
+visit_HeaderUnionDecl(struct Cst_HeaderUnionDecl* cst_header_union_decl)
+{
+  assert(cst_header_union_decl->kind == Cst_HeaderUnionDecl);
+  struct Ast_HeaderUnionDecl* ast_header_union_decl = new_ast_node(Ast_HeaderUnionDecl, cst_header_union_decl);
+  ast_header_union_decl->name = visit_Name(cst_header_union_decl->name);
+  return (struct Ast*)ast_header_union_decl;
 }
 
 internal struct Ast*
@@ -177,6 +145,22 @@ visit_Error(struct Cst_Error* cst_error)
   assert(cst_error->kind == Cst_Error);
   struct Ast_Error* ast_error = new_ast_node(Ast_Error, cst_error);
   return (struct Ast*)ast_error;
+}
+
+internal struct Ast*
+visit_MatchKind(struct Cst_MatchKind* cst_match_kind)
+{
+  assert(cst_match_kind->kind == Cst_MatchKind);
+  struct Ast_MatchKind* ast_match_kind = new_ast_node(Ast_MatchKind, cst_match_kind);
+  return (struct Ast*)ast_match_kind;
+}
+
+internal struct Ast*
+visit_EnumDecl(struct Cst_EnumDecl* cst_enum_decl)
+{
+  assert(cst_enum_decl->kind == Cst_EnumDecl);
+  struct Ast_EnumDecl* ast_enum_decl = new_ast_node(Ast_EnumDecl, cst_enum_decl);
+  return (struct Ast*)ast_enum_decl;
 }
 
 internal struct Ast*
@@ -237,6 +221,49 @@ visit_FunctionDecl(struct Cst_FunctionDecl* cst_function_decl)
 }
 
 internal struct Ast*
+visit_TypeRef(struct Cst* cst_type_ref)
+{
+  if (cst_type_ref->kind == Cst_BaseType) {
+    struct Cst_BaseType* cst_base_type = (struct Cst_BaseType*)cst_type_ref;
+    struct Ast_BaseType* ast_base_type = new_ast_node(Ast_BaseType, cst_base_type);
+    if (cst_base_type->base_type == CstBaseType_Bool) {
+      ast_base_type->name = "bool";
+    } else if (cst_base_type->base_type == CstBaseType_Error) {
+      ast_base_type->name = "error";
+    } else if (cst_base_type->base_type == CstBaseType_Int) {
+      ast_base_type->name = "int";
+    } else if (cst_base_type->base_type == CstBaseType_Bit) {
+      ast_base_type->name = "bit";
+    } else if (cst_base_type->base_type == CstBaseType_Varbit) {
+      ast_base_type->name = "varbit";
+    } else if (cst_base_type->base_type == CstBaseType_String) {
+      ast_base_type->name = "string";
+    }
+    else assert(0);
+    return (struct Ast*)ast_base_type;
+  } else if (cst_type_ref->kind == Cst_TypeName || cst_type_ref->kind == Cst_NonTypeName) {
+    struct Cst_TypeName* cst_type_name = (struct Cst_TypeName*)cst_type_ref;
+    struct Ast_TypeName* ast_type_name = new_ast_node(Ast_TypeName, cst_type_name);
+    ast_type_name->name = visit_Name((struct Cst*)cst_type_name);
+    return (struct Ast*)ast_type_name;
+  } else if (cst_type_ref->kind == Cst_HeaderStack) {
+    struct Cst_HeaderStack* cst_header_stack = (struct Cst_HeaderStack*)cst_type_ref;
+    struct Ast_HeaderStack* ast_header_stack = new_ast_node(Ast_HeaderStack, cst_type_ref);
+    ast_header_stack->name = visit_Name(cst_header_stack->name);
+    return (struct Ast*)ast_header_stack;
+  } else if (cst_type_ref->kind == Cst_SpecdType) {
+    struct Cst_SpecdType* cst_specd_type = (struct Cst_SpecdType*)cst_type_ref;
+    struct Ast_SpecdType* ast_specd_type = new_ast_node(Ast_SpecdType, cst_type_ref);
+    ast_specd_type->name = visit_Name(cst_specd_type->name);
+    return (struct Ast*)ast_specd_type;
+  } else if (cst_type_ref->kind == Cst_StructDecl) {
+    return visit_StructDecl((struct Cst_StructDecl*)cst_type_ref);
+  }
+  else assert(0);
+  return 0;
+}
+
+internal struct Ast*
 visit_P4Program(struct Cst_P4Program* cst_p4program)
 {
   assert(cst_p4program->kind == Cst_P4Program);
@@ -262,11 +289,15 @@ visit_P4Program(struct Cst_P4Program* cst_p4program)
     } else if (cst_decl->kind == Cst_Error) {
       ast_decl = visit_Error((struct Cst_Error*)cst_decl);
     } else if (cst_decl->kind == Cst_MatchKind) {
-      assert(!"todo");
+      ast_decl = visit_MatchKind((struct Cst_MatchKind*)cst_decl);
+    } else if (cst_decl->kind == Cst_EnumDecl) {
+      ast_decl = visit_EnumDecl((struct Cst_EnumDecl*)cst_decl);
     } else if (cst_decl->kind == Cst_FunctionDecl) {
       ast_decl = visit_FunctionDecl((struct Cst_FunctionDecl*)cst_decl);
     } else if (cst_decl->kind == Cst_HeaderDecl) {
       ast_decl = visit_HeaderDecl((struct Cst_HeaderDecl*)cst_decl);
+    } else if (cst_decl->kind == Cst_HeaderUnionDecl) {
+      ast_decl = visit_HeaderUnionDecl((struct Cst_HeaderUnionDecl*)cst_decl);
     } else if (cst_decl->kind == Cst_StructDecl) {
       ast_decl = visit_StructDecl((struct Cst_StructDecl*)cst_decl);
     } else if (cst_decl->kind == Cst_Package) {

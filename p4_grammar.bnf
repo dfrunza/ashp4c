@@ -93,7 +93,7 @@
 
 <namedType> := <typeName> | <specializedType>
 
-<prefixedType> := TYPE_IDENTIFIER { '.' TYPE_IDENTIFIER }
+<prefixedType> := { '.' } TYPE_IDENTIFIER
 
 <typeName> := <prefixedType>
 
@@ -149,7 +149,7 @@
 
 <specifiedIdentifierList> := <specifiedIdentifier> { ',' <specifiedIdentifier> }*
 
-<specifiedIdentifier> := <name> '=' <initializer>
+<specifiedIdentifier> := <name> { '=' <initializer> }
 
 <typedefDeclaration> :=
     TYPEDEF ( <typeRef> | <derivedTypeDeclaration> ) <name> ';'
@@ -254,7 +254,7 @@
 
 <expressionPrimary> := INTEGER | TRUE | FALSE | STRING_LITERAL
   | { '.' } <nonTypeName>
-  | '{' <expressionList> /* | <kvList> */ '}'
+  | '{' <expressionList> '}'  /* <kvList> - operator '=' */
   | '(' <expression> ')'
   | ( '!' | '~' ) <expression>
   | '-' /* UnaryMinus */ <expression>
@@ -270,5 +270,5 @@
   | '<' <realTypeArgumentList> '>'
 
 <binaryOperator> := '*' | '/' | '+' | '-' | '<=' | '>=' | '<' | '>' | '!='
-  | '==' | '||' | '&&' | '|' | '&' | '<<' | '>>'
+  | '==' | '||' | '&&' | '|' | '&' | '<<' | '>>' | '='
 

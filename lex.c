@@ -127,11 +127,15 @@ parse_integer(char* str, int base)
 {
   int result = 0;
   char c = *str++;
-  assert(cstr_is_digit(c, base));
-  result = digit_to_integer(c, base);
+  assert(cstr_is_digit(c, base) || c == '_');
+  if (c != '_') {
+    result = digit_to_integer(c, base);
+  }
   for (c = *str++; c != '\0'; c = *str++) {
     if (cstr_is_digit(c, base)) {
       result = result*base + digit_to_integer(c, base);
+    } else if (c == '_') {
+      continue;
     } else assert(0);
   }
   return result;
@@ -141,7 +145,7 @@ internal void
 token_install_integer(struct Token* token, struct Lexeme* lexeme, int base)
 {
   char* string = lexeme_to_cstring(lexeme);
-  if (cstr_is_digit(*string, base)) {
+  if (cstr_is_digit(*string, base) || *string == '_') {
     token->i.value = parse_integer(string, base);
   } else {
     if (base == 10) {
@@ -225,6 +229,8 @@ next_token(struct Token* token)
           state = 121;
         } else if (c == '~') {
           state = 122;
+        } else if (c == '"') {
+          state = 200;
         } else if (cstr_is_digit(c, 10)) {
           state = 400;
         } else if (cstr_is_letter(c)) {
@@ -238,15 +244,23 @@ next_token(struct Token* token)
 
       case 2:
       {
-        token->klass = Token_EndOfInput;
+        token->klass = Token_EndOfInput_;
         token->lexeme = "<end-of-input>";
         state = 0;
       } break;
 
       case 3:
       {
-        token->klass = Token_Unknown;
+        token->klass = Token_Unknown_;
         token->lexeme = "<unknown>";
+        lexeme_advance();
+        state = 0;
+      } break;
+
+      case 4:
+      {
+        token->klass = Token_LexicalError_;
+        token->lexeme = "<error>";
         lexeme_advance();
         state = 0;
       } break;
@@ -294,7 +308,7 @@ next_token(struct Token* token)
       case 103:
       {
         char cc = char_lookahead(1);
-        if (cstr_is_letter(cc) || cstr_is_digit(cc, 10)) {
+        if (cstr_is_letter(cc) || cstr_is_digit(cc, 10) || cc == '_') {
           state = 500;
         } else {
           token->klass = Token_Dontcare;
@@ -450,7 +464,12 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '&') {
           char_advance(1);
-          token->klass = Token_TwoAmpersand;
+          if (char_lookahead(1) == '&') {
+            char_advance(1);
+            token->klass = Token_ThreeAmpersand;
+          } else {
+            token->klass = Token_TwoAmpersand;
+          }
         } else {
           token->klass = Token_Ampersand;
         }
@@ -486,6 +505,37 @@ next_token(struct Token* token)
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
+      } break;
+
+      case 200:
+      {
+        do {
+          c = char_advance(1);
+          if (c == '\\') {
+            state = 201;
+            break;
+          } else if (c == '\n' || c == '\r') {
+            state = 4;
+          }
+        } while (c != '"');
+
+        token->klass = Token_StringLiteral;
+        token->lexeme = lexeme_to_cstring(lexeme);
+        lexeme_advance();
+        state = 0;
+      } break;
+
+      case 201:
+      {
+        c = char_advance(1);
+        if (c == '\n' || c == '\r') {
+          line_nr++;
+          state = 200;
+        } else if (c == '\\' || c =='"' || c == 'n' || c == 'r') {
+          state = 200; // ok
+        } else {
+          state = 4;
+        }
       } break;
 
       case 310:
@@ -581,7 +631,7 @@ next_token(struct Token* token)
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
           c = char_advance(1);
-        } while (cstr_is_digit(c, 16));
+        } while (cstr_is_digit(c, 16) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
         token->klass = Token_Integer;
@@ -599,7 +649,7 @@ next_token(struct Token* token)
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
           c = char_advance(1);
-        } while (cstr_is_digit(c, 8));
+        } while (cstr_is_digit(c, 8) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
         token->klass = Token_Integer;
@@ -617,7 +667,7 @@ next_token(struct Token* token)
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
           c = char_advance(1);
-        } while (cstr_is_digit(c, 2));
+        } while (cstr_is_digit(c, 2) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
         token->klass = Token_Integer;
@@ -656,7 +706,7 @@ next_token(struct Token* token)
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
           c = char_advance(1);
-        } while (cstr_is_digit(c, 16));
+        } while (cstr_is_digit(c, 16) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 16);
@@ -672,7 +722,7 @@ next_token(struct Token* token)
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
           c = char_advance(1);
-        } while (cstr_is_digit(c, 8));
+        } while (cstr_is_digit(c, 8) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 8);
@@ -688,7 +738,7 @@ next_token(struct Token* token)
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
           c = char_advance(1);
-        } while (cstr_is_digit(c, 2));
+        } while (cstr_is_digit(c, 2) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 2);
@@ -738,21 +788,23 @@ lex_tokenize(struct SourceText* source)
   arena = source->arena;
   lexeme->start = lexeme->end = text;
 
-  int max_tokens_count = 1000;  // table entry units
+  int max_tokens_count = 2000;  // table entry units
   struct Token* tokens = arena_push(arena, max_tokens_count*sizeof(struct Token));
   struct Token* token = tokens;
-  token->klass = Token_StartOfInput;
+  token->klass = Token_StartOfInput_;
   token++;
   int token_count = 1;
 
   next_token(token);
   token_count++;
-  while (token->klass != Token_EndOfInput) {
+  while (token->klass != Token_EndOfInput_) {
     if (token_count >= max_tokens_count) {
       error("at line %d: out of memory.", token->line_nr);
     }
-    if (token->klass == Token_Unknown) {
+    if (token->klass == Token_Unknown_) {
       error("at line %d: unknown token.", token->line_nr);
+    } else if (token->klass == Token_LexicalError_) {
+      error("at line %d: lexical error.", token->line_nr);
     }
     token++;
     next_token(token);

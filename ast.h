@@ -27,6 +27,7 @@ enum AstExprOperator {
   AstBinOp_BitXor,
   AstBinOp_BitShLeft,
   AstBinOp_BitShRight,
+  AstBinOp_Mask,
   AstUnOp_LogNot,
   AstUnOp_BitNot,
   AstUnOp_ArMinus,
@@ -43,7 +44,11 @@ enum AstKind {
   Ast_None,
   Ast_BaseType,
   Ast_TypeName,
+  Ast_HeaderStack,
+  Ast_SpecdType,
   Ast_Error,
+  Ast_MatchKind,
+  Ast_EnumDecl,
   Ast_ConstDecl,
   Ast_ActionDecl,
   Ast_TypeDecl,
@@ -55,6 +60,7 @@ enum AstKind {
   Ast_ParserType,
   Ast_Parser,
   Ast_HeaderDecl,
+  Ast_HeaderUnionDecl,
   Ast_StructDecl,
   Ast_Instantiation,
   Ast_Package,
@@ -90,10 +96,28 @@ struct Ast_BaseType {
 struct Ast_TypeName {
   struct Ast;
   char* name;
-  char* dot_name;
+};
+
+struct Ast_HeaderStack {
+  struct Ast;
+  char* name;
+  int size;
+};
+
+struct Ast_SpecdType {
+  struct Ast;
+  char* name;
 };
 
 struct Ast_Error {
+  struct Ast;
+};
+
+struct Ast_MatchKind {
+  struct Ast;
+};
+
+struct Ast_EnumDecl {
   struct Ast;
 };
 
@@ -152,6 +176,11 @@ struct Ast_Parser {
 };
 
 struct Ast_HeaderDecl {
+  struct Ast;
+  char* name;
+};
+
+struct Ast_HeaderUnionDecl {
   struct Ast;
   char* name;
 };

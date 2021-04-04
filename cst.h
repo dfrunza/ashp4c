@@ -6,9 +6,9 @@ enum CstKind {
   Cst_None,
   Cst_NonTypeName,
   Cst_TypeName,
-  Cst_PrefixedTypeName,
+  //Cst_PrefixedTypeName,
   Cst_BaseType,
-  Cst_DotPrefixedName,
+  //Cst_DotPrefixedName,
   Cst_ConstDecl,
   Cst_ExternDecl,
   Cst_Constructor,
@@ -71,6 +71,7 @@ enum CstKind {
   Cst_CastExpr,
   Cst_UnaryExpr,
   Cst_BinaryExpr,
+  Cst_KvPair,
   Cst_MemberSelectExpr,
   Cst_IndexedArrayExpr,
   Cst_FunctionCallExpr,
@@ -85,6 +86,7 @@ enum CstBaseTypeKind {
   CstBaseType_Int,
   CstBaseType_Bit,
   CstBaseType_Varbit,
+  CstBaseType_String,
 };
 
 struct Cst {
@@ -97,24 +99,30 @@ struct Cst {
 
 struct Cst_NonTypeName {
   struct Cst;
+  bool is_dotprefixed;
   char* name;
 };
 
 struct Cst_TypeName {
   struct Cst;
+  bool is_dotprefixed;
   char* name;
 };
 
+/*
 struct Cst_DotPrefixedName {
   struct Cst;
   struct Cst* name;
 };
+*/
 
+/*
 struct Cst_PrefixedTypeName {
   struct Cst;
   struct Cst_TypeName* first_name;
   struct Cst_TypeName* second_name;
 };
+*/
 
 struct Cst_BaseType {
   struct Cst;
@@ -225,7 +233,7 @@ struct Cst_Error {
 
 struct Cst_MatchKind {
   struct Cst;
-  struct Cst* fields;
+  struct Cst* id_list;
 };
 
 struct Cst_FunctionDecl {
@@ -493,6 +501,12 @@ struct Cst_BinaryExpr {
   enum AstExprOperator op;
   struct Cst* left_operand;
   struct Cst* right_operand;
+};
+
+struct Cst_KvPair {
+  struct Cst;
+  struct Cst* name;
+  struct Cst* expr;
 };
 
 struct Cst_MemberSelectExpr {
