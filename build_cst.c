@@ -60,10 +60,10 @@ init_cst_node(struct Cst* cst, struct Token* token)
 }
 
 #define new_cst_node(type, token) ({ \
-  struct type* cst = arena_push(arena, sizeof(struct type)); \
-  *cst = (struct type){}; \
+  struct Cst* cst = arena_push(arena, sizeof(struct Cst)); \
+  *cst = (struct Cst){}; \
   cst->kind = type; \
-  init_cst_node((struct Cst*)cst, token); \
+  init_cst_node(cst, token); \
   cst; })
 
 internal void
@@ -408,16 +408,16 @@ token_is_expression(struct Token* token)
 internal struct Cst*
 build_nonTypeName(bool is_type)
 {
-  struct Cst_NonTypeName* name = 0;
+  struct Cst* name = 0;
   if (token_is_nonTypeName(token)) {
     name = new_cst_node(Cst_NonTypeName, token);
-    cst_setattr((struct Cst*)name, "name", token->lexeme);
+    cst_setattr(name, "name", token->lexeme);
     if (is_type) {
-      new_type(cst_getattr((struct Cst*)name, "name"), token->line_nr);
+      new_type(cst_getattr(name, "name"), token->line_nr);
     }
     next_token();
   } else error("at line %d: non-type name was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)name;
+  return name;
 }
 
 internal struct Cst*
@@ -428,13 +428,13 @@ build_name(bool is_type)
     if (token_is_nonTypeName(token)) {
       name = build_nonTypeName(is_type);
     } else if (token->klass == Token_TypeIdentifier) {
-      struct Cst_TypeName* type_name = new_cst_node(Cst_TypeName, token);
-      cst_setattr((struct Cst*)type_name, "name", token->lexeme);
-      name = (struct Cst*)type_name;
+      struct Cst* type_name = new_cst_node(Cst_TypeName, token);
+      cst_setattr(type_name, "name", token->lexeme);
+      name = type_name;
       next_token();
     } else assert(0);
   } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)name;
+  return name;
 }
 
 internal struct Cst*
@@ -477,8 +477,8 @@ build_typeArg()
   if (token_is_typeArg(token))
   {
     if (token->klass == Token_Dontcare) {
-      struct Cst_Dontcare* dontcare = new_cst_node(Cst_Dontcare, token);
-      arg = (struct Cst*)dontcare;
+      struct Cst* dontcare = new_cst_node(Cst_Dontcare, token);
+      arg = dontcare;
       next_token();
     } else if (token_is_typeRef(token)) {
       arg = build_typeRef();
@@ -515,23 +515,23 @@ build_direction()
 internal struct Cst*
 build_parameter()
 {
-  struct Cst_Parameter* param = new_cst_node(Cst_Parameter, token);
+  struct Cst* param = new_cst_node(Cst_Parameter, token);
   enum AstParamDirection* direction = arena_push(arena, sizeof(enum AstParamDirection));
   *direction = build_direction();
-  cst_setattr((struct Cst*)param, "direction", direction);
+  cst_setattr(param, "direction", direction);
   if (token_is_typeRef(token)) {
-    cst_setattr((struct Cst*)param, "type", build_typeRef());
+    cst_setattr(param, "type", build_typeRef());
     if (token_is_name(token)) {
-      cst_setattr((struct Cst*)param, "name", build_name(false));
+      cst_setattr(param, "name", build_name(false));
       if (token->klass == Token_Equal) {
         next_token();
         if (token_is_expression(token)) {
-          cst_setattr((struct Cst*)param, "init_expr", build_expression(1));
+          cst_setattr(param, "init_expr", build_expression(1));
         } else error("at line %d: expression was expected, got `%s`.", token->line_nr, token->lexeme);
       }
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)param;
+  return param;
 }
 
 internal struct Cst*
@@ -559,16 +559,16 @@ build_typeOrVoid(bool is_type)
     if (token_is_typeRef(token)) {
       type = build_typeRef();
     } else if (token->klass == Token_Void) {
-      struct Cst_TypeName* void_name = new_cst_node(Cst_TypeName, token);
-      cst_setattr((struct Cst*)void_name, "name", token->lexeme);
-      type = (struct Cst*)void_name;
+      struct Cst* void_name = new_cst_node(Cst_TypeName, token);
+      cst_setattr(void_name, "name", token->lexeme);
+      type = void_name;
       next_token();
     } else if (token->klass == Token_Identifier) {
-      struct Cst_NonTypeName* name = new_cst_node(Cst_NonTypeName, token);
-      cst_setattr((struct Cst*)name, "name", token->lexeme);
-      type = (struct Cst*)name;
+      struct Cst* name = new_cst_node(Cst_NonTypeName, token);
+      cst_setattr(name, "name", token->lexeme);
+      type = name;
       if (is_type) {
-        new_type(cst_getattr((struct Cst*)name, "name"), token->line_nr);
+        new_type(cst_getattr(name, "name"), token->line_nr);
       }
       next_token();
     } else assert(0);
@@ -579,53 +579,53 @@ build_typeOrVoid(bool is_type)
 internal struct Cst*
 build_functionPrototype(struct Cst* type_ref)
 {
-  struct Cst_FunctionProto* proto = 0;
+  struct Cst* proto = 0;
   if (token_is_typeOrVoid(token) || type_ref) {
     proto = new_cst_node(Cst_FunctionProto, token);
     if (type_ref) {
-      cst_setattr((struct Cst*)proto, "return_type", type_ref);
+      cst_setattr(proto, "return_type", type_ref);
     } else {
-      cst_setattr((struct Cst*)proto, "return_type", build_typeOrVoid(true));
+      cst_setattr(proto, "return_type", build_typeOrVoid(true));
     }
     if (token_is_name(token)) {
-      cst_setattr((struct Cst*)proto, "name", build_name(false));
-      cst_setattr((struct Cst*)proto, "type_params", build_optTypeParameters());
+      cst_setattr(proto, "name", build_name(false));
+      cst_setattr(proto, "type_params", build_optTypeParameters());
       if (token->klass == Token_ParenthOpen) {
         next_token();
-        cst_setattr((struct Cst*)proto, "params", build_parameterList());
+        cst_setattr(proto, "params", build_parameterList());
         if (token->klass == Token_ParenthClose) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `(` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: function name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)proto;
+  return proto;
 }
 
 internal struct Cst*
 build_methodPrototype()
 {
-  struct Cst_FunctionProto* proto = 0;
+  struct Cst* proto = 0;
   if (token_is_methodPrototype(token)) {
     if (token->klass == Token_TypeIdentifier && peek_token()->klass == Token_ParenthOpen) {
       /* Constructor */
       proto = new_cst_node(Cst_FunctionProto, token);
-      cst_setattr((struct Cst*)proto, "name", build_name(false));
+      cst_setattr(proto, "name", build_name(false));
       if (token->klass == Token_ParenthOpen) {
         next_token();
-        cst_setattr((struct Cst*)proto, "params", build_parameterList());
+        cst_setattr(proto, "params", build_parameterList());
         if (token->klass == Token_ParenthClose) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `(` as expected, got `%s`.", token->line_nr, token->lexeme);
     } else if (token_is_typeOrVoid(token)) {
-      proto = (struct Cst_FunctionProto*)build_functionPrototype(0);
+      proto = build_functionPrototype(0);
     } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
     if (token->klass == Token_Semicolon) {
       next_token();
     } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)proto;
+  return proto;
 }
 
 internal struct Cst*
@@ -650,8 +650,8 @@ build_externDeclaration()
   struct Cst* decl = 0;
   if (token->klass == Token_Extern) {
     next_token();
-    struct Cst_ExternDecl* extern_decl = new_cst_node(Cst_ExternDecl, token);
-    decl = (struct Cst*)extern_decl;
+    struct Cst* extern_decl = new_cst_node(Cst_ExternDecl, token);
+    decl = extern_decl;
     bool is_function_proto = false;
     if (token_is_typeOrVoid(token) && token_is_nonTypeName(token)) {
       is_function_proto = token_is_typeOrVoid(token) && token_is_name(peek_token());
@@ -667,11 +667,11 @@ build_externDeclaration()
         next_token();
       } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else {
-      cst_setattr((struct Cst*)extern_decl, "name", build_nonTypeName(true));
-      cst_setattr((struct Cst*)extern_decl, "type_params", build_optTypeParameters());
+      cst_setattr(extern_decl, "name", build_nonTypeName(true));
+      cst_setattr(extern_decl, "type_params", build_optTypeParameters());
       if (token->klass == Token_BraceOpen) {
         next_token();
-        cst_setattr((struct Cst*)extern_decl, "method_protos", build_methodPrototypes());
+        cst_setattr(extern_decl, "method_protos", build_methodPrototypes());
         if (token->klass == Token_BraceClose) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -684,15 +684,15 @@ build_externDeclaration()
 internal struct Cst*
 build_integer()
 {
-  struct Cst_Int* int_node = 0;
+  struct Cst* int_node = 0;
   if (token->klass == Token_Integer) {
     int_node = new_cst_node(Cst_Int, token);
-    cst_setattr((struct Cst*)int_node, "flags", &token->i.flags);
-    cst_setattr((struct Cst*)int_node, "width", &token->i.width);
-    cst_setattr((struct Cst*)int_node, "value", &token->i.value);
+    cst_setattr(int_node, "flags", &token->i.flags);
+    cst_setattr(int_node, "width", &token->i.width);
+    cst_setattr(int_node, "value", &token->i.value);
     next_token();
   }
-  return (struct Cst*)int_node;
+  return int_node;
 }
 
 internal struct Cst*
@@ -700,98 +700,98 @@ build_boolean()
 {
   static int bool_true = 1;
   static int bool_false = 0;
-  struct Cst_Bool* bool_node = 0;
+  struct Cst* bool_node = 0;
   if (token->klass == Token_True || token->klass == Token_False) {
     bool_node = new_cst_node(Cst_Bool, token);
-    cst_setattr((struct Cst*)bool_node, "value", &bool_false);
+    cst_setattr(bool_node, "value", &bool_false);
     if (token->klass == Token_True) {
-      cst_setattr((struct Cst*)bool_node, "value", &bool_true);
+      cst_setattr(bool_node, "value", &bool_true);
     }
     next_token();
   }
-  return (struct Cst*)bool_node;
+  return bool_node;
 }
 
 internal struct Cst*
 build_stringLiteral()
 {
-  struct Cst_StringLiteral* string = 0;
+  struct Cst* string = 0;
   if (token->klass == Token_StringLiteral) {
     string = new_cst_node(Cst_StringLiteral, token);
-    cst_setattr((struct Cst*)string, "value", token->lexeme);
+    cst_setattr(string, "value", token->lexeme);
     next_token();
   }
-  return (struct Cst*)string;
+  return string;
 }
 
 internal struct Cst*
 build_integerTypeSize()
 {
-  struct Cst_IntTypeSize* type_size = new_cst_node(Cst_IntTypeSize, token);
+  struct Cst* type_size = new_cst_node(Cst_IntTypeSize, token);
   if (token->klass == Token_Integer) {
-    cst_setattr((struct Cst*)type_size, "size", build_integer());
+    cst_setattr(type_size, "size", build_integer());
   } else if (token->klass == Token_ParenthOpen) {
-    cst_setattr((struct Cst*)type_size, "size", build_expression(1));
+    cst_setattr(type_size, "size", build_expression(1));
   } else error("at line %d: `(` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)type_size;
+  return type_size;
 }
 
 internal struct Cst*
 build_baseType()
 {
-  struct Cst_BaseType* base_type = 0;
+  struct Cst* base_type = 0;
   enum CstBaseTypeKind* type_value = arena_push(arena, sizeof(enum CstBaseTypeKind));
   if (token_is_baseType(token)) {
     base_type = new_cst_node(Cst_BaseType, token);
     if (token->klass == Token_Bool) {
       *type_value = CstBaseType_Bool;
-      cst_setattr((struct Cst*)base_type, "base_type", type_value);
+      cst_setattr(base_type, "base_type", type_value);
       next_token();
     } else if (token->klass == Token_Error) {
       *type_value = CstBaseType_Error;
-      cst_setattr((struct Cst*)base_type, "base_type", type_value);
+      cst_setattr(base_type, "base_type", type_value);
       next_token();
     } else if (token->klass == Token_Int) {
       *type_value = CstBaseType_Int;
-      cst_setattr((struct Cst*)base_type, "base_type", type_value);
+      cst_setattr(base_type, "base_type", type_value);
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
-        cst_setattr((struct Cst*)base_type, "size", build_integerTypeSize());
+        cst_setattr(base_type, "size", build_integerTypeSize());
         if (token->klass == Token_AngleClose) {
           next_token();
         } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
       }
     } else if (token->klass == Token_Bit) {
       *type_value = CstBaseType_Bit;
-      cst_setattr((struct Cst*)base_type, "base_type", type_value);
+      cst_setattr(base_type, "base_type", type_value);
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
-        cst_setattr((struct Cst*)base_type, "size", build_integerTypeSize());
+        cst_setattr(base_type, "size", build_integerTypeSize());
         if (token->klass == Token_AngleClose) {
           next_token();
         } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
       }
     } else if (token->klass == Token_Varbit) {
       *type_value = CstBaseType_Varbit;
-      cst_setattr((struct Cst*)base_type, "base_type", type_value);
+      cst_setattr(base_type, "base_type", type_value);
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
-        cst_setattr((struct Cst*)base_type, "size", build_integerTypeSize());
+        cst_setattr(base_type, "size", build_integerTypeSize());
         if (token->klass == Token_AngleClose) {
           next_token();
         } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
       }
     } else if (token->klass == Token_String) {
       *type_value = CstBaseType_String;
-      cst_setattr((struct Cst*)base_type, "base_type", type_value);
+      cst_setattr(base_type, "base_type", type_value);
       next_token();
     }
     else assert(0);
   } else error("at line %d: type as expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)base_type;
+  return base_type;
 }
 
 internal struct Cst*
@@ -814,57 +814,57 @@ build_typeArgumentList()
 internal struct Cst*
 build_tupleType()
 {
-  struct Cst_Tuple* type = 0;
+  struct Cst* type = 0;
   if (token->klass == Token_Tuple) {
     next_token();
     type = new_cst_node(Cst_Tuple, token);
     if (token->klass == Token_AngleOpen) {
       next_token();
-      cst_setattr((struct Cst*)type, "type_args", build_typeArgumentList());
+      cst_setattr(type, "type_args", build_typeArgumentList());
       if (token->klass == Token_AngleClose) {
         next_token();
       } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `<` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `tuple` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)type;
+  return type;
 }
 
 internal struct Cst*
 build_headerStackType()
 {
-  struct Cst_HeaderStack* stack = 0;
+  struct Cst* stack = 0;
   if (token->klass == Token_BracketOpen) {
     next_token();
     stack = new_cst_node(Cst_HeaderStack, token);
     if (token_is_expression(token)) {
-      cst_setattr((struct Cst*)stack, "stack_expr", build_expression(1));
+      cst_setattr(stack, "stack_expr", build_expression(1));
       if (token->klass == Token_BracketClose) {
         next_token();
       } else error("at line %d: `]` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: an expression expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `[` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)stack;
+  return stack;
 }
 
 internal struct Cst*
 build_specializedType()
 {
-  struct Cst_SpecdType* type = 0;
+  struct Cst* type = 0;
   if (token->klass == Token_AngleOpen) {
     next_token();
     type = new_cst_node(Cst_SpecdType, token);
-    cst_setattr((struct Cst*)type, "type_args", build_typeArgumentList());
+    cst_setattr(type, "type_args", build_typeArgumentList());
     if (token->klass == Token_AngleClose) {
       next_token();
     } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `<` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)type;
+  return type;
 }
 
 internal struct Cst*
 build_prefixedType()
 {
-  struct Cst_TypeName* name = 0;
+  struct Cst* name = 0;
   bool* is_dotprefixed = arena_push(arena, sizeof(bool));
   *is_dotprefixed = false;
   if (token->klass == Token_DotPrefix) {
@@ -873,11 +873,11 @@ build_prefixedType()
   }
   if (token->klass == Token_TypeIdentifier) {
     name = new_cst_node(Cst_TypeName, token);
-    cst_setattr((struct Cst*)name, "name", token->lexeme);
-    cst_setattr((struct Cst*)name, "is_dotprefixed", is_dotprefixed);
+    cst_setattr(name, "name", token->lexeme);
+    cst_setattr(name, "is_dotprefixed", is_dotprefixed);
     next_token();
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)name;
+  return name;
 }
 
 internal struct Cst*
@@ -887,13 +887,13 @@ build_typeName()
   if (token_is_typeName(token)) {
     name = build_prefixedType();
     if (token->klass == Token_AngleOpen) {
-      struct Cst_SpecdType* specd_type = (struct Cst_SpecdType*)build_specializedType();
-      cst_setattr((struct Cst*)specd_type, "name", name);
-      name = (struct Cst*)specd_type;
+      struct Cst* specd_type = build_specializedType();
+      cst_setattr(specd_type, "name", name);
+      name = specd_type;
     } if (token->klass == Token_BracketOpen) {
-      struct Cst_HeaderStack* stack_type = (struct Cst_HeaderStack*)build_headerStackType();
-      cst_setattr((struct Cst*)stack_type, "name", name);
-      name = (struct Cst*)stack_type;
+      struct Cst* stack_type = build_headerStackType();
+      cst_setattr(stack_type, "name", name);
+      name = stack_type;
     }
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
   return name;
@@ -926,17 +926,17 @@ token_is_structField(struct Token* token)
 internal struct Cst*
 build_structField()
 {
-  struct Cst_StructField* field = new_cst_node(Cst_StructField, token);
+  struct Cst* field = new_cst_node(Cst_StructField, token);
   if (token_is_typeRef(token)) {
-    cst_setattr((struct Cst*)field, "type", build_typeRef());
+    cst_setattr(field, "type", build_typeRef());
     if (token_is_name(token)) {
-      cst_setattr((struct Cst*)field, "name", build_name(false));
+      cst_setattr(field, "name", build_name(false));
       if (token->klass == Token_Semicolon) {
         next_token();
       } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: struct field was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)field;
+  return field;
 }
 
 internal struct Cst*
@@ -958,64 +958,64 @@ build_structFieldList()
 internal struct Cst*
 build_headerTypeDeclaration()
 {
-  struct Cst_HeaderDecl* decl = 0;
+  struct Cst* decl = 0;
   if (token->klass == Token_Header) {
     next_token();
     decl = new_cst_node(Cst_HeaderDecl, token);
     if (token_is_name(token)) {
-      cst_setattr((struct Cst*)decl, "name", build_name(true));
+      cst_setattr(decl, "name", build_name(true));
       if (token->klass == Token_BraceOpen) {
         next_token();
-        cst_setattr((struct Cst*)decl, "fields", build_structFieldList());
+        cst_setattr(decl, "fields", build_structFieldList());
         if (token->klass == Token_BraceClose) {
           next_token(token);
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `header` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)decl;
+  return decl;
 }
 
 internal struct Cst*
 build_headerUnionDeclaration()
 {
-  struct Cst_HeaderUnionDecl* decl = 0;
+  struct Cst* decl = 0;
   if (token->klass == Token_HeaderUnion) {
     next_token();
     decl = new_cst_node(Cst_HeaderUnionDecl, token);
     if (token_is_name(token)) {
-      cst_setattr((struct Cst*)decl, "name", build_name(true));
+      cst_setattr(decl, "name", build_name(true));
       if (token->klass == Token_BraceOpen) {
         next_token();
-        cst_setattr((struct Cst*)decl, "fields", build_structFieldList());
+        cst_setattr(decl, "fields", build_structFieldList());
         if (token->klass == Token_BraceClose) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `header_union` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)decl;
+  return decl;
 }
 
 internal struct Cst*
 build_structTypeDeclaration()
 {
-  struct Cst_StructDecl* decl = 0;
+  struct Cst* decl = 0;
   if (token->klass == Token_Struct) {
     next_token();
     decl = new_cst_node(Cst_StructDecl, token);
     if (token_is_name(token)) {
-      cst_setattr((struct Cst*)decl, "name", build_name(true));
+      cst_setattr(decl, "name", build_name(true));
       if (token->klass == Token_BraceOpen) {
         next_token();
-        cst_setattr((struct Cst*)decl, "fields", build_structFieldList());
+        cst_setattr(decl, "fields", build_structFieldList());
         if (token->klass == Token_BraceClose) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `struct` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)decl;
+  return decl;
 }
 
 internal bool
@@ -1044,18 +1044,18 @@ build_optInitializer()
 internal struct Cst*
 build_specifiedIdentifier()
 {
-  struct Cst_SpecdId* id = 0;
+  struct Cst* id = 0;
   if (token_is_specifiedIdentifier(token)) {
     id = new_cst_node(Cst_SpecdId, token);
-    cst_setattr((struct Cst*)id, "name", build_name(false));
+    cst_setattr(id, "name", build_name(false));
     if (token->klass == Token_Equal) {
       next_token();
       if (token_is_expression(token)) {
-        cst_setattr((struct Cst*)id, "init_expr", build_initializer());
+        cst_setattr(id, "init_expr", build_initializer());
       } else error("at line %d: an expression was expected, got `%s`.", token->line_nr, token->lexeme);
     }
   } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)id;
+  return id;
 }
 
 internal struct Cst*
@@ -1078,7 +1078,7 @@ build_specifiedIdentifierList()
 internal struct Cst*
 build_enumDeclaration()
 {
-  struct Cst_EnumDecl* decl = 0;
+  struct Cst* decl = 0;
   if (token->klass == Token_Enum) {
     next_token();
     decl = new_cst_node(Cst_EnumDecl, token);
@@ -1087,8 +1087,8 @@ build_enumDeclaration()
       if (token->klass == Token_AngleOpen) {
         next_token();
         if (token->klass == Token_Integer) {
-          struct Cst_Int* int_size = new_cst_node(Cst_Int, token);
-          cst_setattr((struct Cst*)decl, "type_size", (struct Cst*)int_size);
+          struct Cst* int_size = new_cst_node(Cst_Int, token);
+          cst_setattr(decl, "type_size", int_size);
           next_token();
           if (token->klass == Token_AngleClose) {
             next_token();
@@ -1097,11 +1097,11 @@ build_enumDeclaration()
       } else error("at line %d: `<` was expected, got `%s`.", token->line_nr, token->lexeme);
     }
     if (token_is_name(token)) {
-      cst_setattr((struct Cst*)decl, "name", build_name(true));
+      cst_setattr(decl, "name", build_name(true));
       if (token->klass == Token_BraceOpen) {
         next_token();
         if (token_is_specifiedIdentifier(token)) {
-          cst_setattr((struct Cst*)decl, "id_list", build_specifiedIdentifierList());
+          cst_setattr(decl, "id_list", build_specifiedIdentifierList());
           if (token->klass == Token_BraceClose) {
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1109,7 +1109,7 @@ build_enumDeclaration()
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `enum` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)decl;
+  return decl;
 }
 
 internal struct Cst*
@@ -1133,23 +1133,23 @@ build_derivedTypeDeclaration()
 internal struct Cst*
 build_parserTypeDeclaration()
 {
-  struct Cst_ParserType* type = 0;
+  struct Cst* type = 0;
   if (token->klass == Token_Parser) {
     next_token();
     type = new_cst_node(Cst_ParserType, token);
     if (token_is_name(token)) {
-      cst_setattr((struct Cst*)type, "name", build_name(true));
-      cst_setattr((struct Cst*)type, "type_params", build_optTypeParameters());
+      cst_setattr(type, "name", build_name(true));
+      cst_setattr(type, "type_params", build_optTypeParameters());
       if (token->klass == Token_ParenthOpen) {
         next_token();
-        cst_setattr((struct Cst*)type, "params", build_parameterList());
+        cst_setattr(type, "params", build_parameterList());
         if (token->klass == Token_ParenthClose) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `(` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `parser` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)type;
+  return type;
 }
 
 internal struct Cst*
@@ -1169,18 +1169,18 @@ build_optConstructorParameters()
 internal struct Cst*
 build_constantDeclaration()
 {
-  struct Cst_ConstDecl* decl = 0;
+  struct Cst* decl = 0;
   if (token->klass == Token_Const) {
     next_token();
     decl = new_cst_node(Cst_ConstDecl, token);
     if (token_is_typeRef(token)) {
-      cst_setattr((struct Cst*)decl, "type_ref", build_typeRef());
+      cst_setattr(decl, "type_ref", build_typeRef());
       if (token_is_name(token)) {
-        cst_setattr((struct Cst*)decl, "name", build_name(false));
+        cst_setattr(decl, "name", build_name(false));
         if (token->klass == Token_Equal) {
           next_token();
           if (token_is_expression(token)) {
-            cst_setattr((struct Cst*)decl, "expr", build_expression(1));
+            cst_setattr(decl, "expr", build_expression(1));
             if (token->klass == Token_Semicolon) {
               next_token();
             } else error("at line %d: `;` expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1189,7 +1189,7 @@ build_constantDeclaration()
       } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `const` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)decl;
+  return decl;
 }
 
 internal bool
@@ -1291,18 +1291,18 @@ build_argument()
     if (token_is_expression(token)) {
       arg = build_expression(1);
     } else if (token_is_name(token)) {
-      struct Cst_Argument* named_arg = new_cst_node(Cst_Argument, token);
-      arg = (struct Cst*)named_arg;
-      cst_setattr((struct Cst*)named_arg, "name", build_name(false));
+      struct Cst* named_arg = new_cst_node(Cst_Argument, token);
+      arg = named_arg;
+      cst_setattr(named_arg, "name", build_name(false));
       if (token->klass == Token_Equal) {
         next_token();
         if (token_is_expression(token)) {
-          cst_setattr((struct Cst*)named_arg, "init_expr", build_expression(1));
+          cst_setattr(named_arg, "init_expr", build_expression(1));
         } else error("at line %d: an expression was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `=` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else if (token->klass == Token_Dontcare) {
-      struct Cst_Dontcare* dontcare_arg = new_cst_node(Cst_Dontcare, token);
-      arg = (struct Cst*)dontcare_arg;
+      struct Cst* dontcare_arg = new_cst_node(Cst_Dontcare, token);
+      arg = dontcare_arg;
       next_token();
     } else assert(0);
   } else error("at line %d: an argument was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1329,43 +1329,43 @@ build_argumentList()
 internal struct Cst*
 build_variableDeclaration(struct Cst* type_ref)
 {
-  struct Cst_VarDecl* decl = 0;
+  struct Cst* decl = 0;
   if (token_is_typeRef(token) || type_ref) {
     decl = new_cst_node(Cst_VarDecl, token);
     if (type_ref) {
-      cst_setattr((struct Cst*)decl, "type", type_ref);
+      cst_setattr(decl, "type", type_ref);
     } else {
-      cst_setattr((struct Cst*)decl, "type", build_typeRef());
+      cst_setattr(decl, "type", build_typeRef());
     }
     if (token_is_name(token)) {
-      cst_setattr((struct Cst*)decl, "name", build_name(false));
-      cst_setattr((struct Cst*)decl, "init_expr", build_optInitializer());
+      cst_setattr(decl, "name", build_name(false));
+      cst_setattr(decl, "init_expr", build_optInitializer());
       if (token->klass == Token_Semicolon) {
         next_token();
       } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)decl;
+  return decl;
 }
 
 internal struct Cst*
 build_instantiation(struct Cst* type_ref)
 {
-  struct Cst_Instantiation* inst = 0;
+  struct Cst* inst = 0;
   if (token_is_typeRef(token) || type_ref) {
     inst = new_cst_node(Cst_Instantiation, token);
     if (type_ref) {
-      cst_setattr((struct Cst*)inst, "type_ref", type_ref);
+      cst_setattr(inst, "type_ref", type_ref);
     } else {
-      cst_setattr((struct Cst*)inst, "type_ref", build_typeRef());
+      cst_setattr(inst, "type_ref", build_typeRef());
     }
     if (token->klass == Token_ParenthOpen) {
       next_token();
-      cst_setattr((struct Cst*)inst, "args", build_argumentList());
+      cst_setattr(inst, "args", build_argumentList());
       if (token->klass == Token_ParenthClose) {
         next_token();
         if (token_is_name(token)) {
-          cst_setattr((struct Cst*)inst, "name", build_name(false));
+          cst_setattr(inst, "name", build_name(false));
           if (token->klass == Token_Semicolon) {
             next_token();
           } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1373,7 +1373,7 @@ build_instantiation(struct Cst* type_ref)
       } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `(` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)inst;
+  return inst;
 }
 
 internal struct Cst*
@@ -1414,13 +1414,13 @@ build_parserLocalElements()
 internal struct Cst*
 build_directApplication(struct Cst* type_name)
 {
-  struct Cst_DirectApplic* applic = 0;
+  struct Cst* applic = 0;
   if (token_is_typeName(token) || type_name) {
     applic = new_cst_node(Cst_DirectApplic, token);
     if (type_name) {
-      cst_setattr((struct Cst*)applic, "name", type_name);
+      cst_setattr(applic, "name", type_name);
     } else {
-      cst_setattr((struct Cst*)applic, "name", build_typeName());
+      cst_setattr(applic, "name", build_typeName());
     }
     if (token->klass == Token_DotPrefix) {
       next_token();
@@ -1428,7 +1428,7 @@ build_directApplication(struct Cst* type_name)
         next_token();
         if (token->klass == Token_ParenthOpen) {
           next_token();
-          cst_setattr((struct Cst*)applic, "args", build_argumentList());
+          cst_setattr(applic, "args", build_argumentList());
           if (token->klass == Token_ParenthClose) {
             next_token();
             if (token->klass == Token_Semicolon) {
@@ -1439,13 +1439,13 @@ build_directApplication(struct Cst* type_name)
       } else error("at line %d: `apply` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `.` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: type name was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)applic;
+  return applic;
 }
 
 internal struct Cst*
 build_prefixedNonTypeName()
 {
-  struct Cst_NonTypeName* name = 0;
+  struct Cst* name = 0;
   bool* is_dotprefixed = arena_push(arena, sizeof(bool));
   *is_dotprefixed = false;
   if (token->klass == Token_DotPrefix) {
@@ -1453,26 +1453,26 @@ build_prefixedNonTypeName()
     *is_dotprefixed = true;
   }
   if (token_is_nonTypeName) {
-    name = (struct Cst_NonTypeName*)build_nonTypeName(false);
-    cst_setattr((struct Cst*)name, "is_dotprefixed", is_dotprefixed);
+    name = build_nonTypeName(false);
+    cst_setattr(name, "is_dotprefixed", is_dotprefixed);
   } else error("at line %d: non-type name was expected, ", token->line_nr, token->lexeme);
-  return (struct Cst*)name;
+  return name;
 }
 
 internal struct Cst*
 build_arrayIndex()
 {
-  struct Cst_ArrayIndex* index = new_cst_node(Cst_ArrayIndex, token);
+  struct Cst* index = new_cst_node(Cst_ArrayIndex, token);
   if (token_is_expression(token)) {
-    cst_setattr((struct Cst*)index, "index", build_expression(1));
+    cst_setattr(index, "index", build_expression(1));
   } else error("at line %d: an expression was expected, got `%s`.", token->line_nr, token->lexeme);
   if (token->klass == Token_Colon) {
     next_token();
     if (token_is_expression(token)) {
-      cst_setattr((struct Cst*)index, "colon_index", build_expression(1));
+      cst_setattr(index, "colon_index", build_expression(1));
     } else error("at line %d: an expression was expected, got `%s`.", token->line_nr, token->lexeme);
   }
-  return (struct Cst*)index;
+  return index;
 }
 
 internal struct Cst*
@@ -1483,12 +1483,12 @@ build_lvalueExpr()
     next_token();
     bool* is_dotprefixed = arena_push(arena, sizeof(bool));
     *is_dotprefixed = true;
-    struct Cst_NonTypeName* dot_member = (struct Cst_NonTypeName*)build_name(false);
-    cst_setattr((struct Cst*)dot_member, "is_dotprefixed", is_dotprefixed);
-    expr = (struct Cst*)dot_member;
+    struct Cst* dot_member = build_name(false);
+    cst_setattr(dot_member, "is_dotprefixed", is_dotprefixed);
+    expr = dot_member;
   } else if (token->klass == Token_BracketOpen) {
     next_token();
-    expr = (struct Cst*)build_arrayIndex();
+    expr = build_arrayIndex();
     if (token->klass == Token_BracketClose) {
       next_token();
     } else error("at line %d: `]` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1499,13 +1499,13 @@ build_lvalueExpr()
 internal struct Cst*
 build_lvalue()
 {
-  struct Cst_Lvalue* lvalue = 0;
+  struct Cst* lvalue = 0;
   if (token_is_lvalue(token)) {
     lvalue = new_cst_node(Cst_Lvalue, token);
-    cst_setattr((struct Cst*)lvalue, "name", build_prefixedNonTypeName());
+    cst_setattr(lvalue, "name", build_prefixedNonTypeName());
     if (token->klass == Token_DotPrefix || token->klass == Token_BracketOpen) {
       struct Cst* prev_expr = build_lvalueExpr(); 
-      cst_setattr((struct Cst*)lvalue, "expr", prev_expr);
+      cst_setattr(lvalue, "expr", prev_expr);
       while (token->klass == Token_DotPrefix || token->klass == Token_BracketOpen) {
         struct Cst* next_expr = build_lvalueExpr();
         link_cst_nodes(prev_expr, next_expr);
@@ -1513,7 +1513,7 @@ build_lvalue()
       }
     }
   } else error("at line %d: lvalue was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)lvalue;
+  return lvalue;
 }
 
 internal struct Cst*
@@ -1533,20 +1533,20 @@ build_assignmentOrMethodCallStatement()
     }
     if (token->klass == Token_ParenthOpen) {
       next_token();
-      struct Cst_MethodCallStmt* call_stmt = new_cst_node(Cst_MethodCallStmt, token);
-      cst_setattr((struct Cst*)call_stmt, "lvalue", lvalue);
-      cst_setattr((struct Cst*)call_stmt, "type_args", type_args);
-      cst_setattr((struct Cst*)call_stmt, "args", build_argumentList());
-      stmt = (struct Cst*)call_stmt;
+      struct Cst* call_stmt = new_cst_node(Cst_MethodCallStmt, token);
+      cst_setattr(call_stmt, "lvalue", lvalue);
+      cst_setattr(call_stmt, "type_args", type_args);
+      cst_setattr(call_stmt, "args", build_argumentList());
+      stmt = call_stmt;
       if (token->klass == Token_ParenthClose) {
         next_token();
       } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else if (token->klass == Token_Equal) {
       next_token();
-      struct Cst_AssignmentStmt* assgn_stmt = new_cst_node(Cst_AssignmentStmt, token);
-      cst_setattr((struct Cst*)assgn_stmt, "lvalue", lvalue);
-      cst_setattr((struct Cst*)assgn_stmt, "expr", build_expression(1));
-      stmt = (struct Cst*)assgn_stmt;
+      struct Cst* assgn_stmt = new_cst_node(Cst_AssignmentStmt, token);
+      cst_setattr(assgn_stmt, "lvalue", lvalue);
+      cst_setattr(assgn_stmt, "expr", build_expression(1));
+      stmt = assgn_stmt;
     } else error("at line %d: assignment or function call was expected, got `%s`.", token->line_nr, token->lexeme);
     if (token->klass == Token_Semicolon) {
       next_token();
@@ -1603,7 +1603,7 @@ build_parserStatement()
   } else if (token->klass == Token_Const) {
     stmt = build_constantDeclaration();
   } else if (token->klass == Token_Semicolon) {
-    stmt = (struct Cst*)new_cst_node(Cst_EmptyStmt, token);
+    stmt = new_cst_node(Cst_EmptyStmt, token);
   } else error("at line %d: statement was expected, got `%s`.", token->line_nr, token->lexeme);
   return stmt;
 }
@@ -1633,10 +1633,10 @@ build_simpleKeysetExpression()
     expr = build_expression(1);
   } else if (token->klass == Token_Default) {
     next_token();
-    expr = (struct Cst*)new_cst_node(Cst_Default, token);
+    expr = new_cst_node(Cst_Default, token);
   } else if (token->klass == Token_Dontcare) {
     next_token();
-    expr = (struct Cst*)new_cst_node(Cst_Dontcare, token);
+    expr = new_cst_node(Cst_Dontcare, token);
   } else error("at line %d: keyset expression was expected, got `%s`.", token->line_nr, token->lexeme);
   return expr;
 }
@@ -1677,21 +1677,21 @@ build_keysetExpression()
 internal struct Cst*
 build_selectCase()
 {
-  struct Cst_SelectCase* select_case = 0;
+  struct Cst* select_case = 0;
   if (token_is_keysetExpression(token)) {
     select_case = new_cst_node(Cst_SelectCase, token);
-    cst_setattr((struct Cst*)select_case, "keyset", build_keysetExpression());
+    cst_setattr(select_case, "keyset", build_keysetExpression());
     if (token->klass == Token_Colon) {
       next_token();
       if (token_is_name(token)) {
-        cst_setattr((struct Cst*)select_case, "name", build_name(false));
+        cst_setattr(select_case, "name", build_name(false));
         if (token->klass == Token_Semicolon) {
           next_token();
         } else error("at line %d: `;` expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `:` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: keyset expression was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)select_case;
+  return select_case;
 }
 
 internal struct Cst*
@@ -1713,18 +1713,18 @@ build_selectCaseList()
 internal struct Cst*
 build_selectExpression()
 {
-  struct Cst_SelectExpr* select_expr = 0;
+  struct Cst* select_expr = 0;
   if (token->klass == Token_Select) {
     next_token();
     select_expr = new_cst_node(Cst_SelectExpr, token);
     if (token->klass == Token_ParenthOpen) {
       next_token();
-      cst_setattr((struct Cst*)select_expr, "expr_list", build_expressionList());
+      cst_setattr(select_expr, "expr_list", build_expressionList());
       if (token->klass == Token_ParenthClose) {
         next_token();
         if (token->klass == Token_BraceOpen) {
           next_token();
-          cst_setattr((struct Cst*)select_expr, "case_list", build_selectCaseList());
+          cst_setattr(select_expr, "case_list", build_selectCaseList());
           if (token->klass == Token_BraceClose) {
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1732,7 +1732,7 @@ build_selectExpression()
       } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `(` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `select` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)select_expr;
+  return select_expr;
 }
 
 internal struct Cst*
@@ -1764,21 +1764,21 @@ build_transitionStatement()
 internal struct Cst*
 build_parserState()
 {
-  struct Cst_ParserState* state = 0;
+  struct Cst* state = 0;
   if (token->klass == Token_State) {
     next_token();
     state = new_cst_node(Cst_ParserState, token);
-    cst_setattr((struct Cst*)state, "name", build_name(false));
+    cst_setattr(state, "name", build_name(false));
     if (token->klass == Token_BraceOpen) {
       next_token();
-      cst_setattr((struct Cst*)state, "stmts", build_parserStatements());
-      cst_setattr((struct Cst*)state, "trans_stmt", build_transitionStatement());
+      cst_setattr(state, "stmts", build_parserStatements());
+      cst_setattr(state, "trans_stmt", build_transitionStatement());
       if (token->klass == Token_BraceClose) {
         next_token();
       } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `state` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)state;
+  return state;
 }
 
 internal struct Cst*
@@ -1800,89 +1800,89 @@ build_parserStates()
 internal struct Cst*
 build_parserDeclaration()
 {
-  struct Cst_Parser* decl = 0;
+  struct Cst* decl = 0;
   if (token->klass == Token_Parser) {
     decl = new_cst_node(Cst_Parser, token);
-    cst_setattr((struct Cst*)decl, "type_decl", build_parserTypeDeclaration());
+    cst_setattr(decl, "type_decl", build_parserTypeDeclaration());
     if (token->klass == Token_Semicolon) {
       next_token(); /* <parserTypeDeclaration> */
     } else {
-      cst_setattr((struct Cst*)decl, "ctor_params", build_optConstructorParameters());
+      cst_setattr(decl, "ctor_params", build_optConstructorParameters());
       if (token->klass == Token_BraceOpen) {
         next_token();
-        cst_setattr((struct Cst*)decl, "local_elements", build_parserLocalElements());
-        cst_setattr((struct Cst*)decl, "states", build_parserStates());
+        cst_setattr(decl, "local_elements", build_parserLocalElements());
+        cst_setattr(decl, "states", build_parserStates());
         if (token->klass == Token_BraceClose) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     }
   } else error("at line %d: `parser` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)decl;
+  return decl;
 }
 
 internal struct Cst*
 build_controlTypeDeclaration()
 {
-  struct Cst_ControlType* decl = 0;
+  struct Cst* decl = 0;
   if (token->klass == Token_Control) {
     next_token();
     decl = new_cst_node(Cst_ControlType, token);
     if (token_is_name(token)) {
-      cst_setattr((struct Cst*)decl, "name", build_name(true));
-      cst_setattr((struct Cst*)decl, "type_params", build_optTypeParameters());
+      cst_setattr(decl, "name", build_name(true));
+      cst_setattr(decl, "type_params", build_optTypeParameters());
       if (token->klass == Token_ParenthOpen) {
         next_token();
-        cst_setattr((struct Cst*)decl, "params", build_parameterList());
+        cst_setattr(decl, "params", build_parameterList());
         if (token->klass == Token_ParenthClose) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `(` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `control` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)decl;
+  return decl;
 }
 
 internal struct Cst*
 build_actionDeclaration()
 {
-  struct Cst_ActionDecl* decl = 0;
+  struct Cst* decl = 0;
   if (token->klass == Token_Action) {
     next_token();
     decl = new_cst_node(Cst_ActionDecl, token);
     if (token_is_name(token)) {
-      cst_setattr((struct Cst*)decl, "name", build_name(false));
+      cst_setattr(decl, "name", build_name(false));
       if (token->klass == Token_ParenthOpen) {
         next_token();
-        cst_setattr((struct Cst*)decl, "params", build_parameterList());
+        cst_setattr(decl, "params", build_parameterList());
         if (token->klass == Token_ParenthClose) {
           next_token();
           if (token->klass == Token_BraceOpen) {
-            cst_setattr((struct Cst*)decl, "stmt", build_blockStatement());
+            cst_setattr(decl, "stmt", build_blockStatement());
           } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `(` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `action` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)decl;
+  return decl;
 }
 
 internal struct Cst*
 build_keyElement()
 {
-  struct Cst_KeyElement* key_elem = 0;
+  struct Cst* key_elem = 0;
   if (token_is_expression(token)) {
     key_elem = new_cst_node(Cst_KeyElement, token);
-    cst_setattr((struct Cst*)key_elem, "expr", build_expression(1));
+    cst_setattr(key_elem, "expr", build_expression(1));
     if (token->klass == Token_Colon) {
       next_token();
-      cst_setattr((struct Cst*)key_elem, "name", build_name(false));
+      cst_setattr(key_elem, "name", build_name(false));
       if (token->klass == Token_Semicolon) {
         next_token();
       } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `:` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: an expression was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)key_elem;
+  return key_elem;
 }
 
 internal struct Cst*
@@ -1904,19 +1904,19 @@ build_keyElementList()
 internal struct Cst*
 build_actionRef()
 {
-  struct Cst_ActionRef* ref = 0;
+  struct Cst* ref = 0;
   if (token->klass == Token_DotPrefix || token_is_nonTypeName(token)) {
     ref = new_cst_node(Cst_ActionRef, token);
-    cst_setattr((struct Cst*)ref, "name", build_prefixedNonTypeName());
+    cst_setattr(ref, "name", build_prefixedNonTypeName());
     if (token->klass == Token_ParenthOpen) {
       next_token();
-      cst_setattr((struct Cst*)ref, "args", build_argumentList());
+      cst_setattr(ref, "args", build_argumentList());
       if (token->klass == Token_ParenthClose) {
         next_token();
       } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
     }
   } else error("at line %d: non-type name was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)ref;
+  return ref;
 }
 
 internal struct Cst*
@@ -1944,19 +1944,19 @@ build_actionList()
 internal struct Cst*
 build_entry()
 {
-  struct Cst_TableEntry* entry = 0;
+  struct Cst* entry = 0;
   if (token_is_keysetExpression(token)) {
     entry = new_cst_node(Cst_TableEntry, token);
-    cst_setattr((struct Cst*)entry, "keyset", build_keysetExpression());
+    cst_setattr(entry, "keyset", build_keysetExpression());
     if (token->klass == Token_Colon) {
       next_token();
-      cst_setattr((struct Cst*)entry, "action", build_actionRef());
+      cst_setattr(entry, "action", build_actionRef());
       if (token->klass == Token_Semicolon) {
         next_token();
       } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `:` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: keyset was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)entry;
+  return entry;
 }
 
 internal struct Cst*
@@ -1988,13 +1988,13 @@ build_tableProperty()
     }
     if (token->klass == Token_Key) {
       next_token();
-      struct Cst_TableProp_Key* key_prop = new_cst_node(Cst_TableProp_Key, token);
-      prop = (struct Cst*)key_prop;
+      struct Cst* key_prop = new_cst_node(Cst_TableProp_Key, token);
+      prop = key_prop;
       if (token->klass == Token_Equal) {
         next_token();
         if (token->klass == Token_BraceOpen) {
           next_token();
-          cst_setattr((struct Cst*)key_prop, "keyelem_list", build_keyElementList());
+          cst_setattr(key_prop, "keyelem_list", build_keyElementList());
           if (token->klass == Token_BraceClose) {
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -2002,13 +2002,13 @@ build_tableProperty()
       } else error("at line %d: `=` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else if (token->klass == Token_Actions) {
       next_token();
-      struct Cst_TableProp_Actions* actions_prop = new_cst_node(Cst_TableProp_Actions, token);
-      prop = (struct Cst*)actions_prop;
+      struct Cst* actions_prop = new_cst_node(Cst_TableProp_Actions, token);
+      prop = actions_prop;
       if (token->klass == Token_Equal) {
         next_token();
         if (token->klass == Token_BraceOpen) {
           next_token();
-          cst_setattr((struct Cst*)actions_prop, "action_list", build_actionList());
+          cst_setattr(actions_prop, "action_list", build_actionList());
           if (token->klass == Token_BraceClose) {
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -2016,26 +2016,26 @@ build_tableProperty()
       } else error("at line %d: `=` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else if (token->klass == Token_Entries) {
       next_token();
-      struct Cst_TableProp_Entries* entries_prop = new_cst_node(Cst_TableProp_Entries, token);
-      cst_setattr((struct Cst*)entries_prop, "is_const", is_const);
-      prop = (struct Cst*)entries_prop;
+      struct Cst* entries_prop = new_cst_node(Cst_TableProp_Entries, token);
+      cst_setattr(entries_prop, "is_const", is_const);
+      prop = entries_prop;
       if (token->klass == Token_Equal) {
         next_token();
         if (token->klass == Token_BraceOpen) {
           next_token();
-          cst_setattr((struct Cst*)entries_prop, "entries", build_entriesList());
+          cst_setattr(entries_prop, "entries", build_entriesList());
           if (token->klass == Token_BraceClose) {
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
         } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `=` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else if (token_is_nonTableKwName(token)) {
-      struct Cst_TableProp_SingleEntry* entry_prop = new_cst_node(Cst_TableProp_SingleEntry, token);
-      cst_setattr((struct Cst*)entry_prop, "name", build_name(false));
-      prop = (struct Cst*)entry_prop;
+      struct Cst* entry_prop = new_cst_node(Cst_TableProp_SingleEntry, token);
+      cst_setattr(entry_prop, "name", build_name(false));
+      prop = entry_prop;
       if (token->klass == Token_Equal) {
         next_token();
-        cst_setattr((struct Cst*)entry_prop, "init_expr", build_initializer());
+        cst_setattr(entry_prop, "init_expr", build_initializer());
         if (token->klass == Token_Semicolon) {
           next_token();
         } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -2064,20 +2064,20 @@ build_tablePropertyList()
 internal struct Cst*
 build_tableDeclaration()
 {
-  struct Cst_TableDecl* table = 0;
+  struct Cst* table = 0;
   if (token->klass == Token_Table) {
     next_token();
     table = new_cst_node(Cst_TableDecl, token);
-    cst_setattr((struct Cst*)table, "name", build_name(false));
+    cst_setattr(table, "name", build_name(false));
     if (token->klass == Token_BraceOpen) {
       next_token();
-      cst_setattr((struct Cst*)table, "prop_list", build_tablePropertyList());
+      cst_setattr(table, "prop_list", build_tablePropertyList());
       if (token->klass == Token_BraceClose) {
         next_token();
       } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `table` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)table;
+  return table;
 }
 
 internal struct Cst*
@@ -2120,20 +2120,20 @@ build_controlLocalDeclarations()
 internal struct Cst*
 build_controlDeclaration()
 {
-  struct Cst_Control* decl = 0;
+  struct Cst* decl = 0;
   if (token->klass == Token_Control) {
     decl = new_cst_node(Cst_Control, token);
-    cst_setattr((struct Cst*)decl, "type_decl", build_controlTypeDeclaration());
+    cst_setattr(decl, "type_decl", build_controlTypeDeclaration());
     if (token->klass == Token_Semicolon) {
       next_token(); /* <controlTypeDeclaration> */
     } else {
-      cst_setattr((struct Cst*)decl, "ctor_params", build_optConstructorParameters());
+      cst_setattr(decl, "ctor_params", build_optConstructorParameters());
       if (token->klass == Token_BraceOpen) {
         next_token();
-        cst_setattr((struct Cst*)decl, "local_decls", build_controlLocalDeclarations());
+        cst_setattr(decl, "local_decls", build_controlLocalDeclarations());
         if (token->klass == Token_Apply) {
           next_token();
-          cst_setattr((struct Cst*)decl, "apply_stmt", build_blockStatement());
+          cst_setattr(decl, "apply_stmt", build_blockStatement());
           if (token->klass == Token_BraceClose) {
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -2141,29 +2141,29 @@ build_controlDeclaration()
       } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
     }
   } else error("at line %d: `control` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)decl;
+  return decl;
 }
 
 internal struct Cst*
 build_packageTypeDeclaration()
 {
-  struct Cst_Package* decl = 0;
+  struct Cst* decl = 0;
   if (token->klass == Token_Package) {
     next_token();
     decl = new_cst_node(Cst_Package, token);
     if (token_is_name(token)) {
-      cst_setattr((struct Cst*)decl, "name", build_name(true));
-      cst_setattr((struct Cst*)decl, "type_params", build_optTypeParameters());
+      cst_setattr(decl, "name", build_name(true));
+      cst_setattr(decl, "type_params", build_optTypeParameters());
       if (token->klass == Token_ParenthOpen) {
         next_token();
-        cst_setattr((struct Cst*)decl, "params", build_parameterList());
+        cst_setattr(decl, "params", build_parameterList());
         if (token->klass == Token_ParenthClose) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `(` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `package` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)decl;
+  return decl;
 }
 
 internal struct Cst*
@@ -2181,17 +2181,17 @@ build_typedefDeclaration()
     } else assert(0);
 
     if (token_is_typeRef(token) || token_is_derivedTypeDeclaration(token)) {
-      struct Cst_TypeDecl* type_decl = new_cst_node(Cst_TypeDecl, token);
-      cst_setattr((struct Cst*)type_decl, "is_typedef", is_typedef);
-      decl = (struct Cst*)type_decl;
+      struct Cst* type_decl = new_cst_node(Cst_TypeDecl, token);
+      cst_setattr(type_decl, "is_typedef", is_typedef);
+      decl = type_decl;
       if (token_is_typeRef(token)) {
-        cst_setattr((struct Cst*)type_decl, "type_ref", build_typeRef());
+        cst_setattr(type_decl, "type_ref", build_typeRef());
       } else if (token_is_derivedTypeDeclaration(token)) {
-        cst_setattr((struct Cst*)type_decl, "type_ref", build_derivedTypeDeclaration());
+        cst_setattr(type_decl, "type_ref", build_derivedTypeDeclaration());
       } else assert(0);
 
       if (token_is_name(token)) {
-        cst_setattr((struct Cst*)type_decl, "name", build_name(true));
+        cst_setattr(type_decl, "name", build_name(true));
         if (token->klass == Token_Semicolon) {
           next_token();
         } else error("at line %d: `;` expected, got `%s`.", token->line_nr, token->lexeme);
@@ -2229,22 +2229,22 @@ build_typeDeclaration()
 internal struct Cst*
 build_conditionalStatement()
 {
-  struct Cst_IfStmt* if_stmt = 0;
+  struct Cst* if_stmt = 0;
   if (token->klass == Token_If) {
     next_token();
     if_stmt = new_cst_node(Cst_IfStmt, token);
     if (token->klass == Token_ParenthOpen) {
       next_token();
       if (token_is_expression(token)) {
-        cst_setattr((struct Cst*)if_stmt, "cond_expr", build_expression(1));
+        cst_setattr(if_stmt, "cond_expr", build_expression(1));
         if (token->klass == Token_ParenthClose) {
           next_token();
           if (token_is_statement(token)) {
-            cst_setattr((struct Cst*)if_stmt, "stmt", build_statement(0));
+            cst_setattr(if_stmt, "stmt", build_statement(0));
             if (token->klass == Token_Else) {
               next_token();
               if (token_is_statement(token)) {
-                cst_setattr((struct Cst*)if_stmt, "else_stmt", build_statement(0));
+                cst_setattr(if_stmt, "else_stmt", build_statement(0));
               } else error("at line %d: statement was expected, got `%s`.", token->line_nr, token->lexeme);
             }
           } else error("at line %d: statement was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -2252,13 +2252,13 @@ build_conditionalStatement()
       } else error("at line %d: an expression was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `(` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `if` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)if_stmt;
+  return if_stmt;
 }
 
 internal struct Cst*
 build_exitStatement()
 {
-  struct Cst_ExitStmt* exit_stmt = 0;
+  struct Cst* exit_stmt = 0;
   if (token->klass == Token_Exit) {
     next_token();
     exit_stmt = new_cst_node(Cst_ExitStmt, token);
@@ -2266,23 +2266,23 @@ build_exitStatement()
       next_token();
     } else error("at line %d: `;` expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `exit` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)exit_stmt;
+  return exit_stmt;
 }
 
 internal struct Cst*
 build_returnStatement()
 {
-  struct Cst_ReturnStmt* ret_stmt = 0;
+  struct Cst* ret_stmt = 0;
   if (token->klass == Token_Return) {
     next_token();
     ret_stmt = new_cst_node(Cst_ReturnStmt, token);
     if (token_is_expression(token))
-      cst_setattr((struct Cst*)ret_stmt, "expr", build_expression(1));
+      cst_setattr(ret_stmt, "expr", build_expression(1));
     if (token->klass == Token_Semicolon) {
       next_token();
     } else error("at line %d: `;` expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `return` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)ret_stmt;
+  return ret_stmt;
 }
 
 internal struct Cst*
@@ -2290,31 +2290,31 @@ build_switchLabel()
 {
   struct Cst* label = 0;
   if (token_is_name(token)) {
-    struct Cst_SwitchLabel* name_label = new_cst_node(Cst_SwitchLabel, token);
-    label = (struct Cst*)name_label;
-    cst_setattr((struct Cst*)name_label, "name", build_name(false));
+    struct Cst* name_label = new_cst_node(Cst_SwitchLabel, token);
+    label = name_label;
+    cst_setattr(name_label, "name", build_name(false));
   } else if (token->klass == Token_Default) {
     next_token();
-    label = (struct Cst*)new_cst_node(Cst_Default, token);
+    label = new_cst_node(Cst_Default, token);
   } else error("at line %d: switch label was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)label;
+  return label;
 }
 
 internal struct Cst*
 build_switchCase()
 {
-  struct Cst_SwitchCase* switch_case = 0;
+  struct Cst* switch_case = 0;
   if (token_is_switchLabel(token)) {
     switch_case = new_cst_node(Cst_SwitchCase, token);
-    cst_setattr((struct Cst*)switch_case, "label", build_switchLabel());
+    cst_setattr(switch_case, "label", build_switchLabel());
     if (token->klass == Token_Colon) {
       next_token();
       if (token->klass == Token_BraceOpen) {
-        cst_setattr((struct Cst*)switch_case, "stmt", build_blockStatement());
+        cst_setattr(switch_case, "stmt", build_blockStatement());
       }
     } else error("at line %d: `:` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: switch label was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)switch_case;
+  return switch_case;
 }
 
 internal struct Cst*
@@ -2336,18 +2336,18 @@ build_switchCases()
 internal struct Cst*
 build_switchStatement()
 {
-  struct Cst_SwitchStmt* stmt = 0;
+  struct Cst* stmt = 0;
   if (token->klass == Token_Switch) {
     next_token();
     stmt = new_cst_node(Cst_SwitchStmt, token);
     if (token->klass == Token_ParenthOpen) {
       next_token();
-      cst_setattr((struct Cst*)stmt, "expr", build_expression(1));
+      cst_setattr(stmt, "expr", build_expression(1));
       if (token->klass == Token_ParenthClose) {
         next_token();
         if (token->klass == Token_BraceOpen) {
           next_token();
-          cst_setattr((struct Cst*)stmt, "switch_cases", build_switchCases());
+          cst_setattr(stmt, "switch_cases", build_switchCases());
           if (token->klass == Token_BraceClose) {
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -2355,7 +2355,7 @@ build_switchStatement()
       } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `(` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `switch` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)stmt;
+  return stmt;
 }
 
 internal struct Cst*
@@ -2370,7 +2370,7 @@ build_statement(struct Cst* type_name)
     stmt = build_conditionalStatement();
   } else if (token->klass == Token_Semicolon) {
     next_token();
-    stmt = (struct Cst*)new_cst_node(Cst_EmptyStmt, token);
+    stmt = new_cst_node(Cst_EmptyStmt, token);
   } else if (token->klass == Token_BraceOpen) {
     stmt = build_blockStatement();
   } else if (token->klass == Token_Exit) {
@@ -2425,16 +2425,16 @@ build_statementOrDeclList()
 internal struct Cst*
 build_blockStatement()
 {
-  struct Cst_BlockStmt* stmt = 0;
+  struct Cst* stmt = 0;
   if (token->klass == Token_BraceOpen) {
     next_token();
     stmt = new_cst_node(Cst_BlockStmt, token);
-    cst_setattr((struct Cst*)stmt, "stmt_list", build_statementOrDeclList());
+    cst_setattr(stmt, "stmt_list", build_statementOrDeclList());
     if (token->klass == Token_BraceClose) {
       next_token();
     } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)stmt;
+  return stmt;
 }
 
 internal struct Cst*
@@ -2457,55 +2457,55 @@ build_identifierList()
 internal struct Cst*
 build_errorDeclaration()
 {
-  struct Cst_Error* decl = 0;
+  struct Cst* decl = 0;
   if (token->klass == Token_Error) {
     next_token();
     decl = new_cst_node(Cst_Error, token);
     if (token->klass == Token_BraceOpen) {
       next_token();
       if (token_is_name(token)) {
-        cst_setattr((struct Cst*)decl, "id_list", build_identifierList());
+        cst_setattr(decl, "id_list", build_identifierList());
         if (token->klass == Token_BraceClose) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `error` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)decl;
+  return decl;
 }
 
 internal struct Cst*
 build_matchKindDeclaration()
 {
-  struct Cst_MatchKind* decl = 0;
+  struct Cst* decl = 0;
   if (token->klass == Token_MatchKind) {
     next_token();
     decl = new_cst_node(Cst_MatchKind, token);
     if (token->klass == Token_BraceOpen) {
       next_token();
       if (token_is_name(token)) {
-        cst_setattr((struct Cst*)decl, "id_list", build_identifierList());
+        cst_setattr(decl, "id_list", build_identifierList());
         if (token->klass == Token_BraceClose) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: `match_kind` was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)decl;
+  return decl;
 }
 
 internal struct Cst*
 build_functionDeclaration(struct Cst* type_ref)
 {
-  struct Cst_FunctionDecl* decl = 0;
+  struct Cst* decl = 0;
   if (token_is_typeOrVoid(token)) {
     decl = new_cst_node(Cst_FunctionDecl, token);
-    cst_setattr((struct Cst*)decl, "proto", build_functionPrototype(type_ref));
+    cst_setattr(decl, "proto", build_functionPrototype(type_ref));
     if (token->klass == Token_BraceOpen) {
-      cst_setattr((struct Cst*)decl, "stmt", build_blockStatement());
+      cst_setattr(decl, "stmt", build_blockStatement());
     } else error("at line %d: `{` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Cst*)decl;
+  return decl;
 }
 
 internal struct Cst*
@@ -2543,9 +2543,9 @@ build_declaration()
 internal struct Cst*
 build_p4program()
 {
-  struct Cst_P4Program* prog = new_cst_node(Cst_P4Program, token);
-  struct Cst_EmptyStmt sentinel_decl = {};
-  struct Cst* prev_decl = (struct Cst*)&sentinel_decl;
+  struct Cst* prog = new_cst_node(Cst_P4Program, token);
+  struct Cst sentinel_decl = {};
+  struct Cst* prev_decl = &sentinel_decl;
   while (token_is_declaration(token) || token->klass == Token_Semicolon) {
     if (token_is_declaration(token)) {
       struct Cst* next_decl = build_declaration();
@@ -2557,11 +2557,11 @@ build_p4program()
   }
   struct Cst* first_decl = sentinel_decl.next_node;
   first_decl->prev_node = 0;
-  cst_setattr((struct Cst*)prog, "decl_list", first_decl);
+  cst_setattr(prog, "decl_list", first_decl);
   if (token->klass != Token_EndOfInput_) {
     error("at line %d: unexpected token `%s`.", token->line_nr, token->lexeme);
   }
-  return (struct Cst*)prog;
+  return prog;
 }
 
 internal bool
@@ -2602,7 +2602,7 @@ build_realTypeArg()
   struct Cst* arg = 0;
   if (token->klass == Token_Dontcare) {
     next_token();
-    arg = (struct Cst*)new_cst_node(Cst_Dontcare, token);
+    arg = new_cst_node(Cst_Dontcare, token);
   } else if (token_is_typeRef(token)) {
     arg = build_typeRef();
   } else error("at line %d: type argument was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -2644,33 +2644,33 @@ build_expressionPrimary()
       bool* is_dotprefixed = arena_push(arena, sizeof(bool));
       *is_dotprefixed = true;
       if (token->klass == Token_Identifier) {
-        struct Cst_NonTypeName* name = (struct Cst_NonTypeName*)build_nonTypeName(false);
-        cst_setattr((struct Cst*)name, "is_dotprefixed", is_dotprefixed);
-        primary = (struct Cst*)name;
+        struct Cst* name = build_nonTypeName(false);
+        cst_setattr(name, "is_dotprefixed", is_dotprefixed);
+        primary = name;
       } else if (token->klass == Token_TypeIdentifier) {
-        struct Cst_TypeName* name = (struct Cst_TypeName*)build_typeName(false);
-        cst_setattr((struct Cst*)name, "is_dotprefixed", is_dotprefixed);
-        primary = (struct Cst*)name;
+        struct Cst* name = build_typeName(false);
+        cst_setattr(name, "is_dotprefixed", is_dotprefixed);
+        primary = name;
       } else error("at line %d: unexpected token `%s`.", token->line_nr, token->lexeme);
     } else if (token_is_nonTypeName(token)) {
       primary = build_nonTypeName(false);
     } else if (token->klass == Token_BraceOpen) {
       next_token();
-      struct Cst_ExpressionListExpr* expr_list = new_cst_node(Cst_ExpressionListExpr, token);
-      cst_setattr((struct Cst*)expr_list, "expr_list", build_expressionList());
-      primary = (struct Cst*)expr_list;
+      struct Cst* expr_list = new_cst_node(Cst_ExpressionListExpr, token);
+      cst_setattr(expr_list, "expr_list", build_expressionList());
+      primary = expr_list;
       if (token->klass == Token_BraceClose) {
         next_token();
       } else error("at line %d: `}` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else if (token->klass == Token_ParenthOpen) {
       next_token();
       if (token_is_typeRef(token)) {
-        struct Cst_CastExpr* cast = new_cst_node(Cst_CastExpr, token);
-        cst_setattr((struct Cst*)cast, "to_type", build_typeRef());
-        primary = (struct Cst*)cast;
+        struct Cst* cast = new_cst_node(Cst_CastExpr, token);
+        cst_setattr(cast, "to_type", build_typeRef());
+        primary = cast;
         if (token->klass == Token_ParenthClose) {
           next_token();
-          cst_setattr((struct Cst*)cast, "expr", build_expression(1));
+          cst_setattr(cast, "expr", build_expression(1));
         } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else if (token_is_expression(token)) {
         primary = build_expression(1);
@@ -2680,35 +2680,35 @@ build_expressionPrimary()
       } else error("at line %d: an expression was expected, got `%s`.", token->line_nr, token->lexeme);
     } else if (token->klass == Token_Exclamation) {
       next_token();
-      struct Cst_UnaryExpr* unary_expr = new_cst_node(Cst_UnaryExpr, token);
+      struct Cst* unary_expr = new_cst_node(Cst_UnaryExpr, token);
       enum AstExprOperator* op = arena_push(arena, sizeof(enum AstExprOperator));
       *op = AstUnOp_LogNot;
-      cst_setattr((struct Cst*)unary_expr, "op", op);
-      cst_setattr((struct Cst*)unary_expr, "expr", build_expression(1));
-      primary = (struct Cst*)unary_expr;
+      cst_setattr(unary_expr, "op", op);
+      cst_setattr(unary_expr, "expr", build_expression(1));
+      primary = unary_expr;
     } else if (token->klass == Token_Tilda) {
       next_token();
-      struct Cst_UnaryExpr* unary_expr = new_cst_node(Cst_UnaryExpr, token);
+      struct Cst* unary_expr = new_cst_node(Cst_UnaryExpr, token);
       enum AstExprOperator* op = arena_push(arena, sizeof(enum AstExprOperator));
       *op = AstUnOp_BitNot;
-      cst_setattr((struct Cst*)unary_expr, "op", op);
-      cst_setattr((struct Cst*)unary_expr, "expr", build_expression(1));
-      primary = (struct Cst*)unary_expr;
+      cst_setattr(unary_expr, "op", op);
+      cst_setattr(unary_expr, "expr", build_expression(1));
+      primary = unary_expr;
     } else if (token->klass == Token_UnaryMinus) {
       next_token();
-      struct Cst_UnaryExpr* unary_expr = new_cst_node(Cst_UnaryExpr, token);
+      struct Cst* unary_expr = new_cst_node(Cst_UnaryExpr, token);
       enum AstExprOperator* op = arena_push(arena, sizeof(enum AstExprOperator));
       *op = AstUnOp_ArMinus;
-      cst_setattr((struct Cst*)unary_expr, "op", op);
-      cst_setattr((struct Cst*)unary_expr, "expr", build_expression(1));
-      primary = (struct Cst*)unary_expr;
+      cst_setattr(unary_expr, "op", op);
+      cst_setattr(unary_expr, "expr", build_expression(1));
+      primary = unary_expr;
     } else if (token_is_typeName(token)) {
       primary = build_typeName();
     } else if (token->klass == Token_Error) {
       next_token();
-      struct Cst_NonTypeName* name = new_cst_node(Cst_NonTypeName, token);
-      cst_setattr((struct Cst*)name, "name", token->lexeme);
-      primary = (struct Cst*)name;
+      struct Cst* name = new_cst_node(Cst_NonTypeName, token);
+      cst_setattr(name, "name", token->lexeme);
+      primary = name;
     } else assert(0);
   } else error("at line %d: an expression was expected, got `%s`.", token->line_nr, token->lexeme);
   return primary;
@@ -2794,60 +2794,60 @@ build_expression(int priority_threshold)
     while (token_is_exprOperator(token)) {
       if (token->klass == Token_DotPrefix) {
         next_token();
-        struct Cst_MemberSelectExpr* select_expr = new_cst_node(Cst_MemberSelectExpr, token);
-        cst_setattr((struct Cst*)select_expr, "expr", expr);
-        expr = (struct Cst*)select_expr;
+        struct Cst* select_expr = new_cst_node(Cst_MemberSelectExpr, token);
+        cst_setattr(select_expr, "expr", expr);
+        expr = select_expr;
         if (token_is_name(token)) {
-          cst_setattr((struct Cst*)select_expr, "member_name", build_name(false));
+          cst_setattr(select_expr, "member_name", build_name(false));
         } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
       }
       else if (token->klass == Token_BracketOpen) {
         next_token();
-        struct Cst_IndexedArrayExpr* index_expr = new_cst_node(Cst_IndexedArrayExpr, token);
-        cst_setattr((struct Cst*)index_expr, "expr", expr);
-        cst_setattr((struct Cst*)index_expr, "index_expr", build_arrayIndex());
-        expr = (struct Cst*)index_expr;
+        struct Cst* index_expr = new_cst_node(Cst_IndexedArrayExpr, token);
+        cst_setattr(index_expr, "expr", expr);
+        cst_setattr(index_expr, "index_expr", build_arrayIndex());
+        expr = index_expr;
         if (token->klass == Token_BracketClose) {
           next_token();
         } else error("at line %d: `]` was expected, got `%s`.", token->line_nr, token->lexeme);
       }
       else if (token->klass == Token_ParenthOpen) {
         next_token();
-        struct Cst_FunctionCallExpr* call_expr = new_cst_node(Cst_FunctionCallExpr, token);
-        cst_setattr((struct Cst*)call_expr, "expr", expr);
-        cst_setattr((struct Cst*)call_expr, "args", build_argumentList());
-        expr = (struct Cst*)call_expr;
+        struct Cst* call_expr = new_cst_node(Cst_FunctionCallExpr, token);
+        cst_setattr(call_expr, "expr", expr);
+        cst_setattr(call_expr, "args", build_argumentList());
+        expr = call_expr;
         if (token->klass == Token_ParenthClose) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
       }
       else if (token->klass == Token_AngleOpen && token_is_realTypeArg(peek_token())) {
         next_token();
-        struct Cst_TypeArgsExpr* args_expr = new_cst_node(Cst_TypeArgsExpr, token);
-        cst_setattr((struct Cst*)args_expr, "expr", expr);
-        cst_setattr((struct Cst*)args_expr, "type_args", build_realTypeArgumentList());
-        expr = (struct Cst*)args_expr;
+        struct Cst* args_expr = new_cst_node(Cst_TypeArgsExpr, token);
+        cst_setattr(args_expr, "expr", expr);
+        cst_setattr(args_expr, "type_args", build_realTypeArgumentList());
+        expr = args_expr;
         if (token->klass == Token_AngleClose) {
           next_token();
         } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else if (token->klass == Token_Equal) {
         next_token();
-        struct Cst_KvPair* kv_pair = new_cst_node(Cst_KvPair, token);
-        cst_setattr((struct Cst*)kv_pair, "name", expr);
-        cst_setattr((struct Cst*)kv_pair, "expr", build_expression(1));
-        expr = (struct Cst*)kv_pair;
+        struct Cst* kv_pair = new_cst_node(Cst_KvPair, token);
+        cst_setattr(kv_pair, "name", expr);
+        cst_setattr(kv_pair, "expr", build_expression(1));
+        expr = kv_pair;
       }
       else if (token_is_binaryOperator(token)){
         int priority = get_operator_priority(token);
         if (priority >= priority_threshold) {
-          struct Cst_BinaryExpr* bin_expr = new_cst_node(Cst_BinaryExpr, token);
-          cst_setattr((struct Cst*)bin_expr, "left_operand", expr);
+          struct Cst* bin_expr = new_cst_node(Cst_BinaryExpr, token);
+          cst_setattr(bin_expr, "left_operand", expr);
           enum AstExprOperator* op = arena_push(arena, sizeof(enum AstExprOperator));
           *op = token_to_binop(token);
-          cst_setattr((struct Cst*)bin_expr, "op", op);
+          cst_setattr(bin_expr, "op", op);
           next_token();
-          cst_setattr((struct Cst*)bin_expr, "right_operand", build_expression(priority + 1));
-          expr = (struct Cst*)bin_expr;
+          cst_setattr(bin_expr, "right_operand", build_expression(priority + 1));
+          expr = bin_expr;
         } else break;
       } else assert(0);
     }
@@ -2917,7 +2917,7 @@ build_CstTree(struct TokenSequence* tksequence)
   token = tokens;
   next_token();
   cst_tree = arena_push(arena, sizeof(struct CstTree));
-  cst_tree->p4program = (struct Cst*)build_p4program();
+  cst_tree->p4program = build_p4program();
   cst_tree->arena = arena;
   return *cst_tree;
 }
