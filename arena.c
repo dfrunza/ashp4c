@@ -1,5 +1,7 @@
 #include "arena.h"
 
+#define DEBUG_ENABLED 0
+
 internal int DEFAULT_SIZE_KB = 8*KILOBYTE;
 
 void*
@@ -38,7 +40,9 @@ arena_free(struct Arena* arena)
     if (!at_arena.prev) break;
     at_arena = prev_save;
   }
-  printf("\nfreed a total of %d bytes, in %d arenas.\n", usage.total, arena_count);
+  if (DEBUG_ENABLED) {
+    printf("\nfreed a total of %d bytes, in %d arenas.\n", usage.total, arena_count);
+  }
 }
 
 struct ArenaUsage

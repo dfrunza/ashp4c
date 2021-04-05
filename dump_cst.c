@@ -33,8 +33,6 @@ cst_kind_to_string(enum CstKind kind)
       return "Cst_ConstDecl";
     case Cst_ExternDecl:
       return "Cst_ExternDecl";
-    case Cst_Constructor:
-      return "Cst_Constructor";
     case Cst_FunctionProto:
       return "Cst_FunctionProto";
     case Cst_ActionDecl:
@@ -91,8 +89,6 @@ cst_kind_to_string(enum CstKind kind)
       return "Cst_DirectApplic";
     case Cst_ArrayIndex:
       return "Cst_ArrayIndex";
-    case Cst_ParamDir:
-      return "Cst_ParamDir";
     case Cst_Parameter:
       return "Cst_Parameter";
     case Cst_Lvalue:
@@ -391,12 +387,19 @@ dump_Parameter(struct Cst_Parameter* param)
 {
   object_start();
   print_prop_common((struct Cst*)param);
-  print_prop("direction", Value_Ref, param->direction);
+  char* dir_str = "CstDir_None";
+  if (param->direction == AstParamDir_In) {
+    dir_str = "AstParamDir_In";
+  } else if (param->direction == AstParamDir_Out) {
+    dir_str = "AstParamDir_Out";
+  } else if (param->direction == AstParamDir_InOut) {
+    dir_str = "AstParamDir_InOut";
+  } else assert(param->direction == AstParamDir_None);
+  print_prop("direction", Value_String, dir_str);
   print_prop("type", Value_Ref, param->type);
   print_prop("name", Value_Ref, param->name);
   print_prop("init_expr", Value_Ref, param->init_expr);
   object_end();
-  dump_Cst(param->direction);
   dump_Cst(param->type);
   dump_Cst(param->name);
   dump_Cst(param->init_expr);
@@ -472,23 +475,6 @@ dump_Int(struct Cst_Int* node)
 }
 
 internal void
-dump_ParamDir(struct Cst_ParamDir* dir)
-{
-  object_start();
-  print_prop_common((struct Cst*)dir);
-  char* dir_str = "CstDir_None";
-  if (dir->dir_kind == AstDir_In) {
-    dir_str = "AstDir_In";
-  } else if (dir->dir_kind == AstDir_Out) {
-    dir_str = "AstDir_Out";
-  } else if (dir->dir_kind == AstDir_InOut) {
-    dir_str = "AstDir_InOut";
-  } else assert(dir->dir_kind == AstDir_None);
-  print_prop("dir", Value_String, dir_str);
-  object_end();
-}
-
-internal void
 dump_BaseType(struct Cst_BaseType* type)
 {
   object_start();
@@ -526,16 +512,6 @@ dump_ExternDecl(struct Cst_ExternDecl* decl)
   dump_Cst(decl->name);
   dump_Cst(decl->type_params);
   dump_Cst(decl->method_protos);
-}
-
-internal void
-dump_Constructor(struct Cst_Constructor* ctor)
-{
-  object_start();
-  print_prop_common((struct Cst*)ctor);
-  print_prop("params", Value_Ref, ctor->params);
-  object_end();
-  dump_Cst(ctor->params);
 }
 
 internal void
@@ -1112,14 +1088,10 @@ dump_Cst(struct Cst* cst)
       dump_Lvalue((struct Cst_Lvalue*)cst);
     } else if (cst->kind == Cst_Int) {
       dump_Int((struct Cst_Int*)cst);
-    } else if (cst->kind == Cst_ParamDir) {
-      dump_ParamDir((struct Cst_ParamDir*)cst);
     } else if (cst->kind == Cst_BaseType) {
       dump_BaseType((struct Cst_BaseType*)cst);
     } else if (cst->kind == Cst_ExternDecl) {
       dump_ExternDecl((struct Cst_ExternDecl*)cst);
-    } else if (cst->kind == Cst_Constructor) {
-      dump_Constructor((struct Cst_Constructor*)cst);
     } else if (cst->kind == Cst_FunctionProto) {
       dump_FunctionProto((struct Cst_FunctionProto*)cst);
     } else if (cst->kind == Cst_FunctionDecl) {

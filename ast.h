@@ -33,11 +33,11 @@ enum AstExprOperator {
   AstUnOp_ArMinus,
 };
 
-enum AstParamDirKind {
-  AstDir_None,
-  AstDir_In,
-  AstDir_Out,
-  AstDir_InOut,
+enum AstParamDirection {
+  AstParamDir_None,
+  AstParamDir_In,
+  AstParamDir_Out,
+  AstParamDir_InOut,
 };
 
 enum AstKind {
@@ -53,6 +53,7 @@ enum AstKind {
   Ast_ActionDecl,
   Ast_TypeDecl,
   Ast_ExternDecl,
+  Ast_Parameter,
   Ast_FunctionProto,
   Ast_FunctionDecl,
   Ast_ControlType,
@@ -61,6 +62,7 @@ enum AstKind {
   Ast_Parser,
   Ast_HeaderDecl,
   Ast_HeaderUnionDecl,
+  Ast_StructField,
   Ast_StructDecl,
   Ast_Instantiation,
   Ast_Package,
@@ -111,10 +113,12 @@ struct Ast_SpecdType {
 
 struct Ast_Error {
   struct Ast;
+  struct List id_list;
 };
 
 struct Ast_MatchKind {
   struct Ast;
+  struct List id_list;
 };
 
 struct Ast_EnumDecl {
@@ -142,12 +146,24 @@ struct Ast_TypeDecl {
 struct Ast_ExternDecl {
   struct Ast;
   char* name;
+  struct List type_params;
+  struct List method_protos;
+};
+
+struct Ast_Parameter {
+  struct Ast;
+  char* name;
+  enum AstParamDirection direction;
+  struct Ast* type;
+  struct Ast* init_expr;
 };
 
 struct Ast_FunctionProto {
   struct Ast;
   char* name;
   struct Ast* return_type;
+  struct List type_params;
+  struct List params;
 };
 
 struct Ast_FunctionDecl {
@@ -168,6 +184,8 @@ struct Ast_Control {
 struct Ast_ParserType {
   struct Ast;
   char* name;
+  struct List type_params;
+  struct List params;
 };
 
 struct Ast_Parser {
@@ -178,6 +196,7 @@ struct Ast_Parser {
 struct Ast_HeaderDecl {
   struct Ast;
   char* name;
+  struct List fields;
 };
 
 struct Ast_HeaderUnionDecl {
@@ -185,9 +204,16 @@ struct Ast_HeaderUnionDecl {
   char* name;
 };
 
+struct Ast_StructField {
+  struct Ast;
+  char* name;
+  struct Ast* type;
+};
+
 struct Ast_StructDecl {
   struct Ast;
   char* name;
+  struct List fields;
 };
 
 struct Ast_Instantiation {

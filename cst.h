@@ -6,12 +6,9 @@ enum CstKind {
   Cst_None,
   Cst_NonTypeName,
   Cst_TypeName,
-  //Cst_PrefixedTypeName,
   Cst_BaseType,
-  //Cst_DotPrefixedName,
   Cst_ConstDecl,
   Cst_ExternDecl,
-  Cst_Constructor,
   Cst_FunctionProto,
   Cst_ActionDecl,
   Cst_HeaderDecl,
@@ -41,7 +38,6 @@ enum CstKind {
   Cst_VarDecl,
   Cst_DirectApplic,
   Cst_ArrayIndex,
-  Cst_ParamDir,
   Cst_Parameter,
   Cst_Lvalue,
   Cst_AssignmentStmt,
@@ -109,21 +105,6 @@ struct Cst_TypeName {
   char* name;
 };
 
-/*
-struct Cst_DotPrefixedName {
-  struct Cst;
-  struct Cst* name;
-};
-*/
-
-/*
-struct Cst_PrefixedTypeName {
-  struct Cst;
-  struct Cst_TypeName* first_name;
-  struct Cst_TypeName* second_name;
-};
-*/
-
 struct Cst_BaseType {
   struct Cst;
   enum CstBaseTypeKind base_type;
@@ -142,11 +123,6 @@ struct Cst_ExternDecl {
   struct Cst* name;
   struct Cst* type_params;
   struct Cst* method_protos;
-};
-
-struct Cst_Constructor {
-  struct Cst;
-  struct Cst* params;
 };
 
 struct Cst_FunctionProto {
@@ -242,14 +218,9 @@ struct Cst_FunctionDecl {
   struct Cst* stmt;
 };
 
-struct Cst_ParamDir {
-  struct Cst;
-  enum AstParamDirKind dir_kind;
-};
-
 struct Cst_Parameter {
   struct Cst;
-  struct Cst* direction;
+  enum AstParamDirection direction;
   struct Cst* type;
   struct Cst* name;
   struct Cst* init_expr;

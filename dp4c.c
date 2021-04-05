@@ -5,7 +5,7 @@
 #include "build_ast.h"
 #include <sys/stat.h>
 
-#define DEBUG_ENABLED 1
+#define DEBUG_ENABLED 0
 
 internal struct Arena arena = {};
 

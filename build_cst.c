@@ -51,14 +51,20 @@ internal struct Cst* build_blockStatement();
 internal struct Cst* build_statement(struct Cst* type_name);
 internal struct Cst* build_parserStatement();
 
+internal void
+init_cst_node(struct Cst* cst, struct Token* token)
+{
+  cst->id = node_id++;
+  cst->line_nr = token->line_nr;
+  cst_tree->node_count += 1;
+}
+
 #define new_cst_node(type, token) ({ \
-  struct type* node = arena_push(arena, sizeof(struct type)); \
-  *node = (struct type){}; \
-  node->kind = type; \
-  node->id = node_id++; \
-  node->line_nr = token->line_nr; \
-  cst_tree->node_count += 1; \
-  node; })
+  struct type* cst = arena_push(arena, sizeof(struct type)); \
+  *cst = (struct type){}; \
+  cst->kind = type; \
+  init_cst_node((struct Cst*)cst, token); \
+  cst; })
 
 internal void
 link_cst_nodes(struct Cst* node_a, struct Cst* node_b)
@@ -443,25 +449,24 @@ build_typeArg()
 internal bool
 token_is_methodPrototype(struct Token* token)
 {
-  return token_is_typeOrVoid(token) | token->klass == Token_TypeIdentifier;
+  return token_is_typeOrVoid(token) || token->klass == Token_TypeIdentifier;
 }
 
-internal struct Cst*
+internal enum AstParamDirection
 build_direction()
 {
-  struct Cst_ParamDir* dir = 0;
+  enum AstParamDirection dir = AstParamDir_None;
   if (token_is_direction(token)) {
-    dir = new_cst_node(Cst_ParamDir, token);
     if (token->klass == Token_In) {
-      dir->dir_kind = AstDir_In;
+      dir = AstParamDir_In;
     } else if (token->klass == Token_Out) {
-      dir->dir_kind = AstDir_Out;
+      dir = AstParamDir_Out;
     } else if (token->klass == Token_InOut) {
-      dir->dir_kind = AstDir_InOut;
+      dir = AstParamDir_InOut;
     } else assert(0);
     next_token();
   }
-  return (struct Cst*)dir;
+  return dir;
 }
 
 internal struct Cst*
@@ -555,27 +560,27 @@ build_functionPrototype(struct Cst* type_ref)
 internal struct Cst*
 build_methodPrototype()
 {
-  struct Cst* proto = 0;
+  struct Cst_FunctionProto* proto = 0;
   if (token_is_methodPrototype(token)) {
     if (token->klass == Token_TypeIdentifier && peek_token()->klass == Token_ParenthOpen) {
-      struct Cst_Constructor* ctor = new_cst_node(Cst_Constructor, token);
-      proto = (struct Cst*)ctor;
-      next_token();
+      /* Constructor */
+      proto = new_cst_node(Cst_FunctionProto, token);
+      proto->name = build_name(false);
       if (token->klass == Token_ParenthOpen) {
         next_token();
-        ctor->params = build_parameterList();
+        proto->params = build_parameterList();
         if (token->klass == Token_ParenthClose) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else error("at line %d: `(` as expected, got `%s`.", token->line_nr, token->lexeme);
     } else if (token_is_typeOrVoid(token)) {
-      proto = build_functionPrototype(0);
+      proto = (struct Cst_FunctionProto*)build_functionPrototype(0);
     } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
     if (token->klass == Token_Semicolon) {
       next_token();
     } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);
-  return proto;
+  return (struct Cst*)proto;
 }
 
 internal struct Cst*
@@ -1459,7 +1464,7 @@ build_assignmentOrMethodCallStatement()
   if (token_is_lvalue(token)) {
     struct Cst* lvalue = build_lvalue();
     struct Cst* type_args = 0;
-    stmt = (struct Cst*)lvalue;
+    stmt = lvalue;
     if (token->klass == Token_AngleOpen) {
       next_token();
       type_args = build_typeArgumentList();

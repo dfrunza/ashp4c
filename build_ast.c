@@ -11,15 +11,6 @@ internal struct AstTree* ast_tree;
 
 internal struct Ast* visit_TypeRef(struct Cst* cst_type_ref);
 
-#define new_ast_node(type, cst) ({ \
-  struct type* node = arena_push(&arena, sizeof(struct type)); \
-  *node = (struct type){}; \
-  node->kind = type; \
-  node->id = node_id++; \
-  node->line_nr = cst->line_nr; \
-  ast_tree->node_count += 1; \
-  node; })
-
 internal void
 list_init(struct List* list)
 {
@@ -40,6 +31,49 @@ list_append_link(struct List* list, struct ListLink* link)
   list->link_count += 1;
 }
 
+internal void
+init_ast_node(struct Ast* ast, struct Cst* cst)
+{
+  ast->id = node_id++;
+  ast->line_nr = cst->line_nr;
+  ast_tree->node_count += 1;
+  if (ast->kind == Ast_P4Program) {
+    struct Ast_P4Program* ast_p4program = (struct Ast_P4Program*)ast;
+    list_init(&ast_p4program->decl_list);
+  } else if (ast->kind == Ast_Error) {
+    struct Ast_Error* ast_error = (struct Ast_Error*)ast;
+    list_init(&ast_error->id_list);
+  } else if (ast->kind == Ast_ExternDecl) {
+    struct Ast_ExternDecl* ast_extern_decl = (struct Ast_ExternDecl*)ast;
+    list_init(&ast_extern_decl->type_params);
+    list_init(&ast_extern_decl->method_protos);
+  } else if (ast->kind == Ast_FunctionProto) {
+    struct Ast_FunctionProto* ast_function_proto = (struct Ast_FunctionProto*)ast;
+    list_init(&ast_function_proto->type_params);
+    list_init(&ast_function_proto->params);
+  } else if (ast->kind == Ast_MatchKind) {
+    struct Ast_MatchKind* ast_match_kind = (struct Ast_MatchKind*)ast;
+    list_init(&ast_match_kind->id_list);
+  } else if (ast->kind == Ast_StructDecl) {
+    struct Ast_StructDecl* ast_struct_decl = (struct Ast_StructDecl*)ast;
+    list_init(&ast_struct_decl->fields);
+  } else if (ast->kind == Ast_HeaderDecl) {
+    struct Ast_HeaderDecl* ast_header_decl = (struct Ast_HeaderDecl*)ast;
+    list_init(&ast_header_decl->fields);
+  } else if (ast->kind == Ast_ParserType) {
+    struct Ast_ParserType* ast_parser_type = (struct Ast_ParserType*)ast;
+    list_init(&ast_parser_type->type_params);
+    list_init(&ast_parser_type->params);
+  }
+}
+
+#define new_ast_node(type, cst) ({ \
+  struct type* ast = arena_push(&arena, sizeof(struct type)); \
+  *ast = (struct type){}; \
+  ast->kind = type; \
+  init_ast_node((struct Ast*)ast, (struct Cst*)cst); \
+  ast; })
+
 internal char*
 visit_Name(struct Cst* cst_name)
 {
@@ -57,11 +91,64 @@ visit_Name(struct Cst* cst_name)
 }
 
 internal struct Ast*
+visit_Parameter(struct Cst_Parameter* cst_parameter)
+{
+  assert(cst_parameter->kind == Cst_Parameter);
+  struct Ast_Parameter* ast_parameter = new_ast_node(Ast_Parameter, cst_parameter);
+  ast_parameter->name = visit_Name(cst_parameter->name);
+  ast_parameter->direction = cst_parameter->direction;
+  ast_parameter->type = visit_TypeRef(cst_parameter->type);
+  // TODO: ast_parameter->init_expr
+  return (struct Ast*)ast_parameter;
+}
+
+internal struct Ast*
+visit_FunctionProto(struct Cst_FunctionProto* cst_function_proto)
+{
+  assert(cst_function_proto->kind == Cst_FunctionProto);
+  struct Ast_FunctionProto* ast_function_proto = new_ast_node(Ast_FunctionProto, cst_function_proto);
+  ast_function_proto->name = visit_Name(cst_function_proto->name);
+  if (cst_function_proto->return_type) {
+    /* Missing if constructor. */
+    ast_function_proto->return_type = visit_TypeRef(cst_function_proto->return_type);
+  }
+  struct Cst* cst_type_param = cst_function_proto->type_params;
+  while (cst_type_param) {
+    struct ListLink* link = arena_push(&arena, sizeof(struct ListLink));
+    link->object = visit_Name(cst_type_param);
+    list_append_link(&ast_function_proto->type_params, link);
+    cst_type_param = cst_type_param->next_node;
+  }
+  struct Cst* cst_param = cst_function_proto->params;
+  while (cst_param) {
+    struct ListLink* link = arena_push(&arena, sizeof(struct ListLink));
+    link->object = visit_Parameter((struct Cst_Parameter*)cst_param);
+    list_append_link(&ast_function_proto->params, link);
+    cst_param = cst_param->next_node;
+  }
+  return (struct Ast*)ast_function_proto;
+}
+
+internal struct Ast*
 visit_ExternDecl(struct Cst_ExternDecl* cst_extern_decl)
 {
   assert(cst_extern_decl->kind == Cst_ExternDecl);
   struct Ast_ExternDecl* ast_extern_decl = new_ast_node(Ast_ExternDecl, cst_extern_decl);
   ast_extern_decl->name = visit_Name(cst_extern_decl->name);
+  struct Cst* cst_type_param = cst_extern_decl->type_params;
+  while (cst_type_param) {
+    struct ListLink* link = arena_push(&arena, sizeof(struct ListLink));
+    link->object = visit_Name(cst_type_param);
+    list_append_link(&ast_extern_decl->type_params, link);
+    cst_type_param = cst_type_param->next_node;
+  }
+  struct Cst* cst_method_proto = cst_extern_decl->method_protos;
+  while (cst_method_proto) {
+    struct ListLink* link = arena_push(&arena, sizeof(struct ListLink));
+    link->object = visit_FunctionProto((struct Cst_FunctionProto*)cst_method_proto);
+    list_append_link(&ast_extern_decl->method_protos, link);
+    cst_method_proto = cst_method_proto->next_node;
+  }
   return (struct Ast*)ast_extern_decl;
 }
 
@@ -84,11 +171,28 @@ visit_Control(struct Cst_Control* cst_control)
 }
 
 internal struct Ast*
+visit_StructField(struct Cst_StructField* cst_field)
+{
+  assert(cst_field->kind == Cst_StructField);
+  struct Ast_StructField* ast_field = new_ast_node(Ast_StructField, cst_field);
+  ast_field->name = visit_Name(cst_field->name);
+  ast_field->type = visit_TypeRef(cst_field->type);
+  return (struct Ast*)ast_field;
+}
+
+internal struct Ast*
 visit_HeaderDecl(struct Cst_HeaderDecl* cst_header_decl)
 {
   assert(cst_header_decl->kind == Cst_HeaderDecl);
   struct Ast_HeaderDecl* ast_header_decl = new_ast_node(Ast_HeaderDecl, cst_header_decl);
   ast_header_decl->name = visit_Name(cst_header_decl->name);
+  struct Cst* cst_field = cst_header_decl->fields;
+  while (cst_field) {
+    struct ListLink* link = arena_push(&arena, sizeof(struct ListLink));
+    link->object = visit_StructField((struct Cst_StructField*)cst_field);
+    list_append_link(&ast_header_decl->fields, link);
+    cst_field = cst_field->next_node;
+  }
   return (struct Ast*)ast_header_decl;
 }
 
@@ -107,6 +211,13 @@ visit_StructDecl(struct Cst_StructDecl* cst_struct_decl)
   assert(cst_struct_decl->kind == Cst_StructDecl);
   struct Ast_StructDecl* ast_struct_decl = new_ast_node(Ast_StructDecl, cst_struct_decl);
   ast_struct_decl->name = visit_Name(cst_struct_decl->name);
+  struct Cst* cst_field = cst_struct_decl->fields;
+  while (cst_field) {
+    struct ListLink* link = arena_push(&arena, sizeof(struct ListLink));
+    link->object = visit_StructField((struct Cst_StructField*)cst_field);
+    list_append_link(&ast_struct_decl->fields, link);
+    cst_field = cst_field->next_node;
+  }
   return (struct Ast*)ast_struct_decl;
 }
 
@@ -130,20 +241,17 @@ visit_Package(struct Cst_Package* cst_package)
 }
 
 internal struct Ast*
-visit_FunctionProto(struct Cst_FunctionProto* cst_function_proto)
-{
-  assert(cst_function_proto->kind == Cst_FunctionProto);
-  struct Ast_FunctionProto* ast_function_proto = new_ast_node(Ast_FunctionProto, cst_function_proto);
-  ast_function_proto->name = visit_Name(cst_function_proto->name);
-  ast_function_proto->return_type = visit_TypeRef(cst_function_proto->return_type);
-  return (struct Ast*)ast_function_proto;
-}
-
-internal struct Ast*
 visit_Error(struct Cst_Error* cst_error)
 {
   assert(cst_error->kind == Cst_Error);
   struct Ast_Error* ast_error = new_ast_node(Ast_Error, cst_error);
+  struct Cst* cst_id = cst_error->id_list;
+  while (cst_id) {
+    struct ListLink* link = arena_push(&arena, sizeof(struct ListLink));
+    link->object = visit_Name(cst_id);;
+    list_append_link(&ast_error->id_list, link);
+    cst_id = cst_id->next_node;
+  }
   return (struct Ast*)ast_error;
 }
 
@@ -152,6 +260,13 @@ visit_MatchKind(struct Cst_MatchKind* cst_match_kind)
 {
   assert(cst_match_kind->kind == Cst_MatchKind);
   struct Ast_MatchKind* ast_match_kind = new_ast_node(Ast_MatchKind, cst_match_kind);
+  struct Cst* cst_id = cst_match_kind->id_list;
+  while (cst_id) {
+    struct ListLink* link = arena_push(&arena, sizeof(struct ListLink));
+    link->object = visit_Name(cst_id);
+    list_append_link(&ast_match_kind->id_list, link);
+    cst_id = cst_id->next_node;
+  }
   return (struct Ast*)ast_match_kind;
 }
 
@@ -169,6 +284,20 @@ visit_ParserType(struct Cst_ParserType* cst_parser_type)
   assert(cst_parser_type->kind == Cst_ParserType);
   struct Ast_ParserType* ast_parser_type = new_ast_node(Ast_ParserType, cst_parser_type);
   ast_parser_type->name = visit_Name(cst_parser_type->name);
+  struct Cst* cst_type_param = cst_parser_type->type_params;
+  while (cst_type_param)  {
+    struct ListLink* link = arena_push(&arena, sizeof(struct ListLink));
+    link->object = visit_Name(cst_type_param);
+    list_append_link(&ast_parser_type->type_params, link);
+    cst_type_param = cst_type_param->next_node;
+  }
+  struct Cst* cst_param = cst_parser_type->params;
+  while (cst_param) {
+    struct ListLink* link = arena_push(&arena, sizeof(struct ListLink));
+    link->object = visit_Parameter((struct Cst_Parameter*)cst_param);
+    list_append_link(&ast_parser_type->params, link);
+    cst_param = cst_param->next_node;
+  }
   return (struct Ast*)ast_parser_type;
 }
 
@@ -268,7 +397,6 @@ visit_P4Program(struct Cst_P4Program* cst_p4program)
 {
   assert(cst_p4program->kind == Cst_P4Program);
   struct Ast_P4Program* ast_p4program = new_ast_node(Ast_P4Program, cst_p4program);
-  list_init(&ast_p4program->decl_list);
   struct Cst* cst_decl = cst_p4program->decl_list;
   while (cst_decl) {
     struct Ast* ast_decl = 0;
@@ -307,9 +435,9 @@ visit_P4Program(struct Cst_P4Program* cst_p4program)
     }
     else assert(0);
     
-    struct ListLink* llink = arena_push(&arena, sizeof(struct ListLink));
-    llink->object = ast_decl;
-    list_append_link(&ast_p4program->decl_list, llink);
+    struct ListLink* link = arena_push(&arena, sizeof(struct ListLink));
+    link->object = ast_decl;
+    list_append_link(&ast_p4program->decl_list, link);
     cst_decl = cst_decl->next_node;
   }
   return (struct Ast*)ast_p4program;
