@@ -280,8 +280,11 @@ dump_NonTypeName(struct Cst_NonTypeName* name)
 {
   object_start();
   print_prop_common((struct Cst*)name);
-  print_prop("name", Value_String, name->name);
-  print_prop("is_dotprefixed", Value_String, name->is_dotprefixed ? "true" : "false" );
+  print_prop("name", Value_String, cst_getattr((struct Cst*)name, "name"));
+  bool* is_dotprefixed = cst_getattr((struct Cst*)name, "is_dotprefixed");
+  if (is_dotprefixed) {
+    print_prop("is_dotprefixed", Value_String, *is_dotprefixed ? "true" : "false" );
+  }
   object_end();
 }
 
@@ -290,8 +293,11 @@ dump_TypeName(struct Cst_TypeName* name)
 {
   object_start();
   print_prop_common((struct Cst*)name);
-  print_prop("name", Value_String, name->name);
-  print_prop("is_dotprefixed", Value_String, name->is_dotprefixed ? "true" : "false" );
+  print_prop("name", Value_String, cst_getattr((struct Cst*)name, "name"));
+  bool* is_dotprefixed = cst_getattr((struct Cst*)name, "is_dotprefixed");
+  if (is_dotprefixed) {
+    print_prop("is_dotprefixed", Value_String, *is_dotprefixed ? "true" : "false" );
+  }
   object_end();
 }
 
@@ -300,9 +306,9 @@ dump_Error(struct Cst_Error* error)
 {
   object_start();
   print_prop_common((struct Cst*)error);
-  print_prop("id_list", Value_Ref, error->id_list);
+  print_prop("id_list", Value_Ref, cst_getattr((struct Cst*)error, "id_list"));
   object_end();
-  dump_Cst(error->id_list);
+  dump_Cst(cst_getattr((struct Cst*)error, "id_list"));
 }
 
 internal void
@@ -310,9 +316,9 @@ dump_MatchKind(struct Cst_MatchKind* match_kind)
 {
   object_start();
   print_prop_common((struct Cst*)match_kind);
-  print_prop("id_list", Value_Ref, match_kind->id_list);
+  print_prop("id_list", Value_Ref, cst_getattr((struct Cst*)match_kind, "id_list"));
   object_end();
-  dump_Cst(match_kind->id_list);
+  dump_Cst(cst_getattr((struct Cst*)match_kind, "id_list"));
 }
 
 internal void
@@ -320,15 +326,15 @@ dump_Control(struct Cst_Control* control)
 {
   object_start();
   print_prop_common((struct Cst*)control);
-  print_prop("type_decl", Value_Ref, control->type_decl);
-  print_prop("ctor_params", Value_Ref, control->ctor_params);
-  print_prop("local_decls", Value_Ref, control->local_decls);
-  print_prop("apply_stmt", Value_Ref, control->apply_stmt);
+  print_prop("type_decl", Value_Ref, cst_getattr((struct Cst*)control, "type_decl"));
+  print_prop("ctor_params", Value_Ref, cst_getattr((struct Cst*)control, "ctor_params"));
+  print_prop("local_decls", Value_Ref, cst_getattr((struct Cst*)control, "local_decls"));
+  print_prop("apply_stmt", Value_Ref, cst_getattr((struct Cst*)control, "apply_stmt"));
   object_end();
-  dump_Cst(control->type_decl);
-  dump_Cst(control->ctor_params);
-  dump_Cst(control->local_decls);
-  dump_Cst(control->apply_stmt);
+  dump_Cst(cst_getattr((struct Cst*)control, "type_decl"));
+  dump_Cst(cst_getattr((struct Cst*)control, "ctor_params"));
+  dump_Cst(cst_getattr((struct Cst*)control, "local_decls"));
+  dump_Cst(cst_getattr((struct Cst*)control, "apply_stmt"));
 }
 
 internal void
@@ -336,13 +342,13 @@ dump_ControlType(struct Cst_ControlType* control)
 {
   object_start();
   print_prop_common((struct Cst*)control);
-  print_prop("name", Value_Ref, control->name);
-  print_prop("type_params", Value_Ref, control->type_params);
-  print_prop("params", Value_Ref, control->params);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)control, "name"));
+  print_prop("type_params", Value_Ref, cst_getattr((struct Cst*)control, "type_params"));
+  print_prop("params", Value_Ref, cst_getattr((struct Cst*)control, "params"));
   object_end();
-  dump_Cst(control->name);
-  dump_Cst(control->type_params);
-  dump_Cst(control->params);
+  dump_Cst(cst_getattr((struct Cst*)control, "name"));
+  dump_Cst(cst_getattr((struct Cst*)control, "type_params"));
+  dump_Cst(cst_getattr((struct Cst*)control, "params"));
 }
 
 void
@@ -350,12 +356,12 @@ dump_Package(struct Cst_Package* package)
 {
   object_start();
   print_prop_common((struct Cst*)package);
-  print_prop("name", Value_Ref, package->name);
-  print_prop("type_params", Value_Ref, package->type_params);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)package, "name"));
+  print_prop("type_params", Value_Ref, cst_getattr((struct Cst*)package, "type_params"));
   object_end();
-  dump_Cst(package->name);
-  dump_Cst(package->type_params);
-  dump_Cst(package->params);
+  dump_Cst(cst_getattr((struct Cst*)package, "name"));
+  dump_Cst(cst_getattr((struct Cst*)package, "type_params"));
+  dump_Cst(cst_getattr((struct Cst*)package, "params"));
 }
 
 void
@@ -363,9 +369,9 @@ dump_P4Program(struct Cst_P4Program* prog)
 {
   object_start();
   print_prop_common((struct Cst*)prog);
-  print_prop("decl_list", Value_Ref, prog->decl_list);
+  print_prop("decl_list", Value_Ref, cst_getattr((struct Cst*)prog, "decl_list"));
   object_end();
-  dump_Cst(prog->decl_list);
+  dump_Cst(cst_getattr((struct Cst*)prog, "decl_list"));
 }
 
 void
@@ -373,13 +379,13 @@ dump_Instantiation(struct Cst_Instantiation* inst)
 {
   object_start();
   print_prop_common((struct Cst*)inst);
-  print_prop("type_ref", Value_Ref, inst->type_ref);
-  print_prop("args", Value_Ref, inst->args);
-  print_prop("name", Value_Ref, inst->name);
+  print_prop("type_ref", Value_Ref, cst_getattr((struct Cst*)inst, "type_ref"));
+  print_prop("args", Value_Ref, cst_getattr((struct Cst*)inst, "args"));
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)inst, "name"));
   object_end();
-  dump_Cst(inst->type_ref);
-  dump_Cst(inst->args);
-  dump_Cst(inst->name);
+  dump_Cst(cst_getattr((struct Cst*)inst, "type_ref"));
+  dump_Cst(cst_getattr((struct Cst*)inst, "args"));
+  dump_Cst(cst_getattr((struct Cst*)inst, "name"));
 }
 
 void
@@ -388,21 +394,21 @@ dump_Parameter(struct Cst_Parameter* param)
   object_start();
   print_prop_common((struct Cst*)param);
   char* dir_str = "CstDir_None";
-  if (param->direction == AstParamDir_In) {
+  if (*(enum AstParamDirection*)cst_getattr((struct Cst*)param, "direction") == AstParamDir_In) {
     dir_str = "AstParamDir_In";
-  } else if (param->direction == AstParamDir_Out) {
+  } else if (*(enum AstParamDirection*)cst_getattr((struct Cst*)param, "direction") == AstParamDir_Out) {
     dir_str = "AstParamDir_Out";
-  } else if (param->direction == AstParamDir_InOut) {
+  } else if (*(enum AstParamDirection*)cst_getattr((struct Cst*)param, "direction") == AstParamDir_InOut) {
     dir_str = "AstParamDir_InOut";
-  } else assert(param->direction == AstParamDir_None);
+  } else assert(*(enum AstParamDirection*)cst_getattr((struct Cst*)param, "direction") == AstParamDir_None);
   print_prop("direction", Value_String, dir_str);
-  print_prop("type", Value_Ref, param->type);
-  print_prop("name", Value_Ref, param->name);
-  print_prop("init_expr", Value_Ref, param->init_expr);
+  print_prop("type", Value_Ref, cst_getattr((struct Cst*)param, "type"));
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)param, "name"));
+  print_prop("init_expr", Value_Ref, cst_getattr((struct Cst*)param, "init_expr"));
   object_end();
-  dump_Cst(param->type);
-  dump_Cst(param->name);
-  dump_Cst(param->init_expr);
+  dump_Cst(cst_getattr((struct Cst*)param, "type"));
+  dump_Cst(cst_getattr((struct Cst*)param, "name"));
+  dump_Cst(cst_getattr((struct Cst*)param, "init_expr"));
 }
 
 internal void
@@ -410,13 +416,13 @@ dump_ActionDecl(struct Cst_ActionDecl* action)
 {
   object_start();
   print_prop_common((struct Cst*)action);
-  print_prop("name", Value_Ref, action->name);
-  print_prop("params", Value_Ref, action->params);
-  print_prop("stmt", Value_Ref, action->stmt);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)action, "name"));
+  print_prop("params", Value_Ref, cst_getattr((struct Cst*)action, "params"));
+  print_prop("stmt", Value_Ref, cst_getattr((struct Cst*)action, "stmt"));
   object_end();
-  dump_Cst(action->name);
-  dump_Cst(action->params);
-  dump_Cst(action->stmt);
+  dump_Cst(cst_getattr((struct Cst*)action, "name"));
+  dump_Cst(cst_getattr((struct Cst*)action, "params"));
+  dump_Cst(cst_getattr((struct Cst*)action, "stmt"));
 }
 
 internal void
@@ -424,9 +430,9 @@ dump_BlockStmt(struct Cst_BlockStmt* stmt)
 {
   object_start();
   print_prop_common((struct Cst*)stmt);
-  print_prop("stmt_list", Value_Ref, stmt->stmt_list);
+  print_prop("stmt_list", Value_Ref, cst_getattr((struct Cst*)stmt, "stmt_list"));
   object_end();
-  dump_Cst(stmt->stmt_list);
+  dump_Cst(cst_getattr((struct Cst*)stmt, "stmt_list"));
 }
 
 internal void
@@ -434,13 +440,13 @@ dump_MethodCallStmt(struct Cst_MethodCallStmt* stmt)
 {
   object_start();
   print_prop_common((struct Cst*)stmt);
-  print_prop("lvalue", Value_Ref, stmt->lvalue);
-  print_prop("type_args", Value_Ref, stmt->type_args);
-  print_prop("args", Value_Ref, stmt->args);
+  print_prop("lvalue", Value_Ref, cst_getattr((struct Cst*)stmt, "lvalue"));
+  print_prop("type_args", Value_Ref, cst_getattr((struct Cst*)stmt, "type_args"));
+  print_prop("args", Value_Ref, cst_getattr((struct Cst*)stmt, "args"));
   object_end();
-  dump_Cst(stmt->lvalue);
-  dump_Cst(stmt->type_args);
-  dump_Cst(stmt->args);
+  dump_Cst(cst_getattr((struct Cst*)stmt, "lvalue"));
+  dump_Cst(cst_getattr((struct Cst*)stmt, "type_args"));
+  dump_Cst(cst_getattr((struct Cst*)stmt, "args"));
 }
 
 internal void
@@ -448,11 +454,11 @@ dump_Lvalue(struct Cst_Lvalue* lvalue)
 {
   object_start();
   print_prop_common((struct Cst*)lvalue);
-  print_prop("name", Value_Ref, lvalue->name);
-  print_prop("expr", Value_Ref, lvalue->expr);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)lvalue, "name"));
+  print_prop("expr", Value_Ref, cst_getattr((struct Cst*)lvalue, "expr"));
   object_end();
-  dump_Cst(lvalue->name);
-  dump_Cst(lvalue->expr);
+  dump_Cst(cst_getattr((struct Cst*)lvalue, "name"));
+  dump_Cst(cst_getattr((struct Cst*)lvalue, "expr"));
 }
 
 internal void
@@ -462,15 +468,15 @@ dump_Int(struct Cst_Int* node)
   print_prop_common((struct Cst*)node);
   char flags_str[256];
   char* str = flags_str + sprintf(flags_str, "AstInteger_None");
-  if ((node->flags & AstInteger_HasWidth) != 0) {
+  if ((*(int*)cst_getattr((struct Cst*)node, "flags") & AstInteger_HasWidth) != 0) {
     str += sprintf(str, "|%s", "AstInteger_HasWidth");
   }
-  if ((node->flags & AstInteger_IsSigned) != 0) {
+  if ((*(int*)cst_getattr((struct Cst*)node, "flags") & AstInteger_IsSigned) != 0) {
     str += sprintf(str, "|%s", "AstInteger_IsSigned");
   }
   print_prop("flags", Value_String, flags_str);
-  print_prop("width", Value_Int, node->width);
-  print_prop("value", Value_Int, node->value);
+  print_prop("width", Value_Int, *(int*)cst_getattr((struct Cst*)node, "width"));
+  print_prop("value", Value_Int, *(int*)cst_getattr((struct Cst*)node, "value"));
   object_end();
 }
 
@@ -480,24 +486,24 @@ dump_BaseType(struct Cst_BaseType* type)
   object_start();
   print_prop_common((struct Cst*)type);
   char* type_str = "CstBaseType_None";
-  if (type->base_type == CstBaseType_Bool) {
+  if (*(enum CstBaseTypeKind*)cst_getattr((struct Cst*)type, "base_type") == CstBaseType_Bool) {
     type_str = "CstBaseType_Bool";
-  } else if (type->base_type == CstBaseType_Error) {
+  } else if (*(enum CstBaseTypeKind*)cst_getattr((struct Cst*)type, "base_type") == CstBaseType_Error) {
     type_str = "CstBaseType_Error";
-  } else if (type->base_type == CstBaseType_Int) {
+  } else if (*(enum CstBaseTypeKind*)cst_getattr((struct Cst*)type, "base_type") == CstBaseType_Int) {
     type_str = "CstBaseType_Int";
-  } else if (type->base_type == CstBaseType_Bit) {
+  } else if (*(enum CstBaseTypeKind*)cst_getattr((struct Cst*)type, "base_type") == CstBaseType_Bit) {
     type_str = "CstBaseType_Bit";
-  } else if (type->base_type == CstBaseType_Varbit) {
+  } else if (*(enum CstBaseTypeKind*)cst_getattr((struct Cst*)type, "base_type") == CstBaseType_Varbit) {
     type_str = "CstBaseType_Varbit";
-  } else if (type->base_type == CstBaseType_String) {
+  } else if (*(enum CstBaseTypeKind*)cst_getattr((struct Cst*)type, "base_type") == CstBaseType_String) {
     type_str = "CstBaseType_String";
   }
-  else assert(type->base_type == CstBaseType_None);
+  else assert(*(enum CstBaseTypeKind*)cst_getattr((struct Cst*)type, "base_type") == CstBaseType_None);
   print_prop("base_type", Value_String, type_str);
-  print_prop("size", Value_Ref, type->size);
+  print_prop("size", Value_Ref, cst_getattr((struct Cst*)type, "size"));
   object_end();
-  dump_Cst(type->size);
+  dump_Cst(cst_getattr((struct Cst*)type, "size"));
 }
 
 internal void
@@ -505,13 +511,13 @@ dump_ExternDecl(struct Cst_ExternDecl* decl)
 {
   object_start();
   print_prop_common((struct Cst*)decl);
-  print_prop("name", Value_Ref, decl->name);
-  print_prop("type_params", Value_Ref, decl->type_params);
-  print_prop("method_protos", Value_Ref, decl->method_protos);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)decl, "name"));
+  print_prop("type_params", Value_Ref, cst_getattr((struct Cst*)decl, "type_params"));
+  print_prop("method_protos", Value_Ref, cst_getattr((struct Cst*)decl, "method_protos"));
   object_end();
-  dump_Cst(decl->name);
-  dump_Cst(decl->type_params);
-  dump_Cst(decl->method_protos);
+  dump_Cst(cst_getattr((struct Cst*)decl, "name"));
+  dump_Cst(cst_getattr((struct Cst*)decl, "type_params"));
+  dump_Cst(cst_getattr((struct Cst*)decl, "method_protos"));
 }
 
 internal void
@@ -519,15 +525,15 @@ dump_FunctionProto(struct Cst_FunctionProto* proto)
 {
   object_start();
   print_prop_common((struct Cst*)proto);
-  print_prop("return_type", Value_Ref, proto->return_type);
-  print_prop("name", Value_Ref, proto->name);
-  print_prop("type_params", Value_Ref, proto->type_params);
-  print_prop("params", Value_Ref, proto->params);
+  print_prop("return_type", Value_Ref, cst_getattr((struct Cst*)proto, "return_type"));
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)proto, "name"));
+  print_prop("type_params", Value_Ref, cst_getattr((struct Cst*)proto, "type_params"));
+  print_prop("params", Value_Ref, cst_getattr((struct Cst*)proto, "params"));
   object_end();
-  dump_Cst(proto->return_type);
-  dump_Cst(proto->name);
-  dump_Cst(proto->type_params);
-  dump_Cst(proto->params);
+  dump_Cst(cst_getattr((struct Cst*)proto, "return_type"));
+  dump_Cst(cst_getattr((struct Cst*)proto, "name"));
+  dump_Cst(cst_getattr((struct Cst*)proto, "type_params"));
+  dump_Cst(cst_getattr((struct Cst*)proto, "params"));
 }
 
 internal void
@@ -535,11 +541,11 @@ dump_FunctionDecl(struct Cst_FunctionDecl* decl)
 {
   object_start();
   print_prop_common((struct Cst*)decl);
-  print_prop("proto", Value_Ref, decl->proto);
-  print_prop("stmt", Value_Ref, decl->stmt);
+  print_prop("proto", Value_Ref, cst_getattr((struct Cst*)decl, "proto"));
+  print_prop("stmt", Value_Ref, cst_getattr((struct Cst*)decl, "stmt"));
   object_end();
-  dump_Cst(decl->proto);
-  dump_Cst(decl->stmt);
+  dump_Cst(cst_getattr((struct Cst*)decl, "proto"));
+  dump_Cst(cst_getattr((struct Cst*)decl, "stmt"));
 }
 
 internal void
@@ -547,11 +553,11 @@ dump_TableDecl(struct Cst_TableDecl* decl)
 {
   object_start();
   print_prop_common((struct Cst*)decl);
-  print_prop("name", Value_Ref, decl->name);
-  print_prop("prop_list", Value_Ref, decl->prop_list);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)decl, "name"));
+  print_prop("prop_list", Value_Ref, cst_getattr((struct Cst*)decl, "prop_list"));
   object_end();
-  dump_Cst(decl->name);
-  dump_Cst(decl->prop_list);
+  dump_Cst(cst_getattr((struct Cst*)decl, "name"));
+  dump_Cst(cst_getattr((struct Cst*)decl, "prop_list"));
 }
 
 internal void
@@ -559,9 +565,9 @@ dump_TableProp_Actions(struct Cst_TableProp_Actions* actions)
 {
   object_start();
   print_prop_common((struct Cst*)actions);
-  print_prop("action_list", Value_Ref, actions->action_list);
+  print_prop("action_list", Value_Ref, cst_getattr((struct Cst*)actions, "action_list"));
   object_end();
-  dump_Cst(actions->action_list);
+  dump_Cst(cst_getattr((struct Cst*)actions, "action_list"));
 }
 
 internal void
@@ -569,11 +575,11 @@ dump_TableProp_SingleEntry(struct Cst_TableProp_SingleEntry* entry)
 {
   object_start();
   print_prop_common((struct Cst*)entry);
-  print_prop("name", Value_Ref, entry->name);
-  print_prop("init_expr", Value_Ref, entry->init_expr);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)entry, "name"));
+  print_prop("init_expr", Value_Ref, cst_getattr((struct Cst*)entry, "init_expr"));
   object_end();
-  dump_Cst(entry->name);
-  dump_Cst(entry->init_expr);
+  dump_Cst(cst_getattr((struct Cst*)entry, "name"));
+  dump_Cst(cst_getattr((struct Cst*)entry, "init_expr"));
 }
 
 internal void
@@ -581,11 +587,11 @@ dump_ActionRef(struct Cst_ActionRef* ref)
 {
   object_start();
   print_prop_common((struct Cst*)ref);
-  print_prop("name", Value_Ref, ref->name);
-  print_prop("args", Value_Ref, ref->args);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)ref, "name"));
+  print_prop("args", Value_Ref, cst_getattr((struct Cst*)ref, "args"));
   object_end();
-  dump_Cst(ref->name);
-  dump_Cst(ref->args);
+  dump_Cst(cst_getattr((struct Cst*)ref, "name"));
+  dump_Cst(cst_getattr((struct Cst*)ref, "args"));
 }
 
 internal void
@@ -593,11 +599,11 @@ dump_FunctionCallExpr(struct Cst_FunctionCallExpr* expr)
 {
   object_start();
   print_prop_common((struct Cst*)expr);
-  print_prop("expr", Value_Ref, expr->expr);
-  print_prop("args", Value_Ref, expr->args);
+  print_prop("expr", Value_Ref, cst_getattr((struct Cst*)expr, "expr"));
+  print_prop("args", Value_Ref, cst_getattr((struct Cst*)expr, "args"));
   object_end();
-  dump_Cst(expr->expr);
-  dump_Cst(expr->args);
+  dump_Cst(cst_getattr((struct Cst*)expr, "expr"));
+  dump_Cst(cst_getattr((struct Cst*)expr, "args"));
 }
 
 internal void
@@ -605,11 +611,11 @@ dump_HeaderDecl(struct Cst_HeaderDecl* decl)
 {
   object_start();
   print_prop_common((struct Cst*)decl);
-  print_prop("name", Value_Ref, decl->name);
-  print_prop("fields", Value_Ref, decl->fields);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)decl, "name"));
+  print_prop("fields", Value_Ref, cst_getattr((struct Cst*)decl, "fields"));
   object_end();
-  dump_Cst(decl->name);
-  dump_Cst(decl->fields);
+  dump_Cst(cst_getattr((struct Cst*)decl, "name"));
+  dump_Cst(cst_getattr((struct Cst*)decl, "fields"));
 }
 
 internal void
@@ -617,11 +623,11 @@ dump_HeaderStack(struct Cst_HeaderStack* stack)
 {
   object_start();
   print_prop_common((struct Cst*)stack);
-  print_prop("name", Value_Ref, stack->name);
-  print_prop("stack_expr", Value_Ref, stack->stack_expr);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)stack, "name"));
+  print_prop("stack_expr", Value_Ref, cst_getattr((struct Cst*)stack, "stack_expr"));
   object_end();
-  dump_Cst(stack->name);
-  dump_Cst(stack->stack_expr);
+  dump_Cst(cst_getattr((struct Cst*)stack, "name"));
+  dump_Cst(cst_getattr((struct Cst*)stack, "stack_expr"));
 }
 
 internal void
@@ -629,11 +635,11 @@ dump_StructField(struct Cst_StructField* field)
 {
   object_start();
   print_prop_common((struct Cst*)field);
-  print_prop("type", Value_Ref, field->type);
-  print_prop("name", Value_Ref, field->name);
+  print_prop("type", Value_Ref, cst_getattr((struct Cst*)field, "type"));
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)field, "name"));
   object_end();
-  dump_Cst(field->type);
-  dump_Cst(field->name);
+  dump_Cst(cst_getattr((struct Cst*)field, "type"));
+  dump_Cst(cst_getattr((struct Cst*)field, "name"));
 }
 
 internal void
@@ -641,13 +647,13 @@ dump_VarDecl(struct Cst_VarDecl* decl)
 {
   object_start();
   print_prop_common((struct Cst*)decl);
-  print_prop("type", Value_Ref, decl->type);
-  print_prop("name", Value_Ref, decl->name);
-  print_prop("init_expr", Value_Ref, decl->init_expr);
+  print_prop("type", Value_Ref, cst_getattr((struct Cst*)decl, "type"));
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)decl, "name"));
+  print_prop("init_expr", Value_Ref, cst_getattr((struct Cst*)decl, "init_expr"));
   object_end();
-  dump_Cst(decl->type);
-  dump_Cst(decl->name);
-  dump_Cst(decl->init_expr);
+  dump_Cst(cst_getattr((struct Cst*)decl, "type"));
+  dump_Cst(cst_getattr((struct Cst*)decl, "name"));
+  dump_Cst(cst_getattr((struct Cst*)decl, "init_expr"));
 }
 
 internal void
@@ -655,11 +661,11 @@ dump_AssignmentStmt(struct Cst_AssignmentStmt* stmt)
 {
   object_start();
   print_prop_common((struct Cst*)stmt);
-  print_prop("lvalue", Value_Ref, stmt->lvalue);
-  print_prop("expr", Value_Ref, stmt->expr);
+  print_prop("lvalue", Value_Ref, cst_getattr((struct Cst*)stmt, "lvalue"));
+  print_prop("expr", Value_Ref, cst_getattr((struct Cst*)stmt, "expr"));
   object_end();
-  dump_Cst(stmt->lvalue);
-  dump_Cst(stmt->expr);
+  dump_Cst(cst_getattr((struct Cst*)stmt, "lvalue"));
+  dump_Cst(cst_getattr((struct Cst*)stmt, "expr"));
 }
 
 internal void
@@ -667,11 +673,11 @@ dump_ArrayIndex(struct Cst_ArrayIndex* index)
 {
   object_start();
   print_prop_common((struct Cst*)index);
-  print_prop("index", Value_Ref, index->index);
-  print_prop("colon_index", Value_Ref, index->colon_index);
+  print_prop("index", Value_Ref, cst_getattr((struct Cst*)index, "index"));
+  print_prop("colon_index", Value_Ref, cst_getattr((struct Cst*)index, "colon_index"));
   object_end();
-  dump_Cst(index->index);
-  dump_Cst(index->colon_index);
+  dump_Cst(cst_getattr((struct Cst*)index, "index"));
+  dump_Cst(cst_getattr((struct Cst*)index, "colon_index"));
 }
 
 internal void
@@ -679,11 +685,11 @@ dump_MemberSelectExpr(struct Cst_MemberSelectExpr* expr)
 {
   object_start();
   print_prop_common((struct Cst*)expr);
-  print_prop("expr", Value_Ref, expr->expr);
-  print_prop("member_name", Value_Ref, expr->member_name);
+  print_prop("expr", Value_Ref, cst_getattr((struct Cst*)expr, "expr"));
+  print_prop("member_name", Value_Ref, cst_getattr((struct Cst*)expr, "member_name"));
   object_end();
-  dump_Cst(expr->expr);
-  dump_Cst(expr->member_name);
+  dump_Cst(cst_getattr((struct Cst*)expr, "expr"));
+  dump_Cst(cst_getattr((struct Cst*)expr, "member_name"));
 }
 
 internal char*
@@ -742,12 +748,12 @@ dump_BinaryExpr(struct Cst_BinaryExpr* expr)
 {
   object_start();
   print_prop_common((struct Cst*)expr);
-  print_prop("op", Value_String, expr_operator_to_string(expr->op));
-  print_prop("left_operand", Value_Ref, expr->left_operand);
-  print_prop("right_operand", Value_Ref, expr->right_operand);
+  print_prop("op", Value_String, expr_operator_to_string(*(enum AstExprOperator*)cst_getattr((struct Cst*)expr, "op")));
+  print_prop("left_operand", Value_Ref, cst_getattr((struct Cst*)expr, "left_operand"));
+  print_prop("right_operand", Value_Ref, cst_getattr((struct Cst*)expr, "right_operand"));
   object_end();
-  dump_Cst(expr->left_operand);
-  dump_Cst(expr->right_operand);
+  dump_Cst(cst_getattr((struct Cst*)expr, "left_operand"));
+  dump_Cst(cst_getattr((struct Cst*)expr, "right_operand"));
 }
 
 internal void
@@ -755,11 +761,66 @@ dump_KvPair(struct Cst_KvPair* kv_pair)
 {
   object_start();
   print_prop_common((struct Cst*)kv_pair);
-  print_prop("name", Value_Ref, kv_pair->name);
-  print_prop("expr", Value_Ref, kv_pair->expr);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)kv_pair, "name"));
+  print_prop("expr", Value_Ref, cst_getattr((struct Cst*)kv_pair, "expr"));
   object_end();
-  dump_Cst(kv_pair->name);
-  dump_Cst(kv_pair->expr);
+  dump_Cst(cst_getattr((struct Cst*)kv_pair, "name"));
+  dump_Cst(cst_getattr((struct Cst*)kv_pair, "expr"));
+}
+
+internal void
+dump_IndexedArrayExpr(struct Cst_IndexedArrayExpr* expr)
+{
+  object_start();
+  print_prop_common((struct Cst*)expr);
+  print_prop("expr", Value_Ref, cst_getattr((struct Cst*)expr, "expr"));
+  print_prop("index_expr", Value_Ref, cst_getattr((struct Cst*)expr, "index_expr"));
+  object_end();
+  dump_Cst(cst_getattr((struct Cst*)expr, "expr"));
+  dump_Cst(cst_getattr((struct Cst*)expr, "index_expr"));
+}
+
+internal void
+dump_HeaderUnionDecl(struct Cst_HeaderUnionDecl* decl)
+{
+  object_start();
+  print_prop_common((struct Cst*)decl);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)decl, "name"));
+  print_prop("fields", Value_Ref, cst_getattr((struct Cst*)decl, "fields"));
+  object_end();
+  dump_Cst(cst_getattr((struct Cst*)decl, "name"));
+  dump_Cst(cst_getattr((struct Cst*)decl, "fields"));
+}
+
+internal void
+dump_StringLiteral(struct Cst_StringLiteral* string)
+{
+  object_start();
+  print_prop_common((struct Cst*)string);
+  print_prop("value", Value_String, cst_getattr((struct Cst*)string, "value"));
+  object_end();
+}
+
+internal void
+dump_Tuple(struct Cst_Tuple* tuple)
+{
+  object_start();
+  print_prop_common((struct Cst*)tuple);
+  print_prop("type_args", Value_Ref, cst_getattr((struct Cst*)tuple, "type_args"));
+  object_end();
+  dump_Cst(cst_getattr((struct Cst*)tuple, "type_args"));
+}
+
+internal void
+dump_SpecdId(struct Cst_SpecdId* id)
+{
+  object_start();
+  print_prop_common((struct Cst*)id);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)id, "name"));
+  print_prop("init_expr", Value_Ref, cst_getattr((struct Cst*)id, "init_expr"));
+  object_end();
+  dump_Cst(cst_getattr((struct Cst*)id, "name"));
+  dump_Cst(cst_getattr((struct Cst*)id, "init_expr"));
 }
 
 internal void
@@ -767,9 +828,9 @@ dump_ExpressionListExpr(struct Cst_ExpressionListExpr* expr)
 {
   object_start();
   print_prop_common((struct Cst*)expr);
-  print_prop("expr_list", Value_Ref, expr->expr_list);
+  print_prop("expr_list", Value_Ref, cst_getattr((struct Cst*)expr, "expr_list"));
   object_end();
-  dump_Cst(expr->expr_list);
+  dump_Cst(cst_getattr((struct Cst*)expr, "expr_list"));
 }
 
 internal void
@@ -777,13 +838,13 @@ dump_IfStmt(struct Cst_IfStmt* stmt)
 {
   object_start();
   print_prop_common((struct Cst*)stmt);
-  print_prop("cond_expr", Value_Ref, stmt->cond_expr);
-  print_prop("stmt", Value_Ref, stmt->stmt);
-  print_prop("else_stmt", Value_Ref, stmt->else_stmt);
+  print_prop("cond_expr", Value_Ref, cst_getattr((struct Cst*)stmt, "cond_expr"));
+  print_prop("stmt", Value_Ref, cst_getattr((struct Cst*)stmt, "stmt"));
+  print_prop("else_stmt", Value_Ref, cst_getattr((struct Cst*)stmt, "else_stmt"));
   object_end();
-  dump_Cst(stmt->cond_expr);
-  dump_Cst(stmt->stmt);
-  dump_Cst(stmt->else_stmt);
+  dump_Cst(cst_getattr((struct Cst*)stmt, "cond_expr"));
+  dump_Cst(cst_getattr((struct Cst*)stmt, "stmt"));
+  dump_Cst(cst_getattr((struct Cst*)stmt, "else_stmt"));
 }
 
 internal void
@@ -791,11 +852,11 @@ dump_SwitchStmt(struct Cst_SwitchStmt* stmt)
 {
   object_start();
   print_prop_common((struct Cst*)stmt);
-  print_prop("expr", Value_Ref, stmt->expr);
-  print_prop("switch_cases", Value_Ref, stmt->switch_cases);
+  print_prop("expr", Value_Ref, cst_getattr((struct Cst*)stmt, "expr"));
+  print_prop("switch_cases", Value_Ref, cst_getattr((struct Cst*)stmt, "switch_cases"));
   object_end();
-  dump_Cst(stmt->expr);
-  dump_Cst(stmt->switch_cases);
+  dump_Cst(cst_getattr((struct Cst*)stmt, "expr"));
+  dump_Cst(cst_getattr((struct Cst*)stmt, "switch_cases"));
 }
 
 internal void
@@ -803,11 +864,11 @@ dump_SwitchCase(struct Cst_SwitchCase* swcase)
 {
   object_start();
   print_prop_common((struct Cst*)swcase);
-  print_prop("label", Value_Ref, swcase->label);
-  print_prop("stmt", Value_Ref, swcase->stmt);
+  print_prop("label", Value_Ref, cst_getattr((struct Cst*)swcase, "label"));
+  print_prop("stmt", Value_Ref, cst_getattr((struct Cst*)swcase, "stmt"));
   object_end();
-  dump_Cst(swcase->label);
-  dump_Cst(swcase->stmt);
+  dump_Cst(cst_getattr((struct Cst*)swcase, "label"));
+  dump_Cst(cst_getattr((struct Cst*)swcase, "stmt"));
 }
 
 internal void
@@ -815,9 +876,9 @@ dump_SwitchLabel(struct Cst_SwitchLabel* label)
 {
   object_start();
   print_prop_common((struct Cst*)label);
-  print_prop("name", Value_Ref, label->name);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)label, "name"));
   object_end();
-  dump_Cst(label->name);
+  dump_Cst(cst_getattr((struct Cst*)label, "name"));
 }
 
 internal void
@@ -825,9 +886,9 @@ dump_ReturnStmt(struct Cst_ReturnStmt* stmt)
 {
   object_start();
   print_prop_common((struct Cst*)stmt);
-  print_prop("expr", Value_Ref, stmt);
+  print_prop("expr", Value_Ref, cst_getattr((struct Cst*)stmt, "expr"));
   object_end();
-  dump_Cst(stmt->expr);
+  dump_Cst(cst_getattr((struct Cst*)stmt, "expr"));
 }
 
 internal void
@@ -835,11 +896,11 @@ dump_CastExpr(struct Cst_CastExpr* expr)
 {
   object_start();
   print_prop_common((struct Cst*)expr);
-  print_prop("to_type", Value_Ref, expr->to_type);
-  print_prop("expr", Value_Ref, expr->expr);
+  print_prop("to_type", Value_Ref, cst_getattr((struct Cst*)expr, "to_type"));
+  print_prop("expr", Value_Ref, cst_getattr((struct Cst*)expr, "expr"));
   object_end();
-  dump_Cst(expr->to_type);
-  dump_Cst(expr->expr);
+  dump_Cst(cst_getattr((struct Cst*)expr, "to_type"));
+  dump_Cst(cst_getattr((struct Cst*)expr, "expr"));
 }
 
 internal void
@@ -847,10 +908,10 @@ dump_UnaryExpr(struct Cst_UnaryExpr* expr)
 {
   object_start();
   print_prop_common((struct Cst*)expr);
-  print_prop("op", Value_String, expr_operator_to_string(expr->op));
-  print_prop("expr", Value_Ref, expr->expr);
+  print_prop("op", Value_String, expr_operator_to_string(*(enum AstExprOperator*)cst_getattr((struct Cst*)expr, "op")));
+  print_prop("expr", Value_Ref, cst_getattr((struct Cst*)expr, "expr"));
   object_end();
-  dump_Cst(expr->expr);
+  dump_Cst(cst_getattr((struct Cst*)expr, "expr"));
 }
 
 internal void
@@ -858,15 +919,15 @@ dump_Parser(struct Cst_Parser* parser)
 {
   object_start();
   print_prop_common((struct Cst*)parser);
-  print_prop("type_decl", Value_Ref, parser->type_decl);
-  print_prop("ctor_params", Value_Ref, parser->ctor_params);
-  print_prop("local_elements", Value_Ref, parser->local_elements);
-  print_prop("states", Value_Ref, parser->states);
+  print_prop("type_decl", Value_Ref, cst_getattr((struct Cst*)parser, "type_decl"));
+  print_prop("ctor_params", Value_Ref, cst_getattr((struct Cst*)parser, "ctor_params"));
+  print_prop("local_elements", Value_Ref, cst_getattr((struct Cst*)parser, "local_elements"));
+  print_prop("states", Value_Ref, cst_getattr((struct Cst*)parser, "states"));
   object_end();
-  dump_Cst(parser->type_decl);
-  dump_Cst(parser->ctor_params);
-  dump_Cst(parser->local_elements);
-  dump_Cst(parser->states);
+  dump_Cst(cst_getattr((struct Cst*)parser, "type_decl"));
+  dump_Cst(cst_getattr((struct Cst*)parser, "ctor_params"));
+  dump_Cst(cst_getattr((struct Cst*)parser, "local_elements"));
+  dump_Cst(cst_getattr((struct Cst*)parser, "states"));
 }
 
 internal void
@@ -874,13 +935,13 @@ dump_ParserType(struct Cst_ParserType* parser)
 {
   object_start();
   print_prop_common((struct Cst*)parser);
-  print_prop("name", Value_Ref, parser->name);
-  print_prop("type_params", Value_Ref, parser->type_params);
-  print_prop("params", Value_Ref, parser->params);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)parser, "name"));
+  print_prop("type_params", Value_Ref, cst_getattr((struct Cst*)parser, "type_params"));
+  print_prop("params", Value_Ref, cst_getattr((struct Cst*)parser, "params"));
   object_end();
-  dump_Cst(parser->name);
-  dump_Cst(parser->type_params);
-  dump_Cst(parser->params);
+  dump_Cst(cst_getattr((struct Cst*)parser, "name"));
+  dump_Cst(cst_getattr((struct Cst*)parser, "type_params"));
+  dump_Cst(cst_getattr((struct Cst*)parser, "params"));
 }
 
 internal void
@@ -888,11 +949,11 @@ dump_SpecdType(struct Cst_SpecdType* type)
 {
   object_start();
   print_prop_common((struct Cst*)type);
-  print_prop("name", Value_Ref, type->name);
-  print_prop("type_args", Value_Ref, type->type_args);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)type, "name"));
+  print_prop("type_args", Value_Ref, cst_getattr((struct Cst*)type, "type_args"));
   object_end();
-  dump_Cst(type->name);
-  dump_Cst(type->type_args);
+  dump_Cst(cst_getattr((struct Cst*)type, "name"));
+  dump_Cst(cst_getattr((struct Cst*)type, "type_args"));
 }
 
 internal void
@@ -900,12 +961,12 @@ dump_TypeDecl(struct Cst_TypeDecl* decl)
 {
   object_start();
   print_prop_common((struct Cst*)decl);
-  print_prop("is_typedef", Value_String, decl->is_typedef ? "true" : "false");
-  print_prop("type_ref", Value_Ref, decl->type_ref);
-  print_prop("name", Value_Ref, decl->name);
+  print_prop("is_typedef", Value_String, *(bool*)cst_getattr((struct Cst*)decl, "is_typedef") ? "true" : "false");
+  print_prop("type_ref", Value_Ref, cst_getattr((struct Cst*)decl, "type_ref"));
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)decl, "name"));
   object_end();
-  dump_Cst(decl->type_ref);
-  dump_Cst(decl->name);
+  dump_Cst(cst_getattr((struct Cst*)decl, "type_ref"));
+  dump_Cst(cst_getattr((struct Cst*)decl, "name"));
 }
 
 internal void
@@ -913,11 +974,11 @@ dump_StructDecl(struct Cst_StructDecl* decl)
 {
   object_start();
   print_prop_common((struct Cst*)decl);
-  print_prop("name", Value_Ref, decl->name);
-  print_prop("fields", Value_Ref, decl->fields);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)decl, "name"));
+  print_prop("fields", Value_Ref, cst_getattr((struct Cst*)decl, "fields"));
   object_end();
-  dump_Cst(decl->name);
-  dump_Cst(decl->fields);
+  dump_Cst(cst_getattr((struct Cst*)decl, "name"));
+  dump_Cst(cst_getattr((struct Cst*)decl, "fields"));
 }
 
 internal void
@@ -925,13 +986,13 @@ dump_ParserState(struct Cst_ParserState* state)
 {
   object_start();
   print_prop_common((struct Cst*)state);
-  print_prop("name", Value_Ref, state->name);
-  print_prop("stmts", Value_Ref, state->stmts);
-  print_prop("trans_stmt", Value_Ref, state->trans_stmt);
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)state, "name"));
+  print_prop("stmts", Value_Ref, cst_getattr((struct Cst*)state, "stmts"));
+  print_prop("trans_stmt", Value_Ref, cst_getattr((struct Cst*)state, "trans_stmt"));
   object_end();
-  dump_Cst(state->name);
-  dump_Cst(state->stmts);
-  dump_Cst(state->trans_stmt);
+  dump_Cst(cst_getattr((struct Cst*)state, "name"));
+  dump_Cst(cst_getattr((struct Cst*)state, "stmts"));
+  dump_Cst(cst_getattr((struct Cst*)state, "trans_stmt"));
 }
 
 internal void
@@ -939,11 +1000,11 @@ dump_SelectExpr(struct Cst_SelectExpr* expr)
 {
   object_start();
   print_prop_common((struct Cst*)expr);
-  print_prop("expr_list", Value_Ref, expr->expr_list);
-  print_prop("case_list", Value_Ref, expr->case_list);
+  print_prop("expr_list", Value_Ref, cst_getattr((struct Cst*)expr, "expr_list"));
+  print_prop("case_list", Value_Ref, cst_getattr((struct Cst*)expr, "case_list"));
   object_end();
-  dump_Cst(expr->expr_list);
-  dump_Cst(expr->case_list);
+  dump_Cst(cst_getattr((struct Cst*)expr, "expr_list"));
+  dump_Cst(cst_getattr((struct Cst*)expr, "case_list"));
 }
 
 internal void
@@ -951,11 +1012,11 @@ dump_SelectCase(struct Cst_SelectCase* select)
 {
   object_start();
   print_prop_common((struct Cst*)select);
-  print_prop("keyset", Value_Ref, select->keyset);
-  print_prop("name", Value_Ref, select->name);
+  print_prop("keyset", Value_Ref, cst_getattr((struct Cst*)select, "keyset"));
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)select, "name"));
   object_end();
-  dump_Cst(select->keyset);
-  dump_Cst(select->name);
+  dump_Cst(cst_getattr((struct Cst*)select, "keyset"));
+  dump_Cst(cst_getattr((struct Cst*)select, "name"));
 }
 
 internal void
@@ -971,9 +1032,9 @@ dump_IntTypeSize(struct Cst_IntTypeSize* size)
 {
   object_start();
   print_prop_common((struct Cst*)size);
-  print_prop("size", Value_Ref, size->size);
+  print_prop("size", Value_Ref, cst_getattr((struct Cst*)size, "size"));
   object_end();
-  dump_Cst(size->size);
+  dump_Cst(cst_getattr((struct Cst*)size, "size"));
 }
 
 internal void
@@ -981,11 +1042,11 @@ dump_TypeArgsExpr(struct Cst_TypeArgsExpr* expr)
 {
   object_start();
   print_prop_common((struct Cst*)expr);
-  print_prop("expr", Value_Ref, expr->expr);
-  print_prop("type_args", Value_Ref, expr->type_args);
+  print_prop("expr", Value_Ref, cst_getattr((struct Cst*)expr, "expr"));
+  print_prop("type_args", Value_Ref, cst_getattr((struct Cst*)expr, "type_args"));
   object_end();
-  dump_Cst(expr->expr);
-  dump_Cst(expr->type_args);
+  dump_Cst(cst_getattr((struct Cst*)expr, "expr"));
+  dump_Cst(cst_getattr((struct Cst*)expr, "type_args"));
 }
 
 internal void
@@ -993,13 +1054,13 @@ dump_ConstDecl(struct Cst_ConstDecl* decl)
 {
   object_start();
   print_prop_common((struct Cst*)decl);
-  print_prop("type_ref", Value_Ref, decl->type_ref);
-  print_prop("name", Value_Ref, decl->name);
-  print_prop("expr", Value_Ref, decl->expr);
+  print_prop("type_ref", Value_Ref, cst_getattr((struct Cst*)decl, "type_ref"));
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)decl, "name"));
+  print_prop("expr", Value_Ref, cst_getattr((struct Cst*)decl, "expr"));
   object_end();
-  dump_Cst(decl->type_ref);
-  dump_Cst(decl->name);
-  dump_Cst(decl->expr);
+  dump_Cst(cst_getattr((struct Cst*)decl, "type_ref"));
+  dump_Cst(cst_getattr((struct Cst*)decl, "name"));
+  dump_Cst(cst_getattr((struct Cst*)decl, "expr"));
 }
 
 internal void
@@ -1007,7 +1068,7 @@ dump_Bool(struct Cst_Bool* node)
 {
   object_start();
   print_prop_common((struct Cst*)node);
-  print_prop("value", Value_Int, node->value);
+  print_prop("value", Value_Int, cst_getattr((struct Cst*)node, "value"));
   object_end();
 }
 
@@ -1016,10 +1077,10 @@ dump_TableProp_Entries(struct Cst_TableProp_Entries* entries)
 {
   object_start();
   print_prop_common((struct Cst*)entries);
-  print_prop("is_const", Value_Int, entries->is_const);
-  print_prop("entries", Value_Ref, entries->entries);
+  print_prop("is_const", Value_Int, *(bool*)cst_getattr((struct Cst*)entries, "is_const"));
+  print_prop("entries", Value_Ref, cst_getattr((struct Cst*)entries, "entries"));
   object_end();
-  dump_Cst(entries->entries);
+  dump_Cst(cst_getattr((struct Cst*)entries, "entries"));
 }
 
 internal void
@@ -1027,11 +1088,11 @@ dump_TableEntry(struct Cst_TableEntry* entry)
 {
   object_start();
   print_prop_common((struct Cst*)entry);
-  print_prop("keyset", Value_Ref, entry->keyset);
-  print_prop("action", Value_Ref, entry->action);
+  print_prop("keyset", Value_Ref, cst_getattr((struct Cst*)entry, "keyset"));
+  print_prop("action", Value_Ref, cst_getattr((struct Cst*)entry, "action"));
   object_end();
-  dump_Cst(entry->keyset);
-  dump_Cst(entry->action);
+  dump_Cst(cst_getattr((struct Cst*)entry, "keyset"));
+  dump_Cst(cst_getattr((struct Cst*)entry, "action"));
 }
 
 internal void
@@ -1039,9 +1100,9 @@ dump_TableProp_Key(struct Cst_TableProp_Key* key)
 {
   object_start();
   print_prop_common((struct Cst*)key);
-  print_prop("keyelem_list", Value_Ref, key->keyelem_list);
+  print_prop("keyelem_list", Value_Ref, cst_getattr((struct Cst*)key, "keyelem_list"));
   object_end();
-  dump_Cst(key->keyelem_list);
+  dump_Cst(cst_getattr((struct Cst*)key, "keyelem_list"));
 }
 
 internal void
@@ -1049,11 +1110,11 @@ dump_KeyElement(struct Cst_KeyElement* elem)
 {
   object_start();
   print_prop_common((struct Cst*)elem);
-  print_prop("expr", Value_Ref, elem->expr);
-  print_prop("name", Value_Ref, elem->name);
+  print_prop("expr", Value_Ref, cst_getattr((struct Cst*)elem, "expr"));
+  print_prop("name", Value_Ref, cst_getattr((struct Cst*)elem, "name"));
   object_end();
-  dump_Cst(elem->expr);
-  dump_Cst(elem->name);
+  dump_Cst(cst_getattr((struct Cst*)elem, "expr"));
+  dump_Cst(cst_getattr((struct Cst*)elem, "name"));
 }
 
 internal void
@@ -1174,6 +1235,16 @@ dump_Cst(struct Cst* cst)
       dump_KeyElement((struct Cst_KeyElement*)cst);
     } else if (cst->kind == Cst_KvPair) {
       dump_KvPair((struct Cst_KvPair*)cst);
+    } else if (cst->kind == Cst_IndexedArrayExpr) {
+      dump_IndexedArrayExpr((struct Cst_IndexedArrayExpr*)cst);
+    } else if (cst->kind == Cst_SpecdId) {
+      dump_SpecdId((struct Cst_SpecdId*)cst);
+    } else if (cst->kind == Cst_Tuple) {
+      dump_Tuple((struct Cst_Tuple*)cst);
+    } else if (cst->kind == Cst_StringLiteral) {
+      dump_StringLiteral((struct Cst_StringLiteral*)cst);
+    } else if (cst->kind == Cst_HeaderUnionDecl) {
+      dump_HeaderUnionDecl((struct Cst_HeaderUnionDecl*)cst);
     }
     else {
       printf("TODO: %s\n", cst_kind_to_string(cst->kind));

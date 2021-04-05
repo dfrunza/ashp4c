@@ -119,11 +119,14 @@ main(int arg_count, char* args[])
   if (find_named_arg("dump-cst", cmdline_args)) {
     dump_P4Program(cst_p4program);
   }
+
+  /*
   struct AstTree ast_tree = build_AstTree(&cst_tree);
   assert(ast_tree.p4program->kind == Ast_P4Program);
   if (DEBUG_ENABLED) {
     arena_print_usage(ast_tree.arena, "Memory [AST]:");
   }
+  */
   arena_free(source.arena);
   return 0;
 }
