@@ -29,6 +29,7 @@ enum AstKind {
   Ast_Bool,
   Ast_StringLiteral,
   Ast_Tuple,
+  Ast_TupleKeyset,
   Ast_HeaderStack,
   Ast_SpecdType,
   Ast_StructField,
@@ -124,6 +125,21 @@ enum AstParamDirection {
   AstParamDir_InOut,
 };
 
+struct ListLink
+{
+  struct ListLink* prev_lp;
+  struct ListLink* next_lp;
+  void* object;
+};
+
+struct List
+{
+  struct ListLink sentinel;
+  struct ListLink* head_lp;
+  struct ListLink* tail_lp;
+  int link_count;
+};
+
 struct AstAttribute {
   char* name;
   void* value;
@@ -149,4 +165,5 @@ struct AstTree {
 
 void* ast_getattr(struct Ast* ast, char* attr_name);
 void ast_setattr(struct Ast* ast, char* attr_name, void* attr_value);
-
+void list_init(struct List* list);
+void list_append_link(struct List* list, struct ListLink* link);
