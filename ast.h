@@ -129,7 +129,7 @@ struct AstListLink
 {
   struct AstListLink* prev;
   struct AstListLink* next;
-  struct Ast* object;
+  struct Ast* ast;
 };
 
 struct AstList

@@ -175,14 +175,14 @@ indent_right()
 }
 
 internal void
-object_start()
+ast_start()
 {
   printf("{\n");
   tab_level++;
 }
 
 internal void
-object_end()
+ast_end()
 {
   tab_level--;
   printf("}\n");
@@ -240,7 +240,7 @@ print_prop(char* name, enum ValueType type, ...)
       if (list) {
         struct AstListLink* link = list->head->next;
         while (link) {
-          printf("\"$%d\"", link->object->id);
+          printf("\"$%d\"", link->ast->id);
           if (link->next) {
             printf(", ");
           }
@@ -260,7 +260,7 @@ void
 print_Parameter(struct Ast* param)
 {
   assert(param->kind == Ast_Parameter);
-  object_start();
+  ast_start();
   //print_prop_common(param);
   char* dir_str = "AstDir_None";
   if (*(enum AstParamDirection*)ast_getattr(param, "direction") == AstParamDir_In) {
@@ -274,7 +274,7 @@ print_Parameter(struct Ast* param)
   print_prop("type", Value_Id, ast_getattr(param, "type"));
   print_prop("name", Value_Id, ast_getattr(param, "name"));
   print_prop("init_expr", Value_Id, ast_getattr(param, "init_expr"));
-  object_end();
+  ast_end();
   print_Ast(ast_getattr(param, "type"));
   print_Ast(ast_getattr(param, "name"));
   print_Ast(ast_getattr(param, "init_expr"));
@@ -284,7 +284,7 @@ internal void
 print_Int(struct Ast* node)
 {
   assert(node->kind == Ast_Int);
-  object_start();
+  ast_start();
   //print_prop_common(node);
   char flags_str[256];
   char* str = flags_str + sprintf(flags_str, "AstInteger_None");
@@ -297,14 +297,14 @@ print_Int(struct Ast* node)
   print_prop("flags", Value_String, flags_str);
   print_prop("width", Value_Integer, *(int*)ast_getattr(node, "width"));
   print_prop("value", Value_Integer, *(int*)ast_getattr(node, "value"));
-  object_end();
+  ast_end();
 }
 
 internal void
 print_BaseType(struct Ast* type)
 {
   assert(type->kind == Ast_BaseType);
-  object_start();
+  ast_start();
   //print_prop_common(type);
   char* type_str = "AstBaseType_None";
   if (*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_Bool) {
@@ -323,7 +323,7 @@ print_BaseType(struct Ast* type)
   else assert(*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_None);
   print_prop("base_type", Value_String, type_str);
   print_prop("size", Value_Id, ast_getattr(type, "size"));
-  object_end();
+  ast_end();
   print_Ast(ast_getattr(type, "size"));
 }
 
@@ -382,7 +382,7 @@ void
 print_Ast(struct Ast* ast)
 {
   if (!ast) return;
-  object_start();
+  ast_start();
   print_prop("id", Value_Id, ast);
   print_prop("kind", Value_String, ast_kind_to_string(ast->kind));
   print_prop("line_nr", Value_Integer, ast->line_nr);
@@ -402,7 +402,7 @@ print_Ast(struct Ast* ast)
     }
     p_attr++;
   }
-  object_end();
+  ast_end();
   p_attr = ast->attrs;
   while (p_attr < ast->attrs + AST_ATTRTABLE_LEN) {
     struct AstAttribute* attr = *p_attr;
@@ -414,7 +414,7 @@ print_Ast(struct Ast* ast)
         if (list) {
           struct AstListLink* link = list->head->next;
           while (link) {
-            print_Ast(link->object);
+            print_Ast(link->ast);
             link = link->next;
           }
         }
