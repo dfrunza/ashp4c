@@ -1,7 +1,6 @@
 #include "basic.h"
 #include "arena.h"
 #include "lex.h"
-#include "build_cst.h"
 #include "build_ast.h"
 #include <sys/stat.h>
 
@@ -110,23 +109,15 @@ main(int arg_count, char* args[])
   if (DEBUG_ENABLED) {
     arena_print_usage(tksequence.arena, "Memory [lex]: ");
   }
-  struct CstTree cst_tree = build_CstTree(&tksequence);
-  assert(cst_tree.p4program->kind == Cst_P4Program);
-  struct Cst_P4Program* cst_p4program = (struct Cst_P4Program*)cst_tree.p4program;
-  if (DEBUG_ENABLED) {
-    arena_print_usage(cst_tree.arena, "Memory [CST]: ");
-  }
-  if (find_named_arg("dump-cst", cmdline_args)) {
-    dump_P4Program(cst_p4program);
-  }
-
-  /*
-  struct AstTree ast_tree = build_AstTree(&cst_tree);
+  struct AstTree ast_tree = build_AstTree(&tksequence);
   assert(ast_tree.p4program->kind == Ast_P4Program);
+  struct Ast_P4Program* ast_p4program = (struct Ast_P4Program*)ast_tree.p4program;
   if (DEBUG_ENABLED) {
-    arena_print_usage(ast_tree.arena, "Memory [AST]:");
+    arena_print_usage(ast_tree.arena, "Memory [AST]: ");
   }
-  */
+  if (find_named_arg("dump-ast", cmdline_args)) {
+    dump_P4Program(ast_p4program);
+  }
   arena_free(source.arena);
   return 0;
 }

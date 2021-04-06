@@ -1,5 +1,5 @@
 #pragma once
-#include "cst.h"
+#include "token.h"
 #include "ast.h"
 
-struct AstTree build_AstTree(struct CstTree* cst_tree);
+struct AstTree build_AstTree(struct TokenSequence* tksequence);
