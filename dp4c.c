@@ -111,12 +111,12 @@ main(int arg_count, char* args[])
   }
   struct AstTree ast_tree = build_AstTree(&tksequence);
   assert(ast_tree.p4program->kind == Ast_P4Program);
-  struct Ast_P4Program* ast_p4program = (struct Ast_P4Program*)ast_tree.p4program;
+  struct Ast* ast_p4program = ast_tree.p4program;
   if (DEBUG_ENABLED) {
     arena_print_usage(ast_tree.arena, "Memory [AST]: ");
   }
-  if (find_named_arg("dump-ast", cmdline_args)) {
-    dump_P4Program(ast_p4program);
+  if (find_named_arg("print-ast", cmdline_args)) {
+    print_Ast(ast_p4program);
   }
   arena_free(source.arena);
   return 0;

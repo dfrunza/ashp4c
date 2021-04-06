@@ -125,22 +125,31 @@ enum AstParamDirection {
   AstParamDir_InOut,
 };
 
-struct ListLink
+struct AstListLink
 {
-  struct ListLink* prev_lp;
-  struct ListLink* next_lp;
-  void* object;
+  struct AstListLink* prev;
+  struct AstListLink* next;
+  struct Ast* object;
 };
 
-struct List
+struct AstList
 {
-  struct ListLink sentinel;
-  struct ListLink* head_lp;
-  struct ListLink* tail_lp;
+  struct AstListLink sentinel;
+  struct AstListLink* head;
+  struct AstListLink* tail;
   int link_count;
 };
 
+enum AstAttributeType {
+  AstAttr_None,
+  AstAttr_Ast,
+  AstAttr_AstList,
+  AstAttr_Integer,
+  AstAttr_String,
+};
+
 struct AstAttribute {
+  enum AstAttributeType type;
   char* name;
   void* value;
   struct AstAttribute* next_attr;
@@ -152,9 +161,8 @@ struct Ast {
   enum AstKind kind;
   int id;
   int line_nr;
-  struct Ast* prev_node;
-  struct Ast* next_node;
   struct AstAttribute* attrs[AST_ATTRTABLE_LEN];
+  int attr_count;
 };
 
 struct AstTree {
@@ -164,6 +172,7 @@ struct AstTree {
 };
 
 void* ast_getattr(struct Ast* ast, char* attr_name);
-void ast_setattr(struct Ast* ast, char* attr_name, void* attr_value);
-void list_init(struct List* list);
-void list_append_link(struct List* list, struct ListLink* link);
+void ast_setattr(struct Ast* ast, char* attr_name, void* attr_value, enum AstAttributeType attr_type);
+void list_init(struct AstList* list);
+void list_append_link(struct AstList* list, struct AstListLink* link);
+void print_Ast(struct Ast* ast);
