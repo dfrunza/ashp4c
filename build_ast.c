@@ -2825,29 +2825,29 @@ token_to_binop(struct Token* token)
 {
   switch (token->klass) {
     case Token_TwoAmpersand:
-      return AstBinOp_LogAnd;
+      return AstBinOp_And;
     case Token_TwoPipe:
-      return AstBinOp_LogOr;
+      return AstBinOp_Or;
     case Token_TwoEqual:
-      return AstBinOp_LogEqual;
+      return AstBinOp_Equal;
     case Token_ExclamationEqual:
-      return AstBinOp_LogNotEqual;
+      return AstBinOp_NotEqual;
     case Token_AngleOpen:
-      return AstBinOp_LogLess;
+      return AstBinOp_Less;
     case Token_AngleClose:
-      return AstBinOp_LogGreater;
+      return AstBinOp_Greater;
     case Token_AngleOpenEqual:
-      return AstBinOp_LogLessEqual;
+      return AstBinOp_LessEqual;
     case Token_AngleCloseEqual:
-      return AstBinOp_LogGreaterEqual;
+      return AstBinOp_GreaterEqual;
     case Token_Plus:
-      return AstBinOp_ArAdd;
+      return AstBinOp_Add;
     case Token_Minus:
-      return AstBinOp_ArSub;
+      return AstBinOp_Sub;
     case Token_Star:
-      return AstBinOp_ArMul;
+      return AstBinOp_Mul;
     case Token_Slash:
-      return AstBinOp_ArDiv;
+      return AstBinOp_Div;
     case Token_Ampersand:
       return AstBinOp_BitAnd;
     case Token_Pipe:

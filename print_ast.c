@@ -69,6 +69,8 @@ ast_kind_to_string(enum AstKind kind)
       return "Ast_StringLiteral";
     case Ast_Tuple:
       return "Ast_Tuple";
+    case Ast_TupleKeyset:
+      return "Ast_TupleKeyset";
     case Ast_HeaderStack:
       return "Ast_HeaderStack";
     case Ast_SpecdType:
@@ -331,30 +333,30 @@ internal char*
 expr_operator_to_string(enum AstExprOperator op)
 {
   char* op_str = "Ast_Op_None";
-  if (op == AstBinOp_ArAdd) {
-    op_str = "AstBinOp_ArAdd";
-  } else if (op == AstBinOp_ArSub) {
+  if (op == AstBinOp_Add) {
+    op_str = "AstBinOp_Add";
+  } else if (op == AstBinOp_Sub) {
     op_str = "AstBinOp_ArSub";
-  } else if (op == AstBinOp_ArMul) {
-    op_str = "AstBinOp_ArMul";
-  } else if (op == AstBinOp_ArDiv) {
-    op_str = "AstBinOp_ArDiv";
-  } else if (op == AstBinOp_LogAnd) {
-    op_str = "AstBinOp_LogAnd";
-  } else if (op == AstBinOp_LogOr) {
-    op_str = "AstBinOp_LogOr";
-  } else if (op == AstBinOp_LogEqual) {
-    op_str = "AstBinOp_LogEqual";
-  } else if (op == AstBinOp_LogNotEqual) {
-    op_str = "AstBinOp_LogNotEqual";
-  } else if (op == AstBinOp_LogLess) {
-    op_str = "AstBinOp_LogLess";
-  } else if (op == AstBinOp_LogGreater) {
-    op_str = "AstBinOp_LogGreater";
-  } else if (op == AstBinOp_LogLessEqual) {
-    op_str = "AstBinOp_LogLessEqual";
-  } else if (op == AstBinOp_LogGreaterEqual) {
-    op_str = "AstBinOp_LogGreaterEqual";
+  } else if (op == AstBinOp_Mul) {
+    op_str = "AstBinOp_Mul";
+  } else if (op == AstBinOp_Div) {
+    op_str = "AstBinOp_Div";
+  } else if (op == AstBinOp_And) {
+    op_str = "AstBinOp_And";
+  } else if (op == AstBinOp_Or) {
+    op_str = "AstBinOp_Or";
+  } else if (op == AstBinOp_Equal) {
+    op_str = "AstBinOp_Equal";
+  } else if (op == AstBinOp_NotEqual) {
+    op_str = "AstBinOp_NotEqual";
+  } else if (op == AstBinOp_Less) {
+    op_str = "AstBinOp_Less";
+  } else if (op == AstBinOp_Greater) {
+    op_str = "AstBinOp_Greater";
+  } else if (op == AstBinOp_LessEqual) {
+    op_str = "AstBinOp_LessEqual";
+  } else if (op == AstBinOp_GreaterEqual) {
+    op_str = "AstBinOp_GreaterEqual";
   } else if (op == AstBinOp_BitAnd) {
     op_str = "AstBinOp_BitAnd";
   } else if (op == AstBinOp_BitOr) {
