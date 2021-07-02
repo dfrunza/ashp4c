@@ -33,7 +33,7 @@ struct Symtable_Entry {
 
 internal struct Arena* arena;
 
-internal struct Token* tokens;
+internal struct Token* tokens_array;
 internal int token_count;
 internal struct Token* token = 0;
 internal struct Token* prev_token = 0;
@@ -43,7 +43,7 @@ internal int max_symtable_len = 2003;  // table entry units
 internal int scope_level = 0;
 
 internal int node_id = 1;
-internal struct AstTree* ast_tree;
+internal int node_count = 0;
 
 internal struct Ast* build_expression(int priority_threshold);
 internal struct Ast* build_typeRef();
@@ -56,7 +56,7 @@ init_ast_node(struct Ast* ast, struct Token* token)
 {
   ast->id = node_id++;
   ast->line_nr = token->line_nr;
-  ast_tree->node_count += 1;
+  node_count += 1;
 }
 
 #define new_ast_node(type, token) ({ \
@@ -198,7 +198,7 @@ add_keyword(char* name, enum TokenClass token_klass)
 internal struct Token*
 next_token()
 {
-  assert(token < tokens + token_count);
+  assert(token < tokens_array + token_count);
   prev_token = token++;
   while (token->klass == Token_Comment) {
     token++;
@@ -2777,7 +2777,7 @@ build_expressionPrimary()
       next_token();
       struct Ast* unary_expr = new_ast_node(Ast_UnaryExpr, token);
       enum AstExprOperator* op = arena_push(arena, sizeof(enum AstExprOperator));
-      *op = AstUnOp_ArMinus;
+      *op = AstUnOp_Minus;
       ast_setattr(unary_expr, "op", op, AstAttr_Integer);
       ast_setattr(unary_expr, "expr", build_expression(1), AstAttr_Ast);
       primary = unary_expr;
@@ -2944,12 +2944,13 @@ init_symtable()
   }
 }
 
-struct AstTree
-build_AstTree(struct TokenSequence* tksequence)
+void
+build_AstTree(struct Ast** p4program_, int* ast_node_count_, struct Token* tokens_array_, int token_count_, 
+              struct Arena* ast_storage_)
 {
-  tokens = tksequence->tokens;
-  token_count = tksequence->count;
-  arena = tksequence->arena;
+  tokens_array = tokens_array_;
+  token_count = token_count_;
+  arena = ast_storage_;
 
   init_symtable();
   add_keyword("action", Token_Action);
@@ -2993,10 +2994,8 @@ build_AstTree(struct TokenSequence* tksequence)
   add_keyword("varbit", Token_Varbit);
   add_keyword("string", Token_String);
 
-  token = tokens;
+  token = tokens_array;
   next_token();
-  ast_tree = arena_push(arena, sizeof(struct AstTree));
-  ast_tree->p4program = build_p4program();
-  ast_tree->arena = arena;
-  return *ast_tree;
+  struct Ast* p4program = build_p4program();
+  *p4program_ = p4program;
 }

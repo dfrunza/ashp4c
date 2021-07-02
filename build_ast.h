@@ -2,4 +2,4 @@
 #include "token.h"
 #include "ast.h"
 
-struct AstTree build_AstTree(struct TokenSequence* tksequence);
+void build_AstTree(struct Ast** p4program_, int* ast_node_count_, struct Token* tokens_array_, int token_count_, struct Arena* ast_storage_);

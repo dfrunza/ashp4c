@@ -371,8 +371,8 @@ expr_operator_to_string(enum AstExprOperator op)
     op_str = "AstUnOp_LogNot";
   } else if (op == AstUnOp_BitNot) {
     op_str = "AstUnOp_BitNot";
-  } else if (op == AstUnOp_ArMinus) {
-    op_str = "AstUnOp_ArMinus";
+  } else if (op == AstUnOp_Minus) {
+    op_str = "AstUnOp_Minus";
   } else if (op == AstBinOp_Mask) {
     op_str = "AstBinOp_Mask";
   }

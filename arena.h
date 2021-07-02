@@ -25,4 +25,4 @@ struct ArenaUsage arena_get_usage(struct Arena* arena);
 void arena_print_usage(struct Arena* arena, char* title);
 
 #define zero_struct(ptr, type) \
-  *ptr = (struct type){};
+  *ptr = (type){};

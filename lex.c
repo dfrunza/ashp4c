@@ -1,7 +1,7 @@
 #include "arena.h"
 #include "lex.h"
 
-internal struct Arena* arena;
+internal struct Arena* lexeme_storage;
 internal char* text;
 internal int text_size;
 
@@ -98,7 +98,7 @@ internal char*
 lexeme_to_cstring(struct Lexeme* lexeme)
 {
   int len = lexeme_len(lexeme);
-  char* string = arena_push(arena, (len + 1)*sizeof(char));   // +1 the NULL terminator
+  char* string = arena_push(lexeme_storage, (len + 1)*sizeof(char));   // +1 the NULL terminator
   lexeme_copy(string, lexeme);
   string[len] = '\0';
   return string;
@@ -163,7 +163,7 @@ token_install_integer(struct Token* token, struct Lexeme* lexeme, int base)
 internal void
 next_token(struct Token* token)
 {
-  zero_struct(token, Token);
+  zero_struct(token, struct Token);
   state = 1;
   while (state) {
     char c = char_lookahead(0);
@@ -780,17 +780,19 @@ next_token(struct Token* token)
   prev_token = token;
 }
 
-struct TokenSequence
-lex_tokenize(struct SourceText* source)
+void
+lex_tokenize(char* text_, int text_size_, struct Arena* lexeme_storage_, struct Arena* tokens_storage,
+             struct Token** tokens_array_, int* token_count_)
 {
-  text = source->text;
-  text_size = source->size;
-  arena = source->arena;
+  text = text_;
+  text_size = text_size_;
+  lexeme_storage = lexeme_storage_;
+
   lexeme->start = lexeme->end = text;
 
-  int max_tokens_count = 2000;  // table entry units
-  struct Token* tokens = arena_push(arena, max_tokens_count*sizeof(struct Token));
-  struct Token* token = tokens;
+  int max_token_count = 2000;  // in table entry units
+  struct Token* tokens_array = arena_push(tokens_storage, max_token_count*sizeof(struct Token));
+  struct Token* token = tokens_array;
   token->klass = Token_StartOfInput_;
   token++;
   int token_count = 1;
@@ -798,7 +800,7 @@ lex_tokenize(struct SourceText* source)
   next_token(token);
   token_count++;
   while (token->klass != Token_EndOfInput_) {
-    if (token_count >= max_tokens_count) {
+    if (token_count >= max_token_count) {
       error("at line %d: out of memory.", token->line_nr);
     }
     if (token->klass == Token_Unknown_) {
@@ -810,11 +812,7 @@ lex_tokenize(struct SourceText* source)
     next_token(token);
     token_count++;
   }
-  struct TokenSequence result = {
-    .tokens = tokens,
-    .count = token_count,
-    .arena = arena,
-  };
-  return result;
+  *tokens_array_ = tokens_array;
+  *token_count_ = token_count;
 }
 

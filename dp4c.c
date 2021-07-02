@@ -4,7 +4,7 @@
 #include "build_ast.h"
 #include <sys/stat.h>
 
-#define DEBUG_ENABLED 0
+#define DEBUG_ENABLED 1
 
 internal struct Arena arena = {};
 
@@ -14,24 +14,19 @@ struct CmdlineArg {
   struct CmdlineArg* next_arg;
 };
 
-internal struct SourceText
-read_source(char* filename)
+internal void
+read_source(char** text_, int* text_size_, struct Arena* text_storage, char* filename)
 {
-  struct Arena* text_arena = arena_push(&arena, sizeof(struct Arena));
   FILE* f_stream = fopen(filename, "rb");
   fseek(f_stream, 0, SEEK_END);
-  int input_size = ftell(f_stream);
+  int text_size = ftell(f_stream);
   fseek(f_stream, 0, SEEK_SET);
-  char* input_text = arena_push(text_arena, (input_size + 1)*sizeof(char));
-  fread(input_text, sizeof(char), input_size, f_stream);
-  input_text[input_size] = '\0';
+  char* text = arena_push(text_storage, (text_size + 1)*sizeof(char));
+  fread(text, sizeof(char), text_size, f_stream);
+  text[text_size] = '\0';
   fclose(f_stream);
-  struct SourceText result = {
-    .text = input_text,
-    .size = input_size,  // char units, excluding NULL
-    .arena = text_arena,
-  };
-  return result;
+  *text_ = text;
+  *text_size_ = text_size;
 }
 
 internal struct CmdlineArg*
@@ -77,7 +72,7 @@ parse_cmdline_args(int arg_count, char* args[])
   int i = 1;
   while (i < arg_count) {
     struct CmdlineArg* cmdline_arg = arena_push(&arena, sizeof(struct CmdlineArg));
-    zero_struct(cmdline_arg, CmdlineArg);
+    zero_struct(cmdline_arg, struct CmdlineArg);
     if (cstr_start_with(args[i], "--")) {
       char* raw_arg = args[i] + 2;  /* skip the `--` prefix */
       cmdline_arg->name = raw_arg;
@@ -101,24 +96,34 @@ main(int arg_count, char* args[])
     printf("<filename> argument is required.\n");
     exit(1);
   }
-  struct SourceText source = read_source(filename_arg->value);
+  struct Arena* text_storage = arena_push(&arena, sizeof(struct Arena));
+  zero_struct(text_storage, struct Arena);
+  struct Arena* tokens_storage = arena_push(&arena, sizeof(struct Arena));
+  zero_struct(tokens_storage, struct Arena);
+  char* text = 0;
+  int text_size = 0;
+  read_source(&text, &text_size, text_storage, filename_arg->value);
   if (DEBUG_ENABLED) {
-    arena_print_usage(source.arena, "Memory [text]: ");
+    arena_print_usage(text_storage, "Memory [text_storage]: ");
   }
-  struct TokenSequence tksequence = lex_tokenize(&source);
+  struct Token* tokens_array = 0;
+  int token_count = 0;
+  lex_tokenize(text, text_size, text_storage, tokens_storage, &tokens_array, &token_count);
   if (DEBUG_ENABLED) {
-    arena_print_usage(tksequence.arena, "Memory [lex]: ");
+    arena_print_usage(text_storage, "Memory [text_storage]: ");
   }
-  struct AstTree ast_tree = build_AstTree(&tksequence);
-  assert(ast_tree.p4program->kind == Ast_P4Program);
-  struct Ast* ast_p4program = ast_tree.p4program;
+  struct Ast* ast_p4program = 0;
+  int ast_node_count = 0;
+  build_AstTree(&ast_p4program, &ast_node_count, tokens_array, token_count, text_storage);
+  assert(ast_p4program && ast_p4program->kind == Ast_P4Program);
   if (DEBUG_ENABLED) {
-    arena_print_usage(ast_tree.arena, "Memory [AST]: ");
+    arena_print_usage(text_storage, "Memory [text_storage]: ");
   }
   if (find_named_arg("print-ast", cmdline_args)) {
     print_Ast(ast_p4program);
   }
-  arena_free(source.arena);
+  arena_free(text_storage);
+  arena_free(tokens_storage);
   return 0;
 }
 

@@ -99,6 +99,7 @@ enum AstExprOperator {
   AstBinOp_Sub,
   AstBinOp_Mul,
   AstBinOp_Div,
+  AstUnOp_Minus,
   AstBinOp_And,
   AstBinOp_Or,
   AstBinOp_Equal,
@@ -115,7 +116,6 @@ enum AstExprOperator {
   AstBinOp_Mask,
   AstUnOp_LogNot,
   AstUnOp_BitNot,
-  AstUnOp_ArMinus,
 };
 
 enum AstParamDirection {
@@ -161,14 +161,8 @@ struct Ast {
   enum AstKind kind;
   int id;
   int line_nr;
-  struct AstAttribute* attrs[AST_ATTRTABLE_LEN];
   int attr_count;
-};
-
-struct AstTree {
-  struct Arena* arena;
-  struct Ast* p4program;
-  int node_count;
+  struct AstAttribute* attrs[AST_ATTRTABLE_LEN];
 };
 
 void* ast_getattr(struct Ast* ast, char* attr_name);
