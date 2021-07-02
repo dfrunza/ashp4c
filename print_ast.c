@@ -216,11 +216,11 @@ print_value(enum ValueType type, va_list value)
     printf("%d", i);
   } else if (type == Value_String) {
     char* s = va_arg(value, char*);
-    printf("\"%s\"", s);
+    printf("%s", s);
   } else if (type == Value_Id) {
     struct Ast* ast = va_arg(value, struct Ast*);
     if (ast) {
-      printf("\"$%d\"", ast->id);
+      printf("$%d", ast->id);
     } else {
       printf("0");
     }
@@ -242,7 +242,7 @@ print_prop(char* name, enum ValueType type, ...)
       if (list) {
         struct AstListLink* link = list->head->next;
         while (link) {
-          printf("\"$%d\"", link->ast->id);
+          printf("$%d", link->ast->id);
           if (link->next) {
             printf(", ");
           }
@@ -336,7 +336,7 @@ expr_operator_to_string(enum AstExprOperator op)
   if (op == AstBinOp_Add) {
     op_str = "AstBinOp_Add";
   } else if (op == AstBinOp_Sub) {
-    op_str = "AstBinOp_ArSub";
+    op_str = "AstBinOp_Sub";
   } else if (op == AstBinOp_Mul) {
     op_str = "AstBinOp_Mul";
   } else if (op == AstBinOp_Div) {
