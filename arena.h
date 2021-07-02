@@ -3,10 +3,9 @@
 
 struct Arena;
 
-struct PageBlock
+struct Page
 {
-  struct PageBlock* next_block;
-  struct Arena* arena_using;
+  struct Page* next_page;
 };
 
 struct Arena 
@@ -16,7 +15,7 @@ struct Arena
   void* avail;
   void* limit;
 
-  struct PageBlock* first_page_block;
+  struct Page* owned_pages;
   void* page_memory_start;
   void* memory_avail;
   void* memory_limit;
