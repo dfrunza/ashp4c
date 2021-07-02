@@ -1,8 +1,18 @@
 #include "arena.h"
+#include <memory.h>  // memset
+#include <unistd.h>
+#include <sys/mman.h>
 
 #define DEBUG_ENABLED 1
 
 internal int DEFAULT_SIZE_KB = 8*KILOBYTE;
+internal int page_size = 0;
+internal int page_count = 0;
+internal int page_freelist_size = 0;
+internal struct PageBlock* page_freelist = 0;
+internal uint8_t* memory_start = 0;
+internal uint8_t* user_memory_start = 0;
+
 
 void*
 arena_push(struct Arena* arena, uint32_t size)
@@ -23,7 +33,7 @@ arena_push(struct Arena* arena, uint32_t size)
 }
 
 void
-arena_free(struct Arena* arena)
+arena_delete(struct Arena* arena)
 {
   struct Arena at_arena = *arena;
   int arena_count = 0;
@@ -34,6 +44,7 @@ arena_free(struct Arena* arena)
       prev_save = *(at_arena.prev);
     }
     if (at_arena.memory) {
+      memset(at_arena.memory, 0, at_arena.limit - at_arena.memory);
       free(at_arena.memory);
     }
     arena_count += 1;
@@ -72,3 +83,50 @@ arena_print_usage(struct Arena* arena, char* caption)
          caption, usage.free, usage.in_use, free_fraction*100.f);
 }
 
+uint8_t*
+mprotect_enable_page(uint8_t* page_start, int page_count)
+{
+  if (mprotect(page_start, page_count * page_size, PROT_READ|PROT_WRITE) != 0) {
+    perror("mprotect");
+    exit(1);
+  }
+  return page_start + page_count * page_size;
+}
+
+uint8_t*
+mprotect_disable_page(uint8_t* page_start, int page_count)
+{
+  memset(page_start, 0, page_count * page_size);
+  if (mprotect(page_start, page_count * page_size, PROT_NONE) != 0) {
+    perror("mprotect");
+    exit(1);
+  }
+  return page_start + page_count * page_size;
+}
+
+void
+init_memory()
+{
+  page_size = getpagesize();
+  page_count = 32*MEGABYTE / page_size;
+  memory_start = mmap(0, page_count * page_size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+  if (memory_start == MAP_FAILED) {
+    perror("mmap");
+    exit(1);
+  }
+
+  page_freelist_size = (page_count * sizeof(struct PageBlock) + page_size - 1) & ~(page_size - 1);
+  uint8_t* memory_avail = mprotect_enable_page(memory_start, page_freelist_size / page_size);
+  page_freelist = (struct PageBlock*)memory_start;
+
+  struct PageBlock* p = page_freelist;
+  int i = 0;
+  for (; i < page_count - 1; i++) {
+    *p = (struct PageBlock){};
+    p->next_block = p + 1;
+    p++;
+  }
+  *p = (struct PageBlock){};  // last block
+
+  user_memory_start = memory_avail;
+}

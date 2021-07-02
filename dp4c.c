@@ -6,7 +6,7 @@
 
 #define DEBUG_ENABLED 1
 
-internal struct Arena arena = {};
+internal struct Arena main_storage = {};
 
 struct CmdlineArg {
   char* name;
@@ -71,7 +71,7 @@ parse_cmdline_args(int arg_count, char* args[])
   struct CmdlineArg* prev_arg = &sentinel_arg;
   int i = 1;
   while (i < arg_count) {
-    struct CmdlineArg* cmdline_arg = arena_push(&arena, sizeof(struct CmdlineArg));
+    struct CmdlineArg* cmdline_arg = arena_push(&main_storage, sizeof(struct CmdlineArg));
     zero_struct(cmdline_arg, struct CmdlineArg);
     if (cstr_start_with(args[i], "--")) {
       char* raw_arg = args[i] + 2;  /* skip the `--` prefix */
@@ -90,40 +90,38 @@ parse_cmdline_args(int arg_count, char* args[])
 int
 main(int arg_count, char* args[])
 {
+  init_memory();
   struct CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
   struct CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
   if (!filename_arg) {
     printf("<filename> argument is required.\n");
     exit(1);
   }
-  struct Arena* text_storage = arena_push(&arena, sizeof(struct Arena));
+  struct Arena* text_storage = arena_push(&main_storage, sizeof(struct Arena));
   zero_struct(text_storage, struct Arena);
-  struct Arena* tokens_storage = arena_push(&arena, sizeof(struct Arena));
+  struct Arena* tokens_storage = arena_push(&main_storage, sizeof(struct Arena));
   zero_struct(tokens_storage, struct Arena);
   char* text = 0;
   int text_size = 0;
   read_source(&text, &text_size, text_storage, filename_arg->value);
-  if (DEBUG_ENABLED) {
-    arena_print_usage(text_storage, "Memory [text_storage]: ");
-  }
   struct Token* tokens_array = 0;
   int token_count = 0;
-  lex_tokenize(text, text_size, text_storage, tokens_storage, &tokens_array, &token_count);
-  if (DEBUG_ENABLED) {
-    arena_print_usage(text_storage, "Memory [text_storage]: ");
-  }
+  lex_tokenize(text, text_size, &main_storage, tokens_storage, &tokens_array, &token_count);
+  struct Arena* symtable_storage = arena_push(&main_storage, sizeof(struct Arena));
+  zero_struct(symtable_storage, struct Arena);
+  struct Arena* ast_storage = arena_push(&main_storage, sizeof(struct Arena));
+  zero_struct(ast_storage, struct Arena);
   struct Ast* ast_p4program = 0;
   int ast_node_count = 0;
-  build_AstTree(&ast_p4program, &ast_node_count, tokens_array, token_count, text_storage);
+  build_AstTree(&ast_p4program, &ast_node_count, tokens_array, token_count, ast_storage, symtable_storage);
   assert(ast_p4program && ast_p4program->kind == Ast_P4Program);
-  if (DEBUG_ENABLED) {
-    arena_print_usage(text_storage, "Memory [text_storage]: ");
-  }
   if (find_named_arg("print-ast", cmdline_args)) {
     print_Ast(ast_p4program);
   }
-  arena_free(text_storage);
-  arena_free(tokens_storage);
+  arena_delete(text_storage);
+  arena_delete(tokens_storage);
+  arena_delete(symtable_storage);
+  arena_delete(ast_storage);
   return 0;
 }
 
