@@ -91,6 +91,9 @@ int
 main(int arg_count, char* args[])
 {
   init_memory();
+  struct Arena test_arena = {};
+  arena_push2(&test_arena, 123);
+
   struct CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
   struct CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
   if (!filename_arg) {
