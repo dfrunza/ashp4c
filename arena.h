@@ -15,6 +15,11 @@ struct Arena
   void* memory;
   void* avail;
   void* limit;
+
+  struct PageBlock* first_page_block;
+  void* page_memory_start;
+  void* memory_avail;
+  void* memory_limit;
 };
 
 struct ArenaUsage
