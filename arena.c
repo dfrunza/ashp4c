@@ -90,13 +90,22 @@ find_end_contiguous_sequence(struct Page* first_page)
 }
 
 internal struct Page*
-find_free_memory(int memory_amount)
+find_free_page_sequence(int requested_page_count)
 {
-  assert ((memory_amount % page_size) == 0);
-  int requested_page_count = memory_amount / page_size;
   struct Page* start_page_seq = freelist_head;
   struct Page* end_page_seq = find_end_contiguous_sequence(start_page_seq);
   int page_count = end_page_seq - start_page_seq + 1;
+  if (page_count < requested_page_count) {
+    while (start_page_seq) {
+      if (page_count >= requested_page_count) {
+        break;
+      } else {
+        start_page_seq = end_page_seq->next_page;
+        end_page_seq = find_end_contiguous_sequence(start_page_seq);
+        page_count = end_page_seq - start_page_seq + 1;
+      }
+    }
+  }
   return start_page_seq;
 }
 
@@ -124,7 +133,14 @@ arena_push2(struct Arena* arena, uint32_t size)
   uint8_t* object = arena->memory_avail;
   if (object + size >= (uint8_t*)arena->memory_limit) {
     int memory_amount = (size + sizeof(struct Arena) + page_size - 1) & ~(page_size - 1);
-    struct Page* start_free_block = find_free_memory(memory_amount);
+    int required_page_count = memory_amount / page_size;
+    struct Page* start_free_seq = find_free_page_sequence(required_page_count);
+    struct Page* end_alloc_page = start_free_seq + required_page_count;
+    struct Page* p = start_free_seq;
+    for (; p < end_alloc_page - 1; p++) {
+      p->next_page = p + 1;
+    }
+    p->next_page = 0;
   }
   return object;
 }
