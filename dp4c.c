@@ -3,6 +3,7 @@
 #include "lex.h"
 #include "build_ast.h"
 #include <sys/stat.h>
+#include <memory.h>  // memset
 
 #define DEBUG_ENABLED 1
 
@@ -72,7 +73,7 @@ parse_cmdline_args(int arg_count, char* args[])
   int i = 1;
   while (i < arg_count) {
     struct CmdlineArg* cmdline_arg = arena_push(&main_storage, sizeof(struct CmdlineArg));
-    zero_struct(cmdline_arg, struct CmdlineArg);
+    memset(cmdline_arg, 0, sizeof(*cmdline_arg));
     if (cstr_start_with(args[i], "--")) {
       char* raw_arg = args[i] + 2;  /* skip the `--` prefix */
       cmdline_arg->name = raw_arg;
@@ -105,6 +106,7 @@ main(int arg_count, char* args[])
   struct Token* tokens_array = 0;
   int token_count = 0;
   lex_tokenize(text, text_size, &main_storage, &tokens_storage, &tokens_array, &token_count);
+  arena_delete(&text_storage);
   struct Arena symtable_storage = {}, ast_storage = {};
   struct Ast* ast_p4program = 0;
   int ast_node_count = 0;
@@ -113,7 +115,6 @@ main(int arg_count, char* args[])
   if (find_named_arg("print-ast", cmdline_args)) {
     print_Ast(ast_p4program);
   }
-  arena_delete(&text_storage);
   arena_delete(&tokens_storage);
   arena_delete(&symtable_storage);
   arena_delete(&ast_storage);

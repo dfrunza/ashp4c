@@ -42,12 +42,12 @@ init_memory()
     exit(1);
   }
   first_block = page_memory_start;
-  *first_block = (struct PageBlock){};
+  memset(first_block, 0, sizeof(*first_block));
   first_block->memory_begin = (uint8_t*)page_memory_start;
   first_block->memory_end = first_block->memory_begin + (1 * page_size);
 
   block_freelist_head = first_block + 1;
-  *block_freelist_head = (struct PageBlock){};
+  memset(block_freelist_head, 0, sizeof(block_freelist_head));
   block_freelist_head->memory_begin = first_block->memory_end;
   block_freelist_head->memory_end = block_freelist_head->memory_begin + ((total_page_count - 1) * page_size);
 
@@ -74,7 +74,7 @@ find_block_first_fit(int requested_memory_amount)
 internal void
 recycle_block_struct(struct PageBlock* block)
 {
-  *block = (struct PageBlock){};
+  memset(block, 0, sizeof(*block));
   block->next_block = recycled_block_structs;
   recycled_block_structs = block;
 }
@@ -159,7 +159,7 @@ get_new_block_struct()
   } else {
     block = arena_push(&pageblock_storage, sizeof(struct PageBlock));
   }
-  *block = (struct PageBlock){};
+  memset(block, 0, sizeof(*block));
   return block;
 }
 
@@ -209,6 +209,7 @@ arena_delete(struct Arena* arena)
 {
   struct PageBlock* p = arena->owned_pages;
   while (p) {
+    memset(p->memory_begin, 0, p->memory_end - p->memory_begin);
     if (mprotect(p->memory_begin, p->memory_end - p->memory_begin, PROT_NONE) != 0) {
       perror("mprotect");
       exit(1);

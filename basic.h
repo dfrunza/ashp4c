@@ -29,4 +29,3 @@
 #define assert(expr) \
   do { if(!(expr)) assert_(#expr, __FILE__, __LINE__); } while(0)
 #define error(msg, ...)   error_(__FILE__, __LINE__, (msg), ## __VA_ARGS__)
-#define zero_struct(ptr, type)   *ptr = (type){};

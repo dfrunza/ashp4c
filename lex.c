@@ -1,5 +1,6 @@
 #include "arena.h"
 #include "lex.h"
+#include <memory.h>  // memset
 
 internal struct Arena* lexeme_storage;
 internal char* text;
@@ -163,7 +164,7 @@ token_install_integer(struct Token* token, struct Lexeme* lexeme, int base)
 internal void
 next_token(struct Token* token)
 {
-  zero_struct(token, struct Token);
+  memset(token, 0, sizeof(*token));
   state = 1;
   while (state) {
     char c = char_lookahead(0);
