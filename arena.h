@@ -36,18 +36,9 @@ struct ArenaUsage
 
 struct Arena* arena_new(struct Arena* arena, uint32_t size);
 
-#define init_memory  init_memory2
-void init_memory1();
-void init_memory2();
-
-#define arena_push  arena_push3
-void* arena_push1(struct Arena* arena, uint32_t size);
-void* arena_push2(struct Arena* arena, uint32_t size);
-void* arena_push3(struct Arena* arena, uint32_t size);
-
-#define arena_delete  arena_delete2
-void arena_delete1(struct Arena* arena);
-void arena_delete2(struct Arena* arena);
+void init_memory();
+void* arena_push(struct Arena* arena, uint32_t size);
+void arena_delete(struct Arena* arena);
 
 
 struct ArenaUsage arena_get_usage(struct Arena* arena);
