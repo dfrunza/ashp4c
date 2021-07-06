@@ -98,31 +98,26 @@ main(int arg_count, char* args[])
     printf("<filename> argument is required.\n");
     exit(1);
   }
-  struct Arena* text_storage = arena_push(&main_storage, sizeof(struct Arena));
-  zero_struct(text_storage, struct Arena);
-  struct Arena* tokens_storage = arena_push(&main_storage, sizeof(struct Arena));
-  zero_struct(tokens_storage, struct Arena);
+  struct Arena text_storage = {}, tokens_storage = {};
   char* text = 0;
   int text_size = 0;
-  read_source(&text, &text_size, text_storage, filename_arg->value);
+  read_source(&text, &text_size, &text_storage, filename_arg->value);
   struct Token* tokens_array = 0;
   int token_count = 0;
-  lex_tokenize(text, text_size, &main_storage, tokens_storage, &tokens_array, &token_count);
-  struct Arena* symtable_storage = arena_push(&main_storage, sizeof(struct Arena));
-  zero_struct(symtable_storage, struct Arena);
-  struct Arena* ast_storage = arena_push(&main_storage, sizeof(struct Arena));
-  zero_struct(ast_storage, struct Arena);
+  lex_tokenize(text, text_size, &main_storage, &tokens_storage, &tokens_array, &token_count);
+  struct Arena symtable_storage = {}, ast_storage = {};
   struct Ast* ast_p4program = 0;
   int ast_node_count = 0;
-  build_AstTree(&ast_p4program, &ast_node_count, tokens_array, token_count, ast_storage, symtable_storage);
+  build_AstTree(&ast_p4program, &ast_node_count, tokens_array, token_count, &ast_storage, &symtable_storage);
   assert(ast_p4program && ast_p4program->kind == Ast_P4Program);
   if (find_named_arg("print-ast", cmdline_args)) {
     print_Ast(ast_p4program);
   }
-  arena_delete(text_storage);
-  arena_delete(tokens_storage);
-  arena_delete(symtable_storage);
-  arena_delete(ast_storage);
+  arena_delete(&text_storage);
+  arena_delete(&tokens_storage);
+  arena_delete(&symtable_storage);
+  arena_delete(&ast_storage);
+  arena_delete(&main_storage);
   return 0;
 }
 
