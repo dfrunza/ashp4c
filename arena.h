@@ -5,9 +5,6 @@ struct Arena;
 
 struct PageBlock
 {
-  struct PageBlock* next_page;
-  struct Arena* arena_owning;
-
   struct PageBlock* next_block;
   struct PageBlock* prev_block;
   uint8_t* memory_begin;
@@ -16,11 +13,6 @@ struct PageBlock
 
 struct Arena 
 {
-  struct Arena* prev;
-  void* memory;
-  void* avail;
-  void* limit;
-
   struct PageBlock* owned_pages;
   void* memory_avail;
   void* memory_limit;

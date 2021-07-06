@@ -8,14 +8,11 @@
 internal int DEFAULT_SIZE_KB = 8*KILOBYTE;
 internal int page_size = 0;
 internal int total_page_count = 0;
-internal int freelist_storage_size = 0;
-internal int freelist_storage_page_count = 0;
-internal struct PageBlock* first_page = 0;
 internal struct PageBlock* freelist_head = 0;
 internal void* page_memory_start = 0;
 internal struct Arena pageblock_storage = {};
 internal struct PageBlock* first_block = 0;
-internal struct PageBlock unused_block_structs = {};
+internal struct PageBlock* recycled_block_structs = 0;
 
 
 void
@@ -74,6 +71,78 @@ find_block_first_fit(int requested_memory_amount)
   return result;
 }
 
+internal struct PageBlock*
+block_insert_and_coalesce(struct PageBlock* block_list, struct PageBlock* new_block)
+{
+  assert (!new_block->next_block && !new_block->prev_block);
+  if (!block_list) {
+    return new_block;
+  }
+  struct PageBlock* merged_list = block_list;
+  struct PageBlock* left_neighbour = 0;
+  struct PageBlock* right_neighbour = 0;
+  struct PageBlock* p = block_list;
+  while (p) {
+    // Find the left neighbour of 'new_block' in the ordered list of blocks.
+    if (p->memory_begin <= new_block->memory_begin) {
+      left_neighbour = p;
+      break;
+    }
+    p = p->next_block;
+  }
+  // Insert the 'new_block' in the ordered list of blocks.
+  if (left_neighbour) {
+    right_neighbour = left_neighbour->next_block;
+    left_neighbour->next_block = new_block;
+    new_block->prev_block = left_neighbour;
+    new_block->next_block = right_neighbour;
+    if (right_neighbour) {
+      right_neighbour->prev_block = new_block;
+    }
+  } else {
+    new_block->next_block = block_list;
+    block_list->prev_block = new_block;
+    right_neighbour = new_block->next_block;
+    merged_list = new_block;
+  }
+
+  // Coalesce adjacent blocks.
+  int STITCH_LEFT = 1 << 1, STITCH_RIGHT = 1 << 2;
+  int stitch_type = 0;
+  if (left_neighbour && (left_neighbour->memory_end == new_block->memory_begin)) {
+    stitch_type |= STITCH_LEFT;
+  }
+  if (right_neighbour && (right_neighbour->memory_begin == new_block->memory_end)) {
+    stitch_type |= STITCH_RIGHT;
+  }
+  if (stitch_type == (STITCH_LEFT | STITCH_RIGHT)) {
+    left_neighbour->memory_end = right_neighbour->memory_end;
+    left_neighbour->next_block = right_neighbour->next_block;
+    if (right_neighbour->next_block) {
+      right_neighbour->next_block->prev_block = left_neighbour;
+    }
+    // TODO: Recycle the 'right_neighbour' struct.
+  } else if (stitch_type == STITCH_LEFT) {
+    left_neighbour->memory_end = new_block->memory_end;
+    left_neighbour->next_block = right_neighbour;
+    if (right_neighbour) {
+      right_neighbour->prev_block = left_neighbour;
+    }
+  } else if (stitch_type == STITCH_RIGHT) {
+    right_neighbour->memory_begin = new_block->memory_begin;
+    right_neighbour->prev_block = left_neighbour;
+    if (left_neighbour) {
+      left_neighbour->next_block = right_neighbour;
+    } else {
+      merged_list = right_neighbour;
+    }
+  }
+  if (stitch_type != 0) {
+    // TODO: Recycle the 'new_block' struct.
+  }
+  return merged_list;
+}
+
 void*
 arena_push(struct Arena* arena, uint32_t size)
 {
@@ -108,9 +177,12 @@ arena_push(struct Arena* arena, uint32_t size)
     *alloc_block = (struct PageBlock){};
     alloc_block->memory_begin = alloc_memory_begin;
     alloc_block->memory_end = alloc_memory_end;
+    arena->owned_pages = block_insert_and_coalesce(arena->owned_pages, alloc_block);
+#if 0
     alloc_block->prev_block = 0;
     alloc_block->next_block = arena->owned_pages;
     arena->owned_pages = alloc_block;
+#endif
 
     client_memory = arena->memory_avail;
   }
@@ -128,13 +200,5 @@ struct ArenaUsage
 arena_get_usage(struct Arena* arena)
 {
   struct ArenaUsage usage = {};
-  struct Arena* at_arena = arena;
-  while (at_arena) {
-    usage.total += at_arena->limit - at_arena->memory;
-    usage.in_use += at_arena->avail - at_arena->memory;
-    usage.arena_count += 1;
-    at_arena = at_arena->prev;
-  }
-  usage.free = usage.total - usage.in_use;
   return usage;
 }
