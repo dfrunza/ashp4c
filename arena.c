@@ -10,9 +10,13 @@ internal int page_size = 0;
 internal int total_page_count = 0;
 internal int freelist_storage_size = 0;
 internal int freelist_storage_page_count = 0;
-internal struct Page* first_page = 0;
-internal struct Page* freelist_head = 0;
-internal void* memory_start = 0;
+internal struct PageBlock* first_page = 0;
+internal struct PageBlock* freelist_head_ = 0;
+internal struct PageBlock* freelist_head = 0;
+internal void* page_memory_start = 0;
+internal struct Arena pageblock_storage = {};
+internal struct PageBlock* first_block = 0;
+internal struct PageBlock unused_block_structs = {};
 
 
 void
@@ -49,37 +53,40 @@ mprotect_deallocate_page(uint8_t* page_start, int page_count)
 }
 
 void
-init_memory()
+init_memory1()
 {
   page_size = getpagesize();
-  total_page_count = 32*MEGABYTE / page_size;
-  memory_start = mmap(0, total_page_count * page_size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-  if (memory_start == MAP_FAILED) {
+  total_page_count = 200*KILOBYTE / page_size;
+  page_memory_start = mmap(0, total_page_count * page_size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+  if (page_memory_start == MAP_FAILED) {
     perror("mmap");
     exit(1);
   }
 
-  freelist_storage_size = (total_page_count * sizeof(struct Page) + page_size - 1) & ~(page_size - 1);
+  freelist_storage_size = (total_page_count * sizeof(struct PageBlock) + page_size - 1) & ~(page_size - 1);
   freelist_storage_page_count = freelist_storage_size / page_size;
-  mprotect_allocate_page(memory_start, freelist_storage_page_count);
-  first_page = (struct Page*)memory_start;
-  freelist_head = first_page + freelist_storage_page_count;
+  mprotect_allocate_page(page_memory_start, freelist_storage_page_count);
 
-  struct Page* p = freelist_head;
-  int i = freelist_storage_page_count;
-  for (; i < total_page_count - 1; i++) {
-    *p = (struct Page){};
+  first_page = (struct PageBlock*)page_memory_start;
+  freelist_head_ = (struct PageBlock*)page_memory_start;
+  *freelist_head_ = (struct PageBlock){};
+  freelist_head_->next_page = freelist_head_ + 1;
+
+  struct PageBlock* p = freelist_head_->next_page;
+  int i = 0;
+  for (; i < total_page_count - freelist_storage_page_count - 1; i++) {
+    *p = (struct PageBlock){};
     p->next_page = p + 1;
     p++;
   }
-  *p = (struct Page){};  // last page
+  *p = (struct PageBlock){};  // last page
 }
 
-internal struct Page*
-find_end_contiguous_sequence(struct Page* first_page)
+internal struct PageBlock*
+find_end_contiguous_sequence(struct PageBlock* head_page)
 {
-  struct Page* last_page = first_page;
-  struct Page* p = first_page;
+  struct PageBlock* last_page = head_page->next_page;
+  struct PageBlock* p = last_page;
   for (; p; p = p->next_page) {
     last_page = p;
     if (p->next_page && (p->next_page - p > 1)) {
@@ -89,28 +96,72 @@ find_end_contiguous_sequence(struct Page* first_page)
   return last_page;
 }
 
-internal struct Page*
+void
+init_memory2()
+{
+  page_size = getpagesize();
+  total_page_count = 200*KILOBYTE / page_size;
+  page_memory_start = mmap(0, total_page_count * page_size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+  if (page_memory_start == MAP_FAILED) {
+    perror("mmap");
+    exit(1);
+  }
+  if (mprotect(page_memory_start, 1 * page_size, PROT_READ|PROT_WRITE) != 0) {
+    perror("mprotect");
+    exit(1);
+  }
+  first_block = page_memory_start;
+  *first_block = (struct PageBlock){};
+  first_block->memory_begin = (uint8_t*)page_memory_start;
+  first_block->memory_end = first_block->memory_begin + (1 * page_size);
+
+  freelist_head = first_block + 1;
+  *freelist_head = (struct PageBlock){};
+  freelist_head->memory_begin = first_block->memory_end;
+  freelist_head->memory_end = freelist_head->memory_begin + ((total_page_count - 1) * page_size);
+
+  pageblock_storage.owned_pages = first_block;
+  pageblock_storage.memory_avail = first_block->memory_begin + sizeof(*first_block) + sizeof(*freelist_head);
+  pageblock_storage.memory_limit = first_block->memory_end;
+}
+
+internal struct PageBlock*
 find_free_page_sequence(int requested_page_count)
 {
-  struct Page* start_page_seq = freelist_head;
-  struct Page* end_page_seq = find_end_contiguous_sequence(start_page_seq);
-  int page_count = end_page_seq - start_page_seq + 1;
+  struct PageBlock* start_page_seq = freelist_head_;
+  struct PageBlock* end_page_seq = find_end_contiguous_sequence(start_page_seq);
+  int page_count = end_page_seq - start_page_seq->next_page + 1;
   if (page_count < requested_page_count) {
-    while (start_page_seq) {
+    while (start_page_seq->next_page) {
       if (page_count >= requested_page_count) {
         break;
       } else {
-        start_page_seq = end_page_seq->next_page;
+        start_page_seq = end_page_seq;
         end_page_seq = find_end_contiguous_sequence(start_page_seq);
-        page_count = end_page_seq - start_page_seq + 1;
+        page_count = end_page_seq - start_page_seq->next_page + 1;
       }
     }
   }
   return start_page_seq;
 }
 
+internal struct PageBlock*
+find_block_first_fit(int requested_memory_amount)
+{
+  struct PageBlock* result = 0;
+  struct PageBlock* b = freelist_head;
+  while (b) {
+    if ((b->memory_end - b->memory_begin) >= requested_memory_amount) {
+      result = b;
+      break;
+    }
+    b = b->next_block;
+  }
+  return result;
+}
+
 void*
-arena_push(struct Arena* arena, uint32_t size)
+arena_push1(struct Arena* arena, uint32_t size)
 {
   uint8_t* object = arena->avail;
   if (object + size >= (uint8_t*)arena->limit) {
@@ -130,23 +181,77 @@ arena_push(struct Arena* arena, uint32_t size)
 void*
 arena_push2(struct Arena* arena, uint32_t size)
 {
-  uint8_t* object = arena->memory_avail;
-  if (object + size >= (uint8_t*)arena->memory_limit) {
-    int memory_amount = (size + sizeof(struct Arena) + page_size - 1) & ~(page_size - 1);
+  uint8_t* client_memory = arena->memory_avail;
+  if (client_memory + size >= (uint8_t*)arena->memory_limit) {
+    int memory_amount = (size + page_size - 1) & ~(page_size - 1);
     int required_page_count = memory_amount / page_size;
-    struct Page* start_free_seq = find_free_page_sequence(required_page_count);
-    struct Page* end_alloc_page = start_free_seq + required_page_count;
-    struct Page* p = start_free_seq;
-    for (; p < end_alloc_page - 1; p++) {
-      p->next_page = p + 1;
+    struct PageBlock* start_free_seq = find_free_page_sequence(required_page_count);
+    if (!start_free_seq) {
+      printf("\nOut of memory.\n");
+      exit(1);
     }
-    p->next_page = 0;
+    struct PageBlock* start_alloc_page = start_free_seq->next_page;
+    struct PageBlock* end_alloc_page = start_alloc_page + required_page_count - 1;
+    start_free_seq->next_page = end_alloc_page->next_page;
+    end_alloc_page->next_page = arena->owned_pages;
+    arena->owned_pages = start_alloc_page;
+    struct PageBlock* p = start_alloc_page;
+    for (; p <= end_alloc_page; p++) {
+      p->arena_owning = arena;
+    }
+    client_memory = page_memory_start + (start_alloc_page - first_page) * page_size;
+    arena->memory_limit = mprotect_allocate_page(client_memory, required_page_count);
   }
-  return object;
+  arena->memory_avail = client_memory + size;
+  return client_memory;
+}
+
+void*
+arena_push3(struct Arena* arena, uint32_t size)
+{
+  assert (size > 0);
+  uint8_t* client_memory = arena->memory_avail;
+  if (client_memory + size >= (uint8_t*)arena->memory_limit) {
+    struct PageBlock* free_block = find_block_first_fit(size);
+    if (!free_block) {
+      printf("\nOut of memory.\n");
+      exit(1);
+    }
+    uint8_t* alloc_memory_begin = 0, *alloc_memory_end = 0;
+    int size_in_page_multiples = (size + page_size - 1) & ~(page_size - 1);
+    if (size_in_page_multiples < (free_block->memory_end - free_block->memory_begin)) {
+      alloc_memory_begin = free_block->memory_begin;
+      alloc_memory_end = alloc_memory_begin + size_in_page_multiples;
+      free_block->memory_begin = alloc_memory_end;
+    } else if (size_in_page_multiples == (free_block->memory_end - free_block->memory_begin)) {
+      alloc_memory_begin = free_block->memory_begin;
+      alloc_memory_end = free_block->memory_end;
+      free_block->memory_begin = alloc_memory_end;
+    } else assert (0);
+
+    if (mprotect(alloc_memory_begin, alloc_memory_end - alloc_memory_begin, PROT_READ|PROT_WRITE) != 0) {
+      perror("mprotect");
+      exit(1);
+    }
+    arena->memory_avail = alloc_memory_begin;
+    arena->memory_limit = alloc_memory_end;
+
+    struct PageBlock* alloc_block = arena_push(&pageblock_storage, sizeof(struct PageBlock));
+    *alloc_block = (struct PageBlock){};
+    alloc_block->memory_begin = alloc_memory_begin;
+    alloc_block->memory_end = alloc_memory_end;
+    alloc_block->prev_block = 0;
+    alloc_block->next_block = arena->owned_pages;
+    arena->owned_pages = alloc_block;
+
+    client_memory = arena->memory_avail;
+  }
+  arena->memory_avail = client_memory + size;
+  return client_memory;
 }
 
 void
-arena_delete(struct Arena* arena)
+arena_delete1(struct Arena* arena)
 {
   struct Arena at_arena = *arena;
   int arena_count = 0;
@@ -167,6 +272,12 @@ arena_delete(struct Arena* arena)
   if (DEBUG_ENABLED) {
     printf("\nfreed a total of %d bytes in %d arenas.\n", usage.total, arena_count);
   }
+}
+
+void
+arena_delete2(struct Arena* arena)
+{
+
 }
 
 struct ArenaUsage

@@ -862,7 +862,7 @@ build_headerStackType()
     next_token();
     stack = new_ast_node(Ast_HeaderStack, token);
     if (token_is_expression(token)) {
-      ast_setattr(stack, "stack_expr", build_expression(1), AstAttr_AstList);
+      ast_setattr(stack, "stack_expr", build_expression(1), AstAttr_Ast);
       if (token->klass == Token_BracketClose) {
         next_token();
       } else error("at line %d: `]` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1497,7 +1497,7 @@ build_arrayIndex()
 {
   struct Ast* index = new_ast_node(Ast_ArrayIndex, token);
   if (token_is_expression(token)) {
-    ast_setattr(index, "index", build_expression(1), AstAttr_AstList);
+    ast_setattr(index, "index", build_expression(1), AstAttr_Ast);
   } else error("at line %d: an expression was expected, got `%s`.", token->line_nr, token->lexeme);
   if (token->klass == Token_Colon) {
     next_token();
