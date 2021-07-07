@@ -105,7 +105,7 @@ main(int arg_count, char* args[])
   read_source(&text, &text_size, &text_storage, filename_arg->value);
   struct UnboundedArray tokens_array = {};
   array_init(&tokens_array, sizeof(struct Token), &tokens_storage);
-  lex_tokenize(text, text_size, &main_storage, &tokens_storage, &tokens_array);
+  lex_tokenize(text, text_size, &main_storage, &tokens_array);
   arena_delete(&text_storage);
   struct Arena symtable_storage = {}, ast_storage = {};
   struct Ast* ast_p4program = 0;

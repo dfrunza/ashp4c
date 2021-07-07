@@ -783,8 +783,7 @@ next_token(struct Token* token)
 }
 
 void
-lex_tokenize(char* text_, int text_size_, struct Arena* lexeme_storage_, struct Arena* tokens_storage,
-             struct UnboundedArray* tokens_array_)
+lex_tokenize(char* text_, int text_size_, struct Arena* lexeme_storage_, struct UnboundedArray* tokens_array_)
 {
   text = text_;
   text_size = text_size_;

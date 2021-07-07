@@ -3,4 +3,4 @@
 #include "token.h"
 #include <stdint.h>
 
-void lex_tokenize(char* text_, int text_size_, struct Arena* arena_, struct Arena* tokens_storage, struct UnboundedArray* tokens_array_);
+void lex_tokenize(char* text_, int text_size_, struct Arena* arena_, struct UnboundedArray* tokens_array_);
