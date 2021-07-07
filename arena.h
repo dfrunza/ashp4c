@@ -28,16 +28,14 @@ struct ArenaUsage
 
 struct UnboundedArray
 {
-  void* index_table[32];
+  void* index_table[24];
   int elem_size;
   int elem_count;
   int capacity;
   struct Arena* storage;
 };
 
-struct Arena* arena_new(struct Arena* arena, uint32_t size);
-
-void init_memory();
+void init_memory(int memory_amount);
 void* arena_push(struct Arena* arena, uint32_t size);
 void arena_delete(struct Arena* arena);
 

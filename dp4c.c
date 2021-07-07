@@ -96,7 +96,7 @@ main(int arg_count, char* args[])
   struct CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
   struct CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
   if (!filename_arg) {
-    printf("<filename> argument is required.\n");
+    printf("<filename> is required.\n");
     exit(1);
   }
   struct Arena text_storage = {}, tokens_storage = {};

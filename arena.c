@@ -47,7 +47,7 @@ init_memory(int memory_amount)
   first_block->memory_end = first_block->memory_begin + (1 * page_size);
 
   block_freelist_head = first_block + 1;
-  memset(block_freelist_head, 0, sizeof(block_freelist_head));
+  memset(block_freelist_head, 0, sizeof(*block_freelist_head));
   block_freelist_head->memory_begin = first_block->memory_end;
   block_freelist_head->memory_end = block_freelist_head->memory_begin + ((total_page_count - 1) * page_size);
 

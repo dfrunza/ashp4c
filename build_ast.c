@@ -38,6 +38,7 @@ internal struct Arena* symtable_storage;
 internal struct UnboundedArray* tokens_array;
 internal int token_at = 0;
 internal struct Token* token = 0;
+internal int prev_token_at = 0;
 internal struct Token* prev_token = 0;
 
 internal struct Symtable_Entry** symtable;
@@ -205,6 +206,7 @@ next_token()
 {
   assert (token_at < tokens_array->elem_count);
   prev_token = token;
+  prev_token_at = token_at;
   token = array_get(tokens_array, ++token_at);
   while (token->klass == Token_Comment) {
     token = array_get(tokens_array, ++token_at);
@@ -233,9 +235,10 @@ internal struct Token*
 peek_token()
 {
   prev_token = token;
+  prev_token_at = token_at;
   struct Token* peek_token = next_token();
-  token_at--;
   token = prev_token;
+  token_at = prev_token_at;
   return peek_token;
 }
 
