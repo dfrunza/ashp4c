@@ -6,7 +6,6 @@
 
 #define DEBUG_ENABLED 1
 
-internal int DEFAULT_SIZE_KB = 8*KILOBYTE;
 internal int page_size = 0;
 internal int total_page_count = 0;
 internal void* page_memory_start = 0;
@@ -29,10 +28,10 @@ arena_print_usage(struct Arena* arena, char* caption)
 }
 
 void
-init_memory()
+init_memory(int memory_amount)
 {
   page_size = getpagesize();
-  total_page_count = 400*KILOBYTE / page_size;
+  total_page_count = ceil(memory_amount / page_size);
   page_memory_start = mmap(0, total_page_count * page_size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
   if (page_memory_start == MAP_FAILED) {
     perror("mmap");

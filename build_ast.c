@@ -35,8 +35,8 @@ struct Symtable_Entry {
 internal struct Arena* ast_storage;
 internal struct Arena* symtable_storage;
 
-internal struct Token* tokens_array;
-internal int token_count;
+internal struct UnboundedArray* tokens_array;
+internal int token_at = 0;
 internal struct Token* token = 0;
 internal struct Token* prev_token = 0;
 
@@ -203,10 +203,11 @@ add_keyword(char* name, enum TokenClass token_klass)
 internal struct Token*
 next_token()
 {
-  assert(token < tokens_array + token_count);
-  prev_token = token++;
+  assert (token_at < tokens_array->elem_count);
+  prev_token = token;
+  token = array_get(tokens_array, ++token_at);
   while (token->klass == Token_Comment) {
-    token++;
+    token = array_get(tokens_array, ++token_at);
   }
   if (token->klass == Token_Identifier) {
     struct Symtable_Entry* ns = get_symtable_entry(token->lexeme);
@@ -233,6 +234,7 @@ peek_token()
 {
   prev_token = token;
   struct Token* peek_token = next_token();
+  token_at--;
   token = prev_token;
   return peek_token;
 }
@@ -3019,11 +3021,10 @@ init_symtable(struct Arena* storage)
 }
 
 void
-build_AstTree(struct Ast** p4program_, int* ast_node_count_, struct Token* tokens_array_, int token_count_, 
+build_AstTree(struct Ast** p4program_, int* ast_node_count_, struct UnboundedArray* tokens_array_,
               struct Arena* ast_storage_, struct Arena* symtable_storage_)
 {
   tokens_array = tokens_array_;
-  token_count = token_count_;
   ast_storage = ast_storage_;
   symtable_storage = symtable_storage_;
 
@@ -3069,7 +3070,8 @@ build_AstTree(struct Ast** p4program_, int* ast_node_count_, struct Token* token
   add_keyword("varbit", Token_Varbit);
   add_keyword("string", Token_String);
 
-  token = tokens_array;
+  token_at = 0;
+  token = array_get(tokens_array, token_at);
   next_token();
   struct Ast* p4program = build_p4program();
   *p4program_ = p4program;

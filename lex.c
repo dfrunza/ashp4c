@@ -6,6 +6,7 @@ internal struct Arena* lexeme_storage;
 internal char* text;
 internal int text_size;
 
+internal struct UnboundedArray* tokens_array;
 internal struct Token* prev_token;
 internal int line_nr = 1;
 internal int state = 0;
@@ -783,37 +784,29 @@ next_token(struct Token* token)
 
 void
 lex_tokenize(char* text_, int text_size_, struct Arena* lexeme_storage_, struct Arena* tokens_storage,
-             struct Token** tokens_array_, int* token_count_)
+             struct UnboundedArray* tokens_array_)
 {
   text = text_;
   text_size = text_size_;
+  tokens_array = tokens_array_;
   lexeme_storage = lexeme_storage_;
 
   lexeme->start = lexeme->end = text;
 
-  int max_token_count = 2000;  // in table entry units
-  struct Token* tokens_array = arena_push(tokens_storage, max_token_count*sizeof(struct Token));
-  struct Token* token = tokens_array;
-  token->klass = Token_StartOfInput_;
-  token++;
-  int token_count = 1;
+  struct Token token = {};
+  token.klass = Token_StartOfInput_;
+  array_append(tokens_array, &token);
 
-  next_token(token);
-  token_count++;
-  while (token->klass != Token_EndOfInput_) {
-    if (token_count >= max_token_count) {
-      error("at line %d: out of memory.", token->line_nr);
+  next_token(&token);
+  array_append(tokens_array, &token);
+  while (token.klass != Token_EndOfInput_) {
+    if (token.klass == Token_Unknown_) {
+      error("at line %d: unknown token.", token.line_nr);
+    } else if (token.klass == Token_LexicalError_) {
+      error("at line %d: lexical error.", token.line_nr);
     }
-    if (token->klass == Token_Unknown_) {
-      error("at line %d: unknown token.", token->line_nr);
-    } else if (token->klass == Token_LexicalError_) {
-      error("at line %d: lexical error.", token->line_nr);
-    }
-    token++;
-    next_token(token);
-    token_count++;
+    next_token(&token);
+    array_append(tokens_array, &token);
   }
-  *tokens_array_ = tokens_array;
-  *token_count_ = token_count;
 }
 

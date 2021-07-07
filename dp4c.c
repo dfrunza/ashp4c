@@ -91,20 +91,7 @@ parse_cmdline_args(int arg_count, char* args[])
 int
 main(int arg_count, char* args[])
 {
-  init_memory();
-
-  struct Arena test_arena = {};
-  struct UnboundedArray array = {};
-  array_init(&array, sizeof(int), &test_arena);
-  int i; int max = 4096*2;
-  for (i = 0; i < max; i++) {
-    array_append(&array, &i);
-  }
-  for (i = 0; i < max; i++) {
-    int r = *(int*)array_get(&array, i);
-    assert (r == i);
-  }
-  arena_delete(&test_arena);
+  init_memory(400*KILOBYTE);
 
   struct CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
   struct CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
@@ -116,14 +103,14 @@ main(int arg_count, char* args[])
   char* text = 0;
   int text_size = 0;
   read_source(&text, &text_size, &text_storage, filename_arg->value);
-  struct Token* tokens_array = 0;
-  int token_count = 0;
-  lex_tokenize(text, text_size, &main_storage, &tokens_storage, &tokens_array, &token_count);
+  struct UnboundedArray tokens_array = {};
+  array_init(&tokens_array, sizeof(struct Token), &tokens_storage);
+  lex_tokenize(text, text_size, &main_storage, &tokens_storage, &tokens_array);
   arena_delete(&text_storage);
   struct Arena symtable_storage = {}, ast_storage = {};
   struct Ast* ast_p4program = 0;
   int ast_node_count = 0;
-  build_AstTree(&ast_p4program, &ast_node_count, tokens_array, token_count, &ast_storage, &symtable_storage);
+  build_AstTree(&ast_p4program, &ast_node_count, &tokens_array, &ast_storage, &symtable_storage);
   assert(ast_p4program && ast_p4program->kind == Ast_P4Program);
   if (find_named_arg("print-ast", cmdline_args)) {
     print_Ast(ast_p4program);
