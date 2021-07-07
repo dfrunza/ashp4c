@@ -2,6 +2,7 @@
 #include <memory.h>  // memset
 #include <unistd.h>
 #include <sys/mman.h>
+#include <math.h>
 
 #define DEBUG_ENABLED 1
 
@@ -31,7 +32,7 @@ void
 init_memory()
 {
   page_size = getpagesize();
-  total_page_count = 200*KILOBYTE / page_size;
+  total_page_count = 400*KILOBYTE / page_size;
   page_memory_start = mmap(0, total_page_count * page_size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
   if (page_memory_start == MAP_FAILED) {
     perror("mmap");
@@ -209,7 +210,7 @@ arena_delete(struct Arena* arena)
 {
   struct PageBlock* p = arena->owned_pages;
   while (p) {
-    memset(p->memory_begin, 0, p->memory_end - p->memory_begin);
+    //memset(p->memory_begin, 0, p->memory_end - p->memory_begin);
     if (mprotect(p->memory_begin, p->memory_end - p->memory_begin, PROT_NONE) != 0) {
       perror("mprotect");
       exit(1);
@@ -225,4 +226,66 @@ arena_get_usage(struct Arena* arena)
 {
   struct ArenaUsage usage = {};
   return usage;
+}
+
+int
+floor_log2(x)
+{
+  int result = floor(log10(x) / log10(2));
+  return result;
+}
+
+void
+array_init(struct UnboundedArray* array, int elem_size, struct Arena* storage)
+{
+  memset(array, 0, sizeof(*array));
+  array->elem_size = elem_size;
+  array->storage = storage;
+}
+
+internal void
+array_elem_at_i(struct UnboundedArray* array, int i, int* segment_index_, int* elem_offset_,
+                void** data_segment_, void** elem_slot_)
+{
+  int segment_index = floor_log2(i + 1);
+  int elem_offset = i - ((1 << segment_index) - 1);
+  void* data_segment = array->index_table[segment_index];
+  void* elem_slot = data_segment + elem_offset * array->elem_size;
+
+  *segment_index_ = segment_index;
+  *elem_offset_ = elem_offset;
+  *data_segment_ = data_segment;
+  *elem_slot_ = elem_slot;
+}
+
+void*
+array_get(struct UnboundedArray* array, int i)
+{
+  assert (i >= 0 && i < array->elem_count);
+  int segment_index, elem_offset;
+  void* data_segment, *elem_slot;
+  array_elem_at_i(array, i, &segment_index, &elem_offset, &data_segment, &elem_slot);
+  return elem_slot;
+}
+
+void
+array_set(struct UnboundedArray* array, int i, void* elem)
+{
+  assert (i >= 0 && i < array->elem_count);
+  int segment_index, elem_offset;
+  void* data_segment, *elem_slot;
+  array_elem_at_i(array, i, &segment_index, &elem_offset, &data_segment, &elem_slot);
+  memcpy(elem_slot, elem, array->elem_size);
+}
+
+void
+array_append(struct UnboundedArray* array, void* elem)
+{
+  if (array->elem_count >= array->capacity) {
+    int segment_index = floor_log2(array->elem_count + 1);
+    array->index_table[segment_index] = arena_push(array->storage, (1 << segment_index) * array->elem_size);
+    array->capacity += (1 << segment_index);
+  }
+  array->elem_count += 1;
+  array_set(array, array->elem_count - 1, elem);
 }

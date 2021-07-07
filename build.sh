@@ -13,5 +13,5 @@ gcc $C_FLAGS -I . -c $SRC/lex.c
 gcc $C_FLAGS -I . -c $SRC/build_ast.c
 gcc $C_FLAGS -I . -c $SRC/print_ast.c 
 gcc $C_FLAGS -I. -o dp4c $SRC/dp4c.c $L_FLAGS \
-  basic.o arena.o lex.o build_ast.o print_ast.o
+  basic.o arena.o lex.o build_ast.o print_ast.o -lm
 popd

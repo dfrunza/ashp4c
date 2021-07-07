@@ -26,13 +26,25 @@ struct ArenaUsage
   int arena_count;
 };
 
+struct UnboundedArray
+{
+  void* index_table[32];
+  int elem_size;
+  int elem_count;
+  int capacity;
+  struct Arena* storage;
+};
+
 struct Arena* arena_new(struct Arena* arena, uint32_t size);
 
 void init_memory();
 void* arena_push(struct Arena* arena, uint32_t size);
 void arena_delete(struct Arena* arena);
 
-
 struct ArenaUsage arena_get_usage(struct Arena* arena);
 void arena_print_usage(struct Arena* arena, char* title);
 
+void array_init(struct UnboundedArray* array, int elem_size, struct Arena* storage);
+void* array_get(struct UnboundedArray* array, int i);
+void array_set(struct UnboundedArray* array, int i, void* elem);
+void array_append(struct UnboundedArray* array, void* elem);

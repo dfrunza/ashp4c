@@ -93,6 +93,19 @@ main(int arg_count, char* args[])
 {
   init_memory();
 
+  struct Arena test_arena = {};
+  struct UnboundedArray array = {};
+  array_init(&array, sizeof(int), &test_arena);
+  int i; int max = 4096*2;
+  for (i = 0; i < max; i++) {
+    array_append(&array, &i);
+  }
+  for (i = 0; i < max; i++) {
+    int r = *(int*)array_get(&array, i);
+    assert (r == i);
+  }
+  arena_delete(&test_arena);
+
   struct CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
   struct CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
   if (!filename_arg) {
