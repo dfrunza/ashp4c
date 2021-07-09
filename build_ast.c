@@ -26,11 +26,11 @@ struct Ident_Keyword {
   enum TokenClass token_klass;
 };
 
-struct Symtable_Entry {
+struct SymtableEntry {
   char* name;
   struct Ident* ns_kw;
   struct Ident* ns_type;
-  struct Symtable_Entry* next;
+  struct SymtableEntry* next;
 };
 
 internal struct Arena* ast_storage;
@@ -108,7 +108,7 @@ delete_scope()
 
   int i = 0;
   while (i < symtable_capacity) {
-    struct Symtable_Entry* ns = *(struct Symtable_Entry**)array_get(&symtable, i);
+    struct SymtableEntry* ns = *(struct SymtableEntry**)array_get(&symtable, i);
     while (ns) {
       struct Ident* ident = ns->ns_kw;
       if (ident && ident->scope_level > prev_level) {
@@ -139,11 +139,11 @@ ident_is_declared(struct Ident* ident)
   return is_declared;
 }
 
-internal struct Symtable_Entry*
+internal struct SymtableEntry*
 get_symtable_entry(char* name)
 {
   uint32_t h = hash_string(name, symtable_capacity_log2);
-  struct Symtable_Entry* entry = *(struct Symtable_Entry**)array_get(&symtable, h);
+  struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&symtable, h);
   while (entry) {
     if (cstr_match(entry->name, name))
       break;
@@ -153,10 +153,10 @@ get_symtable_entry(char* name)
     if (symtable_size >= symtable_capacity) {
       assert (!"TODO: Resize the symbol table.");
     }
-    entry = arena_push(symtable_storage, sizeof(struct Symtable_Entry));
+    entry = arena_push(symtable_storage, sizeof(struct SymtableEntry));
     memset(entry, 0, sizeof(*entry));
     entry->name = name;
-    entry->next = *(struct Symtable_Entry**)array_get(&symtable, h);
+    entry->next = *(struct SymtableEntry**)array_get(&symtable, h);
     array_set(&symtable, h, &entry);
     symtable_size += 1;
   }
@@ -166,7 +166,7 @@ get_symtable_entry(char* name)
 struct Ident*
 new_type(char* name, int line_nr)
 {
-  struct Symtable_Entry* ns = get_symtable_entry(name);
+  struct SymtableEntry* ns = get_symtable_entry(name);
   struct Ident* ident = ns->ns_type;
   if (!ident) {
     ident = arena_push(symtable_storage, sizeof(struct Ident));
@@ -184,7 +184,7 @@ new_type(char* name, int line_nr)
 internal struct Ident_Keyword*
 add_keyword(char* name, enum TokenClass token_klass)
 {
-  struct Symtable_Entry* namespace = get_symtable_entry(name);
+  struct SymtableEntry* namespace = get_symtable_entry(name);
   assert (namespace->ns_kw == 0);
   struct Ident_Keyword* ident = arena_push(symtable_storage, sizeof(struct Ident_Keyword));
   memset(ident, 0, sizeof(*ident));
@@ -207,7 +207,7 @@ next_token()
     token = array_get(tokens_array, ++token_at);
   }
   if (token->klass == Token_Identifier) {
-    struct Symtable_Entry* ns = get_symtable_entry(token->lexeme);
+    struct SymtableEntry* ns = get_symtable_entry(token->lexeme);
     if (ns->ns_kw) {
       struct Ident* ident = ns->ns_kw;
       if (ident->ident_kind == Ident_Keyword) {
@@ -3020,9 +3020,9 @@ build_AstTree(struct Ast** p4program_, int* ast_node_count_, struct UnboundedArr
   ast_storage = ast_storage_;
   symtable_storage = symtable_storage_;
 
-  array_init(&symtable, sizeof(struct Symtable_Entry*), symtable_storage); 
+  array_init(&symtable, sizeof(struct SymtableEntry*), symtable_storage);
   symtable_capacity = (1 << symtable_capacity_log2);
-  struct Symtable_Entry* null_entry = 0;
+  struct SymtableEntry* null_entry = 0;
   int i;
   for (i = 0; i < symtable_capacity; i++) {
     array_append(&symtable, &null_entry);
