@@ -218,6 +218,7 @@ arena_delete(struct Arena* arena)
     block_freelist_head = block_insert_and_coalesce(block_freelist_head, p);
     p = next_block;
   }
+  memset(arena, 0, sizeof(*arena));
 }
 
 struct ArenaUsage

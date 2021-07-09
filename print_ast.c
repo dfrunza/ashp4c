@@ -389,7 +389,7 @@ print_Ast(struct Ast* ast)
   print_prop("kind", Value_String, ast_kind_to_string(ast->kind));
   print_prop("line_nr", Value_Integer, ast->line_nr);
   struct AstAttribute** p_attr = ast->attrs;
-  while (p_attr < ast->attrs + AST_ATTRTABLE_LEN) {
+  while (p_attr < ast->attrs + AST_ATTRTABLE_CAPACITY) {
     struct AstAttribute* attr = *p_attr;
     if (attr) {
       if (attr->type == AstAttr_Integer) {
@@ -406,7 +406,7 @@ print_Ast(struct Ast* ast)
   }
   ast_end();
   p_attr = ast->attrs;
-  while (p_attr < ast->attrs + AST_ATTRTABLE_LEN) {
+  while (p_attr < ast->attrs + AST_ATTRTABLE_CAPACITY) {
     struct AstAttribute* attr = *p_attr;
     if (attr) {
       if (attr->type == AstAttr_Ast) {

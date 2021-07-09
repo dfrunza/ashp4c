@@ -1,6 +1,5 @@
 #include "basic.h"
 #include "arena.h"
-#include "hashtable.h"
 #include "lex.h"
 #include "build_ast.h"
 #include <sys/stat.h>
@@ -94,13 +93,6 @@ main(int arg_count, char* args[])
 {
   init_memory(400*KILOBYTE);
 
-  uint32_t h;
-  h = hash_string("abcd", 8);
-  h = hash_string("dcba", 8);
-  h = hash_string("abce", 8);
-  h = hash_string("ecba", 8);
-  h = hash_string("abcf", 8);
-
   struct CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
   struct CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
   if (!filename_arg) {
@@ -120,6 +112,7 @@ main(int arg_count, char* args[])
   int ast_node_count = 0;
   build_AstTree(&ast_p4program, &ast_node_count, &tokens_array, &ast_storage, &symtable_storage);
   assert(ast_p4program && ast_p4program->kind == Ast_P4Program);
+  arena_delete(&symtable_storage);
   if (find_named_arg("print-ast", cmdline_args)) {
     print_Ast(ast_p4program);
   }

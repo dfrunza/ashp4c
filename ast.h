@@ -155,14 +155,15 @@ struct AstAttribute {
   struct AstAttribute* next_attr;
 };
 
-#define AST_ATTRTABLE_LEN 13
+#define AST_ATTRTABLE_CAPACITY_LOG2  4
+#define AST_ATTRTABLE_CAPACITY  (1 << AST_ATTRTABLE_CAPACITY_LOG2)
 
 struct Ast {
   enum AstKind kind;
   int id;
   int line_nr;
   int attr_count;
-  struct AstAttribute* attrs[AST_ATTRTABLE_LEN];
+  struct AstAttribute* attrs[AST_ATTRTABLE_CAPACITY];
 };
 
 void* ast_getattr(struct Ast* ast, char* attr_name);

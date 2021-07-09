@@ -1,6 +1,7 @@
 #define DEBUG_ENABLED 0
 
 #include "arena.h"
+#include "hash.h"
 #include "token.h"
 #include "lex.h"
 #include "build_ast.h"
@@ -41,8 +42,10 @@ internal struct Token* token = 0;
 internal int prev_token_at = 0;
 internal struct Token* prev_token = 0;
 
-internal struct Symtable_Entry** symtable;
-internal int max_symtable_len = 2003;  // table entry units
+internal struct UnboundedArray symtable = {};
+internal int symtable_capacity_log2 = 8;
+internal int symtable_capacity = 0;
+internal int symtable_size = 0;
 internal int scope_level = 0;
 
 internal int node_id = 1;
@@ -89,18 +92,6 @@ list_append_link(struct AstList* list, struct AstListLink* link)
   list->link_count += 1;
 }
 
-internal uint32_t
-name_hash(char* name, int table_len)
-{
-  uint32_t sum = 0;
-  char* pc = name;
-  while (*pc) {
-    sum = (sum + (uint32_t)(*pc)*65599) % table_len;
-    pc++;
-  }
-  return sum;
-}
-
 internal int
 new_scope()
 {
@@ -116,8 +107,8 @@ delete_scope()
   assert (prev_level >= 0);
 
   int i = 0;
-  while (i < max_symtable_len) {
-    struct Symtable_Entry* ns = symtable[i];
+  while (i < symtable_capacity) {
+    struct Symtable_Entry* ns = *(struct Symtable_Entry**)array_get(&symtable, i);
     while (ns) {
       struct Ident* ident = ns->ns_kw;
       if (ident && ident->scope_level > prev_level) {
@@ -151,19 +142,23 @@ ident_is_declared(struct Ident* ident)
 internal struct Symtable_Entry*
 get_symtable_entry(char* name)
 {
-  uint32_t h = name_hash(name, max_symtable_len);
-  struct Symtable_Entry* entry = symtable[h];
+  uint32_t h = hash_string(name, symtable_capacity_log2);
+  struct Symtable_Entry* entry = *(struct Symtable_Entry**)array_get(&symtable, h);
   while (entry) {
     if (cstr_match(entry->name, name))
       break;
     entry = entry->next;
   }
   if (!entry) {
-    entry = arena_push(ast_storage, sizeof(struct Symtable_Entry));
+    if (symtable_size >= symtable_capacity) {
+      assert (!"TODO: Resize the symbol table.");
+    }
+    entry = arena_push(symtable_storage, sizeof(struct Symtable_Entry));
     memset(entry, 0, sizeof(*entry));
     entry->name = name;
-    entry->next = symtable[h];
-    symtable[h] = entry;
+    entry->next = *(struct Symtable_Entry**)array_get(&symtable, h);
+    array_set(&symtable, h, &entry);
+    symtable_size += 1;
   }
   return entry;
 }
@@ -174,7 +169,7 @@ new_type(char* name, int line_nr)
   struct Symtable_Entry* ns = get_symtable_entry(name);
   struct Ident* ident = ns->ns_type;
   if (!ident) {
-    ident = arena_push(ast_storage, sizeof(struct Ident));
+    ident = arena_push(symtable_storage, sizeof(struct Ident));
     memset(ident, 0, sizeof(*ident));
     ident->name = name;
     ident->scope_level = scope_level;
@@ -191,7 +186,7 @@ add_keyword(char* name, enum TokenClass token_klass)
 {
   struct Symtable_Entry* namespace = get_symtable_entry(name);
   assert (namespace->ns_kw == 0);
-  struct Ident_Keyword* ident = arena_push(ast_storage, sizeof(struct Ident_Keyword));
+  struct Ident_Keyword* ident = arena_push(symtable_storage, sizeof(struct Ident_Keyword));
   memset(ident, 0, sizeof(*ident));
   ident->name = name;
   ident->scope_level = scope_level;
@@ -245,7 +240,7 @@ peek_token()
 void*
 ast_getattr(struct Ast* ast, char* attr_name)
 {
-  uint32_t h = name_hash(attr_name, AST_ATTRTABLE_LEN);
+  uint32_t h = hash_string(attr_name, AST_ATTRTABLE_CAPACITY_LOG2);
   struct AstAttribute* entry = ast->attrs[h];
   while (entry) {
     if (cstr_match(entry->name, attr_name))
@@ -262,7 +257,7 @@ ast_getattr(struct Ast* ast, char* attr_name)
 void
 ast_setattr(struct Ast* ast, char* attr_name, void* attr_value, enum AstAttributeType attr_type)
 {
-  uint32_t h = name_hash(attr_name, AST_ATTRTABLE_LEN);
+  uint32_t h = hash_string(attr_name, AST_ATTRTABLE_CAPACITY_LOG2);
   struct AstAttribute* entry = ast->attrs[h];
   while (entry) {
     if (cstr_match(entry->name, attr_name))
@@ -270,6 +265,7 @@ ast_setattr(struct Ast* ast, char* attr_name, void* attr_value, enum AstAttribut
     entry = entry->next_attr;
   }
   if (!entry) {
+    assert (ast->attr_count < AST_ATTRTABLE_CAPACITY);
     entry = arena_push(ast_storage, sizeof(struct AstAttribute));
     memset(entry, 0, sizeof(*entry));
     entry->name = attr_name;
@@ -3016,13 +3012,6 @@ build_expression(int priority_threshold)
   return expr;
 }
 
-internal void
-init_symtable(struct Arena* storage)
-{
-  symtable = arena_push(storage, max_symtable_len*sizeof(symtable[0]));
-  memset(symtable, 0, max_symtable_len*sizeof(symtable[0]));
-}
-
 void
 build_AstTree(struct Ast** p4program_, int* ast_node_count_, struct UnboundedArray* tokens_array_,
               struct Arena* ast_storage_, struct Arena* symtable_storage_)
@@ -3031,7 +3020,14 @@ build_AstTree(struct Ast** p4program_, int* ast_node_count_, struct UnboundedArr
   ast_storage = ast_storage_;
   symtable_storage = symtable_storage_;
 
-  init_symtable(symtable_storage);
+  array_init(&symtable, sizeof(struct Symtable_Entry*), symtable_storage); 
+  symtable_capacity = (1 << symtable_capacity_log2);
+  struct Symtable_Entry* null_entry = 0;
+  int i;
+  for (i = 0; i < symtable_capacity; i++) {
+    array_append(&symtable, &null_entry);
+  }
+
   add_keyword("action", Token_Action);
   add_keyword("actions", Token_Actions);
   add_keyword("entries", Token_Entries);
