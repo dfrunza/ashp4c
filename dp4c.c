@@ -1,5 +1,6 @@
 #include "basic.h"
 #include "arena.h"
+#include "hashtable.h"
 #include "lex.h"
 #include "build_ast.h"
 #include <sys/stat.h>
@@ -92,6 +93,13 @@ int
 main(int arg_count, char* args[])
 {
   init_memory(400*KILOBYTE);
+
+  uint32_t h;
+  h = hash_string("abcd", 8);
+  h = hash_string("dcba", 8);
+  h = hash_string("abce", 8);
+  h = hash_string("ecba", 8);
+  h = hash_string("abcf", 8);
 
   struct CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
   struct CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
