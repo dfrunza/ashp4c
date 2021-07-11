@@ -167,6 +167,57 @@ ast_kind_to_string(enum AstKind kind)
   return 0;
 }
 
+internal char*
+expr_operator_to_string(enum AstExprOperator op)
+{
+  char* op_str = "Ast_Op_None";
+  if (op == AstBinOp_Add) {
+    op_str = "AstBinOp_Add";
+  } else if (op == AstBinOp_Sub) {
+    op_str = "AstBinOp_Sub";
+  } else if (op == AstBinOp_Mul) {
+    op_str = "AstBinOp_Mul";
+  } else if (op == AstBinOp_Div) {
+    op_str = "AstBinOp_Div";
+  } else if (op == AstBinOp_And) {
+    op_str = "AstBinOp_And";
+  } else if (op == AstBinOp_Or) {
+    op_str = "AstBinOp_Or";
+  } else if (op == AstBinOp_Equal) {
+    op_str = "AstBinOp_Equal";
+  } else if (op == AstBinOp_NotEqual) {
+    op_str = "AstBinOp_NotEqual";
+  } else if (op == AstBinOp_Less) {
+    op_str = "AstBinOp_Less";
+  } else if (op == AstBinOp_Greater) {
+    op_str = "AstBinOp_Greater";
+  } else if (op == AstBinOp_LessEqual) {
+    op_str = "AstBinOp_LessEqual";
+  } else if (op == AstBinOp_GreaterEqual) {
+    op_str = "AstBinOp_GreaterEqual";
+  } else if (op == AstBinOp_BitAnd) {
+    op_str = "AstBinOp_BitAnd";
+  } else if (op == AstBinOp_BitOr) {
+    op_str = "AstBinOp_BitOr";
+  } else if (op == AstBinOp_BitXor) {
+    op_str = "AstBinOp_BitXor";
+  } else if (op == AstBinOp_BitShiftLeft) {
+    op_str = "AstBinOp_BitShiftLeft";
+  } else if (op == AstBinOp_BitShiftRight) {
+    op_str = "AstBinOp_BitShiftRight";
+  } else if (op == AstUnOp_LogNot) {
+    op_str = "AstUnOp_LogNot";
+  } else if (op == AstUnOp_BitNot) {
+    op_str = "AstUnOp_BitNot";
+  } else if (op == AstUnOp_Minus) {
+    op_str = "AstUnOp_Minus";
+  } else if (op == AstBinOp_Mask) {
+    op_str = "AstBinOp_Mask";
+  }
+  else assert(op == AstOp_None);
+  return op_str;
+}
+
 internal void
 indent_right()
 {
@@ -218,12 +269,8 @@ print_value(enum ValueType type, va_list value)
     char* s = va_arg(value, char*);
     printf("%s", s);
   } else if (type == Value_Id) {
-    struct Ast* ast = va_arg(value, struct Ast*);
-    if (ast) {
-      printf("$%d", ast->id);
-    } else {
-      printf("0");
-    }
+    int id = va_arg(value, int);
+    printf("$%d", id);
   }
   else assert(0);
 }
@@ -259,7 +306,7 @@ print_prop(char* name, enum ValueType type, ...)
 }
 
 void
-print_Parameter(struct Ast* param)
+print_parameter(struct Ast* param)
 {
   assert(param->kind == Ast_Parameter);
   ast_start();
@@ -272,9 +319,9 @@ print_Parameter(struct Ast* param)
     dir_str = "AstParamDir_InOut";
   } else assert(*(enum AstParamDirection*)ast_getattr(param, "direction") == AstParamDir_None);
   print_prop("direction", Value_String, dir_str);
-  print_prop("type", Value_Id, ast_getattr(param, "type"));
-  print_prop("name", Value_Id, ast_getattr(param, "name"));
-  print_prop("init_expr", Value_Id, ast_getattr(param, "init_expr"));
+  print_prop("type", Value_Id, ((struct Ast*)ast_getattr(param, "type"))->id);
+  print_prop("name", Value_Id, ((struct Ast*)ast_getattr(param, "name"))->id);
+  print_prop("init_expr", Value_Id, ((struct Ast*)ast_getattr(param, "init_expr"))->id);
   ast_end();
   print_ast(ast_getattr(param, "type"));
   print_ast(ast_getattr(param, "name"));
@@ -282,7 +329,7 @@ print_Parameter(struct Ast* param)
 }
 
 internal void
-print_Int(struct Ast* node)
+print_int(struct Ast* node)
 {
   assert(node->kind == Ast_Int);
   ast_start();
@@ -301,7 +348,7 @@ print_Int(struct Ast* node)
 }
 
 internal void
-print_BaseType(struct Ast* type)
+print_base_type(struct Ast* type)
 {
   assert(type->kind == Ast_BaseType);
   ast_start();
@@ -321,68 +368,17 @@ print_BaseType(struct Ast* type)
   }
   else assert(*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_None);
   print_prop("base_type", Value_String, type_str);
-  print_prop("size", Value_Id, ast_getattr(type, "size"));
+  print_prop("size", Value_Id, ((struct Ast*)ast_getattr(type, "size"))->id);
   ast_end();
   print_ast(ast_getattr(type, "size"));
-}
-
-internal char*
-expr_operator_to_string(enum AstExprOperator op)
-{
-  char* op_str = "Ast_Op_None";
-  if (op == AstBinOp_Add) {
-    op_str = "AstBinOp_Add";
-  } else if (op == AstBinOp_Sub) {
-    op_str = "AstBinOp_Sub";
-  } else if (op == AstBinOp_Mul) {
-    op_str = "AstBinOp_Mul";
-  } else if (op == AstBinOp_Div) {
-    op_str = "AstBinOp_Div";
-  } else if (op == AstBinOp_And) {
-    op_str = "AstBinOp_And";
-  } else if (op == AstBinOp_Or) {
-    op_str = "AstBinOp_Or";
-  } else if (op == AstBinOp_Equal) {
-    op_str = "AstBinOp_Equal";
-  } else if (op == AstBinOp_NotEqual) {
-    op_str = "AstBinOp_NotEqual";
-  } else if (op == AstBinOp_Less) {
-    op_str = "AstBinOp_Less";
-  } else if (op == AstBinOp_Greater) {
-    op_str = "AstBinOp_Greater";
-  } else if (op == AstBinOp_LessEqual) {
-    op_str = "AstBinOp_LessEqual";
-  } else if (op == AstBinOp_GreaterEqual) {
-    op_str = "AstBinOp_GreaterEqual";
-  } else if (op == AstBinOp_BitAnd) {
-    op_str = "AstBinOp_BitAnd";
-  } else if (op == AstBinOp_BitOr) {
-    op_str = "AstBinOp_BitOr";
-  } else if (op == AstBinOp_BitXor) {
-    op_str = "AstBinOp_BitXor";
-  } else if (op == AstBinOp_BitShLeft) {
-    op_str = "AstBinOp_BitShLeft";
-  } else if (op == AstBinOp_BitShRight) {
-    op_str = "AstBinOp_BitShRight";
-  } else if (op == AstUnOp_LogNot) {
-    op_str = "AstUnOp_LogNot";
-  } else if (op == AstUnOp_BitNot) {
-    op_str = "AstUnOp_BitNot";
-  } else if (op == AstUnOp_Minus) {
-    op_str = "AstUnOp_Minus";
-  } else if (op == AstBinOp_Mask) {
-    op_str = "AstBinOp_Mask";
-  }
-  else assert(op == AstOp_None);
-  return op_str;
 }
 
 void
 print_ast(struct Ast* ast)
 {
-  if (!ast) return;
+  if (!ast) { return; }
   ast_start();
-  print_prop("id", Value_Id, ast);
+  print_prop("id", Value_Id, ast->id);
   print_prop("kind", Value_String, ast_kind_to_string(ast->kind));
   print_prop("line_nr", Value_Integer, ast->line_nr);
   struct AstAttributeIterator attr_iter = {};
@@ -393,9 +389,13 @@ print_ast(struct Ast* ast)
     } else if (attr->type == AstAttr_String) {
       print_prop(attr->name, Value_String, attr->value);
     } else if (attr->type == AstAttr_Ast) {
-      print_prop(attr->name, Value_Id, attr->value);
+      if (attr->value) {
+        print_prop(attr->name, Value_Id, ((struct Ast*)attr->value)->id);
+      }
     } else if (attr->type == AstAttr_AstList) {
       print_prop(attr->name, Value_IdList, attr->value);
+    } else if (attr->type == AstAttr_ExprOperator) {
+      print_prop(attr->name, Value_String, expr_operator_to_string(*(enum AstExprOperator*)attr->value));
     }
   }
   ast_end();

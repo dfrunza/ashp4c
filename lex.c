@@ -7,7 +7,6 @@ internal char* text;
 internal int text_size;
 
 internal struct UnboundedArray* tokens_array;
-internal struct Token* prev_token;
 internal int line_nr = 1;
 internal int state = 0;
 
@@ -395,6 +394,7 @@ next_token(struct Token* token)
 
       case 113:
       {
+        struct Token* prev_token = array_get(tokens_array, tokens_array->elem_count - 1);
         if (prev_token->klass == Token_ParenthOpen) {
           token->klass = Token_UnaryMinus;
         } else {
@@ -779,7 +779,6 @@ next_token(struct Token* token)
     }
   }
   token->line_nr = line_nr;
-  prev_token = token;
 }
 
 void

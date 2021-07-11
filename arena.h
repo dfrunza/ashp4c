@@ -25,7 +25,7 @@ struct ArenaUsage {
 };
 
 struct UnboundedArray {
-  void* index_table[24];
+  void* segment_table[24];
   int elem_size;
   int elem_count;
   int capacity;

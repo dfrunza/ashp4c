@@ -2638,7 +2638,7 @@ build_expressionPrimary()
       struct Ast* unary_expr = new_ast_node(Ast_UnaryExpr, token);
       enum AstExprOperator* op = arena_push(ast_storage, sizeof(enum AstExprOperator));
       *op = AstUnOp_LogNot;
-      ast_setattr(unary_expr, "op", op, AstAttr_Integer);
+      ast_setattr(unary_expr, "op", op, AstAttr_ExprOperator);
       ast_setattr(unary_expr, "expr", build_expression(1), AstAttr_Ast);
       primary = unary_expr;
     } else if (token->klass == Token_Tilda) {
@@ -2646,7 +2646,7 @@ build_expressionPrimary()
       struct Ast* unary_expr = new_ast_node(Ast_UnaryExpr, token);
       enum AstExprOperator* op = arena_push(ast_storage, sizeof(enum AstExprOperator));
       *op = AstUnOp_BitNot;
-      ast_setattr(unary_expr, "op", op, AstAttr_Integer);
+      ast_setattr(unary_expr, "op", op, AstAttr_ExprOperator);
       ast_setattr(unary_expr, "expr", build_expression(1), AstAttr_Ast);
       primary = unary_expr;
     } else if (token->klass == Token_UnaryMinus) {
@@ -2654,7 +2654,7 @@ build_expressionPrimary()
       struct Ast* unary_expr = new_ast_node(Ast_UnaryExpr, token);
       enum AstExprOperator* op = arena_push(ast_storage, sizeof(enum AstExprOperator));
       *op = AstUnOp_Minus;
-      ast_setattr(unary_expr, "op", op, AstAttr_Integer);
+      ast_setattr(unary_expr, "op", op, AstAttr_ExprOperator);
       ast_setattr(unary_expr, "expr", build_expression(1), AstAttr_Ast);
       primary = unary_expr;
     } else if (token_is_typeName(token)) {
@@ -2731,9 +2731,9 @@ token_to_binop(struct Token* token)
     case Token_Circumflex:
       return AstBinOp_BitXor;
     case Token_TwoAngleOpen:
-      return AstBinOp_BitShLeft;
+      return AstBinOp_BitShiftLeft;
     case Token_TwoAngleClose:
-      return AstBinOp_BitShRight;
+      return AstBinOp_BitShiftRight;
     case Token_ThreeAmpersand:
       return AstBinOp_Mask;
     default: return AstOp_None;
@@ -2799,7 +2799,7 @@ build_expression(int priority_threshold)
           ast_setattr(bin_expr, "left_operand", expr, AstAttr_Ast);
           enum AstExprOperator* op = arena_push(ast_storage, sizeof(enum AstExprOperator));
           *op = token_to_binop(token);
-          ast_setattr(bin_expr, "op", op, AstAttr_Integer);
+          ast_setattr(bin_expr, "op", op, AstAttr_ExprOperator);
           next_token();
           ast_setattr(bin_expr, "right_operand", build_expression(priority + 1), AstAttr_Ast);
           expr = bin_expr;

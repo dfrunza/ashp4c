@@ -99,7 +99,6 @@ enum AstExprOperator {
   AstBinOp_Sub,
   AstBinOp_Mul,
   AstBinOp_Div,
-  AstUnOp_Minus,
   AstBinOp_And,
   AstBinOp_Or,
   AstBinOp_Equal,
@@ -111,9 +110,10 @@ enum AstExprOperator {
   AstBinOp_BitAnd,
   AstBinOp_BitOr,
   AstBinOp_BitXor,
-  AstBinOp_BitShLeft,
-  AstBinOp_BitShRight,
+  AstBinOp_BitShiftLeft,
+  AstBinOp_BitShiftRight,
   AstBinOp_Mask,
+  AstUnOp_Minus,
   AstUnOp_LogNot,
   AstUnOp_BitNot,
 };
@@ -144,6 +144,7 @@ enum AstAttributeType {
   AstAttr_AstList,
   AstAttr_Integer,
   AstAttr_String,
+  AstAttr_ExprOperator,
 };
 
 struct AstAttribute {
