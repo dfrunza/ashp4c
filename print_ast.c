@@ -1,10 +1,10 @@
 #include "arena.h"
 #include "ast.h"
 
-#define DEBUG_ENABLED 1
 
 internal int tab_level = 0;
 internal int tab_size = 2;
+
 
 enum ValueType {
   Value_None,

@@ -2,8 +2,10 @@
 #include <memory.h>  // memset
 #include <math.h>
 
+
 static const uint32_t P = 257, Q = 4294967029;
 static const uint32_t SIGMA = 2654435769;
+
 
 internal uint32_t
 fold_string(uint8_t* string)

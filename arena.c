@@ -4,7 +4,6 @@
 #include <sys/mman.h>
 #include <math.h>
 
-#define DEBUG_ENABLED 1
 
 internal int page_size = 0;
 internal int total_page_count = 0;

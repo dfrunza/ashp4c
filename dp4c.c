@@ -5,9 +5,9 @@
 #include <sys/stat.h>
 #include <memory.h>  // memset
 
-#define DEBUG_ENABLED 1
 
 internal struct Arena main_storage = {};
+
 
 struct CmdlineArg {
   char* name;
@@ -107,14 +107,16 @@ main(int arg_count, char* args[])
   array_init(&tokens_array, sizeof(struct Token), &tokens_storage);
   lex_tokenize(text, text_size, &main_storage, &tokens_array);
   arena_delete(&text_storage);
-  struct Arena symtable_storage = {}, ast_storage = {};
-  struct Ast* ast_p4program = 0;
+  struct Arena symtable_storage = {};
+  symtable_init(&symtable_storage);
+  struct Arena ast_storage = {};
+  struct Ast* ast_program = 0;
   int ast_node_count = 0;
-  build_AstTree(&ast_p4program, &ast_node_count, &tokens_array, &ast_storage, &symtable_storage);
-  assert(ast_p4program && ast_p4program->kind == Ast_P4Program);
+  build_ast_program(&ast_program, &ast_node_count, &tokens_array, &ast_storage);
+  assert(ast_program && ast_program->kind == Ast_P4Program);
   arena_delete(&symtable_storage);
   if (find_named_arg("print-ast", cmdline_args)) {
-    print_Ast(ast_p4program);
+    print_Ast(ast_program);
   }
   arena_delete(&tokens_storage);
   arena_delete(&symtable_storage);
