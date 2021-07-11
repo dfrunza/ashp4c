@@ -3,7 +3,6 @@
 
 #define DEBUG_ENABLED 1
 
-external struct Arena arena;
 internal int tab_level = 0;
 internal int tab_size = 2;
 
@@ -263,7 +262,6 @@ print_Parameter(struct Ast* param)
 {
   assert(param->kind == Ast_Parameter);
   ast_start();
-  //print_prop_common(param);
   char* dir_str = "AstDir_None";
   if (*(enum AstParamDirection*)ast_getattr(param, "direction") == AstParamDir_In) {
     dir_str = "AstParamDir_In";
@@ -287,7 +285,6 @@ print_Int(struct Ast* node)
 {
   assert(node->kind == Ast_Int);
   ast_start();
-  //print_prop_common(node);
   char flags_str[256];
   char* str = flags_str + sprintf(flags_str, "AstInteger_None");
   if ((*(int*)ast_getattr(node, "flags") & AstInteger_HasWidth) != 0) {
@@ -307,7 +304,6 @@ print_BaseType(struct Ast* type)
 {
   assert(type->kind == Ast_BaseType);
   ast_start();
-  //print_prop_common(type);
   char* type_str = "AstBaseType_None";
   if (*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_Bool) {
     type_str = "AstBaseType_Bool";

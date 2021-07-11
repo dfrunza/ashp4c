@@ -48,7 +48,7 @@ uint32_t
 hash_bytes(uint8_t* bytes, int length, uint32_t m)
 {
   uint32_t K = fold_bytes(bytes, length);
-  uint32_t h = multiply_hash(K, m);
+  uint32_t h = multiply_hash(K, m) % ((1 << m) - 1);  // 0 <= h < 2^{m} - 1
   return h;
 }
 
