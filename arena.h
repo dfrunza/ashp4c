@@ -1,6 +1,7 @@
 #pragma once
 #include "basic.h"
 
+
 struct Arena;
 
 struct PageBlock
@@ -34,6 +35,7 @@ struct UnboundedArray
   int capacity;
   struct Arena* storage;
 };
+
 
 void init_memory(int memory_amount);
 void* arena_push(struct Arena* arena, uint32_t size);

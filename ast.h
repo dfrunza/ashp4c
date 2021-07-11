@@ -2,6 +2,7 @@
 #include "basic.h"
 #include "ast.h"
 
+
 enum AstKind {
   Ast_None,
   Ast_NonTypeName,
@@ -165,6 +166,7 @@ struct Ast {
   int attr_count;
   struct AstAttribute* attrs[AST_ATTRTABLE_CAPACITY];
 };
+
 
 void* ast_getattr(struct Ast* ast, char* attr_name);
 void ast_setattr(struct Ast* ast, char* attr_name, void* attr_value, enum AstAttributeType attr_type);

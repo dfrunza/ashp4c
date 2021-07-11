@@ -2,6 +2,7 @@
 #include "basic.h"
 #include "ast.h"
 
+
 enum TokenClass {
   Token_None,
   Token_Semicolon,
