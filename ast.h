@@ -1,6 +1,6 @@
 #pragma once
 #include "basic.h"
-#include "ast.h"
+#include "arena.h"
 
 
 enum AstKind {
@@ -87,8 +87,7 @@ enum AstBaseTypeKind {
   AstBaseType_String,
 };
 
-enum AstIntegerFlags
-{
+enum AstIntegerFlags {
   AstInteger_None,
   AstInteger_HasWidth,
   AstInteger_IsSigned,
@@ -126,15 +125,13 @@ enum AstParamDirection {
   AstParamDir_InOut,
 };
 
-struct AstListLink
-{
+struct AstListLink {
   struct AstListLink* prev;
   struct AstListLink* next;
   struct Ast* ast;
 };
 
-struct AstList
-{
+struct AstList {
   struct AstListLink sentinel;
   struct AstListLink* head;
   struct AstListLink* tail;
@@ -157,7 +154,7 @@ struct AstAttribute {
 };
 
 #define AST_ATTRTABLE_CAPACITY_LOG2  4
-#define AST_ATTRTABLE_CAPACITY  (1 << AST_ATTRTABLE_CAPACITY_LOG2)
+#define AST_ATTRTABLE_CAPACITY  ((1 << AST_ATTRTABLE_CAPACITY_LOG2) - 1)
 
 struct Ast {
   enum AstKind kind;
@@ -167,9 +164,18 @@ struct Ast {
   struct AstAttribute* attrs[AST_ATTRTABLE_CAPACITY];
 };
 
+struct AstAttributeIterator {
+  struct Ast* ast;
+  int table_i;
+  struct AstAttribute* attr_at;
+};
 
+void ast_attr_set_storage(struct Arena* attr_storage);
 void* ast_getattr(struct Ast* ast, char* attr_name);
 void ast_setattr(struct Ast* ast, char* attr_name, void* attr_value, enum AstAttributeType attr_type);
-void list_init(struct AstList* list);
-void list_append_link(struct AstList* list, struct AstListLink* link);
-void print_Ast(struct Ast* ast);
+struct AstAttribute* ast_attriter_init(struct AstAttributeIterator* iter, struct Ast* ast);
+struct AstAttribute* ast_attriter_get_next(struct AstAttributeIterator* iter);
+
+void ast_list_init(struct AstList* list);
+void ast_list_append_link(struct AstList* list, struct AstListLink* link);
+void print_ast(struct Ast* ast);

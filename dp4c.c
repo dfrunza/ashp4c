@@ -110,13 +110,12 @@ main(int arg_count, char* args[])
   struct Arena symtable_storage = {};
   symtable_init(&symtable_storage);
   struct Arena ast_storage = {};
-  struct Ast* ast_program = 0;
   int ast_node_count = 0;
-  build_ast_program(&ast_program, &ast_node_count, &tokens_array, &ast_storage);
+  struct Ast* ast_program = build_ast_program(&ast_program, &ast_node_count, &tokens_array, &ast_storage);
   assert(ast_program && ast_program->kind == Ast_P4Program);
   arena_delete(&symtable_storage);
   if (find_named_arg("print-ast", cmdline_args)) {
-    print_Ast(ast_program);
+    print_ast(ast_program);
   }
   arena_delete(&tokens_storage);
   arena_delete(&symtable_storage);

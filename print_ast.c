@@ -16,6 +16,7 @@ enum ValueType {
 
 internal void print_prop(char* name, enum ValueType type, ...);
 
+
 internal char*
 ast_kind_to_string(enum AstKind kind)
 {
@@ -275,9 +276,9 @@ print_Parameter(struct Ast* param)
   print_prop("name", Value_Id, ast_getattr(param, "name"));
   print_prop("init_expr", Value_Id, ast_getattr(param, "init_expr"));
   ast_end();
-  print_Ast(ast_getattr(param, "type"));
-  print_Ast(ast_getattr(param, "name"));
-  print_Ast(ast_getattr(param, "init_expr"));
+  print_ast(ast_getattr(param, "type"));
+  print_ast(ast_getattr(param, "name"));
+  print_ast(ast_getattr(param, "init_expr"));
 }
 
 internal void
@@ -322,7 +323,7 @@ print_BaseType(struct Ast* type)
   print_prop("base_type", Value_String, type_str);
   print_prop("size", Value_Id, ast_getattr(type, "size"));
   ast_end();
-  print_Ast(ast_getattr(type, "size"));
+  print_ast(ast_getattr(type, "size"));
 }
 
 internal char*
@@ -377,48 +378,40 @@ expr_operator_to_string(enum AstExprOperator op)
 }
 
 void
-print_Ast(struct Ast* ast)
+print_ast(struct Ast* ast)
 {
   if (!ast) return;
   ast_start();
   print_prop("id", Value_Id, ast);
   print_prop("kind", Value_String, ast_kind_to_string(ast->kind));
   print_prop("line_nr", Value_Integer, ast->line_nr);
-  struct AstAttribute** p_attr = ast->attrs;
-  while (p_attr < ast->attrs + AST_ATTRTABLE_CAPACITY) {
-    struct AstAttribute* attr = *p_attr;
-    if (attr) {
-      if (attr->type == AstAttr_Integer) {
-        print_prop(attr->name, Value_Integer, *(int*)attr->value);
-      } else if (attr->type == AstAttr_String) {
-        print_prop(attr->name, Value_String, attr->value);
-      } else if (attr->type == AstAttr_Ast) {
-        print_prop(attr->name, Value_Id, attr->value);
-      } else if (attr->type == AstAttr_AstList) {
-        print_prop(attr->name, Value_IdList, attr->value);
-      }
+  struct AstAttributeIterator attr_iter = {};
+  struct AstAttribute* attr;
+  for (attr = ast_attriter_init(&attr_iter, ast); attr; attr = ast_attriter_get_next(&attr_iter)) {
+    if (attr->type == AstAttr_Integer) {
+      print_prop(attr->name, Value_Integer, *(int*)attr->value);
+    } else if (attr->type == AstAttr_String) {
+      print_prop(attr->name, Value_String, attr->value);
+    } else if (attr->type == AstAttr_Ast) {
+      print_prop(attr->name, Value_Id, attr->value);
+    } else if (attr->type == AstAttr_AstList) {
+      print_prop(attr->name, Value_IdList, attr->value);
     }
-    p_attr++;
   }
   ast_end();
-  p_attr = ast->attrs;
-  while (p_attr < ast->attrs + AST_ATTRTABLE_CAPACITY) {
-    struct AstAttribute* attr = *p_attr;
-    if (attr) {
-      if (attr->type == AstAttr_Ast) {
-        print_Ast(attr->value);
-      } else if (attr->type == AstAttr_AstList) {
-        struct AstList* list = attr->value;
-        if (list) {
-          struct AstListLink* link = list->head->next;
-          while (link) {
-            print_Ast(link->ast);
-            link = link->next;
-          }
+  for (attr = ast_attriter_init(&attr_iter, ast); attr; attr = ast_attriter_get_next(&attr_iter)) {
+    if (attr->type == AstAttr_Ast) {
+      print_ast(attr->value);
+    } else if (attr->type == AstAttr_AstList) {
+      struct AstList* list = attr->value;
+      if (list) {
+        struct AstListLink* link = list->head->next;
+        while (link) {
+          print_ast(link->ast);
+          link = link->next;
         }
       }
     }
-    p_attr++;
   }
 }
 

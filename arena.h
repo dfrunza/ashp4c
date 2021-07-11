@@ -4,31 +4,27 @@
 
 struct Arena;
 
-struct PageBlock
-{
+struct PageBlock {
   struct PageBlock* next_block;
   struct PageBlock* prev_block;
   uint8_t* memory_begin;
   uint8_t* memory_end;
 };
 
-struct Arena 
-{
+struct Arena {
   struct PageBlock* owned_pages;
   void* memory_avail;
   void* memory_limit;
 };
 
-struct ArenaUsage
-{
+struct ArenaUsage {
   int total;
   int free;
   int in_use;
   int arena_count;
 };
 
-struct UnboundedArray
-{
+struct UnboundedArray {
   void* index_table[24];
   int elem_size;
   int elem_count;

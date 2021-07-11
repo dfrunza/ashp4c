@@ -1,6 +1,7 @@
 #include "arena.h"
 #include "hash.h"
 #include "token.h"
+#include "ast.h"
 #include "lex.h"
 #include "symtable.h"
 #include "build_ast.h"
@@ -39,26 +40,6 @@ init_ast_node(struct Ast* ast, struct Token* token)
   ast->kind = type; \
   init_ast_node(ast, token); \
   ast; })
-
-void
-ast_list_init(struct AstList* list)
-{
-  assert(list->head == 0);
-  assert(list->tail == 0);
-  list->head = &list->sentinel;
-  list->tail = list->head;
-}
-
-void
-ast_list_append_link(struct AstList* list, struct AstListLink* link)
-{
-  assert(list->tail->next == 0);
-  assert(link->prev == 0);
-  list->tail->next = link;
-  link->prev = list->tail;
-  list->tail = link;
-  list->link_count += 1;
-}
 
 internal struct Token*
 next_token()
@@ -99,53 +80,6 @@ peek_token()
   token = prev_token;
   token_at = prev_token_at;
   return peek_token;
-}
-
-void*
-ast_getattr(struct Ast* ast, char* attr_name)
-{
-  uint32_t h = hash_string(attr_name, AST_ATTRTABLE_CAPACITY_LOG2);
-  struct AstAttribute* entry = ast->attrs[h];
-  while (entry) {
-    if (cstr_match(entry->name, attr_name))
-      break;
-    entry = entry->next_attr;
-  }
-  void* attr_value = 0;
-  if (entry) {
-    attr_value = entry->value;
-  }
-  return attr_value;
-}
-
-void
-ast_setattr(struct Ast* ast, char* attr_name, void* attr_value, enum AstAttributeType attr_type)
-{
-  uint32_t h = hash_string(attr_name, AST_ATTRTABLE_CAPACITY_LOG2);
-  struct AstAttribute* entry = ast->attrs[h];
-  while (entry) {
-    if (cstr_match(entry->name, attr_name))
-      break;
-    entry = entry->next_attr;
-  }
-  if (!entry) {
-    assert (ast->attr_count < AST_ATTRTABLE_CAPACITY);
-    entry = arena_push(ast_storage, sizeof(struct AstAttribute));
-    memset(entry, 0, sizeof(*entry));
-    entry->name = attr_name;
-    entry->next_attr = ast->attrs[h];
-    ast->attrs[h] = entry;
-    ast->attr_count += 1;
-  }
-  entry->type = attr_type;
-  entry->value = attr_value;
-}
-
-void*
-ast_delattr(struct Ast* ast, char* attr_name)
-{
-  assert(!"TODO");
-  return 0;
 }
 
 internal bool
@@ -2876,16 +2810,18 @@ build_expression(int priority_threshold)
   return expr;
 }
 
-void
+struct Ast*
 build_ast_program(struct Ast** p4program_, int* ast_node_count_, struct UnboundedArray* tokens_array_,
               struct Arena* ast_storage_)
 {
   tokens_array = tokens_array_;
   ast_storage = ast_storage_;
 
+  ast_attr_set_storage(ast_storage);
+
   token_at = 0;
   token = array_get(tokens_array, token_at);
   next_token();
   struct Ast* p4program = build_p4program();
-  *p4program_ = p4program;
+  return p4program;
 }
