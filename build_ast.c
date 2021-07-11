@@ -30,7 +30,7 @@ struct SymtableEntry {
   char* name;
   struct Ident* ns_kw;
   struct Ident* ns_type;
-  struct SymtableEntry* next;
+  struct SymtableEntry* next_entry;
 };
 
 internal struct Arena* ast_storage;
@@ -43,9 +43,9 @@ internal int prev_token_at = 0;
 internal struct Token* prev_token = 0;
 
 internal struct UnboundedArray symtable = {};
-internal int symtable_capacity_log2 = 8;
+internal int symtable_capacity_log2 = 5;
 internal int symtable_capacity = 0;
-internal int symtable_size = 0;
+internal int symtable_entry_count = 0;
 internal int scope_level = 0;
 
 internal int node_id = 1;
@@ -124,7 +124,7 @@ delete_scope()
           assert (ident->next_in_scope->scope_level <= prev_level);
         ident->next_in_scope = 0;
       }
-      ns = ns->next;
+      ns = ns->next_entry;
     }
     i++;
   }
@@ -147,18 +147,46 @@ get_symtable_entry(char* name)
   while (entry) {
     if (cstr_match(entry->name, name))
       break;
-    entry = entry->next;
+    entry = entry->next_entry;
   }
   if (!entry) {
-    if (symtable_size >= symtable_capacity) {
-      assert (!"TODO: Resize the symbol table.");
+    if (symtable_entry_count >= symtable_capacity) {
+      struct Arena temp_storage = {};
+      struct SymtableEntry** entries_array = arena_push(&temp_storage, symtable_capacity);
+      int i, j = 0;
+      for (i = 0; i < symtable_capacity; i++) {
+        struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&symtable, i);
+        while (entry) {
+          entries_array[j] = entry;
+          struct SymtableEntry* next_entry = entry->next_entry;
+          entry->next_entry = 0;
+          entry = next_entry;
+          j++;
+        }
+      }
+      assert (j == symtable_entry_count);
+      symtable_capacity = (1 << ++symtable_capacity_log2) - 1;
+      struct SymtableEntry* null_entry = 0;
+      for (i = symtable_entry_count; i < symtable_capacity; i++) {
+        array_append(&symtable, &null_entry);
+      }
+      for (i = 0; i < symtable_capacity; i++) {
+        array_set(&symtable, i, &null_entry);
+      }
+      for (i = 0; i < symtable_entry_count; i++) {
+        uint32_t h = hash_string(entries_array[i]->name, symtable_capacity_log2);
+        entries_array[i]->next_entry = *(struct SymtableEntry**)array_get(&symtable, h);
+        array_set(&symtable, h, &entries_array[i]);
+      }
+      arena_delete(&temp_storage);
+      h = hash_string(name, symtable_capacity_log2);
     }
     entry = arena_push(symtable_storage, sizeof(struct SymtableEntry));
     memset(entry, 0, sizeof(*entry));
     entry->name = name;
-    entry->next = *(struct SymtableEntry**)array_get(&symtable, h);
+    entry->next_entry = *(struct SymtableEntry**)array_get(&symtable, h);
     array_set(&symtable, h, &entry);
-    symtable_size += 1;
+    symtable_entry_count += 1;
   }
   return entry;
 }
@@ -3021,10 +3049,10 @@ build_AstTree(struct Ast** p4program_, int* ast_node_count_, struct UnboundedArr
   symtable_storage = symtable_storage_;
 
   array_init(&symtable, sizeof(struct SymtableEntry*), symtable_storage);
-  symtable_capacity = (1 << symtable_capacity_log2);
+  symtable_capacity = (1 << symtable_capacity_log2) - 1;
   struct SymtableEntry* null_entry = 0;
   int i;
-  for (i = 0; i < symtable_capacity; i++) {
+  for (i = symtable_entry_count; i < symtable_capacity; i++) {
     array_append(&symtable, &null_entry);
   }
 

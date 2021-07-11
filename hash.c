@@ -32,7 +32,7 @@ internal uint32_t
 multiply_hash(uint32_t K, uint32_t m)
 {
   uint64_t Ksigma = (uint64_t)K * (uint64_t)SIGMA;
-  uint32_t h = ((uint32_t)Ksigma) >> (32 - m);
+  uint32_t h = ((uint32_t)Ksigma) >> (32 - m);  // 0 <= h < 2^{m}
   return h;
 }
 
@@ -40,7 +40,7 @@ uint32_t
 hash_string(uint8_t* string, uint32_t m)
 {
   uint32_t K = fold_string(string);
-  uint32_t h = multiply_hash(K, m);
+  uint32_t h = multiply_hash(K, m) % ((1 << m) - 1);  // 0 <= h < 2^{m} - 1
   return h;
 }
 

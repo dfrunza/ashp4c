@@ -283,8 +283,9 @@ array_append(struct UnboundedArray* array, void* elem)
 {
   if (array->elem_count >= array->capacity) {
     int segment_index = floor_log2(array->elem_count + 1);
-    array->index_table[segment_index] = arena_push(array->storage, (1 << segment_index) * array->elem_size);
-    array->capacity += (1 << segment_index);
+    int segment_capacity = (1 << segment_index);
+    array->index_table[segment_index] = arena_push(array->storage, segment_capacity * array->elem_size);
+    array->capacity += segment_capacity;
   }
   array->elem_count += 1;
   array_set(array, array->elem_count - 1, elem);
