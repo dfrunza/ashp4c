@@ -171,50 +171,50 @@ internal char*
 expr_operator_to_string(enum AstExprOperator op)
 {
   char* op_str = "Ast_Op_None";
-  if (op == AstBinOp_Add) {
-    op_str = "AstBinOp_Add";
-  } else if (op == AstBinOp_Sub) {
-    op_str = "AstBinOp_Sub";
-  } else if (op == AstBinOp_Mul) {
-    op_str = "AstBinOp_Mul";
-  } else if (op == AstBinOp_Div) {
-    op_str = "AstBinOp_Div";
-  } else if (op == AstBinOp_And) {
-    op_str = "AstBinOp_And";
-  } else if (op == AstBinOp_Or) {
-    op_str = "AstBinOp_Or";
-  } else if (op == AstBinOp_Equal) {
-    op_str = "AstBinOp_Equal";
-  } else if (op == AstBinOp_NotEqual) {
-    op_str = "AstBinOp_NotEqual";
-  } else if (op == AstBinOp_Less) {
-    op_str = "AstBinOp_Less";
-  } else if (op == AstBinOp_Greater) {
-    op_str = "AstBinOp_Greater";
-  } else if (op == AstBinOp_LessEqual) {
-    op_str = "AstBinOp_LessEqual";
-  } else if (op == AstBinOp_GreaterEqual) {
-    op_str = "AstBinOp_GreaterEqual";
-  } else if (op == AstBinOp_BitAnd) {
-    op_str = "AstBinOp_BitAnd";
-  } else if (op == AstBinOp_BitOr) {
-    op_str = "AstBinOp_BitOr";
-  } else if (op == AstBinOp_BitXor) {
-    op_str = "AstBinOp_BitXor";
-  } else if (op == AstBinOp_BitShiftLeft) {
-    op_str = "AstBinOp_BitShiftLeft";
-  } else if (op == AstBinOp_BitShiftRight) {
-    op_str = "AstBinOp_BitShiftRight";
-  } else if (op == AstUnOp_LogNot) {
-    op_str = "AstUnOp_LogNot";
-  } else if (op == AstUnOp_BitNot) {
-    op_str = "AstUnOp_BitNot";
-  } else if (op == AstUnOp_Minus) {
-    op_str = "AstUnOp_Minus";
-  } else if (op == AstBinOp_Mask) {
-    op_str = "AstBinOp_Mask";
+  if (op == AstExprOp_Add) {
+    op_str = "AstExprOp_Add";
+  } else if (op == AstExprOp_Sub) {
+    op_str = "AstExprOp_Sub";
+  } else if (op == AstExprOp_Mul) {
+    op_str = "AstExprOp_Mul";
+  } else if (op == AstExprOp_Div) {
+    op_str = "AstExprOp_Div";
+  } else if (op == AstExprOp_And) {
+    op_str = "AstExprOp_And";
+  } else if (op == AstExprOp_Or) {
+    op_str = "AstExprOp_Or";
+  } else if (op == AstExprOp_Equal) {
+    op_str = "AstExprOp_Equal";
+  } else if (op == AstExprOp_NotEqual) {
+    op_str = "AstExprOp_NotEqual";
+  } else if (op == AstExprOp_Less) {
+    op_str = "AstExprOp_Less";
+  } else if (op == AstExprOp_Greater) {
+    op_str = "AstExprOp_Greater";
+  } else if (op == AstExprOp_LessEqual) {
+    op_str = "AstExprOp_LessEqual";
+  } else if (op == AstExprOp_GreaterEqual) {
+    op_str = "AstExprOp_GreaterEqual";
+  } else if (op == AstExprOp_BitAnd) {
+    op_str = "AstExprOp_BitAnd";
+  } else if (op == AstExprOp_BitOr) {
+    op_str = "AstExprOp_BitOr";
+  } else if (op == AstExprOp_BitXor) {
+    op_str = "AstExprOp_BitXor";
+  } else if (op == AstExprOp_BitShiftLeft) {
+    op_str = "AstExprOp_BitShiftLeft";
+  } else if (op == AstExprOp_BitShiftRight) {
+    op_str = "AstExprOp_BitShiftRight";
+  } else if (op == AstExprOp_LogNot) {
+    op_str = "AstExprOp_LogNot";
+  } else if (op == AstExprOp_BitNot) {
+    op_str = "AstExprOp_BitNot";
+  } else if (op == AstExprOp_Minus) {
+    op_str = "AstExprOp_Minus";
+  } else if (op == AstExprOp_Mask) {
+    op_str = "AstExprOp_Mask";
   }
-  else assert(op == AstOp_None);
+  else assert(op == AstExprOp_None);
   return op_str;
 }
 

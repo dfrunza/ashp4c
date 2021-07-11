@@ -72,7 +72,7 @@ parse_cmdline_args(int arg_count, char* args[])
   struct CmdlineArg* prev_arg = &sentinel_arg;
   int i = 1;
   while (i < arg_count) {
-    struct CmdlineArg* cmdline_arg = arena_push(&main_storage, sizeof(struct CmdlineArg));
+    struct CmdlineArg* cmdline_arg = arena_push(&main_storage, sizeof(*cmdline_arg));
     memset(cmdline_arg, 0, sizeof(*cmdline_arg));
     if (cstr_start_with(args[i], "--")) {
       char* raw_arg = args[i] + 2;  /* skip the `--` prefix */
@@ -99,26 +99,34 @@ main(int arg_count, char* args[])
     printf("<filename> is required.\n");
     exit(1);
   }
-  struct Arena text_storage = {}, tokens_storage = {};
+  struct Arena text_storage = {};
   char* text = 0;
   int text_size = 0;
   read_source(&text, &text_size, &text_storage, filename_arg->value);
+
+  struct Arena tokens_storage = {};
   struct UnboundedArray tokens_array = {};
-  array_init(&tokens_array, sizeof(struct Token), &tokens_storage);
-  lex_tokenize(text, text_size, &main_storage, &tokens_array);
+  lex_set_storage(&main_storage, &tokens_storage);
+  lex_tokenize(text, text_size, &tokens_array);
   arena_delete(&text_storage);
+
   struct Arena symtable_storage = {};
-  symtable_init(&symtable_storage);
+  symtable_set_storage(&symtable_storage);
+  symtable_init();
+
   struct Arena ast_storage = {};
   int ast_node_count = 0;
   struct Ast* ast_program = build_ast_program(&ast_program, &ast_node_count, &tokens_array, &ast_storage);
   assert(ast_program && ast_program->kind == Ast_P4Program);
-  arena_delete(&symtable_storage);
+  arena_delete(&tokens_storage);
+
   if (find_named_arg("print-ast", cmdline_args)) {
     print_ast(ast_program);
   }
-  arena_delete(&tokens_storage);
-  arena_delete(&symtable_storage);
+
+  symtable_flush();
+  objdesc_ast_program(ast_program);
+
   arena_delete(&ast_storage);
   arena_delete(&main_storage);
   return 0;

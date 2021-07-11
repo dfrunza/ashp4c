@@ -6,6 +6,7 @@ internal struct Arena* lexeme_storage;
 internal char* text;
 internal int text_size;
 
+internal struct Arena* tokens_storage;
 internal struct UnboundedArray* tokens_array;
 internal int line_nr = 1;
 internal int state = 0;
@@ -782,17 +783,17 @@ next_token(struct Token* token)
 }
 
 void
-lex_tokenize(char* text_, int text_size_, struct Arena* lexeme_storage_, struct UnboundedArray* tokens_array_)
+lex_tokenize(char* text_, int text_size_, struct UnboundedArray* tokens_array_)
 {
   text = text_;
   text_size = text_size_;
   tokens_array = tokens_array_;
-  lexeme_storage = lexeme_storage_;
 
   lexeme->start = lexeme->end = text;
 
   struct Token token = {};
   token.klass = Token_StartOfInput_;
+  array_init(tokens_array, sizeof(token), tokens_storage);
   array_append(tokens_array, &token);
 
   next_token(&token);
@@ -808,3 +809,9 @@ lex_tokenize(char* text_, int text_size_, struct Arena* lexeme_storage_, struct 
   }
 }
 
+void
+lex_set_storage(struct Arena* lexeme_storage_, struct Arena* tokens_storage_)
+{
+  lexeme_storage = lexeme_storage_;
+  tokens_storage = tokens_storage_;
+}

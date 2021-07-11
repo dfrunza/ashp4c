@@ -5,6 +5,9 @@
 #include <math.h>
 
 
+#define ZERO_MEMORY_ON_FREE  0
+
+
 internal int page_size = 0;
 internal int total_page_count = 0;
 internal void* page_memory_start = 0;
@@ -156,7 +159,7 @@ get_new_block_struct()
   if (block) {
     recycled_block_structs = block->next_block;
   } else {
-    block = arena_push(&pageblock_storage, sizeof(struct PageBlock));
+    block = arena_push(&pageblock_storage, sizeof(*block));
   }
   memset(block, 0, sizeof(*block));
   return block;
@@ -208,7 +211,9 @@ arena_delete(struct Arena* arena)
 {
   struct PageBlock* p = arena->owned_pages;
   while (p) {
-    //memset(p->memory_begin, 0, p->memory_end - p->memory_begin);
+    if (ZERO_MEMORY_ON_FREE) {
+      memset(p->memory_begin, 0, p->memory_end - p->memory_begin);
+    }
     if (mprotect(p->memory_begin, p->memory_end - p->memory_begin, PROT_NONE) != 0) {
       perror("mprotect");
       exit(1);

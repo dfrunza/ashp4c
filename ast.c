@@ -56,7 +56,7 @@ ast_setattr(struct Ast* ast, char* attr_name, void* attr_value, enum AstAttribut
   }
   if (!entry) {
     assert (ast->attr_count < AST_ATTRTABLE_CAPACITY);
-    entry = arena_push(attr_storage, sizeof(struct AstAttribute));
+    entry = arena_push(attr_storage, sizeof(*entry));
     memset(entry, 0, sizeof(*entry));
     entry->name = attr_name;
     entry->next_attr = ast->attrs[h];

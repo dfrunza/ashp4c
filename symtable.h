@@ -1,6 +1,7 @@
 #pragma once
 #include "arena.h"
 #include "hash.h"
+#include "token.h"
 
 
 enum IdentKind
@@ -8,6 +9,7 @@ enum IdentKind
   Ident_None,
   Ident_Keyword,
   Ident_Type,
+  Ident_Ident,
 };
 
 struct Ident {
@@ -24,13 +26,15 @@ struct Ident_Keyword {
 
 struct SymtableEntry {
   char* name;
-  struct Ident* ns_kw;
-  struct Ident* ns_type;
+  struct Ident* id_kw;
+  struct Ident* id_type;
+  struct Ident* id_ident;
   struct SymtableEntry* next_entry;
 };
 
 
-void symtable_init(struct Arena* symtable_storage_);
+void symtable_init();
+void symtable_set_storage(struct Arena* symtable_storage_);
 struct SymtableEntry* get_symtable_entry(char* name);
-int new_scope();
-void delete_scope();
+int push_scope();
+void pop_scope();

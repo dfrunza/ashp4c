@@ -1,4 +1,4 @@
-#define DEBUG_ENABLED 0
+#define DEBUG_ENABLED 1
 
 #include "basic.h"
 #include "arena.h"
@@ -9,14 +9,14 @@
 
 internal struct Arena* symtable_storage;
 internal struct UnboundedArray symtable = {};
-internal int symtable_capacity_log2 = 5;
-internal int symtable_capacity = 0;
-internal int symtable_entry_count = 0;
+internal int capacity_log2 = 5;
+internal int capacity = 0;
+internal int entry_count = 0;
 internal int scope_level = 0;
 
 
 int
-new_scope()
+push_scope()
 {
   int new_scope_level = ++scope_level;
   DEBUG("push scope %d\n", new_scope_level);
@@ -24,30 +24,30 @@ new_scope()
 }
 
 void
-delete_scope()
+pop_scope()
 {
   int prev_level = scope_level - 1;
   assert (prev_level >= 0);
 
   int i = 0;
-  while (i < symtable_capacity) {
-    struct SymtableEntry* ns = *(struct SymtableEntry**)array_get(&symtable, i);
-    while (ns) {
-      struct Ident* ident = ns->ns_kw;
-      if (ident && ident->scope_level > prev_level) {
-        ns->ns_kw = ident->next_in_scope;
-        if (ident->next_in_scope)
-          assert (ident->next_in_scope->scope_level <= prev_level);
-        ident->next_in_scope = 0;
+  while (i < capacity) {
+    struct SymtableEntry* ident = *(struct SymtableEntry**)array_get(&symtable, i);
+    while (ident) {
+      struct Ident* ident_kw = ident->id_kw;
+      if (ident_kw && ident_kw->scope_level > prev_level) {
+        ident->id_kw = ident_kw->next_in_scope;
+        if (ident_kw->next_in_scope)
+          assert (ident_kw->next_in_scope->scope_level <= prev_level);
+        ident_kw->next_in_scope = 0;
       }
-      ident = ns->ns_type;
-      if (ident && ident->scope_level > prev_level) {
-        ns->ns_type = ident->next_in_scope;
-        if (ident->next_in_scope)
-          assert (ident->next_in_scope->scope_level <= prev_level);
-        ident->next_in_scope = 0;
+      struct Ident* ident_type = ident->id_type;
+      if (ident_type && ident_type->scope_level > prev_level) {
+        ident->id_type = ident_type->next_in_scope;
+        if (ident_type->next_in_scope)
+          assert (ident_type->next_in_scope->scope_level <= prev_level);
+        ident_type->next_in_scope = 0;
       }
-      ns = ns->next_entry;
+      ident = ident->next_entry;
     }
     i++;
   }
@@ -65,7 +65,7 @@ ident_is_declared(struct Ident* ident)
 struct SymtableEntry*
 get_symtable_entry(char* name)
 {
-  uint32_t h = hash_string(name, symtable_capacity_log2);
+  uint32_t h = hash_string(name, capacity_log2);
   struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&symtable, h);
   while (entry) {
     if (cstr_match(entry->name, name))
@@ -73,11 +73,11 @@ get_symtable_entry(char* name)
     entry = entry->next_entry;
   }
   if (!entry) {
-    if (symtable_entry_count >= symtable_capacity) {
+    if (entry_count >= capacity) {
       struct Arena temp_storage = {};
-      struct SymtableEntry** entries_array = arena_push(&temp_storage, symtable_capacity);
+      struct SymtableEntry** entries_array = arena_push(&temp_storage, capacity);
       int i, j = 0;
-      for (i = 0; i < symtable_capacity; i++) {
+      for (i = 0; i < capacity; i++) {
         struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&symtable, i);
         while (entry) {
           entries_array[j] = entry;
@@ -87,29 +87,29 @@ get_symtable_entry(char* name)
           j++;
         }
       }
-      assert (j == symtable_entry_count);
-      symtable_capacity = (1 << ++symtable_capacity_log2) - 1;
+      assert (j == entry_count);
+      capacity = (1 << ++capacity_log2) - 1;
       struct SymtableEntry* null_entry = 0;
-      for (i = symtable_entry_count; i < symtable_capacity; i++) {
+      for (i = entry_count; i < capacity; i++) {
         array_append(&symtable, &null_entry);
       }
-      for (i = 0; i < symtable_capacity; i++) {
+      for (i = 0; i < capacity; i++) {
         array_set(&symtable, i, &null_entry);
       }
-      for (i = 0; i < symtable_entry_count; i++) {
-        uint32_t h = hash_string(entries_array[i]->name, symtable_capacity_log2);
+      for (i = 0; i < entry_count; i++) {
+        uint32_t h = hash_string(entries_array[i]->name, capacity_log2);
         entries_array[i]->next_entry = *(struct SymtableEntry**)array_get(&symtable, h);
         array_set(&symtable, h, &entries_array[i]);
       }
       arena_delete(&temp_storage);
-      h = hash_string(name, symtable_capacity_log2);
+      h = hash_string(name, capacity_log2);
     }
-    entry = arena_push(symtable_storage, sizeof(struct SymtableEntry));
+    entry = arena_push(symtable_storage, sizeof(*entry));
     memset(entry, 0, sizeof(*entry));
     entry->name = name;
     entry->next_entry = *(struct SymtableEntry**)array_get(&symtable, h);
     array_set(&symtable, h, &entry);
-    symtable_entry_count += 1;
+    entry_count += 1;
   }
   return entry;
 }
@@ -117,49 +117,39 @@ get_symtable_entry(char* name)
 struct Ident*
 new_type(char* name, int line_nr)
 {
-  struct SymtableEntry* ns = get_symtable_entry(name);
-  struct Ident* ident = ns->ns_type;
-  if (!ident) {
-    ident = arena_push(symtable_storage, sizeof(struct Ident));
-    memset(ident, 0, sizeof(*ident));
-    ident->name = name;
-    ident->scope_level = scope_level;
-    ident->ident_kind = Ident_Type;
-    ident->next_in_scope = ns->ns_type;
-    ns->ns_type = (struct Ident*)ident;
-    DEBUG("new type `%s` at line %d.\n", ident->name, line_nr);
+  struct SymtableEntry* ident = get_symtable_entry(name);
+  struct Ident* ident_type = ident->id_type;
+  if (!ident_type) {
+    ident_type = arena_push(symtable_storage, sizeof(*ident_type));
+    memset(ident_type, 0, sizeof(*ident_type));
+    ident_type->name = name;
+    ident_type->scope_level = scope_level;
+    ident_type->ident_kind = Ident_Type;
+    ident_type->next_in_scope = ident->id_type;
+    ident->id_type = (struct Ident*)ident_type;
+    DEBUG("new type `%s` at line %d.\n", ident_type->name, line_nr);
   }
-  return ident;
+  return ident_type;
 }
 
 internal struct Ident_Keyword*
 add_keyword(char* name, enum TokenClass token_klass)
 {
-  struct SymtableEntry* namespace = get_symtable_entry(name);
-  assert (namespace->ns_kw == 0);
-  struct Ident_Keyword* ident = arena_push(symtable_storage, sizeof(struct Ident_Keyword));
-  memset(ident, 0, sizeof(*ident));
-  ident->name = name;
-  ident->scope_level = scope_level;
-  ident->token_klass = token_klass;
-  ident->ident_kind = Ident_Keyword;
-  namespace->ns_kw = (struct Ident*)ident;
-  return ident;
+  struct SymtableEntry* ident = get_symtable_entry(name);
+  assert (ident->id_kw == 0);
+  struct Ident_Keyword* ident_kw = arena_push(symtable_storage, sizeof(*ident_kw));
+  memset(ident_kw, 0, sizeof(*ident_kw));
+  ident_kw->name = name;
+  ident_kw->scope_level = scope_level;
+  ident_kw->token_klass = token_klass;
+  ident_kw->ident_kind = Ident_Keyword;
+  ident->id_kw = (struct Ident*)ident_kw;
+  return ident_kw;
 }
 
-void
-symtable_init(struct Arena* symtable_storage_)
+internal void
+add_all_keywords()
 {
-  symtable_storage = symtable_storage_;
-
-  array_init(&symtable, sizeof(struct SymtableEntry*), symtable_storage);
-  symtable_capacity = (1 << symtable_capacity_log2) - 1;
-  struct SymtableEntry* null_entry = 0;
-  int i;
-  for (i = symtable_entry_count; i < symtable_capacity; i++) {
-    array_append(&symtable, &null_entry);
-  }
-
   add_keyword("action", Token_Action);
   add_keyword("actions", Token_Actions);
   add_keyword("entries", Token_Entries);
@@ -200,5 +190,33 @@ symtable_init(struct Arena* symtable_storage_)
   add_keyword("bit", Token_Bit);
   add_keyword("varbit", Token_Varbit);
   add_keyword("string", Token_String);
+}
+
+void
+symtable_init()
+{
+  struct SymtableEntry* null_entry = 0;
+  array_init(&symtable, sizeof(null_entry), symtable_storage);
+  capacity = (1 << capacity_log2) - 1;
+  int i;
+  for (i = entry_count; i < capacity; i++) {
+    array_append(&symtable, &null_entry);
+  }
+  add_all_keywords();
+}
+
+void
+symtable_flush()
+{
+  arena_delete(symtable_storage);
+  entry_count = 0;
+  scope_level = 0;
+  symtable_init();
+}
+
+void
+symtable_set_storage(struct Arena* symtable_storage_)
+{
+  symtable_storage = symtable_storage_;
 }
 
