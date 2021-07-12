@@ -1,3 +1,5 @@
+#define DEBUG_ENABLED 1
+
 #include "basic.h"
 #include "arena.h"
 #include "lex.h"
@@ -124,6 +126,9 @@ main(int arg_count, char* args[])
     print_ast(ast_program);
   }
 
+  if (DEBUG_ENABLED) {
+    printf("\n-- Build the symbol table --\n");
+  }
   symtable_flush();
   build_symtable_program(ast_program);
 

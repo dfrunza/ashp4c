@@ -231,7 +231,7 @@ build_nonTypeName(bool is_type)
     name = new_ast_node(Ast_Name, token);
     ast_setattr(name, "name", token->lexeme, AstAttr_String);
     if (is_type) {
-      new_type(ast_getattr(name, "name"), token->line_nr);
+      new_type(ast_getattr(name, "name"), name, token->line_nr);
     }
     next_token();
   } else error("at line %d: non-type name was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -398,7 +398,7 @@ build_typeOrVoid(bool is_type)
       ast_setattr(name, "name", token->lexeme, AstAttr_String);
       type = name;
       if (is_type) {
-        new_type(ast_getattr(name, "name"), token->line_nr);
+        new_type(ast_getattr(name, "name"), type, token->line_nr);
       }
       next_token();
     } else assert(0);
@@ -525,13 +525,13 @@ build_integer()
     int_node = new_ast_node(Ast_Int, token);
     enum AstIntegerFlags* flags = arena_push(ast_storage, sizeof(*flags));
     *flags = token->i.flags;
-    ast_setattr(int_node, "flags", &flags, AstAttr_Integer);
+    ast_setattr(int_node, "flags", flags, AstAttr_Integer);
     int* width = arena_push(ast_storage, sizeof(*width));
     *width = token->i.width;
-    ast_setattr(int_node, "width", &width, AstAttr_Integer);
+    ast_setattr(int_node, "width", width, AstAttr_Integer);
     int64_t* value = arena_push(ast_storage, sizeof(*value));
     *value = token->i.value;
-    ast_setattr(int_node, "value", &value, AstAttr_Integer);
+    ast_setattr(int_node, "value", value, AstAttr_Integer);
     next_token();
   }
   return int_node;
@@ -647,6 +647,7 @@ build_typeArgumentList()
     struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
     link->ast = build_typeArg();
+    ast_list_append_link(args, link);
     while (token->klass == Token_Comma) {
       next_token();
       link = arena_push(ast_storage, sizeof(*link));
@@ -797,10 +798,12 @@ build_structFieldList()
     struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
     link->ast = build_structField();
+    ast_list_append_link(fields, link);
     while (token_is_structField(token)) {
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
       link->ast = build_structField();
+      ast_list_append_link(fields, link);
     }
   }
   return fields;

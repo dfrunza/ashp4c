@@ -36,5 +36,9 @@ struct SymtableEntry {
 void symtable_init();
 void symtable_set_storage(struct Arena* symtable_storage_);
 struct SymtableEntry* get_symtable_entry(char* name);
+bool name_is_declared(char* name, enum SymbolKind kind);
+struct Symbol* new_ident(char* name, struct Ast* ast, int line_nr);
+struct Symbol* new_type(char* name, struct Ast* ast, int line_nr);
+
 int push_scope();
 void pop_scope();
