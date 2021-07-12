@@ -7,7 +7,7 @@ internal int tab_size = 2;
 
 
 enum ValueType {
-  Value_None,
+  Value_NONE_,
   Value_Integer,
   Value_String,
   Value_Id,
@@ -21,10 +21,8 @@ internal char*
 ast_kind_to_string(enum AstKind kind)
 {
   switch (kind) {
-    case Ast_NonTypeName:
-      return "Ast_NonTypeName";
-    case Ast_TypeName:
-      return "Ast_TypeName";
+    case Ast_Name:
+      return "Ast_Name";
     case Ast_BaseType:
       return "Ast_BaseType";
     case Ast_ConstDecl:
@@ -214,7 +212,7 @@ expr_operator_to_string(enum AstExprOperator op)
   } else if (op == AstExprOp_Mask) {
     op_str = "AstExprOp_Mask";
   }
-  else assert(op == AstExprOp_None);
+  else assert(op == AstExprOp_NONE_);
   return op_str;
 }
 
@@ -280,7 +278,7 @@ print_prop(char* name, enum ValueType type, ...)
 {
   indent_right();
   printf("%s: ", name);
-  if (type != Value_None) {
+  if (type != Value_NONE_) {
     va_list value;
     va_start(value, type);
     if (type == Value_IdList) {
@@ -310,14 +308,14 @@ print_parameter(struct Ast* param)
 {
   assert(param->kind == Ast_Parameter);
   ast_start();
-  char* dir_str = "AstDir_None";
+  char* dir_str = "AstDir_NONE_";
   if (*(enum AstParamDirection*)ast_getattr(param, "direction") == AstParamDir_In) {
     dir_str = "AstParamDir_In";
   } else if (*(enum AstParamDirection*)ast_getattr(param, "direction") == AstParamDir_Out) {
     dir_str = "AstParamDir_Out";
   } else if (*(enum AstParamDirection*)ast_getattr(param, "direction") == AstParamDir_InOut) {
     dir_str = "AstParamDir_InOut";
-  } else assert(*(enum AstParamDirection*)ast_getattr(param, "direction") == AstParamDir_None);
+  } else assert(*(enum AstParamDirection*)ast_getattr(param, "direction") == AstParamDir_NONE_);
   print_prop("direction", Value_String, dir_str);
   print_prop("type", Value_Id, ((struct Ast*)ast_getattr(param, "type"))->id);
   print_prop("name", Value_Id, ((struct Ast*)ast_getattr(param, "name"))->id);
@@ -334,7 +332,7 @@ print_int(struct Ast* node)
   assert(node->kind == Ast_Int);
   ast_start();
   char flags_str[256];
-  char* str = flags_str + sprintf(flags_str, "AstInteger_None");
+  char* str = flags_str + sprintf(flags_str, "AstInteger_NONE_");
   if ((*(int*)ast_getattr(node, "flags") & AstInteger_HasWidth) != 0) {
     str += sprintf(str, "|%s", "AstInteger_HasWidth");
   }
@@ -352,7 +350,7 @@ print_base_type(struct Ast* type)
 {
   assert(type->kind == Ast_BaseType);
   ast_start();
-  char* type_str = "AstBaseType_None";
+  char* type_str = "AstBaseType_NONE_";
   if (*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_Bool) {
     type_str = "AstBaseType_Bool";
   } else if (*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_Error) {
@@ -366,7 +364,7 @@ print_base_type(struct Ast* type)
   } else if (*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_String) {
     type_str = "AstBaseType_String";
   }
-  else assert(*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_None);
+  else assert(*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_NONE_);
   print_prop("base_type", Value_String, type_str);
   print_prop("size", Value_Id, ((struct Ast*)ast_getattr(type, "size"))->id);
   ast_end();

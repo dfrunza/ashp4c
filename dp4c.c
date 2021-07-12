@@ -125,7 +125,7 @@ main(int arg_count, char* args[])
   }
 
   symtable_flush();
-  objdesc_ast_program(ast_program);
+  build_symtable_program(ast_program);
 
   arena_delete(&ast_storage);
   arena_delete(&main_storage);

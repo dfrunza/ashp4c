@@ -4,31 +4,31 @@
 #include "token.h"
 
 
-enum IdentKind
-{
-  Ident_None,
-  Ident_Keyword,
-  Ident_Type,
-  Ident_Ident,
+enum SymbolKind {
+  Symbol_None,
+  Symbol_Keyword,
+  Symbol_Type,
+  Symbol_Ident,
 };
 
-struct Ident {
-  enum IdentKind ident_kind;
+struct Symbol {
+  enum SymbolKind ident_kind;
   char* name;
   int scope_level;
-  struct Ident* next_in_scope;
+  struct Ast* ast;
+  struct Symbol* next_in_scope;
 };  
 
-struct Ident_Keyword {
-  struct Ident;
+struct Symbol_Keyword {
+  struct Symbol;
   enum TokenClass token_klass;
 };
 
 struct SymtableEntry {
   char* name;
-  struct Ident* id_kw;
-  struct Ident* id_type;
-  struct Ident* id_ident;
+  struct Symbol* id_kw;
+  struct Symbol* id_type;
+  struct Symbol* id_ident;
   struct SymtableEntry* next_entry;
 };
 

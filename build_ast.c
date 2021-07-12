@@ -52,17 +52,17 @@ next_token()
     token = array_get(tokens_array, ++token_at);
   }
   if (token->klass == Token_Identifier) {
-    struct SymtableEntry* namespace = get_symtable_entry(token->lexeme);
-    if (namespace->id_kw) {
-      struct Ident* ident = namespace->id_kw;
-      if (ident->ident_kind == Ident_Keyword) {
-        token->klass = ((struct Ident_Keyword*)ident)->token_klass;
+    struct SymtableEntry* symbol = get_symtable_entry(token->lexeme);
+    if (symbol->id_kw) {
+      struct Symbol* id_kw = symbol->id_kw;
+      if (id_kw->ident_kind == Symbol_Keyword) {
+        token->klass = ((struct Symbol_Keyword*)id_kw)->token_klass;
         return token;
       }
     }
-    if (namespace->id_type) {
-      struct Ident* ident = namespace->id_type;
-      if (ident->ident_kind == Ident_Type) {
+    if (symbol->id_type) {
+      struct Symbol* id_type = symbol->id_type;
+      if (id_type->ident_kind == Symbol_Type) {
         token->klass = Token_TypeIdentifier;
         return token;
       }
@@ -228,7 +228,7 @@ build_nonTypeName(bool is_type)
 {
   struct Ast* name = 0;
   if (token_is_nonTypeName(token)) {
-    name = new_ast_node(Ast_NonTypeName, token);
+    name = new_ast_node(Ast_Name, token);
     ast_setattr(name, "name", token->lexeme, AstAttr_String);
     if (is_type) {
       new_type(ast_getattr(name, "name"), token->line_nr);
@@ -246,7 +246,7 @@ build_name(bool is_type)
     if (token_is_nonTypeName(token)) {
       name = build_nonTypeName(is_type);
     } else if (token->klass == Token_TypeIdentifier) {
-      struct Ast* type_name = new_ast_node(Ast_TypeName, token);
+      struct Ast* type_name = new_ast_node(Ast_Name, token);
       ast_setattr(type_name, "name", token->lexeme, AstAttr_String);
       name = type_name;
       next_token();
@@ -322,7 +322,7 @@ token_is_methodPrototype(struct Token* token)
 internal enum AstParamDirection
 build_direction()
 {
-  enum AstParamDirection dir = AstParamDir_None;
+  enum AstParamDirection dir = AstParamDir_NONE_;
   if (token_is_direction(token)) {
     if (token->klass == Token_In) {
       dir = AstParamDir_In;
@@ -389,12 +389,12 @@ build_typeOrVoid(bool is_type)
     if (token_is_typeRef(token)) {
       type = build_typeRef();
     } else if (token->klass == Token_Void) {
-      struct Ast* void_name = new_ast_node(Ast_TypeName, token);
+      struct Ast* void_name = new_ast_node(Ast_Name, token);
       ast_setattr(void_name, "name", token->lexeme, AstAttr_String);
       type = void_name;
       next_token();
     } else if (token->klass == Token_Identifier) {
-      struct Ast* name = new_ast_node(Ast_NonTypeName, token);
+      struct Ast* name = new_ast_node(Ast_Name, token);
       ast_setattr(name, "name", token->lexeme, AstAttr_String);
       type = name;
       if (is_type) {
@@ -719,7 +719,7 @@ build_prefixedType()
     *is_dotprefixed = true;
   }
   if (token->klass == Token_TypeIdentifier) {
-    name = new_ast_node(Ast_TypeName, token);
+    name = new_ast_node(Ast_Name, token);
     ast_setattr(name, "name", token->lexeme, AstAttr_String);
     ast_setattr(name, "is_dotprefixed", is_dotprefixed, AstAttr_Integer);
     next_token();
@@ -2498,7 +2498,7 @@ build_declaration()
 internal struct Ast*
 build_p4program()
 {
-  struct Ast* prog = new_ast_node(Ast_P4Program, token);
+  struct Ast* program = new_ast_node(Ast_P4Program, token);
   struct AstList* decls = arena_push(ast_storage, sizeof(*decls));
   memset(decls, 0, sizeof(*decls));
   ast_list_init(decls);
@@ -2512,11 +2512,11 @@ build_p4program()
       next_token(); /* empty declaration */
     }
   }
-  ast_setattr(prog, "decl_list", decls, AstAttr_AstList);
+  ast_setattr(program, "decl_list", decls, AstAttr_AstList);
   if (token->klass != Token_EndOfInput_) {
     error("at line %d: unexpected token `%s`.", token->line_nr, token->lexeme);
   }
-  return prog;
+  return program;
 }
 
 internal bool
@@ -2667,7 +2667,7 @@ build_expressionPrimary()
       primary = build_typeName();
     } else if (token->klass == Token_Error) {
       next_token();
-      struct Ast* name = new_ast_node(Ast_NonTypeName, token);
+      struct Ast* name = new_ast_node(Ast_Name, token);
       ast_setattr(name, "name", token->lexeme, AstAttr_Ast);
       primary = name;
     } else assert(0);
@@ -2742,7 +2742,7 @@ token_to_binop(struct Token* token)
       return AstExprOp_BitShiftRight;
     case Token_ThreeAmpersand:
       return AstExprOp_Mask;
-    default: return AstExprOp_None;
+    default: return AstExprOp_NONE_;
   }
 }
 

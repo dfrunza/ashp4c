@@ -4,9 +4,8 @@
 
 
 enum AstKind {
-  Ast_None,
-  Ast_NonTypeName,
-  Ast_TypeName,
+  Ast_NONE_,
+  Ast_Name,
   Ast_BaseType,
   Ast_ConstDecl,
   Ast_ExternDecl,
@@ -78,7 +77,7 @@ enum AstKind {
 };
 
 enum AstBaseTypeKind {
-  AstBaseType_None,
+  AstBaseType_NONE_,
   AstBaseType_Bool,
   AstBaseType_Error,
   AstBaseType_Int,
@@ -88,13 +87,13 @@ enum AstBaseTypeKind {
 };
 
 enum AstIntegerFlags {
-  AstInteger_None,
+  AstInteger_NONE_,
   AstInteger_HasWidth,
   AstInteger_IsSigned,
 };
 
 enum AstExprOperator {
-  AstExprOp_None,
+  AstExprOp_NONE_,
   AstExprOp_Add,
   AstExprOp_Sub,
   AstExprOp_Mul,
@@ -119,7 +118,7 @@ enum AstExprOperator {
 };
 
 enum AstParamDirection {
-  AstParamDir_None,
+  AstParamDir_NONE_,
   AstParamDir_In,
   AstParamDir_Out,
   AstParamDir_InOut,
@@ -139,7 +138,7 @@ struct AstList {
 };
 
 enum AstAttributeType {
-  AstAttr_None,
+  AstAttr_NONE_,
   AstAttr_Ast,
   AstAttr_AstList,
   AstAttr_Integer,
@@ -179,4 +178,6 @@ struct AstAttribute* ast_attriter_get_next(struct AstAttributeIterator* iter);
 
 void ast_list_init(struct AstList* list);
 void ast_list_append_link(struct AstList* list, struct AstListLink* link);
+struct AstListLink* ast_list_first_link(struct AstList* list);
+
 void print_ast(struct Ast* ast);

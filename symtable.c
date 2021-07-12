@@ -31,23 +31,23 @@ pop_scope()
 
   int i = 0;
   while (i < capacity) {
-    struct SymtableEntry* ident = *(struct SymtableEntry**)array_get(&symtable, i);
-    while (ident) {
-      struct Ident* ident_kw = ident->id_kw;
-      if (ident_kw && ident_kw->scope_level > prev_level) {
-        ident->id_kw = ident_kw->next_in_scope;
-        if (ident_kw->next_in_scope)
-          assert (ident_kw->next_in_scope->scope_level <= prev_level);
-        ident_kw->next_in_scope = 0;
+    struct SymtableEntry* symbol = *(struct SymtableEntry**)array_get(&symtable, i);
+    while (symbol) {
+      struct Symbol* id_kw = symbol->id_kw;
+      if (id_kw && id_kw->scope_level > prev_level) {
+        symbol->id_kw = id_kw->next_in_scope;
+        if (id_kw->next_in_scope)
+          assert (id_kw->next_in_scope->scope_level <= prev_level);
+        id_kw->next_in_scope = 0;
       }
-      struct Ident* ident_type = ident->id_type;
-      if (ident_type && ident_type->scope_level > prev_level) {
-        ident->id_type = ident_type->next_in_scope;
-        if (ident_type->next_in_scope)
-          assert (ident_type->next_in_scope->scope_level <= prev_level);
-        ident_type->next_in_scope = 0;
+      struct Symbol* id_type = symbol->id_type;
+      if (id_type && id_type->scope_level > prev_level) {
+        symbol->id_type = id_type->next_in_scope;
+        if (id_type->next_in_scope)
+          assert (id_type->next_in_scope->scope_level <= prev_level);
+        id_type->next_in_scope = 0;
       }
-      ident = ident->next_entry;
+      symbol = symbol->next_entry;
     }
     i++;
   }
@@ -56,9 +56,9 @@ pop_scope()
 }
 
 internal bool
-ident_is_declared(struct Ident* ident)
+symbol_is_declared(struct Symbol* symbol)
 {
-  bool is_declared = (ident && ident->scope_level >= scope_level);
+  bool is_declared = (symbol && symbol->scope_level >= scope_level);
   return is_declared;
 }
 
@@ -114,37 +114,55 @@ get_symtable_entry(char* name)
   return entry;
 }
 
-struct Ident*
+struct Symbol*
 new_type(char* name, int line_nr)
 {
-  struct SymtableEntry* ident = get_symtable_entry(name);
-  struct Ident* ident_type = ident->id_type;
-  if (!ident_type) {
-    ident_type = arena_push(symtable_storage, sizeof(*ident_type));
-    memset(ident_type, 0, sizeof(*ident_type));
-    ident_type->name = name;
-    ident_type->scope_level = scope_level;
-    ident_type->ident_kind = Ident_Type;
-    ident_type->next_in_scope = ident->id_type;
-    ident->id_type = (struct Ident*)ident_type;
-    DEBUG("new type `%s` at line %d.\n", ident_type->name, line_nr);
+  struct SymtableEntry* symbol = get_symtable_entry(name);
+  struct Symbol* id_type = symbol->id_type;
+  if (!id_type) {
+    id_type = arena_push(symtable_storage, sizeof(*id_type));
+    memset(id_type, 0, sizeof(*id_type));
+    id_type->name = name;
+    id_type->scope_level = scope_level;
+    id_type->ident_kind = Symbol_Type;
+    id_type->next_in_scope = symbol->id_type;
+    symbol->id_type = (struct Symbol*)id_type;
+    DEBUG("new type `%s` at line %d.\n", id_type->name, line_nr);
   }
-  return ident_type;
+  return id_type;
 }
 
-internal struct Ident_Keyword*
+struct Symbol*
+new_ident(char* name, int line_nr)
+{
+  struct SymtableEntry* symbol = get_symtable_entry(name);
+  struct Symbol* id_ident = symbol->id_ident;
+  if (!id_ident) {
+    id_ident = arena_push(symtable_storage, sizeof(*id_ident));
+    memset(id_ident, 0, sizeof(*id_ident));
+    id_ident->name = name;
+    id_ident->scope_level = scope_level;
+    id_ident->ident_kind = Symbol_Type;
+    id_ident->next_in_scope = symbol->id_type;
+    symbol->id_type = (struct Symbol*)id_ident;
+    DEBUG("new type `%s` at line %d.\n", id_ident->name, line_nr);
+  }
+  return id_ident;
+}
+
+internal struct Symbol_Keyword*
 add_keyword(char* name, enum TokenClass token_klass)
 {
-  struct SymtableEntry* ident = get_symtable_entry(name);
-  assert (ident->id_kw == 0);
-  struct Ident_Keyword* ident_kw = arena_push(symtable_storage, sizeof(*ident_kw));
-  memset(ident_kw, 0, sizeof(*ident_kw));
-  ident_kw->name = name;
-  ident_kw->scope_level = scope_level;
-  ident_kw->token_klass = token_klass;
-  ident_kw->ident_kind = Ident_Keyword;
-  ident->id_kw = (struct Ident*)ident_kw;
-  return ident_kw;
+  struct SymtableEntry* symbol = get_symtable_entry(name);
+  assert (symbol->id_kw == 0);
+  struct Symbol_Keyword* id_kw = arena_push(symtable_storage, sizeof(*id_kw));
+  memset(id_kw, 0, sizeof(*id_kw));
+  id_kw->name = name;
+  id_kw->scope_level = scope_level;
+  id_kw->token_klass = token_klass;
+  id_kw->ident_kind = Symbol_Keyword;
+  symbol->id_kw = (struct Symbol*)id_kw;
+  return id_kw;
 }
 
 internal void

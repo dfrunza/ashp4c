@@ -27,6 +27,13 @@ ast_list_append_link(struct AstList* list, struct AstListLink* link)
   list->link_count += 1;
 }
 
+struct AstListLink*
+ast_list_first_link(struct AstList* list)
+{
+  struct AstListLink* first = list->head->next;
+  return first;
+}
+
 void*
 ast_getattr(struct Ast* ast, char* attr_name)
 {
