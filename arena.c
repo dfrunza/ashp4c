@@ -287,6 +287,10 @@ array_append(struct UnboundedArray* array, void* elem)
 {
   if (array->elem_count >= array->capacity) {
     int segment_index = floor_log2(array->elem_count + 1);
+    if (segment_index >= ARRAY_MAX_SEGMENT) {
+      printf("Maximum array capacity has been reached.");
+      exit(1);
+    }
     int segment_capacity = (1 << segment_index);
     array->segment_table[segment_index] = arena_push(array->storage, segment_capacity * array->elem_size);
     array->capacity += segment_capacity;

@@ -13,7 +13,7 @@ build_symtable_local_control_declaration(struct Ast* decl)
       decl->kind == Ast_TableDecl) {
     struct Ast* name = (struct Ast*)ast_getattr(decl, "name");
     char* strname = (char*)ast_getattr(name, "name");
-    if (!name_is_declared(strname, Symbol_Ident)) {
+    if (!name_is_declared_in_scope(strname, Symbol_Ident, get_current_scope())) {
       new_ident(strname, decl, name->line_nr);
     } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
   } else if (decl->kind == Ast_BlockStmt) {
@@ -57,7 +57,7 @@ build_symtable_control(struct Ast* control_decl)
   struct Ast* type_decl = (struct Ast*)ast_getattr(control_decl, "type_decl");
   struct Ast* name = (struct Ast*)ast_getattr(type_decl, "name");
   char* strname = (char*)ast_getattr(name, "name");
-  if (!name_is_declared(strname, Symbol_Type)) {
+  if (!name_is_declared_in_scope(strname, Symbol_Type, get_current_scope())) {
     new_type(strname, type_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
@@ -79,7 +79,7 @@ build_symtable_local_parser_element(struct Ast* element)
   if (element->kind == Ast_ConstDecl || element->kind == Ast_Instantiation || element->kind == Ast_VarDecl) {
     struct Ast* name = (struct Ast*)ast_getattr(element, "name");
     char* strname = (char*)ast_getattr(name, "name");
-    if (!name_is_declared(strname, Symbol_Ident)) {
+    if (!name_is_declared_in_scope(strname, Symbol_Ident, get_current_scope())) {
       new_ident(strname, element, name->line_nr);
     } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
   } else assert(0);
@@ -103,7 +103,7 @@ build_symtable_parser(struct Ast* parser_decl)
   struct Ast* type_decl = (struct Ast*)ast_getattr(parser_decl, "type_decl");
   struct Ast* name = (struct Ast*)ast_getattr(type_decl, "name");
   char* strname = (char*)ast_getattr(name, "name");
-  if (!name_is_declared(strname, Symbol_Type)) {
+  if (!name_is_declared_in_scope(strname, Symbol_Type, get_current_scope())) {
     new_type(strname, type_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
@@ -140,7 +140,7 @@ build_symtable_extern(struct Ast* extern_decl)
 {
   struct Ast* name = (struct Ast*)ast_getattr(extern_decl, "name");
   char* strname = (char*)ast_getattr(name, "name");
-  if (!name_is_declared(strname, Symbol_Type)) {
+  if (!name_is_declared_in_scope(strname, Symbol_Type, get_current_scope())) {
     new_type(strname, extern_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
@@ -155,7 +155,7 @@ build_symtable_struct_field(struct Ast* field)
 {
   struct Ast* name = (struct Ast*)ast_getattr(field, "name");
   char* strname = (char*)ast_getattr(name, "name");
-  if (!name_is_declared(strname, Symbol_Ident)) {
+  if (!name_is_declared_in_scope(strname, Symbol_Ident, get_current_scope())) {
     new_ident(strname, field, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 }
@@ -173,11 +173,11 @@ build_symtable_struct_fields(struct AstList* fields)
 }
 
 internal void
-build_symtable_struct(struct Ast* struct_decl)
+build_symtable_structlike(struct Ast* struct_decl)
 {
   struct Ast* name = (struct Ast*)ast_getattr(struct_decl, "name");
   char* strname = (char*)ast_getattr(name, "name");
-  if (!name_is_declared(strname, Symbol_Type)) {
+  if (!name_is_declared_in_scope(strname, Symbol_Type, get_current_scope())) {
     new_type(strname, struct_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
@@ -188,11 +188,48 @@ build_symtable_struct(struct Ast* struct_decl)
 }
 
 internal void
+build_symtable_enum_id(struct Ast* id)
+{
+  struct Ast* name = (struct Ast*)ast_getattr(id, "name");
+  char* strname = (char*)ast_getattr(name, "name");
+  if (!name_is_declared_in_scope(strname, Symbol_Ident, get_current_scope())) {
+    new_ident(strname, id, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+}
+
+internal void
+build_symtable_enum_id_list(struct AstList* id_list)
+{
+  push_scope();
+  struct AstListLink* link = ast_list_first_link(id_list);
+  while (link) {
+    build_symtable_enum_id(link->ast);
+    link = link->next;
+  }
+  pop_scope();
+}
+
+internal void
+build_symtable_enum(struct Ast* enum_decl)
+{
+  struct Ast* name = (struct Ast*)ast_getattr(enum_decl, "name");
+  char* strname = (char*)ast_getattr(name, "name");
+  if (!name_is_declared_in_scope(strname, Symbol_Type, get_current_scope())) {
+    new_type(strname, enum_decl, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+
+  struct AstList* id_list = (struct AstList*)ast_getattr(enum_decl, "id_list");
+  if (id_list) {
+    build_symtable_enum_id_list(id_list);
+  }
+}
+
+internal void
 build_symtable_package(struct Ast* package_decl)
 {
   struct Ast* name = (struct Ast*)ast_getattr(package_decl, "name");
   char* strname = (char*)ast_getattr(name, "name");
-  if (!name_is_declared(strname, Symbol_Type)) {
+  if (!name_is_declared_in_scope(strname, Symbol_Type, get_current_scope())) {
     new_type(strname, package_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 }
@@ -202,7 +239,7 @@ build_symtable_top_level_instantiation(struct Ast* instantiation)
 {
   struct Ast* name = (struct Ast*)ast_getattr(instantiation, "name");
   char* strname = (char*)ast_getattr(name, "name");
-  if (!name_is_declared(strname, Symbol_Ident)) {
+  if (!name_is_declared_in_scope(strname, Symbol_Ident, get_current_scope())) {
     new_ident(strname, instantiation, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 }
@@ -214,7 +251,7 @@ build_symtable_type_decl(struct Ast* type_decl)
   if (is_typedef) {
     struct Ast* name = (struct Ast*)ast_getattr(type_decl, "name");
     char* strname = (char*)ast_getattr(name, "name");
-    if (!name_is_declared(strname, Symbol_Type)) {
+    if (!name_is_declared_in_scope(strname, Symbol_Type, get_current_scope())) {
       new_type(strname, type_decl, name->line_nr);
     } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
   }
@@ -225,7 +262,7 @@ build_symtable_const_declaration(struct Ast* const_decl)
 {
   struct Ast* name = (struct Ast*)ast_getattr(const_decl, "name");
   char* strname = (char*)ast_getattr(name, "name");
-  if (!name_is_declared(strname, Symbol_Ident)) {
+  if (!name_is_declared_in_scope(strname, Symbol_Ident, get_current_scope())) {
     new_ident(strname, const_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 }
@@ -244,7 +281,7 @@ build_symtable_program(struct Ast* ast)
       } else if (decl->kind == Ast_ExternDecl) {
         build_symtable_extern(decl);
       } else if (decl->kind == Ast_StructDecl || decl->kind == Ast_HeaderDecl) {
-        build_symtable_struct(decl);
+        build_symtable_structlike(decl);
       } else if (decl->kind == Ast_Package) {
         build_symtable_package(decl);
       } else if (decl->kind == Ast_Parser) {
@@ -257,7 +294,10 @@ build_symtable_program(struct Ast* ast)
         build_symtable_function_proto(decl);
       } else if (decl->kind == Ast_ConstDecl) {
         build_symtable_const_declaration(decl);
+      } else if (decl->kind == Ast_EnumDecl) {
+        build_symtable_enum(decl);
       }
+      else assert(0);
       link = link->next;
     }
     pop_scope();

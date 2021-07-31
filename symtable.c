@@ -24,17 +24,15 @@ push_scope()
 }
 
 internal struct Symbol*
-scope_delete_symbol(struct Symbol* symbol)
+scope_delete_symbol(struct Symbol* symbol, int at_scope)
 {
   struct Symbol* next_in_scope = 0;
-  if (symbol && symbol->scope_level > (scope_level - 1)) {
+  while (symbol && symbol->scope_level == at_scope) {
     next_in_scope = symbol->next_in_scope;
-    if (next_in_scope) {
-      assert (next_in_scope->scope_level <= scope_level);
-    }
     symbol->next_in_scope = 0;
+    symbol = next_in_scope;
   }
-  return next_in_scope;
+  return symbol;
 }
 
 void
@@ -43,16 +41,21 @@ pop_scope()
   assert (scope_level > 0);
   int i;
   for (i = 0; i < capacity; i++) {
-    struct SymtableEntry* symbol = *(struct SymtableEntry**)array_get(&symtable, i);
-    while (symbol) {
-      symbol->id_kw = scope_delete_symbol(symbol->id_kw);
-      symbol->id_type = scope_delete_symbol(symbol->id_type);
-      symbol->id_ident = scope_delete_symbol(symbol->id_ident);
-      symbol = symbol->next_entry;
+    struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&symtable, i);
+    while (entry) {
+      entry->id_type = scope_delete_symbol(entry->id_type, scope_level);
+      entry->id_ident = scope_delete_symbol(entry->id_ident, scope_level);
+      entry = entry->next_entry;
     }
   }
-  DEBUG("pop scope %d\n", scope_level - 1);
+  DEBUG("pop scope %d\n", scope_level);
   scope_level -= 1;
+}
+
+int
+get_current_scope()
+{
+  return scope_level;
 }
 
 struct SymtableEntry*
@@ -108,34 +111,32 @@ get_symtable_entry(char* name)
 }
 
 bool
-name_is_declared(char* name, enum SymbolKind kind)
+name_is_declared_in_scope(char* name, enum SymbolKind kind, int scope)
 {
   bool is_declared = false;
-  struct SymtableEntry* symbol = get_symtable_entry(name);
-  if (symbol) {
-    if (kind == Symbol_Keyword) {
-      is_declared = symbol->id_kw && (symbol->id_kw->scope_level >= scope_level);
-    } else if (kind == Symbol_Type) {
-      is_declared = symbol->id_type && (symbol->id_type->scope_level >= scope_level);
-    } else if (kind == Symbol_Ident) {
-      is_declared = symbol->id_ident && (symbol->id_ident->scope_level >= scope_level);
-    } else assert(0);
-  }
+  struct SymtableEntry* entry = get_symtable_entry(name);
+  if (kind == Symbol_Keyword) {
+    is_declared = entry->id_kw && (entry->id_kw->scope_level == scope);
+  } else if (kind == Symbol_Type) {
+    is_declared = entry->id_type && (entry->id_type->scope_level == scope);
+  } else if (kind == Symbol_Ident) {
+    is_declared = entry->id_ident && (entry->id_ident->scope_level == scope);
+  } else assert(0);
   return is_declared;
 }
 
 struct Symbol*
 new_type(char* name, struct Ast* ast, int line_nr)
 {
-  struct SymtableEntry* symbol = get_symtable_entry(name);
+  struct SymtableEntry* entry = get_symtable_entry(name);
   struct Symbol* id_type = arena_push(symtable_storage, sizeof(*id_type));
   memset(id_type, 0, sizeof(*id_type));
   id_type->name = name;
   id_type->scope_level = scope_level;
   id_type->ast = ast;
   id_type->ident_kind = Symbol_Type;
-  id_type->next_in_scope = symbol->id_type;
-  symbol->id_type = (struct Symbol*)id_type;
+  id_type->next_in_scope = entry->id_type;
+  entry->id_type = (struct Symbol*)id_type;
   DEBUG("new type `%s` at line %d.\n", id_type->name, line_nr);
   return id_type;
 }
@@ -143,15 +144,15 @@ new_type(char* name, struct Ast* ast, int line_nr)
 struct Symbol*
 new_ident(char* name, struct Ast* ast, int line_nr)
 {
-  struct SymtableEntry* symbol = get_symtable_entry(name);
+  struct SymtableEntry* entry = get_symtable_entry(name);
   struct Symbol* id_ident = arena_push(symtable_storage, sizeof(*id_ident));
   memset(id_ident, 0, sizeof(*id_ident));
   id_ident->name = name;
   id_ident->scope_level = scope_level;
   id_ident->ast = ast;
   id_ident->ident_kind = Symbol_Ident;
-  id_ident->next_in_scope = symbol->id_ident;
-  symbol->id_ident = (struct Symbol*)id_ident;
+  id_ident->next_in_scope = entry->id_ident;
+  entry->id_ident = (struct Symbol*)id_ident;
   DEBUG("new identifier `%s` at line %d.\n", id_ident->name, line_nr);
   return id_ident;
 }
@@ -159,15 +160,15 @@ new_ident(char* name, struct Ast* ast, int line_nr)
 internal struct Symbol_Keyword*
 add_keyword(char* name, enum TokenClass token_klass)
 {
-  struct SymtableEntry* symbol = get_symtable_entry(name);
-  assert (symbol->id_kw == 0);
+  struct SymtableEntry* entry = get_symtable_entry(name);
+  assert (entry->id_kw == 0);
   struct Symbol_Keyword* id_kw = arena_push(symtable_storage, sizeof(*id_kw));
   memset(id_kw, 0, sizeof(*id_kw));
   id_kw->name = name;
   id_kw->scope_level = scope_level;
   id_kw->token_klass = token_klass;
   id_kw->ident_kind = Symbol_Keyword;
-  symbol->id_kw = (struct Symbol*)id_kw;
+  entry->id_kw = (struct Symbol*)id_kw;
   return id_kw;
 }
 

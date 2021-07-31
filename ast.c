@@ -62,7 +62,10 @@ ast_setattr(struct Ast* ast, char* attr_name, void* attr_value, enum AstAttribut
     entry = entry->next_attr;
   }
   if (!entry) {
-    assert (ast->attr_count < AST_ATTRTABLE_CAPACITY);
+    if (ast->attr_count >= AST_ATTRTABLE_CAPACITY) {
+      printf("Maximum AST-attribute capacity has been reached.");
+      exit(1);
+    }
     entry = arena_push(attr_storage, sizeof(*entry));
     memset(entry, 0, sizeof(*entry));
     entry->name = attr_name;
