@@ -160,60 +160,114 @@ ast_kind_to_string(enum AstKind kind)
     case Ast_TypeDecl:
       return "Ast_TypeDecl";
     default:
-      assert(0);
+      assert(kind == Ast_NONE_);
   }
-  return 0;
+  return "Ast_NONE_";
 }
 
 internal char*
 expr_operator_to_string(enum AstExprOperator op)
 {
-  char* op_str = "Ast_Op_None";
-  if (op == AstExprOp_Add) {
-    op_str = "AstExprOp_Add";
-  } else if (op == AstExprOp_Sub) {
-    op_str = "AstExprOp_Sub";
-  } else if (op == AstExprOp_Mul) {
-    op_str = "AstExprOp_Mul";
-  } else if (op == AstExprOp_Div) {
-    op_str = "AstExprOp_Div";
-  } else if (op == AstExprOp_And) {
-    op_str = "AstExprOp_And";
-  } else if (op == AstExprOp_Or) {
-    op_str = "AstExprOp_Or";
-  } else if (op == AstExprOp_Equal) {
-    op_str = "AstExprOp_Equal";
-  } else if (op == AstExprOp_NotEqual) {
-    op_str = "AstExprOp_NotEqual";
-  } else if (op == AstExprOp_Less) {
-    op_str = "AstExprOp_Less";
-  } else if (op == AstExprOp_Greater) {
-    op_str = "AstExprOp_Greater";
-  } else if (op == AstExprOp_LessEqual) {
-    op_str = "AstExprOp_LessEqual";
-  } else if (op == AstExprOp_GreaterEqual) {
-    op_str = "AstExprOp_GreaterEqual";
-  } else if (op == AstExprOp_BitAnd) {
-    op_str = "AstExprOp_BitAnd";
-  } else if (op == AstExprOp_BitOr) {
-    op_str = "AstExprOp_BitOr";
-  } else if (op == AstExprOp_BitXor) {
-    op_str = "AstExprOp_BitXor";
-  } else if (op == AstExprOp_BitShiftLeft) {
-    op_str = "AstExprOp_BitShiftLeft";
-  } else if (op == AstExprOp_BitShiftRight) {
-    op_str = "AstExprOp_BitShiftRight";
-  } else if (op == AstExprOp_LogNot) {
-    op_str = "AstExprOp_LogNot";
-  } else if (op == AstExprOp_BitNot) {
-    op_str = "AstExprOp_BitNot";
-  } else if (op == AstExprOp_Minus) {
-    op_str = "AstExprOp_Minus";
-  } else if (op == AstExprOp_Mask) {
-    op_str = "AstExprOp_Mask";
+  switch (op) {
+    case AstExprOp_Add:
+      return "AstExprOp_Add";
+    case AstExprOp_Sub:
+      return "AstExprOp_Sub";
+    case AstExprOp_Mul:
+      return "AstExprOp_Mul";
+    case AstExprOp_Div:
+      return "AstExprOp_Div";
+    case AstExprOp_And:
+      return "AstExprOp_And";
+    case AstExprOp_Or:
+      return "AstExprOp_Or";
+    case AstExprOp_Equal:
+      return "AstExprOp_Equal";
+    case AstExprOp_NotEqual:
+      return "AstExprOp_NotEqual";
+    case AstExprOp_Less:
+      return "AstExprOp_Less";
+    case AstExprOp_Greater:
+      return "AstExprOp_Greater";
+    case AstExprOp_LessEqual:
+      return "AstExprOp_LessEqual";
+    case AstExprOp_GreaterEqual:
+      return "AstExprOp_GreaterEqual";
+    case AstExprOp_BitAnd:
+      return "AstExprOp_BitAnd";
+    case AstExprOp_BitOr:
+      return "AstExprOp_BitOr";
+    case AstExprOp_BitXor:
+      return "AstExprOp_BitXor";
+    case AstExprOp_BitShiftLeft:
+      return "AstExprOp_BitShiftLeft";
+    case AstExprOp_BitShiftRight:
+      return "AstExprOp_BitShiftRight";
+    case AstExprOp_LogNot:
+      return "AstExprOp_LogNot";
+    case AstExprOp_BitNot:
+      return "AstExprOp_BitNot";
+    case AstExprOp_Minus:
+      return "AstExprOp_Minus";
+    case AstExprOp_Mask:
+      return "AstExprOp_Mask";
+    default:
+      assert(op == AstExprOp_NONE_);
   }
-  else assert(op == AstExprOp_NONE_);
-  return op_str;
+  return "AstExprOp_NONE_";
+}
+
+char*
+base_type_to_string(enum AstBaseType base_type)
+{
+  switch (base_type) {
+    case AstBaseType_Bool:
+      return "AstBaseType_Bool";
+    case AstBaseType_Error:
+      return "AstBaseType_Error";
+    case AstBaseType_Int:
+      return "AstBaseType_Int";
+    case AstBaseType_Bit:
+      return "AstBaseType_Bit";
+    case AstBaseType_Varbit:
+      return "AstBaseType_Varbit";
+    case AstBaseType_String:
+      return "AstBaseType_String";
+    default:
+      assert(base_type == AstBaseType_NONE_);
+  }
+  return "AstBaseType_NONE_";
+}
+
+char*
+param_dir_to_string(enum AstParamDirection dir)
+{
+  switch (dir) {
+    case AstParamDir_In:
+      return "AstParamDir_In";
+    case AstParamDir_Out:
+      return "AstParamDir_Out";
+    case AstParamDir_InOut:
+      return "AstParamDir_InOut";
+    default:
+      assert(dir == AstParamDir_NONE_);
+  }
+  return "AstParamDir_NONE_";
+}
+
+char*
+int_flags_to_string(enum AstIntegerFlags flags)
+{
+  static char flags_str[64];
+  flags_str[0] = '\0';
+  char* str = flags_str;
+  if ((flags & AstInteger_HasWidth) != 0) {
+    str += sprintf(str, "%s ", "AstInteger_HasWidth");
+  }
+  if ((flags & AstInteger_IsSigned) != 0) {
+    str += sprintf(str, "%s ", "AstInteger_IsSigned");
+  }
+  return flags ? flags_str : "AstInteger_NONE_";
 }
 
 internal void
@@ -304,74 +358,6 @@ print_prop(char* name, enum ValueType type, ...)
 }
 
 void
-print_parameter(struct Ast* param)
-{
-  assert(param->kind == Ast_Parameter);
-  ast_start();
-  char* dir_str = "AstDir_NONE_";
-  if (*(enum AstParamDirection*)ast_getattr(param, "direction") == AstParamDir_In) {
-    dir_str = "AstParamDir_In";
-  } else if (*(enum AstParamDirection*)ast_getattr(param, "direction") == AstParamDir_Out) {
-    dir_str = "AstParamDir_Out";
-  } else if (*(enum AstParamDirection*)ast_getattr(param, "direction") == AstParamDir_InOut) {
-    dir_str = "AstParamDir_InOut";
-  } else assert(*(enum AstParamDirection*)ast_getattr(param, "direction") == AstParamDir_NONE_);
-  print_prop("direction", Value_String, dir_str);
-  print_prop("type", Value_Id, ((struct Ast*)ast_getattr(param, "type"))->id);
-  print_prop("name", Value_Id, ((struct Ast*)ast_getattr(param, "name"))->id);
-  print_prop("init_expr", Value_Id, ((struct Ast*)ast_getattr(param, "init_expr"))->id);
-  ast_end();
-  print_ast(ast_getattr(param, "type"));
-  print_ast(ast_getattr(param, "name"));
-  print_ast(ast_getattr(param, "init_expr"));
-}
-
-internal void
-print_int(struct Ast* node)
-{
-  assert(node->kind == Ast_Int);
-  ast_start();
-  char flags_str[256];
-  char* str = flags_str + sprintf(flags_str, "AstInteger_NONE_");
-  if ((*(int*)ast_getattr(node, "flags") & AstInteger_HasWidth) != 0) {
-    str += sprintf(str, "|%s", "AstInteger_HasWidth");
-  }
-  if ((*(int*)ast_getattr(node, "flags") & AstInteger_IsSigned) != 0) {
-    str += sprintf(str, "|%s", "AstInteger_IsSigned");
-  }
-  print_prop("flags", Value_String, flags_str);
-  print_prop("width", Value_Integer, *(int*)ast_getattr(node, "width"));
-  print_prop("value", Value_Integer, *(int*)ast_getattr(node, "value"));
-  ast_end();
-}
-
-internal void
-print_base_type(struct Ast* type)
-{
-  assert(type->kind == Ast_BaseType);
-  ast_start();
-  char* type_str = "AstBaseType_NONE_";
-  if (*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_Bool) {
-    type_str = "AstBaseType_Bool";
-  } else if (*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_Error) {
-    type_str = "AstBaseType_Error";
-  } else if (*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_Int) {
-    type_str = "AstBaseType_Int";
-  } else if (*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_Bit) {
-    type_str = "AstBaseType_Bit";
-  } else if (*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_Varbit) {
-    type_str = "AstBaseType_Varbit";
-  } else if (*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_String) {
-    type_str = "AstBaseType_String";
-  }
-  else assert(*(enum AstBaseTypeKind*)ast_getattr(type, "base_type") == AstBaseType_NONE_);
-  print_prop("base_type", Value_String, type_str);
-  print_prop("size", Value_Id, ((struct Ast*)ast_getattr(type, "size"))->id);
-  ast_end();
-  print_ast(ast_getattr(type, "size"));
-}
-
-void
 print_ast(struct Ast* ast)
 {
   if (!ast) { return; }
@@ -394,7 +380,14 @@ print_ast(struct Ast* ast)
       print_prop(attr->name, Value_IdList, attr->value);
     } else if (attr->type == AstAttr_ExprOperator) {
       print_prop(attr->name, Value_String, expr_operator_to_string(*(enum AstExprOperator*)attr->value));
+    } else if (attr->type == AstAttr_BaseType) {
+      print_prop(attr->name, Value_String, base_type_to_string(*(enum AstBaseType*)attr->value));
+    } else if (attr->type == AstAttr_ParamDir) {
+      print_prop(attr->name, Value_String, param_dir_to_string(*(enum AstParamDirection*)attr->value));
+    } else if (attr->type == AstAttr_IntFlags) {
+      print_prop(attr->name, Value_String, int_flags_to_string(*(enum AstIntegerFlags*)attr->value));
     }
+    else assert(0);
   }
   ast_end();
   for (attr = ast_attriter_init(&attr_iter, ast); attr; attr = ast_attriter_get_next(&attr_iter)) {

@@ -76,7 +76,7 @@ enum AstKind {
   Ast_P4Program,
 };
 
-enum AstBaseTypeKind {
+enum AstBaseType {
   AstBaseType_NONE_,
   AstBaseType_Bool,
   AstBaseType_Error,
@@ -144,6 +144,9 @@ enum AstAttributeType {
   AstAttr_Integer,
   AstAttr_String,
   AstAttr_ExprOperator,
+  AstAttr_BaseType,
+  AstAttr_ParamDir,
+  AstAttr_IntFlags,
 };
 
 struct AstAttribute {

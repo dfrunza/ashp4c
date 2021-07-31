@@ -233,7 +233,6 @@ symtable_init()
 void
 symtable_flush()
 {
-  arena_delete(symtable_storage);
   entry_count = 0;
   scope_level = 0;
   symtable_init();

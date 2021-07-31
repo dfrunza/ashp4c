@@ -342,7 +342,7 @@ build_parameter()
   struct Ast* param = new_ast_node(Ast_Parameter, token);
   enum AstParamDirection* direction = arena_push(ast_storage, sizeof(enum AstParamDirection));
   *direction = build_direction();
-  ast_setattr(param, "direction", direction, AstAttr_Integer);
+  ast_setattr(param, "direction", direction, AstAttr_ParamDir);
   if (token_is_typeRef(token)) {
     ast_setattr(param, "type", build_typeRef(), AstAttr_Ast);
     if (token_is_name(token)) {
@@ -525,7 +525,7 @@ build_integer()
     int_node = new_ast_node(Ast_Int, token);
     enum AstIntegerFlags* flags = arena_push(ast_storage, sizeof(*flags));
     *flags = token->i.flags;
-    ast_setattr(int_node, "flags", flags, AstAttr_Integer);
+    ast_setattr(int_node, "flags", flags, AstAttr_IntFlags);
     int* width = arena_push(ast_storage, sizeof(*width));
     *width = token->i.width;
     ast_setattr(int_node, "width", width, AstAttr_Integer);
@@ -582,20 +582,20 @@ internal struct Ast*
 build_baseType()
 {
   struct Ast* base_type = 0;
-  enum AstBaseTypeKind* type_value = arena_push(ast_storage, sizeof(enum AstBaseTypeKind));
+  enum AstBaseType* type_value = arena_push(ast_storage, sizeof(enum AstBaseType));
   if (token_is_baseType(token)) {
     base_type = new_ast_node(Ast_BaseType, token);
     if (token->klass == Token_Bool) {
       *type_value = AstBaseType_Bool;
-      ast_setattr(base_type, "base_type", type_value, AstAttr_Integer);
+      ast_setattr(base_type, "base_type", type_value, AstAttr_BaseType);
       next_token();
     } else if (token->klass == Token_Error) {
       *type_value = AstBaseType_Error;
-      ast_setattr(base_type, "base_type", type_value, AstAttr_Integer);
+      ast_setattr(base_type, "base_type", type_value, AstAttr_BaseType);
       next_token();
     } else if (token->klass == Token_Int) {
       *type_value = AstBaseType_Int;
-      ast_setattr(base_type, "base_type", type_value, AstAttr_Integer);
+      ast_setattr(base_type, "base_type", type_value, AstAttr_BaseType);
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
@@ -606,7 +606,7 @@ build_baseType()
       }
     } else if (token->klass == Token_Bit) {
       *type_value = AstBaseType_Bit;
-      ast_setattr(base_type, "base_type", type_value, AstAttr_Integer);
+      ast_setattr(base_type, "base_type", type_value, AstAttr_BaseType);
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
@@ -617,7 +617,7 @@ build_baseType()
       }
     } else if (token->klass == Token_Varbit) {
       *type_value = AstBaseType_Varbit;
-      ast_setattr(base_type, "base_type", type_value, AstAttr_Integer);
+      ast_setattr(base_type, "base_type", type_value, AstAttr_BaseType);
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
@@ -628,7 +628,7 @@ build_baseType()
       }
     } else if (token->klass == Token_String) {
       *type_value = AstBaseType_String;
-      ast_setattr(base_type, "base_type", type_value, AstAttr_Integer);
+      ast_setattr(base_type, "base_type", type_value, AstAttr_BaseType);
       next_token();
     }
     else assert(0);

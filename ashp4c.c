@@ -133,6 +133,7 @@ main(int arg_count, char* args[])
   build_symtable_program(ast_program);
 
   arena_delete(&ast_storage);
+  arena_delete(&symtable_storage);
   arena_delete(&main_storage);
   return 0;
 }
