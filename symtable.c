@@ -8,74 +8,86 @@
 
 
 internal struct Arena* symtable_storage;
-internal struct UnboundedArray symtable = {};
-internal int capacity_log2 = 5;
-internal int capacity = 0;
-internal int entry_count = 0;
-internal int scope_level = 0;
 internal struct UnboundedArray scope_stack = {};
 
 
-int
-push_scope()
-{
-  int new_scope_level = ++scope_level;
-  DEBUG("push scope %d\n", new_scope_level);
-  return new_scope_level;
-}
-
-internal struct Symbol*
-scope_delete_symbol(struct Symbol* symbol, int at_scope)
-{
-  struct Symbol* next_in_scope = 0;
-  while (symbol && symbol->scope_level == at_scope) {
-    next_in_scope = symbol->next_in_scope;
-    symbol->next_in_scope = 0;
-    symbol = next_in_scope;
-  }
-  return symbol;
-}
-
-void
-pop_scope()
-{
-  assert (scope_level > 0);
-  int i;
-  for (i = 0; i < capacity; i++) {
-    struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&symtable, i);
-    while (entry) {
-      entry->id_type = scope_delete_symbol(entry->id_type, scope_level);
-      entry->id_ident = scope_delete_symbol(entry->id_ident, scope_level);
-      entry = entry->next_entry;
-    }
-  }
-  DEBUG("pop scope %d\n", scope_level);
-  scope_level -= 1;
-}
-
-int
+struct Scope*
 get_current_scope()
 {
-  return scope_level;
+  struct Scope* scope = array_get(&scope_stack, scope_stack.elem_count - 1);
+  return scope;
+}
+
+struct Scope*
+push_scope()
+{
+  assert (scope_stack.elem_count > 0);
+  struct Scope* current_scope = get_current_scope();
+  struct Scope s = {};
+  struct Scope* new_scope = array_append(&scope_stack, &s);
+  scope_init(new_scope, 5);
+  new_scope->scope_level = current_scope->scope_level + 1;
+  if (DEBUG_ENABLED) {
+    printf("push scope %d\n", new_scope->scope_level);
+  }
+  new_scope->parent_scope = current_scope;
+  return new_scope;
+}
+
+//internal struct Symbol*
+//scope_delete_symbol(struct Symbol* symbol, int at_scope)
+//{
+//  struct Symbol* next_in_scope = 0;
+//  while (symbol && symbol->scope_level == at_scope) {
+//    next_in_scope = symbol->next_in_scope;
+//    symbol->next_in_scope = 0;
+//    symbol = next_in_scope;
+//  }
+//  return symbol;
+//}
+
+struct Scope*
+pop_scope()
+{
+  assert (scope_stack.elem_count > 0);
+  struct Scope* current_scope = get_current_scope();
+  assert (current_scope->scope_level > 0);
+  //FIXME
+  //int i;
+  //for (i = 0; i < capacity; i++) {
+  //  struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&symtable, i);
+  //  while (entry) {
+  //    entry->id_type = scope_delete_symbol(entry->id_type, scope_level);
+  //    entry->id_ident = scope_delete_symbol(entry->id_ident, scope_level);
+  //    entry = entry->next_entry;
+  //  }
+  //}
+  if (DEBUG_ENABLED) {
+    printf("pop scope %d\n", current_scope->scope_level);
+  }
+  current_scope->scope_level -= 1;
+  scope_stack.elem_count -= 1;
+  current_scope = get_current_scope();
+  return current_scope;
 }
 
 struct SymtableEntry*
-get_symtable_entry(char* name)
+get_symtable_entry(struct Scope* scope, char* name)
 {
-  uint32_t h = hash_string(name, capacity_log2);
-  struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&symtable, h);
+  uint32_t h = hash_string(name, scope->capacity_log2);
+  struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&scope->symtable, h);
   while (entry) {
     if (cstr_match(entry->name, name))
       break;
     entry = entry->next_entry;
   }
   if (!entry) {
-    if (entry_count >= capacity) {
+    if (scope->entry_count >= scope->capacity) {
       struct Arena temp_storage = {};
-      struct SymtableEntry** entries_array = arena_push(&temp_storage, capacity);
+      struct SymtableEntry** entries_array = arena_push(&temp_storage, scope->capacity);
       int i, j = 0;
-      for (i = 0; i < capacity; i++) {
-        struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&symtable, i);
+      for (i = 0; i < scope->capacity; i++) {
+        struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&scope->symtable, i);
         while (entry) {
           entries_array[j] = entry;
           struct SymtableEntry* next_entry = entry->next_entry;
@@ -84,89 +96,97 @@ get_symtable_entry(char* name)
           j++;
         }
       }
-      assert (j == entry_count);
-      capacity = (1 << ++capacity_log2) - 1;
+      assert (j == scope->entry_count);
+      scope->capacity = (1 << ++scope->capacity_log2) - 1;
       struct SymtableEntry* null_entry = 0;
-      for (i = entry_count; i < capacity; i++) {
-        array_append(&symtable, &null_entry);
+      for (i = scope->entry_count; i < scope->capacity; i++) {
+        array_append(&scope->symtable, &null_entry);
       }
-      for (i = 0; i < capacity; i++) {
-        array_set(&symtable, i, &null_entry);
+      for (i = 0; i < scope->capacity; i++) {
+        array_set(&scope->symtable, i, &null_entry);
       }
-      for (i = 0; i < entry_count; i++) {
-        uint32_t h = hash_string(entries_array[i]->name, capacity_log2);
-        entries_array[i]->next_entry = *(struct SymtableEntry**)array_get(&symtable, h);
-        array_set(&symtable, h, &entries_array[i]);
+      for (i = 0; i < scope->entry_count; i++) {
+        uint32_t h = hash_string(entries_array[i]->name, scope->capacity_log2);
+        entries_array[i]->next_entry = *(struct SymtableEntry**)array_get(&scope->symtable, h);
+        array_set(&scope->symtable, h, &entries_array[i]);
       }
       arena_delete(&temp_storage);
-      h = hash_string(name, capacity_log2);
+      h = hash_string(name, scope->capacity_log2);
     }
     entry = arena_push(symtable_storage, sizeof(*entry));
     memset(entry, 0, sizeof(*entry));
     entry->name = name;
-    entry->next_entry = *(struct SymtableEntry**)array_get(&symtable, h);
-    array_set(&symtable, h, &entry);
-    entry_count += 1;
+    entry->next_entry = *(struct SymtableEntry**)array_get(&scope->symtable, h);
+    array_set(&scope->symtable, h, &entry);
+    scope->entry_count += 1;
   }
   return entry;
 }
 
 bool
-name_is_declared_in_scope(char* name, enum SymbolKind kind, int scope)
+name_is_declared_local(struct Scope* scope, char* name, enum SymbolKind kind)
 {
-  bool is_declared = false;
-  struct SymtableEntry* entry = get_symtable_entry(name);
-  if (kind == Symbol_Keyword) {
-    is_declared = entry->id_kw && (entry->id_kw->scope_level == scope);
-  } else if (kind == Symbol_Type) {
-    is_declared = entry->id_type && (entry->id_type->scope_level == scope);
-  } else if (kind == Symbol_Ident) {
-    is_declared = entry->id_ident && (entry->id_ident->scope_level == scope);
-  } else assert(0);
+  struct SymtableEntry* entry = get_symtable_entry(scope, name);
+  bool is_declared = entry->id_kw != 0 || entry->id_type != 0 || entry->id_ident != 0;
   return is_declared;
 }
 
-struct Symbol*
-new_type(char* name, struct Ast* ast, int line_nr)
+struct SymtableEntry*
+scope_resolve_name(struct Scope* scope, char* name)
 {
-  struct SymtableEntry* entry = get_symtable_entry(name);
+  struct SymtableEntry* entry = 0;
+  while (scope) {
+    entry = get_symtable_entry(scope, name);
+    if (entry->id_kw || entry->id_type || entry->id_ident) {
+      break;
+    }
+    scope = scope->parent_scope;
+  }
+  return entry;
+}
+
+struct Symbol*
+new_type(struct Scope* scope, char* name, struct Ast* ast, int line_nr)
+{
+  struct SymtableEntry* entry = get_symtable_entry(scope, name);
   struct Symbol* id_type = arena_push(symtable_storage, sizeof(*id_type));
   memset(id_type, 0, sizeof(*id_type));
   id_type->name = name;
-  id_type->scope_level = scope_level;
   id_type->ast = ast;
   id_type->ident_kind = Symbol_Type;
   id_type->next_in_scope = entry->id_type;
   entry->id_type = (struct Symbol*)id_type;
-  DEBUG("new type `%s` at line %d.\n", id_type->name, line_nr);
+  if (DEBUG_ENABLED) {
+    printf("new type `%s` at line %d.\n", id_type->name, line_nr);
+  }
   return id_type;
 }
 
 struct Symbol*
-new_ident(char* name, struct Ast* ast, int line_nr)
+new_ident(struct Scope* scope, char* name, struct Ast* ast, int line_nr)
 {
-  struct SymtableEntry* entry = get_symtable_entry(name);
+  struct SymtableEntry* entry = get_symtable_entry(scope, name);
   struct Symbol* id_ident = arena_push(symtable_storage, sizeof(*id_ident));
   memset(id_ident, 0, sizeof(*id_ident));
   id_ident->name = name;
-  id_ident->scope_level = scope_level;
   id_ident->ast = ast;
   id_ident->ident_kind = Symbol_Ident;
   id_ident->next_in_scope = entry->id_ident;
   entry->id_ident = (struct Symbol*)id_ident;
-  DEBUG("new identifier `%s` at line %d.\n", id_ident->name, line_nr);
+  if (DEBUG_ENABLED) {
+    printf("new identifier `%s` at line %d.\n", id_ident->name, line_nr);
+  }
   return id_ident;
 }
 
 internal struct Symbol_Keyword*
-add_keyword(char* name, enum TokenClass token_klass)
+add_keyword(struct Scope* scope, char* name, enum TokenClass token_klass)
 {
-  struct SymtableEntry* entry = get_symtable_entry(name);
+  struct SymtableEntry* entry = get_symtable_entry(scope, name);
   assert (entry->id_kw == 0);
   struct Symbol_Keyword* id_kw = arena_push(symtable_storage, sizeof(*id_kw));
   memset(id_kw, 0, sizeof(*id_kw));
   id_kw->name = name;
-  id_kw->scope_level = scope_level;
   id_kw->token_klass = token_klass;
   id_kw->ident_kind = Symbol_Keyword;
   entry->id_kw = (struct Symbol*)id_kw;
@@ -174,70 +194,72 @@ add_keyword(char* name, enum TokenClass token_klass)
 }
 
 internal void
-add_all_keywords()
+add_all_keywords(struct Scope* scope)
 {
-  add_keyword("action", Token_Action);
-  add_keyword("actions", Token_Actions);
-  add_keyword("entries", Token_Entries);
-  add_keyword("enum", Token_Enum);
-  add_keyword("in", Token_In);
-  add_keyword("package", Token_Package);
-  add_keyword("select", Token_Select);
-  add_keyword("switch", Token_Switch);
-  add_keyword("tuple", Token_Tuple);
-  add_keyword("control", Token_Control);
-  add_keyword("error", Token_Error);
-  add_keyword("header", Token_Header);
-  add_keyword("inout", Token_InOut);
-  add_keyword("parser", Token_Parser);
-  add_keyword("state", Token_State);
-  add_keyword("table", Token_Table);
-  add_keyword("key", Token_Key);
-  add_keyword("typedef", Token_Typedef);
-  add_keyword("type", Token_Type);
-  add_keyword("default", Token_Default);
-  add_keyword("extern", Token_Extern);
-  add_keyword("header_union", Token_HeaderUnion);
-  add_keyword("out", Token_Out);
-  add_keyword("transition", Token_Transition);
-  add_keyword("else", Token_Else);
-  add_keyword("exit", Token_Exit);
-  add_keyword("if", Token_If);
-  add_keyword("match_kind", Token_MatchKind);
-  add_keyword("return", Token_Return);
-  add_keyword("struct", Token_Struct);
-  add_keyword("apply", Token_Apply);
-  add_keyword("const", Token_Const);
-  add_keyword("bool", Token_Bool);
-  add_keyword("true", Token_True);
-  add_keyword("false", Token_False);
-  add_keyword("void", Token_Void);
-  add_keyword("int", Token_Int);
-  add_keyword("bit", Token_Bit);
-  add_keyword("varbit", Token_Varbit);
-  add_keyword("string", Token_String);
+  add_keyword(scope, "action", Token_Action);
+  add_keyword(scope, "actions", Token_Actions);
+  add_keyword(scope, "entries", Token_Entries);
+  add_keyword(scope, "enum", Token_Enum);
+  add_keyword(scope, "in", Token_In);
+  add_keyword(scope, "package", Token_Package);
+  add_keyword(scope, "select", Token_Select);
+  add_keyword(scope, "switch", Token_Switch);
+  add_keyword(scope, "tuple", Token_Tuple);
+  add_keyword(scope, "control", Token_Control);
+  add_keyword(scope, "error", Token_Error);
+  add_keyword(scope, "header", Token_Header);
+  add_keyword(scope, "inout", Token_InOut);
+  add_keyword(scope, "parser", Token_Parser);
+  add_keyword(scope, "state", Token_State);
+  add_keyword(scope, "table", Token_Table);
+  add_keyword(scope, "key", Token_Key);
+  add_keyword(scope, "typedef", Token_Typedef);
+  add_keyword(scope, "type", Token_Type);
+  add_keyword(scope, "default", Token_Default);
+  add_keyword(scope, "extern", Token_Extern);
+  add_keyword(scope, "header_union", Token_HeaderUnion);
+  add_keyword(scope, "out", Token_Out);
+  add_keyword(scope, "transition", Token_Transition);
+  add_keyword(scope, "else", Token_Else);
+  add_keyword(scope, "exit", Token_Exit);
+  add_keyword(scope, "if", Token_If);
+  add_keyword(scope, "match_kind", Token_MatchKind);
+  add_keyword(scope, "return", Token_Return);
+  add_keyword(scope, "struct", Token_Struct);
+  add_keyword(scope, "apply", Token_Apply);
+  add_keyword(scope, "const", Token_Const);
+  add_keyword(scope, "bool", Token_Bool);
+  add_keyword(scope, "true", Token_True);
+  add_keyword(scope, "false", Token_False);
+  add_keyword(scope, "void", Token_Void);
+  add_keyword(scope, "int", Token_Int);
+  add_keyword(scope, "bit", Token_Bit);
+  add_keyword(scope, "varbit", Token_Varbit);
+  add_keyword(scope, "string", Token_String);
+}
+
+void
+scope_init(struct Scope* scope, int capacity_log2)
+{
+  struct SymtableEntry* null_entry = 0;
+  array_init(&scope->symtable, sizeof(null_entry), symtable_storage);
+  scope->capacity = (1 << capacity_log2) - 1;
+  int i;
+  for (i = scope->entry_count; i < scope->capacity; i++) {
+    array_append(&scope->symtable, &null_entry);
+  }
+  scope->capacity_log2 = capacity_log2;
+  scope->entry_count = scope->entry_count;
 }
 
 void
 symtable_init()
 {
-  struct SymtableEntry* null_entry = 0;
-  array_init(&symtable, sizeof(null_entry), symtable_storage);
-  capacity = (1 << capacity_log2) - 1;
-  int i;
-  for (i = entry_count; i < capacity; i++) {
-    array_append(&symtable, &null_entry);
-  }
   array_init(&scope_stack, sizeof(struct Scope), symtable_storage);
-  add_all_keywords();
-}
-
-void
-symtable_flush()
-{
-  entry_count = 0;
-  scope_level = 0;
-  symtable_init();
+  struct Scope s = {};
+  struct Scope* global_scope = array_append(&scope_stack, &s);
+  scope_init(global_scope, 5);
+  add_all_keywords(global_scope);
 }
 
 void

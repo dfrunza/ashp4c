@@ -58,8 +58,8 @@ void arena_print_usage(struct Arena* arena, char* title);
 
 void array_init(struct UnboundedArray* array, int elem_size, struct Arena* storage);
 void* array_get(struct UnboundedArray* array, int i);
-void array_set(struct UnboundedArray* array, int i, void* elem);
-void array_append(struct UnboundedArray* array, void* elem);
+void* array_set(struct UnboundedArray* array, int i, void* elem);
+void* array_append(struct UnboundedArray* array, void* elem);
 
 void list_init(struct List* list);
 void list_append_link(struct List* list, struct ListLink* link);

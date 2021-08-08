@@ -15,18 +15,11 @@
 #define KILOBYTE 1024
 #define MEGABYTE 1024*KILOBYTE
 
-#if DEBUG_ENABLED
-#define DEBUG(msg, ...) \
-  printf((msg), ## __VA_ARGS__);
-#else
-#define DEBUG(msg, ...) ;
-#endif
-
-#define sizeof_array(array)   (sizeof(array)/sizeof(array[0]))
-#define offsetof(type, member)   ((size_t) &((type*)0)->member)
+#define sizeof_array(array) (sizeof(array)/sizeof(array[0]))
+#define offsetof(type, member) ((size_t) &((type*)0)->member)
 #define containerof(ptr, type, member) ({ \
 	const typeof(((type* )0)->member)* mptr = (ptr); \
 	(type*)((char *)mptr - offsetof(type, member)); })
 #define assert(expr) \
   do { if(!(expr)) assert_(#expr, __FILE__, __LINE__); } while(0)
-#define error(msg, ...)   error_(__FILE__, __LINE__, (msg), ## __VA_ARGS__)
+#define error(msg, ...) error_(__FILE__, __LINE__, (msg), ## __VA_ARGS__)

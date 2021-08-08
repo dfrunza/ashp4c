@@ -52,16 +52,16 @@ next_token()
     token = array_get(tokens_array, ++token_at);
   }
   if (token->klass == Token_Identifier) {
-    struct SymtableEntry* symbol = get_symtable_entry(token->lexeme);
-    if (symbol->id_kw) {
-      struct Symbol* id_kw = symbol->id_kw;
+    struct SymtableEntry* entry = scope_resolve_name(get_current_scope(), token->lexeme);
+    if (entry->id_kw) {
+      struct Symbol* id_kw = entry->id_kw;
       if (id_kw->ident_kind == Symbol_Keyword) {
         token->klass = ((struct Symbol_Keyword*)id_kw)->token_klass;
         return token;
       }
     }
-    if (symbol->id_type) {
-      struct Symbol* id_type = symbol->id_type;
+    if (entry->id_type) {
+      struct Symbol* id_type = entry->id_type;
       if (id_type->ident_kind == Symbol_Type) {
         token->klass = Token_TypeIdentifier;
         return token;
@@ -231,7 +231,7 @@ build_nonTypeName(bool is_type)
     name = new_ast_node(Ast_Name, token);
     ast_setattr(name, "name", token->lexeme, AstAttr_String);
     if (is_type) {
-      new_type(ast_getattr(name, "name"), name, token->line_nr);
+      new_type(get_current_scope(), ast_getattr(name, "name"), name, token->line_nr);
     }
     next_token();
   } else error("at line %d: non-type name was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -398,7 +398,7 @@ build_typeOrVoid(bool is_type)
       ast_setattr(name, "name", token->lexeme, AstAttr_String);
       type = name;
       if (is_type) {
-        new_type(ast_getattr(name, "name"), type, token->line_nr);
+        new_type(get_current_scope(), ast_getattr(name, "name"), type, token->line_nr);
       }
       next_token();
     } else assert(0);
@@ -2831,6 +2831,8 @@ build_ast_program(struct Ast** p4program_, int* ast_node_count_, struct Unbounde
   token_at = 0;
   token = array_get(tokens_array, token_at);
   next_token();
+  push_scope();
   struct Ast* p4program = build_p4program();
+  pop_scope();
   return p4program;
 }

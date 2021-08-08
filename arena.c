@@ -272,7 +272,7 @@ array_get(struct UnboundedArray* array, int i)
   return elem_slot;
 }
 
-void
+void*
 array_set(struct UnboundedArray* array, int i, void* elem)
 {
   assert (i >= 0 && i < array->elem_count);
@@ -280,9 +280,10 @@ array_set(struct UnboundedArray* array, int i, void* elem)
   void* data_segment, *elem_slot;
   array_elem_at_i(array, i, &segment_index, &elem_offset, &data_segment, &elem_slot);
   memcpy(elem_slot, elem, array->elem_size);
+  return elem_slot;
 }
 
-void
+void*
 array_append(struct UnboundedArray* array, void* elem)
 {
   if (array->elem_count >= array->capacity) {
@@ -296,7 +297,8 @@ array_append(struct UnboundedArray* array, void* elem)
     array->capacity += segment_capacity;
   }
   array->elem_count += 1;
-  array_set(array, array->elem_count - 1, elem);
+  void* result = array_set(array, array->elem_count - 1, elem);
+  return result;
 }
 
 void

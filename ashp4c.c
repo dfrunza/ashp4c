@@ -126,11 +126,10 @@ main(int arg_count, char* args[])
     print_ast(ast_program);
   }
 
-  if (DEBUG_ENABLED) {
-    printf("\n-- Build the symbol table --\n");
-  }
-  symtable_flush();
-  build_symtable_program(ast_program);
+  //if (DEBUG_ENABLED) {
+  //  printf("\n-- Build the symbol table --\n");
+  //}
+  //build_symtable_program(ast_program);
 
   arena_delete(&ast_storage);
   arena_delete(&symtable_storage);
