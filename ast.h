@@ -124,19 +124,6 @@ enum AstParamDirection {
   AstParamDir_InOut,
 };
 
-struct AstListLink {
-  struct AstListLink* prev;
-  struct AstListLink* next;
-  struct Ast* ast;
-};
-
-struct AstList {
-  struct AstListLink sentinel;
-  struct AstListLink* head;
-  struct AstListLink* tail;
-  int link_count;
-};
-
 enum AstAttributeType {
   AstAttr_NONE_,
   AstAttr_Ast,
@@ -178,9 +165,5 @@ void* ast_getattr(struct Ast* ast, char* attr_name);
 void ast_setattr(struct Ast* ast, char* attr_name, void* attr_value, enum AstAttributeType attr_type);
 struct AstAttribute* ast_attriter_init(struct AstAttributeIterator* iter, struct Ast* ast);
 struct AstAttribute* ast_attriter_get_next(struct AstAttributeIterator* iter);
-
-void ast_list_init(struct AstList* list);
-void ast_list_append_link(struct AstList* list, struct AstListLink* link);
-struct AstListLink* ast_list_first_link(struct AstList* list);
 
 void print_ast(struct Ast* ast);

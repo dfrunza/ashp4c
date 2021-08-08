@@ -32,6 +32,12 @@ struct SymtableEntry {
   struct SymtableEntry* next_entry;
 };
 
+struct Scope {
+  int scope_level;
+  struct Scope* enclosing_scope;
+  struct List names;
+};
+
 
 void symtable_init();
 void symtable_set_storage(struct Arena* symtable_storage_);

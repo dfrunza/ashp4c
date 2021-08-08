@@ -255,33 +255,33 @@ build_name(bool is_type)
   return name;
 }
 
-internal struct AstList*
+internal struct List*
 build_typeParameterList()
 {
-  struct AstList* params = 0;
+  struct List* params = 0;
   if (token_is_typeParameterList(token)) {
     params = arena_push(ast_storage, sizeof(*params));
     memset(params, 0, sizeof(*params));
-    ast_list_init(params);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(params);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_name(true);
-    ast_list_append_link(params, link);
+    link->object = build_name(true);
+    list_append_link(params, link);
     while (token->klass == Token_Comma) {
       next_token();
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_name(true);
-      ast_list_append_link(params, link);
+      link->object = build_name(true);
+      list_append_link(params, link);
     }
   } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   return params;
 }
 
-internal struct AstList*
+internal struct List*
 build_optTypeParameters()
 {
-  struct AstList* params = 0;
+  struct List* params = 0;
   if (token->klass == Token_AngleOpen) {
     next_token();
     if (token_is_typeParameterList(token)) {
@@ -358,24 +358,24 @@ build_parameter()
   return param;
 }
 
-internal struct AstList*
+internal struct List*
 build_parameterList()
 {
-  struct AstList* params = 0;
+  struct List* params = 0;
   if (token_is_parameter(token)) {
     params = arena_push(ast_storage, sizeof(*params));
     memset(params, 0, sizeof(*params));
-    ast_list_init(params);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(params);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_parameter();
-    ast_list_append_link(params, link);
+    link->object = build_parameter();
+    list_append_link(params, link);
     while (token->klass == Token_Comma) {
       next_token();
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_parameter();
-      ast_list_append_link(params, link);
+      link->object = build_parameter();
+      list_append_link(params, link);
     }
   }
   return params;
@@ -458,23 +458,23 @@ build_methodPrototype()
   return proto;
 }
 
-internal struct AstList*
+internal struct List*
 build_methodPrototypes()
 {
-  struct AstList* protos = 0;
+  struct List* protos = 0;
   if (token_is_methodPrototype(token)) {
     protos = arena_push(ast_storage, sizeof(*protos));
     memset(protos, 0, sizeof(*protos));
-    ast_list_init(protos);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(protos);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_methodPrototype();
-    ast_list_append_link(protos, link);
+    link->object = build_methodPrototype();
+    list_append_link(protos, link);
     while (token_is_methodPrototype(token)) {
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_methodPrototype();
-      ast_list_append_link(protos, link);
+      link->object = build_methodPrototype();
+      list_append_link(protos, link);
     }
   }
   return protos;
@@ -636,24 +636,24 @@ build_baseType()
   return base_type;
 }
 
-internal struct AstList*
+internal struct List*
 build_typeArgumentList()
 {
-  struct AstList* args = 0;
+  struct List* args = 0;
   if (token_is_typeArg(token)) {
     args = arena_push(ast_storage, sizeof(*args));
     memset(args, 0, sizeof(*args));
-    ast_list_init(args);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(args);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_typeArg();
-    ast_list_append_link(args, link);
+    link->object = build_typeArg();
+    list_append_link(args, link);
     while (token->klass == Token_Comma) {
       next_token();
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_typeArg();
-      ast_list_append_link(args, link);
+      link->object = build_typeArg();
+      list_append_link(args, link);
     }
   }
   return args;
@@ -787,23 +787,23 @@ build_structField()
   return field;
 }
 
-internal struct AstList*
+internal struct List*
 build_structFieldList()
 {
-  struct AstList* fields = 0;
+  struct List* fields = 0;
   if (token_is_structField(token)) {
     fields = arena_push(ast_storage, sizeof(*fields));
     memset(fields, 0, sizeof(*fields));
-    ast_list_init(fields);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(fields);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_structField();
-    ast_list_append_link(fields, link);
+    link->object = build_structField();
+    list_append_link(fields, link);
     while (token_is_structField(token)) {
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_structField();
-      ast_list_append_link(fields, link);
+      link->object = build_structField();
+      list_append_link(fields, link);
     }
   }
   return fields;
@@ -912,24 +912,24 @@ build_specifiedIdentifier()
   return id;
 }
 
-internal struct AstList*
+internal struct List*
 build_specifiedIdentifierList()
 {
-  struct AstList* ids = 0;
+  struct List* ids = 0;
   if (token_is_specifiedIdentifier(token)) {
     ids = arena_push(ast_storage, sizeof(*ids));
     memset(ids, 0, sizeof(*ids));
-    ast_list_init(ids);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(ids);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_specifiedIdentifier();
-    ast_list_append_link(ids, link);
+    link->object = build_specifiedIdentifier();
+    list_append_link(ids, link);
     while (token->klass == Token_Comma) {
       next_token();
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_specifiedIdentifier();
-      ast_list_append_link(ids, link);
+      link->object = build_specifiedIdentifier();
+      list_append_link(ids, link);
     }
   }
   return ids;
@@ -1010,10 +1010,10 @@ build_parserTypeDeclaration()
   return type;
 }
 
-internal struct AstList*
+internal struct List*
 build_optConstructorParameters()
 {
-  struct AstList* ctor_params = 0;
+  struct List* ctor_params = 0;
   if (token->klass == Token_ParenthOpen) {
     next_token();
     ctor_params = build_parameterList();
@@ -1167,24 +1167,24 @@ build_argument()
   return arg;
 }
 
-internal struct AstList*
+internal struct List*
 build_argumentList()
 {
-  struct AstList* args = 0;
+  struct List* args = 0;
   if (token_is_argument(token)) {
     args = arena_push(ast_storage, sizeof(*args));
     memset(args, 0, sizeof(*args));
-    ast_list_init(args);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(args);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_argument();
-    ast_list_append_link(args, link);
+    link->object = build_argument();
+    list_append_link(args, link);
     while (token->klass == Token_Comma) {
       next_token();
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_argument();
-      ast_list_append_link(args, link);
+      link->object = build_argument();
+      list_append_link(args, link);
     }
   }
   return args;
@@ -1259,23 +1259,23 @@ build_parserLocalElement()
   return elem;
 }
 
-internal struct AstList*
+internal struct List*
 build_parserLocalElements()
 {
-  struct AstList* elems = 0;
+  struct List* elems = 0;
   if (token_is_parserLocalElement(token)) {
     elems = arena_push(ast_storage, sizeof(*elems));
     memset(elems, 0, sizeof(*elems));
-    ast_list_init(elems);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(elems);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_parserLocalElement();
-    ast_list_append_link(elems, link);
+    link->object = build_parserLocalElement();
+    list_append_link(elems, link);
     while (token_is_parserLocalElement(token)) {
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_parserLocalElement();
-      ast_list_append_link(elems, link);
+      link->object = build_parserLocalElement();
+      list_append_link(elems, link);
     }
   }
   return elems;
@@ -1374,18 +1374,18 @@ build_lvalue()
     lvalue = new_ast_node(Ast_Lvalue, token);
     ast_setattr(lvalue, "name", build_prefixedNonTypeName(), AstAttr_Ast);
     if (token->klass == Token_DotPrefix || token->klass == Token_BracketOpen) {
-      struct AstList* lvalue_expr = arena_push(ast_storage, sizeof(*lvalue_expr));
+      struct List* lvalue_expr = arena_push(ast_storage, sizeof(*lvalue_expr));
       memset(lvalue_expr, 0, sizeof(*lvalue_expr));
-      ast_list_init(lvalue_expr);
-      struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+      list_init(lvalue_expr);
+      struct ListLink* link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_lvalueExpr();
-      ast_list_append_link(lvalue_expr, link);
+      link->object = build_lvalueExpr();
+      list_append_link(lvalue_expr, link);
       while (token->klass == Token_DotPrefix || token->klass == Token_BracketOpen) {
         link = arena_push(ast_storage, sizeof(*link));
         memset(link, 0, sizeof(*link));
-        link->ast = build_lvalueExpr();
-        ast_list_append_link(lvalue_expr, link);
+        link->object = build_lvalueExpr();
+        list_append_link(lvalue_expr, link);
       }
       ast_setattr(lvalue, "expr", lvalue_expr, AstAttr_AstList);
     }
@@ -1399,7 +1399,7 @@ build_assignmentOrMethodCallStatement()
   struct Ast* stmt = 0;
   if (token_is_lvalue(token)) {
     struct Ast* lvalue = build_lvalue();
-    struct AstList* type_args = 0;
+    struct List* type_args = 0;
     stmt = lvalue;
     if (token->klass == Token_AngleOpen) {
       next_token();
@@ -1432,23 +1432,23 @@ build_assignmentOrMethodCallStatement()
   return stmt;
 }
 
-internal struct AstList*
+internal struct List*
 build_parserStatements()
 {
-  struct AstList* stmts = 0;
+  struct List* stmts = 0;
   if (token_is_parserStatement(token)) {
     stmts = arena_push(ast_storage, sizeof(*stmts));
     memset(stmts, 0, sizeof(*stmts));
-    ast_list_init(stmts);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(stmts);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_parserStatement();
-    ast_list_append_link(stmts, link);
+    link->object = build_parserStatement();
+    list_append_link(stmts, link);
     while (token_is_parserStatement(token)) {
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_parserStatement();
-      ast_list_append_link(stmts, link);
+      link->object = build_parserStatement();
+      list_append_link(stmts, link);
     }
   }
   return stmts;
@@ -1492,24 +1492,24 @@ build_parserStatement()
   return stmt;
 }
 
-internal struct AstList*
+internal struct List*
 build_expressionList()
 {
-  struct AstList* exprs = 0;
+  struct List* exprs = 0;
   if (token_is_expression(token)) {
     exprs = arena_push(ast_storage, sizeof(*exprs));
     memset(exprs, 0, sizeof(*exprs));
-    ast_list_init(exprs);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(exprs);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_expression(1);
-    ast_list_append_link(exprs, link);
+    link->object = build_expression(1);
+    list_append_link(exprs, link);
     while (token->klass == Token_Comma) {
       next_token();
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_expression(1);
-      ast_list_append_link(exprs, link);
+      link->object = build_expression(1);
+      list_append_link(exprs, link);
     }
   }
   return exprs;
@@ -1538,19 +1538,19 @@ build_tupleKeysetExpression()
   if (token->klass == Token_ParenthOpen) {
     tuple_keyset = new_ast_node(Ast_TupleKeyset, token);
     next_token();
-    struct AstList* exprs = arena_push(ast_storage, sizeof(*exprs));
+    struct List* exprs = arena_push(ast_storage, sizeof(*exprs));
     memset(exprs, 0, sizeof(exprs));
-    ast_list_init(exprs);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(exprs);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_simpleKeysetExpression();
-    ast_list_append_link(exprs, link);
+    link->object = build_simpleKeysetExpression();
+    list_append_link(exprs, link);
     while (token->klass == Token_Comma) {
       next_token();
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_simpleKeysetExpression();
-      ast_list_append_link(exprs, link);
+      link->object = build_simpleKeysetExpression();
+      list_append_link(exprs, link);
     }
     ast_setattr(tuple_keyset, "expr_list", exprs, AstAttr_AstList);
     if (token->klass == Token_ParenthClose) {
@@ -1592,23 +1592,23 @@ build_selectCase()
   return select_case;
 }
 
-internal struct AstList*
+internal struct List*
 build_selectCaseList()
 {
-  struct AstList* cases = 0;
+  struct List* cases = 0;
   if (token_is_selectCase(token)) {
     cases = arena_push(ast_storage, sizeof(*cases));
     memset(cases, 0, sizeof(*cases));
-    ast_list_init(cases);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(cases);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_selectCase();
-    ast_list_append_link(cases, link);
+    link->object = build_selectCase();
+    list_append_link(cases, link);
     while (token_is_selectCase(token)) {
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_selectCase();
-      ast_list_append_link(cases, link);
+      link->object = build_selectCase();
+      list_append_link(cases, link);
     }
   }
   return cases;
@@ -1685,23 +1685,23 @@ build_parserState()
   return state;
 }
 
-internal struct AstList*
+internal struct List*
 build_parserStates()
 {
-  struct AstList* states = 0;
+  struct List* states = 0;
   if (token->klass == Token_State) {
     states = arena_push(ast_storage, sizeof(*states));
     memset(states, 0, sizeof(*states));
-    ast_list_init(states);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(states);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_parserState();
-    ast_list_append_link(states, link);
+    link->object = build_parserState();
+    list_append_link(states, link);
     while (token->klass == Token_State) {
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_parserState();
-      ast_list_append_link(states, link);
+      link->object = build_parserState();
+      list_append_link(states, link);
     }
   } else error("at line %d: `state` was expected, got `%s`.", token->line_nr, token->lexeme);
   return states;
@@ -1795,23 +1795,23 @@ build_keyElement()
   return key_elem;
 }
 
-internal struct AstList*
+internal struct List*
 build_keyElementList()
 {
-  struct AstList* elems = 0;
+  struct List* elems = 0;
   if (token_is_expression(token)) {
     elems = arena_push(ast_storage, sizeof(*elems));
     memset(elems, 0, sizeof(*elems));
-    ast_list_init(elems);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(elems);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_keyElement();
-    ast_list_append_link(elems, link);
+    link->object = build_keyElement();
+    list_append_link(elems, link);
     while (token_is_expression(token)) {
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_keyElement();
-      ast_list_append_link(elems, link);
+      link->object = build_keyElement();
+      list_append_link(elems, link);
     }
   }
   return elems;
@@ -1835,26 +1835,26 @@ build_actionRef()
   return ref;
 }
 
-internal struct AstList*
+internal struct List*
 build_actionList()
 {
-  struct AstList* actions = 0;
+  struct List* actions = 0;
   if (token_is_actionRef(token)) {
     actions = arena_push(ast_storage, sizeof(*actions));
     memset(actions, 0, sizeof(*actions));
-    ast_list_init(actions);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(actions);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_actionRef();
-    ast_list_append_link(actions, link);
+    link->object = build_actionRef();
+    list_append_link(actions, link);
     if (token->klass == Token_Semicolon) {
       next_token();
     } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
     while (token_is_actionRef(token)) {
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_actionRef();
-      ast_list_append_link(actions, link);
+      link->object = build_actionRef();
+      list_append_link(actions, link);
       if (token->klass == Token_Semicolon) {
         next_token();
       } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -1881,23 +1881,23 @@ build_entry()
   return entry;
 }
 
-internal struct AstList*
+internal struct List*
 build_entriesList()
 {
-  struct AstList* entries = 0;
+  struct List* entries = 0;
   if (token_is_keysetExpression(token)) {
     entries = arena_push(ast_storage, sizeof(*entries));
     memset(entries, 0, sizeof(*entries));
-    ast_list_init(entries);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(entries);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_entry();
-    ast_list_append_link(entries, link);
+    link->object = build_entry();
+    list_append_link(entries, link);
     while (token_is_keysetExpression(token)) {
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_entry();
-      ast_list_append_link(entries, link);
+      link->object = build_entry();
+      list_append_link(entries, link);
     }
   } else error("at line %d: keyset expression was expected, got `%s`.", token->line_nr, token->lexeme);
   return entries;
@@ -1973,23 +1973,23 @@ build_tableProperty()
   return prop;
 }
 
-internal struct AstList*
+internal struct List*
 build_tablePropertyList()
 {
-  struct AstList* props = 0;
+  struct List* props = 0;
   if (token_is_tableProperty(token)) {
     props = arena_push(ast_storage, sizeof(*props));
     memset(props, 0, sizeof(*props));
-    ast_list_init(props);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(props);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_tableProperty();
-    ast_list_append_link(props, link);
+    link->object = build_tableProperty();
+    list_append_link(props, link);
     while (token_is_tableProperty(token)) {
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_tableProperty();
-      ast_list_append_link(props, link);
+      link->object = build_tableProperty();
+      list_append_link(props, link);
     }
   } else error("at line %d: table property was expected, got `%s`.", token->line_nr, token->lexeme);
   return props;
@@ -2035,23 +2035,23 @@ build_controlLocalDeclaration()
   return decl;
 }
 
-internal struct AstList*
+internal struct List*
 build_controlLocalDeclarations()
 {
-  struct AstList* decls = 0;
+  struct List* decls = 0;
   if (token_is_controlLocalDeclaration(token)) {
     decls = arena_push(ast_storage, sizeof(*decls));
     memset(decls, 0, sizeof(*decls));
-    ast_list_init(decls);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(decls);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_controlLocalDeclaration();
-    ast_list_append_link(decls, link);
+    link->object = build_controlLocalDeclaration();
+    list_append_link(decls, link);
     while (token_is_controlLocalDeclaration(token)) {
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_controlLocalDeclaration();
-      ast_list_append_link(decls, link);
+      link->object = build_controlLocalDeclaration();
+      list_append_link(decls, link);
     }
   }
   return decls;
@@ -2257,23 +2257,23 @@ build_switchCase()
   return switch_case;
 }
 
-internal struct AstList*
+internal struct List*
 build_switchCases()
 {
-  struct AstList* cases = 0;
+  struct List* cases = 0;
   if (token_is_switchLabel(token)) {
     cases = arena_push(ast_storage, sizeof(*cases));
     memset(cases, 0, sizeof(*cases));
-    ast_list_init(cases);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(cases);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_switchCase();
-    ast_list_append_link(cases, link);
+    link->object = build_switchCase();
+    list_append_link(cases, link);
     while (token_is_switchLabel(token)) {
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_switchCase();
-      ast_list_append_link(cases, link);
+      link->object = build_switchCase();
+      list_append_link(cases, link);
     }
   }
   return cases;
@@ -2352,23 +2352,23 @@ build_statementOrDecl()
   return stmt;
 }
 
-internal struct AstList*
+internal struct List*
 build_statementOrDeclList()
 {
-  struct AstList* stmts = 0;
+  struct List* stmts = 0;
   if (token_is_statementOrDeclaration(token)) {
     stmts = arena_push(ast_storage, sizeof(*stmts));
     memset(stmts, 0, sizeof(*stmts));
-    ast_list_init(stmts);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(stmts);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_statementOrDecl();
-    ast_list_append_link(stmts, link);
+    link->object = build_statementOrDecl();
+    list_append_link(stmts, link);
     while (token_is_statementOrDeclaration(token)) {
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_statementOrDecl();
-      ast_list_append_link(stmts, link);
+      link->object = build_statementOrDecl();
+      list_append_link(stmts, link);
     }
   }
   return stmts;
@@ -2389,24 +2389,24 @@ build_blockStatement()
   return stmt;
 }
 
-internal struct AstList*
+internal struct List*
 build_identifierList()
 {
-  struct AstList* ids = 0;
+  struct List* ids = 0;
   if (token_is_name(token)) {
     ids = arena_push(ast_storage, sizeof(*ids));
     memset(ids, 0, sizeof(*ids));
-    ast_list_init(ids);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(ids);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_name(false);
-    ast_list_append_link(ids, link);
+    link->object = build_name(false);
+    list_append_link(ids, link);
     while (token->klass == Token_Comma) {
       next_token();
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_name(false);
-      ast_list_append_link(ids, link);
+      link->object = build_name(false);
+      list_append_link(ids, link);
     }
   } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
   return ids;
@@ -2502,15 +2502,15 @@ internal struct Ast*
 build_p4program()
 {
   struct Ast* program = new_ast_node(Ast_P4Program, token);
-  struct AstList* decls = arena_push(ast_storage, sizeof(*decls));
+  struct List* decls = arena_push(ast_storage, sizeof(*decls));
   memset(decls, 0, sizeof(*decls));
-  ast_list_init(decls);
+  list_init(decls);
   while (token_is_declaration(token) || token->klass == Token_Semicolon) {
     if (token_is_declaration(token)) {
-      struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+      struct ListLink* link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_declaration();
-      ast_list_append_link(decls, link);
+      link->object = build_declaration();
+      list_append_link(decls, link);
     } else if (token->klass == Token_Semicolon) {
       next_token(); /* empty declaration */
     }
@@ -2567,24 +2567,24 @@ build_realTypeArg()
   return arg;
 }
 
-internal struct AstList*
+internal struct List*
 build_realTypeArgumentList()
 {
-  struct AstList* args = 0;
+  struct List* args = 0;
   if (token_is_realTypeArg(token)) {
     args = arena_push(ast_storage, sizeof(*args));
     memset(args, 0, sizeof(*args));
-    ast_list_init(args);
-    struct AstListLink* link = arena_push(ast_storage, sizeof(*link));
+    list_init(args);
+    struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
-    link->ast = build_realTypeArg();
-    ast_list_append_link(args, link);
+    link->object = build_realTypeArg();
+    list_append_link(args, link);
     while (token->klass == Token_Comma) {
       next_token();
       link = arena_push(ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
-      link->ast = build_realTypeArg();
-      ast_list_append_link(args, link);
+      link->object = build_realTypeArg();
+      list_append_link(args, link);
     }
   }
   return args;

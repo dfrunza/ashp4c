@@ -259,7 +259,7 @@ char*
 int_flags_to_string(enum AstIntegerFlags flags)
 {
   static char flags_str[64];
-  flags_str[0] = '\0';
+      flags_str[0] = '\0';
   char* str = flags_str;
   if ((flags & AstInteger_HasWidth) != 0) {
     str += sprintf(str, "%s ", "AstInteger_HasWidth");
@@ -336,12 +336,12 @@ print_prop(char* name, enum ValueType type, ...)
     va_list value;
     va_start(value, type);
     if (type == Value_IdList) {
-      struct AstList* list = va_arg(value, struct AstList*);
+      struct List* list = va_arg(value, struct List*);
       list_open();
       if (list) {
-        struct AstListLink* link = list->head->next;
+        struct ListLink* link = list->head->next;
         while (link) {
-          printf("$%d", link->ast->id);
+          printf("$%d", ((struct Ast*)link->object)->id);
           if (link->next) {
             printf(", ");
           }
@@ -394,11 +394,11 @@ print_ast(struct Ast* ast)
     if (attr->type == AstAttr_Ast) {
       print_ast(attr->value);
     } else if (attr->type == AstAttr_AstList) {
-      struct AstList* list = attr->value;
+      struct List* list = attr->value;
       if (list) {
-        struct AstListLink* link = list->head->next;
+        struct ListLink* link = list->head->next;
         while (link) {
-          print_ast(link->ast);
+          print_ast(link->object);
           link = link->next;
         }
       }

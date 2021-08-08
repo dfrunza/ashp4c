@@ -7,32 +7,32 @@
 internal struct Arena* attr_storage;
 
 
-void
-ast_list_init(struct AstList* list)
-{
-  assert(list->head == 0);
-  assert(list->tail == 0);
-  list->head = &list->sentinel;
-  list->tail = list->head;
-}
-
-void
-ast_list_append_link(struct AstList* list, struct AstListLink* link)
-{
-  assert(list->tail->next == 0);
-  assert(link->prev == 0);
-  list->tail->next = link;
-  link->prev = list->tail;
-  list->tail = link;
-  list->link_count += 1;
-}
-
-struct AstListLink*
-ast_list_first_link(struct AstList* list)
-{
-  struct AstListLink* first = list->head->next;
-  return first;
-}
+//void
+//ast_list_init(struct AstList* list)
+//{
+//  assert(list->head == 0);
+//  assert(list->tail == 0);
+//  list->head = &list->sentinel;
+//  list->tail = list->head;
+//}
+//
+//void
+//ast_list_append_link(struct AstList* list, struct AstListLink* link)
+//{
+//  assert(list->tail->next == 0);
+//  assert(link->prev == 0);
+//  list->tail->next = link;
+//  link->prev = list->tail;
+//  list->tail = link;
+//  list->link_count += 1;
+//}
+//
+//struct AstListLink*
+//ast_list_first_link(struct AstList* list)
+//{
+//  struct AstListLink* first = list->head->next;
+//  return first;
+//}
 
 void*
 ast_getattr(struct Ast* ast, char* attr_name)

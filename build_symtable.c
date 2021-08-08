@@ -25,12 +25,12 @@ build_symtable_local_control_declaration(struct Ast* decl)
 }
 
 internal void
-build_symtable_local_control_declarations(struct AstList* local_decls)
+build_symtable_local_control_declarations(struct List* local_decls)
 {
   push_scope();
-  struct AstListLink* link = ast_list_first_link(local_decls);
+  struct ListLink* link = list_first_link(local_decls);
   while (link) {
-    build_symtable_local_control_declaration(link->ast);
+    build_symtable_local_control_declaration(link->object);
     link = link->next;
   }
   pop_scope();
@@ -40,11 +40,11 @@ internal void
 build_symtable_block_statement(struct Ast* block_stmt)
 {
   push_scope();
-  struct AstList* stmt_list = (struct AstList*)ast_getattr(block_stmt, "stmt_list");
+  struct List* stmt_list = (struct List*)ast_getattr(block_stmt, "stmt_list");
   if (stmt_list) {
-    struct AstListLink* link = ast_list_first_link(stmt_list);
+    struct ListLink* link = list_first_link(stmt_list);
     while (link) {
-      build_symtable_local_control_declaration(link->ast);
+      build_symtable_local_control_declaration(link->object);
       link = link->next;
     }
   }
@@ -62,7 +62,7 @@ build_symtable_control(struct Ast* control_decl)
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
   push_scope();
-  struct AstList* local_decls = (struct AstList*)ast_getattr(control_decl, "local_decls");
+  struct List* local_decls = (struct List*)ast_getattr(control_decl, "local_decls");
   if (local_decls) {
     build_symtable_local_control_declarations(local_decls);
   }
@@ -86,12 +86,12 @@ build_symtable_local_parser_element(struct Ast* element)
 }
 
 internal void
-build_symtable_local_parser_elements(struct AstList* local_elements)
+build_symtable_local_parser_elements(struct List* local_elements)
 {
   push_scope();
-  struct AstListLink* link = ast_list_first_link(local_elements);
+  struct ListLink* link = list_first_link(local_elements);
   while (link) {
-    build_symtable_local_parser_element(link->ast);
+    build_symtable_local_parser_element(link->object);
     link = link->next;
   }
   pop_scope();
@@ -108,7 +108,7 @@ build_symtable_parser(struct Ast* parser_decl)
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
   push_scope();
-  struct AstList* local_elements = (struct AstList*)ast_getattr(parser_decl, "local_elements");
+  struct List* local_elements = (struct List*)ast_getattr(parser_decl, "local_elements");
   if (local_elements) {
     build_symtable_local_parser_elements(local_elements);
   }
@@ -124,12 +124,12 @@ build_symtable_function_proto(struct Ast* function_proto)
 }
 
 internal void
-build_symtable_extern_method_protos(struct AstList* method_protos)
+build_symtable_extern_method_protos(struct List* method_protos)
 {
   push_scope();
-  struct AstListLink* link = ast_list_first_link(method_protos);
+  struct ListLink* link = list_first_link(method_protos);
   while (link) {
-    build_symtable_function_proto(link->ast);
+    build_symtable_function_proto(link->object);
     link = link->next;
   }
   pop_scope();
@@ -144,7 +144,7 @@ build_symtable_extern(struct Ast* extern_decl)
     new_type(strname, extern_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
-  struct AstList* method_protos = (struct AstList*)ast_getattr(extern_decl, "method_protos");
+  struct List* method_protos = (struct List*)ast_getattr(extern_decl, "method_protos");
   if (method_protos) {
     build_symtable_extern_method_protos(method_protos);
   }
@@ -161,12 +161,12 @@ build_symtable_struct_field(struct Ast* field)
 }
 
 internal void
-build_symtable_struct_fields(struct AstList* fields)
+build_symtable_struct_fields(struct List* fields)
 {
   push_scope();
-  struct AstListLink* link = ast_list_first_link(fields);
+  struct ListLink* link = list_first_link(fields);
   while (link) {
-    build_symtable_struct_field(link->ast);
+    build_symtable_struct_field(link->object);
     link = link->next;
   }
   pop_scope();
@@ -181,7 +181,7 @@ build_symtable_structlike(struct Ast* struct_decl)
     new_type(strname, struct_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
-  struct AstList* fields = (struct AstList*)ast_getattr(struct_decl, "fields");
+  struct List* fields = (struct List*)ast_getattr(struct_decl, "fields");
   if (fields) {
     build_symtable_struct_fields(fields);
   }
@@ -198,12 +198,12 @@ build_symtable_enum_id(struct Ast* id)
 }
 
 internal void
-build_symtable_enum_id_list(struct AstList* id_list)
+build_symtable_enum_id_list(struct List* id_list)
 {
   push_scope();
-  struct AstListLink* link = ast_list_first_link(id_list);
+  struct ListLink* link = list_first_link(id_list);
   while (link) {
-    build_symtable_enum_id(link->ast);
+    build_symtable_enum_id(link->object);
     link = link->next;
   }
   pop_scope();
@@ -218,7 +218,7 @@ build_symtable_enum(struct Ast* enum_decl)
     new_type(strname, enum_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
-  struct AstList* id_list = (struct AstList*)ast_getattr(enum_decl, "id_list");
+  struct List* id_list = (struct List*)ast_getattr(enum_decl, "id_list");
   if (id_list) {
     build_symtable_enum_id_list(id_list);
   }
@@ -272,10 +272,10 @@ build_symtable_program(struct Ast* ast)
 {
   if (ast->kind == Ast_P4Program) {
     push_scope();
-    struct AstList* decl_list = (struct AstList*)ast_getattr(ast, "decl_list");
-    struct AstListLink* link = ast_list_first_link(decl_list);
+    struct List* decl_list = (struct List*)ast_getattr(ast, "decl_list");
+    struct ListLink* link = list_first_link(decl_list);
     while (link) {
-      struct Ast* decl = link->ast;
+      struct Ast* decl = link->object;
       if (decl->kind == Ast_Control) {
         build_symtable_control(decl);
       } else if (decl->kind == Ast_ExternDecl) {

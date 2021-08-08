@@ -13,6 +13,7 @@ internal int capacity_log2 = 5;
 internal int capacity = 0;
 internal int entry_count = 0;
 internal int scope_level = 0;
+internal struct UnboundedArray scope_stack = {};
 
 
 int
@@ -227,6 +228,7 @@ symtable_init()
   for (i = entry_count; i < capacity; i++) {
     array_append(&symtable, &null_entry);
   }
+  array_init(&scope_stack, sizeof(struct Scope), symtable_storage);
   add_all_keywords();
 }
 

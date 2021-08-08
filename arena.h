@@ -35,6 +35,19 @@ struct UnboundedArray {
   struct Arena* storage;
 };
 
+struct ListLink {
+  struct ListLink* prev;
+  struct ListLink* next;
+  void* object;
+};
+
+struct List {
+  struct ListLink sentinel;
+  struct ListLink* head;
+  struct ListLink* tail;
+  int link_count;
+};
+
 
 void init_memory(int memory_amount);
 void* arena_push(struct Arena* arena, uint32_t size);
@@ -47,3 +60,8 @@ void array_init(struct UnboundedArray* array, int elem_size, struct Arena* stora
 void* array_get(struct UnboundedArray* array, int i);
 void array_set(struct UnboundedArray* array, int i, void* elem);
 void array_append(struct UnboundedArray* array, void* elem);
+
+void list_init(struct List* list);
+void list_append_link(struct List* list, struct ListLink* link);
+struct ListLink* list_first_link(struct List* list);
+

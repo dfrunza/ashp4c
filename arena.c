@@ -298,3 +298,30 @@ array_append(struct UnboundedArray* array, void* elem)
   array->elem_count += 1;
   array_set(array, array->elem_count - 1, elem);
 }
+
+void
+list_init(struct List* list)
+{
+  assert(list->head == 0);
+  assert(list->tail == 0);
+  list->head = &list->sentinel;
+  list->tail = list->head;
+}
+
+void
+list_append_link(struct List* list, struct ListLink* link)
+{
+  assert(list->tail->next == 0);
+  assert(link->prev == 0);
+  list->tail->next = link;
+  link->prev = list->tail;
+  list->tail = link;
+  list->link_count += 1;
+}
+
+struct ListLink*
+list_first_link(struct List* list)
+{
+  struct ListLink* first = list->head->next;
+  return first;
+}
