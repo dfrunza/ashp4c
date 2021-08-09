@@ -12,7 +12,7 @@ enum SymbolKind {
 };
 
 struct Symbol {
-  enum SymbolKind ident_kind;
+  enum SymbolKind symbol_kind;
   char* name;
   struct Ast* ast;
   struct Symbol* next_in_scope;
@@ -44,7 +44,6 @@ struct Scope {
 void scope_init();
 void symtable_set_storage(struct Arena* symtable_storage_);
 struct SymtableEntry* get_symtable_entry(struct Scope* scope, char* name);
-bool name_is_declared_local(struct Scope* scope, char* name, enum SymbolKind kind);
 struct Symbol* new_ident(struct Scope* scope, char* name, struct Ast* ast, int line_nr);
 struct Symbol* new_type(struct Scope* scope, char* name, struct Ast* ast, int line_nr);
 

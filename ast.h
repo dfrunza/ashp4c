@@ -134,6 +134,7 @@ enum AstAttributeType {
   AstAttr_BaseType,
   AstAttr_ParamDir,
   AstAttr_IntFlags,
+  AstAttr_Scope,
 };
 
 struct AstAttribute {

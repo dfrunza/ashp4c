@@ -55,14 +55,14 @@ next_token()
     struct SymtableEntry* entry = scope_resolve_name(get_current_scope(), token->lexeme);
     if (entry->id_kw) {
       struct Symbol* id_kw = entry->id_kw;
-      if (id_kw->ident_kind == Symbol_Keyword) {
+      if (id_kw->symbol_kind == Symbol_Keyword) {
         token->klass = ((struct Symbol_Keyword*)id_kw)->token_klass;
         return token;
       }
     }
     if (entry->id_type) {
       struct Symbol* id_type = entry->id_type;
-      if (id_type->ident_kind == Symbol_Type) {
+      if (id_type->symbol_kind == Symbol_Type) {
         token->klass = Token_TypeIdentifier;
         return token;
       }
@@ -340,7 +340,7 @@ internal struct Ast*
 build_parameter()
 {
   struct Ast* param = new_ast_node(Ast_Parameter, token);
-  enum AstParamDirection* direction = arena_push(ast_storage, sizeof(enum AstParamDirection));
+  enum AstParamDirection* direction = arena_push(ast_storage, sizeof(*direction));
   *direction = build_direction();
   ast_setattr(param, "direction", direction, AstAttr_ParamDir);
   if (token_is_typeRef(token)) {
@@ -582,7 +582,7 @@ internal struct Ast*
 build_baseType()
 {
   struct Ast* base_type = 0;
-  enum AstBaseType* type_value = arena_push(ast_storage, sizeof(enum AstBaseType));
+  enum AstBaseType* type_value = arena_push(ast_storage, sizeof(*type_value));
   if (token_is_baseType(token)) {
     base_type = new_ast_node(Ast_BaseType, token);
     if (token->klass == Token_Bool) {
@@ -713,7 +713,7 @@ internal struct Ast*
 build_prefixedType()
 {
   struct Ast* name = 0;
-  bool* is_dotprefixed = arena_push(ast_storage, sizeof(bool));
+  bool* is_dotprefixed = arena_push(ast_storage, sizeof(*is_dotprefixed));
   *is_dotprefixed = false;
   if (token->klass == Token_DotPrefix) {
     next_token();
@@ -2645,7 +2645,7 @@ build_expressionPrimary()
     } else if (token->klass == Token_Exclamation) {
       next_token();
       struct Ast* unary_expr = new_ast_node(Ast_UnaryExpr, token);
-      enum AstExprOperator* op = arena_push(ast_storage, sizeof(enum AstExprOperator));
+      enum AstExprOperator* op = arena_push(ast_storage, sizeof(*op));
       *op = AstExprOp_LogNot;
       ast_setattr(unary_expr, "op", op, AstAttr_ExprOperator);
       ast_setattr(unary_expr, "expr", build_expression(1), AstAttr_Ast);
@@ -2653,7 +2653,7 @@ build_expressionPrimary()
     } else if (token->klass == Token_Tilda) {
       next_token();
       struct Ast* unary_expr = new_ast_node(Ast_UnaryExpr, token);
-      enum AstExprOperator* op = arena_push(ast_storage, sizeof(enum AstExprOperator));
+      enum AstExprOperator* op = arena_push(ast_storage, sizeof(*op));
       *op = AstExprOp_BitNot;
       ast_setattr(unary_expr, "op", op, AstAttr_ExprOperator);
       ast_setattr(unary_expr, "expr", build_expression(1), AstAttr_Ast);
@@ -2661,7 +2661,7 @@ build_expressionPrimary()
     } else if (token->klass == Token_UnaryMinus) {
       next_token();
       struct Ast* unary_expr = new_ast_node(Ast_UnaryExpr, token);
-      enum AstExprOperator* op = arena_push(ast_storage, sizeof(enum AstExprOperator));
+      enum AstExprOperator* op = arena_push(ast_storage, sizeof(*op));
       *op = AstExprOp_Minus;
       ast_setattr(unary_expr, "op", op, AstAttr_ExprOperator);
       ast_setattr(unary_expr, "expr", build_expression(1), AstAttr_Ast);
@@ -2806,7 +2806,7 @@ build_expression(int priority_threshold)
         if (priority >= priority_threshold) {
           struct Ast* bin_expr = new_ast_node(Ast_BinaryExpr, token);
           ast_setattr(bin_expr, "left_operand", expr, AstAttr_Ast);
-          enum AstExprOperator* op = arena_push(ast_storage, sizeof(enum AstExprOperator));
+          enum AstExprOperator* op = arena_push(ast_storage, sizeof(*op));
           *op = token_to_binop(token);
           ast_setattr(bin_expr, "op", op, AstAttr_ExprOperator);
           next_token();

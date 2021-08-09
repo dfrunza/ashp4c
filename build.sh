@@ -16,6 +16,9 @@ gcc $C_FLAGS -I . -c $SRC/ast.c
 gcc $C_FLAGS -I . -c $SRC/build_ast.c
 gcc $C_FLAGS -I . -c $SRC/print_ast.c 
 gcc $C_FLAGS -I . -c $SRC/build_symtable.c 
+gcc $C_FLAGS -I . -c $SRC/check_names.c 
 gcc $C_FLAGS -I. -o ashp4c $SRC/ashp4c.c $L_FLAGS \
-  basic.o arena.o hash.o symtable.o lex.o ast.o build_ast.o print_ast.o build_symtable.o -lm
+  basic.o arena.o hash.o symtable.o lex.o ast.o build_ast.o print_ast.o build_symtable.o \
+  check_names.o \
+  -lm
 popd

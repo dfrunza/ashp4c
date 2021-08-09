@@ -34,34 +34,12 @@ push_scope()
   return new_scope;
 }
 
-//internal struct Symbol*
-//scope_delete_symbol(struct Symbol* symbol, int at_scope)
-//{
-//  struct Symbol* next_in_scope = 0;
-//  while (symbol && symbol->scope_level == at_scope) {
-//    next_in_scope = symbol->next_in_scope;
-//    symbol->next_in_scope = 0;
-//    symbol = next_in_scope;
-//  }
-//  return symbol;
-//}
-
 struct Scope*
 pop_scope()
 {
   assert (scope_stack.elem_count > 0);
   struct Scope* current_scope = get_current_scope();
   assert (current_scope->scope_level > 0);
-  //FIXME
-  //int i;
-  //for (i = 0; i < capacity; i++) {
-  //  struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&symtable, i);
-  //  while (entry) {
-  //    entry->id_type = scope_delete_symbol(entry->id_type, scope_level);
-  //    entry->id_ident = scope_delete_symbol(entry->id_ident, scope_level);
-  //    entry = entry->next_entry;
-  //  }
-  //}
   if (DEBUG_ENABLED) {
     printf("pop scope %d\n", current_scope->scope_level);
   }
@@ -123,14 +101,6 @@ get_symtable_entry(struct Scope* scope, char* name)
   return entry;
 }
 
-bool
-name_is_declared_local(struct Scope* scope, char* name, enum SymbolKind kind)
-{
-  struct SymtableEntry* entry = get_symtable_entry(scope, name);
-  bool is_declared = entry->id_kw != 0 || entry->id_type != 0 || entry->id_ident != 0;
-  return is_declared;
-}
-
 struct SymtableEntry*
 scope_resolve_name(struct Scope* scope, char* name)
 {
@@ -153,7 +123,7 @@ new_type(struct Scope* scope, char* name, struct Ast* ast, int line_nr)
   memset(id_type, 0, sizeof(*id_type));
   id_type->name = name;
   id_type->ast = ast;
-  id_type->ident_kind = Symbol_Type;
+  id_type->symbol_kind = Symbol_Type;
   id_type->next_in_scope = entry->id_type;
   entry->id_type = (struct Symbol*)id_type;
   if (DEBUG_ENABLED) {
@@ -170,7 +140,7 @@ new_ident(struct Scope* scope, char* name, struct Ast* ast, int line_nr)
   memset(id_ident, 0, sizeof(*id_ident));
   id_ident->name = name;
   id_ident->ast = ast;
-  id_ident->ident_kind = Symbol_Ident;
+  id_ident->symbol_kind = Symbol_Ident;
   id_ident->next_in_scope = entry->id_ident;
   entry->id_ident = (struct Symbol*)id_ident;
   if (DEBUG_ENABLED) {
@@ -188,9 +158,22 @@ add_keyword(struct Scope* scope, char* name, enum TokenClass token_klass)
   memset(id_kw, 0, sizeof(*id_kw));
   id_kw->name = name;
   id_kw->token_klass = token_klass;
-  id_kw->ident_kind = Symbol_Keyword;
+  id_kw->symbol_kind = Symbol_Keyword;
   entry->id_kw = (struct Symbol*)id_kw;
   return id_kw;
+}
+
+internal struct Symbol*
+add_base_type(struct Scope* scope, char* name)
+{
+  struct SymtableEntry* entry = get_symtable_entry(scope, name);
+  assert (entry->id_type == 0);
+  struct Symbol* id_type = arena_push(symtable_storage, sizeof(*id_type));
+  memset(id_type, 0, sizeof(*id_type));
+  id_type->name = name;
+  id_type->symbol_kind = Symbol_Type;
+  entry->id_type = (struct Symbol*)id_type;
+  return id_type;
 }
 
 internal void
@@ -239,6 +222,17 @@ add_all_keywords(struct Scope* scope)
 }
 
 void
+add_all_base_types(struct Scope* scope)
+{
+  add_base_type(scope, "bool");
+  add_base_type(scope, "error");
+  add_base_type(scope, "int");
+  add_base_type(scope, "bit");
+  add_base_type(scope, "varbit");
+  add_base_type(scope, "string");
+}
+
+void
 scope_init(struct Scope* scope, int capacity_log2)
 {
   struct SymtableEntry* null_entry = 0;
@@ -260,6 +254,7 @@ symtable_init()
   struct Scope* global_scope = array_append(&scope_stack, &s);
   scope_init(global_scope, 5);
   add_all_keywords(global_scope);
+  add_all_base_types(global_scope);
 }
 
 void
