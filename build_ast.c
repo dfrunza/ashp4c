@@ -54,15 +54,15 @@ next_token()
   if (token->klass == Token_Identifier) {
     struct SymtableEntry* entry = scope_resolve_name(get_current_scope(), token->lexeme);
     if (entry->id_kw) {
-      struct Symbol* id_kw = entry->id_kw;
-      if (id_kw->symbol_kind == Symbol_Keyword) {
-        token->klass = ((struct Symbol_Keyword*)id_kw)->token_klass;
+      struct Object* id_kw = entry->id_kw;
+      if (id_kw->symbol_kind == Object_Keyword) {
+        token->klass = ((struct Object_Keyword*)id_kw)->token_klass;
         return token;
       }
     }
     if (entry->id_type) {
-      struct Symbol* id_type = entry->id_type;
-      if (id_type->symbol_kind == Symbol_Type) {
+      struct Object* id_type = entry->id_type;
+      if (id_type->symbol_kind == Object_Type) {
         token->klass = Token_TypeIdentifier;
         return token;
       }
@@ -1286,7 +1286,7 @@ build_directApplication(struct Ast* type_name)
 {
   struct Ast* applic = 0;
   if (token_is_typeName(token) || type_name) {
-    applic = new_ast_node(Ast_DirectApplic, token);
+    applic = new_ast_node(Ast_DirectApplication, token);
     if (type_name) {
       ast_setattr(applic, "name", type_name, AstAttr_Ast);
     } else {

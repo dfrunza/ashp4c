@@ -83,8 +83,8 @@ ast_kind_to_string(enum AstKind kind)
       return "Ast_Argument";
     case Ast_VarDecl:
       return "Ast_VarDecl";
-    case Ast_DirectApplic:
-      return "Ast_DirectApplic";
+    case Ast_DirectApplication:
+      return "Ast_DirectApplication";
     case Ast_ArrayIndex:
       return "Ast_ArrayIndex";
     case Ast_Parameter:
