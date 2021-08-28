@@ -115,64 +115,64 @@ scope_resolve_name(struct Scope* scope, char* name)
   return entry;
 }
 
-struct Object*
+struct Symbol*
 new_type(struct Scope* scope, char* name, struct Ast* ast, int line_nr)
 {
   struct SymtableEntry* entry = get_symtable_entry(scope, name);
-  struct Object* id_type = arena_push(symtable_storage, sizeof(*id_type));
+  struct Symbol* id_type = arena_push(symtable_storage, sizeof(*id_type));
   memset(id_type, 0, sizeof(*id_type));
   id_type->name = name;
   id_type->ast = ast;
-  id_type->symbol_kind = Object_Type;
+  id_type->symbol_kind = Symbol_Type;
   id_type->next_in_scope = entry->id_type;
-  entry->id_type = (struct Object*)id_type;
+  entry->id_type = (struct Symbol*)id_type;
   if (DEBUG_ENABLED) {
     printf("new type `%s` at line %d.\n", id_type->name, line_nr);
   }
   return id_type;
 }
 
-struct Object*
-new_ident(struct Scope* scope, char* name, enum ObjectKind kind, struct Ast* ast, int line_nr)
+struct Symbol*
+new_ident(struct Scope* scope, char* name, struct Ast* ast, int line_nr)
 {
   struct SymtableEntry* entry = get_symtable_entry(scope, name);
-  struct Object* id_ident = arena_push(symtable_storage, sizeof(*id_ident));
+  struct Symbol* id_ident = arena_push(symtable_storage, sizeof(*id_ident));
   memset(id_ident, 0, sizeof(*id_ident));
   id_ident->name = name;
   id_ident->ast = ast;
-  id_ident->symbol_kind = kind;
+  id_ident->symbol_kind = Symbol_Ident;
   id_ident->next_in_scope = entry->id_ident;
-  entry->id_ident = (struct Object*)id_ident;
+  entry->id_ident = (struct Symbol*)id_ident;
   if (DEBUG_ENABLED) {
     printf("new identifier `%s` at line %d.\n", id_ident->name, line_nr);
   }
   return id_ident;
 }
 
-internal struct Object_Keyword*
+internal struct Symbol_Keyword*
 add_keyword(struct Scope* scope, char* name, enum TokenClass token_klass)
 {
   struct SymtableEntry* entry = get_symtable_entry(scope, name);
   assert (entry->id_kw == 0);
-  struct Object_Keyword* id_kw = arena_push(symtable_storage, sizeof(*id_kw));
+  struct Symbol_Keyword* id_kw = arena_push(symtable_storage, sizeof(*id_kw));
   memset(id_kw, 0, sizeof(*id_kw));
   id_kw->name = name;
   id_kw->token_klass = token_klass;
-  id_kw->symbol_kind = Object_Keyword;
-  entry->id_kw = (struct Object*)id_kw;
+  id_kw->symbol_kind = Symbol_Keyword;
+  entry->id_kw = (struct Symbol*)id_kw;
   return id_kw;
 }
 
-internal struct Object*
+internal struct Symbol*
 add_base_type(struct Scope* scope, char* name)
 {
   struct SymtableEntry* entry = get_symtable_entry(scope, name);
   assert (entry->id_type == 0);
-  struct Object* id_type = arena_push(symtable_storage, sizeof(*id_type));
+  struct Symbol* id_type = arena_push(symtable_storage, sizeof(*id_type));
   memset(id_type, 0, sizeof(*id_type));
   id_type->name = name;
-  id_type->symbol_kind = Object_Type;
-  entry->id_type = (struct Object*)id_type;
+  id_type->symbol_kind = Symbol_Type;
+  entry->id_type = (struct Symbol*)id_type;
   return id_type;
 }
 

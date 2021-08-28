@@ -13,7 +13,7 @@ build_symtable_param(struct Ast* param)
   char* strname = ast_getattr(name, "name");
   struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), strname, Object_Var, param, name->line_nr);
+    new_ident(get_current_scope(), strname, param, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 }
 
@@ -37,18 +37,7 @@ build_symtable_local_control_declaration(struct Ast* decl)
     char* strname = ast_getattr(name, "name");
     struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
     if (!entry->id_ident) {
-      enum ObjectKind id_kind = Object_NONE_;
-      if (decl->kind == Ast_Instantiation) {
-        id_kind = Object_Instantiation;
-      } else if (decl->kind == Ast_ActionDecl) {
-        id_kind = Object_Action;
-      } else if (decl->kind == Ast_VarDecl) {
-        id_kind = Object_Var;
-      } else if (decl->kind == Ast_TableDecl) {
-        id_kind = Object_Table;
-      }
-      else assert(0);
-      new_ident(get_current_scope(), strname, id_kind, decl, name->line_nr);
+      new_ident(get_current_scope(), strname, decl, name->line_nr);
     } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
   } else if (decl->kind == Ast_BlockStmt) {
     build_symtable_block_statement(decl);
@@ -124,16 +113,7 @@ build_symtable_local_parser_element(struct Ast* element)
     char* strname = ast_getattr(name, "name");
     struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
     if (!entry->id_ident) {
-      enum ObjectKind id_kind = Object_NONE_;
-      if (element->kind == Ast_ConstDecl) {
-        id_kind = Object_Const;
-      } else if (element->kind == Ast_Instantiation) {
-        id_kind = Object_Instantiation;
-      } else if (element->kind == Ast_VarDecl) {
-        id_kind = Object_Var;
-      }
-      else assert(0);
-      new_ident(get_current_scope(), strname, id_kind, element, name->line_nr);
+      new_ident(get_current_scope(), strname, element, name->line_nr);
     } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
   }
   else assert(0);
@@ -174,7 +154,7 @@ build_symtable_function_proto(struct Ast* function_proto)
 {
   struct Ast* name = ast_getattr(function_proto, "name");
   char* strname = ast_getattr(name, "name");
-  new_ident(get_current_scope(), strname, Object_FunctionProto, function_proto, name->line_nr);
+  new_ident(get_current_scope(), strname, function_proto, name->line_nr);
 }
 
 internal void
@@ -213,7 +193,7 @@ build_symtable_struct_field(struct Ast* field)
   char* strname = ast_getattr(name, "name");
   struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), strname, Object_StructField, field, name->line_nr);
+    new_ident(get_current_scope(), strname, field, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 }
 
@@ -253,7 +233,7 @@ build_symtable_enum_id(struct Ast* id)
   char* strname = ast_getattr(name, "name");
   struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), strname, Object_EnumId, id, name->line_nr);
+    new_ident(get_current_scope(), strname, id, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 }
 
@@ -304,7 +284,7 @@ build_symtable_top_level_instantiation(struct Ast* instantiation)
   char* strname = ast_getattr(name, "name");
   struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), strname, Object_Instantiation, instantiation, name->line_nr);
+    new_ident(get_current_scope(), strname, instantiation, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 }
 
@@ -329,7 +309,7 @@ build_symtable_const_declaration(struct Ast* const_decl)
   char* strname = ast_getattr(name, "name");
   struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), strname, Object_Const, const_decl, name->line_nr);
+    new_ident(get_current_scope(), strname, const_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 }
 
@@ -337,7 +317,7 @@ void
 build_symtable_program(struct Ast* program)
 {
   if (program->kind == Ast_P4Program) {
-    ast_setattr(program, "scope", push_scope(), AstAttr_Scope);
+    ast_setattr(program, "program_scope", push_scope(), AstAttr_Scope);
     struct List* decl_list = ast_getattr(program, "decl_list");
     struct ListLink* link = list_first_link(decl_list);
     while (link) {
