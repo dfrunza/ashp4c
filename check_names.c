@@ -48,9 +48,8 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
       check_names_statement(scope, else_stmt);
     }
   } else if (stmt->kind == Ast_BlockStmt) {
-    struct Scope* stmt_scope = ast_getattr(stmt, "stmt_scope");
-    if (stmt_scope) {
-      scope = stmt_scope;
+    if (stmt->scope) {
+      scope = stmt->scope;
     }
     struct List* stmt_list = ast_getattr(stmt, "stmt_list");
     if (stmt_list) {
@@ -75,12 +74,11 @@ check_names_control(struct Ast* control)
 {
   struct Ast* apply_stmt = ast_getattr(control, "apply_stmt");
   if (apply_stmt) {
-    struct Scope* stmt_scope = ast_getattr(apply_stmt, "stmt_scope");
     struct List* stmt_list = (struct List*)ast_getattr(apply_stmt, "stmt_list");
     struct ListLink* link = list_first_link(stmt_list);
     while (link) {
       struct Ast* stmt = link->object;
-      check_names_statement(stmt_scope, stmt);
+      check_names_statement(apply_stmt->scope, stmt);
       link = link->next;
     }
   }

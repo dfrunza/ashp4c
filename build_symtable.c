@@ -64,7 +64,7 @@ build_symtable_block_statement(struct Ast* block_stmt)
 {
   struct List* stmt_list = ast_getattr(block_stmt, "stmt_list");
   if (stmt_list) {
-    ast_setattr(block_stmt, "stmt_scope", push_scope(), AstAttr_Scope);
+    block_stmt->scope = push_scope();
     struct ListLink* link = list_first_link(stmt_list);
     while (link) {
       struct Ast* decl = link->object;
@@ -86,14 +86,13 @@ build_symtable_control(struct Ast* control_decl)
     new_type(get_current_scope(), strname, type_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
-  ast_setattr(control_decl, "params_scope", push_scope(), AstAttr_Scope);
+  control_decl->scope = push_scope();
   struct List* params = ast_getattr(type_decl, "params");
   if (params) {
     build_symtable_params(params);
   }
 
   struct List* local_decls = ast_getattr(control_decl, "local_decls");
-  ast_setattr(control_decl, "local_decls_scope", push_scope(), AstAttr_Scope);
   if (local_decls) {
     build_symtable_local_control_declarations(local_decls);
   }
@@ -101,8 +100,7 @@ build_symtable_control(struct Ast* control_decl)
   if (apply_stmt) {
     build_symtable_block_statement(apply_stmt);
   }
-  pop_scope(); // local_decls_scope
-  pop_scope(); // params_scope
+  pop_scope();
 }
 
 internal void
@@ -143,7 +141,7 @@ build_symtable_parser(struct Ast* parser_decl)
 
   struct List* local_elements = ast_getattr(parser_decl, "local_elements");
   if (local_elements) {
-    ast_setattr(parser_decl, "local_elements_scope", push_scope(), AstAttr_Scope);
+    parser_decl->scope = push_scope();
     build_symtable_local_parser_elements(local_elements);
     pop_scope();
   }
@@ -180,7 +178,7 @@ build_symtable_extern(struct Ast* extern_decl)
 
   struct List* method_protos = ast_getattr(extern_decl, "method_protos");
   if (method_protos) {
-    ast_setattr(extern_decl, "methods_scope", push_scope(), AstAttr_Scope);
+    extern_decl->scope = push_scope();
     build_symtable_extern_method_protos(method_protos);
     pop_scope();
   }
@@ -220,7 +218,7 @@ build_symtable_structlike(struct Ast* struct_decl)
 
   struct List* fields = ast_getattr(struct_decl, "fields");
   if (fields) {
-    ast_setattr(struct_decl, "fields_scope", push_scope(), AstAttr_Scope);
+    struct_decl->scope = push_scope();
     build_symtable_struct_fields(fields);
     pop_scope();
   }
@@ -260,7 +258,7 @@ build_symtable_enum(struct Ast* enum_decl)
 
   struct List* id_list = ast_getattr(enum_decl, "id_list");
   if (id_list) {
-    ast_setattr(enum_decl, "id_scope", push_scope(), AstAttr_Scope);
+    enum_decl->scope = push_scope();
     build_symtable_enum_id_list(id_list);
     pop_scope();
   }
@@ -317,7 +315,7 @@ void
 build_symtable_program(struct Ast* program)
 {
   if (program->kind == Ast_P4Program) {
-    ast_setattr(program, "program_scope", push_scope(), AstAttr_Scope);
+    program->scope = push_scope();
     struct List* decl_list = ast_getattr(program, "decl_list");
     struct ListLink* link = list_first_link(decl_list);
     while (link) {

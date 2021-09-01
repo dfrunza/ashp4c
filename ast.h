@@ -134,7 +134,6 @@ enum AstAttributeType {
   AstAttr_BaseType,
   AstAttr_ParamDir,
   AstAttr_IntFlags,
-  AstAttr_Scope,
 };
 
 struct AstAttribute {
@@ -151,6 +150,7 @@ struct Ast {
   enum AstKind kind;
   int id;
   int line_nr;
+  struct Scope* scope;
   int attr_count;
   struct AstAttribute* attrs[AST_ATTRTABLE_CAPACITY];
 };
