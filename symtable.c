@@ -224,6 +224,7 @@ add_all_keywords(struct Scope* scope)
 void
 add_all_base_types(struct Scope* scope)
 {
+  add_base_type(scope, "void");
   add_base_type(scope, "bool");
   add_base_type(scope, "error");
   add_base_type(scope, "int");

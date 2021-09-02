@@ -41,10 +41,10 @@ ast_kind_to_string(enum AstKind kind)
       return "Ast_StructDecl";
     case Ast_EnumDecl:
       return "Ast_EnumDecl";
-    case Ast_Parser:
-      return "Ast_Parser";
-    case Ast_Control:
-      return "Ast_Control";
+    case Ast_ParserDecl:
+      return "Ast_ParserDecl";
+    case Ast_ControlDecl:
+      return "Ast_ControlDecl";
     case Ast_Package:
       return "Ast_Package";
     case Ast_Instantiation:

@@ -582,20 +582,25 @@ internal struct Ast*
 build_baseType()
 {
   struct Ast* base_type = 0;
-  enum AstBaseType* type_value = arena_push(ast_storage, sizeof(*type_value));
   if (token_is_baseType(token)) {
     base_type = new_ast_node(Ast_BaseType, token);
+    struct Ast* type_name = new_ast_node(Ast_Name, token);
+    ast_setattr(base_type, "type_name", type_name, AstAttr_Ast);
+    enum AstBaseType* type_value = arena_push(ast_storage, sizeof(*type_value));
     if (token->klass == Token_Bool) {
       *type_value = AstBaseType_Bool;
       ast_setattr(base_type, "base_type", type_value, AstAttr_BaseType);
+      ast_setattr(type_name, "name", "bool", AstAttr_String);
       next_token();
     } else if (token->klass == Token_Error) {
       *type_value = AstBaseType_Error;
       ast_setattr(base_type, "base_type", type_value, AstAttr_BaseType);
+      ast_setattr(type_name, "name", "error", AstAttr_String);
       next_token();
     } else if (token->klass == Token_Int) {
       *type_value = AstBaseType_Int;
       ast_setattr(base_type, "base_type", type_value, AstAttr_BaseType);
+      ast_setattr(type_name, "name", "int", AstAttr_String);
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
@@ -607,6 +612,7 @@ build_baseType()
     } else if (token->klass == Token_Bit) {
       *type_value = AstBaseType_Bit;
       ast_setattr(base_type, "base_type", type_value, AstAttr_BaseType);
+      ast_setattr(type_name, "name", "bit", AstAttr_String);
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
@@ -618,6 +624,7 @@ build_baseType()
     } else if (token->klass == Token_Varbit) {
       *type_value = AstBaseType_Varbit;
       ast_setattr(base_type, "base_type", type_value, AstAttr_BaseType);
+      ast_setattr(type_name, "name", "varbit", AstAttr_String);
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
@@ -629,6 +636,7 @@ build_baseType()
     } else if (token->klass == Token_String) {
       *type_value = AstBaseType_String;
       ast_setattr(base_type, "base_type", type_value, AstAttr_BaseType);
+      ast_setattr(type_name, "name", "string", AstAttr_String);
       next_token();
     }
     else assert(0);
@@ -1712,7 +1720,7 @@ build_parserDeclaration()
 {
   struct Ast* decl = 0;
   if (token->klass == Token_Parser) {
-    decl = new_ast_node(Ast_Parser, token);
+    decl = new_ast_node(Ast_ParserDecl, token);
     ast_setattr(decl, "type_decl", build_parserTypeDeclaration(), AstAttr_Ast);
     if (token->klass == Token_Semicolon) {
       next_token(); /* <parserTypeDeclaration> */
@@ -2062,7 +2070,7 @@ build_controlDeclaration()
 {
   struct Ast* decl = 0;
   if (token->klass == Token_Control) {
-    decl = new_ast_node(Ast_Control, token);
+    decl = new_ast_node(Ast_ControlDecl, token);
     ast_setattr(decl, "type_decl", build_controlTypeDeclaration(), AstAttr_Ast);
     if (token->klass == Token_Semicolon) {
       next_token(); /* <controlTypeDeclaration> */
