@@ -71,8 +71,8 @@ ast_kind_to_string(enum AstKind kind)
       return "Ast_TupleKeyset";
     case Ast_HeaderStack:
       return "Ast_HeaderStack";
-    case Ast_SpecdType:
-      return "Ast_SpecdType";
+    case Ast_SpecializedType:
+      return "Ast_SpecializedType";
     case Ast_StructField:
       return "Ast_StructField";
     case Ast_SpecdId:

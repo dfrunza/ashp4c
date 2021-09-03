@@ -219,14 +219,14 @@ build_symtable_extern_decl(struct Ast* extern_decl)
 }
 
 internal void
-build_symtable_struct_field(struct Ast* field)
+build_symtable_struct_field(struct Scope* struct_scope, struct Ast* field)
 {
   assert(field->kind == Ast_StructField);
   struct Ast* name = ast_getattr(field, "name");
   char* strname = ast_getattr(name, "name");
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(struct_scope, strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), strname, field, name->line_nr);
+    new_ident(struct_scope, strname, field, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 }
 
@@ -243,14 +243,13 @@ build_symtable_structlike_decl(struct Ast* struct_decl)
 
   struct List* fields = ast_getattr(struct_decl, "fields");
   if (fields) {
-    struct_decl->scope = push_scope();
+    struct_decl->scope = new_scope(4);
     struct ListLink* link = list_first_link(fields);
     while (link) {
       struct Ast* field = link->object;
-      build_symtable_struct_field(field);
+      build_symtable_struct_field(struct_decl->scope, field);
       link = link->next;
     }
-    pop_scope();
   }
 }
 

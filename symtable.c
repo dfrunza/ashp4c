@@ -19,6 +19,15 @@ get_current_scope()
 }
 
 struct Scope*
+new_scope(int capacity_log2)
+{
+  struct Scope* new_scope = arena_push(symtable_storage, sizeof(*new_scope));
+  memset(new_scope, 0, sizeof(*new_scope));
+  scope_init(new_scope, 4);
+  return new_scope;
+}
+
+struct Scope*
 push_scope()
 {
   assert (scope_stack.elem_count > 0);

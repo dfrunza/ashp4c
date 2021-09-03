@@ -31,7 +31,7 @@ enum AstKind {
   Ast_Tuple,
   Ast_TupleKeyset,
   Ast_HeaderStack,
-  Ast_SpecdType,
+  Ast_SpecializedType,
   Ast_StructField,
   Ast_SpecdId,
   Ast_ParserType,

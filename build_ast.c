@@ -708,7 +708,7 @@ build_specializedType()
   struct Ast* type = 0;
   if (token->klass == Token_AngleOpen) {
     next_token();
-    type = new_ast_node(Ast_SpecdType, token);
+    type = new_ast_node(Ast_SpecializedType, token);
     ast_setattr(type, "type_args", build_typeArgumentList(), AstAttr_AstList);
     if (token->klass == Token_AngleClose) {
       next_token();

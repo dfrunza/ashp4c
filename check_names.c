@@ -45,6 +45,13 @@ check_names_expression(struct Scope* scope, struct Ast* expr)
         link = link->next;
       }
     }
+  } else if (expr->kind == Ast_MemberSelectExpr) {
+    struct Ast* member_expr = ast_getattr(expr, "expr");
+    check_names_expression(scope, member_expr);
+    // 'member_name' not checked here.
+  } else if (expr->kind == Ast_SpecializedType) {
+    struct Ast* name = ast_getattr(expr, "name");
+    check_names_expression(scope, name);
   } else if (expr->kind == Ast_Int || expr->kind == Ast_Bool || expr->kind == Ast_StringLiteral) {
     ; // pass
   }
@@ -108,7 +115,7 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
 internal void
 check_names_type_ref(struct Scope* scope, struct Ast* type_ref)
 {
-  assert(type_ref->kind == Ast_Name || type_ref->kind == Ast_BaseType);
+  assert(type_ref->kind == Ast_Name || type_ref->kind == Ast_BaseType || type_ref->kind == Ast_SpecializedType);
   struct Ast* name = type_ref;
   if (type_ref->kind == Ast_BaseType) {
     name = ast_getattr(type_ref, "type_name");
@@ -214,11 +221,13 @@ check_names_parser_decl(struct Scope* scope, struct Ast* decl)
 {
   assert(decl->kind == Ast_ParserDecl);
   struct List* states = ast_getattr(decl, "states");
-  struct ListLink* link = list_first_link(states);
-  while (link) {
-    struct Ast* state = link->object;
-    check_names_parser_state(state->scope, state);
-    link = link->next;
+  if (states) {
+    struct ListLink* link = list_first_link(states);
+    while (link) {
+      struct Ast* state = link->object;
+      check_names_parser_state(state->scope, state);
+      link = link->next;
+    }
   }
 }
 
@@ -267,6 +276,9 @@ check_names_program(struct Ast* program)
     } else if (decl->kind == Ast_ParserDecl) {
       check_names_parser_decl(program->scope, decl);
     } else if (decl->kind == Ast_FunctionDecl) {
+      check_names_function_decl(program->scope, decl);
+    } else if (decl->kind == Ast_StructDecl || decl->kind == Ast_HeaderDecl) {
+      ; // pass
     }
     else assert(!"TODO");
     link = link->next;
