@@ -21,7 +21,7 @@ check_names_expression(struct Scope* scope, struct Ast* expr)
   } else if (expr->kind == Ast_Name) {
     char* strname = ast_getattr(expr, "name");
     struct SymtableEntry* entry = scope_resolve_name(scope, strname);
-    if (!entry) {
+    if (!(entry->id_kw || entry->id_type || entry->id_ident)) {
       error("at line %d: unknown identifier `%s`.", expr->line_nr, strname);
     } else if (DEBUG_ENABLED) {
       printf("at line %d: identifier `%s` has been resolved.\n", expr->line_nr, strname);
@@ -255,6 +255,19 @@ check_names_function_decl(struct Scope* scope, struct Ast* decl)
   }
 }
 
+internal void
+check_names_extern_decl(struct Scope* scope, struct Ast* decl)
+{
+  assert(decl->kind == Ast_ExternDecl);
+  struct List* method_protos = ast_getattr(decl, "method_protos");
+  if (method_protos) {
+    struct ListLink* link = list_first_link(method_protos);
+    struct Ast* method = link->object;
+    check_names_function_proto(scope, method);
+    link = link->next;
+  }
+}
+
 void
 check_names_program(struct Ast* program)
 {
@@ -277,6 +290,8 @@ check_names_program(struct Ast* program)
       check_names_parser_decl(program->scope, decl);
     } else if (decl->kind == Ast_FunctionDecl) {
       check_names_function_decl(program->scope, decl);
+    } else if (decl->kind == Ast_ExternDecl) {
+      check_names_extern_decl(program->scope, decl);
     } else if (decl->kind == Ast_StructDecl || decl->kind == Ast_HeaderDecl) {
       ; // pass
     }

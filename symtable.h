@@ -43,6 +43,7 @@ struct Scope {
 
 void scope_init(struct Scope* scope, int capacity_log2);
 void symtable_set_storage(struct Arena* symtable_storage_);
+struct SymtableEntry* find_symtable_entry(struct Scope* scope, char* name);
 struct SymtableEntry* get_symtable_entry(struct Scope* scope, char* name);
 struct Symbol* new_ident(struct Scope* scope, char* name, struct Ast* ast, int line_nr);
 struct Symbol* new_type(struct Scope* scope, char* name, struct Ast* ast, int line_nr);

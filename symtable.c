@@ -59,7 +59,7 @@ pop_scope()
 }
 
 struct SymtableEntry*
-get_symtable_entry(struct Scope* scope, char* name)
+find_symtable_entry(struct Scope* scope, char* name)
 {
   uint32_t h = hash_string(name, scope->capacity_log2);
   struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&scope->symtable, h);
@@ -68,6 +68,13 @@ get_symtable_entry(struct Scope* scope, char* name)
       break;
     entry = entry->next_entry;
   }
+  return entry;
+}
+
+struct SymtableEntry*
+get_symtable_entry(struct Scope* scope, char* name)
+{
+  struct SymtableEntry* entry = find_symtable_entry(scope, name);
   if (!entry) {
     if (scope->entry_count >= scope->capacity) {
       struct Arena temp_storage = {};
@@ -98,8 +105,8 @@ get_symtable_entry(struct Scope* scope, char* name)
         array_set(&scope->symtable, h, &entries_array[i]);
       }
       arena_delete(&temp_storage);
-      h = hash_string(name, scope->capacity_log2);
     }
+    int h = hash_string(name, scope->capacity_log2);
     entry = arena_push(symtable_storage, sizeof(*entry));
     memset(entry, 0, sizeof(*entry));
     entry->name = name;

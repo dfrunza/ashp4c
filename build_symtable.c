@@ -19,6 +19,17 @@ build_symtable_param(struct Ast* param)
 }
 
 internal void
+build_symtable_type_param(struct Ast* type_param)
+{
+  assert(type_param->kind == Ast_Name);
+  char* strname = ast_getattr(type_param, "name");
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  if (!entry->id_type) {
+    new_type(get_current_scope(), strname, type_param, type_param->line_nr);
+  };
+}
+
+internal void
 build_symtable_statement(struct Ast* decl)
 {
   if (decl->kind == Ast_ActionDecl || decl->kind == Ast_VarDecl || decl->kind == Ast_TableDecl) {
@@ -181,6 +192,15 @@ build_symtable_function_proto(struct Ast* function_proto)
   struct Ast* name = ast_getattr(function_proto, "name");
   char* strname = ast_getattr(name, "name");
   new_ident(get_current_scope(), strname, function_proto, name->line_nr);
+  struct List* type_params = ast_getattr(function_proto, "type_params");
+  if (type_params) {
+    struct ListLink* link = list_first_link(type_params);
+    while (link) {
+      struct Ast* type_param = link->object;
+      build_symtable_type_param(type_param);
+      link = link->next;
+    }
+  }
   struct List* params = ast_getattr(function_proto, "params");
   if (params) {
     function_proto->scope = push_scope();
