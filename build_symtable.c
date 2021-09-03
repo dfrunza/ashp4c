@@ -299,7 +299,7 @@ build_symtable_enum_decl(struct Ast* enum_decl)
 internal void
 build_symtable_package(struct Ast* package_decl)
 {
-  assert(package_decl->kind == Ast_Package);
+  assert(package_decl->kind == Ast_PackageDecl);
   struct Ast* name = ast_getattr(package_decl, "name");
   char* strname = ast_getattr(name, "name");
   struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
@@ -394,7 +394,7 @@ build_symtable_program(struct Ast* program)
       build_symtable_extern_decl(decl);
     } else if (decl->kind == Ast_StructDecl || decl->kind == Ast_HeaderDecl) {
       build_symtable_structlike_decl(decl);
-    } else if (decl->kind == Ast_Package) {
+    } else if (decl->kind == Ast_PackageDecl) {
       build_symtable_package(decl);
     } else if (decl->kind == Ast_ParserDecl) {
       build_symtable_parser_decl(decl);

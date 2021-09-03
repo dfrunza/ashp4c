@@ -18,7 +18,7 @@ enum AstKind {
   Ast_TypeDecl,
   Ast_ParserDecl,
   Ast_ControlDecl,
-  Ast_Package,
+  Ast_PackageDecl,
   Ast_Instantiation,
   Ast_Error,
   Ast_MatchKind,

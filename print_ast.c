@@ -45,8 +45,8 @@ ast_kind_to_string(enum AstKind kind)
       return "Ast_ParserDecl";
     case Ast_ControlDecl:
       return "Ast_ControlDecl";
-    case Ast_Package:
-      return "Ast_Package";
+    case Ast_PackageDecl:
+      return "Ast_PackageDecl";
     case Ast_Instantiation:
       return "Ast_Instantiation";
     case Ast_Error:

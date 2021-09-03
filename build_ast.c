@@ -2098,7 +2098,7 @@ build_packageTypeDeclaration()
   struct Ast* decl = 0;
   if (token->klass == Token_Package) {
     next_token();
-    decl = new_ast_node(Ast_Package, token);
+    decl = new_ast_node(Ast_PackageDecl, token);
     if (token_is_name(token)) {
       ast_setattr(decl, "name", build_name(true), AstAttr_Ast);
       ast_setattr(decl, "type_params", build_optTypeParameters(), AstAttr_AstList);
