@@ -19,10 +19,9 @@ build_symtable_param(struct Ast* param)
 }
 
 internal void
-build_symtable_declaration_stmt(struct Ast* decl)
+build_symtable_statement(struct Ast* decl)
 {
-  if (decl->kind == Ast_Instantiation || decl->kind == Ast_ActionDecl || decl->kind == Ast_VarDecl ||
-      decl->kind == Ast_TableDecl) {
+  if (decl->kind == Ast_ActionDecl || decl->kind == Ast_VarDecl || decl->kind == Ast_TableDecl) {
     struct Ast* name = ast_getattr(decl, "name");
     char* strname = ast_getattr(name, "name");
     struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
@@ -32,7 +31,7 @@ build_symtable_declaration_stmt(struct Ast* decl)
   } else if (decl->kind == Ast_BlockStmt) {
     build_symtable_block_statement(decl);
   } else if (decl->kind == Ast_MethodCallStmt || decl->kind == Ast_AssignmentStmt || decl->kind == Ast_IfStmt ||
-             decl->kind == Ast_SwitchStmt || decl->kind == Ast_DirectApplication) {
+             decl->kind == Ast_SwitchStmt || decl->kind == Ast_DirectApplication || decl->kind == Ast_ReturnStmt) {
     ; // pass
   }
   else assert(0);
@@ -48,7 +47,7 @@ build_symtable_block_statement(struct Ast* block_stmt)
     struct ListLink* link = list_first_link(stmt_list);
     while (link) {
       struct Ast* decl = link->object;
-      build_symtable_declaration_stmt(decl);
+      build_symtable_statement(decl);
       link = link->next;
     }
     pop_scope();
@@ -56,7 +55,7 @@ build_symtable_block_statement(struct Ast* block_stmt)
 }
 
 internal void
-build_symtable_control(struct Ast* control_decl)
+build_symtable_control_decl(struct Ast* control_decl)
 {
   assert(control_decl->kind == Ast_ControlDecl);
   struct Ast* type_decl = ast_getattr(control_decl, "type_decl");
@@ -83,7 +82,7 @@ build_symtable_control(struct Ast* control_decl)
     struct ListLink* link = list_first_link(local_decls);
     while (link) {
       struct Ast* decl = link->object;
-      build_symtable_declaration_stmt(decl);
+      build_symtable_statement(decl);
       link = link->next;
     }
   }
@@ -125,7 +124,7 @@ build_symtable_parser_state(struct Ast* state)
     struct ListLink* link = list_first_link(stmt_list);
     while (link) {
       struct Ast* stmt = link->object;
-      build_symtable_declaration_stmt(stmt);
+      build_symtable_statement(stmt);
       link = link->next;
     }
     pop_scope();
@@ -133,7 +132,7 @@ build_symtable_parser_state(struct Ast* state)
 }
 
 internal void
-build_symtable_parser(struct Ast* parser_decl)
+build_symtable_parser_decl(struct Ast* parser_decl)
 {
   assert(parser_decl->kind == Ast_ParserDecl);
   struct Ast* type_decl = ast_getattr(parser_decl, "type_decl");
@@ -196,7 +195,7 @@ build_symtable_function_proto(struct Ast* function_proto)
 }
 
 internal void
-build_symtable_extern(struct Ast* extern_decl)
+build_symtable_extern_decl(struct Ast* extern_decl)
 {
   assert(extern_decl->kind == Ast_ExternDecl);
   struct Ast* name = ast_getattr(extern_decl, "name");
@@ -232,7 +231,7 @@ build_symtable_struct_field(struct Ast* field)
 }
 
 internal void
-build_symtable_structlike(struct Ast* struct_decl)
+build_symtable_structlike_decl(struct Ast* struct_decl)
 {
   assert(struct_decl->kind == Ast_StructDecl || struct_decl->kind == Ast_HeaderDecl);
   struct Ast* name = ast_getattr(struct_decl, "name");
@@ -279,7 +278,7 @@ build_symtable_enum_id_list(struct List* id_list)
 }
 
 internal void
-build_symtable_enum(struct Ast* enum_decl)
+build_symtable_enum_decl(struct Ast* enum_decl)
 {
   assert(enum_decl->kind == Ast_EnumDecl);
   struct Ast* name = ast_getattr(enum_decl, "name");
@@ -337,7 +336,7 @@ build_symtable_type_decl(struct Ast* type_decl)
 }
 
 void
-build_symtable_const_declaration(struct Ast* const_decl)
+build_symtable_const_decl(struct Ast* const_decl)
 {
   assert(const_decl->kind == Ast_ConstDecl);
   struct Ast* name = ast_getattr(const_decl, "name");
@@ -346,6 +345,38 @@ build_symtable_const_declaration(struct Ast* const_decl)
   if (!entry->id_ident) {
     new_ident(get_current_scope(), strname, const_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+}
+
+internal void
+build_symtable_function_decl(struct Ast* function_decl)
+{
+  assert(function_decl->kind == Ast_FunctionDecl);
+  struct Ast* function_proto = ast_getattr(function_decl, "proto");
+  struct Ast* name = ast_getattr(function_proto, "name");
+  char* strname = ast_getattr(name, "name");
+  new_ident(get_current_scope(), strname, function_proto, name->line_nr);
+
+  function_decl->scope = push_scope();
+  struct List* params = ast_getattr(function_proto, "params");
+  if (params) {
+    struct ListLink* link = list_first_link(params);
+    while (link) {
+      struct Ast* param = link->object;
+      build_symtable_param(param);
+      link = link->next;
+    }
+  }
+  struct Ast* function_body = ast_getattr(function_decl, "stmt");
+  struct List* stmt_list = ast_getattr(function_body, "stmt_list");
+  if (stmt_list) {
+    struct ListLink* link = list_first_link(stmt_list);
+    while (link) {
+      struct Ast* stmt = link->object;
+      build_symtable_statement(stmt);
+      link = link->next;
+    }
+  }
+  pop_scope();
 }
 
 void
@@ -358,15 +389,15 @@ build_symtable_program(struct Ast* program)
   while (link) {
     struct Ast* decl = link->object;
     if (decl->kind == Ast_ControlDecl) {
-      build_symtable_control(decl);
+      build_symtable_control_decl(decl);
     } else if (decl->kind == Ast_ExternDecl) {
-      build_symtable_extern(decl);
+      build_symtable_extern_decl(decl);
     } else if (decl->kind == Ast_StructDecl || decl->kind == Ast_HeaderDecl) {
-      build_symtable_structlike(decl);
+      build_symtable_structlike_decl(decl);
     } else if (decl->kind == Ast_Package) {
       build_symtable_package(decl);
     } else if (decl->kind == Ast_ParserDecl) {
-      build_symtable_parser(decl);
+      build_symtable_parser_decl(decl);
     } else if (decl->kind == Ast_Instantiation) {
       build_symtable_instantiation(decl);
     } else if (decl->kind == Ast_TypeDecl) {
@@ -374,9 +405,11 @@ build_symtable_program(struct Ast* program)
     } else if (decl->kind == Ast_FunctionProto) {
       build_symtable_function_proto(decl);
     } else if (decl->kind == Ast_ConstDecl) {
-      build_symtable_const_declaration(decl);
+      build_symtable_const_decl(decl);
     } else if (decl->kind == Ast_EnumDecl) {
-      build_symtable_enum(decl);
+      build_symtable_enum_decl(decl);
+    } else if (decl->kind == Ast_FunctionDecl) {
+      build_symtable_function_decl(decl);
     }
     else assert(0);
     link = link->next;

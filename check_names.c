@@ -96,6 +96,11 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
   } else if (stmt->kind == Ast_DirectApplication) {
     struct Ast* name = ast_getattr(stmt, "name");
     check_names_expression(scope, name);
+  } else if (stmt->kind == Ast_ReturnStmt) {
+    struct Ast* return_expr = ast_getattr(stmt, "expr");
+    if (return_expr) {
+      check_names_expression(scope, return_expr);
+    }
   }
   else assert(!"TODO");
 }
@@ -193,6 +198,25 @@ check_names_program(struct Ast* program)
       while (link) {
         struct Ast* state = link->object;
         check_names_parser_state(state->scope, state);
+        link = link->next;
+      }
+    } else if (decl->kind == Ast_FunctionDecl) {
+      struct Ast* function_proto = ast_getattr(decl, "proto");
+      struct List* params = ast_getattr(function_proto, "params");
+      if (params) {
+        struct ListLink* link = list_first_link(params);
+        while (link) {
+          struct Ast* param = link->object;
+          check_names_function_param(program->scope, param);
+          link = link->next;
+        }
+      }
+      struct Ast* function_body = ast_getattr(decl, "stmt");
+      struct List* stmt_list = ast_getattr(function_body, "stmt_list");
+      if (stmt_list) {
+        struct ListLink* link = list_first_link(stmt_list);
+        struct Ast* stmt = link->object;
+        check_names_statement(decl->scope, stmt);
         link = link->next;
       }
     }
