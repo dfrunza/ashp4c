@@ -386,13 +386,47 @@ build_symtable_function_decl(struct Ast* function_decl)
     }
   }
   struct Ast* function_body = ast_getattr(function_decl, "stmt");
-  struct List* stmt_list = ast_getattr(function_body, "stmt_list");
-  if (stmt_list) {
-    struct ListLink* link = list_first_link(stmt_list);
+  if (function_body) {
+    struct List* stmt_list = ast_getattr(function_body, "stmt_list");
+    if (stmt_list) {
+      struct ListLink* link = list_first_link(stmt_list);
+      while (link) {
+        struct Ast* stmt = link->object;
+        build_symtable_statement(stmt);
+        link = link->next;
+      }
+    }
+  }
+  pop_scope();
+}
+
+internal void
+build_symtable_action_decl(struct Ast* action_decl) {
+  assert(action_decl->kind == Ast_ActionDecl);
+  struct Ast* name = ast_getattr(action_decl, "name");
+  char* strname = ast_getattr(name, "name");
+  new_ident(get_current_scope(), strname, action_decl, name->line_nr);
+
+  action_decl->scope = push_scope();
+  struct List* params = ast_getattr(action_decl, "params");
+  if (params) {
+    struct ListLink* link = list_first_link(params);
     while (link) {
-      struct Ast* stmt = link->object;
-      build_symtable_statement(stmt);
+      struct Ast* param = link->object;
+      build_symtable_param(param);
       link = link->next;
+    }
+  }
+  struct Ast* action_body = ast_getattr(action_decl, "stmt");
+  if (action_body) {
+    struct List* stmt_list = ast_getattr(action_decl, "stmt_list");
+    if (stmt_list) {
+      struct ListLink* link = list_first_link(stmt_list);
+      while (link) {
+        struct Ast* stmt = link->object;
+        build_symtable_statement(stmt);
+        link = link->next;
+      }
     }
   }
   pop_scope();
@@ -429,6 +463,8 @@ build_symtable_program(struct Ast* program)
       build_symtable_enum_decl(decl);
     } else if (decl->kind == Ast_FunctionDecl) {
       build_symtable_function_decl(decl);
+    } else if (decl->kind == Ast_ActionDecl) {
+      build_symtable_action_decl(decl);
     }
     else assert(0);
     link = link->next;
