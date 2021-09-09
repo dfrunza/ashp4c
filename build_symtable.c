@@ -274,15 +274,26 @@ build_symtable_structlike_decl(struct Ast* struct_decl)
 }
 
 internal void
-build_symtable_enum_id(struct Ast* id)
+build_symtable_enum_field(struct Ast* field)
 {
-  assert(id->kind == Ast_Name);
-  struct Ast* name = ast_getattr(id, "name");
-  char* strname = ast_getattr(name, "name");
+  assert(field->kind == Ast_Name);
+  char* strname = ast_getattr(field, "name");
   struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), strname, id, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+    new_ident(get_current_scope(), strname, field, field->line_nr);
+  } else error("at line %d: name `%s` redeclared.", field->line_nr, strname);
+}
+
+internal void
+build_symtable_specified_id(struct Ast* id)
+{
+  assert(id->kind == Ast_SpecifiedIdent);
+  struct Ast* name = ast_getattr(id, "name");
+  build_symtable_enum_field(name);
+  struct Ast* init_expr = ast_getattr(id, "init_expr");
+  if (init_expr) {
+    build_symtable_statement(init_expr);
+  }
 }
 
 internal void
@@ -291,7 +302,11 @@ build_symtable_enum_id_list(struct List* id_list)
   struct ListLink* link = list_first_link(id_list);
   while (link) {
     struct Ast* id = link->object;
-    build_symtable_enum_id(id);
+    if (id->kind == Ast_Name) {
+      build_symtable_enum_field(id);
+    } else if (id->kind == Ast_SpecifiedIdent) {
+      build_symtable_specified_id(id);
+    } else assert(0);
     link = link->next;
   }
 }

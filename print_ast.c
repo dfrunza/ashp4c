@@ -75,8 +75,8 @@ ast_kind_to_string(enum AstKind kind)
       return "Ast_SpecializedType";
     case Ast_StructField:
       return "Ast_StructField";
-    case Ast_SpecdId:
-      return "Ast_SpecdId";
+    case Ast_SpecifiedIdent:
+      return "Ast_SpecifiedIdent";
     case Ast_ParserType:
       return "Ast_ParserType";
     case Ast_Argument:

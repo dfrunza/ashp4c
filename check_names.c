@@ -52,6 +52,16 @@ check_names_expression(struct Scope* scope, struct Ast* expr)
   } else if (expr->kind == Ast_SpecializedType) {
     struct Ast* name = ast_getattr(expr, "name");
     check_names_expression(scope, name);
+  } else if (expr->kind == Ast_ExpressionListExpr) {
+    struct List* expr_list = ast_getattr(expr, "expr_list");
+    if (expr_list) {
+      struct ListLink* link = list_first_link(expr_list);
+      while (link) {
+        struct Ast* expr_expr = link->object;
+        check_names_expression(scope, expr_expr);
+        link = link->next;
+      }
+    }
   } else if (expr->kind == Ast_Int || expr->kind == Ast_Bool || expr->kind == Ast_StringLiteral) {
     ; // pass
   }
@@ -268,6 +278,29 @@ check_names_extern_decl(struct Scope* scope, struct Ast* decl)
   }
 }
 
+internal void
+check_names_action_decl(struct Scope* scope, struct Ast* decl)
+{
+  assert(decl->kind == Ast_ActionDecl);
+  struct List* params = ast_getattr(decl, "params");
+  if (params) {
+    struct ListLink* link = list_first_link(params);
+    while (link) {
+      struct Ast* param = link->object;
+      check_names_function_param(scope, param);
+      link = link->next;
+    }
+  }
+  struct Ast* action_body = ast_getattr(decl, "stmt");
+  struct List* stmt_list = ast_getattr(action_body, "stmt_list");
+  if (stmt_list) {
+    struct ListLink* link = list_first_link(stmt_list);
+    struct Ast* stmt = link->object;
+    check_names_statement(decl->scope, stmt);
+    link = link->next;
+  }
+}
+
 void
 check_names_program(struct Ast* program)
 {
@@ -292,6 +325,8 @@ check_names_program(struct Ast* program)
       check_names_function_decl(program->scope, decl);
     } else if (decl->kind == Ast_ExternDecl) {
       check_names_extern_decl(program->scope, decl);
+    } else if (decl->kind == Ast_ActionDecl) {
+      check_names_action_decl(program->scope, decl);
     } else if (decl->kind == Ast_StructDecl || decl->kind == Ast_HeaderDecl) {
       ; // pass
     }

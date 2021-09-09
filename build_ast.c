@@ -908,7 +908,7 @@ build_specifiedIdentifier()
 {
   struct Ast* id = 0;
   if (token_is_specifiedIdentifier(token)) {
-    id = new_ast_node(Ast_SpecdId, token);
+    id = new_ast_node(Ast_SpecifiedIdent, token);
     ast_setattr(id, "name", build_name(false), AstAttr_Ast);
     if (token->klass == Token_Equal) {
       next_token();
