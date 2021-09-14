@@ -118,6 +118,13 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
     if (return_expr) {
       check_names_expression(scope, return_expr);
     }
+  } else if (stmt->kind == Ast_VarDecl) {
+    struct Ast* var_type = ast_getattr(stmt, "type");
+    check_names_type_ref(scope, var_type);
+    struct Ast* init_expr = ast_getattr(stmt, "init_expr");
+    if (init_expr) {
+      check_names_expression(scope, init_expr);
+    }
   }
   else assert(!"TODO");
 }
@@ -301,6 +308,31 @@ check_names_action_decl(struct Scope* scope, struct Ast* decl)
   }
 }
 
+internal void
+check_names_enum_specified_id(struct Scope* scope, struct Ast* id)
+{
+  assert(id->kind == Ast_SpecifiedIdent);
+  struct Ast* init_expr = ast_getattr(id, "init_expr");
+  if (init_expr) {
+    check_names_expression(scope, init_expr);
+  }
+}
+
+internal void
+check_names_enum_decl(struct Scope* scope, struct Ast* decl)
+{
+  assert(decl->kind == Ast_EnumDecl);
+  struct List* id_list = ast_getattr(decl, "id_list");
+  if (id_list) {
+    struct ListLink* link = list_first_link(id_list);
+    struct Ast* id = link->object;
+    if (id->kind == Ast_SpecifiedIdent) {
+      check_names_enum_specified_id(decl->scope, id);
+    }
+    link = link->next;
+  }
+}
+
 void
 check_names_program(struct Ast* program)
 {
@@ -327,6 +359,8 @@ check_names_program(struct Ast* program)
       check_names_extern_decl(program->scope, decl);
     } else if (decl->kind == Ast_ActionDecl) {
       check_names_action_decl(program->scope, decl);
+    } else if (decl->kind == Ast_EnumDecl) {
+      check_names_enum_decl(program->scope, decl);
     } else if (decl->kind == Ast_StructDecl || decl->kind == Ast_HeaderDecl) {
       ; // pass
     }
