@@ -132,12 +132,17 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
 internal void
 check_names_type_ref(struct Scope* scope, struct Ast* type_ref)
 {
-  assert(type_ref->kind == Ast_Name || type_ref->kind == Ast_BaseType || type_ref->kind == Ast_SpecializedType);
-  struct Ast* name = type_ref;
   if (type_ref->kind == Ast_BaseType) {
-    name = ast_getattr(type_ref, "type_name");
-  }
-  check_names_expression(scope, name);
+    struct Ast* name = ast_getattr(type_ref, "type_name");
+    check_names_expression(scope, name);
+  } else if (type_ref->kind == Ast_HeaderStack) {
+    struct Ast* name = ast_getattr(type_ref, "name");
+    check_names_expression(scope, name);
+    struct Ast* stack_expr = ast_getattr(type_ref, "stack_expr");
+    check_names_expression(scope, stack_expr);
+  } else if (type_ref->kind == Ast_Name || type_ref->kind == Ast_SpecializedType) {
+    check_names_expression(scope, type_ref);
+  } else assert(0);
 }
 
 internal void
@@ -168,6 +173,15 @@ check_names_control_decl(struct Scope* scope, struct Ast* decl)
 {
   assert(decl->kind == Ast_ControlDecl);
   // TODO: Check params.
+  struct List* local_decls = ast_getattr(decl, "local_decls");
+  if (local_decls) {
+    struct ListLink* link = list_first_link(local_decls);
+    while (link) {
+      struct Ast* stmt = link->object;
+      check_names_statement(scope, stmt);
+      link = link->next;
+    }
+  }
   struct Ast* apply_stmt = ast_getattr(decl, "apply_stmt");
   if (apply_stmt) {
     struct List* stmt_list = ast_getattr(apply_stmt, "stmt_list");
@@ -334,6 +348,14 @@ check_names_enum_decl(struct Scope* scope, struct Ast* decl)
 }
 
 void
+check_names_type_decl(struct Scope* scope, struct Ast* decl)
+{
+  assert (decl->kind == Ast_TypeDecl);
+  struct Ast* type_ref = ast_getattr(decl, "type_ref");
+  check_names_type_ref(scope, type_ref);
+}
+
+void
 check_names_program(struct Ast* program)
 {
   assert(program->kind == Ast_P4Program);
@@ -361,6 +383,8 @@ check_names_program(struct Ast* program)
       check_names_action_decl(program->scope, decl);
     } else if (decl->kind == Ast_EnumDecl) {
       check_names_enum_decl(program->scope, decl);
+    } else if (decl->kind == Ast_TypeDecl) {
+      check_names_type_decl(program->scope, decl);
     } else if (decl->kind == Ast_StructDecl || decl->kind == Ast_HeaderDecl) {
       ; // pass
     }
