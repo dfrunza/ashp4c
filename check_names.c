@@ -19,6 +19,10 @@ check_names_expression(struct Scope* scope, struct Ast* expr)
     struct Ast* right_operand = ast_getattr(expr, "right_operand");
     check_names_expression(scope, right_operand);
   } else if (expr->kind == Ast_Name) {
+    bool *is_dotprefixed = ast_getattr(expr, "is_dotprefixed");
+    if (is_dotprefixed && *is_dotprefixed) {
+      return;
+    }
     char* strname = ast_getattr(expr, "name");
     struct SymtableEntry* entry = scope_resolve_name(scope, strname);
     if (!(entry->id_kw || entry->id_type || entry->id_ident)) {
@@ -29,9 +33,14 @@ check_names_expression(struct Scope* scope, struct Ast* expr)
   } else if (expr->kind == Ast_Lvalue) {
     struct Ast* name = ast_getattr(expr, "name");
     check_names_expression(scope, name);
-    struct Ast* lvalue_expr = ast_getattr(expr, "expr");
-    if (lvalue_expr) {
-      assert(!"TODO");
+    struct List* lvalue_expr_list = ast_getattr(expr, "expr");
+    if (lvalue_expr_list) {
+      struct ListLink* link = list_first_link(lvalue_expr_list);
+      while (link) {
+        struct Ast* lvalue_expr = link->object;
+        check_names_expression(scope, lvalue_expr);
+        link = link->next;
+      }
     }
   } else if (expr->kind == Ast_FunctionCallExpr) {
     struct Ast* call_expr = ast_getattr(expr, "expr");
