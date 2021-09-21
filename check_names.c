@@ -8,6 +8,7 @@
 
 internal void check_names_expression(struct Scope* scope, struct Ast* expr);
 internal void check_names_type_ref(struct Scope* scope, struct Ast* type_ref);
+internal void check_names_statement(struct Scope* scope, struct Ast* stmt);
   
 
 internal void
@@ -78,6 +79,37 @@ check_names_expression(struct Scope* scope, struct Ast* expr)
 }
 
 internal void
+check_names_function_param(struct Scope* scope, struct Ast* param)
+{
+  assert(param->kind == Ast_Parameter);
+  struct Ast* type_name = ast_getattr(param, "type");
+  check_names_type_ref(scope, type_name);
+}
+
+internal void
+check_names_action_decl(struct Scope* scope, struct Ast* decl)
+{
+  assert(decl->kind == Ast_ActionDecl);
+  struct List* params = ast_getattr(decl, "params");
+  if (params) {
+    struct ListLink* link = list_first_link(params);
+    while (link) {
+      struct Ast* param = link->object;
+      check_names_function_param(scope, param);
+      link = link->next;
+    }
+  }
+  struct Ast* action_body = ast_getattr(decl, "stmt");
+  struct List* stmt_list = ast_getattr(action_body, "stmt_list");
+  if (stmt_list) {
+    struct ListLink* link = list_first_link(stmt_list);
+    struct Ast* stmt = link->object;
+    check_names_statement(decl->scope, stmt);
+    link = link->next;
+  }
+}
+
+internal void
 check_names_statement(struct Scope* scope, struct Ast* stmt)
 {
   if (stmt->kind == Ast_IfStmt) {
@@ -134,6 +166,8 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
     if (init_expr) {
       check_names_expression(scope, init_expr);
     }
+  } else if (stmt->kind == Ast_ActionDecl) {
+    check_names_action_decl(scope, stmt);
   }
   else assert(!"TODO");
 }
@@ -155,14 +189,6 @@ check_names_type_ref(struct Scope* scope, struct Ast* type_ref)
 }
 
 internal void
-check_names_function_param(struct Scope* scope, struct Ast* param)
-{
-  assert(param->kind == Ast_Parameter);
-  struct Ast* type_name = ast_getattr(param, "type");
-  check_names_type_ref(scope, type_name);
-}
-
-internal void
 check_names_parser_state(struct Scope* scope, struct Ast* state)
 {
   assert(state->kind == Ast_ParserState);
@@ -181,7 +207,15 @@ internal void
 check_names_control_decl(struct Scope* scope, struct Ast* decl)
 {
   assert(decl->kind == Ast_ControlDecl);
-  // TODO: Check params.
+  struct List* params = ast_getattr(decl, "params");
+  if (params) {
+    struct ListLink* link = list_first_link(params);
+    while (link) {
+      struct Ast* param = link->object;
+      check_names_function_param(decl->scope, param);
+      link = link->next;
+    }
+  }
   struct List* local_decls = ast_getattr(decl, "local_decls");
   if (local_decls) {
     struct ListLink* link = list_first_link(local_decls);
@@ -194,11 +228,13 @@ check_names_control_decl(struct Scope* scope, struct Ast* decl)
   struct Ast* apply_stmt = ast_getattr(decl, "apply_stmt");
   if (apply_stmt) {
     struct List* stmt_list = ast_getattr(apply_stmt, "stmt_list");
-    struct ListLink* link = list_first_link(stmt_list);
-    while (link) {
-      struct Ast* stmt = link->object;
-      check_names_statement(apply_stmt->scope, stmt);
-      link = link->next;
+    if (stmt_list) {
+      struct ListLink* link = list_first_link(stmt_list);
+      while (link) {
+        struct Ast* stmt = link->object;
+        check_names_statement(apply_stmt->scope, stmt);
+        link = link->next;
+      }
     }
   }
 }
@@ -218,11 +254,13 @@ check_names_function_proto(struct Scope* scope, struct Ast* decl)
   struct Ast* return_type = ast_getattr(decl, "return_type");
   check_names_type_ref(scope, return_type);
   struct List* params = ast_getattr(decl, "params");
-  struct ListLink* link = list_first_link(params);
-  while (link) {
-    struct Ast* param = link->object;
-    check_names_function_param(decl->scope, param);
-    link = link->next;
+  if (params) {
+    struct ListLink* link = list_first_link(params);
+    while (link) {
+      struct Ast* param = link->object;
+      check_names_function_param(decl->scope, param);
+      link = link->next;
+    }
   }
 }
 
@@ -231,11 +269,13 @@ check_names_package(struct Scope* scope, struct Ast* decl)
 {
   assert(decl->kind == Ast_PackageDecl);
   struct List* params = ast_getattr(decl, "params");
-  struct ListLink* link = list_first_link(params);
-  while (link) {
-    struct Ast* param = link->object;
-    check_names_function_param(scope, param);
-    link = link->next;
+  if (params) {
+    struct ListLink* link = list_first_link(params);
+    while (link) {
+      struct Ast* param = link->object;
+      check_names_function_param(scope, param);
+      link = link->next;
+    }
   }
 }
 
@@ -304,29 +344,6 @@ check_names_extern_decl(struct Scope* scope, struct Ast* decl)
     struct ListLink* link = list_first_link(method_protos);
     struct Ast* method = link->object;
     check_names_function_proto(scope, method);
-    link = link->next;
-  }
-}
-
-internal void
-check_names_action_decl(struct Scope* scope, struct Ast* decl)
-{
-  assert(decl->kind == Ast_ActionDecl);
-  struct List* params = ast_getattr(decl, "params");
-  if (params) {
-    struct ListLink* link = list_first_link(params);
-    while (link) {
-      struct Ast* param = link->object;
-      check_names_function_param(scope, param);
-      link = link->next;
-    }
-  }
-  struct Ast* action_body = ast_getattr(decl, "stmt");
-  struct List* stmt_list = ast_getattr(action_body, "stmt_list");
-  if (stmt_list) {
-    struct ListLink* link = list_first_link(stmt_list);
-    struct Ast* stmt = link->object;
-    check_names_statement(decl->scope, stmt);
     link = link->next;
   }
 }

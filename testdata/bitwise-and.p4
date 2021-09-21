@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+extern void digest();
+
 control C(bit<1> meta) {
     apply {
         if ((meta & 0x0) == 0) {
