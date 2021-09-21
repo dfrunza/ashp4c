@@ -12,6 +12,23 @@ internal void check_names_statement(struct Scope* scope, struct Ast* stmt);
   
 
 internal void
+check_names_instantiation(struct Scope* scope, struct Ast* decl)
+{
+  assert(decl->kind == Ast_Instantiation);
+  struct Ast* type_ref = ast_getattr(decl, "type_ref");
+  check_names_type_ref(scope, type_ref);
+  struct List* args = ast_getattr(decl, "args");
+  if (args) {
+    struct ListLink* link = list_first_link(args);
+    while (link) {
+      struct Ast* arg = link->object;
+      check_names_expression(scope, arg);
+      link = link->next;
+    }
+  }
+}
+
+internal void
 check_names_expression(struct Scope* scope, struct Ast* expr)
 {
   if (expr->kind == Ast_BinaryExpr) {
@@ -173,6 +190,8 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
     }
   } else if (stmt->kind == Ast_ActionDecl) {
     check_names_action_decl(scope, stmt);
+  } else if (stmt->kind == Ast_Instantiation) {
+    check_names_instantiation(scope, stmt);
   }
   else assert(!"TODO");
 }
@@ -215,7 +234,8 @@ internal void
 check_names_control_decl(struct Scope* scope, struct Ast* decl)
 {
   assert(decl->kind == Ast_ControlDecl);
-  struct List* params = ast_getattr(decl, "params");
+  struct Ast* type_decl = ast_getattr(decl, "type_decl");
+  struct List* params = ast_getattr(type_decl, "params");
   if (params) {
     struct ListLink* link = list_first_link(params);
     while (link) {
@@ -282,23 +302,6 @@ check_names_package(struct Scope* scope, struct Ast* decl)
     while (link) {
       struct Ast* param = link->object;
       check_names_function_param(scope, param);
-      link = link->next;
-    }
-  }
-}
-
-internal void
-check_names_instantiation(struct Scope* scope, struct Ast* decl)
-{
-  assert(decl->kind == Ast_Instantiation);
-  struct Ast* type_ref = ast_getattr(decl, "type_ref");
-  check_names_type_ref(scope, type_ref);
-  struct List* args = ast_getattr(decl, "args");
-  if (args) {
-    struct ListLink* link = list_first_link(args);
-    while (link) {
-      struct Ast* arg = link->object;
-      check_names_expression(scope, arg);
       link = link->next;
     }
   }
@@ -390,6 +393,34 @@ check_names_type_decl(struct Scope* scope, struct Ast* decl)
 }
 
 void
+check_names_struct_decl(struct Scope* scope, struct Ast* decl)
+{
+  assert (decl->kind == Ast_StructDecl);
+  struct List* fields = ast_getattr(decl, "fields");
+  if (fields) {
+    struct ListLink* link = list_first_link(fields);
+    struct Ast* field = link->object;
+    struct Ast* field_type = ast_getattr(field, "type");
+    check_names_type_ref(scope, field_type);
+    link = link->next;
+  }
+}
+
+void
+check_names_header_decl(struct Scope* scope, struct Ast* decl)
+{
+  assert (decl->kind == Ast_HeaderDecl);
+  struct List* fields = ast_getattr(decl, "fields");
+  if (fields) {
+    struct ListLink* link = list_first_link(fields);
+    struct Ast* field = link->object;
+    struct Ast* field_type = ast_getattr(field, "type");
+    check_names_type_ref(scope, field_type);
+    link = link->next;
+  }
+}
+
+void
 check_names_program(struct Ast* program)
 {
   assert(program->kind == Ast_P4Program);
@@ -419,8 +450,10 @@ check_names_program(struct Ast* program)
       check_names_enum_decl(program->scope, decl);
     } else if (decl->kind == Ast_TypeDecl) {
       check_names_type_decl(program->scope, decl);
-    } else if (decl->kind == Ast_StructDecl || decl->kind == Ast_HeaderDecl) {
-      ; // pass
+    } else if (decl->kind == Ast_StructDecl) {
+      check_names_struct_decl(program->scope, decl);
+    } else if (decl->kind == Ast_HeaderDecl) {
+      check_names_header_decl(program->scope, decl);
     }
     else assert(!"TODO");
     link = link->next;

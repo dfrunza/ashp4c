@@ -63,6 +63,18 @@ build_symtable_action_decl(struct Ast* action_decl) {
 }
 
 internal void
+build_symtable_instantiation(struct Ast* instantiation)
+{
+  assert(instantiation->kind == Ast_Instantiation);
+  struct Ast* name = ast_getattr(instantiation, "name");
+  char* strname = ast_getattr(name, "name");
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  if (!entry->id_ident) {
+    new_ident(get_current_scope(), strname, instantiation, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+}
+
+internal void
 build_symtable_statement(struct Ast* decl)
 {
   if (decl->kind == Ast_VarDecl) {
@@ -76,6 +88,8 @@ build_symtable_statement(struct Ast* decl)
     build_symtable_action_decl(decl);
   } else if (decl->kind == Ast_BlockStmt) {
     build_symtable_block_statement(decl);
+  } else if (decl->kind == Ast_Instantiation) {
+    build_symtable_instantiation(decl);
   } else if (decl->kind == Ast_MethodCallStmt || decl->kind == Ast_AssignmentStmt || decl->kind == Ast_IfStmt ||
              decl->kind == Ast_SwitchStmt || decl->kind == Ast_DirectApplication || decl->kind == Ast_ReturnStmt) {
     ; // pass
@@ -286,9 +300,9 @@ build_symtable_struct_field(struct Scope* struct_scope, struct Ast* field)
 }
 
 internal void
-build_symtable_structlike_decl(struct Ast* struct_decl)
+build_symtable_struct_decl(struct Ast* struct_decl)
 {
-  assert(struct_decl->kind == Ast_StructDecl || struct_decl->kind == Ast_HeaderDecl);
+  assert(struct_decl->kind == Ast_StructDecl);
   struct Ast* name = ast_getattr(struct_decl, "name");
   char* strname = ast_getattr(name, "name");
   struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
@@ -303,6 +317,29 @@ build_symtable_structlike_decl(struct Ast* struct_decl)
     while (link) {
       struct Ast* field = link->object;
       build_symtable_struct_field(struct_decl->scope, field);
+      link = link->next;
+    }
+  }
+}
+
+internal void
+build_symtable_header_decl(struct Ast* header_decl)
+{
+  assert(header_decl->kind == Ast_HeaderDecl);
+  struct Ast* name = ast_getattr(header_decl, "name");
+  char* strname = ast_getattr(name, "name");
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  if (!entry->id_type) {
+    new_type(get_current_scope(), strname, header_decl, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+
+  struct List* fields = ast_getattr(header_decl, "fields");
+  if (fields) {
+    header_decl->scope = new_scope(4);
+    struct ListLink* link = list_first_link(fields);
+    while (link) {
+      struct Ast* field = link->object;
+      build_symtable_struct_field(header_decl->scope, field);
       link = link->next;
     }
   }
@@ -378,18 +415,6 @@ build_symtable_package(struct Ast* package_decl)
 }
 
 internal void
-build_symtable_instantiation(struct Ast* instantiation)
-{
-  assert(instantiation->kind == Ast_Instantiation);
-  struct Ast* name = ast_getattr(instantiation, "name");
-  char* strname = ast_getattr(name, "name");
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
-  if (!entry->id_ident) {
-    new_ident(get_current_scope(), strname, instantiation, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
-}
-
-internal void
 build_symtable_type_decl(struct Ast* type_decl)
 {
   assert(type_decl->kind == Ast_TypeDecl);
@@ -402,8 +427,10 @@ build_symtable_type_decl(struct Ast* type_decl)
       new_type(get_current_scope(), strname, type_decl, name->line_nr);
     } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
     struct Ast* type_ref = ast_getattr(type_decl, "type_ref");
-    if (type_ref->kind == Ast_StructDecl || type_ref->kind == Ast_HeaderDecl) {
-      build_symtable_structlike_decl(type_ref);
+    if (type_ref->kind == Ast_StructDecl) {
+      build_symtable_struct_decl(type_ref);
+    } else if (type_ref->kind == Ast_HeaderDecl) {
+      build_symtable_header_decl(type_ref);
     } else if (type_ref->kind == Ast_BaseType || type_ref->kind == Ast_Name) {
       ; // pass
     }
@@ -470,8 +497,10 @@ build_symtable_program(struct Ast* program)
       build_symtable_control_decl(decl);
     } else if (decl->kind == Ast_ExternDecl) {
       build_symtable_extern_decl(decl);
-    } else if (decl->kind == Ast_StructDecl || decl->kind == Ast_HeaderDecl) {
-      build_symtable_structlike_decl(decl);
+    } else if (decl->kind == Ast_StructDecl) {
+      build_symtable_struct_decl(decl);
+    } else if (decl->kind == Ast_HeaderDecl) {
+      build_symtable_header_decl(decl);
     } else if (decl->kind == Ast_PackageDecl) {
       build_symtable_package(decl);
     } else if (decl->kind == Ast_ParserDecl) {
