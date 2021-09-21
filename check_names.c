@@ -72,6 +72,11 @@ check_names_expression(struct Scope* scope, struct Ast* expr)
         link = link->next;
       }
     }
+  } else if (expr->kind == Ast_CastExpr) {
+    struct Ast* to_type = ast_getattr(expr, "to_type");
+    check_names_type_ref(scope, to_type);
+    struct Ast* cast_expr = ast_getattr(expr, "expr");
+    check_names_expression(scope, cast_expr);
   } else if (expr->kind == Ast_Int || expr->kind == Ast_Bool || expr->kind == Ast_StringLiteral) {
     ; // pass
   }
@@ -185,7 +190,10 @@ check_names_type_ref(struct Scope* scope, struct Ast* type_ref)
     check_names_expression(scope, stack_expr);
   } else if (type_ref->kind == Ast_Name || type_ref->kind == Ast_SpecializedType) {
     check_names_expression(scope, type_ref);
-  } else assert(0);
+  } else if (type_ref->kind == Ast_StructDecl || type_ref->kind == Ast_HeaderDecl) {
+    ; // pass
+  }
+  else assert(0);
 }
 
 internal void

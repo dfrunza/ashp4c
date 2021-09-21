@@ -401,7 +401,14 @@ build_symtable_type_decl(struct Ast* type_decl)
     if (!entry->id_type) {
       new_type(get_current_scope(), strname, type_decl, name->line_nr);
     } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+    struct Ast* type_ref = ast_getattr(type_decl, "type_ref");
+    if (type_ref->kind == Ast_StructDecl || type_ref->kind == Ast_HeaderDecl) {
+      build_symtable_structlike_decl(type_ref);
+    } else if (type_ref->kind == Ast_BaseType || type_ref->kind == Ast_Name) {
+      ; // pass
+    }
   }
+  else assert(!"TODO");
 }
 
 void
