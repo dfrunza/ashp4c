@@ -249,6 +249,19 @@ add_all_base_types(struct Scope* scope)
   add_base_type(scope, "string");
 }
 
+internal struct Symbol*
+add_builtin_ident(struct Scope* scope, char* name)
+{
+  struct SymtableEntry* entry = get_symtable_entry(scope, name);
+  assert (entry->id_ident == 0);
+  struct Symbol* id_ident = arena_push(symtable_storage, sizeof(*id_ident));
+  memset(id_ident, 0, sizeof(*id_ident));
+  id_ident->name = name;
+  id_ident->symbol_kind = Symbol_Ident;
+  entry->id_ident = (struct Symbol*)id_ident;
+  return id_ident;
+}
+
 void
 scope_init(struct Scope* scope, int capacity_log2)
 {
@@ -271,6 +284,7 @@ symtable_init()
   scope_init(global_scope, 5);
   add_all_keywords(global_scope);
   add_all_base_types(global_scope);
+  add_builtin_ident(global_scope, "accept");
   array_init(&scope_stack, sizeof(global_scope), symtable_storage);
   array_append(&scope_stack, &global_scope);
 }

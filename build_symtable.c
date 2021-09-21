@@ -101,17 +101,17 @@ internal void
 build_symtable_block_statement(struct Ast* block_stmt)
 {
   assert(block_stmt->kind == Ast_BlockStmt);
+  block_stmt->scope = push_scope();
   struct List* stmt_list = ast_getattr(block_stmt, "stmt_list");
   if (stmt_list) {
-    block_stmt->scope = push_scope();
     struct ListLink* link = list_first_link(stmt_list);
     while (link) {
       struct Ast* decl = link->object;
       build_symtable_statement(decl);
       link = link->next;
     }
-    pop_scope();
   }
+  pop_scope();
 }
 
 internal void
@@ -178,17 +178,17 @@ build_symtable_parser_state(struct Ast* state)
     new_type(get_current_scope(), strname, state, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
+  state->scope = push_scope();
   struct List* stmt_list = ast_getattr(state, "stmt_list");
   if (stmt_list) {
-    state->scope = push_scope();
     struct ListLink* link = list_first_link(stmt_list);
     while (link) {
       struct Ast* stmt = link->object;
       build_symtable_statement(stmt);
       link = link->next;
     }
-    pop_scope();
   }
+  pop_scope();
 }
 
 internal void
@@ -250,17 +250,17 @@ build_symtable_function_proto(struct Ast* function_proto)
       link = link->next;
     }
   }
+  function_proto->scope = push_scope();
   struct List* params = ast_getattr(function_proto, "params");
   if (params) {
-    function_proto->scope = push_scope();
     struct ListLink* link = list_first_link(params);
     while (link) {
       struct Ast* param = link->object;
       build_symtable_param(param);
       link = link->next;
     }
-    pop_scope();
   }
+  pop_scope();
 }
 
 internal void
@@ -274,17 +274,17 @@ build_symtable_extern_decl(struct Ast* extern_decl)
     new_type(get_current_scope(), strname, extern_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
+  extern_decl->scope = push_scope();
   struct List* method_protos = ast_getattr(extern_decl, "method_protos");
   if (method_protos) {
-    extern_decl->scope = push_scope();
     struct ListLink* link = list_first_link(method_protos);
     while (link) {
       struct Ast* proto = link->object;
       build_symtable_function_proto(proto);
       link = link->next;
     }
-    pop_scope();
   }
+  pop_scope();
 }
 
 internal void
@@ -394,12 +394,12 @@ build_symtable_enum_decl(struct Ast* enum_decl)
     new_type(get_current_scope(), strname, enum_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
+  enum_decl->scope = push_scope();
   struct List* id_list = ast_getattr(enum_decl, "id_list");
   if (id_list) {
-    enum_decl->scope = push_scope();
     build_symtable_enum_id_list(id_list);
-    pop_scope();
   }
+  pop_scope();
 }
 
 internal void

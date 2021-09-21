@@ -144,15 +144,12 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
       check_names_statement(scope, else_stmt);
     }
   } else if (stmt->kind == Ast_BlockStmt) {
-    if (stmt->scope) {
-      scope = stmt->scope;
-    }
     struct List* stmt_list = ast_getattr(stmt, "stmt_list");
     if (stmt_list) {
       struct ListLink* link = list_first_link(stmt_list);
       while (link) {
         struct Ast* block_stmt = link->object;
-        check_names_statement(scope, block_stmt);
+        check_names_statement(stmt->scope, block_stmt);
         link = link->next;
       }
     }
@@ -216,9 +213,20 @@ check_names_type_ref(struct Scope* scope, struct Ast* type_ref)
 }
 
 internal void
+check_names_parser_transition(struct Scope* scope, struct Ast* trans_stmt)
+{
+  if (trans_stmt->kind == Ast_Name) {
+    check_names_expression(scope, trans_stmt);
+  }
+  else assert(!"TODO");
+}
+
+internal void
 check_names_parser_state(struct Scope* scope, struct Ast* state)
 {
   assert(state->kind == Ast_ParserState);
+  struct Ast* trans_stmt = ast_getattr(state, "trans_stmt");
+  check_names_parser_transition(state->scope, trans_stmt);
   struct List* stmt_list = ast_getattr(state, "stmt_list");
   if (stmt_list) {
     struct ListLink* link = list_first_link(stmt_list);
@@ -280,7 +288,9 @@ check_names_function_proto(struct Scope* scope, struct Ast* decl)
 {
   assert(decl->kind == Ast_FunctionProto);
   struct Ast* return_type = ast_getattr(decl, "return_type");
-  check_names_type_ref(scope, return_type);
+  if (return_type) {
+    check_names_type_ref(scope, return_type);
+  }
   struct List* params = ast_getattr(decl, "params");
   if (params) {
     struct ListLink* link = list_first_link(params);
@@ -311,6 +321,16 @@ internal void
 check_names_parser_decl(struct Scope* scope, struct Ast* decl)
 {
   assert(decl->kind == Ast_ParserDecl);
+  struct Ast* type_decl = ast_getattr(decl, "type_decl");
+  struct List* params = ast_getattr(type_decl, "params");
+  if (params) {
+    struct ListLink* link = list_first_link(params);
+    while (link) {
+      struct Ast* param = link->object;
+      check_names_function_param(decl->scope, param);
+      link = link->next;
+    }
+  }
   struct List* states = ast_getattr(decl, "states");
   if (states) {
     struct ListLink* link = list_first_link(states);
