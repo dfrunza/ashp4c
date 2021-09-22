@@ -119,7 +119,14 @@ build_symtable_statement(struct Ast* decl)
     build_symtable_instantiation(decl);
   } else if (decl->kind == Ast_TableDecl) {
     build_symtable_table_decl(decl);
-  } else if (decl->kind == Ast_MethodCallStmt || decl->kind == Ast_AssignmentStmt || decl->kind == Ast_IfStmt ||
+  } else if (decl->kind == Ast_IfStmt) {
+    struct Ast* if_stmt = ast_getattr(decl, "stmt");
+    build_symtable_statement(if_stmt);
+    struct Ast* else_stmt = ast_getattr(decl, "else_stmt");
+    if (else_stmt) {
+      build_symtable_statement(else_stmt);
+    }
+  } else if (decl->kind == Ast_MethodCallStmt || decl->kind == Ast_AssignmentStmt ||
              decl->kind == Ast_SwitchStmt || decl->kind == Ast_DirectApplication || decl->kind == Ast_ReturnStmt) {
     ; // pass
   }
@@ -154,7 +161,15 @@ build_symtable_control_decl(struct Ast* control_decl)
   if (!entry->id_type) {
     new_type(get_current_scope(), strname, type_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
-
+  struct List* type_params = ast_getattr(type_decl, "type_params");
+  if (type_params) {
+    struct ListLink* link = list_first_link(type_params);
+    while (link) {
+      struct Ast* type_param = link->object;
+      build_symtable_type_param(type_param);
+      link = link->next;
+    }
+  }
   control_decl->scope = push_scope();
   struct List* params = ast_getattr(type_decl, "params");
   if (params) {
@@ -301,7 +316,15 @@ build_symtable_extern_decl(struct Ast* extern_decl)
   if (!entry->id_type) {
     new_type(get_current_scope(), strname, extern_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
-
+  struct List* type_params = ast_getattr(extern_decl, "type_params");
+  if (type_params) {
+    struct ListLink* link = list_first_link(type_params);
+    while (link) {
+      struct Ast* type_param = link->object;
+      build_symtable_type_param(type_param);
+      link = link->next;
+    }
+  }
   extern_decl->scope = push_scope();
   struct List* method_protos = ast_getattr(extern_decl, "method_protos");
   if (method_protos) {
@@ -368,6 +391,29 @@ build_symtable_header_decl(struct Ast* header_decl)
     while (link) {
       struct Ast* field = link->object;
       build_symtable_struct_field(header_decl->scope, field);
+      link = link->next;
+    }
+  }
+}
+
+internal void
+build_symtable_header_union(struct Ast* header_union_decl)
+{
+  assert(header_union_decl->kind == Ast_HeaderUnionDecl);
+  struct Ast* name = ast_getattr(header_union_decl, "name");
+  char* strname = ast_getattr(name, "name");
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  if (!entry->id_type) {
+    new_type(get_current_scope(), strname, header_union_decl, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+
+  struct List* fields = ast_getattr(header_union_decl, "fields");
+  if (fields) {
+    header_union_decl->scope = new_scope(4);
+    struct ListLink* link = list_first_link(fields);
+    while (link) {
+      struct Ast* field = link->object;
+      build_symtable_struct_field(header_union_decl->scope, field);
       link = link->next;
     }
   }
@@ -529,6 +575,8 @@ build_symtable_program(struct Ast* program)
       build_symtable_struct_decl(decl);
     } else if (decl->kind == Ast_HeaderDecl) {
       build_symtable_header_decl(decl);
+    } else if (decl->kind == Ast_HeaderUnionDecl) {
+      build_symtable_header_union(decl);
     } else if (decl->kind == Ast_PackageDecl) {
       build_symtable_package(decl);
     } else if (decl->kind == Ast_ParserDecl) {

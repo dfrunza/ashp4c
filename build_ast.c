@@ -2795,10 +2795,7 @@ build_expression(int priority_threshold)
       }
       else if (token->klass == Token_AngleOpen && token_is_realTypeArg(peek_token())) {
         next_token();
-        struct Ast* args_expr = new_ast_node(Ast_TypeArgsExpr, token);
-        ast_setattr(args_expr, "expr", expr, AstAttr_Ast);
-        ast_setattr(args_expr, "type_args", build_realTypeArgumentList(), AstAttr_AstList);
-        expr = args_expr;
+        ast_setattr(expr, "type_args", build_realTypeArgumentList(), AstAttr_AstList);
         if (token->klass == Token_AngleClose) {
           next_token();
         } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);

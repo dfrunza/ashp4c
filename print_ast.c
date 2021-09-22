@@ -153,8 +153,6 @@ ast_kind_to_string(enum AstKind kind)
       return "Ast_IndexedArrayExpr";
     case Ast_FunctionCallExpr:
       return "Ast_FunctionCallExpr";
-    case Ast_TypeArgsExpr:
-      return "Ast_TypeArgsExpr";
     case Ast_P4Program:
       return "Ast_P4Program";
     case Ast_TypeDecl:

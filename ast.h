@@ -73,7 +73,6 @@ enum AstKind {
   Ast_MemberSelectExpr,
   Ast_IndexedArrayExpr,
   Ast_FunctionCallExpr,
-  Ast_TypeArgsExpr,
 };
 
 enum AstBaseType {
