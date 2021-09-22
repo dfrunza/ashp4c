@@ -2656,7 +2656,7 @@ build_expressionPrimary()
       enum AstExprOperator* op = arena_push(ast_storage, sizeof(*op));
       *op = AstExprOp_LogNot;
       ast_setattr(unary_expr, "op", op, AstAttr_ExprOperator);
-      ast_setattr(unary_expr, "expr", build_expression(1), AstAttr_Ast);
+      ast_setattr(unary_expr, "operand", build_expression(1), AstAttr_Ast);
       primary = unary_expr;
     } else if (token->klass == Token_Tilda) {
       next_token();
@@ -2664,7 +2664,7 @@ build_expressionPrimary()
       enum AstExprOperator* op = arena_push(ast_storage, sizeof(*op));
       *op = AstExprOp_BitNot;
       ast_setattr(unary_expr, "op", op, AstAttr_ExprOperator);
-      ast_setattr(unary_expr, "expr", build_expression(1), AstAttr_Ast);
+      ast_setattr(unary_expr, "operand", build_expression(1), AstAttr_Ast);
       primary = unary_expr;
     } else if (token->klass == Token_UnaryMinus) {
       next_token();
@@ -2672,7 +2672,7 @@ build_expressionPrimary()
       enum AstExprOperator* op = arena_push(ast_storage, sizeof(*op));
       *op = AstExprOp_Minus;
       ast_setattr(unary_expr, "op", op, AstAttr_ExprOperator);
-      ast_setattr(unary_expr, "expr", build_expression(1), AstAttr_Ast);
+      ast_setattr(unary_expr, "operand", build_expression(1), AstAttr_Ast);
       primary = unary_expr;
     } else if (token_is_typeName(token)) {
       primary = build_typeName();

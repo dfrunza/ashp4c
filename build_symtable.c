@@ -77,7 +77,11 @@ build_symtable_instantiation(struct Ast* instantiation)
 internal void
 build_symtable_table_property(struct Ast* prop)
 {
-  ; // pass
+  if (prop->kind == Ast_TableProp_Actions || prop->kind == Ast_TableProp_Entries ||
+             prop->kind == Ast_TableProp_SingleEntry || prop->kind == Ast_TableProp_Key) {
+    ; // pass
+  }
+  else assert(0);
 }
 
 internal void
@@ -245,7 +249,15 @@ build_symtable_parser_decl(struct Ast* parser_decl)
   if (!entry->id_type) {
     new_type(get_current_scope(), strname, type_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
-
+  struct List* type_params = ast_getattr(type_decl, "type_params");
+  if (type_params) {
+    struct ListLink* link = list_first_link(type_params);
+    while (link) {
+      struct Ast* type_param = link->object;
+      build_symtable_type_param(type_param);
+      link = link->next;
+    }
+  }
   parser_decl->scope = push_scope();
   struct List* params = ast_getattr(type_decl, "params");
   if (params) {
@@ -361,9 +373,9 @@ build_symtable_struct_decl(struct Ast* struct_decl)
     new_type(get_current_scope(), strname, struct_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
+  struct_decl->scope = push_scope();
   struct List* fields = ast_getattr(struct_decl, "fields");
   if (fields) {
-    struct_decl->scope = new_scope(4);
     struct ListLink* link = list_first_link(fields);
     while (link) {
       struct Ast* field = link->object;
@@ -371,6 +383,7 @@ build_symtable_struct_decl(struct Ast* struct_decl)
       link = link->next;
     }
   }
+  pop_scope();
 }
 
 internal void
@@ -384,9 +397,9 @@ build_symtable_header_decl(struct Ast* header_decl)
     new_type(get_current_scope(), strname, header_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
+  header_decl->scope = push_scope();
   struct List* fields = ast_getattr(header_decl, "fields");
   if (fields) {
-    header_decl->scope = new_scope(4);
     struct ListLink* link = list_first_link(fields);
     while (link) {
       struct Ast* field = link->object;
@@ -394,6 +407,7 @@ build_symtable_header_decl(struct Ast* header_decl)
       link = link->next;
     }
   }
+  pop_scope();
 }
 
 internal void
@@ -407,9 +421,9 @@ build_symtable_header_union(struct Ast* header_union_decl)
     new_type(get_current_scope(), strname, header_union_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
 
+  header_union_decl->scope = push_scope();
   struct List* fields = ast_getattr(header_union_decl, "fields");
   if (fields) {
-    header_union_decl->scope = new_scope(4);
     struct ListLink* link = list_first_link(fields);
     while (link) {
       struct Ast* field = link->object;
@@ -417,6 +431,7 @@ build_symtable_header_union(struct Ast* header_union_decl)
       link = link->next;
     }
   }
+  pop_scope();
 }
 
 internal void
@@ -452,7 +467,8 @@ build_symtable_enum_id_list(struct List* id_list)
       build_symtable_enum_field(id);
     } else if (id->kind == Ast_SpecifiedIdent) {
       build_symtable_specified_id(id);
-    } else assert(0);
+    }
+    else assert(0);
     link = link->next;
   }
 }
@@ -467,7 +483,6 @@ build_symtable_enum_decl(struct Ast* enum_decl)
   if (!entry->id_type) {
     new_type(get_current_scope(), strname, enum_decl, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
-
   enum_decl->scope = push_scope();
   struct List* id_list = ast_getattr(enum_decl, "id_list");
   if (id_list) {
@@ -558,6 +573,16 @@ build_symtable_function_decl(struct Ast* function_decl)
   pop_scope();
 }
 
+internal void
+build_symtable_match_kind(struct Ast* decl)
+{
+  assert(decl->kind == Ast_MatchKind);
+  struct List* id_list = ast_getattr(decl, "id_list");
+  if (id_list) {
+    build_symtable_enum_id_list(id_list);
+  }
+}
+
 void
 build_symtable_program(struct Ast* program)
 {
@@ -595,6 +620,8 @@ build_symtable_program(struct Ast* program)
       build_symtable_function_decl(decl);
     } else if (decl->kind == Ast_ActionDecl) {
       build_symtable_action_decl(decl);
+    } else if (decl->kind == Ast_MatchKind) {
+      build_symtable_match_kind(decl);
     }
     else assert(0);
     link = link->next;

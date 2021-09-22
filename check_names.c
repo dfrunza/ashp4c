@@ -62,6 +62,9 @@ check_names_expression(struct Scope* scope, struct Ast* expr)
     check_names_expression(scope, left_operand);
     struct Ast* right_operand = ast_getattr(expr, "right_operand");
     check_names_expression(scope, right_operand);
+  } else if (expr->kind == Ast_UnaryExpr) {
+    struct Ast* operand = ast_getattr(expr, "operand");
+    check_names_expression(scope, operand);
   } else if (expr->kind == Ast_Name) {
     char* strname = ast_getattr(expr, "name");
     struct SymtableEntry* entry = scope_resolve_name(scope, strname);
@@ -124,6 +127,9 @@ check_names_expression(struct Scope* scope, struct Ast* expr)
     if (colon_index) {
       check_names_expression(scope, colon_index);
     }
+  } else if (expr->kind == Ast_KvPair) {
+    struct Ast* kv_expr = ast_getattr(expr, "expr");
+    check_names_expression(scope, kv_expr);
   } else if (expr->kind == Ast_Int || expr->kind == Ast_Bool || expr->kind == Ast_StringLiteral) {
     ; // pass
   }
@@ -164,7 +170,33 @@ check_names_action_decl(struct Scope* scope, struct Ast* decl)
 }
 
 internal void
-check_names_table_action(struct Scope* scope, struct Ast* action)
+check_names_keyset_expr(struct Scope* scope, struct Ast* expr)
+{
+  if (expr->kind == Ast_Default || expr->kind == Ast_Dontcare) {
+    ; // pass
+  } else {
+    check_names_expression(scope, expr);
+  }
+}
+
+internal void
+check_names_select_keyset(struct Scope* scope, struct Ast* keyset)
+{
+  if (keyset->kind == Ast_TupleKeyset) {
+    struct List* expr_list = ast_getattr(keyset, "expr_list");
+    struct ListLink* link = list_first_link(expr_list);
+    while (link) {
+      struct Ast* expr = link->object;
+      check_names_keyset_expr(scope, expr);
+      link = link->next;
+    }
+  } else {
+    check_names_keyset_expr(scope, keyset);
+  }
+}
+
+internal void
+check_names_action_ref(struct Scope* scope, struct Ast* action)
 {
   assert(action->kind == Ast_ActionRef);
   struct Ast* name = ast_getattr(action, "name");
@@ -181,22 +213,58 @@ check_names_table_action(struct Scope* scope, struct Ast* action)
 }
 
 internal void
-check_names_table_property(struct Scope* scope, struct Ast* property)
+check_names_table_keyelem(struct Scope* scope, struct Ast* keyelem)
 {
-  if (property->kind == Ast_TableProp_Actions) {
-    struct List* action_list = ast_getattr(property, "action_list");
+  assert(keyelem->kind == Ast_KeyElement);
+  struct Ast* expr = ast_getattr(keyelem, "expr");
+  check_names_expression(scope, expr);
+  struct Ast* name = ast_getattr(keyelem, "name");
+  check_names_expression(scope, name);
+}
+
+internal void
+check_names_table_entry(struct Scope* scope, struct Ast* entry)
+{
+  assert(entry->kind == Ast_TableEntry);
+  struct Ast* keyset = ast_getattr(entry, "keyset");
+  check_names_select_keyset(scope, keyset);
+  struct Ast* action = ast_getattr(entry, "action");
+  check_names_action_ref(scope, action);
+}
+
+internal void
+check_names_table_property(struct Scope* scope, struct Ast* prop)
+{
+  if (prop->kind == Ast_TableProp_Actions) {
+    struct List* action_list = ast_getattr(prop, "action_list");
     if (action_list) {
       struct ListLink* link = list_first_link(action_list);
       while (link) {
         struct Ast* action = link->object;
-        check_names_table_action(scope, action);
+        check_names_action_ref(scope, action);
         link = link->next;
       }
     }
-  } else if (property->kind == Ast_TableProp_SingleEntry) {
-    struct Ast* init_expr = ast_getattr(property, "init_expr");
+  } else if (prop->kind == Ast_TableProp_SingleEntry) {
+    struct Ast* init_expr = ast_getattr(prop, "init_expr");
     if (init_expr) {
       check_names_expression(scope, init_expr);
+    }
+  } else if (prop->kind == Ast_TableProp_Key) {
+    struct List* keyelem_list = ast_getattr(prop, "keyelem_list");
+    struct ListLink* link = list_first_link(keyelem_list);
+    while (link) {
+      struct Ast* keyelem = link->object;
+      check_names_table_keyelem(scope, keyelem);
+      link = link->next;
+    }
+  } else if (prop->kind == Ast_TableProp_Entries) {
+    struct List* entries = ast_getattr(prop, "entries");
+    struct ListLink* link = list_first_link(entries);
+    while (link) {
+      struct Ast* entry = link->object;
+      check_names_table_entry(scope, entry);
+      link = link->next;
     }
   }
   else assert(!"TODO");
@@ -348,10 +416,35 @@ check_names_type_ref(struct Scope* scope, struct Ast* type_ref)
 }
 
 internal void
+check_names_transition_select_case(struct Scope* scope, struct Ast* select_case)
+{
+  assert(select_case->kind == Ast_SelectCase);
+  struct Ast* keyset = ast_getattr(select_case, "keyset");
+  check_names_select_keyset(scope, keyset);
+  struct Ast* name = ast_getattr(select_case, "name");
+  check_names_expression(scope, name);
+}
+
+internal void
 check_names_parser_transition(struct Scope* scope, struct Ast* trans_stmt)
 {
   if (trans_stmt->kind == Ast_Name) {
     check_names_expression(scope, trans_stmt);
+  } else if (trans_stmt->kind == Ast_SelectExpr) {
+    struct List* expr_list = ast_getattr(trans_stmt, "expr_list");
+    struct ListLink* link = list_first_link(expr_list);
+    while (link) {
+      struct Ast* expr = link->object;
+      check_names_expression(scope, expr);
+      link = link->next;
+    }
+    struct List* case_list = ast_getattr(trans_stmt, "case_list");
+    link = list_first_link(case_list);
+    while (link) {
+      struct Ast* select_case = link->object;
+      check_names_transition_select_case(scope, select_case);
+      link = link->next;
+    }
   }
   else assert(!"TODO");
 }
@@ -639,6 +732,8 @@ check_names_program(struct Ast* program)
       check_names_header_decl(program->scope, decl);
     } else if (decl->kind == Ast_HeaderUnionDecl) {
       check_names_header_union_decl(program->scope, decl);
+    } else if (decl->kind == Ast_MatchKind) {
+      ; // pass
     }
     else assert(!"TODO");
     link = link->next;
