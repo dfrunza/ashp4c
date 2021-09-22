@@ -132,6 +132,60 @@ check_names_action_decl(struct Scope* scope, struct Ast* decl)
 }
 
 internal void
+check_names_table_action(struct Scope* scope, struct Ast* action)
+{
+  assert(action->kind == Ast_ActionRef);
+  struct Ast* name = ast_getattr(action, "name");
+  check_names_expression(scope, name);
+  struct List* args = ast_getattr(action, "args");
+  if (args) {
+    struct ListLink* link = list_first_link(args);
+    while (link) {
+      struct Ast* arg = link->object;
+      check_names_expression(scope, arg);
+      link = link->next;
+    }
+  }
+}
+
+internal void
+check_names_table_property(struct Scope* scope, struct Ast* property)
+{
+  if (property->kind == Ast_TableProp_Actions) {
+    struct List* action_list = ast_getattr(property, "action_list");
+    if (action_list) {
+      struct ListLink* link = list_first_link(action_list);
+      while (link) {
+        struct Ast* action = link->object;
+        check_names_table_action(scope, action);
+        link = link->next;
+      }
+    }
+  } else if (property->kind == Ast_TableProp_SingleEntry) {
+    struct Ast* init_expr = ast_getattr(property, "init_expr");
+    if (init_expr) {
+      check_names_expression(scope, init_expr);
+    }
+  }
+  else assert(!"TODO");
+}
+
+internal void
+check_names_table_decl(struct Scope* scope, struct Ast* decl)
+{
+  assert(decl->kind == Ast_TableDecl);
+  struct List* prop_list = ast_getattr(decl, "prop_list");
+  if (prop_list) {
+    struct ListLink* link = list_first_link(prop_list);
+    while (link) {
+      struct Ast* prop = link->object;
+      check_names_table_property(scope, prop);
+      link = link->next;
+    }
+  }
+}
+
+internal void
 check_names_statement(struct Scope* scope, struct Ast* stmt)
 {
   if (stmt->kind == Ast_IfStmt) {
@@ -189,6 +243,8 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
     check_names_action_decl(scope, stmt);
   } else if (stmt->kind == Ast_Instantiation) {
     check_names_instantiation(scope, stmt);
+  } else if (stmt->kind == Ast_TableDecl) {
+    check_names_table_decl(scope, stmt);
   }
   else assert(!"TODO");
 }

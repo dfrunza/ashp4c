@@ -75,6 +75,33 @@ build_symtable_instantiation(struct Ast* instantiation)
 }
 
 internal void
+build_symtable_table_property(struct Ast* prop)
+{
+  ; // pass
+}
+
+internal void
+build_symtable_table_decl(struct Ast* decl)
+{
+  assert(decl->kind == Ast_TableDecl);
+  struct Ast* name = ast_getattr(decl, "name");
+  char* strname = ast_getattr(name, "name");
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  if (!entry->id_ident) {
+    new_ident(get_current_scope(), strname, decl, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+  struct List* prop_list = ast_getattr(decl, "prop_list");
+  if (prop_list) {
+    struct ListLink* link = list_first_link(prop_list);
+    while (link) {
+      struct Ast* prop = link->object;
+      build_symtable_table_property(prop);
+      link = link->next;
+    }
+  }
+}
+
+internal void
 build_symtable_statement(struct Ast* decl)
 {
   if (decl->kind == Ast_VarDecl) {
@@ -90,6 +117,8 @@ build_symtable_statement(struct Ast* decl)
     build_symtable_block_statement(decl);
   } else if (decl->kind == Ast_Instantiation) {
     build_symtable_instantiation(decl);
+  } else if (decl->kind == Ast_TableDecl) {
+    build_symtable_table_decl(decl);
   } else if (decl->kind == Ast_MethodCallStmt || decl->kind == Ast_AssignmentStmt || decl->kind == Ast_IfStmt ||
              decl->kind == Ast_SwitchStmt || decl->kind == Ast_DirectApplication || decl->kind == Ast_ReturnStmt) {
     ; // pass
