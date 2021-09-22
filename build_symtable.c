@@ -49,7 +49,7 @@ build_symtable_action_decl(struct Ast* action_decl) {
   }
   struct Ast* action_body = ast_getattr(action_decl, "stmt");
   if (action_body) {
-    struct List* stmt_list = ast_getattr(action_decl, "stmt_list");
+    struct List* stmt_list = ast_getattr(action_body, "stmt_list");
     if (stmt_list) {
       struct ListLink* link = list_first_link(stmt_list);
       while (link) {
@@ -165,7 +165,6 @@ build_symtable_control_decl(struct Ast* control_decl)
       link = link->next;
     }
   }
-
   struct List* local_decls = ast_getattr(control_decl, "local_decls");
   if (local_decls) {
     struct ListLink* link = list_first_link(local_decls);

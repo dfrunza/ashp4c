@@ -125,9 +125,11 @@ check_names_action_decl(struct Scope* scope, struct Ast* decl)
   struct List* stmt_list = ast_getattr(action_body, "stmt_list");
   if (stmt_list) {
     struct ListLink* link = list_first_link(stmt_list);
-    struct Ast* stmt = link->object;
-    check_names_statement(decl->scope, stmt);
-    link = link->next;
+    while (link) {
+      struct Ast* stmt = link->object;
+      check_names_statement(decl->scope, stmt);
+      link = link->next;
+    }
   }
 }
 
@@ -186,6 +188,31 @@ check_names_table_decl(struct Scope* scope, struct Ast* decl)
 }
 
 internal void
+check_names_method_call(struct Scope* scope, struct Ast* stmt)
+{
+  struct Ast* lvalue = ast_getattr(stmt, "lvalue");
+  check_names_expression(scope, lvalue);
+  struct List* type_args = ast_getattr(stmt, "type_args");
+  if (type_args) {
+    struct ListLink* link = list_first_link(type_args);
+    while (link) {
+      struct Ast* type_arg = link->object;
+      check_names_type_ref(scope, type_arg);
+      link = link->next;
+    }
+  }
+  struct List* args = ast_getattr(stmt, "args");
+  if (args) {
+    struct ListLink* link = list_first_link(args);
+    while (link) {
+      struct Ast* arg = link->object;
+      check_names_expression(scope, arg);
+      link = link->next;
+    }
+  }
+}
+
+internal void
 check_names_statement(struct Scope* scope, struct Ast* stmt)
 {
   if (stmt->kind == Ast_IfStmt) {
@@ -213,17 +240,7 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
     struct Ast* assign_expr = ast_getattr(stmt, "expr");
     check_names_expression(scope, assign_expr);
   } else if (stmt->kind == Ast_MethodCallStmt) {
-    struct Ast* lvalue = ast_getattr(stmt, "lvalue");
-    check_names_expression(scope, lvalue);
-    struct List* args = ast_getattr(stmt, "args");
-    if (args) {
-      struct ListLink* link = list_first_link(args);
-      while (link) {
-        struct Ast* arg = link->object;
-        check_names_expression(scope, arg);
-        link = link->next;
-      }
-    }
+    check_names_method_call(scope, stmt);
   } else if (stmt->kind == Ast_DirectApplication) {
     struct Ast* name = ast_getattr(stmt, "name");
     check_names_expression(scope, name);
@@ -313,7 +330,7 @@ check_names_control_decl(struct Scope* scope, struct Ast* decl)
     struct ListLink* link = list_first_link(local_decls);
     while (link) {
       struct Ast* stmt = link->object;
-      check_names_statement(scope, stmt);
+      check_names_statement(decl->scope, stmt);
       link = link->next;
     }
   }
