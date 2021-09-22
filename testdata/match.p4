@@ -16,6 +16,7 @@ limitations under the License.
 
 extern packet_in {}
 extern packet_out {}
+extern void verify(bool condition, error code);
 
 // IPv4 header without options
 header Ipv4_no_options_h {

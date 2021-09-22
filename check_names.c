@@ -338,7 +338,7 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
       struct ListLink* link = list_first_link(stmt_list);
       while (link) {
         struct Ast* block_stmt = link->object;
-        check_names_statement(stmt->scope, block_stmt);
+        check_names_statement(scope, block_stmt);
         link = link->next;
       }
     }
@@ -732,7 +732,7 @@ check_names_program(struct Ast* program)
       check_names_header_decl(program->scope, decl);
     } else if (decl->kind == Ast_HeaderUnionDecl) {
       check_names_header_union_decl(program->scope, decl);
-    } else if (decl->kind == Ast_MatchKind) {
+    } else if (decl->kind == Ast_MatchKind || decl->kind == Ast_Error) {
       ; // pass
     }
     else assert(!"TODO");

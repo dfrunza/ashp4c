@@ -285,6 +285,8 @@ symtable_init()
   add_all_keywords(global_scope);
   add_all_base_types(global_scope);
   add_builtin_ident(global_scope, "accept");
+  add_builtin_ident(global_scope, "reject");
+  add_builtin_ident(global_scope, "error");
   array_init(&scope_stack, sizeof(global_scope), symtable_storage);
   array_append(&scope_stack, &global_scope);
 }

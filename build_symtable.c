@@ -106,6 +106,16 @@ build_symtable_table_decl(struct Ast* decl)
 }
 
 internal void
+build_symtable_switch_case(struct Ast* switch_case)
+{
+  assert(switch_case->kind == Ast_SwitchCase);
+  struct Ast* case_stmt = ast_getattr(switch_case, "stmt");
+  if (case_stmt->kind == Ast_BlockStmt) {
+    build_symtable_block_statement(case_stmt);
+  }
+}
+
+internal void
 build_symtable_statement(struct Ast* decl)
 {
   if (decl->kind == Ast_VarDecl) {
@@ -130,8 +140,19 @@ build_symtable_statement(struct Ast* decl)
     if (else_stmt) {
       build_symtable_statement(else_stmt);
     }
+  } else if (decl->kind == Ast_SwitchStmt) {
+    struct List* switch_cases = ast_getattr(decl, "switch_cases");
+    if (switch_cases) {
+      struct ListLink* link = list_first_link(switch_cases);
+      while (link) {
+        struct Ast* switch_case = link->object;
+        build_symtable_switch_case(switch_case);
+        link = link->next;
+      }
+    }
   } else if (decl->kind == Ast_MethodCallStmt || decl->kind == Ast_AssignmentStmt ||
-             decl->kind == Ast_SwitchStmt || decl->kind == Ast_DirectApplication || decl->kind == Ast_ReturnStmt) {
+             decl->kind == Ast_DirectApplication || decl->kind == Ast_ReturnStmt ||
+             decl->kind == Ast_Int || decl->kind == Ast_Bool || decl->kind == Ast_StringLiteral) {
     ; // pass
   }
   else assert(0);
@@ -178,6 +199,15 @@ build_symtable_control_decl(struct Ast* control_decl)
   struct List* params = ast_getattr(type_decl, "params");
   if (params) {
     struct ListLink* link = list_first_link(params);
+    while (link) {
+      struct Ast* param = link->object;
+      build_symtable_param(param);
+      link = link->next;
+    }
+  }
+  struct List* ctor_params = ast_getattr(control_decl, "ctor_params");
+  if (ctor_params) {
+    struct ListLink* link = list_first_link(ctor_params);
     while (link) {
       struct Ast* param = link->object;
       build_symtable_param(param);
@@ -262,6 +292,15 @@ build_symtable_parser_decl(struct Ast* parser_decl)
   struct List* params = ast_getattr(type_decl, "params");
   if (params) {
     struct ListLink* link = list_first_link(params);
+    while (link) {
+      struct Ast* param = link->object;
+      build_symtable_param(param);
+      link = link->next;
+    }
+  }
+  struct List* ctor_params = ast_getattr(parser_decl, "ctor_params");
+  if (ctor_params) {
+    struct ListLink* link = list_first_link(ctor_params);
     while (link) {
       struct Ast* param = link->object;
       build_symtable_param(param);
@@ -507,24 +546,20 @@ internal void
 build_symtable_type_decl(struct Ast* type_decl)
 {
   assert(type_decl->kind == Ast_TypeDecl);
-  bool is_typedef = *(bool*)ast_getattr(type_decl, "is_typedef");
-  if (is_typedef) {
-    struct Ast* name = ast_getattr(type_decl, "name");
-    char* strname = ast_getattr(name, "name");
-    struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
-    if (!entry->id_type) {
-      new_type(get_current_scope(), strname, type_decl, name->line_nr);
-    } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
-    struct Ast* type_ref = ast_getattr(type_decl, "type_ref");
-    if (type_ref->kind == Ast_StructDecl) {
-      build_symtable_struct_decl(type_ref);
-    } else if (type_ref->kind == Ast_HeaderDecl) {
-      build_symtable_header_decl(type_ref);
-    } else if (type_ref->kind == Ast_BaseType || type_ref->kind == Ast_Name) {
-      ; // pass
-    }
+  struct Ast* name = ast_getattr(type_decl, "name");
+  char* strname = ast_getattr(name, "name");
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  if (!entry->id_type) {
+    new_type(get_current_scope(), strname, type_decl, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+  struct Ast* type_ref = ast_getattr(type_decl, "type_ref");
+  if (type_ref->kind == Ast_StructDecl) {
+    build_symtable_struct_decl(type_ref);
+  } else if (type_ref->kind == Ast_HeaderDecl) {
+    build_symtable_header_decl(type_ref);
+  } else if (type_ref->kind == Ast_BaseType || type_ref->kind == Ast_Name) {
+    ; // pass
   }
-  else assert(!"TODO");
 }
 
 void
@@ -583,6 +618,12 @@ build_symtable_match_kind(struct Ast* decl)
   }
 }
 
+internal void
+build_symtable_error_decl(struct Ast* decl)
+{
+  ; // TODO
+}
+
 void
 build_symtable_program(struct Ast* program)
 {
@@ -622,6 +663,8 @@ build_symtable_program(struct Ast* program)
       build_symtable_action_decl(decl);
     } else if (decl->kind == Ast_MatchKind) {
       build_symtable_match_kind(decl);
+    } else if (decl->kind == Ast_Error) {
+      build_symtable_error_decl(decl);
     }
     else assert(0);
     link = link->next;

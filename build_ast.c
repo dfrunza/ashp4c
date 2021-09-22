@@ -2677,10 +2677,10 @@ build_expressionPrimary()
     } else if (token_is_typeName(token)) {
       primary = build_typeName();
     } else if (token->klass == Token_Error) {
-      next_token();
       struct Ast* name = new_ast_node(Ast_Name, token);
-      ast_setattr(name, "name", token->lexeme, AstAttr_Ast);
+      ast_setattr(name, "name", token->lexeme, AstAttr_String);
       primary = name;
+      next_token();
     } else assert(0);
   } else error("at line %d: an expression was expected, got `%s`.", token->line_nr, token->lexeme);
   return primary;
