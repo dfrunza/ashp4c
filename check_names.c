@@ -94,6 +94,13 @@ check_names_expression(struct Scope* scope, struct Ast* expr)
     check_names_type_ref(scope, to_type);
     struct Ast* cast_expr = ast_getattr(expr, "expr");
     check_names_expression(scope, cast_expr);
+  } else if (expr->kind == Ast_IndexedArrayExpr) {
+    struct Ast* array_index = ast_getattr(expr, "index");
+    check_names_expression(scope, array_index);
+    struct Ast* colon_index = ast_getattr(expr, "colon_index");
+    if (colon_index) {
+      check_names_expression(scope, colon_index);
+    }
   } else if (expr->kind == Ast_Int || expr->kind == Ast_Bool || expr->kind == Ast_StringLiteral) {
     ; // pass
   }
@@ -213,6 +220,16 @@ check_names_method_call(struct Scope* scope, struct Ast* stmt)
 }
 
 internal void
+check_names_switch_case(struct Scope* scope, struct Ast* switch_case)
+{
+  assert(switch_case->kind == Ast_SwitchCase);
+  struct Ast* case_stmt = ast_getattr(switch_case, "stmt");
+  if (case_stmt) {
+    check_names_statement(scope, case_stmt);
+  }
+}
+
+internal void
 check_names_statement(struct Scope* scope, struct Ast* stmt)
 {
   if (stmt->kind == Ast_IfStmt) {
@@ -262,6 +279,18 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
     check_names_instantiation(scope, stmt);
   } else if (stmt->kind == Ast_TableDecl) {
     check_names_table_decl(scope, stmt);
+  } else if (stmt->kind == Ast_SwitchStmt) {
+    struct Ast* switch_expr = ast_getattr(stmt, "expr");
+    check_names_expression(scope, switch_expr);
+    struct List* switch_cases = ast_getattr(stmt, "switch_cases");
+    if (switch_cases) {
+      struct ListLink* link = list_first_link(switch_cases);
+      while (link) {
+        struct Ast* switch_case = link->object;
+        check_names_switch_case(scope, switch_case);
+        link = link->next;
+      }
+    }
   }
   else assert(!"TODO");
 }

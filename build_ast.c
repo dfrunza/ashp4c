@@ -1340,7 +1340,7 @@ build_prefixedNonTypeName()
 internal struct Ast*
 build_arrayIndex()
 {
-  struct Ast* index = new_ast_node(Ast_ArrayIndex, token);
+  struct Ast* index = new_ast_node(Ast_IndexedArrayExpr, token);
   if (token_is_expression(token)) {
     ast_setattr(index, "index", build_expression(1), AstAttr_Ast);
   } else error("at line %d: an expression was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -2776,8 +2776,8 @@ build_expression(int priority_threshold)
       else if (token->klass == Token_BracketOpen) {
         next_token();
         struct Ast* index_expr = new_ast_node(Ast_IndexedArrayExpr, token);
-        ast_setattr(index_expr, "expr", expr, AstAttr_Ast);
-        ast_setattr(index_expr, "index_expr", build_arrayIndex(), AstAttr_Ast);
+        ast_setattr(index_expr, "index", expr, AstAttr_Ast);
+        ast_setattr(index_expr, "colon_index", build_arrayIndex(), AstAttr_Ast);
         expr = index_expr;
         if (token->klass == Token_BracketClose) {
           next_token();

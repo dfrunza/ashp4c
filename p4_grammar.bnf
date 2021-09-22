@@ -248,7 +248,8 @@
 
 <lvalue> := <prefixedNonTypeName> {
       '.' <member>
-    | '[' <expression> { ':' <expression> } ']' }*
+    | '[' <expression> { ':' <expression> } ']'  /* indexed array */
+  }*
 
 <expression> := <expressionPrimary> { <exprOperator> <expression> }*
 
