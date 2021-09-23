@@ -49,10 +49,10 @@ ast_kind_to_string(enum AstKind kind)
       return "Ast_PackageDecl";
     case Ast_Instantiation:
       return "Ast_Instantiation";
-    case Ast_Error:
-      return "Ast_Error";
-    case Ast_MatchKind:
-      return "Ast_MatchKind";
+    case Ast_ErrorDecl:
+      return "Ast_ErrorDecl";
+    case Ast_MatchKindDecl:
+      return "Ast_MatchKindDecl";
     case Ast_FunctionDecl:
       return "Ast_FunctionDecl";
     case Ast_Dontcare:

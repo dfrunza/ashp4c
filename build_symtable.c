@@ -78,7 +78,7 @@ internal void
 build_symtable_table_property(struct Ast* prop)
 {
   if (prop->kind == Ast_TableProp_Actions || prop->kind == Ast_TableProp_Entries ||
-             prop->kind == Ast_TableProp_SingleEntry || prop->kind == Ast_TableProp_Key) {
+      prop->kind == Ast_TableProp_SingleEntry || prop->kind == Ast_TableProp_Key) {
     ; // pass
   }
   else assert(0);
@@ -611,7 +611,7 @@ build_symtable_function_decl(struct Ast* function_decl)
 internal void
 build_symtable_match_kind(struct Ast* decl)
 {
-  assert(decl->kind == Ast_MatchKind);
+  assert(decl->kind == Ast_MatchKindDecl);
   struct List* id_list = ast_getattr(decl, "id_list");
   if (id_list) {
     build_symtable_enum_id_list(id_list);
@@ -661,9 +661,9 @@ build_symtable_program(struct Ast* program)
       build_symtable_function_decl(decl);
     } else if (decl->kind == Ast_ActionDecl) {
       build_symtable_action_decl(decl);
-    } else if (decl->kind == Ast_MatchKind) {
+    } else if (decl->kind == Ast_MatchKindDecl) {
       build_symtable_match_kind(decl);
-    } else if (decl->kind == Ast_Error) {
+    } else if (decl->kind == Ast_ErrorDecl) {
       build_symtable_error_decl(decl);
     }
     else assert(0);

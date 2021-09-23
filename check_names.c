@@ -133,7 +133,7 @@ check_names_expression(struct Scope* scope, struct Ast* expr)
   } else if (expr->kind == Ast_Int || expr->kind == Ast_Bool || expr->kind == Ast_StringLiteral) {
     ; // pass
   }
-  else assert(!"TODO");
+  else assert(0);
 }
 
 internal void
@@ -267,7 +267,7 @@ check_names_table_property(struct Scope* scope, struct Ast* prop)
       link = link->next;
     }
   }
-  else assert(!"TODO");
+  else assert(0);
 }
 
 internal void
@@ -383,7 +383,7 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
       }
     }
   }
-  else assert(!"TODO");
+  else assert(0);
 }
 
 internal void
@@ -446,7 +446,7 @@ check_names_parser_transition(struct Scope* scope, struct Ast* trans_stmt)
       link = link->next;
     }
   }
-  else assert(!"TODO");
+  else assert(0);
 }
 
 internal void
@@ -732,10 +732,10 @@ check_names_program(struct Ast* program)
       check_names_header_decl(program->scope, decl);
     } else if (decl->kind == Ast_HeaderUnionDecl) {
       check_names_header_union_decl(program->scope, decl);
-    } else if (decl->kind == Ast_MatchKind || decl->kind == Ast_Error) {
+    } else if (decl->kind == Ast_MatchKindDecl || decl->kind == Ast_ErrorDecl) {
       ; // pass
     }
-    else assert(!"TODO");
+    else assert(0);
     link = link->next;
   }
 }

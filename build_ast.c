@@ -2426,7 +2426,7 @@ build_errorDeclaration()
   struct Ast* decl = 0;
   if (token->klass == Token_Error) {
     next_token();
-    decl = new_ast_node(Ast_Error, token);
+    decl = new_ast_node(Ast_ErrorDecl, token);
     if (token->klass == Token_BraceOpen) {
       next_token();
       if (token_is_name(token)) {
@@ -2446,7 +2446,7 @@ build_matchKindDeclaration()
   struct Ast* decl = 0;
   if (token->klass == Token_MatchKind) {
     next_token();
-    decl = new_ast_node(Ast_MatchKind, token);
+    decl = new_ast_node(Ast_MatchKindDecl, token);
     if (token->klass == Token_BraceOpen) {
       next_token();
       if (token_is_name(token)) {
