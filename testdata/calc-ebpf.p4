@@ -1,6 +1,16 @@
 extern packet_in {}
 extern packet_out {}
 package ebpfFilter();
+extern void hash_table(int size);
+
+match_kind {
+    /// Match bits exactly.
+    exact,
+    /// Ternary match, using a mask.
+    ternary,
+    /// Longest-prefix match.
+    lpm
+}
 
 /*
  * Define the headers the program will recognize

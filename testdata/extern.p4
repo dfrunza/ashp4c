@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-extern Crc16 <T> {
+extern Crc16 <T, U> {
     void hash<U>(in U input_data);
     U id<U>(in U x);
 }

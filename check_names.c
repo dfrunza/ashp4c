@@ -3,7 +3,7 @@
 #include "symtable.h"
 
 
-#define DEBUG_ENABLED 1
+#define DEBUG_ENABLED 0
 
 
 internal void check_names_expression(struct Scope* scope, struct Ast* expr);
@@ -327,10 +327,10 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
     struct Ast* cond_expr = ast_getattr(stmt, "cond_expr");
     check_names_expression(scope, cond_expr);
     struct Ast* if_stmt = ast_getattr(stmt, "stmt");
-    check_names_statement(scope, if_stmt);
+    check_names_statement(if_stmt->scope ? if_stmt->scope : scope, if_stmt);
     struct Ast* else_stmt = ast_getattr(stmt, "else_stmt");
     if (else_stmt) {
-      check_names_statement(scope, else_stmt);
+      check_names_statement(else_stmt->scope ? else_stmt->scope : scope, else_stmt);
     }
   } else if (stmt->kind == Ast_BlockStmt) {
     struct List* stmt_list = ast_getattr(stmt, "stmt_list");
@@ -338,7 +338,7 @@ check_names_statement(struct Scope* scope, struct Ast* stmt)
       struct ListLink* link = list_first_link(stmt_list);
       while (link) {
         struct Ast* block_stmt = link->object;
-        check_names_statement(scope, block_stmt);
+        check_names_statement(stmt->scope, block_stmt);
         link = link->next;
       }
     }

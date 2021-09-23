@@ -110,7 +110,7 @@ build_symtable_switch_case(struct Ast* switch_case)
 {
   assert(switch_case->kind == Ast_SwitchCase);
   struct Ast* case_stmt = ast_getattr(switch_case, "stmt");
-  if (case_stmt->kind == Ast_BlockStmt) {
+  if (case_stmt && case_stmt->kind == Ast_BlockStmt) {
     build_symtable_block_statement(case_stmt);
   }
 }
