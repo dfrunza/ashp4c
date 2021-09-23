@@ -4,5 +4,5 @@
 #include "ast.h"
 
 
-void check_names_program(struct Ast* ast);
+void resolve_names_program(struct Ast* ast);
 
