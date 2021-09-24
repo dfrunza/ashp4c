@@ -25,8 +25,8 @@ enum AstKind {
   Ast_FunctionDecl,
   Ast_Dontcare,
   Ast_IntTypeSize,
-  Ast_Int,
-  Ast_Bool,
+  Ast_IntLiteral,
+  Ast_BoolLiteral,
   Ast_StringLiteral,
   Ast_Tuple,
   Ast_TupleKeyset,
@@ -38,7 +38,6 @@ enum AstKind {
   Ast_Argument,
   Ast_VarDecl,
   Ast_DirectApplication,
-  Ast_ArrayIndex,
   Ast_Parameter,
   Ast_Lvalue,
   Ast_AssignmentStmt,
@@ -150,20 +149,393 @@ struct Ast {
   int id;
   int line_nr;
   struct Scope* scope;
-  int attr_count;
-  struct AstAttribute* attrs[AST_ATTRTABLE_CAPACITY];
+  struct Ast* name;
+  struct List* type_args;
+  //int attr_count;
+  //struct AstAttribute* attrs[AST_ATTRTABLE_CAPACITY];
 };
 
-struct AstAttributeIterator {
-  struct Ast* ast;
-  int table_i;
-  struct AstAttribute* attr_at;
+struct Ast_Name {
+  struct Ast;
+  char* strname;
+  bool is_dotprefixed;
 };
 
-void ast_attr_set_storage(struct Arena* attr_storage);
-void* ast_getattr(struct Ast* ast, char* attr_name);
-void ast_setattr(struct Ast* ast, char* attr_name, void* attr_value, enum AstAttributeType attr_type);
-struct AstAttribute* ast_attriter_init(struct AstAttributeIterator* iter, struct Ast* ast);
-struct AstAttribute* ast_attriter_get_next(struct AstAttributeIterator* iter);
+struct Ast_BaseType {
+  struct Ast;
+  struct Ast* type_name;
+  enum AstBaseType base_type;
+  struct Ast* size;
+};
+
+struct Ast_ConstDecl {
+  struct Ast;
+  struct Ast* type_ref;
+  struct Ast* expr;
+};
+
+struct Ast_ExternDecl {
+  struct Ast;
+  struct List* type_params;
+  struct List* method_protos;
+};
+
+struct Ast_FunctionProto {
+  struct Ast;
+  struct Ast* return_type;
+  struct List* type_params;
+  struct List* params;
+};
+
+struct Ast_ActionDecl {
+  struct Ast;
+  struct List* params;
+  struct Ast* stmt;
+};
+
+struct Ast_HeaderDecl {
+  struct Ast;
+  struct List* fields;
+};
+
+struct Ast_HeaderUnionDecl {
+  struct Ast;
+  struct List* fields;
+};
+
+struct Ast_StructDecl {
+  struct Ast;
+  struct List* fields;
+};
+
+struct Ast_EnumDecl {
+  struct Ast;
+  struct Ast* type_size;
+  struct List* id_list;
+};
+
+struct Ast_TypeDecl {
+  struct Ast;
+  bool is_typedef;
+  struct Ast* type_ref;
+};
+
+struct Ast_ParserDecl {
+  struct Ast;
+  struct Ast* type_decl;
+  struct List* ctor_params;
+  struct List* local_elements;
+  struct List* states;
+};
+
+struct Ast_ControlDecl {
+  struct Ast;
+  struct Ast* type_decl;
+  struct List* ctor_params;
+  struct List* local_decls;
+  struct Ast* apply_stmt;
+};
+
+struct Ast_PackageDecl {
+  struct Ast;
+  struct List* type_params;
+  struct List* params;
+};
+
+struct Ast_Instantiation {
+  struct Ast;
+  struct Ast* type_ref;
+  struct List* args;
+};
+
+struct Ast_ErrorDecl {
+  struct Ast;
+  struct List* id_list;
+};
+
+struct Ast_MatchKindDecl {
+  struct Ast;
+  struct List* id_list;
+};
+
+struct Ast_FunctionDecl {
+  struct Ast;
+  struct Ast* proto;
+  struct Ast* stmt;
+};
+
+struct Ast_Dontcare {
+  struct Ast;
+};
+
+struct Ast_IntTypeSize {
+  struct Ast;
+  struct Ast* size;
+};
+
+struct Ast_IntLiteral {
+  struct Ast;
+  enum AstIntegerFlags flags;
+  int value;
+  int width;
+};
+
+struct Ast_BoolLiteral {
+  struct Ast;
+  bool value;
+};
+
+struct Ast_StringLiteral {
+  struct Ast;
+  char* value;
+};
+
+struct Ast_Tuple {
+  struct Ast;
+};
+
+struct Ast_TupleKeyset {
+  struct Ast;
+  struct List* expr_list;
+};
+
+struct Ast_HeaderStack {
+  struct Ast;
+  struct Ast* stack_expr;
+};
+
+struct Ast_SpecializedType {
+  struct Ast;
+};
+
+struct Ast_SpecifiedIdent {
+  struct Ast;
+  struct Ast* init_expr;
+};
+
+struct Ast_StructField {
+  struct Ast;
+  struct Ast* type;
+};
+
+struct Ast_ParserType {
+  struct Ast;
+  struct List* type_params;
+  struct List* params;
+};
+
+struct Ast_Argument {
+  struct Ast;
+  struct Ast* init_expr;
+};
+
+struct Ast_VarDecl {
+  struct Ast;
+  struct Ast* type;
+  struct Ast* init_expr;
+};
+
+struct Ast_DirectApplication {
+  struct Ast;
+  struct List* args;
+};
+
+struct Ast_Parameter {
+  struct Ast;
+  enum AstParamDirection direction;
+  struct Ast* type;
+  struct Ast* init_expr;
+};
+
+struct Ast_Lvalue {
+  struct Ast;
+  struct List* expr;
+};
+
+struct Ast_AssignmentStmt {
+  struct Ast;
+  struct Ast* lvalue;
+  struct Ast* expr;
+};
+
+struct Ast_MethodCallStmt {
+  struct Ast;
+  struct Ast* lvalue;
+  struct List* args;
+};
+
+struct Ast_EmptyStmt {
+  struct Ast;
+};
+
+struct Ast_Default {
+  struct Ast;
+};
+
+struct Ast_SelectCase {
+  struct Ast;
+  struct Ast* keyset;
+};
+
+struct Ast_ParserState {
+  struct Ast;
+  struct List* stmt_list;
+  struct Ast* trans_stmt;
+};
+
+struct Ast_ControlType {
+  struct Ast;
+  struct List* type_params;
+  struct List* params;
+};
+
+struct Ast_KeyElement {
+  struct Ast;
+  struct Ast* expr;
+};
+
+struct Ast_ActionRef {
+  struct Ast;
+  struct List* args;
+};
+
+struct Ast_TableEntry {
+  struct Ast;
+  struct Ast* keyset;
+  struct Ast* action;
+};
+
+struct Ast_TableProp_Key {
+  struct Ast;
+  struct List* keyelem_list;
+};
+
+struct Ast_TableProp_Actions {
+  struct Ast;
+  struct List* action_list;
+};
+
+struct Ast_TableProp_Entries {
+  struct Ast;
+  bool is_const;
+  struct List* entries;
+};
+
+struct Ast_TableProp_SingleEntry {
+  struct Ast;
+  struct Ast* init_expr;
+};
+
+struct Ast_TableDecl {
+  struct Ast;
+  struct List* prop_list;
+};
+
+struct Ast_IfStmt {
+  struct Ast;
+  struct Ast* cond_expr;
+  struct Ast* stmt;
+  struct Ast* else_stmt;
+};
+
+struct Ast_ExitStmt {
+  struct Ast;
+};
+
+struct Ast_ReturnStmt {
+  struct Ast;
+  struct Ast* expr;
+};
+
+struct Ast_SwitchLabel {
+  struct Ast;
+};
+
+struct Ast_SwitchCase {
+  struct Ast;
+  struct Ast* label;
+  struct Ast* stmt;
+};
+
+struct Ast_SwitchStmt {
+  struct Ast;
+  struct Ast* expr;
+  struct List* switch_cases;
+};
+
+struct Ast_BlockStmt {
+  struct Ast;
+  struct List* stmt_list;
+};
+
+struct Ast_KvPair {
+  struct Ast;
+  struct Ast* expr;
+};
+
+struct Ast_P4Program {
+  struct Ast;
+  struct List* decl_list;
+};
+
+struct Ast_SelectExpr {
+  struct Ast;
+  struct List* expr_list;
+  struct List* case_list;
+};
+
+struct Ast_ExpressionListExpr {
+  struct Ast;
+  struct List* expr_list;
+};
+
+struct Ast_CastExpr {
+  struct Ast;
+  struct Ast* to_type;
+  struct Ast* expr;
+};
+
+struct Ast_UnaryExpr {
+  struct Ast;
+  enum AstExprOperator op;
+  struct Ast* operand;
+};
+
+struct Ast_BinaryExpr {
+  struct Ast;
+  enum AstExprOperator op;
+  struct Ast* left_operand;
+  struct Ast* right_operand;
+};
+
+struct Ast_MemberSelectExpr {
+  struct Ast;
+  struct Ast* expr;
+  struct Ast* member_name;
+};
+
+struct Ast_IndexedArrayExpr {
+  struct Ast;
+  struct Ast* index;
+  struct Ast* colon_index;
+};
+
+struct Ast_FunctionCallExpr {
+  struct Ast;
+  struct Ast* expr;
+  struct List* args;
+};
+
+//struct AstAttributeIterator {
+//  struct Ast* ast;
+//  int table_i;
+//  struct AstAttribute* attr_at;
+//};
+
+//void ast_attr_set_storage(struct Arena* attr_storage);
+//void* ast_getattr(struct Ast* ast, char* attr_name);
+//void ast_setattr(struct Ast* ast, char* attr_name, void* attr_value, enum AstAttributeType attr_type);
+//struct AstAttribute* ast_attriter_init(struct AstAttributeIterator* iter, struct Ast* ast);
+//struct AstAttribute* ast_attriter_get_next(struct AstAttributeIterator* iter);
 
 void print_ast(struct Ast* ast);

@@ -59,10 +59,10 @@ ast_kind_to_string(enum AstKind kind)
       return "Ast_Dontcare";
     case Ast_IntTypeSize:
       return "Ast_IntTypeSize";
-    case Ast_Int:
-      return "Ast_Int";
-    case Ast_Bool:
-      return "Ast_Bool";
+    case Ast_IntLiteral:
+      return "Ast_IntLiteral";
+    case Ast_BoolLiteral:
+      return "Ast_BoolLiteral";
     case Ast_StringLiteral:
       return "Ast_StringLiteral";
     case Ast_Tuple:
@@ -85,8 +85,8 @@ ast_kind_to_string(enum AstKind kind)
       return "Ast_VarDecl";
     case Ast_DirectApplication:
       return "Ast_DirectApplication";
-    case Ast_ArrayIndex:
-      return "Ast_ArrayIndex";
+    case Ast_IndexedArrayExpr:
+      return "Ast_IndexedArrayExpr";
     case Ast_Parameter:
       return "Ast_Parameter";
     case Ast_Lvalue:
@@ -149,8 +149,6 @@ ast_kind_to_string(enum AstKind kind)
       return "Ast_KvPair";
     case Ast_MemberSelectExpr:
       return "Ast_MemberSelectExpr";
-    case Ast_IndexedArrayExpr:
-      return "Ast_IndexedArrayExpr";
     case Ast_FunctionCallExpr:
       return "Ast_FunctionCallExpr";
     case Ast_P4Program:

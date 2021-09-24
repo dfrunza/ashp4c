@@ -14,11 +14,10 @@ gcc $C_FLAGS -I . -c $SRC/symtable.c
 gcc $C_FLAGS -I . -c $SRC/lex.c
 gcc $C_FLAGS -I . -c $SRC/ast.c
 gcc $C_FLAGS -I . -c $SRC/build_ast.c
-gcc $C_FLAGS -I . -c $SRC/print_ast.c 
 gcc $C_FLAGS -I . -c $SRC/build_symtable.c 
 gcc $C_FLAGS -I . -c $SRC/scope_name_resolve.c 
 gcc $C_FLAGS -I. -o ashp4c $SRC/ashp4c.c $L_FLAGS \
-  basic.o arena.o hash.o symtable.o lex.o ast.o build_ast.o print_ast.o build_symtable.o \
+  basic.o arena.o hash.o symtable.o lex.o ast.o build_ast.o build_symtable.o \
   scope_name_resolve.o \
   -lm
 popd

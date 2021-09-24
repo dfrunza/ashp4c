@@ -123,7 +123,8 @@ main(int arg_count, char* args[])
   arena_delete(&tokens_storage);
 
   if (find_named_arg("print-ast", cmdline_args)) {
-    print_ast(ast_program);
+    assert(!"TODO");
+    //print_ast(ast_program);
   }
 
   build_symtable_program(ast_program);
