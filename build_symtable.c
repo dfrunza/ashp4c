@@ -13,11 +13,10 @@ build_symtable_param(struct Ast* ast)
   assert(ast->kind == Ast_Parameter);
   struct Ast_Parameter* param = (struct Ast_Parameter*)ast;
   struct Ast_Name* name = (struct Ast_Name*)param->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+    new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 }
 
 internal void
@@ -25,10 +24,9 @@ build_symtable_type_param(struct Ast* ast)
 {
   assert(ast->kind == Ast_Name);
   struct Ast_Name* type_param = (struct Ast_Name*)ast;
-  char* strname = type_param->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), type_param->strname);
   if (!entry->id_type) {
-    new_type(get_current_scope(), strname, ast, type_param->line_nr);
+    new_type(get_current_scope(), type_param->strname, ast, type_param->line_nr);
   };
 }
 
@@ -37,8 +35,7 @@ build_symtable_action_decl(struct Ast* ast) {
   assert(ast->kind == Ast_ActionDecl);
   struct Ast_ActionDecl* action_decl = (struct Ast_ActionDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)action_decl->name;
-  char* strname = name->strname;
-  new_ident(get_current_scope(), strname, ast, name->line_nr);
+  new_ident(get_current_scope(), name->strname, ast, name->line_nr);
 
   action_decl->scope = push_scope();
   struct List* params = action_decl->params;
@@ -71,11 +68,10 @@ build_symtable_instantiation(struct Ast* ast)
   assert(ast->kind == Ast_Instantiation);
   struct Ast_Instantiation* inst = (struct Ast_Instantiation*)ast;
   struct Ast_Name* name = (struct Ast_Name*)inst->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+    new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 }
 
 internal void
@@ -94,11 +90,10 @@ build_symtable_table_decl(struct Ast* ast)
   assert(ast->kind == Ast_TableDecl);
   struct Ast_TableDecl* decl = (struct Ast_TableDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+    new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   struct List* prop_list = decl->prop_list;
   if (prop_list) {
     struct ListLink* link = list_first_link(prop_list);
@@ -127,11 +122,10 @@ build_symtable_statement(struct Ast* ast)
   if (ast->kind == Ast_VarDecl) {
     struct Ast_VarDecl* decl = (struct Ast_VarDecl*)ast;
     struct Ast_Name* name = (struct Ast_Name*)decl->name;
-    char* strname = name->strname;
-    struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+    struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
     if (!entry->id_ident) {
-      new_ident(get_current_scope(), strname, ast, name->line_nr);
-    } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+      new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+    } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   } else if (ast->kind == Ast_ActionDecl) {
     build_symtable_action_decl(ast);
   } else if (ast->kind == Ast_BlockStmt) {
@@ -150,9 +144,8 @@ build_symtable_statement(struct Ast* ast)
     }
   } else if (ast->kind == Ast_SwitchStmt) {
     struct Ast_SwitchStmt* decl = (struct Ast_SwitchStmt*)ast;
-    struct List* switch_cases = decl->switch_cases;
-    if (switch_cases) {
-      struct ListLink* link = list_first_link(switch_cases);
+    if (decl->switch_cases) {
+      struct ListLink* link = list_first_link(decl->switch_cases);
       while (link) {
         struct Ast* switch_case = link->object;
         build_symtable_switch_case(switch_case);
@@ -173,9 +166,8 @@ build_symtable_block_statement(struct Ast* ast)
   assert(ast->kind == Ast_BlockStmt);
   struct Ast_BlockStmt* block_stmt = (struct Ast_BlockStmt*)ast;
   block_stmt->scope = push_scope();
-  struct List* stmt_list = block_stmt->stmt_list;
-  if (stmt_list) {
-    struct ListLink* link = list_first_link(stmt_list);
+  if (block_stmt->stmt_list) {
+    struct ListLink* link = list_first_link(block_stmt->stmt_list);
     while (link) {
       struct Ast* decl = link->object;
       build_symtable_statement(decl);
@@ -192,14 +184,12 @@ build_symtable_control_decl(struct Ast* ast)
   struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
   struct Ast_ControlType* type_decl = (struct Ast_ControlType*)control_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    new_type(get_current_scope(), strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
-  struct List* type_params = type_decl->type_params;
-  if (type_params) {
-    struct ListLink* link = list_first_link(type_params);
+    new_type(get_current_scope(), name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
+  if (type_decl->type_params) {
+    struct ListLink* link = list_first_link(type_decl->type_params);
     while (link) {
       struct Ast* type_param = link->object;
       build_symtable_type_param(type_param);
@@ -207,36 +197,32 @@ build_symtable_control_decl(struct Ast* ast)
     }
   }
   control_decl->scope = push_scope();
-  struct List* params = type_decl->params;
-  if (params) {
-    struct ListLink* link = list_first_link(params);
+  if (type_decl->params) {
+    struct ListLink* link = list_first_link(type_decl->params);
     while (link) {
       struct Ast* param = link->object;
       build_symtable_param(param);
       link = link->next;
     }
   }
-  struct List* ctor_params = control_decl->ctor_params;
-  if (ctor_params) {
-    struct ListLink* link = list_first_link(ctor_params);
+  if (control_decl->ctor_params) {
+    struct ListLink* link = list_first_link(control_decl->ctor_params);
     while (link) {
       struct Ast* param = link->object;
       build_symtable_param(param);
       link = link->next;
     }
   }
-  struct List* local_decls = control_decl->local_decls;
-  if (local_decls) {
-    struct ListLink* link = list_first_link(local_decls);
+  if (control_decl->local_decls) {
+    struct ListLink* link = list_first_link(control_decl->local_decls);
     while (link) {
       struct Ast* decl = link->object;
       build_symtable_statement(decl);
       link = link->next;
     }
   }
-  struct Ast* apply_stmt = control_decl->apply_stmt;
-  if (apply_stmt) {
-    build_symtable_block_statement(apply_stmt);
+  if (control_decl->apply_stmt) {
+    build_symtable_block_statement(control_decl->apply_stmt);
   }
   pop_scope();
 }
@@ -246,11 +232,10 @@ build_symtable_local_parser_element(struct Ast* ast)
 {
   if (ast->kind == Ast_ConstDecl || ast->kind == Ast_Instantiation || ast->kind == Ast_VarDecl) {
     struct Ast_Name* name = (struct Ast_Name*)ast->name;
-    char* strname = name->strname;
-    struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+    struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
     if (!entry->id_ident) {
-      new_ident(get_current_scope(), strname, ast, name->line_nr);
-    } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+      new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+    } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   }
   else assert(0);
 }
@@ -261,16 +246,14 @@ build_symtable_parser_state(struct Ast* ast)
   assert(ast->kind == Ast_ParserState);
   struct Ast_ParserState* state = (struct Ast_ParserState*)ast;
   struct Ast_Name* name = (struct Ast_Name*)state->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    new_type(get_current_scope(), strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+    new_type(get_current_scope(), name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 
   state->scope = push_scope();
-  struct List* stmt_list = state->stmt_list;
-  if (stmt_list) {
-    struct ListLink* link = list_first_link(stmt_list);
+  if (state->stmt_list) {
+    struct ListLink* link = list_first_link(state->stmt_list);
     while (link) {
       struct Ast* stmt = link->object;
       build_symtable_statement(stmt);
@@ -287,14 +270,12 @@ build_symtable_parser_decl(struct Ast* ast)
   struct Ast_ParserDecl* parser_decl = (struct Ast_ParserDecl*)ast;
   struct Ast_ParserType* type_decl = (struct Ast_ParserType*)parser_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    new_type(get_current_scope(), strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
-  struct List* type_params = type_decl->type_params;
-  if (type_params) {
-    struct ListLink* link = list_first_link(type_params);
+    new_type(get_current_scope(), name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
+  if (type_decl->type_params) {
+    struct ListLink* link = list_first_link(type_decl->type_params);
     while (link) {
       struct Ast* type_param = link->object;
       build_symtable_type_param(type_param);
@@ -302,36 +283,32 @@ build_symtable_parser_decl(struct Ast* ast)
     }
   }
   parser_decl->scope = push_scope();
-  struct List* params = type_decl->params;
-  if (params) {
-    struct ListLink* link = list_first_link(params);
+  if (type_decl->params) {
+    struct ListLink* link = list_first_link(type_decl->params);
     while (link) {
       struct Ast* param = link->object;
       build_symtable_param(param);
       link = link->next;
     }
   }
-  struct List* ctor_params = parser_decl->ctor_params;
-  if (ctor_params) {
-    struct ListLink* link = list_first_link(ctor_params);
+  if (parser_decl->ctor_params) {
+    struct ListLink* link = list_first_link(parser_decl->ctor_params);
     while (link) {
       struct Ast* param = link->object;
       build_symtable_param(param);
       link = link->next;
     }
   }
-  struct List* local_elements = parser_decl->local_elements;
-  if (local_elements) {
-    struct ListLink* link = list_first_link(local_elements);
+  if (parser_decl->local_elements) {
+    struct ListLink* link = list_first_link(parser_decl->local_elements);
     while (link) {
       struct Ast* element = link->object;
       build_symtable_local_parser_element(element);
       link = link->next;
     }
   }
-  struct List* parser_states = parser_decl->states;
-  if (parser_states) {
-    struct ListLink* link = list_first_link(parser_states);
+  if (parser_decl->states) {
+    struct ListLink* link = list_first_link(parser_decl->states);
     while (link) {
       struct Ast* state = link->object;
       build_symtable_parser_state(state);
@@ -347,11 +324,9 @@ build_symtable_function_proto(struct Ast* ast)
   assert(ast->kind == Ast_FunctionProto);
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)ast;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
-  char* strname = name->strname;
-  new_ident(get_current_scope(), strname, ast, name->line_nr);
-  struct List* type_params = function_proto->type_params;
-  if (type_params) {
-    struct ListLink* link = list_first_link(type_params);
+  new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+  if (function_proto->type_params) {
+    struct ListLink* link = list_first_link(function_proto->type_params);
     while (link) {
       struct Ast* type_param = link->object;
       build_symtable_type_param(type_param);
@@ -359,9 +334,8 @@ build_symtable_function_proto(struct Ast* ast)
     }
   }
   function_proto->scope = push_scope();
-  struct List* params = function_proto->params;
-  if (params) {
-    struct ListLink* link = list_first_link(params);
+  if (function_proto->params) {
+    struct ListLink* link = list_first_link(function_proto->params);
     while (link) {
       struct Ast* param = link->object;
       build_symtable_param(param);
@@ -377,14 +351,12 @@ build_symtable_extern_decl(struct Ast* ast)
   assert(ast->kind == Ast_ExternDecl);
   struct Ast_ExternDecl* extern_decl = (struct Ast_ExternDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)extern_decl->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    new_type(get_current_scope(), strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
-  struct List* type_params = extern_decl->type_params;
-  if (type_params) {
-    struct ListLink* link = list_first_link(type_params);
+    new_type(get_current_scope(), name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
+  if (extern_decl->type_params) {
+    struct ListLink* link = list_first_link(extern_decl->type_params);
     while (link) {
       struct Ast* type_param = link->object;
       build_symtable_type_param(type_param);
@@ -392,9 +364,8 @@ build_symtable_extern_decl(struct Ast* ast)
     }
   }
   extern_decl->scope = push_scope();
-  struct List* method_protos = extern_decl->method_protos;
-  if (method_protos) {
-    struct ListLink* link = list_first_link(method_protos);
+  if (extern_decl->method_protos) {
+    struct ListLink* link = list_first_link(extern_decl->method_protos);
     while (link) {
       struct Ast* proto = link->object;
       build_symtable_function_proto(proto);
@@ -410,11 +381,10 @@ build_symtable_struct_field(struct Scope* struct_scope, struct Ast* ast)
   assert(ast->kind == Ast_StructField);
   struct Ast_StructField* field = (struct Ast_StructField*)ast;
   struct Ast_Name* name = (struct Ast_Name*)field->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(struct_scope, strname);
+  struct SymtableEntry* entry = get_symtable_entry(struct_scope, name->strname);
   if (!entry->id_ident) {
-    new_ident(struct_scope, strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+    new_ident(struct_scope, name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 }
 
 internal void
@@ -423,16 +393,14 @@ build_symtable_struct_decl(struct Ast* ast)
   assert(ast->kind == Ast_StructDecl);
   struct Ast_StructDecl* struct_decl = (struct Ast_StructDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)struct_decl->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    new_type(get_current_scope(), strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+    new_type(get_current_scope(), name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 
   struct_decl->scope = push_scope();
-  struct List* fields = struct_decl->fields;
-  if (fields) {
-    struct ListLink* link = list_first_link(fields);
+  if (struct_decl->fields) {
+    struct ListLink* link = list_first_link(struct_decl->fields);
     while (link) {
       struct Ast* field = link->object;
       build_symtable_struct_field(struct_decl->scope, field);
@@ -448,16 +416,14 @@ build_symtable_header_decl(struct Ast* ast)
   assert(ast->kind == Ast_HeaderDecl);
   struct Ast_HeaderDecl* header_decl = (struct Ast_HeaderDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)header_decl->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    new_type(get_current_scope(), strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+    new_type(get_current_scope(), name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 
   header_decl->scope = push_scope();
-  struct List* fields = header_decl->fields;
-  if (fields) {
-    struct ListLink* link = list_first_link(fields);
+  if (header_decl->fields) {
+    struct ListLink* link = list_first_link(header_decl->fields);
     while (link) {
       struct Ast* field = link->object;
       build_symtable_struct_field(header_decl->scope, field);
@@ -473,16 +439,14 @@ build_symtable_header_union(struct Ast* ast)
   assert(ast->kind == Ast_HeaderUnionDecl);
   struct Ast_HeaderUnionDecl* header_union_decl = (struct Ast_HeaderUnionDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)header_union_decl->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    new_type(get_current_scope(), strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+    new_type(get_current_scope(), name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 
   header_union_decl->scope = push_scope();
-  struct List* fields = header_union_decl->fields;
-  if (fields) {
-    struct ListLink* link = list_first_link(fields);
+  if (header_union_decl->fields) {
+    struct ListLink* link = list_first_link(header_union_decl->fields);
     while (link) {
       struct Ast* field = link->object;
       build_symtable_struct_field(header_union_decl->scope, field);
@@ -497,11 +461,10 @@ build_symtable_enum_field(struct Ast* ast)
 {
   assert(ast->kind == Ast_Name);
   struct Ast_Name* field = (struct Ast_Name*)ast;
-  char* strname = field->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), field->strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), strname, ast, field->line_nr);
-  } else error("at line %d: name `%s` redeclared.", field->line_nr, strname);
+    new_ident(get_current_scope(), field->strname, ast, field->line_nr);
+  } else error("at line %d: name `%s` redeclared.", field->line_nr, field->strname);
 }
 
 internal void
@@ -539,11 +502,10 @@ build_symtable_enum_decl(struct Ast* ast)
   assert(ast->kind == Ast_EnumDecl);
   struct Ast_EnumDecl* enum_decl = (struct Ast_EnumDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)enum_decl->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    new_type(get_current_scope(), strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+    new_type(get_current_scope(), name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   enum_decl->scope = push_scope();
   struct List* id_list = enum_decl->id_list;
   if (id_list) {
@@ -558,11 +520,10 @@ build_symtable_package(struct Ast* ast)
   assert(ast->kind == Ast_PackageDecl);
   struct Ast_PackageDecl* package_decl = (struct Ast_PackageDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)package_decl->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    new_type(get_current_scope(), strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+    new_type(get_current_scope(), name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 }
 
 internal void
@@ -571,11 +532,10 @@ build_symtable_type_decl(struct Ast* ast)
   assert(ast->kind == Ast_TypeDecl);
   struct Ast_TypeDecl* type_decl = (struct Ast_TypeDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    new_type(get_current_scope(), strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+    new_type(get_current_scope(), name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   struct Ast* type_ref = type_decl->type_ref;
   if (type_ref->kind == Ast_StructDecl) {
     build_symtable_struct_decl(type_ref);
@@ -592,11 +552,10 @@ build_symtable_const_decl(struct Ast* ast)
   assert(ast->kind == Ast_ConstDecl);
   struct Ast_ConstDecl* const_decl = (struct Ast_ConstDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)const_decl->name;
-  char* strname = name->strname;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), strname);
+  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), strname, ast, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, strname);
+    new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 }
 
 internal void
@@ -606,13 +565,11 @@ build_symtable_function_decl(struct Ast* ast)
   struct Ast_FunctionDecl* function_decl = (struct Ast_FunctionDecl*)ast;
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)function_decl->proto;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
-  char* strname = name->strname;
-  new_ident(get_current_scope(), strname, ast, name->line_nr);
+  new_ident(get_current_scope(), name->strname, ast, name->line_nr);
 
   function_decl->scope = push_scope();
-  struct List* params = function_proto->params;
-  if (params) {
-    struct ListLink* link = list_first_link(params);
+  if (function_proto->params) {
+    struct ListLink* link = list_first_link(function_proto->params);
     while (link) {
       struct Ast* param = link->object;
       build_symtable_param(param);
@@ -621,9 +578,8 @@ build_symtable_function_decl(struct Ast* ast)
   }
   struct Ast_BlockStmt* function_body = (struct Ast_BlockStmt*)function_decl->stmt;
   if (function_body) {
-    struct List* stmt_list = function_body->stmt_list;
-    if (stmt_list) {
-      struct ListLink* link = list_first_link(stmt_list);
+    if (function_body->stmt_list) {
+      struct ListLink* link = list_first_link(function_body->stmt_list);
       while (link) {
         struct Ast* stmt = link->object;
         build_symtable_statement(stmt);
@@ -639,9 +595,8 @@ build_symtable_match_kind(struct Ast* ast)
 {
   assert(ast->kind == Ast_MatchKindDecl);
   struct Ast_MatchKindDecl* decl = (struct Ast_MatchKindDecl*)ast;
-  struct List* id_list = decl->id_list;
-  if (id_list) {
-    build_symtable_enum_id_list(id_list);
+  if (decl->id_list) {
+    build_symtable_enum_id_list(decl->id_list);
   }
 }
 
@@ -657,8 +612,7 @@ build_symtable_program(struct Ast* ast)
   assert(ast->kind == Ast_P4Program);
   struct Ast_P4Program* program = (struct Ast_P4Program*)ast;
   program->scope = push_scope();
-  struct List* decl_list = program->decl_list;
-  struct ListLink* link = list_first_link(decl_list);
+  struct ListLink* link = list_first_link(program->decl_list);
   while (link) {
     struct Ast* decl = link->object;
     if (decl->kind == Ast_ControlDecl) {
