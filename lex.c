@@ -783,11 +783,14 @@ next_token(struct Token* token)
 }
 
 void
-lex_tokenize(char* text_, int text_size_, struct UnboundedArray* tokens_array_)
+lex_tokenize(char* text_, int text_size_, struct UnboundedArray* tokens_array_,
+             struct Arena* lexeme_storage_, struct Arena* tokens_storage_)
 {
   text = text_;
   text_size = text_size_;
   tokens_array = tokens_array_;
+  lexeme_storage = lexeme_storage_;
+  tokens_storage = tokens_storage_;
 
   lexeme->start = lexeme->end = text;
 
@@ -809,9 +812,3 @@ lex_tokenize(char* text_, int text_size_, struct UnboundedArray* tokens_array_)
   }
 }
 
-void
-lex_set_storage(struct Arena* lexeme_storage_, struct Arena* tokens_storage_)
-{
-  lexeme_storage = lexeme_storage_;
-  tokens_storage = tokens_storage_;
-}

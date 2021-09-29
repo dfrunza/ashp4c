@@ -4,30 +4,34 @@
 #include "token.h"
 
 
-enum SymbolKind {
-  Symbol_NONE_,
-  Symbol_Keyword,
-  Symbol_Type,
-  Symbol_Ident,
+enum ObjectKind {
+  ObjectKind_NONE,
+  ObjectKind_Variable,
+  ObjectKind_Action,
+  ObjectKind_Parser,
+  ObjectKind_Control,
+  ObjectKind_Error,
+  ObjectKind_MatchKind,
+  ObjectKind_Function,
 };
 
-struct Symbol {
-  enum SymbolKind symbol_kind;
+struct ObjectDescriptor {
   char* name;
+  enum ObjectKind objkind;
   struct Ast* ast;
-  struct Symbol* next_in_scope;
+  struct ObjectDescriptor* next_in_scope;
 };  
 
-struct Symbol_Keyword {
-  struct Symbol;
+struct Object_Keyword {
+  struct ObjectDescriptor;
   enum TokenClass token_klass;
 };
 
 struct SymtableEntry {
   char* name;
-  struct Symbol* id_kw;
-  struct Symbol* id_type;
-  struct Symbol* id_ident;
+  struct ObjectDescriptor* id_kw;
+  struct ObjectDescriptor* id_type;
+  struct ObjectDescriptor* id_ident;
   struct SymtableEntry* next_entry;
 };
 
@@ -45,8 +49,8 @@ void scope_init(struct Scope* scope, int capacity_log2);
 void symtable_set_storage(struct Arena* symtable_storage_);
 struct SymtableEntry* find_symtable_entry(struct Scope* scope, char* name);
 struct SymtableEntry* get_symtable_entry(struct Scope* scope, char* name);
-struct Symbol* new_ident(struct Scope* scope, char* name, struct Ast* ast, int line_nr);
-struct Symbol* new_type(struct Scope* scope, char* name, struct Ast* ast, int line_nr);
+struct ObjectDescriptor* new_ident(struct Scope* scope, char* name, struct Ast* ast, int line_nr);
+void new_type(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr);
 
 struct Scope* new_scope(int capacity_log2);
 struct Scope* push_scope();

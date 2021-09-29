@@ -18,7 +18,7 @@ struct CmdlineArg {
 };
 
 internal void
-read_source(char** text_, int* text_size_, struct Arena* text_storage, char* filename)
+read_source(char** text_, int* text_size_, char* filename, struct Arena* text_storage)
 {
   FILE* f_stream = fopen(filename, "rb");
   fseek(f_stream, 0, SEEK_END);
@@ -104,17 +104,15 @@ main(int arg_count, char* args[])
   struct Arena text_storage = {};
   char* text = 0;
   int text_size = 0;
-  read_source(&text, &text_size, &text_storage, filename_arg->value);
+  read_source(&text, &text_size, filename_arg->value, &text_storage);
 
   struct Arena tokens_storage = {};
   struct UnboundedArray tokens_array = {};
-  lex_set_storage(&main_storage, &tokens_storage);
-  lex_tokenize(text, text_size, &tokens_array);
+  lex_tokenize(text, text_size, &tokens_array, &main_storage, &tokens_storage);
   arena_delete(&text_storage);
 
   struct Arena symtable_storage = {};
-  symtable_set_storage(&symtable_storage);
-  symtable_init();
+  symtable_init(&symtable_storage);
 
   struct Arena ast_storage = {};
   int ast_node_count = 0;
@@ -127,7 +125,7 @@ main(int arg_count, char* args[])
     //print_ast(ast_program);
   }
 
-  build_symtable_program(ast_program);
+  build_symtable_program(ast_program, &symtable_storage);
   resolve_names_program(ast_program);
 
   arena_delete(&ast_storage);

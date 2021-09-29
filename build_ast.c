@@ -54,18 +54,14 @@ next_token()
   if (token->klass == Token_Identifier) {
     struct SymtableEntry* entry = scope_resolve_name(get_current_scope(), token->lexeme);
     if (entry->id_kw) {
-      struct Symbol* id_kw = entry->id_kw;
-      if (id_kw->symbol_kind == Symbol_Keyword) {
-        token->klass = ((struct Symbol_Keyword*)id_kw)->token_klass;
-        return token;
-      }
+      struct ObjectDescriptor* id_kw = entry->id_kw;
+      token->klass = ((struct Object_Keyword*)id_kw)->token_klass;
+      return token;
     }
     if (entry->id_type) {
-      struct Symbol* id_type = entry->id_type;
-      if (id_type->symbol_kind == Symbol_Type) {
-        token->klass = Token_TypeIdentifier;
-        return token;
-      }
+      struct ObjectDescriptor* id_type = entry->id_type;
+      token->klass = Token_TypeIdentifier;
+      return token;
     }
   }
   return token;
@@ -231,7 +227,11 @@ build_nonTypeName(bool is_type)
     name = new_ast_node(Ast_Name, token);
     name->strname = token->lexeme;
     if (is_type) {
-      new_type(get_current_scope(), name->strname, (struct Ast*)name, token->line_nr);
+      struct ObjectDescriptor* descriptor = arena_push(ast_storage, sizeof(*descriptor));
+      memset(descriptor, 0, sizeof(*descriptor));
+      descriptor->name = name->strname;
+      descriptor->ast = (struct Ast*)name;
+      new_type(get_current_scope(), descriptor, token->line_nr);
     }
     next_token();
   } else error("at line %d: non-type name was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -322,7 +322,7 @@ token_is_methodPrototype(struct Token* token)
 internal enum AstParamDirection
 build_direction()
 {
-  enum AstParamDirection dir = AstParamDir_NONE_;
+  enum AstParamDirection dir = AstParamDir_NONE;
   if (token_is_direction(token)) {
     if (token->klass == Token_In) {
       dir = AstParamDir_In;
@@ -396,7 +396,11 @@ build_typeOrVoid(bool is_type)
       name->strname = token->lexeme;
       type = (struct Ast*)name;
       if (is_type) {
-        new_type(get_current_scope(), name->strname, type, token->line_nr);
+        struct ObjectDescriptor* descriptor = arena_push(ast_storage, sizeof(*descriptor));
+        memset(descriptor, 0, sizeof(*descriptor));
+        descriptor->name = name->strname;
+        descriptor->ast = type;
+        new_type(get_current_scope(), descriptor, token->line_nr);
       }
       next_token();
     } else assert(0);
@@ -1513,7 +1517,7 @@ build_tupleKeysetExpression()
     tuple_keyset = new_ast_node(Ast_TupleKeyset, token);
     next_token();
     struct List* exprs = arena_push(ast_storage, sizeof(*exprs));
-    memset(exprs, 0, sizeof(exprs));
+    memset(exprs, 0, sizeof(*exprs));
     list_init(exprs);
     struct ListLink* link = arena_push(ast_storage, sizeof(*link));
     memset(link, 0, sizeof(*link));
@@ -2709,7 +2713,7 @@ token_to_binop(struct Token* token)
       return AstExprOp_BitShiftRight;
     case Token_ThreeAmpersand:
       return AstExprOp_Mask;
-    default: return AstExprOp_NONE_;
+    default: return AstExprOp_NONE;
   }
 }
 

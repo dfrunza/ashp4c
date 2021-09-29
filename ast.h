@@ -4,7 +4,7 @@
 
 
 enum AstKind {
-  Ast_NONE_,
+  Ast_NONE,
   Ast_Name,
   Ast_BaseType,
   Ast_ConstDecl,
@@ -75,7 +75,7 @@ enum AstKind {
 };
 
 enum AstBaseType {
-  AstBaseType_NONE_,
+  AstBaseType_NONE,
   AstBaseType_Bool,
   AstBaseType_Error,
   AstBaseType_Int,
@@ -85,13 +85,13 @@ enum AstBaseType {
 };
 
 enum AstIntegerFlags {
-  AstInteger_NONE_,
+  AstInteger_NONE,
   AstInteger_HasWidth,
   AstInteger_IsSigned,
 };
 
 enum AstExprOperator {
-  AstExprOp_NONE_,
+  AstExprOp_NONE,
   AstExprOp_Add,
   AstExprOp_Sub,
   AstExprOp_Mul,
@@ -116,14 +116,14 @@ enum AstExprOperator {
 };
 
 enum AstParamDirection {
-  AstParamDir_NONE_,
+  AstParamDir_NONE,
   AstParamDir_In,
   AstParamDir_Out,
   AstParamDir_InOut,
 };
 
 enum AstAttributeType {
-  AstAttr_NONE_,
+  AstAttr_NONE,
   AstAttr_Ast,
   AstAttr_AstList,
   AstAttr_Integer,
@@ -151,13 +151,13 @@ struct Ast {
   struct Ast* name;
   struct List* type_args;
   struct Scope* scope;
-  struct SymtableEntry* symtable_entry;
 };
 
 struct Ast_Name {
   struct Ast;
   char* strname;
   bool is_dotprefixed;
+  struct SymtableEntry* symtable_entry;
 };
 
 struct Ast_BaseType {

@@ -64,7 +64,7 @@ resolve_names_expression(struct Scope* scope, struct Ast* ast)
   } else if (ast->kind == Ast_Name) {
     struct Ast_Name* expr = (struct Ast_Name*)ast;
     struct SymtableEntry* entry = scope_resolve_name(scope, expr->strname);
-    if (!(entry->id_kw || entry->id_type || entry->id_ident)) {
+    if (!(entry->id_type || entry->id_ident)) {
       error("at line %d: unknown identifier `%s`.", expr->line_nr, expr->strname);
     } else if (DEBUG_ENABLED) {
       printf("at line %d: identifier `%s` has been resolved.\n", expr->line_nr, expr->strname);
