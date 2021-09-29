@@ -12,6 +12,13 @@ internal struct UnboundedArray scope_stack = {};
 
 
 struct Scope*
+get_root_scope()
+{
+  struct Scope* scope = *(struct Scope**)array_get(&scope_stack, 0);
+  return scope;
+}
+
+struct Scope*
 get_current_scope()
 {
   struct Scope* scope = *(struct Scope**)array_get(&scope_stack, scope_stack.elem_count - 1);
@@ -142,20 +149,15 @@ new_type(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
   }
 }
 
-struct ObjectDescriptor*
-new_ident(struct Scope* scope, char* name, struct Ast* ast, int line_nr)
+void
+new_ident(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
 {
-  struct SymtableEntry* entry = get_symtable_entry(scope, name);
-  struct ObjectDescriptor* id_ident = arena_push(symtable_storage, sizeof(*id_ident));
-  memset(id_ident, 0, sizeof(*id_ident));
-  id_ident->name = name;
-  id_ident->ast = ast;
-  id_ident->next_in_scope = entry->id_ident;
-  entry->id_ident = (struct ObjectDescriptor*)id_ident;
+  struct SymtableEntry* entry = get_symtable_entry(scope, descriptor->name);
+  descriptor->next_in_scope = entry->id_ident;
+  entry->id_ident = (struct ObjectDescriptor*)descriptor;
   if (DEBUG_ENABLED) {
-    printf("new identifier `%s` at line %d.\n", id_ident->name, line_nr);
+    printf("new identifier `%s` at line %d.\n", descriptor->name, line_nr);
   }
-  return id_ident;
 }
 
 internal struct Object_Keyword*

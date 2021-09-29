@@ -19,7 +19,12 @@ build_symtable_param(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)param->name;
   struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+    struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
+    memset(descriptor, 0, sizeof(*descriptor));
+    descriptor->name = name->strname;
+    descriptor->object_kind = Object_Variable;
+    descriptor->ast = ast;
+    new_ident(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 }
 
@@ -33,6 +38,7 @@ build_symtable_type_param(struct Ast* ast)
     struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
     memset(descriptor, 0, sizeof(*descriptor));
     descriptor->name = type_param->strname;
+    descriptor->type_kind = Type_TypeParam;
     descriptor->ast = ast;
     new_type(get_current_scope(), descriptor, type_param->line_nr);
   };
@@ -43,7 +49,12 @@ build_symtable_action_decl(struct Ast* ast) {
   assert(ast->kind == Ast_ActionDecl);
   struct Ast_ActionDecl* action_decl = (struct Ast_ActionDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)action_decl->name;
-  new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+  struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
+  memset(descriptor, 0, sizeof(*descriptor));
+  descriptor->name = name->strname;
+  descriptor->object_kind = Object_Action;
+  descriptor->ast = ast;
+  new_ident(get_current_scope(), descriptor, name->line_nr);
 
   action_decl->scope = push_scope();
   struct List* params = action_decl->params;
@@ -78,7 +89,12 @@ build_symtable_instantiation(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)inst->name;
   struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+    struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
+    memset(descriptor, 0, sizeof(*descriptor));
+    descriptor->name = name->strname;
+    descriptor->object_kind = Object_Instantiation;
+    descriptor->ast = ast;
+    new_ident(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 }
 
@@ -100,7 +116,12 @@ build_symtable_table_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
   struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+    struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
+    memset(descriptor, 0, sizeof(*descriptor));
+    descriptor->name = name->strname;
+    descriptor->object_kind = Object_Table;
+    descriptor->ast = ast;
+    new_ident(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   struct List* prop_list = decl->prop_list;
   if (prop_list) {
@@ -132,7 +153,12 @@ build_symtable_statement(struct Ast* ast)
     struct Ast_Name* name = (struct Ast_Name*)decl->name;
     struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
     if (!entry->id_ident) {
-      new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+      struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
+      memset(descriptor, 0, sizeof(*descriptor));
+      descriptor->name = name->strname;
+      descriptor->object_kind = Object_Statement;
+      descriptor->ast = ast;
+      new_ident(get_current_scope(), descriptor, name->line_nr);
     } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   } else if (ast->kind == Ast_ActionDecl) {
     build_symtable_action_decl(ast);
@@ -197,6 +223,7 @@ build_symtable_control_decl(struct Ast* ast)
     struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
     memset(descriptor, 0, sizeof(*descriptor));
     descriptor->name = name->strname;
+    descriptor->object_kind = Object_Control;
     descriptor->ast = ast;
     new_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -246,7 +273,18 @@ build_symtable_local_parser_element(struct Ast* ast)
     struct Ast_Name* name = (struct Ast_Name*)ast->name;
     struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
     if (!entry->id_ident) {
-      new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+      struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
+      memset(descriptor, 0, sizeof(*descriptor));
+      descriptor->name = name->strname;
+      if (ast->kind == Ast_ConstDecl) {
+        descriptor->object_kind = Object_Constant;
+      } else if (ast->kind == Ast_VarDecl) {
+        descriptor->object_kind = Object_Variable;
+      } else if (ast->kind == Ast_Instantiation) {
+        descriptor->object_kind = Object_Instantiation;
+      } else assert(0);
+      descriptor->ast = ast;
+      new_ident(get_current_scope(), descriptor, name->line_nr);
     } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   }
   else assert(0);
@@ -263,6 +301,7 @@ build_symtable_parser_state(struct Ast* ast)
     struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
     memset(descriptor, 0, sizeof(*descriptor));
     descriptor->name = name->strname;
+    descriptor->object_kind = Object_ParserState;
     descriptor->ast = ast;
     new_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -291,6 +330,7 @@ build_symtable_parser_decl(struct Ast* ast)
     struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
     memset(descriptor, 0, sizeof(*descriptor));
     descriptor->name = name->strname;
+    descriptor->object_kind = Object_Parser;
     descriptor->ast = ast;
     new_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -344,7 +384,12 @@ build_symtable_function_proto(struct Ast* ast)
   assert(ast->kind == Ast_FunctionProto);
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)ast;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
-  new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+  struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
+  memset(descriptor, 0, sizeof(*descriptor));
+  descriptor->name = name->strname;
+  descriptor->object_kind = Object_FunctionProto;
+  descriptor->ast = ast;
+  new_ident(get_current_scope(), descriptor, name->line_nr);
   if (function_proto->type_params) {
     struct ListLink* link = list_first_link(function_proto->type_params);
     while (link) {
@@ -376,6 +421,7 @@ build_symtable_extern_decl(struct Ast* ast)
     struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
     memset(descriptor, 0, sizeof(*descriptor));
     descriptor->name = name->strname;
+    descriptor->object_kind = Object_Extern;
     descriptor->ast = ast;
     new_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -407,7 +453,12 @@ build_symtable_struct_field(struct Scope* struct_scope, struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)field->name;
   struct SymtableEntry* entry = get_symtable_entry(struct_scope, name->strname);
   if (!entry->id_ident) {
-    new_ident(struct_scope, name->strname, ast, name->line_nr);
+    struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
+    memset(descriptor, 0, sizeof(*descriptor));
+    descriptor->name = name->strname;
+    descriptor->object_kind = Object_StructField;
+    descriptor->ast = ast;
+    new_ident(struct_scope, descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 }
 
@@ -422,6 +473,7 @@ build_symtable_struct_decl(struct Ast* ast)
     struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
     memset(descriptor, 0, sizeof(*descriptor));
     descriptor->name = name->strname;
+    descriptor->object_kind = Object_Struct;
     descriptor->ast = ast;
     new_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -449,6 +501,7 @@ build_symtable_header_decl(struct Ast* ast)
     struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
     memset(descriptor, 0, sizeof(*descriptor));
     descriptor->name = name->strname;
+    descriptor->object_kind = Object_Header;
     descriptor->ast = ast;
     new_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -476,6 +529,7 @@ build_symtable_header_union(struct Ast* ast)
     struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
     memset(descriptor, 0, sizeof(*descriptor));
     descriptor->name = name->strname;
+    descriptor->object_kind = Object_HeaderUnion;
     descriptor->ast = ast;
     new_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -499,7 +553,12 @@ build_symtable_enum_field(struct Ast* ast)
   struct Ast_Name* field = (struct Ast_Name*)ast;
   struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), field->strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), field->strname, ast, field->line_nr);
+    struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
+    memset(descriptor, 0, sizeof(*descriptor));
+    descriptor->name = field->strname;
+    descriptor->object_kind = Object_EnumField;
+    descriptor->ast = ast;
+    new_ident(get_current_scope(), descriptor, field->line_nr);
   } else error("at line %d: name `%s` redeclared.", field->line_nr, field->strname);
 }
 
@@ -543,6 +602,7 @@ build_symtable_enum_decl(struct Ast* ast)
     struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
     memset(descriptor, 0, sizeof(*descriptor));
     descriptor->name = name->strname;
+    descriptor->object_kind = Object_Enum;
     descriptor->ast = ast;
     new_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -565,6 +625,7 @@ build_symtable_package(struct Ast* ast)
     struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
     memset(descriptor, 0, sizeof(*descriptor));
     descriptor->name = name->strname;
+    descriptor->object_kind = Object_Package;
     descriptor->ast = ast;
     new_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -581,6 +642,7 @@ build_symtable_type_decl(struct Ast* ast)
     struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
     memset(descriptor, 0, sizeof(*descriptor));
     descriptor->name = name->strname;
+    descriptor->object_kind = Type_Type;
     descriptor->ast = ast;
     new_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -602,7 +664,12 @@ build_symtable_const_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)const_decl->name;
   struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
   if (!entry->id_ident) {
-    new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+    struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
+    memset(descriptor, 0, sizeof(*descriptor));
+    descriptor->name = name->strname;
+    descriptor->object_kind = Object_Constant;
+    descriptor->ast = ast;
+    new_ident(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 }
 
@@ -613,7 +680,12 @@ build_symtable_function_decl(struct Ast* ast)
   struct Ast_FunctionDecl* function_decl = (struct Ast_FunctionDecl*)ast;
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)function_decl->proto;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
-  new_ident(get_current_scope(), name->strname, ast, name->line_nr);
+  struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
+  memset(descriptor, 0, sizeof(*descriptor));
+  descriptor->name = name->strname;
+  descriptor->object_kind = Object_Function;
+  descriptor->ast = ast;
+  new_ident(get_current_scope(), descriptor, name->line_nr);
 
   function_decl->scope = push_scope();
   if (function_proto->params) {
@@ -649,9 +721,13 @@ build_symtable_match_kind(struct Ast* ast)
 }
 
 internal void
-build_symtable_error_decl(struct Ast* decl)
+build_symtable_error_decl(struct Ast* ast)
 {
-  ; // TODO
+  assert (ast->kind == Ast_ErrorDecl);
+  struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
+  memset(descriptor, 0, sizeof(*descriptor));
+  descriptor->name = "error";
+  new_ident(get_root_scope(), descriptor, ast->line_nr);
 }
 
 void

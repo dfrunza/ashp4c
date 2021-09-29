@@ -5,19 +5,45 @@
 
 
 enum ObjectKind {
-  ObjectKind_NONE,
-  ObjectKind_Variable,
-  ObjectKind_Action,
-  ObjectKind_Parser,
-  ObjectKind_Control,
-  ObjectKind_Error,
-  ObjectKind_MatchKind,
-  ObjectKind_Function,
+  Object_NONE,
+  Object_Variable,
+  Object_Constant,
+  Object_Action,
+  Object_Parser,
+  Object_ParserState,
+  Object_Control,
+  Object_Error,
+  Object_MatchKind,
+  Object_Function,
+  Object_FunctionProto,
+  Object_Instantiation,
+  Object_Table,
+  Object_Statement,
+  Object_Extern,
+  Object_Struct,
+  Object_StructField,
+  Object_Header,
+  Object_HeaderUnion,
+  Object_Enum,
+  Object_EnumField,
+  Object_Package,
+};
+
+enum TypeKind {
+  Type_NONE,
+  Type_TypeParam,
+  Type_Basic,
+  Type_Struct,
+  Type_Type,
+  Type_Typedef,
 };
 
 struct ObjectDescriptor {
   char* name;
-  enum ObjectKind objkind;
+  union {
+    enum ObjectKind object_kind;
+    enum TypeKind type_kind;
+  };
   struct Ast* ast;
   struct ObjectDescriptor* next_in_scope;
 };  
@@ -49,12 +75,13 @@ void scope_init(struct Scope* scope, int capacity_log2);
 void symtable_set_storage(struct Arena* symtable_storage_);
 struct SymtableEntry* find_symtable_entry(struct Scope* scope, char* name);
 struct SymtableEntry* get_symtable_entry(struct Scope* scope, char* name);
-struct ObjectDescriptor* new_ident(struct Scope* scope, char* name, struct Ast* ast, int line_nr);
+void new_ident(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr);
 void new_type(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr);
 
 struct Scope* new_scope(int capacity_log2);
 struct Scope* push_scope();
 struct Scope* pop_scope();
+struct Scope* get_root_scope();
 struct Scope* get_current_scope();
 struct SymtableEntry* scope_resolve_name(struct Scope* scope, char* name);
 
