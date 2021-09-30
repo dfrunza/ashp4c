@@ -3,7 +3,7 @@
 #include "symtable.h"
 
 
-#define DEBUG_ENABLED 0
+#define DEBUG_ENABLED 1
 
 
 internal void resolve_names_expression(struct Scope* scope, struct Ast* expr);
@@ -367,6 +367,8 @@ resolve_names_statement(struct Scope* scope, struct Ast* ast)
         link = link->next;
       }
     }
+  } else if (ast->kind == Ast_ExitStmt) {
+      ; // pass
   }
   else assert(0);
 }

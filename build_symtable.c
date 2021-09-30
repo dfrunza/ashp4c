@@ -188,7 +188,8 @@ build_symtable_statement(struct Ast* ast)
     }
   } else if (ast->kind == Ast_MethodCallStmt || ast->kind == Ast_AssignmentStmt ||
              ast->kind == Ast_DirectApplication || ast->kind == Ast_ReturnStmt ||
-             ast->kind == Ast_IntLiteral || ast->kind == Ast_BoolLiteral || ast->kind == Ast_StringLiteral) {
+             ast->kind == Ast_IntLiteral || ast->kind == Ast_BoolLiteral || ast->kind == Ast_StringLiteral ||
+             ast->kind == Ast_ExitStmt) {
     ; // pass
   }
   else assert(0);
