@@ -82,6 +82,7 @@ enum AstBaseType {
   AstBaseType_Bit,
   AstBaseType_Varbit,
   AstBaseType_String,
+  AstBaseType_Void,
 };
 
 enum AstIntegerFlags {

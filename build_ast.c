@@ -95,7 +95,8 @@ internal bool
 token_is_baseType(struct Token* token)
 {
   bool result = token->klass == Token_Bool || token->klass == Token_Error || token->klass == Token_Int
-    || token->klass == Token_Bit || token->klass == Token_Varbit || token->klass == Token_String;
+    || token->klass == Token_Bit || token->klass == Token_Varbit || token->klass == Token_String
+    || token->klass == Token_Void;
   return result;
 }
 
@@ -624,6 +625,10 @@ build_baseType()
     } else if (token->klass == Token_String) {
       base_type->base_type = AstBaseType_String;
       type_name->strname = "string";
+      next_token();
+    } else if (token->klass == Token_Void) {
+      base_type->base_type = AstBaseType_Void;
+      type_name->strname = "void";
       next_token();
     }
     else assert(0);
