@@ -9,6 +9,7 @@
 
 
 internal struct Arena* ast_storage;
+internal struct Arena* symtable_storage;
 
 internal struct UnboundedArray* tokens_array;
 internal int token_at = 0;
@@ -231,7 +232,7 @@ build_nonTypeName(bool is_type)
       memset(descriptor, 0, sizeof(*descriptor));
       descriptor->name = name->strname;
       descriptor->ast = (struct Ast*)name;
-      new_type(get_current_scope(), descriptor, token->line_nr);
+      register_type(get_current_scope(), descriptor, token->line_nr);
     }
     next_token();
   } else error("at line %d: non-type name was expected, got `%s`.", token->line_nr, token->lexeme);
@@ -400,7 +401,7 @@ build_typeOrVoid(bool is_type)
         memset(descriptor, 0, sizeof(*descriptor));
         descriptor->name = name->strname;
         descriptor->ast = type;
-        new_type(get_current_scope(), descriptor, token->line_nr);
+        register_type(get_current_scope(), descriptor, token->line_nr);
       }
       next_token();
     } else assert(0);
@@ -2782,14 +2783,65 @@ build_expression(int priority_threshold)
   return expr;
 }
 
+internal struct ObjectDescriptor*
+new_keyword(char* name, enum TokenClass token_klass)
+{
+  struct Object_Keyword* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
+  memset(descriptor, 0, sizeof(*descriptor));
+  descriptor->name = name;
+  descriptor->object_kind = Object_Keyword;
+  descriptor->token_klass = token_klass;
+  return (struct ObjectDescriptor*)descriptor;
+}
+
 struct Ast*
 build_ast_program(struct Ast** p4program_, int* ast_node_count_, struct UnboundedArray* tokens_array_,
-            struct Arena* ast_storage_)
+            struct Arena* ast_storage_, struct Arena* symtable_storage_)
 {
   tokens_array = tokens_array_;
   ast_storage = ast_storage_;
+  symtable_storage = symtable_storage_;
 
-  add_all_keywords(get_root_scope());
+  register_keyword(get_root_scope(), new_keyword("action", Token_Action));
+  register_keyword(get_root_scope(), new_keyword("actions", Token_Actions));
+  register_keyword(get_root_scope(), new_keyword("entries", Token_Entries));
+  register_keyword(get_root_scope(), new_keyword("enum", Token_Enum));
+  register_keyword(get_root_scope(), new_keyword("in", Token_In));
+  register_keyword(get_root_scope(), new_keyword("package", Token_Package));
+  register_keyword(get_root_scope(), new_keyword("select", Token_Select));
+  register_keyword(get_root_scope(), new_keyword("switch", Token_Switch));
+  register_keyword(get_root_scope(), new_keyword("tuple", Token_Tuple));
+  register_keyword(get_root_scope(), new_keyword("control", Token_Control));
+  register_keyword(get_root_scope(), new_keyword("error", Token_Error));
+  register_keyword(get_root_scope(), new_keyword("header", Token_Header));
+  register_keyword(get_root_scope(), new_keyword("inout", Token_InOut));
+  register_keyword(get_root_scope(), new_keyword("parser", Token_Parser));
+  register_keyword(get_root_scope(), new_keyword("state", Token_State));
+  register_keyword(get_root_scope(), new_keyword("table", Token_Table));
+  register_keyword(get_root_scope(), new_keyword("key", Token_Key));
+  register_keyword(get_root_scope(), new_keyword("typedef", Token_Typedef));
+  register_keyword(get_root_scope(), new_keyword("type", Token_Type));
+  register_keyword(get_root_scope(), new_keyword("default", Token_Default));
+  register_keyword(get_root_scope(), new_keyword("extern", Token_Extern));
+  register_keyword(get_root_scope(), new_keyword("header_union", Token_HeaderUnion));
+  register_keyword(get_root_scope(), new_keyword("out", Token_Out));
+  register_keyword(get_root_scope(), new_keyword("transition", Token_Transition));
+  register_keyword(get_root_scope(), new_keyword("else", Token_Else));
+  register_keyword(get_root_scope(), new_keyword("exit", Token_Exit));
+  register_keyword(get_root_scope(), new_keyword("if", Token_If));
+  register_keyword(get_root_scope(), new_keyword("match_kind", Token_MatchKind));
+  register_keyword(get_root_scope(), new_keyword("return", Token_Return));
+  register_keyword(get_root_scope(), new_keyword("struct", Token_Struct));
+  register_keyword(get_root_scope(), new_keyword("apply", Token_Apply));
+  register_keyword(get_root_scope(), new_keyword("const", Token_Const));
+  register_keyword(get_root_scope(), new_keyword("bool", Token_Bool));
+  register_keyword(get_root_scope(), new_keyword("true", Token_True));
+  register_keyword(get_root_scope(), new_keyword("false", Token_False));
+  register_keyword(get_root_scope(), new_keyword("void", Token_Void));
+  register_keyword(get_root_scope(), new_keyword("int", Token_Int));
+  register_keyword(get_root_scope(), new_keyword("bit", Token_Bit));
+  register_keyword(get_root_scope(), new_keyword("varbit", Token_Varbit));
+  register_keyword(get_root_scope(), new_keyword("string", Token_String));
 
   token_at = 0;
   token = array_get(tokens_array, token_at);

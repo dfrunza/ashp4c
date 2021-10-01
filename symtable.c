@@ -138,8 +138,8 @@ scope_resolve_name(struct Scope* scope, char* name)
   return entry;
 }
 
-void
-new_type(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
+struct SymtableEntry*
+register_type(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
 {
   struct SymtableEntry* entry = get_symtable_entry(scope, descriptor->name);
   descriptor->next_in_scope = entry->id_type;
@@ -147,10 +147,11 @@ new_type(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
   if (DEBUG_ENABLED) {
     printf("new type `%s` at line %d.\n", descriptor->name, line_nr);
   }
+  return entry;
 }
 
-void
-new_ident(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
+struct SymtableEntry*
+register_ident(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
 {
   struct SymtableEntry* entry = get_symtable_entry(scope, descriptor->name);
   descriptor->next_in_scope = entry->id_ident;
@@ -158,6 +159,15 @@ new_ident(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
   if (DEBUG_ENABLED) {
     printf("new identifier `%s` at line %d.\n", descriptor->name, line_nr);
   }
+  return entry;
+}
+
+struct SymtableEntry*
+register_keyword(struct Scope* scope, struct ObjectDescriptor* descriptor)
+{
+  struct SymtableEntry* entry = get_symtable_entry(scope, descriptor->name);
+  entry->id_kw = (struct ObjectDescriptor*)descriptor;
+  return entry;
 }
 
 void
@@ -183,98 +193,5 @@ symtable_init(struct Arena* symtable_storage_)
   scope_init(root_scope, 5);
   array_init(&scope_stack, sizeof(root_scope), symtable_storage);
   array_append(&scope_stack, &root_scope);
-}
-
-struct Object_Keyword*
-add_keyword(struct Scope* scope, char* name, enum TokenClass token_klass)
-{
-  struct SymtableEntry* entry = get_symtable_entry(scope, name);
-  assert (entry->id_kw == 0);
-  struct Object_Keyword* id_kw = arena_push(symtable_storage, sizeof(*id_kw));
-  memset(id_kw, 0, sizeof(*id_kw));
-  id_kw->name = name;
-  id_kw->token_klass = token_klass;
-  entry->id_kw = (struct ObjectDescriptor*)id_kw;
-  return id_kw;
-}
-
-void
-add_all_keywords(struct Scope* scope)
-{
-  add_keyword(scope, "action", Token_Action);
-  add_keyword(scope, "actions", Token_Actions);
-  add_keyword(scope, "entries", Token_Entries);
-  add_keyword(scope, "enum", Token_Enum);
-  add_keyword(scope, "in", Token_In);
-  add_keyword(scope, "package", Token_Package);
-  add_keyword(scope, "select", Token_Select);
-  add_keyword(scope, "switch", Token_Switch);
-  add_keyword(scope, "tuple", Token_Tuple);
-  add_keyword(scope, "control", Token_Control);
-  add_keyword(scope, "error", Token_Error);
-  add_keyword(scope, "header", Token_Header);
-  add_keyword(scope, "inout", Token_InOut);
-  add_keyword(scope, "parser", Token_Parser);
-  add_keyword(scope, "state", Token_State);
-  add_keyword(scope, "table", Token_Table);
-  add_keyword(scope, "key", Token_Key);
-  add_keyword(scope, "typedef", Token_Typedef);
-  add_keyword(scope, "type", Token_Type);
-  add_keyword(scope, "default", Token_Default);
-  add_keyword(scope, "extern", Token_Extern);
-  add_keyword(scope, "header_union", Token_HeaderUnion);
-  add_keyword(scope, "out", Token_Out);
-  add_keyword(scope, "transition", Token_Transition);
-  add_keyword(scope, "else", Token_Else);
-  add_keyword(scope, "exit", Token_Exit);
-  add_keyword(scope, "if", Token_If);
-  add_keyword(scope, "match_kind", Token_MatchKind);
-  add_keyword(scope, "return", Token_Return);
-  add_keyword(scope, "struct", Token_Struct);
-  add_keyword(scope, "apply", Token_Apply);
-  add_keyword(scope, "const", Token_Const);
-  add_keyword(scope, "bool", Token_Bool);
-  add_keyword(scope, "true", Token_True);
-  add_keyword(scope, "false", Token_False);
-  add_keyword(scope, "void", Token_Void);
-  add_keyword(scope, "int", Token_Int);
-  add_keyword(scope, "bit", Token_Bit);
-  add_keyword(scope, "varbit", Token_Varbit);
-  add_keyword(scope, "string", Token_String);
-}
-
-void
-add_base_type(struct Scope* scope, char* name)
-{
-  struct SymtableEntry* entry = get_symtable_entry(scope, name);
-  assert (entry->id_type == 0);
-  struct ObjectDescriptor* id_type = arena_push(symtable_storage, sizeof(*id_type));
-  memset(id_type, 0, sizeof(*id_type));
-  id_type->name = name;
-  entry->id_type = (struct ObjectDescriptor*)id_type;
-}
-
-void
-add_all_base_types(struct Scope* scope)
-{
-  add_base_type(scope, "void");
-  add_base_type(scope, "bool");
-  add_base_type(scope, "error");
-  add_base_type(scope, "int");
-  add_base_type(scope, "bit");
-  add_base_type(scope, "varbit");
-  add_base_type(scope, "string");
-}
-
-struct ObjectDescriptor*
-add_builtin_ident(struct Scope* scope, char* name)
-{
-  struct SymtableEntry* entry = get_symtable_entry(scope, name);
-  assert (entry->id_ident == 0);
-  struct ObjectDescriptor* id_ident = arena_push(symtable_storage, sizeof(*id_ident));
-  memset(id_ident, 0, sizeof(*id_ident));
-  id_ident->name = name;
-  entry->id_ident = (struct ObjectDescriptor*)id_ident;
-  return id_ident;
 }
 
