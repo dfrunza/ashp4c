@@ -151,7 +151,7 @@ register_type(struct Scope* scope, struct ObjectDescriptor* descriptor, int line
 }
 
 struct SymtableEntry*
-register_ident(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
+register_identifier(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
 {
   struct SymtableEntry* entry = get_symtable_entry(scope, descriptor->name);
   descriptor->next_in_scope = entry->id_ident;

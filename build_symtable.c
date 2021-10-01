@@ -24,7 +24,7 @@ build_symtable_param(struct Ast* ast)
     descriptor->name = name->strname;
     descriptor->object_kind = Object_Variable;
     descriptor->ast = ast;
-    register_ident(get_current_scope(), descriptor, name->line_nr);
+    register_identifier(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 }
 
@@ -54,7 +54,7 @@ build_symtable_action_decl(struct Ast* ast) {
   descriptor->name = name->strname;
   descriptor->object_kind = Object_Action;
   descriptor->ast = ast;
-  register_ident(get_current_scope(), descriptor, name->line_nr);
+  register_identifier(get_current_scope(), descriptor, name->line_nr);
 
   action_decl->scope = push_scope();
   struct List* params = action_decl->params;
@@ -94,7 +94,7 @@ build_symtable_instantiation(struct Ast* ast)
     descriptor->name = name->strname;
     descriptor->object_kind = Object_Instantiation;
     descriptor->ast = ast;
-    register_ident(get_current_scope(), descriptor, name->line_nr);
+    register_identifier(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 }
 
@@ -121,7 +121,7 @@ build_symtable_table_decl(struct Ast* ast)
     descriptor->name = name->strname;
     descriptor->object_kind = Object_Table;
     descriptor->ast = ast;
-    register_ident(get_current_scope(), descriptor, name->line_nr);
+    register_identifier(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   struct List* prop_list = decl->prop_list;
   if (prop_list) {
@@ -158,7 +158,7 @@ build_symtable_statement(struct Ast* ast)
       descriptor->name = name->strname;
       descriptor->object_kind = Object_Variable;
       descriptor->ast = ast;
-      register_ident(get_current_scope(), descriptor, name->line_nr);
+      register_identifier(get_current_scope(), descriptor, name->line_nr);
     } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   } else if (ast->kind == Ast_ActionDecl) {
     build_symtable_action_decl(ast);
@@ -232,7 +232,7 @@ build_symtable_control_decl(struct Ast* ast)
     descriptor->name = name->strname;
     descriptor->object_kind = Object_Control;
     descriptor->ast = ast;
-    register_ident(get_current_scope(), descriptor, name->line_nr);
+    register_identifier(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   if (type_decl->type_params) {
     struct ListLink* link = list_first_link(type_decl->type_params);
@@ -291,7 +291,7 @@ build_symtable_local_parser_element(struct Ast* ast)
         descriptor->object_kind = Object_Instantiation;
       } else assert(0);
       descriptor->ast = ast;
-      register_ident(get_current_scope(), descriptor, name->line_nr);
+      register_identifier(get_current_scope(), descriptor, name->line_nr);
     } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   }
   else assert(0);
@@ -345,7 +345,7 @@ build_symtable_parser_decl(struct Ast* ast)
     descriptor->name = name->strname;
     descriptor->object_kind = Object_Parser;
     descriptor->ast = ast;
-    register_ident(get_current_scope(), descriptor, name->line_nr);
+    register_identifier(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   if (type_decl->type_params) {
     struct ListLink* link = list_first_link(type_decl->type_params);
@@ -471,7 +471,7 @@ build_symtable_struct_field(struct Scope* struct_scope, struct Ast* ast)
     descriptor->name = name->strname;
     descriptor->object_kind = Object_Variable;
     descriptor->ast = ast;
-    register_ident(struct_scope, descriptor, name->line_nr);
+    register_identifier(struct_scope, descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 }
 
@@ -571,7 +571,7 @@ build_symtable_enum_field(struct Ast* ast)
     descriptor->name = field->strname;
     descriptor->object_kind = Object_Variable;
     descriptor->ast = ast;
-    register_ident(get_current_scope(), descriptor, field->line_nr);
+    register_identifier(get_current_scope(), descriptor, field->line_nr);
   } else error("at line %d: name `%s` redeclared.", field->line_nr, field->strname);
 }
 
@@ -686,7 +686,7 @@ build_symtable_const_decl(struct Ast* ast)
     descriptor->name = name->strname;
     descriptor->object_kind = Object_Constant;
     descriptor->ast = ast;
-    register_ident(get_current_scope(), descriptor, name->line_nr);
+    register_identifier(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
 }
 
@@ -708,7 +708,7 @@ build_symtable_function_decl(struct Ast* ast)
   descriptor->name = name->strname;
   descriptor->object_kind = Object_Function;
   descriptor->ast = ast;
-  register_ident(get_current_scope(), descriptor, name->line_nr);
+  register_identifier(get_current_scope(), descriptor, name->line_nr);
 
   function_decl->scope = push_scope();
   if (function_proto->params) {
@@ -784,14 +784,14 @@ build_symtable_program(struct Ast* ast, struct Arena* symtable_storage_)
   register_type(get_root_scope(), new_base_type("varbit"), 0);
   register_type(get_root_scope(), new_base_type("string"), 0);
 
-  register_ident(get_root_scope(), new_ident("accept"), 0);
-  register_ident(get_root_scope(), new_ident("reject"), 0);
+  register_identifier(get_root_scope(), new_ident("accept"), 0);
+  register_identifier(get_root_scope(), new_ident("reject"), 0);
 
   struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
   memset(descriptor, 0, sizeof(*descriptor));
   descriptor->name = "error";
   descriptor->object_kind = Object_Error;
-  register_ident(get_root_scope(), descriptor, 0);
+  register_identifier(get_root_scope(), descriptor, 0);
 
   struct Ast_P4Program* program = (struct Ast_P4Program*)ast;
   program->scope = push_scope();
