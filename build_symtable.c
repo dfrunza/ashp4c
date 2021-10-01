@@ -734,8 +734,12 @@ build_symtable_error_decl(struct Ast* ast)
 void
 build_symtable_program(struct Ast* ast, struct Arena* symtable_storage_)
 {
-  symtable_storage = symtable_storage_;
   assert(ast->kind == Ast_P4Program);
+  symtable_storage = symtable_storage_;
+  add_all_base_types(get_root_scope());
+  add_builtin_ident(get_root_scope(), "accept");
+  add_builtin_ident(get_root_scope(), "reject");
+  add_builtin_ident(get_root_scope(), "error");
   struct Ast_P4Program* program = (struct Ast_P4Program*)ast;
   program->scope = push_scope();
   struct ListLink* link = list_first_link(program->decl_list);

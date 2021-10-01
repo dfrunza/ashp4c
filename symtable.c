@@ -1,4 +1,4 @@
-#define DEBUG_ENABLED 1
+#define DEBUG_ENABLED 0
 
 #include "basic.h"
 #include "arena.h"
@@ -160,7 +160,32 @@ new_ident(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
   }
 }
 
-internal struct Object_Keyword*
+void
+scope_init(struct Scope* scope, int capacity_log2)
+{
+  struct SymtableEntry* null_entry = 0;
+  array_init(&scope->symtable, sizeof(null_entry), symtable_storage);
+  scope->capacity = (1 << capacity_log2) - 1;
+  int i;
+  for (i = scope->entry_count; i < scope->capacity; i++) {
+    array_append(&scope->symtable, &null_entry);
+  }
+  scope->capacity_log2 = capacity_log2;
+  scope->entry_count = scope->entry_count;
+}
+
+void
+symtable_init(struct Arena* symtable_storage_)
+{
+  symtable_storage = symtable_storage_;
+  struct Scope* root_scope = arena_push(symtable_storage, sizeof(*root_scope));
+  memset(root_scope, 0, sizeof(*root_scope));
+  scope_init(root_scope, 5);
+  array_init(&scope_stack, sizeof(root_scope), symtable_storage);
+  array_append(&scope_stack, &root_scope);
+}
+
+struct Object_Keyword*
 add_keyword(struct Scope* scope, char* name, enum TokenClass token_klass)
 {
   struct SymtableEntry* entry = get_symtable_entry(scope, name);
@@ -173,19 +198,7 @@ add_keyword(struct Scope* scope, char* name, enum TokenClass token_klass)
   return id_kw;
 }
 
-internal struct ObjectDescriptor*
-add_base_type(struct Scope* scope, char* name)
-{
-  struct SymtableEntry* entry = get_symtable_entry(scope, name);
-  assert (entry->id_type == 0);
-  struct ObjectDescriptor* id_type = arena_push(symtable_storage, sizeof(*id_type));
-  memset(id_type, 0, sizeof(*id_type));
-  id_type->name = name;
-  entry->id_type = (struct ObjectDescriptor*)id_type;
-  return id_type;
-}
-
-internal void
+void
 add_all_keywords(struct Scope* scope)
 {
   add_keyword(scope, "action", Token_Action);
@@ -231,6 +244,17 @@ add_all_keywords(struct Scope* scope)
 }
 
 void
+add_base_type(struct Scope* scope, char* name)
+{
+  struct SymtableEntry* entry = get_symtable_entry(scope, name);
+  assert (entry->id_type == 0);
+  struct ObjectDescriptor* id_type = arena_push(symtable_storage, sizeof(*id_type));
+  memset(id_type, 0, sizeof(*id_type));
+  id_type->name = name;
+  entry->id_type = (struct ObjectDescriptor*)id_type;
+}
+
+void
 add_all_base_types(struct Scope* scope)
 {
   add_base_type(scope, "void");
@@ -242,7 +266,7 @@ add_all_base_types(struct Scope* scope)
   add_base_type(scope, "string");
 }
 
-internal struct ObjectDescriptor*
+struct ObjectDescriptor*
 add_builtin_ident(struct Scope* scope, char* name)
 {
   struct SymtableEntry* entry = get_symtable_entry(scope, name);
@@ -252,35 +276,5 @@ add_builtin_ident(struct Scope* scope, char* name)
   id_ident->name = name;
   entry->id_ident = (struct ObjectDescriptor*)id_ident;
   return id_ident;
-}
-
-void
-scope_init(struct Scope* scope, int capacity_log2)
-{
-  struct SymtableEntry* null_entry = 0;
-  array_init(&scope->symtable, sizeof(null_entry), symtable_storage);
-  scope->capacity = (1 << capacity_log2) - 1;
-  int i;
-  for (i = scope->entry_count; i < scope->capacity; i++) {
-    array_append(&scope->symtable, &null_entry);
-  }
-  scope->capacity_log2 = capacity_log2;
-  scope->entry_count = scope->entry_count;
-}
-
-void
-symtable_init(struct Arena* symtable_storage_)
-{
-  symtable_storage = symtable_storage_;
-  struct Scope* global_scope = arena_push(symtable_storage, sizeof(*global_scope));
-  memset(global_scope, 0, sizeof(*global_scope));
-  scope_init(global_scope, 5);
-  add_all_keywords(global_scope);
-  add_all_base_types(global_scope);
-  add_builtin_ident(global_scope, "accept");
-  add_builtin_ident(global_scope, "reject");
-  add_builtin_ident(global_scope, "error");
-  array_init(&scope_stack, sizeof(global_scope), symtable_storage);
-  array_append(&scope_stack, &global_scope);
 }
 

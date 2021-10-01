@@ -116,16 +116,19 @@ main(int arg_count, char* args[])
 
   struct Arena ast_storage = {};
   int ast_node_count = 0;
-  struct Ast* ast_program = build_ast_program(&ast_program, &ast_node_count, &tokens_array, &ast_storage);
+  struct Ast* ast_program = build_ast_program(&ast_program, &ast_node_count,
+          &tokens_array, &ast_storage);
   assert(ast_program && ast_program->kind == Ast_P4Program);
   arena_delete(&tokens_storage);
+  arena_delete(&symtable_storage);
 
   if (find_named_arg("print-ast", cmdline_args)) {
     assert(!"TODO");
     //print_ast(ast_program);
   }
 
-  build_symtable_program(ast_program, &symtable_storage);
+  symtable_init(&symtable_storage);
+  build_symtable_program(ast_program, &ast_storage);
   resolve_names_program(ast_program);
 
   arena_delete(&ast_storage);

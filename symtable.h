@@ -72,11 +72,15 @@ struct Scope {
 
 
 void scope_init(struct Scope* scope, int capacity_log2);
-void symtable_set_storage(struct Arena* symtable_storage_);
 struct SymtableEntry* find_symtable_entry(struct Scope* scope, char* name);
 struct SymtableEntry* get_symtable_entry(struct Scope* scope, char* name);
 void new_ident(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr);
 void new_type(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr);
+struct Object_Keyword* add_keyword(struct Scope* scope, char* name, enum TokenClass token_klass);
+void add_all_keywords(struct Scope* scope);
+void add_base_type(struct Scope* scope, char* name);
+void add_all_base_types(struct Scope* scope);
+struct ObjectDescriptor* add_builtin_ident(struct Scope* scope, char* name);
 
 struct Scope* new_scope(int capacity_log2);
 struct Scope* push_scope();

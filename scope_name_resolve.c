@@ -3,7 +3,7 @@
 #include "symtable.h"
 
 
-#define DEBUG_ENABLED 1
+#define DEBUG_ENABLED 0
 
 
 internal void resolve_names_expression(struct Scope* scope, struct Ast* expr);

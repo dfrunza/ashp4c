@@ -2784,12 +2784,12 @@ build_expression(int priority_threshold)
 
 struct Ast*
 build_ast_program(struct Ast** p4program_, int* ast_node_count_, struct UnboundedArray* tokens_array_,
-              struct Arena* ast_storage_)
+            struct Arena* ast_storage_)
 {
   tokens_array = tokens_array_;
   ast_storage = ast_storage_;
 
-  ast_attr_set_storage(ast_storage);
+  add_all_keywords(get_root_scope());
 
   token_at = 0;
   token = array_get(tokens_array, token_at);
