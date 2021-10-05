@@ -767,17 +767,7 @@ build_symtable_error_decl(struct Ast* ast)
 }
 
 internal struct ObjectDescriptor*
-new_base_type(char* name)
-{
-  struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
-  memset(descriptor, 0, sizeof(*descriptor));
-  descriptor->name = name;
-  descriptor->object_kind = Type_Basic;
-  return descriptor;
-}
-
-internal struct ObjectDescriptor*
-new_ident(char* name)
+new_descriptor(char* name, enum ObjectKind object_kind)
 {
   struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
   memset(descriptor, 0, sizeof(*descriptor));
@@ -791,16 +781,16 @@ build_symtable_program(struct Ast* ast, struct Arena* symtable_storage_)
   assert(ast->kind == Ast_P4Program);
   symtable_storage = symtable_storage_;
   
-  register_type(get_root_scope(), new_base_type("void"), 0);
-  register_type(get_root_scope(), new_base_type("bool"), 0);
-  register_type(get_root_scope(), new_base_type("error"), 0);
-  register_type(get_root_scope(), new_base_type("int"), 0);
-  register_type(get_root_scope(), new_base_type("bit"), 0);
-  register_type(get_root_scope(), new_base_type("varbit"), 0);
-  register_type(get_root_scope(), new_base_type("string"), 0);
+  register_type(get_root_scope(), new_descriptor("void", Type_Void), 0);
+  register_type(get_root_scope(), new_descriptor("bool", Type_Bool), 0);
+  register_type(get_root_scope(), new_descriptor("error", Type_Error), 0);
+  register_type(get_root_scope(), new_descriptor("int", Type_Int), 0);
+  register_type(get_root_scope(), new_descriptor("bit", Type_Bit), 0);
+  register_type(get_root_scope(), new_descriptor("varbit", Type_Varbit), 0);
+  register_type(get_root_scope(), new_descriptor("string", Type_String), 0);
 
-  register_identifier(get_root_scope(), new_ident("accept"), 0);
-  register_identifier(get_root_scope(), new_ident("reject"), 0);
+  register_identifier(get_root_scope(), new_descriptor("accept", Object_ParserState), 0);
+  register_identifier(get_root_scope(), new_descriptor("reject", Object_ParserState), 0);
 
   struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
   memset(descriptor, 0, sizeof(*descriptor));
