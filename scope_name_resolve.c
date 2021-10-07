@@ -79,7 +79,7 @@ resolve_names_expression(struct Scope* scope, struct Ast* ast)
         if (lvalue_expr->kind == Ast_Name) {
           if (((struct Ast_Name*)lvalue_expr)->is_dotprefixed) {
             link = link->next;
-            continue; // Member selection is checked in a later pass.
+            continue; // Member selection is resolved in a later pass.
           }
         }
         resolve_names_expression(scope, lvalue_expr);
@@ -91,11 +91,11 @@ resolve_names_expression(struct Scope* scope, struct Ast* ast)
   } else if (ast->kind == Ast_MemberSelectExpr) {
     struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
     if (expr->expr->kind == Ast_MemberSelectExpr) {
-      ; // Member selection is checked in a later pass.
+      ; // Member selection is resolved in a later pass.
     } else {
       resolve_names_expression(scope, expr->expr);
     }
-    // 'member_name' is checked in a later pass.
+    // 'member_name' is resolved in a later pass.
   } else if (ast->kind == Ast_SpecializedType) {
     struct Ast_SpecializedType* expr = (struct Ast_SpecializedType*)ast;
     resolve_names_expression(scope, expr->name);

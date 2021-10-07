@@ -698,11 +698,8 @@ build_symtable_match_kind(struct Ast* ast)
 {
   assert(ast->kind == Ast_MatchKindDecl);
   struct Ast_MatchKindDecl* decl = (struct Ast_MatchKindDecl*)ast;
-  struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), "match_kind");
-  if (!entry->id_type) {
-    struct ObjectDescriptor* descriptor = new_type_descriptor("match_kind", Type_MatchKind);
-    register_type(get_root_scope(), descriptor, ast->line_nr);
-  } else error("at line %d: name `%s` redeclared.", ast->line_nr, "match_kind");
+  struct SymtableEntry* entry = get_symtable_entry(get_root_scope(), "match_kind");
+  assert (entry->id_ident && entry->id_type);
   if (decl->id_list) {
     build_symtable_enum_id_list(decl->id_list);
   }
@@ -724,15 +721,17 @@ build_symtable_program(struct Ast* ast, struct Arena* symtable_storage_)
   
   register_type(get_root_scope(), new_object_descriptor("void", Type_Void), 0);
   register_type(get_root_scope(), new_object_descriptor("bool", Type_Bool), 0);
-  register_type(get_root_scope(), new_object_descriptor("error", Type_Error), 0);
   register_type(get_root_scope(), new_object_descriptor("int", Type_Int), 0);
   register_type(get_root_scope(), new_object_descriptor("bit", Type_Bit), 0);
   register_type(get_root_scope(), new_object_descriptor("varbit", Type_Varbit), 0);
   register_type(get_root_scope(), new_object_descriptor("string", Type_String), 0);
+  register_type(get_root_scope(), new_object_descriptor("error", Type_Error), 0);
+  register_type(get_root_scope(), new_object_descriptor("match_kind", Type_MatchKind), 0);
 
   register_identifier(get_root_scope(), new_object_descriptor("accept", Object_ParserState), 0);
   register_identifier(get_root_scope(), new_object_descriptor("reject", Object_ParserState), 0);
   register_identifier(get_root_scope(), new_object_descriptor("error", Object_Error), 0);
+  register_identifier(get_root_scope(), new_object_descriptor("match_kind", Object_MatchKind), 0);
 
   struct Ast_P4Program* program = (struct Ast_P4Program*)ast;
   program->scope = push_scope();
