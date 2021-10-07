@@ -411,13 +411,13 @@ build_typeOrVoid(bool is_type)
 }
 
 internal struct Ast*
-build_functionPrototype(struct Ast* type_ref)
+build_functionPrototype(struct Ast* return_type)
 {
   struct Ast_FunctionProto* proto = 0;
-  if (token_is_typeOrVoid(token) || type_ref) {
+  if (token_is_typeOrVoid(token) || return_type) {
     proto = new_ast_node(Ast_FunctionProto, token);
-    if (type_ref) {
-      proto->return_type = type_ref;
+    if (return_type) {
+      proto->return_type = return_type;
     } else {
       proto->return_type = build_typeOrVoid(true);
     }
@@ -490,8 +490,6 @@ build_externDeclaration()
   struct Ast* decl = 0;
   if (token->klass == Token_Extern) {
     next_token();
-    struct Ast_ExternDecl* extern_decl = new_ast_node(Ast_ExternDecl, token);
-    decl = (struct Ast*)extern_decl;
     bool is_function_proto = false;
     if (token_is_typeOrVoid(token) && token_is_nonTypeName(token)) {
       is_function_proto = token_is_typeOrVoid(token) && token_is_name(peek_token());
@@ -502,11 +500,15 @@ build_externDeclaration()
     } else error("at line %d: extern declaration was expected, got `%s`.", token->line_nr, token->lexeme);
 
     if (is_function_proto) {
-      decl = (struct Ast*)build_functionPrototype(0);
+      struct Ast_FunctionProto* proto = (struct Ast_FunctionProto*)build_functionPrototype(0);
+      decl = (struct Ast*)proto;
+      proto->is_extern = true;
       if (token->klass == Token_Semicolon) {
         next_token();
       } else error("at line %d: `;` was expected, got `%s`.", token->line_nr, token->lexeme);
     } else {
+      struct Ast_ExternDecl* extern_decl = new_ast_node(Ast_ExternDecl, token);
+      decl = (struct Ast*)extern_decl;
       extern_decl->name = build_nonTypeName(true);
       extern_decl->type_params = build_optTypeParameters();
       if (token->klass == Token_BraceOpen) {
@@ -576,64 +578,76 @@ build_integerTypeSize()
 internal struct Ast*
 build_baseType()
 {
-  struct Ast_BaseType* base_type = 0;
+  struct Ast* base_type = 0;
   if (token_is_baseType(token)) {
-    base_type = new_ast_node(Ast_BaseType, token);
     struct Ast_Name* type_name = new_ast_node(Ast_Name, token);
-    base_type->type_name = (struct Ast*)type_name;
     if (token->klass == Token_Bool) {
-      base_type->base_type = AstBaseType_Bool;
+      struct Ast_BaseType_Bool* bool_type = new_ast_node(Ast_BaseType_Bool, token);
       type_name->strname = "bool";
+      bool_type->name = (struct Ast*)type_name;
+      base_type = (struct Ast*)bool_type;
       next_token();
     } else if (token->klass == Token_Error) {
-      base_type->base_type = AstBaseType_Error;
+      struct Ast_BaseType_Error* error_type = new_ast_node(Ast_BaseType_Error, token);
       type_name->strname = "error";
+      error_type->name = (struct Ast*)type_name;
+      base_type = (struct Ast*)error_type;
       next_token();
     } else if (token->klass == Token_Int) {
-      base_type->base_type = AstBaseType_Int;
+      struct Ast_BaseType_Int* int_type = new_ast_node(Ast_BaseType_Int, token);
       type_name->strname = "int";
+      int_type->name = (struct Ast*)type_name;
+      base_type = (struct Ast*)int_type;
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
-        base_type->size = build_integerTypeSize();
+        int_type->size = build_integerTypeSize();
         if (token->klass == Token_AngleClose) {
           next_token();
         } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
       }
     } else if (token->klass == Token_Bit) {
-      base_type->base_type = AstBaseType_Bit;
+      struct Ast_BaseType_Bit* bit_type = new_ast_node(Ast_BaseType_Bit, token);
       type_name->strname = "bit";
+      bit_type->name = (struct Ast*)type_name;
+      base_type = (struct Ast*)bit_type;
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
-        base_type->size = build_integerTypeSize();
+        bit_type->size = build_integerTypeSize();
         if (token->klass == Token_AngleClose) {
           next_token();
         } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
       }
     } else if (token->klass == Token_Varbit) {
-      base_type->base_type = AstBaseType_Varbit;
+      struct Ast_BaseType_Varbit* varbit_type = new_ast_node(Ast_BaseType_Varbit, token);
       type_name->strname = "varbit";
+      varbit_type->name = (struct Ast*)type_name;
+      base_type = (struct Ast*)varbit_type;
       next_token();
       if (token->klass == Token_AngleOpen) {
         next_token();
-        base_type->size = build_integerTypeSize();
+        varbit_type->size = build_integerTypeSize();
         if (token->klass == Token_AngleClose) {
           next_token();
         } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
       }
     } else if (token->klass == Token_String) {
-      base_type->base_type = AstBaseType_String;
+      struct Ast_BaseType_String* string_type = new_ast_node(Ast_BaseType_String, token);
       type_name->strname = "string";
+      string_type->name = (struct Ast*)type_name;
+      base_type = (struct Ast*)string_type;
       next_token();
     } else if (token->klass == Token_Void) {
-      base_type->base_type = AstBaseType_Void;
+      struct Ast_BaseType_Void* void_type = new_ast_node(Ast_BaseType_Void, token);
       type_name->strname = "void";
+      void_type->name = (struct Ast*)type_name;
+      base_type = (struct Ast*)void_type;
       next_token();
     }
     else assert(0);
   } else error("at line %d: type as expected, got `%s`.", token->line_nr, token->lexeme);
-  return (struct Ast*)base_type;
+  return base_type;
 }
 
 internal struct List*
@@ -2624,14 +2638,14 @@ build_expressionPrimary()
     } else if (token->klass == Token_Exclamation) {
       next_token();
       struct Ast_UnaryExpr* unary_expr = new_ast_node(Ast_UnaryExpr, token);
-      unary_expr->op = AstExprOp_LogNot;
+      unary_expr->op = AstExprOp_LogicNot;
       enum AstExprOperator* op = arena_push(ast_storage, sizeof(*op));
       unary_expr->operand = build_expression(1);
       primary = (struct Ast*)unary_expr;
     } else if (token->klass == Token_Tilda) {
       next_token();
       struct Ast_UnaryExpr* unary_expr = new_ast_node(Ast_UnaryExpr, token);
-      unary_expr->op = AstExprOp_BitNot;
+      unary_expr->op = AstExprOp_BitwiseNot;
       unary_expr->operand = build_expression(1);
       primary = (struct Ast*)unary_expr;
     } else if (token->klass == Token_UnaryMinus) {
@@ -2708,15 +2722,15 @@ token_to_binop(struct Token* token)
     case Token_Slash:
       return AstExprOp_Div;
     case Token_Ampersand:
-      return AstExprOp_BitAnd;
+      return AstExprOp_BitwiseAnd;
     case Token_Pipe:
-      return AstExprOp_BitOr;
+      return AstExprOp_BitwiseOr;
     case Token_Circumflex:
-      return AstExprOp_BitXor;
+      return AstExprOp_BitwiseXor;
     case Token_TwoAngleOpen:
-      return AstExprOp_BitShiftLeft;
+      return AstExprOp_BitwiseShiftLeft;
     case Token_TwoAngleClose:
-      return AstExprOp_BitShiftRight;
+      return AstExprOp_BitwiseShiftRight;
     case Token_ThreeAmpersand:
       return AstExprOp_Mask;
     default: return AstExprOp_NONE;

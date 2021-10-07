@@ -2,7 +2,6 @@
 #include "ast.h"
 #include "symtable.h"
 
-
 #define DEBUG_ENABLED 0
 
 
@@ -376,9 +375,11 @@ resolve_names_statement(struct Scope* scope, struct Ast* ast)
 internal void
 resolve_names_type_ref(struct Scope* scope, struct Ast* ast)
 {
-  if (ast->kind == Ast_BaseType) {
-    struct Ast_BaseType* type_ref = (struct Ast_BaseType*)ast;
-    resolve_names_expression(scope, type_ref->type_name);
+  if (ast->kind == Ast_BaseType_Bool || ast->kind == Ast_BaseType_Error
+      || ast->kind == Ast_BaseType_Int || ast->kind == Ast_BaseType_Bit
+      || ast->kind == Ast_BaseType_Bit || ast->kind == Ast_BaseType_Varbit
+      || ast->kind == Ast_BaseType_String || ast->kind == Ast_BaseType_Void) {
+    resolve_names_expression(scope, ast->name);
   } else if (ast->kind == Ast_HeaderStack) {
     struct Ast_HeaderStack* type_ref = (struct Ast_HeaderStack*)ast;
     resolve_names_expression(scope, type_ref->name);
@@ -456,14 +457,6 @@ resolve_names_control_decl(struct Scope* scope, struct Ast* ast)
   assert(ast->kind == Ast_ControlDecl);
   struct Ast_ControlDecl* decl = (struct Ast_ControlDecl*)ast;
   struct Ast_ControlType* type_decl = (struct Ast_ControlType*)decl->type_decl;
-  if (type_decl->params) {
-    struct ListLink* link = list_first_link(type_decl->params);
-    while (link) {
-      struct Ast* param = link->object;
-      resolve_names_function_param(decl->scope, param);
-      link = link->next;
-    }
-  }
   if (decl->local_decls) {
     struct ListLink* link = list_first_link(decl->local_decls);
     while (link) {
@@ -500,7 +493,7 @@ resolve_names_function_proto(struct Scope* scope, struct Ast* ast)
   assert(ast->kind == Ast_FunctionProto);
   struct Ast_FunctionProto* decl = (struct Ast_FunctionProto*)ast;
   if (decl->return_type) {
-    resolve_names_type_ref(scope, decl->return_type);
+    resolve_names_type_ref(decl->scope, decl->return_type);
   }
   if (decl->params) {
     struct ListLink* link = list_first_link(decl->params);
@@ -533,14 +526,6 @@ resolve_names_parser_decl(struct Scope* scope, struct Ast* ast)
   assert(ast->kind == Ast_ParserDecl);
   struct Ast_ParserDecl* decl = (struct Ast_ParserDecl*)ast;
   struct Ast_ParserType* type_decl = (struct Ast_ParserType*)decl->type_decl;
-  if (type_decl->params) {
-    struct ListLink* link = list_first_link(type_decl->params);
-    while (link) {
-      struct Ast* param = link->object;
-      resolve_names_function_param(decl->scope, param);
-      link = link->next;
-    }
-  }
   if (decl->states) {
     struct ListLink* link = list_first_link(decl->states);
     while (link) {
@@ -585,7 +570,7 @@ resolve_names_extern_decl(struct Scope* scope, struct Ast* ast)
     struct ListLink* link = list_first_link(decl->method_protos);
     while (link) {
       struct Ast* method = link->object;
-      resolve_names_function_proto(scope, method);
+      resolve_names_function_proto(decl->scope, method);
       link = link->next;
     }
   }

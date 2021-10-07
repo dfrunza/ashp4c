@@ -1,5 +1,3 @@
-#define DEBUG_ENABLED 0
-
 #include "basic.h"
 #include "arena.h"
 #include "lex.h"
@@ -7,6 +5,7 @@
 #include <sys/stat.h>
 #include <memory.h>  // memset
 
+#define DEBUG_ENABLED 0
 
 internal struct Arena main_storage = {};
 

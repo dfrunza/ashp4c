@@ -6,7 +6,13 @@
 enum AstKind {
   Ast_NONE,
   Ast_Name,
-  Ast_BaseType,
+  Ast_BaseType_Bool,
+  Ast_BaseType_Error,
+  Ast_BaseType_Int,
+  Ast_BaseType_Bit,
+  Ast_BaseType_Varbit,
+  Ast_BaseType_String,
+  Ast_BaseType_Void,
   Ast_ConstDecl,
   Ast_ExternDecl,
   Ast_FunctionProto,
@@ -74,17 +80,6 @@ enum AstKind {
   Ast_FunctionCallExpr,
 };
 
-enum AstBaseType {
-  AstBaseType_NONE,
-  AstBaseType_Bool,
-  AstBaseType_Error,
-  AstBaseType_Int,
-  AstBaseType_Bit,
-  AstBaseType_Varbit,
-  AstBaseType_String,
-  AstBaseType_Void,
-};
-
 enum AstIntegerFlags {
   AstInteger_NONE,
   AstInteger_HasWidth,
@@ -105,15 +100,15 @@ enum AstExprOperator {
   AstExprOp_Greater,
   AstExprOp_LessEqual,
   AstExprOp_GreaterEqual,
-  AstExprOp_BitAnd,
-  AstExprOp_BitOr,
-  AstExprOp_BitXor,
-  AstExprOp_BitShiftLeft,
-  AstExprOp_BitShiftRight,
+  AstExprOp_BitwiseAnd,
+  AstExprOp_BitwiseOr,
+  AstExprOp_BitwiseXor,
+  AstExprOp_BitwiseShiftLeft,
+  AstExprOp_BitwiseShiftRight,
   AstExprOp_Mask,
   AstExprOp_Minus,
-  AstExprOp_LogNot,
-  AstExprOp_BitNot,
+  AstExprOp_LogicNot,
+  AstExprOp_BitwiseNot,
 };
 
 enum AstParamDirection {
@@ -161,11 +156,35 @@ struct Ast_Name {
   struct SymtableEntry* symtable_entry;
 };
 
-struct Ast_BaseType {
+struct Ast_BaseType_Bool {
   struct Ast;
-  struct Ast* type_name;
-  enum AstBaseType base_type;
+};
+
+struct Ast_BaseType_Error {
+  struct Ast;
+};
+
+struct Ast_BaseType_Int {
+  struct Ast;
   struct Ast* size;
+};
+
+struct Ast_BaseType_Bit {
+  struct Ast;
+  struct Ast* size;
+};
+
+struct Ast_BaseType_Varbit {
+  struct Ast;
+  struct Ast* size;
+};
+
+struct Ast_BaseType_String {
+  struct Ast;
+};
+
+struct Ast_BaseType_Void {
+  struct Ast;
 };
 
 struct Ast_ConstDecl {
@@ -182,6 +201,7 @@ struct Ast_ExternDecl {
 
 struct Ast_FunctionProto {
   struct Ast;
+  bool is_extern;
   struct Ast* return_type;
   struct List* type_params;
   struct List* params;

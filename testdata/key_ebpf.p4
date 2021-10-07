@@ -38,7 +38,7 @@ error {
                            /// not supported by the implementation.
 }
 
-extern packet_in<T> {
+extern packet_in {
     void extract<T>(out T hdr);
     void extract<T>(out T variableSizeHeader,
                     in bit<32> variableFieldSizeInBits);
@@ -47,7 +47,7 @@ extern packet_in<T> {
     bit<32> length();
 }
 
-extern packet_out<T> {
+extern packet_out {
     void emit<T>(in T hdr);
 }
 

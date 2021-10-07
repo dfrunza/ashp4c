@@ -1,11 +1,10 @@
-#define DEBUG_ENABLED 0
-
 #include "basic.h"
 #include "arena.h"
 #include "token.h"
 #include "symtable.h"
 #include <memory.h>  // memset
 
+#define DEBUG_ENABLED 0
 
 internal struct Arena* symtable_storage;
 internal struct UnboundedArray scope_stack = {};
