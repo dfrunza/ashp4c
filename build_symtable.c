@@ -388,8 +388,14 @@ build_symtable_function_proto(struct Ast* ast)
   descriptor->ast = ast;
   register_type(get_current_scope(), descriptor, name->line_nr);
   function_proto->scope = push_scope();
-  if (function_proto->return_type && function_proto->return_type->kind == Ast_Name) {
-    build_symtable_type_param(function_proto->return_type);
+  if (function_proto->return_type) {
+    if (function_proto->return_type->kind == Ast_Name) {
+      struct Ast_Name* return_type = (struct Ast_Name*)function_proto->return_type;
+      struct SymtableEntry* entry = scope_resolve_name(get_current_scope(), return_type->strname);
+      if (!entry->id_type) {
+        build_symtable_type_param(function_proto->return_type);
+      }
+    }
   }
   if (function_proto->type_params) {
     struct ListLink* link = list_first_link(function_proto->type_params);
