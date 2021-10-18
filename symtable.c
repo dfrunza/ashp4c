@@ -8,6 +8,7 @@
 
 internal struct Arena* symtable_storage;
 internal struct UnboundedArray scope_stack = {};
+internal struct SymtableEntry* null_entry = 0;
 
 
 struct Scope*
@@ -29,7 +30,7 @@ new_scope(int capacity_log2)
 {
   struct Scope* new_scope = arena_push(symtable_storage, sizeof(*new_scope));
   memset(new_scope, 0, sizeof(*new_scope));
-  scope_init(new_scope, 4);
+  scope_init(new_scope, capacity_log2);
   return new_scope;
 }
 
@@ -98,7 +99,6 @@ get_symtable_entry(struct Scope* scope, char* name)
       }
       assert (j == scope->entry_count);
       scope->capacity = (1 << ++scope->capacity_log2) - 1;
-      struct SymtableEntry* null_entry = 0;
       for (i = scope->entry_count; i < scope->capacity; i++) {
         array_append(&scope->symtable, &null_entry);
       }

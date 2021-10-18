@@ -1,7 +1,7 @@
 #pragma once
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>   // malloc & free
+#include <stdlib.h>   // exit
 #include <stdarg.h>   // va_list, va_start, va_end
 
 
@@ -14,6 +14,8 @@
 #define bool uint32_t
 #define KILOBYTE 1024
 #define MEGABYTE 1024*KILOBYTE
+
+void assert_(char* message, char* file, int line);
 
 #define sizeof_array(array) (sizeof(array)/sizeof(array[0]))
 #define offsetof(type, member) ((size_t) &((type*)0)->member)

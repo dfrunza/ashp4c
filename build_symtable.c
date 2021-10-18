@@ -226,11 +226,6 @@ build_symtable_control_decl(struct Ast* ast)
     descriptor->ast = ast;
     register_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
-  if (!entry->id_ident) {
-    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_Control);
-    descriptor->ast = ast;
-    register_identifier(get_current_scope(), descriptor, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   control_decl->scope = push_scope();
   if (type_decl->type_params) {
     struct ListLink* link = list_first_link(type_decl->type_params);
@@ -328,11 +323,6 @@ build_symtable_parser_decl(struct Ast* ast)
     struct ObjectDescriptor* descriptor = new_type_descriptor(name->strname, Type_Parser);
     descriptor->ast = ast;
     register_type(get_current_scope(), descriptor, name->line_nr);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
-  if (!entry->id_ident) {
-    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_Parser);
-    descriptor->ast = ast;
-    register_identifier(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   parser_decl->scope = push_scope();
   if (type_decl->type_params) {
@@ -662,14 +652,6 @@ build_symtable_function_decl(struct Ast* ast)
   struct ObjectDescriptor* descriptor = new_type_descriptor(name->strname, Type_Function);
   descriptor->ast = ast;
   register_type(get_current_scope(), descriptor, name->line_nr);
-  if (function_decl->stmt) {
-    struct SymtableEntry* entry = get_symtable_entry(get_current_scope(), name->strname);
-    if (!entry->id_ident) {
-      struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_Function);
-      descriptor->ast = ast;
-      register_identifier(get_current_scope(), descriptor, name->line_nr);
-    } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
-  }
   function_decl->scope = push_scope();
   if (function_proto->params) {
     struct ListLink* link = list_first_link(function_proto->params);

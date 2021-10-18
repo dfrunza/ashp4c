@@ -60,7 +60,6 @@ next_token()
       return token;
     }
     if (entry->id_type) {
-      struct ObjectDescriptor* id_type = entry->id_type;
       token->klass = Token_TypeIdentifier;
       return token;
     }
@@ -540,8 +539,6 @@ build_integer()
 internal struct Ast*
 build_boolean()
 {
-  static int bool_true = 1;
-  static int bool_false = 0;
   struct Ast_BoolLiteral* bool_node = 0;
   if (token->klass == Token_True || token->klass == Token_False) {
     bool_node = new_ast_node(Ast_BoolLiteral, token);
@@ -2592,9 +2589,7 @@ build_expressionPrimary()
   if (token_is_expression(token)) {
     if (token->klass == Token_Integer) {
       primary = build_integer();
-    } else if (token->klass == Token_True) {
-      primary = build_boolean();
-    } else if (token->klass == Token_False) {
+    } else if (token->klass == Token_True || token->klass == Token_False) {
       primary = build_boolean();
     } else if (token->klass == Token_StringLiteral) {
       primary = build_stringLiteral();

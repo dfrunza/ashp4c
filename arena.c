@@ -233,7 +233,7 @@ arena_get_usage(struct Arena* arena)
 }
 
 int
-floor_log2(x)
+floor_log2(int x)
 {
   int result = floor(log10(x) / log10(2));
   return result;
