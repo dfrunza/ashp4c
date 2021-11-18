@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 import sys, subprocess, os
 
-# Use the script to create a 'deployment profile' that contains the remote host, credentials and paths, and which
-# can then be selected by the user. The profiles are persisted (as data appended to this file) and one
-# of those is set as default.
+# IMPROVEMENT: Create a 'deployment profile' that contains the remote host, credentials and paths, and which
+# can then be selected by the user. The profiles are to be persisted as data appended to this file
+# in the form of comments.
 
 USERNAME=""
 PASSWORD=""
