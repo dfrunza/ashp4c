@@ -128,7 +128,8 @@ main(int arg_count, char* args[])
 
   symtable_init(&ast_storage);
   build_symtable_program(ast_program, &ast_storage);
-  resolve_names_program(ast_program);
+  scope_name_resolve(ast_program);
+  object_descriptor_name_resolve(ast_program);
 
   arena_delete(&ast_storage);
   arena_delete(&main_storage);
