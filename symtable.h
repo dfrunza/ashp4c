@@ -71,7 +71,7 @@ struct Scope {
   int scope_level;
   struct Scope* parent_scope;
   struct Scope* first_child_scope;
-  struct Scope* left_sibling_scope;
+  struct Scope* right_sibling_scope;
   int capacity_log2;
   int capacity;
   int entry_count;

@@ -242,8 +242,10 @@ floor_log2(int x)
 void
 array_init(struct UnboundedArray* array, int elem_size, struct Arena* storage)
 {
-  memset(array, 0, sizeof(*array));
+  memset(array->segment_table, 0, sizeof(array->segment_table));
   array->elem_size = elem_size;
+  array->elem_count = 0;
+  array->capacity = 0;
   array->storage = storage;
 }
 

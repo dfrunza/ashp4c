@@ -9,9 +9,7 @@
 internal struct Arena* symtable_storage;
 internal struct UnboundedArray scope_stack = {};
 internal struct SymtableEntry* null_entry = 0;
-
-
-struct Hashtable map_child_scope = {};
+internal struct Hashtable map_child_scope = {};
 
 
 struct Scope*
@@ -53,15 +51,12 @@ push_scope()
   new_scope->parent_scope = current_scope;
   struct HashtableEntry* entry = hashtable_get_or_create_entry(&map_child_scope,
                 (uint8_t*)&current_scope, sizeof(current_scope));
-  /*
   struct Scope* last_child_scope = entry->object;
   if (last_child_scope) {
     assert (last_child_scope->scope_level == new_scope->scope_level);
-    last_child_scope->left_sibling_scope = new_scope;
-  } else {
-    entry->object = new_scope;
+    last_child_scope->right_sibling_scope = new_scope;
   }
-  */
+  entry->object = new_scope;
   if (!current_scope->first_child_scope) {
     current_scope->first_child_scope = new_scope;
   }
@@ -192,6 +187,7 @@ scope_init(struct Scope* scope, int capacity_log2)
   struct SymtableEntry* null_entry = 0;
   array_init(&scope->symtable, sizeof(null_entry), symtable_storage);
   scope->capacity = (1 << capacity_log2) - 1;
+  scope->entry_count = 0;
   int i;
   for (i = scope->entry_count; i < scope->capacity; i++) {
     array_append(&scope->symtable, &null_entry);

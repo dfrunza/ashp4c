@@ -74,9 +74,9 @@ hashtable_hash_key(int capacity_log2, uint8_t* key, int keylen)
 void
 hashtable_init(struct Hashtable* hashtable, int capacity_log2, struct Arena* storage)
 {
-  memset(hashtable, 0, sizeof(*hashtable));
   array_init(&hashtable->entries, sizeof(null_entry), storage);
   hashtable->capacity = (1 << capacity_log2) - 1;
+  hashtable->entry_count = 0;
   int i;
   for (i = hashtable->entry_count; i < hashtable->capacity; i++) {
     array_append(&hashtable->entries, &null_entry);

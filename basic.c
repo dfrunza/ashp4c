@@ -111,7 +111,6 @@ cstr_print_substr(char* begin_char, char* end_char)
 bool
 bytes_match(uint8_t* bytes_a, int len_a, uint8_t* bytes_b, int len_b)
 {
-  // NOTE(2021-Nov-13): Not tested.
   assert ((len_a > 0) && (len_b > 0));
   bool result = (len_a == len_b);
   if (!result) {
@@ -127,6 +126,7 @@ bytes_match(uint8_t* bytes_a, int len_a, uint8_t* bytes_b, int len_b)
       break;
     }
   }
+  result = (at_i == len_a);
   return result;
 }
 
