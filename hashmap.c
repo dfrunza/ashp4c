@@ -71,6 +71,32 @@ hashmap_hash_key(int capacity_log2, uint8_t* key, int keylen)
   return h;
 }
 
+internal bool
+key_match(uint8_t* bytes_a, int len_a, uint8_t* bytes_b, int len_b)
+{
+  if (len_a == 0 && len_b == 0) {
+    return cstr_match(bytes_a, bytes_b);
+  }
+  assert ((len_a > 0) && (len_b > 0));
+  bool result = (len_a == len_b);
+  if (!result) {
+    return result;
+  }
+  uint8_t *p_a = bytes_a,
+          *p_b = bytes_b;
+  int at_i = 0;
+  while (*p_a == *p_b) {
+    p_a++;
+    p_b++;
+    if (++at_i == len_a) {
+      break;
+    }
+  }
+  result = (at_i == len_a);
+  return result;
+}
+
+
 void
 hashmap_init(struct Hashmap* hashmap, int capacity_log2, struct Arena* storage)
 {
@@ -91,7 +117,7 @@ hashmap_find_entry(struct Hashmap* hashmap, uint8_t* key, int keylen)
   uint32_t h = hashmap_hash_key(hashmap->capacity_log2, key, keylen);
   struct HashmapEntry* entry = *(struct HashmapEntry**)array_get(&hashmap->entries, h);
   while (entry) {
-    if (bytes_match(entry->key, entry->keylen, key, keylen))
+    if (key_match(entry->key, entry->keylen, key, keylen))
       break;
     entry = entry->next_entry;
   }

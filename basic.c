@@ -108,28 +108,6 @@ cstr_print_substr(char* begin_char, char* end_char)
   }
 }
 
-bool
-bytes_match(uint8_t* bytes_a, int len_a, uint8_t* bytes_b, int len_b)
-{
-  assert ((len_a > 0) && (len_b > 0));
-  bool result = (len_a == len_b);
-  if (!result) {
-    return result;
-  }
-  uint8_t *p_a = bytes_a,
-          *p_b = bytes_b;
-  int at_i = 0;
-  while (*p_a == *p_b) {
-    p_a++;
-    p_b++;
-    if (++at_i == len_a) {
-      break;
-    }
-  }
-  result = (at_i == len_a);
-  return result;
-}
-
 void
 error_(char* file, int line, char* message, ...)
 {

@@ -9,7 +9,7 @@
 internal struct Arena* symtable_storage;
 internal struct UnboundedArray scope_stack = {};
 internal struct SymtableEntry* null_entry = 0;
-internal struct Hashmap map_child_scope = {};
+internal struct Hashmap child_scope_map = {};
 
 
 struct Scope*
@@ -49,7 +49,7 @@ push_scope()
     printf("push scope %d\n", new_scope->scope_level);
   }
   new_scope->parent_scope = current_scope;
-  struct HashmapEntry* entry = hashmap_get_or_create_entry(&map_child_scope,
+  struct HashmapEntry* entry = hashmap_get_or_create_entry(&child_scope_map,
                 (uint8_t*)&current_scope, sizeof(current_scope));
   struct Scope* last_child_scope = entry->object;
   if (last_child_scope) {
@@ -80,58 +80,21 @@ pop_scope()
 struct SymtableEntry*
 find_symtable_entry(struct Scope* scope, char* name)
 {
-  uint32_t h = hash_string(name, scope->capacity_log2);
-  struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&scope->symtable, h);
-  while (entry) {
-    if (cstr_match(entry->name, name))
-      break;
-    entry = entry->next_entry;
-  }
-  return entry;
+  struct HashmapEntry* hmap_entry = hashmap_find_entry(&scope->symtable, (uint8_t*)name, 0);
+  return (struct SymtableEntry*)hmap_entry->object;
 }
 
 struct SymtableEntry*
 get_symtable_entry(struct Scope* scope, char* name)
 {
-  struct SymtableEntry* entry = find_symtable_entry(scope, name);
-  if (!entry) {
-    if (scope->entry_count >= scope->capacity) {
-      struct Arena temp_storage = {};
-      struct SymtableEntry** entries_array = arena_push(&temp_storage, scope->capacity);
-      int i, j = 0;
-      for (i = 0; i < scope->capacity; i++) {
-        struct SymtableEntry* entry = *(struct SymtableEntry**)array_get(&scope->symtable, i);
-        while (entry) {
-          entries_array[j] = entry;
-          struct SymtableEntry* next_entry = entry->next_entry;
-          entry->next_entry = 0;
-          entry = next_entry;
-          j++;
-        }
-      }
-      assert (j == scope->entry_count);
-      scope->capacity = (1 << ++scope->capacity_log2) - 1;
-      for (i = scope->entry_count; i < scope->capacity; i++) {
-        array_append(&scope->symtable, &null_entry);
-      }
-      for (i = 0; i < scope->capacity; i++) {
-        array_set(&scope->symtable, i, &null_entry);
-      }
-      for (i = 0; i < scope->entry_count; i++) {
-        uint32_t h = hash_string(entries_array[i]->name, scope->capacity_log2);
-        entries_array[i]->next_entry = *(struct SymtableEntry**)array_get(&scope->symtable, h);
-        array_set(&scope->symtable, h, &entries_array[i]);
-      }
-      arena_delete(&temp_storage);
-    }
-    int h = hash_string(name, scope->capacity_log2);
-    entry = arena_push(symtable_storage, sizeof(*entry));
-    memset(entry, 0, sizeof(*entry));
-    entry->name = name;
-    entry->next_entry = *(struct SymtableEntry**)array_get(&scope->symtable, h);
-    array_set(&scope->symtable, h, &entry);
-    scope->entry_count += 1;
+  struct HashmapEntry* hmap_entry = hashmap_get_or_create_entry(&scope->symtable, (uint8_t*)name, 0);
+  if (hmap_entry->object) {
+    return (struct SymtableEntry*)hmap_entry->object;
   }
+  struct SymtableEntry* entry = arena_push(symtable_storage, sizeof(*entry));
+  hmap_entry->object = entry;
+  memset(entry, 0, sizeof(*entry));
+  entry->name = name;
   return entry;
 }
 
@@ -184,22 +147,18 @@ register_keyword(struct Scope* scope, struct ObjectDescriptor* descriptor)
 void
 scope_init(struct Scope* scope, int capacity_log2)
 {
-  struct SymtableEntry* null_entry = 0;
-  array_init(&scope->symtable, sizeof(null_entry), symtable_storage);
-  scope->capacity = (1 << capacity_log2) - 1;
-  scope->entry_count = 0;
-  int i;
-  for (i = scope->entry_count; i < scope->capacity; i++) {
-    array_append(&scope->symtable, &null_entry);
-  }
-  scope->capacity_log2 = capacity_log2;
+  scope->scope_level = 0;
+  scope->parent_scope = 0;
+  scope->first_child_scope = 0;
+  scope->right_sibling_scope = 0;
+  hashmap_init(&scope->symtable, capacity_log2, symtable_storage);
 }
 
 void
 symtable_init(struct Arena* symtable_storage_)
 {
   symtable_storage = symtable_storage_;
-  hashmap_init(&map_child_scope, 5, symtable_storage);
+  hashmap_init(&child_scope_map, 5, symtable_storage);
   struct Scope* root_scope = arena_push(symtable_storage, sizeof(*root_scope));
   memset(root_scope, 0, sizeof(*root_scope));
   scope_init(root_scope, 5);

@@ -64,7 +64,6 @@ struct SymtableEntry {
   struct ObjectDescriptor* id_kw;
   struct ObjectDescriptor* id_type;
   struct ObjectDescriptor* id_ident;
-  struct SymtableEntry* next_entry;
 };
 
 struct Scope {
@@ -72,10 +71,7 @@ struct Scope {
   struct Scope* parent_scope;
   struct Scope* first_child_scope;
   struct Scope* right_sibling_scope;
-  int capacity_log2;
-  int capacity;
-  int entry_count;
-  struct UnboundedArray symtable;
+  struct Hashmap symtable;
 };
 
 
