@@ -70,6 +70,8 @@ struct SymtableEntry {
 struct Scope {
   int scope_level;
   struct Scope* parent_scope;
+  struct Scope* first_child_scope;
+  struct Scope* left_sibling_scope;
   int capacity_log2;
   int capacity;
   int entry_count;
@@ -77,6 +79,7 @@ struct Scope {
 };
 
 
+void symtable_init(struct Arena* symtable_storage_);
 void scope_init(struct Scope* scope, int capacity_log2);
 struct SymtableEntry* find_symtable_entry(struct Scope* scope, char* name);
 struct SymtableEntry* get_symtable_entry(struct Scope* scope, char* name);

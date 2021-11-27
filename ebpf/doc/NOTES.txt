@@ -76,3 +76,15 @@ ethtool -G enp5s0f0 rx 4096 tx 4096
 # set 0 size 128
 # start 0
 # stop 0
+
+
+== Static linking of libc ==
+
+GNU libc is not designed to be statically linked. Important functions, e.g. gethostbyname and iconv,
+will malfunction or not work at all in a static binary. Arguably even worse, under some conditions a
+static binary will attempt to dynamically open and use libc.so.6, even though the whole point of
+static linkage is to avoid such dependencies.
+
+You should compile your program against uClibc or musl libc instead.
+
+(This has been true for at least 15 years.)

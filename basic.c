@@ -72,7 +72,8 @@ cstr_copy_substr(char* dest_str, char* begin_char, char* end_char)
   while(src_str <= end_char);
 }
 
-bool cstr_start_with(char* str, char* prefix)
+bool
+cstr_start_with(char* str, char* prefix)
 {
   while(*str == *prefix) {
     str++;
@@ -105,6 +106,28 @@ cstr_print_substr(char* begin_char, char* end_char)
     printf("%c", *c);
     c++;
   }
+}
+
+bool
+bytes_match(uint8_t* bytes_a, int len_a, uint8_t* bytes_b, int len_b)
+{
+  // NOTE(2021-Nov-13): Not tested.
+  assert ((len_a > 0) && (len_b > 0));
+  bool result = (len_a == len_b);
+  if (!result) {
+    return result;
+  }
+  uint8_t *p_a = bytes_a,
+          *p_b = bytes_b;
+  int at_i = 0;
+  while (*p_a == *p_b) {
+    p_a++;
+    p_b++;
+    if (++at_i == len_a) {
+      break;
+    }
+  }
+  return result;
 }
 
 void

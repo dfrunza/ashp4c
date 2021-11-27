@@ -11,6 +11,9 @@ internal struct UnboundedArray scope_stack = {};
 internal struct SymtableEntry* null_entry = 0;
 
 
+struct Hashtable map_child_scope = {};
+
+
 struct Scope*
 get_root_scope()
 {
@@ -48,6 +51,20 @@ push_scope()
     printf("push scope %d\n", new_scope->scope_level);
   }
   new_scope->parent_scope = current_scope;
+  struct HashtableEntry* entry = hashtable_get_or_create_entry(&map_child_scope,
+                (uint8_t*)&current_scope, sizeof(current_scope));
+  /*
+  struct Scope* last_child_scope = entry->object;
+  if (last_child_scope) {
+    assert (last_child_scope->scope_level == new_scope->scope_level);
+    last_child_scope->left_sibling_scope = new_scope;
+  } else {
+    entry->object = new_scope;
+  }
+  */
+  if (!current_scope->first_child_scope) {
+    current_scope->first_child_scope = new_scope;
+  }
   return new_scope;
 }
 
@@ -180,13 +197,13 @@ scope_init(struct Scope* scope, int capacity_log2)
     array_append(&scope->symtable, &null_entry);
   }
   scope->capacity_log2 = capacity_log2;
-  scope->entry_count = scope->entry_count;
 }
 
 void
 symtable_init(struct Arena* symtable_storage_)
 {
   symtable_storage = symtable_storage_;
+  hashtable_init(&map_child_scope, 5, symtable_storage);
   struct Scope* root_scope = arena_push(symtable_storage, sizeof(*root_scope));
   memset(root_scope, 0, sizeof(*root_scope));
   scope_init(root_scope, 5);

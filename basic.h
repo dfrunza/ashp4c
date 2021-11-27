@@ -16,6 +16,18 @@
 #define MEGABYTE 1024*KILOBYTE
 
 void assert_(char* message, char* file, int line);
+void error_(char* file, int line, char* message, ...);
+bool cstr_is_letter(char c);
+bool cstr_is_digit(char c, int base);
+bool cstr_is_ascii_printable(char c);
+bool cstr_is_whitespace(char c);
+int cstr_len(char* str);
+char* cstr_copy(char* dest_str, char* src_str);
+void cstr_copy_substr(char* dest_str, char* begin_char, char* end_char);
+bool cstr_start_with(char* str, char* prefix);
+bool cstr_match(char* str_a, char* str_b);
+void cstr_print_substr(char* begin_char, char* end_char);
+bool bytes_match(uint8_t* bytes_a, int len_a, uint8_t* bytes_b, int len_b);
 
 #define sizeof_array(array) (sizeof(array)/sizeof(array[0]))
 #define offsetof(type, member) ((size_t) &((type*)0)->member)

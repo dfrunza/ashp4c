@@ -130,9 +130,6 @@ enum AstAttributeType {
   AstAttr_IntFlags,
 };
 
-#define AST_ATTRTABLE_CAPACITY_LOG2  4
-#define AST_ATTRTABLE_CAPACITY  ((1 << AST_ATTRTABLE_CAPACITY_LOG2) - 1)
-
 struct Ast {
   enum AstKind kind;
   int id;
@@ -147,6 +144,7 @@ struct Ast_Name {
   char* strname;
   bool is_dotprefixed;
   struct SymtableEntry* symtable_entry;
+  struct ObjectDescriptor* object_descrpt;
 };
 
 struct Ast_BaseType_Bool {

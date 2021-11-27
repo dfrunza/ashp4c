@@ -2,6 +2,7 @@
 #include "arena.h"
 #include "lex.h"
 #include "build_ast.h"
+#include "objdesc_name_resolve.h"
 #include <sys/stat.h>
 #include <memory.h>  // memset
 
@@ -111,7 +112,6 @@ main(int arg_count, char* args[])
   arena_delete(&text_storage);
 
   struct Arena temp_storage = {};
-
   symtable_init(&temp_storage);
   struct Arena ast_storage = {};
   int ast_node_count = 0;
@@ -129,7 +129,7 @@ main(int arg_count, char* args[])
   symtable_init(&ast_storage);
   build_symtable_program(ast_program, &ast_storage);
   scope_name_resolve(ast_program);
-  object_descriptor_name_resolve(ast_program);
+  objdesc_name_resolve(ast_program);
 
   arena_delete(&ast_storage);
   arena_delete(&main_storage);
