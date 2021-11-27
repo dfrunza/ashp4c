@@ -1,6 +1,6 @@
 #pragma once
 #include "arena.h"
-#include "hash.h"
+#include "hashmap.h"
 #include "token.h"
 
 
