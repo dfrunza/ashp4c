@@ -78,14 +78,7 @@ pop_scope()
 }
 
 struct SymtableEntry*
-find_symtable_entry(struct Scope* scope, char* name)
-{
-  struct HashmapEntry* hmap_entry = hashmap_find_entry(&scope->symtable, (uint8_t*)name, 0);
-  return (struct SymtableEntry*)hmap_entry->object;
-}
-
-struct SymtableEntry*
-get_symtable_entry(struct Scope* scope, char* name)
+symtable_get_or_create_entry(struct Scope* scope, char* name)
 {
   struct HashmapEntry* hmap_entry = hashmap_get_or_create_entry(&scope->symtable, (uint8_t*)name, 0);
   if (hmap_entry->object) {
@@ -103,7 +96,7 @@ scope_resolve_name(struct Scope* scope, char* name)
 {
   struct SymtableEntry* entry = 0;
   while (scope) {
-    entry = get_symtable_entry(scope, name);
+    entry = symtable_get_or_create_entry(scope, name);
     if (entry->id_type || entry->id_ident) {
       break;
     }
@@ -115,7 +108,7 @@ scope_resolve_name(struct Scope* scope, char* name)
 struct SymtableEntry*
 register_type(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
 {
-  struct SymtableEntry* entry = get_symtable_entry(scope, descriptor->name);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->name);
   descriptor->next_in_scope = entry->id_type;
   entry->id_type = (struct ObjectDescriptor*)descriptor;
   if (DEBUG_ENABLED) {
@@ -127,7 +120,7 @@ register_type(struct Scope* scope, struct ObjectDescriptor* descriptor, int line
 struct SymtableEntry*
 register_identifier(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
 {
-  struct SymtableEntry* entry = get_symtable_entry(scope, descriptor->name);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->name);
   descriptor->next_in_scope = entry->id_ident;
   entry->id_ident = (struct ObjectDescriptor*)descriptor;
   if (DEBUG_ENABLED) {
@@ -139,7 +132,7 @@ register_identifier(struct Scope* scope, struct ObjectDescriptor* descriptor, in
 struct SymtableEntry*
 register_keyword(struct Scope* scope, struct ObjectDescriptor* descriptor)
 {
-  struct SymtableEntry* entry = get_symtable_entry(scope, descriptor->name);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->name);
   entry->id_kw = (struct ObjectDescriptor*)descriptor;
   return entry;
 }

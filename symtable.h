@@ -77,8 +77,7 @@ struct Scope {
 
 void symtable_init(struct Arena* symtable_storage_);
 void scope_init(struct Scope* scope, int capacity_log2);
-struct SymtableEntry* find_symtable_entry(struct Scope* scope, char* name);
-struct SymtableEntry* get_symtable_entry(struct Scope* scope, char* name);
+struct SymtableEntry* symtable_get_or_create_entry(struct Scope* scope, char* name);
 struct SymtableEntry* register_identifier(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr);
 struct SymtableEntry* register_type(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr);
 struct SymtableEntry* register_keyword(struct Scope* scope, struct ObjectDescriptor* descriptor);
