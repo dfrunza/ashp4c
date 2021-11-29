@@ -8,8 +8,8 @@
 #include <memory.h>  // memset
 
 
-internal struct Arena* ast_storage;
-internal struct Arena* symtable_storage;
+internal struct Arena *ast_storage;
+internal struct Arena temp_storage = {};
 
 internal struct UnboundedArray* tokens_array;
 internal int token_at = 0;
@@ -231,7 +231,6 @@ build_nonTypeName(bool is_type)
       struct ObjectDescriptor* descriptor = arena_push(ast_storage, sizeof(*descriptor));
       memset(descriptor, 0, sizeof(*descriptor));
       descriptor->name = name->strname;
-      descriptor->ast = (struct Ast*)name;
       register_type(get_current_scope(), descriptor, token->line_nr);
     }
     next_token();
@@ -400,7 +399,6 @@ build_typeOrVoid(bool is_type)
         struct ObjectDescriptor* descriptor = arena_push(ast_storage, sizeof(*descriptor));
         memset(descriptor, 0, sizeof(*descriptor));
         descriptor->name = name->strname;
-        descriptor->ast = type;
         register_type(get_current_scope(), descriptor, token->line_nr);
       }
       next_token();
@@ -2800,7 +2798,7 @@ build_expression(int priority_threshold)
 internal struct ObjectDescriptor*
 new_keyword(char* name, enum TokenClass token_klass)
 {
-  struct Object_Keyword* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
+  struct Object_Keyword* descriptor = arena_push(&temp_storage, sizeof(*descriptor));
   memset(descriptor, 0, sizeof(*descriptor));
   descriptor->name = name;
   descriptor->object_kind = Object_Keyword;
@@ -2810,12 +2808,12 @@ new_keyword(char* name, enum TokenClass token_klass)
 
 struct Ast*
 build_ast_program(struct Ast** p4program_, int* ast_node_count_, struct UnboundedArray* tokens_array_,
-            struct Arena* ast_storage_, struct Arena* symtable_storage_)
+            struct Arena* ast_storage_)
 {
   tokens_array = tokens_array_;
   ast_storage = ast_storage_;
-  symtable_storage = symtable_storage_;
 
+  symtable_init(&temp_storage, &temp_storage);
   register_keyword(get_root_scope(), new_keyword("action", Token_Action));
   register_keyword(get_root_scope(), new_keyword("actions", Token_Actions));
   register_keyword(get_root_scope(), new_keyword("entries", Token_Entries));
@@ -2863,5 +2861,6 @@ build_ast_program(struct Ast** p4program_, int* ast_node_count_, struct Unbounde
   push_scope();
   struct Ast* p4program = build_p4program();
   pop_scope();
+  arena_delete(&temp_storage);
   return p4program;
 }

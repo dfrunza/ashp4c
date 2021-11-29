@@ -107,31 +107,23 @@ main(int arg_count, char* args[])
   read_source(&text, &text_size, filename_arg->value, &text_storage);
 
   struct Arena tokens_storage = {};
-  struct UnboundedArray tokens_array = {};
-  lex_tokenize(text, text_size, &tokens_array, &main_storage, &tokens_storage);
+  struct UnboundedArray* tokens_array = lex_tokenize(text, text_size, &main_storage, &tokens_storage);
   arena_delete(&text_storage);
 
-  struct Arena temp_storage = {};
-  symtable_init(&temp_storage);
-  struct Arena ast_storage = {};
   int ast_node_count = 0;
-  struct Ast* ast_program = build_ast_program(&ast_program, &ast_node_count,
-          &tokens_array, &ast_storage, &temp_storage);
+  struct Ast* ast_program = build_ast_program(&ast_program, &ast_node_count, tokens_array, &main_storage);
   assert(ast_program && ast_program->kind == Ast_P4Program);
   arena_delete(&tokens_storage);
-  arena_delete(&temp_storage);
 
   if (find_named_arg("print-ast", cmdline_args)) {
     assert(!"TODO");
     //print_ast(ast_program);
   }
 
-  symtable_init(&ast_storage);
-  build_symtable_program(ast_program, &ast_storage);
+  build_symtable_program(ast_program, &main_storage);
   scope_name_resolve(ast_program);
   objdesc_name_resolve(ast_program);
 
-  arena_delete(&ast_storage);
   arena_delete(&main_storage);
   return 0;
 }

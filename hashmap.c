@@ -103,10 +103,10 @@ hashmap_init(struct Hashmap* hashmap, int capacity_log2, struct Arena* storage)
   array_init(&hashmap->entries, sizeof(null_entry), storage);
   hashmap->capacity = (1 << capacity_log2) - 1;
   hashmap->entry_count = 0;
-  int i;
-  for (i = hashmap->entry_count; i < hashmap->capacity; i++) {
+  {int i;
+  for (i = 0; i < hashmap->capacity; i++) {
     array_append(&hashmap->entries, &null_entry);
-  }
+  }}
   hashmap->capacity_log2 = capacity_log2;
 }
 

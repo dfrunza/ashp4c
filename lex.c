@@ -7,7 +7,7 @@ internal char* text;
 internal int text_size;
 
 internal struct Arena* tokens_storage;
-internal struct UnboundedArray* tokens_array;
+internal struct UnboundedArray tokens_array = {};
 internal int line_nr = 1;
 internal int state = 0;
 
@@ -395,7 +395,7 @@ next_token(struct Token* token)
 
       case 113:
       {
-        struct Token* prev_token = array_get(tokens_array, tokens_array->elem_count - 1);
+        struct Token* prev_token = array_get(&tokens_array, tokens_array.elem_count - 1);
         if (prev_token->klass == Token_ParenthOpen) {
           token->klass = Token_UnaryMinus;
         } else {
@@ -782,13 +782,11 @@ next_token(struct Token* token)
   token->line_nr = line_nr;
 }
 
-void
-lex_tokenize(char* text_, int text_size_, struct UnboundedArray* tokens_array_,
-             struct Arena* lexeme_storage_, struct Arena* tokens_storage_)
+struct UnboundedArray*
+lex_tokenize(char* text_, int text_size_, struct Arena* lexeme_storage_, struct Arena* tokens_storage_)
 {
   text = text_;
   text_size = text_size_;
-  tokens_array = tokens_array_;
   lexeme_storage = lexeme_storage_;
   tokens_storage = tokens_storage_;
 
@@ -796,11 +794,11 @@ lex_tokenize(char* text_, int text_size_, struct UnboundedArray* tokens_array_,
 
   struct Token token = {};
   token.klass = Token_StartOfInput_;
-  array_init(tokens_array, sizeof(token), tokens_storage);
-  array_append(tokens_array, &token);
+  array_init(&tokens_array, sizeof(token), tokens_storage);
+  array_append(&tokens_array, &token);
 
   next_token(&token);
-  array_append(tokens_array, &token);
+  array_append(&tokens_array, &token);
   while (token.klass != Token_EndOfInput_) {
     if (token.klass == Token_Unknown_) {
       error("at line %d: unknown token.", token.line_nr);
@@ -808,7 +806,8 @@ lex_tokenize(char* text_, int text_size_, struct UnboundedArray* tokens_array_,
       error("at line %d: lexical error.", token.line_nr);
     }
     next_token(&token);
-    array_append(tokens_array, &token);
+    array_append(&tokens_array, &token);
   }
+  return &tokens_array;
 }
 

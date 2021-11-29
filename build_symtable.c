@@ -5,6 +5,7 @@
 
 
 internal struct Arena* symtable_storage;
+internal struct Arena temp_storage = {};
 
 
 internal void build_symtable_block_statement(struct Ast* block_stmt);
@@ -18,16 +19,6 @@ new_object_descriptor(char* name, enum ObjectKind object_kind)
   memset(descriptor, 0, sizeof(*descriptor));
   descriptor->name = name;
   descriptor->object_kind = object_kind;
-  return descriptor;
-}
-
-internal struct ObjectDescriptor*
-new_type_descriptor(char* name, enum ObjectKind type_kind)
-{
-  struct ObjectDescriptor* descriptor = arena_push(symtable_storage, sizeof(*descriptor));
-  memset(descriptor, 0, sizeof(*descriptor));
-  descriptor->name = name;
-  descriptor->type_kind = type_kind;
   return descriptor;
 }
 
@@ -52,7 +43,7 @@ build_symtable_type_param(struct Ast* ast)
   struct Ast_Name* type_param = (struct Ast_Name*)ast;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), type_param->strname);
   if (!entry->id_type) {
-    struct ObjectDescriptor* descriptor = new_type_descriptor(type_param->strname, Type_TypeParam);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(type_param->strname, Object_TypeParam);
     descriptor->ast = ast;
     register_type(get_current_scope(), descriptor, type_param->line_nr);
   }
@@ -222,7 +213,7 @@ build_symtable_control_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    struct ObjectDescriptor* descriptor = new_type_descriptor(name->strname, Type_Control);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_ControlType);
     descriptor->ast = ast;
     register_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -295,7 +286,7 @@ build_symtable_parser_state(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)state->name;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    struct ObjectDescriptor* descriptor = new_type_descriptor(name->strname, Object_ParserState);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_ParserState);
     descriptor->ast = ast;
     register_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -320,7 +311,7 @@ build_symtable_parser_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    struct ObjectDescriptor* descriptor = new_type_descriptor(name->strname, Type_Parser);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_ParserType);
     descriptor->ast = ast;
     register_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -374,7 +365,7 @@ build_symtable_function_proto(struct Ast* ast)
   assert(ast->kind == Ast_FunctionProto);
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)ast;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
-  struct ObjectDescriptor* descriptor = new_type_descriptor(name->strname, Type_Function);
+  struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_FunctionType);
   descriptor->ast = ast;
   register_type(get_current_scope(), descriptor, name->line_nr);
   function_proto->scope = push_scope();
@@ -414,7 +405,7 @@ build_symtable_extern_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)extern_decl->name;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    struct ObjectDescriptor* descriptor = new_type_descriptor(name->strname, Type_Extern);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_ExternType);
     descriptor->ast = ast;
     register_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -460,7 +451,7 @@ build_symtable_struct_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)struct_decl->name;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    struct ObjectDescriptor* descriptor = new_type_descriptor(name->strname, Type_Struct);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_StructType);
     descriptor->ast = ast;
     register_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -484,7 +475,7 @@ build_symtable_header_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)header_decl->name;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    struct ObjectDescriptor* descriptor = new_type_descriptor(name->strname, Type_Header);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_HeaderType);
     descriptor->ast = ast;
     register_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -508,7 +499,7 @@ build_symtable_header_union(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)header_union_decl->name;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    struct ObjectDescriptor* descriptor = new_type_descriptor(name->strname, Type_HeaderUnion);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_HeaderUnionType);
     descriptor->ast = ast;
     register_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -574,7 +565,7 @@ build_symtable_enum_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)enum_decl->name;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    struct ObjectDescriptor* descriptor = new_type_descriptor(name->strname, Type_Enum);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_EnumType);
     descriptor->ast = ast;
     register_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -593,7 +584,7 @@ build_symtable_package(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)package_decl->name;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    struct ObjectDescriptor* descriptor = new_type_descriptor(name->strname, Type_Package);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_PackageType);
     descriptor->ast = ast;
     register_type(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -607,11 +598,11 @@ build_symtable_type_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
   if (!entry->id_type) {
-    struct ObjectDescriptor* descriptor = new_type_descriptor(name->strname, Type_NONE);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_NONE);
     if (type_decl->is_typedef) {
-      descriptor->object_kind = Type_Typedef;
+      descriptor->object_kind = Object_Typedef;
     } else {
-      descriptor->object_kind = Type_Type;
+      descriptor->object_kind = Object_Type;
     }
     descriptor->ast = ast;
     register_type(get_current_scope(), descriptor, name->line_nr);
@@ -649,7 +640,7 @@ build_symtable_function_decl(struct Ast* ast)
   struct Ast_FunctionDecl* function_decl = (struct Ast_FunctionDecl*)ast;
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)function_decl->proto;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
-  struct ObjectDescriptor* descriptor = new_type_descriptor(name->strname, Type_Function);
+  struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_FunctionType);
   descriptor->ast = ast;
   register_type(get_current_scope(), descriptor, name->line_nr);
   function_decl->scope = push_scope();
@@ -701,19 +692,20 @@ build_symtable_program(struct Ast* ast, struct Arena* symtable_storage_)
   assert(ast->kind == Ast_P4Program);
   symtable_storage = symtable_storage_;
   
-  register_type(get_root_scope(), new_object_descriptor("void", Type_Void), 0);
-  register_type(get_root_scope(), new_object_descriptor("bool", Type_Bool), 0);
-  register_type(get_root_scope(), new_object_descriptor("int", Type_Int), 0);
-  register_type(get_root_scope(), new_object_descriptor("bit", Type_Bit), 0);
-  register_type(get_root_scope(), new_object_descriptor("varbit", Type_Varbit), 0);
-  register_type(get_root_scope(), new_object_descriptor("string", Type_String), 0);
-  register_type(get_root_scope(), new_object_descriptor("error", Type_Error), 0);
-  register_type(get_root_scope(), new_object_descriptor("match_kind", Type_MatchKind), 0);
+  symtable_init(symtable_storage, &temp_storage);
+  register_type(get_root_scope(), new_object_descriptor("void", Object_VoidType), 0);
+  register_type(get_root_scope(), new_object_descriptor("bool", Object_BoolType), 0);
+  register_type(get_root_scope(), new_object_descriptor("int", Object_IntType), 0);
+  register_type(get_root_scope(), new_object_descriptor("bit", Object_BitType), 0);
+  register_type(get_root_scope(), new_object_descriptor("varbit", Object_VarbitType), 0);
+  register_type(get_root_scope(), new_object_descriptor("string", Object_StringType), 0);
+  register_type(get_root_scope(), new_object_descriptor("error", Object_Error), 0);
+  register_type(get_root_scope(), new_object_descriptor("match_kind", Object_MatchKind), 0);
 
-  register_identifier(get_root_scope(), new_object_descriptor("accept", Object_ParserState), 0);
-  register_identifier(get_root_scope(), new_object_descriptor("reject", Object_ParserState), 0);
-  register_identifier(get_root_scope(), new_object_descriptor("error", Object_Error), 0);
-  register_identifier(get_root_scope(), new_object_descriptor("match_kind", Object_MatchKind), 0);
+  register_identifier(get_root_scope(), new_object_descriptor("accept", Object_Variable), 0);
+  register_identifier(get_root_scope(), new_object_descriptor("reject", Object_Variable), 0);
+  register_identifier(get_root_scope(), new_object_descriptor("error", Object_Variable), 0);
+  register_identifier(get_root_scope(), new_object_descriptor("match_kind", Object_Variable), 0);
 
   struct Ast_P4Program* program = (struct Ast_P4Program*)ast;
   program->scope = push_scope();
@@ -757,4 +749,5 @@ build_symtable_program(struct Ast* ast, struct Arena* symtable_storage_)
     link = link->next;
   }
   pop_scope();
+  arena_delete(&temp_storage);
 }

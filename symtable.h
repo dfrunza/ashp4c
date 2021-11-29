@@ -13,43 +13,34 @@ enum ObjectKind {
   Object_Parser,
   Object_ParserState,
   Object_Control,
-  Object_Error,
-  Object_MatchKind,
   Object_Function,
   Object_Instantiation,
   Object_Table,
-};
-
-enum TypeKind {
-  Type_NONE,
-  Type_TypeParam,
-  Type_Void,
-  Type_Bool,
-  Type_Int,
-  Type_Bit,
-  Type_Varbit,
-  Type_String,
-  Type_Error,
-  Type_MatchKind,
-  Type_Struct,
-  Type_Header,
-  Type_HeaderUnion,
-  Type_Enum,
-  Type_Type,
-  Type_Typedef,
-  Type_Parser,
-  Type_Control,
-  Type_Function,
-  Type_Extern,
-  Type_Package,
+  Object_TypeParam,
+  Object_VoidType,
+  Object_BoolType,
+  Object_IntType,
+  Object_BitType,
+  Object_VarbitType,
+  Object_StringType,
+  Object_Error,
+  Object_MatchKind,
+  Object_StructType,
+  Object_HeaderType,
+  Object_HeaderUnionType,
+  Object_EnumType,
+  Object_Type,
+  Object_Typedef,
+  Object_ParserType,
+  Object_ControlType,
+  Object_FunctionType,
+  Object_ExternType,
+  Object_PackageType,
 };
 
 struct ObjectDescriptor {
   char* name;
-  union {
-    enum ObjectKind object_kind;
-    enum TypeKind type_kind;
-  };
+  enum ObjectKind object_kind;
   struct Ast* ast;
   struct ObjectDescriptor* next_in_scope;
 };  
@@ -75,7 +66,7 @@ struct Scope {
 };
 
 
-void symtable_init(struct Arena* symtable_storage_);
+void symtable_init(struct Arena* symtable_storage_, struct Arena* temp_storage_);
 void scope_init(struct Scope* scope, int capacity_log2);
 struct SymtableEntry* symtable_get_or_create_entry(struct Scope* scope, char* name);
 struct SymtableEntry* register_identifier(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr);
