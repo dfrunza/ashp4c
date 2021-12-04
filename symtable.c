@@ -1,6 +1,7 @@
 #include "basic.h"
 #include "arena.h"
 #include "token.h"
+#include "hashmap.h"
 #include "symtable.h"
 #include <memory.h>  // memset
 
@@ -161,3 +162,36 @@ symtable_init(struct Arena* symtable_storage_, struct Arena* temp_storage_)
   array_append(&scope_stack, &root_scope);
 }
 
+#if 0
+void
+scope_iter_init(struct ScopeEntriesIterator* it, struct Scope* scope)
+{
+  it->scope = scope;
+  it->i = -1;
+  it->hmap_entry = 0;
+}
+
+struct SymtableEntry*
+scope_iter_next(struct ScopeEntriesIterator* it)
+{
+  struct HashmapEntry* next_hmap_entry = 0;
+  if (it->hmap_entry) {
+    next_hmap_entry = it->hmap_entry->next_entry;
+  }
+  if (next_hmap_entry && next_hmap_entry->object) {
+    it->hmap_entry = next_hmap_entry;
+    return (struct SymtableEntry*)next_hmap_entry->object;
+  }
+  struct Hashmap* hashmap = &it->scope->symtable;
+  it->i++;
+  while (it->i < hashmap->entries.elem_count) {
+    next_hmap_entry = *(struct HashmapEntry**)array_get(&hashmap->entries, it->i);
+    if (next_hmap_entry && next_hmap_entry->object) {
+      it->hmap_entry = next_hmap_entry;
+      break;
+    }
+    it->i++;
+  }
+  return next_hmap_entry ? (struct SymtableEntry*)next_hmap_entry->object : 0;
+}
+#endif

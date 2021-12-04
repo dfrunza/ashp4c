@@ -12,8 +12,7 @@ internal uint32_t
 fold_string(uint8_t* string)
 {
   uint32_t K = 0;
-  uint8_t* s;
-  for(s = string; (*s); s++) {
+  for (uint8_t* s = string; (*s); s++) {
     K = (P * K + (*s)) % Q;
   }
   return K;
@@ -27,8 +26,7 @@ fold_bytes(uint8_t* bytes, int length)
     K = *(uint32_t*)bytes;
   } else {
     uint8_t* b;
-    int i;
-    for(i = 0; i < length; i++) {
+    for (int i = 0; i < length; i++) {
       K = (P * K + bytes[i]) % Q;
     }
   }
@@ -103,10 +101,9 @@ hashmap_init(struct Hashmap* hashmap, int capacity_log2, struct Arena* storage)
   array_init(&hashmap->entries, sizeof(null_entry), storage);
   hashmap->capacity = (1 << capacity_log2) - 1;
   hashmap->entry_count = 0;
-  {int i;
-  for (i = 0; i < hashmap->capacity; i++) {
+  for (int i = 0; i < hashmap->capacity; i++) {
     array_append(&hashmap->entries, &null_entry);
-  }}
+  }
   hashmap->capacity_log2 = capacity_log2;
 }
 
@@ -134,8 +131,8 @@ hashmap_get_or_create_entry(struct Hashmap* hashmap, uint8_t* key, int keylen)
   if (hashmap->entry_count >= hashmap->capacity) {
     struct Arena temp_storage = {};
     struct HashmapEntry** entries_array = arena_push(&temp_storage, hashmap->capacity);
-    int i, j = 0;
-    for (i = 0; i < hashmap->capacity; i++) {
+    int j = 0;
+    for (int i = 0; i < hashmap->capacity; i++) {
       struct HashmapEntry* entry = *(struct HashmapEntry**)array_get(&hashmap->entries, i);
       while (entry) {
         entries_array[j] = entry;
@@ -147,13 +144,13 @@ hashmap_get_or_create_entry(struct Hashmap* hashmap, uint8_t* key, int keylen)
     }
     assert (j == hashmap->entry_count);
     hashmap->capacity = (1 << ++hashmap->capacity_log2) - 1;
-    for (i = hashmap->entry_count; i < hashmap->capacity; i++) {
+    for (int i = hashmap->entry_count; i < hashmap->capacity; i++) {
       array_append(&hashmap->entries, &null_entry);
     }
-    for (i = 0; i < hashmap->capacity; i++) {
+    for (int i = 0; i < hashmap->capacity; i++) {
       array_set(&hashmap->entries, i, &null_entry);
     }
-    for (i = 0; i < hashmap->entry_count; i++) {
+    for (int i = 0; i < hashmap->entry_count; i++) {
       uint32_t h = hashmap_hash_key(hashmap->capacity_log2, entries_array[i]->key, entries_array[i]->keylen);
       entries_array[i]->next_entry = *(struct HashmapEntry**)array_get(&hashmap->entries, h);
       array_set(&hashmap->entries, h, &entries_array[i]);
@@ -169,5 +166,36 @@ hashmap_get_or_create_entry(struct Hashmap* hashmap, uint8_t* key, int keylen)
   array_set(&hashmap->entries, h, &entry);
   hashmap->entry_count += 1;
   return entry;
+}
+
+void
+hashmap_iter_init(struct HashmapEntryIterator* it, struct Hashmap* hashmap)
+{
+  it->hashmap = hashmap;
+  it->i = -1;
+  it->entry = 0;
+}
+
+struct HashmapEntry*
+hashmap_iter_next(struct HashmapEntryIterator* it)
+{
+  struct HashmapEntry* next_entry = 0;
+  if (it->entry) {
+    next_entry = it->entry->next_entry;
+    if (next_entry) {
+      it->entry = next_entry;
+      return it->entry;
+    }
+  }
+  it->i++;
+  while (it->i < it->hashmap->entries.elem_count) {
+    next_entry = *(struct HashmapEntry**)array_get(&it->hashmap->entries, it->i);
+    if (next_entry) {
+      it->entry = next_entry;
+      break;
+    }
+    it->i++;
+  }
+  return next_entry;
 }
 

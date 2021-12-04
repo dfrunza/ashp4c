@@ -1,7 +1,10 @@
 #include "basic.h"
 #include "arena.h"
 #include "lex.h"
+#include "symtable.h"
 #include "build_ast.h"
+#include "build_symtable.h"
+#include "scope_name_resolve.h"
 #include "objdesc_name_resolve.h"
 #include <sys/stat.h>
 #include <memory.h>  // memset
@@ -110,6 +113,7 @@ main(int arg_count, char* args[])
   struct UnboundedArray* tokens_array = lex_tokenize(text, text_size, &main_storage, &tokens_storage);
   arena_delete(&text_storage);
 
+  printf("---- build_ast_program\n");
   int ast_node_count = 0;
   struct Ast* ast_program = build_ast_program(&ast_program, &ast_node_count, tokens_array, &main_storage);
   assert(ast_program && ast_program->kind == Ast_P4Program);
@@ -120,9 +124,23 @@ main(int arg_count, char* args[])
     //print_ast(ast_program);
   }
 
+  printf(" ----- build_symtable_program\n");
   build_symtable_program(ast_program, &main_storage);
   scope_name_resolve(ast_program);
   objdesc_name_resolve(ast_program);
+
+  {
+    printf("---- scope symbols\n");
+    struct Scope* scope = get_root_scope()->first_child_scope;
+    struct HashmapEntryIterator it = {};
+    hashmap_iter_init(&it, &scope->symtable);
+    struct HashmapEntry* hmap_entry = hashmap_iter_next(&it);
+    while (hmap_entry) {
+      struct SymtableEntry* sym_entry = hmap_entry->object;
+      printf("%s\n", sym_entry->name);
+      hmap_entry = hashmap_iter_next(&it);
+    }
+  }
 
   arena_delete(&main_storage);
   return 0;

@@ -269,8 +269,7 @@ int_flags_to_string(enum AstIntegerFlags flags)
 internal void
 indent_right()
 {
-  int i = 0;
-  for (; i < tab_level*tab_size; i++) {
+  for (int i = 0; i < tab_level*tab_size; i++) {
     printf(" ");
   }
 }

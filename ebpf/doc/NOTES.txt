@@ -1,4 +1,5 @@
 == XDP ==
+=========
 
 ip link set dev eth0 xdp obj xdp-example.o
 ip link set dev eth0 xdp obj xdp-example.o sec my_prog
@@ -25,7 +26,9 @@ pktv6=Ether(src="fc:75:16:8d:86:17",dst="1c:6f:65:2c:b5:3c")/IPv6(src="ff02::1",
 pkt/=Raw("W"*(100-len(pkt)))
 
 ./xdp_redirect_user -S 61 10
-=========================
+
+
+------------------------------------------------------------------------
 
 #include <"net/if.h"> /* if_nametoindex */
 static int ifindex = if_nametoindex("eth0");
@@ -36,6 +39,7 @@ if (bpf_set_link_xdp_fd(ifindex, prog_fd, xdp_flags) < 0) {
 
 
 == DPDK ==
+==========
 
 wget https://fast.dpdk.org/rel/dpdk-20.02.tar.xz
 wget http://dpdk.org/browse/apps/pktgen-dpdk/snapshot/pktgen-20.02.0.tar.gz
@@ -79,6 +83,7 @@ ethtool -G enp5s0f0 rx 4096 tx 4096
 
 
 == Static linking of libc ==
+============================
 
 GNU libc is not designed to be statically linked. Important functions, e.g. gethostbyname and iconv,
 will malfunction or not work at all in a static binary. Arguably even worse, under some conditions a
@@ -88,3 +93,46 @@ static linkage is to avoid such dependencies.
 You should compile your program against uClibc or musl libc instead.
 
 (This has been true for at least 15 years.)
+
+
+== Address-space Randomization ==
+=================================
+
+Disable address-space randomization :
+  echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
+
+Enable address-space randomization :
+  echo 2 | sudo tee /proc/sys/kernel/randomize_va_space
+
+
+== Why C99? ==
+==============
+
+Stricter checks of function usage, which leads to better error reporting by the compiler.
+Examle - a warning is reported if a function is used without declaration :
+
+  `warning| implicit declaration of function ‘hashmap_init’`
+
+
+== _GNU_SOURCE macro definition ==
+==================================
+
+If no feature test macros are defined, musl's headers operate in "default features" mode,
+exposing the equivalent of the _BSD_SOURCE option below. This corresponds
+fairly well to what most applications unaware of feature test macros expect,
+and also provides a number of more modern features.
+
+Otherwise, if at least one of the below-listed feature test macros is defined,
+they are treated additively, starting from pure ISO C as a base.
+Unless otherwise specified, musl ignores the value of the macro and only checks whether it is defined.
+
+__STRICT_ANSI__
+
+Adds nothing; only suppresses the default features. This macro is defined
+automatically by GCC and other major compilers in strict standards-conformance modes.
+
+...
+
+_GNU_SOURCE (or _ALL_SOURCE)
+
+Adds everything above, plus interfaces modeled after GNU libc extensions and interfaces for making use of Linux-specific features.
