@@ -651,7 +651,7 @@ visit_header_union_decl(struct Ast* ast)
 }
 
 void
-objdesc_name_resolve(struct Ast* ast)
+visit_program(struct Ast* ast)
 {
   assert(ast->kind == Ast_P4Program);
   struct Ast_P4Program* program = (struct Ast_P4Program*)ast;

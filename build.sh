@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CC_FLAGS="-g -ggdb -std=c99 -D_GNU_SOURCE -Winline -Wno-write-strings -Wreturn-type -fms-extensions"
+CC_FLAGS="-g -ggdb -std=c99 -D_GNU_SOURCE -Winline -Wno-write-strings -Wreturn-type -fms-extensions -ffreestanding"
 LD_FLAGS="--nostdlib --unresolved-symbols=report-all --static"
 
 MUSL_INCLUDE=/usr/local/include
@@ -19,13 +19,12 @@ gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/symtable.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/lex.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/build_ast.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/build_symtable.c 
-gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/scope_name_resolve.c 
-gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/objdesc_name_resolve.c 
+gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/name_resolve.c 
 
 ld $LD_FLAGS -L$MUSL_LIB -o ashp4c \
   $MUSL_LIB/crt1.o \
   ashp4c.o basic.o arena.o hashmap.o symtable.o lex.o build_ast.o build_symtable.o \
-  scope_name_resolve.o objdesc_name_resolve.o \
+  name_resolve.o \
   -lc
 
 popd

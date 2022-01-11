@@ -4,7 +4,7 @@
 
 
 enum TokenClass {
-  Token_None,
+  Token_NONE,
   Token_Semicolon,
   Token_Identifier,
   Token_TypeIdentifier,

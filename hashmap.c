@@ -94,7 +94,6 @@ key_match(uint8_t* bytes_a, int len_a, uint8_t* bytes_b, int len_b)
   return result;
 }
 
-
 void
 hashmap_init(struct Hashmap* hashmap, int capacity_log2, struct Arena* storage)
 {

@@ -30,7 +30,7 @@ build_symtable_param(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)param->name;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
   if (!entry->id_ident) {
-    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_Variable);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_Param);
     descriptor->ast = ast;
     register_identifier(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -148,7 +148,7 @@ build_symtable_statement(struct Ast* ast)
     struct Ast_Name* name = (struct Ast_Name*)decl->name;
     struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
     if (!entry->id_ident) {
-      struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_Variable);
+      struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_VarDecl);
       descriptor->ast = ast;
       register_identifier(get_current_scope(), descriptor, name->line_nr);
     } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -265,9 +265,9 @@ build_symtable_local_parser_element(struct Ast* ast)
     if (!entry->id_ident) {
       struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_NONE);
       if (ast->kind == Ast_ConstDecl) {
-        descriptor->object_kind = Object_Constant;
+        descriptor->object_kind = Object_ConstDecl;
       } else if (ast->kind == Ast_VarDecl) {
-        descriptor->object_kind = Object_Variable;
+        descriptor->object_kind = Object_VarDecl;
       } else if (ast->kind == Ast_Instantiation) {
         descriptor->object_kind = Object_Instantiation;
       } else assert(0);
@@ -437,7 +437,7 @@ build_symtable_struct_field(struct Scope* struct_scope, struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)field->name;
   struct SymtableEntry* entry = symtable_get_or_create_entry(struct_scope, name->strname);
   if (!entry->id_ident) {
-    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_Variable);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_StructField);
     descriptor->ast = ast;
     register_identifier(struct_scope, descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -522,7 +522,7 @@ build_symtable_enum_field(struct Ast* ast)
   struct Ast_Name* field = (struct Ast_Name*)ast;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), field->strname);
   if (!entry->id_ident) {
-    struct ObjectDescriptor* descriptor = new_object_descriptor(field->strname, Object_Variable);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(field->strname, Object_EnumField);
     descriptor->ast = ast;
     register_identifier(get_current_scope(), descriptor, field->line_nr);
   } else error("at line %d: name `%s` redeclared.", field->line_nr, field->strname);
@@ -627,7 +627,7 @@ build_symtable_const_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)const_decl->name;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
   if (!entry->id_ident) {
-    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_Constant);
+    struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, Object_ConstDecl);
     descriptor->ast = ast;
     register_identifier(get_current_scope(), descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -672,7 +672,7 @@ build_symtable_match_kind(struct Ast* ast)
   assert(ast->kind == Ast_MatchKindDecl);
   struct Ast_MatchKindDecl* decl = (struct Ast_MatchKindDecl*)ast;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_root_scope(), "match_kind");
-  assert (entry->id_ident && entry->id_type);
+  assert(entry->id_type);
   if (decl->id_list) {
     build_symtable_enum_id_list(decl->id_list);
   }
@@ -683,7 +683,7 @@ build_symtable_error_decl(struct Ast* ast)
 {
   assert (ast->kind == Ast_ErrorDecl);
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_root_scope(), "error");
-  assert (entry->id_ident && entry->id_type);
+  assert(entry->id_type);
 }
 
 void
@@ -699,13 +699,8 @@ build_symtable_program(struct Ast* ast, struct Arena* symtable_storage_)
   register_type(get_root_scope(), new_object_descriptor("bit", Object_BitType), 0);
   register_type(get_root_scope(), new_object_descriptor("varbit", Object_VarbitType), 0);
   register_type(get_root_scope(), new_object_descriptor("string", Object_StringType), 0);
-  register_type(get_root_scope(), new_object_descriptor("error", Object_Error), 0);
+  register_type(get_root_scope(), new_object_descriptor("error", Object_ErrorType), 0);
   register_type(get_root_scope(), new_object_descriptor("match_kind", Object_MatchKind), 0);
-
-  register_identifier(get_root_scope(), new_object_descriptor("accept", Object_Variable), 0);
-  register_identifier(get_root_scope(), new_object_descriptor("reject", Object_Variable), 0);
-  register_identifier(get_root_scope(), new_object_descriptor("error", Object_Variable), 0);
-  register_identifier(get_root_scope(), new_object_descriptor("match_kind", Object_Variable), 0);
 
   struct Ast_P4Program* program = (struct Ast_P4Program*)ast;
   program->scope = push_scope();
