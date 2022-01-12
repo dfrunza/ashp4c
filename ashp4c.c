@@ -4,7 +4,8 @@
 #include "symtable.h"
 #include "build_ast.h"
 #include "build_symtable.h"
-#include "name_resolve.h"
+#include "collect_name_ref.h"
+#include "resolve_name_ref.h"
 #include <sys/stat.h>
 #include <memory.h>  // memset
 
@@ -122,7 +123,8 @@ main(int arg_count, char* args[])
   }
 
   build_symtable_program(ast_program, &main_storage);
-  name_resolve_root(get_root_scope());
+  collect_name_ref_program(ast_program);
+  resolve_name_ref(get_root_scope());
 
   arena_delete(&main_storage);
   return 0;

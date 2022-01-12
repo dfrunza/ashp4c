@@ -54,12 +54,11 @@ next_token()
   }
   if (token->klass == Token_Identifier) {
     struct SymtableEntry* entry = scope_resolve_name(get_current_scope(), token->lexeme);
-    if (entry->id_kw) {
-      struct ObjectDescriptor* id_kw = entry->id_kw;
-      token->klass = ((struct Object_Keyword*)id_kw)->token_klass;
+    if (entry->ns_keyword) {
+      token->klass = ((struct Object_Keyword*)entry->ns_keyword)->token_klass;
       return token;
     }
-    if (entry->id_type) {
+    if (entry->ns_type) {
       token->klass = Token_TypeIdentifier;
       return token;
     }

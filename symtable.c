@@ -99,7 +99,7 @@ scope_resolve_name(struct Scope* scope, char* name)
   struct SymtableEntry* entry = 0;
   while (scope) {
     entry = symtable_get_or_create_entry(scope, name);
-    if (entry->id_type || entry->id_ident) {
+    if (entry->ns_type || entry->ns_general) {
       break;
     }
     scope = scope->parent_scope;
@@ -111,8 +111,8 @@ struct SymtableEntry*
 register_type(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
 {
   struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->name);
-  descriptor->next_in_scope = entry->id_type;
-  entry->id_type = (struct ObjectDescriptor*)descriptor;
+  descriptor->next_in_scope = entry->ns_type;
+  entry->ns_type = (struct ObjectDescriptor*)descriptor;
   if (DEBUG_ENABLED) {
     printf("new type `%s` at line %d.\n", descriptor->name, line_nr);
   }
@@ -123,8 +123,8 @@ struct SymtableEntry*
 register_identifier(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
 {
   struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->name);
-  descriptor->next_in_scope = entry->id_ident;
-  entry->id_ident = (struct ObjectDescriptor*)descriptor;
+  descriptor->next_in_scope = entry->ns_general;
+  entry->ns_general = (struct ObjectDescriptor*)descriptor;
   if (DEBUG_ENABLED) {
     printf("new identifier `%s` at line %d.\n", descriptor->name, line_nr);
   }
@@ -135,7 +135,7 @@ struct SymtableEntry*
 register_keyword(struct Scope* scope, struct ObjectDescriptor* descriptor)
 {
   struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->name);
-  entry->id_kw = (struct ObjectDescriptor*)descriptor;
+  entry->ns_keyword = (struct ObjectDescriptor*)descriptor;
   return entry;
 }
 

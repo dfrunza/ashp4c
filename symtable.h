@@ -57,9 +57,9 @@ struct Object_Keyword {
 
 struct SymtableEntry {
   char* name;
-  struct ObjectDescriptor* id_kw;
-  struct ObjectDescriptor* id_type;
-  struct ObjectDescriptor* id_ident;
+  struct ObjectDescriptor* ns_keyword;
+  struct ObjectDescriptor* ns_type;
+  struct ObjectDescriptor* ns_general;
 };
 
 struct Scope {

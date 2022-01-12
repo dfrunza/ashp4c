@@ -19,12 +19,13 @@ gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/symtable.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/lex.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/build_ast.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/build_symtable.c 
-gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/name_resolve.c 
+gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/collect_name_ref.c 
+gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/resolve_name_ref.c 
 
 ld $LD_FLAGS -L$MUSL_LIB -o ashp4c \
   $MUSL_LIB/crt1.o \
   ashp4c.o basic.o arena.o hashmap.o symtable.o lex.o build_ast.o build_symtable.o \
-  name_resolve.o \
+  collect_name_ref.o resolve_name_ref.o \
   -lc
 
 popd
