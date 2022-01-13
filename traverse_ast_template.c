@@ -369,7 +369,7 @@ collect_name_ref_control_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_CONTROL_DECL);
   struct Ast_ControlDecl* decl = (struct Ast_ControlDecl*)ast;
-  struct Ast_ControlType* type_decl = (struct Ast_ControlType*)decl->type_decl;
+  struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)decl->type_decl;
   if (decl->local_decls) {
     struct ListLink* link = list_first_link(decl->local_decls);
     while (link) {
@@ -517,7 +517,7 @@ collect_name_ref_parser_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_PARSER_DECL);
   struct Ast_ParserDecl* decl = (struct Ast_ParserDecl*)ast;
-  struct Ast_ParserType* type_decl = (struct Ast_ParserType*)decl->type_decl;
+  struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)decl->type_decl;
   if (decl->states) {
     struct ListLink* link = list_first_link(decl->states);
     while (link) {

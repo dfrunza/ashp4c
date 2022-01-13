@@ -8,7 +8,8 @@
 #define DEBUG_ENABLED 0
 
 
-internal struct Arena *symtable_storage, *temp_storage;
+internal struct Arena *symtable_storage;
+internal struct Arena local_storage = {};
 internal struct UnboundedArray scope_stack = {};
 internal struct SymtableEntry* null_entry = 0;
 internal struct Hashmap child_scope_map = {};
@@ -141,11 +142,10 @@ scope_init(struct Scope* scope, int capacity_log2)
 }
 
 void
-symtable_init(struct Arena* symtable_storage_, struct Arena* temp_storage_)
+symtable_begin_build(struct Arena* symtable_storage_)
 {
   symtable_storage = symtable_storage_;
-  temp_storage = temp_storage_;
-  hashmap_init(&child_scope_map, 5, temp_storage);
+  hashmap_init(&child_scope_map, 5, &local_storage);
   struct Scope* root_scope = arena_push(symtable_storage, sizeof(*root_scope));
   memset(root_scope, 0, sizeof(*root_scope));
   scope_init(root_scope, 5);
@@ -153,3 +153,8 @@ symtable_init(struct Arena* symtable_storage_, struct Arena* temp_storage_)
   array_append(&scope_stack, &root_scope);
 }
 
+void
+symtable_end_build()
+{
+  arena_delete(&local_storage);
+}

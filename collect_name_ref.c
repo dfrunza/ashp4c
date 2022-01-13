@@ -3,6 +3,10 @@
 #include "symtable.h"
 
 
+internal struct Arena* name_ref_storage;
+internal struct UnboundedArray* name_refs;
+
+
 internal void collect_name_ref_expression(struct Ast* expr);
 internal void collect_name_ref_type_ref(struct Ast* type_ref);
 internal void collect_name_ref_statement(struct Ast* stmt);
@@ -61,6 +65,7 @@ collect_name_ref_expression(struct Ast* ast)
     collect_name_ref_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
+    array_append(name_refs, name);
   } else if (ast->kind == AST_LVALUE) {
     struct Ast_Lvalue* expr = (struct Ast_Lvalue*)ast;
     collect_name_ref_expression(expr->name);
@@ -68,12 +73,6 @@ collect_name_ref_expression(struct Ast* ast)
       struct ListLink* link = list_first_link(expr->expr);
       while (link) {
         struct Ast* lvalue_expr = link->object;
-        if (lvalue_expr->kind == AST_NAME) {
-          if (((struct Ast_Name*)lvalue_expr)->is_dotprefixed) {
-            link = link->next;
-            continue;
-          }
-        }
         collect_name_ref_expression(lvalue_expr);
         link = link->next;
       }
@@ -369,7 +368,7 @@ collect_name_ref_control_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_CONTROL_DECL);
   struct Ast_ControlDecl* decl = (struct Ast_ControlDecl*)ast;
-  struct Ast_ControlType* type_decl = (struct Ast_ControlType*)decl->type_decl;
+  struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)decl->type_decl;
   if (decl->local_decls) {
     struct ListLink* link = list_first_link(decl->local_decls);
     while (link) {
@@ -517,7 +516,7 @@ collect_name_ref_parser_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_PARSER_DECL);
   struct Ast_ParserDecl* decl = (struct Ast_ParserDecl*)ast;
-  struct Ast_ParserType* type_decl = (struct Ast_ParserType*)decl->type_decl;
+  struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)decl->type_decl;
   if (decl->states) {
     struct ListLink* link = list_first_link(decl->states);
     while (link) {
@@ -648,10 +647,14 @@ collect_name_ref_header_union_decl(struct Ast* ast)
   }
 }
 
-void
-collect_name_ref_program(struct Ast* ast)
+struct UnboundedArray*
+collect_name_ref_program(struct Ast* ast, struct Arena* name_ref_storage_)
 {
   assert(ast->kind == AST_P4PROGRAM);
+  name_ref_storage = name_ref_storage_;
+  name_refs = arena_push(name_ref_storage, sizeof(*name_refs));
+  array_init(name_refs, sizeof(struct Ast_Name), name_ref_storage);
+
   struct Ast_P4Program* program = (struct Ast_P4Program*)ast;
   struct ListLink* link = list_first_link(program->decl_list);
   while (link) {
@@ -690,4 +693,5 @@ collect_name_ref_program(struct Ast* ast)
     else assert(0);
     link = link->next;
   }
+  return name_refs;
 }

@@ -5,7 +5,6 @@
 
 
 internal struct Arena* symtable_storage;
-internal struct Arena temp_storage = {};
 
 
 internal void build_symtable_block_statement(struct Ast* block_stmt);
@@ -692,7 +691,7 @@ build_symtable_program(struct Ast* ast, struct Arena* symtable_storage_)
   assert(ast->kind == AST_P4PROGRAM);
   symtable_storage = symtable_storage_;
   
-  symtable_init(symtable_storage, &temp_storage);
+  symtable_begin_build(symtable_storage);
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor("void", OBJECT_VOID), 0);
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor("bool", OBJECT_BOOL), 0);
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor("int", OBJECT_INT), 0);
@@ -744,5 +743,5 @@ build_symtable_program(struct Ast* ast, struct Arena* symtable_storage_)
     link = link->next;
   }
   pop_scope();
-  arena_delete(&temp_storage);
+  symtable_end_build();
 }

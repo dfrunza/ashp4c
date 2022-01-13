@@ -119,12 +119,16 @@ main(int arg_count, char* args[])
 
   if (find_named_arg("print-ast", cmdline_args)) {
     assert(!"TODO");
-    //print_ast(ast_program);
   }
 
   build_symtable_program(ast_program, &main_storage);
-  collect_name_ref_program(ast_program);
-  resolve_name_ref(get_root_scope());
+
+  struct Arena name_ref_storage = {};
+  struct UnboundedArray* name_refs = collect_name_ref_program(ast_program, &name_ref_storage);
+  for (int i = 0; i < name_refs->elem_count; ++i) {
+    struct Ast_Name* name = array_get(name_refs, i);
+    printf("%s :%d\n", name->strname, name->line_nr);
+  }
 
   arena_delete(&main_storage);
   return 0;

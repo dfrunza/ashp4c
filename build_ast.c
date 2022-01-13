@@ -9,7 +9,7 @@
 
 
 internal struct Arena *ast_storage;
-internal struct Arena temp_storage = {};
+internal struct Arena local_storage = {};
 
 internal struct UnboundedArray* tokens_array;
 internal int token_at = 0;
@@ -2797,7 +2797,7 @@ build_expression(int priority_threshold)
 internal struct ObjectDescriptor*
 new_keyword(char* name, enum TokenClass token_klass)
 {
-  struct Object_Keyword* descriptor = arena_push(&temp_storage, sizeof(*descriptor));
+  struct Object_Keyword* descriptor = arena_push(&local_storage, sizeof(*descriptor));
   memset(descriptor, 0, sizeof(*descriptor));
   descriptor->name = name;
   descriptor->object_kind = OBJECT_KEYWORD;
@@ -2811,7 +2811,7 @@ build_ast_program(struct UnboundedArray* tokens_array_, struct Arena* ast_storag
   tokens_array = tokens_array_;
   ast_storage = ast_storage_;
 
-  symtable_init(&temp_storage, &temp_storage);
+  symtable_begin_build(&local_storage);
   declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("action", TK_ACTION), 0);
   declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("actions", TK_ACTIONS), 0);
   declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("entries", TK_ENTRIES), 0);
@@ -2859,6 +2859,7 @@ build_ast_program(struct UnboundedArray* tokens_array_, struct Arena* ast_storag
   push_scope();
   struct Ast* p4program = build_p4program();
   pop_scope();
-  arena_delete(&temp_storage);
+  symtable_end_build();
+  arena_delete(&local_storage);
   return p4program;
 }
