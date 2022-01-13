@@ -4,130 +4,118 @@
 
 
 enum AstKind {
-  Ast_NONE,
-  Ast_Name,
-  Ast_BaseType_Bool,
-  Ast_BaseType_Error,
-  Ast_BaseType_Int,
-  Ast_BaseType_Bit,
-  Ast_BaseType_Varbit,
-  Ast_BaseType_String,
-  Ast_BaseType_Void,
-  Ast_ConstDecl,
-  Ast_ExternDecl,
-  Ast_FunctionProto,
-  Ast_ActionDecl,
-  Ast_HeaderDecl,
-  Ast_HeaderUnionDecl,
-  Ast_StructDecl,
-  Ast_EnumDecl,
-  Ast_TypeDecl,
-  Ast_ParserDecl,
-  Ast_ControlDecl,
-  Ast_PackageDecl,
-  Ast_Instantiation,
-  Ast_ErrorDecl,
-  Ast_MatchKindDecl,
-  Ast_FunctionDecl,
-  Ast_Dontcare,
-  Ast_IntTypeSize,
-  Ast_IntLiteral,
-  Ast_BoolLiteral,
-  Ast_StringLiteral,
-  Ast_Tuple,
-  Ast_TupleKeyset,
-  Ast_HeaderStack,
-  Ast_SpecializedType,
-  Ast_SpecifiedIdent,
-  Ast_StructField,
-  Ast_ParserType,
-  Ast_Argument,
-  Ast_VarDecl,
-  Ast_DirectApplication,
-  Ast_Parameter,
-  Ast_Lvalue,
-  Ast_AssignmentStmt,
-  Ast_MethodCallStmt,
-  Ast_EmptyStmt,
-  Ast_Default,
-  Ast_SelectCase,
-  Ast_ParserState,
-  Ast_ControlType,
-  Ast_KeyElement,
-  Ast_ActionRef,
-  Ast_TableEntry,
-  Ast_TableProp_Key,
-  Ast_TableProp_Actions,
-  Ast_TableProp_Entries,
-  Ast_TableProp_SingleEntry,
-  Ast_TableDecl,
-  Ast_IfStmt,
-  Ast_ExitStmt,
-  Ast_ReturnStmt,
-  Ast_SwitchLabel,
-  Ast_SwitchCase,
-  Ast_SwitchStmt,
-  Ast_BlockStmt,
-  Ast_KvPair,
-  Ast_P4Program,
-  Ast_SelectExpr,
-  Ast_ExpressionListExpr,
-  Ast_CastExpr,
-  Ast_UnaryExpr,
-  Ast_BinaryExpr,
-  Ast_MemberSelectExpr,
-  Ast_IndexedArrayExpr,
-  Ast_FunctionCallExpr,
+  AST_NONE,
+  AST_NAME,
+  AST_BASETYPE_BOOL,
+  AST_BASETYPE_ERROR,
+  AST_BASETYPE_INT,
+  AST_BASETYPE_BIT,
+  AST_BASETYPE_VARBIT,
+  AST_BASETYPE_STRING,
+  AST_BASETYPE_VOID,
+  AST_CONST_DECL,
+  AST_EXTERN_DECL,
+  AST_FUNCTION_PROTO,
+  AST_ACTION_DECL,
+  AST_HEADER_DECL,
+  AST_HEADER_UNION_DECL,
+  AST_STRUCT_DECL,
+  AST_ENUM_DECL,
+  AST_TYPE_DECL,
+  AST_PARSER_DECL,
+  AST_CONTROL_DECL,
+  AST_PACKAGE_DECL,
+  AST_INSTANTIATION,
+  AST_ERROR_DECL,
+  AST_MATCH_KIND_DECL,
+  AST_FUNCTION_DECL,
+  AST_DONTCARE,
+  AST_INT_TYPESIZE,
+  AST_INT_LITERAL,
+  AST_BOOL_LITERAL,
+  AST_STRING_LITERAL,
+  AST_TUPLE,
+  AST_TUPLE_KEYSET,
+  AST_HEADER_STACK,
+  AST_SPECIALIZED_TYPE,
+  AST_SPECIFIED_IDENT,
+  AST_STRUCT_FIELD,
+  AST_PARSER_PROTO,
+  AST_ARGUMENT,
+  AST_VAR_DECL,
+  AST_DIRECT_APPLICATION,
+  AST_PARAM,
+  AST_LVALUE,
+  AST_ASSIGNMENT_STMT,
+  AST_METHODCALL_STMT,
+  AST_EMPTY_STMT,
+  AST_DEFAULT_STMT,
+  AST_SELECT_CASE,
+  AST_PARSER_STATE,
+  AST_CONTROL_PROTO,
+  AST_KEY_ELEMENT,
+  AST_ACTION_REF,
+  AST_TABLE_DECL,
+  AST_TABLE_ENTRY,
+  AST_TABLE_KEY,
+  AST_TABLE_ACTIONS,
+  AST_TABLE_ENTRIES,
+  AST_TABLE_SINGLE_ENTRY,
+  AST_IF_STMT,
+  AST_EXIT_STMT,
+  AST_RETURN_STMT,
+  AST_SWITCH_STMT,
+  AST_SWITCH_LABEL,
+  AST_SWITCH_CASE,
+  AST_BLOCK_STMT,
+  AST_KEYVALUE_PAIR,
+  AST_P4PROGRAM,
+  AST_SELECT_EXPR,
+  AST_EXPRLIST_EXPR,
+  AST_CAST_EXPR,
+  AST_UNARY_EXPR,
+  AST_BINARY_EXPR,
+  AST_MEMBERSELECT_EXPR,
+  AST_INDEXEDARRAY_EXPR,
+  AST_FUNCTIONCALL_EXPR,
 };
 
 enum AstIntegerFlags {
-  AstInteger_NONE,
-  AstInteger_HasWidth,
-  AstInteger_IsSigned,
+  INTFLAGS_NONE,
+  INTFLAGS_HAS_WIDTH,
+  INTFLAGS_IS_SIGNED,
 };
 
 enum AstExprOperator {
-  AstExprOp_NONE,
-  AstExprOp_Add,
-  AstExprOp_Sub,
-  AstExprOp_Mul,
-  AstExprOp_Div,
-  AstExprOp_And,
-  AstExprOp_Or,
-  AstExprOp_Equal,
-  AstExprOp_NotEqual,
-  AstExprOp_Less,
-  AstExprOp_Greater,
-  AstExprOp_LessEqual,
-  AstExprOp_GreaterEqual,
-  AstExprOp_BitwiseAnd,
-  AstExprOp_BitwiseOr,
-  AstExprOp_BitwiseXor,
-  AstExprOp_BitwiseShiftLeft,
-  AstExprOp_BitwiseShiftRight,
-  AstExprOp_Mask,
-  AstExprOp_Minus,
-  AstExprOp_LogicNot,
-  AstExprOp_BitwiseNot,
+  OP_NONE,
+  OP_ADD,
+  OP_SUB,
+  OP_MUL,
+  OP_DIV,
+  OP_AND,
+  OP_OR,
+  OP_NOT,
+  OP_EQUAL,
+  OP_NOT_EQUAL,
+  OP_LESS,
+  OP_GREATER,
+  OP_LESS_EQUAL,
+  OP_GREATER_EQUAL,
+  OP_BITWISE_AND,
+  OP_BITWISE_OR,
+  OP_BITWISE_XOR,
+  OP_BITWISE_NOT,
+  OP_BITWISE_SHIFT_LEFT,
+  OP_BITWISE_SHIFT_RIGHT,
+  OP_MASK,
+  OP_MINUS,
 };
 
 enum AstParamDirection {
-  AstParamDir_NONE,
-  AstParamDir_In,
-  AstParamDir_Out,
-  AstParamDir_InOut,
-};
-
-enum AstAttributeType {
-  AstAttr_NONE,
-  AstAttr_Ast,
-  AstAttr_AstList,
-  AstAttr_Integer,
-  AstAttr_String,
-  AstAttr_ExprOperator,
-  AstAttr_BaseType,
-  AstAttr_ParamDir,
-  AstAttr_IntFlags,
+  PARAMDIR_NONE,
+  PARAMDIR_IN,
+  PARAMDIR_OUT,
+  PARAMDIR_INOUT,
 };
 
 struct Ast {
@@ -143,8 +131,6 @@ struct Ast_Name {
   struct Ast;
   char* strname;
   bool is_dotprefixed;
-  struct SymtableEntry* symtable_entry;
-  struct ObjectDescriptor* object_descrpt;
 };
 
 struct Ast_BaseType_Bool {
@@ -329,7 +315,7 @@ struct Ast_StructField {
   struct Ast* type;
 };
 
-struct Ast_ParserType {
+struct Ast_ParserProto {
   struct Ast;
   struct List* type_params;
   struct List* params;
@@ -351,7 +337,7 @@ struct Ast_DirectApplication {
   struct List* args;
 };
 
-struct Ast_Parameter {
+struct Ast_Param {
   struct Ast;
   enum AstParamDirection direction;
   struct Ast* type;
@@ -379,7 +365,7 @@ struct Ast_EmptyStmt {
   struct Ast;
 };
 
-struct Ast_Default {
+struct Ast_DefaultStmt {
   struct Ast;
 };
 
@@ -394,7 +380,7 @@ struct Ast_ParserState {
   struct Ast* trans_stmt;
 };
 
-struct Ast_ControlType {
+struct Ast_ControlProto {
   struct Ast;
   struct List* type_params;
   struct List* params;
@@ -416,23 +402,23 @@ struct Ast_TableEntry {
   struct Ast* action;
 };
 
-struct Ast_TableProp_Key {
+struct Ast_TableKey {
   struct Ast;
   struct List* keyelem_list;
 };
 
-struct Ast_TableProp_Actions {
+struct Ast_TableActions {
   struct Ast;
   struct List* action_list;
 };
 
-struct Ast_TableProp_Entries {
+struct Ast_TableEntries {
   struct Ast;
   bool is_const;
   struct List* entries;
 };
 
-struct Ast_TableProp_SingleEntry {
+struct Ast_TableSingleEntry {
   struct Ast;
   struct Ast* init_expr;
 };
@@ -479,7 +465,7 @@ struct Ast_BlockStmt {
   struct List* stmt_list;
 };
 
-struct Ast_KvPair {
+struct Ast_KeyValuePair {
   struct Ast;
   struct Ast* expr;
 };
@@ -495,7 +481,7 @@ struct Ast_SelectExpr {
   struct List* case_list;
 };
 
-struct Ast_ExpressionListExpr {
+struct Ast_ExprListExpr {
   struct Ast;
   struct List* expr_list;
 };

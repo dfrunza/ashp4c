@@ -114,7 +114,7 @@ main(int arg_count, char* args[])
   arena_delete(&text_storage);
 
   struct Ast* ast_program = build_ast_program(tokens_array, &main_storage);
-  assert(ast_program && ast_program->kind == Ast_P4Program);
+  assert(ast_program && ast_program->kind == AST_P4PROGRAM);
   arena_delete(&tokens_storage);
 
   if (find_named_arg("print-ast", cmdline_args)) {

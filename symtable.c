@@ -108,34 +108,25 @@ scope_resolve_name(struct Scope* scope, char* name)
 }
 
 struct SymtableEntry*
-register_type(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
+declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct ObjectDescriptor* descriptor, int line_nr)
 {
   struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->name);
-  descriptor->next_in_scope = entry->ns_type;
-  entry->ns_type = (struct ObjectDescriptor*)descriptor;
-  if (DEBUG_ENABLED) {
-    printf("new type `%s` at line %d.\n", descriptor->name, line_nr);
+  if (ns == NAMESPACE_TYPE) {
+    descriptor->next_in_scope = entry->ns_type;
+    entry->ns_type = (struct ObjectDescriptor*)descriptor;
+    if (DEBUG_ENABLED) {
+      printf("new type `%s` at line %d.\n", descriptor->name, line_nr);
+    }
+  } else if (ns == NAMESPACE_GENERAL) {
+    descriptor->next_in_scope = entry->ns_general;
+    entry->ns_general = (struct ObjectDescriptor*)descriptor;
+    if (DEBUG_ENABLED) {
+      printf("new identifier `%s` at line %d.\n", descriptor->name, line_nr);
+    }
+  } else if (ns == NAMESPACE_KEYWORD) {
+    struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->name);
+    entry->ns_keyword = (struct ObjectDescriptor*)descriptor;
   }
-  return entry;
-}
-
-struct SymtableEntry*
-register_identifier(struct Scope* scope, struct ObjectDescriptor* descriptor, int line_nr)
-{
-  struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->name);
-  descriptor->next_in_scope = entry->ns_general;
-  entry->ns_general = (struct ObjectDescriptor*)descriptor;
-  if (DEBUG_ENABLED) {
-    printf("new identifier `%s` at line %d.\n", descriptor->name, line_nr);
-  }
-  return entry;
-}
-
-struct SymtableEntry*
-register_keyword(struct Scope* scope, struct ObjectDescriptor* descriptor)
-{
-  struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->name);
-  entry->ns_keyword = (struct ObjectDescriptor*)descriptor;
   return entry;
 }
 

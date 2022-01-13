@@ -246,14 +246,14 @@ next_token(struct Token* token)
 
       case 2:
       {
-        token->klass = Token_EndOfInput_;
+        token->klass = TK_END_OF_INPUT;
         token->lexeme = "<end-of-input>";
         state = 0;
       } break;
 
       case 3:
       {
-        token->klass = Token_Unknown_;
+        token->klass = TK_UNKNOWN;
         token->lexeme = "<unknown>";
         lexeme_advance();
         state = 0;
@@ -261,7 +261,7 @@ next_token(struct Token* token)
 
       case 4:
       {
-        token->klass = Token_LexicalError_;
+        token->klass = TK_LEXICAL_ERROR;
         token->lexeme = "<error>";
         lexeme_advance();
         state = 0;
@@ -269,7 +269,7 @@ next_token(struct Token* token)
 
       case 100:
       {
-        token->klass = Token_Semicolon;
+        token->klass = TK_SEMICOLON;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -279,12 +279,12 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '=') {
           char_advance(1);
-          token->klass = Token_AngleOpenEqual;
+          token->klass = TK_ANGLE_OPEN_EQUAL;
         } else if (char_lookahead(1) == '<') {
           char_advance(1);
-          token->klass = Token_TwoAngleOpen;
+          token->klass = TK_DOUBLE_ANGLE_OPEN;
         } else {
-          token->klass = Token_AngleOpen;
+          token->klass = TK_ANGLE_OPEN;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -295,12 +295,12 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '=') {
           char_advance(1);
-          token->klass = Token_AngleCloseEqual;
+          token->klass = TK_ANGLE_CLOSE_EQUAL;
         } else if (char_lookahead(1) == '>') {
           char_advance(1);
-          token->klass = Token_TwoAngleClose;
+          token->klass = TK_DOUBLE_ANGLE_CLOSE;
         } else {
-          token->klass = Token_AngleClose;
+          token->klass = TK_ANGLE_CLOSE;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -313,7 +313,7 @@ next_token(struct Token* token)
         if (cstr_is_letter(cc) || cstr_is_digit(cc, 10) || cc == '_') {
           state = 500;
         } else {
-          token->klass = Token_Dontcare;
+          token->klass = TK_DONTCARE;
           token->lexeme = lexeme_to_cstring(lexeme);
           lexeme_advance();
           state = 0;
@@ -322,7 +322,7 @@ next_token(struct Token* token)
 
       case 104:
       {
-        token->klass = Token_Colon;
+        token->klass = TK_COLON;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -330,7 +330,7 @@ next_token(struct Token* token)
 
       case 105:
       {
-        token->klass = Token_ParenthOpen;
+        token->klass = TK_PARENTH_OPEN;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -339,7 +339,7 @@ next_token(struct Token* token)
 
       case 106:
       {
-        token->klass = Token_ParenthClose;
+        token->klass = TK_PARENTH_CLOSE;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -347,7 +347,7 @@ next_token(struct Token* token)
 
       case 107:
       {
-        token->klass = Token_DotPrefix;
+        token->klass = TK_DOT_PREFIX;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -355,7 +355,7 @@ next_token(struct Token* token)
 
       case 108:
       {
-        token->klass = Token_BraceOpen;
+        token->klass = TK_BRACE_OPEN;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -363,7 +363,7 @@ next_token(struct Token* token)
 
       case 109:
       {
-        token->klass = Token_BraceClose;
+        token->klass = TK_BRACE_CLOSE;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -371,7 +371,7 @@ next_token(struct Token* token)
 
       case 110:
       {
-        token->klass = Token_BracketOpen;
+        token->klass = TK_BRACKET_OPEN;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -379,7 +379,7 @@ next_token(struct Token* token)
 
       case 111:
       {
-        token->klass = Token_BracketClose;
+        token->klass = TK_BRACKET_CLOSE;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -387,7 +387,7 @@ next_token(struct Token* token)
 
       case 112:
       {
-        token->klass = Token_Comma;
+        token->klass = TK_COMMA;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -396,10 +396,10 @@ next_token(struct Token* token)
       case 113:
       {
         struct Token* prev_token = array_get(&tokens_array, tokens_array.elem_count - 1);
-        if (prev_token->klass == Token_ParenthOpen) {
-          token->klass = Token_UnaryMinus;
+        if (prev_token->klass == TK_PARENTH_OPEN) {
+          token->klass = TK_UNARY_MINUS;
         } else {
-          token->klass = Token_Minus;
+          token->klass = TK_MINUS;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -408,7 +408,7 @@ next_token(struct Token* token)
 
       case 114:
       {
-        token->klass = Token_Plus;
+        token->klass = TK_PLUS;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -416,7 +416,7 @@ next_token(struct Token* token)
 
       case 115:
       {
-        token->klass = Token_Star;
+        token->klass = TK_STAR;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -430,7 +430,7 @@ next_token(struct Token* token)
         } else if (char_lookahead(1) == '/') {
           state = 311;
         } else {
-          token->klass = Token_Slash;
+          token->klass = TK_SLASH;
           token->lexeme = lexeme_to_cstring(lexeme);
           lexeme_advance();
           state = 0;
@@ -441,9 +441,9 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '=') {
           char_advance(1);
-          token->klass = Token_TwoEqual;
+          token->klass = TK_DOUBLE_EQUAL;
         } else {
-          token->klass = Token_Equal;
+          token->klass = TK_EQUAL;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -454,9 +454,9 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '=') {
           char_advance(1);
-          token->klass = Token_ExclamationEqual;
+          token->klass = TK_EXCLAMATION_EQUAL;
         } else {
-          token->klass = Token_Exclamation;
+          token->klass = TK_EXCLAMATION;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -469,12 +469,12 @@ next_token(struct Token* token)
           char_advance(1);
           if (char_lookahead(1) == '&') {
             char_advance(1);
-            token->klass = Token_ThreeAmpersand;
+            token->klass = TK_TRIPLE_AMPERSAND;
           } else {
-            token->klass = Token_TwoAmpersand;
+            token->klass = TK_DOUBLE_AMPERSAND;
           }
         } else {
-          token->klass = Token_Ampersand;
+          token->klass = TK_AMPERSAND;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -485,9 +485,9 @@ next_token(struct Token* token)
       {
         if (char_lookahead(1) == '|') {
           char_advance(1);
-          token->klass = Token_TwoPipe;
+          token->klass = TK_DOUBLE_PIPE;
         } else {
-          token->klass = Token_Pipe;
+          token->klass = TK_PIPE;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -496,7 +496,7 @@ next_token(struct Token* token)
 
       case 121:
       {
-        token->klass = Token_Circumflex;
+        token->klass = TK_CIRCUMFLEX;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -504,7 +504,7 @@ next_token(struct Token* token)
 
       case 122:
       {
-        token->klass = Token_Tilda;
+        token->klass = TK_TILDA;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -522,7 +522,7 @@ next_token(struct Token* token)
           }
         } while (c != '"');
 
-        token->klass = Token_StringLiteral;
+        token->klass = TK_STRING_LITERAL;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -555,7 +555,7 @@ next_token(struct Token* token)
 
         if (char_lookahead(1) == '/') {
           char_advance(1);
-          token->klass = Token_Comment;
+          token->klass = TK_COMMENT;
           token->lexeme = lexeme_to_cstring(lexeme);
           lexeme_advance();
           state = 0;
@@ -570,7 +570,7 @@ next_token(struct Token* token)
           c = char_advance(1);
         } while (c != '\n' && c != '\r');
         line_nr++;
-        token->klass = Token_Comment;
+        token->klass = TK_COMMENT;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -606,10 +606,10 @@ next_token(struct Token* token)
           c = char_advance(1);
         } while (cstr_is_digit(c, 10));
         if (c == 'w' || c == 's') {
-          token->klass = Token_Integer;
-          token->i.flags |= AstInteger_HasWidth;
+          token->klass = TK_INTEGER;
+          token->i.flags |= INTFLAGS_HAS_WIDTH;
           if (c == 's') {
-            token->i.flags |= AstInteger_IsSigned;
+            token->i.flags |= INTFLAGS_IS_SIGNED;
           }
           lexeme[1].end = lexeme->end - 1;  // omit w|s
           token->i.width = parse_integer(lexeme_to_cstring(&lexeme[1]), 10);
@@ -618,8 +618,8 @@ next_token(struct Token* token)
         } else {
           char_retract();
           lexeme[1].end = lexeme->end;
-          token->klass = Token_Integer;
-          token->i.flags |= AstInteger_IsSigned;
+          token->klass = TK_INTEGER;
+          token->i.flags |= INTFLAGS_IS_SIGNED;
           token_install_integer(token, &lexeme[1], 10);
           token->lexeme = lexeme_to_cstring(lexeme);
           lexeme_advance();
@@ -637,8 +637,8 @@ next_token(struct Token* token)
         } while (cstr_is_digit(c, 16) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
-        token->klass = Token_Integer;
-        token->i.flags |= AstInteger_IsSigned;
+        token->klass = TK_INTEGER;
+        token->i.flags |= INTFLAGS_IS_SIGNED;
         token_install_integer(token, &lexeme[1], 16);
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -655,8 +655,8 @@ next_token(struct Token* token)
         } while (cstr_is_digit(c, 8) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
-        token->klass = Token_Integer;
-        token->i.flags |= AstInteger_IsSigned;
+        token->klass = TK_INTEGER;
+        token->i.flags |= INTFLAGS_IS_SIGNED;
         token_install_integer(token, &lexeme[1], 8);
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -673,8 +673,8 @@ next_token(struct Token* token)
         } while (cstr_is_digit(c, 2) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
-        token->klass = Token_Integer;
-        token->i.flags |= AstInteger_IsSigned;
+        token->klass = TK_INTEGER;
+        token->i.flags |= INTFLAGS_IS_SIGNED;
         token_install_integer(token, &lexeme[1], 2);
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -772,7 +772,7 @@ next_token(struct Token* token)
           c = char_advance(1);
         } while (cstr_is_letter(c) || cstr_is_digit(c, 10) || c == '_');
         char_retract();
-        token->klass = Token_Identifier;
+        token->klass = TK_IDENTIFIER;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;
@@ -793,16 +793,16 @@ lex_tokenize(char* text_, int text_size_, struct Arena* lexeme_storage_, struct 
   lexeme->start = lexeme->end = text;
 
   struct Token token = {};
-  token.klass = Token_StartOfInput_;
+  token.klass = TK_START_OF_INPUT;
   array_init(&tokens_array, sizeof(token), tokens_storage);
   array_append(&tokens_array, &token);
 
   next_token(&token);
   array_append(&tokens_array, &token);
-  while (token.klass != Token_EndOfInput_) {
-    if (token.klass == Token_Unknown_) {
+  while (token.klass != TK_END_OF_INPUT) {
+    if (token.klass == TK_UNKNOWN) {
       error("at line %d: unknown token.", token.line_nr);
-    } else if (token.klass == Token_LexicalError_) {
+    } else if (token.klass == TK_LEXICAL_ERROR) {
       error("at line %d: lexical error.", token.line_nr);
     }
     next_token(&token);

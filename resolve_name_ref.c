@@ -12,7 +12,7 @@ resolve_name_ref(struct Scope* scope)
     struct SymtableEntry* sym_entry = hmap_entry->object;
     // printf("%s\n", sym_entry->name);
     if (sym_entry->ns_general) {
-      if (sym_entry->ns_general->object_kind == Object_NameRef) {
+      if (sym_entry->ns_general->object_kind == OBJECT_NAME_REF) {
         int x = 0;
       }
     }
