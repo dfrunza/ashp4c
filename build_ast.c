@@ -2219,9 +2219,7 @@ build_switchLabel()
 {
   struct Ast* label = 0;
   if (token_is_name(token)) {
-    struct Ast_SwitchLabel* name_label = new_ast_node(Ast_SwitchLabel, AST_SWITCH_LABEL, token);
-    label = (struct Ast*)name_label;
-    name_label->name = build_name(false);
+    label = build_name(false);
   } else if (token->klass == TK_DEFAULT) {
     next_token();
     label = (struct Ast*)new_ast_node(Ast_DefaultStmt, AST_DEFAULT_STMT, token);

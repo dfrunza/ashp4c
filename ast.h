@@ -65,7 +65,6 @@ enum AstKind {
   AST_EXIT_STMT,
   AST_RETURN_STMT,
   AST_SWITCH_STMT,
-  AST_SWITCH_LABEL,
   AST_SWITCH_CASE,
   AST_BLOCK_STMT,
   AST_KEYVALUE_PAIR,
@@ -124,7 +123,6 @@ struct Ast {
   int line_nr;
   struct Ast* name;
   struct List* type_args;
-  struct Scope* scope;
 };
 
 struct Ast_Name {
@@ -442,10 +440,6 @@ struct Ast_ExitStmt {
 struct Ast_ReturnStmt {
   struct Ast;
   struct Ast* expr;
-};
-
-struct Ast_SwitchLabel {
-  struct Ast;
 };
 
 struct Ast_SwitchCase {

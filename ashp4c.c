@@ -4,7 +4,6 @@
 #include "symtable.h"
 #include "build_ast.h"
 #include "build_symtable.h"
-#include "collect_name_ref.h"
 #include "resolve_name_ref.h"
 #include <sys/stat.h>
 #include <memory.h>  // memset
@@ -96,7 +95,7 @@ parse_cmdline_args(int arg_count, char* args[])
 int
 main(int arg_count, char* args[])
 {
-  init_memory(400*KILOBYTE);
+  alloc_memory(400*KILOBYTE);
 
   struct CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
   struct CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
@@ -122,13 +121,6 @@ main(int arg_count, char* args[])
   }
 
   build_symtable_program(ast_program, &main_storage);
-
-  struct Arena name_ref_storage = {};
-  struct UnboundedArray* name_refs = collect_name_ref_program(ast_program, &name_ref_storage);
-  for (int i = 0; i < name_refs->elem_count; ++i) {
-    struct Ast_Name* name = array_get(name_refs, i);
-    printf("%s :%d\n", name->strname, name->line_nr);
-  }
 
   arena_delete(&main_storage);
   return 0;

@@ -83,7 +83,7 @@ pop_scope()
 struct SymtableEntry*
 symtable_get_or_create_entry(struct Scope* scope, char* name)
 {
-  struct HashmapEntry* hmap_entry = hashmap_get_or_create_entry(&scope->symtable, (uint8_t*)name, 0);
+  struct HashmapEntry* hmap_entry = hashmap_get_or_create_entry(&scope->declarations, (uint8_t*)name, 0);
   if (hmap_entry->object) {
     return (struct SymtableEntry*)hmap_entry->object;
   }
@@ -138,7 +138,8 @@ scope_init(struct Scope* scope, int capacity_log2)
   scope->parent_scope = 0;
   scope->first_child_scope = 0;
   scope->right_sibling_scope = 0;
-  hashmap_init(&scope->symtable, capacity_log2, symtable_storage);
+  hashmap_init(&scope->declarations, capacity_log2, symtable_storage);
+  array_init(&scope->name_refs, sizeof(struct ObjectDescriptor), symtable_storage);
 }
 
 void

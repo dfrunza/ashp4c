@@ -49,7 +49,7 @@ struct List {
 };
 
 
-void init_memory(int memory_amount);
+void alloc_memory(int memory_amount);
 void* arena_push(struct Arena* arena, uint32_t size);
 void arena_delete(struct Arena* arena);
 

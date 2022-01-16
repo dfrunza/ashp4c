@@ -30,7 +30,7 @@ arena_print_usage(struct Arena* arena, char* caption)
 }
 
 void
-init_memory(int memory_amount)
+alloc_memory(int memory_amount)
 {
   page_size = getpagesize();
   total_page_count = ceil(memory_amount / page_size);

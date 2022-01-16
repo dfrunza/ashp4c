@@ -73,7 +73,8 @@ struct Scope {
   struct Scope* parent_scope;
   struct Scope* first_child_scope;
   struct Scope* right_sibling_scope;
-  struct Hashmap symtable;
+  struct Hashmap declarations;
+  struct UnboundedArray name_refs;
 };
 
 
