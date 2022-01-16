@@ -28,9 +28,10 @@ build_symtable_function_call(struct Ast* ast)
 {
   assert(ast->kind == AST_FUNCTIONCALL_EXPR);
   struct Ast_FunctionCallExpr* expr = (struct Ast_FunctionCallExpr*)ast;
-  build_symtable_expression(expr->expr);
-  if (expr->expr->type_args) {
-    struct ListLink* link = list_first_link(expr->expr->type_args);
+  build_symtable_expression(expr->callee_expr);
+  struct Ast_Expression* callee_expr = (struct Ast_Expression*)(expr->callee_expr);
+  if (callee_expr->type_args) {
+    struct ListLink* link = list_first_link(callee_expr->type_args);
     while (link) {
       struct Ast* type_arg = link->object;
       build_symtable_type_ref(type_arg);
@@ -128,8 +129,8 @@ build_symtable_expression(struct Ast* ast)
     if (expr->colon_index) {
       build_symtable_expression(expr->colon_index);
     }
-  } else if (ast->kind == AST_KEYVALUE_PAIR) {
-    struct Ast_KeyValuePair* expr = (struct Ast_KeyValuePair*)ast;
+  } else if (ast->kind == AST_KEYVALUE_PAIR_EXPR) {
+    struct Ast_KeyValuePairExpr* expr = (struct Ast_KeyValuePairExpr*)ast;
     build_symtable_expression(expr->name);
     build_symtable_expression(expr->expr);
   } else if (ast->kind == AST_INT_LITERAL || ast->kind == AST_BOOL_LITERAL || ast->kind == AST_STRING_LITERAL) {
@@ -337,9 +338,8 @@ build_symtable_table_decl(struct Ast* ast)
     descriptor->ast = ast;
     declare_object_in_scope(get_current_scope(), NAMESPACE_GENERAL, descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
-  struct List* prop_list = decl->prop_list;
-  if (prop_list) {
-    struct ListLink* link = list_first_link(prop_list);
+  if (decl->prop_list) {
+    struct ListLink* link = list_first_link(decl->prop_list);
     while (link) {
       struct Ast* prop = link->object;
       build_symtable_table_property(prop);
@@ -953,11 +953,7 @@ build_symtable_type_decl(struct Ast* ast)
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
   if (!entry->ns_type) {
     struct ObjectDescriptor* descriptor = new_object_descriptor(name->strname, OBJECT_NONE);
-    if (type_decl->is_typedef) {
-      descriptor->object_kind = OBJECT_TYPEDEF;
-    } else {
-      descriptor->object_kind = OBJECT_TYPE;
-    }
+    descriptor->object_kind = type_decl->is_typedef ? OBJECT_TYPEDEF : OBJECT_TYPE;
     descriptor->ast = ast;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
@@ -1016,17 +1012,25 @@ build_symtable_match_kind(struct Ast* ast)
   struct Ast_MatchKindDecl* decl = (struct Ast_MatchKindDecl*)ast;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_root_scope(), "match_kind");
   assert(entry->ns_type);
+  push_scope();
   if (decl->id_list) {
     build_symtable_enum_id_list(decl->id_list);
   }
+  pop_scope();
 }
 
 internal void
 build_symtable_error_decl(struct Ast* ast)
 {
   assert (ast->kind == AST_ERROR_DECL);
+  struct Ast_ErrorDecl* decl = (struct Ast_ErrorDecl*)ast;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_root_scope(), "error");
   assert(entry->ns_type);
+  push_scope();
+  if (decl->id_list) {
+    build_symtable_enum_id_list(decl->id_list);
+  }
+  pop_scope();
 }
 
 void

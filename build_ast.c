@@ -2756,7 +2756,7 @@ build_expression(int priority_threshold)
       else if (token->klass == TK_PARENTH_OPEN) {
         next_token();
         struct Ast_FunctionCallExpr* call_expr = new_ast_node(Ast_FunctionCallExpr, AST_FUNCTIONCALL_EXPR, token);
-        call_expr->expr = expr;
+        call_expr->callee_expr = expr;
         call_expr->args = build_argumentList();
         expr = (struct Ast*)call_expr;
         if (token->klass == TK_PARENTH_CLOSE) {
@@ -2765,13 +2765,13 @@ build_expression(int priority_threshold)
       }
       else if (token->klass == TK_ANGLE_OPEN && token_is_realTypeArg(peek_token())) {
         next_token();
-        expr->type_args = build_realTypeArgumentList();
+        ((struct Ast_Expression*)expr)->type_args = build_realTypeArgumentList();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
         } else error("at line %d: `>` was expected, got `%s`.", token->line_nr, token->lexeme);
       } else if (token->klass == TK_EQUAL) {
         next_token();
-        struct Ast_KeyValuePair* kv_pair = new_ast_node(Ast_KeyValuePair, AST_KEYVALUE_PAIR, token);
+        struct Ast_KeyValuePairExpr* kv_pair = new_ast_node(Ast_KeyValuePairExpr, AST_KEYVALUE_PAIR_EXPR, token);
         kv_pair->name = expr;
         kv_pair->expr = build_expression(1);
         expr = (struct Ast*)kv_pair;

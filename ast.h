@@ -67,8 +67,8 @@ enum AstKind {
   AST_SWITCH_STMT,
   AST_SWITCH_CASE,
   AST_BLOCK_STMT,
-  AST_KEYVALUE_PAIR,
   AST_P4PROGRAM,
+  AST_KEYVALUE_PAIR_EXPR,
   AST_SELECT_EXPR,
   AST_EXPRLIST_EXPR,
   AST_CAST_EXPR,
@@ -122,11 +122,15 @@ struct Ast {
   int id;
   int line_nr;
   struct Ast* name;
+};
+
+struct Ast_Expression {
+  struct Ast;
   struct List* type_args;
 };
 
 struct Ast_Name {
-  struct Ast;
+  struct Ast_Expression;
   char* strname;
   bool is_dotprefixed;
 };
@@ -269,24 +273,25 @@ struct Ast_IntTypeSize {
 };
 
 struct Ast_IntLiteral {
-  struct Ast;
+  struct Ast_Expression;
   enum AstIntegerFlags flags;
   int value;
   int width;
 };
 
 struct Ast_BoolLiteral {
-  struct Ast;
+  struct Ast_Expression;
   bool value;
 };
 
 struct Ast_StringLiteral {
-  struct Ast;
+  struct Ast_Expression;
   char* value;
 };
 
 struct Ast_Tuple {
   struct Ast;
+  struct List* type_args;
 };
 
 struct Ast_TupleKeyset {
@@ -301,6 +306,7 @@ struct Ast_HeaderStack {
 
 struct Ast_SpecializedType {
   struct Ast;
+  struct List* type_args;
 };
 
 struct Ast_SpecifiedIdent {
@@ -357,6 +363,7 @@ struct Ast_MethodCallStmt {
   struct Ast;
   struct Ast* lvalue;
   struct List* args;
+  struct List* type_args;
 };
 
 struct Ast_EmptyStmt {
@@ -459,8 +466,8 @@ struct Ast_BlockStmt {
   struct List* stmt_list;
 };
 
-struct Ast_KeyValuePair {
-  struct Ast;
+struct Ast_KeyValuePairExpr {
+  struct Ast_Expression;
   struct Ast* expr;
 };
 
@@ -470,50 +477,50 @@ struct Ast_P4Program {
 };
 
 struct Ast_SelectExpr {
-  struct Ast;
+  struct Ast_Expression;
   struct List* expr_list;
   struct List* case_list;
 };
 
 struct Ast_ExprListExpr {
-  struct Ast;
+  struct Ast_Expression;
   struct List* expr_list;
 };
 
 struct Ast_CastExpr {
-  struct Ast;
+  struct Ast_Expression;
   struct Ast* to_type;
   struct Ast* expr;
 };
 
 struct Ast_UnaryExpr {
-  struct Ast;
+  struct Ast_Expression;
   enum AstExprOperator op;
   struct Ast* operand;
 };
 
 struct Ast_BinaryExpr {
-  struct Ast;
+  struct Ast_Expression;
   enum AstExprOperator op;
   struct Ast* left_operand;
   struct Ast* right_operand;
 };
 
 struct Ast_MemberSelectExpr {
-  struct Ast;
+  struct Ast_Expression;
   struct Ast* expr;
   struct Ast* member_name;
 };
 
 struct Ast_IndexedArrayExpr {
-  struct Ast;
+  struct Ast_Expression;
   struct Ast* index;
   struct Ast* colon_index;
 };
 
 struct Ast_FunctionCallExpr {
-  struct Ast;
-  struct Ast* expr;
+  struct Ast_Expression;
+  struct Ast* callee_expr;
   struct List* args;
 };
 
