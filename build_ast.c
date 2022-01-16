@@ -742,12 +742,14 @@ build_typeName()
   if (token_is_typeName(token)) {
     name = build_prefixedType();
     if (token->klass == TK_ANGLE_OPEN) {
-      struct Ast* specd_type = build_specializedType();
-      specd_type->name = name;
-      name = specd_type;
+      struct Ast* speclzd_type = build_specializedType();
+      assert (speclzd_type->kind == AST_SPECIALIZED_TYPE);
+      ((struct Ast_SpecializedType*)speclzd_type)->name = name;
+      name = speclzd_type;
     } if (token->klass == TK_BRACKET_OPEN) {
       struct Ast* stack_type = build_headerStackType();
-      stack_type->name = name;
+      assert (stack_type->kind == AST_HEADER_STACK);
+      ((struct Ast_HeaderStack*)stack_type)->name = name;
       name = stack_type;
     }
   } else error("at line %d: type was expected, got `%s`.", token->line_nr, token->lexeme);

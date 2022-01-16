@@ -820,7 +820,7 @@ build_symtable_type_ref(struct Ast* ast)
       || ast->kind == AST_BASETYPE_INT || ast->kind == AST_BASETYPE_BIT
       || ast->kind == AST_BASETYPE_VARBIT || ast->kind == AST_BASETYPE_STRING
       || ast->kind == AST_BASETYPE_VOID) {
-    build_symtable_expression(ast->name);
+    build_symtable_expression(((struct Ast_BaseType*)ast)->name);
   } else if (ast->kind == AST_HEADER_STACK) {
     struct Ast_HeaderStack* type_ref = (struct Ast_HeaderStack*)ast;
     build_symtable_expression(type_ref->name);

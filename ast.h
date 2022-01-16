@@ -121,7 +121,6 @@ struct Ast {
   enum AstKind kind;
   int id;
   int line_nr;
-  struct Ast* name;
 };
 
 struct Ast_Expression {
@@ -135,45 +134,52 @@ struct Ast_Name {
   bool is_dotprefixed;
 };
 
-struct Ast_BaseType_Bool {
+struct Ast_BaseType {
   struct Ast;
+  struct Ast* name;
+};
+
+struct Ast_BaseType_Bool {
+  struct Ast_BaseType;
 };
 
 struct Ast_BaseType_Error {
-  struct Ast;
+  struct Ast_BaseType;
 };
 
 struct Ast_BaseType_Int {
-  struct Ast;
+  struct Ast_BaseType;
   struct Ast* size;
 };
 
 struct Ast_BaseType_Bit {
-  struct Ast;
+  struct Ast_BaseType;
   struct Ast* size;
 };
 
 struct Ast_BaseType_Varbit {
-  struct Ast;
+  struct Ast_BaseType;
   struct Ast* size;
 };
 
 struct Ast_BaseType_String {
-  struct Ast;
+  struct Ast_BaseType;
 };
 
 struct Ast_BaseType_Void {
-  struct Ast;
+  struct Ast_BaseType;
 };
 
 struct Ast_ConstDecl {
   struct Ast;
+  struct Ast* name;
   struct Ast* type_ref;
   struct Ast* expr;
 };
 
 struct Ast_ExternDecl {
   struct Ast;
+  struct Ast* name;
   struct List* type_params;
   struct List* method_protos;
 };
@@ -182,39 +188,46 @@ struct Ast_FunctionProto {
   struct Ast;
   bool is_extern;
   struct Ast* return_type;
+  struct Ast* name;
   struct List* type_params;
   struct List* params;
 };
 
 struct Ast_ActionDecl {
   struct Ast;
+  struct Ast* name;
   struct List* params;
   struct Ast* stmt;
 };
 
 struct Ast_HeaderDecl {
   struct Ast;
+  struct Ast* name;
   struct List* fields;
 };
 
 struct Ast_HeaderUnionDecl {
   struct Ast;
+  struct Ast* name;
   struct List* fields;
 };
 
 struct Ast_StructDecl {
   struct Ast;
+  struct Ast* name;
   struct List* fields;
 };
 
 struct Ast_EnumDecl {
   struct Ast;
+  struct Ast* name;
   struct Ast* type_size;
   struct List* id_list;
 };
 
 struct Ast_TypeDecl {
   struct Ast;
+  struct Ast* name;
   bool is_typedef;
   struct Ast* type_ref;
 };
@@ -237,12 +250,14 @@ struct Ast_ControlDecl {
 
 struct Ast_PackageDecl {
   struct Ast;
+  struct Ast* name;
   struct List* type_params;
   struct List* params;
 };
 
 struct Ast_Instantiation {
   struct Ast;
+  struct Ast* name;
   struct Ast* type_ref;
   struct List* args;
 };
@@ -301,55 +316,65 @@ struct Ast_TupleKeyset {
 
 struct Ast_HeaderStack {
   struct Ast;
+  struct Ast* name;
   struct Ast* stack_expr;
 };
 
 struct Ast_SpecializedType {
   struct Ast;
+  struct Ast* name;
   struct List* type_args;
 };
 
 struct Ast_SpecifiedIdent {
   struct Ast;
+  struct Ast* name;
   struct Ast* init_expr;
 };
 
 struct Ast_StructField {
   struct Ast;
+  struct Ast* name;
   struct Ast* type;
 };
 
 struct Ast_ParserProto {
   struct Ast;
+  struct Ast* name;
   struct List* type_params;
   struct List* params;
 };
 
 struct Ast_Argument {
   struct Ast;
+  struct Ast* name;
   struct Ast* init_expr;
 };
 
 struct Ast_VarDecl {
   struct Ast;
+  struct Ast* name;
   struct Ast* type;
   struct Ast* init_expr;
 };
 
 struct Ast_DirectApplication {
   struct Ast;
+  struct Ast* name;
   struct List* args;
 };
 
 struct Ast_Param {
   struct Ast;
   enum AstParamDirection direction;
+  struct Ast* name;
   struct Ast* type;
   struct Ast* init_expr;
 };
 
 struct Ast_Lvalue {
   struct Ast;
+  struct Ast* name;
   struct List* expr;
 };
 
@@ -376,28 +401,33 @@ struct Ast_DefaultStmt {
 
 struct Ast_SelectCase {
   struct Ast;
+  struct Ast* name;
   struct Ast* keyset;
 };
 
 struct Ast_ParserState {
   struct Ast;
+  struct Ast* name;
   struct List* stmt_list;
   struct Ast* trans_stmt;
 };
 
 struct Ast_ControlProto {
   struct Ast;
+  struct Ast* name;
   struct List* type_params;
   struct List* params;
 };
 
 struct Ast_KeyElement {
   struct Ast;
+  struct Ast* name;
   struct Ast* expr;
 };
 
 struct Ast_ActionRef {
   struct Ast;
+  struct Ast* name;
   struct List* args;
 };
 
@@ -425,11 +455,13 @@ struct Ast_TableEntries {
 
 struct Ast_TableSingleEntry {
   struct Ast;
+  struct Ast* name;
   struct Ast* init_expr;
 };
 
 struct Ast_TableDecl {
   struct Ast;
+  struct Ast* name;
   struct List* prop_list;
 };
 
@@ -468,6 +500,7 @@ struct Ast_BlockStmt {
 
 struct Ast_KeyValuePairExpr {
   struct Ast_Expression;
+  struct Ast* name;
   struct Ast* expr;
 };
 
