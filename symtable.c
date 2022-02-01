@@ -11,7 +11,6 @@
 internal struct Arena *symtable_storage;
 internal struct Arena local_storage = {};
 internal struct UnboundedArray scope_stack = {};
-internal struct SymtableEntry* null_entry = 0;
 internal struct Hashmap child_scope_map = {};
 
 
@@ -127,7 +126,7 @@ declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct ObjectDes
   } else if (ns == NAMESPACE_KEYWORD) {
     struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->name);
     entry->ns_keyword = (struct ObjectDescriptor*)descriptor;
-  }
+  } else assert (0);
   return entry;
 }
 
@@ -150,7 +149,7 @@ symtable_begin_build(struct Arena* symtable_storage_)
   struct Scope* root_scope = arena_push(symtable_storage, sizeof(*root_scope));
   memset(root_scope, 0, sizeof(*root_scope));
   scope_init(root_scope, 5);
-  array_init(&scope_stack, sizeof(root_scope), symtable_storage);
+  array_init(&scope_stack, sizeof(&root_scope), symtable_storage);
   array_append(&scope_stack, &root_scope);
 }
 

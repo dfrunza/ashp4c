@@ -3,9 +3,9 @@
 #include <math.h>
 
 
-static const uint32_t P = 257, Q = 4294967029;
-static const uint32_t SIGMA = 2654435769;
-static struct HashmapEntry* null_entry = 0;
+internal const uint32_t P = 257, Q = 4294967029;
+internal const uint32_t SIGMA = 2654435769;
+internal struct HashmapEntry* null_entry = 0;
 
 
 internal uint32_t
@@ -97,7 +97,7 @@ key_match(uint8_t* bytes_a, int len_a, uint8_t* bytes_b, int len_b)
 void
 hashmap_init(struct Hashmap* hashmap, int capacity_log2, struct Arena* storage)
 {
-  array_init(&hashmap->entries, sizeof(null_entry), storage);
+  array_init(&hashmap->entries, sizeof(&null_entry), storage);
   hashmap->capacity = (1 << capacity_log2) - 1;
   hashmap->entry_count = 0;
   for (int i = 0; i < hashmap->capacity; i++) {
