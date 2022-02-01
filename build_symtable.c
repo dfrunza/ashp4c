@@ -88,7 +88,7 @@ build_symtable_expression(struct Ast* ast)
     descriptor->ast = ast;
     struct Scope* scope = get_current_scope();
     array_append(&scope->name_refs, descriptor);
-    printf("%s :%d\n", name->strname, name->line_nr);
+    //printf("%s :%d\n", name->strname, name->line_nr);
   } else if (ast->kind == AST_LVALUE) {
     struct Ast_Lvalue* expr = (struct Ast_Lvalue*)ast;
     build_symtable_expression(expr->name);
