@@ -44,7 +44,7 @@ enum ObjectKind {
 
 struct NamedObject {
   char* strname;
-  enum ObjectKind object_kind;
+  enum ObjectKind kind;
   struct NamedObject* next_in_scope;
 };  
 
@@ -55,6 +55,7 @@ struct Object_Keyword {
 
 struct Object_NameRef {
   struct NamedObject;
+  int id;
   struct Ast_Name* name;
   struct Scope* scope;
 };
@@ -79,9 +80,6 @@ struct Scope {
   struct Scope* first_child_scope;
   struct Scope* right_sibling_scope;
   struct Hashmap declarations;
-#if 1
-  struct UnboundedArray namerefs;
-#endif
 };
 
 

@@ -5,6 +5,7 @@
 
 
 internal struct Arena* symtable_storage;
+internal struct UnboundedArray nameref_map = {};
 
 
 internal void build_symtable_block_statement(struct Ast* block_stmt);
@@ -13,11 +14,11 @@ internal void build_symtable_expression(struct Ast* expr);
 internal void build_symtable_type_ref(struct Ast* type_ref);
 
 
-#define new_object_descriptor(type, kind, name) ({ \
-  type* descriptor = arena_push(symtable_storage, sizeof(type)); \
-  memset(descriptor, 0, sizeof(type)); \
+#define new_object_descriptor(obj_type, obj_kind, name) ({ \
+  obj_type* descriptor = arena_push(symtable_storage, sizeof(obj_type)); \
+  memset(descriptor, 0, sizeof(obj_type)); \
   descriptor->strname = name; \
-  descriptor->object_kind = kind; \
+  descriptor->kind = obj_kind; \
   descriptor; \
 })
 
@@ -85,9 +86,8 @@ build_symtable_expression(struct Ast* ast)
     struct Object_NameRef* descriptor = new_object_descriptor(struct Object_NameRef, OBJECT_NAMEREF, name->strname);
     descriptor->name = name;
     descriptor->scope = get_current_scope();
-#if 1
-    printf("%s :%d\n", name->strname, name->line_nr);
-#endif
+    descriptor->id = nameref_map.elem_count;
+    array_append(&nameref_map, &descriptor);
   } else if (ast->kind == AST_LVALUE) {
     struct Ast_Lvalue* expr = (struct Ast_Lvalue*)ast;
     build_symtable_expression(expr->name);
@@ -933,7 +933,7 @@ build_symtable_type_decl(struct Ast* ast)
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
   if (!entry->ns_type) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_NONE, name->strname);
-    descriptor->object_kind = type_decl->is_typedef ? OBJECT_TYPEDEF : OBJECT_TYPE;
+    descriptor->kind = type_decl->is_typedef ? OBJECT_TYPEDEF : OBJECT_TYPE;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor, name->line_nr);
   } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
   struct Ast* type_ref = type_decl->type_ref;
@@ -1011,13 +1011,14 @@ build_symtable_error_decl(struct Ast* ast)
   pop_scope();
 }
 
-void
+struct UnboundedArray*
 build_symtable_program(struct Ast* ast, struct Arena* symtable_storage_)
 {
   assert(ast->kind == AST_P4PROGRAM);
   symtable_storage = symtable_storage_;
   
   symtable_begin_build(symtable_storage);
+  array_init(&nameref_map, sizeof(struct Object_NameRef**), symtable_storage);
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_VOID, "void"), 0);
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_BOOL, "bool"), 0);
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_INT, "int"), 0);
@@ -1070,4 +1071,5 @@ build_symtable_program(struct Ast* ast, struct Arena* symtable_storage_)
   }
   pop_scope();
   symtable_end_build();
+  return &nameref_map;
 }

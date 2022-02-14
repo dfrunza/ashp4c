@@ -42,27 +42,25 @@ push_scope()
 {
   assert (scope_stack.elem_count > 0);
   struct Scope* current_scope = get_current_scope();
-  struct Scope* new_scope = arena_push(symtable_storage, sizeof(*new_scope));
-  memset(new_scope, 0, sizeof(*new_scope));
-  array_append(&scope_stack, &new_scope);
-  scope_init(new_scope, 4);
-  new_scope->scope_level = current_scope->scope_level + 1;
+  struct Scope* scope = new_scope(4);
+  array_append(&scope_stack, &scope);
+  scope->scope_level = current_scope->scope_level + 1;
   if (DEBUG_ENABLED) {
-    printf("push scope %d\n", new_scope->scope_level);
+    printf("push scope %d\n", scope->scope_level);
   }
-  new_scope->parent_scope = current_scope;
+  scope->parent_scope = current_scope;
   struct HashmapEntry* entry = hashmap_get_or_create_entry(&child_scope_map,
-                (uint8_t*)&current_scope, sizeof(current_scope));
+            (uint8_t*)&current_scope, sizeof(current_scope));
   struct Scope* last_child_scope = entry->object;
   if (last_child_scope) {
-    assert (last_child_scope->scope_level == new_scope->scope_level);
-    last_child_scope->right_sibling_scope = new_scope;
+    assert (last_child_scope->scope_level == scope->scope_level);
+    last_child_scope->right_sibling_scope = scope;
   }
-  entry->object = new_scope;
+  entry->object = scope;
   if (!current_scope->first_child_scope) {
-    current_scope->first_child_scope = new_scope;
+    current_scope->first_child_scope = scope;
   }
-  return new_scope;
+  return scope;
 }
 
 struct Scope*
@@ -138,9 +136,6 @@ scope_init(struct Scope* scope, int capacity_log2)
   scope->first_child_scope = 0;
   scope->right_sibling_scope = 0;
   hashmap_init(&scope->declarations, capacity_log2, symtable_storage);
-#if 1
-  array_init(&scope->namerefs, sizeof(struct NamedObject), symtable_storage);
-#endif
 }
 
 void
@@ -150,7 +145,7 @@ symtable_begin_build(struct Arena* symtable_storage_)
   hashmap_init(&child_scope_map, 5, &local_storage);
   struct Scope* root_scope = arena_push(symtable_storage, sizeof(*root_scope));
   memset(root_scope, 0, sizeof(*root_scope));
-  scope_init(root_scope, 5);
+  scope_init(root_scope, 4);
   array_init(&scope_stack, sizeof(&root_scope), symtable_storage);
   array_append(&scope_stack, &root_scope);
 }

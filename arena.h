@@ -24,7 +24,7 @@ struct ArenaUsage {
   int arena_count;
 };
 
-// 1,048,575 elements
+// Max 1,048,575 elements
 #define ARRAY_MAX_SEGMENT 20
 
 struct UnboundedArray {

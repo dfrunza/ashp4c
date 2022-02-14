@@ -2664,22 +2664,27 @@ get_operator_priority(struct Token* token)
 {
   int prio = 0;
   if (token->klass == TK_DOUBLE_AMPERSAND || token->klass == TK_DOUBLE_PIPE) {
+    /* Logical AND, OR */
     prio = 1;
   } else if (token->klass == TK_DOUBLE_EQUAL || token->klass == TK_EXCLAMATION_EQUAL
       || token->klass == TK_ANGLE_OPEN /* Less */ || token->klass == TK_ANGLE_CLOSE /* Greater */
       || token->klass == TK_ANGLE_OPEN_EQUAL /* LessEqual */ || token->klass == TK_ANGLE_CLOSE_EQUAL /* GreaterEqual */) {
+    /* Relational ops  */
     prio = 2;
   }
   else if (token->klass == TK_PLUS || token->klass == TK_MINUS
            || token->klass == TK_AMPERSAND || token->klass == TK_PIPE
            || token->klass == TK_CIRCUMFLEX || token->klass == TK_DOUBLE_ANGLE_OPEN /* BitshiftLeft */
            || token->klass == TK_DOUBLE_ANGLE_CLOSE /* BitshiftRight */) {
+    /* Addition and Subtraction; Bitwise ops */
     prio = 3;
   }
   else if (token->klass == TK_STAR || token->klass == TK_SLASH) {
+    /* Multiplication and Division */
     prio = 4;
   }
   else if (token->klass == TK_TRIPLE_AMPERSAND) {
+    /* Masking */
     prio = 5;
   }
   else assert(0);
@@ -2801,7 +2806,7 @@ new_keyword(char* name, enum TokenClass token_klass)
   struct Object_Keyword* descriptor = arena_push(&local_storage, sizeof(*descriptor));
   memset(descriptor, 0, sizeof(*descriptor));
   descriptor->strname = name;
-  descriptor->object_kind = OBJECT_KEYWORD;
+  descriptor->kind = OBJECT_KEYWORD;
   descriptor->token_klass = token_klass;
   return (struct NamedObject*)descriptor;
 }

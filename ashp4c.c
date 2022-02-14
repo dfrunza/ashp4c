@@ -121,10 +121,12 @@ main(int arg_count, char* args[])
     assert(!"TODO");
   }
 
-  build_symtable_program(ast_program, &main_storage);
-  nameref_context_program(ast_program);
-  struct Scope* root_scope = get_root_scope();
-  resolve_nameref(root_scope);
+  struct UnboundedArray* nameref_map = build_symtable_program(ast_program, &main_storage);
+  for (int i = 0; i < nameref_map->elem_count; i++) {
+    struct Object_NameRef* object = *(struct Object_NameRef**)array_get(nameref_map, i);
+    assert (object->kind == OBJECT_NAMEREF);
+    printf("%s:%d\n", object->strname, object->name->line_nr);
+  }
 
   arena_delete(&main_storage);
   return 0;
