@@ -1,12 +1,13 @@
+#include <sys/stat.h>
+#include <memory.h>  // memset
 #include "basic.h"
 #include "arena.h"
 #include "lex.h"
 #include "symtable.h"
 #include "build_ast.h"
 #include "build_symtable.h"
-#include "resolve_name_ref.h"
-#include <sys/stat.h>
-#include <memory.h>  // memset
+#include "nameref_context.h"
+#include "resolve_nameref.h"
 
 #define DEBUG_ENABLED 0
 
@@ -121,6 +122,9 @@ main(int arg_count, char* args[])
   }
 
   build_symtable_program(ast_program, &main_storage);
+  nameref_context_program(ast_program);
+  struct Scope* root_scope = get_root_scope();
+  resolve_nameref(root_scope);
 
   arena_delete(&main_storage);
   return 0;

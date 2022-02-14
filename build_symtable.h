@@ -1,6 +1,5 @@
 #pragma once
 #include "arena.h"
-#include "token.h"
 #include "ast.h"
 
 

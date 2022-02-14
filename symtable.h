@@ -6,7 +6,7 @@
 
 enum ObjectKind {
   OBJECT_NONE,
-  OBJECT_NAME_REF,
+  OBJECT_NAMEREF,
   OBJECT_KEYWORD,
   OBJECT_VAR,
   OBJECT_CONST,
@@ -42,16 +42,21 @@ enum ObjectKind {
   OBJECT_TYPEDEF,
 };
 
-struct ObjectDescriptor {
-  char* name;
+struct NamedObject {
+  char* strname;
   enum ObjectKind object_kind;
-  struct Ast* ast;
-  struct ObjectDescriptor* next_in_scope;
+  struct NamedObject* next_in_scope;
 };  
 
 struct Object_Keyword {
-  struct ObjectDescriptor;
+  struct NamedObject;
   enum TokenClass token_klass;
+};
+
+struct Object_NameRef {
+  struct NamedObject;
+  struct Ast_Name* name;
+  struct Scope* scope;
 };
 
 enum Namespace {
@@ -63,9 +68,9 @@ enum Namespace {
 
 struct SymtableEntry {
   char* name;
-  struct ObjectDescriptor* ns_keyword;
-  struct ObjectDescriptor* ns_type;
-  struct ObjectDescriptor* ns_general;
+  struct NamedObject* ns_keyword;
+  struct NamedObject* ns_type;
+  struct NamedObject* ns_general;
 };
 
 struct Scope {
@@ -74,7 +79,9 @@ struct Scope {
   struct Scope* first_child_scope;
   struct Scope* right_sibling_scope;
   struct Hashmap declarations;
-  struct UnboundedArray name_refs;
+#if 1
+  struct UnboundedArray namerefs;
+#endif
 };
 
 
@@ -89,4 +96,4 @@ struct Scope* pop_scope();
 struct Scope* get_root_scope();
 struct Scope* get_current_scope();
 struct SymtableEntry* scope_resolve_name(struct Scope* scope, char* name);
-struct SymtableEntry* declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct ObjectDescriptor* descriptor, int line_nr);
+struct SymtableEntry* declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NamedObject* descriptor, int line_nr);

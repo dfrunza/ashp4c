@@ -108,24 +108,24 @@ scope_resolve_name(struct Scope* scope, char* name)
 }
 
 struct SymtableEntry*
-declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct ObjectDescriptor* descriptor, int line_nr)
+declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NamedObject* descriptor, int line_nr)
 {
-  struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->name);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->strname);
   if (ns == NAMESPACE_TYPE) {
     descriptor->next_in_scope = entry->ns_type;
-    entry->ns_type = (struct ObjectDescriptor*)descriptor;
+    entry->ns_type = (struct NamedObject*)descriptor;
     if (DEBUG_ENABLED) {
-      printf("new type `%s` at line %d.\n", descriptor->name, line_nr);
+      printf("new type `%s` at line %d.\n", descriptor->strname, line_nr);
     }
   } else if (ns == NAMESPACE_GENERAL) {
     descriptor->next_in_scope = entry->ns_general;
-    entry->ns_general = (struct ObjectDescriptor*)descriptor;
+    entry->ns_general = (struct NamedObject*)descriptor;
     if (DEBUG_ENABLED) {
-      printf("new identifier `%s` at line %d.\n", descriptor->name, line_nr);
+      printf("new identifier `%s` at line %d.\n", descriptor->strname, line_nr);
     }
   } else if (ns == NAMESPACE_KEYWORD) {
-    struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->name);
-    entry->ns_keyword = (struct ObjectDescriptor*)descriptor;
+    struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->strname);
+    entry->ns_keyword = (struct NamedObject*)descriptor;
   } else assert (0);
   return entry;
 }
@@ -138,7 +138,9 @@ scope_init(struct Scope* scope, int capacity_log2)
   scope->first_child_scope = 0;
   scope->right_sibling_scope = 0;
   hashmap_init(&scope->declarations, capacity_log2, symtable_storage);
-  array_init(&scope->name_refs, sizeof(struct ObjectDescriptor), symtable_storage);
+#if 1
+  array_init(&scope->namerefs, sizeof(struct NamedObject), symtable_storage);
+#endif
 }
 
 void
