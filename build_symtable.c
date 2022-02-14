@@ -5,7 +5,7 @@
 
 
 internal struct Arena* symtable_storage;
-internal struct UnboundedArray nameref_map = {};
+internal struct UnboundedArray nameref_table = {};
 
 
 internal void build_symtable_block_statement(struct Ast* block_stmt);
@@ -86,8 +86,8 @@ build_symtable_expression(struct Ast* ast)
     struct Object_NameRef* descriptor = new_object_descriptor(struct Object_NameRef, OBJECT_NAMEREF, name->strname);
     descriptor->name = name;
     descriptor->scope = get_current_scope();
-    descriptor->id = nameref_map.elem_count;
-    array_append(&nameref_map, &descriptor);
+    descriptor->id = nameref_table.elem_count;
+    array_append(&nameref_table, &descriptor);
   } else if (ast->kind == AST_LVALUE) {
     struct Ast_Lvalue* expr = (struct Ast_Lvalue*)ast;
     build_symtable_expression(expr->name);
@@ -1011,23 +1011,10 @@ build_symtable_error_decl(struct Ast* ast)
   pop_scope();
 }
 
-struct UnboundedArray*
-build_symtable_program(struct Ast* ast, struct Arena* symtable_storage_)
+internal void
+build_symtable_p4program(struct Ast* ast)
 {
   assert(ast->kind == AST_P4PROGRAM);
-  symtable_storage = symtable_storage_;
-  
-  symtable_begin_build(symtable_storage);
-  array_init(&nameref_map, sizeof(struct Object_NameRef**), symtable_storage);
-  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_VOID, "void"), 0);
-  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_BOOL, "bool"), 0);
-  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_INT, "int"), 0);
-  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_BIT, "bit"), 0);
-  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_VARBIT, "varbit"), 0);
-  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_STRING, "string"), 0);
-  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_ERROR, "error"), 0);
-  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_MATCH_KIND, "match_kind"), 0);
-
   struct Ast_P4Program* program = (struct Ast_P4Program*)ast;
   push_scope();
   struct ListLink* link = list_first_link(program->decl_list);
@@ -1070,6 +1057,24 @@ build_symtable_program(struct Ast* ast, struct Arena* symtable_storage_)
     link = link->next;
   }
   pop_scope();
+}
+
+struct UnboundedArray*
+build_symtable(struct Ast* p4program, struct Arena* symtable_storage_)
+{
+  symtable_storage = symtable_storage_;
+
+  symtable_begin_build(symtable_storage);
+  array_init(&nameref_table, sizeof(struct Object_NameRef**), symtable_storage);
+  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_VOID, "void"), 0);
+  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_BOOL, "bool"), 0);
+  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_INT, "int"), 0);
+  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_BIT, "bit"), 0);
+  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_VARBIT, "varbit"), 0);
+  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_STRING, "string"), 0);
+  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_ERROR, "error"), 0);
+  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_MATCH_KIND, "match_kind"), 0);
+  build_symtable_p4program(p4program);
   symtable_end_build();
-  return &nameref_map;
+  return &nameref_table;
 }

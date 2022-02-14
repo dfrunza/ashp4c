@@ -37,8 +37,8 @@ nameref_context_control_decl(struct Ast* ast)
   }
 }
 
-void
-nameref_context_program(struct Ast* ast)
+internal void
+build_nameref_p4program(struct Ast* ast)
 {
   assert(ast->kind == AST_P4PROGRAM);
   struct Ast_P4Program* program = (struct Ast_P4Program*)ast;
@@ -81,4 +81,10 @@ nameref_context_program(struct Ast* ast)
     else assert(0);
     link = link->next;
   }
+}
+
+void
+build_nameref(struct Ast* p4program)
+{
+  build_nameref_p4program(p4program);
 }

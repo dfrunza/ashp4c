@@ -6,7 +6,7 @@
 #include "symtable.h"
 #include "build_ast.h"
 #include "build_symtable.h"
-#include "nameref_context.h"
+#include "build_nameref.h"
 #include "resolve_nameref.h"
 
 #define DEBUG_ENABLED 0
@@ -113,7 +113,7 @@ main(int arg_count, char* args[])
   struct UnboundedArray* tokens_array = lex_tokenize(text, text_size, &main_storage, &tokens_storage);
   arena_delete(&text_storage);
 
-  struct Ast* ast_program = build_ast_program(tokens_array, &main_storage);
+  struct Ast* ast_program = build_ast(tokens_array, &main_storage);
   assert(ast_program && ast_program->kind == AST_P4PROGRAM);
   arena_delete(&tokens_storage);
 
@@ -121,12 +121,14 @@ main(int arg_count, char* args[])
     assert(!"TODO");
   }
 
-  struct UnboundedArray* nameref_map = build_symtable_program(ast_program, &main_storage);
+  struct UnboundedArray* nameref_map = build_symtable(ast_program, &main_storage);
+#if 0
   for (int i = 0; i < nameref_map->elem_count; i++) {
     struct Object_NameRef* object = *(struct Object_NameRef**)array_get(nameref_map, i);
     assert (object->kind == OBJECT_NAMEREF);
     printf("%s:%d\n", object->strname, object->name->line_nr);
   }
+#endif
 
   arena_delete(&main_storage);
   return 0;

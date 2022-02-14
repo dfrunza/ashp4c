@@ -3,4 +3,4 @@
 #include "ast.h"
 
 
-void nameref_context_program(struct Ast* ast);
+void build_nameref_program(struct Ast* ast);

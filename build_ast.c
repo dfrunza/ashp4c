@@ -2812,7 +2812,7 @@ new_keyword(char* name, enum TokenClass token_klass)
 }
 
 struct Ast*
-build_ast_program(struct UnboundedArray* tokens_array_, struct Arena* ast_storage_)
+build_ast(struct UnboundedArray* tokens_array_, struct Arena* ast_storage_)
 {
   tokens_array = tokens_array_;
   ast_storage = ast_storage_;
