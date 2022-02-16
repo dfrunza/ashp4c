@@ -113,21 +113,28 @@ main(int arg_count, char* args[])
   struct UnboundedArray* tokens_array = lex_tokenize(text, text_size, &main_storage, &tokens_storage);
   arena_delete(&text_storage);
 
-  struct Ast* ast_program = build_ast(tokens_array, &main_storage);
-  assert(ast_program && ast_program->kind == AST_P4PROGRAM);
+  struct Ast* p4program = build_ast(tokens_array, &main_storage);
+  assert(p4program && p4program->kind == AST_P4PROGRAM);
   arena_delete(&tokens_storage);
 
   if (find_named_arg("print-ast", cmdline_args)) {
     assert(!"TODO");
   }
 
-  struct UnboundedArray* nameref_map = build_symtable(ast_program, &main_storage);
-#if 0
-  for (int i = 0; i < nameref_map->elem_count; i++) {
-    struct Object_NameRef* object = *(struct Object_NameRef**)array_get(nameref_map, i);
-    assert (object->kind == OBJECT_NAMEREF);
-    printf("%s:%d\n", object->strname, object->name->line_nr);
+  struct Hashmap* nameref_table = build_symtable(p4program, &main_storage);
+  build_nameref(p4program, nameref_table);
+#if 1
+  struct HashmapEntryIterator it = {};
+  hashmap_iter_init(&it, nameref_table);
+  int entry_count = 0;
+  for (struct HashmapEntry* entry = hashmap_iter_next(&it);
+       entry != 0; entry = hashmap_iter_next(&it)) {
+    struct Object_NameRef* nameref = entry->object;
+    assert(nameref->kind == OBJECT_NAMEREF);
+    printf("%s:%d\n", nameref->strname, nameref->name->line_nr);
+    entry_count += 1;
   }
+  printf("Expected entry count : %d, actual count : %d\n", nameref_table->entry_count, entry_count);
 #endif
 
   arena_delete(&main_storage);

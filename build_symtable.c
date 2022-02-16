@@ -5,7 +5,7 @@
 
 
 internal struct Arena* symtable_storage;
-internal struct UnboundedArray nameref_table = {};
+internal struct Hashmap nameref_table = {};
 
 
 internal void build_symtable_block_statement(struct Ast* block_stmt);
@@ -14,10 +14,10 @@ internal void build_symtable_expression(struct Ast* expr);
 internal void build_symtable_type_ref(struct Ast* type_ref);
 
 
-#define new_object_descriptor(obj_type, obj_kind, name) ({ \
+#define new_object_descriptor(obj_type, obj_kind, obj_name) ({ \
   obj_type* descriptor = arena_push(symtable_storage, sizeof(obj_type)); \
   memset(descriptor, 0, sizeof(obj_type)); \
-  descriptor->strname = name; \
+  descriptor->strname = obj_name; \
   descriptor->kind = obj_kind; \
   descriptor; \
 })
@@ -86,8 +86,8 @@ build_symtable_expression(struct Ast* ast)
     struct Object_NameRef* descriptor = new_object_descriptor(struct Object_NameRef, OBJECT_NAMEREF, name->strname);
     descriptor->name = name;
     descriptor->scope = get_current_scope();
-    descriptor->id = nameref_table.elem_count;
-    array_append(&nameref_table, &descriptor);
+    struct HashmapEntry* entry = hashmap_get_or_create_entry(&nameref_table, (struct HashmapKey){ .i_key=name->id });
+    entry->object = descriptor;
   } else if (ast->kind == AST_LVALUE) {
     struct Ast_Lvalue* expr = (struct Ast_Lvalue*)ast;
     build_symtable_expression(expr->name);
@@ -167,7 +167,8 @@ build_symtable_type_param(struct Ast* ast)
 }
 
 internal void
-build_symtable_action_decl(struct Ast* ast) {
+build_symtable_action_decl(struct Ast* ast)
+{
   assert(ast->kind == AST_ACTION_DECL);
   struct Ast_ActionDecl* action_decl = (struct Ast_ActionDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)action_decl->name;
@@ -1059,13 +1060,13 @@ build_symtable_p4program(struct Ast* ast)
   pop_scope();
 }
 
-struct UnboundedArray*
+struct Hashmap*
 build_symtable(struct Ast* p4program, struct Arena* symtable_storage_)
 {
   symtable_storage = symtable_storage_;
 
   symtable_begin_build(symtable_storage);
-  array_init(&nameref_table, sizeof(struct Object_NameRef**), symtable_storage);
+  hashmap_init(&nameref_table, HASHMAP_KEY_INT, sizeof(struct Object_NameRef**), symtable_storage);
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_VOID, "void"), 0);
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_BOOL, "bool"), 0);
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, new_object_descriptor(struct NamedObject, OBJECT_INT, "int"), 0);

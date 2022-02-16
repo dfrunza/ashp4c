@@ -55,7 +55,6 @@ struct Object_Keyword {
 
 struct Object_NameRef {
   struct NamedObject;
-  int id;
   struct Ast_Name* name;
   struct Scope* scope;
 };

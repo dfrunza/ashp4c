@@ -1,5 +1,10 @@
 #include "arena.h"
 #include "ast.h"
+#include "hashmap.h"
+#include "symtable.h"
+
+
+internal struct Hashmap* nameref_table;
 
 
 internal void build_nameref_block_statement(struct Ast* block_stmt);
@@ -11,6 +16,7 @@ internal void build_nameref_type_ref(struct Ast* type_ref);
 internal void
 build_nameref_param(struct Ast* ast)
 {
+  printf("build_nameref_param:%d\n", ast->line_nr);
   assert(ast->kind == AST_PARAM);
   struct Ast_Param* param = (struct Ast_Param*)ast;
   build_nameref_type_ref(param->type);
@@ -19,6 +25,7 @@ build_nameref_param(struct Ast* ast)
 internal void
 nameref_context_control_decl(struct Ast* ast)
 {
+  printf("nameref_context_control_decl:%d\n", ast->line_nr);
   assert(ast->kind == AST_CONTROL_DECL);
   struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
   struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
@@ -54,6 +61,7 @@ nameref_context_control_decl(struct Ast* ast)
 internal void
 build_nameref_struct_field(struct Ast* ast)
 {
+  printf("build_nameref_struct_field:%d\n", ast->line_nr);
   assert(ast->kind == AST_STRUCT_FIELD);
   struct Ast_StructField* field = (struct Ast_StructField*)ast;
   build_nameref_type_ref(field->type);
@@ -62,6 +70,7 @@ build_nameref_struct_field(struct Ast* ast)
 internal void
 build_nameref_header_union_decl(struct Ast* ast)
 {
+  printf("build_nameref_header_union_decl:%d\n", ast->line_nr);
   assert(ast->kind == AST_HEADER_UNION_DECL);
   struct Ast_HeaderUnionDecl* header_union_decl = (struct Ast_HeaderUnionDecl*)ast;
   if (header_union_decl->fields) {
@@ -77,6 +86,7 @@ build_nameref_header_union_decl(struct Ast* ast)
 internal void
 build_nameref_header_decl(struct Ast* ast)
 {
+  printf("build_nameref_header_decl:%d\n", ast->line_nr);
   assert(ast->kind == AST_HEADER_DECL);
   struct Ast_HeaderDecl* header_decl = (struct Ast_HeaderDecl*)ast;
   if (header_decl->fields) {
@@ -92,6 +102,7 @@ build_nameref_header_decl(struct Ast* ast)
 internal void
 build_nameref_struct_decl(struct Ast* ast)
 {
+  printf("build_nameref_struct_decl:%d\n", ast->line_nr);
   assert(ast->kind == AST_STRUCT_DECL);
   struct Ast_StructDecl* struct_decl = (struct Ast_StructDecl*)ast;
   if (struct_decl->fields) {
@@ -107,6 +118,7 @@ build_nameref_struct_decl(struct Ast* ast)
 internal void
 build_nameref_type_ref(struct Ast* ast)
 {
+  printf("build_nameref_type_ref:%d\n", ast->line_nr);
   if (ast->kind == AST_BASETYPE_BOOL || ast->kind == AST_BASETYPE_ERROR
       || ast->kind == AST_BASETYPE_INT || ast->kind == AST_BASETYPE_BIT
       || ast->kind == AST_BASETYPE_VARBIT || ast->kind == AST_BASETYPE_STRING
@@ -118,6 +130,11 @@ build_nameref_type_ref(struct Ast* ast)
     struct Ast* stack_expr = type_ref->stack_expr;
     build_nameref_expression(stack_expr);
   } else if (ast->kind == AST_NAME) {
+    struct HashmapEntry* entry = hashmap_get_entry(nameref_table, (struct HashmapKey){ .i_key=ast->id });
+    if (entry) {
+      struct Object_NameRef* nameref = entry->object;
+      assert(nameref->kind == OBJECT_NAMEREF);
+    }
     build_nameref_expression(ast);
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
     struct Ast_SpecializedType* speclzd_type = (struct Ast_SpecializedType*)ast;
@@ -153,6 +170,7 @@ build_nameref_type_ref(struct Ast* ast)
 internal void
 build_nameref_method_call(struct Ast* ast)
 {
+  printf("build_nameref_method_call:%d\n", ast->line_nr);
   assert(ast->kind == AST_METHODCALL_STMT);
   struct Ast_MethodCallStmt* stmt = (struct Ast_MethodCallStmt*)ast;
   build_nameref_expression(stmt->lvalue);
@@ -177,6 +195,7 @@ build_nameref_method_call(struct Ast* ast)
 internal void
 build_nameref_instantiation(struct Ast* ast)
 {
+  printf("build_nameref_instantiation:%d\n", ast->line_nr);
   assert(ast->kind == AST_INSTANTIATION);
   struct Ast_Instantiation* decl = (struct Ast_Instantiation*)ast;
   build_nameref_type_ref(decl->type_ref);
@@ -193,6 +212,7 @@ build_nameref_instantiation(struct Ast* ast)
 internal void
 build_nameref_switch_label(struct Ast* ast)
 {
+  printf("build_nameref_switch_label:%d\n", ast->line_nr);
   if (ast->kind == AST_DEFAULT_STMT) {
     ; // pass
   } else {
@@ -203,6 +223,7 @@ build_nameref_switch_label(struct Ast* ast)
 internal void
 build_nameref_switch_case(struct Ast* ast)
 {
+  printf("build_nameref_switch_case:%d\n", ast->line_nr);
   assert(ast->kind == AST_SWITCH_CASE);
   struct Ast_SwitchCase* switch_case = (struct Ast_SwitchCase*)ast;
   build_nameref_switch_label(switch_case->label);
@@ -215,6 +236,7 @@ build_nameref_switch_case(struct Ast* ast)
 internal void
 build_nameref_keyset_expr(struct Ast* ast)
 {
+  printf("build_nameref_keyset_expr:%d\n", ast->line_nr);
   if (ast->kind == AST_DEFAULT_STMT || ast->kind == AST_DONTCARE) {
     ; // pass
   } else {
@@ -225,6 +247,7 @@ build_nameref_keyset_expr(struct Ast* ast)
 internal void
 build_nameref_select_keyset(struct Ast* ast)
 {
+  printf("build_nameref_select_keyset:%d\n", ast->line_nr);
   if (ast->kind == AST_TUPLE_KEYSET) {
     struct Ast_TupleKeyset* keyset = (struct Ast_TupleKeyset*)ast;
     struct ListLink* link = list_first_link(keyset->expr_list);
@@ -241,6 +264,7 @@ build_nameref_select_keyset(struct Ast* ast)
 internal void
 build_nameref_action_ref(struct Ast* ast)
 {
+  printf("build_nameref_action_ref:%d\n", ast->line_nr);
   assert(ast->kind == AST_ACTION_REF);
   struct Ast_ActionRef* action = (struct Ast_ActionRef*)ast;
   build_nameref_expression(action->name);
@@ -257,6 +281,7 @@ build_nameref_action_ref(struct Ast* ast)
 internal void
 build_nameref_table_keyelem(struct Ast* ast)
 {
+  printf("build_nameref_table_keyelem:%d\n", ast->line_nr);
   assert(ast->kind == AST_KEY_ELEMENT);
   struct Ast_KeyElement* keyelem = (struct Ast_KeyElement*)ast;
   build_nameref_expression(keyelem->expr);
@@ -266,6 +291,7 @@ build_nameref_table_keyelem(struct Ast* ast)
 internal void
 build_nameref_table_entry(struct Ast* ast)
 {
+  printf("build_nameref_table_entry:%d\n", ast->line_nr);
   assert(ast->kind == AST_TABLE_ENTRY);
   struct Ast_TableEntry* entry = (struct Ast_TableEntry*)ast;
   build_nameref_select_keyset(entry->keyset);
@@ -275,6 +301,7 @@ build_nameref_table_entry(struct Ast* ast)
 internal void
 build_nameref_table_property(struct Ast* ast)
 {
+  printf("build_nameref_table_property:%d\n", ast->line_nr);
   if (ast->kind == AST_TABLE_ACTIONS) {
     struct Ast_TableActions* prop = (struct Ast_TableActions*)ast;
     if (prop->action_list) {
@@ -313,6 +340,7 @@ build_nameref_table_property(struct Ast* ast)
 internal void
 build_nameref_table_decl(struct Ast* ast)
 {
+  printf("build_nameref_table_decl:%d\n", ast->line_nr);
   assert(ast->kind == AST_TABLE_DECL);
   struct Ast_TableDecl* decl = (struct Ast_TableDecl*)ast;
   if (decl->prop_list) {
@@ -328,6 +356,7 @@ build_nameref_table_decl(struct Ast* ast)
 internal void
 build_nameref_action_decl(struct Ast* ast)
 {
+  printf("build_nameref_action_decl:%d\n", ast->line_nr);
   assert(ast->kind == AST_ACTION_DECL);
   struct Ast_ActionDecl* action_decl = (struct Ast_ActionDecl*)ast;
   struct List* params = action_decl->params;
@@ -356,6 +385,7 @@ build_nameref_action_decl(struct Ast* ast)
 internal void
 build_nameref_statement(struct Ast* ast)
 {
+  printf("build_nameref_statement:%d\n", ast->line_nr);
   if (ast->kind == AST_VAR_DECL) {
     struct Ast_VarDecl* decl = (struct Ast_VarDecl*)ast;
     build_nameref_type_ref(decl->type);
@@ -414,6 +444,7 @@ build_nameref_statement(struct Ast* ast)
 void
 build_nameref_function_proto(struct Ast* ast)
 {
+  printf("build_nameref_function_proto:%d\n", ast->line_nr);
   assert(ast->kind == AST_FUNCTION_PROTO);
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)ast;
   if (function_proto->return_type) {
@@ -440,6 +471,7 @@ build_nameref_function_proto(struct Ast* ast)
 internal void
 build_nameref_block_statement(struct Ast* ast)
 {
+  printf("build_nameref_block_statement:%d\n", ast->line_nr);
   assert(ast->kind == AST_BLOCK_STMT);
   struct Ast_BlockStmt* block_stmt = (struct Ast_BlockStmt*)ast;
   if (block_stmt->stmt_list) {
@@ -456,6 +488,7 @@ build_nameref_block_statement(struct Ast* ast)
 internal void
 build_nameref_control_decl(struct Ast* ast)
 {
+  printf("build_nameref_control_decl:%d\n", ast->line_nr);
   assert(ast->kind == AST_CONTROL_DECL);
   struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
   struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
@@ -499,6 +532,7 @@ build_nameref_control_decl(struct Ast* ast)
 internal void
 build_nameref_extern_decl(struct Ast* ast)
 {
+  printf("build_nameref_extern_decl:%d\n", ast->line_nr);
   assert(ast->kind == AST_EXTERN_DECL);
   struct Ast_ExternDecl* extern_decl = (struct Ast_ExternDecl*)ast;
   if (extern_decl->type_params) {
@@ -537,6 +571,7 @@ build_nameref_package(struct Ast* ast)
 internal void
 build_nameref_transition_select_case(struct Ast* ast)
 {
+  printf("build_nameref_transition_select_case:%d\n", ast->line_nr);
   assert(ast->kind == AST_SELECT_CASE);
   struct Ast_SelectCase* select_case = (struct Ast_SelectCase*)ast;
   build_nameref_select_keyset(select_case->keyset);
@@ -546,6 +581,7 @@ build_nameref_transition_select_case(struct Ast* ast)
 internal void
 build_nameref_parser_transition(struct Ast* ast)
 {
+  printf("build_nameref_parser_transition:%d\n", ast->line_nr);
   if (ast->kind == AST_NAME) {
     build_nameref_expression(ast);
   } else if (ast->kind == AST_SELECT_EXPR) {
@@ -569,6 +605,7 @@ build_nameref_parser_transition(struct Ast* ast)
 internal void
 build_nameref_parser_state(struct Ast* ast)
 {
+  printf("build_nameref_parser_state:%d\n", ast->line_nr);
   assert(ast->kind == AST_PARSER_STATE);
   struct Ast_ParserState* state = (struct Ast_ParserState*)ast;
   if (state->stmt_list) {
@@ -585,6 +622,7 @@ build_nameref_parser_state(struct Ast* ast)
 void
 build_nameref_const_decl(struct Ast* ast)
 {
+  printf("build_nameref_const_decl:%d\n", ast->line_nr);
   assert(ast->kind == AST_CONST_DECL);
   struct Ast_ConstDecl* decl = (struct Ast_ConstDecl*)ast;
   build_nameref_type_ref(decl->type_ref);
@@ -594,6 +632,7 @@ build_nameref_const_decl(struct Ast* ast)
 internal void
 build_nameref_local_parser_element(struct Ast* ast)
 {
+  printf("build_nameref_local_parser_element:%d\n", ast->line_nr);
   if (ast->kind == AST_CONST_DECL) {
     build_nameref_const_decl(ast);
   } else if (ast->kind == AST_INSTANTIATION) {
@@ -606,6 +645,7 @@ build_nameref_local_parser_element(struct Ast* ast)
 internal void
 build_nameref_parser_decl(struct Ast* ast)
 {
+  printf("build_nameref_parser_decl:%d\n", ast->line_nr);
   assert(ast->kind == AST_PARSER_DECL);
   struct Ast_ParserDecl* parser_decl = (struct Ast_ParserDecl*)ast;
   struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)parser_decl->type_decl;
@@ -654,6 +694,7 @@ build_nameref_parser_decl(struct Ast* ast)
 internal void
 build_nameref_type_decl(struct Ast* ast)
 {
+  printf("build_nameref_type_decl:%d\n", ast->line_nr);
   assert(ast->kind == AST_TYPE_DECL);
   struct Ast_TypeDecl* type_decl = (struct Ast_TypeDecl*)ast;
   struct Ast* type_ref = type_decl->type_ref;
@@ -663,6 +704,7 @@ build_nameref_type_decl(struct Ast* ast)
 internal void
 build_nameref_function_decl(struct Ast* ast)
 {
+  printf("build_nameref_function_decl:%d\n", ast->line_nr);
   assert(ast->kind == AST_FUNCTION_DECL);
   struct Ast_FunctionDecl* function_decl = (struct Ast_FunctionDecl*)ast;
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)function_decl->proto;
@@ -701,13 +743,14 @@ build_nameref_function_decl(struct Ast* ast)
 internal void
 build_nameref_enum_field(struct Ast* ast)
 {
+  printf("build_nameref_enum_field:%d\n", ast->line_nr);
   assert(ast->kind == AST_NAME);
-  struct Ast_Name* field = (struct Ast_Name*)ast;
 }
 
 internal void
 build_nameref_specified_id(struct Ast* ast)
 {
+  printf("build_nameref_specified_id:%d\n", ast->line_nr);
   assert(ast->kind == AST_SPECIFIED_IDENT);
   struct Ast_SpecifiedIdent* id = (struct Ast_SpecifiedIdent*)ast;
   struct Ast* init_expr = id->init_expr;
@@ -717,44 +760,51 @@ build_nameref_specified_id(struct Ast* ast)
 }
 
 internal void
-build_nameref_enum_id_list(struct List* id_list)
-{
-  struct ListLink* link = list_first_link(id_list);
-  while (link) {
-    struct Ast* id = link->object;
-    if (id->kind == AST_NAME) {
-      build_nameref_enum_field(id);
-    } else if (id->kind == AST_SPECIFIED_IDENT) {
-      build_nameref_specified_id(id);
-    }
-    else assert(0);
-    link = link->next;
-  }
-}
-
-internal void
 build_nameref_error_decl(struct Ast* ast)
 {
+  printf("build_nameref_error_decl:%d\n", ast->line_nr);
   assert (ast->kind == AST_ERROR_DECL);
   struct Ast_ErrorDecl* decl = (struct Ast_ErrorDecl*)ast;
   if (decl->id_list) {
-    build_nameref_enum_id_list(decl->id_list);
+    struct ListLink* link = list_first_link(decl->id_list);
+    while (link) {
+      struct Ast* id = link->object;
+      if (id->kind == AST_NAME) {
+        build_nameref_enum_field(id);
+      } else if (id->kind == AST_SPECIFIED_IDENT) {
+        build_nameref_specified_id(id);
+      }
+      else assert(0);
+      link = link->next;
+    }
   }
 }
 
 internal void
 build_nameref_enum_decl(struct Ast* ast)
 {
+  printf("build_nameref_enum_decl:%d\n", ast->line_nr);
   assert(ast->kind == AST_ENUM_DECL);
   struct Ast_EnumDecl* enum_decl = (struct Ast_EnumDecl*)ast;
   if (enum_decl->id_list) {
-    build_nameref_enum_id_list(enum_decl->id_list);
+    struct ListLink* link = list_first_link(enum_decl->id_list);
+    while (link) {
+      struct Ast* id = link->object;
+      if (id->kind == AST_NAME) {
+        build_nameref_enum_field(id);
+      } else if (id->kind == AST_SPECIFIED_IDENT) {
+        build_nameref_specified_id(id);
+      }
+      else assert(0);
+      link = link->next;
+    }
   }
 }
 
 internal void
 build_nameref_function_call(struct Ast* ast)
 {
+  printf("build_nameref_function_call:%d\n", ast->line_nr);
   assert(ast->kind == AST_FUNCTIONCALL_EXPR);
   struct Ast_FunctionCallExpr* expr = (struct Ast_FunctionCallExpr*)ast;
   build_nameref_expression(expr->callee_expr);
@@ -780,6 +830,7 @@ build_nameref_function_call(struct Ast* ast)
 internal void
 build_nameref_expression(struct Ast* ast)
 {
+  printf("build_nameref_expression:%d\n", ast->line_nr);
   if (ast->kind == AST_BINARY_EXPR) {
     struct Ast_BinaryExpr* expr = (struct Ast_BinaryExpr*)ast;
     build_nameref_expression(expr->left_operand);
@@ -842,16 +893,28 @@ build_nameref_expression(struct Ast* ast)
 internal void
 build_nameref_match_kind(struct Ast* ast)
 {
+  printf("build_nameref_match_kind:%d\n", ast->line_nr);
   assert(ast->kind == AST_MATCH_KIND_DECL);
   struct Ast_MatchKindDecl* decl = (struct Ast_MatchKindDecl*)ast;
   if (decl->id_list) {
-    build_nameref_enum_id_list(decl->id_list);
+    struct ListLink* link = list_first_link(decl->id_list);
+    while (link) {
+      struct Ast* id = link->object;
+      if (id->kind == AST_NAME) {
+        build_nameref_enum_field(id);
+      } else if (id->kind == AST_SPECIFIED_IDENT) {
+        build_nameref_specified_id(id);
+      }
+      else assert(0);
+      link = link->next;
+    }
   }
 }
 
 internal void
 build_nameref_p4program(struct Ast* ast)
 {
+  printf("build_nameref_p4program:%d\n", ast->line_nr);
   assert(ast->kind == AST_P4PROGRAM);
   struct Ast_P4Program* program = (struct Ast_P4Program*)ast;
   struct ListLink* link = list_first_link(program->decl_list);
@@ -896,7 +959,8 @@ build_nameref_p4program(struct Ast* ast)
 }
 
 void
-build_nameref(struct Ast* p4program)
+build_nameref(struct Ast* p4program, struct Hashmap* nameref_table_)
 {
+  nameref_table = nameref_table_;
   build_nameref_p4program(p4program);
 }

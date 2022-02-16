@@ -3,5 +3,5 @@
 #include "ast.h"
 
 
-struct UnboundedArray* build_symtable(struct Ast* p4program, struct Arena* symtable_storage);
+struct Hashmap* build_symtable(struct Ast* p4program, struct Arena* symtable_storage);
 

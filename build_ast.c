@@ -27,19 +27,13 @@ internal struct Ast* build_ast_statement(struct Ast* type_name);
 internal struct Ast* build_ast_parserStatement();
 
 
-internal void
-init_ast_node(struct Ast* ast, enum AstKind kind, int line_nr)
-{
-  ast->kind = kind;
-  ast->id = node_id++;
-  ast->line_nr = line_nr;
-  node_count += 1;
-}
-
-#define new_ast_node(ast_type, ast_kind, line_nr) ({ \
+#define new_ast_node(ast_type, ast_kind, ast_line_nr) ({ \
   ast_type* ast = arena_push(ast_storage, sizeof(ast_type)); \
   memset(ast, 0, sizeof(ast_type)); \
-  init_ast_node((struct Ast*)ast, ast_kind, line_nr); \
+  ast->kind = ast_kind; \
+  ast->id = node_id++; \
+  ast->line_nr = ast_line_nr; \
+  node_count += 1; \
   ast; \
 })
 

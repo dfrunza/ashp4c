@@ -5,7 +5,7 @@
 
 internal const uint32_t P = 257, Q = 4294967029;
 internal const uint32_t SIGMA = 2654435769;
-internal struct HashmapEntry* null_entry = 0;
+internal struct HashmapEntry* NULL_ENTRY = 0;
 
 
 internal uint32_t
@@ -41,7 +41,7 @@ multiply_hash(uint32_t K, uint32_t m)
   return h;
 }
 
-uint32_t
+internal uint32_t
 hash_string(uint8_t* string, uint32_t m)
 {
   uint32_t K = fold_string(string);
@@ -49,7 +49,7 @@ hash_string(uint8_t* string, uint32_t m)
   return h;
 }
 
-uint32_t
+internal uint32_t
 hash_bytes(uint8_t* bytes, int length, uint32_t m)
 {
   uint32_t K = fold_bytes(bytes, length);
@@ -57,73 +57,88 @@ hash_bytes(uint8_t* bytes, int length, uint32_t m)
   return h;
 }
 
-uint32_t
-hashmap_hash_key(int capacity_log2, uint8_t* key, int keylen)
+internal uint32_t
+hash_int(uint32_t i, uint32_t m)
+{
+  uint32_t h = multiply_hash(i, m) % ((1 << m) - 1);  // 0 <= h < 2^{m} - 1
+  return h;
+}
+
+internal uint32_t
+hashmap_hash_key(enum HashmapKeyType key_type, int capacity_log2, struct HashmapKey key)
 {
   uint32_t h = 0;
-  if (keylen == 0) {
-    h = hash_string(key, capacity_log2);
-  } else {
-    h = hash_bytes(key, keylen, capacity_log2);
-  }
+  if (key_type == HASHMAP_KEY_STRING) {
+    h = hash_string(key.s_key, capacity_log2);
+  } else if (key_type == HASHMAP_KEY_BLOB) {
+    assert (key.keylen > 0);
+    h = hash_bytes(key.b_key, key.keylen, capacity_log2);
+  } else if (key_type == HASHMAP_KEY_INT) {
+    h = hash_int(key.i_key, capacity_log2);
+  } else assert(0);
   return h;
 }
 
 internal bool
-key_match(uint8_t* bytes_a, int len_a, uint8_t* bytes_b, int len_b)
+key_match(enum HashmapKeyType key_type, struct HashmapKey key_A, struct HashmapKey key_B)
 {
-  if (len_a == 0 && len_b == 0) {
-    return cstr_match(bytes_a, bytes_b);
-  }
-  assert ((len_a > 0) && (len_b > 0));
-  bool result = (len_a == len_b);
-  if (!result) {
-    return result;
-  }
-  uint8_t *p_a = bytes_a,
-          *p_b = bytes_b;
-  int at_i = 0;
-  while (*p_a == *p_b) {
-    p_a++;
-    p_b++;
-    if (++at_i == len_a) {
-      break;
+  if (key_type == HASHMAP_KEY_STRING) {
+    return cstr_match(key_A.s_key, key_B.s_key);
+  } else if (key_type == HASHMAP_KEY_BLOB) {
+    assert ((key_A.keylen > 0) && (key_B.keylen > 0));
+    bool result = (key_A.keylen == key_B.keylen);
+    if (!result) {
+      return result;
     }
-  }
-  result = (at_i == len_a);
-  return result;
+    uint8_t *p_a = key_A.b_key,
+            *p_b = key_B.b_key;
+    int at_i = 0;
+    while (*p_a == *p_b) {
+      p_a++;
+      p_b++;
+      if (++at_i == key_A.keylen) {
+        break;
+      }
+    }
+    result = (at_i == key_A.keylen);
+    return result;
+  } else if (key_type == HASHMAP_KEY_INT) {
+    return key_A.i_key == key_B.i_key;
+  } else assert(0);
+  return false;
 }
 
 void
-hashmap_init(struct Hashmap* hashmap, int capacity_log2, struct Arena* storage)
+hashmap_init(struct Hashmap* hashmap, enum HashmapKeyType key_type, int capacity_log2, struct Arena* storage)
 {
-  array_init(&hashmap->entries, sizeof(&null_entry), storage);
+  array_init(&hashmap->entries, sizeof(struct HashmapEntry**), storage);
+  hashmap->key_type = key_type;
   hashmap->capacity = (1 << capacity_log2) - 1;
   hashmap->entry_count = 0;
   for (int i = 0; i < hashmap->capacity; i++) {
-    array_append(&hashmap->entries, &null_entry);
+    array_append(&hashmap->entries, &NULL_ENTRY);
   }
   hashmap->capacity_log2 = capacity_log2;
 }
 
 struct HashmapEntry*
-hashmap_find_entry(struct Hashmap* hashmap, uint8_t* key, int keylen)
+hashmap_get_entry(struct Hashmap* hashmap, struct HashmapKey key)
 {
-  assert (keylen >= 0);
-  uint32_t h = hashmap_hash_key(hashmap->capacity_log2, key, keylen);
+  uint32_t h = hashmap_hash_key(hashmap->key_type, hashmap->capacity_log2, key);
   struct HashmapEntry* entry = *(struct HashmapEntry**)array_get(&hashmap->entries, h);
   while (entry) {
-    if (key_match(entry->key, entry->keylen, key, keylen))
+    if (key_match(hashmap->key_type, entry->key, key)) {
       break;
+    }
     entry = entry->next_entry;
   }
   return entry;
 }
 
 struct HashmapEntry*
-hashmap_get_or_create_entry(struct Hashmap* hashmap, uint8_t* key, int keylen)
+hashmap_get_or_create_entry(struct Hashmap* hashmap, struct HashmapKey key)
 {
-  struct HashmapEntry* entry = hashmap_find_entry(hashmap, key, keylen);
+  struct HashmapEntry* entry = hashmap_get_entry(hashmap, key);
   if (entry) {
     return entry;
   }
@@ -144,23 +159,22 @@ hashmap_get_or_create_entry(struct Hashmap* hashmap, uint8_t* key, int keylen)
     assert (j == hashmap->entry_count);
     hashmap->capacity = (1 << ++hashmap->capacity_log2) - 1;
     for (int i = hashmap->entry_count; i < hashmap->capacity; i++) {
-      array_append(&hashmap->entries, &null_entry);
+      array_append(&hashmap->entries, &NULL_ENTRY);
     }
     for (int i = 0; i < hashmap->capacity; i++) {
-      array_set(&hashmap->entries, i, &null_entry);
+      array_set(&hashmap->entries, i, &NULL_ENTRY);
     }
     for (int i = 0; i < hashmap->entry_count; i++) {
-      uint32_t h = hashmap_hash_key(hashmap->capacity_log2, entries_array[i]->key, entries_array[i]->keylen);
+      uint32_t h = hashmap_hash_key(hashmap->key_type, hashmap->capacity_log2, entries_array[i]->key);
       entries_array[i]->next_entry = *(struct HashmapEntry**)array_get(&hashmap->entries, h);
       array_set(&hashmap->entries, h, &entries_array[i]);
     }
     arena_delete(&temp_storage);
   }
-  int h = hashmap_hash_key(hashmap->capacity_log2, key, keylen);
+  int h = hashmap_hash_key(hashmap->key_type, hashmap->capacity_log2, key);
   entry = arena_push(hashmap->entries.storage, sizeof(*entry));
   memset(entry, 0, sizeof(*entry));
   entry->key = key;
-  entry->keylen = keylen;
   entry->next_entry = *(struct HashmapEntry**)array_get(&hashmap->entries, h);
   array_set(&hashmap->entries, h, &entry);
   hashmap->entry_count += 1;
