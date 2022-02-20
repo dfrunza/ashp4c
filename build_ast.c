@@ -48,7 +48,8 @@ next_token()
     token = array_get(tokens_array, ++token_at);
   }
   if (token->klass == TK_IDENTIFIER) {
-    struct SymtableEntry* entry = scope_lookup_name(get_current_scope(), token->lexeme);
+    struct SymtableEntry* entry = scope_lookup_name(get_current_scope(),
+              NAMESPACE_KEYWORD|NAMESPACE_TYPE, token->lexeme);
     if (entry->ns_keyword) {
       token->klass = ((struct Object_Keyword*)entry->ns_keyword)->token_klass;
       return token;

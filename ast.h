@@ -120,7 +120,7 @@ enum AstParamDirection {
 struct Ast {
   enum AstKind kind;
   struct Ast* parent;
-  int id;
+  uint32_t id;
   int line_nr;
 };
 

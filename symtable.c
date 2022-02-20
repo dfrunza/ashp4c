@@ -68,7 +68,7 @@ pop_scope()
 struct SymtableEntry*
 symtable_get_or_create_entry(struct Hashmap* declarations, char* name)
 {
-  struct HashmapKey key = { .s_key=(uint8_t*)name };
+  struct HashmapKey key = { .s_key = (uint8_t*)name };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, declarations->capacity_log2);
   struct HashmapEntry* hmap_entry = hashmap_get_or_create_entry(declarations, &key);
   if (hmap_entry->object) {
@@ -77,14 +77,14 @@ symtable_get_or_create_entry(struct Hashmap* declarations, char* name)
   struct SymtableEntry* entry = arena_push(symtable_storage, sizeof(*entry));
   hmap_entry->object = entry;
   memset(entry, 0, sizeof(*entry));
-  entry->name = name;
+  entry->strname = name;
   return entry;
 }
 
 struct SymtableEntry*
 symtable_get_entry(struct Hashmap* declarations, char* name)
 {
-  struct HashmapKey key = { .s_key=(uint8_t*)name };
+  struct HashmapKey key = { .s_key = (uint8_t*)name };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, declarations->capacity_log2);
   struct HashmapEntry* hmap_entry = hashmap_get_entry(declarations, &key);
   if (hmap_entry) {
@@ -94,12 +94,18 @@ symtable_get_entry(struct Hashmap* declarations, char* name)
 }
 
 struct SymtableEntry*
-scope_lookup_name(struct Scope* scope, char* name)
+scope_lookup_name(struct Scope* scope, enum Namespace ns, char* name)
 {
   struct SymtableEntry* entry = 0;
   while (scope) {
     entry = symtable_get_or_create_entry(&scope->declarations, name);
-    if (entry->ns_type || entry->ns_general) {
+    if (entry->ns_type && (ns & NAMESPACE_TYPE)) {
+      break;
+    }
+    if (entry->ns_general && (ns & NAMESPACE_GENERAL)) {
+      break;
+    }
+    if (entry->ns_keyword && (ns & NAMESPACE_KEYWORD)) {
       break;
     }
     scope = scope->parent_scope;

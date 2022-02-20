@@ -86,7 +86,7 @@ build_symtable_expression(struct Ast* ast)
     struct Object_NameRef* descriptor = new_object_descriptor(struct Object_NameRef, OBJECT_NAMEREF, name->strname);
     descriptor->name = name;
     descriptor->scope = get_current_scope();
-    struct HashmapKey key = { .i_key=name->id };
+    struct HashmapKey key = { .i_key = name->id };
     hashmap_hash_key(HASHMAP_KEY_INT, &key, nameref_table.capacity_log2);
     struct HashmapEntry* entry = hashmap_get_or_create_entry(&nameref_table, &key);
     entry->object = descriptor;
@@ -164,7 +164,7 @@ build_symtable_type_param(struct Ast* ast)
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_TYPEVAR, type_param->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor, type_param->line_nr);
   } else {
-    build_symtable_type_ref(ast);
+    build_symtable_type_ref((struct Ast*)type_param);
   }
 }
 
@@ -367,7 +367,7 @@ build_symtable_switch_case(struct Ast* ast)
   }
 }
 
-void
+internal void
 build_symtable_const_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_CONST_DECL);
@@ -638,16 +638,17 @@ build_symtable_parser_decl(struct Ast* ast)
   pop_scope();
 }
 
-void
+internal void
 build_symtable_function_return_type(struct Ast* ast)
 {
   if (ast->kind == AST_NAME) {
     struct Ast_Name* return_type = (struct Ast_Name*)ast;
-    struct SymtableEntry* entry = scope_lookup_name(get_current_scope(), return_type->strname);
+    struct SymtableEntry* entry = scope_lookup_name(get_current_scope(),
+                NAMESPACE_TYPE, return_type->strname);
     if (!entry->ns_type) {
-      build_symtable_type_param(ast);
+      build_symtable_type_param((struct Ast*)return_type);
     } else {
-      build_symtable_type_ref(ast);
+      build_symtable_type_ref((struct Ast*)return_type);
     }
   } else {
     build_symtable_type_ref(ast);

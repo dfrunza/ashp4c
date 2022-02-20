@@ -61,13 +61,13 @@ struct Object_NameRef {
 
 enum Namespace {
   NAMESPACE_NONE,
-  NAMESPACE_TYPE,
-  NAMESPACE_GENERAL,
-  NAMESPACE_KEYWORD,
+  NAMESPACE_TYPE = 1 << 0,
+  NAMESPACE_GENERAL = 1 << 1,
+  NAMESPACE_KEYWORD = 1 << 2,
 };
 
 struct SymtableEntry {
-  char* name;
+  char* strname;
   struct NamedObject* ns_keyword;
   struct NamedObject* ns_type;
   struct NamedObject* ns_general;
@@ -91,5 +91,5 @@ struct Scope* push_scope();
 struct Scope* pop_scope();
 struct Scope* get_root_scope();
 struct Scope* get_current_scope();
-struct SymtableEntry* scope_lookup_name(struct Scope* scope, char* name);
+struct SymtableEntry* scope_lookup_name(struct Scope* scope, enum Namespace ns, char* name);
 struct SymtableEntry* declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NamedObject* descriptor, int line_nr);
