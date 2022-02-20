@@ -86,7 +86,9 @@ build_symtable_expression(struct Ast* ast)
     struct Object_NameRef* descriptor = new_object_descriptor(struct Object_NameRef, OBJECT_NAMEREF, name->strname);
     descriptor->name = name;
     descriptor->scope = get_current_scope();
-    struct HashmapEntry* entry = hashmap_get_or_create_entry(&nameref_table, (struct HashmapKey){ .i_key=name->id });
+    struct HashmapKey key = { .i_key=name->id };
+    hashmap_hash_key(HASHMAP_KEY_INT, &key, nameref_table.capacity_log2);
+    struct HashmapEntry* entry = hashmap_get_or_create_entry(&nameref_table, &key);
     entry->object = descriptor;
   } else if (ast->kind == AST_LVALUE) {
     struct Ast_Lvalue* expr = (struct Ast_Lvalue*)ast;
@@ -144,7 +146,7 @@ build_symtable_param(struct Ast* ast)
   assert(ast->kind == AST_PARAM);
   struct Ast_Param* param = (struct Ast_Param*)ast;
   struct Ast_Name* name = (struct Ast_Name*)param->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_general) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_PARAM, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_GENERAL, descriptor, name->line_nr);
@@ -157,7 +159,7 @@ build_symtable_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   struct Ast_Name* type_param = (struct Ast_Name*)ast;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), type_param->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, type_param->strname);
   if (!entry->ns_type) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_TYPEVAR, type_param->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor, type_param->line_nr);
@@ -172,7 +174,7 @@ build_symtable_action_decl(struct Ast* ast)
   assert(ast->kind == AST_ACTION_DECL);
   struct Ast_ActionDecl* action_decl = (struct Ast_ActionDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)action_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_general) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_ACTION, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_GENERAL, descriptor, name->line_nr);
@@ -208,7 +210,7 @@ build_symtable_instantiation(struct Ast* ast)
   assert(ast->kind == AST_INSTANTIATION);
   struct Ast_Instantiation* decl = (struct Ast_Instantiation*)ast;
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_general) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_INSTANTIATION, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_GENERAL, descriptor, name->line_nr);
@@ -328,7 +330,7 @@ build_symtable_table_decl(struct Ast* ast)
   assert(ast->kind == AST_TABLE_DECL);
   struct Ast_TableDecl* decl = (struct Ast_TableDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_general) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_TABLE, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_GENERAL, descriptor, name->line_nr);
@@ -371,7 +373,7 @@ build_symtable_const_decl(struct Ast* ast)
   assert(ast->kind == AST_CONST_DECL);
   struct Ast_ConstDecl* decl = (struct Ast_ConstDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_general) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_CONST, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_GENERAL, descriptor, name->line_nr);
@@ -386,7 +388,7 @@ build_symtable_statement(struct Ast* ast)
   if (ast->kind == AST_VAR_DECL) {
     struct Ast_VarDecl* decl = (struct Ast_VarDecl*)ast;
     struct Ast_Name* name = (struct Ast_Name*)decl->name;
-    struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+    struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
     if (!entry->ns_general) {
       struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_VAR, name->strname);
       declare_object_in_scope(get_current_scope(), NAMESPACE_GENERAL, descriptor, name->line_nr);
@@ -468,7 +470,7 @@ build_symtable_control_decl(struct Ast* ast)
   struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
   struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_type) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_CONTROL_PROTO, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_GENERAL, descriptor, name->line_nr);
@@ -562,7 +564,7 @@ build_symtable_parser_state(struct Ast* ast)
   assert(ast->kind == AST_PARSER_STATE);
   struct Ast_ParserState* state = (struct Ast_ParserState*)ast;
   struct Ast_Name* name = (struct Ast_Name*)state->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_type) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_PARSER_STATE, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_GENERAL, descriptor, name->line_nr);
@@ -587,7 +589,7 @@ build_symtable_parser_decl(struct Ast* ast)
   struct Ast_ParserDecl* parser_decl = (struct Ast_ParserDecl*)ast;
   struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)parser_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_type) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_PARSER_PROTO, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor, name->line_nr);
@@ -641,7 +643,7 @@ build_symtable_function_return_type(struct Ast* ast)
 {
   if (ast->kind == AST_NAME) {
     struct Ast_Name* return_type = (struct Ast_Name*)ast;
-    struct SymtableEntry* entry = scope_resolve_name(get_current_scope(), return_type->strname);
+    struct SymtableEntry* entry = scope_lookup_name(get_current_scope(), return_type->strname);
     if (!entry->ns_type) {
       build_symtable_type_param(ast);
     } else {
@@ -689,7 +691,7 @@ build_symtable_extern_decl(struct Ast* ast)
   assert(ast->kind == AST_EXTERN_DECL);
   struct Ast_ExternDecl* extern_decl = (struct Ast_ExternDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)extern_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_type) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_EXTERN, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor, name->line_nr);
@@ -720,7 +722,7 @@ build_symtable_struct_field(struct Ast* ast)
   assert(ast->kind == AST_STRUCT_FIELD);
   struct Ast_StructField* field = (struct Ast_StructField*)ast;
   struct Ast_Name* name = (struct Ast_Name*)field->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_general) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_STRUCT_FIELD, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_GENERAL, descriptor, name->line_nr);
@@ -734,7 +736,7 @@ build_symtable_struct_decl(struct Ast* ast)
   assert(ast->kind == AST_STRUCT_DECL);
   struct Ast_StructDecl* struct_decl = (struct Ast_StructDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)struct_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_type) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_STRUCT, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor, name->line_nr);
@@ -757,7 +759,7 @@ build_symtable_header_decl(struct Ast* ast)
   assert(ast->kind == AST_HEADER_DECL);
   struct Ast_HeaderDecl* header_decl = (struct Ast_HeaderDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)header_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_type) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_HEADER, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor, name->line_nr);
@@ -780,7 +782,7 @@ build_symtable_header_union_decl(struct Ast* ast)
   assert(ast->kind == AST_HEADER_UNION_DECL);
   struct Ast_HeaderUnionDecl* header_union_decl = (struct Ast_HeaderUnionDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)header_union_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_type) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_HEADER_UNION, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor, name->line_nr);
@@ -848,7 +850,7 @@ build_symtable_enum_field(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   struct Ast_Name* field = (struct Ast_Name*)ast;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), field->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, field->strname);
   if (!entry->ns_general) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_ENUM_FIELD, field->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_GENERAL, descriptor, field->line_nr);
@@ -890,7 +892,7 @@ build_symtable_enum_decl(struct Ast* ast)
   assert(ast->kind == AST_ENUM_DECL);
   struct Ast_EnumDecl* enum_decl = (struct Ast_EnumDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)enum_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_type) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_ENUM, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor, name->line_nr);
@@ -908,7 +910,7 @@ build_symtable_package(struct Ast* ast)
   assert(ast->kind == AST_PACKAGE_DECL);
   struct Ast_PackageDecl* package_decl = (struct Ast_PackageDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)package_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_type) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_PACKAGE, name->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor, name->line_nr);
@@ -931,7 +933,7 @@ build_symtable_type_decl(struct Ast* ast)
   assert(ast->kind == AST_TYPE_DECL);
   struct Ast_TypeDecl* type_decl = (struct Ast_TypeDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), name->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!entry->ns_type) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_NONE, name->strname);
     descriptor->kind = type_decl->is_typedef ? OBJECT_TYPEDEF : OBJECT_TYPE;
@@ -989,7 +991,7 @@ build_symtable_match_kind(struct Ast* ast)
 {
   assert(ast->kind == AST_MATCH_KIND_DECL);
   struct Ast_MatchKindDecl* decl = (struct Ast_MatchKindDecl*)ast;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_root_scope(), "match_kind");
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_root_scope()->declarations, "match_kind");
   assert(entry->ns_type);
   push_scope();
   if (decl->id_list) {
@@ -1003,7 +1005,7 @@ build_symtable_error_decl(struct Ast* ast)
 {
   assert (ast->kind == AST_ERROR_DECL);
   struct Ast_ErrorDecl* decl = (struct Ast_ErrorDecl*)ast;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(get_root_scope(), "error");
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_root_scope()->declarations, "error");
   assert(entry->ns_type);
   push_scope();
   if (decl->id_list) {

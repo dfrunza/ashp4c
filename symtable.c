@@ -66,10 +66,11 @@ pop_scope()
 }
 
 struct SymtableEntry*
-symtable_get_or_create_entry(struct Scope* scope, char* name)
+symtable_get_or_create_entry(struct Hashmap* declarations, char* name)
 {
-  struct HashmapEntry* hmap_entry = hashmap_get_or_create_entry(&scope->declarations,
-            (struct HashmapKey) { .s_key=(uint8_t*)name });
+  struct HashmapKey key = { .s_key=(uint8_t*)name };
+  hashmap_hash_key(HASHMAP_KEY_STRING, &key, declarations->capacity_log2);
+  struct HashmapEntry* hmap_entry = hashmap_get_or_create_entry(declarations, &key);
   if (hmap_entry->object) {
     return (struct SymtableEntry*)hmap_entry->object;
   }
@@ -81,10 +82,11 @@ symtable_get_or_create_entry(struct Scope* scope, char* name)
 }
 
 struct SymtableEntry*
-symtable_get_entry(struct Scope* scope, char* name)
+symtable_get_entry(struct Hashmap* declarations, char* name)
 {
-  struct HashmapEntry* hmap_entry = hashmap_get_entry(&scope->declarations,
-            (struct HashmapKey) { .s_key=(uint8_t*)name });
+  struct HashmapKey key = { .s_key=(uint8_t*)name };
+  hashmap_hash_key(HASHMAP_KEY_STRING, &key, declarations->capacity_log2);
+  struct HashmapEntry* hmap_entry = hashmap_get_entry(declarations, &key);
   if (hmap_entry) {
     return (struct SymtableEntry*)hmap_entry->object;
   }
@@ -92,11 +94,11 @@ symtable_get_entry(struct Scope* scope, char* name)
 }
 
 struct SymtableEntry*
-scope_resolve_name(struct Scope* scope, char* name)
+scope_lookup_name(struct Scope* scope, char* name)
 {
   struct SymtableEntry* entry = 0;
   while (scope) {
-    entry = symtable_get_or_create_entry(scope, name);
+    entry = symtable_get_or_create_entry(&scope->declarations, name);
     if (entry->ns_type || entry->ns_general) {
       break;
     }
@@ -108,7 +110,7 @@ scope_resolve_name(struct Scope* scope, char* name)
 struct SymtableEntry*
 declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NamedObject* descriptor, int line_nr)
 {
-  struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&scope->declarations, descriptor->strname);
   if (ns == NAMESPACE_TYPE) {
     descriptor->next_in_scope = entry->ns_type;
     entry->ns_type = (struct NamedObject*)descriptor;
@@ -122,7 +124,7 @@ declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NamedObje
       printf("new identifier `%s` at line %d.\n", descriptor->strname, line_nr);
     }
   } else if (ns == NAMESPACE_KEYWORD) {
-    struct SymtableEntry* entry = symtable_get_or_create_entry(scope, descriptor->strname);
+    struct SymtableEntry* entry = symtable_get_or_create_entry(&scope->declarations, descriptor->strname);
     entry->ns_keyword = (struct NamedObject*)descriptor;
   } else assert (0);
   return entry;

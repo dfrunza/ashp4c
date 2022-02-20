@@ -9,9 +9,9 @@ enum ObjectKind {
   OBJECT_NAMEREF,
   OBJECT_KEYWORD,
   OBJECT_VAR,
+  OBJECT_TYPEVAR,
   OBJECT_CONST,
   OBJECT_PARAM,
-  OBJECT_TYPEVAR,
   OBJECT_STRUCT_FIELD,
   OBJECT_ENUM_FIELD,
   OBJECT_ACTION,
@@ -83,13 +83,13 @@ struct Scope {
 void symtable_begin_build(struct Arena* symtable_storage_);
 void symtable_end_build();
 void scope_init(struct Scope* scope, int capacity_log2);
-struct SymtableEntry* symtable_get_or_create_entry(struct Scope* scope, char* name);
-struct SymtableEntry* symtable_get_entry(struct Scope* scope, char* name);
+struct SymtableEntry* symtable_get_or_create_entry(struct Hashmap* declarations, char* name);
+struct SymtableEntry* symtable_get_entry(struct Hashmap* declarations, char* name);
 
 struct Scope* new_scope(int capacity_log2);
 struct Scope* push_scope();
 struct Scope* pop_scope();
 struct Scope* get_root_scope();
 struct Scope* get_current_scope();
-struct SymtableEntry* scope_resolve_name(struct Scope* scope, char* name);
+struct SymtableEntry* scope_lookup_name(struct Scope* scope, char* name);
 struct SymtableEntry* declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NamedObject* descriptor, int line_nr);

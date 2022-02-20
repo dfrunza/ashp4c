@@ -130,7 +130,9 @@ build_nameref_type_ref(struct Ast* ast)
     struct Ast* stack_expr = type_ref->stack_expr;
     build_nameref_expression(stack_expr);
   } else if (ast->kind == AST_NAME) {
-    struct HashmapEntry* entry = hashmap_get_entry(nameref_table, (struct HashmapKey){ .i_key=ast->id });
+    struct HashmapKey key = { .i_key=ast->id };
+    hashmap_hash_key(HASHMAP_KEY_INT, &key, nameref_table->capacity_log2);
+    struct HashmapEntry* entry = hashmap_get_entry(nameref_table, &key);
     if (entry) {
       struct Object_NameRef* nameref = entry->object;
       assert(nameref->kind == OBJECT_NAMEREF);

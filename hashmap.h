@@ -19,10 +19,11 @@ struct Hashmap {
 };
 
 struct HashmapKey {
+  uint32_t h;
   union {
     uint8_t* s_key;
     uint8_t* b_key;
-    uint8_t i_key;
+    uint32_t i_key;
   };
   int keylen;
 };
@@ -41,8 +42,9 @@ struct HashmapEntryIterator {
 
 
 void hashmap_init(struct Hashmap* hashmap, enum HashmapKeyType type, int capacity_log2, struct Arena* storage);
-struct HashmapEntry* hashmap_get_or_create_entry(struct Hashmap* hashmap, struct HashmapKey key);
-struct HashmapEntry* hashmap_get_entry(struct Hashmap* hashmap, struct HashmapKey key);
+void hashmap_hash_key(enum HashmapKeyType key_type, /*in-out*/ struct HashmapKey* key, int capacity_log2);
+struct HashmapEntry* hashmap_get_or_create_entry(struct Hashmap* hashmap, struct HashmapKey* key);
+struct HashmapEntry* hashmap_get_entry(struct Hashmap* hashmap, struct HashmapKey* key);
 void hashmap_iter_init(struct HashmapEntryIterator* it, struct Hashmap* hashmap);
 struct HashmapEntry* hashmap_iter_next(struct HashmapEntryIterator* it);
 
