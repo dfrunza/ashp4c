@@ -159,7 +159,7 @@ build_symtable_type_param(struct Ast* ast)
   struct Ast_Name* type_param = (struct Ast_Name*)ast;
   struct SymtableEntry* entry = symtable_get_or_create_entry(get_current_scope(), type_param->strname);
   if (!entry->ns_type) {
-    struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_TYPE_PARAM, type_param->strname);
+    struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_TYPEVAR, type_param->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor, type_param->line_nr);
   } else {
     build_symtable_type_ref(ast);

@@ -80,7 +80,7 @@ hashmap_hash_key(enum HashmapKeyType key_type, int capacity_log2, struct Hashmap
 }
 
 internal bool
-key_match(enum HashmapKeyType key_type, struct HashmapKey key_A, struct HashmapKey key_B)
+hashmap_key_match(enum HashmapKeyType key_type, struct HashmapKey key_A, struct HashmapKey key_B)
 {
   if (key_type == HASHMAP_KEY_STRING) {
     return cstr_match(key_A.s_key, key_B.s_key);
@@ -127,7 +127,7 @@ hashmap_get_entry(struct Hashmap* hashmap, struct HashmapKey key)
   uint32_t h = hashmap_hash_key(hashmap->key_type, hashmap->capacity_log2, key);
   struct HashmapEntry* entry = *(struct HashmapEntry**)array_get(&hashmap->entries, h);
   while (entry) {
-    if (key_match(hashmap->key_type, entry->key, key)) {
+    if (hashmap_key_match(hashmap->key_type, entry->key, key)) {
       break;
     }
     entry = entry->next_entry;

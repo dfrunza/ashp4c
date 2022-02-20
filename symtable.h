@@ -11,7 +11,7 @@ enum ObjectKind {
   OBJECT_VAR,
   OBJECT_CONST,
   OBJECT_PARAM,
-  OBJECT_TYPE_PARAM,
+  OBJECT_TYPEVAR,
   OBJECT_STRUCT_FIELD,
   OBJECT_ENUM_FIELD,
   OBJECT_ACTION,
@@ -76,8 +76,6 @@ struct SymtableEntry {
 struct Scope {
   int scope_level;
   struct Scope* parent_scope;
-  struct Scope* first_child_scope;
-  struct Scope* right_sibling_scope;
   struct Hashmap declarations;
 };
 
@@ -86,6 +84,7 @@ void symtable_begin_build(struct Arena* symtable_storage_);
 void symtable_end_build();
 void scope_init(struct Scope* scope, int capacity_log2);
 struct SymtableEntry* symtable_get_or_create_entry(struct Scope* scope, char* name);
+struct SymtableEntry* symtable_get_entry(struct Scope* scope, char* name);
 
 struct Scope* new_scope(int capacity_log2);
 struct Scope* push_scope();

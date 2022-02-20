@@ -11,7 +11,6 @@
 internal struct Arena *symtable_storage;
 internal struct Arena local_storage = {};
 internal struct UnboundedArray scope_stack = {};
-internal struct Hashmap child_scope_map = {};
 
 
 struct Scope*
@@ -49,17 +48,6 @@ push_scope()
     printf("push scope %d\n", scope->scope_level);
   }
   scope->parent_scope = current_scope;
-  struct HashmapEntry* entry = hashmap_get_or_create_entry(&child_scope_map,
-            (struct HashmapKey){ .b_key=(uint8_t*)&current_scope, .keylen=sizeof(current_scope)});
-  struct Scope* last_child_scope = entry->object;
-  if (last_child_scope) {
-    assert (last_child_scope->scope_level == scope->scope_level);
-    last_child_scope->right_sibling_scope = scope;
-  }
-  entry->object = scope;
-  if (!current_scope->first_child_scope) {
-    current_scope->first_child_scope = scope;
-  }
   return scope;
 }
 
@@ -90,6 +78,17 @@ symtable_get_or_create_entry(struct Scope* scope, char* name)
   memset(entry, 0, sizeof(*entry));
   entry->name = name;
   return entry;
+}
+
+struct SymtableEntry*
+symtable_get_entry(struct Scope* scope, char* name)
+{
+  struct HashmapEntry* hmap_entry = hashmap_get_entry(&scope->declarations,
+            (struct HashmapKey) { .s_key=(uint8_t*)name });
+  if (hmap_entry) {
+    return (struct SymtableEntry*)hmap_entry->object;
+  }
+  return 0;
 }
 
 struct SymtableEntry*
@@ -134,8 +133,6 @@ scope_init(struct Scope* scope, int capacity_log2)
 {
   scope->scope_level = 0;
   scope->parent_scope = 0;
-  scope->first_child_scope = 0;
-  scope->right_sibling_scope = 0;
   hashmap_init(&scope->declarations, HASHMAP_KEY_STRING, capacity_log2, symtable_storage);
 }
 
@@ -143,7 +140,6 @@ void
 symtable_begin_build(struct Arena* symtable_storage_)
 {
   symtable_storage = symtable_storage_;
-  hashmap_init(&child_scope_map, HASHMAP_KEY_STRING, 5, &local_storage);
   struct Scope* root_scope = arena_push(symtable_storage, sizeof(*root_scope));
   memset(root_scope, 0, sizeof(*root_scope));
   scope_init(root_scope, 4);
