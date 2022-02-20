@@ -134,15 +134,6 @@ build_nameref_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   struct Ast_Name* type_param = (struct Ast_Name*)ast;
-  /*
-  struct Object_NameRef* nameref = nameref_get_entry(nameref_table, type_param->id);
-  struct SymtableEntry* symtable_entry = scope_lookup_name(nameref->scope, type_param->strname);
-  if (!symtable_entry->ns_type) {
-
-  } else {
-    build_nameref_type_ref((struct Ast*)type_param);
-  }
-  */
   build_nameref_type_ref((struct Ast*)type_param);
 }
 
@@ -162,9 +153,6 @@ build_nameref_type_ref(struct Ast* ast)
     build_nameref_expression(stack_expr);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    /*
-    struct Object_NameRef* nameref = nameref_get_entry(nameref_table, name->id);
-    */
     build_nameref_expression((struct Ast*)name);
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
     struct Ast_SpecializedType* speclzd_type = (struct Ast_SpecializedType*)ast;
@@ -471,6 +459,17 @@ build_nameref_statement(struct Ast* ast)
   else assert(0);
 }
 
+internal void
+build_nameref_function_return_type(struct Ast* ast)
+{
+  if (ast->kind == AST_NAME) {
+    struct Ast_Name* return_type = (struct Ast_Name*)ast;
+    build_nameref_type_param((struct Ast*)return_type);
+  } else {
+    build_nameref_type_ref(ast);
+  }
+}
+
 void
 build_nameref_function_proto(struct Ast* ast)
 {
@@ -478,7 +477,7 @@ build_nameref_function_proto(struct Ast* ast)
   assert(ast->kind == AST_FUNCTION_PROTO);
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)ast;
   if (function_proto->return_type) {
-    build_nameref_type_ref(function_proto->return_type);
+    build_nameref_function_return_type(function_proto->return_type);
   }
   if (function_proto->type_params) {
     struct ListLink* link = list_first_link(function_proto->type_params);
@@ -732,25 +731,6 @@ build_nameref_type_decl(struct Ast* ast)
 }
 
 internal void
-build_nameref_function_return_type(struct Ast* ast)
-{
-  if (ast->kind == AST_NAME) {
-    struct Ast_Name* return_type = (struct Ast_Name*)ast;
-    /*
-    struct SymtableEntry* entry = scope_lookup_name(get_current_scope(), return_type->strname);
-    if (!entry->ns_type) {
-      build_nameref_type_param((struct Ast*)return_type);
-    } else {
-      build_nameref_type_ref((struct Ast*)resturn_type);
-    }
-    */
-    build_nameref_type_ref((struct Ast*)return_type);
-  } else {
-    build_nameref_type_ref(ast);
-  }
-}
-
-internal void
 build_nameref_function_decl(struct Ast* ast)
 {
   printf("build_nameref_function_decl:%d\n", ast->line_nr);
@@ -888,7 +868,11 @@ build_nameref_expression(struct Ast* ast)
     struct Ast_UnaryExpr* expr = (struct Ast_UnaryExpr*)ast;
     build_nameref_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
-    ;
+    struct Ast_Name* name = (struct Ast_Name*)ast;
+    struct Object_NameRef* nameref = nameref_get_entry(nameref_table, name->id);
+    if (nameref) {
+      printf("%s:%d\n", name->strname, name->line_nr);
+    } // else it's a declaration
   } else if (ast->kind == AST_LVALUE) {
     struct Ast_Lvalue* expr = (struct Ast_Lvalue*)ast;
     build_nameref_expression(expr->name);

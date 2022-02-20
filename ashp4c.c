@@ -123,19 +123,6 @@ main(int arg_count, char* args[])
 
   struct Hashmap* nameref_table = build_symtable(p4program, &main_storage);
   build_nameref(p4program, nameref_table);
-#if 1
-  struct HashmapEntryIterator it = {};
-  hashmap_iter_init(&it, nameref_table);
-  int entry_count = 0;
-  for (struct HashmapEntry* entry = hashmap_iter_next(&it);
-       entry != 0; entry = hashmap_iter_next(&it)) {
-    struct Object_NameRef* nameref = entry->object;
-    assert(nameref->kind == OBJECT_NAMEREF);
-    printf("%s:%d\n", nameref->strname, nameref->name->line_nr);
-    entry_count += 1;
-  }
-  printf("Expected entry count : %d, actual count : %d\n", nameref_table->entry_count, entry_count);
-#endif
 
   arena_delete(&main_storage);
   return 0;

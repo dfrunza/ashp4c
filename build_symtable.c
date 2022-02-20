@@ -159,7 +159,7 @@ build_symtable_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   struct Ast_Name* type_param = (struct Ast_Name*)ast;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, type_param->strname);
+  struct SymtableEntry* entry = scope_lookup_name(get_current_scope(), NAMESPACE_TYPE, type_param->strname);
   if (!entry->ns_type) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_TYPEVAR, type_param->strname);
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor, type_param->line_nr);
@@ -643,13 +643,7 @@ build_symtable_function_return_type(struct Ast* ast)
 {
   if (ast->kind == AST_NAME) {
     struct Ast_Name* return_type = (struct Ast_Name*)ast;
-    struct SymtableEntry* entry = scope_lookup_name(get_current_scope(),
-                NAMESPACE_TYPE, return_type->strname);
-    if (!entry->ns_type) {
-      build_symtable_type_param((struct Ast*)return_type);
-    } else {
-      build_symtable_type_ref((struct Ast*)return_type);
-    }
+    build_symtable_type_param((struct Ast*)return_type);
   } else {
     build_symtable_type_ref(ast);
   }
