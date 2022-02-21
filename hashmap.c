@@ -140,23 +140,18 @@ hashmap_get_or_create_entry(struct Hashmap* hashmap, struct HashmapKey* key)
     return entry;
   }
   if (hashmap->entry_count >= hashmap->capacity) {
-    struct Arena temp_storage = {};
-    // TODO: Explore this idea : unlink the entries from the 'hashmap->entries' array, and link them
-    // via 'entry->next_entry' pointers.
-    // This would allow us to avoid creating the temporary 'entries_array' array.
-    struct HashmapEntry** entries_array = arena_push(&temp_storage, hashmap->entry_count);
-    int j = 0;
-    for (int i = 0; i < hashmap->capacity; i++) {
-      struct HashmapEntry* entry = *(struct HashmapEntry**)array_get(&hashmap->entries, i);
-      while (entry) {
-        entries_array[j] = entry;
-        struct HashmapEntry* next_entry = entry->next_entry;
-        entry->next_entry = 0;
-        entry = next_entry;
-        j++;
-      }
+    struct HashmapEntryIterator it = {};
+    hashmap_iter_init(&it, hashmap);
+    struct HashmapEntry* first_entry = hashmap_iter_next(&it);
+    struct HashmapEntry* last_entry = first_entry;
+    int entry_count = first_entry ? 1 : 0;
+    for (struct HashmapEntry* entry = hashmap_iter_next(&it);
+         entry != 0; entry = hashmap_iter_next(&it)) {
+      last_entry->next_entry = entry;
+      last_entry = entry;
+      entry_count += 1;
     }
-    assert (j == hashmap->entry_count);
+    assert (entry_count == hashmap->entry_count);
     hashmap->capacity = (1 << ++hashmap->capacity_log2) - 1;
     for (int i = hashmap->entry_count; i < hashmap->capacity; i++) {
       array_append(&hashmap->entries, &NULL_ENTRY);
@@ -164,12 +159,13 @@ hashmap_get_or_create_entry(struct Hashmap* hashmap, struct HashmapKey* key)
     for (int i = 0; i < hashmap->capacity; i++) {
       array_set(&hashmap->entries, i, &NULL_ENTRY);
     }
-    for (int i = 0; i < hashmap->entry_count; i++) {
-      hashmap_hash_key(hashmap->key_type, &entries_array[i]->key, hashmap->capacity_log2);
-      entries_array[i]->next_entry = *(struct HashmapEntry**)array_get(&hashmap->entries, entries_array[i]->key.h);
-      array_set(&hashmap->entries, entries_array[i]->key.h, &entries_array[i]);
+    for (struct HashmapEntry* entry = first_entry; entry != 0;) {
+      struct HashmapEntry* next_entry = entry->next_entry;
+      hashmap_hash_key(hashmap->key_type, &entry->key, hashmap->capacity_log2);
+      entry->next_entry = *(struct HashmapEntry**)array_get(&hashmap->entries, entry->key.h);
+      array_set(&hashmap->entries, entry->key.h, &entry);
+      entry = next_entry;
     }
-    arena_delete(&temp_storage);
     hashmap_hash_key(hashmap->key_type, key, hashmap->capacity_log2);
   }
   entry = arena_push(hashmap->entries.storage, sizeof(*entry));
