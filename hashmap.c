@@ -65,7 +65,7 @@ hash_int(uint32_t i, uint32_t m)
 }
 
 void
-hashmap_hash_key(enum HashmapKeyType key_type, /*in-out*/ struct HashmapKey* key, int capacity_log2)
+hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ struct HashmapKey* key, int capacity_log2)
 {
   if (key_type == HASHMAP_KEY_STRING) {
     key->h = hash_string(key->s_key, capacity_log2);
@@ -141,6 +141,9 @@ hashmap_get_or_create_entry(struct Hashmap* hashmap, struct HashmapKey* key)
   }
   if (hashmap->entry_count >= hashmap->capacity) {
     struct Arena temp_storage = {};
+    // TODO: Explore this idea : unlink the entries from the 'hashmap->entries' array, and link them
+    // via 'entry->next_entry' pointers.
+    // This would allow us to avoid creating the temporary 'entries_array' array.
     struct HashmapEntry** entries_array = arena_push(&temp_storage, hashmap->entry_count);
     int j = 0;
     for (int i = 0; i < hashmap->capacity; i++) {

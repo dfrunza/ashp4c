@@ -42,7 +42,7 @@ struct HashmapEntryIterator {
 
 
 void hashmap_init(struct Hashmap* hashmap, enum HashmapKeyType type, int capacity_log2, struct Arena* storage);
-void hashmap_hash_key(enum HashmapKeyType key_type, /*in-out*/ struct HashmapKey* key, int capacity_log2);
+void hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ struct HashmapKey* key, int capacity_log2);
 struct HashmapEntry* hashmap_get_or_create_entry(struct Hashmap* hashmap, struct HashmapKey* key);
 struct HashmapEntry* hashmap_get_entry(struct Hashmap* hashmap, struct HashmapKey* key);
 void hashmap_iter_init(struct HashmapEntryIterator* it, struct Hashmap* hashmap);
