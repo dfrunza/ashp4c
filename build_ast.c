@@ -1359,25 +1359,30 @@ build_ast_lvalueExpr()
 internal struct Ast*
 build_ast_lvalue()
 {
-  struct Ast_Lvalue* lvalue = 0;
+  struct Ast* lvalue = 0;
   if (token_is_lvalue(token)) {
-    lvalue = new_ast_node(struct Ast_Lvalue, AST_LVALUE, token->line_nr);
-    lvalue->name = build_ast_prefixedNonTypeName();
-    if (token->klass == TK_DOT_PREFIX || token->klass == TK_BRACKET_OPEN) {
-      struct List* lvalue_expr = arena_push(ast_storage, sizeof(*lvalue_expr));
-      memset(lvalue_expr, 0, sizeof(*lvalue_expr));
-      list_init(lvalue_expr);
-      struct ListLink* link = arena_push(ast_storage, sizeof(*link));
-      memset(link, 0, sizeof(*link));
-      link->object = build_ast_lvalueExpr();
-      list_append_link(lvalue_expr, link);
-      while (token->klass == TK_DOT_PREFIX || token->klass == TK_BRACKET_OPEN) {
-        link = arena_push(ast_storage, sizeof(*link));
-        memset(link, 0, sizeof(*link));
-        link->object = build_ast_lvalueExpr();
-        list_append_link(lvalue_expr, link);
+    struct Ast* name = build_ast_prefixedNonTypeName();
+    lvalue = name;
+    while(token->klass == TK_DOT_PREFIX || token->klass == TK_BRACKET_OPEN) {
+      if (token->klass == TK_DOT_PREFIX) {
+        next_token();
+        struct Ast_MemberSelectExpr* select_expr = new_ast_node(struct Ast_MemberSelectExpr, AST_MEMBERSELECT_EXPR, token->line_nr);
+        select_expr->expr = lvalue;
+        lvalue = (struct Ast*)select_expr;
+        if (token_is_name(token)) {
+          select_expr->member_name = build_ast_name(false);
+        } else error("at line %d: name was expected, got `%s`.", token->line_nr, token->lexeme);
       }
-      lvalue->expr = lvalue_expr;
+      else if (token->klass == TK_BRACKET_OPEN) {
+        next_token();
+        struct Ast_IndexedArrayExpr* index_expr = new_ast_node(struct Ast_IndexedArrayExpr, AST_INDEXEDARRAY_EXPR, token->line_nr);
+        index_expr->index = lvalue;
+        index_expr->colon_index = build_ast_arrayIndex();
+        lvalue = (struct Ast*)index_expr;
+        if (token->klass == TK_BRACKET_CLOSE) {
+          next_token();
+        } else error("at line %d: `]` was expected, got `%s`.", token->line_nr, token->lexeme);
+      }
     }
   } else error("at line %d: lvalue was expected, got `%s`.", token->line_nr, token->lexeme);
   return (struct Ast*)lvalue;

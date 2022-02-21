@@ -6,7 +6,6 @@
 
 enum ObjectKind {
   OBJECT_NONE,
-  OBJECT_NAMEREF,
   OBJECT_KEYWORD,
   OBJECT_VAR,
   OBJECT_TYPEVAR,
@@ -42,6 +41,13 @@ enum ObjectKind {
   OBJECT_TYPEDEF,
 };
 
+enum Namespace {
+  NAMESPACE_NONE,
+  NAMESPACE_TYPE = 1 << 0,
+  NAMESPACE_GENERAL = 1 << 1,
+  NAMESPACE_KEYWORD = 1 << 2,
+};
+
 struct NamedObject {
   char* strname;
   enum ObjectKind kind;
@@ -53,17 +59,19 @@ struct Object_Keyword {
   enum TokenClass token_klass;
 };
 
-struct Object_NameRef {
-  struct NamedObject;
-  struct Ast_Name* name;
-  struct Scope* scope;
+enum NameRefKind {
+  NAMEREF_NONE,
+  NAMEREF_VAR,
+  NAMEREF_TYPE,
+  NAMEREF_MEMBER,
 };
 
-enum Namespace {
-  NAMESPACE_NONE,
-  NAMESPACE_TYPE = 1 << 0,
-  NAMESPACE_GENERAL = 1 << 1,
-  NAMESPACE_KEYWORD = 1 << 2,
+struct NameRef {
+  enum NameRefKind kind;
+  char* strname;
+  struct Ast_Name* name;
+  struct Scope* scope;
+  struct Ast* member_expr;
 };
 
 struct SymtableEntry {

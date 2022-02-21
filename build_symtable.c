@@ -83,33 +83,21 @@ build_symtable_expression(struct Ast* ast)
     build_symtable_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct Object_NameRef* descriptor = new_object_descriptor(struct Object_NameRef, OBJECT_NAMEREF, name->strname);
-    descriptor->name = name;
-    descriptor->scope = get_current_scope();
+    struct NameRef* nameref = arena_push(symtable_storage, sizeof(struct NameRef));
+    memset(nameref, 0, sizeof(*nameref));
+    nameref->strname = name->strname;
+    nameref->name = name;
+    nameref->scope = get_current_scope();
     struct HashmapKey key = { .i_key = name->id };
     hashmap_hash_key(HASHMAP_KEY_INT, &key, nameref_table.capacity_log2);
     struct HashmapEntry* entry = hashmap_get_or_create_entry(&nameref_table, &key);
-    entry->object = descriptor;
-  } else if (ast->kind == AST_LVALUE) {
-    struct Ast_Lvalue* expr = (struct Ast_Lvalue*)ast;
-    build_symtable_expression(expr->name);
-    if (expr->expr) {
-      struct ListLink* link = list_first_link(expr->expr);
-      while (link) {
-        struct Ast* lvalue_expr = link->object;
-        build_symtable_expression(lvalue_expr);
-        link = link->next;
-      }
-    }
+    entry->object = nameref;
   } else if (ast->kind == AST_FUNCTIONCALL_EXPR) {
     build_symtable_function_call(ast);
   } else if (ast->kind == AST_MEMBERSELECT_EXPR) {
     struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
     build_symtable_expression(expr->expr);
     build_symtable_expression(expr->member_name);
-  } else if (ast->kind == AST_SPECIALIZED_TYPE) {
-    struct Ast_SpecializedType* expr = (struct Ast_SpecializedType*)ast;
-    build_symtable_expression(expr->name);
   } else if (ast->kind == AST_EXPRLIST_EXPR) {
     struct Ast_ExprListExpr* expr = (struct Ast_ExprListExpr*)ast;
     if (expr->expr_list) {

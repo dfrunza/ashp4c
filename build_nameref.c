@@ -9,20 +9,19 @@ internal struct Hashmap* nameref_table;
 
 internal void build_nameref_block_statement(struct Ast* block_stmt);
 internal void build_nameref_statement(struct Ast* decl);
-internal struct Object_NameRef* build_nameref_expression(struct Ast* expr);
+internal void build_nameref_expression(struct Ast* expr);
 internal void build_nameref_type_ref(struct Ast* type_ref);
 
 
-struct Object_NameRef*
+struct NameRef*
 nameref_get_entry(struct Hashmap* nameref_table, uint32_t id)
 {
   struct HashmapKey key = { .i_key = id };
   hashmap_hash_key(HASHMAP_KEY_INT, &key, nameref_table->capacity_log2);
   struct HashmapEntry* hmap_entry = hashmap_get_entry(nameref_table, &key);
-  struct Object_NameRef* nameref = 0;
+  struct NameRef* nameref = 0;
   if (hmap_entry) {
     nameref = hmap_entry->object;
-    assert(nameref->kind == OBJECT_NAMEREF);
   }
   return nameref;
 }
@@ -40,10 +39,11 @@ build_nameref_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   struct Ast_Name* name = (struct Ast_Name*)ast;
-  struct Object_NameRef* nameref = nameref_get_entry(nameref_table, name->id);
+  struct NameRef* nameref = nameref_get_entry(nameref_table, name->id);
   if (nameref) {
-    printf("type_ref:%s:%d\n", name->strname, name->line_nr);
-  }
+    assert(nameref->name == name);
+    nameref->kind = NAMEREF_TYPE;
+  } // else it's a declaration
 }
 
 internal void
@@ -141,18 +141,20 @@ build_nameref_type_ref(struct Ast* ast)
       || ast->kind == AST_BASETYPE_INT || ast->kind == AST_BASETYPE_BIT
       || ast->kind == AST_BASETYPE_VARBIT || ast->kind == AST_BASETYPE_STRING
       || ast->kind == AST_BASETYPE_VOID) {
-    build_nameref_expression(((struct Ast_BaseType*)ast)->name);
+    struct Ast_BaseType* base_type = (struct Ast_BaseType*)ast;
+    build_nameref_type_ref(base_type->name);
   } else if (ast->kind == AST_HEADER_STACK) {
     struct Ast_HeaderStack* type_ref = (struct Ast_HeaderStack*)ast;
-    build_nameref_expression(type_ref->name);
-    struct Ast* stack_expr = type_ref->stack_expr;
-    build_nameref_expression(stack_expr);
+    build_nameref_type_ref(type_ref->name);
+    build_nameref_expression(type_ref->stack_expr);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    build_nameref_expression((struct Ast*)name);
+    struct NameRef* nameref = nameref_get_entry(nameref_table, name->id);
+    assert(nameref->name == name);
+    nameref->kind = NAMEREF_TYPE;
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
     struct Ast_SpecializedType* speclzd_type = (struct Ast_SpecializedType*)ast;
-    build_nameref_expression(speclzd_type->name);
+    build_nameref_type_ref(speclzd_type->name);
     struct ListLink* link = list_first_link(speclzd_type->type_args);
     while (link) {
       struct Ast* type_arg = link->object;
@@ -822,7 +824,7 @@ build_nameref_function_call(struct Ast* ast)
   }
 }
 
-internal struct Object_NameRef*
+internal void
 build_nameref_expression(struct Ast* ast)
 {
   if (ast->kind == AST_BINARY_EXPR) {
@@ -834,31 +836,19 @@ build_nameref_expression(struct Ast* ast)
     build_nameref_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct Object_NameRef* nameref = nameref_get_entry(nameref_table, name->id);
-    if (nameref) {
-      printf("expression:%s:%d\n", name->strname, name->line_nr);
-    }
-    return nameref;
-  } else if (ast->kind == AST_LVALUE) {
-    struct Ast_Lvalue* expr = (struct Ast_Lvalue*)ast;
-    build_nameref_expression(expr->name);
-    if (expr->expr) {
-      struct ListLink* link = list_first_link(expr->expr);
-      while (link) {
-        struct Ast* lvalue_expr = link->object;
-        build_nameref_expression(lvalue_expr);
-        link = link->next;
-      }
-    }
+    struct NameRef* nameref = nameref_get_entry(nameref_table, name->id);
+    assert(nameref->name == name);
+    nameref->kind = NAMEREF_VAR;
   } else if (ast->kind == AST_FUNCTIONCALL_EXPR) {
     build_nameref_function_call(ast);
   } else if (ast->kind == AST_MEMBERSELECT_EXPR) {
     struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
     build_nameref_expression(expr->expr);
-    build_nameref_expression(expr->member_name);
-  } else if (ast->kind == AST_SPECIALIZED_TYPE) {
-    struct Ast_SpecializedType* expr = (struct Ast_SpecializedType*)ast;
-    build_nameref_expression(expr->name);
+    struct Ast_Name* name = (struct Ast_Name*)expr->member_name;
+    struct NameRef* nameref = nameref_get_entry(nameref_table, name->id);
+    assert(nameref->name == name);
+    nameref->kind = NAMEREF_MEMBER;
+    nameref->member_expr = expr->expr;
   } else if (ast->kind == AST_EXPRLIST_EXPR) {
     struct Ast_ExprListExpr* expr = (struct Ast_ExprListExpr*)ast;
     if (expr->expr_list) {
@@ -887,7 +877,6 @@ build_nameref_expression(struct Ast* ast)
     ; // pass
   }
   else assert(0);
-  return 0;
 }
 
 internal void

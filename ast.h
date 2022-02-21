@@ -45,7 +45,6 @@ enum AstKind {
   AST_VAR_DECL,
   AST_DIRECT_APPLICATION,
   AST_PARAM,
-  AST_LVALUE,
   AST_ASSIGNMENT_STMT,
   AST_METHODCALL_STMT,
   AST_EMPTY_STMT,
@@ -371,12 +370,6 @@ struct Ast_Param {
   struct Ast* name;
   struct Ast* type;
   struct Ast* init_expr;
-};
-
-struct Ast_Lvalue {
-  struct Ast;
-  struct Ast* name;
-  struct List* expr;
 };
 
 struct Ast_AssignmentStmt {

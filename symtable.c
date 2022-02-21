@@ -5,8 +5,6 @@
 #include "symtable.h"
 #include <memory.h>  // memset
 
-#define DEBUG_ENABLED 0
-
 
 internal struct Arena *symtable_storage;
 internal struct Arena local_storage = {};
@@ -44,9 +42,6 @@ push_scope()
   struct Scope* scope = new_scope(4);
   array_append(&scope_stack, &scope);
   scope->scope_level = current_scope->scope_level + 1;
-  if (DEBUG_ENABLED) {
-    printf("push scope %d\n", scope->scope_level);
-  }
   scope->parent_scope = current_scope;
   return scope;
 }
@@ -57,9 +52,6 @@ pop_scope()
   assert (scope_stack.elem_count > 0);
   struct Scope* current_scope = get_current_scope();
   assert (current_scope->scope_level > 0);
-  if (DEBUG_ENABLED) {
-    printf("pop scope %d\n", current_scope->scope_level);
-  }
   scope_stack.elem_count -= 1;
   current_scope = get_current_scope();
   return current_scope;
@@ -120,15 +112,9 @@ declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NamedObje
   if (ns == NAMESPACE_TYPE) {
     descriptor->next_in_scope = entry->ns_type;
     entry->ns_type = (struct NamedObject*)descriptor;
-    if (DEBUG_ENABLED) {
-      printf("new type `%s` at line %d.\n", descriptor->strname, line_nr);
-    }
   } else if (ns == NAMESPACE_GENERAL) {
     descriptor->next_in_scope = entry->ns_general;
     entry->ns_general = (struct NamedObject*)descriptor;
-    if (DEBUG_ENABLED) {
-      printf("new identifier `%s` at line %d.\n", descriptor->strname, line_nr);
-    }
   } else if (ns == NAMESPACE_KEYWORD) {
     struct SymtableEntry* entry = symtable_get_or_create_entry(&scope->declarations, descriptor->strname);
     entry->ns_keyword = (struct NamedObject*)descriptor;
