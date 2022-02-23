@@ -5,6 +5,9 @@
 
 
 internal struct Hashmap* nameref_table;
+internal struct UnboundedArray* type_names;
+internal struct UnboundedArray* var_names;
+internal struct UnboundedArray* member_names;
 
 
 internal void build_nameref_block_statement(struct Ast* block_stmt);
@@ -41,8 +44,9 @@ build_nameref_type_param(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)ast;
   struct NameRef* nameref = nameref_get_entry(nameref_table, name->id);
   if (nameref) {
-    assert(nameref->name == name);
+    assert(nameref->name_id == name->id);
     nameref->kind = NAMEREF_TYPE;
+    array_append(type_names, &nameref);
   } // else it's a declaration
 }
 
@@ -150,8 +154,9 @@ build_nameref_type_ref(struct Ast* ast)
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
     struct NameRef* nameref = nameref_get_entry(nameref_table, name->id);
-    assert(nameref->name == name);
+    assert(nameref->name_id == name->id);
     nameref->kind = NAMEREF_TYPE;
+    array_append(type_names, &nameref);
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
     struct Ast_SpecializedType* speclzd_type = (struct Ast_SpecializedType*)ast;
     build_nameref_type_ref(speclzd_type->name);
@@ -837,8 +842,9 @@ build_nameref_expression(struct Ast* ast)
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
     struct NameRef* nameref = nameref_get_entry(nameref_table, name->id);
-    assert(nameref->name == name);
+    assert(nameref->name_id == name->id);
     nameref->kind = NAMEREF_VAR;
+    array_append(var_names, &nameref);
   } else if (ast->kind == AST_FUNCTIONCALL_EXPR) {
     build_nameref_function_call(ast);
   } else if (ast->kind == AST_MEMBERSELECT_EXPR) {
@@ -846,9 +852,10 @@ build_nameref_expression(struct Ast* ast)
     build_nameref_expression(expr->expr);
     struct Ast_Name* name = (struct Ast_Name*)expr->member_name;
     struct NameRef* nameref = nameref_get_entry(nameref_table, name->id);
-    assert(nameref->name == name);
+    assert(nameref->name_id == name->id);
     nameref->kind = NAMEREF_MEMBER;
     nameref->member_expr = expr->expr;
+    array_append(member_names, &nameref);
   } else if (ast->kind == AST_EXPRLIST_EXPR) {
     struct Ast_ExprListExpr* expr = (struct Ast_ExprListExpr*)ast;
     if (expr->expr_list) {
@@ -869,7 +876,7 @@ build_nameref_expression(struct Ast* ast)
     if (expr->colon_index) {
       build_nameref_expression(expr->colon_index);
     }
-  } else if (ast->kind == AST_KEYVALUE_PAIR_EXPR) {
+  } else if (ast->kind == AST_KVPAIR_EXPR) {
     struct Ast_KeyValuePairExpr* expr = (struct Ast_KeyValuePairExpr*)ast;
     build_nameref_expression(expr->name);
     build_nameref_expression(expr->expr);
@@ -946,8 +953,14 @@ build_nameref_p4program(struct Ast* ast)
 }
 
 void
-build_nameref(struct Ast* p4program, struct Hashmap* nameref_table_)
+build_nameref(struct Ast* p4program, struct Hashmap* nameref_table_,
+              struct UnboundedArray* type_names_,
+              struct UnboundedArray* var_names_,
+              struct UnboundedArray* member_names_)
 {
   nameref_table = nameref_table_;
+  type_names = type_names_;
+  var_names = var_names_;
+  member_names = member_names_;
   build_nameref_p4program(p4program);
 }

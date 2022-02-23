@@ -94,7 +94,7 @@ scope_lookup_name(struct Scope* scope, enum Namespace ns, char* name)
     if (entry->ns_type && (ns & NAMESPACE_TYPE)) {
       break;
     }
-    if (entry->ns_general && (ns & NAMESPACE_GENERAL)) {
+    if (entry->ns_var && (ns & NAMESPACE_VAR)) {
       break;
     }
     if (entry->ns_keyword && (ns & NAMESPACE_KEYWORD)) {
@@ -106,15 +106,15 @@ scope_lookup_name(struct Scope* scope, enum Namespace ns, char* name)
 }
 
 struct SymtableEntry*
-declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NamedObject* descriptor, int line_nr)
+declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NamedObject* descriptor)
 {
   struct SymtableEntry* entry = symtable_get_or_create_entry(&scope->declarations, descriptor->strname);
   if (ns == NAMESPACE_TYPE) {
     descriptor->next_in_scope = entry->ns_type;
     entry->ns_type = (struct NamedObject*)descriptor;
-  } else if (ns == NAMESPACE_GENERAL) {
-    descriptor->next_in_scope = entry->ns_general;
-    entry->ns_general = (struct NamedObject*)descriptor;
+  } else if (ns == NAMESPACE_VAR) {
+    descriptor->next_in_scope = entry->ns_var;
+    entry->ns_var = (struct NamedObject*)descriptor;
   } else if (ns == NAMESPACE_KEYWORD) {
     struct SymtableEntry* entry = symtable_get_or_create_entry(&scope->declarations, descriptor->strname);
     entry->ns_keyword = (struct NamedObject*)descriptor;
@@ -137,7 +137,7 @@ symtable_begin_build(struct Arena* symtable_storage_)
   struct Scope* root_scope = arena_push(symtable_storage, sizeof(*root_scope));
   memset(root_scope, 0, sizeof(*root_scope));
   scope_init(root_scope, 4);
-  array_init(&scope_stack, sizeof(&root_scope), symtable_storage);
+  array_init(&scope_stack, sizeof(struct Scope*), symtable_storage);
   array_append(&scope_stack, &root_scope);
 }
 

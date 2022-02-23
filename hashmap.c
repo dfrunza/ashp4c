@@ -109,7 +109,7 @@ hashmap_key_equal(enum HashmapKeyType key_type, struct HashmapKey* key_A, struct
 void
 hashmap_init(struct Hashmap* hashmap, enum HashmapKeyType key_type, int capacity_log2, struct Arena* storage)
 {
-  array_init(&hashmap->entries, sizeof(struct HashmapEntry**), storage);
+  array_init(&hashmap->entries, sizeof(struct HashmapEntry*), storage);
   hashmap->key_type = key_type;
   hashmap->capacity = (1 << capacity_log2) - 1;
   hashmap->entry_count = 0;

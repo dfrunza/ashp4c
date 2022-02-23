@@ -44,13 +44,14 @@ enum ObjectKind {
 enum Namespace {
   NAMESPACE_NONE,
   NAMESPACE_TYPE = 1 << 0,
-  NAMESPACE_GENERAL = 1 << 1,
+  NAMESPACE_VAR = 1 << 1,
   NAMESPACE_KEYWORD = 1 << 2,
 };
 
 struct NamedObject {
-  char* strname;
   enum ObjectKind kind;
+  char* strname;
+  int line_nr;
   struct NamedObject* next_in_scope;
 };  
 
@@ -69,16 +70,20 @@ enum NameRefKind {
 struct NameRef {
   enum NameRefKind kind;
   char* strname;
-  struct Ast_Name* name;
+  int line_nr;
+  uint32_t name_id;
+  struct NamedObject* descriptor;
   struct Scope* scope;
-  struct Ast* member_expr;
+  union {
+    struct Ast* member_expr;
+  };
 };
 
 struct SymtableEntry {
   char* strname;
   struct NamedObject* ns_keyword;
   struct NamedObject* ns_type;
-  struct NamedObject* ns_general;
+  struct NamedObject* ns_var;
 };
 
 struct Scope {
@@ -86,6 +91,14 @@ struct Scope {
   struct Scope* parent_scope;
   struct Hashmap declarations;
 };
+
+
+#define new_object_descriptor(obj_type, obj_kind) ({ \
+  obj_type* descriptor = arena_push(symtable_storage, sizeof(obj_type)); \
+  memset(descriptor, 0, sizeof(obj_type)); \
+  descriptor->kind = obj_kind; \
+  descriptor; \
+})
 
 
 void symtable_begin_build(struct Arena* symtable_storage_);
@@ -100,4 +113,4 @@ struct Scope* pop_scope();
 struct Scope* get_root_scope();
 struct Scope* get_current_scope();
 struct SymtableEntry* scope_lookup_name(struct Scope* scope, enum Namespace ns, char* name);
-struct SymtableEntry* declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NamedObject* descriptor, int line_nr);
+struct SymtableEntry* declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NamedObject* descriptor);

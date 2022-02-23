@@ -255,7 +255,7 @@
 
 <expressionPrimary> := INTEGER | TRUE | FALSE | STRING_LITERAL
   | { '.' } <nonTypeName>
-  | '{' <expressionList> '}'  /* <kvList> - operator '=' */
+  | '{' <expressionList> '}'  /* <kvList> */
   | '(' <expression> ')'
   | ( '!' | '~' ) <expression>
   | '-' /* UnaryMinus */ <expression>

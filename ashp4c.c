@@ -122,7 +122,15 @@ main(int arg_count, char* args[])
   }
 
   struct Hashmap* nameref_table = build_symtable(p4program, &main_storage);
-  build_nameref(p4program, nameref_table);
+  struct UnboundedArray type_names = {},
+                        var_names = {},
+                        member_names = {};
+  array_init(&type_names, sizeof(struct NameRef*), &main_storage);
+  array_init(&var_names, sizeof(struct NameRef*), &main_storage);
+  array_init(&member_names, sizeof(struct NameRef*), &main_storage);
+  build_nameref(p4program, nameref_table, &type_names, &var_names, &member_names);
+  resolve_nameref_type(nameref_table, &type_names);
+  resolve_nameref_var(nameref_table, &var_names);
 
   arena_delete(&main_storage);
   return 0;
