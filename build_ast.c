@@ -2906,8 +2906,8 @@ build_ast(struct UnboundedArray* tokens_array_, struct Arena* ast_storage_)
 {
   tokens_array = tokens_array_;
   ast_storage = ast_storage_;
+  symtable_init(&local_storage);
 
-  symtable_begin_build(&local_storage);
   declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("action", TK_ACTION));
   declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("actions", TK_ACTIONS));
   declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("entries", TK_ENTRIES));
@@ -2955,7 +2955,6 @@ build_ast(struct UnboundedArray* tokens_array_, struct Arena* ast_storage_)
   push_scope();
   struct Ast* p4program = build_ast_p4program();
   pop_scope();
-  symtable_end_build();
   arena_delete(&local_storage);
   return p4program;
 }

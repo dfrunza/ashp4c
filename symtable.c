@@ -131,7 +131,7 @@ scope_init(struct Scope* scope, int capacity_log2)
 }
 
 void
-symtable_begin_build(struct Arena* symtable_storage_)
+symtable_init(struct Arena* symtable_storage_)
 {
   symtable_storage = symtable_storage_;
   struct Scope* root_scope = arena_push(symtable_storage, sizeof(*root_scope));
@@ -139,10 +139,4 @@ symtable_begin_build(struct Arena* symtable_storage_)
   scope_init(root_scope, 4);
   array_init(&scope_stack, sizeof(struct Scope*), symtable_storage);
   array_append(&scope_stack, &root_scope);
-}
-
-void
-symtable_end_build()
-{
-  arena_delete(&local_storage);
 }

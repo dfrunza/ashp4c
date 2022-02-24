@@ -101,8 +101,7 @@ struct Scope {
 })
 
 
-void symtable_begin_build(struct Arena* symtable_storage_);
-void symtable_end_build();
+void symtable_init(struct Arena* symtable_storage_);
 void scope_init(struct Scope* scope, int capacity_log2);
 struct SymtableEntry* symtable_get_or_create_entry(struct Hashmap* declarations, char* name);
 struct SymtableEntry* symtable_get_entry(struct Hashmap* declarations, char* name);

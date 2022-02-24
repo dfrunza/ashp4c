@@ -1176,8 +1176,8 @@ build_symtable(struct Ast* p4program, struct Arena* symtable_storage_)
 {
   symtable_storage = symtable_storage_;
 
-  symtable_begin_build(symtable_storage);
-  hashmap_init(&nameref_table, HASHMAP_KEY_INT, sizeof(struct NameRef**), symtable_storage);
+  symtable_init(symtable_storage);
+  hashmap_init(&nameref_table, HASHMAP_KEY_INT, 8, symtable_storage);
   struct NamedObject* descriptor;
 
   descriptor = new_object_descriptor(struct NamedObject, OBJECT_VOID);
@@ -1225,6 +1225,5 @@ build_symtable(struct Ast* p4program, struct Arena* symtable_storage_)
   declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, descriptor);
 
   build_symtable_p4program(p4program);
-  symtable_end_build();
   return &nameref_table;
 }
