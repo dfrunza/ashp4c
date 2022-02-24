@@ -731,12 +731,25 @@ build_symtable_extern_decl(struct Ast* ast)
   struct Ast_ExternDecl* extern_decl = (struct Ast_ExternDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)extern_decl->name;
   struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_EXTERN);
+  descriptor->strname = name->strname;
+  descriptor->line_nr = name->line_nr;
   if (!entry->ns_type) {
-    struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_EXTERN);
-    descriptor->strname = name->strname;
-    descriptor->line_nr = name->line_nr;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor);
-  } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
+  } else {
+    struct NamedObject* prev_descriptor = entry->ns_type;
+    if (prev_descriptor->kind == OBJECT_EXTERN) {
+      declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor);
+    } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
+  }
+  if (!entry->ns_var) {
+    declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, descriptor);
+  } else {
+    struct NamedObject* prev_descriptor = entry->ns_var;
+    if (prev_descriptor->kind == OBJECT_EXTERN) {
+      declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, descriptor);
+    } else error("at line %d: name `%s` redeclared.", name->line_nr, name->strname);
+  }
   push_scope();
   if (extern_decl->type_params) {
     struct ListLink* link = list_first_link(extern_decl->type_params);
