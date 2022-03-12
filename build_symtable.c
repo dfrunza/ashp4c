@@ -4,14 +4,22 @@
 #include <memory.h>  // memset
 
 
-internal struct Arena* symtable_storage;
-internal struct Hashmap nameref_table = {};
+internal struct Arena* m_symtable_storage;
+internal struct Hashmap m_nameref_table = {};
 
 
 internal void build_symtable_block_statement(struct Ast* block_stmt);
 internal void build_symtable_statement(struct Ast* decl);
 internal void build_symtable_expression(struct Ast* expr);
 internal void build_symtable_type_ref(struct Ast* type_ref);
+
+
+#define new_object_descriptor(obj_type, obj_kind) ({ \
+  obj_type* descriptor = arena_push(m_symtable_storage, sizeof(obj_type)); \
+  memset(descriptor, 0, sizeof(obj_type)); \
+  descriptor->kind = obj_kind; \
+  descriptor; \
+})
 
 internal void
 build_symtable_function_call(struct Ast* ast)
@@ -74,15 +82,15 @@ build_symtable_expression(struct Ast* ast)
     build_symtable_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct NameRef* nameref = arena_push(symtable_storage, sizeof(struct NameRef));
+    struct NameRef* nameref = arena_push(m_symtable_storage, sizeof(struct NameRef));
     memset(nameref, 0, sizeof(*nameref));
     nameref->strname = name->strname;
     nameref->line_nr = name->line_nr;
     nameref->name_id = name->id;
     nameref->scope = get_current_scope();
     struct HashmapKey key = { .i_key = name->id };
-    hashmap_hash_key(HASHMAP_KEY_INT, &key, nameref_table.capacity_log2);
-    struct HashmapEntry* entry = hashmap_get_or_create_entry(&nameref_table, &key);
+    hashmap_hash_key(HASHMAP_KEY_INT, &key, m_nameref_table.capacity_log2);
+    struct HashmapEntry* entry = hashmap_get_or_create_entry(&m_nameref_table, &key);
     entry->object = nameref;
   } else if (ast->kind == AST_FUNCTIONCALL_EXPR) {
     build_symtable_function_call(ast);
@@ -1172,12 +1180,12 @@ build_symtable_p4program(struct Ast* ast)
 }
 
 struct Hashmap*
-build_symtable(struct Ast* p4program, struct Arena* symtable_storage_)
+build_symtable(struct Ast* p4program, struct Arena* symtable_storage)
 {
-  symtable_storage = symtable_storage_;
+  m_symtable_storage = symtable_storage;
 
-  symtable_init(symtable_storage);
-  hashmap_init(&nameref_table, HASHMAP_KEY_INT, 8, symtable_storage);
+  symtable_init(m_symtable_storage);
+  hashmap_init(&m_nameref_table, HASHMAP_KEY_INT, 8, m_symtable_storage);
   struct NamedObject* descriptor;
 
   descriptor = new_object_descriptor(struct NamedObject, OBJECT_VOID);
@@ -1225,5 +1233,5 @@ build_symtable(struct Ast* p4program, struct Arena* symtable_storage_)
   declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, descriptor);
 
   build_symtable_p4program(p4program);
-  return &nameref_table;
+  return &m_nameref_table;
 }

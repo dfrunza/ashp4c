@@ -93,15 +93,7 @@ struct Scope {
 };
 
 
-#define new_object_descriptor(obj_type, obj_kind) ({ \
-  obj_type* descriptor = arena_push(symtable_storage, sizeof(obj_type)); \
-  memset(descriptor, 0, sizeof(obj_type)); \
-  descriptor->kind = obj_kind; \
-  descriptor; \
-})
-
-
-void symtable_init(struct Arena* symtable_storage_);
+void symtable_init(struct Arena* symtable_storage);
 void scope_init(struct Scope* scope, int capacity_log2);
 struct SymtableEntry* symtable_get_or_create_entry(struct Hashmap* declarations, char* name);
 struct SymtableEntry* symtable_get_entry(struct Hashmap* declarations, char* name);

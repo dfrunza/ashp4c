@@ -6,12 +6,11 @@
 #include "symtable.h"
 #include "build_ast.h"
 #include "build_symtable.h"
-#include "build_nameref.h"
 #include "resolve_nameref.h"
 
 #define DEBUG_ENABLED 0
 
-internal struct Arena main_storage = {};
+internal struct Arena m_main_storage = {};
 
 
 struct CmdlineArg {
@@ -77,7 +76,7 @@ parse_cmdline_args(int arg_count, char* args[])
   struct CmdlineArg* prev_arg = &sentinel_arg;
   int i = 1;
   while (i < arg_count) {
-    struct CmdlineArg* cmdline_arg = arena_push(&main_storage, sizeof(*cmdline_arg));
+    struct CmdlineArg* cmdline_arg = arena_push(&m_main_storage, sizeof(*cmdline_arg));
     memset(cmdline_arg, 0, sizeof(*cmdline_arg));
     if (cstr_start_with(args[i], "--")) {
       char* raw_arg = args[i] + 2;  /* skip the `--` prefix */
@@ -110,10 +109,10 @@ main(int arg_count, char* args[])
   read_source(&text, &text_size, filename_arg->value, &text_storage);
 
   struct Arena tokens_storage = {};
-  struct UnboundedArray* tokens_array = lex_tokenize(text, text_size, &main_storage, &tokens_storage);
+  struct UnboundedArray* tokens_array = lex_tokenize(text, text_size, &m_main_storage, &tokens_storage);
   arena_delete(&text_storage);
 
-  struct Ast* p4program = build_ast(tokens_array, &main_storage);
+  struct Ast* p4program = build_ast(tokens_array, &m_main_storage);
   assert(p4program && p4program->kind == AST_P4PROGRAM);
   arena_delete(&tokens_storage);
 
@@ -121,18 +120,10 @@ main(int arg_count, char* args[])
     assert(!"TODO");
   }
 
-  struct Hashmap* nameref_table = build_symtable(p4program, &main_storage);
-  struct UnboundedArray type_names = {},
-                        var_names = {},
-                        member_names = {};
-  array_init(&type_names, sizeof(struct NameRef*), &main_storage);
-  array_init(&var_names, sizeof(struct NameRef*), &main_storage);
-  array_init(&member_names, sizeof(struct NameRef*), &main_storage);
-  build_nameref(p4program, nameref_table, &type_names, &var_names, &member_names);
-  resolve_nameref_type(nameref_table, &type_names);
-  resolve_nameref_var(nameref_table, &var_names);
+  build_symtable(p4program, &m_main_storage);
+  build_nameref(p4program);
 
-  arena_delete(&main_storage);
+  arena_delete(&m_main_storage);
   return 0;
 }
 

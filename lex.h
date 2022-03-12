@@ -4,4 +4,4 @@
 #include <stdint.h>
 
 
-struct UnboundedArray* lex_tokenize(char* text_, int text_size_, struct Arena* lexeme_storage_, struct Arena* tokens_storage_);
+struct UnboundedArray* lex_tokenize(char* text, int text_size, struct Arena* lexeme_storage, struct Arena* tokens_storage);

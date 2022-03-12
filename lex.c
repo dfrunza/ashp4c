@@ -2,14 +2,14 @@
 #include "lex.h"
 #include <memory.h>  // memset
 
-internal struct Arena* lexeme_storage;
-internal char* text;
-internal int text_size;
+internal struct Arena* m_lexeme_storage;
+internal char* m_text;
+internal int m_text_size;
 
-internal struct Arena* tokens_storage;
-internal struct UnboundedArray tokens_array = {};
-internal int line_nr = 1;
-internal int state = 0;
+internal struct Arena* m_tokens_storage;
+internal struct UnboundedArray m_tokens_array = {};
+internal int m_line_nr = 1;
+internal int m_state = 0;
 
 struct Lexeme {
   char* start;
@@ -20,7 +20,7 @@ internal char
 char_lookahead(int pos)
 {
   char* char_pos = lexeme->end + pos;
-  assert(char_pos >= 0 && char_pos <= (text + text_size));
+  assert(char_pos >= 0 && char_pos <= (m_text + m_text_size));
   return *char_pos;
 }
 
@@ -28,7 +28,7 @@ internal char
 char_advance(int pos)
 {
   char* char_pos = lexeme->end + pos;
-  assert(char_pos >= 0 && char_pos <= (text + text_size));
+  assert(char_pos >= 0 && char_pos <= (m_text + m_text_size));
   lexeme->end = char_pos;
   return *char_pos;
 }
@@ -45,7 +45,7 @@ internal void
 lexeme_advance()
 {
   lexeme->start = ++lexeme->end;
-  assert (lexeme->start <= (text + text_size));
+  assert (lexeme->start <= (m_text + m_text_size));
 }
 
 internal void
@@ -100,7 +100,7 @@ internal char*
 lexeme_to_cstring(struct Lexeme* lexeme)
 {
   int len = lexeme_len(lexeme);
-  char* string = arena_push(lexeme_storage, (len + 1)*sizeof(char));   // +1 the NULL terminator
+  char* string = arena_push(m_lexeme_storage, (len + 1)*sizeof(char));   // +1 the NULL terminator
   lexeme_copy(string, lexeme);
   string[len] = '\0';
   return string;
@@ -166,10 +166,10 @@ internal void
 next_token(struct Token* token)
 {
   memset(token, 0, sizeof(*token));
-  state = 1;
-  while (state) {
+  m_state = 1;
+  while (m_state) {
     char c = char_lookahead(0);
-    switch (state) {
+    switch (m_state) {
       default: assert(0);
 
       case 1:
@@ -181,66 +181,66 @@ next_token(struct Token* token)
             if (c + cc == '\n' + '\r') {
               lexeme_advance();
             }
-            line_nr++;
+            m_line_nr++;
           }
-          state = 1;
+          m_state = 1;
         }
         else if (c == ';') {
-          state = 100;
+          m_state = 100;
         } else if (c == '<') {
-          state = 101;
+          m_state = 101;
         } else if (c == '>') {
-          state = 102;
+          m_state = 102;
         } else if (c == '_') {
-          state = 103;
+          m_state = 103;
         } else if (c == ':') {
-          state = 104;
+          m_state = 104;
         } else if (c == '(') {
-          state = 105;
+          m_state = 105;
         } else if (c == ')') {
-          state = 106;
+          m_state = 106;
         } else if (c == '.') {
-          state = 107;
+          m_state = 107;
         } else if (c == '{') {
-          state = 108;
+          m_state = 108;
         } else if (c == '}') {
-          state = 109;
+          m_state = 109;
         } else if (c == '[') {
-          state = 110;
+          m_state = 110;
         } else if (c == ']') {
-          state = 111;
+          m_state = 111;
         } else if (c == ',') {
-          state = 112;
+          m_state = 112;
         } else if (c == '-') {
-          state = 113;
+          m_state = 113;
         } else if (c == '+') {
-          state = 114;
+          m_state = 114;
         } else if (c == '*') {
-          state = 115;
+          m_state = 115;
         } else if (c == '/') {
-          state = 116;
+          m_state = 116;
         } else if (c == '=') {
-          state = 117;
+          m_state = 117;
         } else if (c == '!') {
-          state = 118;
+          m_state = 118;
         } else if (c == '&') {
-          state = 119;
+          m_state = 119;
         } else if (c == '|') {
-          state = 120;
+          m_state = 120;
         } else if (c == '^') {
-          state = 121;
+          m_state = 121;
         } else if (c == '~') {
-          state = 122;
+          m_state = 122;
         } else if (c == '"') {
-          state = 200;
+          m_state = 200;
         } else if (cstr_is_digit(c, 10)) {
-          state = 400;
+          m_state = 400;
         } else if (cstr_is_letter(c)) {
-          state = 500;
+          m_state = 500;
         } else if (c == '\0') {
-          state = 2;
+          m_state = 2;
         } else {
-          state = 3;
+          m_state = 3;
         }
       } break;
 
@@ -248,7 +248,7 @@ next_token(struct Token* token)
       {
         token->klass = TK_END_OF_INPUT;
         token->lexeme = "<end-of-input>";
-        state = 0;
+        m_state = 0;
       } break;
 
       case 3:
@@ -256,7 +256,7 @@ next_token(struct Token* token)
         token->klass = TK_UNKNOWN;
         token->lexeme = "<unknown>";
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 4:
@@ -264,7 +264,7 @@ next_token(struct Token* token)
         token->klass = TK_LEXICAL_ERROR;
         token->lexeme = "<error>";
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 100:
@@ -272,7 +272,7 @@ next_token(struct Token* token)
         token->klass = TK_SEMICOLON;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 101:
@@ -288,7 +288,7 @@ next_token(struct Token* token)
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 102:
@@ -304,19 +304,19 @@ next_token(struct Token* token)
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 103:
       {
         char cc = char_lookahead(1);
         if (cstr_is_letter(cc) || cstr_is_digit(cc, 10) || cc == '_') {
-          state = 500;
+          m_state = 500;
         } else {
           token->klass = TK_DONTCARE;
           token->lexeme = lexeme_to_cstring(lexeme);
           lexeme_advance();
-          state = 0;
+          m_state = 0;
         }
       } break;
 
@@ -325,7 +325,7 @@ next_token(struct Token* token)
         token->klass = TK_COLON;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 105:
@@ -333,7 +333,7 @@ next_token(struct Token* token)
         token->klass = TK_PARENTH_OPEN;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       }
       break;
 
@@ -342,7 +342,7 @@ next_token(struct Token* token)
         token->klass = TK_PARENTH_CLOSE;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 107:
@@ -350,7 +350,7 @@ next_token(struct Token* token)
         token->klass = TK_DOT_PREFIX;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 108:
@@ -358,7 +358,7 @@ next_token(struct Token* token)
         token->klass = TK_BRACE_OPEN;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 109:
@@ -366,7 +366,7 @@ next_token(struct Token* token)
         token->klass = TK_BRACE_CLOSE;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 110:
@@ -374,7 +374,7 @@ next_token(struct Token* token)
         token->klass = TK_BRACKET_OPEN;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 111:
@@ -382,7 +382,7 @@ next_token(struct Token* token)
         token->klass = TK_BRACKET_CLOSE;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 112:
@@ -390,12 +390,12 @@ next_token(struct Token* token)
         token->klass = TK_COMMA;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 113:
       {
-        struct Token* prev_token = array_get(&tokens_array, tokens_array.elem_count - 1);
+        struct Token* prev_token = array_get(&m_tokens_array, m_tokens_array.elem_count - 1);
         if (prev_token->klass == TK_PARENTH_OPEN) {
           token->klass = TK_UNARY_MINUS;
         } else {
@@ -403,7 +403,7 @@ next_token(struct Token* token)
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 114:
@@ -411,7 +411,7 @@ next_token(struct Token* token)
         token->klass = TK_PLUS;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 115:
@@ -419,21 +419,21 @@ next_token(struct Token* token)
         token->klass = TK_STAR;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 116:
       {
         if (char_lookahead(1) == '*') {
           char_advance(1);
-          state = 310;
+          m_state = 310;
         } else if (char_lookahead(1) == '/') {
-          state = 311;
+          m_state = 311;
         } else {
           token->klass = TK_SLASH;
           token->lexeme = lexeme_to_cstring(lexeme);
           lexeme_advance();
-          state = 0;
+          m_state = 0;
         }
       } break;
 
@@ -447,7 +447,7 @@ next_token(struct Token* token)
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 118:
@@ -460,7 +460,7 @@ next_token(struct Token* token)
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 119:
@@ -478,7 +478,7 @@ next_token(struct Token* token)
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 120:
@@ -491,7 +491,7 @@ next_token(struct Token* token)
         }
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 121:
@@ -499,7 +499,7 @@ next_token(struct Token* token)
         token->klass = TK_CIRCUMFLEX;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 122:
@@ -507,7 +507,7 @@ next_token(struct Token* token)
         token->klass = TK_TILDA;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 200:
@@ -515,29 +515,29 @@ next_token(struct Token* token)
         do {
           c = char_advance(1);
           if (c == '\\') {
-            state = 201;
+            m_state = 201;
             break;
           } else if (c == '\n' || c == '\r') {
-            state = 4;
+            m_state = 4;
           }
         } while (c != '"');
 
         token->klass = TK_STRING_LITERAL;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 201:
       {
         c = char_advance(1);
         if (c == '\n' || c == '\r') {
-          line_nr++;
-          state = 200;
+          m_line_nr++;
+          m_state = 200;
         } else if (c == '\\' || c =='"' || c == 'n' || c == 'r') {
-          state = 200; // ok
+          m_state = 200; // ok
         } else {
-          state = 4;
+          m_state = 4;
         }
       } break;
 
@@ -549,7 +549,7 @@ next_token(struct Token* token)
             char cc = char_lookahead(1);
             if (c + cc == '\n' + '\r')
               c = char_advance(1);
-            line_nr++;
+            m_line_nr++;
           }
         } while (c != '*');
 
@@ -558,9 +558,9 @@ next_token(struct Token* token)
           token->klass = TK_COMMENT;
           token->lexeme = lexeme_to_cstring(lexeme);
           lexeme_advance();
-          state = 0;
+          m_state = 0;
         } else {
-          state = 310;
+          m_state = 310;
         }
       } break;
 
@@ -569,11 +569,11 @@ next_token(struct Token* token)
         do {
           c = char_advance(1);
         } while (c != '\n' && c != '\r');
-        line_nr++;
+        m_line_nr++;
         token->klass = TK_COMMENT;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 400:
@@ -581,20 +581,20 @@ next_token(struct Token* token)
         if (c == '0') {
           c = char_lookahead(1);
           if (c == 'x' || c == 'X') {
-            state = 402;
+            m_state = 402;
             char_advance(2);
             break;
           } else if (c == 'o' || c == 'O') {
-            state = 403;
+            m_state = 403;
             char_advance(2);
             break;
           } else if (c == 'b' || c == 'B') {
-            state = 404;
+            m_state = 404;
             char_advance(2);
             break;
           }
         }
-        state = 401;  // decimal
+        m_state = 401;  // decimal
       } break;
 
       case 401:
@@ -614,7 +614,7 @@ next_token(struct Token* token)
           lexeme[1].end = lexeme->end - 1;  // omit w|s
           token->i.width = parse_integer(lexeme_to_cstring(&lexeme[1]), 10);
           char_advance(1);
-          state = 405;
+          m_state = 405;
         } else {
           char_retract();
           lexeme[1].end = lexeme->end;
@@ -623,7 +623,7 @@ next_token(struct Token* token)
           token_install_integer(token, &lexeme[1], 10);
           token->lexeme = lexeme_to_cstring(lexeme);
           lexeme_advance();
-          state = 0;
+          m_state = 0;
         }
       } break;
 
@@ -642,7 +642,7 @@ next_token(struct Token* token)
         token_install_integer(token, &lexeme[1], 16);
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 403:
@@ -660,7 +660,7 @@ next_token(struct Token* token)
         token_install_integer(token, &lexeme[1], 8);
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 404:
@@ -678,7 +678,7 @@ next_token(struct Token* token)
         token_install_integer(token, &lexeme[1], 2);
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 405:
@@ -686,20 +686,20 @@ next_token(struct Token* token)
         if (c == '0') {
           c = char_lookahead(1);
           if (c == 'x' || c == 'X') {
-            state = 406;
+            m_state = 406;
             char_advance(2);
             break;
           } else if (c == 'o' || c == 'O') {
-            state = 407;
+            m_state = 407;
             char_advance(2);
             break;
           } else if (c == 'b' || c == 'B') {
-            state = 408;
+            m_state = 408;
             char_advance(2);
             break;
           }
         }
-        state = 409;  // decimal
+        m_state = 409;  // decimal
       } break;
 
       case 406:
@@ -715,7 +715,7 @@ next_token(struct Token* token)
         token_install_integer(token, &lexeme[1], 16);
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 407:
@@ -731,7 +731,7 @@ next_token(struct Token* token)
         token_install_integer(token, &lexeme[1], 8);
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 408:
@@ -747,7 +747,7 @@ next_token(struct Token* token)
         token_install_integer(token, &lexeme[1], 2);
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 409:
@@ -763,7 +763,7 @@ next_token(struct Token* token)
         token_install_integer(token, &lexeme[1], 10);
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
 
       case 500:
@@ -775,30 +775,30 @@ next_token(struct Token* token)
         token->klass = TK_IDENTIFIER;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
-        state = 0;
+        m_state = 0;
       } break;
     }
   }
-  token->line_nr = line_nr;
+  token->line_nr = m_line_nr;
 }
 
 struct UnboundedArray*
-lex_tokenize(char* text_, int text_size_, struct Arena* lexeme_storage_, struct Arena* tokens_storage_)
+lex_tokenize(char* text, int text_size, struct Arena* lexeme_storage, struct Arena* tokens_storage)
 {
-  text = text_;
-  text_size = text_size_;
-  lexeme_storage = lexeme_storage_;
-  tokens_storage = tokens_storage_;
+  m_text = text;
+  m_text_size = text_size;
+  m_lexeme_storage = lexeme_storage;
+  m_tokens_storage = tokens_storage;
 
-  lexeme->start = lexeme->end = text;
+  lexeme->start = lexeme->end = m_text;
 
   struct Token token = {};
   token.klass = TK_START_OF_INPUT;
-  array_init(&tokens_array, sizeof(token), tokens_storage);
-  array_append(&tokens_array, &token);
+  array_init(&m_tokens_array, sizeof(token), tokens_storage);
+  array_append(&m_tokens_array, &token);
 
   next_token(&token);
-  array_append(&tokens_array, &token);
+  array_append(&m_tokens_array, &token);
   while (token.klass != TK_END_OF_INPUT) {
     if (token.klass == TK_UNKNOWN) {
       error("at line %d: unknown token.", token.line_nr);
@@ -806,8 +806,8 @@ lex_tokenize(char* text_, int text_size_, struct Arena* lexeme_storage_, struct 
       error("at line %d: lexical error.", token.line_nr);
     }
     next_token(&token);
-    array_append(&tokens_array, &token);
+    array_append(&m_tokens_array, &token);
   }
-  return &tokens_array;
+  return &m_tokens_array;
 }
 
