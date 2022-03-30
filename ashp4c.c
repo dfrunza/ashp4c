@@ -121,7 +121,7 @@ main(int arg_count, char* args[])
   }
 
   build_symtable(p4program, &m_main_storage);
-  build_nameref(p4program);
+  resolve_nameref(p4program);
 
   arena_delete(&m_main_storage);
   return 0;
