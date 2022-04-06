@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CC_FLAGS="-g -ggdb -std=c99 -D_GNU_SOURCE -Winline -Wno-write-strings -Wreturn-type -fms-extensions -ffreestanding"
+CC_FLAGS="-g -ggdb -std=gnu99 -Winline -Wno-write-strings -Wreturn-type -fms-extensions -ffreestanding"
 LD_FLAGS="--nostdlib --unresolved-symbols=report-all --static"
 
 MUSL_INCLUDE=/usr/local/include

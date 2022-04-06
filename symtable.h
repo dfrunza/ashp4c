@@ -60,23 +60,12 @@ struct Object_Keyword {
   enum TokenClass token_klass;
 };
 
-enum NameRefKind {
-  NAMEREF_NONE,
-  NAMEREF_VAR,
-  NAMEREF_TYPE,
-  NAMEREF_MEMBER,
-};
-
 struct NameRef {
-  enum NameRefKind kind;
   char* strname;
   int line_nr;
-  uint32_t name_id;
-  struct NamedObject* descriptor;
   struct Scope* scope;
-  union {
-    struct Ast* member_expr;
-  };
+  struct NamedObject* ns_type;
+  struct NamedObject* ns_var;
 };
 
 struct SymtableEntry {

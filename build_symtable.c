@@ -5,7 +5,7 @@
 
 
 internal struct Arena* m_symtable_storage;
-/*internal struct Hashmap m_nameref_table = {};*/
+internal struct Hashmap m_nameref_table = {};
 
 
 internal void build_symtable_block_statement(struct Ast* block_stmt);
@@ -24,7 +24,7 @@ internal void build_symtable_type_ref(struct Ast* type_ref);
 internal void
 build_symtable_function_call(struct Ast* ast)
 {
-  assert(ast->kind == AST_FUNCTIONCALL_EXPR);
+  assert(ast->kind == AST_FUNCTION_CALL_EXPR);
   struct Ast_FunctionCallExpr* expr = (struct Ast_FunctionCallExpr*)ast;
   build_symtable_expression(expr->callee_expr);
   struct Ast_Expression* callee_expr = (struct Ast_Expression*)(expr->callee_expr);
@@ -49,7 +49,7 @@ build_symtable_function_call(struct Ast* ast)
 internal void
 build_symtable_method_call(struct Ast* ast)
 {
-  assert(ast->kind == AST_METHODCALL_STMT);
+  assert(ast->kind == AST_METHOD_CALL_STMT);
   struct Ast_MethodCallStmt* stmt = (struct Ast_MethodCallStmt*)ast;
   build_symtable_expression(stmt->lvalue);
   if (stmt->type_args) {
@@ -82,22 +82,18 @@ build_symtable_expression(struct Ast* ast)
     build_symtable_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    name->scope = get_current_scope();
-    /*
     struct NameRef* nameref = arena_push(m_symtable_storage, sizeof(struct NameRef));
     memset(nameref, 0, sizeof(*nameref));
     nameref->strname = name->strname;
     nameref->line_nr = name->line_nr;
-    nameref->name_id = name->id;
     nameref->scope = get_current_scope();
     struct HashmapKey key = { .i_key = name->id };
     hashmap_hash_key(HASHMAP_KEY_INT, &key, m_nameref_table.capacity_log2);
     struct HashmapEntry* entry = hashmap_get_or_create_entry(&m_nameref_table, &key);
     entry->object = nameref;
-    */
-  } else if (ast->kind == AST_FUNCTIONCALL_EXPR) {
+  } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     build_symtable_function_call(ast);
-  } else if (ast->kind == AST_MEMBERSELECT_EXPR) {
+  } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
     struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
     build_symtable_expression(expr->expr);
     build_symtable_expression(expr->member_name);
@@ -115,7 +111,7 @@ build_symtable_expression(struct Ast* ast)
     struct Ast_CastExpr* expr = (struct Ast_CastExpr*)ast;
     build_symtable_type_ref(expr->to_type);
     build_symtable_expression(expr->expr);
-  } else if (ast->kind == AST_INDEXEDARRAY_EXPR) {
+  } else if (ast->kind == AST_INDEXED_ARRAY_EXPR) {
     struct Ast_IndexedArrayExpr* expr = (struct Ast_IndexedArrayExpr*)ast;
     build_symtable_expression(expr->index);
     if (expr->colon_index) {
@@ -151,15 +147,15 @@ internal void
 build_symtable_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
-  struct Ast_Name* type_param = (struct Ast_Name*)ast;
-  struct SymtableEntry* entry = scope_lookup_name(get_current_scope(), NAMESPACE_TYPE, type_param->strname);
+  struct Ast_Name* name = (struct Ast_Name*)ast;
+  struct SymtableEntry* entry = scope_lookup_name(get_current_scope(), NAMESPACE_TYPE, name->strname);
   if (!entry->ns_type) {
     struct NamedObject* descriptor = new_object_descriptor(struct NamedObject, OBJECT_TYPEVAR);
-    descriptor->strname = type_param->strname;
-    descriptor->line_nr = type_param->line_nr;
+    descriptor->strname = name->strname;
+    descriptor->line_nr = name->line_nr;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor);
   } else {
-    build_symtable_type_ref((struct Ast*)type_param);
+    build_symtable_type_ref((struct Ast*)name);
   }
 }
 
@@ -435,7 +431,7 @@ build_symtable_statement(struct Ast* ast)
     build_symtable_expression(stmt->lvalue);
     struct Ast* assign_expr = stmt->expr;
     build_symtable_expression(assign_expr);
-  } else if (ast->kind == AST_METHODCALL_STMT) {
+  } else if (ast->kind == AST_METHOD_CALL_STMT) {
     build_symtable_method_call(ast);
   } else if (ast->kind == AST_DIRECT_APPLICATION) {
     struct Ast_DirectApplication* stmt = (struct Ast_DirectApplication*)ast;
@@ -1188,9 +1184,7 @@ build_symtable(struct Ast* p4program, struct Arena* symtable_storage)
   m_symtable_storage = symtable_storage;
 
   symtable_init(m_symtable_storage);
-  /*
   hashmap_init(&m_nameref_table, HASHMAP_KEY_INT, 8, m_symtable_storage);
-  */
 
   struct NamedObject* descriptor;
   descriptor = new_object_descriptor(struct NamedObject, OBJECT_VOID);
@@ -1238,6 +1232,5 @@ build_symtable(struct Ast* p4program, struct Arena* symtable_storage)
   declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, descriptor);
 
   build_symtable_p4program(p4program);
-  /*return &m_nameref_table;*/
-  return 0;
+  return &m_nameref_table;
 }

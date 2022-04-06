@@ -3,4 +3,4 @@
 #include "ast.h"
 
 
-void resolve_nameref(struct Ast* p4program);
+void resolve_nameref(struct Ast* p4program, struct Hashmap* nameref_table);

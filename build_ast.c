@@ -1363,7 +1363,7 @@ build_ast_prefixedNonTypeName()
 internal struct Ast*
 build_ast_arrayIndex()
 {
-  struct Ast_IndexedArrayExpr* index = new_ast_node(struct Ast_IndexedArrayExpr, AST_INDEXEDARRAY_EXPR);
+  struct Ast_IndexedArrayExpr* index = new_ast_node(struct Ast_IndexedArrayExpr, AST_INDEXED_ARRAY_EXPR);
   index->line_nr = m_token->line_nr;
   if (token_is_expression(m_token)) {
     index->index = build_ast_expression(1);
@@ -1406,7 +1406,7 @@ build_ast_lvalue()
     while(m_token->klass == TK_DOT_PREFIX || m_token->klass == TK_BRACKET_OPEN) {
       if (m_token->klass == TK_DOT_PREFIX) {
         next_token();
-        struct Ast_MemberSelectExpr* select_expr = new_ast_node(struct Ast_MemberSelectExpr, AST_MEMBERSELECT_EXPR);
+        struct Ast_MemberSelectExpr* select_expr = new_ast_node(struct Ast_MemberSelectExpr, AST_MEMBER_SELECT_EXPR);
         select_expr->line_nr = m_token->line_nr;
         select_expr->expr = lvalue;
         lvalue = (struct Ast*)select_expr;
@@ -1416,7 +1416,7 @@ build_ast_lvalue()
       }
       else if (m_token->klass == TK_BRACKET_OPEN) {
         next_token();
-        struct Ast_IndexedArrayExpr* index_expr = new_ast_node(struct Ast_IndexedArrayExpr, AST_INDEXEDARRAY_EXPR);
+        struct Ast_IndexedArrayExpr* index_expr = new_ast_node(struct Ast_IndexedArrayExpr, AST_INDEXED_ARRAY_EXPR);
         index_expr->line_nr = m_token->line_nr;
         index_expr->index = lvalue;
         index_expr->colon_index = build_ast_arrayIndex();
@@ -1447,7 +1447,7 @@ build_ast_assignmentOrMethodCallStatement()
     }
     if (m_token->klass == TK_PARENTH_OPEN) {
       next_token();
-      struct Ast_MethodCallStmt* call_stmt = new_ast_node(struct Ast_MethodCallStmt, AST_METHODCALL_STMT);
+      struct Ast_MethodCallStmt* call_stmt = new_ast_node(struct Ast_MethodCallStmt, AST_METHOD_CALL_STMT);
       call_stmt->line_nr = m_token->line_nr;
       call_stmt->lvalue = lvalue;
       call_stmt->type_args = type_args;
@@ -2829,7 +2829,7 @@ build_ast_expression(int priority_threshold)
     while (token_is_exprOperator(m_token)) {
       if (m_token->klass == TK_DOT_PREFIX) {
         next_token();
-        struct Ast_MemberSelectExpr* select_expr = new_ast_node(struct Ast_MemberSelectExpr, AST_MEMBERSELECT_EXPR);
+        struct Ast_MemberSelectExpr* select_expr = new_ast_node(struct Ast_MemberSelectExpr, AST_MEMBER_SELECT_EXPR);
         select_expr->line_nr = m_token->line_nr;
         select_expr->expr = expr;
         expr = (struct Ast*)select_expr;
@@ -2839,7 +2839,7 @@ build_ast_expression(int priority_threshold)
       }
       else if (m_token->klass == TK_BRACKET_OPEN) {
         next_token();
-        struct Ast_IndexedArrayExpr* index_expr = new_ast_node(struct Ast_IndexedArrayExpr, AST_INDEXEDARRAY_EXPR);
+        struct Ast_IndexedArrayExpr* index_expr = new_ast_node(struct Ast_IndexedArrayExpr, AST_INDEXED_ARRAY_EXPR);
         index_expr->line_nr = m_token->line_nr;
         index_expr->index = expr;
         index_expr->colon_index = build_ast_arrayIndex();
@@ -2850,7 +2850,7 @@ build_ast_expression(int priority_threshold)
       }
       else if (m_token->klass == TK_PARENTH_OPEN) {
         next_token();
-        struct Ast_FunctionCallExpr* call_expr = new_ast_node(struct Ast_FunctionCallExpr, AST_FUNCTIONCALL_EXPR);
+        struct Ast_FunctionCallExpr* call_expr = new_ast_node(struct Ast_FunctionCallExpr, AST_FUNCTION_CALL_EXPR);
         call_expr->line_nr = m_token->line_nr;
         call_expr->callee_expr = expr;
         call_expr->args = build_ast_argumentList();

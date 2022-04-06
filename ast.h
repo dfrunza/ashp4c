@@ -46,7 +46,7 @@ enum AstKind {
   AST_DIRECT_APPLICATION,
   AST_PARAM,
   AST_ASSIGNMENT_STMT,
-  AST_METHODCALL_STMT,
+  AST_METHOD_CALL_STMT,
   AST_EMPTY_STMT,
   AST_DEFAULT_STMT,
   AST_SELECT_CASE,
@@ -73,9 +73,9 @@ enum AstKind {
   AST_CAST_EXPR,
   AST_UNARY_EXPR,
   AST_BINARY_EXPR,
-  AST_MEMBERSELECT_EXPR,
-  AST_INDEXEDARRAY_EXPR,
-  AST_FUNCTIONCALL_EXPR,
+  AST_MEMBER_SELECT_EXPR,
+  AST_INDEXED_ARRAY_EXPR,
+  AST_FUNCTION_CALL_EXPR,
 };
 
 enum AstIntegerFlags {
@@ -131,7 +131,6 @@ struct Ast_Name {
   struct Ast_Expression;
   char* strname;
   bool is_dotprefixed;
-  struct Scope* scope;
 };
 
 struct Ast_BaseType {

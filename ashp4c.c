@@ -8,7 +8,6 @@
 #include "build_symtable.h"
 #include "resolve_nameref.h"
 
-#define DEBUG_ENABLED 0
 
 internal struct Arena m_main_storage = {};
 
@@ -120,8 +119,8 @@ main(int arg_count, char* args[])
     assert(!"TODO");
   }
 
-  build_symtable(p4program, &m_main_storage);
-  resolve_nameref(p4program);
+  struct Hashmap* nameref_table = build_symtable(p4program, &m_main_storage);
+  resolve_nameref(p4program, nameref_table);
 
   arena_delete(&m_main_storage);
   return 0;

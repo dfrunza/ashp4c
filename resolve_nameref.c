@@ -4,6 +4,9 @@
 #include "symtable.h"
 
 
+internal struct Hashmap* m_nameref_table = 0;
+
+
 internal void resolve_nameref_block_statement(struct Ast* block_stmt);
 internal void resolve_nameref_statement(struct Ast* decl);
 internal void resolve_nameref_expression(struct Ast* expr);
@@ -35,15 +38,7 @@ internal void
 resolve_nameref_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
-  struct Ast_Name* name = (struct Ast_Name*)ast;
-  /*
-  struct NameRef* nameref = nameref_get_entry(nameref_table, name->id);
-  if (nameref) {
-    assert(nameref->name_id == name->id);
-    nameref->kind = NAMEREF_TYPE;
-    array_append(type_names, &nameref);
-  } // else it's a declaration
-  */
+  resolve_nameref_expression(ast);
 }
 
 internal void
@@ -148,13 +143,7 @@ resolve_nameref_type_ref(struct Ast* ast)
     resolve_nameref_type_ref(type_ref->name);
     resolve_nameref_expression(type_ref->stack_expr);
   } else if (ast->kind == AST_NAME) {
-    struct Ast_Name* name = (struct Ast_Name*)ast;
-    /*
-    struct NameRef* nameref = nameref_get_entry(nameref_table, name->id);
-    assert(nameref->name_id == name->id);
-    nameref->kind = NAMEREF_TYPE;
-    array_append(type_names, &nameref);
-    */
+    resolve_nameref_expression(ast);
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
     struct Ast_SpecializedType* speclzd_type = (struct Ast_SpecializedType*)ast;
     resolve_nameref_type_ref(speclzd_type->name);
@@ -189,7 +178,7 @@ resolve_nameref_type_ref(struct Ast* ast)
 internal void
 resolve_nameref_method_call(struct Ast* ast)
 {
-  assert(ast->kind == AST_METHODCALL_STMT);
+  assert(ast->kind == AST_METHOD_CALL_STMT);
   struct Ast_MethodCallStmt* stmt = (struct Ast_MethodCallStmt*)ast;
   resolve_nameref_expression(stmt->lvalue);
   if (stmt->type_args) {
@@ -431,7 +420,7 @@ resolve_nameref_statement(struct Ast* ast)
     resolve_nameref_expression(stmt->lvalue);
     struct Ast* assign_expr = stmt->expr;
     resolve_nameref_expression(assign_expr);
-  } else if (ast->kind == AST_METHODCALL_STMT) {
+  } else if (ast->kind == AST_METHOD_CALL_STMT) {
     resolve_nameref_method_call(ast);
   } else if (ast->kind == AST_DIRECT_APPLICATION) {
     struct Ast_DirectApplication* stmt = (struct Ast_DirectApplication*)ast;
@@ -805,7 +794,7 @@ resolve_nameref_enum_decl(struct Ast* ast)
 internal void
 resolve_nameref_function_call(struct Ast* ast)
 {
-  assert(ast->kind == AST_FUNCTIONCALL_EXPR);
+  assert(ast->kind == AST_FUNCTION_CALL_EXPR);
   struct Ast_FunctionCallExpr* expr = (struct Ast_FunctionCallExpr*)ast;
   resolve_nameref_expression(expr->callee_expr);
   struct Ast_Expression* callee_expr = (struct Ast_Expression*)(expr->callee_expr);
@@ -839,33 +828,21 @@ resolve_nameref_expression(struct Ast* ast)
     resolve_nameref_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    /**
-    struct NameRef* nameref = nameref_get_entry(nameref_table, name->id);
-    assert(nameref->name_id == name->id);
-    nameref->kind = NAMEREF_VAR;
-    array_append(var_names, &nameref);
-    */
-  } else if (ast->kind == AST_FUNCTIONCALL_EXPR) {
-    resolve_nameref_function_call(ast);
-  } else if (ast->kind == AST_MEMBERSELECT_EXPR) {
-    struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
-    if (expr->expr->kind == AST_NAME) {
-      struct Ast_Name* name = (struct Ast_Name*)expr->expr;
-      struct SymtableEntry* entry = scope_lookup_name(name->scope,
-          NAMESPACE_TYPE | NAMESPACE_VAR, name->strname);
+    struct NameRef* nameref = nameref_get_entry(m_nameref_table, name->id);
+    if (nameref) {
+      struct SymtableEntry* entry = scope_lookup_name(nameref->scope,
+          NAMESPACE_TYPE | NAMESPACE_VAR, nameref->strname);
       if (entry->ns_type || entry->ns_var) {
-        int x = 0;
-      } else error("at line %d: name `%s` not found.", name->line_nr, name->strname);
-    }
+        nameref->ns_type = entry->ns_type;
+        nameref->ns_var = entry->ns_var;
+      }
+    } // else it's a declaration
+  } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
+    resolve_nameref_function_call(ast);
+  } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
+    struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
     resolve_nameref_expression(expr->expr);
     struct Ast_Name* name = (struct Ast_Name*)expr->member_name;
-    /*
-    struct NameRef* nameref = nameref_get_entry(nameref_table, name->id);
-    assert(nameref->name_id == name->id);
-    nameref->kind = NAMEREF_MEMBER;
-    nameref->member_expr = expr->expr;
-    array_append(member_names, &nameref);
-    */
   } else if (ast->kind == AST_EXPRLIST_EXPR) {
     struct Ast_ExprListExpr* expr = (struct Ast_ExprListExpr*)ast;
     if (expr->expr_list) {
@@ -880,7 +857,7 @@ resolve_nameref_expression(struct Ast* ast)
     struct Ast_CastExpr* expr = (struct Ast_CastExpr*)ast;
     resolve_nameref_type_ref(expr->to_type);
     resolve_nameref_expression(expr->expr);
-  } else if (ast->kind == AST_INDEXEDARRAY_EXPR) {
+  } else if (ast->kind == AST_INDEXED_ARRAY_EXPR) {
     struct Ast_IndexedArrayExpr* expr = (struct Ast_IndexedArrayExpr*)ast;
     resolve_nameref_expression(expr->index);
     if (expr->colon_index) {
@@ -963,7 +940,8 @@ resolve_nameref_p4program(struct Ast* ast)
 }
 
 void
-resolve_nameref(struct Ast* p4program)
+resolve_nameref(struct Ast* p4program, struct Hashmap* nameref_table)
 {
+  m_nameref_table = nameref_table;
   resolve_nameref_p4program(p4program);
 }
