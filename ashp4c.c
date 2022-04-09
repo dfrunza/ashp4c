@@ -6,6 +6,7 @@
 #include "symtable.h"
 #include "build_ast.h"
 #include "build_symtable.h"
+#include "build_type.h"
 #include "resolve_nameref.h"
 
 
@@ -119,8 +120,11 @@ main(int arg_count, char* args[])
     assert(!"TODO");
   }
 
-  struct Hashmap* nameref_table = build_symtable(p4program, &m_main_storage);
-  resolve_nameref(p4program, nameref_table);
+  struct Hashmap* nameref_map;
+  struct Hashmap* type_map;
+  nameref_map = build_symtable(p4program, &m_main_storage);
+  type_map = build_type(p4program, nameref_map, &m_main_storage);
+  resolve_nameref(p4program, nameref_map);
 
   arena_delete(&m_main_storage);
   return 0;

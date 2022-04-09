@@ -4,8 +4,7 @@
 
 
 enum TokenClass {
-  TK_NONE,
-  TK_SEMICOLON,
+  TK_SEMICOLON = 1,
   TK_IDENTIFIER,
   TK_TYPE_IDENTIFIER,
   TK_STRING,
@@ -94,7 +93,7 @@ enum TokenClass {
 struct Token {
   enum TokenClass klass;
   char* lexeme;
-  int line_nr;
+  int line_no;
 
   union {
     struct {

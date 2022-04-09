@@ -4,75 +4,75 @@
 #include "token.h"
 
 
-enum ObjectKind {
-  OBJECT_NONE,
-  OBJECT_KEYWORD,
-  OBJECT_VAR,
-  OBJECT_TYPEVAR,
-  OBJECT_CONST,
-  OBJECT_PARAM,
-  OBJECT_STRUCT_FIELD,
-  OBJECT_ENUM_FIELD,
-  OBJECT_ACTION,
-  OBJECT_PARSER,
-  OBJECT_PARSER_PROTO,
-  OBJECT_PARSER_STATE,
-  OBJECT_CONTROL,
-  OBJECT_CONTROL_PROTO,
-  OBJECT_FUNCTION,
-  OBJECT_FUNCTION_PROTO,
-  OBJECT_EXTERN,
-  OBJECT_STRUCT,
-  OBJECT_HEADER,
-  OBJECT_HEADER_UNION,
-  OBJECT_PACKAGE,
-  OBJECT_INSTANTIATION,
-  OBJECT_VOID,
-  OBJECT_BOOL,
-  OBJECT_INT,
-  OBJECT_BIT,
-  OBJECT_VARBIT,
-  OBJECT_STRING,
-  OBJECT_ERROR,
-  OBJECT_ENUM,
-  OBJECT_MATCH_KIND,
-  OBJECT_TABLE,
-  OBJECT_TYPE,
-  OBJECT_TYPEDEF,
+enum DeclEnum {
+  DECL_KEYWORD = 1,
+  DECL_VAR,
+  DECL_TYPEVAR,
+  DECL_CONST,
+  DECL_PARAM,
+  DECL_STRUCT_FIELD,
+  DECL_ENUM_FIELD,
+  DECL_ACTION,
+  DECL_PARSER,
+  DECL_PARSER_PROTO,
+  DECL_PARSER_STATE,
+  DECL_CONTROL,
+  DECL_CONTROL_PROTO,
+  DECL_FUNCTION,
+  DECL_FUNCTION_PROTO,
+  DECL_EXTERN,
+  DECL_STRUCT,
+  DECL_HEADER,
+  DECL_HEADER_UNION,
+  DECL_PACKAGE,
+  DECL_INSTANTIATION,
+  DECL_VOID,
+  DECL_BOOL,
+  DECL_INT,
+  DECL_BIT,
+  DECL_VARBIT,
+  DECL_STRING,
+  DECL_ERROR,
+  DECL_ENUM,
+  DECL_MATCH_KIND,
+  DECL_TABLE,
+  DECL_TYPE,
+  DECL_TYPEDEF,
 };
 
 enum Namespace {
-  NAMESPACE_NONE,
   NAMESPACE_TYPE = 1 << 0,
   NAMESPACE_VAR = 1 << 1,
   NAMESPACE_KEYWORD = 1 << 2,
 };
 
-struct NamedObject {
-  enum ObjectKind kind;
+struct NameDecl {
+  enum DeclEnum kind;
+  struct Ast_Name* name;
   char* strname;
-  int line_nr;
-  struct NamedObject* next_in_scope;
+  int line_no;
+  struct NameDecl* next_in_scope;
 };  
 
-struct Object_Keyword {
-  struct NamedObject;
-  enum TokenClass token_klass;
+struct Name_Keyword {
+  struct NameDecl;
+  enum TokenClass token_class;
 };
 
 struct NameRef {
+  struct Ast_Name* name;
   char* strname;
-  int line_nr;
+  int line_no;
   struct Scope* scope;
-  struct NamedObject* ns_type;
-  struct NamedObject* ns_var;
+  struct NameDecl* ns_type;
+  struct NameDecl* ns_var;
 };
 
 struct SymtableEntry {
   char* strname;
-  struct NamedObject* ns_keyword;
-  struct NamedObject* ns_type;
-  struct NamedObject* ns_var;
+  struct NameDecl* ns_keyword;
+  struct NameDecl* ns_type;
+  struct NameDecl* ns_var;
 };
 
 struct Scope {
@@ -93,4 +93,4 @@ struct Scope* pop_scope();
 struct Scope* get_root_scope();
 struct Scope* get_current_scope();
 struct SymtableEntry* scope_lookup_name(struct Scope* scope, enum Namespace ns, char* name);
-struct SymtableEntry* declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NamedObject* descriptor);
+struct SymtableEntry* declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl);

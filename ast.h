@@ -3,9 +3,8 @@
 #include "arena.h"
 
 
-enum AstKind {
-  AST_NONE,
-  AST_NAME,
+enum AstEnum {
+  AST_NAME = 1,
   AST_BASETYPE_BOOL,
   AST_BASETYPE_ERROR,
   AST_BASETYPE_INT,
@@ -79,14 +78,12 @@ enum AstKind {
 };
 
 enum AstIntegerFlags {
-  INTFLAGS_NONE,
-  INTFLAGS_HAS_WIDTH,
+  INTFLAGS_HAS_WIDTH = 1,
   INTFLAGS_IS_SIGNED,
 };
 
 enum AstExprOperator {
-  OP_NONE,
-  OP_ADD,
+  OP_ADD = 1,
   OP_SUB,
   OP_MUL,
   OP_DIV,
@@ -110,16 +107,15 @@ enum AstExprOperator {
 };
 
 enum AstParamDirection {
-  PARAMDIR_NONE,
-  PARAMDIR_IN,
+  PARAMDIR_IN = 1,
   PARAMDIR_OUT,
   PARAMDIR_INOUT,
 };
 
 struct Ast {
-  enum AstKind kind;
+  enum AstEnum kind;
   uint32_t id;
-  int line_nr;
+  int line_no;
 };
 
 struct Ast_Expression {
@@ -550,4 +546,3 @@ struct Ast_FunctionCallExpr {
   struct List* args;
 };
 
-void print_ast(struct Ast* ast);

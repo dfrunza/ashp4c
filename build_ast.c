@@ -1,7 +1,6 @@
 #include "arena.h"
 #include "hashmap.h"
 #include "token.h"
-#include "ast.h"
 #include "lex.h"
 #include "symtable.h"
 #include "build_ast.h"
@@ -10,13 +9,11 @@
 
 internal struct Arena *m_ast_storage;
 internal struct Arena m_local_storage = {};
-
 internal struct UnboundedArray* m_tokens_array;
 internal int m_token_at = 0;
 internal struct Token* m_token = 0;
 internal int m_prev_token_at = 0;
 internal struct Token* m_prev_token = 0;
-
 internal int m_node_id = 1;
 internal int m_node_count = 0;
 
@@ -50,7 +47,7 @@ next_token()
     struct SymtableEntry* entry = scope_lookup_name(get_current_scope(),
               NAMESPACE_KEYWORD|NAMESPACE_TYPE, m_token->lexeme);
     if (entry->ns_keyword) {
-      m_token->klass = ((struct Object_Keyword*)entry->ns_keyword)->token_klass;
+      m_token->klass = ((struct Name_Keyword*)entry->ns_keyword)->token_class;
       return m_token;
     }
     if (entry->ns_type) {
@@ -214,23 +211,29 @@ token_is_expression(struct Token* token)
   return token_is_expressionPrimary(token);
 }
 
+internal bool
+token_is_methodPrototype(struct Token* token)
+{
+  return token_is_typeOrVoid(token) || token->klass == TK_TYPE_IDENTIFIER;
+}
+
 internal struct Ast*
 build_ast_nonTypeName(bool is_type)
 {
   struct Ast_Name* name = 0;
   if (token_is_nonTypeName(m_token)) {
     name = new_ast_node(struct Ast_Name, AST_NAME);
-    name->line_nr = m_token->line_nr;
+    name->line_no = m_token->line_no;
     name->strname = m_token->lexeme;
     if (is_type) {
-      struct NamedObject* descriptor = arena_push(m_ast_storage, sizeof(*descriptor));
+      struct NameDecl* descriptor = arena_push(m_ast_storage, sizeof(*descriptor));
       memset(descriptor, 0, sizeof(*descriptor));
       descriptor->strname = name->strname;
-      descriptor->line_nr = m_token->line_nr;
+      descriptor->line_no = m_token->line_no;
       declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor);
     }
     next_token();
-  } else error("at line %d: non-type name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: non-type name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)name;
 }
 
@@ -243,12 +246,12 @@ build_ast_name(bool is_type)
       name = (struct Ast_Name*)build_ast_nonTypeName(is_type);
     } else if (m_token->klass == TK_TYPE_IDENTIFIER) {
       struct Ast_Name* type_name = new_ast_node(struct Ast_Name, AST_NAME);
-      type_name->line_nr = m_token->line_nr;
+      type_name->line_no = m_token->line_no;
       type_name->strname = m_token->lexeme;
       name = type_name;
       next_token();
     } else assert(0);
-  } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)name;
 }
 
@@ -271,7 +274,7 @@ build_ast_typeParameterList()
       link->object = build_ast_name(true);
       list_append_link(params, link);
     }
-  } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return params;
 }
 
@@ -285,8 +288,8 @@ build_ast_optTypeParameters()
       params = build_ast_typeParameterList();
       if (m_token->klass == TK_ANGLE_CLOSE) {
         next_token();
-      } else error("at line %d: `>` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `>` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   }
   return params;
 }
@@ -299,7 +302,7 @@ build_ast_typeArg()
   {
     if (m_token->klass == TK_DONTCARE) {
       struct Ast_Dontcare* dontcare = new_ast_node(struct Ast_Dontcare, AST_DONTCARE);
-      dontcare->line_nr = m_token->line_nr;
+      dontcare->line_no = m_token->line_no;
       arg = (struct Ast*)dontcare;
       next_token();
     } else if (token_is_typeRef(m_token)) {
@@ -307,20 +310,14 @@ build_ast_typeArg()
     } else if (token_is_nonTypeName(m_token)) {
       arg = build_ast_nonTypeName(false);
     } else assert(0);
-  } else error("at line %d: type argument was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: type argument was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return arg;
-}
-
-internal bool
-token_is_methodPrototype(struct Token* token)
-{
-  return token_is_typeOrVoid(token) || token->klass == TK_TYPE_IDENTIFIER;
 }
 
 internal enum AstParamDirection
 build_ast_direction()
 {
-  enum AstParamDirection dir = PARAMDIR_NONE;
+  enum AstParamDirection dir = 0;
   if (token_is_direction(m_token)) {
     if (m_token->klass == TK_IN) {
       dir = PARAMDIR_IN;
@@ -338,7 +335,7 @@ internal struct Ast*
 build_ast_parameter()
 {
   struct Ast_Param* param = new_ast_node(struct Ast_Param, AST_PARAM);
-  param->line_nr = m_token->line_nr;
+  param->line_no = m_token->line_no;
   param->direction = build_ast_direction();
   if (token_is_typeRef(m_token)) {
     param->type = build_ast_typeRef();
@@ -348,10 +345,10 @@ build_ast_parameter()
         next_token();
         if (token_is_expression(m_token)) {
           param->init_expr = build_ast_expression(1);
-        } else error("at line %d: expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       }
-    } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: type was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: type was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)param;
 }
 
@@ -387,25 +384,25 @@ build_ast_typeOrVoid(bool is_type)
       type = (struct Ast*)build_ast_typeRef();
     } else if (m_token->klass == TK_VOID) {
       struct Ast_Name* void_name = new_ast_node(struct Ast_Name, AST_NAME);
-      void_name->line_nr = m_token->line_nr;
+      void_name->line_no = m_token->line_no;
       void_name->strname = m_token->lexeme;
       type = (struct Ast*)void_name;
       next_token();
     } else if (m_token->klass == TK_IDENTIFIER) {
       struct Ast_Name* name = new_ast_node(struct Ast_Name, AST_NAME);
-      name->line_nr = m_token->line_nr;
+      name->line_no = m_token->line_no;
       name->strname = m_token->lexeme;
       type = (struct Ast*)name;
       if (is_type) {
-        struct NamedObject* descriptor = arena_push(m_ast_storage, sizeof(*descriptor));
+        struct NameDecl* descriptor = arena_push(m_ast_storage, sizeof(*descriptor));
         memset(descriptor, 0, sizeof(*descriptor));
         descriptor->strname = name->strname;
-        descriptor->line_nr = m_token->line_nr;
+        descriptor->line_no = m_token->line_no;
         declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor);
       }
       next_token();
     } else assert(0);
-  } else error("at line %d: type was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: type was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)type;
 }
 
@@ -415,7 +412,7 @@ build_ast_functionPrototype(struct Ast* return_type)
   struct Ast_FunctionProto* proto = 0;
   if (token_is_typeOrVoid(m_token) || return_type) {
     proto = new_ast_node(struct Ast_FunctionProto, AST_FUNCTION_PROTO);
-    proto->line_nr = m_token->line_nr;
+    proto->line_no = m_token->line_no;
     if (return_type) {
       proto->return_type = return_type;
     } else {
@@ -429,10 +426,10 @@ build_ast_functionPrototype(struct Ast* return_type)
         proto->params = build_ast_parameterList();
         if (m_token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `(` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: function name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: type was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `(` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: function name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: type was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)proto;
 }
 
@@ -444,22 +441,22 @@ build_ast_methodPrototype()
     if (m_token->klass == TK_TYPE_IDENTIFIER && peek_token()->klass == TK_PARENTH_OPEN) {
       /* Constructor */
       proto = new_ast_node(struct Ast_FunctionProto, AST_FUNCTION_PROTO);
-      proto->line_nr = m_token->line_nr;
+      proto->line_no = m_token->line_no;
       proto->name = build_ast_name(false);
       if (m_token->klass == TK_PARENTH_OPEN) {
         next_token();
         proto->params = build_ast_parameterList();
         if (m_token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `(` as expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `(` as expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else if (token_is_typeOrVoid(m_token)) {
       proto = (struct Ast_FunctionProto*)build_ast_functionPrototype(0);
-    } else error("at line %d: type was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: type was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     if (m_token->klass == TK_SEMICOLON) {
       next_token();
-    } else error("at line %d: `;` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: type was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: `;` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: type was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)proto;
 }
 
@@ -498,7 +495,7 @@ build_ast_externDeclaration()
       is_function_proto = true;
     } else if (token_is_nonTypeName(m_token)) {
       is_function_proto = false;
-    } else error("at line %d: extern declaration was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: extern declaration was expected, got `%s`.", m_token->line_no, m_token->lexeme);
 
     if (is_function_proto) {
       struct Ast_FunctionProto* proto = (struct Ast_FunctionProto*)build_ast_functionPrototype(0);
@@ -506,10 +503,10 @@ build_ast_externDeclaration()
       proto->is_extern = true;
       if (m_token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("at line %d: `;` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `;` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else {
       struct Ast_ExternDecl* extern_decl = new_ast_node(struct Ast_ExternDecl, AST_EXTERN_DECL);
-      extern_decl->line_nr = m_token->line_nr;
+      extern_decl->line_no = m_token->line_no;
       decl = (struct Ast*)extern_decl;
       extern_decl->name = build_ast_nonTypeName(true);
       extern_decl->type_params = build_ast_optTypeParameters();
@@ -518,8 +515,8 @@ build_ast_externDeclaration()
         extern_decl->method_protos = build_ast_methodPrototypes();
         if (m_token->klass == TK_BRACE_CLOSE) {
           next_token();
-        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     }
   }
   return decl;
@@ -531,7 +528,7 @@ build_ast_integer()
   struct Ast_IntLiteral* int_node = 0;
   if (m_token->klass == TK_INTEGER) {
     int_node = new_ast_node(struct Ast_IntLiteral, AST_INT_LITERAL);
-    int_node->line_nr = m_token->line_nr;
+    int_node->line_no = m_token->line_no;
     int_node->flags = m_token->i.flags;
     int_node->width = m_token->i.width;
     int_node->value = m_token->i.value;
@@ -546,7 +543,7 @@ build_ast_boolean()
   struct Ast_BoolLiteral* bool_node = 0;
   if (m_token->klass == TK_TRUE || m_token->klass == TK_FALSE) {
     bool_node = new_ast_node(struct Ast_BoolLiteral, AST_BOOL_LITERAL);
-    bool_node->line_nr = m_token->line_nr;
+    bool_node->line_no = m_token->line_no;
     bool_node->value = (m_token->klass == TK_TRUE);
     next_token();
   }
@@ -559,7 +556,7 @@ build_ast_stringLiteral()
   struct Ast_StringLiteral* string = 0;
   if (m_token->klass == TK_STRING_LITERAL) {
     string = new_ast_node(struct Ast_StringLiteral, AST_STRING_LITERAL);
-    string->line_nr = m_token->line_nr;
+    string->line_no = m_token->line_no;
     string->value = m_token->lexeme;
     next_token();
   }
@@ -570,12 +567,12 @@ internal struct Ast*
 build_ast_integerTypeSize()
 {
   struct Ast_IntTypeSize* type_size = new_ast_node(struct Ast_IntTypeSize, AST_INT_TYPESIZE);
-  type_size->line_nr = m_token->line_nr;
+  type_size->line_no = m_token->line_no;
   if (m_token->klass == TK_INTEGER) {
     type_size->size = build_ast_integer();
   } else if (m_token->klass == TK_PARENTH_OPEN) {
     type_size->size = build_ast_expression(1);
-  } else error("at line %d: `(` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: `(` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)type_size;
 }
 
@@ -585,24 +582,24 @@ build_ast_baseType()
   struct Ast* base_type = 0;
   if (token_is_baseType(m_token)) {
     struct Ast_Name* type_name = new_ast_node(struct Ast_Name, AST_NAME);
-    type_name->line_nr = m_token->line_nr;
+    type_name->line_no = m_token->line_no;
     if (m_token->klass == TK_BOOL) {
       struct Ast_BaseType_Bool* bool_type = new_ast_node(struct Ast_BaseType_Bool, AST_BASETYPE_BOOL);
-      bool_type->line_nr = m_token->line_nr;
+      bool_type->line_no = m_token->line_no;
       type_name->strname = "bool";
       bool_type->name = (struct Ast*)type_name;
       base_type = (struct Ast*)bool_type;
       next_token();
     } else if (m_token->klass == TK_ERROR) {
       struct Ast_BaseType_Error* error_type = new_ast_node(struct Ast_BaseType_Error, AST_BASETYPE_ERROR);
-      error_type->line_nr = m_token->line_nr;
+      error_type->line_no = m_token->line_no;
       type_name->strname = "error";
       error_type->name = (struct Ast*)type_name;
       base_type = (struct Ast*)error_type;
       next_token();
     } else if (m_token->klass == TK_INT) {
       struct Ast_BaseType_Int* int_type = new_ast_node(struct Ast_BaseType_Int, AST_BASETYPE_INT);
-      type_name->line_nr = m_token->line_nr;
+      type_name->line_no = m_token->line_no;
       type_name->strname = "int";
       int_type->name = (struct Ast*)type_name;
       base_type = (struct Ast*)int_type;
@@ -612,11 +609,11 @@ build_ast_baseType()
         int_type->size = build_ast_integerTypeSize();
         if (m_token->klass == TK_ANGLE_CLOSE) {
           next_token();
-        } else error("at line %d: `>` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `>` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       }
     } else if (m_token->klass == TK_BIT) {
       struct Ast_BaseType_Bit* bit_type = new_ast_node(struct Ast_BaseType_Bit, AST_BASETYPE_BIT);
-      type_name->line_nr = m_token->line_nr;
+      type_name->line_no = m_token->line_no;
       type_name->strname = "bit";
       bit_type->name = (struct Ast*)type_name;
       base_type = (struct Ast*)bit_type;
@@ -626,11 +623,11 @@ build_ast_baseType()
         bit_type->size = build_ast_integerTypeSize();
         if (m_token->klass == TK_ANGLE_CLOSE) {
           next_token();
-        } else error("at line %d: `>` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `>` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       }
     } else if (m_token->klass == TK_VARBIT) {
       struct Ast_BaseType_Varbit* varbit_type = new_ast_node(struct Ast_BaseType_Varbit, AST_BASETYPE_VARBIT);
-      type_name->line_nr = m_token->line_nr;
+      type_name->line_no = m_token->line_no;
       type_name->strname = "varbit";
       varbit_type->name = (struct Ast*)type_name;
       base_type = (struct Ast*)varbit_type;
@@ -640,25 +637,25 @@ build_ast_baseType()
         varbit_type->size = build_ast_integerTypeSize();
         if (m_token->klass == TK_ANGLE_CLOSE) {
           next_token();
-        } else error("at line %d: `>` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `>` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       }
     } else if (m_token->klass == TK_STRING) {
       struct Ast_BaseType_String* string_type = new_ast_node(struct Ast_BaseType_String, AST_BASETYPE_STRING);
-      string_type->line_nr = m_token->line_nr;
+      string_type->line_no = m_token->line_no;
       type_name->strname = "string";
       string_type->name = (struct Ast*)type_name;
       base_type = (struct Ast*)string_type;
       next_token();
     } else if (m_token->klass == TK_VOID) {
       struct Ast_BaseType_Void* void_type = new_ast_node(struct Ast_BaseType_Void, AST_BASETYPE_VOID);
-      void_type->line_nr = m_token->line_nr;
+      void_type->line_no = m_token->line_no;
       type_name->strname = "void";
       void_type->name = (struct Ast*)type_name;
       base_type = (struct Ast*)void_type;
       next_token();
     }
     else assert(0);
-  } else error("at line %d: type as expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: type as expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return base_type;
 }
 
@@ -692,15 +689,15 @@ build_ast_tupleType()
   if (m_token->klass == TK_TUPLE) {
     next_token();
     tuple = new_ast_node(struct Ast_Tuple, AST_TUPLE);
-    tuple->line_nr = m_token->line_nr;
+    tuple->line_no = m_token->line_no;
     if (m_token->klass == TK_ANGLE_OPEN) {
       next_token();
       tuple->type_args = build_ast_typeArgumentList();
       if (m_token->klass == TK_ANGLE_CLOSE) {
         next_token();
-      } else error("at line %d: `>` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: `<` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `tuple` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `>` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: `<` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `tuple` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)tuple;
 }
 
@@ -711,14 +708,14 @@ build_ast_headerStackType()
   if (m_token->klass == TK_BRACKET_OPEN) {
     next_token();
     stack = new_ast_node(struct Ast_HeaderStack, AST_HEADER_STACK);
-    stack->line_nr = m_token->line_nr;
+    stack->line_no = m_token->line_no;
     if (token_is_expression(m_token)) {
       stack->stack_expr = build_ast_expression(1);
       if (m_token->klass == TK_BRACKET_CLOSE) {
         next_token();
-      } else error("at line %d: `]` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: an expression expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `[` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `]` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: an expression expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `[` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)stack;
 }
 
@@ -729,12 +726,12 @@ build_ast_specializedType()
   if (m_token->klass == TK_ANGLE_OPEN) {
     next_token();
     type = new_ast_node(struct Ast_SpecializedType, AST_SPECIALIZED_TYPE);
-    type->line_nr = m_token->line_nr;
+    type->line_no = m_token->line_no;
     type->type_args = build_ast_typeArgumentList();
     if (m_token->klass == TK_ANGLE_CLOSE) {
       next_token();
-    } else error("at line %d: `>` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `<` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: `>` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `<` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)type;
 }
 
@@ -749,11 +746,11 @@ build_ast_prefixedType()
   }
   if (m_token->klass == TK_TYPE_IDENTIFIER) {
     name = new_ast_node(struct Ast_Name, AST_NAME);
-    name->line_nr = m_token->line_nr;
+    name->line_no = m_token->line_no;
     name->strname = m_token->lexeme;
     name->is_dotprefixed = is_dotprefixed;
     next_token();
-  } else error("at line %d: type was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: type was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)name;
 }
 
@@ -774,7 +771,7 @@ build_ast_typeName()
       ((struct Ast_HeaderStack*)stack_type)->name = name;
       name = stack_type;
     }
-  } else error("at line %d: type was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: type was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return name;
 }
 
@@ -791,7 +788,7 @@ build_ast_typeRef()
     } else if (m_token->klass == TK_TUPLE) {
       ref = build_ast_tupleType();
     } else assert(0);
-  } else error("at line %d: type was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: type was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return ref;
 }
 
@@ -806,16 +803,16 @@ internal struct Ast*
 build_ast_structField()
 {
   struct Ast_StructField* field = new_ast_node(struct Ast_StructField, AST_STRUCT_FIELD);
-  field->line_nr = m_token->line_nr;
+  field->line_no = m_token->line_no;
   if (token_is_typeRef(m_token)) {
     field->type = build_ast_typeRef();
     if (token_is_name(m_token)) {
       field->name = build_ast_name(false);
       if (m_token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("at line %d: `;` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: struct field was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `;` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: struct field was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)field;
 }
 
@@ -848,7 +845,7 @@ build_ast_headerTypeDeclaration()
   if (m_token->klass == TK_HEADER) {
     next_token();
     decl = new_ast_node(struct Ast_HeaderDecl, AST_HEADER_DECL);
-    decl->line_nr = m_token->line_nr;
+    decl->line_no = m_token->line_no;
     if (token_is_name(m_token)) {
       decl->name = build_ast_name(true);
       if (m_token->klass == TK_BRACE_OPEN) {
@@ -856,10 +853,10 @@ build_ast_headerTypeDeclaration()
         decl->fields = build_ast_structFieldList();
         if (m_token->klass == TK_BRACE_CLOSE) {
           next_token(m_token);
-        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `header` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `header` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)decl;
 }
 
@@ -870,7 +867,7 @@ build_ast_headerUnionDeclaration()
   if (m_token->klass == TK_HEADER_UNION) {
     next_token();
     decl = new_ast_node(struct Ast_HeaderUnionDecl, AST_HEADER_UNION_DECL);
-    decl->line_nr = m_token->line_nr;
+    decl->line_no = m_token->line_no;
     if (token_is_name(m_token)) {
       decl->name = build_ast_name(true);
       if (m_token->klass == TK_BRACE_OPEN) {
@@ -878,10 +875,10 @@ build_ast_headerUnionDeclaration()
         decl->fields = build_ast_structFieldList();
         if (m_token->klass == TK_BRACE_CLOSE) {
           next_token();
-        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `header_union` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `header_union` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)decl;
 }
 
@@ -892,7 +889,7 @@ build_ast_structTypeDeclaration()
   if (m_token->klass == TK_STRUCT) {
     next_token();
     decl = new_ast_node(struct Ast_StructDecl, AST_STRUCT_DECL);
-    decl->line_nr = m_token->line_nr;
+    decl->line_no = m_token->line_no;
     if (token_is_name(m_token)) {
       decl->name = build_ast_name(true);
       if (m_token->klass == TK_BRACE_OPEN) {
@@ -900,10 +897,10 @@ build_ast_structTypeDeclaration()
         decl->fields = build_ast_structFieldList();
         if (m_token->klass == TK_BRACE_CLOSE) {
           next_token();
-        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `struct` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `struct` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)decl;
 }
 
@@ -936,15 +933,15 @@ build_ast_specifiedIdentifier()
   struct Ast_SpecifiedIdent* id = 0;
   if (token_is_specifiedIdentifier(m_token)) {
     id = new_ast_node(struct Ast_SpecifiedIdent, AST_SPECIFIED_IDENT);
-    id->line_nr = m_token->line_nr;
+    id->line_no = m_token->line_no;
     id->name = build_ast_name(false);
     if (m_token->klass == TK_EQUAL) {
       next_token();
       if (token_is_expression(m_token)) {
         id->init_expr = build_ast_initializer();
-      } else error("at line %d: an expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: an expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     }
-  } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)id;
 }
 
@@ -978,7 +975,7 @@ build_ast_enumDeclaration()
   if (m_token->klass == TK_ENUM) {
     next_token();
     decl = new_ast_node(struct Ast_EnumDecl, AST_ENUM_DECL);
-    decl->line_nr = m_token->line_nr;
+    decl->line_no = m_token->line_no;
     if (m_token->klass == TK_BIT) {
       next_token();
       if (m_token->klass == TK_ANGLE_OPEN) {
@@ -987,9 +984,9 @@ build_ast_enumDeclaration()
           decl->type_size = build_ast_integer();
           if (m_token->klass == TK_ANGLE_CLOSE) {
             next_token();
-          } else error("at line %d: `>` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-        } else error("at line %d: an integer was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `<` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+          } else error("at line %d: `>` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+        } else error("at line %d: an integer was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `<` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     }
     if (token_is_name(m_token)) {
       decl->name = build_ast_name(true);
@@ -999,11 +996,11 @@ build_ast_enumDeclaration()
           decl->id_list = build_ast_specifiedIdentifierList();
           if (m_token->klass == TK_BRACE_CLOSE) {
             next_token();
-          } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-        } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `enum` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+          } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+        } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `enum` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)decl;
 }
 
@@ -1021,7 +1018,7 @@ build_ast_derivedTypeDeclaration()
     } else if (m_token->klass == TK_ENUM) {
       decl = build_ast_enumDeclaration();
     } else assert(0);
-  } else error("at line %d: structure declaration was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: structure declaration was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return decl;
 }
 
@@ -1032,7 +1029,7 @@ build_ast_parserTypeDeclaration()
   if (m_token->klass == TK_PARSER) {
     next_token();
     type = new_ast_node(struct Ast_ParserProto, AST_PARSER_PROTO);
-    type->line_nr = m_token->line_nr; 
+    type->line_no = m_token->line_no; 
     if (token_is_name(m_token)) {
       type->name = build_ast_name(true);
       type->type_params = build_ast_optTypeParameters();
@@ -1041,10 +1038,10 @@ build_ast_parserTypeDeclaration()
         type->params = build_ast_parameterList();
         if (m_token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `(` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `parser` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `(` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `parser` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)type;
 }
 
@@ -1057,7 +1054,7 @@ build_ast_optConstructorParameters()
     ctor_params = build_ast_parameterList();
     if (m_token->klass == TK_PARENTH_CLOSE) {
       next_token();
-    } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   }
   return ctor_params;
 }
@@ -1069,7 +1066,7 @@ build_ast_constantDeclaration()
   if (m_token->klass == TK_CONST) {
     next_token();
     decl = new_ast_node(struct Ast_ConstDecl, AST_CONST_DECL);
-    decl->line_nr = m_token->line_nr;
+    decl->line_no = m_token->line_no;
     if (token_is_typeRef(m_token)) {
       decl->type_ref = build_ast_typeRef();
       if (token_is_name(m_token)) {
@@ -1080,12 +1077,12 @@ build_ast_constantDeclaration()
             decl->expr = build_ast_expression(1);
             if (m_token->klass == TK_SEMICOLON) {
               next_token();
-            } else error("at line %d: `;` expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-          } else error("at line %d: an expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-        } else error("at line %d: `=` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: type was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `const` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+            } else error("at line %d: `;` expected, got `%s`.", m_token->line_no, m_token->lexeme);
+          } else error("at line %d: an expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+        } else error("at line %d: `=` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: type was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `const` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)decl;
 }
 
@@ -1189,22 +1186,22 @@ build_ast_argument()
       arg = build_ast_expression(1);
     } else if (token_is_name(m_token)) {
       struct Ast_Argument* name_arg = new_ast_node(struct Ast_Argument, AST_ARGUMENT);
-      name_arg->line_nr = m_token->line_nr;
+      name_arg->line_no = m_token->line_no;
       arg = (struct Ast*)name_arg;
       name_arg->name = build_ast_name(false);
       if (m_token->klass == TK_EQUAL) {
         next_token();
         if (token_is_expression(m_token)) {
           name_arg->init_expr = build_ast_expression(1);
-        } else error("at line %d: an expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `=` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: an expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `=` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else if (m_token->klass == TK_DONTCARE) {
       struct Ast_Dontcare* dontcare_arg = new_ast_node(struct Ast_Dontcare, AST_DONTCARE);
-      dontcare_arg->line_nr = m_token->line_nr;
+      dontcare_arg->line_no = m_token->line_no;
       arg = (struct Ast*)dontcare_arg;
       next_token();
     } else assert(0);
-  } else error("at line %d: an argument was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: an argument was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return arg;
 }
 
@@ -1237,16 +1234,16 @@ build_ast_variableDeclaration(struct Ast* type_ref)
   struct Ast_VarDecl* decl = 0;
   if (token_is_typeRef(m_token) || type_ref) {
     decl = new_ast_node(struct Ast_VarDecl, AST_VAR_DECL);
-    decl->line_nr = m_token->line_nr;
+    decl->line_no = m_token->line_no;
     decl->type = type_ref ? type_ref : build_ast_typeRef();
     if (token_is_name(m_token)) {
       decl->name = build_ast_name(false);
       decl->init_expr = build_ast_optInitializer();
       if (m_token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("at line %d: `;` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: type was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `;` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: type was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)decl;
 }
 
@@ -1256,7 +1253,7 @@ build_ast_instantiation(struct Ast* type_ref)
   struct Ast_Instantiation* inst = 0;
   if (token_is_typeRef(m_token) || type_ref) {
     inst = new_ast_node(struct Ast_Instantiation, AST_INSTANTIATION);
-    inst->line_nr = m_token->line_nr;
+    inst->line_no = m_token->line_no;
     inst->type_ref = type_ref ? type_ref : build_ast_typeRef();
     if (m_token->klass == TK_PARENTH_OPEN) {
       next_token();
@@ -1267,11 +1264,11 @@ build_ast_instantiation(struct Ast* type_ref)
           inst->name = build_ast_name(false);
           if (m_token->klass == TK_SEMICOLON) {
             next_token();
-          } else error("at line %d: `;` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-        } else error("at line %d: instance name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: `(` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: type was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+          } else error("at line %d: `;` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+        } else error("at line %d: instance name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: `(` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: type was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)inst;
 }
 
@@ -1288,9 +1285,9 @@ build_ast_parserLocalElement()
         elem = build_ast_instantiation(type_ref);
       } else if (token_is_name(m_token)) {
         elem = build_ast_variableDeclaration(type_ref);
-      } else error("at line %d: unexpected token `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: unexpected token `%s`.", m_token->line_no, m_token->lexeme);
     } else assert(0);
-  } else error("at line %d: local declaration was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: local declaration was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return elem;
 }
 
@@ -1322,7 +1319,7 @@ build_ast_directApplication(struct Ast* type_name)
   struct Ast_DirectApplication* applic = 0;
   if (token_is_typeName(m_token) || type_name) {
     applic = new_ast_node(struct Ast_DirectApplication, AST_DIRECT_APPLICATION);
-    applic->line_nr = m_token->line_nr;
+    applic->line_no = m_token->line_no;
     applic->name = type_name ? type_name : build_ast_typeName();
     if (m_token->klass == TK_DOT_PREFIX) {
       next_token();
@@ -1335,12 +1332,12 @@ build_ast_directApplication(struct Ast* type_name)
             next_token();
             if (m_token->klass == TK_SEMICOLON) {
               next_token();
-            } else error("at line %d: `;` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-          } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-        } else error("at line %d: `(` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `apply` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: `.` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: type name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+            } else error("at line %d: `;` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+          } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+        } else error("at line %d: `(` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `apply` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: `.` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: type name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)applic;
 }
 
@@ -1356,7 +1353,7 @@ build_ast_prefixedNonTypeName()
   if (token_is_nonTypeName) {
     name = (struct Ast_Name*)build_ast_nonTypeName(false);
     name->is_dotprefixed = is_dotprefixed;
-  } else error("at line %d: non-type name was expected, ", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: non-type name was expected, ", m_token->line_no, m_token->lexeme);
   return (struct Ast*)name;
 }
 
@@ -1364,15 +1361,15 @@ internal struct Ast*
 build_ast_arrayIndex()
 {
   struct Ast_IndexedArrayExpr* index = new_ast_node(struct Ast_IndexedArrayExpr, AST_INDEXED_ARRAY_EXPR);
-  index->line_nr = m_token->line_nr;
+  index->line_no = m_token->line_no;
   if (token_is_expression(m_token)) {
     index->index = build_ast_expression(1);
-  } else error("at line %d: an expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: an expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   if (m_token->klass == TK_COLON) {
     next_token();
     if (token_is_expression(m_token)) {
       index->colon_index = build_ast_expression(1);
-    } else error("at line %d: an expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: an expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   }
   return (struct Ast*)index;
 }
@@ -1391,8 +1388,8 @@ build_ast_lvalueExpr()
     expr = build_ast_arrayIndex();
     if (m_token->klass == TK_BRACKET_CLOSE) {
       next_token();
-    } else error("at line %d: `]` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: lvalue was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: `]` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: lvalue was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return expr;
 }
 
@@ -1407,26 +1404,26 @@ build_ast_lvalue()
       if (m_token->klass == TK_DOT_PREFIX) {
         next_token();
         struct Ast_MemberSelectExpr* select_expr = new_ast_node(struct Ast_MemberSelectExpr, AST_MEMBER_SELECT_EXPR);
-        select_expr->line_nr = m_token->line_nr;
+        select_expr->line_no = m_token->line_no;
         select_expr->expr = lvalue;
         lvalue = (struct Ast*)select_expr;
         if (token_is_name(m_token)) {
           select_expr->member_name = build_ast_name(false);
-        } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       }
       else if (m_token->klass == TK_BRACKET_OPEN) {
         next_token();
         struct Ast_IndexedArrayExpr* index_expr = new_ast_node(struct Ast_IndexedArrayExpr, AST_INDEXED_ARRAY_EXPR);
-        index_expr->line_nr = m_token->line_nr;
+        index_expr->line_no = m_token->line_no;
         index_expr->index = lvalue;
         index_expr->colon_index = build_ast_arrayIndex();
         lvalue = (struct Ast*)index_expr;
         if (m_token->klass == TK_BRACKET_CLOSE) {
           next_token();
-        } else error("at line %d: `]` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `]` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       }
     }
-  } else error("at line %d: lvalue was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: lvalue was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)lvalue;
 }
 
@@ -1443,31 +1440,31 @@ build_ast_assignmentOrMethodCallStatement()
       type_args = build_ast_typeArgumentList();
       if (m_token->klass == TK_ANGLE_CLOSE) {
         next_token();
-      } else error("at line %d: `>` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `>` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     }
     if (m_token->klass == TK_PARENTH_OPEN) {
       next_token();
       struct Ast_MethodCallStmt* call_stmt = new_ast_node(struct Ast_MethodCallStmt, AST_METHOD_CALL_STMT);
-      call_stmt->line_nr = m_token->line_nr;
+      call_stmt->line_no = m_token->line_no;
       call_stmt->lvalue = lvalue;
       call_stmt->type_args = type_args;
       call_stmt->args = build_ast_argumentList();
       stmt = (struct Ast*)call_stmt;
       if (m_token->klass == TK_PARENTH_CLOSE) {
         next_token();
-      } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else if (m_token->klass == TK_EQUAL) {
       next_token();
       struct Ast_AssignmentStmt* assgn_stmt = new_ast_node(struct Ast_AssignmentStmt, AST_ASSIGNMENT_STMT);
-      assgn_stmt->line_nr = m_token->line_nr;
+      assgn_stmt->line_no = m_token->line_no;
       assgn_stmt->lvalue = lvalue;
       assgn_stmt->expr = build_ast_expression(1);
       stmt = (struct Ast*)assgn_stmt;
-    } else error("at line %d: assignment or function call was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: assignment or function call was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     if (m_token->klass == TK_SEMICOLON) {
       next_token();
-    } else error("at line %d: `;` expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: lvalue was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: `;` expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: lvalue was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return stmt;
 }
 
@@ -1499,13 +1496,13 @@ build_ast_parserBlockStatements()
   struct Ast_BlockStmt* stmt = 0;
   if (m_token->klass == TK_BRACE_OPEN) {
     stmt = new_ast_node(struct Ast_BlockStmt, AST_BLOCK_STMT);
-    stmt->line_nr = m_token->line_nr;
+    stmt->line_no = m_token->line_no;
     next_token();
     stmt->stmt_list = build_ast_parserStatements();
     if (m_token->klass == TK_BRACE_CLOSE) {
       next_token();
-    } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)stmt;
 }
 
@@ -1528,8 +1525,8 @@ build_ast_parserStatement()
     stmt = build_ast_constantDeclaration();
   } else if (m_token->klass == TK_SEMICOLON) {
     stmt = (struct Ast*)new_ast_node(struct Ast_EmptyStmt, AST_EMPTY_STMT);
-    stmt->line_nr = m_token->line_nr;
-  } else error("at line %d: statement was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    stmt->line_no = m_token->line_no;
+  } else error("at line %d: statement was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return stmt;
 }
 
@@ -1565,12 +1562,12 @@ build_ast_simpleKeysetExpression()
   } else if (m_token->klass == TK_DEFAULT) {
     next_token();
     expr = (struct Ast*)new_ast_node(struct Ast_DefaultStmt, AST_DEFAULT_STMT);
-    expr->line_nr = m_token->line_nr;
+    expr->line_no = m_token->line_no;
   } else if (m_token->klass == TK_DONTCARE) {
     next_token();
     expr = (struct Ast*)new_ast_node(struct Ast_Dontcare, AST_DONTCARE);
-    expr->line_nr = m_token->line_nr;
-  } else error("at line %d: keyset expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    expr->line_no = m_token->line_no;
+  } else error("at line %d: keyset expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return expr;
 }
 
@@ -1580,7 +1577,7 @@ build_ast_tupleKeysetExpression()
   struct Ast_TupleKeyset* tuple_keyset = 0;
   if (m_token->klass == TK_PARENTH_OPEN) {
     tuple_keyset = new_ast_node(struct Ast_TupleKeyset, AST_TUPLE_KEYSET);
-    tuple_keyset->line_nr = m_token->line_nr;
+    tuple_keyset->line_no = m_token->line_no;
     next_token();
     struct List* exprs = arena_push(m_ast_storage, sizeof(*exprs));
     memset(exprs, 0, sizeof(*exprs));
@@ -1599,8 +1596,8 @@ build_ast_tupleKeysetExpression()
     tuple_keyset->expr_list = exprs;
     if (m_token->klass == TK_PARENTH_CLOSE) {
       next_token();
-    } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `(` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `(` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)tuple_keyset;
 }
 
@@ -1612,7 +1609,7 @@ build_ast_keysetExpression()
     expr = build_ast_tupleKeysetExpression();
   } else if (token_is_simpleKeysetExpression(m_token)) {
     expr = build_ast_simpleKeysetExpression();
-  } else error("at line %d: keyset expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: keyset expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return expr;
 }
 
@@ -1622,7 +1619,7 @@ build_ast_selectCase()
   struct Ast_SelectCase* select_case = 0;
   if (token_is_keysetExpression(m_token)) {
     select_case = new_ast_node(struct Ast_SelectCase, AST_SELECT_CASE);
-    select_case->line_nr = m_token->line_nr;
+    select_case->line_no = m_token->line_no;
     select_case->keyset = build_ast_keysetExpression();
     if (m_token->klass == TK_COLON) {
       next_token();
@@ -1630,10 +1627,10 @@ build_ast_selectCase()
         select_case->name = build_ast_name(false);
         if (m_token->klass == TK_SEMICOLON) {
           next_token();
-        } else error("at line %d: `;` expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: `:` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: keyset expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `;` expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: `:` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: keyset expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)select_case;
 }
 
@@ -1666,7 +1663,7 @@ build_ast_selectExpression()
   if (m_token->klass == TK_SELECT) {
     next_token();
     select_expr = new_ast_node(struct Ast_SelectExpr, AST_SELECT_EXPR);
-    select_expr->line_nr = m_token->line_nr;
+    select_expr->line_no = m_token->line_no;
     if (m_token->klass == TK_PARENTH_OPEN) {
       next_token();
       select_expr->expr_list = build_ast_expressionList();
@@ -1677,11 +1674,11 @@ build_ast_selectExpression()
           select_expr->case_list = build_ast_selectCaseList();
           if (m_token->klass == TK_BRACE_CLOSE) {
             next_token();
-          } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-        } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: `(` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `select` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+          } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+        } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: `(` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `select` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)select_expr;
 }
 
@@ -1693,10 +1690,10 @@ build_ast_stateExpression()
     state_expr = build_ast_name(false);
     if (m_token->klass == TK_SEMICOLON) {
       next_token();
-    } else error("at line %d: `;` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: `;` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   } else if (m_token->klass == TK_SELECT) {
     state_expr = build_ast_selectExpression();
-  } else error("at line %d: state expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: state expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return state_expr;
 }
 
@@ -1707,7 +1704,7 @@ build_ast_transitionStatement()
   if (m_token->klass == TK_TRANSITION) {
     next_token();
     stmt = build_ast_stateExpression();
-  } else error("at line %d: `transition` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: `transition` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return stmt;
 }
 
@@ -1718,7 +1715,7 @@ build_ast_parserState()
   if (m_token->klass == TK_STATE) {
     next_token();
     state = new_ast_node(struct Ast_ParserState, AST_PARSER_STATE);
-    state->line_nr = m_token->line_nr;
+    state->line_no = m_token->line_no;
     state->name = build_ast_name(false);
     if (m_token->klass == TK_BRACE_OPEN) {
       next_token();
@@ -1726,9 +1723,9 @@ build_ast_parserState()
       state->trans_stmt = build_ast_transitionStatement();
       if (m_token->klass == TK_BRACE_CLOSE) {
         next_token();
-      } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `state` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `state` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)state;
 }
 
@@ -1750,7 +1747,7 @@ build_ast_parserStates()
       link->object = build_ast_parserState();
       list_append_link(states, link);
     }
-  } else error("at line %d: `state` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: `state` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return states;
 }
 
@@ -1760,7 +1757,7 @@ build_ast_parserDeclaration()
   struct Ast_ParserDecl* decl = 0;
   if (m_token->klass == TK_PARSER) {
     decl = new_ast_node(struct Ast_ParserDecl, AST_PARSER_DECL);
-    decl->line_nr = m_token->line_nr;
+    decl->line_no = m_token->line_no;
     decl->type_decl = build_ast_parserTypeDeclaration();
     if (m_token->klass == TK_SEMICOLON) {
       next_token(); /* <parserTypeDeclaration> */
@@ -1772,10 +1769,10 @@ build_ast_parserDeclaration()
         decl->states = build_ast_parserStates();
         if (m_token->klass == TK_BRACE_CLOSE) {
           next_token();
-        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     }
-  } else error("at line %d: `parser` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: `parser` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)decl;
 }
 
@@ -1786,7 +1783,7 @@ build_ast_controlTypeDeclaration()
   if (m_token->klass == TK_CONTROL) {
     next_token();
     decl = new_ast_node(struct Ast_ControlProto, AST_CONTROL_PROTO);
-    decl->line_nr = m_token->line_nr;
+    decl->line_no = m_token->line_no;
     if (token_is_name(m_token)) {
       decl->name = build_ast_name(true);
       decl->type_params = build_ast_optTypeParameters();
@@ -1795,10 +1792,10 @@ build_ast_controlTypeDeclaration()
         decl->params = build_ast_parameterList();
         if (m_token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `(` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `control` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `(` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `control` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)decl;
 }
 
@@ -1809,7 +1806,7 @@ build_ast_actionDeclaration()
   if (m_token->klass == TK_ACTION) {
     next_token();
     decl = new_ast_node(struct Ast_ActionDecl, AST_ACTION_DECL);
-    decl->line_nr = m_token->line_nr;
+    decl->line_no = m_token->line_no;
     if (token_is_name(m_token)) {
       decl->name = build_ast_name(false);
       if (m_token->klass == TK_PARENTH_OPEN) {
@@ -1819,11 +1816,11 @@ build_ast_actionDeclaration()
           next_token();
           if (m_token->klass == TK_BRACE_OPEN) {
             decl->stmt = build_ast_blockStatement();
-          } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `(` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `action` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+          } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `(` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `action` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)decl;
 }
 
@@ -1833,16 +1830,16 @@ build_ast_keyElement()
   struct Ast_KeyElement* key_elem = 0;
   if (token_is_expression(m_token)) {
     key_elem = new_ast_node(struct Ast_KeyElement, AST_KEY_ELEMENT);
-    key_elem->line_nr = m_token->line_nr;
+    key_elem->line_no = m_token->line_no;
     key_elem->expr = build_ast_expression(1);
     if (m_token->klass == TK_COLON) {
       next_token();
       key_elem->name = build_ast_name(false);
       if (m_token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("at line %d: `;` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: `:` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: an expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `;` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: `:` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: an expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)key_elem;
 }
 
@@ -1874,16 +1871,16 @@ build_ast_actionRef()
   struct Ast_ActionRef* ref = 0;
   if (m_token->klass == TK_DOT_PREFIX || token_is_nonTypeName(m_token)) {
     ref = new_ast_node(struct Ast_ActionRef, AST_ACTION_REF);
-    ref->line_nr = m_token->line_nr;
+    ref->line_no = m_token->line_no;
     ref->name = build_ast_prefixedNonTypeName();
     if (m_token->klass == TK_PARENTH_OPEN) {
       next_token();
       ref->args = build_ast_argumentList();
       if (m_token->klass == TK_PARENTH_CLOSE) {
         next_token();
-      } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     }
-  } else error("at line %d: non-type name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: non-type name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)ref;
 }
 
@@ -1901,7 +1898,7 @@ build_ast_actionList()
     list_append_link(actions, link);
     if (m_token->klass == TK_SEMICOLON) {
       next_token();
-    } else error("at line %d: `;` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: `;` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     while (token_is_actionRef(m_token)) {
       link = arena_push(m_ast_storage, sizeof(*link));
       memset(link, 0, sizeof(*link));
@@ -1909,7 +1906,7 @@ build_ast_actionList()
       list_append_link(actions, link);
       if (m_token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("at line %d: `;` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `;` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     }
   }
   return actions;
@@ -1921,16 +1918,16 @@ build_ast_entry()
   struct Ast_TableEntry* entry = 0;
   if (token_is_keysetExpression(m_token)) {
     entry = new_ast_node(struct Ast_TableEntry, AST_TABLE_ENTRY);
-    entry->line_nr = m_token->line_nr;
+    entry->line_no = m_token->line_no;
     entry->keyset = build_ast_keysetExpression();
     if (m_token->klass == TK_COLON) {
       next_token();
       entry->action = build_ast_actionRef();
       if (m_token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("at line %d: `;` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: `:` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: keyset was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `;` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: `:` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: keyset was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)entry;
 }
 
@@ -1952,7 +1949,7 @@ build_ast_entriesList()
       link->object = build_ast_entry();
       list_append_link(entries, link);
     }
-  } else error("at line %d: keyset expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: keyset expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return entries;
 }
 
@@ -1969,7 +1966,7 @@ build_ast_tableProperty()
     if (m_token->klass == TK_KEY) {
       next_token();
       struct Ast_TableKey* key_prop = new_ast_node(struct Ast_TableKey, AST_TABLE_KEY);
-      key_prop->line_nr = m_token->line_nr;
+      key_prop->line_no = m_token->line_no;
       prop = (struct Ast*)key_prop;
       if (m_token->klass == TK_EQUAL) {
         next_token();
@@ -1978,13 +1975,13 @@ build_ast_tableProperty()
           key_prop->keyelem_list = build_ast_keyElementList();
           if (m_token->klass == TK_BRACE_CLOSE) {
             next_token();
-          } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-        } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `=` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+          } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+        } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `=` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else if (m_token->klass == TK_ACTIONS) {
       next_token();
       struct Ast_TableActions* actions_prop = new_ast_node(struct Ast_TableActions, AST_TABLE_ACTIONS);
-      actions_prop->line_nr = m_token->line_nr;
+      actions_prop->line_no = m_token->line_no;
       prop = (struct Ast*)actions_prop;
       if (m_token->klass == TK_EQUAL) {
         next_token();
@@ -1993,13 +1990,13 @@ build_ast_tableProperty()
           actions_prop->action_list = build_ast_actionList();
           if (m_token->klass == TK_BRACE_CLOSE) {
             next_token();
-          } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-        } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `=` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+          } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+        } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `=` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else if (m_token->klass == TK_ENTRIES) {
       next_token();
       struct Ast_TableEntries* entries_prop = new_ast_node(struct Ast_TableEntries, AST_TABLE_ENTRIES);
-      entries_prop->line_nr = m_token->line_nr;
+      entries_prop->line_no = m_token->line_no;
       entries_prop->is_const = is_const;
       prop = (struct Ast*)entries_prop;
       if (m_token->klass == TK_EQUAL) {
@@ -2009,12 +2006,12 @@ build_ast_tableProperty()
           entries_prop->entries = build_ast_entriesList();
           if (m_token->klass == TK_BRACE_CLOSE) {
             next_token();
-          } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-        } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `=` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+          } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+        } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `=` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else if (token_is_nonTableKwName(m_token)) {
       struct Ast_TableSingleEntry* entry_prop = new_ast_node(struct Ast_TableSingleEntry, AST_TABLE_SINGLE_ENTRY);
-      entry_prop->line_nr = m_token->line_nr;
+      entry_prop->line_no = m_token->line_no;
       entry_prop->name = build_ast_name(false);
       prop = (struct Ast*)entry_prop;
       if (m_token->klass == TK_EQUAL) {
@@ -2022,10 +2019,10 @@ build_ast_tableProperty()
         entry_prop->init_expr = build_ast_initializer();
         if (m_token->klass == TK_SEMICOLON) {
           next_token();
-        } else error("at line %d: `;` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `=` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `;` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `=` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else assert(0);
-  } else error("at line %d: table property was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: table property was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return prop;
 }
 
@@ -2047,7 +2044,7 @@ build_ast_tablePropertyList()
       link->object = build_ast_tableProperty();
       list_append_link(props, link);
     }
-  } else error("at line %d: table property was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: table property was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return props;
 }
 
@@ -2058,16 +2055,16 @@ build_ast_tableDeclaration()
   if (m_token->klass == TK_TABLE) {
     next_token();
     table = new_ast_node(struct Ast_TableDecl, AST_TABLE_DECL);
-    table->line_nr = m_token->line_nr;
+    table->line_no = m_token->line_no;
     table->name = build_ast_name(false);
     if (m_token->klass == TK_BRACE_OPEN) {
       next_token();
       table->prop_list = build_ast_tablePropertyList();
       if (m_token->klass == TK_BRACE_CLOSE) {
         next_token();
-      } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `table` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `table` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)table;
 }
 
@@ -2087,8 +2084,8 @@ build_ast_controlLocalDeclaration()
       decl = build_ast_instantiation(type_ref);
     } else if (token_is_name(m_token)) {
       decl = build_ast_variableDeclaration(type_ref);
-    } else error("at line %d: unexpected token `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: local declaration was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: unexpected token `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: local declaration was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return decl;
 }
 
@@ -2120,7 +2117,7 @@ build_ast_controlDeclaration()
   struct Ast_ControlDecl* decl = 0;
   if (m_token->klass == TK_CONTROL) {
     decl = new_ast_node(struct Ast_ControlDecl, AST_CONTROL_DECL);
-    decl->line_nr = m_token->line_nr;
+    decl->line_no = m_token->line_no;
     decl->type_decl = build_ast_controlTypeDeclaration();
     if (m_token->klass == TK_SEMICOLON) {
       next_token(); /* <controlTypeDeclaration> */
@@ -2134,11 +2131,11 @@ build_ast_controlDeclaration()
           decl->apply_stmt = build_ast_blockStatement();
           if (m_token->klass == TK_BRACE_CLOSE) {
             next_token();
-          } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-        } else error("at line %d: `apply` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+          } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+        } else error("at line %d: `apply` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     }
-  } else error("at line %d: `control` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: `control` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)decl;
 }
 
@@ -2149,7 +2146,7 @@ build_ast_packageTypeDeclaration()
   if (m_token->klass == TK_PACKAGE) {
     next_token();
     decl = new_ast_node(struct Ast_PackageDecl, AST_PACKAGE_DECL);
-    decl->line_nr = m_token->line_nr;
+    decl->line_no = m_token->line_no;
     if (token_is_name(m_token)) {
       decl->name = build_ast_name(true);
       decl->type_params = build_ast_optTypeParameters();
@@ -2158,10 +2155,10 @@ build_ast_packageTypeDeclaration()
         decl->params = build_ast_parameterList();
         if (m_token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `(` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `package` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `(` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `package` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)decl;
 }
 
@@ -2180,7 +2177,7 @@ build_ast_typedefDeclaration()
 
     if (token_is_typeRef(m_token) || token_is_derivedTypeDeclaration(m_token)) {
       struct Ast_TypeDecl* type_decl = new_ast_node(struct Ast_TypeDecl, AST_TYPE_DECL);
-      type_decl->line_nr = m_token->line_nr;
+      type_decl->line_no = m_token->line_no;
       type_decl->is_typedef = is_typedef;
       decl = (struct Ast*)type_decl;
       if (token_is_typeRef(m_token)) {
@@ -2192,10 +2189,10 @@ build_ast_typedefDeclaration()
         type_decl->name = build_ast_name(true);
         if (m_token->klass == TK_SEMICOLON) {
           next_token();
-        } else error("at line %d: `;` expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: type was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: type definition was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `;` expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: type was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: type definition was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return decl;
 }
 
@@ -2218,9 +2215,9 @@ build_ast_typeDeclaration()
       decl = build_ast_packageTypeDeclaration();
       if (m_token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("at line %d: `;` expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `;` expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else assert(0);
-  } else error("at line %d: type declaration was expected, got `%s`.", m_token->line_nr, m_token->lexeme); 
+  } else error("at line %d: type declaration was expected, got `%s`.", m_token->line_no, m_token->lexeme); 
   return decl;
 }
 
@@ -2231,7 +2228,7 @@ build_ast_conditionalStatement()
   if (m_token->klass == TK_IF) {
     next_token();
     if_stmt = new_ast_node(struct Ast_IfStmt, AST_IF_STMT);
-    if_stmt->line_nr = m_token->line_nr;
+    if_stmt->line_no = m_token->line_no;
     if (m_token->klass == TK_PARENTH_OPEN) {
       next_token();
       if (token_is_expression(m_token)) {
@@ -2244,13 +2241,13 @@ build_ast_conditionalStatement()
               next_token();
               if (token_is_statement(m_token)) {
                 if_stmt->else_stmt = build_ast_statement(0);
-              } else error("at line %d: statement was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+              } else error("at line %d: statement was expected, got `%s`.", m_token->line_no, m_token->lexeme);
             }
-          } else error("at line %d: statement was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: an expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: `(` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `if` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+          } else error("at line %d: statement was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: an expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: `(` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `if` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)if_stmt;
 }
 
@@ -2261,11 +2258,11 @@ build_ast_exitStatement()
   if (m_token->klass == TK_EXIT) {
     next_token();
     exit_stmt = new_ast_node(struct Ast_ExitStmt, AST_EXIT_STMT);
-    exit_stmt->line_nr = m_token->line_nr;
+    exit_stmt->line_no = m_token->line_no;
     if (m_token->klass == TK_SEMICOLON) {
       next_token();
-    } else error("at line %d: `;` expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `exit` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: `;` expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `exit` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)exit_stmt;
 }
 
@@ -2276,13 +2273,13 @@ build_ast_returnStatement()
   if (m_token->klass == TK_RETURN) {
     next_token();
     ret_stmt = new_ast_node(struct Ast_ReturnStmt, AST_RETURN_STMT);
-    ret_stmt->line_nr = m_token->line_nr;
+    ret_stmt->line_no = m_token->line_no;
     if (token_is_expression(m_token))
       ret_stmt->expr = build_ast_expression(1);
     if (m_token->klass == TK_SEMICOLON) {
       next_token();
-    } else error("at line %d: `;` expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `return` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: `;` expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `return` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)ret_stmt;
 }
 
@@ -2295,8 +2292,8 @@ build_ast_switchLabel()
   } else if (m_token->klass == TK_DEFAULT) {
     next_token();
     label = (struct Ast*)new_ast_node(struct Ast_DefaultStmt, AST_DEFAULT_STMT);
-    label->line_nr = m_token->line_nr;
-  } else error("at line %d: switch label was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    label->line_no = m_token->line_no;
+  } else error("at line %d: switch label was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return label;
 }
 
@@ -2306,15 +2303,15 @@ build_ast_switchCase()
   struct Ast_SwitchCase* switch_case = 0;
   if (token_is_switchLabel(m_token)) {
     switch_case = new_ast_node(struct Ast_SwitchCase, AST_SWITCH_CASE);
-    switch_case->line_nr = m_token->line_nr;
+    switch_case->line_no = m_token->line_no;
     switch_case->label = build_ast_switchLabel();
     if (m_token->klass == TK_COLON) {
       next_token();
       if (m_token->klass == TK_BRACE_OPEN) {
         switch_case->stmt = build_ast_blockStatement();
       }
-    } else error("at line %d: `:` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: switch label was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: `:` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: switch label was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)switch_case;
 }
 
@@ -2347,7 +2344,7 @@ build_ast_switchStatement()
   if (m_token->klass == TK_SWITCH) {
     next_token();
     stmt = new_ast_node(struct Ast_SwitchStmt, AST_SWITCH_STMT);
-    stmt->line_nr = m_token->line_nr;
+    stmt->line_no = m_token->line_no;
     if (m_token->klass == TK_PARENTH_OPEN) {
       next_token();
       stmt->expr = build_ast_expression(1);
@@ -2358,11 +2355,11 @@ build_ast_switchStatement()
           stmt->switch_cases = build_ast_switchCases();
           if (m_token->klass == TK_BRACE_CLOSE) {
             next_token();
-          } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-        } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: `(` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `switch` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+          } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+        } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: `(` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `switch` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)stmt;
 }
 
@@ -2379,7 +2376,7 @@ build_ast_statement(struct Ast* type_name)
   } else if (m_token->klass == TK_SEMICOLON) {
     next_token();
     stmt = (struct Ast*)new_ast_node(struct Ast_EmptyStmt, AST_EMPTY_STMT);
-    stmt->line_nr = m_token->line_nr;
+    stmt->line_no = m_token->line_no;
   } else if (m_token->klass == TK_BRACE_OPEN) {
     stmt = build_ast_blockStatement();
   } else if (m_token->klass == TK_EXIT) {
@@ -2388,7 +2385,7 @@ build_ast_statement(struct Ast* type_name)
     stmt = build_ast_returnStatement();
   } else if (m_token->klass == TK_SWITCH) {
     stmt = build_ast_switchStatement();
-  } else error("at line %d: statement was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: statement was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return stmt;
 }
 
@@ -2443,13 +2440,13 @@ build_ast_blockStatement()
   struct Ast_BlockStmt* stmt = 0;
   if (m_token->klass == TK_BRACE_OPEN) {
     stmt = new_ast_node(struct Ast_BlockStmt, AST_BLOCK_STMT);
-    stmt->line_nr = m_token->line_nr;
+    stmt->line_no = m_token->line_no;
     next_token();
     stmt->stmt_list = build_ast_statementOrDeclList();
     if (m_token->klass == TK_BRACE_CLOSE) {
       next_token();
-    } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)stmt;
 }
 
@@ -2472,7 +2469,7 @@ build_ast_identifierList()
       link->object = build_ast_name(false);
       list_append_link(ids, link);
     }
-  } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return ids;
 }
 
@@ -2483,17 +2480,17 @@ build_ast_errorDeclaration()
   if (m_token->klass == TK_ERROR) {
     next_token();
     decl = new_ast_node(struct Ast_ErrorDecl, AST_ERROR_DECL);
-    decl->line_nr = m_token->line_nr;
+    decl->line_no = m_token->line_no;
     if (m_token->klass == TK_BRACE_OPEN) {
       next_token();
       if (token_is_name(m_token)) {
         decl->id_list = build_ast_identifierList();
         if (m_token->klass == TK_BRACE_CLOSE) {
           next_token();
-        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `error` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `error` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)decl;
 }
 
@@ -2504,17 +2501,17 @@ build_ast_matchKindDeclaration()
   if (m_token->klass == TK_MATCH_KIND) {
     next_token();
     decl = new_ast_node(struct Ast_MatchKindDecl, AST_MATCH_KIND_DECL);
-    decl->line_nr = m_token->line_nr;
+    decl->line_no = m_token->line_no;
     if (m_token->klass == TK_BRACE_OPEN) {
       next_token();
       if (token_is_name(m_token)) {
         decl->id_list = build_ast_identifierList();
         if (m_token->klass == TK_BRACE_CLOSE) {
           next_token();
-        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-    } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: `match_kind` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+    } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: `match_kind` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)decl;
 }
 
@@ -2524,12 +2521,12 @@ build_ast_functionDeclaration(struct Ast* type_ref)
   struct Ast_FunctionDecl* decl = 0;
   if (token_is_typeOrVoid(m_token)) {
     decl = new_ast_node(struct Ast_FunctionDecl, AST_FUNCTION_DECL);
-    decl->line_nr = m_token->line_nr;
+    decl->line_no = m_token->line_no;
     decl->proto = build_ast_functionPrototype(type_ref);
     if (m_token->klass == TK_BRACE_OPEN) {
       decl->stmt = build_ast_blockStatement();
-    } else error("at line %d: `{` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-  } else error("at line %d: type was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+    } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+  } else error("at line %d: type was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)decl;
 }
 
@@ -2557,11 +2554,11 @@ build_ast_declaration()
         decl = build_ast_instantiation(type_ref);
       } else if (token_is_name(m_token)) {
         decl = build_ast_functionDeclaration(type_ref);
-      } else error("at line %d: unexpected token `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: unexpected token `%s`.", m_token->line_no, m_token->lexeme);
     } else if (token_is_typeOrVoid(m_token)) {
       decl = build_ast_functionDeclaration(build_ast_typeRef());
     } else assert(0);
-  } else error("at line %d: top-level declaration as expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: top-level declaration as expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return decl;
 }
 
@@ -2569,7 +2566,7 @@ internal struct Ast*
 build_ast_p4program()
 {
   struct Ast_P4Program* program = new_ast_node(struct Ast_P4Program, AST_P4PROGRAM);
-  program->line_nr = m_token->line_nr;
+  program->line_no = m_token->line_no;
   struct List* decls = arena_push(m_ast_storage, sizeof(*decls));
   memset(decls, 0, sizeof(*decls));
   list_init(decls);
@@ -2585,7 +2582,7 @@ build_ast_p4program()
   }
   program->decl_list = decls;
   if (m_token->klass != TK_END_OF_INPUT) {
-    error("at line %d: unexpected token `%s`.", m_token->line_nr, m_token->lexeme);
+    error("at line %d: unexpected token `%s`.", m_token->line_no, m_token->lexeme);
   }
   return (struct Ast*)program;
 }
@@ -2629,10 +2626,10 @@ build_ast_realTypeArg()
   if (m_token->klass == TK_DONTCARE) {
     next_token();
     arg = (struct Ast*)new_ast_node(struct Ast_Dontcare, AST_DONTCARE);
-    arg->line_nr = m_token->line_nr;
+    arg->line_no = m_token->line_no;
   } else if (token_is_typeRef(m_token)) {
     arg = build_ast_typeRef();
-  } else error("at line %d: type argument was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: type argument was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return arg;
 }
 
@@ -2680,39 +2677,39 @@ build_ast_expressionPrimary()
         struct Ast_Name* name = (struct Ast_Name*)build_ast_typeName(false);
         name->is_dotprefixed = true;
         primary = (struct Ast*)name;
-      } else error("at line %d: unexpected token `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: unexpected token `%s`.", m_token->line_no, m_token->lexeme);
     } else if (token_is_nonTypeName(m_token)) {
       primary = build_ast_nonTypeName(false);
     } else if (m_token->klass == TK_BRACE_OPEN) {
       next_token();
       struct Ast_ExprListExpr* expr_list = new_ast_node(struct Ast_ExprListExpr, AST_EXPRLIST_EXPR);
-      expr_list->line_nr = m_token->line_nr;
+      expr_list->line_no = m_token->line_no;
       expr_list->expr_list = build_ast_expressionList();
       primary = (struct Ast*)expr_list;
       if (m_token->klass == TK_BRACE_CLOSE) {
         next_token();
-      } else error("at line %d: `}` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+      } else error("at line %d: `}` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else if (m_token->klass == TK_PARENTH_OPEN) {
       next_token();
       if (token_is_typeRef(m_token)) {
         struct Ast_CastExpr* cast_expr = new_ast_node(struct Ast_CastExpr, AST_CAST_EXPR);
-        cast_expr->line_nr = m_token->line_nr;
+        cast_expr->line_no = m_token->line_no;
         cast_expr->to_type = build_ast_typeRef();
         primary = (struct Ast*)cast_expr;
         if (m_token->klass == TK_PARENTH_CLOSE) {
           next_token();
           cast_expr->expr = build_ast_expression(1);
-        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       } else if (token_is_expression(m_token)) {
         primary = build_ast_expression(1);
         if (m_token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
-      } else error("at line %d: an expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
+      } else error("at line %d: an expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else if (m_token->klass == TK_EXCLAMATION) {
       next_token();
       struct Ast_UnaryExpr* unary_expr = new_ast_node(struct Ast_UnaryExpr, AST_UNARY_EXPR);
-      unary_expr->line_nr = m_token->line_nr;
+      unary_expr->line_no = m_token->line_no;
       unary_expr->op = OP_NOT;
       enum AstExprOperator* op = arena_push(m_ast_storage, sizeof(*op));
       unary_expr->operand = build_ast_expression(1);
@@ -2720,14 +2717,14 @@ build_ast_expressionPrimary()
     } else if (m_token->klass == TK_TILDA) {
       next_token();
       struct Ast_UnaryExpr* unary_expr = new_ast_node(struct Ast_UnaryExpr, AST_UNARY_EXPR);
-      unary_expr->line_nr = m_token->line_nr;
+      unary_expr->line_no = m_token->line_no;
       unary_expr->op = OP_BITWISE_NOT;
       unary_expr->operand = build_ast_expression(1);
       primary = (struct Ast*)unary_expr;
     } else if (m_token->klass == TK_UNARY_MINUS) {
       next_token();
       struct Ast_UnaryExpr* unary_expr = new_ast_node(struct Ast_UnaryExpr, AST_UNARY_EXPR);
-      unary_expr->line_nr = m_token->line_nr;
+      unary_expr->line_no = m_token->line_no;
       unary_expr->op = OP_MINUS;
       unary_expr->operand = build_ast_expression(1);
       primary = (struct Ast*)unary_expr;
@@ -2735,12 +2732,12 @@ build_ast_expressionPrimary()
       primary = build_ast_typeName();
     } else if (m_token->klass == TK_ERROR) {
       struct Ast_Name* name = new_ast_node(struct Ast_Name, AST_NAME);
-      name->line_nr = m_token->line_nr;
+      name->line_no = m_token->line_no;
       name->strname = m_token->lexeme;
       primary = (struct Ast*)name;
       next_token();
     } else assert(0);
-  } else error("at line %d: an expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: an expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return primary;
 }
 
@@ -2816,7 +2813,7 @@ token_to_binop(struct Token* m_token)
       return OP_BITWISE_SHIFT_RIGHT;
     case TK_TRIPLE_AMPERSAND:
       return OP_MASK;
-    default: return OP_NONE;
+    default: return 0;
   }
 }
 
@@ -2830,45 +2827,45 @@ build_ast_expression(int priority_threshold)
       if (m_token->klass == TK_DOT_PREFIX) {
         next_token();
         struct Ast_MemberSelectExpr* select_expr = new_ast_node(struct Ast_MemberSelectExpr, AST_MEMBER_SELECT_EXPR);
-        select_expr->line_nr = m_token->line_nr;
+        select_expr->line_no = m_token->line_no;
         select_expr->expr = expr;
         expr = (struct Ast*)select_expr;
         if (token_is_name(m_token)) {
           select_expr->member_name = build_ast_name(false);
-        } else error("at line %d: name was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       }
       else if (m_token->klass == TK_BRACKET_OPEN) {
         next_token();
         struct Ast_IndexedArrayExpr* index_expr = new_ast_node(struct Ast_IndexedArrayExpr, AST_INDEXED_ARRAY_EXPR);
-        index_expr->line_nr = m_token->line_nr;
+        index_expr->line_no = m_token->line_no;
         index_expr->index = expr;
         index_expr->colon_index = build_ast_arrayIndex();
         expr = (struct Ast*)index_expr;
         if (m_token->klass == TK_BRACKET_CLOSE) {
           next_token();
-        } else error("at line %d: `]` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `]` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       }
       else if (m_token->klass == TK_PARENTH_OPEN) {
         next_token();
         struct Ast_FunctionCallExpr* call_expr = new_ast_node(struct Ast_FunctionCallExpr, AST_FUNCTION_CALL_EXPR);
-        call_expr->line_nr = m_token->line_nr;
+        call_expr->line_no = m_token->line_no;
         call_expr->callee_expr = expr;
         call_expr->args = build_ast_argumentList();
         expr = (struct Ast*)call_expr;
         if (m_token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       }
       else if (m_token->klass == TK_ANGLE_OPEN && token_is_realTypeArg(peek_token())) {
         next_token();
         ((struct Ast_Expression*)expr)->type_args = build_ast_realTypeArgumentList();
         if (m_token->klass == TK_ANGLE_CLOSE) {
           next_token();
-        } else error("at line %d: `>` was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+        } else error("at line %d: `>` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       } else if (m_token->klass == TK_EQUAL) {
         next_token();
         struct Ast_KeyValuePairExpr* kv_pair = new_ast_node(struct Ast_KeyValuePairExpr, AST_KVPAIR_EXPR);
-        kv_pair->line_nr = m_token->line_nr;
+        kv_pair->line_no = m_token->line_no;
         kv_pair->name = expr;
         kv_pair->expr = build_ast_expression(1);
         expr = (struct Ast*)kv_pair;
@@ -2877,7 +2874,7 @@ build_ast_expression(int priority_threshold)
         int priority = get_operator_priority(m_token);
         if (priority >= priority_threshold) {
           struct Ast_BinaryExpr* bin_expr = new_ast_node(struct Ast_BinaryExpr, AST_BINARY_EXPR);
-          bin_expr->line_nr = m_token->line_nr;
+          bin_expr->line_no = m_token->line_no;
           bin_expr->left_operand = expr;
           bin_expr->op = token_to_binop(m_token);
           next_token();
@@ -2886,19 +2883,18 @@ build_ast_expression(int priority_threshold)
         } else break;
       } else assert(0);
     }
-  } else error("at line %d: an expression was expected, got `%s`.", m_token->line_nr, m_token->lexeme);
+  } else error("at line %d: an expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return expr;
 }
 
-internal struct NamedObject*
-new_keyword(char* name, enum TokenClass token_klass)
+internal struct NameDecl*
+new_keyword(char* name, enum TokenClass token_class)
 {
-  struct Object_Keyword* descriptor = arena_push(&m_local_storage, sizeof(*descriptor));
+  struct Name_Keyword* descriptor = arena_push(&m_local_storage, sizeof(*descriptor));
   memset(descriptor, 0, sizeof(*descriptor));
   descriptor->strname = name;
-  descriptor->kind = OBJECT_KEYWORD;
-  descriptor->token_klass = token_klass;
-  return (struct NamedObject*)descriptor;
+  descriptor->token_class = token_class;
+  return (struct NameDecl*)descriptor;
 }
 
 struct Ast*

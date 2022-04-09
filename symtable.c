@@ -106,19 +106,19 @@ scope_lookup_name(struct Scope* scope, enum Namespace ns, char* name)
 }
 
 struct SymtableEntry*
-declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NamedObject* descriptor)
+declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* descriptor)
 {
   struct SymtableEntry* entry = symtable_get_or_create_entry(&scope->declarations, descriptor->strname);
   if (ns == NAMESPACE_TYPE) {
     descriptor->next_in_scope = entry->ns_type;
-    entry->ns_type = (struct NamedObject*)descriptor;
+    entry->ns_type = (struct NameDecl*)descriptor;
   } else if (ns == NAMESPACE_VAR) {
     descriptor->next_in_scope = entry->ns_var;
-    entry->ns_var = (struct NamedObject*)descriptor;
+    entry->ns_var = (struct NameDecl*)descriptor;
   } else if (ns == NAMESPACE_KEYWORD) {
     struct SymtableEntry* entry = symtable_get_or_create_entry(&scope->declarations, descriptor->strname);
-    entry->ns_keyword = (struct NamedObject*)descriptor;
-  } else assert (0);
+    entry->ns_keyword = (struct NameDecl*)descriptor;
+  } else assert(0);
   return entry;
 }
 

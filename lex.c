@@ -2,14 +2,15 @@
 #include "lex.h"
 #include <memory.h>  // memset
 
+
 internal struct Arena* m_lexeme_storage;
 internal char* m_text;
 internal int m_text_size;
-
 internal struct Arena* m_tokens_storage;
 internal struct UnboundedArray m_tokens_array = {};
-internal int m_line_nr = 1;
+internal int m_line_no = 1;
 internal int m_state = 0;
+
 
 struct Lexeme {
   char* start;
@@ -151,13 +152,13 @@ token_install_integer(struct Token* token, struct Lexeme* lexeme, int base)
     token->i.value = parse_integer(string, base);
   } else {
     if (base == 10) {
-      error("at line %d: expected one or more digits, got '%s'.", token->line_nr, string);
+      error("at line %d: expected one or more digits, got '%s'.", token->line_no, string);
     } else if (base == 16) {
-      error("at line %d: expected one or more hexadecimal digits, got '%s'.", token->line_nr, string);
+      error("at line %d: expected one or more hexadecimal digits, got '%s'.", token->line_no, string);
     } else if (base == 8) {
-      error("at line %d: expected one or more octal digits, got '%s'.", token->line_nr, string);
+      error("at line %d: expected one or more octal digits, got '%s'.", token->line_no, string);
     } else if (base == 2) {
-      error("at line %d: expected one or more binary digits, got '%s'.", token->line_nr, string);
+      error("at line %d: expected one or more binary digits, got '%s'.", token->line_no, string);
     } else assert(0);
   }
 }
@@ -181,7 +182,7 @@ next_token(struct Token* token)
             if (c + cc == '\n' + '\r') {
               lexeme_advance();
             }
-            m_line_nr++;
+            m_line_no++;
           }
           m_state = 1;
         }
@@ -532,7 +533,7 @@ next_token(struct Token* token)
       {
         c = char_advance(1);
         if (c == '\n' || c == '\r') {
-          m_line_nr++;
+          m_line_no++;
           m_state = 200;
         } else if (c == '\\' || c =='"' || c == 'n' || c == 'r') {
           m_state = 200; // ok
@@ -549,7 +550,7 @@ next_token(struct Token* token)
             char cc = char_lookahead(1);
             if (c + cc == '\n' + '\r')
               c = char_advance(1);
-            m_line_nr++;
+            m_line_no++;
           }
         } while (c != '*');
 
@@ -569,7 +570,7 @@ next_token(struct Token* token)
         do {
           c = char_advance(1);
         } while (c != '\n' && c != '\r');
-        m_line_nr++;
+        m_line_no++;
         token->klass = TK_COMMENT;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
@@ -779,7 +780,7 @@ next_token(struct Token* token)
       } break;
     }
   }
-  token->line_nr = m_line_nr;
+  token->line_no = m_line_no;
 }
 
 struct UnboundedArray*
@@ -801,9 +802,9 @@ lex_tokenize(char* text, int text_size, struct Arena* lexeme_storage, struct Are
   array_append(&m_tokens_array, &token);
   while (token.klass != TK_END_OF_INPUT) {
     if (token.klass == TK_UNKNOWN) {
-      error("at line %d: unknown token.", token.line_nr);
+      error("at line %d: unknown token.", token.line_no);
     } else if (token.klass == TK_LEXICAL_ERROR) {
-      error("at line %d: lexical error.", token.line_nr);
+      error("at line %d: lexical error.", token.line_no);
     }
     next_token(&token);
     array_append(&m_tokens_array, &token);
