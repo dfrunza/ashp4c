@@ -520,10 +520,6 @@ build_type_control_decl(struct Ast* ast)
   struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
   struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct Type_Name* control_type = new_type(struct Type_Name, TYPE_NAME);
-  control_type->strname = name->strname;
-  type_add_entry(&m_type_map, (struct Type*)control_type, name->id);
-  type_add_entry(&m_type_map, (struct Type*)control_type, control_decl->id);
   if (type_decl->type_params) {
     struct ListLink* li = list_first_link(type_decl->type_params);
     while (li) {
@@ -532,29 +528,37 @@ build_type_control_decl(struct Ast* ast)
       li = li->next;
     }
   }
-  struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "void");
-  struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->id);
   if (type_decl->params) {
     struct ListLink* li = list_first_link(type_decl->params);
+    while (li) {
+      struct Ast* param = li->object;
+      build_type_param(param);
+      li = li->next;
+    }
+  }
+  struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "void");
+  struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->id);
+  if (control_decl->ctor_params) {
+    struct ListLink* li = list_first_link(control_decl->ctor_params);
     struct Ast* param = li->object;
     build_type_param(param);
     params_type = type_get_entry(&m_type_map, param->id);
-    // TODO
     li = li->next;
     while (li) {
       struct Ast* param = li->object;
       build_type_param(param);
+      struct Type_Product* product_type = new_type(struct Type_Product, TYPE_PRODUCT); 
+      product_type->lhs_ty = params_type;
+      product_type->rhs_ty = type_get_entry(&m_type_map, param->id);
+      params_type = (struct Type*)product_type;
       li = li->next;
     }
   }
-  if (control_decl->ctor_params) {
-    struct ListLink* li = list_first_link(control_decl->ctor_params);
-    while (li) {
-      struct Ast* param = li->object;
-      build_type_param(param);
-      li = li->next;
-    }
-  }
+  struct Type_Function* function_type = new_type(struct Type_Function, TYPE_FUNCTION);
+  function_type->params_ty = params_type;
+  type_add_entry(&m_type_map, (struct Type*)function_type, name->id);
+  type_add_entry(&m_type_map, (struct Type*)function_type, type_decl->id);
+  type_add_entry(&m_type_map, (struct Type*)function_type, control_decl->id);
   if (control_decl->local_decls) {
     struct ListLink* li = list_first_link(control_decl->local_decls);
     while (li) {

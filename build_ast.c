@@ -1361,7 +1361,7 @@ build_ast_prefixedNonTypeName()
 }
 
 internal struct Ast*
-build_ast_arrayIndex()
+build_ast_arraySubscript()
 {
   struct Ast_SubscriptExpr* index = new_ast_node(struct Ast_SubscriptExpr, AST_SUBSCRIPT_EXPR);
   index->line_no = m_token->line_no;
@@ -1388,7 +1388,7 @@ build_ast_lvalueExpr()
     expr = (struct Ast*)dot_member;
   } else if (m_token->klass == TK_BRACKET_OPEN) {
     next_token();
-    expr = build_ast_arrayIndex();
+    expr = build_ast_arraySubscript();
     if (m_token->klass == TK_BRACKET_CLOSE) {
       next_token();
     } else error("at line %d: `]` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
@@ -1416,11 +1416,11 @@ build_ast_lvalue()
       }
       else if (m_token->klass == TK_BRACKET_OPEN) {
         next_token();
-        struct Ast_SubscriptExpr* index_expr = new_ast_node(struct Ast_SubscriptExpr, AST_SUBSCRIPT_EXPR);
-        index_expr->line_no = m_token->line_no;
-        index_expr->index = lvalue;
-        index_expr->colon_index = build_ast_arrayIndex();
-        lvalue = (struct Ast*)index_expr;
+        struct Ast_SubscriptExpr* subscript_expr = new_ast_node(struct Ast_SubscriptExpr, AST_SUBSCRIPT_EXPR);
+        subscript_expr->line_no = m_token->line_no;
+        subscript_expr->index = lvalue;
+        subscript_expr->colon_index = build_ast_arraySubscript();
+        lvalue = (struct Ast*)subscript_expr;
         if (m_token->klass == TK_BRACKET_CLOSE) {
           next_token();
         } else error("at line %d: `]` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
@@ -2839,11 +2839,11 @@ build_ast_expression(int priority_threshold)
       }
       else if (m_token->klass == TK_BRACKET_OPEN) {
         next_token();
-        struct Ast_SubscriptExpr* index_expr = new_ast_node(struct Ast_SubscriptExpr, AST_SUBSCRIPT_EXPR);
-        index_expr->line_no = m_token->line_no;
-        index_expr->index = expr;
-        index_expr->colon_index = build_ast_arrayIndex();
-        expr = (struct Ast*)index_expr;
+        struct Ast_SubscriptExpr* subscript_expr = new_ast_node(struct Ast_SubscriptExpr, AST_SUBSCRIPT_EXPR);
+        subscript_expr->line_no = m_token->line_no;
+        subscript_expr->index = expr;
+        subscript_expr->colon_index = build_ast_arraySubscript();
+        expr = (struct Ast*)subscript_expr;
         if (m_token->klass == TK_BRACKET_CLOSE) {
           next_token();
         } else error("at line %d: `]` was expected, got `%s`.", m_token->line_no, m_token->lexeme);

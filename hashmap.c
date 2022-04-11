@@ -36,6 +36,7 @@ fold_bytes(uint8_t* bytes, int length)
 internal uint32_t
 multiply_hash(uint32_t K, uint32_t m)
 {
+  assert(m > 0 && m <= 32);
   uint64_t Ksigma = (uint64_t)K * (uint64_t)SIGMA;
   uint32_t h = ((uint32_t)Ksigma) >> (32 - m);  // 0 <= h < 2^{m}
   return h;
@@ -44,6 +45,7 @@ multiply_hash(uint32_t K, uint32_t m)
 internal uint32_t
 hash_string(uint8_t* string, uint32_t m)
 {
+  assert(m > 0 && m <= 32);
   uint32_t K = fold_string(string);
   uint32_t h = multiply_hash(K, m) % ((1 << m) - 1);  // 0 <= h < 2^{m} - 1
   return h;
@@ -52,6 +54,7 @@ hash_string(uint8_t* string, uint32_t m)
 internal uint32_t
 hash_bytes(uint8_t* bytes, int length, uint32_t m)
 {
+  assert(m > 0 && m <= 32);
   uint32_t K = fold_bytes(bytes, length);
   uint32_t h = multiply_hash(K, m) % ((1 << m) - 1);  // 0 <= h < 2^{m} - 1
   return h;
@@ -60,6 +63,7 @@ hash_bytes(uint8_t* bytes, int length, uint32_t m)
 internal uint32_t
 hash_int(uint32_t i, uint32_t m)
 {
+  assert(m > 0 && m <= 32);
   uint32_t h = multiply_hash(i, m) % ((1 << m) - 1);  // 0 <= h < 2^{m} - 1
   return h;
 }
