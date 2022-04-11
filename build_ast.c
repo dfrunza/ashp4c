@@ -8,14 +8,12 @@
 
 
 internal struct Arena *m_ast_storage;
-internal struct Arena m_local_storage = {};
 internal struct UnboundedArray* m_tokens_array;
 internal int m_token_at = 0;
 internal struct Token* m_token = 0;
 internal int m_prev_token_at = 0;
 internal struct Token* m_prev_token = 0;
-internal int m_node_id = 1;
-internal int m_node_count = 0;
+internal int m_node_id = 100; // first 100 are reserved for built-in nodes
 
 internal struct Ast* build_ast_expression(int priority_threshold);
 internal struct Ast* build_ast_typeRef();
@@ -29,7 +27,6 @@ internal struct Ast* build_ast_parserStatement();
   memset(ast, 0, sizeof(ast_type)); \
   ast->kind = ast_kind; \
   ast->id = m_node_id++; \
-  m_node_count += 1; \
   ast; \
 })
 
@@ -44,10 +41,9 @@ next_token()
     m_token = array_get(m_tokens_array, ++m_token_at);
   }
   if (m_token->klass == TK_IDENTIFIER) {
-    struct SymtableEntry* entry = scope_lookup_name(get_current_scope(),
-              NAMESPACE_KEYWORD|NAMESPACE_TYPE, m_token->lexeme);
+    struct SymtableEntry* entry = scope_lookup_name(get_current_scope(), m_token->lexeme);
     if (entry->ns_keyword) {
-      m_token->klass = ((struct Name_Keyword*)entry->ns_keyword)->token_class;
+      m_token->klass = ((struct NameDecl_Keyword*)entry->ns_keyword)->token_class;
       return m_token;
     }
     if (entry->ns_type) {
@@ -226,11 +222,11 @@ build_ast_nonTypeName(bool is_type)
     name->line_no = m_token->line_no;
     name->strname = m_token->lexeme;
     if (is_type) {
-      struct NameDecl* descriptor = arena_push(m_ast_storage, sizeof(*descriptor));
-      memset(descriptor, 0, sizeof(*descriptor));
-      descriptor->strname = name->strname;
-      descriptor->line_no = m_token->line_no;
-      declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor);
+      struct NameDecl* decl = arena_push(m_ast_storage, sizeof(*decl));
+      memset(decl, 0, sizeof(*decl));
+      decl->strname = name->strname;
+      decl->line_no = m_token->line_no;
+      declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
     }
     next_token();
   } else error("at line %d: non-type name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
@@ -394,11 +390,11 @@ build_ast_typeOrVoid(bool is_type)
       name->strname = m_token->lexeme;
       type = (struct Ast*)name;
       if (is_type) {
-        struct NameDecl* descriptor = arena_push(m_ast_storage, sizeof(*descriptor));
-        memset(descriptor, 0, sizeof(*descriptor));
-        descriptor->strname = name->strname;
-        descriptor->line_no = m_token->line_no;
-        declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, descriptor);
+        struct NameDecl* decl = arena_push(m_ast_storage, sizeof(*decl));
+        memset(decl, 0, sizeof(*decl));
+        decl->strname = name->strname;
+        decl->line_no = m_token->line_no;
+        declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
       }
       next_token();
     } else assert(0);
@@ -1405,7 +1401,7 @@ build_ast_lvalue()
         next_token();
         struct Ast_MemberSelectExpr* select_expr = new_ast_node(struct Ast_MemberSelectExpr, AST_MEMBER_SELECT_EXPR);
         select_expr->line_no = m_token->line_no;
-        select_expr->expr = lvalue;
+        select_expr->lhs_expr = lvalue;
         lvalue = (struct Ast*)select_expr;
         if (token_is_name(m_token)) {
           select_expr->member_name = build_ast_name(false);
@@ -2828,7 +2824,7 @@ build_ast_expression(int priority_threshold)
         next_token();
         struct Ast_MemberSelectExpr* select_expr = new_ast_node(struct Ast_MemberSelectExpr, AST_MEMBER_SELECT_EXPR);
         select_expr->line_no = m_token->line_no;
-        select_expr->expr = expr;
+        select_expr->lhs_expr = expr;
         expr = (struct Ast*)select_expr;
         if (token_is_name(m_token)) {
           select_expr->member_name = build_ast_name(false);
@@ -2887,22 +2883,22 @@ build_ast_expression(int priority_threshold)
   return expr;
 }
 
-internal struct NameDecl*
-new_keyword(char* name, enum TokenClass token_class)
-{
-  struct Name_Keyword* descriptor = arena_push(&m_local_storage, sizeof(*descriptor));
-  memset(descriptor, 0, sizeof(*descriptor));
-  descriptor->strname = name;
-  descriptor->token_class = token_class;
-  return (struct NameDecl*)descriptor;
-}
-
 struct Ast*
 build_ast(struct UnboundedArray* tokens_array, struct Arena* ast_storage)
 {
+  struct NameDecl*
+  new_keyword(char* name, enum TokenClass token_class)
+  {
+    struct NameDecl_Keyword* decl = arena_push(m_ast_storage, sizeof(*decl));
+    memset(decl, 0, sizeof(*decl));
+    decl->strname = name;
+    decl->token_class = token_class;
+    return (struct NameDecl*)decl;
+  }
+
   m_tokens_array = tokens_array;
   m_ast_storage = ast_storage;
-  symtable_init(&m_local_storage);
+  symtable_init(m_ast_storage);
 
   declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("action", TK_ACTION));
   declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("actions", TK_ACTIONS));
@@ -2951,6 +2947,5 @@ build_ast(struct UnboundedArray* tokens_array, struct Arena* ast_storage)
   push_scope();
   struct Ast* p4program = build_ast_p4program();
   pop_scope();
-  arena_delete(&m_local_storage);
   return p4program;
 }

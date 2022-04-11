@@ -20,7 +20,10 @@ enum AstEnum {
   AST_HEADER_UNION_DECL,
   AST_STRUCT_DECL,
   AST_ENUM_DECL,
+  AST_ENUM_FIELD,
   AST_TYPE_DECL,
+  AST_TYPE_PARAM,
+  AST_TYPEDEF,
   AST_PARSER_DECL,
   AST_CONTROL_DECL,
   AST_PACKAGE_DECL,
@@ -530,7 +533,7 @@ struct Ast_BinaryExpr {
 
 struct Ast_MemberSelectExpr {
   struct Ast_Expression;
-  struct Ast* expr;
+  struct Ast* lhs_expr;
   struct Ast* member_name;
 };
 

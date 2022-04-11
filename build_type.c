@@ -1,6 +1,7 @@
 #include "arena.h"
 #include "ast.h"
 #include "hashmap.h"
+#include "symtable.h"
 #include "build_type.h"
 #include <memory.h>  // memset
 
@@ -36,7 +37,15 @@ internal void
 build_type_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
-  build_type_expression(ast);
+  struct Ast_Name* name = (struct Ast_Name*)ast;
+  struct NameRef* nameref = nameref_get_entry(m_nameref_map, name->id);
+  if (!nameref) {
+    struct Type_TypeParam* type = new_type(struct Type_TypeParam, TYPE_TYPEPARAM);
+    type->strname = name->strname;
+    type_add_entry(&m_type_map, (struct Type*)type, name->id);
+  } else {
+    build_type_expression(ast);
+  }
 }
 
 internal void
@@ -136,12 +145,20 @@ build_type_type_ref(struct Ast* ast)
       || ast->kind == AST_BASETYPE_VOID) {
     struct Ast_BaseType* base_type = (struct Ast_BaseType*)ast;
     build_type_type_ref(base_type->name);
+    struct Type* type = type_get_entry(&m_type_map, base_type->name->id);
+    type_add_entry(&m_type_map, type, base_type->id);
   } else if (ast->kind == AST_HEADER_STACK) {
     struct Ast_HeaderStack* type_ref = (struct Ast_HeaderStack*)ast;
     build_type_type_ref(type_ref->name);
     build_type_expression(type_ref->stack_expr);
   } else if (ast->kind == AST_NAME) {
-    build_type_expression(ast);
+    struct Ast_Name* name = (struct Ast_Name*)ast;
+    struct NameRef* nameref = nameref_get_entry(m_nameref_map, name->id);
+    struct SymtableEntry* se = scope_lookup_name(nameref->scope, nameref->strname);
+    if (se->ns_type) {
+      struct Type* type = type_get_entry(&m_type_map, se->ns_type->id);
+      type_add_entry(&m_type_map, type, name->id);
+    } else error("at line %d: unknown name `%s`.", name->line_no, name->strname);
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
     struct Ast_SpecializedType* speclzd_type = (struct Ast_SpecializedType*)ast;
     build_type_type_ref(speclzd_type->name);
@@ -486,27 +503,17 @@ build_type_block_statement(struct Ast* ast)
   }
 }
 
-
 internal void
 build_type_control_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_CONTROL_DECL);
   struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
   struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
+  struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
   struct Type_Name* control_type = new_type(struct Type_Name, TYPE_NAME);
-  control_type->strname = ((struct Ast_Name*)type_decl->name)->strname;
-
-  struct HashmapKey key;
-  struct HashmapEntry* he;
-  key = (struct HashmapKey){ .i_key = control_decl->id };
-  hashmap_hash_key(HASHMAP_KEY_INT, &key, m_type_map.capacity_log2);
-  he = hashmap_get_or_create_entry(&m_type_map, &key);
-  he->object = control_decl;
-  key = (struct HashmapKey){ .i_key = control_type->id };
-  hashmap_hash_key(HASHMAP_KEY_INT, &key, m_type_map.capacity_log2);
-  he = hashmap_get_or_create_entry(&m_type_map, &key);
-  he->object = control_type;
-
+  control_type->strname = name->strname;
+  type_add_entry(&m_type_map, (struct Type*)control_type, name->id);
+  type_add_entry(&m_type_map, (struct Type*)control_type, control_decl->id);
   if (type_decl->type_params) {
     struct ListLink* link = list_first_link(type_decl->type_params);
     while (link) {
@@ -549,6 +556,11 @@ build_type_extern_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_EXTERN_DECL);
   struct Ast_ExternDecl* extern_decl = (struct Ast_ExternDecl*)ast;
+  struct Ast_Name* name = (struct Ast_Name*)extern_decl->name;
+  struct Type_Name* extern_type = new_type(struct Type_Name, TYPE_NAME);
+  extern_type->strname = name->strname;
+  type_add_entry(&m_type_map, (struct Type*)extern_type, name->id);
+  type_add_entry(&m_type_map, (struct Type*)extern_decl, extern_decl->id);
   if (extern_decl->type_params) {
     struct ListLink* link = list_first_link(extern_decl->type_params);
     while (link) {
@@ -636,6 +648,10 @@ build_type_const_decl(struct Ast* ast)
   assert(ast->kind == AST_CONST_DECL);
   struct Ast_ConstDecl* decl = (struct Ast_ConstDecl*)ast;
   build_type_type_ref(decl->type_ref);
+  struct Type* decl_type = type_get_entry(&m_type_map, decl->type_ref->id);
+  struct Ast_Name* name = (struct Ast_Name*)decl->name;
+  type_add_entry(&m_type_map, decl_type, name->id);
+  type_add_entry(&m_type_map, decl_type, decl->id);
   build_type_expression(decl->expr);
 }
 
@@ -781,32 +797,11 @@ build_type_enum_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_ENUM_DECL);
   struct Ast_EnumDecl* enum_decl = (struct Ast_EnumDecl*)ast;
+  struct Ast_Name* name = (struct Ast_Name*)enum_decl->name;
   struct Type_Name* enum_type = new_type(struct Type_Name, TYPE_NAME);
-  enum_type->strname = ((struct Ast_Name*)enum_decl->name)->strname;
-  struct HashmapKey key = { .i_key = enum_decl->id };
-  hashmap_hash_key(HASHMAP_KEY_INT, &key, m_type_map.capacity_log2);
-  struct HashmapEntry* he = hashmap_get_or_create_entry(&m_type_map, &key);
-  he->object = enum_decl;
-
-  if (enum_decl->id_list) {
-    /*
-    enum_type->fields = arena_push(m_type_storage, sizeof(*enum_type->fields));
-    memset(enum_type->fields, 0, sizeof(*enum_type->fields));
-    list_init(enum_type->fields);
-    */
-    struct ListLink* i = list_first_link(enum_decl->id_list);
-    while (i) {
-      /*
-      struct Ast_SpecifiedIdent* id = i->object;
-      assert(id->kind == AST_SPECIFIED_IDENT);
-      struct ListLink* j = arena_push(m_type_storage, sizeof(*j));
-      memset(j, 0, sizeof(*j));
-      j->object = ((struct Ast_Name*)id->name)->strname;
-      list_append_link(enum_type->fields, j);
-      */
-      i = i->next;
-    }
-  }
+  enum_type->strname = name->strname;
+  type_add_entry(&m_type_map, (struct Type*)enum_type, name->id);
+  type_add_entry(&m_type_map, (struct Type*)enum_type, enum_decl->id);
 }
 
 internal void
@@ -846,12 +841,29 @@ build_type_expression(struct Ast* ast)
     build_type_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
+    struct NameRef* nameref = nameref_get_entry(m_nameref_map, name->id);
+    struct SymtableEntry* se = scope_lookup_name(nameref->scope, nameref->strname);
+    if (se->ns_type || se->ns_var) {
+      if (se->ns_type && se->ns_var) {
+        struct Type_Typevar* type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
+        type->strname = "?";
+        type_add_entry(&m_type_map, (struct Type*)type, name->id);
+      } else {
+        struct NameDecl* decl = se->ns_type ? se->ns_type : se->ns_var;
+        struct Type* type = type_get_entry(&m_type_map, decl->id);
+        type_add_entry(&m_type_map, type, name->id);
+      }
+    } else error("at line %d: unknown name `%s`.", name->line_no, name->strname);
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     build_type_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
     struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
-    build_type_expression(expr->expr);
+    build_type_expression(expr->lhs_expr);
     struct Ast_Name* name = (struct Ast_Name*)expr->member_name;
+    struct Type_Typevar* member_type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
+    member_type->strname = "?";
+    type_add_entry(&m_type_map, (struct Type*)member_type, name->id);
+    type_add_entry(&m_type_map, (struct Type*)member_type, expr->id);
   } else if (ast->kind == AST_EXPRLIST_EXPR) {
     struct Ast_ExprListExpr* expr = (struct Ast_ExprListExpr*)ast;
     if (expr->expr_list) {
@@ -876,8 +888,14 @@ build_type_expression(struct Ast* ast)
     struct Ast_KeyValuePairExpr* expr = (struct Ast_KeyValuePairExpr*)ast;
     build_type_expression(expr->name);
     build_type_expression(expr->expr);
-  } else if (ast->kind == AST_INT_LITERAL || ast->kind == AST_BOOL_LITERAL || ast->kind == AST_STRING_LITERAL) {
-    ; // pass
+  } else if (ast->kind == AST_INT_LITERAL || ast->kind == AST_BOOL_LITERAL) {
+    struct SymtableEntry* se = scope_lookup_name(get_root_scope(), "int");
+    struct Type* int_type = type_get_entry(&m_type_map, se->ns_type->id);
+    type_add_entry(&m_type_map, int_type, ast->id);
+  } else if (ast->kind == AST_STRING_LITERAL) {
+    struct SymtableEntry* se = scope_lookup_name(get_root_scope(), "string");
+    struct Type* str_type = type_get_entry(&m_type_map, se->ns_type->id);
+    type_add_entry(&m_type_map, str_type, ast->id);
   }
   else assert(0);
 }
@@ -951,9 +969,25 @@ build_type_p4program(struct Ast* ast)
 struct Hashmap*
 build_type(struct Ast* p4program, struct Hashmap* nameref_map, struct Arena* type_storage)
 {
+  void add_basic_type(char* strname, enum BasicType basic_type) {
+    struct Type_Basic* type = new_type(struct Type_Basic, TYPE_BASIC);
+    type->basic_type = basic_type;
+    type->strname = strname;
+    struct SymtableEntry* se = scope_lookup_name(get_root_scope(), strname);
+    type_add_entry(&m_type_map, (struct Type*)type, se->ns_type->id);
+  }
+
   m_type_storage = type_storage;
   m_nameref_map = nameref_map;
   hashmap_init(&m_type_map, HASHMAP_KEY_INT, 8, m_type_storage);
+
+  add_basic_type("void", TYPE_INT);
+  add_basic_type("bool", TYPE_INT);
+  add_basic_type("int", TYPE_INT);
+  add_basic_type("bit", TYPE_INT);
+  add_basic_type("varbit", TYPE_INT);
+  add_basic_type("string", TYPE_STRING);
+
   build_type_p4program(p4program);
   return &m_type_map;
 }

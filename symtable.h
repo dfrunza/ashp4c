@@ -4,42 +4,6 @@
 #include "token.h"
 
 
-enum DeclEnum {
-  DECL_KEYWORD = 1,
-  DECL_VAR,
-  DECL_TYPEVAR,
-  DECL_CONST,
-  DECL_PARAM,
-  DECL_STRUCT_FIELD,
-  DECL_ENUM_FIELD,
-  DECL_ACTION,
-  DECL_PARSER,
-  DECL_PARSER_PROTO,
-  DECL_PARSER_STATE,
-  DECL_CONTROL,
-  DECL_CONTROL_PROTO,
-  DECL_FUNCTION,
-  DECL_FUNCTION_PROTO,
-  DECL_EXTERN,
-  DECL_STRUCT,
-  DECL_HEADER,
-  DECL_HEADER_UNION,
-  DECL_PACKAGE,
-  DECL_INSTANTIATION,
-  DECL_VOID,
-  DECL_BOOL,
-  DECL_INT,
-  DECL_BIT,
-  DECL_VARBIT,
-  DECL_STRING,
-  DECL_ERROR,
-  DECL_ENUM,
-  DECL_MATCH_KIND,
-  DECL_TABLE,
-  DECL_TYPE,
-  DECL_TYPEDEF,
-};
-
 enum Namespace {
   NAMESPACE_TYPE = 1 << 0,
   NAMESPACE_VAR = 1 << 1,
@@ -47,25 +11,23 @@ enum Namespace {
 };
 
 struct NameDecl {
-  enum DeclEnum kind;
-  struct Ast_Name* name;
+  enum AstEnum kind;
+  uint32_t id;
   char* strname;
   int line_no;
   struct NameDecl* next_in_scope;
 };  
 
-struct Name_Keyword {
+struct NameDecl_Keyword {
   struct NameDecl;
   enum TokenClass token_class;
 };
 
 struct NameRef {
-  struct Ast_Name* name;
+  uint32_t id;
   char* strname;
   int line_no;
   struct Scope* scope;
-  struct NameDecl* ns_type;
-  struct NameDecl* ns_var;
 };
 
 struct SymtableEntry {
@@ -92,5 +54,10 @@ struct Scope* push_scope();
 struct Scope* pop_scope();
 struct Scope* get_root_scope();
 struct Scope* get_current_scope();
-struct SymtableEntry* scope_lookup_name(struct Scope* scope, enum Namespace ns, char* name);
+struct SymtableEntry* scope_lookup_name(struct Scope* scope, char* name);
 struct SymtableEntry* declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl);
+struct NameRef* nameref_get_entry(struct Hashmap* map, uint32_t id);
+void nameref_add_entry(struct Hashmap* map, struct NameRef* nameref, uint32_t id);
+struct Type* type_get_entry(struct Hashmap* map, uint32_t id);
+void type_add_entry(struct Hashmap* map, struct Type* type, uint32_t id);
+

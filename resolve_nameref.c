@@ -13,19 +13,6 @@ internal void resolve_nameref_expression(struct Ast* expr);
 internal void resolve_nameref_type_ref(struct Ast* type_ref);
 
 
-struct NameRef*
-nameref_get_entry(struct Hashmap* nameref_map, uint32_t id)
-{
-  struct HashmapKey key = { .i_key = id };
-  hashmap_hash_key(HASHMAP_KEY_INT, &key, nameref_map->capacity_log2);
-  struct HashmapEntry* hmap_entry = hashmap_get_entry(nameref_map, &key);
-  struct NameRef* nameref = 0;
-  if (hmap_entry) {
-    nameref = hmap_entry->object;
-  }
-  return nameref;
-}
-
 internal void
 resolve_nameref_param(struct Ast* ast)
 {
@@ -826,18 +813,13 @@ resolve_nameref_expression(struct Ast* ast)
     struct Ast_Name* name = (struct Ast_Name*)ast;
     struct NameRef* nameref = nameref_get_entry(m_nameref_map, name->id);
     if (nameref) {
-      struct SymtableEntry* entry = scope_lookup_name(nameref->scope,
-          NAMESPACE_TYPE | NAMESPACE_VAR, nameref->strname);
-      if (entry->ns_type || entry->ns_var) {
-        nameref->ns_type = entry->ns_type;
-        nameref->ns_var = entry->ns_var;
-      }
+      struct SymtableEntry* entry = scope_lookup_name(nameref->scope, nameref->strname);
     } // else it's a declaration
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     resolve_nameref_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
     struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
-    resolve_nameref_expression(expr->expr);
+    resolve_nameref_expression(expr->lhs_expr);
     struct Ast_Name* name = (struct Ast_Name*)expr->member_name;
   } else if (ast->kind == AST_EXPRLIST_EXPR) {
     struct Ast_ExprListExpr* expr = (struct Ast_ExprListExpr*)ast;

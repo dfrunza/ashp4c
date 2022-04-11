@@ -5,9 +5,11 @@
 
 enum TypeEnum {
   TYPE_NAME = 1,
+  TYPE_BASIC,
   TYPE_TYPEVAR,
   TYPE_TYPEDEF,
   TYPE_TYPENAME,
+  TYPE_TYPEPARAM,
   TYPE_PRODUCT,
   TYPE_FUNCTION,
   TYPE_FUNCTION_CALL,
@@ -37,16 +39,11 @@ struct Type_Typevar {
 
 struct Type_Name {
   struct Type;
+  bool is_typedef;
 };
 
-struct Type_Typedef {
+struct Type_TypeParam {
   struct Type;
-  struct Type* type;
-};
-
-struct Type_Typename {
-  struct Type;
-  struct Type* type;
 };
 
 struct Type_Product {

@@ -84,19 +84,16 @@ build_symtable_expression(struct Ast* ast)
     struct Ast_Name* name = (struct Ast_Name*)ast;
     struct NameRef* nameref = arena_push(m_symtable_storage, sizeof(struct NameRef));
     memset(nameref, 0, sizeof(*nameref));
-    nameref->name = name;
+    nameref->id = name->id;
     nameref->strname = name->strname;
     nameref->line_no = name->line_no;
     nameref->scope = get_current_scope();
-    struct HashmapKey key = { .i_key = name->id };
-    hashmap_hash_key(HASHMAP_KEY_INT, &key, m_nameref_map.capacity_log2);
-    struct HashmapEntry* entry = hashmap_get_or_create_entry(&m_nameref_map, &key);
-    entry->object = nameref;
+    nameref_add_entry(&m_nameref_map, nameref, nameref->id);
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     build_symtable_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
     struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
-    build_symtable_expression(expr->expr);
+    build_symtable_expression(expr->lhs_expr);
     build_symtable_expression(expr->member_name);
   } else if (ast->kind == AST_EXPRLIST_EXPR) {
     struct Ast_ExprListExpr* expr = (struct Ast_ExprListExpr*)ast;
@@ -134,10 +131,10 @@ build_symtable_param(struct Ast* ast)
   assert(ast->kind == AST_PARAM);
   struct Ast_Param* param = (struct Ast_Param*)ast;
   struct Ast_Name* name = (struct Ast_Name*)param->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  if (!entry->ns_var) {
-    struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_PARAM);
-    decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  if (!se->ns_var) {
+    struct NameDecl* decl = new_name_decl(struct NameDecl, AST_PARAM);
+    decl->id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -150,10 +147,10 @@ build_symtable_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   struct Ast_Name* name = (struct Ast_Name*)ast;
-  struct SymtableEntry* entry = scope_lookup_name(get_current_scope(), NAMESPACE_TYPE, name->strname);
-  if (!entry->ns_type) {
-    struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_TYPEVAR);
-    decl->name = name;
+  struct SymtableEntry* se = scope_lookup_name(get_current_scope(), name->strname);
+  if (!se->ns_type) {
+    struct NameDecl* decl = new_name_decl(struct NameDecl, AST_TYPE_PARAM);
+    decl->id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -168,10 +165,10 @@ build_symtable_action_decl(struct Ast* ast)
   assert(ast->kind == AST_ACTION_DECL);
   struct Ast_ActionDecl* action_decl = (struct Ast_ActionDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)action_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  if (!entry->ns_var) {
-    struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_ACTION);
-    decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  if (!se->ns_var) {
+    struct NameDecl* decl = new_name_decl(struct NameDecl, AST_ACTION_DECL);
+    decl->id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -207,10 +204,10 @@ build_symtable_instantiation(struct Ast* ast)
   assert(ast->kind == AST_INSTANTIATION);
   struct Ast_Instantiation* decl = (struct Ast_Instantiation*)ast;
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  if (!entry->ns_var) {
-    struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_INSTANTIATION);
-    decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  if (!se->ns_var) {
+    struct NameDecl* decl = new_name_decl(struct NameDecl, AST_INSTANTIATION);
+    decl->id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -330,10 +327,10 @@ build_symtable_table_decl(struct Ast* ast)
   assert(ast->kind == AST_TABLE_DECL);
   struct Ast_TableDecl* decl = (struct Ast_TableDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  if (!entry->ns_var) {
-    struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_TABLE);
-    decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  if (!se->ns_var) {
+    struct NameDecl* decl = new_name_decl(struct NameDecl, AST_TABLE_DECL);
+    decl->id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -376,10 +373,10 @@ build_symtable_const_decl(struct Ast* ast)
   assert(ast->kind == AST_CONST_DECL);
   struct Ast_ConstDecl* decl = (struct Ast_ConstDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  if (!entry->ns_var) {
-    struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_CONST);
-    decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  if (!se->ns_var) {
+    struct NameDecl* decl = new_name_decl(struct NameDecl, AST_CONST_DECL);
+    decl->id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -394,10 +391,10 @@ build_symtable_statement(struct Ast* ast)
   if (ast->kind == AST_VAR_DECL) {
     struct Ast_VarDecl* decl = (struct Ast_VarDecl*)ast;
     struct Ast_Name* name = (struct Ast_Name*)decl->name;
-    struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-    if (!entry->ns_var) {
-      struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_VAR);
-      decl->name = name;
+    struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+    if (!se->ns_var) {
+      struct NameDecl* decl = new_name_decl(struct NameDecl, AST_VAR_DECL);
+      decl->id = name->id;
       decl->strname = name->strname;
       decl->line_no = name->line_no;
       declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -479,27 +476,12 @@ build_symtable_control_decl(struct Ast* ast)
   struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
   struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_CONTROL_PROTO);
-  decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameDecl* decl = new_name_decl(struct NameDecl, AST_CONTROL_DECL);
+  decl->id = name->id;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
-  if (!entry->ns_type) {
-    declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-  } else {
-    struct NameDecl* prev_decl = entry->ns_type;
-    if (prev_decl->kind == DECL_FUNCTION_PROTO || prev_decl->kind == DECL_FUNCTION) {
-      declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-    } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  }
-  if (!entry->ns_var) {
-    declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
-  } else {
-    struct NameDecl* prev_decl = entry->ns_var;
-    if (prev_decl->kind == DECL_CONTROL_PROTO || prev_decl->kind == DECL_CONTROL) {
-      declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
-    } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  }
+  declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
   push_scope();
   if (type_decl->type_params) {
     struct ListLink* link = list_first_link(type_decl->type_params);
@@ -589,10 +571,10 @@ build_symtable_parser_state(struct Ast* ast)
   assert(ast->kind == AST_PARSER_STATE);
   struct Ast_ParserState* state = (struct Ast_ParserState*)ast;
   struct Ast_Name* name = (struct Ast_Name*)state->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  if (!entry->ns_var) {
-    struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_PARSER_STATE);
-    decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  if (!se->ns_var) {
+    struct NameDecl* decl = new_name_decl(struct NameDecl, AST_PARSER_STATE);
+    decl->id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -617,27 +599,12 @@ build_symtable_parser_decl(struct Ast* ast)
   struct Ast_ParserDecl* parser_decl = (struct Ast_ParserDecl*)ast;
   struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)parser_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_PARSER_PROTO);
-  decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameDecl* decl = new_name_decl(struct NameDecl, AST_PARSER_DECL);
+  decl->id = name->id;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
-  if (!entry->ns_type) {
-    declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-  } else {
-    struct NameDecl* prev_decl = entry->ns_type;
-    if (prev_decl->kind == DECL_PARSER_PROTO || prev_decl->kind == DECL_PARSER) {
-      declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-    } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  }
-  if (!entry->ns_var) {
-    declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
-  } else {
-    struct NameDecl* prev_decl = entry->ns_var;
-    if (prev_decl->kind == DECL_PARSER_PROTO || prev_decl->kind == DECL_PARSER) {
-      declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
-    } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  }
+  declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
   push_scope();
   if (type_decl->type_params) {
     struct ListLink* link = list_first_link(type_decl->type_params);
@@ -686,8 +653,17 @@ internal void
 build_symtable_function_return_type(struct Ast* ast)
 {
   if (ast->kind == AST_NAME) {
-    struct Ast_Name* return_type = (struct Ast_Name*)ast;
-    build_symtable_type_param((struct Ast*)return_type);
+    struct Ast_Name* name = (struct Ast_Name*)ast;
+    struct SymtableEntry* se = scope_lookup_name(get_current_scope(), name->strname);
+    if (!se->ns_type) {
+      struct NameDecl* decl = new_name_decl(struct NameDecl, AST_TYPE_PARAM);
+      decl->id = name->id;
+      decl->strname = name->strname;
+      decl->line_no = name->line_no;
+      declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
+    } else {
+      build_symtable_type_ref(ast);
+    }
   } else {
     build_symtable_type_ref(ast);
   }
@@ -699,27 +675,12 @@ build_symtable_function_proto(struct Ast* ast)
   assert(ast->kind == AST_FUNCTION_PROTO);
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)ast;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_FUNCTION_PROTO);
-  decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameDecl* decl = new_name_decl(struct NameDecl, AST_FUNCTION_PROTO);
+  decl->id = name->id;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
-  if (!entry->ns_type) {
-    declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-  } else {
-    struct NameDecl* prev_decl = entry->ns_type;
-    if (prev_decl->kind == DECL_FUNCTION_PROTO || prev_decl->kind == DECL_FUNCTION) {
-      declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-    } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  }
-  if (!entry->ns_var) {
-    declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
-  } else {
-    struct NameDecl* prev_decl = entry->ns_var;
-    if (prev_decl->kind == DECL_FUNCTION_PROTO || prev_decl->kind == DECL_FUNCTION) {
-      declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
-    } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  }
+  declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
   push_scope();
   if (function_proto->return_type) {
     build_symtable_function_return_type(function_proto->return_type);
@@ -749,27 +710,12 @@ build_symtable_extern_decl(struct Ast* ast)
   assert(ast->kind == AST_EXTERN_DECL);
   struct Ast_ExternDecl* extern_decl = (struct Ast_ExternDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)extern_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_EXTERN);
-  decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameDecl* decl = new_name_decl(struct NameDecl, AST_EXTERN_DECL);
+  decl->id = name->id;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
-  if (!entry->ns_type) {
-    declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-  } else {
-    struct NameDecl* prev_decl = entry->ns_type;
-    if (prev_decl->kind == DECL_EXTERN) {
-      declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-    } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  }
-  if (!entry->ns_var) {
-    declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
-  } else {
-    struct NameDecl* prev_decl = entry->ns_var;
-    if (prev_decl->kind == DECL_EXTERN) {
-      declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
-    } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  }
+  declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
   push_scope();
   if (extern_decl->type_params) {
     struct ListLink* link = list_first_link(extern_decl->type_params);
@@ -796,10 +742,10 @@ build_symtable_struct_field(struct Ast* ast)
   assert(ast->kind == AST_STRUCT_FIELD);
   struct Ast_StructField* field = (struct Ast_StructField*)ast;
   struct Ast_Name* name = (struct Ast_Name*)field->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  if (!entry->ns_var) {
-    struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_STRUCT_FIELD);
-    decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  if (!se->ns_var) {
+    struct NameDecl* decl = new_name_decl(struct NameDecl, AST_STRUCT_FIELD);
+    decl->id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -813,10 +759,10 @@ build_symtable_struct_decl(struct Ast* ast)
   assert(ast->kind == AST_STRUCT_DECL);
   struct Ast_StructDecl* struct_decl = (struct Ast_StructDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)struct_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  if (!entry->ns_type) {
-    struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_STRUCT);
-    decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  if (!se->ns_type) {
+    struct NameDecl* decl = new_name_decl(struct NameDecl, AST_STRUCT_DECL);
+    decl->id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -839,10 +785,10 @@ build_symtable_header_decl(struct Ast* ast)
   assert(ast->kind == AST_HEADER_DECL);
   struct Ast_HeaderDecl* header_decl = (struct Ast_HeaderDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)header_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  if (!entry->ns_type) {
-    struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_HEADER);
-    decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  if (!se->ns_type) {
+    struct NameDecl* decl = new_name_decl(struct NameDecl, AST_HEADER_DECL);
+    decl->id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -865,10 +811,10 @@ build_symtable_header_union_decl(struct Ast* ast)
   assert(ast->kind == AST_HEADER_UNION_DECL);
   struct Ast_HeaderUnionDecl* header_union_decl = (struct Ast_HeaderUnionDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)header_union_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  if (!entry->ns_type) {
-    struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_HEADER_UNION);
-    decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  if (!se->ns_type) {
+    struct NameDecl* decl = new_name_decl(struct NameDecl, AST_HEADER_UNION_DECL);
+    decl->id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -936,10 +882,10 @@ build_symtable_enum_field(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   struct Ast_Name* name = (struct Ast_Name*)ast;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  if (!entry->ns_var) {
-    struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_ENUM_FIELD);
-    decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  if (!se->ns_var) {
+    struct NameDecl* decl = new_name_decl(struct NameDecl, AST_ENUM_FIELD);
+    decl->id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -965,10 +911,10 @@ build_symtable_enum_decl(struct Ast* ast)
   assert(ast->kind == AST_ENUM_DECL);
   struct Ast_EnumDecl* enum_decl = (struct Ast_EnumDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)enum_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  if (!entry->ns_type) {
-    struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_ENUM);
-    decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  if (!se->ns_type) {
+    struct NameDecl* decl = new_name_decl(struct NameDecl, AST_ENUM_DECL);
+    decl->id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -994,10 +940,10 @@ build_symtable_package_decl(struct Ast* ast)
   assert(ast->kind == AST_PACKAGE_DECL);
   struct Ast_PackageDecl* package_decl = (struct Ast_PackageDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)package_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  if (!entry->ns_type) {
-    struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_PACKAGE);
-    decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  if (!se->ns_type) {
+    struct NameDecl* decl = new_name_decl(struct NameDecl, AST_PACKAGE_DECL);
+    decl->id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -1028,12 +974,12 @@ build_symtable_type_decl(struct Ast* ast)
   assert(ast->kind == AST_TYPE_DECL);
   struct Ast_TypeDecl* type_decl = (struct Ast_TypeDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  if (!entry->ns_type) {
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  if (!se->ns_type) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, 0);
-    decl->name = name;
+    decl->id = name->id;
     decl->strname = name->strname;
-    decl->kind = type_decl->is_typedef ? DECL_TYPEDEF : DECL_TYPE;
+    decl->kind = type_decl->is_typedef ? AST_TYPEDEF : AST_TYPE_DECL;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
@@ -1048,27 +994,12 @@ build_symtable_function_decl(struct Ast* ast)
   struct Ast_FunctionDecl* function_decl = (struct Ast_FunctionDecl*)ast;
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)function_decl->proto;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
-  struct NameDecl* decl = new_name_decl(struct NameDecl, DECL_FUNCTION);
-  decl->name = name;
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameDecl* decl = new_name_decl(struct NameDecl, AST_FUNCTION_DECL);
+  decl->id = name->id;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
-  if (!entry->ns_type) {
-    declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-  } else {
-    struct NameDecl* prev_decl = entry->ns_type;
-    if (prev_decl->kind == DECL_FUNCTION_PROTO || prev_decl->kind == DECL_FUNCTION) {
-      declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-    } else error("!at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  }
-  if (!entry->ns_var) {
-    declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
-  } else {
-    struct NameDecl* prev_decl = entry->ns_var;
-    if (prev_decl->kind == DECL_FUNCTION_PROTO || prev_decl->kind == DECL_FUNCTION) {
-      declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
-    } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  }
+  declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
   push_scope();
   if (function_proto->return_type) {
     build_symtable_function_return_type(function_proto->return_type);
@@ -1108,8 +1039,8 @@ build_symtable_match_kind(struct Ast* ast)
 {
   assert(ast->kind == AST_MATCH_KIND_DECL);
   struct Ast_MatchKindDecl* decl = (struct Ast_MatchKindDecl*)ast;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_root_scope()->declarations, "match_kind");
-  assert(entry->ns_type);
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_root_scope()->declarations, "match_kind");
+  assert(se->ns_type);
   assert(get_current_scope()->scope_level == 1);
   if (decl->id_list) {
     struct ListLink* link = list_first_link(decl->id_list);
@@ -1131,18 +1062,18 @@ build_symtable_error_decl(struct Ast* ast)
 {
   assert (ast->kind == AST_ERROR_DECL);
   struct Ast_ErrorDecl* decl = (struct Ast_ErrorDecl*)ast;
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&get_root_scope()->declarations, "error");
-  assert(entry->ns_type);
+  struct SymtableEntry* se = symtable_get_or_create_entry(&get_root_scope()->declarations, "error");
+  assert(se->ns_type);
   push_scope();
   if (decl->id_list) {
-    struct ListLink* link = list_first_link(decl->id_list);
-    while (link) {
-      struct Ast* id = link->object;
+    struct ListLink* li = list_first_link(decl->id_list);
+    while (li) {
+      struct Ast* id = li->object;
       if (id->kind == AST_NAME) {
         build_symtable_enum_field(id);
       }
       else assert(0);
-      link = link->next;
+      li = li->next;
     }
   }
   pop_scope();
@@ -1200,53 +1131,64 @@ struct Hashmap*
 build_symtable(struct Ast* p4program, struct Arena* symtable_storage)
 {
   m_symtable_storage = symtable_storage;
-
   symtable_init(m_symtable_storage);
   hashmap_init(&m_nameref_map, HASHMAP_KEY_INT, 8, m_symtable_storage);
 
   struct NameDecl* decl;
-  decl = new_name_decl(struct NameDecl, DECL_VOID);
+  int node_id = 1;
+  decl = new_name_decl(struct NameDecl, AST_BASETYPE_VOID);
+  decl->id = node_id++;
   decl->strname = "void";
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
 
-  decl = new_name_decl(struct NameDecl, DECL_BOOL);
+  decl = new_name_decl(struct NameDecl, AST_BASETYPE_BOOL);
+  decl->id = node_id++;
   decl->strname = "bool";
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
 
-  decl = new_name_decl(struct NameDecl, DECL_INT);
+  decl = new_name_decl(struct NameDecl, AST_BASETYPE_INT);
+  decl->id = node_id++;
   decl->strname = "int";
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
 
-  decl = new_name_decl(struct NameDecl, DECL_BIT);
+  decl = new_name_decl(struct NameDecl, AST_BASETYPE_BIT);
+  decl->id = node_id++;
   decl->strname = "bit";
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
 
-  decl = new_name_decl(struct NameDecl, DECL_VARBIT);
+  decl = new_name_decl(struct NameDecl, AST_BASETYPE_VARBIT);
+  decl->id = node_id++;
   decl->strname = "varbit";
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
 
-  decl = new_name_decl(struct NameDecl, DECL_STRING);
+  decl = new_name_decl(struct NameDecl, AST_BASETYPE_STRING);
+  decl->id = node_id++;
   decl->strname = "string";
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
 
-  decl = new_name_decl(struct NameDecl, DECL_ERROR);
+  decl = new_name_decl(struct NameDecl, AST_ERROR_DECL);
+  decl->id = node_id++;
   decl->strname = "error";
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
 
-  decl = new_name_decl(struct NameDecl, DECL_MATCH_KIND);
+  decl = new_name_decl(struct NameDecl, AST_ERROR_DECL);
+  decl->id = node_id++;
+  decl->strname = "error";
+  declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
+
+  decl = new_name_decl(struct NameDecl, AST_MATCH_KIND_DECL);
+  decl->id = node_id++;
   decl->strname = "match_kind";
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
 
-  decl = new_name_decl(struct NameDecl, DECL_PARSER_STATE);
+  decl = new_name_decl(struct NameDecl, AST_PARSER_STATE);
+  decl->id = node_id++;
   decl->strname = "accept";
   declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
 
-  decl = new_name_decl(struct NameDecl, DECL_PARSER_STATE);
+  decl = new_name_decl(struct NameDecl, AST_PARSER_STATE);
+  decl->id = node_id++;
   decl->strname = "reject";
-  declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
-
-  decl = new_name_decl(struct NameDecl, DECL_ERROR);
-  decl->strname = "error";
   declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
 
   build_symtable_p4program(p4program);

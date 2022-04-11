@@ -86,18 +86,12 @@ symtable_get_entry(struct Hashmap* declarations, char* name)
 }
 
 struct SymtableEntry*
-scope_lookup_name(struct Scope* scope, enum Namespace ns, char* name)
+scope_lookup_name(struct Scope* scope, char* name)
 {
   struct SymtableEntry* entry = 0;
   while (scope) {
     entry = symtable_get_or_create_entry(&scope->declarations, name);
-    if (entry->ns_type && (ns & NAMESPACE_TYPE)) {
-      break;
-    }
-    if (entry->ns_var && (ns & NAMESPACE_VAR)) {
-      break;
-    }
-    if (entry->ns_keyword && (ns & NAMESPACE_KEYWORD)) {
+    if (entry->ns_type || entry->ns_var || entry->ns_keyword) {
       break;
     }
     scope = scope->parent_scope;
@@ -106,20 +100,66 @@ scope_lookup_name(struct Scope* scope, enum Namespace ns, char* name)
 }
 
 struct SymtableEntry*
-declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* descriptor)
+declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl)
 {
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&scope->declarations, descriptor->strname);
+  struct SymtableEntry* entry = symtable_get_or_create_entry(&scope->declarations, decl->strname);
   if (ns == NAMESPACE_TYPE) {
-    descriptor->next_in_scope = entry->ns_type;
-    entry->ns_type = (struct NameDecl*)descriptor;
+    decl->next_in_scope = entry->ns_type;
+    entry->ns_type = decl;
   } else if (ns == NAMESPACE_VAR) {
-    descriptor->next_in_scope = entry->ns_var;
-    entry->ns_var = (struct NameDecl*)descriptor;
+    decl->next_in_scope = entry->ns_var;
+    entry->ns_var = decl;
   } else if (ns == NAMESPACE_KEYWORD) {
-    struct SymtableEntry* entry = symtable_get_or_create_entry(&scope->declarations, descriptor->strname);
-    entry->ns_keyword = (struct NameDecl*)descriptor;
+    struct SymtableEntry* entry = symtable_get_or_create_entry(&scope->declarations, decl->strname);
+    entry->ns_keyword = decl;
   } else assert(0);
   return entry;
+}
+
+struct NameRef*
+nameref_get_entry(struct Hashmap* map, uint32_t id)
+{
+  struct HashmapKey key = { .i_key = id };
+  hashmap_hash_key(HASHMAP_KEY_INT, &key, map->capacity_log2);
+  struct HashmapEntry* he = hashmap_get_entry(map, &key);
+  struct NameRef* nameref = 0;
+  if (he) {
+    nameref = he->object;
+  }
+  return nameref;
+}
+
+void
+nameref_add_entry(struct Hashmap* map, struct NameRef* nameref, uint32_t id)
+{
+  struct HashmapKey key = { .i_key = id };
+  hashmap_hash_key(HASHMAP_KEY_INT, &key, map->capacity_log2);
+  struct HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
+  assert(!he->object);
+  he->object = nameref;
+}
+
+struct Type*
+type_get_entry(struct Hashmap* map, uint32_t id)
+{
+  struct HashmapKey key = { .i_key = id };
+  hashmap_hash_key(HASHMAP_KEY_INT, &key, map->capacity_log2);
+  struct HashmapEntry* he = hashmap_get_entry(map, &key);
+  struct Type* type = 0;
+  if (he) {
+    type = he->object;
+  }
+  return type;
+}
+
+void
+type_add_entry(struct Hashmap* map, struct Type* type, uint32_t id)
+{
+  struct HashmapKey key = { .i_key = id };
+  hashmap_hash_key(HASHMAP_KEY_INT, &key, map->capacity_log2);
+  struct HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
+  assert(!he->object);
+  he->object = type;
 }
 
 void
