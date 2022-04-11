@@ -32,8 +32,8 @@ struct NameRef {
 
 struct SymtableEntry {
   char* strname;
-  struct NameDecl* ns_keyword;
   struct NameDecl* ns_type;
+  struct NameDecl* ns_keyword;
   struct NameDecl* ns_var;
 };
 

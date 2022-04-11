@@ -9,7 +9,6 @@
 internal struct Arena *m_type_storage;
 internal struct Hashmap* m_nameref_map;
 internal struct Hashmap m_type_map = {};
-internal int m_type_id = 1;
 
 internal void build_type_block_statement(struct Ast* block_stmt);
 internal void build_type_statement(struct Ast* decl);
@@ -21,7 +20,6 @@ internal void build_type_type_ref(struct Ast* type_ref);
   type_type* type = arena_push(m_type_storage, sizeof(type_type)); \
   memset(type, 0, sizeof(type_type)); \
   type->ctor = type_ctor; \
-  type->id = m_type_id++; \
   type; \
 })
 
@@ -30,7 +28,11 @@ build_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_PARAM);
   struct Ast_Param* param = (struct Ast_Param*)ast;
+  struct Ast_Name* name = (struct Ast_Name*)param->name;
   build_type_type_ref(param->type);
+  struct Type* param_type = type_get_entry(&m_type_map, param->type->id);
+  type_add_entry(&m_type_map, param_type, name->id);
+  type_add_entry(&m_type_map, param_type, param->id);
 }
 
 internal void
@@ -55,27 +57,27 @@ nameref_context_control_decl(struct Ast* ast)
   struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
   struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
   if (type_decl->type_params) {
-    struct ListLink* link = list_first_link(type_decl->type_params);
-    while (link) {
-      struct Ast* type_param = link->object;
+    struct ListLink* li = list_first_link(type_decl->type_params);
+    while (li) {
+      struct Ast* type_param = li->object;
       build_type_type_param(type_param);
-      link = link->next;
+      li = li->next;
     }
   }
   if (control_decl->ctor_params) {
-    struct ListLink* link = list_first_link(control_decl->ctor_params);
-    while (link) {
-      struct Ast* param = link->object;
+    struct ListLink* li = list_first_link(control_decl->ctor_params);
+    while (li) {
+      struct Ast* param = li->object;
       build_type_param(param);
-      link = link->next;
+      li = li->next;
     }
   }
   if (control_decl->local_decls) {
-    struct ListLink* link = list_first_link(control_decl->local_decls);
-    while (link) {
-      struct Ast* decl = link->object;
+    struct ListLink* li = list_first_link(control_decl->local_decls);
+    while (li) {
+      struct Ast* decl = li->object;
       build_type_statement(decl);
-      link = link->next;
+      li = li->next;
     }
   }
   if (control_decl->apply_stmt) {
@@ -97,11 +99,11 @@ build_type_header_union_decl(struct Ast* ast)
   assert(ast->kind == AST_HEADER_UNION_DECL);
   struct Ast_HeaderUnionDecl* header_union_decl = (struct Ast_HeaderUnionDecl*)ast;
   if (header_union_decl->fields) {
-    struct ListLink* link = list_first_link(header_union_decl->fields);
-    while (link) {
-      struct Ast* field = link->object;
+    struct ListLink* li = list_first_link(header_union_decl->fields);
+    while (li) {
+      struct Ast* field = li->object;
       build_type_struct_field(field);
-      link = link->next;
+      li = li->next;
     }
   }
 }
@@ -112,11 +114,11 @@ build_type_header_decl(struct Ast* ast)
   assert(ast->kind == AST_HEADER_DECL);
   struct Ast_HeaderDecl* header_decl = (struct Ast_HeaderDecl*)ast;
   if (header_decl->fields) {
-    struct ListLink* link = list_first_link(header_decl->fields);
-    while (link) {
-      struct Ast* field = link->object;
+    struct ListLink* li = list_first_link(header_decl->fields);
+    while (li) {
+      struct Ast* field = li->object;
       build_type_struct_field(field);
-      link = link->next;
+      li = li->next;
     }
   }
 }
@@ -127,11 +129,11 @@ build_type_struct_decl(struct Ast* ast)
   assert(ast->kind == AST_STRUCT_DECL);
   struct Ast_StructDecl* struct_decl = (struct Ast_StructDecl*)ast;
   if (struct_decl->fields) {
-    struct ListLink* link = list_first_link(struct_decl->fields);
-    while (link) {
-      struct Ast* field = link->object;
+    struct ListLink* li = list_first_link(struct_decl->fields);
+    while (li) {
+      struct Ast* field = li->object;
       build_type_struct_field(field);
-      link = link->next;
+      li = li->next;
     }
   }
 }
@@ -162,20 +164,20 @@ build_type_type_ref(struct Ast* ast)
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
     struct Ast_SpecializedType* speclzd_type = (struct Ast_SpecializedType*)ast;
     build_type_type_ref(speclzd_type->name);
-    struct ListLink* link = list_first_link(speclzd_type->type_args);
-    while (link) {
-      struct Ast* type_arg = link->object;
+    struct ListLink* li = list_first_link(speclzd_type->type_args);
+    while (li) {
+      struct Ast* type_arg = li->object;
       build_type_type_ref(type_arg);
-      link = link->next;
+      li = li->next;
     }
   } else if (ast->kind == AST_TUPLE) {
     struct Ast_Tuple* type_ref = (struct Ast_Tuple*)ast;
     if (type_ref->type_args) {
-      struct ListLink* link = list_first_link(type_ref->type_args);
-      while (link) {
-        struct Ast* type_arg = link->object;
+      struct ListLink* li = list_first_link(type_ref->type_args);
+      while (li) {
+        struct Ast* type_arg = li->object;
         build_type_type_ref(type_arg);
-        link = link->next;
+        li = li->next;
       }
     }
   } else if (ast->kind == AST_STRUCT_DECL) {
@@ -191,27 +193,41 @@ build_type_type_ref(struct Ast* ast)
 }
 
 internal void
-build_type_method_call(struct Ast* ast)
+build_type_function_call(struct Ast* ast)
 {
-  assert(ast->kind == AST_METHOD_CALL_STMT);
-  struct Ast_MethodCallStmt* stmt = (struct Ast_MethodCallStmt*)ast;
-  build_type_expression(stmt->lvalue);
-  if (stmt->type_args) {
-    struct ListLink* link = list_first_link(stmt->type_args);
-    while (link) {
-      struct Ast* type_arg = link->object;
+  assert(ast->kind == AST_FUNCTION_CALL_EXPR);
+  struct Ast_FunctionCallExpr* function_call = (struct Ast_FunctionCallExpr*)ast;
+  build_type_expression(function_call->callee_expr);
+  struct Ast_Expression* callee_expr = (struct Ast_Expression*)(function_call->callee_expr);
+  if (callee_expr->type_args) {
+    struct ListLink* li = list_first_link(callee_expr->type_args);
+    while (li) {
+      struct Ast* type_arg = li->object;
       build_type_type_ref(type_arg);
-      link = link->next;
+      li = li->next;
     }
   }
-  if (stmt->args) {
-    struct ListLink* link = list_first_link(stmt->args);
-    while (link) {
-      struct Ast* arg = link->object;
+  struct SymtableEntry* se = scope_lookup_name(get_root_scope(), "void");
+  struct Type* args_type = type_get_entry(&m_type_map, se->ns_type->id);
+  if (function_call->args) {
+    struct ListLink* li = list_first_link(function_call->args);
+    struct Ast* arg = li->object;
+    build_type_expression(arg);
+    args_type = type_get_entry(&m_type_map, arg->id);
+    li = li->next;
+    while (li) {
+      struct Ast* arg = li->object;
       build_type_expression(arg);
-      link = link->next;
+      struct Type_Product* product_type = new_type(struct Type_Product, TYPE_PRODUCT);
+      product_type->lhs_ty = args_type;
+      product_type->rhs_ty = type_get_entry(&m_type_map, arg->id);
+      li = li->next;
     }
   }
+  struct Type_FunctionCall* call_type = new_type(struct Type_FunctionCall, TYPE_FUNCTION_CALL);
+  call_type->function_ty = type_get_entry(&m_type_map, callee_expr->id);
+  call_type->args_ty = args_type;
+  type_add_entry(&m_type_map, (struct Type*)call_type, function_call->id);
 }
 
 internal void
@@ -221,11 +237,11 @@ build_type_instantiation(struct Ast* ast)
   struct Ast_Instantiation* decl = (struct Ast_Instantiation*)ast;
   build_type_type_ref(decl->type_ref);
   if (decl->args) {
-    struct ListLink* link = list_first_link(decl->args);
-    while (link) {
-      struct Ast* arg = link->object;
+    struct ListLink* li = list_first_link(decl->args);
+    while (li) {
+      struct Ast* arg = li->object;
       build_type_expression(arg);
-      link = link->next;
+      li = li->next;
     }
   }
 }
@@ -267,11 +283,11 @@ build_type_select_keyset(struct Ast* ast)
 {
   if (ast->kind == AST_TUPLE_KEYSET) {
     struct Ast_TupleKeyset* keyset = (struct Ast_TupleKeyset*)ast;
-    struct ListLink* link = list_first_link(keyset->expr_list);
-    while (link) {
-      struct Ast* expr = link->object;
+    struct ListLink* li = list_first_link(keyset->expr_list);
+    while (li) {
+      struct Ast* expr = li->object;
       build_type_keyset_expr(expr);
-      link = link->next;
+      li = li->next;
     }
   } else {
     build_type_keyset_expr(ast);
@@ -285,11 +301,11 @@ build_type_action_ref(struct Ast* ast)
   struct Ast_ActionRef* action = (struct Ast_ActionRef*)ast;
   build_type_expression(action->name);
   if (action->args) {
-    struct ListLink* link = list_first_link(action->args);
-    while (link) {
-      struct Ast* arg = link->object;
+    struct ListLink* li = list_first_link(action->args);
+    while (li) {
+      struct Ast* arg = li->object;
       build_type_expression(arg);
-      link = link->next;
+      li = li->next;
     }
   }
 }
@@ -318,11 +334,11 @@ build_type_table_property(struct Ast* ast)
   if (ast->kind == AST_TABLE_ACTIONS) {
     struct Ast_TableActions* prop = (struct Ast_TableActions*)ast;
     if (prop->action_list) {
-      struct ListLink* link = list_first_link(prop->action_list);
-      while (link) {
-        struct Ast* action = link->object;
+      struct ListLink* li = list_first_link(prop->action_list);
+      while (li) {
+        struct Ast* action = li->object;
         build_type_action_ref(action);
-        link = link->next;
+        li = li->next;
       }
     }
   } else if (ast->kind == AST_TABLE_SINGLE_ENTRY) {
@@ -332,19 +348,19 @@ build_type_table_property(struct Ast* ast)
     }
   } else if (ast->kind == AST_TABLE_KEY) {
     struct Ast_TableKey* prop = (struct Ast_TableKey*)ast;
-    struct ListLink* link = list_first_link(prop->keyelem_list);
-    while (link) {
-      struct Ast* keyelem = link->object;
+    struct ListLink* li = list_first_link(prop->keyelem_list);
+    while (li) {
+      struct Ast* keyelem = li->object;
       build_type_table_keyelem(keyelem);
-      link = link->next;
+      li = li->next;
     }
   } else if (ast->kind == AST_TABLE_ENTRIES) {
     struct Ast_TableEntries* prop = (struct Ast_TableEntries*)ast;
-    struct ListLink* link = list_first_link(prop->entries);
-    while (link) {
-      struct Ast* entry = link->object;
+    struct ListLink* li = list_first_link(prop->entries);
+    while (li) {
+      struct Ast* entry = li->object;
       build_type_table_entry(entry);
-      link = link->next;
+      li = li->next;
     }
   }
   else assert(0);
@@ -356,11 +372,11 @@ build_type_table_decl(struct Ast* ast)
   assert(ast->kind == AST_TABLE_DECL);
   struct Ast_TableDecl* decl = (struct Ast_TableDecl*)ast;
   if (decl->prop_list) {
-    struct ListLink* link = list_first_link(decl->prop_list);
-    while (link) {
-      struct Ast* prop = link->object;
+    struct ListLink* li = list_first_link(decl->prop_list);
+    while (li) {
+      struct Ast* prop = li->object;
       build_type_table_property(prop);
-      link = link->next;
+      li = li->next;
     }
   }
 }
@@ -372,22 +388,22 @@ build_type_action_decl(struct Ast* ast)
   struct Ast_ActionDecl* action_decl = (struct Ast_ActionDecl*)ast;
   struct List* params = action_decl->params;
   if (params) {
-    struct ListLink* link = list_first_link(params);
-    while (link) {
-      struct Ast* param = link->object;
+    struct ListLink* li = list_first_link(params);
+    while (li) {
+      struct Ast* param = li->object;
       build_type_param(param);
-      link = link->next;
+      li = li->next;
     }
   }
   struct Ast_BlockStmt* action_body = (struct Ast_BlockStmt*)action_decl->stmt;
   if (action_body) {
     struct List* stmt_list = action_body->stmt_list;
     if (stmt_list) {
-      struct ListLink* link = list_first_link(stmt_list);
-      while (link) {
-        struct Ast* stmt = link->object;
+      struct ListLink* li = list_first_link(stmt_list);
+      while (li) {
+        struct Ast* stmt = li->object;
         build_type_statement(stmt);
-        link = link->next;
+        li = li->next;
       }
     }
   }
@@ -423,11 +439,11 @@ build_type_statement(struct Ast* ast)
     struct Ast_SwitchStmt* stmt = (struct Ast_SwitchStmt*)ast;
     build_type_expression(stmt->expr);
     if (stmt->switch_cases) {
-      struct ListLink* link = list_first_link(stmt->switch_cases);
-      while (link) {
-        struct Ast* switch_case = link->object;
+      struct ListLink* li = list_first_link(stmt->switch_cases);
+      while (li) {
+        struct Ast* switch_case = li->object;
         build_type_switch_case(switch_case);
-        link = link->next;
+        li = li->next;
       }
     }
   } else if (ast->kind == AST_ASSIGNMENT_STMT) {
@@ -435,8 +451,8 @@ build_type_statement(struct Ast* ast)
     build_type_expression(stmt->lvalue);
     struct Ast* assign_expr = stmt->expr;
     build_type_expression(assign_expr);
-  } else if (ast->kind == AST_METHOD_CALL_STMT) {
-    build_type_method_call(ast);
+  } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
+    build_type_function_call(ast);
   } else if (ast->kind == AST_DIRECT_APPLICATION) {
     struct Ast_DirectApplication* stmt = (struct Ast_DirectApplication*)ast;
     build_type_expression(stmt->name);
@@ -467,25 +483,41 @@ build_type_function_proto(struct Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION_PROTO);
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)ast;
+  struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
   if (function_proto->return_type) {
     build_type_function_return_type(function_proto->return_type);
   }
   if (function_proto->type_params) {
-    struct ListLink* link = list_first_link(function_proto->type_params);
-    while (link) {
-      struct Ast* type_param = link->object;
+    struct ListLink* li = list_first_link(function_proto->type_params);
+    while (li) {
+      struct Ast* type_param = li->object;
       build_type_type_param(type_param);
-      link = link->next;
+      li = li->next;
     }
   }
+  struct SymtableEntry* se = scope_lookup_name(get_root_scope(), "void");
+  struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->id);
   if (function_proto->params) {
-    struct ListLink* link = list_first_link(function_proto->params);
-    while (link) {
-      struct Ast* param = link->object;
+    struct ListLink* li = list_first_link(function_proto->params);
+    struct Ast* param = li->object;
+    build_type_param(param);
+    params_type = type_get_entry(&m_type_map, param->id);
+    li = li->next;
+    while (li) {
+      struct Ast* param = li->object;
       build_type_param(param);
-      link = link->next;
+      struct Type_Product* product_type = new_type(struct Type_Product, TYPE_PRODUCT); 
+      product_type->lhs_ty = params_type;
+      product_type->rhs_ty = type_get_entry(&m_type_map, param->id);
+      params_type = (struct Type*)product_type;
+      li = li->next;
     }
   }
+  struct Type_Function* function_type = new_type(struct Type_Function, TYPE_FUNCTION);
+  function_type->params_ty = params_type;
+  function_type->return_ty = type_get_entry(&m_type_map, function_proto->return_type->id);
+  type_add_entry(&m_type_map, (struct Type*)function_type, name->id);
+  type_add_entry(&m_type_map, (struct Type*)function_type, function_proto->id);
 }
 
 internal void
@@ -494,11 +526,11 @@ build_type_block_statement(struct Ast* ast)
   assert(ast->kind == AST_BLOCK_STMT);
   struct Ast_BlockStmt* block_stmt = (struct Ast_BlockStmt*)ast;
   if (block_stmt->stmt_list) {
-    struct ListLink* link = list_first_link(block_stmt->stmt_list);
-    while (link) {
-      struct Ast* decl = link->object;
+    struct ListLink* li = list_first_link(block_stmt->stmt_list);
+    while (li) {
+      struct Ast* decl = li->object;
       build_type_statement(decl);
-      link = link->next;
+      li = li->next;
     }
   }
 }
@@ -515,35 +547,35 @@ build_type_control_decl(struct Ast* ast)
   type_add_entry(&m_type_map, (struct Type*)control_type, name->id);
   type_add_entry(&m_type_map, (struct Type*)control_type, control_decl->id);
   if (type_decl->type_params) {
-    struct ListLink* link = list_first_link(type_decl->type_params);
-    while (link) {
-      struct Ast* type_param = link->object;
+    struct ListLink* li = list_first_link(type_decl->type_params);
+    while (li) {
+      struct Ast* type_param = li->object;
       build_type_type_param(type_param);
-      link = link->next;
+      li = li->next;
     }
   }
   if (type_decl->params) {
-    struct ListLink* link = list_first_link(type_decl->params);
-    while (link) {
-      struct Ast* param = link->object;
+    struct ListLink* li = list_first_link(type_decl->params);
+    while (li) {
+      struct Ast* param = li->object;
       build_type_param(param);
-      link = link->next;
+      li = li->next;
     }
   }
   if (control_decl->ctor_params) {
-    struct ListLink* link = list_first_link(control_decl->ctor_params);
-    while (link) {
-      struct Ast* param = link->object;
+    struct ListLink* li = list_first_link(control_decl->ctor_params);
+    while (li) {
+      struct Ast* param = li->object;
       build_type_param(param);
-      link = link->next;
+      li = li->next;
     }
   }
   if (control_decl->local_decls) {
-    struct ListLink* link = list_first_link(control_decl->local_decls);
-    while (link) {
-      struct Ast* decl = link->object;
+    struct ListLink* li = list_first_link(control_decl->local_decls);
+    while (li) {
+      struct Ast* decl = li->object;
       build_type_statement(decl);
-      link = link->next;
+      li = li->next;
     }
   }
   if (control_decl->apply_stmt) {
@@ -562,19 +594,19 @@ build_type_extern_decl(struct Ast* ast)
   type_add_entry(&m_type_map, (struct Type*)extern_type, name->id);
   type_add_entry(&m_type_map, (struct Type*)extern_decl, extern_decl->id);
   if (extern_decl->type_params) {
-    struct ListLink* link = list_first_link(extern_decl->type_params);
-    while (link) {
-      struct Ast* type_param = link->object;
+    struct ListLink* li = list_first_link(extern_decl->type_params);
+    while (li) {
+      struct Ast* type_param = li->object;
       build_type_type_param(type_param);
-      link = link->next;
+      li = li->next;
     }
   }
   if (extern_decl->method_protos) {
-    struct ListLink* link = list_first_link(extern_decl->method_protos);
-    while (link) {
-      struct Ast* proto = link->object;
+    struct ListLink* li = list_first_link(extern_decl->method_protos);
+    while (li) {
+      struct Ast* proto = li->object;
       build_type_function_proto(proto);
-      link = link->next;
+      li = li->next;
     }
   }
 }
@@ -585,11 +617,11 @@ build_type_package(struct Ast* ast)
   assert(ast->kind == AST_PACKAGE_DECL);
   struct Ast_PackageDecl* package_decl = (struct Ast_PackageDecl*)ast;
   if (package_decl->params) {
-    struct ListLink* link = list_first_link(package_decl->params);
-    while (link) {
-      struct Ast* param = link->object;
+    struct ListLink* li = list_first_link(package_decl->params);
+    while (li) {
+      struct Ast* param = li->object;
       build_type_param(param);
-      link = link->next;
+      li = li->next;
     }
   }
 }
@@ -610,17 +642,17 @@ build_type_parser_transition(struct Ast* ast)
     build_type_expression(ast);
   } else if (ast->kind == AST_SELECT_EXPR) {
     struct Ast_SelectExpr* trans_stmt = (struct Ast_SelectExpr*)ast;
-    struct ListLink* link = list_first_link(trans_stmt->expr_list);
-    while (link) {
-      struct Ast* expr = link->object;
+    struct ListLink* li = list_first_link(trans_stmt->expr_list);
+    while (li) {
+      struct Ast* expr = li->object;
       build_type_expression(expr);
-      link = link->next;
+      li = li->next;
     }
-    link = list_first_link(trans_stmt->case_list);
-    while (link) {
-      struct Ast* select_case = link->object;
+    li = list_first_link(trans_stmt->case_list);
+    while (li) {
+      struct Ast* select_case = li->object;
       build_type_transition_select_case(select_case);
-      link = link->next;
+      li = li->next;
     }
   }
   else assert(0);
@@ -632,11 +664,11 @@ build_type_parser_state(struct Ast* ast)
   assert(ast->kind == AST_PARSER_STATE);
   struct Ast_ParserState* state = (struct Ast_ParserState*)ast;
   if (state->stmt_list) {
-    struct ListLink* link = list_first_link(state->stmt_list);
-    while (link) {
-      struct Ast* stmt = link->object;
+    struct ListLink* li = list_first_link(state->stmt_list);
+    while (li) {
+      struct Ast* stmt = li->object;
       build_type_statement(stmt);
-      link = link->next;
+      li = li->next;
     }
   }
   build_type_parser_transition(state->trans_stmt);
@@ -674,43 +706,43 @@ build_type_parser_decl(struct Ast* ast)
   struct Ast_ParserDecl* parser_decl = (struct Ast_ParserDecl*)ast;
   struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)parser_decl->type_decl;
   if (type_decl->type_params) {
-    struct ListLink* link = list_first_link(type_decl->type_params);
-    while (link) {
-      struct Ast* type_param = link->object;
+    struct ListLink* li = list_first_link(type_decl->type_params);
+    while (li) {
+      struct Ast* type_param = li->object;
       build_type_type_param(type_param);
-      link = link->next;
+      li = li->next;
     }
   }
   if (type_decl->params) {
-    struct ListLink* link = list_first_link(type_decl->params);
-    while (link) {
-      struct Ast* param = link->object;
+    struct ListLink* li = list_first_link(type_decl->params);
+    while (li) {
+      struct Ast* param = li->object;
       build_type_param(param);
-      link = link->next;
+      li = li->next;
     }
   }
   if (parser_decl->ctor_params) {
-    struct ListLink* link = list_first_link(parser_decl->ctor_params);
-    while (link) {
-      struct Ast* param = link->object;
+    struct ListLink* li = list_first_link(parser_decl->ctor_params);
+    while (li) {
+      struct Ast* param = li->object;
       build_type_param(param);
-      link = link->next;
+      li = li->next;
     }
   }
   if (parser_decl->local_elements) {
-    struct ListLink* link = list_first_link(parser_decl->local_elements);
-    while (link) {
-      struct Ast* element = link->object;
+    struct ListLink* li = list_first_link(parser_decl->local_elements);
+    while (li) {
+      struct Ast* element = li->object;
       build_type_local_parser_element(element);
-      link = link->next;
+      li = li->next;
     }
   }
   if (parser_decl->states) {
-    struct ListLink* link = list_first_link(parser_decl->states);
-    while (link) {
-      struct Ast* state = link->object;
+    struct ListLink* li = list_first_link(parser_decl->states);
+    while (li) {
+      struct Ast* state = li->object;
       build_type_parser_state(state);
-      link = link->next;
+      li = li->next;
     }
   }
 }
@@ -734,29 +766,29 @@ build_type_function_decl(struct Ast* ast)
     build_type_function_return_type(function_proto->return_type);
   }
   if (function_proto->type_params) {
-    struct ListLink* link = list_first_link(function_proto->type_params);
-    while (link) {
-      struct Ast* type_param = link->object;
+    struct ListLink* li = list_first_link(function_proto->type_params);
+    while (li) {
+      struct Ast* type_param = li->object;
       build_type_type_param(type_param);
-      link = link->next;
+      li = li->next;
     }
   }
   if (function_proto->params) {
-    struct ListLink* link = list_first_link(function_proto->params);
-    while (link) {
-      struct Ast* param = link->object;
+    struct ListLink* li = list_first_link(function_proto->params);
+    while (li) {
+      struct Ast* param = li->object;
       build_type_param(param);
-      link = link->next;
+      li = li->next;
     }
   }
   struct Ast_BlockStmt* function_body = (struct Ast_BlockStmt*)function_decl->stmt;
   if (function_body) {
     if (function_body->stmt_list) {
-      struct ListLink* link = list_first_link(function_body->stmt_list);
-      while (link) {
-        struct Ast* stmt = link->object;
+      struct ListLink* li = list_first_link(function_body->stmt_list);
+      while (li) {
+        struct Ast* stmt = li->object;
         build_type_statement(stmt);
-        link = link->next;
+        li = li->next;
       }
     }
   }
@@ -780,14 +812,14 @@ build_type_error_decl(struct Ast* ast)
   assert (ast->kind == AST_ERROR_DECL);
   struct Ast_ErrorDecl* decl = (struct Ast_ErrorDecl*)ast;
   if (decl->id_list) {
-    struct ListLink* link = list_first_link(decl->id_list);
-    while (link) {
-      struct Ast* id = link->object;
+    struct ListLink* li = list_first_link(decl->id_list);
+    while (li) {
+      struct Ast* id = li->object;
       if (id->kind == AST_NAME) {
         build_type_enum_field(id);
       }
       else assert(0);
-      link = link->next;
+      li = li->next;
     }
   }
 }
@@ -802,31 +834,6 @@ build_type_enum_decl(struct Ast* ast)
   enum_type->strname = name->strname;
   type_add_entry(&m_type_map, (struct Type*)enum_type, name->id);
   type_add_entry(&m_type_map, (struct Type*)enum_type, enum_decl->id);
-}
-
-internal void
-build_type_function_call(struct Ast* ast)
-{
-  assert(ast->kind == AST_FUNCTION_CALL_EXPR);
-  struct Ast_FunctionCallExpr* expr = (struct Ast_FunctionCallExpr*)ast;
-  build_type_expression(expr->callee_expr);
-  struct Ast_Expression* callee_expr = (struct Ast_Expression*)(expr->callee_expr);
-  if (callee_expr->type_args) {
-    struct ListLink* link = list_first_link(callee_expr->type_args);
-    while (link) {
-      struct Ast* type_arg = link->object;
-      build_type_type_ref(type_arg);
-      link = link->next;
-    }
-  }
-  if (expr->args) {
-    struct ListLink* link = list_first_link(expr->args);
-    while (link) {
-      struct Ast* arg = link->object;
-      build_type_expression(arg);
-      link = link->next;
-    }
-  }
 }
 
 internal void
@@ -846,7 +853,6 @@ build_type_expression(struct Ast* ast)
     if (se->ns_type || se->ns_var) {
       if (se->ns_type && se->ns_var) {
         struct Type_Typevar* type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
-        type->strname = "?";
         type_add_entry(&m_type_map, (struct Type*)type, name->id);
       } else {
         struct NameDecl* decl = se->ns_type ? se->ns_type : se->ns_var;
@@ -861,17 +867,16 @@ build_type_expression(struct Ast* ast)
     build_type_expression(expr->lhs_expr);
     struct Ast_Name* name = (struct Ast_Name*)expr->member_name;
     struct Type_Typevar* member_type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
-    member_type->strname = "?";
     type_add_entry(&m_type_map, (struct Type*)member_type, name->id);
     type_add_entry(&m_type_map, (struct Type*)member_type, expr->id);
   } else if (ast->kind == AST_EXPRLIST_EXPR) {
     struct Ast_ExprListExpr* expr = (struct Ast_ExprListExpr*)ast;
     if (expr->expr_list) {
-      struct ListLink* link = list_first_link(expr->expr_list);
-      while (link) {
-        struct Ast* expr_expr = link->object;
+      struct ListLink* li = list_first_link(expr->expr_list);
+      while (li) {
+        struct Ast* expr_expr = li->object;
         build_type_expression(expr_expr);
-        link = link->next;
+        li = li->next;
       }
     }
   } else if (ast->kind == AST_CAST_EXPR) {
@@ -906,16 +911,16 @@ build_type_match_kind(struct Ast* ast)
   assert(ast->kind == AST_MATCH_KIND_DECL);
   struct Ast_MatchKindDecl* decl = (struct Ast_MatchKindDecl*)ast;
   if (decl->id_list) {
-    struct ListLink* link = list_first_link(decl->id_list);
-    while (link) {
-      struct Ast* id = link->object;
+    struct ListLink* li = list_first_link(decl->id_list);
+    while (li) {
+      struct Ast* id = li->object;
       if (id->kind == AST_NAME) {
         build_type_enum_field(id);
       } else if (id->kind == AST_SPECIFIED_IDENT) {
         build_type_specified_id(id);
       }
       else assert(0);
-      link = link->next;
+      li = li->next;
     }
   }
 }
@@ -925,9 +930,9 @@ build_type_p4program(struct Ast* ast)
 {
   assert(ast->kind == AST_P4PROGRAM);
   struct Ast_P4Program* program = (struct Ast_P4Program*)ast;
-  struct ListLink* link = list_first_link(program->decl_list);
-  while (link) {
-    struct Ast* decl = link->object;
+  struct ListLink* li = list_first_link(program->decl_list);
+  while (li) {
+    struct Ast* decl = li->object;
     if (decl->kind == AST_CONTROL_DECL) {
       build_type_control_decl(decl);
     } else if (decl->kind == AST_EXTERN_DECL) {
@@ -962,16 +967,16 @@ build_type_p4program(struct Ast* ast)
       build_type_error_decl(decl);
     }
     else assert(0);
-    link = link->next;
+    li = li->next;
   }
 }
 
 struct Hashmap*
 build_type(struct Ast* p4program, struct Hashmap* nameref_map, struct Arena* type_storage)
 {
-  void add_basic_type(char* strname, enum BasicType basic_type) {
+  void add_basic_type(char* strname, enum BasicType basic_ty) {
     struct Type_Basic* type = new_type(struct Type_Basic, TYPE_BASIC);
-    type->basic_type = basic_type;
+    type->basic_ty = basic_ty;
     type->strname = strname;
     struct SymtableEntry* se = scope_lookup_name(get_root_scope(), strname);
     type_add_entry(&m_type_map, (struct Type*)type, se->ns_type->id);

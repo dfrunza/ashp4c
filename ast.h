@@ -48,7 +48,6 @@ enum AstEnum {
   AST_DIRECT_APPLICATION,
   AST_PARAM,
   AST_ASSIGNMENT_STMT,
-  AST_METHOD_CALL_STMT,
   AST_EMPTY_STMT,
   AST_DEFAULT_STMT,
   AST_SELECT_CASE,
@@ -374,13 +373,6 @@ struct Ast_AssignmentStmt {
   struct Ast;
   struct Ast* lvalue;
   struct Ast* expr;
-};
-
-struct Ast_MethodCallStmt {
-  struct Ast;
-  struct Ast* lvalue;
-  struct List* args;
-  struct List* type_args;
 };
 
 struct Ast_EmptyStmt {

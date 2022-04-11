@@ -47,30 +47,6 @@ build_symtable_function_call(struct Ast* ast)
 }
 
 internal void
-build_symtable_method_call(struct Ast* ast)
-{
-  assert(ast->kind == AST_METHOD_CALL_STMT);
-  struct Ast_MethodCallStmt* stmt = (struct Ast_MethodCallStmt*)ast;
-  build_symtable_expression(stmt->lvalue);
-  if (stmt->type_args) {
-    struct ListLink* link = list_first_link(stmt->type_args);
-    while (link) {
-      struct Ast* type_arg = link->object;
-      build_symtable_type_ref(type_arg);
-      link = link->next;
-    }
-  }
-  if (stmt->args) {
-    struct ListLink* link = list_first_link(stmt->args);
-    while (link) {
-      struct Ast* arg = link->object;
-      build_symtable_expression(arg);
-      link = link->next;
-    }
-  }
-}
-
-internal void
 build_symtable_expression(struct Ast* ast)
 {
   if (ast->kind == AST_BINARY_EXPR) {
@@ -436,8 +412,8 @@ build_symtable_statement(struct Ast* ast)
     build_symtable_expression(stmt->lvalue);
     struct Ast* assign_expr = stmt->expr;
     build_symtable_expression(assign_expr);
-  } else if (ast->kind == AST_METHOD_CALL_STMT) {
-    build_symtable_method_call(ast);
+  } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
+    build_symtable_function_call(ast);
   } else if (ast->kind == AST_DIRECT_APPLICATION) {
     struct Ast_DirectApplication* stmt = (struct Ast_DirectApplication*)ast;
     build_symtable_expression(stmt->name);

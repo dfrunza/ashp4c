@@ -163,21 +163,22 @@ resolve_nameref_type_ref(struct Ast* ast)
 }
 
 internal void
-resolve_nameref_method_call(struct Ast* ast)
+resolve_nameref_function_call(struct Ast* ast)
 {
-  assert(ast->kind == AST_METHOD_CALL_STMT);
-  struct Ast_MethodCallStmt* stmt = (struct Ast_MethodCallStmt*)ast;
-  resolve_nameref_expression(stmt->lvalue);
-  if (stmt->type_args) {
-    struct ListLink* link = list_first_link(stmt->type_args);
+  assert(ast->kind == AST_FUNCTION_CALL_EXPR);
+  struct Ast_FunctionCallExpr* expr = (struct Ast_FunctionCallExpr*)ast;
+  resolve_nameref_expression(expr->callee_expr);
+  struct Ast_Expression* callee_expr = (struct Ast_Expression*)(expr->callee_expr);
+  if (callee_expr->type_args) {
+    struct ListLink* link = list_first_link(callee_expr->type_args);
     while (link) {
       struct Ast* type_arg = link->object;
       resolve_nameref_type_ref(type_arg);
       link = link->next;
     }
   }
-  if (stmt->args) {
-    struct ListLink* link = list_first_link(stmt->args);
+  if (expr->args) {
+    struct ListLink* link = list_first_link(expr->args);
     while (link) {
       struct Ast* arg = link->object;
       resolve_nameref_expression(arg);
@@ -407,8 +408,8 @@ resolve_nameref_statement(struct Ast* ast)
     resolve_nameref_expression(stmt->lvalue);
     struct Ast* assign_expr = stmt->expr;
     resolve_nameref_expression(assign_expr);
-  } else if (ast->kind == AST_METHOD_CALL_STMT) {
-    resolve_nameref_method_call(ast);
+  } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
+    resolve_nameref_function_call(ast);
   } else if (ast->kind == AST_DIRECT_APPLICATION) {
     struct Ast_DirectApplication* stmt = (struct Ast_DirectApplication*)ast;
     resolve_nameref_expression(stmt->name);
@@ -769,31 +770,6 @@ resolve_nameref_enum_decl(struct Ast* ast)
         resolve_nameref_specified_id(id);
       }
       else assert(0);
-      link = link->next;
-    }
-  }
-}
-
-internal void
-resolve_nameref_function_call(struct Ast* ast)
-{
-  assert(ast->kind == AST_FUNCTION_CALL_EXPR);
-  struct Ast_FunctionCallExpr* expr = (struct Ast_FunctionCallExpr*)ast;
-  resolve_nameref_expression(expr->callee_expr);
-  struct Ast_Expression* callee_expr = (struct Ast_Expression*)(expr->callee_expr);
-  if (callee_expr->type_args) {
-    struct ListLink* link = list_first_link(callee_expr->type_args);
-    while (link) {
-      struct Ast* type_arg = link->object;
-      resolve_nameref_type_ref(type_arg);
-      link = link->next;
-    }
-  }
-  if (expr->args) {
-    struct ListLink* link = list_first_link(expr->args);
-    while (link) {
-      struct Ast* arg = link->object;
-      resolve_nameref_expression(arg);
       link = link->next;
     }
   }

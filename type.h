@@ -23,14 +23,13 @@ enum BasicType {
 
 struct Type {
   enum TypeEnum ctor;
-  char* strname;
-  uint32_t id;
   uint32_t equiv;
 };
 
 struct Type_Basic {
   struct Type;
-  enum BasicType basic_type;
+  char* strname;
+  enum BasicType basic_ty;
 };
 
 struct Type_Typevar {
@@ -39,27 +38,30 @@ struct Type_Typevar {
 
 struct Type_Name {
   struct Type;
+  char* strname;
   bool is_typedef;
 };
 
 struct Type_TypeParam {
   struct Type;
+  char* strname;
 };
 
 struct Type_Product {
   struct Type;
-  struct Type* lhs;
-  struct Type* rhs;
+  struct Type* lhs_ty;
+  struct Type* rhs_ty;
 };
 
 struct Type_Function {
   struct Type;
-  struct Type* domain;
-  struct Type* range;
+  struct Type* params_ty;
+  struct Type* return_ty;
 };
 
 struct Type_FunctionCall {
   struct Type;
-  struct Type* function;
-  struct Type* arg;
+  struct Type* function_ty;
+  struct Type* args_ty;
+  struct Type* return_ty;
 };

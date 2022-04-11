@@ -1440,9 +1440,9 @@ build_ast_assignmentOrMethodCallStatement()
     }
     if (m_token->klass == TK_PARENTH_OPEN) {
       next_token();
-      struct Ast_MethodCallStmt* call_stmt = new_ast_node(struct Ast_MethodCallStmt, AST_METHOD_CALL_STMT);
+      struct Ast_FunctionCallExpr* call_stmt = new_ast_node(struct Ast_FunctionCallExpr, AST_FUNCTION_CALL_EXPR);
       call_stmt->line_no = m_token->line_no;
-      call_stmt->lvalue = lvalue;
+      call_stmt->callee_expr = lvalue;
       call_stmt->type_args = type_args;
       call_stmt->args = build_ast_argumentList();
       stmt = (struct Ast*)call_stmt;
