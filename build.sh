@@ -3,8 +3,8 @@
 CC_FLAGS="-g -ggdb -std=gnu99 -Winline -Wno-write-strings -Wreturn-type -fms-extensions -ffreestanding"
 LD_FLAGS="--nostdlib --unresolved-symbols=report-all --static"
 
-MUSL_INCLUDE=/usr/local/include
-MUSL_LIB=/usr/local/lib
+MUSL_INCLUDE=/usr/local/musl/include
+MUSL_LIB=/usr/local/musl/lib
 SRC=`pwd`
 
 mkdir -p build
