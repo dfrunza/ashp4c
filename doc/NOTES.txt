@@ -38,50 +38,6 @@ if (bpf_set_link_xdp_fd(ifindex, prog_fd, xdp_flags) < 0) {
 }
 
 
-== DPDK ==
-==========
-
-wget https://fast.dpdk.org/rel/dpdk-20.02.tar.xz
-wget http://dpdk.org/browse/apps/pktgen-dpdk/snapshot/pktgen-20.02.0.tar.gz
-
-sudo apt-get install build-essential libnuma-dev pciutils libpcap-dev liblua5.3-dev libelf-dev
-
-cd dpdk-20.02
-export RTE_TARGET=x86_64-native-linuxapp-gcc
-export RTE_SDK=/home/dumitru/dpdk-20.02
-make config T=x86_64-native-linuxapp-gcc CONFIG_RTE_EAL_IGB_UIO=y
-make install T=x86_64-native-linuxapp-gcc DESTDIR=install CONFIG_RTE_EAL_IGB_UIO=y
-
-cd pktgen-20.02.0
-export RTE_TARGET=x86_64-native-linuxapp-gcc
-export RTE_SDK=/home/dumitru/dpdk-20.02
-make
-
-echo "huge        /mnt/huge   hugetlbfs defaults      0   0" >> /etc/fstab
-sudo mkdir /mnt/huge
-sudo chmod 777 /mnt/huge/
-#sudo echo "vm.nr_hugepages=1024" >> /etc/sysctl.conf
-sudo sysctl -w vm.nr_hugepages=1024
-sudo sysctl -p
-grep Huge /proc/meminfo
-
-sudo modprobe uio
-sudo modprobe vfio-pci
-sudo modprobe uio_pci_generic
-sudo insmod /home/dumitru/dpdk-20.02/install/lib/modules/4.15.0-88-generic/extra/dpdk/igb_uio.ko
-sudo ./usertools/dpdk-devbind.py -s
-sudo ./usertools/dpdk-devbind.py -b igb_uio 0000:0a:00.0
-sudo ./app/x86_64-native-linuxapp-gcc/pktgen  -- -T -P -m "2.[0]"
-
-ethtool -G enp5s0f0 rx 4096 tx 4096
-
-# set 0 dst mac  e4:43:4b:53:51:83
-# set 0 rate 1
-# set 0 size 128
-# start 0
-# stop 0
-
-
 == Static linking of libc ==
 ============================
 
