@@ -410,9 +410,6 @@ resolve_nameref_statement(struct Ast* ast)
     resolve_nameref_expression(assign_expr);
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     resolve_nameref_function_call(ast);
-  } else if (ast->kind == AST_DIRECT_APPLICATION) {
-    struct Ast_DirectApplication* stmt = (struct Ast_DirectApplication*)ast;
-    resolve_nameref_expression(stmt->name);
   } else if (ast->kind == AST_RETURN_STMT) {
     struct Ast_ReturnStmt* stmt = (struct Ast_ReturnStmt*)ast;
     if (stmt->expr) {
@@ -544,7 +541,7 @@ resolve_nameref_extern_decl(struct Ast* ast)
 }
 
 internal void
-resolve_nameref_package(struct Ast* ast)
+resolve_nameref_package_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_PACKAGE_DECL);
   struct Ast_PackageDecl* package_decl = (struct Ast_PackageDecl*)ast;
@@ -866,7 +863,7 @@ resolve_nameref_p4program(struct Ast* ast)
     } else if (decl->kind == AST_HEADER_UNION_DECL) {
       resolve_nameref_header_union_decl(decl);
     } else if (decl->kind == AST_PACKAGE_DECL) {
-      resolve_nameref_package(decl);
+      resolve_nameref_package_decl(decl);
     } else if (decl->kind == AST_PARSER_DECL) {
       resolve_nameref_parser_decl(decl);
     } else if (decl->kind == AST_INSTANTIATION) {

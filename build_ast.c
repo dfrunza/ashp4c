@@ -1312,18 +1312,25 @@ build_ast_parserLocalElements()
 internal struct Ast*
 build_ast_directApplication(struct Ast* type_name)
 {
-  struct Ast_DirectApplication* applic = 0;
+  struct Ast_FunctionCallExpr* apply_expr = 0;
   if (token_is_typeName(m_token) || type_name) {
-    applic = new_ast_node(struct Ast_DirectApplication, AST_DIRECT_APPLICATION);
-    applic->line_no = m_token->line_no;
-    applic->name = type_name ? type_name : build_ast_typeName();
+    apply_expr = new_ast_node(struct Ast_FunctionCallExpr, AST_FUNCTION_CALL_EXPR);
+    apply_expr->line_no = m_token->line_no;
+    struct Ast_MemberSelectExpr* apply_select = new_ast_node(struct Ast_MemberSelectExpr, AST_MEMBER_SELECT_EXPR);
+    apply_select->line_no = m_token->line_no;
+    apply_select->lhs_expr = type_name ? type_name : build_ast_typeName();
+    struct Ast_Name* apply_name = new_ast_node(struct Ast_Name, AST_NAME);
+    apply_name->line_no = m_token->line_no;
+    apply_name->strname = "apply";
+    apply_select->member_name = (struct Ast*)apply_name;
+    apply_expr->callee_expr = (struct Ast*)apply_select;
     if (m_token->klass == TK_DOT_PREFIX) {
       next_token();
       if (m_token->klass == TK_APPLY) {
         next_token();
         if (m_token->klass == TK_PARENTH_OPEN) {
           next_token();
-          applic->args = build_ast_argumentList();
+          apply_expr->args = build_ast_argumentList();
           if (m_token->klass == TK_PARENTH_CLOSE) {
             next_token();
             if (m_token->klass == TK_SEMICOLON) {
@@ -1334,7 +1341,7 @@ build_ast_directApplication(struct Ast* type_name)
       } else error("at line %d: `apply` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else error("at line %d: `.` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   } else error("at line %d: type name was expected, got `%s`.", m_token->line_no, m_token->lexeme);
-  return (struct Ast*)applic;
+  return (struct Ast*)apply_expr;
 }
 
 internal struct Ast*

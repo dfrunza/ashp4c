@@ -45,7 +45,6 @@ enum AstEnum {
   AST_PARSER_PROTO,
   AST_ARGUMENT,
   AST_VAR_DECL,
-  AST_DIRECT_APPLICATION,
   AST_PARAM,
   AST_ASSIGNMENT_STMT,
   AST_EMPTY_STMT,
@@ -353,12 +352,6 @@ struct Ast_VarDecl {
   struct Ast* name;
   struct Ast* type;
   struct Ast* init_expr;
-};
-
-struct Ast_DirectApplication {
-  struct Ast;
-  struct Ast* name;
-  struct List* args;
 };
 
 struct Ast_Param {

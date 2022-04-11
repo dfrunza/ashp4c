@@ -51,41 +51,6 @@ build_type_type_param(struct Ast* ast)
 }
 
 internal void
-nameref_context_control_decl(struct Ast* ast)
-{
-  assert(ast->kind == AST_CONTROL_DECL);
-  struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
-  struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
-  if (type_decl->type_params) {
-    struct ListLink* li = list_first_link(type_decl->type_params);
-    while (li) {
-      struct Ast* type_param = li->object;
-      build_type_type_param(type_param);
-      li = li->next;
-    }
-  }
-  if (control_decl->ctor_params) {
-    struct ListLink* li = list_first_link(control_decl->ctor_params);
-    while (li) {
-      struct Ast* param = li->object;
-      build_type_param(param);
-      li = li->next;
-    }
-  }
-  if (control_decl->local_decls) {
-    struct ListLink* li = list_first_link(control_decl->local_decls);
-    while (li) {
-      struct Ast* decl = li->object;
-      build_type_statement(decl);
-      li = li->next;
-    }
-  }
-  if (control_decl->apply_stmt) {
-    build_type_block_statement(control_decl->apply_stmt);
-  }
-}
-
-internal void
 build_type_struct_field(struct Ast* ast)
 {
   assert(ast->kind == AST_STRUCT_FIELD);
@@ -234,16 +199,30 @@ internal void
 build_type_instantiation(struct Ast* ast)
 {
   assert(ast->kind == AST_INSTANTIATION);
-  struct Ast_Instantiation* decl = (struct Ast_Instantiation*)ast;
-  build_type_type_ref(decl->type_ref);
-  if (decl->args) {
-    struct ListLink* li = list_first_link(decl->args);
+  struct Ast_Instantiation* inst_decl = (struct Ast_Instantiation*)ast;
+  build_type_type_ref(inst_decl->type_ref);
+  struct Ast_Name* name = (struct Ast_Name*)inst_decl->type_ref;
+  struct SymtableEntry* se = scope_lookup_name(get_root_scope(), "void");
+  struct Type* args_type = type_get_entry(&m_type_map, se->ns_type->id);
+  if (inst_decl->args) {
+    struct ListLink* li = list_first_link(inst_decl->args);
+    struct Ast* arg = li->object;
+    build_type_expression(arg);
+    args_type = type_get_entry(&m_type_map, arg->id);
+    li = li->next;
     while (li) {
       struct Ast* arg = li->object;
       build_type_expression(arg);
+      struct Type_Product* product_type = new_type(struct Type_Product, TYPE_PRODUCT);
+      product_type->lhs_ty = args_type;
+      product_type->rhs_ty = type_get_entry(&m_type_map, arg->id);
       li = li->next;
     }
   }
+  struct Type_FunctionCall* inst_type = new_type(struct Type_FunctionCall, TYPE_FUNCTION_CALL);
+  inst_type->function_ty = type_get_entry(&m_type_map, name->id);
+  inst_type->args_ty = args_type;
+  type_add_entry(&m_type_map, (struct Type*)inst_type, inst_decl->id);
 }
 
 internal void
@@ -453,9 +432,6 @@ build_type_statement(struct Ast* ast)
     build_type_expression(assign_expr);
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     build_type_function_call(ast);
-  } else if (ast->kind == AST_DIRECT_APPLICATION) {
-    struct Ast_DirectApplication* stmt = (struct Ast_DirectApplication*)ast;
-    build_type_expression(stmt->name);
   } else if (ast->kind == AST_RETURN_STMT) {
     struct Ast_ReturnStmt* stmt = (struct Ast_ReturnStmt*)ast;
     if (stmt->expr) {
@@ -614,10 +590,15 @@ build_type_extern_decl(struct Ast* ast)
 }
 
 internal void
-build_type_package(struct Ast* ast)
+build_type_package_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_PACKAGE_DECL);
   struct Ast_PackageDecl* package_decl = (struct Ast_PackageDecl*)ast;
+  struct Ast_Name* name = (struct Ast_Name*)package_decl->name;
+  struct Type_Name* package_type = new_type(struct Type_Name, TYPE_NAME);
+  package_type->strname = name->strname;
+  type_add_entry(&m_type_map, (struct Type*)package_type, name->id);
+  type_add_entry(&m_type_map, (struct Type*)package_type, package_decl->id);
   if (package_decl->params) {
     struct ListLink* li = list_first_link(package_decl->params);
     while (li) {
@@ -707,6 +688,11 @@ build_type_parser_decl(struct Ast* ast)
   assert(ast->kind == AST_PARSER_DECL);
   struct Ast_ParserDecl* parser_decl = (struct Ast_ParserDecl*)ast;
   struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)parser_decl->type_decl;
+  struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
+  struct Type_Name* parser_type = new_type(struct Type_Name, TYPE_NAME);
+  parser_type->strname = name->strname;
+  type_add_entry(&m_type_map, (struct Type*)parser_type, name->id);
+  type_add_entry(&m_type_map, (struct Type*)parser_type, parser_decl->id);
   if (type_decl->type_params) {
     struct ListLink* li = list_first_link(type_decl->type_params);
     while (li) {
@@ -946,7 +932,7 @@ build_type_p4program(struct Ast* ast)
     } else if (decl->kind == AST_HEADER_UNION_DECL) {
       build_type_header_union_decl(decl);
     } else if (decl->kind == AST_PACKAGE_DECL) {
-      build_type_package(decl);
+      build_type_package_decl(decl);
     } else if (decl->kind == AST_PARSER_DECL) {
       build_type_parser_decl(decl);
     } else if (decl->kind == AST_INSTANTIATION) {

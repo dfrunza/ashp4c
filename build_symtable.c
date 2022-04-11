@@ -414,9 +414,6 @@ build_symtable_statement(struct Ast* ast)
     build_symtable_expression(assign_expr);
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     build_symtable_function_call(ast);
-  } else if (ast->kind == AST_DIRECT_APPLICATION) {
-    struct Ast_DirectApplication* stmt = (struct Ast_DirectApplication*)ast;
-    build_symtable_expression(stmt->name);
   } else if (ast->kind == AST_RETURN_STMT) {
     struct Ast_ReturnStmt* stmt = (struct Ast_ReturnStmt*)ast;
     if (stmt->expr) {
