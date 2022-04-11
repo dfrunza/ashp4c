@@ -57,40 +57,40 @@ pop_scope()
   return current_scope;
 }
 
-struct SymtableEntry*
-symtable_get_or_create_entry(struct Hashmap* declarations, char* name)
+struct NsNameDecl*
+namedecl_get_or_create_entry(struct Hashmap* declarations, char* name)
 {
   struct HashmapKey key = { .s_key = (uint8_t*)name };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, declarations->capacity_log2);
   struct HashmapEntry* hmap_entry = hashmap_get_or_create_entry(declarations, &key);
   if (hmap_entry->object) {
-    return (struct SymtableEntry*)hmap_entry->object;
+    return (struct NsNameDecl*)hmap_entry->object;
   }
-  struct SymtableEntry* entry = arena_push(m_symtable_storage, sizeof(*entry));
+  struct NsNameDecl* entry = arena_push(m_symtable_storage, sizeof(*entry));
   hmap_entry->object = entry;
   memset(entry, 0, sizeof(*entry));
   entry->strname = name;
   return entry;
 }
 
-struct SymtableEntry*
-symtable_get_entry(struct Hashmap* declarations, char* name)
+struct NsNameDecl*
+namedecl_get_entry(struct Hashmap* declarations, char* name)
 {
   struct HashmapKey key = { .s_key = (uint8_t*)name };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, declarations->capacity_log2);
   struct HashmapEntry* hmap_entry = hashmap_get_entry(declarations, &key);
   if (hmap_entry) {
-    return (struct SymtableEntry*)hmap_entry->object;
+    return (struct NsNameDecl*)hmap_entry->object;
   }
   return 0;
 }
 
-struct SymtableEntry*
+struct NsNameDecl*
 scope_lookup_name(struct Scope* scope, char* name)
 {
-  struct SymtableEntry* entry = 0;
+  struct NsNameDecl* entry = 0;
   while (scope) {
-    entry = symtable_get_or_create_entry(&scope->declarations, name);
+    entry = namedecl_get_or_create_entry(&scope->declarations, name);
     if (entry->ns_type || entry->ns_var || entry->ns_keyword) {
       break;
     }
@@ -99,10 +99,10 @@ scope_lookup_name(struct Scope* scope, char* name)
   return entry;
 }
 
-struct SymtableEntry*
+struct NsNameDecl*
 declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl)
 {
-  struct SymtableEntry* entry = symtable_get_or_create_entry(&scope->declarations, decl->strname);
+  struct NsNameDecl* entry = namedecl_get_or_create_entry(&scope->declarations, decl->strname);
   if (ns == NAMESPACE_TYPE) {
     decl->next_in_scope = entry->ns_type;
     entry->ns_type = decl;
@@ -110,7 +110,7 @@ declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl*
     decl->next_in_scope = entry->ns_var;
     entry->ns_var = decl;
   } else if (ns == NAMESPACE_KEYWORD) {
-    struct SymtableEntry* entry = symtable_get_or_create_entry(&scope->declarations, decl->strname);
+    struct NsNameDecl* entry = namedecl_get_or_create_entry(&scope->declarations, decl->strname);
     entry->ns_keyword = decl;
   } else assert(0);
   return entry;

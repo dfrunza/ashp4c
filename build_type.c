@@ -121,7 +121,7 @@ build_type_type_ref(struct Ast* ast)
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
     struct NameRef* nameref = nameref_get_entry(m_nameref_map, name->id);
-    struct SymtableEntry* se = scope_lookup_name(nameref->scope, nameref->strname);
+    struct NsNameDecl* se = scope_lookup_name(nameref->scope, nameref->strname);
     if (se->ns_type) {
       struct Type* type = type_get_entry(&m_type_map, se->ns_type->id);
       type_add_entry(&m_type_map, type, name->id);
@@ -172,7 +172,7 @@ build_type_function_call(struct Ast* ast)
       li = li->next;
     }
   }
-  struct SymtableEntry* se = scope_lookup_name(get_root_scope(), "void");
+  struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "void");
   struct Type* args_type = type_get_entry(&m_type_map, se->ns_type->id);
   if (function_call->args) {
     struct ListLink* li = list_first_link(function_call->args);
@@ -202,7 +202,7 @@ build_type_instantiation(struct Ast* ast)
   struct Ast_Instantiation* inst_decl = (struct Ast_Instantiation*)ast;
   build_type_type_ref(inst_decl->type_ref);
   struct Ast_Name* name = (struct Ast_Name*)inst_decl->type_ref;
-  struct SymtableEntry* se = scope_lookup_name(get_root_scope(), "void");
+  struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "void");
   struct Type* args_type = type_get_entry(&m_type_map, se->ns_type->id);
   if (inst_decl->args) {
     struct ListLink* li = list_first_link(inst_decl->args);
@@ -471,7 +471,7 @@ build_type_function_proto(struct Ast* ast)
       li = li->next;
     }
   }
-  struct SymtableEntry* se = scope_lookup_name(get_root_scope(), "void");
+  struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "void");
   struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->id);
   if (function_proto->params) {
     struct ListLink* li = list_first_link(function_proto->params);
@@ -532,8 +532,15 @@ build_type_control_decl(struct Ast* ast)
       li = li->next;
     }
   }
+  struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "void");
+  struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->id);
   if (type_decl->params) {
     struct ListLink* li = list_first_link(type_decl->params);
+    struct Ast* param = li->object;
+    build_type_param(param);
+    params_type = type_get_entry(&m_type_map, param->id);
+    // TODO
+    li = li->next;
     while (li) {
       struct Ast* param = li->object;
       build_type_param(param);
@@ -837,7 +844,7 @@ build_type_expression(struct Ast* ast)
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
     struct NameRef* nameref = nameref_get_entry(m_nameref_map, name->id);
-    struct SymtableEntry* se = scope_lookup_name(nameref->scope, nameref->strname);
+    struct NsNameDecl* se = scope_lookup_name(nameref->scope, nameref->strname);
     if (se->ns_type || se->ns_var) {
       if (se->ns_type && se->ns_var) {
         struct Type_Typevar* type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
@@ -882,11 +889,11 @@ build_type_expression(struct Ast* ast)
     build_type_expression(expr->name);
     build_type_expression(expr->expr);
   } else if (ast->kind == AST_INT_LITERAL || ast->kind == AST_BOOL_LITERAL) {
-    struct SymtableEntry* se = scope_lookup_name(get_root_scope(), "int");
+    struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "int");
     struct Type* int_type = type_get_entry(&m_type_map, se->ns_type->id);
     type_add_entry(&m_type_map, int_type, ast->id);
   } else if (ast->kind == AST_STRING_LITERAL) {
-    struct SymtableEntry* se = scope_lookup_name(get_root_scope(), "string");
+    struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "string");
     struct Type* str_type = type_get_entry(&m_type_map, se->ns_type->id);
     type_add_entry(&m_type_map, str_type, ast->id);
   }
@@ -966,7 +973,7 @@ build_type(struct Ast* p4program, struct Hashmap* nameref_map, struct Arena* typ
     struct Type_Basic* type = new_type(struct Type_Basic, TYPE_BASIC);
     type->basic_ty = basic_ty;
     type->strname = strname;
-    struct SymtableEntry* se = scope_lookup_name(get_root_scope(), strname);
+    struct NsNameDecl* se = scope_lookup_name(get_root_scope(), strname);
     type_add_entry(&m_type_map, (struct Type*)type, se->ns_type->id);
   }
 
