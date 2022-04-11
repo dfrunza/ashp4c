@@ -515,7 +515,9 @@ build_type_function_proto(struct Ast* ast)
   }
   struct Type_Function* function_type = new_type(struct Type_Function, TYPE_FUNCTION);
   function_type->params_ty = params_type;
-  function_type->return_ty = type_get_entry(&m_type_map, function_proto->return_type->id);
+  if (function_proto->return_type) {
+    function_type->return_ty = type_get_entry(&m_type_map, function_proto->return_type->id);
+  }
   type_add_entry(&m_type_map, (struct Type*)function_type, name->id);
   type_add_entry(&m_type_map, (struct Type*)function_type, function_proto->id);
 }
