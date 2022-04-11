@@ -808,8 +808,8 @@ resolve_nameref_expression(struct Ast* ast)
     struct Ast_CastExpr* expr = (struct Ast_CastExpr*)ast;
     resolve_nameref_type_ref(expr->to_type);
     resolve_nameref_expression(expr->expr);
-  } else if (ast->kind == AST_INDEXED_ARRAY_EXPR) {
-    struct Ast_IndexedArrayExpr* expr = (struct Ast_IndexedArrayExpr*)ast;
+  } else if (ast->kind == AST_SUBSCRIPT_EXPR) {
+    struct Ast_SubscriptExpr* expr = (struct Ast_SubscriptExpr*)ast;
     resolve_nameref_expression(expr->index);
     if (expr->colon_index) {
       resolve_nameref_expression(expr->colon_index);

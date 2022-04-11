@@ -74,7 +74,7 @@ enum AstEnum {
   AST_UNARY_EXPR,
   AST_BINARY_EXPR,
   AST_MEMBER_SELECT_EXPR,
-  AST_INDEXED_ARRAY_EXPR,
+  AST_SUBSCRIPT_EXPR,
   AST_FUNCTION_CALL_EXPR,
 };
 
@@ -522,7 +522,7 @@ struct Ast_MemberSelectExpr {
   struct Ast* member_name;
 };
 
-struct Ast_IndexedArrayExpr {
+struct Ast_SubscriptExpr {
   struct Ast_Expression;
   struct Ast* index;
   struct Ast* colon_index;

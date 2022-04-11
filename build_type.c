@@ -871,8 +871,8 @@ build_type_expression(struct Ast* ast)
     struct Ast_CastExpr* expr = (struct Ast_CastExpr*)ast;
     build_type_type_ref(expr->to_type);
     build_type_expression(expr->expr);
-  } else if (ast->kind == AST_INDEXED_ARRAY_EXPR) {
-    struct Ast_IndexedArrayExpr* expr = (struct Ast_IndexedArrayExpr*)ast;
+  } else if (ast->kind == AST_SUBSCRIPT_EXPR) {
+    struct Ast_SubscriptExpr* expr = (struct Ast_SubscriptExpr*)ast;
     build_type_expression(expr->index);
     if (expr->colon_index) {
       build_type_expression(expr->colon_index);

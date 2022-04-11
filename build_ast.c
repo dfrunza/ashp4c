@@ -1363,7 +1363,7 @@ build_ast_prefixedNonTypeName()
 internal struct Ast*
 build_ast_arrayIndex()
 {
-  struct Ast_IndexedArrayExpr* index = new_ast_node(struct Ast_IndexedArrayExpr, AST_INDEXED_ARRAY_EXPR);
+  struct Ast_SubscriptExpr* index = new_ast_node(struct Ast_SubscriptExpr, AST_SUBSCRIPT_EXPR);
   index->line_no = m_token->line_no;
   if (token_is_expression(m_token)) {
     index->index = build_ast_expression(1);
@@ -1416,7 +1416,7 @@ build_ast_lvalue()
       }
       else if (m_token->klass == TK_BRACKET_OPEN) {
         next_token();
-        struct Ast_IndexedArrayExpr* index_expr = new_ast_node(struct Ast_IndexedArrayExpr, AST_INDEXED_ARRAY_EXPR);
+        struct Ast_SubscriptExpr* index_expr = new_ast_node(struct Ast_SubscriptExpr, AST_SUBSCRIPT_EXPR);
         index_expr->line_no = m_token->line_no;
         index_expr->index = lvalue;
         index_expr->colon_index = build_ast_arrayIndex();
@@ -2839,7 +2839,7 @@ build_ast_expression(int priority_threshold)
       }
       else if (m_token->klass == TK_BRACKET_OPEN) {
         next_token();
-        struct Ast_IndexedArrayExpr* index_expr = new_ast_node(struct Ast_IndexedArrayExpr, AST_INDEXED_ARRAY_EXPR);
+        struct Ast_SubscriptExpr* index_expr = new_ast_node(struct Ast_SubscriptExpr, AST_SUBSCRIPT_EXPR);
         index_expr->line_no = m_token->line_no;
         index_expr->index = expr;
         index_expr->colon_index = build_ast_arrayIndex();

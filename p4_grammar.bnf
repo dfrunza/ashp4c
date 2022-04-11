@@ -248,7 +248,7 @@
 
 <lvalue> := <prefixedNonTypeName> {
       '.' <member>
-    | '[' <expression> { ':' <expression> } ']'  /* indexed array */
+    | '[' <expression> { ':' <expression> } ']'  /* subscript */
   }*
 
 <expression> := <expressionPrimary> { <exprOperator> <expression> }*
@@ -266,7 +266,7 @@
 <exprOperator> :=
   | <binaryOperator>
   | '.' <member>
-  | '[' <expression> { ':' <expression> } ']' /* indexed array */
+  | '[' <expression> { ':' <expression> } ']' /* subscript */
   | '(' <argumentList> ')' /* function call */
   | '<' <realTypeArgumentList> '>'
 
