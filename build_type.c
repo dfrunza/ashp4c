@@ -547,18 +547,10 @@ build_type_control_decl(struct Ast* ast)
       li = li->next;
     }
   }
-  if (type_decl->params) {
-    struct ListLink* li = list_first_link(type_decl->params);
-    while (li) {
-      struct Ast* param = li->object;
-      build_type_param(param);
-      li = li->next;
-    }
-  }
   struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "void");
   struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->id);
-  if (control_decl->ctor_params) {
-    struct ListLink* li = list_first_link(control_decl->ctor_params);
+  if (type_decl->params) {
+    struct ListLink* li = list_first_link(type_decl->params);
     struct Ast* param = li->object;
     build_type_param(param);
     params_type = type_get_entry(&m_type_map, param->id);
@@ -570,6 +562,14 @@ build_type_control_decl(struct Ast* ast)
       product_type->lhs_ty = params_type;
       product_type->rhs_ty = type_get_entry(&m_type_map, param->id);
       params_type = (struct Type*)product_type;
+      li = li->next;
+    }
+  }
+  if (control_decl->ctor_params) {
+    struct ListLink* li = list_first_link(control_decl->ctor_params);
+    while (li) {
+      struct Ast* param = li->object;
+      build_type_param(param);
       li = li->next;
     }
   }
@@ -727,18 +727,10 @@ build_type_parser_decl(struct Ast* ast)
       li = li->next;
     }
   }
-  if (type_decl->params) {
-    struct ListLink* li = list_first_link(type_decl->params);
-    while (li) {
-      struct Ast* param = li->object;
-      build_type_param(param);
-      li = li->next;
-    }
-  }
   struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "void");
   struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->id);
-  if (parser_decl->ctor_params) {
-    struct ListLink* li = list_first_link(parser_decl->ctor_params);
+  if (type_decl->params) {
+    struct ListLink* li = list_first_link(type_decl->params);
     struct Ast* param = li->object;
     build_type_param(param);
     params_type = type_get_entry(&m_type_map, param->id);
@@ -750,6 +742,14 @@ build_type_parser_decl(struct Ast* ast)
       product_type->lhs_ty = params_type;
       product_type->rhs_ty = type_get_entry(&m_type_map, param->id);
       params_type = (struct Type*)product_type;
+      li = li->next;
+    }
+  }
+  if (parser_decl->ctor_params) {
+    struct ListLink* li = list_first_link(parser_decl->ctor_params);
+    while (li) {
+      struct Ast* param = li->object;
+      build_type_param(param);
       li = li->next;
     }
   }
