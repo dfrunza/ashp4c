@@ -7,7 +7,6 @@
 
 
 internal struct Arena *m_type_storage;
-internal struct Hashmap* m_nameref_map;
 internal struct Hashmap m_type_map = {};
 
 internal void build_type_block_statement(struct Ast* block_stmt);
@@ -40,7 +39,7 @@ build_type_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   struct Ast_Name* name = (struct Ast_Name*)ast;
-  struct NameRef* nameref = nameref_get_entry(m_nameref_map, name->id);
+  struct NameRef* nameref = name->ref;
   if (!nameref) {
     struct Type_TypeParam* type = new_type(struct Type_TypeParam, TYPE_TYPEPARAM);
     type->strname = name->strname;
@@ -139,7 +138,7 @@ build_type_type_ref(struct Ast* ast)
     build_type_expression(type_ref->stack_expr);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct NameRef* nameref = nameref_get_entry(m_nameref_map, name->id);
+    struct NameRef* nameref = name->ref;
     struct NsNameDecl* se = scope_lookup_name(nameref->scope, nameref->strname);
     if (se->ns_type) {
       struct Type* type = type_get_entry(&m_type_map, se->ns_type->id);
@@ -896,7 +895,7 @@ build_type_expression(struct Ast* ast)
     build_type_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct NameRef* nameref = nameref_get_entry(m_nameref_map, name->id);
+    struct NameRef* nameref = name->ref;
     struct NsNameDecl* se = scope_lookup_name(nameref->scope, nameref->strname);
     if (se->ns_type || se->ns_var) {
       if (se->ns_type && se->ns_var) {
@@ -1020,7 +1019,7 @@ build_type_p4program(struct Ast* ast)
 }
 
 struct Hashmap*
-build_type(struct Ast* p4program, struct Hashmap* nameref_map, struct Arena* type_storage)
+build_type(struct Ast* p4program, struct Arena* type_storage)
 {
   void add_basic_type(char* strname, enum BasicType basic_ty) {
     struct Type_Basic* type = new_type(struct Type_Basic, TYPE_BASIC);
@@ -1031,7 +1030,6 @@ build_type(struct Ast* p4program, struct Hashmap* nameref_map, struct Arena* typ
   }
 
   m_type_storage = type_storage;
-  m_nameref_map = nameref_map;
   hashmap_init(&m_type_map, HASHMAP_KEY_INT, 8, m_type_storage);
 
   add_basic_type("void", TYPE_INT);

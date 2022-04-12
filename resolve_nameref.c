@@ -4,9 +4,6 @@
 #include "symtable.h"
 
 
-internal struct Hashmap* m_nameref_map = 0;
-
-
 internal void resolve_nameref_block_statement(struct Ast* block_stmt);
 internal void resolve_nameref_statement(struct Ast* decl);
 internal void resolve_nameref_expression(struct Ast* expr);
@@ -784,7 +781,7 @@ resolve_nameref_expression(struct Ast* ast)
     resolve_nameref_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct NameRef* nameref = nameref_get_entry(m_nameref_map, name->id);
+    struct NameRef* nameref = name->ref;
     if (nameref) {
       struct NsNameDecl* entry = scope_lookup_name(nameref->scope, nameref->strname);
     } // else it's a declaration
@@ -891,8 +888,7 @@ resolve_nameref_p4program(struct Ast* ast)
 }
 
 void
-resolve_nameref(struct Ast* p4program, struct Hashmap* nameref_map)
+resolve_nameref(struct Ast* p4program)
 {
-  m_nameref_map = nameref_map;
   resolve_nameref_p4program(p4program);
 }

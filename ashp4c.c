@@ -120,11 +120,10 @@ main(int arg_count, char* args[])
     assert(!"TODO");
   }
 
-  struct Hashmap* nameref_map;
   struct Hashmap* type_map;
-  nameref_map = build_symtable(p4program, &m_main_storage);
-  type_map = build_type(p4program, nameref_map, &m_main_storage);
-  resolve_nameref(p4program, nameref_map);
+  build_symtable(p4program, &m_main_storage);
+  type_map = build_type(p4program, &m_main_storage);
+  resolve_nameref(p4program);
 
   arena_delete(&m_main_storage);
   return 0;

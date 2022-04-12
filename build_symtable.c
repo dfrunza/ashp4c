@@ -5,7 +5,6 @@
 
 
 internal struct Arena* m_symtable_storage;
-internal struct Hashmap m_nameref_map = {};
 
 
 internal void build_symtable_block_statement(struct Ast* block_stmt);
@@ -64,7 +63,7 @@ build_symtable_expression(struct Ast* ast)
     nameref->strname = name->strname;
     nameref->line_no = name->line_no;
     nameref->scope = get_current_scope();
-    nameref_add_entry(&m_nameref_map, nameref, nameref->id);
+    name->ref = nameref;
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     build_symtable_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
@@ -1100,12 +1099,11 @@ build_symtable_p4program(struct Ast* ast)
   pop_scope();
 }
 
-struct Hashmap*
+void
 build_symtable(struct Ast* p4program, struct Arena* symtable_storage)
 {
   m_symtable_storage = symtable_storage;
   symtable_init(m_symtable_storage);
-  hashmap_init(&m_nameref_map, HASHMAP_KEY_INT, 8, m_symtable_storage);
 
   struct NameDecl* decl;
   int node_id = 1;
@@ -1165,5 +1163,4 @@ build_symtable(struct Ast* p4program, struct Arena* symtable_storage)
   declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
 
   build_symtable_p4program(p4program);
-  return &m_nameref_map;
 }

@@ -128,6 +128,7 @@ struct Ast_Name {
   struct Ast_Expression;
   char* strname;
   bool is_dotprefixed;
+  struct NameRef* ref;
 };
 
 struct Ast_BaseType {
