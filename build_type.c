@@ -113,6 +113,25 @@ build_type_type_ref(struct Ast* ast)
     struct Ast_BaseType* base_type = (struct Ast_BaseType*)ast;
     build_type_type_ref(base_type->name);
     struct Type* type = type_get_entry(&m_type_map, base_type->name->id);
+    if (ast->kind == AST_BASETYPE_INT) {
+      struct Ast_BaseType_Int* int_type = (struct Ast_BaseType_Int*)ast;
+      if (int_type->size) {
+        struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "int");
+        type->type_params = type_get_entry(&m_type_map, se->ns_type->id);
+      }
+    } else if (ast->kind == AST_BASETYPE_BIT) {
+      struct Ast_BaseType_Bit* bit_type = (struct Ast_BaseType_Bit*)ast;
+      if (bit_type->size) {
+        struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "int");
+        type->type_params = type_get_entry(&m_type_map, se->ns_type->id);
+      }
+    } else if (ast->kind == AST_BASETYPE_VARBIT) {
+      struct Ast_BaseType_Varbit* varbit_type = (struct Ast_BaseType_Varbit*)ast;
+      if (varbit_type->size) {
+        struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "int");
+        type->type_params = type_get_entry(&m_type_map, se->ns_type->id);
+      }
+    }
     type_add_entry(&m_type_map, type, base_type->id);
   } else if (ast->kind == AST_HEADER_STACK) {
     struct Ast_HeaderStack* type_ref = (struct Ast_HeaderStack*)ast;

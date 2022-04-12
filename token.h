@@ -7,8 +7,8 @@ enum TokenClass {
   TK_SEMICOLON = 1,
   TK_IDENTIFIER,
   TK_TYPE_IDENTIFIER,
-  TK_STRING,
-  TK_INTEGER,
+  TK_INT_LITERAL,
+  TK_STRING_LITERAL,
   TK_PARENTH_OPEN,
   TK_PARENTH_CLOSE,
   TK_ANGLE_OPEN,
@@ -43,6 +43,7 @@ enum TokenClass {
   TK_DOUBLE_ANGLE_CLOSE,
   TK_COMMENT,
 
+  /* Keywords */
   TK_ACTION,
   TK_ACTIONS,
   TK_ENUM,
@@ -73,8 +74,8 @@ enum TokenClass {
   TK_INT,
   TK_BIT,
   TK_VARBIT,
+  TK_STRING,
   TK_OUT,
-  TK_STRING_LITERAL,
   TK_TRANSITION,
   TK_ELSE,
   TK_EXIT,
@@ -84,6 +85,7 @@ enum TokenClass {
   TK_STRUCT,
   TK_CONST,
 
+  /* Special */
   TK_UNKNOWN,
   TK_START_OF_INPUT,
   TK_END_OF_INPUT,

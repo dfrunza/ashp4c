@@ -193,7 +193,7 @@ token_is_switchLabel(struct Token* token)
 internal bool
 token_is_expressionPrimary(struct Token* token)
 {
-  bool result = token->klass == TK_INTEGER || token->klass == TK_TRUE || token->klass == TK_FALSE
+  bool result = token->klass == TK_INT_LITERAL || token->klass == TK_TRUE || token->klass == TK_FALSE
     || token->klass == TK_STRING_LITERAL || token->klass == TK_DOT_PREFIX || token_is_nonTypeName(token)
     || token->klass == TK_BRACE_OPEN || token->klass == TK_PARENTH_OPEN || token->klass == TK_EXCLAMATION
     || token->klass == TK_TILDA || token->klass == TK_UNARY_MINUS || token_is_typeName(token)
@@ -522,7 +522,7 @@ internal struct Ast*
 build_ast_integer()
 {
   struct Ast_IntLiteral* int_node = 0;
-  if (m_token->klass == TK_INTEGER) {
+  if (m_token->klass == TK_INT_LITERAL) {
     int_node = new_ast_node(struct Ast_IntLiteral, AST_INT_LITERAL);
     int_node->line_no = m_token->line_no;
     int_node->flags = m_token->i.flags;
@@ -564,10 +564,12 @@ build_ast_integerTypeSize()
 {
   struct Ast_IntTypeSize* type_size = new_ast_node(struct Ast_IntTypeSize, AST_INT_TYPESIZE);
   type_size->line_no = m_token->line_no;
-  if (m_token->klass == TK_INTEGER) {
+  if (m_token->klass == TK_INT_LITERAL) {
     type_size->size = build_ast_integer();
   } else if (m_token->klass == TK_PARENTH_OPEN) {
-    type_size->size = build_ast_expression(1);
+    /* FIXME
+    type_size->size = build_ast_expression(1); */
+    error("at line %d: integer was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   } else error("at line %d: `(` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return (struct Ast*)type_size;
 }
@@ -976,7 +978,7 @@ build_ast_enumDeclaration()
       next_token();
       if (m_token->klass == TK_ANGLE_OPEN) {
         next_token();
-        if (m_token->klass == TK_INTEGER) {
+        if (m_token->klass == TK_INT_LITERAL) {
           decl->type_size = build_ast_integer();
           if (m_token->klass == TK_ANGLE_CLOSE) {
             next_token();
@@ -2664,7 +2666,7 @@ build_ast_expressionPrimary()
 {
   struct Ast* primary = 0;
   if (token_is_expression(m_token)) {
-    if (m_token->klass == TK_INTEGER) {
+    if (m_token->klass == TK_INT_LITERAL) {
       primary = build_ast_integer();
     } else if (m_token->klass == TK_TRUE || m_token->klass == TK_FALSE) {
       primary = build_ast_boolean();

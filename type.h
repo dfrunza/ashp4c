@@ -23,6 +23,7 @@ enum BasicType {
 
 struct Type {
   enum TypeEnum ctor;
+  struct Type* type_params;
   uint32_t equiv;
 };
 
