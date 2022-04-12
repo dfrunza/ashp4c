@@ -700,10 +700,6 @@ build_type_parser_decl(struct Ast* ast)
   struct Ast_ParserDecl* parser_decl = (struct Ast_ParserDecl*)ast;
   struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)parser_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct Type_Name* parser_type = new_type(struct Type_Name, TYPE_NAME);
-  parser_type->strname = name->strname;
-  type_add_entry(&m_type_map, (struct Type*)parser_type, name->id);
-  type_add_entry(&m_type_map, (struct Type*)parser_type, parser_decl->id);
   if (type_decl->type_params) {
     struct ListLink* li = list_first_link(type_decl->type_params);
     while (li) {
@@ -720,14 +716,29 @@ build_type_parser_decl(struct Ast* ast)
       li = li->next;
     }
   }
+  struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "void");
+  struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->id);
   if (parser_decl->ctor_params) {
     struct ListLink* li = list_first_link(parser_decl->ctor_params);
+    struct Ast* param = li->object;
+    build_type_param(param);
+    params_type = type_get_entry(&m_type_map, param->id);
+    li = li->next;
     while (li) {
       struct Ast* param = li->object;
       build_type_param(param);
+      struct Type_Product* product_type = new_type(struct Type_Product, TYPE_PRODUCT); 
+      product_type->lhs_ty = params_type;
+      product_type->rhs_ty = type_get_entry(&m_type_map, param->id);
+      params_type = (struct Type*)product_type;
       li = li->next;
     }
   }
+  struct Type_Function* function_type = new_type(struct Type_Function, TYPE_FUNCTION);
+  function_type->params_ty = params_type;
+  type_add_entry(&m_type_map, (struct Type*)function_type, name->id);
+  type_add_entry(&m_type_map, (struct Type*)function_type, type_decl->id);
+  type_add_entry(&m_type_map, (struct Type*)function_type, parser_decl->id);
   if (parser_decl->local_elements) {
     struct ListLink* li = list_first_link(parser_decl->local_elements);
     while (li) {
@@ -761,6 +772,7 @@ build_type_function_decl(struct Ast* ast)
   assert(ast->kind == AST_FUNCTION_DECL);
   struct Ast_FunctionDecl* function_decl = (struct Ast_FunctionDecl*)ast;
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)function_decl->proto;
+  struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
   if (function_proto->return_type) {
     build_type_function_return_type(function_proto->return_type);
   }
@@ -772,14 +784,32 @@ build_type_function_decl(struct Ast* ast)
       li = li->next;
     }
   }
+  struct NsNameDecl* se = scope_lookup_name(get_root_scope(), "void");
+  struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->id);
   if (function_proto->params) {
     struct ListLink* li = list_first_link(function_proto->params);
+    struct Ast* param = li->object;
+    build_type_param(param);
+    params_type = type_get_entry(&m_type_map, param->id);
+    li = li->next;
     while (li) {
       struct Ast* param = li->object;
       build_type_param(param);
+      struct Type_Product* product_type = new_type(struct Type_Product, TYPE_PRODUCT); 
+      product_type->lhs_ty = params_type;
+      product_type->rhs_ty = type_get_entry(&m_type_map, param->id);
+      params_type = (struct Type*)product_type;
       li = li->next;
     }
   }
+  struct Type_Function* function_type = new_type(struct Type_Function, TYPE_FUNCTION);
+  function_type->params_ty = params_type;
+  if (function_proto->return_type) {
+    function_type->return_ty = type_get_entry(&m_type_map, function_proto->return_type->id);
+  }
+  type_add_entry(&m_type_map, (struct Type*)function_type, name->id);
+  type_add_entry(&m_type_map, (struct Type*)function_type, function_proto->id);
+  type_add_entry(&m_type_map, (struct Type*)function_type, function_decl->id);
   struct Ast_BlockStmt* function_body = (struct Ast_BlockStmt*)function_decl->stmt;
   if (function_body) {
     if (function_body->stmt_list) {
