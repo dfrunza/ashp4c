@@ -1029,15 +1029,33 @@ build_type(struct Ast* p4program, struct Arena* type_storage)
     type_add_entry(&m_type_map, (struct Type*)type, se->ns_type->id);
   }
 
+  void add_binop_type(char* strname, struct Type* lhs_operand_ty, struct Type* rhs_operand_ty, struct Type* result_ty)
+  {
+    struct Type_Product* params_type = new_type(struct Type_Product, TYPE_PRODUCT);
+    params_type->lhs_ty = lhs_operand_ty;
+    params_type->rhs_ty = rhs_operand_ty;
+    struct Type_Function* op_type = new_type(struct Type_Function, TYPE_FUNCTION);
+    op_type->params_ty = (struct Type*)params_type;
+    op_type->return_ty = result_ty;
+  }
+
   m_type_storage = type_storage;
   hashmap_init(&m_type_map, HASHMAP_KEY_INT, 8, m_type_storage);
 
+  /* Basic Types */
   add_basic_type("void", TYPE_INT);
   add_basic_type("bool", TYPE_INT);
   add_basic_type("int", TYPE_INT);
   add_basic_type("bit", TYPE_INT);
   add_basic_type("varbit", TYPE_INT);
   add_basic_type("string", TYPE_STRING);
+
+  /* Binary Operator Types */
+  struct Type_Typevar* lhs_operand_type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
+  struct Type_Typevar* rhs_operand_type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
+  struct Type_Basic* result_type = new_type(struct Type_Basic, TYPE_BASIC);
+  result_type->basic_ty = TYPE_INT;
+  add_binop_type(">", (struct Type*)lhs_operand_type, (struct Type*)rhs_operand_type, (struct Type*)result_type);
 
   build_type_p4program(p4program);
   return &m_type_map;

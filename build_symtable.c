@@ -1107,6 +1107,8 @@ build_symtable(struct Ast* p4program, struct Arena* symtable_storage)
 
   struct NameDecl* decl;
   int node_id = 1;
+
+  /* Builtin Types */
   decl = new_name_decl(struct NameDecl, AST_BASETYPE_VOID);
   decl->id = node_id++;
   decl->strname = "void";
@@ -1152,6 +1154,7 @@ build_symtable(struct Ast* p4program, struct Arena* symtable_storage)
   decl->strname = "match_kind";
   declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
 
+  /* Parser States */
   decl = new_name_decl(struct NameDecl, AST_PARSER_STATE);
   decl->id = node_id++;
   decl->strname = "accept";
@@ -1161,6 +1164,17 @@ build_symtable(struct Ast* p4program, struct Arena* symtable_storage)
   decl->id = node_id++;
   decl->strname = "reject";
   declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
+
+  /* Operators */
+  decl = new_name_decl(struct NameDecl, AST_FUNCTION_PROTO);
+  decl->id = node_id++;
+  decl->strname = ">";
+  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
+  
+  decl = new_name_decl(struct NameDecl, AST_FUNCTION_PROTO);
+  decl->id = node_id++;
+  decl->strname = "<";
+  declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
 
   build_symtable_p4program(p4program);
 }
