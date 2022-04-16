@@ -104,7 +104,7 @@ enum AstExprOperator {
   OP_BITWISE_SHIFT_LEFT,
   OP_BITWISE_SHIFT_RIGHT,
   OP_MASK,
-  OP_MINUS,
+  OP_NEG,
 };
 
 enum AstParamDirection {

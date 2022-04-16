@@ -783,7 +783,7 @@ resolve_nameref_expression(struct Ast* ast)
     struct Ast_Name* name = (struct Ast_Name*)ast;
     struct NameRef* nameref = name->ref;
     if (nameref) {
-      struct NsNameDecl* entry = scope_lookup_name(nameref->scope, nameref->strname);
+      struct NameEntry* entry = scope_lookup_name(nameref->scope, nameref->strname);
     } // else it's a declaration
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     resolve_nameref_function_call(ast);

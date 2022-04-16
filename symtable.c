@@ -57,63 +57,63 @@ pop_scope()
   return current_scope;
 }
 
-struct NsNameDecl*
-namedecl_get_or_create_entry(struct Hashmap* declarations, char* name)
+struct NameEntry*
+name_get_or_create_entry(struct Hashmap* declarations, char* name)
 {
   struct HashmapKey key = { .s_key = (uint8_t*)name };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, declarations->capacity_log2);
-  struct HashmapEntry* hmap_entry = hashmap_get_or_create_entry(declarations, &key);
-  if (hmap_entry->object) {
-    return (struct NsNameDecl*)hmap_entry->object;
+  struct HashmapEntry* he = hashmap_get_or_create_entry(declarations, &key);
+  if (he->object) {
+    return (struct NameEntry*)he->object;
   }
-  struct NsNameDecl* entry = arena_push(m_symtable_storage, sizeof(*entry));
-  hmap_entry->object = entry;
+  struct NameEntry* entry = arena_push(m_symtable_storage, sizeof(*entry));
+  he->object = entry;
   memset(entry, 0, sizeof(*entry));
   entry->strname = name;
   return entry;
 }
 
-struct NsNameDecl*
-namedecl_get_entry(struct Hashmap* declarations, char* name)
+struct NameEntry*
+name_get_entry(struct Hashmap* declarations, char* name)
 {
   struct HashmapKey key = { .s_key = (uint8_t*)name };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, declarations->capacity_log2);
   struct HashmapEntry* hmap_entry = hashmap_get_entry(declarations, &key);
   if (hmap_entry) {
-    return (struct NsNameDecl*)hmap_entry->object;
+    return (struct NameEntry*)hmap_entry->object;
   }
   return 0;
 }
 
-struct NsNameDecl*
+struct NameEntry*
 scope_lookup_name(struct Scope* scope, char* name)
 {
-  struct NsNameDecl* entry = 0;
+  struct NameEntry* ne = 0;
   while (scope) {
-    entry = namedecl_get_or_create_entry(&scope->declarations, name);
-    if (entry->ns_type || entry->ns_var || entry->ns_keyword) {
+    ne = name_get_or_create_entry(&scope->declarations, name);
+    if (ne->ns_type || ne->ns_var || ne->ns_keyword) {
       break;
     }
     scope = scope->parent_scope;
   }
-  return entry;
+  return ne;
 }
 
-struct NsNameDecl*
+struct NameEntry*
 declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl)
 {
-  struct NsNameDecl* entry = namedecl_get_or_create_entry(&scope->declarations, decl->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&scope->declarations, decl->strname);
   if (ns == NAMESPACE_TYPE) {
-    decl->next_in_scope = entry->ns_type;
-    entry->ns_type = decl;
+    decl->next_in_scope = ne->ns_type;
+    ne->ns_type = decl;
   } else if (ns == NAMESPACE_VAR) {
-    decl->next_in_scope = entry->ns_var;
-    entry->ns_var = decl;
+    decl->next_in_scope = ne->ns_var;
+    ne->ns_var = decl;
   } else if (ns == NAMESPACE_KEYWORD) {
-    struct NsNameDecl* entry = namedecl_get_or_create_entry(&scope->declarations, decl->strname);
-    entry->ns_keyword = decl;
+    struct NameEntry* ne = name_get_or_create_entry(&scope->declarations, decl->strname);
+    ne->ns_keyword = decl;
   } else assert(0);
-  return entry;
+  return ne;
 }
 
 struct NameRef*

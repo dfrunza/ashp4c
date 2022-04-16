@@ -41,7 +41,7 @@ next_token()
     m_token = array_get(m_tokens_array, ++m_token_at);
   }
   if (m_token->klass == TK_IDENTIFIER) {
-    struct NsNameDecl* entry = scope_lookup_name(get_current_scope(), m_token->lexeme);
+    struct NameEntry* entry = scope_lookup_name(get_current_scope(), m_token->lexeme);
     if (entry->ns_keyword) {
       m_token->klass = ((struct NameDecl_Keyword*)entry->ns_keyword)->token_class;
       return m_token;
@@ -2730,7 +2730,7 @@ build_ast_expressionPrimary()
       next_token();
       struct Ast_UnaryExpr* unary_expr = new_ast_node(struct Ast_UnaryExpr, AST_UNARY_EXPR);
       unary_expr->line_no = m_token->line_no;
-      unary_expr->op = OP_MINUS;
+      unary_expr->op = OP_NEG;
       unary_expr->operand = build_ast_expression(1);
       primary = (struct Ast*)unary_expr;
     } else if (token_is_typeName(m_token)) {
