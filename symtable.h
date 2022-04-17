@@ -12,7 +12,7 @@ enum Namespace {
 
 struct NameDecl {
   enum AstEnum kind;
-  uint32_t id;
+  uint32_t name_id;
   char* strname;
   int line_no;
   struct NameDecl* next_in_scope;
@@ -24,7 +24,7 @@ struct NameDecl_Keyword {
 };
 
 struct NameRef {
-  uint32_t id;
+  uint32_t name_id;
   char* strname;
   int line_no;
   struct Scope* scope;

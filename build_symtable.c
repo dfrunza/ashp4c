@@ -59,7 +59,7 @@ build_symtable_expression(struct Ast* ast)
     struct Ast_Name* name = (struct Ast_Name*)ast;
     struct NameRef* nameref = arena_push(m_symtable_storage, sizeof(struct NameRef));
     memset(nameref, 0, sizeof(*nameref));
-    nameref->id = name->id;
+    nameref->name_id = name->id;
     nameref->strname = name->strname;
     nameref->line_no = name->line_no;
     nameref->scope = get_current_scope();
@@ -109,7 +109,7 @@ build_symtable_param(struct Ast* ast)
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_PARAM);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -125,7 +125,7 @@ build_symtable_type_param(struct Ast* ast)
   struct NameEntry* se = scope_lookup_name(get_current_scope(), name->strname);
   if (!se->ns_type) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_TYPE_PARAM);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -143,7 +143,7 @@ build_symtable_action_decl(struct Ast* ast)
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_ACTION_DECL);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -182,7 +182,7 @@ build_symtable_instantiation(struct Ast* ast)
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_INSTANTIATION);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -305,7 +305,7 @@ build_symtable_table_decl(struct Ast* ast)
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_TABLE_DECL);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -351,7 +351,7 @@ build_symtable_const_decl(struct Ast* ast)
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_CONST_DECL);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -369,7 +369,7 @@ build_symtable_statement(struct Ast* ast)
     struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
     if (!ne->ns_var) {
       struct NameDecl* decl = new_name_decl(struct NameDecl, AST_VAR_DECL);
-      decl->id = name->id;
+      decl->name_id = name->id;
       decl->strname = name->strname;
       decl->line_no = name->line_no;
       declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -449,7 +449,7 @@ build_symtable_control_decl(struct Ast* ast)
   struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
   struct NameDecl* decl = new_name_decl(struct NameDecl, AST_CONTROL_DECL);
-  decl->id = name->id;
+  decl->name_id = name->id;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
   declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -545,7 +545,7 @@ build_symtable_parser_state(struct Ast* ast)
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_PARSER_STATE);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -571,7 +571,7 @@ build_symtable_parser_decl(struct Ast* ast)
   struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)parser_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
   struct NameDecl* decl = new_name_decl(struct NameDecl, AST_PARSER_DECL);
-  decl->id = name->id;
+  decl->name_id = name->id;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
   declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -627,7 +627,7 @@ build_symtable_function_return_type(struct Ast* ast)
     struct NameEntry* se = scope_lookup_name(get_current_scope(), name->strname);
     if (!se->ns_type) {
       struct NameDecl* decl = new_name_decl(struct NameDecl, AST_TYPE_PARAM);
-      decl->id = name->id;
+      decl->name_id = name->id;
       decl->strname = name->strname;
       decl->line_no = name->line_no;
       declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -646,7 +646,7 @@ build_symtable_function_proto(struct Ast* ast)
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)ast;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
   struct NameDecl* decl = new_name_decl(struct NameDecl, AST_FUNCTION_PROTO);
-  decl->id = name->id;
+  decl->name_id = name->id;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
   declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -680,7 +680,7 @@ build_symtable_extern_decl(struct Ast* ast)
   struct Ast_ExternDecl* extern_decl = (struct Ast_ExternDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)extern_decl->name;
   struct NameDecl* decl = new_name_decl(struct NameDecl, AST_EXTERN_DECL);
-  decl->id = name->id;
+  decl->name_id = name->id;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
   declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -713,7 +713,7 @@ build_symtable_struct_field(struct Ast* ast)
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_STRUCT_FIELD);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -730,7 +730,7 @@ build_symtable_struct_decl(struct Ast* ast)
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_type) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_STRUCT_DECL);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -756,7 +756,7 @@ build_symtable_header_decl(struct Ast* ast)
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_type) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_HEADER_DECL);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -782,7 +782,7 @@ build_symtable_header_union_decl(struct Ast* ast)
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_type) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_HEADER_UNION_DECL);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -853,7 +853,7 @@ build_symtable_enum_field(struct Ast* ast)
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_ENUM_FIELD);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
@@ -882,7 +882,7 @@ build_symtable_enum_decl(struct Ast* ast)
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_type) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_ENUM_DECL);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -911,7 +911,7 @@ build_symtable_package_decl(struct Ast* ast)
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_type) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_PACKAGE_DECL);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
     declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -945,7 +945,7 @@ build_symtable_type_decl(struct Ast* ast)
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_type) {
     struct NameDecl* decl = new_name_decl(struct NameDecl, 0);
-    decl->id = name->id;
+    decl->name_id = name->id;
     decl->strname = name->strname;
     decl->kind = type_decl->is_typedef ? AST_TYPEDEF : AST_TYPE_DECL;
     decl->line_no = name->line_no;
@@ -963,7 +963,7 @@ build_symtable_function_decl(struct Ast* ast)
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)function_decl->proto;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
   struct NameDecl* decl = new_name_decl(struct NameDecl, AST_FUNCTION_DECL);
-  decl->id = name->id;
+  decl->name_id = name->id;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
   declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -1102,55 +1102,55 @@ build_symtable(struct Ast* p4program, struct Arena* symtable_storage)
 
   {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_BASETYPE_VOID);
-    decl->id = node_id++;
+    decl->name_id = node_id++;
     decl->strname = "void";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
   {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_BASETYPE_BOOL);
-    decl->id = node_id++;
+    decl->name_id = node_id++;
     decl->strname = "bool";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
   {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_BASETYPE_INT);
-    decl->id = node_id++;
+    decl->name_id = node_id++;
     decl->strname = "int";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
   {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_BASETYPE_BIT);
-    decl->id = node_id++;
+    decl->name_id = node_id++;
     decl->strname = "bit";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
   {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_BASETYPE_VARBIT);
-    decl->id = node_id++;
+    decl->name_id = node_id++;
     decl->strname = "varbit";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
   {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_BASETYPE_STRING);
-    decl->id = node_id++;
+    decl->name_id = node_id++;
     decl->strname = "string";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
   {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_ERROR_DECL);
-    decl->id = node_id++;
+    decl->name_id = node_id++;
     decl->strname = "error";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
   {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_ERROR_DECL);
-    decl->id = node_id++;
+    decl->name_id = node_id++;
     decl->strname = "error";
     declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
   }
   {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_MATCH_KIND_DECL);
-    decl->id = node_id++;
+    decl->name_id = node_id++;
     decl->strname = "match_kind";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
@@ -1159,13 +1159,13 @@ build_symtable(struct Ast* p4program, struct Arena* symtable_storage)
 
   {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_PARSER_STATE);
-    decl->id = node_id++;
+    decl->name_id = node_id++;
     decl->strname = "accept";
     declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
   }
   {
     struct NameDecl* decl = new_name_decl(struct NameDecl, AST_PARSER_STATE);
-    decl->id = node_id++;
+    decl->name_id = node_id++;
     decl->strname = "reject";
     declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
   }
