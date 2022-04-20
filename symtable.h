@@ -11,8 +11,8 @@ enum Namespace {
 };
 
 struct NameDecl {
-  enum AstEnum kind;
-  uint32_t name_id;
+  struct Ast* ast;
+  uint32_t ast_id;
   char* strname;
   int line_no;
   struct NameDecl* next_in_scope;

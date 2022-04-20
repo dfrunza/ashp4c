@@ -49,6 +49,12 @@ struct List {
 };
 
 
+#define arena_push_struct(arena, type) ({ \
+  type* o = arena_push(arena, sizeof(type)); \
+  memset(o, 0, sizeof(type)); \
+  o; \
+})
+
 void alloc_memory(int memory_amount);
 void* arena_push(struct Arena* arena, uint32_t size);
 void arena_delete(struct Arena* arena);

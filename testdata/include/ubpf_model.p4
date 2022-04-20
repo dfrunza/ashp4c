@@ -16,6 +16,19 @@ struct standard_metadata {
     bit<32>     clone_port;
 }
 
+extern packet_in {
+    void extract<T>(out T hdr);
+    void extract<T>(out T variableSizeHeader,
+                    in bit<32> variableFieldSizeInBits);
+    T lookahead<T>();
+    void advance(in bit<32> sizeInBits);
+    bit<32> length();
+}
+
+extern packet_out {
+    void emit<T>(in T hdr);
+}
+
 extern void mark_to_drop();
 
 extern void mark_to_pass();

@@ -81,7 +81,7 @@ build_type_header_decl(struct Ast* ast)
   struct Ast_HeaderDecl* header_decl = (struct Ast_HeaderDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)header_decl->name;
   struct NameEntry* se = scope_lookup_name(get_root_scope(), "void");
-  struct Type* struct_type = type_get_entry(&m_type_map, se->ns_type->name_id);
+  struct Type* struct_type = type_get_entry(&m_type_map, se->ns_type->ast_id);
   if (header_decl->fields) {
     struct ListLink* li = list_first_link(header_decl->fields);
     struct Ast* field = li->object;
@@ -109,7 +109,7 @@ build_type_struct_decl(struct Ast* ast)
   struct Ast_StructDecl* struct_decl = (struct Ast_StructDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)struct_decl->name;
   struct NameEntry* se = scope_lookup_name(get_root_scope(), "void");
-  struct Type* struct_type = type_get_entry(&m_type_map, se->ns_type->name_id);
+  struct Type* struct_type = type_get_entry(&m_type_map, se->ns_type->ast_id);
   if (struct_decl->fields) {
     struct ListLink* li = list_first_link(struct_decl->fields);
     struct Ast* field = li->object;
@@ -144,19 +144,19 @@ build_type_type_ref(struct Ast* ast)
       struct Ast_BaseType_Int* int_type = (struct Ast_BaseType_Int*)ast;
       if (int_type->size) {
         struct NameEntry* se = scope_lookup_name(get_root_scope(), "int");
-        type->type_params = type_get_entry(&m_type_map, se->ns_type->name_id);
+        type->type_params = type_get_entry(&m_type_map, se->ns_type->ast_id);
       }
     } else if (ast->kind == AST_BASETYPE_BIT) {
       struct Ast_BaseType_Bit* bit_type = (struct Ast_BaseType_Bit*)ast;
       if (bit_type->size) {
         struct NameEntry* se = scope_lookup_name(get_root_scope(), "int");
-        type->type_params = type_get_entry(&m_type_map, se->ns_type->name_id);
+        type->type_params = type_get_entry(&m_type_map, se->ns_type->ast_id);
       }
     } else if (ast->kind == AST_BASETYPE_VARBIT) {
       struct Ast_BaseType_Varbit* varbit_type = (struct Ast_BaseType_Varbit*)ast;
       if (varbit_type->size) {
         struct NameEntry* se = scope_lookup_name(get_root_scope(), "int");
-        type->type_params = type_get_entry(&m_type_map, se->ns_type->name_id);
+        type->type_params = type_get_entry(&m_type_map, se->ns_type->ast_id);
       }
     }
     type_add_entry(&m_type_map, type, base_type->id);
@@ -169,7 +169,7 @@ build_type_type_ref(struct Ast* ast)
     struct NameRef* nameref = name->ref;
     struct NameEntry* se = scope_lookup_name(nameref->scope, nameref->strname);
     if (se->ns_type) {
-      struct Type* type = type_get_entry(&m_type_map, se->ns_type->name_id);
+      struct Type* type = type_get_entry(&m_type_map, se->ns_type->ast_id);
       type_add_entry(&m_type_map, type, name->id);
     } else error("at line %d: unknown name `%s`.", name->line_no, name->strname);
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
@@ -219,7 +219,7 @@ build_type_function_call(struct Ast* ast)
     }
   }
   struct NameEntry* se = scope_lookup_name(get_root_scope(), "void");
-  struct Type* args_type = type_get_entry(&m_type_map, se->ns_type->name_id);
+  struct Type* args_type = type_get_entry(&m_type_map, se->ns_type->ast_id);
   if (function_call->args) {
     struct ListLink* li = list_first_link(function_call->args);
     struct Ast* arg = li->object;
@@ -250,7 +250,7 @@ build_type_instantiation(struct Ast* ast)
   build_type_type_ref(inst_decl->type_ref);
   struct Ast_Name* name = (struct Ast_Name*)inst_decl->type_ref;
   struct NameEntry* se = scope_lookup_name(get_root_scope(), "void");
-  struct Type* args_type = type_get_entry(&m_type_map, se->ns_type->name_id);
+  struct Type* args_type = type_get_entry(&m_type_map, se->ns_type->ast_id);
   if (inst_decl->args) {
     struct ListLink* li = list_first_link(inst_decl->args);
     struct Ast* arg = li->object;
@@ -515,7 +515,7 @@ build_type_return_stmt(struct Ast* ast)
     build_type_expression(stmt->expr);
   }
   struct NameEntry* se = scope_lookup_name(get_root_scope(), "void");
-  struct Type* return_type = type_get_entry(&m_type_map, se->ns_type->name_id);
+  struct Type* return_type = type_get_entry(&m_type_map, se->ns_type->ast_id);
   if (stmt->expr) {
     return_type = type_get_entry(&m_type_map, stmt->expr->id);
   }
@@ -580,7 +580,7 @@ build_type_function_proto(struct Ast* ast)
     }
   }
   struct NameEntry* se = scope_lookup_name(get_root_scope(), "void");
-  struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->name_id);
+  struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->ast_id);
   if (function_proto->params) {
     struct ListLink* li = list_first_link(function_proto->params);
     struct Ast* param = li->object;
@@ -637,7 +637,7 @@ build_type_control_decl(struct Ast* ast)
     }
   }
   struct NameEntry* se = scope_lookup_name(get_root_scope(), "void");
-  struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->name_id);
+  struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->ast_id);
   if (type_decl->params) {
     struct ListLink* li = list_first_link(type_decl->params);
     struct Ast* param = li->object;
@@ -817,7 +817,7 @@ build_type_parser_decl(struct Ast* ast)
     }
   }
   struct NameEntry* se = scope_lookup_name(get_root_scope(), "void");
-  struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->name_id);
+  struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->ast_id);
   if (type_decl->params) {
     struct ListLink* li = list_first_link(type_decl->params);
     struct Ast* param = li->object;
@@ -893,7 +893,7 @@ build_type_function_decl(struct Ast* ast)
     }
   }
   struct NameEntry* se = scope_lookup_name(get_root_scope(), "void");
-  struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->name_id);
+  struct Type* params_type = type_get_entry(&m_type_map, se->ns_type->ast_id);
   if (function_proto->params) {
     struct ListLink* li = list_first_link(function_proto->params);
     struct Ast* param = li->object;
@@ -1030,7 +1030,7 @@ build_type_name(struct Ast* ast)
       type_add_entry(&m_type_map, (struct Type*)type, name->id);
     } else {
       struct NameDecl* decl = se->ns_type ? se->ns_type : se->ns_var;
-      struct Type* type = type_get_entry(&m_type_map, decl->name_id);
+      struct Type* type = type_get_entry(&m_type_map, decl->ast_id);
       type_add_entry(&m_type_map, type, name->id);
     }
   } else error("at line %d: unknown name `%s`.", name->line_no, name->strname);
@@ -1087,11 +1087,11 @@ build_type_expression(struct Ast* ast)
     build_type_expression(expr->expr);
   } else if (ast->kind == AST_INT_LITERAL || ast->kind == AST_BOOL_LITERAL) {
     struct NameEntry* se = scope_lookup_name(get_root_scope(), "int");
-    struct Type* int_type = type_get_entry(&m_type_map, se->ns_type->name_id);
+    struct Type* int_type = type_get_entry(&m_type_map, se->ns_type->ast_id);
     type_add_entry(&m_type_map, int_type, ast->id);
   } else if (ast->kind == AST_STRING_LITERAL) {
     struct NameEntry* se = scope_lookup_name(get_root_scope(), "string");
-    struct Type* str_type = type_get_entry(&m_type_map, se->ns_type->name_id);
+    struct Type* str_type = type_get_entry(&m_type_map, se->ns_type->ast_id);
     type_add_entry(&m_type_map, str_type, ast->id);
   }
   else assert(0);
@@ -1171,7 +1171,7 @@ build_type(struct Ast* p4program, struct Arena* type_storage)
     type->basic_ty = basic_ty;
     type->strname = strname;
     struct NameEntry* se = scope_lookup_name(get_root_scope(), strname);
-    type_add_entry(&m_type_map, (struct Type*)type, se->ns_type->name_id);
+    type_add_entry(&m_type_map, (struct Type*)type, se->ns_type->ast_id);
   }
 
   m_type_storage = type_storage;

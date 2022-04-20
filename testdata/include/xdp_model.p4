@@ -6,6 +6,19 @@ enum xdp_action {
     XDP_REDIRECT  // packet should be sent to a different interface
 }
 
+extern packet_in {
+    void extract<T>(out T hdr);
+    void extract<T>(out T variableSizeHeader,
+                    in bit<32> variableFieldSizeInBits);
+    T lookahead<T>();
+    void advance(in bit<32> sizeInBits);
+    bit<32> length();
+}
+
+extern packet_out {
+    void emit<T>(in T hdr);
+}
+
 /* architectural model for a packet switch architecture */
 struct xdp_input {
     bit<32> input_port;

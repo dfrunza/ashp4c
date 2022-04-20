@@ -8,6 +8,19 @@ match_kind {
 
 const bit<32> __v1model_version = 20200408;
 
+extern packet_in {
+    void extract<T>(out T hdr);
+    void extract<T>(out T variableSizeHeader,
+                    in bit<32> variableFieldSizeInBits);
+    T lookahead<T>();
+    void advance(in bit<32> sizeInBits);
+    bit<32> length();
+}
+
+extern packet_out {
+    void emit<T>(in T hdr);
+}
+
 typedef bit<9>  PortId_t;       // should not be a constant size?
 
 struct standard_metadata_t {
