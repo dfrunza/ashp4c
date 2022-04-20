@@ -5,7 +5,6 @@
 #include <stdarg.h>   // va_list, va_start, va_end
 
 
-#define local static
 #define global static
 #define internal static
 #define external extern

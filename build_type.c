@@ -55,6 +55,8 @@ build_type_struct_field(struct Ast* ast)
   assert(ast->kind == AST_STRUCT_FIELD);
   struct Ast_StructField* field = (struct Ast_StructField*)ast;
   build_type_type_ref(field->type);
+  struct Type* field_type = type_get_entry(&m_type_map, field->type->id);
+  type_add_entry(&m_type_map, field_type, field->id);
 }
 
 internal void
@@ -77,14 +79,27 @@ build_type_header_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_HEADER_DECL);
   struct Ast_HeaderDecl* header_decl = (struct Ast_HeaderDecl*)ast;
+  struct Ast_Name* name = (struct Ast_Name*)header_decl->name;
+  struct NameEntry* se = scope_lookup_name(get_root_scope(), "void");
+  struct Type* struct_type = type_get_entry(&m_type_map, se->ns_type->name_id);
   if (header_decl->fields) {
     struct ListLink* li = list_first_link(header_decl->fields);
+    struct Ast* field = li->object;
+    build_type_struct_field(field);
+    struct_type = type_get_entry(&m_type_map, field->id);
+    li = li->next;
     while (li) {
       struct Ast* field = li->object;
       build_type_struct_field(field);
+      struct Type_Product* product_type = new_type(struct Type_Product, TYPE_PRODUCT);
+      product_type->lhs_ty = struct_type;
+      product_type->rhs_ty = type_get_entry(&m_type_map, field->id);
+      struct_type = (struct Type*)product_type;
       li = li->next;
     }
   }
+  type_add_entry(&m_type_map, struct_type, name->id);
+  type_add_entry(&m_type_map, struct_type, header_decl->id);
 }
 
 internal void
@@ -92,14 +107,27 @@ build_type_struct_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_STRUCT_DECL);
   struct Ast_StructDecl* struct_decl = (struct Ast_StructDecl*)ast;
+  struct Ast_Name* name = (struct Ast_Name*)struct_decl->name;
+  struct NameEntry* se = scope_lookup_name(get_root_scope(), "void");
+  struct Type* struct_type = type_get_entry(&m_type_map, se->ns_type->name_id);
   if (struct_decl->fields) {
     struct ListLink* li = list_first_link(struct_decl->fields);
+    struct Ast* field = li->object;
+    build_type_struct_field(field);
+    struct_type = type_get_entry(&m_type_map, field->id);
+    li = li->next;
     while (li) {
       struct Ast* field = li->object;
       build_type_struct_field(field);
+      struct Type_Product* product_type = new_type(struct Type_Product, TYPE_PRODUCT);
+      product_type->lhs_ty = struct_type;
+      product_type->rhs_ty = type_get_entry(&m_type_map, field->id);
+      struct_type = (struct Type*)product_type;
       li = li->next;
     }
   }
+  type_add_entry(&m_type_map, struct_type, name->id);
+  type_add_entry(&m_type_map, struct_type, struct_decl->id);
 }
 
 internal void
@@ -204,6 +232,7 @@ build_type_function_call(struct Ast* ast)
       struct Type_Product* product_type = new_type(struct Type_Product, TYPE_PRODUCT);
       product_type->lhs_ty = args_type;
       product_type->rhs_ty = type_get_entry(&m_type_map, arg->id);
+      args_type = (struct Type*)product_type;
       li = li->next;
     }
   }
@@ -234,6 +263,7 @@ build_type_instantiation(struct Ast* ast)
       struct Type_Product* product_type = new_type(struct Type_Product, TYPE_PRODUCT);
       product_type->lhs_ty = args_type;
       product_type->rhs_ty = type_get_entry(&m_type_map, arg->id);
+      args_type = (struct Type*)product_type;
       li = li->next;
     }
   }
@@ -457,18 +487,19 @@ build_type_assignment_stmt(struct Ast* ast)
   assert(ast->kind == AST_ASSIGNMENT_STMT);
   struct Ast_AssignmentStmt* stmt = (struct Ast_AssignmentStmt*)ast;
   build_type_expression(stmt->lvalue);
-  struct Ast* assign_expr = stmt->expr;
-  build_type_expression(assign_expr);
+  build_type_expression(stmt->expr);
   struct Type_Product* args_type = new_type(struct Type_Product, TYPE_PRODUCT);
   args_type->lhs_ty = type_get_entry(&m_type_map, stmt->lvalue->id);
-  args_type->rhs_ty = type_get_entry(&m_type_map, assign_expr->id);
-  struct Type_Typevar* operand_type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
+  args_type->rhs_ty = type_get_entry(&m_type_map, stmt->expr->id);
+  struct Type_Typevar* lhs_type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
+  struct Type_Typevar* rhs_type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
   struct Type_Product* params_type = new_type(struct Type_Product, TYPE_PRODUCT);
-  params_type->lhs_ty = (struct Type*)operand_type;
-  params_type->rhs_ty = (struct Type*)operand_type;
+  params_type->lhs_ty = (struct Type*)lhs_type;
+  params_type->rhs_ty = (struct Type*)rhs_type;
+  struct Type_Typevar* return_type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
   struct Type_Function* op_type = new_type(struct Type_Function, TYPE_FUNCTION);
   op_type->params_ty = (struct Type*)params_type;
-  op_type->return_ty = (struct Type*)operand_type;
+  op_type->return_ty = (struct Type*)return_type;
   struct Type_FunctionCall* call_type = new_type(struct Type_FunctionCall, TYPE_FUNCTION_CALL);
   call_type->function_ty = (struct Type*)op_type;
   call_type->args_ty = (struct Type*)args_type;
@@ -953,9 +984,11 @@ build_type_binary_expr(struct Ast* ast)
   args_type->lhs_ty = type_get_entry(&m_type_map, expr->left_operand->id);
   args_type->rhs_ty = type_get_entry(&m_type_map, expr->right_operand->id);
   struct Type_Typevar* operand_type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
+  struct Type_Typevar* lhs_type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
+  struct Type_Typevar* rhs_type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
   struct Type_Product* params_type = new_type(struct Type_Product, TYPE_PRODUCT);
-  params_type->lhs_ty = (struct Type*)operand_type;
-  params_type->rhs_ty = (struct Type*)operand_type;
+  params_type->lhs_ty = (struct Type*)lhs_type;
+  params_type->rhs_ty = (struct Type*)rhs_type;
   struct Type_Typevar* return_type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
   struct Type_Function* op_type = new_type(struct Type_Function, TYPE_FUNCTION);
   op_type->params_ty = (struct Type*)params_type;
@@ -1004,6 +1037,18 @@ build_type_name(struct Ast* ast)
 }
 
 internal void
+build_type_member_select(struct Ast* ast)
+{
+  assert(ast->kind == AST_MEMBER_SELECT_EXPR);
+  struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
+  build_type_expression(expr->lhs_expr);
+  struct Ast_Name* name = (struct Ast_Name*)expr->member_name;
+  struct Type_Typevar* member_type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
+  type_add_entry(&m_type_map, (struct Type*)member_type, name->id);
+  type_add_entry(&m_type_map, (struct Type*)member_type, expr->id);
+}
+
+internal void
 build_type_expression(struct Ast* ast)
 {
   if (ast->kind == AST_BINARY_EXPR) {
@@ -1015,12 +1060,7 @@ build_type_expression(struct Ast* ast)
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     build_type_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
-    struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
-    build_type_expression(expr->lhs_expr);
-    struct Ast_Name* name = (struct Ast_Name*)expr->member_name;
-    struct Type_Typevar* member_type = new_type(struct Type_Typevar, TYPE_TYPEVAR);
-    type_add_entry(&m_type_map, (struct Type*)member_type, name->id);
-    type_add_entry(&m_type_map, (struct Type*)member_type, expr->id);
+    build_type_member_select(ast);
   } else if (ast->kind == AST_EXPRLIST_EXPR) {
     struct Ast_ExprListExpr* expr = (struct Ast_ExprListExpr*)ast;
     if (expr->expr_list) {
