@@ -43,7 +43,7 @@ next_token()
   if (m_token->klass == TK_IDENTIFIER) {
     struct NameEntry* entry = scope_lookup_name(get_current_scope(), m_token->lexeme);
     if (entry->ns_keyword) {
-      m_token->klass = ((struct NameDecl_Keyword*)entry->ns_keyword)->token_class;
+      m_token->klass = entry->ns_keyword->token_class;
       return m_token;
     }
     if (entry->ns_type) {
@@ -222,8 +222,7 @@ build_ast_nonTypeName(bool is_type)
     name->line_no = m_token->line_no;
     name->strname = m_token->lexeme;
     if (is_type) {
-      struct NameDecl* decl = arena_push(m_ast_storage, sizeof(*decl));
-      memset(decl, 0, sizeof(*decl));
+      struct NameDecl* decl = arena_push_struct(m_ast_storage, struct NameDecl);
       decl->strname = name->strname;
       decl->line_no = m_token->line_no;
       declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -390,8 +389,7 @@ build_ast_typeOrVoid(bool is_type)
       name->strname = m_token->lexeme;
       type = (struct Ast*)name;
       if (is_type) {
-        struct NameDecl* decl = arena_push(m_ast_storage, sizeof(*decl));
-        memset(decl, 0, sizeof(*decl));
+        struct NameDecl* decl = arena_push_struct(m_ast_storage, struct NameDecl);
         decl->strname = name->strname;
         decl->line_no = m_token->line_no;
         declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
@@ -2898,11 +2896,10 @@ build_ast(struct UnboundedArray* tokens_array, struct Arena* ast_storage)
   struct NameDecl*
   new_keyword(char* name, enum TokenClass token_class)
   {
-    struct NameDecl_Keyword* decl = arena_push(m_ast_storage, sizeof(*decl));
-    memset(decl, 0, sizeof(*decl));
+    struct NameDecl* decl = arena_push_struct(m_ast_storage, struct NameDecl);
     decl->strname = name;
     decl->token_class = token_class;
-    return (struct NameDecl*)decl;
+    return decl;
   }
 
   m_tokens_array = tokens_array;

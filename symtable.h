@@ -15,13 +15,11 @@ struct NameDecl {
   uint32_t ast_id;
   char* strname;
   int line_no;
-  struct NameDecl* next_in_scope;
+  union {
+    struct NameDecl* next_in_scope;
+    enum TokenClass token_class;  // keyword
+  };
 };  
-
-struct NameDecl_Keyword {
-  struct NameDecl;
-  enum TokenClass token_class;
-};
 
 struct NameRef {
   uint32_t name_id;
