@@ -22,14 +22,6 @@ internal struct Ast* build_ast_statement(struct Ast* type_name);
 internal struct Ast* build_ast_parserStatement();
 
 
-#define new_ast_node(ast_type, ast_kind) ({ \
-  ast_type* ast = arena_push(m_ast_storage, sizeof(ast_type)); \
-  memset(ast, 0, sizeof(ast_type)); \
-  ast->kind = ast_kind; \
-  ast->id = m_node_id++; \
-  ast; \
-})
-
 internal struct Token*
 next_token()
 {
@@ -218,7 +210,9 @@ build_ast_nonTypeName(bool is_type)
 {
   struct Ast_Name* name = 0;
   if (token_is_nonTypeName(m_token)) {
-    name = new_ast_node(struct Ast_Name, AST_NAME);
+    name = arena_push_struct(m_ast_storage, struct Ast_Name);
+    name->kind = AST_NAME;
+    name->id = m_node_id++;
     name->line_no = m_token->line_no;
     name->strname = m_token->lexeme;
     if (is_type) {
@@ -240,7 +234,9 @@ build_ast_name(bool is_type)
     if (token_is_nonTypeName(m_token)) {
       name = (struct Ast_Name*)build_ast_nonTypeName(is_type);
     } else if (m_token->klass == TK_TYPE_IDENTIFIER) {
-      struct Ast_Name* type_name = new_ast_node(struct Ast_Name, AST_NAME);
+      struct Ast_Name* type_name = arena_push_struct(m_ast_storage, struct Ast_Name);
+      type_name->kind = AST_NAME;
+      type_name->id = m_node_id++;
       type_name->line_no = m_token->line_no;
       type_name->strname = m_token->lexeme;
       name = type_name;
@@ -293,7 +289,9 @@ build_ast_typeArg()
   if (token_is_typeArg(m_token))
   {
     if (m_token->klass == TK_DONTCARE) {
-      struct Ast_Dontcare* dontcare = new_ast_node(struct Ast_Dontcare, AST_DONTCARE);
+      struct Ast_Dontcare* dontcare = arena_push_struct(m_ast_storage, struct Ast_Dontcare);
+      dontcare->kind = AST_DONTCARE;
+      dontcare->id = m_node_id++;
       dontcare->line_no = m_token->line_no;
       arg = (struct Ast*)dontcare;
       next_token();
@@ -326,7 +324,9 @@ build_ast_direction()
 internal struct Ast*
 build_ast_parameter()
 {
-  struct Ast_Param* param = new_ast_node(struct Ast_Param, AST_PARAM);
+  struct Ast_Param* param = arena_push_struct(m_ast_storage, struct Ast_Param);
+  param->kind = AST_PARAM;
+  param->id = m_node_id++;
   param->line_no = m_token->line_no;
   param->direction = build_ast_direction();
   if (token_is_typeRef(m_token)) {
@@ -372,13 +372,17 @@ build_ast_typeOrVoid(bool is_type)
     if (token_is_typeRef(m_token)) {
       type = (struct Ast*)build_ast_typeRef();
     } else if (m_token->klass == TK_VOID) {
-      struct Ast_Name* void_name = new_ast_node(struct Ast_Name, AST_NAME);
+      struct Ast_Name* void_name = arena_push_struct(m_ast_storage, struct Ast_Name);
+      void_name->kind = AST_NAME;
+      void_name->id = m_node_id++;
       void_name->line_no = m_token->line_no;
       void_name->strname = m_token->lexeme;
       type = (struct Ast*)void_name;
       next_token();
     } else if (m_token->klass == TK_IDENTIFIER) {
-      struct Ast_Name* name = new_ast_node(struct Ast_Name, AST_NAME);
+      struct Ast_Name* name = arena_push_struct(m_ast_storage, struct Ast_Name);
+      name->kind = AST_NAME;
+      name->id = m_node_id++;
       name->line_no = m_token->line_no;
       name->strname = m_token->lexeme;
       type = (struct Ast*)name;
@@ -399,7 +403,9 @@ build_ast_functionPrototype(struct Ast* return_type)
 {
   struct Ast_FunctionProto* proto = 0;
   if (token_is_typeOrVoid(m_token) || return_type) {
-    proto = new_ast_node(struct Ast_FunctionProto, AST_FUNCTION_PROTO);
+    proto = arena_push_struct(m_ast_storage, struct Ast_FunctionProto);
+    proto->kind = AST_FUNCTION_PROTO;
+    proto->id = m_node_id++;
     proto->line_no = m_token->line_no;
     if (return_type) {
       proto->return_type = return_type;
@@ -428,7 +434,9 @@ build_ast_methodPrototype()
   if (token_is_methodPrototype(m_token)) {
     if (m_token->klass == TK_TYPE_IDENTIFIER && peek_token()->klass == TK_PARENTH_OPEN) {
       /* Constructor */
-      proto = new_ast_node(struct Ast_FunctionProto, AST_FUNCTION_PROTO);
+      proto = arena_push_struct(m_ast_storage, struct Ast_FunctionProto);
+      proto->kind = AST_FUNCTION_PROTO;
+      proto->id = m_node_id++;
       proto->line_no = m_token->line_no;
       proto->name = build_ast_name(false);
       if (m_token->klass == TK_PARENTH_OPEN) {
@@ -490,7 +498,9 @@ build_ast_externDeclaration()
         next_token();
       } else error("at line %d: `;` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else {
-      struct Ast_ExternDecl* extern_decl = new_ast_node(struct Ast_ExternDecl, AST_EXTERN_DECL);
+      struct Ast_ExternDecl* extern_decl = arena_push_struct(m_ast_storage, struct Ast_ExternDecl);
+      extern_decl->kind = AST_EXTERN_DECL;
+      extern_decl->id = m_node_id++;
       extern_decl->line_no = m_token->line_no;
       decl = (struct Ast*)extern_decl;
       extern_decl->name = build_ast_nonTypeName(true);
@@ -512,7 +522,9 @@ build_ast_integer()
 {
   struct Ast_IntLiteral* int_node = 0;
   if (m_token->klass == TK_INT_LITERAL) {
-    int_node = new_ast_node(struct Ast_IntLiteral, AST_INT_LITERAL);
+    int_node = arena_push_struct(m_ast_storage, struct Ast_IntLiteral);
+    int_node->kind = AST_INT_LITERAL;
+    int_node->id = m_node_id++;
     int_node->line_no = m_token->line_no;
     int_node->flags = m_token->i.flags;
     int_node->width = m_token->i.width;
@@ -527,7 +539,9 @@ build_ast_boolean()
 {
   struct Ast_BoolLiteral* bool_node = 0;
   if (m_token->klass == TK_TRUE || m_token->klass == TK_FALSE) {
-    bool_node = new_ast_node(struct Ast_BoolLiteral, AST_BOOL_LITERAL);
+    bool_node = arena_push_struct(m_ast_storage, struct Ast_BoolLiteral);
+    bool_node->kind = AST_BOOL_LITERAL;
+    bool_node->id = m_node_id++;
     bool_node->line_no = m_token->line_no;
     bool_node->value = (m_token->klass == TK_TRUE);
     next_token();
@@ -540,7 +554,9 @@ build_ast_stringLiteral()
 {
   struct Ast_StringLiteral* string = 0;
   if (m_token->klass == TK_STRING_LITERAL) {
-    string = new_ast_node(struct Ast_StringLiteral, AST_STRING_LITERAL);
+    string = arena_push_struct(m_ast_storage, struct Ast_StringLiteral);
+    string->kind = AST_STRING_LITERAL;
+    string->id = m_node_id++;
     string->line_no = m_token->line_no;
     string->value = m_token->lexeme;
     next_token();
@@ -551,7 +567,9 @@ build_ast_stringLiteral()
 internal struct Ast*
 build_ast_integerTypeSize()
 {
-  struct Ast_IntTypeSize* type_size = new_ast_node(struct Ast_IntTypeSize, AST_INT_TYPESIZE);
+  struct Ast_IntTypeSize* type_size = arena_push_struct(m_ast_storage, struct Ast_IntTypeSize);
+  type_size->kind = AST_INT_TYPESIZE;
+  type_size->id = m_node_id++;
   type_size->line_no = m_token->line_no;
   if (m_token->klass == TK_INT_LITERAL) {
     type_size->size = build_ast_integer();
@@ -568,24 +586,32 @@ build_ast_baseType()
 {
   struct Ast* base_type = 0;
   if (token_is_baseType(m_token)) {
-    struct Ast_Name* type_name = new_ast_node(struct Ast_Name, AST_NAME);
+    struct Ast_Name* type_name = arena_push_struct(m_ast_storage, struct Ast_Name);
+    type_name->kind = AST_NAME;
+    type_name->id = m_node_id++;
     type_name->line_no = m_token->line_no;
     if (m_token->klass == TK_BOOL) {
-      struct Ast_BaseType_Bool* bool_type = new_ast_node(struct Ast_BaseType_Bool, AST_BASETYPE_BOOL);
+      struct Ast_BaseType_Bool* bool_type = arena_push_struct(m_ast_storage, struct Ast_BaseType_Bool);
+      bool_type->kind = AST_BASETYPE_BOOL;
+      bool_type->id = m_node_id++;
       bool_type->line_no = m_token->line_no;
       type_name->strname = "bool";
       bool_type->name = (struct Ast*)type_name;
       base_type = (struct Ast*)bool_type;
       next_token();
     } else if (m_token->klass == TK_ERROR) {
-      struct Ast_BaseType_Error* error_type = new_ast_node(struct Ast_BaseType_Error, AST_BASETYPE_ERROR);
+      struct Ast_BaseType_Error* error_type = arena_push_struct(m_ast_storage, struct Ast_BaseType_Error);
+      error_type->kind = AST_BASETYPE_ERROR;
+      error_type->id = m_node_id++;
       error_type->line_no = m_token->line_no;
       type_name->strname = "error";
       error_type->name = (struct Ast*)type_name;
       base_type = (struct Ast*)error_type;
       next_token();
     } else if (m_token->klass == TK_INT) {
-      struct Ast_BaseType_Int* int_type = new_ast_node(struct Ast_BaseType_Int, AST_BASETYPE_INT);
+      struct Ast_BaseType_Int* int_type = arena_push_struct(m_ast_storage, struct Ast_BaseType_Int);
+      int_type->kind = AST_BASETYPE_INT;
+      int_type->id = m_node_id++;
       type_name->line_no = m_token->line_no;
       type_name->strname = "int";
       int_type->name = (struct Ast*)type_name;
@@ -599,7 +625,9 @@ build_ast_baseType()
         } else error("at line %d: `>` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       }
     } else if (m_token->klass == TK_BIT) {
-      struct Ast_BaseType_Bit* bit_type = new_ast_node(struct Ast_BaseType_Bit, AST_BASETYPE_BIT);
+      struct Ast_BaseType_Bit* bit_type = arena_push_struct(m_ast_storage, struct Ast_BaseType_Bit);
+      bit_type->kind = AST_BASETYPE_BIT;
+      bit_type->id = m_node_id++;
       type_name->line_no = m_token->line_no;
       type_name->strname = "bit";
       bit_type->name = (struct Ast*)type_name;
@@ -613,7 +641,9 @@ build_ast_baseType()
         } else error("at line %d: `>` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       }
     } else if (m_token->klass == TK_VARBIT) {
-      struct Ast_BaseType_Varbit* varbit_type = new_ast_node(struct Ast_BaseType_Varbit, AST_BASETYPE_VARBIT);
+      struct Ast_BaseType_Varbit* varbit_type = arena_push_struct(m_ast_storage, struct Ast_BaseType_Varbit);
+      varbit_type->kind = AST_BASETYPE_VARBIT;
+      varbit_type->id = m_node_id++;
       type_name->line_no = m_token->line_no;
       type_name->strname = "varbit";
       varbit_type->name = (struct Ast*)type_name;
@@ -627,14 +657,18 @@ build_ast_baseType()
         } else error("at line %d: `>` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       }
     } else if (m_token->klass == TK_STRING) {
-      struct Ast_BaseType_String* string_type = new_ast_node(struct Ast_BaseType_String, AST_BASETYPE_STRING);
+      struct Ast_BaseType_String* string_type = arena_push_struct(m_ast_storage, struct Ast_BaseType_String);
+      string_type->kind = AST_BASETYPE_STRING;
+      string_type->id = m_node_id++;
       string_type->line_no = m_token->line_no;
       type_name->strname = "string";
       string_type->name = (struct Ast*)type_name;
       base_type = (struct Ast*)string_type;
       next_token();
     } else if (m_token->klass == TK_VOID) {
-      struct Ast_BaseType_Void* void_type = new_ast_node(struct Ast_BaseType_Void, AST_BASETYPE_VOID);
+      struct Ast_BaseType_Void* void_type = arena_push_struct(m_ast_storage, struct Ast_BaseType_Void);
+      void_type->kind = AST_BASETYPE_VOID;
+      void_type->id = m_node_id++;
       void_type->line_no = m_token->line_no;
       type_name->strname = "void";
       void_type->name = (struct Ast*)type_name;
@@ -672,7 +706,9 @@ build_ast_tupleType()
   struct Ast_Tuple* tuple = 0;
   if (m_token->klass == TK_TUPLE) {
     next_token();
-    tuple = new_ast_node(struct Ast_Tuple, AST_TUPLE);
+    tuple = arena_push_struct(m_ast_storage, struct Ast_Tuple);
+    tuple->kind = AST_TUPLE;
+    tuple->id = m_node_id++;
     tuple->line_no = m_token->line_no;
     if (m_token->klass == TK_ANGLE_OPEN) {
       next_token();
@@ -691,7 +727,9 @@ build_ast_headerStackType()
   struct Ast_HeaderStack* stack = 0;
   if (m_token->klass == TK_BRACKET_OPEN) {
     next_token();
-    stack = new_ast_node(struct Ast_HeaderStack, AST_HEADER_STACK);
+    stack = arena_push_struct(m_ast_storage, struct Ast_HeaderStack);
+    stack->kind = AST_HEADER_STACK;
+    stack->id = m_node_id++;
     stack->line_no = m_token->line_no;
     if (token_is_expression(m_token)) {
       stack->stack_expr = build_ast_expression(1);
@@ -709,7 +747,9 @@ build_ast_specializedType()
   struct Ast_SpecializedType* type = 0;
   if (m_token->klass == TK_ANGLE_OPEN) {
     next_token();
-    type = new_ast_node(struct Ast_SpecializedType, AST_SPECIALIZED_TYPE);
+    type = arena_push_struct(m_ast_storage, struct Ast_SpecializedType);
+    type->kind = AST_SPECIALIZED_TYPE;
+    type->id = m_node_id++;
     type->line_no = m_token->line_no;
     type->type_args = build_ast_typeArgumentList();
     if (m_token->klass == TK_ANGLE_CLOSE) {
@@ -729,7 +769,9 @@ build_ast_prefixedType()
     is_dotprefixed = true;
   }
   if (m_token->klass == TK_TYPE_IDENTIFIER) {
-    name = new_ast_node(struct Ast_Name, AST_NAME);
+    name = arena_push_struct(m_ast_storage, struct Ast_Name);
+    name->kind = AST_NAME;
+    name->id = m_node_id++;
     name->line_no = m_token->line_no;
     name->strname = m_token->lexeme;
     name->is_dotprefixed = is_dotprefixed;
@@ -786,7 +828,9 @@ token_is_structField(struct Token* m_token)
 internal struct Ast*
 build_ast_structField()
 {
-  struct Ast_StructField* field = new_ast_node(struct Ast_StructField, AST_STRUCT_FIELD);
+  struct Ast_StructField* field = arena_push_struct(m_ast_storage, struct Ast_StructField);
+  field->kind = AST_STRUCT_FIELD;
+  field->id = m_node_id++;
   field->line_no = m_token->line_no;
   if (token_is_typeRef(m_token)) {
     field->type = build_ast_typeRef();
@@ -825,7 +869,9 @@ build_ast_headerTypeDeclaration()
   struct Ast_HeaderDecl* decl = 0;
   if (m_token->klass == TK_HEADER) {
     next_token();
-    decl = new_ast_node(struct Ast_HeaderDecl, AST_HEADER_DECL);
+    decl = arena_push_struct(m_ast_storage, struct Ast_HeaderDecl);
+    decl->kind = AST_HEADER_DECL;
+    decl->id = m_node_id++;
     decl->line_no = m_token->line_no;
     if (token_is_name(m_token)) {
       decl->name = build_ast_name(true);
@@ -847,7 +893,9 @@ build_ast_headerUnionDeclaration()
   struct Ast_HeaderUnionDecl* decl = 0;
   if (m_token->klass == TK_HEADER_UNION) {
     next_token();
-    decl = new_ast_node(struct Ast_HeaderUnionDecl, AST_HEADER_UNION_DECL);
+    decl = arena_push_struct(m_ast_storage, struct Ast_HeaderUnionDecl);
+    decl->kind = AST_HEADER_UNION_DECL;
+    decl->id = m_node_id++;
     decl->line_no = m_token->line_no;
     if (token_is_name(m_token)) {
       decl->name = build_ast_name(true);
@@ -869,7 +917,9 @@ build_ast_structTypeDeclaration()
   struct Ast_StructDecl* decl = 0;
   if (m_token->klass == TK_STRUCT) {
     next_token();
-    decl = new_ast_node(struct Ast_StructDecl, AST_STRUCT_DECL);
+    decl = arena_push_struct(m_ast_storage, struct Ast_StructDecl);
+    decl->kind = AST_STRUCT_DECL;
+    decl->id = m_node_id++;
     decl->line_no = m_token->line_no;
     if (token_is_name(m_token)) {
       decl->name = build_ast_name(true);
@@ -913,7 +963,9 @@ build_ast_specifiedIdentifier()
 {
   struct Ast_SpecifiedIdent* id = 0;
   if (token_is_specifiedIdentifier(m_token)) {
-    id = new_ast_node(struct Ast_SpecifiedIdent, AST_SPECIFIED_IDENT);
+    id = arena_push_struct(m_ast_storage, struct Ast_SpecifiedIdent);
+    id->kind = AST_SPECIFIED_IDENT;
+    id->id = m_node_id++;
     id->line_no = m_token->line_no;
     id->name = build_ast_name(false);
     if (m_token->klass == TK_EQUAL) {
@@ -952,7 +1004,9 @@ build_ast_enumDeclaration()
   struct Ast_EnumDecl* decl = 0;
   if (m_token->klass == TK_ENUM) {
     next_token();
-    decl = new_ast_node(struct Ast_EnumDecl, AST_ENUM_DECL);
+    decl = arena_push_struct(m_ast_storage, struct Ast_EnumDecl);
+    decl->kind = AST_ENUM_DECL;
+    decl->id = m_node_id++;
     decl->line_no = m_token->line_no;
     if (m_token->klass == TK_BIT) {
       next_token();
@@ -1006,7 +1060,9 @@ build_ast_parserTypeDeclaration()
   struct Ast_ParserProto* type = 0;
   if (m_token->klass == TK_PARSER) {
     next_token();
-    type = new_ast_node(struct Ast_ParserProto, AST_PARSER_PROTO);
+    type = arena_push_struct(m_ast_storage, struct Ast_ParserProto);
+    type->kind = AST_PARSER_PROTO;
+    type->id = m_node_id++;
     type->line_no = m_token->line_no; 
     if (token_is_name(m_token)) {
       type->name = build_ast_name(true);
@@ -1043,7 +1099,9 @@ build_ast_constantDeclaration()
   struct Ast_ConstDecl* decl = 0;
   if (m_token->klass == TK_CONST) {
     next_token();
-    decl = new_ast_node(struct Ast_ConstDecl, AST_CONST_DECL);
+    decl = arena_push_struct(m_ast_storage, struct Ast_ConstDecl);
+    decl->kind = AST_CONST_DECL;
+    decl->id = m_node_id++;
     decl->line_no = m_token->line_no;
     if (token_is_typeRef(m_token)) {
       decl->type_ref = build_ast_typeRef();
@@ -1163,7 +1221,9 @@ build_ast_argument()
     if (token_is_expression(m_token)) {
       arg = build_ast_expression(1);
     } else if (token_is_name(m_token)) {
-      struct Ast_Argument* name_arg = new_ast_node(struct Ast_Argument, AST_ARGUMENT);
+      struct Ast_Argument* name_arg = arena_push_struct(m_ast_storage, struct Ast_Argument);
+      name_arg->kind = AST_ARGUMENT;
+      name_arg->id = m_node_id++;
       name_arg->line_no = m_token->line_no;
       arg = (struct Ast*)name_arg;
       name_arg->name = build_ast_name(false);
@@ -1174,7 +1234,9 @@ build_ast_argument()
         } else error("at line %d: an expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       } else error("at line %d: `=` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else if (m_token->klass == TK_DONTCARE) {
-      struct Ast_Dontcare* dontcare_arg = new_ast_node(struct Ast_Dontcare, AST_DONTCARE);
+      struct Ast_Dontcare* dontcare_arg = arena_push_struct(m_ast_storage, struct Ast_Dontcare);
+      dontcare_arg->kind = AST_DONTCARE;
+      dontcare_arg->id = m_node_id++;
       dontcare_arg->line_no = m_token->line_no;
       arg = (struct Ast*)dontcare_arg;
       next_token();
@@ -1208,7 +1270,9 @@ build_ast_variableDeclaration(struct Ast* type_ref)
 {
   struct Ast_VarDecl* decl = 0;
   if (token_is_typeRef(m_token) || type_ref) {
-    decl = new_ast_node(struct Ast_VarDecl, AST_VAR_DECL);
+    decl = arena_push_struct(m_ast_storage, struct Ast_VarDecl);
+    decl->kind = AST_VAR_DECL;
+    decl->id = m_node_id++;
     decl->line_no = m_token->line_no;
     decl->type = type_ref ? type_ref : build_ast_typeRef();
     if (token_is_name(m_token)) {
@@ -1227,7 +1291,9 @@ build_ast_instantiation(struct Ast* type_ref)
 {
   struct Ast_Instantiation* inst = 0;
   if (token_is_typeRef(m_token) || type_ref) {
-    inst = new_ast_node(struct Ast_Instantiation, AST_INSTANTIATION);
+    inst = arena_push_struct(m_ast_storage, struct Ast_Instantiation);
+    inst->kind = AST_INSTANTIATION;
+    inst->id = m_node_id++;
     inst->line_no = m_token->line_no;
     inst->type_ref = type_ref ? type_ref : build_ast_typeRef();
     if (m_token->klass == TK_PARENTH_OPEN) {
@@ -1290,12 +1356,18 @@ build_ast_directApplication(struct Ast* type_name)
 {
   struct Ast_FunctionCallExpr* apply_expr = 0;
   if (token_is_typeName(m_token) || type_name) {
-    apply_expr = new_ast_node(struct Ast_FunctionCallExpr, AST_FUNCTION_CALL_EXPR);
+    apply_expr = arena_push_struct(m_ast_storage, struct Ast_FunctionCallExpr);
+    apply_expr->kind = AST_FUNCTION_CALL_EXPR;
+    apply_expr->id = m_node_id++;
     apply_expr->line_no = m_token->line_no;
-    struct Ast_MemberSelectExpr* apply_select = new_ast_node(struct Ast_MemberSelectExpr, AST_MEMBER_SELECT_EXPR);
+    struct Ast_MemberSelectExpr* apply_select = arena_push_struct(m_ast_storage, struct Ast_MemberSelectExpr);
+    apply_select->kind = AST_MEMBER_SELECT_EXPR;
+    apply_select->id = m_node_id++;
     apply_select->line_no = m_token->line_no;
     apply_select->lhs_expr = type_name ? type_name : build_ast_typeName();
-    struct Ast_Name* apply_name = new_ast_node(struct Ast_Name, AST_NAME);
+    struct Ast_Name* apply_name = arena_push_struct(m_ast_storage, struct Ast_Name);
+    apply_name->kind = AST_NAME;
+    apply_name->id = m_node_id++;
     apply_name->line_no = m_token->line_no;
     apply_name->strname = "apply";
     apply_select->member_name = (struct Ast*)apply_name;
@@ -1339,18 +1411,20 @@ build_ast_prefixedNonTypeName()
 internal struct Ast*
 build_ast_arraySubscript()
 {
-  struct Ast_SubscriptExpr* index = new_ast_node(struct Ast_SubscriptExpr, AST_SUBSCRIPT_EXPR);
-  index->line_no = m_token->line_no;
+  struct Ast_SubscriptExpr* subscript_expr = arena_push_struct(m_ast_storage, struct Ast_SubscriptExpr);
+  subscript_expr->kind = AST_SUBSCRIPT_EXPR;
+  subscript_expr->id = m_node_id++;
+  subscript_expr->line_no = m_token->line_no;
   if (token_is_expression(m_token)) {
-    index->index = build_ast_expression(1);
+    subscript_expr->index = build_ast_expression(1);
   } else error("at line %d: an expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   if (m_token->klass == TK_COLON) {
     next_token();
     if (token_is_expression(m_token)) {
-      index->colon_index = build_ast_expression(1);
+      subscript_expr->colon_index = build_ast_expression(1);
     } else error("at line %d: an expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   }
-  return (struct Ast*)index;
+  return (struct Ast*)subscript_expr;
 }
 
 internal struct Ast*
@@ -1382,7 +1456,9 @@ build_ast_lvalue()
     while(m_token->klass == TK_DOT_PREFIX || m_token->klass == TK_BRACKET_OPEN) {
       if (m_token->klass == TK_DOT_PREFIX) {
         next_token();
-        struct Ast_MemberSelectExpr* select_expr = new_ast_node(struct Ast_MemberSelectExpr, AST_MEMBER_SELECT_EXPR);
+        struct Ast_MemberSelectExpr* select_expr = arena_push_struct(m_ast_storage, struct Ast_MemberSelectExpr);
+        select_expr->kind = AST_MEMBER_SELECT_EXPR;
+        select_expr->id = m_node_id++;
         select_expr->line_no = m_token->line_no;
         select_expr->lhs_expr = lvalue;
         lvalue = (struct Ast*)select_expr;
@@ -1392,7 +1468,9 @@ build_ast_lvalue()
       }
       else if (m_token->klass == TK_BRACKET_OPEN) {
         next_token();
-        struct Ast_SubscriptExpr* subscript_expr = new_ast_node(struct Ast_SubscriptExpr, AST_SUBSCRIPT_EXPR);
+        struct Ast_SubscriptExpr* subscript_expr = arena_push_struct(m_ast_storage, struct Ast_SubscriptExpr);
+        subscript_expr->kind = AST_SUBSCRIPT_EXPR;
+        subscript_expr->id = m_node_id++;
         subscript_expr->line_no = m_token->line_no;
         subscript_expr->index = lvalue;
         subscript_expr->colon_index = build_ast_arraySubscript();
@@ -1423,7 +1501,9 @@ build_ast_assignmentOrMethodCallStatement()
     }
     if (m_token->klass == TK_PARENTH_OPEN) {
       next_token();
-      struct Ast_FunctionCallExpr* call_stmt = new_ast_node(struct Ast_FunctionCallExpr, AST_FUNCTION_CALL_EXPR);
+      struct Ast_FunctionCallExpr* call_stmt = arena_push_struct(m_ast_storage, struct Ast_FunctionCallExpr);
+      call_stmt->kind = AST_FUNCTION_CALL_EXPR;
+      call_stmt->id = m_node_id++;
       call_stmt->line_no = m_token->line_no;
       call_stmt->callee_expr = lvalue;
       call_stmt->type_args = type_args;
@@ -1434,11 +1514,13 @@ build_ast_assignmentOrMethodCallStatement()
       } else error("at line %d: `)` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else if (m_token->klass == TK_EQUAL) {
       next_token();
-      struct Ast_AssignmentStmt* assgn_stmt = new_ast_node(struct Ast_AssignmentStmt, AST_ASSIGNMENT_STMT);
-      assgn_stmt->line_no = m_token->line_no;
-      assgn_stmt->lvalue = lvalue;
-      assgn_stmt->expr = build_ast_expression(1);
-      stmt = (struct Ast*)assgn_stmt;
+      struct Ast_AssignmentStmt* assign_stmt = arena_push_struct(m_ast_storage, struct Ast_AssignmentStmt);
+      assign_stmt->kind = AST_ASSIGNMENT_STMT;
+      assign_stmt->id = m_node_id++;
+      assign_stmt->line_no = m_token->line_no;
+      assign_stmt->lvalue = lvalue;
+      assign_stmt->expr = build_ast_expression(1);
+      stmt = (struct Ast*)assign_stmt;
     } else error("at line %d: assignment or function call was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     if (m_token->klass == TK_SEMICOLON) {
       next_token();
@@ -1472,7 +1554,9 @@ build_ast_parserBlockStatements()
 {
   struct Ast_BlockStmt* stmt = 0;
   if (m_token->klass == TK_BRACE_OPEN) {
-    stmt = new_ast_node(struct Ast_BlockStmt, AST_BLOCK_STMT);
+    stmt = arena_push_struct(m_ast_storage, struct Ast_BlockStmt);
+    stmt->kind = AST_BLOCK_STMT;
+    stmt->id = m_node_id++;
     stmt->line_no = m_token->line_no;
     next_token();
     stmt->stmt_list = build_ast_parserStatements();
@@ -1501,7 +1585,9 @@ build_ast_parserStatement()
   } else if (m_token->klass == TK_CONST) {
     stmt = build_ast_constantDeclaration();
   } else if (m_token->klass == TK_SEMICOLON) {
-    stmt = (struct Ast*)new_ast_node(struct Ast_EmptyStmt, AST_EMPTY_STMT);
+    stmt = (struct Ast*)arena_push_struct(m_ast_storage, struct Ast_EmptyStmt);
+    stmt->kind = AST_EMPTY_STMT;
+    stmt->id = m_node_id++;
     stmt->line_no = m_token->line_no;
   } else error("at line %d: statement was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return stmt;
@@ -1535,11 +1621,15 @@ build_ast_simpleKeysetExpression()
     expr = build_ast_expression(1);
   } else if (m_token->klass == TK_DEFAULT) {
     next_token();
-    expr = (struct Ast*)new_ast_node(struct Ast_DefaultStmt, AST_DEFAULT_STMT);
+    expr = (struct Ast*)arena_push_struct(m_ast_storage, struct Ast_DefaultStmt);
+    expr->kind = AST_DEFAULT_STMT;
+    expr->id = m_node_id++;
     expr->line_no = m_token->line_no;
   } else if (m_token->klass == TK_DONTCARE) {
     next_token();
-    expr = (struct Ast*)new_ast_node(struct Ast_Dontcare, AST_DONTCARE);
+    expr = (struct Ast*)arena_push_struct(m_ast_storage, struct Ast_Dontcare);
+    expr->kind = AST_DONTCARE;
+    expr->id = m_node_id++;
     expr->line_no = m_token->line_no;
   } else error("at line %d: keyset expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return expr;
@@ -1550,7 +1640,9 @@ build_ast_tupleKeysetExpression()
 {
   struct Ast_TupleKeyset* tuple_keyset = 0;
   if (m_token->klass == TK_PARENTH_OPEN) {
-    tuple_keyset = new_ast_node(struct Ast_TupleKeyset, AST_TUPLE_KEYSET);
+    tuple_keyset = arena_push_struct(m_ast_storage, struct Ast_TupleKeyset);
+    tuple_keyset->kind = AST_TUPLE_KEYSET;
+    tuple_keyset->id = m_node_id++;
     tuple_keyset->line_no = m_token->line_no;
     next_token();
     struct List* exprs = arena_push_struct(m_ast_storage, struct List);
@@ -1589,7 +1681,9 @@ build_ast_selectCase()
 {
   struct Ast_SelectCase* select_case = 0;
   if (token_is_keysetExpression(m_token)) {
-    select_case = new_ast_node(struct Ast_SelectCase, AST_SELECT_CASE);
+    select_case = arena_push_struct(m_ast_storage, struct Ast_SelectCase);
+    select_case->kind = AST_SELECT_CASE;
+    select_case->id = m_node_id++;
     select_case->line_no = m_token->line_no;
     select_case->keyset = build_ast_keysetExpression();
     if (m_token->klass == TK_COLON) {
@@ -1630,7 +1724,9 @@ build_ast_selectExpression()
   struct Ast_SelectExpr* select_expr = 0;
   if (m_token->klass == TK_SELECT) {
     next_token();
-    select_expr = new_ast_node(struct Ast_SelectExpr, AST_SELECT_EXPR);
+    select_expr = arena_push_struct(m_ast_storage, struct Ast_SelectExpr);
+    select_expr->kind = AST_SELECT_EXPR;
+    select_expr->id = m_node_id++;
     select_expr->line_no = m_token->line_no;
     if (m_token->klass == TK_PARENTH_OPEN) {
       next_token();
@@ -1682,7 +1778,9 @@ build_ast_parserState()
   struct Ast_ParserState* state = 0;
   if (m_token->klass == TK_STATE) {
     next_token();
-    state = new_ast_node(struct Ast_ParserState, AST_PARSER_STATE);
+    state = arena_push_struct(m_ast_storage, struct Ast_ParserState);
+    state->kind = AST_PARSER_STATE;
+    state->id = m_node_id++;
     state->line_no = m_token->line_no;
     state->name = build_ast_name(false);
     if (m_token->klass == TK_BRACE_OPEN) {
@@ -1721,7 +1819,9 @@ build_ast_parserDeclaration()
 {
   struct Ast_ParserDecl* decl = 0;
   if (m_token->klass == TK_PARSER) {
-    decl = new_ast_node(struct Ast_ParserDecl, AST_PARSER_DECL);
+    decl = arena_push_struct(m_ast_storage, struct Ast_ParserDecl);
+    decl->kind = AST_PARSER_DECL;
+    decl->id = m_node_id++;
     decl->line_no = m_token->line_no;
     decl->type_decl = build_ast_parserTypeDeclaration();
     if (m_token->klass == TK_SEMICOLON) {
@@ -1747,7 +1847,9 @@ build_ast_controlTypeDeclaration()
   struct Ast_ControlProto* decl = 0;
   if (m_token->klass == TK_CONTROL) {
     next_token();
-    decl = new_ast_node(struct Ast_ControlProto, AST_CONTROL_PROTO);
+    decl = arena_push_struct(m_ast_storage, struct Ast_ControlProto);
+    decl->kind = AST_CONTROL_PROTO;
+    decl->id = m_node_id++;
     decl->line_no = m_token->line_no;
     if (token_is_name(m_token)) {
       decl->name = build_ast_name(true);
@@ -1770,7 +1872,9 @@ build_ast_actionDeclaration()
   struct Ast_ActionDecl* decl = 0;
   if (m_token->klass == TK_ACTION) {
     next_token();
-    decl = new_ast_node(struct Ast_ActionDecl, AST_ACTION_DECL);
+    decl = arena_push_struct(m_ast_storage, struct Ast_ActionDecl);
+    decl->kind = AST_ACTION_DECL;
+    decl->id = m_node_id++;
     decl->line_no = m_token->line_no;
     if (token_is_name(m_token)) {
       decl->name = build_ast_name(false);
@@ -1794,7 +1898,9 @@ build_ast_keyElement()
 {
   struct Ast_KeyElement* key_elem = 0;
   if (token_is_expression(m_token)) {
-    key_elem = new_ast_node(struct Ast_KeyElement, AST_KEY_ELEMENT);
+    key_elem = arena_push_struct(m_ast_storage, struct Ast_KeyElement);
+    key_elem->kind = AST_KEY_ELEMENT;
+    key_elem->id = m_node_id++;
     key_elem->line_no = m_token->line_no;
     key_elem->expr = build_ast_expression(1);
     if (m_token->klass == TK_COLON) {
@@ -1832,7 +1938,9 @@ build_ast_actionRef()
 {
   struct Ast_ActionRef* ref = 0;
   if (m_token->klass == TK_DOT_PREFIX || token_is_nonTypeName(m_token)) {
-    ref = new_ast_node(struct Ast_ActionRef, AST_ACTION_REF);
+    ref = arena_push_struct(m_ast_storage, struct Ast_ActionRef);
+    ref->kind = AST_ACTION_REF;
+    ref->id = m_node_id++;
     ref->line_no = m_token->line_no;
     ref->name = build_ast_prefixedNonTypeName();
     if (m_token->klass == TK_PARENTH_OPEN) {
@@ -1876,7 +1984,9 @@ build_ast_entry()
 {
   struct Ast_TableEntry* entry = 0;
   if (token_is_keysetExpression(m_token)) {
-    entry = new_ast_node(struct Ast_TableEntry, AST_TABLE_ENTRY);
+    entry = arena_push_struct(m_ast_storage, struct Ast_TableEntry);
+    entry->kind = AST_TABLE_ENTRY;
+    entry->id = m_node_id++;
     entry->line_no = m_token->line_no;
     entry->keyset = build_ast_keysetExpression();
     if (m_token->klass == TK_COLON) {
@@ -1921,7 +2031,9 @@ build_ast_tableProperty()
     }
     if (m_token->klass == TK_KEY) {
       next_token();
-      struct Ast_TableKey* key_prop = new_ast_node(struct Ast_TableKey, AST_TABLE_KEY);
+      struct Ast_TableKey* key_prop = arena_push_struct(m_ast_storage, struct Ast_TableKey);
+      key_prop->kind = AST_TABLE_KEY;
+      key_prop->id = m_node_id++;
       key_prop->line_no = m_token->line_no;
       prop = (struct Ast*)key_prop;
       if (m_token->klass == TK_EQUAL) {
@@ -1936,7 +2048,9 @@ build_ast_tableProperty()
       } else error("at line %d: `=` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else if (m_token->klass == TK_ACTIONS) {
       next_token();
-      struct Ast_TableActions* actions_prop = new_ast_node(struct Ast_TableActions, AST_TABLE_ACTIONS);
+      struct Ast_TableActions* actions_prop = arena_push_struct(m_ast_storage, struct Ast_TableActions);
+      actions_prop->kind = AST_TABLE_ACTIONS;
+      actions_prop->id = m_node_id++;
       actions_prop->line_no = m_token->line_no;
       prop = (struct Ast*)actions_prop;
       if (m_token->klass == TK_EQUAL) {
@@ -1951,7 +2065,9 @@ build_ast_tableProperty()
       } else error("at line %d: `=` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else if (m_token->klass == TK_ENTRIES) {
       next_token();
-      struct Ast_TableEntries* entries_prop = new_ast_node(struct Ast_TableEntries, AST_TABLE_ENTRIES);
+      struct Ast_TableEntries* entries_prop = arena_push_struct(m_ast_storage, struct Ast_TableEntries);
+      entries_prop->kind = AST_TABLE_ENTRIES;
+      entries_prop->id = m_node_id++;
       entries_prop->line_no = m_token->line_no;
       entries_prop->is_const = is_const;
       prop = (struct Ast*)entries_prop;
@@ -1966,7 +2082,9 @@ build_ast_tableProperty()
         } else error("at line %d: `{` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       } else error("at line %d: `=` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else if (token_is_nonTableKwName(m_token)) {
-      struct Ast_TableSingleEntry* entry_prop = new_ast_node(struct Ast_TableSingleEntry, AST_TABLE_SINGLE_ENTRY);
+      struct Ast_TableSingleEntry* entry_prop = arena_push_struct(m_ast_storage, struct Ast_TableSingleEntry);
+      entry_prop->kind = AST_TABLE_SINGLE_ENTRY;
+      entry_prop->id = m_node_id++;
       entry_prop->line_no = m_token->line_no;
       entry_prop->name = build_ast_name(false);
       prop = (struct Ast*)entry_prop;
@@ -2007,7 +2125,9 @@ build_ast_tableDeclaration()
   struct Ast_TableDecl* table = 0;
   if (m_token->klass == TK_TABLE) {
     next_token();
-    table = new_ast_node(struct Ast_TableDecl, AST_TABLE_DECL);
+    table = arena_push_struct(m_ast_storage, struct Ast_TableDecl);
+    table->kind = AST_TABLE_DECL;
+    table->id = m_node_id++;
     table->line_no = m_token->line_no;
     table->name = build_ast_name(false);
     if (m_token->klass == TK_BRACE_OPEN) {
@@ -2066,7 +2186,9 @@ build_ast_controlDeclaration()
 {
   struct Ast_ControlDecl* decl = 0;
   if (m_token->klass == TK_CONTROL) {
-    decl = new_ast_node(struct Ast_ControlDecl, AST_CONTROL_DECL);
+    decl = arena_push_struct(m_ast_storage, struct Ast_ControlDecl);
+    decl->kind = AST_CONTROL_DECL;
+    decl->id = m_node_id++;
     decl->line_no = m_token->line_no;
     decl->type_decl = build_ast_controlTypeDeclaration();
     if (m_token->klass == TK_SEMICOLON) {
@@ -2095,7 +2217,9 @@ build_ast_packageTypeDeclaration()
   struct Ast_PackageDecl* decl = 0;
   if (m_token->klass == TK_PACKAGE) {
     next_token();
-    decl = new_ast_node(struct Ast_PackageDecl, AST_PACKAGE_DECL);
+    decl = arena_push_struct(m_ast_storage, struct Ast_PackageDecl);
+    decl->kind = AST_PACKAGE_DECL;
+    decl->id = m_node_id++;
     decl->line_no = m_token->line_no;
     if (token_is_name(m_token)) {
       decl->name = build_ast_name(true);
@@ -2126,7 +2250,9 @@ build_ast_typedefDeclaration()
     } else assert(0);
 
     if (token_is_typeRef(m_token) || token_is_derivedTypeDeclaration(m_token)) {
-      struct Ast_TypeDecl* type_decl = new_ast_node(struct Ast_TypeDecl, AST_TYPE_DECL);
+      struct Ast_TypeDecl* type_decl = arena_push_struct(m_ast_storage, struct Ast_TypeDecl);
+      type_decl->kind = AST_TYPE_DECL;
+      type_decl->id = m_node_id++;
       type_decl->line_no = m_token->line_no;
       type_decl->is_typedef = is_typedef;
       decl = (struct Ast*)type_decl;
@@ -2177,7 +2303,9 @@ build_ast_conditionalStatement()
   struct Ast_IfStmt* if_stmt = 0;
   if (m_token->klass == TK_IF) {
     next_token();
-    if_stmt = new_ast_node(struct Ast_IfStmt, AST_IF_STMT);
+    if_stmt = arena_push_struct(m_ast_storage, struct Ast_IfStmt);
+    if_stmt->kind = AST_IF_STMT;
+    if_stmt->id = m_node_id++;
     if_stmt->line_no = m_token->line_no;
     if (m_token->klass == TK_PARENTH_OPEN) {
       next_token();
@@ -2207,7 +2335,9 @@ build_ast_exitStatement()
   struct Ast_ExitStmt* exit_stmt = 0;
   if (m_token->klass == TK_EXIT) {
     next_token();
-    exit_stmt = new_ast_node(struct Ast_ExitStmt, AST_EXIT_STMT);
+    exit_stmt = arena_push_struct(m_ast_storage, struct Ast_ExitStmt);
+    exit_stmt->kind = AST_EXIT_STMT;
+    exit_stmt->id = m_node_id++;
     exit_stmt->line_no = m_token->line_no;
     if (m_token->klass == TK_SEMICOLON) {
       next_token();
@@ -2222,7 +2352,9 @@ build_ast_returnStatement()
   struct Ast_ReturnStmt* ret_stmt = 0;
   if (m_token->klass == TK_RETURN) {
     next_token();
-    ret_stmt = new_ast_node(struct Ast_ReturnStmt, AST_RETURN_STMT);
+    ret_stmt = arena_push_struct(m_ast_storage, struct Ast_ReturnStmt);
+    ret_stmt->kind = AST_RETURN_STMT;
+    ret_stmt->id = m_node_id++;
     ret_stmt->line_no = m_token->line_no;
     if (token_is_expression(m_token))
       ret_stmt->expr = build_ast_expression(1);
@@ -2241,7 +2373,9 @@ build_ast_switchLabel()
     label = build_ast_name(false);
   } else if (m_token->klass == TK_DEFAULT) {
     next_token();
-    label = (struct Ast*)new_ast_node(struct Ast_DefaultStmt, AST_DEFAULT_STMT);
+    label = (struct Ast*)arena_push_struct(m_ast_storage, struct Ast_DefaultStmt);
+    label->kind = AST_DEFAULT_STMT;
+    label->id = m_node_id++;
     label->line_no = m_token->line_no;
   } else error("at line %d: switch label was expected, got `%s`.", m_token->line_no, m_token->lexeme);
   return label;
@@ -2252,7 +2386,9 @@ build_ast_switchCase()
 {
   struct Ast_SwitchCase* switch_case = 0;
   if (token_is_switchLabel(m_token)) {
-    switch_case = new_ast_node(struct Ast_SwitchCase, AST_SWITCH_CASE);
+    switch_case = arena_push_struct(m_ast_storage, struct Ast_SwitchCase);
+    switch_case->kind = AST_SWITCH_CASE;
+    switch_case->id = m_node_id++;
     switch_case->line_no = m_token->line_no;
     switch_case->label = build_ast_switchLabel();
     if (m_token->klass == TK_COLON) {
@@ -2290,7 +2426,9 @@ build_ast_switchStatement()
   struct Ast_SwitchStmt* stmt = 0;
   if (m_token->klass == TK_SWITCH) {
     next_token();
-    stmt = new_ast_node(struct Ast_SwitchStmt, AST_SWITCH_STMT);
+    stmt = arena_push_struct(m_ast_storage, struct Ast_SwitchStmt);
+    stmt->kind = AST_SWITCH_STMT;
+    stmt->id = m_node_id++;
     stmt->line_no = m_token->line_no;
     if (m_token->klass == TK_PARENTH_OPEN) {
       next_token();
@@ -2322,7 +2460,9 @@ build_ast_statement(struct Ast* type_name)
     stmt = build_ast_conditionalStatement();
   } else if (m_token->klass == TK_SEMICOLON) {
     next_token();
-    stmt = (struct Ast*)new_ast_node(struct Ast_EmptyStmt, AST_EMPTY_STMT);
+    stmt = (struct Ast*)arena_push_struct(m_ast_storage, struct Ast_EmptyStmt);
+    stmt->kind = AST_EMPTY_STMT;
+    stmt->id = m_node_id++;
     stmt->line_no = m_token->line_no;
   } else if (m_token->klass == TK_BRACE_OPEN) {
     stmt = build_ast_blockStatement();
@@ -2383,7 +2523,9 @@ build_ast_blockStatement()
 {
   struct Ast_BlockStmt* stmt = 0;
   if (m_token->klass == TK_BRACE_OPEN) {
-    stmt = new_ast_node(struct Ast_BlockStmt, AST_BLOCK_STMT);
+    stmt = arena_push_struct(m_ast_storage, struct Ast_BlockStmt);
+    stmt->kind = AST_BLOCK_STMT;
+    stmt->id = m_node_id++;
     stmt->line_no = m_token->line_no;
     next_token();
     stmt->stmt_list = build_ast_statementOrDeclList();
@@ -2420,7 +2562,9 @@ build_ast_errorDeclaration()
   struct Ast_ErrorDecl* decl = 0;
   if (m_token->klass == TK_ERROR) {
     next_token();
-    decl = new_ast_node(struct Ast_ErrorDecl, AST_ERROR_DECL);
+    decl = arena_push_struct(m_ast_storage, struct Ast_ErrorDecl);
+    decl->kind = AST_ERROR_DECL;
+    decl->id = m_node_id++;
     decl->line_no = m_token->line_no;
     if (m_token->klass == TK_BRACE_OPEN) {
       next_token();
@@ -2441,7 +2585,9 @@ build_ast_matchKindDeclaration()
   struct Ast_MatchKindDecl* decl = 0;
   if (m_token->klass == TK_MATCH_KIND) {
     next_token();
-    decl = new_ast_node(struct Ast_MatchKindDecl, AST_MATCH_KIND_DECL);
+    decl = arena_push_struct(m_ast_storage, struct Ast_MatchKindDecl);
+    decl->kind = AST_MATCH_KIND_DECL;
+    decl->id = m_node_id++;
     decl->line_no = m_token->line_no;
     if (m_token->klass == TK_BRACE_OPEN) {
       next_token();
@@ -2461,7 +2607,9 @@ build_ast_functionDeclaration(struct Ast* type_ref)
 {
   struct Ast_FunctionDecl* decl = 0;
   if (token_is_typeOrVoid(m_token)) {
-    decl = new_ast_node(struct Ast_FunctionDecl, AST_FUNCTION_DECL);
+    decl = arena_push_struct(m_ast_storage, struct Ast_FunctionDecl);
+    decl->kind = AST_FUNCTION_DECL;
+    decl->id = m_node_id++;
     decl->line_no = m_token->line_no;
     decl->proto = build_ast_functionPrototype(type_ref);
     if (m_token->klass == TK_BRACE_OPEN) {
@@ -2506,7 +2654,9 @@ build_ast_declaration()
 internal struct Ast*
 build_ast_p4program()
 {
-  struct Ast_P4Program* program = new_ast_node(struct Ast_P4Program, AST_P4PROGRAM);
+  struct Ast_P4Program* program = arena_push_struct(m_ast_storage, struct Ast_P4Program);
+  program->kind = AST_P4PROGRAM;
+  program->id = m_node_id++;
   program->line_no = m_token->line_no;
   struct List* decls = arena_push_struct(m_ast_storage, struct List);
   list_init(decls);
@@ -2564,7 +2714,9 @@ build_ast_realTypeArg()
   struct Ast* arg = 0;
   if (m_token->klass == TK_DONTCARE) {
     next_token();
-    arg = (struct Ast*)new_ast_node(struct Ast_Dontcare, AST_DONTCARE);
+    arg = (struct Ast*)arena_push_struct(m_ast_storage, struct Ast_Dontcare);
+    arg->kind = AST_DONTCARE;
+    arg->id = m_node_id++;
     arg->line_no = m_token->line_no;
   } else if (token_is_typeRef(m_token)) {
     arg = build_ast_typeRef();
@@ -2618,7 +2770,9 @@ build_ast_expressionPrimary()
       primary = build_ast_nonTypeName(false);
     } else if (m_token->klass == TK_BRACE_OPEN) {
       next_token();
-      struct Ast_ExprListExpr* expr_list = new_ast_node(struct Ast_ExprListExpr, AST_EXPRLIST_EXPR);
+      struct Ast_ExprListExpr* expr_list = arena_push_struct(m_ast_storage, struct Ast_ExprListExpr);
+      expr_list->kind = AST_EXPRLIST_EXPR;
+      expr_list->id = m_node_id++;
       expr_list->line_no = m_token->line_no;
       expr_list->expr_list = build_ast_expressionList();
       primary = (struct Ast*)expr_list;
@@ -2628,7 +2782,9 @@ build_ast_expressionPrimary()
     } else if (m_token->klass == TK_PARENTH_OPEN) {
       next_token();
       if (token_is_typeRef(m_token)) {
-        struct Ast_CastExpr* cast_expr = new_ast_node(struct Ast_CastExpr, AST_CAST_EXPR);
+        struct Ast_CastExpr* cast_expr = arena_push_struct(m_ast_storage, struct Ast_CastExpr);
+        cast_expr->kind = AST_CAST_EXPR;
+        cast_expr->id = m_node_id++;
         cast_expr->line_no = m_token->line_no;
         cast_expr->to_type = build_ast_typeRef();
         primary = (struct Ast*)cast_expr;
@@ -2644,21 +2800,27 @@ build_ast_expressionPrimary()
       } else error("at line %d: an expression was expected, got `%s`.", m_token->line_no, m_token->lexeme);
     } else if (m_token->klass == TK_EXCLAMATION) {
       next_token();
-      struct Ast_UnaryExpr* unary_expr = new_ast_node(struct Ast_UnaryExpr, AST_UNARY_EXPR);
+      struct Ast_UnaryExpr* unary_expr = arena_push_struct(m_ast_storage, struct Ast_UnaryExpr);
+      unary_expr->kind = AST_UNARY_EXPR;
+      unary_expr->id = m_node_id++;
       unary_expr->line_no = m_token->line_no;
       unary_expr->op = OP_NOT;
       unary_expr->operand = build_ast_expression(1);
       primary = (struct Ast*)unary_expr;
     } else if (m_token->klass == TK_TILDA) {
       next_token();
-      struct Ast_UnaryExpr* unary_expr = new_ast_node(struct Ast_UnaryExpr, AST_UNARY_EXPR);
+      struct Ast_UnaryExpr* unary_expr = arena_push_struct(m_ast_storage, struct Ast_UnaryExpr);
+      unary_expr->kind = AST_UNARY_EXPR;
+      unary_expr->id = m_node_id++;
       unary_expr->line_no = m_token->line_no;
       unary_expr->op = OP_BITWISE_NOT;
       unary_expr->operand = build_ast_expression(1);
       primary = (struct Ast*)unary_expr;
     } else if (m_token->klass == TK_UNARY_MINUS) {
       next_token();
-      struct Ast_UnaryExpr* unary_expr = new_ast_node(struct Ast_UnaryExpr, AST_UNARY_EXPR);
+      struct Ast_UnaryExpr* unary_expr = arena_push_struct(m_ast_storage, struct Ast_UnaryExpr);
+      unary_expr->kind = AST_UNARY_EXPR;
+      unary_expr->id = m_node_id++;
       unary_expr->line_no = m_token->line_no;
       unary_expr->op = OP_NEG;
       unary_expr->operand = build_ast_expression(1);
@@ -2666,7 +2828,9 @@ build_ast_expressionPrimary()
     } else if (token_is_typeName(m_token)) {
       primary = build_ast_typeName();
     } else if (m_token->klass == TK_ERROR) {
-      struct Ast_Name* name = new_ast_node(struct Ast_Name, AST_NAME);
+      struct Ast_Name* name = arena_push_struct(m_ast_storage, struct Ast_Name);
+      name->kind = AST_NAME;
+      name->id = m_node_id++;
       name->line_no = m_token->line_no;
       name->strname = m_token->lexeme;
       primary = (struct Ast*)name;
@@ -2761,7 +2925,9 @@ build_ast_expression(int priority_threshold)
     while (token_is_exprOperator(m_token)) {
       if (m_token->klass == TK_DOT_PREFIX) {
         next_token();
-        struct Ast_MemberSelectExpr* select_expr = new_ast_node(struct Ast_MemberSelectExpr, AST_MEMBER_SELECT_EXPR);
+        struct Ast_MemberSelectExpr* select_expr = arena_push_struct(m_ast_storage, struct Ast_MemberSelectExpr);
+        select_expr->kind = AST_MEMBER_SELECT_EXPR;
+        select_expr->id = m_node_id++;
         select_expr->line_no = m_token->line_no;
         select_expr->lhs_expr = expr;
         expr = (struct Ast*)select_expr;
@@ -2771,7 +2937,9 @@ build_ast_expression(int priority_threshold)
       }
       else if (m_token->klass == TK_BRACKET_OPEN) {
         next_token();
-        struct Ast_SubscriptExpr* subscript_expr = new_ast_node(struct Ast_SubscriptExpr, AST_SUBSCRIPT_EXPR);
+        struct Ast_SubscriptExpr* subscript_expr = arena_push_struct(m_ast_storage, struct Ast_SubscriptExpr);
+        subscript_expr->kind = AST_SUBSCRIPT_EXPR;
+        subscript_expr->id = m_node_id++;
         subscript_expr->line_no = m_token->line_no;
         subscript_expr->index = expr;
         subscript_expr->colon_index = build_ast_arraySubscript();
@@ -2782,7 +2950,9 @@ build_ast_expression(int priority_threshold)
       }
       else if (m_token->klass == TK_PARENTH_OPEN) {
         next_token();
-        struct Ast_FunctionCallExpr* call_expr = new_ast_node(struct Ast_FunctionCallExpr, AST_FUNCTION_CALL_EXPR);
+        struct Ast_FunctionCallExpr* call_expr = arena_push_struct(m_ast_storage, struct Ast_FunctionCallExpr);
+        call_expr->kind = AST_FUNCTION_CALL_EXPR;
+        call_expr->id = m_node_id++;
         call_expr->line_no = m_token->line_no;
         call_expr->callee_expr = expr;
         call_expr->args = build_ast_argumentList();
@@ -2799,7 +2969,9 @@ build_ast_expression(int priority_threshold)
         } else error("at line %d: `>` was expected, got `%s`.", m_token->line_no, m_token->lexeme);
       } else if (m_token->klass == TK_EQUAL) {
         next_token();
-        struct Ast_KeyValuePairExpr* kv_pair = new_ast_node(struct Ast_KeyValuePairExpr, AST_KVPAIR_EXPR);
+        struct Ast_KeyValuePairExpr* kv_pair = arena_push_struct(m_ast_storage, struct Ast_KeyValuePairExpr);
+        kv_pair->kind = AST_KVPAIR_EXPR;
+        kv_pair->id = m_node_id++;
         kv_pair->line_no = m_token->line_no;
         kv_pair->name = expr;
         kv_pair->expr = build_ast_expression(1);
@@ -2808,7 +2980,9 @@ build_ast_expression(int priority_threshold)
       else if (token_is_binaryOperator(m_token)){
         int priority = get_operator_priority(m_token);
         if (priority >= priority_threshold) {
-          struct Ast_BinaryExpr* bin_expr = new_ast_node(struct Ast_BinaryExpr, AST_BINARY_EXPR);
+          struct Ast_BinaryExpr* bin_expr = arena_push_struct(m_ast_storage, struct Ast_BinaryExpr);
+          bin_expr->kind = AST_BINARY_EXPR;
+          bin_expr->id = m_node_id++;
           bin_expr->line_no = m_token->line_no;
           bin_expr->left_operand = expr;
           bin_expr->op = token_to_binop(m_token);
