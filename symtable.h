@@ -15,10 +15,7 @@ struct NameDecl {
   uint32_t ast_id;
   char* strname;
   int line_no;
-  union {
-    struct NameDecl* next_in_scope;
-    enum TokenClass token_class;  // keyword
-  };
+  struct NameDecl* next_in_scope;
 };  
 
 struct NameRef {
@@ -31,8 +28,8 @@ struct NameRef {
 struct NameEntry {
   char* strname;
   struct NameDecl* ns_type;
-  struct NameDecl* ns_keyword;
   struct NameDecl* ns_var;
+  struct NameDecl* ns_keyword;
 };
 
 struct Scope {

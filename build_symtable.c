@@ -50,8 +50,7 @@ build_symtable_expression(struct Ast* ast)
     build_symtable_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct NameRef* nameref = arena_push(m_symtable_storage, sizeof(struct NameRef));
-    memset(nameref, 0, sizeof(*nameref));
+    struct NameRef* nameref = arena_push_struct(m_symtable_storage, struct NameRef);
     nameref->name_id = name->id;
     nameref->strname = name->strname;
     nameref->line_no = name->line_no;

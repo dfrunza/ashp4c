@@ -172,8 +172,7 @@ hashmap_get_or_create_entry(struct Hashmap* hashmap, struct HashmapKey* key)
     }
     hashmap_hash_key(hashmap->key_type, key, hashmap->capacity_log2);
   }
-  entry = arena_push(hashmap->entries.storage, sizeof(*entry));
-  memset(entry, 0, sizeof(*entry));
+  entry = arena_push_struct(hashmap->entries.storage, struct HashmapEntry);
   entry->key = *key;
   entry->next_entry = *(struct HashmapEntry**)array_get(&hashmap->entries, key->h);
   array_set(&hashmap->entries, key->h, &entry);

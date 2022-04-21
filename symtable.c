@@ -28,8 +28,7 @@ get_current_scope()
 struct Scope*
 new_scope(int capacity_log2)
 {
-  struct Scope* new_scope = arena_push(m_symtable_storage, sizeof(*new_scope));
-  memset(new_scope, 0, sizeof(*new_scope));
+  struct Scope* new_scope = arena_push_struct(m_symtable_storage, struct Scope);
   scope_init(new_scope, capacity_log2);
   return new_scope;
 }
@@ -66,7 +65,7 @@ name_get_or_create_entry(struct Hashmap* declarations, char* name)
   if (he->object) {
     return (struct NameEntry*)he->object;
   }
-  struct NameEntry* entry = arena_push(m_symtable_storage, sizeof(*entry));
+  struct NameEntry* entry = arena_push_struct(m_symtable_storage, struct NameEntry);
   he->object = entry;
   memset(entry, 0, sizeof(*entry));
   entry->strname = name;
@@ -174,8 +173,7 @@ void
 symtable_init(struct Arena* symtable_storage)
 {
   m_symtable_storage = symtable_storage;
-  struct Scope* root_scope = arena_push(m_symtable_storage, sizeof(*root_scope));
-  memset(root_scope, 0, sizeof(*root_scope));
+  struct Scope* root_scope = arena_push_struct(m_symtable_storage, struct Scope);
   scope_init(root_scope, 4);
   array_init(&m_scope_stack, sizeof(struct Scope*), m_symtable_storage);
   array_append(&m_scope_stack, &root_scope);

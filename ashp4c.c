@@ -76,8 +76,7 @@ parse_cmdline_args(int arg_count, char* args[])
   struct CmdlineArg* prev_arg = &sentinel_arg;
   int i = 1;
   while (i < arg_count) {
-    struct CmdlineArg* cmdline_arg = arena_push(&m_main_storage, sizeof(*cmdline_arg));
-    memset(cmdline_arg, 0, sizeof(*cmdline_arg));
+    struct CmdlineArg* cmdline_arg = arena_push_struct(&m_main_storage, struct CmdlineArg);
     if (cstr_start_with(args[i], "--")) {
       char* raw_arg = args[i] + 2;  /* skip the `--` prefix */
       cmdline_arg->name = raw_arg;

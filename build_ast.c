@@ -7,13 +7,18 @@
 #include <memory.h>  // memset
 
 
+struct NameDecl_Keyword {
+  struct NameDecl;
+  enum TokenClass token_class;
+};  
+
 internal struct Arena *m_ast_storage;
 internal struct UnboundedArray* m_tokens_array;
 internal int m_token_at = 0;
 internal struct Token* m_token = 0;
 internal int m_prev_token_at = 0;
 internal struct Token* m_prev_token = 0;
-internal int m_node_id = 100; // first 100 are reserved for built-in nodes
+internal int m_node_id = 100; // first 100 IDs are reserved for built-in nodes
 
 internal struct Ast* build_ast_expression(int priority_threshold);
 internal struct Ast* build_ast_typeRef();
@@ -35,7 +40,7 @@ next_token()
   if (m_token->klass == TK_IDENTIFIER) {
     struct NameEntry* entry = scope_lookup_name(get_current_scope(), m_token->lexeme);
     if (entry->ns_keyword) {
-      m_token->klass = entry->ns_keyword->token_class;
+      m_token->klass = ((struct NameDecl_Keyword*)entry->ns_keyword)->token_class;
       return m_token;
     }
     if (entry->ns_type) {
@@ -3002,10 +3007,10 @@ build_ast(struct UnboundedArray* tokens_array, struct Arena* ast_storage)
   struct NameDecl*
   new_keyword(char* name, enum TokenClass token_class)
   {
-    struct NameDecl* decl = arena_push_struct(m_ast_storage, struct NameDecl);
+    struct NameDecl_Keyword* decl = arena_push_struct(m_ast_storage, struct NameDecl_Keyword);
     decl->strname = name;
     decl->token_class = token_class;
-    return decl;
+    return (struct NameDecl*)decl;
   }
 
   m_tokens_array = tokens_array;
