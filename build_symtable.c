@@ -115,8 +115,8 @@ build_symtable_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   struct Ast_Name* name = (struct Ast_Name*)ast;
-  struct NameEntry* se = scope_lookup_name(get_current_scope(), name->strname);
-  if (!se->ns_type) {
+  struct NameEntry* ne = scope_lookup_name(get_current_scope(), name->strname);
+  if (!ne->ns_type) {
     struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
@@ -626,8 +626,8 @@ build_symtable_function_return_type(struct Ast* ast)
 {
   if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct NameEntry* se = scope_lookup_name(get_current_scope(), name->strname);
-    if (!se->ns_type) {
+    struct NameEntry* ne = scope_lookup_name(get_current_scope(), name->strname);
+    if (!ne->ns_type) {
       struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
       decl->ast = ast;
       decl->ast_id = ast->id;

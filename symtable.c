@@ -109,7 +109,7 @@ declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl*
     decl->next_in_scope = ne->ns_var;
     ne->ns_var = decl;
   } else if (ns == NAMESPACE_KEYWORD) {
-    struct NameEntry* ne = name_get_or_create_entry(&scope->declarations, decl->strname);
+    assert(!decl->next_in_scope);
     ne->ns_keyword = decl;
   } else assert(0);
   return ne;
