@@ -1,4 +1,3 @@
-#include <sys/stat.h>
 #include <memory.h>  // memset
 #include "basic.h"
 #include "arena.h"
@@ -10,7 +9,7 @@
 #include "resolve_nameref.h"
 
 
-internal struct Arena m_main_storage = {};
+internal struct Arena main_storage = {};
 
 
 struct CmdlineArg {
@@ -76,7 +75,7 @@ parse_cmdline_args(int arg_count, char* args[])
   struct CmdlineArg* prev_arg = &sentinel_arg;
   int i = 1;
   while (i < arg_count) {
-    struct CmdlineArg* cmdline_arg = arena_push_struct(&m_main_storage, struct CmdlineArg);
+    struct CmdlineArg* cmdline_arg = arena_push_struct(&main_storage, struct CmdlineArg);
     if (cstr_start_with(args[i], "--")) {
       char* raw_arg = args[i] + 2;  /* skip the `--` prefix */
       cmdline_arg->name = raw_arg;
@@ -108,10 +107,10 @@ main(int arg_count, char* args[])
   read_source(&text, &text_size, filename_arg->value, &text_storage);
 
   struct Arena tokens_storage = {};
-  struct UnboundedArray* tokens_array = lex_tokenize(text, text_size, &m_main_storage, &tokens_storage);
+  struct UnboundedArray* tokens_array = lex_tokenize(text, text_size, &main_storage, &tokens_storage);
   arena_delete(&text_storage);
 
-  struct Ast* p4program = build_ast(tokens_array, &m_main_storage);
+  struct Ast* p4program = build_ast(tokens_array, &main_storage);
   assert(p4program && p4program->kind == AST_P4PROGRAM);
   arena_delete(&tokens_storage);
 
@@ -120,11 +119,11 @@ main(int arg_count, char* args[])
   }
 
   struct Hashmap* type_map;
-  build_symtable(p4program, &m_main_storage);
-  type_map = build_type(p4program, &m_main_storage);
+  build_symtable(p4program, &main_storage);
+  type_map = build_type(p4program, &main_storage);
   resolve_nameref(p4program);
 
-  arena_delete(&m_main_storage);
+  arena_delete(&main_storage);
   return 0;
 }
 

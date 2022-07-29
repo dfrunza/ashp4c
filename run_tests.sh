@@ -1,4 +1,3 @@
-reset;
 for f in `find testdata -maxdepth 1 -type f`; do \
     echo;
     ./build/ashp4c $f;

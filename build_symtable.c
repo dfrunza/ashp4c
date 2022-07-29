@@ -4,7 +4,7 @@
 #include <memory.h>  // memset
 
 
-internal struct Arena* m_symtable_storage;
+internal struct Arena* symtable_storage;
 
 
 internal void build_symtable_block_statement(struct Ast* block_stmt);
@@ -50,7 +50,7 @@ build_symtable_expression(struct Ast* ast)
     build_symtable_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct NameRef* nameref = arena_push_struct(m_symtable_storage, struct NameRef);
+    struct NameRef* nameref = arena_push_struct(symtable_storage, struct NameRef);
     nameref->name_id = name->id;
     nameref->strname = name->strname;
     nameref->line_no = name->line_no;
@@ -100,7 +100,7 @@ build_symtable_param(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)param->name;
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -117,7 +117,7 @@ build_symtable_type_param(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)ast;
   struct NameEntry* ne = scope_lookup_name(get_current_scope(), name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -136,7 +136,7 @@ build_symtable_action_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)action_decl->name;
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -176,7 +176,7 @@ build_symtable_instantiation(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -300,7 +300,7 @@ build_symtable_table_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -347,7 +347,7 @@ build_symtable_const_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -366,7 +366,7 @@ build_symtable_statement(struct Ast* ast)
     struct Ast_Name* name = (struct Ast_Name*)decl->name;
     struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
     if (!ne->ns_var) {
-      struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+      struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
       decl->ast = ast;
       decl->ast_id = ast->id;
       decl->strname = name->strname;
@@ -447,7 +447,7 @@ build_symtable_control_decl(struct Ast* ast)
   struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
   struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
   decl->ast = ast;
   decl->ast_id = ast->id;
   decl->strname = name->strname;
@@ -544,7 +544,7 @@ build_symtable_parser_state(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)state->name;
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -571,7 +571,7 @@ build_symtable_parser_decl(struct Ast* ast)
   struct Ast_ParserDecl* parser_decl = (struct Ast_ParserDecl*)ast;
   struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)parser_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
   decl->ast = ast;
   decl->ast_id = ast->id;
   decl->strname = name->strname;
@@ -628,7 +628,7 @@ build_symtable_function_return_type(struct Ast* ast)
     struct Ast_Name* name = (struct Ast_Name*)ast;
     struct NameEntry* ne = scope_lookup_name(get_current_scope(), name->strname);
     if (!ne->ns_type) {
-      struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+      struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
       decl->ast = ast;
       decl->ast_id = ast->id;
       decl->strname = name->strname;
@@ -648,7 +648,7 @@ build_symtable_function_proto(struct Ast* ast)
   assert(ast->kind == AST_FUNCTION_PROTO);
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)ast;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
-  struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
   decl->ast = ast;
   decl->ast_id = ast->id;
   decl->strname = name->strname;
@@ -683,7 +683,7 @@ build_symtable_extern_decl(struct Ast* ast)
   assert(ast->kind == AST_EXTERN_DECL);
   struct Ast_ExternDecl* extern_decl = (struct Ast_ExternDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)extern_decl->name;
-  struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
   decl->ast = ast;
   decl->ast_id = ast->id;
   decl->strname = name->strname;
@@ -717,7 +717,7 @@ build_symtable_struct_field(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)field->name;
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -735,7 +735,7 @@ build_symtable_struct_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)struct_decl->name;
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -762,7 +762,7 @@ build_symtable_header_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)header_decl->name;
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -789,7 +789,7 @@ build_symtable_header_union_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)header_union_decl->name;
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -861,7 +861,7 @@ build_symtable_enum_field(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)ast;
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -891,7 +891,7 @@ build_symtable_enum_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)enum_decl->name;
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -921,7 +921,7 @@ build_symtable_package_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)package_decl->name;
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -956,7 +956,7 @@ build_symtable_type_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
   struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast = ast;
     decl->ast_id = ast->id;
     decl->strname = name->strname;
@@ -974,7 +974,7 @@ build_symtable_function_decl(struct Ast* ast)
   struct Ast_FunctionDecl* function_decl = (struct Ast_FunctionDecl*)ast;
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)function_decl->proto;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
-  struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
   decl->ast_id = name->id;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
@@ -1103,65 +1103,65 @@ build_symtable_p4program(struct Ast* ast)
 }
 
 void
-build_symtable(struct Ast* p4program, struct Arena* symtable_storage)
+build_symtable(struct Ast* p4program, struct Arena* symtable_storage_)
 {
-  m_symtable_storage = symtable_storage;
-  symtable_init(m_symtable_storage);
+  symtable_storage = symtable_storage_;
+  symtable_init(symtable_storage);
 
   int node_id = 1;
 
   /* Builtin Types */
 
   {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast_id = node_id++;
     decl->strname = "void";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
   {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast_id = node_id++;
     decl->strname = "bool";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
   {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast_id = node_id++;
     decl->strname = "int";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
   {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast_id = node_id++;
     decl->strname = "bit";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
   {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast_id = node_id++;
     decl->strname = "varbit";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
   {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast_id = node_id++;
     decl->strname = "string";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
   {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast_id = node_id++;
     decl->strname = "error";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
   }
   {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast_id = node_id++;
     decl->strname = "error";
     declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
   }
   {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast_id = node_id++;
     decl->strname = "match_kind";
     declare_object_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
@@ -1170,13 +1170,13 @@ build_symtable(struct Ast* p4program, struct Arena* symtable_storage)
   /* Parser States */
 
   {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast_id = node_id++;
     decl->strname = "accept";
     declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
   }
   {
-    struct NameDecl* decl = arena_push_struct(m_symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->ast_id = node_id++;
     decl->strname = "reject";
     declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, decl);

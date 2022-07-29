@@ -1,6 +1,5 @@
 #include "arena.h"
 #include "ast.h"
-#include "hashmap.h"
 #include "symtable.h"
 
 
