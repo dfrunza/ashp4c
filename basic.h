@@ -28,11 +28,6 @@ bool cstr_match(char* str_a, char* str_b);
 void cstr_print_substr(char* begin_char, char* end_char);
 bool bytes_match(uint8_t* bytes_a, int len_a, uint8_t* bytes_b, int len_b);
 
-#define sizeof_array(array) (sizeof(array)/sizeof(array[0]))
-#define offsetof(type, member) ((size_t) &((type*)0)->member)
-#define containerof(ptr, type, member) ({ \
-	const typeof(((type* )0)->member)* mptr = (ptr); \
-	(type*)((char *)mptr - offsetof(type, member)); })
 #define assert(expr) \
   do { if(!(expr)) assert_(#expr, __FILE__, __LINE__); } while(0)
 #define error(msg, ...) error_(__FILE__, __LINE__, (msg), ## __VA_ARGS__)
