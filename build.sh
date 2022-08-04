@@ -28,4 +28,10 @@ ld $LD_FLAGS -L$MUSL_LIB -o ashp4c \
   build_type.o resolve_nameref.o \
   -lc
 
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+
 popd
+
+exit 0
