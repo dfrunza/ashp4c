@@ -21,13 +21,8 @@ internal uint32_t
 fold_bytes(uint8_t* bytes, int length)
 {
   uint32_t K = 0;
-  if (length <= sizeof(uint32_t)) {
-    K = *(uint32_t*)bytes;
-  } else {
-    uint8_t* b;
-    for (int i = 0; i < length; i++) {
-      K = (P * K + bytes[i]) % Q;
-    }
+  for (int i = 0; i < length; i++) {
+    K = (P * K + bytes[i]) % Q;
   }
   return K;
 }

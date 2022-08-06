@@ -25,4 +25,11 @@ clang -g -ggdb -static $LINUX_INCLUDE -O0 -Wall $SRC/xdp_ip_fixup.c -o xdp_ip_fi
 
 clang $LINUX_INCLUDE -O2 -Wall -target bpf -c $SRC/count_packets_kern.c -o count_packets_kern.o
 clang -g -ggdb -static $LINUX_INCLUDE -O0 -Wall $SRC/count_packets.c -o count_packets -L $SRC bpf_load.o -lbpf -lelf -lz
+
+if [ $? -ne 0 ]; then
+  exit 1
+fi
+
 popd
+
+exit 0
