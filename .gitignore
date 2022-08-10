@@ -2,3 +2,6 @@
 .idea/
 build/*
 testdata/*.json
+tcedit.dst
+ashp4c.dst
+tags
