@@ -30,3 +30,5 @@ clang $LINUX_INCLUDE -O2 -Wall -target bpf -c $SRC/mcastfwd_k.c -o mcastfwd_k.o
 clang -g -ggdb -static $LINUX_INCLUDE -O0 -Wall $SRC/mcastfwd.c -o mcastfwd -L $SRC bpf_load.o -lbpf -lelf -lz
 
 popd
+
+exit 0
