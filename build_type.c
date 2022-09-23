@@ -32,6 +32,7 @@ visit_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   struct Ast_Name* name = (struct Ast_Name*)ast;
+  /*
   struct NameRef* nameref = name->ref;
   if (!nameref) {
     struct Type_TypeParam* type = arena_push_struct(type_storage, struct Type_TypeParam);
@@ -41,6 +42,7 @@ visit_type_param(struct Ast* ast)
   } else {
     visit_expression(ast);
   }
+  */
 }
 
 internal void
@@ -162,8 +164,7 @@ visit_type_ref(struct Ast* ast)
     visit_expression(type_ref->stack_expr);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct NameRef* nameref = name->ref;
-    struct NameEntry* se = scope_lookup_name(nameref->scope, nameref->strname);
+    struct NameEntry* se = scope_lookup_name(name->scope, name->strname);
     if (se->ns_type) {
       struct Type* type = type_get_entry(&type_map, se->ns_type->ast_id);
       type_add_entry(&type_map, type, name->id);
@@ -1050,8 +1051,7 @@ visit_name(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   struct Ast_Name* name = (struct Ast_Name*)ast;
-  struct NameRef* nameref = name->ref;
-  struct NameEntry* se = scope_lookup_name(nameref->scope, nameref->strname);
+  struct NameEntry* se = scope_lookup_name(name->scope, name->strname);
   if (se->ns_type || se->ns_var) {
     if (se->ns_type && se->ns_var) {
       struct Type_Typevar* type = arena_push_struct(type_storage, struct Type_Typevar);

@@ -50,12 +50,7 @@ visit_expression(struct Ast* ast)
     visit_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct NameRef* nameref = arena_push_struct(symtable_storage, struct NameRef);
-    nameref->name_id = name->id;
-    nameref->strname = name->strname;
-    nameref->line_no = name->line_no;
-    nameref->scope = get_current_scope();
-    name->ref = nameref;
+    name->scope = get_current_scope();
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
@@ -642,7 +637,7 @@ visit_function_return_type(struct Ast* ast)
   }
 }
 
-void
+internal void
 visit_function_proto(struct Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION_PROTO);

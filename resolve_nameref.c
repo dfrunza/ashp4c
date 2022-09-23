@@ -3,72 +3,37 @@
 #include "symtable.h"
 
 
-internal void resolve_nameref_block_statement(struct Ast* block_stmt);
-internal void resolve_nameref_statement(struct Ast* decl);
-internal void resolve_nameref_expression(struct Ast* expr);
-internal void resolve_nameref_type_ref(struct Ast* type_ref);
+internal void visit_block_statement(struct Ast* block_stmt);
+internal void visit_statement(struct Ast* decl);
+internal void visit_expression(struct Ast* expr);
+internal void visit_type_ref(struct Ast* type_ref);
 
 
 internal void
-resolve_nameref_param(struct Ast* ast)
+visit_param(struct Ast* ast)
 {
   assert(ast->kind == AST_PARAM);
   struct Ast_Param* param = (struct Ast_Param*)ast;
-  resolve_nameref_type_ref(param->type);
+  visit_type_ref(param->type);
 }
 
 internal void
-resolve_nameref_type_param(struct Ast* ast)
+visit_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
-  resolve_nameref_expression(ast);
+  visit_expression(ast);
 }
 
 internal void
-nameref_context_control_decl(struct Ast* ast)
-{
-  assert(ast->kind == AST_CONTROL_DECL);
-  struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
-  struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
-  if (type_decl->type_params) {
-    struct ListLink* li = list_first_link(type_decl->type_params);
-    while (li) {
-      struct Ast* type_param = li->object;
-      resolve_nameref_type_param(type_param);
-      li = li->next;
-    }
-  }
-  if (control_decl->ctor_params) {
-    struct ListLink* li = list_first_link(control_decl->ctor_params);
-    while (li) {
-      struct Ast* param = li->object;
-      resolve_nameref_param(param);
-      li = li->next;
-    }
-  }
-  if (control_decl->local_decls) {
-    struct ListLink* li = list_first_link(control_decl->local_decls);
-    while (li) {
-      struct Ast* decl = li->object;
-      resolve_nameref_statement(decl);
-      li = li->next;
-    }
-  }
-  if (control_decl->apply_stmt) {
-    resolve_nameref_block_statement(control_decl->apply_stmt);
-  }
-}
-
-internal void
-resolve_nameref_struct_field(struct Ast* ast)
+visit_struct_field(struct Ast* ast)
 {
   assert(ast->kind == AST_STRUCT_FIELD);
   struct Ast_StructField* field = (struct Ast_StructField*)ast;
-  resolve_nameref_type_ref(field->type);
+  visit_type_ref(field->type);
 }
 
 internal void
-resolve_nameref_header_union_decl(struct Ast* ast)
+visit_header_union_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_HEADER_UNION_DECL);
   struct Ast_HeaderUnionDecl* header_union_decl = (struct Ast_HeaderUnionDecl*)ast;
@@ -76,14 +41,14 @@ resolve_nameref_header_union_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(header_union_decl->fields);
     while (li) {
       struct Ast* field = li->object;
-      resolve_nameref_struct_field(field);
+      visit_struct_field(field);
       li = li->next;
     }
   }
 }
 
 internal void
-resolve_nameref_header_decl(struct Ast* ast)
+visit_header_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_HEADER_DECL);
   struct Ast_HeaderDecl* header_decl = (struct Ast_HeaderDecl*)ast;
@@ -91,14 +56,14 @@ resolve_nameref_header_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(header_decl->fields);
     while (li) {
       struct Ast* field = li->object;
-      resolve_nameref_struct_field(field);
+      visit_struct_field(field);
       li = li->next;
     }
   }
 }
 
 internal void
-resolve_nameref_struct_decl(struct Ast* ast)
+visit_struct_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_STRUCT_DECL);
   struct Ast_StructDecl* struct_decl = (struct Ast_StructDecl*)ast;
@@ -106,34 +71,34 @@ resolve_nameref_struct_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(struct_decl->fields);
     while (li) {
       struct Ast* field = li->object;
-      resolve_nameref_struct_field(field);
+      visit_struct_field(field);
       li = li->next;
     }
   }
 }
 
 internal void
-resolve_nameref_type_ref(struct Ast* ast)
+visit_type_ref(struct Ast* ast)
 {
   if (ast->kind == AST_BASETYPE_BOOL || ast->kind == AST_BASETYPE_ERROR
       || ast->kind == AST_BASETYPE_INT || ast->kind == AST_BASETYPE_BIT
       || ast->kind == AST_BASETYPE_VARBIT || ast->kind == AST_BASETYPE_STRING
       || ast->kind == AST_BASETYPE_VOID) {
     struct Ast_BaseType* base_type = (struct Ast_BaseType*)ast;
-    resolve_nameref_type_ref(base_type->name);
+    visit_type_ref(base_type->name);
   } else if (ast->kind == AST_HEADER_STACK) {
     struct Ast_HeaderStack* type_ref = (struct Ast_HeaderStack*)ast;
-    resolve_nameref_type_ref(type_ref->name);
-    resolve_nameref_expression(type_ref->stack_expr);
+    visit_type_ref(type_ref->name);
+    visit_expression(type_ref->stack_expr);
   } else if (ast->kind == AST_NAME) {
-    resolve_nameref_expression(ast);
+    visit_expression(ast);
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
     struct Ast_SpecializedType* speclzd_type = (struct Ast_SpecializedType*)ast;
-    resolve_nameref_type_ref(speclzd_type->name);
+    visit_type_ref(speclzd_type->name);
     struct ListLink* li = list_first_link(speclzd_type->type_args);
     while (li) {
       struct Ast* type_arg = li->object;
-      resolve_nameref_type_ref(type_arg);
+      visit_type_ref(type_arg);
       li = li->next;
     }
   } else if (ast->kind == AST_TUPLE) {
@@ -142,16 +107,16 @@ resolve_nameref_type_ref(struct Ast* ast)
       struct ListLink* li = list_first_link(type_ref->type_args);
       while (li) {
         struct Ast* type_arg = li->object;
-        resolve_nameref_type_ref(type_arg);
+        visit_type_ref(type_arg);
         li = li->next;
       }
     }
   } else if (ast->kind == AST_STRUCT_DECL) {
-    resolve_nameref_struct_decl(ast);
+    visit_struct_decl(ast);
   } else if (ast->kind == AST_HEADER_DECL) {
-    resolve_nameref_header_decl(ast);
+    visit_header_decl(ast);
   } else if (ast->kind == AST_HEADER_UNION_DECL) {
-    resolve_nameref_header_union_decl(ast);
+    visit_header_union_decl(ast);
   } else if (ast->kind == AST_DONTCARE) {
     ; // pass
   }
@@ -159,17 +124,17 @@ resolve_nameref_type_ref(struct Ast* ast)
 }
 
 internal void
-resolve_nameref_function_call(struct Ast* ast)
+visit_function_call(struct Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION_CALL_EXPR);
   struct Ast_FunctionCallExpr* expr = (struct Ast_FunctionCallExpr*)ast;
-  resolve_nameref_expression(expr->callee_expr);
+  visit_expression(expr->callee_expr);
   struct Ast_Expression* callee_expr = (struct Ast_Expression*)(expr->callee_expr);
   if (callee_expr->type_args) {
     struct ListLink* li = list_first_link(callee_expr->type_args);
     while (li) {
       struct Ast* type_arg = li->object;
-      resolve_nameref_type_ref(type_arg);
+      visit_type_ref(type_arg);
       li = li->next;
     }
   }
@@ -177,112 +142,112 @@ resolve_nameref_function_call(struct Ast* ast)
     struct ListLink* li = list_first_link(expr->args);
     while (li) {
       struct Ast* arg = li->object;
-      resolve_nameref_expression(arg);
+      visit_expression(arg);
       li = li->next;
     }
   }
 }
 
 internal void
-resolve_nameref_instantiation(struct Ast* ast)
+visit_instantiation(struct Ast* ast)
 {
   assert(ast->kind == AST_INSTANTIATION);
   struct Ast_Instantiation* decl = (struct Ast_Instantiation*)ast;
-  resolve_nameref_type_ref(decl->type_ref);
+  visit_type_ref(decl->type_ref);
   if (decl->args) {
     struct ListLink* li = list_first_link(decl->args);
     while (li) {
       struct Ast* arg = li->object;
-      resolve_nameref_expression(arg);
+      visit_expression(arg);
       li = li->next;
     }
   }
 }
 
 internal void
-resolve_nameref_switch_label(struct Ast* ast)
+visit_switch_label(struct Ast* ast)
 {
   if (ast->kind == AST_DEFAULT_STMT) {
     ; // pass
   } else {
-    resolve_nameref_expression(ast);
+    visit_expression(ast);
   }
 }
 
 internal void
-resolve_nameref_switch_case(struct Ast* ast)
+visit_switch_case(struct Ast* ast)
 {
   assert(ast->kind == AST_SWITCH_CASE);
   struct Ast_SwitchCase* switch_case = (struct Ast_SwitchCase*)ast;
-  resolve_nameref_switch_label(switch_case->label);
+  visit_switch_label(switch_case->label);
   struct Ast* case_stmt = switch_case->stmt;
   if (case_stmt && case_stmt->kind == AST_BLOCK_STMT) {
-    resolve_nameref_block_statement(case_stmt);
+    visit_block_statement(case_stmt);
   }
 }
 
 internal void
-resolve_nameref_keyset_expr(struct Ast* ast)
+visit_keyset_expr(struct Ast* ast)
 {
   if (ast->kind == AST_DEFAULT_STMT || ast->kind == AST_DONTCARE) {
     ; // pass
   } else {
-    resolve_nameref_expression(ast);
+    visit_expression(ast);
   }
 }
 
 internal void
-resolve_nameref_select_keyset(struct Ast* ast)
+visit_select_keyset(struct Ast* ast)
 {
   if (ast->kind == AST_TUPLE_KEYSET) {
     struct Ast_TupleKeyset* keyset = (struct Ast_TupleKeyset*)ast;
     struct ListLink* li = list_first_link(keyset->expr_list);
     while (li) {
       struct Ast* expr = li->object;
-      resolve_nameref_keyset_expr(expr);
+      visit_keyset_expr(expr);
       li = li->next;
     }
   } else {
-    resolve_nameref_keyset_expr(ast);
+    visit_keyset_expr(ast);
   }
 }
 
 internal void
-resolve_nameref_action_ref(struct Ast* ast)
+visit_action_ref(struct Ast* ast)
 {
   assert(ast->kind == AST_ACTION_REF);
   struct Ast_ActionRef* action = (struct Ast_ActionRef*)ast;
-  resolve_nameref_expression(action->name);
+  visit_expression(action->name);
   if (action->args) {
     struct ListLink* li = list_first_link(action->args);
     while (li) {
       struct Ast* arg = li->object;
-      resolve_nameref_expression(arg);
+      visit_expression(arg);
       li = li->next;
     }
   }
 }
 
 internal void
-resolve_nameref_table_keyelem(struct Ast* ast)
+visit_table_keyelem(struct Ast* ast)
 {
   assert(ast->kind == AST_KEY_ELEMENT);
   struct Ast_KeyElement* keyelem = (struct Ast_KeyElement*)ast;
-  resolve_nameref_expression(keyelem->expr);
-  resolve_nameref_expression(keyelem->name);
+  visit_expression(keyelem->expr);
+  visit_expression(keyelem->name);
 }
 
 internal void
-resolve_nameref_table_entry(struct Ast* ast)
+visit_table_entry(struct Ast* ast)
 {
   assert(ast->kind == AST_TABLE_ENTRY);
   struct Ast_TableEntry* entry = (struct Ast_TableEntry*)ast;
-  resolve_nameref_select_keyset(entry->keyset);
-  resolve_nameref_action_ref(entry->action);
+  visit_select_keyset(entry->keyset);
+  visit_action_ref(entry->action);
 }
 
 internal void
-resolve_nameref_table_property(struct Ast* ast)
+visit_table_property(struct Ast* ast)
 {
   if (ast->kind == AST_TABLE_ACTIONS) {
     struct Ast_TableActions* prop = (struct Ast_TableActions*)ast;
@@ -290,21 +255,21 @@ resolve_nameref_table_property(struct Ast* ast)
       struct ListLink* li = list_first_link(prop->action_list);
       while (li) {
         struct Ast* action = li->object;
-        resolve_nameref_action_ref(action);
+        visit_action_ref(action);
         li = li->next;
       }
     }
   } else if (ast->kind == AST_TABLE_SINGLE_ENTRY) {
     struct Ast_TableSingleEntry* prop = (struct Ast_TableSingleEntry*)ast;
     if (prop->init_expr) {
-      resolve_nameref_expression(prop->init_expr);
+      visit_expression(prop->init_expr);
     }
   } else if (ast->kind == AST_TABLE_KEY) {
     struct Ast_TableKey* prop = (struct Ast_TableKey*)ast;
     struct ListLink* li = list_first_link(prop->keyelem_list);
     while (li) {
       struct Ast* keyelem = li->object;
-      resolve_nameref_table_keyelem(keyelem);
+      visit_table_keyelem(keyelem);
       li = li->next;
     }
   } else if (ast->kind == AST_TABLE_ENTRIES) {
@@ -312,7 +277,7 @@ resolve_nameref_table_property(struct Ast* ast)
     struct ListLink* li = list_first_link(prop->entries);
     while (li) {
       struct Ast* entry = li->object;
-      resolve_nameref_table_entry(entry);
+      visit_table_entry(entry);
       li = li->next;
     }
   }
@@ -320,7 +285,7 @@ resolve_nameref_table_property(struct Ast* ast)
 }
 
 internal void
-resolve_nameref_table_decl(struct Ast* ast)
+visit_table_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_TABLE_DECL);
   struct Ast_TableDecl* decl = (struct Ast_TableDecl*)ast;
@@ -328,14 +293,14 @@ resolve_nameref_table_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(decl->prop_list);
     while (li) {
       struct Ast* prop = li->object;
-      resolve_nameref_table_property(prop);
+      visit_table_property(prop);
       li = li->next;
     }
   }
 }
 
 internal void
-resolve_nameref_action_decl(struct Ast* ast)
+visit_action_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_ACTION_DECL);
   struct Ast_ActionDecl* action_decl = (struct Ast_ActionDecl*)ast;
@@ -344,7 +309,7 @@ resolve_nameref_action_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(params);
     while (li) {
       struct Ast* param = li->object;
-      resolve_nameref_param(param);
+      visit_param(param);
       li = li->next;
     }
   }
@@ -355,7 +320,7 @@ resolve_nameref_action_decl(struct Ast* ast)
       struct ListLink* li = list_first_link(stmt_list);
       while (li) {
         struct Ast* stmt = li->object;
-        resolve_nameref_statement(stmt);
+        visit_statement(stmt);
         li = li->next;
       }
     }
@@ -363,53 +328,53 @@ resolve_nameref_action_decl(struct Ast* ast)
 }
 
 internal void
-resolve_nameref_statement(struct Ast* ast)
+visit_statement(struct Ast* ast)
 {
   if (ast->kind == AST_VAR_DECL) {
     struct Ast_VarDecl* decl = (struct Ast_VarDecl*)ast;
-    resolve_nameref_type_ref(decl->type);
+    visit_type_ref(decl->type);
     if (decl->init_expr) {
-      resolve_nameref_expression(decl->init_expr);
+      visit_expression(decl->init_expr);
     }
   } else if (ast->kind == AST_ACTION_DECL) {
-    resolve_nameref_action_decl(ast);
+    visit_action_decl(ast);
   } else if (ast->kind == AST_BLOCK_STMT) {
-    resolve_nameref_block_statement(ast);
+    visit_block_statement(ast);
   } else if (ast->kind == AST_INSTANTIATION) {
-    resolve_nameref_instantiation(ast);
+    visit_instantiation(ast);
   } else if (ast->kind == AST_TABLE_DECL) {
-    resolve_nameref_table_decl(ast);
+    visit_table_decl(ast);
   } else if (ast->kind == AST_IF_STMT) {
     struct Ast_IfStmt* stmt = (struct Ast_IfStmt*)ast;
     struct Ast* if_stmt = stmt->stmt;
-    resolve_nameref_expression(stmt->cond_expr);
-    resolve_nameref_statement(if_stmt);
+    visit_expression(stmt->cond_expr);
+    visit_statement(if_stmt);
     struct Ast* else_stmt = stmt->else_stmt;
     if (else_stmt) {
-      resolve_nameref_statement(else_stmt);
+      visit_statement(else_stmt);
     }
   } else if (ast->kind == AST_SWITCH_STMT) {
     struct Ast_SwitchStmt* stmt = (struct Ast_SwitchStmt*)ast;
-    resolve_nameref_expression(stmt->expr);
+    visit_expression(stmt->expr);
     if (stmt->switch_cases) {
       struct ListLink* li = list_first_link(stmt->switch_cases);
       while (li) {
         struct Ast* switch_case = li->object;
-        resolve_nameref_switch_case(switch_case);
+        visit_switch_case(switch_case);
         li = li->next;
       }
     }
   } else if (ast->kind == AST_ASSIGNMENT_STMT) {
     struct Ast_AssignmentStmt* stmt = (struct Ast_AssignmentStmt*)ast;
-    resolve_nameref_expression(stmt->lvalue);
+    visit_expression(stmt->lvalue);
     struct Ast* assign_expr = stmt->expr;
-    resolve_nameref_expression(assign_expr);
+    visit_expression(assign_expr);
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
-    resolve_nameref_function_call(ast);
+    visit_function_call(ast);
   } else if (ast->kind == AST_RETURN_STMT) {
     struct Ast_ReturnStmt* stmt = (struct Ast_ReturnStmt*)ast;
     if (stmt->expr) {
-      resolve_nameref_expression(stmt->expr);
+      visit_expression(stmt->expr);
     }
   } else if (ast->kind == AST_EXIT_STMT) {
     ; // pass
@@ -418,29 +383,29 @@ resolve_nameref_statement(struct Ast* ast)
 }
 
 internal void
-resolve_nameref_function_return_type(struct Ast* ast)
+visit_function_return_type(struct Ast* ast)
 {
   if (ast->kind == AST_NAME) {
     struct Ast_Name* return_type = (struct Ast_Name*)ast;
-    resolve_nameref_type_param((struct Ast*)return_type);
+    visit_type_param((struct Ast*)return_type);
   } else {
-    resolve_nameref_type_ref(ast);
+    visit_type_ref(ast);
   }
 }
 
-void
-resolve_nameref_function_proto(struct Ast* ast)
+internal void
+visit_function_proto(struct Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION_PROTO);
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)ast;
   if (function_proto->return_type) {
-    resolve_nameref_function_return_type(function_proto->return_type);
+    visit_function_return_type(function_proto->return_type);
   }
   if (function_proto->type_params) {
     struct ListLink* li = list_first_link(function_proto->type_params);
     while (li) {
       struct Ast* type_param = li->object;
-      resolve_nameref_type_param(type_param);
+      visit_type_param(type_param);
       li = li->next;
     }
   }
@@ -448,14 +413,14 @@ resolve_nameref_function_proto(struct Ast* ast)
     struct ListLink* li = list_first_link(function_proto->params);
     while (li) {
       struct Ast* param = li->object;
-      resolve_nameref_param(param);
+      visit_param(param);
       li = li->next;
     }
   }
 }
 
 internal void
-resolve_nameref_block_statement(struct Ast* ast)
+visit_block_statement(struct Ast* ast)
 {
   assert(ast->kind == AST_BLOCK_STMT);
   struct Ast_BlockStmt* block_stmt = (struct Ast_BlockStmt*)ast;
@@ -463,7 +428,7 @@ resolve_nameref_block_statement(struct Ast* ast)
     struct ListLink* li = list_first_link(block_stmt->stmt_list);
     while (li) {
       struct Ast* decl = li->object;
-      resolve_nameref_statement(decl);
+      visit_statement(decl);
       li = li->next;
     }
   }
@@ -471,7 +436,7 @@ resolve_nameref_block_statement(struct Ast* ast)
 
 
 internal void
-resolve_nameref_control_decl(struct Ast* ast)
+visit_control_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_CONTROL_DECL);
   struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
@@ -480,7 +445,7 @@ resolve_nameref_control_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(type_decl->type_params);
     while (li) {
       struct Ast* type_param = li->object;
-      resolve_nameref_type_param(type_param);
+      visit_type_param(type_param);
       li = li->next;
     }
   }
@@ -488,7 +453,7 @@ resolve_nameref_control_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(type_decl->params);
     while (li) {
       struct Ast* param = li->object;
-      resolve_nameref_param(param);
+      visit_param(param);
       li = li->next;
     }
   }
@@ -496,7 +461,7 @@ resolve_nameref_control_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(control_decl->ctor_params);
     while (li) {
       struct Ast* param = li->object;
-      resolve_nameref_param(param);
+      visit_param(param);
       li = li->next;
     }
   }
@@ -504,17 +469,17 @@ resolve_nameref_control_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(control_decl->local_decls);
     while (li) {
       struct Ast* decl = li->object;
-      resolve_nameref_statement(decl);
+      visit_statement(decl);
       li = li->next;
     }
   }
   if (control_decl->apply_stmt) {
-    resolve_nameref_block_statement(control_decl->apply_stmt);
+    visit_block_statement(control_decl->apply_stmt);
   }
 }
 
 internal void
-resolve_nameref_extern_decl(struct Ast* ast)
+visit_extern_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_EXTERN_DECL);
   struct Ast_ExternDecl* extern_decl = (struct Ast_ExternDecl*)ast;
@@ -522,7 +487,7 @@ resolve_nameref_extern_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(extern_decl->type_params);
     while (li) {
       struct Ast* type_param = li->object;
-      resolve_nameref_type_param(type_param);
+      visit_type_param(type_param);
       li = li->next;
     }
   }
@@ -530,14 +495,14 @@ resolve_nameref_extern_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(extern_decl->method_protos);
     while (li) {
       struct Ast* proto = li->object;
-      resolve_nameref_function_proto(proto);
+      visit_function_proto(proto);
       li = li->next;
     }
   }
 }
 
 internal void
-resolve_nameref_package_decl(struct Ast* ast)
+visit_package_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_PACKAGE_DECL);
   struct Ast_PackageDecl* package_decl = (struct Ast_PackageDecl*)ast;
@@ -545,38 +510,38 @@ resolve_nameref_package_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(package_decl->params);
     while (li) {
       struct Ast* param = li->object;
-      resolve_nameref_param(param);
+      visit_param(param);
       li = li->next;
     }
   }
 }
 
 internal void
-resolve_nameref_transition_select_case(struct Ast* ast)
+visit_transition_select_case(struct Ast* ast)
 {
   assert(ast->kind == AST_SELECT_CASE);
   struct Ast_SelectCase* select_case = (struct Ast_SelectCase*)ast;
-  resolve_nameref_select_keyset(select_case->keyset);
-  resolve_nameref_expression(select_case->name);
+  visit_select_keyset(select_case->keyset);
+  visit_expression(select_case->name);
 }
 
 internal void
-resolve_nameref_parser_transition(struct Ast* ast)
+visit_parser_transition(struct Ast* ast)
 {
   if (ast->kind == AST_NAME) {
-    resolve_nameref_expression(ast);
+    visit_expression(ast);
   } else if (ast->kind == AST_SELECT_EXPR) {
     struct Ast_SelectExpr* trans_stmt = (struct Ast_SelectExpr*)ast;
     struct ListLink* li = list_first_link(trans_stmt->expr_list);
     while (li) {
       struct Ast* expr = li->object;
-      resolve_nameref_expression(expr);
+      visit_expression(expr);
       li = li->next;
     }
     li = list_first_link(trans_stmt->case_list);
     while (li) {
       struct Ast* select_case = li->object;
-      resolve_nameref_transition_select_case(select_case);
+      visit_transition_select_case(select_case);
       li = li->next;
     }
   }
@@ -584,7 +549,7 @@ resolve_nameref_parser_transition(struct Ast* ast)
 }
 
 internal void
-resolve_nameref_parser_state(struct Ast* ast)
+visit_parser_state(struct Ast* ast)
 {
   assert(ast->kind == AST_PARSER_STATE);
   struct Ast_ParserState* state = (struct Ast_ParserState*)ast;
@@ -592,36 +557,36 @@ resolve_nameref_parser_state(struct Ast* ast)
     struct ListLink* li = list_first_link(state->stmt_list);
     while (li) {
       struct Ast* stmt = li->object;
-      resolve_nameref_statement(stmt);
+      visit_statement(stmt);
       li = li->next;
     }
   }
-  resolve_nameref_parser_transition(state->trans_stmt);
-}
-
-void
-resolve_nameref_const_decl(struct Ast* ast)
-{
-  assert(ast->kind == AST_CONST_DECL);
-  struct Ast_ConstDecl* decl = (struct Ast_ConstDecl*)ast;
-  resolve_nameref_type_ref(decl->type_ref);
-  resolve_nameref_expression(decl->expr);
+  visit_parser_transition(state->trans_stmt);
 }
 
 internal void
-resolve_nameref_local_parser_element(struct Ast* ast)
+visit_const_decl(struct Ast* ast)
+{
+  assert(ast->kind == AST_CONST_DECL);
+  struct Ast_ConstDecl* decl = (struct Ast_ConstDecl*)ast;
+  visit_type_ref(decl->type_ref);
+  visit_expression(decl->expr);
+}
+
+internal void
+visit_local_parser_element(struct Ast* ast)
 {
   if (ast->kind == AST_CONST_DECL) {
-    resolve_nameref_const_decl(ast);
+    visit_const_decl(ast);
   } else if (ast->kind == AST_INSTANTIATION) {
-    resolve_nameref_instantiation(ast);
+    visit_instantiation(ast);
   } else if (ast->kind == AST_VAR_DECL) {
-    resolve_nameref_statement(ast);
+    visit_statement(ast);
   } else assert(0);
 }
 
 internal void
-resolve_nameref_parser_decl(struct Ast* ast)
+visit_parser_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_PARSER_DECL);
   struct Ast_ParserDecl* parser_decl = (struct Ast_ParserDecl*)ast;
@@ -630,7 +595,7 @@ resolve_nameref_parser_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(type_decl->type_params);
     while (li) {
       struct Ast* type_param = li->object;
-      resolve_nameref_type_param(type_param);
+      visit_type_param(type_param);
       li = li->next;
     }
   }
@@ -638,7 +603,7 @@ resolve_nameref_parser_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(type_decl->params);
     while (li) {
       struct Ast* param = li->object;
-      resolve_nameref_param(param);
+      visit_param(param);
       li = li->next;
     }
   }
@@ -646,7 +611,7 @@ resolve_nameref_parser_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(parser_decl->ctor_params);
     while (li) {
       struct Ast* param = li->object;
-      resolve_nameref_param(param);
+      visit_param(param);
       li = li->next;
     }
   }
@@ -654,7 +619,7 @@ resolve_nameref_parser_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(parser_decl->local_elements);
     while (li) {
       struct Ast* element = li->object;
-      resolve_nameref_local_parser_element(element);
+      visit_local_parser_element(element);
       li = li->next;
     }
   }
@@ -662,35 +627,35 @@ resolve_nameref_parser_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(parser_decl->states);
     while (li) {
       struct Ast* state = li->object;
-      resolve_nameref_parser_state(state);
+      visit_parser_state(state);
       li = li->next;
     }
   }
 }
 
 internal void
-resolve_nameref_type_decl(struct Ast* ast)
+visit_type_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_TYPE_DECL);
   struct Ast_TypeDecl* type_decl = (struct Ast_TypeDecl*)ast;
   struct Ast* type_ref = type_decl->type_ref;
-  resolve_nameref_type_ref(type_ref);
+  visit_type_ref(type_ref);
 }
 
 internal void
-resolve_nameref_function_decl(struct Ast* ast)
+visit_function_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION_DECL);
   struct Ast_FunctionDecl* function_decl = (struct Ast_FunctionDecl*)ast;
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)function_decl->proto;
   if (function_proto->return_type) {
-    resolve_nameref_function_return_type(function_proto->return_type);
+    visit_function_return_type(function_proto->return_type);
   }
   if (function_proto->type_params) {
     struct ListLink* li = list_first_link(function_proto->type_params);
     while (li) {
       struct Ast* type_param = li->object;
-      resolve_nameref_type_param(type_param);
+      visit_type_param(type_param);
       li = li->next;
     }
   }
@@ -698,7 +663,7 @@ resolve_nameref_function_decl(struct Ast* ast)
     struct ListLink* li = list_first_link(function_proto->params);
     while (li) {
       struct Ast* param = li->object;
-      resolve_nameref_param(param);
+      visit_param(param);
       li = li->next;
     }
   }
@@ -708,7 +673,7 @@ resolve_nameref_function_decl(struct Ast* ast)
       struct ListLink* li = list_first_link(function_body->stmt_list);
       while (li) {
         struct Ast* stmt = li->object;
-        resolve_nameref_statement(stmt);
+        visit_statement(stmt);
         li = li->next;
       }
     }
@@ -716,24 +681,24 @@ resolve_nameref_function_decl(struct Ast* ast)
 }
 
 internal void
-resolve_nameref_enum_field(struct Ast* ast)
+visit_enum_field(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
 }
 
 internal void
-resolve_nameref_specified_id(struct Ast* ast)
+visit_specified_id(struct Ast* ast)
 {
   assert(ast->kind == AST_SPECIFIED_IDENT);
   struct Ast_SpecifiedIdent* id = (struct Ast_SpecifiedIdent*)ast;
   struct Ast* init_expr = id->init_expr;
   if (init_expr) {
-    resolve_nameref_expression(init_expr);
+    visit_expression(init_expr);
   }
 }
 
 internal void
-resolve_nameref_error_decl(struct Ast* ast)
+visit_error_decl(struct Ast* ast)
 {
   assert (ast->kind == AST_ERROR_DECL);
   struct Ast_ErrorDecl* decl = (struct Ast_ErrorDecl*)ast;
@@ -742,7 +707,7 @@ resolve_nameref_error_decl(struct Ast* ast)
     while (li) {
       struct Ast* id = li->object;
       if (id->kind == AST_NAME) {
-        resolve_nameref_enum_field(id);
+        visit_enum_field(id);
       }
       else assert(0);
       li = li->next;
@@ -751,7 +716,7 @@ resolve_nameref_error_decl(struct Ast* ast)
 }
 
 internal void
-resolve_nameref_enum_decl(struct Ast* ast)
+visit_enum_decl(struct Ast* ast)
 {
   assert(ast->kind == AST_ENUM_DECL);
   struct Ast_EnumDecl* enum_decl = (struct Ast_EnumDecl*)ast;
@@ -760,7 +725,7 @@ resolve_nameref_enum_decl(struct Ast* ast)
     while (li) {
       struct Ast* id = li->object;
       if (id->kind == AST_SPECIFIED_IDENT) {
-        resolve_nameref_specified_id(id);
+        visit_specified_id(id);
       }
       else assert(0);
       li = li->next;
@@ -769,26 +734,28 @@ resolve_nameref_enum_decl(struct Ast* ast)
 }
 
 internal void
-resolve_nameref_expression(struct Ast* ast)
+visit_expression(struct Ast* ast)
 {
   if (ast->kind == AST_BINARY_EXPR) {
     struct Ast_BinaryExpr* expr = (struct Ast_BinaryExpr*)ast;
-    resolve_nameref_expression(expr->left_operand);
-    resolve_nameref_expression(expr->right_operand);
+    visit_expression(expr->left_operand);
+    visit_expression(expr->right_operand);
   } else if (ast->kind == AST_UNARY_EXPR) {
     struct Ast_UnaryExpr* expr = (struct Ast_UnaryExpr*)ast;
-    resolve_nameref_expression(expr->operand);
+    visit_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
+    /*
     struct NameRef* nameref = name->ref;
     if (nameref) {
       struct NameEntry* entry = scope_lookup_name(nameref->scope, nameref->strname);
     } // else it's a declaration
+    */
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
-    resolve_nameref_function_call(ast);
+    visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
     struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
-    resolve_nameref_expression(expr->lhs_expr);
+    visit_expression(expr->lhs_expr);
     struct Ast_Name* name = (struct Ast_Name*)expr->member_name;
   } else if (ast->kind == AST_EXPRLIST_EXPR) {
     struct Ast_ExprListExpr* expr = (struct Ast_ExprListExpr*)ast;
@@ -796,24 +763,24 @@ resolve_nameref_expression(struct Ast* ast)
       struct ListLink* li = list_first_link(expr->expr_list);
       while (li) {
         struct Ast* expr_expr = li->object;
-        resolve_nameref_expression(expr_expr);
+        visit_expression(expr_expr);
         li = li->next;
       }
     }
   } else if (ast->kind == AST_CAST_EXPR) {
     struct Ast_CastExpr* expr = (struct Ast_CastExpr*)ast;
-    resolve_nameref_type_ref(expr->to_type);
-    resolve_nameref_expression(expr->expr);
+    visit_type_ref(expr->to_type);
+    visit_expression(expr->expr);
   } else if (ast->kind == AST_SUBSCRIPT_EXPR) {
     struct Ast_SubscriptExpr* expr = (struct Ast_SubscriptExpr*)ast;
-    resolve_nameref_expression(expr->index);
+    visit_expression(expr->index);
     if (expr->colon_index) {
-      resolve_nameref_expression(expr->colon_index);
+      visit_expression(expr->colon_index);
     }
   } else if (ast->kind == AST_KVPAIR_EXPR) {
     struct Ast_KeyValuePairExpr* expr = (struct Ast_KeyValuePairExpr*)ast;
-    resolve_nameref_expression(expr->name);
-    resolve_nameref_expression(expr->expr);
+    visit_expression(expr->name);
+    visit_expression(expr->expr);
   } else if (ast->kind == AST_INT_LITERAL || ast->kind == AST_BOOL_LITERAL || ast->kind == AST_STRING_LITERAL) {
     ; // pass
   }
@@ -821,7 +788,7 @@ resolve_nameref_expression(struct Ast* ast)
 }
 
 internal void
-resolve_nameref_match_kind(struct Ast* ast)
+visit_match_kind(struct Ast* ast)
 {
   assert(ast->kind == AST_MATCH_KIND_DECL);
   struct Ast_MatchKindDecl* decl = (struct Ast_MatchKindDecl*)ast;
@@ -830,9 +797,9 @@ resolve_nameref_match_kind(struct Ast* ast)
     while (li) {
       struct Ast* id = li->object;
       if (id->kind == AST_NAME) {
-        resolve_nameref_enum_field(id);
+        visit_enum_field(id);
       } else if (id->kind == AST_SPECIFIED_IDENT) {
-        resolve_nameref_specified_id(id);
+        visit_specified_id(id);
       }
       else assert(0);
       li = li->next;
@@ -841,7 +808,7 @@ resolve_nameref_match_kind(struct Ast* ast)
 }
 
 internal void
-resolve_nameref_p4program(struct Ast* ast)
+visit_p4program(struct Ast* ast)
 {
   assert(ast->kind == AST_P4PROGRAM);
   struct Ast_P4Program* program = (struct Ast_P4Program*)ast;
@@ -849,37 +816,37 @@ resolve_nameref_p4program(struct Ast* ast)
   while (li) {
     struct Ast* decl = li->object;
     if (decl->kind == AST_CONTROL_DECL) {
-      resolve_nameref_control_decl(decl);
+      visit_control_decl(decl);
     } else if (decl->kind == AST_EXTERN_DECL) {
-      resolve_nameref_extern_decl(decl);
+      visit_extern_decl(decl);
     } else if (decl->kind == AST_STRUCT_DECL) {
-      resolve_nameref_struct_decl(decl);
+      visit_struct_decl(decl);
     } else if (decl->kind == AST_HEADER_DECL) {
-      resolve_nameref_header_decl(decl);
+      visit_header_decl(decl);
     } else if (decl->kind == AST_HEADER_UNION_DECL) {
-      resolve_nameref_header_union_decl(decl);
+      visit_header_union_decl(decl);
     } else if (decl->kind == AST_PACKAGE_DECL) {
-      resolve_nameref_package_decl(decl);
+      visit_package_decl(decl);
     } else if (decl->kind == AST_PARSER_DECL) {
-      resolve_nameref_parser_decl(decl);
+      visit_parser_decl(decl);
     } else if (decl->kind == AST_INSTANTIATION) {
-      resolve_nameref_instantiation(decl);
+      visit_instantiation(decl);
     } else if (decl->kind == AST_TYPE_DECL) {
-      resolve_nameref_type_decl(decl);
+      visit_type_decl(decl);
     } else if (decl->kind == AST_FUNCTION_PROTO) {
-      resolve_nameref_function_proto(decl);
+      visit_function_proto(decl);
     } else if (decl->kind == AST_CONST_DECL) {
-      resolve_nameref_const_decl(decl);
+      visit_const_decl(decl);
     } else if (decl->kind == AST_ENUM_DECL) {
-      resolve_nameref_enum_decl(decl);
+      visit_enum_decl(decl);
     } else if (decl->kind == AST_FUNCTION_DECL) {
-      resolve_nameref_function_decl(decl);
+      visit_function_decl(decl);
     } else if (decl->kind == AST_ACTION_DECL) {
-      resolve_nameref_action_decl(decl);
+      visit_action_decl(decl);
     } else if (decl->kind == AST_MATCH_KIND_DECL) {
-      resolve_nameref_match_kind(decl);
+      visit_match_kind(decl);
     } else if (decl->kind == AST_ERROR_DECL) {
-      resolve_nameref_error_decl(decl);
+      visit_error_decl(decl);
     }
     else assert(0);
     li = li->next;
@@ -889,5 +856,5 @@ resolve_nameref_p4program(struct Ast* ast)
 void
 resolve_nameref(struct Ast* p4program)
 {
-  resolve_nameref_p4program(p4program);
+  visit_p4program(p4program);
 }

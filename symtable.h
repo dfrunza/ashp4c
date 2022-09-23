@@ -18,12 +18,14 @@ struct NameDecl {
   struct NameDecl* next_in_scope;
 };  
 
+/*
 struct NameRef {
   uint32_t name_id;
   char* strname;
   int line_no;
   struct Scope* scope;
 };
+*/
 
 struct NameEntry {
   char* strname;
