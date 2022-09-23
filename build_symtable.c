@@ -1098,12 +1098,12 @@ visit_p4program(struct Ast* ast)
 }
 
 void
-build_symtable(struct Ast* p4program, struct Arena* symtable_storage_)
+build_symtable(struct Ast_P4Program* p4program, struct Arena* symtable_storage_)
 {
   symtable_storage = symtable_storage_;
   symtable_init(symtable_storage);
 
-  int node_id = 1;
+  int node_id = p4program->last_node_id;
 
   /* Builtin Types */
 
@@ -1177,5 +1177,6 @@ build_symtable(struct Ast* p4program, struct Arena* symtable_storage_)
     declare_object_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
   }
 
-  visit_p4program(p4program);
+  p4program->last_node_id = node_id;
+  visit_p4program((struct Ast*)p4program);
 }

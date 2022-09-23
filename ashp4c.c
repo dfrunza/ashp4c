@@ -110,7 +110,7 @@ main(int arg_count, char* args[])
   struct UnboundedArray* tokens_array = lex_tokenize(text, text_size, &main_storage, &tokens_storage);
   arena_delete(&text_storage);
 
-  struct Ast* p4program = build_ast(tokens_array, &main_storage);
+  struct Ast_P4Program* p4program = build_ast(tokens_array, &main_storage);
   assert(p4program && p4program->kind == AST_P4PROGRAM);
   arena_delete(&tokens_storage);
 
@@ -121,7 +121,7 @@ main(int arg_count, char* args[])
   struct Hashmap* type_map;
   build_symtable(p4program, &main_storage);
   type_map = build_type(p4program, &main_storage);
-  resolve_nameref(p4program);
+  resolve_nameref((struct Ast*)p4program);
 
   arena_delete(&main_storage);
   return 0;

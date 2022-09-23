@@ -854,7 +854,7 @@ visit_p4program(struct Ast* ast)
 }
 
 void
-resolve_nameref(struct Ast* p4program)
+resolve_nameref(struct Ast_P4Program* p4program)
 {
-  visit_p4program(p4program);
+  visit_p4program((struct Ast*)p4program);
 }

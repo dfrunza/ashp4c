@@ -3001,7 +3001,7 @@ build_expression(int priority_threshold)
   return expr;
 }
 
-struct Ast*
+struct Ast_P4Program*
 build_ast(struct UnboundedArray* tokens_array_, struct Arena* ast_storage_)
 {
   struct NameDecl*
@@ -3062,7 +3062,8 @@ build_ast(struct UnboundedArray* tokens_array_, struct Arena* ast_storage_)
   token = array_get(tokens_array, token_at);
   next_token();
   push_scope();
-  struct Ast* p4program = build_p4program();
+  struct Ast_P4Program* p4program = (struct Ast_P4Program*)build_p4program();
+  p4program->last_node_id = node_id;
   pop_scope();
   return p4program;
 }

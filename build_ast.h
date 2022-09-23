@@ -3,4 +3,4 @@
 #include "ast.h"
 
 
-struct Ast* build_ast(struct UnboundedArray* tokens_array, struct Arena* ast_storage);
+struct Ast_P4Program* build_ast(struct UnboundedArray* tokens_array, struct Arena* ast_storage);

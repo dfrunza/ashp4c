@@ -1194,7 +1194,7 @@ visit_p4program(struct Ast* ast)
 }
 
 struct Hashmap*
-build_type(struct Ast* p4program, struct Arena* type_storage_)
+build_type(struct Ast_P4Program* p4program, struct Arena* type_storage_)
 {
   void add_basic_type(char* strname, enum BasicType basic_ty) {
     struct Type_Basic* type = arena_push_struct(type_storage, struct Type_Basic);
@@ -1217,6 +1217,6 @@ build_type(struct Ast* p4program, struct Arena* type_storage_)
   add_basic_type("varbit", TYPE_INT);
   add_basic_type("string", TYPE_STRING);
 
-  visit_p4program(p4program);
+  visit_p4program((struct Ast*)p4program);
   return &type_map;
 }

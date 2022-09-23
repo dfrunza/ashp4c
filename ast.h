@@ -485,6 +485,7 @@ struct Ast_KeyValuePairExpr {
 struct Ast_P4Program {
   struct Ast;
   struct List* decl_list;
+  int last_node_id;
 };
 
 struct Ast_SelectExpr {
