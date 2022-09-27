@@ -3,7 +3,6 @@
 #include "hashmap.h"
 #include "token.h"
 
-
 enum Namespace {
   NAMESPACE_TYPE = 1 << 0,
   NAMESPACE_VAR = 1 << 1,

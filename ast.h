@@ -2,7 +2,6 @@
 #include "basic.h"
 #include "arena.h"
 
-
 enum AstEnum {
   AST_NAME = 1,
   AST_BASETYPE_BOOL,

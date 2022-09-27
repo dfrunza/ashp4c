@@ -6,7 +6,6 @@
 #include "build_ast.h"
 #include <memory.h>  // memset
 
-
 struct NameDecl_Keyword {
   struct NameDecl;
   enum TokenClass token_class;
@@ -25,7 +24,6 @@ internal struct Ast* build_typeRef();
 internal struct Ast* build_blockStatement();
 internal struct Ast* build_statement(struct Ast* type_name);
 internal struct Ast* build_parserStatement();
-
 
 internal struct Token*
 next_token()

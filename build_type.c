@@ -5,7 +5,6 @@
 #include "build_type.h"
 #include <memory.h>  // memset
 
-
 internal struct Arena *type_storage;
 internal struct Hashmap type_map = {};
 
@@ -13,7 +12,6 @@ internal void visit_block_statement(struct Ast* block_stmt);
 internal void visit_statement(struct Ast* decl);
 internal void visit_expression(struct Ast* expr);
 internal void visit_type_ref(struct Ast* type_ref);
-
 
 internal void
 visit_param(struct Ast* ast)
@@ -553,7 +551,7 @@ visit_statement(struct Ast* ast)
     visit_function_call(ast);
   } else if (ast->kind == AST_RETURN_STMT) {
     visit_return_stmt(ast);
-  } else if (ast->kind == AST_EXIT_STMT) {
+  } else if (ast->kind == AST_EXIT_STMT || ast->kind == AST_EMPTY_STMT) {
     ; // pass
   }
   else assert(0);

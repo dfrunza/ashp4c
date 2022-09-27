@@ -4,9 +4,7 @@
 #include <sys/mman.h>
 #include <math.h>
 
-
 #define ZERO_MEMORY_ON_FREE  0
-
 
 internal int page_size = 0;
 internal int total_page_count = 0;
@@ -15,7 +13,6 @@ internal struct Arena pageblock_storage = {};
 internal struct PageBlock* first_block = 0;
 internal struct PageBlock* block_freelist_head = 0;
 internal struct PageBlock* recycled_block_structs = 0;
-
 
 void
 arena_print_usage(struct Arena* arena, char* caption)

@@ -4,11 +4,9 @@
 #include "symtable.h"
 #include <memory.h>  // memset
 
-
 internal struct Arena *symtable_storage;
 internal struct Arena local_storage = {};
 internal struct UnboundedArray scope_stack = {};
-
 
 struct Scope*
 get_root_scope()

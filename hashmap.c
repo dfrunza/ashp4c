@@ -1,11 +1,9 @@
 #include "hashmap.h"
 #include <memory.h>  // memset
 
-
 internal const uint32_t P = 257, Q = 4294967029;
 internal const uint32_t SIGMA = 2654435769;
 internal struct HashmapEntry* NULL_ENTRY = 0;
-
 
 internal uint32_t
 fold_string(uint8_t* string)

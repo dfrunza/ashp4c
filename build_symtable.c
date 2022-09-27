@@ -3,15 +3,12 @@
 #include "symtable.h"
 #include <memory.h>  // memset
 
-
 internal struct Arena* symtable_storage;
-
 
 internal void visit_block_statement(struct Ast* block_stmt);
 internal void visit_statement(struct Ast* decl);
 internal void visit_expression(struct Ast* expr);
 internal void visit_type_ref(struct Ast* type_ref);
-
 
 internal void
 visit_function_call(struct Ast* ast)
@@ -412,7 +409,7 @@ visit_statement(struct Ast* ast)
     if (stmt->expr) {
       visit_expression(stmt->expr);
     }
-  } else if (ast->kind == AST_EXIT_STMT) {
+  } else if (ast->kind == AST_EXIT_STMT || ast->kind == AST_EMPTY_STMT) {
     ; // pass
   }
   else assert(0);

@@ -2,7 +2,6 @@
 #include "basic.h"
 #include "arena.h"
 
-
 enum HashmapKeyType {
   HASHMAP_KEY_STRING = 1,
   HASHMAP_KEY_BLOB,

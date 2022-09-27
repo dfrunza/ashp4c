@@ -1,7 +1,6 @@
 #pragma once
 #include "basic.h"
 
-
 struct Arena;
 
 struct PageBlock {

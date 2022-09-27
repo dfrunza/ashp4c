@@ -2,7 +2,6 @@
 #include "lex.h"
 #include <memory.h>  // memset
 
-
 internal struct Arena* lexeme_storage;
 internal char* text;
 internal int text_size;
