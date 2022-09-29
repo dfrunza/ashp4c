@@ -1226,7 +1226,7 @@ build_type(struct Ast_P4Program* p4program, struct Arena* type_storage_)
   type_storage = type_storage_;
   hashmap_init(&type_map, HASHMAP_KEY_INT, 8, type_storage);
 
-  /* Basic Types */
+  /* Basic types */
 
   add_basic_type("void", TYPE_INT);
   add_basic_type("bool", TYPE_INT);
