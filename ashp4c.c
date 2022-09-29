@@ -118,7 +118,7 @@ main(int arg_count, char* args[])
 
   struct Hashmap* type_map;
   build_symtable(p4program, &main_storage);
-  type_map = build_type(p4program, &main_storage);
+  //type_map = build_type(p4program, &main_storage);
   resolve_nameref(p4program);
 
   arena_delete(&main_storage);

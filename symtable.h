@@ -10,21 +10,22 @@ enum Namespace {
 };
 
 struct NameDecl {
-  struct Ast* ast;
-  uint32_t ast_id;
+  union {
+    struct Ast* decl;
+    enum TokenClass token_class;
+  };
   char* strname;
   int line_no;
-  struct NameDecl* next_in_scope;
+  struct Scope* scope;
+  struct NameDecl* nextdecl_in_scope;
 };  
 
-/*
 struct NameRef {
-  uint32_t name_id;
+  struct Ast* name; // ref
   char* strname;
   int line_no;
   struct Scope* scope;
 };
-*/
 
 struct NameEntry {
   char* strname;
@@ -51,7 +52,7 @@ struct Scope* pop_scope();
 struct Scope* get_root_scope();
 struct Scope* get_current_scope();
 struct NameEntry* scope_lookup_name(struct Scope* scope, char* name);
-struct NameEntry* declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl);
+struct NameEntry* declare_name_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl);
 struct NameRef* nameref_get_entry(struct Hashmap* map, uint32_t id);
 void nameref_add_entry(struct Hashmap* map, struct NameRef* nameref, uint32_t id);
 struct Type* type_get_entry(struct Hashmap* map, uint32_t id);

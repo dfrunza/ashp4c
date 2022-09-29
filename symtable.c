@@ -96,17 +96,17 @@ scope_lookup_name(struct Scope* scope, char* name)
 }
 
 struct NameEntry*
-declare_object_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl)
+declare_name_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl)
 {
   struct NameEntry* ne = name_get_or_create_entry(&scope->declarations, decl->strname);
   if (ns == NAMESPACE_TYPE) {
-    decl->next_in_scope = ne->ns_type;
+    decl->nextdecl_in_scope = ne->ns_type;
     ne->ns_type = decl;
   } else if (ns == NAMESPACE_VAR) {
-    decl->next_in_scope = ne->ns_var;
+    decl->nextdecl_in_scope = ne->ns_var;
     ne->ns_var = decl;
   } else if (ns == NAMESPACE_KEYWORD) {
-    assert(!decl->next_in_scope);
+    assert(!decl->nextdecl_in_scope);
     ne->ns_keyword = decl;
   } else assert(0);
   return ne;

@@ -347,7 +347,7 @@ next_token(struct Token* token)
 
       case 107:
       {
-        token->klass = TK_DOT_PREFIX;
+        token->klass = TK_DOTPREFIX;
         token->lexeme = lexeme_to_cstring(lexeme);
         lexeme_advance();
         state = 0;

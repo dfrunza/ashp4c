@@ -6,18 +6,13 @@
 #include "build_ast.h"
 #include <memory.h>  // memset
 
-struct NameDecl_Keyword {
-  struct NameDecl;
-  enum TokenClass token_class;
-};  
-
 internal struct Arena *ast_storage;
 internal struct UnboundedArray* tokens_array;
 internal int token_at = 0;
 internal struct Token* token = 0;
 internal int prev_token_at = 0;
 internal struct Token* prev_token = 0;
-internal int node_id = 100; // first 100 IDs are reserved for built-in nodes
+internal int node_id = 1;
 
 internal struct Ast* build_expression(int priority_threshold);
 internal struct Ast* build_typeRef();
@@ -38,7 +33,8 @@ next_token()
   if (token->klass == TK_IDENTIFIER) {
     struct NameEntry* entry = scope_lookup_name(get_current_scope(), token->lexeme);
     if (entry->ns_keyword) {
-      token->klass = ((struct NameDecl_Keyword*)entry->ns_keyword)->token_class;
+      struct NameDecl* nd = entry->ns_keyword;
+      token->klass = nd->token_class;
       return token;
     }
     if (entry->ns_type) {
@@ -63,13 +59,13 @@ peek_token()
 internal bool
 token_is_typeName(struct Token* token)
 {
-  return token->klass == TK_TYPE_IDENTIFIER || token->klass == TK_DOT_PREFIX;
+  return token->klass == TK_TYPE_IDENTIFIER || token->klass == TK_DOTPREFIX;
 }
 
 internal bool
 token_is_prefixedType(struct Token* token)
 {
-  return token->klass == TK_TYPE_IDENTIFIER || token->klass == TK_DOT_PREFIX;
+  return token->klass == TK_TYPE_IDENTIFIER || token->klass == TK_DOTPREFIX;
 }
 
 internal bool
@@ -164,7 +160,7 @@ token_is_typeOrVoid(struct Token* token)
 internal bool
 token_is_actionRef(struct Token* token)
 {
-  bool result = token->klass == TK_DOT_PREFIX || token_is_nonTypeName(token)
+  bool result = token->klass == TK_DOTPREFIX || token_is_nonTypeName(token)
     || token->klass == TK_PARENTH_OPEN;
   return result;
 }
@@ -189,7 +185,7 @@ internal bool
 token_is_expressionPrimary(struct Token* token)
 {
   bool result = token->klass == TK_INT_LITERAL || token->klass == TK_TRUE || token->klass == TK_FALSE
-    || token->klass == TK_STRING_LITERAL || token->klass == TK_DOT_PREFIX || token_is_nonTypeName(token)
+    || token->klass == TK_STRING_LITERAL || token->klass == TK_DOTPREFIX || token_is_nonTypeName(token)
     || token->klass == TK_BRACE_OPEN || token->klass == TK_PARENTH_OPEN || token->klass == TK_EXCLAMATION
     || token->klass == TK_TILDA || token->klass == TK_UNARY_MINUS || token_is_typeName(token)
     || token->klass == TK_ERROR || token_is_prefixedType(token);
@@ -220,9 +216,10 @@ build_nonTypeName(bool is_type)
     name->strname = token->lexeme;
     if (is_type) {
       struct NameDecl* decl = arena_push_struct(ast_storage, struct NameDecl);
+      decl->decl = (struct Ast*)name;
       decl->strname = name->strname;
       decl->line_no = token->line_no;
-      declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
+      declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
     }
     next_token();
   } else error("at line %d: non-type name was expected, got `%s`.", token->line_no, token->lexeme);
@@ -391,9 +388,10 @@ build_typeOrVoid(bool is_type)
       type = (struct Ast*)name;
       if (is_type) {
         struct NameDecl* decl = arena_push_struct(ast_storage, struct NameDecl);
+        decl->decl = (struct Ast*)name;
         decl->strname = name->strname;
         decl->line_no = token->line_no;
-        declare_object_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
+        declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
       }
       next_token();
     } else assert(0);
@@ -767,17 +765,16 @@ build_prefixedType()
 {
   struct Ast_Name* name = 0;
   bool is_dotprefixed = false;
-  if (token->klass == TK_DOT_PREFIX) {
+  if (token->klass == TK_DOTPREFIX) {
     next_token();
     is_dotprefixed = true;
   }
   if (token->klass == TK_TYPE_IDENTIFIER) {
     name = arena_push_struct(ast_storage, struct Ast_Name);
-    name->kind = AST_NAME;
+    name->kind = is_dotprefixed ? AST_DOTNAME : AST_NAME;
     name->id = node_id++;
     name->line_no = token->line_no;
     name->strname = token->lexeme;
-    name->is_dotprefixed = is_dotprefixed;
     next_token();
   } else error("at line %d: type was expected, got `%s`.", token->line_no, token->lexeme);
   return (struct Ast*)name;
@@ -1131,14 +1128,14 @@ token_is_declaration(struct Token* token)
   bool result = token->klass == TK_CONST || token->klass == TK_EXTERN || token->klass == TK_ACTION
     || token->klass == TK_PARSER || token_is_typeDeclaration(token) || token->klass == TK_CONTROL
     || token_is_typeRef(token) || token->klass == TK_ERROR || token->klass == TK_MATCH_KIND
-    || token_is_typeOrVoid(token) || token->klass == TK_DOT_PREFIX;
+    || token_is_typeOrVoid(token) || token->klass == TK_DOTPREFIX;
   return result;
 }
 
 internal bool
 token_is_lvalue(struct Token* token)
 {
-  bool result = token_is_nonTypeName(token) | token->klass == TK_DOT_PREFIX;
+  bool result = token_is_nonTypeName(token) | token->klass == TK_DOTPREFIX;
   return result;
 }
 
@@ -1375,7 +1372,7 @@ build_directApplication(struct Ast* type_name)
     apply_name->strname = "apply";
     apply_select->member_name = (struct Ast*)apply_name;
     apply_expr->callee_expr = (struct Ast*)apply_select;
-    if (token->klass == TK_DOT_PREFIX) {
+    if (token->klass == TK_DOTPREFIX) {
       next_token();
       if (token->klass == TK_APPLY) {
         next_token();
@@ -1400,13 +1397,13 @@ build_prefixedNonTypeName()
 {
   struct Ast_Name* name = 0;
   bool is_dotprefixed = false;
-  if (token->klass == TK_DOT_PREFIX) {
+  if (token->klass == TK_DOTPREFIX) {
     next_token();
     is_dotprefixed = true;
   }
   if (token_is_nonTypeName) {
     name = (struct Ast_Name*)build_nonTypeName(false);
-    name->is_dotprefixed = is_dotprefixed;
+    name->kind = is_dotprefixed ? AST_DOTNAME : AST_NAME;
   } else error("at line %d: non-type name was expected, ", token->line_no, token->lexeme);
   return (struct Ast*)name;
 }
@@ -1434,10 +1431,10 @@ internal struct Ast*
 build_lvalueExpr()
 {
   struct Ast* expr = 0;
-  if (token->klass == TK_DOT_PREFIX) {
+  if (token->klass == TK_DOTPREFIX) {
     next_token();
     struct Ast_Name* dot_member = (struct Ast_Name*)build_name(false);
-    dot_member->is_dotprefixed = true;
+    dot_member->kind = AST_DOTNAME;
     expr = (struct Ast*)dot_member;
   } else if (token->klass == TK_BRACKET_OPEN) {
     next_token();
@@ -1456,8 +1453,8 @@ build_lvalue()
   if (token_is_lvalue(token)) {
     struct Ast* name = build_prefixedNonTypeName();
     lvalue = name;
-    while(token->klass == TK_DOT_PREFIX || token->klass == TK_BRACKET_OPEN) {
-      if (token->klass == TK_DOT_PREFIX) {
+    while(token->klass == TK_DOTPREFIX || token->klass == TK_BRACKET_OPEN) {
+      if (token->klass == TK_DOTPREFIX) {
         next_token();
         struct Ast_MemberSelectExpr* select_expr = arena_push_struct(ast_storage, struct Ast_MemberSelectExpr);
         select_expr->kind = AST_MEMBER_SELECT_EXPR;
@@ -1940,7 +1937,7 @@ internal struct Ast*
 build_actionRef()
 {
   struct Ast_ActionRef* ref = 0;
-  if (token->klass == TK_DOT_PREFIX || token_is_nonTypeName(token)) {
+  if (token->klass == TK_DOTPREFIX || token_is_nonTypeName(token)) {
     ref = arena_push_struct(ast_storage, struct Ast_ActionRef);
     ref->kind = AST_ACTION_REF;
     ref->id = node_id++;
@@ -2705,7 +2702,7 @@ token_is_binaryOperator(struct Token* token)
 internal bool
 token_is_exprOperator(struct Token* token)
 {
-  bool result = token_is_binaryOperator(token) || token->klass == TK_DOT_PREFIX
+  bool result = token_is_binaryOperator(token) || token->klass == TK_DOTPREFIX
     || token->klass == TK_BRACKET_OPEN || token->klass == TK_PARENTH_OPEN
     || token->klass == TK_ANGLE_OPEN;
   return result;
@@ -2758,15 +2755,15 @@ build_expressionPrimary()
       primary = build_boolean();
     } else if (token->klass == TK_STRING_LITERAL) {
       primary = build_stringLiteral();
-    } else if (token->klass == TK_DOT_PREFIX) {
+    } else if (token->klass == TK_DOTPREFIX) {
       next_token();
       if (token->klass == TK_IDENTIFIER) {
         struct Ast_Name* name = (struct Ast_Name*)build_nonTypeName(false);
-        name->is_dotprefixed = true;
+        name->kind = AST_DOTNAME;
         primary = (struct Ast*)name;
       } else if (token->klass == TK_TYPE_IDENTIFIER) {
         struct Ast_Name* name = (struct Ast_Name*)build_typeName(false);
-        name->is_dotprefixed = true;
+        name->kind = AST_DOTNAME;
         primary = (struct Ast*)name;
       } else error("at line %d: unexpected token `%s`.", token->line_no, token->lexeme);
     } else if (token_is_nonTypeName(token)) {
@@ -2926,7 +2923,7 @@ build_expression(int priority_threshold)
   if (token_is_expression(token)) {
     expr = build_expressionPrimary();
     while (token_is_exprOperator(token)) {
-      if (token->klass == TK_DOT_PREFIX) {
+      if (token->klass == TK_DOTPREFIX) {
         next_token();
         struct Ast_MemberSelectExpr* select_expr = arena_push_struct(ast_storage, struct Ast_MemberSelectExpr);
         select_expr->kind = AST_MEMBER_SELECT_EXPR;
@@ -3002,59 +2999,59 @@ build_expression(int priority_threshold)
 struct Ast_P4Program*
 build_ast(struct UnboundedArray* tokens_array_, struct Arena* ast_storage_)
 {
-  struct NameDecl*
-  new_keyword(char* name, enum TokenClass token_class)
+  void
+  declare_keyword(char* strname, enum TokenClass token_class)
   {
-    struct NameDecl_Keyword* decl = arena_push_struct(ast_storage, struct NameDecl_Keyword);
-    decl->strname = name;
+    struct NameDecl* decl = arena_push_struct(ast_storage, struct NameDecl);
+    decl->strname = strname;
     decl->token_class = token_class;
-    return (struct NameDecl*)decl;
+    declare_name_in_scope(get_root_scope(), NAMESPACE_KEYWORD, decl);
   }
 
   tokens_array = tokens_array_;
   ast_storage = ast_storage_;
   symtable_init(ast_storage);
 
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("action", TK_ACTION));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("actions", TK_ACTIONS));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("entries", TK_ENTRIES));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("enum", TK_ENUM));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("in", TK_IN));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("package", TK_PACKAGE));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("select", TK_SELECT));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("switch", TK_SWITCH));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("tuple", TK_TUPLE));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("control", TK_CONTROL));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("error", TK_ERROR));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("header", TK_HEADER));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("inout", TK_INOUT));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("parser", TK_PARSER));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("state", TK_STATE));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("table", TK_TABLE));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("key", TK_KEY));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("typedef", TK_TYPEDEF));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("type", TK_TYPE));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("default", TK_DEFAULT));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("extern", TK_EXTERN));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("header_union", TK_HEADER_UNION));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("out", TK_OUT));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("transition", TK_TRANSITION));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("else", TK_ELSE));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("exit", TK_EXIT));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("if", TK_IF));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("match_kind", TK_MATCH_KIND));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("return", TK_RETURN));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("struct", TK_STRUCT));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("apply", TK_APPLY));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("const", TK_CONST));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("bool", TK_BOOL));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("true", TK_TRUE));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("false", TK_FALSE));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("void", TK_VOID));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("int", TK_INT));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("bit", TK_BIT));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("varbit", TK_VARBIT));
-  declare_object_in_scope(get_root_scope(), NAMESPACE_KEYWORD, new_keyword("string", TK_STRING));
+  declare_keyword("action", TK_ACTION);
+  declare_keyword("actions", TK_ACTIONS);
+  declare_keyword("entries", TK_ENTRIES);
+  declare_keyword("enum", TK_ENUM);
+  declare_keyword("in", TK_IN);
+  declare_keyword("package", TK_PACKAGE);
+  declare_keyword("select", TK_SELECT);
+  declare_keyword("switch", TK_SWITCH);
+  declare_keyword("tuple", TK_TUPLE);
+  declare_keyword("control", TK_CONTROL);
+  declare_keyword("error", TK_ERROR);
+  declare_keyword("header", TK_HEADER);
+  declare_keyword("inout", TK_INOUT);
+  declare_keyword("parser", TK_PARSER);
+  declare_keyword("state", TK_STATE);
+  declare_keyword("table", TK_TABLE);
+  declare_keyword("key", TK_KEY);
+  declare_keyword("typedef", TK_TYPEDEF);
+  declare_keyword("type", TK_TYPE);
+  declare_keyword("default", TK_DEFAULT);
+  declare_keyword("extern", TK_EXTERN);
+  declare_keyword("header_union", TK_HEADER_UNION);
+  declare_keyword("out", TK_OUT);
+  declare_keyword("transition", TK_TRANSITION);
+  declare_keyword("else", TK_ELSE);
+  declare_keyword("exit", TK_EXIT);
+  declare_keyword("if", TK_IF);
+  declare_keyword("match_kind", TK_MATCH_KIND);
+  declare_keyword("return", TK_RETURN);
+  declare_keyword("struct", TK_STRUCT);
+  declare_keyword("apply", TK_APPLY);
+  declare_keyword("const", TK_CONST);
+  declare_keyword("bool", TK_BOOL);
+  declare_keyword("true", TK_TRUE);
+  declare_keyword("false", TK_FALSE);
+  declare_keyword("void", TK_VOID);
+  declare_keyword("int", TK_INT);
+  declare_keyword("bit", TK_BIT);
+  declare_keyword("varbit", TK_VARBIT);
+  declare_keyword("string", TK_STRING);
 
   token_at = 0;
   token = array_get(tokens_array, token_at);

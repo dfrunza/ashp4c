@@ -4,6 +4,7 @@
 
 enum AstEnum {
   AST_NAME = 1,
+  AST_DOTNAME = 1,
   AST_BASETYPE_BOOL,
   AST_BASETYPE_ERROR,
   AST_BASETYPE_INT,
@@ -125,9 +126,6 @@ struct Ast_Expression {
 struct Ast_Name {
   struct Ast_Expression;
   char* strname;
-  bool is_dotprefixed;
-  //struct NameRef* ref;
-  struct Scope* scope;
 };
 
 struct Ast_BaseType {
