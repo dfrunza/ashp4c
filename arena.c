@@ -1,5 +1,4 @@
 #include "arena.h"
-#include <memory.h>  // memset
 #include <unistd.h>
 #include <sys/mman.h>
 #include <math.h>

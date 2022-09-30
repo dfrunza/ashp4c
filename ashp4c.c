@@ -1,4 +1,3 @@
-#include <memory.h>  // memset
 #include "basic.h"
 #include "arena.h"
 #include "lex.h"

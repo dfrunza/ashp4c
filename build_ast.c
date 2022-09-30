@@ -4,7 +4,6 @@
 #include "lex.h"
 #include "scope.h"
 #include "build_ast.h"
-#include <memory.h>  // memset
 
 internal struct Arena *ast_storage;
 internal struct UnboundedArray* tokens_array;

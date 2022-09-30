@@ -41,14 +41,12 @@ struct Scope {
 };
 
 void scope_init(struct Arena* scope_storage);
-struct NameEntry* name_get_or_create_entry(struct Hashmap* declarations, char* name);
-struct NameEntry* name_get_entry(struct Hashmap* declarations, char* name);
+struct NameEntry* namedecl_get_or_create(struct Hashmap* declarations, char* name);
+struct NameEntry* namedecl_get_entry(struct Hashmap* declarations, char* name);
 struct Scope* push_scope();
 struct Scope* pop_scope();
 struct NameEntry* scope_lookup_name(struct Scope* scope, char* name);
 struct NameEntry* declare_name_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl);
-struct NameRef* nameref_get_entry(struct Hashmap* map, uint32_t id);
-void nameref_add_entry(struct Hashmap* map, struct NameRef* nameref, uint32_t id);
-struct Type* type_get_entry(struct Hashmap* map, uint32_t id);
-void type_add_entry(struct Hashmap* map, struct Type* type, uint32_t id);
+struct NameRef* nameref_get(struct Hashmap* map, uint32_t id);
+void nameref_add(struct Hashmap* map, struct NameRef* nameref, uint32_t id);
 

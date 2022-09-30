@@ -2,7 +2,6 @@
 #include "arena.h"
 #include "hashmap.h"
 #include "scope.h"
-#include <memory.h>  // memset
 
 internal struct Arena *scope_storage;
 internal struct Scope* current_scope;
@@ -29,7 +28,7 @@ pop_scope()
 }
 
 struct NameEntry*
-name_get_or_create_entry(struct Hashmap* declarations, char* name)
+namedecl_get_or_create(struct Hashmap* declarations, char* name)
 {
   struct HashmapKey key = { .s_key = (uint8_t*)name };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, declarations->capacity_log2);
@@ -45,7 +44,7 @@ name_get_or_create_entry(struct Hashmap* declarations, char* name)
 }
 
 struct NameEntry*
-name_get_entry(struct Hashmap* declarations, char* name)
+namedecl_get_entry(struct Hashmap* declarations, char* name)
 {
   struct HashmapKey key = { .s_key = (uint8_t*)name };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, declarations->capacity_log2);
@@ -61,7 +60,7 @@ scope_lookup_name(struct Scope* scope, char* name)
 {
   struct NameEntry* ne = 0;
   while (scope) {
-    ne = name_get_or_create_entry(&scope->declarations, name);
+    ne = namedecl_get_or_create(&scope->declarations, name);
     if (ne->ns_type || ne->ns_var || ne->ns_keyword) {
       break;
     }
@@ -73,7 +72,7 @@ scope_lookup_name(struct Scope* scope, char* name)
 struct NameEntry*
 declare_name_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl)
 {
-  struct NameEntry* ne = name_get_or_create_entry(&scope->declarations, decl->strname);
+  struct NameEntry* ne = namedecl_get_or_create(&scope->declarations, decl->strname);
   if (ns == NAMESPACE_TYPE) {
     decl->nextdecl_in_scope = ne->ns_type;
     ne->ns_type = decl;
@@ -87,8 +86,16 @@ declare_name_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* d
   return ne;
 }
 
+void
+scope_init(struct Arena* scope_storage_)
+{
+  scope_storage = scope_storage_;
+  scope_level = 0;
+  current_scope = 0;
+}
+
 struct NameRef*
-nameref_get_entry(struct Hashmap* map, uint32_t id)
+nameref_get(struct Hashmap* map, uint32_t id)
 {
   struct HashmapKey key = { .i_key = id };
   hashmap_hash_key(HASHMAP_KEY_INT, &key, map->capacity_log2);
@@ -101,42 +108,11 @@ nameref_get_entry(struct Hashmap* map, uint32_t id)
 }
 
 void
-nameref_add_entry(struct Hashmap* map, struct NameRef* nameref, uint32_t id)
+nameref_add(struct Hashmap* map, struct NameRef* nameref, uint32_t id)
 {
   struct HashmapKey key = { .i_key = id };
   hashmap_hash_key(HASHMAP_KEY_INT, &key, map->capacity_log2);
   struct HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
   assert(!he->object);
   he->object = nameref;
-}
-
-struct Type*
-type_get_entry(struct Hashmap* map, uint32_t id)
-{
-  struct HashmapKey key = { .i_key = id };
-  hashmap_hash_key(HASHMAP_KEY_INT, &key, map->capacity_log2);
-  struct HashmapEntry* he = hashmap_get_entry(map, &key);
-  struct Type* type = 0;
-  if (he) {
-    type = he->object;
-  }
-  return type;
-}
-
-void
-type_add_entry(struct Hashmap* map, struct Type* type, uint32_t id)
-{
-  struct HashmapKey key = { .i_key = id };
-  hashmap_hash_key(HASHMAP_KEY_INT, &key, map->capacity_log2);
-  struct HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
-  assert(!he->object);
-  he->object = type;
-}
-
-void
-scope_init(struct Arena* scope_storage_)
-{
-  scope_storage = scope_storage_;
-  scope_level = 0;
-  current_scope = 0;
 }
