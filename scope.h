@@ -21,7 +21,7 @@ struct NameDecl {
 };  
 
 struct NameRef {
-  struct Ast* name; // ref
+  struct Ast* ref;
   char* strname;
   int line_no;
   struct Scope* scope;
@@ -40,17 +40,11 @@ struct Scope {
   struct Hashmap declarations;
 };
 
-
-void symtable_init(struct Arena* symtable_storage);
-void scope_init(struct Scope* scope, int capacity_log2);
+void scope_init(struct Arena* scope_storage);
 struct NameEntry* name_get_or_create_entry(struct Hashmap* declarations, char* name);
 struct NameEntry* name_get_entry(struct Hashmap* declarations, char* name);
-
-struct Scope* new_scope(int capacity_log2);
 struct Scope* push_scope();
 struct Scope* pop_scope();
-struct Scope* get_root_scope();
-struct Scope* get_current_scope();
 struct NameEntry* scope_lookup_name(struct Scope* scope, char* name);
 struct NameEntry* declare_name_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl);
 struct NameRef* nameref_get_entry(struct Hashmap* map, uint32_t id);

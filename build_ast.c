@@ -2,7 +2,7 @@
 #include "hashmap.h"
 #include "token.h"
 #include "lex.h"
-#include "symtable.h"
+#include "scope.h"
 #include "build_ast.h"
 #include <memory.h>  // memset
 
@@ -12,7 +12,9 @@ internal int token_at = 0;
 internal struct Token* token = 0;
 internal int prev_token_at = 0;
 internal struct Token* prev_token = 0;
-internal int node_id = 1;
+internal int node_id = 0;
+internal struct Scope* root_scope;
+internal struct Scope* current_scope;
 
 internal struct Ast* build_expression(int priority_threshold);
 internal struct Ast* build_typeRef();
@@ -31,7 +33,7 @@ next_token()
     token = array_get(tokens_array, ++token_at);
   }
   if (token->klass == TK_IDENTIFIER) {
-    struct NameEntry* entry = scope_lookup_name(get_current_scope(), token->lexeme);
+    struct NameEntry* entry = scope_lookup_name(current_scope, token->lexeme);
     if (entry->ns_keyword) {
       struct NameDecl* nd = entry->ns_keyword;
       token->klass = nd->token_class;
@@ -219,7 +221,7 @@ build_nonTypeName(bool is_type)
       decl->decl = (struct Ast*)name;
       decl->strname = name->strname;
       decl->line_no = token->line_no;
-      declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
+      declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
     }
     next_token();
   } else error("at line %d: non-type name was expected, got `%s`.", token->line_no, token->lexeme);
@@ -391,7 +393,7 @@ build_typeOrVoid(bool is_type)
         decl->decl = (struct Ast*)name;
         decl->strname = name->strname;
         decl->line_no = token->line_no;
-        declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
+        declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
       }
       next_token();
     } else assert(0);
@@ -2849,7 +2851,7 @@ get_operator_priority(struct Token* token)
     prio = 1;
   } else if (token->klass == TK_DOUBLE_EQUAL || token->klass == TK_EXCLAMATION_EQUAL
       || token->klass == TK_ANGLE_OPEN /* Less */ || token->klass == TK_ANGLE_CLOSE /* Greater */
-      || token->klass == TK_ANGLE_OPEN_EQUAL /* LessEqual */ || token->klass == TK_ANGLE_CLOSE_EQUAL /* GreaterEqual */) {
+      || token->klass == TK_ANGLE_OPEN_EQUAL /* Less-equal */ || token->klass == TK_ANGLE_CLOSE_EQUAL /* Greater-equal */) {
     /* Relational ops  */
     prio = 2;
   }
@@ -2857,11 +2859,11 @@ get_operator_priority(struct Token* token)
            || token->klass == TK_AMPERSAND || token->klass == TK_PIPE
            || token->klass == TK_CIRCUMFLEX || token->klass == TK_DOUBLE_ANGLE_OPEN /* BitshiftLeft */
            || token->klass == TK_DOUBLE_ANGLE_CLOSE /* BitshiftRight */) {
-    /* Addition and Subtraction; Bitwise ops */
+    /* Addition and subtraction; bitwise ops */
     prio = 3;
   }
   else if (token->klass == TK_STAR || token->klass == TK_SLASH) {
-    /* Multiplication and Division */
+    /* Multiplication and division */
     prio = 4;
   }
   else if (token->klass == TK_TRIPLE_AMPERSAND) {
@@ -2999,18 +3001,20 @@ build_expression(int priority_threshold)
 struct Ast_P4Program*
 build_ast(struct UnboundedArray* tokens_array_, struct Arena* ast_storage_)
 {
-  void
+  struct NameDecl*
   declare_keyword(char* strname, enum TokenClass token_class)
   {
     struct NameDecl* decl = arena_push_struct(ast_storage, struct NameDecl);
     decl->strname = strname;
     decl->token_class = token_class;
-    declare_name_in_scope(get_root_scope(), NAMESPACE_KEYWORD, decl);
+    declare_name_in_scope(root_scope, NAMESPACE_KEYWORD, decl);
+    return decl;
   }
 
   tokens_array = tokens_array_;
   ast_storage = ast_storage_;
-  symtable_init(ast_storage);
+  scope_init(ast_storage);
+  root_scope = current_scope = push_scope();
 
   declare_keyword("action", TK_ACTION);
   declare_keyword("actions", TK_ACTIONS);
@@ -3056,9 +3060,8 @@ build_ast(struct UnboundedArray* tokens_array_, struct Arena* ast_storage_)
   token_at = 0;
   token = array_get(tokens_array, token_at);
   next_token();
-  push_scope();
   struct Ast_P4Program* p4program = (struct Ast_P4Program*)build_p4program();
   p4program->last_node_id = node_id;
-  pop_scope();
+  current_scope = pop_scope();
   return p4program;
 }

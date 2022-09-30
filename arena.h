@@ -1,5 +1,6 @@
 #pragma once
 #include "basic.h"
+#include <memory.h>  // memset
 
 struct Arena;
 
@@ -46,7 +47,6 @@ struct List {
   struct ListLink* tail;
   int link_count;
 };
-
 
 #define arena_push_struct(arena, type) ({ \
   type* o = arena_push(arena, sizeof(type)); \

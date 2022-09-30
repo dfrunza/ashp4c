@@ -1212,8 +1212,9 @@ visit_p4program(struct Ast* ast)
 struct Hashmap*
 build_type(struct Ast_P4Program* p4program, struct Arena* type_storage_)
 {
-  void
-  add_basic_type(char* strname, enum BasicType basic_ty) {
+  struct Type_Basic*
+  add_basic_type(char* strname, enum BasicType basic_ty)
+  {
     struct Type_Basic* type = arena_push_struct(type_storage, struct Type_Basic);
     type->ctor = TYPE_BASIC;
     type->basic_ty = basic_ty;
@@ -1221,12 +1222,11 @@ build_type(struct Ast_P4Program* p4program, struct Arena* type_storage_)
     struct NameEntry* ne = scope_lookup_name(get_root_scope(), strname);
     struct NameDecl* nd = ne->ns_type;
     type_add_entry(&type_map, (struct Type*)type, nd->decl->id);
+    return type;
   }
 
   type_storage = type_storage_;
   hashmap_init(&type_map, HASHMAP_KEY_INT, 8, type_storage);
-
-  /* Basic types */
 
   add_basic_type("void", TYPE_INT);
   add_basic_type("bool", TYPE_INT);

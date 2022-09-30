@@ -1,6 +1,6 @@
 #include "arena.h"
 #include "ast.h"
-#include "symtable.h"
+#include "scope.h"
 
 internal void visit_block_statement(struct Ast* block_stmt);
 internal void visit_statement(struct Ast* decl);
@@ -743,12 +743,6 @@ visit_expression(struct Ast* ast)
     visit_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    /*
-    struct NameRef* nameref = name->ref;
-    if (nameref) {
-      struct NameEntry* entry = scope_lookup_name(nameref->scope, nameref->strname);
-    } // else it's a declaration
-    */
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
@@ -852,7 +846,7 @@ visit_p4program(struct Ast* ast)
 }
 
 void
-resolve_nameref(struct Ast_P4Program* p4program)
+collect_nameref(struct Ast_P4Program* p4program)
 {
   visit_p4program((struct Ast*)p4program);
 }

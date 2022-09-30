@@ -2,7 +2,7 @@
 #include "basic.h"
 #include "arena.h"
 #include "lex.h"
-#include "symtable.h"
+#include "scope.h"
 #include "build_ast.h"
 #include "build_symtable.h"
 #include "build_type.h"
@@ -119,7 +119,7 @@ main(int arg_count, char* args[])
   struct Hashmap* type_map;
   build_symtable(p4program, &main_storage);
   //type_map = build_type(p4program, &main_storage);
-  resolve_nameref(p4program);
+  collect_nameref(p4program);
 
   arena_delete(&main_storage);
   return 0;

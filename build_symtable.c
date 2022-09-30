@@ -1,9 +1,11 @@
 #include "arena.h"
 #include "ast.h"
-#include "symtable.h"
-#include <memory.h>  // memset
+#include "scope.h"
 
-internal struct Arena* symtable_storage;
+internal struct Arena* scope_storage;
+internal struct Scope* root_scope;
+internal struct Scope* current_scope;
+internal struct Hashmap nameref_map = {};
 
 internal void visit_block_statement(struct Ast* block_stmt);
 internal void visit_statement(struct Ast* decl);
@@ -47,6 +49,10 @@ visit_expression(struct Ast* ast)
     visit_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
+    struct NameRef* nameref = arena_push_struct(scope_storage, struct NameRef);
+    nameref->strname = name->strname;
+    nameref->line_no = name->line_no;
+    nameref->scope = current_scope;
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
@@ -89,13 +95,13 @@ visit_param(struct Ast* ast)
   assert(ast->kind == AST_PARAM);
   struct Ast_Param* param = (struct Ast_Param*)ast;
   struct Ast_Name* name = (struct Ast_Name*)param->name;
-  struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   visit_type_ref(param->type);
 }
@@ -105,13 +111,13 @@ visit_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   struct Ast_Name* name = (struct Ast_Name*)ast;
-  struct NameEntry* ne = scope_lookup_name(get_current_scope(), name->strname);
+  struct NameEntry* ne = scope_lookup_name(current_scope, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   } else {
     visit_type_ref((struct Ast*)name);
   }
@@ -123,15 +129,15 @@ visit_action_decl(struct Ast* ast)
   assert(ast->kind == AST_ACTION_DECL);
   struct Ast_ActionDecl* action_decl = (struct Ast_ActionDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)action_decl->name;
-  struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  push_scope();
+  current_scope = push_scope();
   struct List* params = action_decl->params;
   if (params) {
     struct ListLink* li = list_first_link(params);
@@ -153,7 +159,7 @@ visit_action_decl(struct Ast* ast)
       }
     }
   }
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 internal void
@@ -162,13 +168,13 @@ visit_instantiation(struct Ast* ast)
   assert(ast->kind == AST_INSTANTIATION);
   struct Ast_Instantiation* decl = (struct Ast_Instantiation*)ast;
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
-  struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   visit_type_ref(decl->type_ref);
   if (decl->args) {
@@ -285,13 +291,13 @@ visit_table_decl(struct Ast* ast)
   assert(ast->kind == AST_TABLE_DECL);
   struct Ast_TableDecl* decl = (struct Ast_TableDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
-  struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   if (decl->prop_list) {
     struct ListLink* li = list_first_link(decl->prop_list);
@@ -331,13 +337,13 @@ visit_const_decl(struct Ast* ast)
   assert(ast->kind == AST_CONST_DECL);
   struct Ast_ConstDecl* decl = (struct Ast_ConstDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
-  struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   visit_type_ref(decl->type_ref);
   visit_expression(decl->expr);
@@ -349,13 +355,13 @@ visit_statement(struct Ast* ast)
   if (ast->kind == AST_VAR_DECL) {
     struct Ast_VarDecl* decl = (struct Ast_VarDecl*)ast;
     struct Ast_Name* name = (struct Ast_Name*)decl->name;
-    struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+    struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
     if (!ne->ns_var) {
-      struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+      struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
       decl->decl = ast;
       decl->strname = name->strname;
       decl->line_no = name->line_no;
-      declare_name_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
+      declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
     } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
     visit_type_ref(decl->type);
     if (decl->init_expr) {
@@ -412,7 +418,7 @@ visit_block_statement(struct Ast* ast)
 {
   assert(ast->kind == AST_BLOCK_STMT);
   struct Ast_BlockStmt* block_stmt = (struct Ast_BlockStmt*)ast;
-  push_scope();
+  current_scope = push_scope();
   if (block_stmt->stmt_list) {
     struct ListLink* li = list_first_link(block_stmt->stmt_list);
     while (li) {
@@ -421,7 +427,7 @@ visit_block_statement(struct Ast* ast)
       li = li->next;
     }
   }
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 internal void
@@ -431,12 +437,12 @@ visit_control_decl(struct Ast* ast)
   struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
   struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
   decl->decl = ast;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
-  declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-  push_scope();
+  declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
+  current_scope = push_scope();
   if (type_decl->type_params) {
     struct ListLink* li = list_first_link(type_decl->type_params);
     while (li) {
@@ -472,7 +478,7 @@ visit_control_decl(struct Ast* ast)
   if (control_decl->apply_stmt) {
     visit_block_statement(control_decl->apply_stmt);
   }
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 internal void
@@ -525,15 +531,15 @@ visit_parser_state(struct Ast* ast)
   assert(ast->kind == AST_PARSER_STATE);
   struct Ast_ParserState* state = (struct Ast_ParserState*)ast;
   struct Ast_Name* name = (struct Ast_Name*)state->name;
-  struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  push_scope();
+  current_scope = push_scope();
   if (state->stmt_list) {
     struct ListLink* li = list_first_link(state->stmt_list);
     while (li) {
@@ -543,7 +549,7 @@ visit_parser_state(struct Ast* ast)
     }
   }
   visit_parser_transition(state->trans_stmt);
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 internal void
@@ -553,12 +559,12 @@ visit_parser_decl(struct Ast* ast)
   struct Ast_ParserDecl* parser_decl = (struct Ast_ParserDecl*)ast;
   struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)parser_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
   decl->decl = ast;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
-  declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-  push_scope();
+  declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
+  current_scope = push_scope();
   if (type_decl->type_params) {
     struct ListLink* li = list_first_link(type_decl->type_params);
     while (li) {
@@ -599,7 +605,7 @@ visit_parser_decl(struct Ast* ast)
       li = li->next;
     }
   }
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 internal void
@@ -607,13 +613,13 @@ visit_function_return_type(struct Ast* ast)
 {
   if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct NameEntry* ne = scope_lookup_name(get_current_scope(), name->strname);
+    struct NameEntry* ne = scope_lookup_name(current_scope, name->strname);
     if (!ne->ns_type) {
-      struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+      struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
       decl->decl = ast;
       decl->strname = name->strname;
       decl->line_no = name->line_no;
-      declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
+      declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
     } else {
       visit_type_ref(ast);
     }
@@ -628,12 +634,12 @@ visit_function_proto(struct Ast* ast)
   assert(ast->kind == AST_FUNCTION_PROTO);
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)ast;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
-  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
   decl->decl = ast;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
-  declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-  push_scope();
+  declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
+  current_scope = push_scope();
   if (function_proto->return_type) {
     visit_function_return_type(function_proto->return_type);
   }
@@ -653,7 +659,7 @@ visit_function_proto(struct Ast* ast)
       li = li->next;
     }
   }
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 internal void
@@ -662,12 +668,12 @@ visit_extern_decl(struct Ast* ast)
   assert(ast->kind == AST_EXTERN_DECL);
   struct Ast_ExternDecl* extern_decl = (struct Ast_ExternDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)extern_decl->name;
-  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
   decl->decl = ast;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
-  declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-  push_scope();
+  declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
+  current_scope = push_scope();
   if (extern_decl->type_params) {
     struct ListLink* li = list_first_link(extern_decl->type_params);
     while (li) {
@@ -684,7 +690,7 @@ visit_extern_decl(struct Ast* ast)
       li = li->next;
     }
   }
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 internal void
@@ -693,13 +699,13 @@ visit_struct_field(struct Ast* ast)
   assert(ast->kind == AST_STRUCT_FIELD);
   struct Ast_StructField* field = (struct Ast_StructField*)ast;
   struct Ast_Name* name = (struct Ast_Name*)field->name;
-  struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   visit_type_ref(field->type);
 }
@@ -710,15 +716,15 @@ visit_struct_decl(struct Ast* ast)
   assert(ast->kind == AST_STRUCT_DECL);
   struct Ast_StructDecl* struct_decl = (struct Ast_StructDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)struct_decl->name;
-  struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  push_scope();
+  current_scope = push_scope();
   if (struct_decl->fields) {
     struct ListLink* li = list_first_link(struct_decl->fields);
     while (li) {
@@ -727,7 +733,7 @@ visit_struct_decl(struct Ast* ast)
       li = li->next;
     }
   }
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 internal void
@@ -736,15 +742,15 @@ visit_header_decl(struct Ast* ast)
   assert(ast->kind == AST_HEADER_DECL);
   struct Ast_HeaderDecl* header_decl = (struct Ast_HeaderDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)header_decl->name;
-  struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  push_scope();
+  current_scope = push_scope();
   if (header_decl->fields) {
     struct ListLink* li = list_first_link(header_decl->fields);
     while (li) {
@@ -753,7 +759,7 @@ visit_header_decl(struct Ast* ast)
       li = li->next;
     }
   }
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 internal void
@@ -762,15 +768,15 @@ visit_header_union_decl(struct Ast* ast)
   assert(ast->kind == AST_HEADER_UNION_DECL);
   struct Ast_HeaderUnionDecl* header_union_decl = (struct Ast_HeaderUnionDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)header_union_decl->name;
-  struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  push_scope();
+  current_scope = push_scope();
   if (header_union_decl->fields) {
     struct ListLink* li = list_first_link(header_union_decl->fields);
     while (li) {
@@ -779,7 +785,7 @@ visit_header_union_decl(struct Ast* ast)
       li = li->next;
     }
   }
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 internal void
@@ -833,13 +839,13 @@ visit_enum_field(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   struct Ast_Name* name = (struct Ast_Name*)ast;
-  struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_VAR, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
 }
 
@@ -862,15 +868,15 @@ visit_enum_decl(struct Ast* ast)
   assert(ast->kind == AST_ENUM_DECL);
   struct Ast_EnumDecl* enum_decl = (struct Ast_EnumDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)enum_decl->name;
-  struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  push_scope();
+  current_scope = push_scope();
   if (enum_decl->id_list) {
     struct ListLink* li = list_first_link(enum_decl->id_list);
     while (li) {
@@ -882,7 +888,7 @@ visit_enum_decl(struct Ast* ast)
       li = li->next;
     }
   }
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 internal void
@@ -891,15 +897,15 @@ visit_package_decl(struct Ast* ast)
   assert(ast->kind == AST_PACKAGE_DECL);
   struct Ast_PackageDecl* package_decl = (struct Ast_PackageDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)package_decl->name;
-  struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  push_scope();
+  current_scope = push_scope();
   if (package_decl->type_params) {
     struct ListLink* li = list_first_link(package_decl->type_params);
     while (li) {
@@ -916,7 +922,7 @@ visit_package_decl(struct Ast* ast)
       li = li->next;
     }
   }
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 internal void
@@ -925,13 +931,13 @@ visit_type_decl(struct Ast* ast)
   assert(ast->kind == AST_TYPE_DECL);
   struct Ast_TypeDecl* type_decl = (struct Ast_TypeDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct NameEntry* ne = name_get_or_create_entry(&get_current_scope()->declarations, name->strname);
+  struct NameEntry* ne = name_get_or_create_entry(&current_scope->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   struct Ast* type_ref = type_decl->type_ref;
   visit_type_ref(type_ref);
@@ -944,12 +950,12 @@ visit_function_decl(struct Ast* ast)
   struct Ast_FunctionDecl* function_decl = (struct Ast_FunctionDecl*)ast;
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)function_decl->proto;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
-  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
   decl->decl = ast;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
-  declare_name_in_scope(get_current_scope(), NAMESPACE_TYPE, decl);
-  push_scope();
+  declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
+  current_scope = push_scope();
   if (function_proto->return_type) {
     visit_function_return_type(function_proto->return_type);
   }
@@ -980,7 +986,7 @@ visit_function_decl(struct Ast* ast)
       }
     }
   }
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 internal void
@@ -988,7 +994,7 @@ visit_match_kind(struct Ast* ast)
 {
   assert(ast->kind == AST_MATCH_KIND_DECL);
   struct Ast_MatchKindDecl* decl = (struct Ast_MatchKindDecl*)ast;
-  assert(get_current_scope()->scope_level == 1);
+  assert(current_scope->scope_level == 1);
   if (decl->id_list) {
     struct ListLink* li = list_first_link(decl->id_list);
     while (li) {
@@ -1009,7 +1015,7 @@ visit_error_decl(struct Ast* ast)
 {
   assert (ast->kind == AST_ERROR_DECL);
   struct Ast_ErrorDecl* decl = (struct Ast_ErrorDecl*)ast;
-  push_scope();
+  current_scope = push_scope();
   if (decl->id_list) {
     struct ListLink* li = list_first_link(decl->id_list);
     while (li) {
@@ -1021,7 +1027,7 @@ visit_error_decl(struct Ast* ast)
       li = li->next;
     }
   }
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 internal void
@@ -1029,7 +1035,7 @@ visit_p4program(struct Ast* ast)
 {
   assert(ast->kind == AST_P4PROGRAM);
   struct Ast_P4Program* program = (struct Ast_P4Program*)ast;
-  push_scope();
+  current_scope = push_scope();
   struct ListLink* li = list_first_link(program->decl_list);
   while (li) {
     struct Ast* decl = li->object;
@@ -1069,122 +1075,94 @@ visit_p4program(struct Ast* ast)
     else assert(0);
     li = li->next;
   }
-  pop_scope();
+  current_scope = pop_scope();
 }
 
 void
-build_symtable(struct Ast_P4Program* p4program, struct Arena* symtable_storage_)
+build_symtable(struct Ast_P4Program* p4program, struct Arena* scope_storage_)
 {
-  symtable_storage = symtable_storage_;
-  symtable_init(symtable_storage);
-
-  int node_id = p4program->last_node_id;
-
-  /* Builtin types */
-
+  struct NameDecl*
+  declare_builtin_ident(struct Ast* ast, char* strname, enum Namespace ns)
   {
-    struct Ast_Name* name = arena_push_struct(symtable_storage, struct Ast_Name);
-    name->id = node_id++;
-    name->strname = "void";
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
-    decl->strname = name->strname;
-    decl->decl = (struct Ast*)name;
-    declare_name_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
-  }
-  {
-    struct Ast_Name* name = arena_push_struct(symtable_storage, struct Ast_Name);
-    name->id = node_id++;
-    name->strname = "bool";
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
-    decl->strname = name->strname;
-    decl->decl = (struct Ast*)name;
-    declare_name_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
-  }
-  {
-    struct Ast_Name* name = arena_push_struct(symtable_storage, struct Ast_Name);
-    name->id = node_id++;
-    name->strname = "int";
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
-    decl->strname = name->strname;
-    decl->decl = (struct Ast*)name;
-    declare_name_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
-  }
-  {
-    struct Ast_Name* name = arena_push_struct(symtable_storage, struct Ast_Name);
-    name->id = node_id++;
-    name->strname = "bit";
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
-    decl->strname = name->strname;
-    decl->decl = (struct Ast*)name;
-    declare_name_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
-  }
-  {
-    struct Ast_Name* name = arena_push_struct(symtable_storage, struct Ast_Name);
-    name->id = node_id++;
-    name->strname = "varbit";
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
-    decl->strname = name->strname;
-    decl->decl = (struct Ast*)name;
-    declare_name_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
-  }
-  {
-    struct Ast_Name* name = arena_push_struct(symtable_storage, struct Ast_Name);
-    name->id = node_id++;
-    name->strname = "string";
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
-    decl->strname = name->strname;
-    decl->decl = (struct Ast*)name;
-    declare_name_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
-  }
-  {
-    struct Ast_Name* name = arena_push_struct(symtable_storage, struct Ast_Name);
-    name->id = node_id++;
-    name->strname = "error";
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
-    decl->strname = name->strname;
-    decl->decl = (struct Ast*)name;
-    declare_name_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
-  }
-  {
-    struct Ast_Name* name = arena_push_struct(symtable_storage, struct Ast_Name);
-    name->id = node_id++;
-    name->strname = "match_kind";
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
-    decl->strname = name->strname;
-    decl->decl = (struct Ast*)name;
-    declare_name_in_scope(get_root_scope(), NAMESPACE_TYPE, decl);
+    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    decl->strname = strname;
+    decl->decl = (struct Ast*)ast;
+    declare_name_in_scope(root_scope, ns, decl);
+    return decl;
   }
 
-  /* Builtin identifiers */
+  scope_storage = scope_storage_;
+  scope_init(scope_storage);
+  root_scope = current_scope = push_scope();
 
-  {
-    struct Ast_Name* name = arena_push_struct(symtable_storage, struct Ast_Name);
-    name->id = node_id++;
-    name->strname = "accept";
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
-    decl->strname = name->strname;
-    decl->decl = (struct Ast*)name;
-    declare_name_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
-  }
-  {
-    struct Ast_Name* name = arena_push_struct(symtable_storage, struct Ast_Name);
-    name->id = node_id++;
-    name->strname = "reject";
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
-    decl->strname = name->strname;
-    decl->decl = (struct Ast*)name;
-    declare_name_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
-  }
-  {
-    struct Ast_Name* name = arena_push_struct(symtable_storage, struct Ast_Name);
-    name->id = node_id++;
-    name->strname = "error";
-    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
-    decl->strname = name->strname;
-    decl->decl = (struct Ast*)name;
-    declare_name_in_scope(get_root_scope(), NAMESPACE_VAR, decl);
-  }
+  struct Ast_Name* name;
+  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name->kind = AST_NAME;
+  name->id = ++p4program->last_node_id;
+  name->strname = "void";
+  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
 
-  p4program->last_node_id = node_id;
+  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name->kind = AST_NAME;
+  name->id = ++p4program->last_node_id;
+  name->strname = "bool";
+  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+
+  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name->kind = AST_NAME;
+  name->id = ++p4program->last_node_id;
+  name->strname = "int";
+  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+
+  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name->kind = AST_NAME;
+  name->id = ++p4program->last_node_id;
+  name->strname = "bit";
+  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+
+  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name->kind = AST_NAME;
+  name->id = ++p4program->last_node_id;
+  name->strname = "varbit";
+  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+
+  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name->kind = AST_NAME;
+  name->id = ++p4program->last_node_id;
+  name->strname = "string";
+  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+
+  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name->kind = AST_NAME;
+  name->id = ++p4program->last_node_id;
+  name->strname = "error";
+  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+
+  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name->kind = AST_NAME;
+  name->id = ++p4program->last_node_id;
+  name->strname = "match_kind";
+  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+
+  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name->kind = AST_NAME;
+  name->id = ++p4program->last_node_id;
+  name->strname = "accept";
+  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_VAR);
+
+  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name->kind = AST_NAME;
+  name->id = ++p4program->last_node_id;
+  name->strname = "reject";
+  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_VAR);
+
+  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name->kind = AST_NAME;
+  name->id = ++p4program->last_node_id;
+  name->strname = "error";
+  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_VAR);
+
+  hashmap_init(&nameref_map, HASHMAP_KEY_INT, 8, scope_storage);
   visit_p4program((struct Ast*)p4program);
+  current_scope = pop_scope();
 }

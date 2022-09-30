@@ -10,7 +10,6 @@ internal struct UnboundedArray tokens_array = {};
 internal int line_no = 1;
 internal int state = 0;
 
-
 struct Lexeme {
   char* start;
   char* end;

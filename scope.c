@@ -1,55 +1,30 @@
 #include "basic.h"
 #include "arena.h"
 #include "hashmap.h"
-#include "symtable.h"
+#include "scope.h"
 #include <memory.h>  // memset
 
-internal struct Arena *symtable_storage;
-internal struct Arena local_storage = {};
-internal struct UnboundedArray scope_stack = {};
-
-struct Scope*
-get_root_scope()
-{
-  struct Scope* scope = *(struct Scope**)array_get(&scope_stack, 0);
-  return scope;
-}
-
-struct Scope*
-get_current_scope()
-{
-  struct Scope* scope = *(struct Scope**)array_get(&scope_stack, scope_stack.elem_count - 1);
-  return scope;
-}
-
-struct Scope*
-new_scope(int capacity_log2)
-{
-  struct Scope* new_scope = arena_push_struct(symtable_storage, struct Scope);
-  scope_init(new_scope, capacity_log2);
-  return new_scope;
-}
+internal struct Arena *scope_storage;
+internal struct Scope* current_scope;
+internal int scope_level;
 
 struct Scope*
 push_scope()
 {
-  assert (scope_stack.elem_count > 0);
-  struct Scope* current_scope = get_current_scope();
-  struct Scope* scope = new_scope(4);
-  array_append(&scope_stack, &scope);
-  scope->scope_level = current_scope->scope_level + 1;
+  struct Scope* scope = arena_push_struct(scope_storage, struct Scope);
+  hashmap_init(&scope->declarations, HASHMAP_KEY_STRING, 4, scope_storage);
+  scope->scope_level = scope_level++;
   scope->parent_scope = current_scope;
+  current_scope = scope;
   return scope;
 }
 
 struct Scope*
 pop_scope()
 {
-  assert (scope_stack.elem_count > 0);
-  struct Scope* current_scope = get_current_scope();
-  assert (current_scope->scope_level > 0);
-  scope_stack.elem_count -= 1;
-  current_scope = get_current_scope();
+  assert (scope_level > 0);
+  current_scope = current_scope->parent_scope;
+  scope_level -= 1;
   return current_scope;
 }
 
@@ -62,7 +37,7 @@ name_get_or_create_entry(struct Hashmap* declarations, char* name)
   if (he->object) {
     return (struct NameEntry*)he->object;
   }
-  struct NameEntry* entry = arena_push_struct(symtable_storage, struct NameEntry);
+  struct NameEntry* entry = arena_push_struct(scope_storage, struct NameEntry);
   he->object = entry;
   memset(entry, 0, sizeof(*entry));
   entry->strname = name;
@@ -159,19 +134,9 @@ type_add_entry(struct Hashmap* map, struct Type* type, uint32_t id)
 }
 
 void
-scope_init(struct Scope* scope, int capacity_log2)
+scope_init(struct Arena* scope_storage_)
 {
-  scope->scope_level = 0;
-  scope->parent_scope = 0;
-  hashmap_init(&scope->declarations, HASHMAP_KEY_STRING, capacity_log2, symtable_storage);
-}
-
-void
-symtable_init(struct Arena* symtable_storage_)
-{
-  symtable_storage = symtable_storage_;
-  struct Scope* root_scope = arena_push_struct(symtable_storage, struct Scope);
-  scope_init(root_scope, 4);
-  array_init(&scope_stack, sizeof(struct Scope*), symtable_storage);
-  array_append(&scope_stack, &root_scope);
+  scope_storage = scope_storage_;
+  scope_level = 0;
+  current_scope = 0;
 }
