@@ -5,7 +5,7 @@
 #include "build_ast.h"
 #include "build_symtable.h"
 #include "build_type.h"
-#include "collect_nameref.h"
+#include "resolve_nameref.h"
 
 internal struct Arena main_storage = {};
 
@@ -118,7 +118,7 @@ main(int arg_count, char* args[])
   struct Hashmap* type_map;
   build_symtable(p4program, &main_storage);
   //type_map = build_type(p4program, &main_storage);
-  collect_nameref(p4program);
+  resolve_nameref(p4program);
 
   arena_delete(&main_storage);
   return 0;

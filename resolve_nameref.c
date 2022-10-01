@@ -743,6 +743,9 @@ visit_expression(struct Ast* ast)
     visit_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
+    struct NameRef* ref = name->ref;
+    struct NameEntry* ne = scope_lookup_name(ref->scope, ref->strname);
+    int x = 0;
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
@@ -846,7 +849,7 @@ visit_p4program(struct Ast* ast)
 }
 
 void
-collect_nameref(struct Ast_P4Program* p4program)
+resolve_nameref(struct Ast_P4Program* p4program)
 {
   visit_p4program((struct Ast*)p4program);
 }

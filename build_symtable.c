@@ -3,10 +3,9 @@
 #include "scope.h"
 #include "build_symtable.h"
 
-internal struct Arena* scope_storage;
+internal struct Arena* symtable_storage;
 internal struct Scope* root_scope;
 internal struct Scope* current_scope;
-internal struct Hashmap nameref_map = {};
 
 internal void visit_block_statement(struct Ast* block_stmt);
 internal void visit_statement(struct Ast* decl);
@@ -50,10 +49,11 @@ visit_expression(struct Ast* ast)
     visit_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct NameRef* nameref = arena_push_struct(scope_storage, struct NameRef);
+    struct NameRef* nameref = arena_push_struct(symtable_storage, struct NameRef);
     nameref->strname = name->strname;
     nameref->line_no = name->line_no;
     nameref->scope = current_scope;
+    name->ref = nameref;
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
@@ -98,7 +98,7 @@ visit_param(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)param->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -114,7 +114,7 @@ visit_type_param(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)ast;
   struct NameEntry* ne = scope_lookup_name(current_scope, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -132,7 +132,7 @@ visit_action_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)action_decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -171,7 +171,7 @@ visit_instantiation(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -294,7 +294,7 @@ visit_table_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -340,7 +340,7 @@ visit_const_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -358,7 +358,7 @@ visit_statement(struct Ast* ast)
     struct Ast_Name* name = (struct Ast_Name*)decl->name;
     struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
     if (!ne->ns_var) {
-      struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+      struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
       decl->decl = ast;
       decl->strname = name->strname;
       decl->line_no = name->line_no;
@@ -438,7 +438,7 @@ visit_control_decl(struct Ast* ast)
   struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
   struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
   decl->decl = ast;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
@@ -534,7 +534,7 @@ visit_parser_state(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)state->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -560,7 +560,7 @@ visit_parser_decl(struct Ast* ast)
   struct Ast_ParserDecl* parser_decl = (struct Ast_ParserDecl*)ast;
   struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)parser_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
-  struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
   decl->decl = ast;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
@@ -616,7 +616,7 @@ visit_function_return_type(struct Ast* ast)
     struct Ast_Name* name = (struct Ast_Name*)ast;
     struct NameEntry* ne = scope_lookup_name(current_scope, name->strname);
     if (!ne->ns_type) {
-      struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+      struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
       decl->decl = ast;
       decl->strname = name->strname;
       decl->line_no = name->line_no;
@@ -635,7 +635,7 @@ visit_function_proto(struct Ast* ast)
   assert(ast->kind == AST_FUNCTION_PROTO);
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)ast;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
-  struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
   decl->decl = ast;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
@@ -669,7 +669,7 @@ visit_extern_decl(struct Ast* ast)
   assert(ast->kind == AST_EXTERN_DECL);
   struct Ast_ExternDecl* extern_decl = (struct Ast_ExternDecl*)ast;
   struct Ast_Name* name = (struct Ast_Name*)extern_decl->name;
-  struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
   decl->decl = ast;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
@@ -702,7 +702,7 @@ visit_struct_field(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)field->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -719,7 +719,7 @@ visit_struct_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)struct_decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -745,7 +745,7 @@ visit_header_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)header_decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -771,7 +771,7 @@ visit_header_union_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)header_union_decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -842,7 +842,7 @@ visit_enum_field(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)ast;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
   if (!ne->ns_var) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -871,7 +871,7 @@ visit_enum_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)enum_decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -900,7 +900,7 @@ visit_package_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)package_decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -934,7 +934,7 @@ visit_type_decl(struct Ast* ast)
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->declarations, name->strname);
   if (!ne->ns_type) {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->decl = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
@@ -951,7 +951,7 @@ visit_function_decl(struct Ast* ast)
   struct Ast_FunctionDecl* function_decl = (struct Ast_FunctionDecl*)ast;
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)function_decl->proto;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
-  struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+  struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
   decl->decl = ast;
   decl->strname = name->strname;
   decl->line_no = name->line_no;
@@ -1080,90 +1080,89 @@ visit_p4program(struct Ast* ast)
 }
 
 void
-build_symtable(struct Ast_P4Program* p4program, struct Arena* scope_storage_)
+build_symtable(struct Ast_P4Program* p4program, struct Arena* symtable_storage_)
 {
   struct NameDecl*
   declare_builtin_ident(struct Ast* ast, char* strname, enum Namespace ns)
   {
-    struct NameDecl* decl = arena_push_struct(scope_storage, struct NameDecl);
+    struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
     decl->strname = strname;
     decl->decl = (struct Ast*)ast;
     declare_name_in_scope(root_scope, ns, decl);
     return decl;
   }
 
-  scope_storage = scope_storage_;
-  scope_init(scope_storage);
+  symtable_storage = symtable_storage_;
+  scope_init(symtable_storage);
   root_scope = current_scope = push_scope();
 
   struct Ast_Name* name;
-  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name = arena_push_struct(symtable_storage, struct Ast_Name);
   name->kind = AST_NAME;
   name->id = ++p4program->last_node_id;
   name->strname = "void";
   declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
 
-  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name = arena_push_struct(symtable_storage, struct Ast_Name);
   name->kind = AST_NAME;
   name->id = ++p4program->last_node_id;
   name->strname = "bool";
   declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
 
-  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name = arena_push_struct(symtable_storage, struct Ast_Name);
   name->kind = AST_NAME;
   name->id = ++p4program->last_node_id;
   name->strname = "int";
   declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
 
-  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name = arena_push_struct(symtable_storage, struct Ast_Name);
   name->kind = AST_NAME;
   name->id = ++p4program->last_node_id;
   name->strname = "bit";
   declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
 
-  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name = arena_push_struct(symtable_storage, struct Ast_Name);
   name->kind = AST_NAME;
   name->id = ++p4program->last_node_id;
   name->strname = "varbit";
   declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
 
-  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name = arena_push_struct(symtable_storage, struct Ast_Name);
   name->kind = AST_NAME;
   name->id = ++p4program->last_node_id;
   name->strname = "string";
   declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
 
-  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name = arena_push_struct(symtable_storage, struct Ast_Name);
   name->kind = AST_NAME;
   name->id = ++p4program->last_node_id;
   name->strname = "error";
   declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
 
-  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name = arena_push_struct(symtable_storage, struct Ast_Name);
   name->kind = AST_NAME;
   name->id = ++p4program->last_node_id;
   name->strname = "match_kind";
   declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
 
-  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name = arena_push_struct(symtable_storage, struct Ast_Name);
   name->kind = AST_NAME;
   name->id = ++p4program->last_node_id;
   name->strname = "accept";
   declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_VAR);
 
-  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name = arena_push_struct(symtable_storage, struct Ast_Name);
   name->kind = AST_NAME;
   name->id = ++p4program->last_node_id;
   name->strname = "reject";
   declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_VAR);
 
-  name = arena_push_struct(scope_storage, struct Ast_Name);
+  name = arena_push_struct(symtable_storage, struct Ast_Name);
   name->kind = AST_NAME;
   name->id = ++p4program->last_node_id;
   name->strname = "error";
   declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_VAR);
 
-  hashmap_init(&nameref_map, HASHMAP_KEY_INT, 8, scope_storage);
   visit_p4program((struct Ast*)p4program);
   current_scope = pop_scope();
 }

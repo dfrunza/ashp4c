@@ -32,13 +32,13 @@ next_token()
     token = array_get(tokens_array, ++token_at);
   }
   if (token->klass == TK_IDENTIFIER) {
-    struct NameEntry* entry = scope_lookup_name(current_scope, token->lexeme);
-    if (entry->ns_keyword) {
-      struct NameDecl* nd = entry->ns_keyword;
+    struct NameEntry* ne = scope_lookup_name(current_scope, token->lexeme);
+    if (ne->ns_keyword) {
+      struct NameDecl* nd = ne->ns_keyword;
       token->klass = nd->token_class;
       return token;
     }
-    if (entry->ns_type) {
+    if (ne->ns_type) {
       token->klass = TK_TYPE_IDENTIFIER;
       return token;
     }

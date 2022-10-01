@@ -20,12 +20,12 @@ gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/lex.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/build_ast.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/build_symtable.c 
 #gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/build_type.c 
-gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/collect_nameref.c 
+gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/resolve_nameref.c 
 
 ld $LD_FLAGS -L$MUSL_LIB -o ashp4c \
   $MUSL_LIB/crt1.o \
   ashp4c.o basic.o arena.o hashmap.o scope.o lex.o build_ast.o build_symtable.o \
-  collect_nameref.o \
+  resolve_nameref.o \
   -lc
 
 if [ $? -ne 0 ]; then
