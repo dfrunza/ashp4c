@@ -5,11 +5,9 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
 #include <libgen.h>
-#include <net/if.h>
 
 #include "bpf_load.h"
 #include "bpf_util.h"
