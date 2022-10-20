@@ -1,8 +1,6 @@
 #include <memory.h>  // memset
 #include <stdint.h>
-#include "basic.h"
 #include "arena.h"
-#include "hashmap.h"
 
 internal const uint32_t P = 257, Q = 4294967029;
 internal const uint32_t SIGMA = 2654435769;

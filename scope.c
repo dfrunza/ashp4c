@@ -1,11 +1,7 @@
 #include <memory.h>  // memset
 #include <stdint.h>
-#include "basic.h"
 #include "arena.h"
-#include "hashmap.h"
 #include "ast.h"
-#include "token.h"
-#include "scope.h"
 
 internal struct Arena *scope_storage;
 internal struct Scope* current_scope;

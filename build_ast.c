@@ -1,14 +1,8 @@
 #include <memory.h>  // memset
 #include <stdint.h>
 #include <stdio.h>
-#include "basic.h"
 #include "arena.h"
-#include "hashmap.h"
 #include "ast.h"
-#include "token.h"
-#include "lex.h"
-#include "scope.h"
-#include "build_ast.h"
 
 internal struct Arena *ast_storage;
 internal struct UnboundedArray* tokens_array;

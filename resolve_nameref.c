@@ -1,11 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
-#include "basic.h"
 #include "arena.h"
-#include "hashmap.h"
 #include "ast.h"
-#include "token.h"
-#include "scope.h"
 
 internal void visit_block_statement(struct Ast* block_stmt);
 internal void visit_statement(struct Ast* decl);

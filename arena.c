@@ -5,7 +5,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>   // exit
-#include "basic.h"
 #include "arena.h"
 
 #define ZERO_MEMORY_ON_FREE  0

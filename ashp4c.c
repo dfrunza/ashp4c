@@ -3,17 +3,9 @@
 #include <stdint.h>
 #include <stdlib.h>   // exit
 #include <stdarg.h>   // va_list, va_start, va_end
-#include "basic.h"
 #include "arena.h"
-#include "hashmap.h"
 #include "ast.h"
-#include "token.h"
-#include "lex.h"
-#include "scope.h"
-#include "build_ast.h"
-#include "build_symtable.h"
-#include "build_type.h"
-#include "resolve_nameref.h"
+#include "ashp4c.h"
 
 internal struct Arena main_storage = {};
 

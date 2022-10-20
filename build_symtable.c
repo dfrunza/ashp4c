@@ -1,13 +1,8 @@
 #include <memory.h>  // memset
 #include <stdint.h>
 #include <stdio.h>
-#include "basic.h"
 #include "arena.h"
-#include "hashmap.h"
 #include "ast.h"
-#include "token.h"
-#include "scope.h"
-#include "build_symtable.h"
 
 internal struct Arena* symtable_storage;
 internal struct Scope* root_scope;

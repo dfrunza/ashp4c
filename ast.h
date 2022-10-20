@@ -1,5 +1,114 @@
 #pragma once
 
+enum TokenClass {
+  TK_SEMICOLON = 1,
+  TK_IDENTIFIER,
+  TK_TYPE_IDENTIFIER,
+  TK_INT_LITERAL,
+  TK_STRING_LITERAL,
+  TK_PARENTH_OPEN,
+  TK_PARENTH_CLOSE,
+  TK_ANGLE_OPEN,
+  TK_ANGLE_CLOSE,
+  TK_BRACE_OPEN,
+  TK_BRACE_CLOSE,
+  TK_BRACKET_OPEN,
+  TK_BRACKET_CLOSE,
+  TK_DONTCARE,
+  TK_COLON,
+  TK_DOTPREFIX,
+  TK_COMMA,
+  TK_MINUS,
+  TK_UNARY_MINUS,
+  TK_PLUS,
+  TK_STAR,
+  TK_SLASH,
+  TK_EQUAL,
+  TK_DOUBLE_EQUAL,
+  TK_EXCLAMATION_EQUAL,
+  TK_EXCLAMATION,
+  TK_DOUBLE_PIPE,
+  TK_ANGLE_OPEN_EQUAL,
+  TK_ANGLE_CLOSE_EQUAL,
+  TK_TILDA,
+  TK_AMPERSAND,
+  TK_DOUBLE_AMPERSAND,
+  TK_TRIPLE_AMPERSAND,
+  TK_PIPE,
+  TK_CIRCUMFLEX,
+  TK_DOUBLE_ANGLE_OPEN,
+  TK_DOUBLE_ANGLE_CLOSE,
+  TK_COMMENT,
+
+  /* Keywords */
+  TK_ACTION,
+  TK_ACTIONS,
+  TK_ENUM,
+  TK_IN,
+  TK_PACKAGE,
+  TK_SELECT,
+  TK_SWITCH,
+  TK_TUPLE,
+  TK_VOID,
+  TK_APPLY,
+  TK_CONTROL,
+  TK_ERROR,
+  TK_HEADER,
+  TK_INOUT,
+  TK_PARSER,
+  TK_STATE,
+  TK_TABLE,
+  TK_ENTRIES,
+  TK_KEY,
+  TK_TYPEDEF,
+  TK_TYPE,
+  TK_BOOL,
+  TK_TRUE,
+  TK_FALSE,
+  TK_DEFAULT,
+  TK_EXTERN,
+  TK_HEADER_UNION,
+  TK_INT,
+  TK_BIT,
+  TK_VARBIT,
+  TK_STRING,
+  TK_OUT,
+  TK_TRANSITION,
+  TK_ELSE,
+  TK_EXIT,
+  TK_IF,
+  TK_MATCH_KIND,
+  TK_RETURN,
+  TK_STRUCT,
+  TK_CONST,
+
+  /* Special */
+  TK_UNKNOWN,
+  TK_START_OF_INPUT,
+  TK_END_OF_INPUT,
+  TK_LEXICAL_ERROR,
+};
+
+enum AstIntegerFlags {
+  INTFLAGS_HAS_WIDTH = 1,
+  INTFLAGS_IS_SIGNED,
+};
+
+struct Token {
+  enum TokenClass klass;
+  char* lexeme;
+  int line_no;
+
+  union {
+    struct {
+      enum AstIntegerFlags flags;
+      int width;
+      int64_t value;
+    } i;  /* integer */
+    char* str;
+  };
+};
+
 enum AstEnum {
   AST_NAME = 1,
   AST_DOTNAME = 1,
@@ -73,11 +182,6 @@ enum AstEnum {
   AST_MEMBER_SELECT_EXPR,
   AST_SUBSCRIPT_EXPR,
   AST_FUNCTION_CALL_EXPR,
-};
-
-enum AstIntegerFlags {
-  INTFLAGS_HAS_WIDTH = 1,
-  INTFLAGS_IS_SIGNED,
 };
 
 enum AstExprOperator {
@@ -531,4 +635,51 @@ struct Ast_FunctionCallExpr {
   struct Ast* callee_expr;
   struct List* args;
 };
+
+enum Namespace {
+  NAMESPACE_TYPE = 1 << 0,
+  NAMESPACE_VAR = 1 << 1,
+  NAMESPACE_KEYWORD = 1 << 2,
+};
+
+struct NameDecl {
+  union {
+    struct Ast* decl;
+    enum TokenClass token_class;
+  };
+  char* strname;
+  int line_no;
+  struct Scope* scope;
+  struct NameDecl* nextdecl_in_scope;
+};  
+
+struct NameRef {
+  struct Ast* ref;
+  char* strname;
+  int line_no;
+  struct Scope* scope;
+};
+
+struct NameEntry {
+  char* strname;
+  struct NameDecl* ns_type;
+  struct NameDecl* ns_var;
+  struct NameDecl* ns_keyword;
+};
+
+struct Scope {
+  int scope_level;
+  struct Scope* parent_scope;
+  struct Hashmap declarations;
+};
+
+void scope_init(struct Arena* scope_storage);
+struct NameEntry* namedecl_get_or_create(struct Hashmap* declarations, char* name);
+struct NameEntry* namedecl_get_entry(struct Hashmap* declarations, char* name);
+struct Scope* push_scope();
+struct Scope* pop_scope();
+struct NameEntry* scope_lookup_name(struct Scope* scope, char* name);
+struct NameEntry* declare_name_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl);
+struct NameRef* nameref_get(struct Hashmap* map, uint32_t id);
+void nameref_add(struct Hashmap* map, struct NameRef* nameref, uint32_t id);
 
