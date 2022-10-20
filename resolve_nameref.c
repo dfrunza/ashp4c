@@ -1,5 +1,10 @@
+#include <stdint.h>
+#include <stdio.h>
+#include "basic.h"
 #include "arena.h"
+#include "hashmap.h"
 #include "ast.h"
+#include "token.h"
 #include "scope.h"
 
 internal void visit_block_statement(struct Ast* block_stmt);
@@ -743,9 +748,8 @@ visit_expression(struct Ast* ast)
     visit_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct NameRef* ref = name->ref;
-    struct NameEntry* ne = scope_lookup_name(ref->scope, ref->strname);
-    int x = 0;
+    //struct NameRef* ref = name->ref;
+    //struct NameEntry* ne = scope_lookup_name(ref->scope, ref->strname);
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {

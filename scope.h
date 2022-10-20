@@ -1,7 +1,4 @@
 #pragma once
-#include "arena.h"
-#include "hashmap.h"
-#include "token.h"
 
 enum Namespace {
   NAMESPACE_TYPE = 1 << 0,

@@ -1,6 +1,4 @@
 #pragma once
-#include "basic.h"
-#include "arena.h"
 
 enum HashmapKeyType {
   HASHMAP_KEY_STRING = 1,

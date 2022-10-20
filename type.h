@@ -1,6 +1,4 @@
 #pragma once
-#include "basic.h"
-#include "arena.h"
 
 enum TypeEnum {
   TYPE_NAME = 1,

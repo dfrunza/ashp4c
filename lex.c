@@ -1,4 +1,10 @@
+#include <memory.h>  // memset
+#include <stdint.h>
+#include <stdio.h>
+#include "basic.h"
 #include "arena.h"
+#include "ast.h"
+#include "token.h"
 #include "lex.h"
 
 internal struct Arena* lexeme_storage;

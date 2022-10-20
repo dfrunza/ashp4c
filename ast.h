@@ -1,6 +1,4 @@
 #pragma once
-#include "basic.h"
-#include "arena.h"
 
 enum AstEnum {
   AST_NAME = 1,
@@ -126,7 +124,7 @@ struct Ast_Expression {
 struct Ast_Name {
   struct Ast_Expression;
   char* strname;
-  struct NameRef* ref;
+  //struct NameRef* ref;
 };
 
 struct Ast_BaseType {

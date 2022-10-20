@@ -64,8 +64,8 @@ Enable address-space randomization :
 == Why C99? ==
 ==============
 
-Stricter checks of function usage, which leads to better error reporting by the compiler.
-Examle - a warning is reported if a function is used without declaration :
+Stricter checking of function usage, which leads to better error reporting by the compiler.
+For examle, a warning is reported if a function is used without declaration :
 
   `warning| implicit declaration of function ‘hashmap_init’`
 

@@ -1,7 +1,12 @@
-#include "arena.h"
+#include <memory.h>  // memset
 #include <unistd.h>
 #include <sys/mman.h>
 #include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>   // exit
+#include "basic.h"
+#include "arena.h"
 
 #define ZERO_MEMORY_ON_FREE  0
 

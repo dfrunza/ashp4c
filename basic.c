@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>   // exit
+#include <stdarg.h>   // va_list, va_start, va_end
 #include "basic.h"
 
 void

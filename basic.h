@@ -1,8 +1,4 @@
 #pragma once
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>   // exit
-#include <stdarg.h>   // va_list, va_start, va_end
 
 #define global static
 #define internal static

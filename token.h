@@ -1,6 +1,4 @@
 #pragma once
-#include "basic.h"
-#include "ast.h"
 
 enum TokenClass {
   TK_SEMICOLON = 1,
