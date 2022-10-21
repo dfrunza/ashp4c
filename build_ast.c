@@ -3061,5 +3061,7 @@ build_ast(struct UnboundedArray* tokens_array_, struct Arena* ast_storage_)
   struct Ast_P4Program* p4program = (struct Ast_P4Program*)build_p4program();
   p4program->last_node_id = node_id;
   current_scope = pop_scope();
+  assert(current_scope == 0);
+
   return p4program;
 }

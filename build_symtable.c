@@ -1080,7 +1080,7 @@ visit_p4program(struct Ast* ast)
   current_scope = pop_scope();
 }
 
-void
+struct Scope*
 build_symtable(struct Ast_P4Program* p4program, struct Arena* symtable_storage_)
 {
   struct NameDecl*
@@ -1166,4 +1166,7 @@ build_symtable(struct Ast_P4Program* p4program, struct Arena* symtable_storage_)
 
   visit_p4program((struct Ast*)p4program);
   current_scope = pop_scope();
+  assert(current_scope == 0);
+
+  return root_scope;
 }
