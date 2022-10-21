@@ -54,10 +54,8 @@ void* arena_push(struct Arena* arena, uint32_t size);
   o; \
 })
 void arena_delete(struct Arena* arena);
-
 struct ArenaUsage arena_get_usage(struct Arena* arena);
 void arena_print_usage(struct Arena* arena, char* title);
-
 
 struct ListLink {
   struct ListLink* prev;

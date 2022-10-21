@@ -20,7 +20,10 @@ internal void
 visit_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
-  visit_expression(ast);
+  struct Ast_Name* name = (struct Ast_Name*)ast;
+  if (name->ref) {
+    visit_expression(ast);
+  } // else it's a declaration of generic type
 }
 
 internal void
@@ -744,8 +747,8 @@ visit_expression(struct Ast* ast)
     visit_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    //struct NameRef* ref = name->ref;
-    //struct NameEntry* ne = scope_lookup_name(ref->scope, ref->strname);
+    struct NameRef* ref = name->ref;
+    struct NameEntry* ne = scope_lookup_name(ref->scope, ref->strname);
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {

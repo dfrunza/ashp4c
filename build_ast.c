@@ -2872,7 +2872,7 @@ get_operator_priority(struct Token* token)
   return prio;
 }
 
-internal enum AstExprOperator
+internal enum AstOperator
 token_to_binop(struct Token* token)
 {
   switch (token->klass) {

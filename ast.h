@@ -184,7 +184,7 @@ enum AstEnum {
   AST_FUNCTION_CALL_EXPR,
 };
 
-enum AstExprOperator {
+enum AstOperator {
   OP_ADD = 1,
   OP_SUB,
   OP_MUL,
@@ -228,7 +228,7 @@ struct Ast_Expression {
 struct Ast_Name {
   struct Ast_Expression;
   char* strname;
-  //struct NameRef* ref;
+  struct NameRef* ref;
 };
 
 struct Ast_BaseType {
@@ -607,13 +607,13 @@ struct Ast_CastExpr {
 
 struct Ast_UnaryExpr {
   struct Ast_Expression;
-  enum AstExprOperator op;
+  enum AstOperator op;
   struct Ast* operand;
 };
 
 struct Ast_BinaryExpr {
   struct Ast_Expression;
-  enum AstExprOperator op;
+  enum AstOperator op;
   struct Ast* left_operand;
   struct Ast* right_operand;
 };

@@ -54,7 +54,7 @@ visit_expression(struct Ast* ast)
     nameref->strname = name->strname;
     nameref->line_no = name->line_no;
     nameref->scope = current_scope;
-    //name->ref = nameref;
+    name->ref = nameref;
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
