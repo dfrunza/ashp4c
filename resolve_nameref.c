@@ -749,6 +749,9 @@ visit_expression(struct Ast* ast)
     struct Ast_Name* name = (struct Ast_Name*)ast;
     struct NameRef* ref = name->ref;
     struct NameEntry* ne = scope_lookup_name(ref->scope, ref->strname);
+    if (!(ne->ns_type || ne->ns_var)) {
+      error("at line %d: unresolved name '%s'.", ref->line_no, ref->strname);
+    }
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
