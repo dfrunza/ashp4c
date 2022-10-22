@@ -89,11 +89,6 @@ enum TokenClass {
   TK_LEXICAL_ERROR,
 };
 
-enum AstIntegerFlags {
-  INTFLAGS_HAS_WIDTH = 1,
-  INTFLAGS_IS_SIGNED,
-};
-
 struct Token {
   enum TokenClass klass;
   char* lexeme;
@@ -101,7 +96,7 @@ struct Token {
 
   union {
     struct {
-      enum AstIntegerFlags flags;
+      bool is_signed;
       int width;
       int64_t value;
     } i;  /* integer */
@@ -111,7 +106,7 @@ struct Token {
 
 enum AstEnum {
   AST_NAME = 1,
-  AST_DOTNAME = 1,
+  AST_DOTNAME = AST_NAME,
   AST_BASETYPE_BOOL,
   AST_BASETYPE_ERROR,
   AST_BASETYPE_INT,
@@ -228,7 +223,6 @@ struct Ast_Expression {
 struct Ast_Name {
   struct Ast_Expression;
   char* strname;
-  struct NameRef* ref;
 };
 
 struct Ast_BaseType {
@@ -386,7 +380,7 @@ struct Ast_IntTypeSize {
 
 struct Ast_IntLiteral {
   struct Ast_Expression;
-  enum AstIntegerFlags flags;
+  bool is_signed;
   int value;
   int width;
 };
@@ -576,7 +570,7 @@ struct Ast_BlockStmt {
   struct List* stmt_list;
 };
 
-struct Ast_KeyValuePairExpr {
+struct Ast_KVPairExpr {
   struct Ast_Expression;
   struct Ast* name;
   struct Ast* expr;
@@ -637,14 +631,14 @@ struct Ast_FunctionCallExpr {
 };
 
 enum Namespace {
-  NAMESPACE_TYPE = 1 << 0,
-  NAMESPACE_VAR = 1 << 1,
-  NAMESPACE_KEYWORD = 1 << 2,
+  NAMESPACE_TYPE = 1,
+  NAMESPACE_VAR,
+  NAMESPACE_KEYWORD,
 };
 
 struct NameDecl {
   union {
-    struct Ast* decl;
+    struct Ast* ast;
     enum TokenClass token_class;
   };
   char* strname;
@@ -654,7 +648,7 @@ struct NameDecl {
 };  
 
 struct NameRef {
-  struct Ast* ref;
+  struct Ast* ast;
   char* strname;
   int line_no;
   struct Scope* scope;
@@ -670,12 +664,12 @@ struct NameEntry {
 struct Scope {
   int scope_level;
   struct Scope* parent_scope;
-  struct Hashmap declarations;
+  struct Hashmap decls;
 };
 
 void scope_init(struct Arena* scope_storage);
-struct NameEntry* namedecl_get_or_create(struct Hashmap* declarations, char* name);
-struct NameEntry* namedecl_get_entry(struct Hashmap* declarations, char* name);
+struct NameEntry* namedecl_get_or_create(struct Hashmap* decls, char* name);
+struct NameEntry* namedecl_get(struct Hashmap* decls, char* name);
 struct Scope* push_scope();
 struct Scope* pop_scope();
 struct NameEntry* scope_lookup_name(struct Scope* scope, char* name);
@@ -683,3 +677,67 @@ struct NameEntry* declare_name_in_scope(struct Scope* scope, enum Namespace ns, 
 struct NameRef* nameref_get(struct Hashmap* map, uint32_t id);
 void nameref_add(struct Hashmap* map, struct NameRef* nameref, uint32_t id);
 
+enum TypeEnum {
+  TYPE_NAME = 1,
+  TYPE_BASIC,
+  TYPE_TYPEVAR,
+  TYPE_TYPEDEF,
+  TYPE_TYPENAME,
+  TYPE_TYPEPARAM,
+  TYPE_PRODUCT,
+  TYPE_FUNCTION,
+  TYPE_FUNCTION_CALL,
+};
+
+enum BasicType {
+  TYPE_INT = 1,
+  TYPE_STRING,
+  TYPE_VOID,
+};
+
+struct Type {
+  enum TypeEnum ctor;
+  struct Type* type_params;
+};
+
+struct Type_Basic {
+  struct Type;
+  char* strname;
+  enum BasicType basic_ty;
+};
+
+struct Type_Typevar {
+  struct Type;
+};
+
+struct Type_Name {
+  struct Type;
+  char* strname;
+};
+
+struct Type_TypeParam {
+  struct Type;
+  char* strname;
+};
+
+struct Type_Product {
+  struct Type;
+  struct Type* lhs_ty;
+  struct Type* rhs_ty;
+};
+
+struct Type_Function {
+  struct Type;
+  struct Type* params_ty;
+  struct Type* return_ty;
+};
+
+struct Type_FunctionCall {
+  struct Type;
+  struct Type* function_ty;
+  struct Type* args_ty;
+  struct Type* return_ty;
+};
+
+struct Type* type_get(struct Hashmap* map, uint32_t id);
+void type_add(struct Hashmap* map, struct Type* type, uint32_t id);

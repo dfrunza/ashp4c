@@ -216,7 +216,7 @@ build_nonTypeName(bool is_type)
     name->strname = token->lexeme;
     if (is_type) {
       struct NameDecl* decl = arena_push_struct(ast_storage, struct NameDecl);
-      decl->decl = (struct Ast*)name;
+      decl->ast = (struct Ast*)name;
       decl->strname = name->strname;
       decl->line_no = token->line_no;
       declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
@@ -388,7 +388,7 @@ build_typeOrVoid(bool is_type)
       type = (struct Ast*)name;
       if (is_type) {
         struct NameDecl* decl = arena_push_struct(ast_storage, struct NameDecl);
-        decl->decl = (struct Ast*)name;
+        decl->ast = (struct Ast*)name;
         decl->strname = name->strname;
         decl->line_no = token->line_no;
         declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
@@ -527,7 +527,7 @@ build_integer()
     int_node->kind = AST_INT_LITERAL;
     int_node->id = node_id++;
     int_node->line_no = token->line_no;
-    int_node->flags = token->i.flags;
+    int_node->is_signed = token->i.is_signed;
     int_node->width = token->i.width;
     int_node->value = token->i.value;
     next_token();
@@ -2969,7 +2969,7 @@ build_expression(int priority_threshold)
         } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
       } else if (token->klass == TK_EQUAL) {
         next_token();
-        struct Ast_KeyValuePairExpr* kv_pair = arena_push_struct(ast_storage, struct Ast_KeyValuePairExpr);
+        struct Ast_KVPairExpr* kv_pair = arena_push_struct(ast_storage, struct Ast_KVPairExpr);
         kv_pair->kind = AST_KVPAIR_EXPR;
         kv_pair->id = node_id++;
         kv_pair->line_no = token->line_no;

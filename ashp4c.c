@@ -115,9 +115,10 @@ main(int arg_count, char* args[])
     assert(!"TODO");
   }
 
-  struct Scope* root_scope = build_symtable(p4program, &main_storage);
-  //struct Hashmap* type_map = build_type(p4program, &main_storage);
-  resolve_nameref(p4program);
+  struct Hashmap* nameref_map;
+  struct Scope* root_scope = build_symtable(p4program, &main_storage, &nameref_map);
+  resolve_nameref(p4program, nameref_map);
+  struct Hashmap* type_map = build_type(p4program, root_scope, nameref_map, &main_storage);
 
   arena_delete(&main_storage);
   return 0;

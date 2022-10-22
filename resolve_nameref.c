@@ -3,6 +3,8 @@
 #include "arena.h"
 #include "ast.h"
 
+struct Hashmap* nameref_map;
+
 internal void visit_block_statement(struct Ast* block_stmt);
 internal void visit_statement(struct Ast* decl);
 internal void visit_expression(struct Ast* expr);
@@ -21,9 +23,10 @@ visit_type_param(struct Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   struct Ast_Name* name = (struct Ast_Name*)ast;
-  if (name->ref) {
+  struct NameRef* ref = nameref_get(nameref_map, name->id);
+  if (ref) {
     visit_expression(ast);
-  } // else it's a declaration of generic type
+  } // else it's a declaration of a generic type
 }
 
 internal void
@@ -747,7 +750,7 @@ visit_expression(struct Ast* ast)
     visit_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct NameRef* ref = name->ref;
+    struct NameRef* ref = nameref_get(nameref_map, name->id);
     struct NameEntry* ne = scope_lookup_name(ref->scope, ref->strname);
     if (!(ne->ns_type || ne->ns_var)) {
       error("at line %d: unresolved name '%s'.", ref->line_no, ref->strname);
@@ -757,6 +760,7 @@ visit_expression(struct Ast* ast)
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
     struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
     visit_expression(expr->lhs_expr);
+    // skip expr->member_name;
     struct Ast_Name* name = (struct Ast_Name*)expr->member_name;
   } else if (ast->kind == AST_EXPRLIST_EXPR) {
     struct Ast_ExprListExpr* expr = (struct Ast_ExprListExpr*)ast;
@@ -779,7 +783,7 @@ visit_expression(struct Ast* ast)
       visit_expression(expr->colon_index);
     }
   } else if (ast->kind == AST_KVPAIR_EXPR) {
-    struct Ast_KeyValuePairExpr* expr = (struct Ast_KeyValuePairExpr*)ast;
+    struct Ast_KVPairExpr* expr = (struct Ast_KVPairExpr*)ast;
     visit_expression(expr->name);
     visit_expression(expr->expr);
   } else if (ast->kind == AST_INT_LITERAL || ast->kind == AST_BOOL_LITERAL || ast->kind == AST_STRING_LITERAL) {
@@ -855,7 +859,8 @@ visit_p4program(struct Ast* ast)
 }
 
 void
-resolve_nameref(struct Ast_P4Program* p4program)
+resolve_nameref(struct Ast_P4Program* p4program, struct Hashmap* nameref_map_)
 {
+  nameref_map = nameref_map_;
   visit_p4program((struct Ast*)p4program);
 }
