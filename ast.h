@@ -107,13 +107,13 @@ struct Token {
 enum AstEnum {
   AST_NAME = 1,
   AST_DOTNAME = AST_NAME,
-  AST_BASETYPE_BOOL,
-  AST_BASETYPE_ERROR,
-  AST_BASETYPE_INT,
-  AST_BASETYPE_BIT,
-  AST_BASETYPE_VARBIT,
-  AST_BASETYPE_STRING,
-  AST_BASETYPE_VOID,
+  AST_TYPE_BOOL,
+  AST_TYPE_ERROR,
+  AST_TYPE_INT,
+  AST_TYPE_BIT,
+  AST_TYPE_VARBIT,
+  AST_TYPE_STRING,
+  AST_TYPE_VOID,
   AST_CONST_DECL,
   AST_EXTERN_DECL,
   AST_FUNCTION_PROTO,
@@ -225,40 +225,40 @@ struct Ast_Name {
   char* strname;
 };
 
-struct Ast_BaseType {
+struct Ast_BasicType {
   struct Ast;
   struct Ast* name;
 };
 
-struct Ast_BaseType_Bool {
-  struct Ast_BaseType;
+struct Ast_Type_Bool {
+  struct Ast_BasicType;
 };
 
-struct Ast_BaseType_Error {
-  struct Ast_BaseType;
+struct Ast_Type_Error {
+  struct Ast_BasicType;
 };
 
-struct Ast_BaseType_Int {
-  struct Ast_BaseType;
+struct Ast_Type_Int {
+  struct Ast_BasicType;
   struct Ast* size;
 };
 
-struct Ast_BaseType_Bit {
-  struct Ast_BaseType;
+struct Ast_Type_Bit {
+  struct Ast_BasicType;
   struct Ast* size;
 };
 
-struct Ast_BaseType_Varbit {
-  struct Ast_BaseType;
+struct Ast_Type_Varbit {
+  struct Ast_BasicType;
   struct Ast* size;
 };
 
-struct Ast_BaseType_String {
-  struct Ast_BaseType;
+struct Ast_Type_String {
+  struct Ast_BasicType;
 };
 
-struct Ast_BaseType_Void {
-  struct Ast_BaseType;
+struct Ast_Type_Void {
+  struct Ast_BasicType;
 };
 
 struct Ast_ConstDecl {

@@ -85,11 +85,11 @@ visit_struct_decl(struct Ast* ast)
 internal void
 visit_type_ref(struct Ast* ast)
 {
-  if (ast->kind == AST_BASETYPE_BOOL || ast->kind == AST_BASETYPE_ERROR
-      || ast->kind == AST_BASETYPE_INT || ast->kind == AST_BASETYPE_BIT
-      || ast->kind == AST_BASETYPE_VARBIT || ast->kind == AST_BASETYPE_STRING
-      || ast->kind == AST_BASETYPE_VOID) {
-    struct Ast_BaseType* base_type = (struct Ast_BaseType*)ast;
+  if (ast->kind == AST_TYPE_BOOL || ast->kind == AST_TYPE_ERROR
+      || ast->kind == AST_TYPE_INT || ast->kind == AST_TYPE_BIT
+      || ast->kind == AST_TYPE_VARBIT || ast->kind == AST_TYPE_STRING
+      || ast->kind == AST_TYPE_VOID) {
+    struct Ast_BasicType* base_type = (struct Ast_BasicType*)ast;
     visit_type_ref(base_type->name);
   } else if (ast->kind == AST_HEADER_STACK) {
     struct Ast_HeaderStack* type_ref = (struct Ast_HeaderStack*)ast;

@@ -592,8 +592,8 @@ build_baseType()
     type_name->id = node_id++;
     type_name->line_no = token->line_no;
     if (token->klass == TK_BOOL) {
-      struct Ast_BaseType_Bool* bool_type = arena_push_struct(ast_storage, struct Ast_BaseType_Bool);
-      bool_type->kind = AST_BASETYPE_BOOL;
+      struct Ast_Type_Bool* bool_type = arena_push_struct(ast_storage, struct Ast_Type_Bool);
+      bool_type->kind = AST_TYPE_BOOL;
       bool_type->id = node_id++;
       bool_type->line_no = token->line_no;
       type_name->strname = "bool";
@@ -601,8 +601,8 @@ build_baseType()
       base_type = (struct Ast*)bool_type;
       next_token();
     } else if (token->klass == TK_ERROR) {
-      struct Ast_BaseType_Error* error_type = arena_push_struct(ast_storage, struct Ast_BaseType_Error);
-      error_type->kind = AST_BASETYPE_ERROR;
+      struct Ast_Type_Error* error_type = arena_push_struct(ast_storage, struct Ast_Type_Error);
+      error_type->kind = AST_TYPE_ERROR;
       error_type->id = node_id++;
       error_type->line_no = token->line_no;
       type_name->strname = "error";
@@ -610,10 +610,10 @@ build_baseType()
       base_type = (struct Ast*)error_type;
       next_token();
     } else if (token->klass == TK_INT) {
-      struct Ast_BaseType_Int* int_type = arena_push_struct(ast_storage, struct Ast_BaseType_Int);
-      int_type->kind = AST_BASETYPE_INT;
+      struct Ast_Type_Int* int_type = arena_push_struct(ast_storage, struct Ast_Type_Int);
+      int_type->kind = AST_TYPE_INT;
       int_type->id = node_id++;
-      type_name->line_no = token->line_no;
+      int_type->line_no = node_id++;
       type_name->strname = "int";
       int_type->name = (struct Ast*)type_name;
       base_type = (struct Ast*)int_type;
@@ -626,10 +626,10 @@ build_baseType()
         } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
       }
     } else if (token->klass == TK_BIT) {
-      struct Ast_BaseType_Bit* bit_type = arena_push_struct(ast_storage, struct Ast_BaseType_Bit);
-      bit_type->kind = AST_BASETYPE_BIT;
+      struct Ast_Type_Bit* bit_type = arena_push_struct(ast_storage, struct Ast_Type_Bit);
+      bit_type->kind = AST_TYPE_BIT;
       bit_type->id = node_id++;
-      type_name->line_no = token->line_no;
+      bit_type->line_no = token->line_no;
       type_name->strname = "bit";
       bit_type->name = (struct Ast*)type_name;
       base_type = (struct Ast*)bit_type;
@@ -642,10 +642,10 @@ build_baseType()
         } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
       }
     } else if (token->klass == TK_VARBIT) {
-      struct Ast_BaseType_Varbit* varbit_type = arena_push_struct(ast_storage, struct Ast_BaseType_Varbit);
-      varbit_type->kind = AST_BASETYPE_VARBIT;
+      struct Ast_Type_Varbit* varbit_type = arena_push_struct(ast_storage, struct Ast_Type_Varbit);
+      varbit_type->kind = AST_TYPE_VARBIT;
       varbit_type->id = node_id++;
-      type_name->line_no = token->line_no;
+      varbit_type->line_no = node_id++;
       type_name->strname = "varbit";
       varbit_type->name = (struct Ast*)type_name;
       base_type = (struct Ast*)varbit_type;
@@ -658,8 +658,8 @@ build_baseType()
         } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
       }
     } else if (token->klass == TK_STRING) {
-      struct Ast_BaseType_String* string_type = arena_push_struct(ast_storage, struct Ast_BaseType_String);
-      string_type->kind = AST_BASETYPE_STRING;
+      struct Ast_Type_String* string_type = arena_push_struct(ast_storage, struct Ast_Type_String);
+      string_type->kind = AST_TYPE_STRING;
       string_type->id = node_id++;
       string_type->line_no = token->line_no;
       type_name->strname = "string";
@@ -667,8 +667,8 @@ build_baseType()
       base_type = (struct Ast*)string_type;
       next_token();
     } else if (token->klass == TK_VOID) {
-      struct Ast_BaseType_Void* void_type = arena_push_struct(ast_storage, struct Ast_BaseType_Void);
-      void_type->kind = AST_BASETYPE_VOID;
+      struct Ast_Type_Void* void_type = arena_push_struct(ast_storage, struct Ast_Type_Void);
+      void_type->kind = AST_TYPE_VOID;
       void_type->id = node_id++;
       void_type->line_no = token->line_no;
       type_name->strname = "void";

@@ -817,11 +817,11 @@ visit_header_union_decl(struct Ast* ast)
 internal void
 visit_type_ref(struct Ast* ast)
 {
-  if (ast->kind == AST_BASETYPE_BOOL || ast->kind == AST_BASETYPE_ERROR
-      || ast->kind == AST_BASETYPE_INT || ast->kind == AST_BASETYPE_BIT
-      || ast->kind == AST_BASETYPE_VARBIT || ast->kind == AST_BASETYPE_STRING
-      || ast->kind == AST_BASETYPE_VOID) {
-    visit_expression(((struct Ast_BaseType*)ast)->name);
+  if (ast->kind == AST_TYPE_BOOL || ast->kind == AST_TYPE_ERROR
+      || ast->kind == AST_TYPE_INT || ast->kind == AST_TYPE_BIT
+      || ast->kind == AST_TYPE_VARBIT || ast->kind == AST_TYPE_STRING
+      || ast->kind == AST_TYPE_VOID) {
+    visit_expression(((struct Ast_BasicType*)ast)->name);
   } else if (ast->kind == AST_HEADER_STACK) {
     struct Ast_HeaderStack* type_ref = (struct Ast_HeaderStack*)ast;
     visit_expression(type_ref->name);
@@ -1123,72 +1123,60 @@ build_symtable(struct Ast_P4Program* p4program, struct Arena* symtable_storage_,
   hashmap_init(&nameref_map, HASHMAP_KEY_INT, 8, symtable_storage);
   root_scope = current_scope = push_scope();
 
-  struct Ast_Name* name;
-  name = arena_push_struct(symtable_storage, struct Ast_Name);
-  name->kind = AST_NAME;
-  name->id = ++p4program->last_node_id;
-  name->strname = "void";
-  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+  struct Ast_Type_Void* void_type = arena_push_struct(symtable_storage, struct Ast_Type_Void);
+  void_type->kind = AST_TYPE_VOID;
+  void_type->id = ++p4program->last_node_id;
+  declare_builtin_ident((struct Ast*)void_type, "void", NAMESPACE_TYPE);
 
-  name = arena_push_struct(symtable_storage, struct Ast_Name);
-  name->kind = AST_NAME;
-  name->id = ++p4program->last_node_id;
-  name->strname = "bool";
-  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+  struct Ast_Type_Bool* bool_type = arena_push_struct(symtable_storage, struct Ast_Type_Bool);
+  bool_type->kind = AST_TYPE_BOOL;
+  bool_type->id = ++p4program->last_node_id;
+  declare_builtin_ident((struct Ast*)bool_type, "bool", NAMESPACE_TYPE);
 
-  name = arena_push_struct(symtable_storage, struct Ast_Name);
-  name->kind = AST_NAME;
-  name->id = ++p4program->last_node_id;
-  name->strname = "int";
-  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+  struct Ast_Type_Int* int_type = arena_push_struct(symtable_storage, struct Ast_Type_Int);
+  int_type->kind = AST_TYPE_INT;
+  int_type->id = ++p4program->last_node_id;
+  declare_builtin_ident((struct Ast*)int_type, "int", NAMESPACE_TYPE);
 
-  name = arena_push_struct(symtable_storage, struct Ast_Name);
-  name->kind = AST_NAME;
-  name->id = ++p4program->last_node_id;
-  name->strname = "bit";
-  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+  struct Ast_Type_Bit* bit_type = arena_push_struct(symtable_storage, struct Ast_Type_Bit);
+  bit_type->kind = AST_TYPE_BIT;
+  bit_type->id = ++p4program->last_node_id;
+  declare_builtin_ident((struct Ast*)bit_type, "bit", NAMESPACE_TYPE);
 
-  name = arena_push_struct(symtable_storage, struct Ast_Name);
-  name->kind = AST_NAME;
-  name->id = ++p4program->last_node_id;
-  name->strname = "varbit";
-  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+  struct Ast_Type_Varbit* varbit_type = arena_push_struct(symtable_storage, struct Ast_Type_Varbit);
+  varbit_type->kind = AST_TYPE_VARBIT;
+  varbit_type->id = ++p4program->last_node_id;
+  declare_builtin_ident((struct Ast*)varbit_type, "varbit", NAMESPACE_TYPE);
 
-  name = arena_push_struct(symtable_storage, struct Ast_Name);
-  name->kind = AST_NAME;
-  name->id = ++p4program->last_node_id;
-  name->strname = "string";
-  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+  struct Ast_Type_String* string_type = arena_push_struct(symtable_storage, struct Ast_Type_String);
+  string_type->kind = AST_TYPE_STRING;
+  string_type->id = ++p4program->last_node_id;
+  declare_builtin_ident((struct Ast*)string_type, "string", NAMESPACE_TYPE);
 
-  name = arena_push_struct(symtable_storage, struct Ast_Name);
-  name->kind = AST_NAME;
-  name->id = ++p4program->last_node_id;
-  name->strname = "error";
-  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+  struct Ast_Type_Error* error_type = arena_push_struct(symtable_storage, struct Ast_Type_Error);
+  error_type->kind = AST_TYPE_ERROR;
+  error_type->id = ++p4program->last_node_id;
+  declare_builtin_ident((struct Ast*)error_type, "error", NAMESPACE_TYPE);
 
-  name = arena_push_struct(symtable_storage, struct Ast_Name);
-  name->kind = AST_NAME;
-  name->id = ++p4program->last_node_id;
-  name->strname = "match_kind";
-  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_TYPE);
+  struct Ast_MatchKindDecl* mk_type = arena_push_struct(symtable_storage, struct Ast_MatchKindDecl);
+  mk_type->kind = AST_MATCH_KIND_DECL;
+  mk_type->id = ++p4program->last_node_id;
+  declare_builtin_ident((struct Ast*)mk_type, "match_kind", NAMESPACE_TYPE);
 
-  name = arena_push_struct(symtable_storage, struct Ast_Name);
-  name->kind = AST_NAME;
-  name->id = ++p4program->last_node_id;
-  name->strname = "accept";
-  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_VAR);
+  struct Ast_ParserState* accept_state = arena_push_struct(symtable_storage, struct Ast_ParserState);
+  accept_state->kind = AST_PARSER_STATE;
+  accept_state->id = ++p4program->last_node_id;
+  declare_builtin_ident((struct Ast*)accept_state, "accept", NAMESPACE_VAR);
 
-  name = arena_push_struct(symtable_storage, struct Ast_Name);
-  name->kind = AST_NAME;
-  name->id = ++p4program->last_node_id;
-  name->strname = "reject";
-  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_VAR);
+  struct Ast_ParserState* reject_state = arena_push_struct(symtable_storage, struct Ast_ParserState);
+  reject_state->kind = AST_PARSER_STATE;
+  reject_state->id = ++p4program->last_node_id;
+  declare_builtin_ident((struct Ast*)reject_state, "reject", NAMESPACE_VAR);
 
-  name = arena_push_struct(symtable_storage, struct Ast_Name);
-  name->kind = AST_NAME;
-  name->id = ++p4program->last_node_id;
-  name->strname = "error";
-  declare_builtin_ident((struct Ast*)name, name->strname, NAMESPACE_VAR);
+  struct Ast_ErrorDecl* error_var = arena_push_struct(symtable_storage, struct Ast_ErrorDecl);
+  error_var->kind = AST_ERROR_DECL;
+  error_var->id = ++p4program->last_node_id;
+  declare_builtin_ident((struct Ast*)error_var, "error", NAMESPACE_VAR);
 
   visit_p4program((struct Ast*)p4program);
   current_scope = pop_scope();
