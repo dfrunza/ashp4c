@@ -696,7 +696,6 @@ visit_extern_decl(struct Ast* ast)
   struct Type_Name* extern_type = arena_push_struct(type_storage, struct Type_Name);
   extern_type->ctor = TYPE_NAME;
   extern_type->strname = name->strname;
-  type_add(&type_map, (struct Type*)extern_type, name->id);
   type_add(&type_map, (struct Type*)extern_decl, extern_decl->id);
   if (extern_decl->type_params) {
     struct ListLink* li = list_first_link(extern_decl->type_params);
@@ -725,7 +724,6 @@ visit_package_decl(struct Ast* ast)
   struct Type_Name* package_type = arena_push_struct(type_storage, struct Type_Name);
   package_type->ctor = TYPE_NAME;
   package_type->strname = name->strname;
-  type_add(&type_map, (struct Type*)package_type, name->id);
   type_add(&type_map, (struct Type*)package_type, package_decl->id);
   if (package_decl->params) {
     struct ListLink* li = list_first_link(package_decl->params);
@@ -742,7 +740,6 @@ visit_transition_select_case(struct Ast* ast)
 {
   assert(ast->kind == AST_SELECT_CASE);
   struct Ast_SelectCase* select_case = (struct Ast_SelectCase*)ast;
-  visit_expression(select_case->name);
   visit_select_keyset(select_case->keyset);
 }
 
@@ -979,7 +976,6 @@ visit_enum_decl(struct Ast* ast)
   struct Type_Name* enum_type = arena_push_struct(type_storage, struct Type_Name);
   enum_type->ctor = TYPE_NAME;
   enum_type->strname = name->strname;
-  type_add(&type_map, (struct Type*)enum_type, name->id);
   type_add(&type_map, (struct Type*)enum_type, enum_decl->id);
 }
 
