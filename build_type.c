@@ -217,8 +217,8 @@ visit_type_ref(struct Ast* ast)
 internal void
 visit_function_call(struct Ast* ast)
 {
-  assert(ast->kind == AST_FUNCTION_CALL_EXPR);
-  struct Ast_FunctionCallExpr* function_call = (struct Ast_FunctionCallExpr*)ast;
+  assert(ast->kind == AST_FUNCTION_CALL);
+  struct Ast_FunctionCall* function_call = (struct Ast_FunctionCall*)ast;
   visit_expression(function_call->callee_expr);
   struct Ast_Expression* callee_expr = (struct Ast_Expression*)(function_call->callee_expr);
   if (callee_expr->type_args) {
@@ -546,7 +546,7 @@ visit_statement(struct Ast* ast)
     visit_switch_stmt(ast);
   } else if (ast->kind == AST_ASSIGNMENT_STMT) {
     visit_assignment_stmt(ast);
-  } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
+  } else if (ast->kind == AST_FUNCTION_CALL) {
     visit_function_call(ast);
   } else if (ast->kind == AST_RETURN_STMT) {
     visit_return_stmt(ast);
@@ -1016,8 +1016,8 @@ visit_unary_expr(struct Ast* ast)
 internal void
 visit_member_select(struct Ast* ast)
 {
-  assert(ast->kind == AST_MEMBER_SELECT_EXPR);
-  struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
+  assert(ast->kind == AST_MEMBER_SELECT);
+  struct Ast_MemberSelect* expr = (struct Ast_MemberSelect*)ast;
   visit_expression(expr->lhs_expr);
   struct Type_Typevar* member_type = arena_push_struct(type_storage, struct Type_Typevar);
   member_type->ctor = TYPE_TYPEVAR;
@@ -1036,12 +1036,12 @@ visit_expression(struct Ast* ast)
     struct Type_Typevar* type = arena_push_struct(type_storage, struct Type_Typevar);
     type->ctor = TYPE_TYPEVAR;
     type_add(&type_map, (struct Type*)type, name->id);
-  } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
+  } else if (ast->kind == AST_FUNCTION_CALL) {
     visit_function_call(ast);
-  } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
+  } else if (ast->kind == AST_MEMBER_SELECT) {
     visit_member_select(ast);
-  } else if (ast->kind == AST_EXPRLIST_EXPR) {
-    struct Ast_ExprListExpr* expr = (struct Ast_ExprListExpr*)ast;
+  } else if (ast->kind == AST_EXPRLIST) {
+    struct Ast_ExprList* expr = (struct Ast_ExprList*)ast;
     if (expr->expr_list) {
       struct ListLink* li = list_first_link(expr->expr_list);
       while (li) {
@@ -1054,14 +1054,14 @@ visit_expression(struct Ast* ast)
     struct Ast_CastExpr* expr = (struct Ast_CastExpr*)ast;
     visit_type_ref(expr->to_type);
     visit_expression(expr->expr);
-  } else if (ast->kind == AST_SUBSCRIPT_EXPR) {
-    struct Ast_SubscriptExpr* expr = (struct Ast_SubscriptExpr*)ast;
+  } else if (ast->kind == AST_SUBSCRIPT) {
+    struct Ast_Subscript* expr = (struct Ast_Subscript*)ast;
     visit_expression(expr->index);
     if (expr->colon_index) {
       visit_expression(expr->colon_index);
     }
-  } else if (ast->kind == AST_KVPAIR_EXPR) {
-    struct Ast_KVPairExpr* expr = (struct Ast_KVPairExpr*)ast;
+  } else if (ast->kind == AST_KVPAIR) {
+    struct Ast_KVPair* expr = (struct Ast_KVPair*)ast;
     visit_expression(expr->expr);
   } else if (ast->kind == AST_INT_LITERAL || ast->kind == AST_BOOL_LITERAL) {
     struct NameEntry* ne = scope_lookup_name(root_scope, "int");

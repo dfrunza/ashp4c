@@ -125,7 +125,7 @@ internal void
 visit_function_call(struct Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION_CALL_EXPR);
-  struct Ast_FunctionCallExpr* expr = (struct Ast_FunctionCallExpr*)ast;
+  struct Ast_FunctionCall* expr = (struct Ast_FunctionCall*)ast;
   visit_expression(expr->callee_expr);
   struct Ast_Expression* callee_expr = (struct Ast_Expression*)(expr->callee_expr);
   if (callee_expr->type_args) {
@@ -746,11 +746,11 @@ visit_expression(struct Ast* ast)
   } else if (ast->kind == AST_FUNCTION_CALL_EXPR) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT_EXPR) {
-    struct Ast_MemberSelectExpr* expr = (struct Ast_MemberSelectExpr*)ast;
+    struct Ast_MemberSelect* expr = (struct Ast_MemberSelect*)ast;
     visit_expression(expr->lhs_expr);
     struct Ast_Name* name = (struct Ast_Name*)expr->member_name;
   } else if (ast->kind == AST_EXPRLIST_EXPR) {
-    struct Ast_ExprListExpr* expr = (struct Ast_ExprListExpr*)ast;
+    struct Ast_ExprList* expr = (struct Ast_ExprList*)ast;
     if (expr->expr_list) {
       struct ListLink* li = list_first_link(expr->expr_list);
       while (li) {
@@ -764,13 +764,13 @@ visit_expression(struct Ast* ast)
     visit_type_ref(expr->to_type);
     visit_expression(expr->expr);
   } else if (ast->kind == AST_SUBSCRIPT_EXPR) {
-    struct Ast_SubscriptExpr* expr = (struct Ast_SubscriptExpr*)ast;
+    struct Ast_Subscript* expr = (struct Ast_Subscript*)ast;
     visit_expression(expr->index);
     if (expr->colon_index) {
       visit_expression(expr->colon_index);
     }
   } else if (ast->kind == AST_KVPAIR_EXPR) {
-    struct Ast_KVPairExpr* expr = (struct Ast_KVPairExpr*)ast;
+    struct Ast_KVPair* expr = (struct Ast_KVPair*)ast;
     visit_expression(expr->name);
     visit_expression(expr->expr);
   } else if (ast->kind == AST_INT_LITERAL || ast->kind == AST_BOOL_LITERAL || ast->kind == AST_STRING_LITERAL) {

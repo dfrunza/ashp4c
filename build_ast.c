@@ -1354,14 +1354,14 @@ build_parserLocalElements()
 internal struct Ast*
 build_directApplication(struct Ast* type_name)
 {
-  struct Ast_FunctionCallExpr* apply_expr = 0;
+  struct Ast_FunctionCall* apply_expr = 0;
   if (token_is_typeName(token) || type_name) {
-    apply_expr = arena_push_struct(ast_storage, struct Ast_FunctionCallExpr);
-    apply_expr->kind = AST_FUNCTION_CALL_EXPR;
+    apply_expr = arena_push_struct(ast_storage, struct Ast_FunctionCall);
+    apply_expr->kind = AST_FUNCTION_CALL;
     apply_expr->id = node_id++;
     apply_expr->line_no = token->line_no;
-    struct Ast_MemberSelectExpr* apply_select = arena_push_struct(ast_storage, struct Ast_MemberSelectExpr);
-    apply_select->kind = AST_MEMBER_SELECT_EXPR;
+    struct Ast_MemberSelect* apply_select = arena_push_struct(ast_storage, struct Ast_MemberSelect);
+    apply_select->kind = AST_MEMBER_SELECT;
     apply_select->id = node_id++;
     apply_select->line_no = token->line_no;
     apply_select->lhs_expr = type_name ? type_name : build_typeName();
@@ -1411,8 +1411,8 @@ build_prefixedNonTypeName()
 internal struct Ast*
 build_arraySubscript()
 {
-  struct Ast_SubscriptExpr* subscript_expr = arena_push_struct(ast_storage, struct Ast_SubscriptExpr);
-  subscript_expr->kind = AST_SUBSCRIPT_EXPR;
+  struct Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, struct Ast_Subscript);
+  subscript_expr->kind = AST_SUBSCRIPT;
   subscript_expr->id = node_id++;
   subscript_expr->line_no = token->line_no;
   if (token_is_expression(token)) {
@@ -1456,8 +1456,8 @@ build_lvalue()
     while(token->klass == TK_DOTPREFIX || token->klass == TK_BRACKET_OPEN) {
       if (token->klass == TK_DOTPREFIX) {
         next_token();
-        struct Ast_MemberSelectExpr* select_expr = arena_push_struct(ast_storage, struct Ast_MemberSelectExpr);
-        select_expr->kind = AST_MEMBER_SELECT_EXPR;
+        struct Ast_MemberSelect* select_expr = arena_push_struct(ast_storage, struct Ast_MemberSelect);
+        select_expr->kind = AST_MEMBER_SELECT;
         select_expr->id = node_id++;
         select_expr->line_no = token->line_no;
         select_expr->lhs_expr = lvalue;
@@ -1468,8 +1468,8 @@ build_lvalue()
       }
       else if (token->klass == TK_BRACKET_OPEN) {
         next_token();
-        struct Ast_SubscriptExpr* subscript_expr = arena_push_struct(ast_storage, struct Ast_SubscriptExpr);
-        subscript_expr->kind = AST_SUBSCRIPT_EXPR;
+        struct Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, struct Ast_Subscript);
+        subscript_expr->kind = AST_SUBSCRIPT;
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;
         subscript_expr->index = lvalue;
@@ -1501,8 +1501,8 @@ build_assignmentOrMethodCallStatement()
     }
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
-      struct Ast_FunctionCallExpr* call_stmt = arena_push_struct(ast_storage, struct Ast_FunctionCallExpr);
-      call_stmt->kind = AST_FUNCTION_CALL_EXPR;
+      struct Ast_FunctionCall* call_stmt = arena_push_struct(ast_storage, struct Ast_FunctionCall);
+      call_stmt->kind = AST_FUNCTION_CALL;
       call_stmt->id = node_id++;
       call_stmt->line_no = token->line_no;
       call_stmt->callee_expr = lvalue;
@@ -2770,8 +2770,8 @@ build_expressionPrimary()
       primary = build_nonTypeName(false);
     } else if (token->klass == TK_BRACE_OPEN) {
       next_token();
-      struct Ast_ExprListExpr* expr_list = arena_push_struct(ast_storage, struct Ast_ExprListExpr);
-      expr_list->kind = AST_EXPRLIST_EXPR;
+      struct Ast_ExprList* expr_list = arena_push_struct(ast_storage, struct Ast_ExprList);
+      expr_list->kind = AST_EXPRLIST;
       expr_list->id = node_id++;
       expr_list->line_no = token->line_no;
       expr_list->expr_list = build_expressionList();
@@ -2925,8 +2925,8 @@ build_expression(int priority_threshold)
     while (token_is_exprOperator(token)) {
       if (token->klass == TK_DOTPREFIX) {
         next_token();
-        struct Ast_MemberSelectExpr* select_expr = arena_push_struct(ast_storage, struct Ast_MemberSelectExpr);
-        select_expr->kind = AST_MEMBER_SELECT_EXPR;
+        struct Ast_MemberSelect* select_expr = arena_push_struct(ast_storage, struct Ast_MemberSelect);
+        select_expr->kind = AST_MEMBER_SELECT;
         select_expr->id = node_id++;
         select_expr->line_no = token->line_no;
         select_expr->lhs_expr = expr;
@@ -2937,8 +2937,8 @@ build_expression(int priority_threshold)
       }
       else if (token->klass == TK_BRACKET_OPEN) {
         next_token();
-        struct Ast_SubscriptExpr* subscript_expr = arena_push_struct(ast_storage, struct Ast_SubscriptExpr);
-        subscript_expr->kind = AST_SUBSCRIPT_EXPR;
+        struct Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, struct Ast_Subscript);
+        subscript_expr->kind = AST_SUBSCRIPT;
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;
         subscript_expr->index = expr;
@@ -2950,8 +2950,8 @@ build_expression(int priority_threshold)
       }
       else if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        struct Ast_FunctionCallExpr* call_expr = arena_push_struct(ast_storage, struct Ast_FunctionCallExpr);
-        call_expr->kind = AST_FUNCTION_CALL_EXPR;
+        struct Ast_FunctionCall* call_expr = arena_push_struct(ast_storage, struct Ast_FunctionCall);
+        call_expr->kind = AST_FUNCTION_CALL;
         call_expr->id = node_id++;
         call_expr->line_no = token->line_no;
         call_expr->callee_expr = expr;
@@ -2969,8 +2969,8 @@ build_expression(int priority_threshold)
         } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
       } else if (token->klass == TK_EQUAL) {
         next_token();
-        struct Ast_KVPairExpr* kv_pair = arena_push_struct(ast_storage, struct Ast_KVPairExpr);
-        kv_pair->kind = AST_KVPAIR_EXPR;
+        struct Ast_KVPair* kv_pair = arena_push_struct(ast_storage, struct Ast_KVPair);
+        kv_pair->kind = AST_KVPAIR;
         kv_pair->id = node_id++;
         kv_pair->line_no = token->line_no;
         kv_pair->name = expr;

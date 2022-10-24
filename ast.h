@@ -168,15 +168,15 @@ enum AstEnum {
   AST_SWITCH_CASE,
   AST_BLOCK_STMT,
   AST_P4PROGRAM,
-  AST_KVPAIR_EXPR,
+  AST_KVPAIR,
   AST_SELECT_EXPR,
-  AST_EXPRLIST_EXPR,
+  AST_EXPRLIST,
   AST_CAST_EXPR,
   AST_UNARY_EXPR,
   AST_BINARY_EXPR,
-  AST_MEMBER_SELECT_EXPR,
-  AST_SUBSCRIPT_EXPR,
-  AST_FUNCTION_CALL_EXPR,
+  AST_MEMBER_SELECT,
+  AST_SUBSCRIPT,
+  AST_FUNCTION_CALL,
 };
 
 enum AstOperator {
@@ -570,7 +570,7 @@ struct Ast_BlockStmt {
   struct List* stmt_list;
 };
 
-struct Ast_KVPairExpr {
+struct Ast_KVPair {
   struct Ast_Expression;
   struct Ast* name;
   struct Ast* expr;
@@ -588,7 +588,7 @@ struct Ast_SelectExpr {
   struct List* case_list;
 };
 
-struct Ast_ExprListExpr {
+struct Ast_ExprList {
   struct Ast_Expression;
   struct List* expr_list;
 };
@@ -612,19 +612,19 @@ struct Ast_BinaryExpr {
   struct Ast* right_operand;
 };
 
-struct Ast_MemberSelectExpr {
+struct Ast_MemberSelect {
   struct Ast_Expression;
   struct Ast* lhs_expr;
   struct Ast* member_name;
 };
 
-struct Ast_SubscriptExpr {
+struct Ast_Subscript {
   struct Ast_Expression;
   struct Ast* index;
   struct Ast* colon_index;
 };
 
-struct Ast_FunctionCallExpr {
+struct Ast_FunctionCall {
   struct Ast_Expression;
   struct Ast* callee_expr;
   struct List* args;
