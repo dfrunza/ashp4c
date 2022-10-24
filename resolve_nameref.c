@@ -40,8 +40,8 @@ visit_struct_field(struct Ast* ast)
 internal void
 visit_header_union_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_HEADER_UNION_DECL);
-  struct Ast_HeaderUnionDecl* header_union_decl = (struct Ast_HeaderUnionDecl*)ast;
+  assert(ast->kind == AST_HEADER_UNION);
+  struct Ast_HeaderUnion* header_union_decl = (struct Ast_HeaderUnion*)ast;
   if (header_union_decl->fields) {
     struct ListLink* li = list_first_link(header_union_decl->fields);
     while (li) {
@@ -55,8 +55,8 @@ visit_header_union_decl(struct Ast* ast)
 internal void
 visit_header_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_HEADER_DECL);
-  struct Ast_HeaderDecl* header_decl = (struct Ast_HeaderDecl*)ast;
+  assert(ast->kind == AST_HEADER);
+  struct Ast_Header* header_decl = (struct Ast_Header*)ast;
   if (header_decl->fields) {
     struct ListLink* li = list_first_link(header_decl->fields);
     while (li) {
@@ -70,8 +70,8 @@ visit_header_decl(struct Ast* ast)
 internal void
 visit_struct_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_STRUCT_DECL);
-  struct Ast_StructDecl* struct_decl = (struct Ast_StructDecl*)ast;
+  assert(ast->kind == AST_STRUCT);
+  struct Ast_Struct* struct_decl = (struct Ast_Struct*)ast;
   if (struct_decl->fields) {
     struct ListLink* li = list_first_link(struct_decl->fields);
     while (li) {
@@ -85,10 +85,10 @@ visit_struct_decl(struct Ast* ast)
 internal void
 visit_type_ref(struct Ast* ast)
 {
-  if (ast->kind == AST_TYPE_BOOL || ast->kind == AST_TYPE_ERROR
-      || ast->kind == AST_TYPE_INT || ast->kind == AST_TYPE_BIT
-      || ast->kind == AST_TYPE_VARBIT || ast->kind == AST_TYPE_STRING
-      || ast->kind == AST_TYPE_VOID) {
+  if (ast->kind == AST_BOOL_TYPE || ast->kind == AST_ERROR_TYPE
+      || ast->kind == AST_INT_TYPE || ast->kind == AST_BIT_TYPE
+      || ast->kind == AST_VARBIT_TYPE || ast->kind == AST_STRING_TYPE
+      || ast->kind == AST_VOID_TYPE) {
     struct Ast_BasicType* base_type = (struct Ast_BasicType*)ast;
     visit_type_ref(base_type->name);
   } else if (ast->kind == AST_HEADER_STACK) {
@@ -116,11 +116,11 @@ visit_type_ref(struct Ast* ast)
         li = li->next;
       }
     }
-  } else if (ast->kind == AST_STRUCT_DECL) {
+  } else if (ast->kind == AST_STRUCT) {
     visit_struct_decl(ast);
-  } else if (ast->kind == AST_HEADER_DECL) {
+  } else if (ast->kind == AST_HEADER) {
     visit_header_decl(ast);
-  } else if (ast->kind == AST_HEADER_UNION_DECL) {
+  } else if (ast->kind == AST_HEADER_UNION) {
     visit_header_union_decl(ast);
   } else if (ast->kind == AST_DONTCARE) {
     ; // pass
@@ -292,8 +292,8 @@ visit_table_property(struct Ast* ast)
 internal void
 visit_table_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_TABLE_DECL);
-  struct Ast_TableDecl* decl = (struct Ast_TableDecl*)ast;
+  assert(ast->kind == AST_TABLE);
+  struct Ast_Table* decl = (struct Ast_Table*)ast;
   if (decl->prop_list) {
     struct ListLink* li = list_first_link(decl->prop_list);
     while (li) {
@@ -307,8 +307,8 @@ visit_table_decl(struct Ast* ast)
 internal void
 visit_action_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_ACTION_DECL);
-  struct Ast_ActionDecl* action_decl = (struct Ast_ActionDecl*)ast;
+  assert(ast->kind == AST_ACTION);
+  struct Ast_Action* action_decl = (struct Ast_Action*)ast;
   struct List* params = action_decl->params;
   if (params) {
     struct ListLink* li = list_first_link(params);
@@ -335,19 +335,19 @@ visit_action_decl(struct Ast* ast)
 internal void
 visit_statement(struct Ast* ast)
 {
-  if (ast->kind == AST_VAR_DECL) {
-    struct Ast_VarDecl* decl = (struct Ast_VarDecl*)ast;
+  if (ast->kind == AST_VAR) {
+    struct Ast_Var* decl = (struct Ast_Var*)ast;
     visit_type_ref(decl->type);
     if (decl->init_expr) {
       visit_expression(decl->init_expr);
     }
-  } else if (ast->kind == AST_ACTION_DECL) {
+  } else if (ast->kind == AST_ACTION) {
     visit_action_decl(ast);
   } else if (ast->kind == AST_BLOCK_STMT) {
     visit_block_statement(ast);
   } else if (ast->kind == AST_INSTANTIATION) {
     visit_instantiation(ast);
-  } else if (ast->kind == AST_TABLE_DECL) {
+  } else if (ast->kind == AST_TABLE) {
     visit_table_decl(ast);
   } else if (ast->kind == AST_IF_STMT) {
     struct Ast_IfStmt* stmt = (struct Ast_IfStmt*)ast;
@@ -443,8 +443,8 @@ visit_block_statement(struct Ast* ast)
 internal void
 visit_control_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_CONTROL_DECL);
-  struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
+  assert(ast->kind == AST_CONTROL);
+  struct Ast_Control* control_decl = (struct Ast_Control*)ast;
   struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
   if (type_decl->type_params) {
     struct ListLink* li = list_first_link(type_decl->type_params);
@@ -486,8 +486,8 @@ visit_control_decl(struct Ast* ast)
 internal void
 visit_extern_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_EXTERN_DECL);
-  struct Ast_ExternDecl* extern_decl = (struct Ast_ExternDecl*)ast;
+  assert(ast->kind == AST_EXTERN);
+  struct Ast_Extern* extern_decl = (struct Ast_Extern*)ast;
   if (extern_decl->type_params) {
     struct ListLink* li = list_first_link(extern_decl->type_params);
     while (li) {
@@ -509,8 +509,8 @@ visit_extern_decl(struct Ast* ast)
 internal void
 visit_package_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_PACKAGE_DECL);
-  struct Ast_PackageDecl* package_decl = (struct Ast_PackageDecl*)ast;
+  assert(ast->kind == AST_PACKAGE);
+  struct Ast_Package* package_decl = (struct Ast_Package*)ast;
   if (package_decl->params) {
     struct ListLink* li = list_first_link(package_decl->params);
     while (li) {
@@ -572,8 +572,8 @@ visit_parser_state(struct Ast* ast)
 internal void
 visit_const_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_CONST_DECL);
-  struct Ast_ConstDecl* decl = (struct Ast_ConstDecl*)ast;
+  assert(ast->kind == AST_CONST);
+  struct Ast_Const* decl = (struct Ast_Const*)ast;
   visit_type_ref(decl->type_ref);
   visit_expression(decl->expr);
 }
@@ -581,11 +581,11 @@ visit_const_decl(struct Ast* ast)
 internal void
 visit_local_parser_element(struct Ast* ast)
 {
-  if (ast->kind == AST_CONST_DECL) {
+  if (ast->kind == AST_CONST) {
     visit_const_decl(ast);
   } else if (ast->kind == AST_INSTANTIATION) {
     visit_instantiation(ast);
-  } else if (ast->kind == AST_VAR_DECL) {
+  } else if (ast->kind == AST_VAR) {
     visit_statement(ast);
   } else assert(0);
 }
@@ -593,8 +593,8 @@ visit_local_parser_element(struct Ast* ast)
 internal void
 visit_parser_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_PARSER_DECL);
-  struct Ast_ParserDecl* parser_decl = (struct Ast_ParserDecl*)ast;
+  assert(ast->kind == AST_PARSER);
+  struct Ast_Parser* parser_decl = (struct Ast_Parser*)ast;
   struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)parser_decl->type_decl;
   if (type_decl->type_params) {
     struct ListLink* li = list_first_link(type_decl->type_params);
@@ -641,8 +641,8 @@ visit_parser_decl(struct Ast* ast)
 internal void
 visit_type_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_TYPE_DECL);
-  struct Ast_TypeDecl* type_decl = (struct Ast_TypeDecl*)ast;
+  assert(ast->kind == AST_TYPE);
+  struct Ast_Type* type_decl = (struct Ast_Type*)ast;
   struct Ast* type_ref = type_decl->type_ref;
   visit_type_ref(type_ref);
 }
@@ -650,8 +650,8 @@ visit_type_decl(struct Ast* ast)
 internal void
 visit_function_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_FUNCTION_DECL);
-  struct Ast_FunctionDecl* function_decl = (struct Ast_FunctionDecl*)ast;
+  assert(ast->kind == AST_FUNCTION);
+  struct Ast_Function* function_decl = (struct Ast_Function*)ast;
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)function_decl->proto;
   if (function_proto->return_type) {
     visit_function_return_type(function_proto->return_type);
@@ -705,8 +705,8 @@ visit_specified_id(struct Ast* ast)
 internal void
 visit_error_decl(struct Ast* ast)
 {
-  assert (ast->kind == AST_ERROR_DECL);
-  struct Ast_ErrorDecl* decl = (struct Ast_ErrorDecl*)ast;
+  assert (ast->kind == AST_ERROR);
+  struct Ast_Error* decl = (struct Ast_Error*)ast;
   if (decl->id_list) {
     struct ListLink* li = list_first_link(decl->id_list);
     while (li) {
@@ -723,8 +723,8 @@ visit_error_decl(struct Ast* ast)
 internal void
 visit_enum_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_ENUM_DECL);
-  struct Ast_EnumDecl* enum_decl = (struct Ast_EnumDecl*)ast;
+  assert(ast->kind == AST_ENUM);
+  struct Ast_Enum* enum_decl = (struct Ast_Enum*)ast;
   if (enum_decl->id_list) {
     struct ListLink* li = list_first_link(enum_decl->id_list);
     while (li) {
@@ -795,8 +795,8 @@ visit_expression(struct Ast* ast)
 internal void
 visit_match_kind(struct Ast* ast)
 {
-  assert(ast->kind == AST_MATCH_KIND_DECL);
-  struct Ast_MatchKindDecl* decl = (struct Ast_MatchKindDecl*)ast;
+  assert(ast->kind == AST_MATCH_KIND);
+  struct Ast_MatchKind* decl = (struct Ast_MatchKind*)ast;
   if (decl->id_list) {
     struct ListLink* li = list_first_link(decl->id_list);
     while (li) {
@@ -820,37 +820,37 @@ visit_p4program(struct Ast* ast)
   struct ListLink* li = list_first_link(program->decl_list);
   while (li) {
     struct Ast* decl = li->object;
-    if (decl->kind == AST_CONTROL_DECL) {
+    if (decl->kind == AST_CONTROL) {
       visit_control_decl(decl);
-    } else if (decl->kind == AST_EXTERN_DECL) {
+    } else if (decl->kind == AST_EXTERN) {
       visit_extern_decl(decl);
-    } else if (decl->kind == AST_STRUCT_DECL) {
+    } else if (decl->kind == AST_STRUCT) {
       visit_struct_decl(decl);
-    } else if (decl->kind == AST_HEADER_DECL) {
+    } else if (decl->kind == AST_HEADER) {
       visit_header_decl(decl);
-    } else if (decl->kind == AST_HEADER_UNION_DECL) {
+    } else if (decl->kind == AST_HEADER_UNION) {
       visit_header_union_decl(decl);
-    } else if (decl->kind == AST_PACKAGE_DECL) {
+    } else if (decl->kind == AST_PACKAGE) {
       visit_package_decl(decl);
-    } else if (decl->kind == AST_PARSER_DECL) {
+    } else if (decl->kind == AST_PARSER) {
       visit_parser_decl(decl);
     } else if (decl->kind == AST_INSTANTIATION) {
       visit_instantiation(decl);
-    } else if (decl->kind == AST_TYPE_DECL) {
+    } else if (decl->kind == AST_TYPE) {
       visit_type_decl(decl);
     } else if (decl->kind == AST_FUNCTION_PROTO) {
       visit_function_proto(decl);
-    } else if (decl->kind == AST_CONST_DECL) {
+    } else if (decl->kind == AST_CONST) {
       visit_const_decl(decl);
-    } else if (decl->kind == AST_ENUM_DECL) {
+    } else if (decl->kind == AST_ENUM) {
       visit_enum_decl(decl);
-    } else if (decl->kind == AST_FUNCTION_DECL) {
+    } else if (decl->kind == AST_FUNCTION) {
       visit_function_decl(decl);
-    } else if (decl->kind == AST_ACTION_DECL) {
+    } else if (decl->kind == AST_ACTION) {
       visit_action_decl(decl);
-    } else if (decl->kind == AST_MATCH_KIND_DECL) {
+    } else if (decl->kind == AST_MATCH_KIND) {
       visit_match_kind(decl);
-    } else if (decl->kind == AST_ERROR_DECL) {
+    } else if (decl->kind == AST_ERROR) {
       visit_error_decl(decl);
     }
     else assert(0);

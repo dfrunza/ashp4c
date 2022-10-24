@@ -107,31 +107,31 @@ struct Token {
 enum AstEnum {
   AST_NAME = 1,
   AST_DOTNAME = AST_NAME,
-  AST_TYPE_BOOL,
-  AST_TYPE_ERROR,
-  AST_TYPE_INT,
-  AST_TYPE_BIT,
-  AST_TYPE_VARBIT,
-  AST_TYPE_STRING,
-  AST_TYPE_VOID,
-  AST_CONST_DECL,
-  AST_EXTERN_DECL,
+  AST_BOOL_TYPE,
+  AST_ERROR_TYPE,
+  AST_INT_TYPE,
+  AST_BIT_TYPE,
+  AST_VARBIT_TYPE,
+  AST_STRING_TYPE,
+  AST_VOID_TYPE,
+  AST_CONST,
+  AST_EXTERN,
   AST_FUNCTION_PROTO,
-  AST_ACTION_DECL,
-  AST_HEADER_DECL,
-  AST_HEADER_UNION_DECL,
-  AST_STRUCT_DECL,
-  AST_ENUM_DECL,
+  AST_ACTION,
+  AST_HEADER,
+  AST_HEADER_UNION,
+  AST_STRUCT,
+  AST_ENUM,
   AST_ENUM_FIELD,
-  AST_TYPE_DECL,
+  AST_TYPE,
   AST_TYPE_PARAM,
-  AST_PARSER_DECL,
-  AST_CONTROL_DECL,
-  AST_PACKAGE_DECL,
+  AST_PARSER,
+  AST_CONTROL,
+  AST_PACKAGE,
   AST_INSTANTIATION,
-  AST_ERROR_DECL,
-  AST_MATCH_KIND_DECL,
-  AST_FUNCTION_DECL,
+  AST_ERROR,
+  AST_MATCH_KIND,
+  AST_FUNCTION,
   AST_DONTCARE,
   AST_INT_TYPESIZE,
   AST_INT_LITERAL,
@@ -145,7 +145,7 @@ enum AstEnum {
   AST_STRUCT_FIELD,
   AST_PARSER_PROTO,
   AST_ARGUMENT,
-  AST_VAR_DECL,
+  AST_VAR,
   AST_PARAM,
   AST_ASSIGNMENT_STMT,
   AST_EMPTY_STMT,
@@ -155,7 +155,7 @@ enum AstEnum {
   AST_CONTROL_PROTO,
   AST_KEY_ELEMENT,
   AST_ACTION_REF,
-  AST_TABLE_DECL,
+  AST_TABLE,
   AST_TABLE_ENTRY,
   AST_TABLE_KEY,
   AST_TABLE_ACTIONS,
@@ -230,45 +230,45 @@ struct Ast_BasicType {
   struct Ast* name;
 };
 
-struct Ast_Type_Bool {
+struct Ast_BoolType {
   struct Ast_BasicType;
 };
 
-struct Ast_Type_Error {
+struct Ast_ErrorType {
   struct Ast_BasicType;
 };
 
-struct Ast_Type_Int {
-  struct Ast_BasicType;
-  struct Ast* size;
-};
-
-struct Ast_Type_Bit {
+struct Ast_IntType {
   struct Ast_BasicType;
   struct Ast* size;
 };
 
-struct Ast_Type_Varbit {
+struct Ast_BitType {
   struct Ast_BasicType;
   struct Ast* size;
 };
 
-struct Ast_Type_String {
+struct Ast_VarbitType {
+  struct Ast_BasicType;
+  struct Ast* size;
+};
+
+struct Ast_StringType {
   struct Ast_BasicType;
 };
 
-struct Ast_Type_Void {
+struct Ast_VoidType {
   struct Ast_BasicType;
 };
 
-struct Ast_ConstDecl {
+struct Ast_Const {
   struct Ast;
   struct Ast* name;
   struct Ast* type_ref;
   struct Ast* expr;
 };
 
-struct Ast_ExternDecl {
+struct Ast_Extern {
   struct Ast;
   struct Ast* name;
   struct List* type_params;
@@ -284,46 +284,46 @@ struct Ast_FunctionProto {
   struct List* params;
 };
 
-struct Ast_ActionDecl {
+struct Ast_Action {
   struct Ast;
   struct Ast* name;
   struct List* params;
   struct Ast* stmt;
 };
 
-struct Ast_HeaderDecl {
+struct Ast_Header {
   struct Ast;
   struct Ast* name;
   struct List* fields;
 };
 
-struct Ast_HeaderUnionDecl {
+struct Ast_HeaderUnion {
   struct Ast;
   struct Ast* name;
   struct List* fields;
 };
 
-struct Ast_StructDecl {
+struct Ast_Struct {
   struct Ast;
   struct Ast* name;
   struct List* fields;
 };
 
-struct Ast_EnumDecl {
+struct Ast_Enum {
   struct Ast;
   struct Ast* name;
   struct Ast* type_size;
   struct List* id_list;
 };
 
-struct Ast_TypeDecl {
+struct Ast_Type {
   struct Ast;
   struct Ast* name;
   bool is_typedef;
   struct Ast* type_ref;
 };
 
-struct Ast_ParserDecl {
+struct Ast_Parser {
   struct Ast;
   struct Ast* type_decl;
   struct List* ctor_params;
@@ -331,7 +331,7 @@ struct Ast_ParserDecl {
   struct List* states;
 };
 
-struct Ast_ControlDecl {
+struct Ast_Control {
   struct Ast;
   struct Ast* type_decl;
   struct List* ctor_params;
@@ -339,7 +339,7 @@ struct Ast_ControlDecl {
   struct Ast* apply_stmt;
 };
 
-struct Ast_PackageDecl {
+struct Ast_Package {
   struct Ast;
   struct Ast* name;
   struct List* type_params;
@@ -353,17 +353,17 @@ struct Ast_Instantiation {
   struct List* args;
 };
 
-struct Ast_ErrorDecl {
+struct Ast_Error {
   struct Ast;
   struct List* id_list;
 };
 
-struct Ast_MatchKindDecl {
+struct Ast_MatchKind {
   struct Ast;
   struct List* id_list;
 };
 
-struct Ast_FunctionDecl {
+struct Ast_Function {
   struct Ast;
   struct Ast* proto;
   struct Ast* stmt;
@@ -442,7 +442,7 @@ struct Ast_Argument {
   struct Ast* init_expr;
 };
 
-struct Ast_VarDecl {
+struct Ast_Var {
   struct Ast;
   struct Ast* name;
   struct Ast* type;
@@ -531,7 +531,7 @@ struct Ast_TableSingleEntry {
   struct Ast* init_expr;
 };
 
-struct Ast_TableDecl {
+struct Ast_Table {
   struct Ast;
   struct Ast* name;
   struct List* prop_list;
@@ -690,9 +690,9 @@ enum TypeEnum {
 };
 
 enum BasicType {
-  TYPE_INT = 1,
+  TYPE_VOID = 1,
+  TYPE_INT,
   TYPE_STRING,
-  TYPE_VOID,
 };
 
 struct Type {
@@ -734,7 +734,6 @@ struct Type_Function {
 
 struct Type_FunctionCall {
   struct Type;
-  struct Type* function_ty;
   struct Type* args_ty;
   struct Type* return_ty;
 };

@@ -152,8 +152,8 @@ visit_type_param(struct Ast* ast)
 internal void
 visit_action_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_ACTION_DECL);
-  struct Ast_ActionDecl* action_decl = (struct Ast_ActionDecl*)ast;
+  assert(ast->kind == AST_ACTION);
+  struct Ast_Action* action_decl = (struct Ast_Action*)ast;
   struct Ast_Name* name = (struct Ast_Name*)action_decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_var) {
@@ -314,8 +314,8 @@ visit_table_property(struct Ast* ast)
 internal void
 visit_table_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_TABLE_DECL);
-  struct Ast_TableDecl* decl = (struct Ast_TableDecl*)ast;
+  assert(ast->kind == AST_TABLE);
+  struct Ast_Table* decl = (struct Ast_Table*)ast;
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_var) {
@@ -360,8 +360,8 @@ visit_switch_case(struct Ast* ast)
 internal void
 visit_const_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_CONST_DECL);
-  struct Ast_ConstDecl* decl = (struct Ast_ConstDecl*)ast;
+  assert(ast->kind == AST_CONST);
+  struct Ast_Const* decl = (struct Ast_Const*)ast;
   struct Ast_Name* name = (struct Ast_Name*)decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_var) {
@@ -378,8 +378,8 @@ visit_const_decl(struct Ast* ast)
 internal void
 visit_statement(struct Ast* ast)
 {
-  if (ast->kind == AST_VAR_DECL) {
-    struct Ast_VarDecl* decl = (struct Ast_VarDecl*)ast;
+  if (ast->kind == AST_VAR) {
+    struct Ast_Var* decl = (struct Ast_Var*)ast;
     struct Ast_Name* name = (struct Ast_Name*)decl->name;
     struct NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
     if (!ne->ns_var) {
@@ -393,13 +393,13 @@ visit_statement(struct Ast* ast)
     if (decl->init_expr) {
       visit_expression(decl->init_expr);
     }
-  } else if (ast->kind == AST_ACTION_DECL) {
+  } else if (ast->kind == AST_ACTION) {
     visit_action_decl(ast);
   } else if (ast->kind == AST_BLOCK_STMT) {
     visit_block_statement(ast);
   } else if (ast->kind == AST_INSTANTIATION) {
     visit_instantiation(ast);
-  } else if (ast->kind == AST_TABLE_DECL) {
+  } else if (ast->kind == AST_TABLE) {
     visit_table_decl(ast);
   } else if (ast->kind == AST_IF_STMT) {
     struct Ast_IfStmt* stmt = (struct Ast_IfStmt*)ast;
@@ -459,8 +459,8 @@ visit_block_statement(struct Ast* ast)
 internal void
 visit_control_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_CONTROL_DECL);
-  struct Ast_ControlDecl* control_decl = (struct Ast_ControlDecl*)ast;
+  assert(ast->kind == AST_CONTROL);
+  struct Ast_Control* control_decl = (struct Ast_Control*)ast;
   struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
   struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
@@ -510,11 +510,11 @@ visit_control_decl(struct Ast* ast)
 internal void
 visit_local_parser_element(struct Ast* ast)
 {
-  if (ast->kind == AST_CONST_DECL) {
+  if (ast->kind == AST_CONST) {
     visit_const_decl(ast);
   } else if (ast->kind == AST_INSTANTIATION) {
     visit_instantiation(ast);
-  } else if (ast->kind == AST_VAR_DECL) {
+  } else if (ast->kind == AST_VAR) {
     visit_statement(ast);
   } else assert(0);
 }
@@ -581,8 +581,8 @@ visit_parser_state(struct Ast* ast)
 internal void
 visit_parser_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_PARSER_DECL);
-  struct Ast_ParserDecl* parser_decl = (struct Ast_ParserDecl*)ast;
+  assert(ast->kind == AST_PARSER);
+  struct Ast_Parser* parser_decl = (struct Ast_Parser*)ast;
   struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)parser_decl->type_decl;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
   struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
@@ -691,8 +691,8 @@ visit_function_proto(struct Ast* ast)
 internal void
 visit_extern_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_EXTERN_DECL);
-  struct Ast_ExternDecl* extern_decl = (struct Ast_ExternDecl*)ast;
+  assert(ast->kind == AST_EXTERN);
+  struct Ast_Extern* extern_decl = (struct Ast_Extern*)ast;
   struct Ast_Name* name = (struct Ast_Name*)extern_decl->name;
   struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
   decl->ast = ast;
@@ -739,8 +739,8 @@ visit_struct_field(struct Ast* ast)
 internal void
 visit_struct_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_STRUCT_DECL);
-  struct Ast_StructDecl* struct_decl = (struct Ast_StructDecl*)ast;
+  assert(ast->kind == AST_STRUCT);
+  struct Ast_Struct* struct_decl = (struct Ast_Struct*)ast;
   struct Ast_Name* name = (struct Ast_Name*)struct_decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_type) {
@@ -765,8 +765,8 @@ visit_struct_decl(struct Ast* ast)
 internal void
 visit_header_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_HEADER_DECL);
-  struct Ast_HeaderDecl* header_decl = (struct Ast_HeaderDecl*)ast;
+  assert(ast->kind == AST_HEADER);
+  struct Ast_Header* header_decl = (struct Ast_Header*)ast;
   struct Ast_Name* name = (struct Ast_Name*)header_decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_type) {
@@ -791,8 +791,8 @@ visit_header_decl(struct Ast* ast)
 internal void
 visit_header_union_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_HEADER_UNION_DECL);
-  struct Ast_HeaderUnionDecl* header_union_decl = (struct Ast_HeaderUnionDecl*)ast;
+  assert(ast->kind == AST_HEADER_UNION);
+  struct Ast_HeaderUnion* header_union_decl = (struct Ast_HeaderUnion*)ast;
   struct Ast_Name* name = (struct Ast_Name*)header_union_decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_type) {
@@ -817,10 +817,10 @@ visit_header_union_decl(struct Ast* ast)
 internal void
 visit_type_ref(struct Ast* ast)
 {
-  if (ast->kind == AST_TYPE_BOOL || ast->kind == AST_TYPE_ERROR
-      || ast->kind == AST_TYPE_INT || ast->kind == AST_TYPE_BIT
-      || ast->kind == AST_TYPE_VARBIT || ast->kind == AST_TYPE_STRING
-      || ast->kind == AST_TYPE_VOID) {
+  if (ast->kind == AST_BOOL_TYPE || ast->kind == AST_ERROR_TYPE
+      || ast->kind == AST_INT_TYPE || ast->kind == AST_BIT_TYPE
+      || ast->kind == AST_VARBIT_TYPE || ast->kind == AST_STRING_TYPE
+      || ast->kind == AST_VOID_TYPE) {
     visit_expression(((struct Ast_BasicType*)ast)->name);
   } else if (ast->kind == AST_HEADER_STACK) {
     struct Ast_HeaderStack* type_ref = (struct Ast_HeaderStack*)ast;
@@ -848,11 +848,11 @@ visit_type_ref(struct Ast* ast)
         li = li->next;
       }
     }
-  } else if (ast->kind == AST_STRUCT_DECL) {
+  } else if (ast->kind == AST_STRUCT) {
     visit_struct_decl(ast);
-  } else if (ast->kind == AST_HEADER_DECL) {
+  } else if (ast->kind == AST_HEADER) {
     visit_header_decl(ast);
-  } else if (ast->kind == AST_HEADER_UNION_DECL) {
+  } else if (ast->kind == AST_HEADER_UNION) {
     visit_header_union_decl(ast);
   } else if (ast->kind == AST_DONTCARE) {
     ; // pass
@@ -891,8 +891,8 @@ visit_specified_id(struct Ast* ast)
 internal void
 visit_enum_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_ENUM_DECL);
-  struct Ast_EnumDecl* enum_decl = (struct Ast_EnumDecl*)ast;
+  assert(ast->kind == AST_ENUM);
+  struct Ast_Enum* enum_decl = (struct Ast_Enum*)ast;
   struct Ast_Name* name = (struct Ast_Name*)enum_decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_type) {
@@ -920,8 +920,8 @@ visit_enum_decl(struct Ast* ast)
 internal void
 visit_package_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_PACKAGE_DECL);
-  struct Ast_PackageDecl* package_decl = (struct Ast_PackageDecl*)ast;
+  assert(ast->kind == AST_PACKAGE);
+  struct Ast_Package* package_decl = (struct Ast_Package*)ast;
   struct Ast_Name* name = (struct Ast_Name*)package_decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_type) {
@@ -954,8 +954,8 @@ visit_package_decl(struct Ast* ast)
 internal void
 visit_type_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_TYPE_DECL);
-  struct Ast_TypeDecl* type_decl = (struct Ast_TypeDecl*)ast;
+  assert(ast->kind == AST_TYPE);
+  struct Ast_Type* type_decl = (struct Ast_Type*)ast;
   struct Ast_Name* name = (struct Ast_Name*)type_decl->name;
   struct NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_type) {
@@ -972,8 +972,8 @@ visit_type_decl(struct Ast* ast)
 internal void
 visit_function_decl(struct Ast* ast)
 {
-  assert(ast->kind == AST_FUNCTION_DECL);
-  struct Ast_FunctionDecl* function_decl = (struct Ast_FunctionDecl*)ast;
+  assert(ast->kind == AST_FUNCTION);
+  struct Ast_Function* function_decl = (struct Ast_Function*)ast;
   struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)function_decl->proto;
   struct Ast_Name* name = (struct Ast_Name*)function_proto->name;
   struct NameDecl* decl = arena_push_struct(symtable_storage, struct NameDecl);
@@ -1018,8 +1018,8 @@ visit_function_decl(struct Ast* ast)
 internal void
 visit_match_kind(struct Ast* ast)
 {
-  assert(ast->kind == AST_MATCH_KIND_DECL);
-  struct Ast_MatchKindDecl* decl = (struct Ast_MatchKindDecl*)ast;
+  assert(ast->kind == AST_MATCH_KIND);
+  struct Ast_MatchKind* decl = (struct Ast_MatchKind*)ast;
   assert(current_scope->scope_level == 1);
   if (decl->id_list) {
     struct ListLink* li = list_first_link(decl->id_list);
@@ -1039,8 +1039,8 @@ visit_match_kind(struct Ast* ast)
 internal void
 visit_error_decl(struct Ast* ast)
 {
-  assert (ast->kind == AST_ERROR_DECL);
-  struct Ast_ErrorDecl* decl = (struct Ast_ErrorDecl*)ast;
+  assert (ast->kind == AST_ERROR);
+  struct Ast_Error* decl = (struct Ast_Error*)ast;
   current_scope = push_scope();
   if (decl->id_list) {
     struct ListLink* li = list_first_link(decl->id_list);
@@ -1065,37 +1065,37 @@ visit_p4program(struct Ast* ast)
   struct ListLink* li = list_first_link(program->decl_list);
   while (li) {
     struct Ast* decl = li->object;
-    if (decl->kind == AST_CONTROL_DECL) {
+    if (decl->kind == AST_CONTROL) {
       visit_control_decl(decl);
-    } else if (decl->kind == AST_EXTERN_DECL) {
+    } else if (decl->kind == AST_EXTERN) {
       visit_extern_decl(decl);
-    } else if (decl->kind == AST_STRUCT_DECL) {
+    } else if (decl->kind == AST_STRUCT) {
       visit_struct_decl(decl);
-    } else if (decl->kind == AST_HEADER_DECL) {
+    } else if (decl->kind == AST_HEADER) {
       visit_header_decl(decl);
-    } else if (decl->kind == AST_HEADER_UNION_DECL) {
+    } else if (decl->kind == AST_HEADER_UNION) {
       visit_header_union_decl(decl);
-    } else if (decl->kind == AST_PACKAGE_DECL) {
+    } else if (decl->kind == AST_PACKAGE) {
       visit_package_decl(decl);
-    } else if (decl->kind == AST_PARSER_DECL) {
+    } else if (decl->kind == AST_PARSER) {
       visit_parser_decl(decl);
     } else if (decl->kind == AST_INSTANTIATION) {
       visit_instantiation(decl);
-    } else if (decl->kind == AST_TYPE_DECL) {
+    } else if (decl->kind == AST_TYPE) {
       visit_type_decl(decl);
     } else if (decl->kind == AST_FUNCTION_PROTO) {
       visit_function_proto(decl);
-    } else if (decl->kind == AST_CONST_DECL) {
+    } else if (decl->kind == AST_CONST) {
       visit_const_decl(decl);
-    } else if (decl->kind == AST_ENUM_DECL) {
+    } else if (decl->kind == AST_ENUM) {
       visit_enum_decl(decl);
-    } else if (decl->kind == AST_FUNCTION_DECL) {
+    } else if (decl->kind == AST_FUNCTION) {
       visit_function_decl(decl);
-    } else if (decl->kind == AST_ACTION_DECL) {
+    } else if (decl->kind == AST_ACTION) {
       visit_action_decl(decl);
-    } else if (decl->kind == AST_MATCH_KIND_DECL) {
+    } else if (decl->kind == AST_MATCH_KIND) {
       visit_match_kind(decl);
-    } else if (decl->kind == AST_ERROR_DECL) {
+    } else if (decl->kind == AST_ERROR) {
       visit_error_decl(decl);
     }
     else assert(0);
@@ -1123,43 +1123,43 @@ build_symtable(struct Ast_P4Program* p4program, struct Arena* symtable_storage_,
   hashmap_init(&nameref_map, HASHMAP_KEY_INT, 8, symtable_storage);
   root_scope = current_scope = push_scope();
 
-  struct Ast_Type_Void* void_type = arena_push_struct(symtable_storage, struct Ast_Type_Void);
-  void_type->kind = AST_TYPE_VOID;
+  struct Ast_VoidType* void_type = arena_push_struct(symtable_storage, struct Ast_VoidType);
+  void_type->kind = AST_VOID_TYPE;
   void_type->id = ++p4program->last_node_id;
   declare_builtin_ident((struct Ast*)void_type, "void", NAMESPACE_TYPE);
 
-  struct Ast_Type_Bool* bool_type = arena_push_struct(symtable_storage, struct Ast_Type_Bool);
-  bool_type->kind = AST_TYPE_BOOL;
+  struct Ast_BoolType* bool_type = arena_push_struct(symtable_storage, struct Ast_BoolType);
+  bool_type->kind = AST_BOOL_TYPE;
   bool_type->id = ++p4program->last_node_id;
   declare_builtin_ident((struct Ast*)bool_type, "bool", NAMESPACE_TYPE);
 
-  struct Ast_Type_Int* int_type = arena_push_struct(symtable_storage, struct Ast_Type_Int);
-  int_type->kind = AST_TYPE_INT;
+  struct Ast_IntType* int_type = arena_push_struct(symtable_storage, struct Ast_IntType);
+  int_type->kind = AST_INT_TYPE;
   int_type->id = ++p4program->last_node_id;
   declare_builtin_ident((struct Ast*)int_type, "int", NAMESPACE_TYPE);
 
-  struct Ast_Type_Bit* bit_type = arena_push_struct(symtable_storage, struct Ast_Type_Bit);
-  bit_type->kind = AST_TYPE_BIT;
+  struct Ast_BitType* bit_type = arena_push_struct(symtable_storage, struct Ast_BitType);
+  bit_type->kind = AST_BIT_TYPE;
   bit_type->id = ++p4program->last_node_id;
   declare_builtin_ident((struct Ast*)bit_type, "bit", NAMESPACE_TYPE);
 
-  struct Ast_Type_Varbit* varbit_type = arena_push_struct(symtable_storage, struct Ast_Type_Varbit);
-  varbit_type->kind = AST_TYPE_VARBIT;
+  struct Ast_VarbitType* varbit_type = arena_push_struct(symtable_storage, struct Ast_VarbitType);
+  varbit_type->kind = AST_VARBIT_TYPE;
   varbit_type->id = ++p4program->last_node_id;
   declare_builtin_ident((struct Ast*)varbit_type, "varbit", NAMESPACE_TYPE);
 
-  struct Ast_Type_String* string_type = arena_push_struct(symtable_storage, struct Ast_Type_String);
-  string_type->kind = AST_TYPE_STRING;
+  struct Ast_StringType* string_type = arena_push_struct(symtable_storage, struct Ast_StringType);
+  string_type->kind = AST_STRING_TYPE;
   string_type->id = ++p4program->last_node_id;
   declare_builtin_ident((struct Ast*)string_type, "string", NAMESPACE_TYPE);
 
-  struct Ast_Type_Error* error_type = arena_push_struct(symtable_storage, struct Ast_Type_Error);
-  error_type->kind = AST_TYPE_ERROR;
+  struct Ast_ErrorType* error_type = arena_push_struct(symtable_storage, struct Ast_ErrorType);
+  error_type->kind = AST_ERROR_TYPE;
   error_type->id = ++p4program->last_node_id;
   declare_builtin_ident((struct Ast*)error_type, "error", NAMESPACE_TYPE);
 
-  struct Ast_MatchKindDecl* mk_type = arena_push_struct(symtable_storage, struct Ast_MatchKindDecl);
-  mk_type->kind = AST_MATCH_KIND_DECL;
+  struct Ast_MatchKind* mk_type = arena_push_struct(symtable_storage, struct Ast_MatchKind);
+  mk_type->kind = AST_MATCH_KIND;
   mk_type->id = ++p4program->last_node_id;
   declare_builtin_ident((struct Ast*)mk_type, "match_kind", NAMESPACE_TYPE);
 
@@ -1173,8 +1173,8 @@ build_symtable(struct Ast_P4Program* p4program, struct Arena* symtable_storage_,
   reject_state->id = ++p4program->last_node_id;
   declare_builtin_ident((struct Ast*)reject_state, "reject", NAMESPACE_VAR);
 
-  struct Ast_ErrorDecl* error_var = arena_push_struct(symtable_storage, struct Ast_ErrorDecl);
-  error_var->kind = AST_ERROR_DECL;
+  struct Ast_Error* error_var = arena_push_struct(symtable_storage, struct Ast_Error);
+  error_var->kind = AST_ERROR;
   error_var->id = ++p4program->last_node_id;
   declare_builtin_ident((struct Ast*)error_var, "error", NAMESPACE_VAR);
 
