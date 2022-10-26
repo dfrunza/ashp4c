@@ -1012,7 +1012,7 @@ visit_member_select(struct Ast* ast)
   assert(ast->kind == AST_MEMBER_SELECT);
   struct Ast_MemberSelect* expr = (struct Ast_MemberSelect*)ast;
   visit_expression(expr->lhs_expr);
-  struct Type_Typevar* member_type = arena_push_struct(type_storage, struct Type_Typevar);
+  struct Type_TypeVar* member_type = arena_push_struct(type_storage, struct Type_TypeVar);
   member_type->ctor = TYPE_TYPEVAR;
   type_add(&type_map, (struct Type*)member_type, expr->id);
 }
@@ -1026,7 +1026,7 @@ visit_expression(struct Ast* ast)
     visit_unary_expr(ast);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct Type_Typevar* type = arena_push_struct(type_storage, struct Type_Typevar);
+    struct Type_TypeVar* type = arena_push_struct(type_storage, struct Type_TypeVar);
     type->ctor = TYPE_TYPEVAR;
     type_add(&type_map, (struct Type*)type, name->id);
   } else if (ast->kind == AST_FUNCTION_CALL) {

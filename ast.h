@@ -706,7 +706,7 @@ struct Type_Basic {
   enum BasicType basic_ty;
 };
 
-struct Type_Typevar {
+struct Type_TypeVar {
   struct Type;
 };
 
