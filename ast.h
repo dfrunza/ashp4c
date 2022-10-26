@@ -217,7 +217,7 @@ struct Ast {
 
 struct Ast_Expression {
   struct Ast;
-  struct List* type_args;
+  struct DList* type_args;
 };
 
 struct Ast_Name {
@@ -271,8 +271,8 @@ struct Ast_Const {
 struct Ast_Extern {
   struct Ast;
   struct Ast* name;
-  struct List* type_params;
-  struct List* method_protos;
+  struct DList* type_params;
+  struct DList* method_protos;
 };
 
 struct Ast_FunctionProto {
@@ -280,40 +280,40 @@ struct Ast_FunctionProto {
   bool is_extern;
   struct Ast* return_type;
   struct Ast* name;
-  struct List* type_params;
-  struct List* params;
+  struct DList* type_params;
+  struct DList* params;
 };
 
 struct Ast_Action {
   struct Ast;
   struct Ast* name;
-  struct List* params;
+  struct DList* params;
   struct Ast* stmt;
 };
 
 struct Ast_Header {
   struct Ast;
   struct Ast* name;
-  struct List* fields;
+  struct DList* fields;
 };
 
 struct Ast_HeaderUnion {
   struct Ast;
   struct Ast* name;
-  struct List* fields;
+  struct DList* fields;
 };
 
 struct Ast_Struct {
   struct Ast;
   struct Ast* name;
-  struct List* fields;
+  struct DList* fields;
 };
 
 struct Ast_Enum {
   struct Ast;
   struct Ast* name;
   struct Ast* type_size;
-  struct List* id_list;
+  struct DList* id_list;
 };
 
 struct Ast_Type {
@@ -326,41 +326,41 @@ struct Ast_Type {
 struct Ast_Parser {
   struct Ast;
   struct Ast* type_decl;
-  struct List* ctor_params;
-  struct List* local_elements;
-  struct List* states;
+  struct DList* ctor_params;
+  struct DList* local_elements;
+  struct DList* states;
 };
 
 struct Ast_Control {
   struct Ast;
   struct Ast* type_decl;
-  struct List* ctor_params;
-  struct List* local_decls;
+  struct DList* ctor_params;
+  struct DList* local_decls;
   struct Ast* apply_stmt;
 };
 
 struct Ast_Package {
   struct Ast;
   struct Ast* name;
-  struct List* type_params;
-  struct List* params;
+  struct DList* type_params;
+  struct DList* params;
 };
 
 struct Ast_Instantiation {
   struct Ast;
   struct Ast* name;
   struct Ast* type_ref;
-  struct List* args;
+  struct DList* args;
 };
 
 struct Ast_Error {
   struct Ast;
-  struct List* id_list;
+  struct DList* id_list;
 };
 
 struct Ast_MatchKind {
   struct Ast;
-  struct List* id_list;
+  struct DList* id_list;
 };
 
 struct Ast_Function {
@@ -397,12 +397,12 @@ struct Ast_StringLiteral {
 
 struct Ast_Tuple {
   struct Ast;
-  struct List* type_args;
+  struct DList* type_args;
 };
 
 struct Ast_TupleKeyset {
   struct Ast;
-  struct List* expr_list;
+  struct DList* expr_list;
 };
 
 struct Ast_HeaderStack {
@@ -414,7 +414,7 @@ struct Ast_HeaderStack {
 struct Ast_SpecializedType {
   struct Ast;
   struct Ast* name;
-  struct List* type_args;
+  struct DList* type_args;
 };
 
 struct Ast_SpecifiedIdent {
@@ -432,8 +432,8 @@ struct Ast_StructField {
 struct Ast_ParserProto {
   struct Ast;
   struct Ast* name;
-  struct List* type_params;
-  struct List* params;
+  struct DList* type_params;
+  struct DList* params;
 };
 
 struct Ast_Argument {
@@ -480,15 +480,15 @@ struct Ast_SelectCase {
 struct Ast_ParserState {
   struct Ast;
   struct Ast* name;
-  struct List* stmt_list;
+  struct DList* stmt_list;
   struct Ast* trans_stmt;
 };
 
 struct Ast_ControlProto {
   struct Ast;
   struct Ast* name;
-  struct List* type_params;
-  struct List* params;
+  struct DList* type_params;
+  struct DList* params;
 };
 
 struct Ast_KeyElement {
@@ -500,7 +500,7 @@ struct Ast_KeyElement {
 struct Ast_ActionRef {
   struct Ast;
   struct Ast* name;
-  struct List* args;
+  struct DList* args;
 };
 
 struct Ast_TableEntry {
@@ -511,18 +511,18 @@ struct Ast_TableEntry {
 
 struct Ast_TableKey {
   struct Ast;
-  struct List* keyelem_list;
+  struct DList* keyelem_list;
 };
 
 struct Ast_TableActions {
   struct Ast;
-  struct List* action_list;
+  struct DList* action_list;
 };
 
 struct Ast_TableEntries {
   struct Ast;
   bool is_const;
-  struct List* entries;
+  struct DList* entries;
 };
 
 struct Ast_TableSingleEntry {
@@ -534,7 +534,7 @@ struct Ast_TableSingleEntry {
 struct Ast_Table {
   struct Ast;
   struct Ast* name;
-  struct List* prop_list;
+  struct DList* prop_list;
 };
 
 struct Ast_IfStmt {
@@ -562,12 +562,12 @@ struct Ast_SwitchCase {
 struct Ast_SwitchStmt {
   struct Ast;
   struct Ast* expr;
-  struct List* switch_cases;
+  struct DList* switch_cases;
 };
 
 struct Ast_BlockStmt {
   struct Ast;
-  struct List* stmt_list;
+  struct DList* stmt_list;
 };
 
 struct Ast_KVPair {
@@ -578,19 +578,19 @@ struct Ast_KVPair {
 
 struct Ast_P4Program {
   struct Ast;
-  struct List* decl_list;
+  struct DList* decl_list;
   int last_node_id;
 };
 
 struct Ast_SelectExpr {
   struct Ast_Expression;
-  struct List* expr_list;
-  struct List* case_list;
+  struct DList* expr_list;
+  struct DList* case_list;
 };
 
 struct Ast_ExprList {
   struct Ast_Expression;
-  struct List* expr_list;
+  struct DList* expr_list;
 };
 
 struct Ast_CastExpr {
@@ -627,7 +627,7 @@ struct Ast_Subscript {
 struct Ast_FunctionCall {
   struct Ast_Expression;
   struct Ast* callee_expr;
-  struct List* args;
+  struct DList* args;
 };
 
 enum Namespace {

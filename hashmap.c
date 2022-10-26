@@ -137,7 +137,7 @@ hashmap_get_or_create_entry(struct Hashmap* hashmap, struct HashmapKey* key)
     return entry;
   }
   if (hashmap->entry_count >= hashmap->capacity) {
-    struct HashmapEntryIterator it = {};
+    struct HashmapIterator it = {};
     hashmap_iter_init(&it, hashmap);
     struct HashmapEntry* first_entry = hashmap_iter_next(&it);
     struct HashmapEntry* last_entry = first_entry;
@@ -174,7 +174,7 @@ hashmap_get_or_create_entry(struct Hashmap* hashmap, struct HashmapKey* key)
 }
 
 void
-hashmap_iter_init(struct HashmapEntryIterator* it, struct Hashmap* hashmap)
+hashmap_iter_init(struct HashmapIterator* it, struct Hashmap* hashmap)
 {
   it->hashmap = hashmap;
   it->i = -1;
@@ -182,7 +182,7 @@ hashmap_iter_init(struct HashmapEntryIterator* it, struct Hashmap* hashmap)
 }
 
 struct HashmapEntry*
-hashmap_iter_next(struct HashmapEntryIterator* it)
+hashmap_iter_next(struct HashmapIterator* it)
 {
   struct HashmapEntry* next_entry = 0;
   if (it->entry) {

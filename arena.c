@@ -18,18 +18,6 @@ internal struct PageBlock* block_freelist_head = 0;
 internal struct PageBlock* recycled_block_structs = 0;
 
 void
-arena_print_usage(struct Arena* arena, char* caption)
-{
-  struct ArenaUsage usage = arena_get_usage(arena);
-  float free_fraction = 1.f;
-  if (usage.total > 0) {
-    free_fraction = usage.free / (float)usage.total;
-  }
-  printf("%s\nfree: %d bytes, in_use: %d bytes, free: %.2f%%\n", \
-         caption, usage.free, usage.in_use, free_fraction*100.f);
-}
-
-void
 alloc_memory(int memory_amount)
 {
   page_size = getpagesize();
@@ -223,12 +211,5 @@ arena_delete(struct Arena* arena)
     p = next_block;
   }
   memset(arena, 0, sizeof(*arena));
-}
-
-struct ArenaUsage
-arena_get_usage(struct Arena* arena)
-{
-  struct ArenaUsage usage = {};
-  return usage;
 }
 

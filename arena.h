@@ -54,25 +54,20 @@ void* arena_push(struct Arena* arena, uint32_t size);
   o; \
 })
 void arena_delete(struct Arena* arena);
-struct ArenaUsage arena_get_usage(struct Arena* arena);
-void arena_print_usage(struct Arena* arena, char* title);
 
-struct ListLink {
-  struct ListLink* prev;
-  struct ListLink* next;
+struct DList {
+  struct DList* prev;
+  struct DList* next;
   void* object;
 };
 
-struct List {
-  struct ListLink sentinel;
-  struct ListLink* head;
-  struct ListLink* tail;
-  int link_count;
+struct SList {
+  struct SList* next;
+  void* object;
 };
 
-void list_init(struct List* list);
-void list_append_link(struct List* list, struct ListLink* link);
-struct ListLink* list_first_link(struct List* list);
+void dlist_concat(struct DList* tail, struct DList* head);
+void slist_concat(struct SList* tail, struct SList* head);
 
 // Max 1,048,575 elements
 #define ARRAY_MAX_SEGMENT 20
@@ -120,7 +115,7 @@ struct HashmapEntry {
   struct HashmapEntry* next_entry;
 };
 
-struct HashmapEntryIterator {
+struct HashmapIterator {
   struct Hashmap* hashmap;
   int i;
   struct HashmapEntry* entry;
@@ -130,6 +125,6 @@ void hashmap_init(struct Hashmap* hashmap, enum HashmapKeyType type, int capacit
 void hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ struct HashmapKey* key, int capacity_log2);
 struct HashmapEntry* hashmap_get_or_create_entry(struct Hashmap* hashmap, struct HashmapKey* key);
 struct HashmapEntry* hashmap_get_entry(struct Hashmap* hashmap, struct HashmapKey* key);
-void hashmap_iter_init(struct HashmapEntryIterator* it, struct Hashmap* hashmap);
-struct HashmapEntry* hashmap_iter_next(struct HashmapEntryIterator* it);
+void hashmap_iter_init(struct HashmapIterator* it, struct Hashmap* hashmap);
+struct HashmapEntry* hashmap_iter_next(struct HashmapIterator* it);
 
