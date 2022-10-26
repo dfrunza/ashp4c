@@ -1029,19 +1029,18 @@ visit_expression(struct Ast* ast)
     visit_unary_expr(ast);
   } else if (ast->kind == AST_NAME) {
     struct Ast_Name* name = (struct Ast_Name*)ast;
-    /*
-    struct Type_TypeVar* type = arena_push_struct(type_storage, struct Type_TypeVar);
-    type->ctor = TYPE_TYPEVAR;
-    type_add(&type_map, (struct Type*)type, name->id);
-    */
     struct NameRef* ref = nameref_get(nameref_map, name->id);
     struct NameEntry* ne = scope_lookup_name(ref->scope, ref->strname);
     if (ne->ns_type) {
       struct NameDecl* decl = ne->ns_type;
-      struct Type* type = type_get(&type_map, decl->ast->id)->object;
-      type_add(&type_map, type, ast->id);
+      while (decl) {
+        struct Type* type = type_get(&type_map, decl->ast->id)->object;
+        type_add(&type_map, type, ast->id);
+        decl = decl->nextdecl_in_scope;
+      }
     } else if (ne->ns_var) {
       struct NameDecl* decl = ne->ns_var;
+      assert(!decl->nextdecl_in_scope);
       struct Type* type = type_get(&type_map, decl->ast->id)->object;
       type_add(&type_map, type, ast->id);
     } else error("at line %d: unresolved name '%s'.", ref->line_no, ref->strname);

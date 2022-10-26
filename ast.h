@@ -697,6 +697,7 @@ enum BasicType {
 
 struct Type {
   enum TypeEnum ctor;
+  struct Ast* ast;
   struct Type* type_params;
 };
 
