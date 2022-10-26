@@ -711,7 +711,12 @@ struct Type_TypeVar {
   struct Type;
 };
 
-struct Type_Name {
+struct Type_TypeDef {
+  struct Type;
+  char* strname;
+};
+
+struct Type_TypeName {
   struct Type;
   char* strname;
 };

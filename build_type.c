@@ -37,6 +37,82 @@ type_add(struct Hashmap* map, struct Type* type, uint32_t id)
   return li;
 }
 
+internal struct Type*
+clone_type(struct Type* original)
+{
+  struct Type* clone = 0;
+  switch (original->ctor) {
+    case TYPE_NAME: {
+      struct Type_TypeName* name_type = arena_push_struct(type_storage, struct Type_TypeName);
+      name_type->ctor = original->ctor;
+      name_type->type_params = original->type_params;
+      name_type->strname = ((struct Type_TypeName*)original)->strname;
+      clone = (struct Type*)name_type;
+    } break;
+    case TYPE_BASIC: {
+      struct Type_Basic* basic_type = arena_push_struct(type_storage, struct Type_Basic);
+      basic_type->ctor = original->ctor;
+      basic_type->type_params = original->type_params;
+      basic_type->strname = ((struct Type_Basic*)original)->strname;
+      basic_type->basic_ty = ((struct Type_Basic*)original)->basic_ty;
+      clone = (struct Type*)basic_type;
+    } break;
+    case TYPE_TYPEVAR: {
+      struct Type_TypeVar* var_type = arena_push_struct(type_storage, struct Type_TypeVar);
+      var_type->ctor = original->ctor;
+      var_type->type_params = original->type_params;
+      clone = (struct Type*)var_type;
+    } break;
+    case TYPE_TYPEDEF: {
+      struct Type_TypeDef* typedef_type = arena_push_struct(type_storage, struct Type_TypeDef);
+      typedef_type->ctor = original->ctor;
+      typedef_type->type_params = original->type_params;
+      typedef_type->strname = ((struct Type_TypeDef*)original)->strname;
+      clone = (struct Type*)typedef_type;
+    } break;
+    case TYPE_TYPENAME: {
+      struct Type_TypeName* typedef_type = arena_push_struct(type_storage, struct Type_TypeName);
+      typedef_type->ctor = original->ctor;
+      typedef_type->type_params = original->type_params;
+      typedef_type->strname = ((struct Type_TypeName*)original)->strname;
+      clone = (struct Type*)typedef_type;
+    } break;
+    case TYPE_TYPEPARAM: {
+      struct Type_TypeParam* typeparam_type = arena_push_struct(type_storage, struct Type_TypeParam);
+      typeparam_type->ctor = original->ctor;
+      typeparam_type->type_params = original->type_params;
+      typeparam_type->strname = ((struct Type_TypeParam*)original)->strname;
+      clone = (struct Type*)typeparam_type;
+    } break;
+    case TYPE_PRODUCT: {
+      struct Type_Product* product_type = arena_push_struct(type_storage, struct Type_Product);
+      product_type->ctor = original->ctor;
+      product_type->type_params = original->type_params;
+      product_type->lhs_ty = ((struct Type_Product*)original)->lhs_ty;
+      product_type->rhs_ty = ((struct Type_Product*)original)->rhs_ty;
+      clone = (struct Type*)product_type;
+    } break;
+    case TYPE_FUNCTION: {
+      struct Type_Function* func_type = arena_push_struct(type_storage, struct Type_Function);
+      func_type->ctor = original->ctor;
+      func_type->type_params = original->type_params;
+      func_type->params_ty = ((struct Type_Function*)original)->params_ty;
+      func_type->return_ty = ((struct Type_Function*)original)->return_ty;
+      clone = (struct Type*)func_type;
+    } break;
+    case TYPE_FUNCTION_CALL: {
+      struct Type_FunctionCall* call_type = arena_push_struct(type_storage, struct Type_FunctionCall);
+      call_type->ctor = original->ctor;
+      call_type->type_params = original->type_params;
+      call_type->args_ty = ((struct Type_FunctionCall*)original)->args_ty;
+      call_type->return_ty = ((struct Type_FunctionCall*)original)->return_ty;
+      clone = (struct Type*)call_type;
+    } break;
+    default: assert(0);
+  }
+  return clone;
+}
+
 internal void
 visit_param(struct Ast* ast)
 {
@@ -693,7 +769,7 @@ visit_extern(struct Ast* ast)
   assert(ast->kind == AST_EXTERN);
   struct Ast_Extern* extern_decl = (struct Ast_Extern*)ast;
   struct Ast_Name* name = (struct Ast_Name*)extern_decl->name;
-  struct Type_Name* extern_type = arena_push_struct(type_storage, struct Type_Name);
+  struct Type_TypeName* extern_type = arena_push_struct(type_storage, struct Type_TypeName);
   extern_type->ctor = TYPE_NAME;
   extern_type->strname = name->strname;
   type_add(&type_map, (struct Type*)extern_decl, extern_decl->id);
@@ -721,7 +797,7 @@ visit_package(struct Ast* ast)
   assert(ast->kind == AST_PACKAGE);
   struct Ast_Package* package_decl = (struct Ast_Package*)ast;
   struct Ast_Name* name = (struct Ast_Name*)package_decl->name;
-  struct Type_Name* package_type = arena_push_struct(type_storage, struct Type_Name);
+  struct Type_TypeName* package_type = arena_push_struct(type_storage, struct Type_TypeName);
   package_type->ctor = TYPE_NAME;
   package_type->strname = name->strname;
   type_add(&type_map, (struct Type*)package_type, package_decl->id);
@@ -973,7 +1049,7 @@ visit_enum(struct Ast* ast)
   assert(ast->kind == AST_ENUM);
   struct Ast_Enum* enum_decl = (struct Ast_Enum*)ast;
   struct Ast_Name* name = (struct Ast_Name*)enum_decl->name;
-  struct Type_Name* enum_type = arena_push_struct(type_storage, struct Type_Name);
+  struct Type_TypeName* enum_type = arena_push_struct(type_storage, struct Type_TypeName);
   enum_type->ctor = TYPE_NAME;
   enum_type->strname = name->strname;
   type_add(&type_map, (struct Type*)enum_type, enum_decl->id);
@@ -1043,7 +1119,7 @@ visit_expression(struct Ast* ast)
       assert(!decl->nextdecl_in_scope);
       struct Type* type = type_get(&type_map, decl->ast->id)->object;
       type_add(&type_map, type, ast->id);
-    } else error("at line %d: unresolved name '%s'.", ref->line_no, ref->strname);
+    } else error("at line %d: unresolved name `%s`.", ref->line_no, ref->strname);
   } else if (ast->kind == AST_FUNCTION_CALL) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT) {
