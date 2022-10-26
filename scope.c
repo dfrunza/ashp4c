@@ -3,14 +3,14 @@
 #include "arena.h"
 #include "ast.h"
 
-internal struct Arena *scope_storage;
-internal struct Scope* current_scope;
+internal Arena *scope_storage;
+internal Scope* current_scope;
 internal int scope_level;
 
-struct Scope*
+Scope*
 push_scope()
 {
-  struct Scope* scope = arena_push_struct(scope_storage, struct Scope);
+  Scope* scope = arena_push_struct(scope_storage, Scope);
   hashmap_init(&scope->decls, HASHMAP_KEY_STRING, 4, scope_storage);
   scope->scope_level = scope_level++;
   scope->parent_scope = current_scope;
@@ -18,7 +18,7 @@ push_scope()
   return scope;
 }
 
-struct Scope*
+Scope*
 pop_scope()
 {
   assert (scope_level > 0);
@@ -27,39 +27,39 @@ pop_scope()
   return current_scope;
 }
 
-struct NameEntry*
-namedecl_get_or_create(struct Hashmap* decls, char* name)
+NameEntry*
+namedecl_get_or_create(Hashmap* decls, char* name)
 {
-  struct HashmapKey key = { .s_key = (uint8_t*)name };
+  HashmapKey key = { .s_key = (uint8_t*)name };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, decls->capacity_log2);
-  struct HashmapEntry* he = hashmap_get_or_create_entry(decls, &key);
+  HashmapEntry* he = hashmap_get_or_create_entry(decls, &key);
   if (he->object) {
-    return (struct NameEntry*)he->object;
+    return (NameEntry*)he->object;
   }
-  struct NameEntry* entry = arena_push_struct(scope_storage, struct NameEntry);
+  NameEntry* entry = arena_push_struct(scope_storage, NameEntry);
   he->object = entry;
   memset(entry, 0, sizeof(*entry));
   entry->strname = name;
   return entry;
 }
 
-struct NameEntry*
-namedecl_get(struct Hashmap* decls, char* name)
+NameEntry*
+namedecl_get(Hashmap* decls, char* name)
 {
-  struct HashmapKey key = { .s_key = (uint8_t*)name };
+  HashmapKey key = { .s_key = (uint8_t*)name };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, decls->capacity_log2);
-  struct HashmapEntry* hmap_entry = hashmap_get_entry(decls, &key);
-  struct NameEntry* entry = 0;
+  HashmapEntry* hmap_entry = hashmap_get_entry(decls, &key);
+  NameEntry* entry = 0;
   if (hmap_entry) {
     entry = hmap_entry->object;
   }
   return entry;
 }
 
-struct NameEntry*
-scope_lookup_name(struct Scope* scope, char* name)
+NameEntry*
+scope_lookup_name(Scope* scope, char* name)
 {
-  struct NameEntry* ne = 0;
+  NameEntry* ne = 0;
   while (scope) {
     ne = namedecl_get_or_create(&scope->decls, name);
     if (ne->ns_type || ne->ns_var || ne->ns_keyword) {
@@ -70,10 +70,10 @@ scope_lookup_name(struct Scope* scope, char* name)
   return ne;
 }
 
-struct NameEntry*
-declare_name_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl)
+NameEntry*
+declare_name_in_scope(Scope* scope, enum Namespace ns, NameDecl* decl)
 {
-  struct NameEntry* ne = namedecl_get_or_create(&scope->decls, decl->strname);
+  NameEntry* ne = namedecl_get_or_create(&scope->decls, decl->strname);
   if (ns == NAMESPACE_TYPE) {
     decl->nextdecl_in_scope = ne->ns_type;
     ne->ns_type = decl;
@@ -88,7 +88,7 @@ declare_name_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* d
 }
 
 void
-scope_init(struct Arena* scope_storage_)
+scope_init(Arena* scope_storage_)
 {
   scope_storage = scope_storage_;
   scope_level = 0;

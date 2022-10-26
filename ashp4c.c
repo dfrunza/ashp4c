@@ -7,16 +7,16 @@
 #include "ast.h"
 #include "ashp4c.h"
 
-internal struct Arena main_storage = {};
+internal Arena main_storage = {};
 
-struct CmdlineArg {
+typedef struct CmdlineArg {
   char* name;
   char* value;
   struct CmdlineArg* next_arg;
-};
+} CmdlineArg;
 
 internal void
-read_source(char** text_, int* text_size_, char* filename, struct Arena* text_storage)
+read_source(char** text_, int* text_size_, char* filename, Arena* text_storage)
 {
   FILE* f_stream = fopen(filename, "rb");
   fseek(f_stream, 0, SEEK_END);
@@ -30,11 +30,11 @@ read_source(char** text_, int* text_size_, char* filename, struct Arena* text_st
   *text_size_ = text_size;
 }
 
-internal struct CmdlineArg*
-find_unnamed_arg(struct CmdlineArg* args)
+internal CmdlineArg*
+find_unnamed_arg(CmdlineArg* args)
 {
-  struct CmdlineArg* unnamed_arg = 0;
-  struct CmdlineArg* arg = args;
+  CmdlineArg* unnamed_arg = 0;
+  CmdlineArg* arg = args;
   while (arg) {
     if (!arg->name) {
       unnamed_arg = arg;
@@ -45,11 +45,11 @@ find_unnamed_arg(struct CmdlineArg* args)
   return unnamed_arg;
 }
 
-internal struct CmdlineArg*
-find_named_arg(char* name, struct CmdlineArg* args)
+internal CmdlineArg*
+find_named_arg(char* name, CmdlineArg* args)
 {
-  struct CmdlineArg* named_arg = 0;
-  struct CmdlineArg* arg = args;
+  CmdlineArg* named_arg = 0;
+  CmdlineArg* arg = args;
   while (arg) {
     if (arg->name && cstr_match(name, arg->name)) {
       named_arg = arg;
@@ -60,19 +60,19 @@ find_named_arg(char* name, struct CmdlineArg* args)
   return named_arg;
 }
 
-internal struct CmdlineArg*
+internal CmdlineArg*
 parse_cmdline_args(int arg_count, char* args[])
 {
-  struct CmdlineArg* arg_list = 0;
+  CmdlineArg* arg_list = 0;
   if (arg_count <= 1) {
     return arg_list;
   }
   
-  struct CmdlineArg sentinel_arg = {};
-  struct CmdlineArg* prev_arg = &sentinel_arg;
+  CmdlineArg sentinel_arg = {};
+  CmdlineArg* prev_arg = &sentinel_arg;
   int i = 1;
   while (i < arg_count) {
-    struct CmdlineArg* cmdline_arg = arena_push_struct(&main_storage, struct CmdlineArg);
+    CmdlineArg* cmdline_arg = arena_push_struct(&main_storage, CmdlineArg);
     if (cstr_start_with(args[i], "--")) {
       char* raw_arg = args[i] + 2;  /* skip the `--` prefix */
       cmdline_arg->name = raw_arg;
@@ -92,22 +92,22 @@ main(int arg_count, char* args[])
 {
   alloc_memory(400*KILOBYTE);
 
-  struct CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
-  struct CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
+  CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
+  CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
   if (!filename_arg) {
     printf("<filename> is required.\n");
     exit(1);
   }
-  struct Arena text_storage = {};
+  Arena text_storage = {};
   char* text = 0;
   int text_size = 0;
   read_source(&text, &text_size, filename_arg->value, &text_storage);
 
-  struct Arena tokens_storage = {};
-  struct UnboundedArray* tokens_array = lex_tokenize(text, text_size, &main_storage, &tokens_storage);
+  Arena tokens_storage = {};
+  UnboundedArray* tokens_array = lex_tokenize(text, text_size, &main_storage, &tokens_storage);
   arena_delete(&text_storage);
 
-  struct Ast_P4Program* p4program = build_ast(tokens_array, &main_storage);
+  Ast_P4Program* p4program = build_ast(tokens_array, &main_storage);
   assert(p4program && p4program->kind == AST_P4PROGRAM);
   arena_delete(&tokens_storage);
 
@@ -115,10 +115,10 @@ main(int arg_count, char* args[])
     assert(!"TODO");
   }
 
-  struct Hashmap* nameref_map;
-  struct Scope* root_scope = build_symtable(p4program, &main_storage, &nameref_map);
+  Hashmap* nameref_map;
+  Scope* root_scope = build_symtable(p4program, &main_storage, &nameref_map);
   resolve_nameref(p4program, nameref_map);
-  struct Hashmap* type_map = build_type(p4program, root_scope, nameref_map, &main_storage);
+  Hashmap* type_map = build_type(p4program, root_scope, nameref_map, &main_storage);
 
   arena_delete(&main_storage);
   return 0;

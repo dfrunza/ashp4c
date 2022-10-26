@@ -12,10 +12,10 @@
 internal int page_size = 0;
 internal int total_page_count = 0;
 internal void* page_memory_start = 0;
-internal struct Arena pageblock_storage = {};
-internal struct PageBlock* first_block = 0;
-internal struct PageBlock* block_freelist_head = 0;
-internal struct PageBlock* recycled_block_structs = 0;
+internal Arena pageblock_storage = {};
+internal PageBlock* first_block = 0;
+internal PageBlock* block_freelist_head = 0;
+internal PageBlock* recycled_block_structs = 0;
 
 void
 alloc_memory(int memory_amount)
@@ -46,11 +46,11 @@ alloc_memory(int memory_amount)
   pageblock_storage.memory_limit = first_block->memory_end;
 }
 
-internal struct PageBlock*
+internal PageBlock*
 find_block_first_fit(int requested_memory_amount)
 {
-  struct PageBlock* result = 0;
-  struct PageBlock* b = block_freelist_head;
+  PageBlock* result = 0;
+  PageBlock* b = block_freelist_head;
   while (b) {
     if ((b->memory_end - b->memory_begin) >= requested_memory_amount) {
       result = b;
@@ -62,23 +62,23 @@ find_block_first_fit(int requested_memory_amount)
 }
 
 internal void
-recycle_block_struct(struct PageBlock* block)
+recycle_block_struct(PageBlock* block)
 {
   memset(block, 0, sizeof(*block));
   block->next_block = recycled_block_structs;
   recycled_block_structs = block;
 }
 
-internal struct PageBlock*
-block_insert_and_coalesce(struct PageBlock* block_list, struct PageBlock* new_block)
+internal PageBlock*
+block_insert_and_coalesce(PageBlock* block_list, PageBlock* new_block)
 {
   if (!block_list) {
     return new_block;
   }
-  struct PageBlock* merged_list = block_list;
-  struct PageBlock* left_neighbour = 0;
-  struct PageBlock* right_neighbour = 0;
-  struct PageBlock* p = block_list;
+  PageBlock* merged_list = block_list;
+  PageBlock* left_neighbour = 0;
+  PageBlock* right_neighbour = 0;
+  PageBlock* p = block_list;
   while (p) {
     // Find the left neighbour of 'new_block' in the ordered list of blocks.
     if (p->memory_begin <= new_block->memory_begin) {
@@ -140,10 +140,10 @@ block_insert_and_coalesce(struct PageBlock* block_list, struct PageBlock* new_bl
   return merged_list;
 }
 
-internal struct PageBlock*
+internal PageBlock*
 get_new_block_struct()
 {
-  struct PageBlock* block = recycled_block_structs;
+  PageBlock* block = recycled_block_structs;
   if (block) {
     recycled_block_structs = block->next_block;
   } else {
@@ -154,12 +154,12 @@ get_new_block_struct()
 }
 
 void*
-arena_push(struct Arena* arena, uint32_t size)
+arena_push(Arena* arena, uint32_t size)
 {
   assert (size > 0);
   uint8_t* client_memory = arena->memory_avail;
   if (client_memory + size >= (uint8_t*)arena->memory_limit) {
-    struct PageBlock* free_block = find_block_first_fit(size);
+    PageBlock* free_block = find_block_first_fit(size);
     if (!free_block) {
       printf("\nERROR: Out of memory.\n");
       exit(1);
@@ -183,7 +183,7 @@ arena_push(struct Arena* arena, uint32_t size)
     arena->memory_avail = alloc_memory_begin;
     arena->memory_limit = alloc_memory_end;
 
-    struct PageBlock* alloc_block = get_new_block_struct();
+    PageBlock* alloc_block = get_new_block_struct();
     alloc_block->memory_begin = alloc_memory_begin;
     alloc_block->memory_end = alloc_memory_end;
     arena->owned_pages = block_insert_and_coalesce(arena->owned_pages, alloc_block);
@@ -195,9 +195,9 @@ arena_push(struct Arena* arena, uint32_t size)
 }
 
 void
-arena_delete(struct Arena* arena)
+arena_delete(Arena* arena)
 {
-  struct PageBlock* p = arena->owned_pages;
+  PageBlock* p = arena->owned_pages;
   while (p) {
     if (ZERO_MEMORY_ON_FREE) {
       memset(p->memory_begin, 0, p->memory_end - p->memory_begin);
@@ -206,7 +206,7 @@ arena_delete(struct Arena* arena)
       perror("mprotect");
       exit(1);
     }
-    struct PageBlock* next_block = p->next_block;
+    PageBlock* next_block = p->next_block;
     block_freelist_head = block_insert_and_coalesce(block_freelist_head, p);
     p = next_block;
   }

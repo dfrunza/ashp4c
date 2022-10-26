@@ -138,7 +138,7 @@ floor_log2(int x)
 }
 
 void
-array_init(struct UnboundedArray* array, int elem_size, struct Arena* storage)
+array_init(UnboundedArray* array, int elem_size, Arena* storage)
 {
   memset(array->segment_table, 0, sizeof(array->segment_table));
   array->elem_size = elem_size;
@@ -148,7 +148,7 @@ array_init(struct UnboundedArray* array, int elem_size, struct Arena* storage)
 }
 
 internal void
-array_elem_at_i(struct UnboundedArray* array, int i, int* segment_index_, int* elem_offset_,
+array_elem_at_i(UnboundedArray* array, int i, int* segment_index_, int* elem_offset_,
                 void** data_segment_, void** elem_slot_)
 {
   int segment_index = floor_log2(i + 1);
@@ -163,7 +163,7 @@ array_elem_at_i(struct UnboundedArray* array, int i, int* segment_index_, int* e
 }
 
 void*
-array_get(struct UnboundedArray* array, int i)
+array_get(UnboundedArray* array, int i)
 {
   assert (i >= 0 && i < array->elem_count);
   int segment_index, elem_offset;
@@ -173,7 +173,7 @@ array_get(struct UnboundedArray* array, int i)
 }
 
 void*
-array_set(struct UnboundedArray* array, int i, void* elem)
+array_set(UnboundedArray* array, int i, void* elem)
 {
   assert (i >= 0 && i < array->elem_count);
   int segment_index, elem_offset;
@@ -184,7 +184,7 @@ array_set(struct UnboundedArray* array, int i, void* elem)
 }
 
 void*
-array_append(struct UnboundedArray* array, void* elem)
+array_append(UnboundedArray* array, void* elem)
 {
   if (array->elem_count >= array->capacity) {
     int segment_index = floor_log2(array->elem_count + 1);
@@ -202,14 +202,14 @@ array_append(struct UnboundedArray* array, void* elem)
 }
 
 void
-dlist_concat(struct DList* tail, struct DList* head)
+dlist_concat(DList* tail, DList* head)
 {
   tail->next = head;
   head->prev = tail;
 }
 
 void
-slist_concat(struct SList* tail, struct SList* head)
+slist_concat(SList* tail, SList* head)
 {
   tail->next = head;
 }

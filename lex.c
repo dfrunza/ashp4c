@@ -4,18 +4,19 @@
 #include "arena.h"
 #include "ast.h"
 
-internal struct Arena* lexeme_storage;
-internal char* text;
-internal int text_size;
-internal struct Arena* tokens_storage;
-internal struct UnboundedArray tokens_array = {};
-internal int line_no = 1;
-internal int state = 0;
-
-struct Lexeme {
+typedef struct Lexeme {
   char* start;
   char* end;
-} lexeme[2];
+} Lexeme;
+
+internal Arena* lexeme_storage;
+internal char* text;
+internal int text_size;
+internal Arena* tokens_storage;
+internal UnboundedArray tokens_array = {};
+internal int line_no = 1;
+internal int state = 0;
+internal Lexeme lexeme[2];
 
 internal char
 char_lookahead(int pos)
@@ -50,7 +51,7 @@ lexeme_advance()
 }
 
 internal void
-lexeme_copy(char* dest, struct Lexeme* lexeme)
+lexeme_copy(char* dest, Lexeme* lexeme)
 {
   char* src = lexeme->start;
   do {
@@ -76,14 +77,14 @@ lexeme_copy(char* dest, struct Lexeme* lexeme)
 }
 
 internal bool
-lexeme_len(struct Lexeme* lexeme)
+lexeme_len(Lexeme* lexeme)
 {
   int result = lexeme->end - lexeme->start + 1;
   return result;
 }
 
 internal bool
-lexeme_match_cstr(struct Lexeme* lexeme, char* str)
+lexeme_match_cstr(Lexeme* lexeme, char* str)
 {
   char* l = lexeme->start;
   char* s = str;
@@ -98,7 +99,7 @@ lexeme_match_cstr(struct Lexeme* lexeme, char* str)
 }
 
 internal char*
-lexeme_to_cstring(struct Lexeme* lexeme)
+lexeme_to_cstring(Lexeme* lexeme)
 {
   int len = lexeme_len(lexeme);
   char* string = arena_push(lexeme_storage, (len + 1)*sizeof(char));   // +1 the NULL terminator
@@ -145,7 +146,7 @@ parse_integer(char* str, int base)
 }
 
 internal void
-token_install_integer(struct Token* token, struct Lexeme* lexeme, int base)
+token_install_integer(Token* token, Lexeme* lexeme, int base)
 {
   char* string = lexeme_to_cstring(lexeme);
   if (cstr_is_digit(*string, base) || *string == '_') {
@@ -164,7 +165,7 @@ token_install_integer(struct Token* token, struct Lexeme* lexeme, int base)
 }
 
 internal void
-next_token(struct Token* token)
+next_token(Token* token)
 {
   memset(token, 0, sizeof(*token));
   state = 1;
@@ -396,7 +397,7 @@ next_token(struct Token* token)
 
       case 113:
       {
-        struct Token* prev_token = array_get(&tokens_array, tokens_array.elem_count - 1);
+        Token* prev_token = array_get(&tokens_array, tokens_array.elem_count - 1);
         if (prev_token->klass == TK_PARENTH_OPEN) {
           token->klass = TK_UNARY_MINUS;
         } else {
@@ -782,8 +783,8 @@ next_token(struct Token* token)
   token->line_no = line_no;
 }
 
-struct UnboundedArray*
-lex_tokenize(char* text_, int text_size_, struct Arena* lexeme_storage_, struct Arena* tokens_storage_)
+UnboundedArray*
+lex_tokenize(char* text_, int text_size_, Arena* lexeme_storage_, Arena* tokens_storage_)
 {
   text = text_;
   text_size = text_size_;
@@ -792,7 +793,7 @@ lex_tokenize(char* text_, int text_size_, struct Arena* lexeme_storage_, struct 
 
   lexeme->start = lexeme->end = text;
 
-  struct Token token = {};
+  Token token = {};
   token.klass = TK_START_OF_INPUT;
   array_init(&tokens_array, sizeof(token), tokens_storage);
   array_append(&tokens_array, &token);

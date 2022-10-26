@@ -4,109 +4,109 @@
 #include "arena.h"
 #include "ast.h"
 
-internal struct Scope* root_scope;
-internal struct Arena *type_storage;
-internal struct Hashmap* nameref_map;
-internal struct Hashmap type_map = {};
+internal Scope* root_scope;
+internal Arena *type_storage;
+internal Hashmap* nameref_map;
+internal Hashmap type_map = {};
 
-internal void visit_block_statement(struct Ast* block_stmt);
-internal void visit_statement(struct Ast* decl);
-internal void visit_expression(struct Ast* expr);
-internal void visit_type_ref(struct Ast* type_ref);
+internal void visit_block_statement(Ast* block_stmt);
+internal void visit_statement(Ast* decl);
+internal void visit_expression(Ast* expr);
+internal void visit_type_ref(Ast* type_ref);
 
-struct SList*
-type_get(struct Hashmap* map, uint32_t id)
+SList*
+type_get(Hashmap* map, uint32_t id)
 {
-  struct HashmapKey key = { .i_key = id };
+  HashmapKey key = { .i_key = id };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
-  struct HashmapEntry* he = hashmap_get_entry(map, &key);
-  struct SList* li = he ? he->object : 0;
+  HashmapEntry* he = hashmap_get_entry(map, &key);
+  SList* li = he ? he->object : 0;
   return li;
 }
 
-struct SList*
-type_add(struct Hashmap* map, struct Type* type, uint32_t id)
+SList*
+type_add(Hashmap* map, Type* type, uint32_t id)
 {
-  struct HashmapKey key = { .i_key = id };
+  HashmapKey key = { .i_key = id };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
-  struct HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
-  struct SList* li = arena_push_struct(type_storage, struct SList);
+  HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
+  SList* li = arena_push_struct(type_storage, SList);
   li->object = type;
-  slist_concat(li, (struct SList*)he->object);
+  slist_concat(li, (SList*)he->object);
   he->object = li;
   return li;
 }
 
-internal struct Type*
-clone_type(struct Type* original)
+internal Type*
+clone_type(Type* original)
 {
-  struct Type* clone = 0;
+  Type* clone = 0;
   switch (original->ctor) {
     case TYPE_NAME: {
-      struct Type_TypeName* name_type = arena_push_struct(type_storage, struct Type_TypeName);
+      Type_TypeName* name_type = arena_push_struct(type_storage, Type_TypeName);
       name_type->ctor = original->ctor;
       name_type->type_params = original->type_params;
-      name_type->strname = ((struct Type_TypeName*)original)->strname;
-      clone = (struct Type*)name_type;
+      name_type->strname = ((Type_TypeName*)original)->strname;
+      clone = (Type*)name_type;
     } break;
     case TYPE_BASIC: {
-      struct Type_Basic* basic_type = arena_push_struct(type_storage, struct Type_Basic);
+      Type_Basic* basic_type = arena_push_struct(type_storage, Type_Basic);
       basic_type->ctor = original->ctor;
       basic_type->type_params = original->type_params;
-      basic_type->strname = ((struct Type_Basic*)original)->strname;
-      basic_type->basic_ty = ((struct Type_Basic*)original)->basic_ty;
-      clone = (struct Type*)basic_type;
+      basic_type->strname = ((Type_Basic*)original)->strname;
+      basic_type->basic_ty = ((Type_Basic*)original)->basic_ty;
+      clone = (Type*)basic_type;
     } break;
     case TYPE_TYPEVAR: {
-      struct Type_TypeVar* var_type = arena_push_struct(type_storage, struct Type_TypeVar);
+      Type_TypeVar* var_type = arena_push_struct(type_storage, Type_TypeVar);
       var_type->ctor = original->ctor;
       var_type->type_params = original->type_params;
-      clone = (struct Type*)var_type;
+      clone = (Type*)var_type;
     } break;
     case TYPE_TYPEDEF: {
-      struct Type_TypeDef* typedef_type = arena_push_struct(type_storage, struct Type_TypeDef);
+      Type_TypeDef* typedef_type = arena_push_struct(type_storage, Type_TypeDef);
       typedef_type->ctor = original->ctor;
       typedef_type->type_params = original->type_params;
-      typedef_type->strname = ((struct Type_TypeDef*)original)->strname;
-      clone = (struct Type*)typedef_type;
+      typedef_type->strname = ((Type_TypeDef*)original)->strname;
+      clone = (Type*)typedef_type;
     } break;
     case TYPE_TYPENAME: {
-      struct Type_TypeName* typedef_type = arena_push_struct(type_storage, struct Type_TypeName);
+      Type_TypeName* typedef_type = arena_push_struct(type_storage, Type_TypeName);
       typedef_type->ctor = original->ctor;
       typedef_type->type_params = original->type_params;
-      typedef_type->strname = ((struct Type_TypeName*)original)->strname;
-      clone = (struct Type*)typedef_type;
+      typedef_type->strname = ((Type_TypeName*)original)->strname;
+      clone = (Type*)typedef_type;
     } break;
     case TYPE_TYPEPARAM: {
-      struct Type_TypeParam* typeparam_type = arena_push_struct(type_storage, struct Type_TypeParam);
+      Type_TypeParam* typeparam_type = arena_push_struct(type_storage, Type_TypeParam);
       typeparam_type->ctor = original->ctor;
       typeparam_type->type_params = original->type_params;
-      typeparam_type->strname = ((struct Type_TypeParam*)original)->strname;
-      clone = (struct Type*)typeparam_type;
+      typeparam_type->strname = ((Type_TypeParam*)original)->strname;
+      clone = (Type*)typeparam_type;
     } break;
     case TYPE_PRODUCT: {
-      struct Type_Product* product_type = arena_push_struct(type_storage, struct Type_Product);
+      Type_Product* product_type = arena_push_struct(type_storage, Type_Product);
       product_type->ctor = original->ctor;
       product_type->type_params = original->type_params;
-      product_type->lhs_ty = ((struct Type_Product*)original)->lhs_ty;
-      product_type->rhs_ty = ((struct Type_Product*)original)->rhs_ty;
-      clone = (struct Type*)product_type;
+      product_type->lhs_ty = ((Type_Product*)original)->lhs_ty;
+      product_type->rhs_ty = ((Type_Product*)original)->rhs_ty;
+      clone = (Type*)product_type;
     } break;
     case TYPE_FUNCTION: {
-      struct Type_Function* func_type = arena_push_struct(type_storage, struct Type_Function);
+      Type_Function* func_type = arena_push_struct(type_storage, Type_Function);
       func_type->ctor = original->ctor;
       func_type->type_params = original->type_params;
-      func_type->params_ty = ((struct Type_Function*)original)->params_ty;
-      func_type->return_ty = ((struct Type_Function*)original)->return_ty;
-      clone = (struct Type*)func_type;
+      func_type->params_ty = ((Type_Function*)original)->params_ty;
+      func_type->return_ty = ((Type_Function*)original)->return_ty;
+      clone = (Type*)func_type;
     } break;
     case TYPE_FUNCTION_CALL: {
-      struct Type_FunctionCall* call_type = arena_push_struct(type_storage, struct Type_FunctionCall);
+      Type_FunctionCall* call_type = arena_push_struct(type_storage, Type_FunctionCall);
       call_type->ctor = original->ctor;
       call_type->type_params = original->type_params;
-      call_type->args_ty = ((struct Type_FunctionCall*)original)->args_ty;
-      call_type->return_ty = ((struct Type_FunctionCall*)original)->return_ty;
-      clone = (struct Type*)call_type;
+      call_type->args_ty = ((Type_FunctionCall*)original)->args_ty;
+      call_type->return_ty = ((Type_FunctionCall*)original)->return_ty;
+      clone = (Type*)call_type;
     } break;
     default: assert(0);
   }
@@ -114,50 +114,50 @@ clone_type(struct Type* original)
 }
 
 internal void
-visit_param(struct Ast* ast)
+visit_param(Ast* ast)
 {
   assert(ast->kind == AST_PARAM);
-  struct Ast_Param* param = (struct Ast_Param*)ast;
+  Ast_Param* param = (Ast_Param*)ast;
   visit_type_ref(param->type);
-  struct Type* param_type = type_get(&type_map, param->type->id)->object;
+  Type* param_type = type_get(&type_map, param->type->id)->object;
   type_add(&type_map, param_type, param->id);
 }
 
 internal void
-visit_type_param(struct Ast* ast)
+visit_type_param(Ast* ast)
 {
   assert(ast->kind == AST_NAME);
-  struct Ast_Name* name = (struct Ast_Name*)ast;
-  struct NameRef* ref = nameref_get(nameref_map, name->id);
+  Ast_Name* name = (Ast_Name*)ast;
+  NameRef* ref = nameref_get(nameref_map, name->id);
   if (!ref) {
-    struct Type_TypeParam* type = arena_push_struct(type_storage, struct Type_TypeParam);
+    Type_TypeParam* type = arena_push_struct(type_storage, Type_TypeParam);
     type->ctor = TYPE_TYPEPARAM;
     type->strname = name->strname;
-    type_add(&type_map, (struct Type*)type, ast->id);
+    type_add(&type_map, (Type*)type, ast->id);
   } else {
     visit_expression(ast);
   }
 }
 
 internal void
-visit_struct_field(struct Ast* ast)
+visit_struct_field(Ast* ast)
 {
   assert(ast->kind == AST_STRUCT_FIELD);
-  struct Ast_StructField* field = (struct Ast_StructField*)ast;
+  Ast_StructField* field = (Ast_StructField*)ast;
   visit_type_ref(field->type);
-  struct Type* field_type = type_get(&type_map, field->type->id)->object;
+  Type* field_type = type_get(&type_map, field->type->id)->object;
   type_add(&type_map, field_type, field->id);
 }
 
 internal void
-visit_header_union(struct Ast* ast)
+visit_header_union(Ast* ast)
 {
   assert(ast->kind == AST_HEADER_UNION);
-  struct Ast_HeaderUnion* header_union_decl = (struct Ast_HeaderUnion*)ast;
+  Ast_HeaderUnion* header_union_decl = (Ast_HeaderUnion*)ast;
   if (header_union_decl->fields) {
-    struct DList* li = header_union_decl->fields;
+    DList* li = header_union_decl->fields;
     while (li) {
-      struct Ast* field = li->object;
+      Ast* field = li->object;
       visit_struct_field(field);
       li = li->next;
     }
@@ -165,27 +165,27 @@ visit_header_union(struct Ast* ast)
 }
 
 internal void
-visit_header(struct Ast* ast)
+visit_header(Ast* ast)
 {
   assert(ast->kind == AST_HEADER);
-  struct Ast_Header* header_decl = (struct Ast_Header*)ast;
-  struct NameEntry* ne = scope_lookup_name(root_scope, "void");
-  struct NameDecl* void_decl = ne->ns_type;
-  struct Type* struct_type = type_get(&type_map, void_decl->ast->id)->object;
+  Ast_Header* header_decl = (Ast_Header*)ast;
+  NameEntry* ne = scope_lookup_name(root_scope, "void");
+  NameDecl* void_decl = ne->ns_type;
+  Type* struct_type = type_get(&type_map, void_decl->ast->id)->object;
   if (header_decl->fields) {
-    struct DList* li = header_decl->fields;
-    struct Ast* field = li->object;
+    DList* li = header_decl->fields;
+    Ast* field = li->object;
     visit_struct_field(field);
     struct_type = type_get(&type_map, field->id)->object;
     li = li->next;
     while (li) {
-      struct Ast* field = li->object;
+      Ast* field = li->object;
       visit_struct_field(field);
-      struct Type_Product* product_type = arena_push_struct(type_storage, struct Type_Product);
+      Type_Product* product_type = arena_push_struct(type_storage, Type_Product);
       product_type->ctor = TYPE_PRODUCT;
       product_type->lhs_ty = struct_type;
       product_type->rhs_ty = type_get(&type_map, field->id)->object;
-      struct_type = (struct Type*)product_type;
+      struct_type = (Type*)product_type;
       li = li->next;
     }
   }
@@ -193,27 +193,27 @@ visit_header(struct Ast* ast)
 }
 
 internal void
-visit_struct(struct Ast* ast)
+visit_struct(Ast* ast)
 {
   assert(ast->kind == AST_STRUCT);
-  struct Ast_Struct* struct_decl = (struct Ast_Struct*)ast;
-  struct NameEntry* ne = scope_lookup_name(root_scope, "void");
-  struct NameDecl* void_decl = ne->ns_type;
-  struct Type* struct_type = type_get(&type_map, void_decl->ast->id)->object;
+  Ast_Struct* struct_decl = (Ast_Struct*)ast;
+  NameEntry* ne = scope_lookup_name(root_scope, "void");
+  NameDecl* void_decl = ne->ns_type;
+  Type* struct_type = type_get(&type_map, void_decl->ast->id)->object;
   if (struct_decl->fields) {
-    struct DList* li = struct_decl->fields;
-    struct Ast* field = li->object;
+    DList* li = struct_decl->fields;
+    Ast* field = li->object;
     visit_struct_field(field);
     struct_type = type_get(&type_map, field->id)->object;
     li = li->next;
     while (li) {
-      struct Ast* field = li->object;
+      Ast* field = li->object;
       visit_struct_field(field);
-      struct Type_Product* product_type = arena_push_struct(type_storage, struct Type_Product);
+      Type_Product* product_type = arena_push_struct(type_storage, Type_Product);
       product_type->ctor = TYPE_PRODUCT;
       product_type->lhs_ty = struct_type;
       product_type->rhs_ty = type_get(&type_map, field->id)->object;
-      struct_type = (struct Type*)product_type;
+      struct_type = (Type*)product_type;
       li = li->next;
     }
   }
@@ -221,62 +221,62 @@ visit_struct(struct Ast* ast)
 }
 
 internal void
-visit_type_ref(struct Ast* ast)
+visit_type_ref(Ast* ast)
 {
   if (ast->kind == AST_BOOL_TYPE || ast->kind == AST_ERROR_TYPE
       || ast->kind == AST_INT_TYPE || ast->kind == AST_BIT_TYPE
       || ast->kind == AST_VARBIT_TYPE || ast->kind == AST_STRING_TYPE
       || ast->kind == AST_VOID_TYPE) {
-    struct Ast_BasicType* base_type = (struct Ast_BasicType*)ast;
-    struct Ast_Name* name = (struct Ast_Name*)base_type->name;
-    struct NameEntry* ne = scope_lookup_name(root_scope, name->strname);
-    struct NameDecl* decl = ne->ns_type;
-    struct Type* type = type_get(&type_map, decl->ast->id)->object;
+    Ast_BasicType* base_type = (Ast_BasicType*)ast;
+    Ast_Name* name = (Ast_Name*)base_type->name;
+    NameEntry* ne = scope_lookup_name(root_scope, name->strname);
+    NameDecl* decl = ne->ns_type;
+    Type* type = type_get(&type_map, decl->ast->id)->object;
     if (ast->kind == AST_INT_TYPE) {
-      struct Ast_IntType* int_type = (struct Ast_IntType*)ast;
+      Ast_IntType* int_type = (Ast_IntType*)ast;
       if (int_type->size) {
-        struct NameEntry* ne = scope_lookup_name(root_scope, "int");
-        struct NameDecl* decl = ne->ns_type;
+        NameEntry* ne = scope_lookup_name(root_scope, "int");
+        NameDecl* decl = ne->ns_type;
         type->type_params = type_get(&type_map, decl->ast->id)->object;
       }
     } else if (ast->kind == AST_BIT_TYPE) {
-      struct Ast_BitType* bit_type = (struct Ast_BitType*)ast;
+      Ast_BitType* bit_type = (Ast_BitType*)ast;
       if (bit_type->size) {
-        struct NameEntry* ne = scope_lookup_name(root_scope, "int");
-        struct NameDecl* decl = ne->ns_type;
+        NameEntry* ne = scope_lookup_name(root_scope, "int");
+        NameDecl* decl = ne->ns_type;
         type->type_params = type_get(&type_map, decl->ast->id)->object;
       }
     } else if (ast->kind == AST_VARBIT_TYPE) {
-      struct Ast_VarbitType* varbit_type = (struct Ast_VarbitType*)ast;
+      Ast_VarbitType* varbit_type = (Ast_VarbitType*)ast;
       if (varbit_type->size) {
-        struct NameEntry* ne = scope_lookup_name(root_scope, "int");
-        struct NameDecl* decl = ne->ns_type;
+        NameEntry* ne = scope_lookup_name(root_scope, "int");
+        NameDecl* decl = ne->ns_type;
         type->type_params = type_get(&type_map, decl->ast->id)->object;
       }
     }
     type_add(&type_map, type, base_type->id);
   } else if (ast->kind == AST_HEADER_STACK) {
-    struct Ast_HeaderStack* type_ref = (struct Ast_HeaderStack*)ast;
+    Ast_HeaderStack* type_ref = (Ast_HeaderStack*)ast;
     visit_expression(type_ref->name);
     visit_expression(type_ref->stack_expr);
-    struct Type* header_stack_type = type_get(&type_map, type_ref->name->id)->object;
+    Type* header_stack_type = type_get(&type_map, type_ref->name->id)->object;
     type_add(&type_map, header_stack_type, type_ref->id);
   } else if (ast->kind == AST_NAME) {
     visit_expression(ast);
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
-    struct Ast_SpecializedType* speclzd_type = (struct Ast_SpecializedType*)ast;
-    struct DList* li = speclzd_type->type_args;
+    Ast_SpecializedType* speclzd_type = (Ast_SpecializedType*)ast;
+    DList* li = speclzd_type->type_args;
     while (li) {
-      struct Ast* type_arg = li->object;
+      Ast* type_arg = li->object;
       visit_type_ref(type_arg);
       li = li->next;
     }
   } else if (ast->kind == AST_TUPLE) {
-    struct Ast_Tuple* type_ref = (struct Ast_Tuple*)ast;
+    Ast_Tuple* type_ref = (Ast_Tuple*)ast;
     if (type_ref->type_args) {
-      struct DList* li = type_ref->type_args;
+      DList* li = type_ref->type_args;
       while (li) {
-        struct Ast* type_arg = li->object;
+        Ast* type_arg = li->object;
         visit_type_ref(type_arg);
         li = li->next;
       }
@@ -294,80 +294,80 @@ visit_type_ref(struct Ast* ast)
 }
 
 internal void
-visit_function_call(struct Ast* ast)
+visit_function_call(Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION_CALL);
-  struct Ast_FunctionCall* function_call = (struct Ast_FunctionCall*)ast;
+  Ast_FunctionCall* function_call = (Ast_FunctionCall*)ast;
   visit_expression(function_call->callee_expr);
-  struct Ast_Expression* callee_expr = (struct Ast_Expression*)(function_call->callee_expr);
+  Ast_Expression* callee_expr = (Ast_Expression*)(function_call->callee_expr);
   if (callee_expr->type_args) {
-    struct DList* li = callee_expr->type_args;
+    DList* li = callee_expr->type_args;
     while (li) {
-      struct Ast* type_arg = li->object;
+      Ast* type_arg = li->object;
       visit_type_ref(type_arg);
       li = li->next;
     }
   }
-  struct NameEntry* ne = scope_lookup_name(root_scope, "void");
-  struct NameDecl* void_decl = ne->ns_type;
-  struct Type* args_type = type_get(&type_map, void_decl->ast->id)->object;
+  NameEntry* ne = scope_lookup_name(root_scope, "void");
+  NameDecl* void_decl = ne->ns_type;
+  Type* args_type = type_get(&type_map, void_decl->ast->id)->object;
   if (function_call->args) {
-    struct DList* li = function_call->args;
-    struct Ast* arg = li->object;
+    DList* li = function_call->args;
+    Ast* arg = li->object;
     visit_expression(arg);
     args_type = type_get(&type_map, arg->id)->object;
     li = li->next;
     while (li) {
-      struct Ast* arg = li->object;
+      Ast* arg = li->object;
       visit_expression(arg);
-      struct Type_Product* product_type = arena_push_struct(type_storage, struct Type_Product);
+      Type_Product* product_type = arena_push_struct(type_storage, Type_Product);
       product_type->ctor = TYPE_PRODUCT;
       product_type->lhs_ty = args_type;
       product_type->rhs_ty = type_get(&type_map, arg->id)->object;
-      args_type = (struct Type*)product_type;
+      args_type = (Type*)product_type;
       li = li->next;
     }
   }
-  struct Type_FunctionCall* call_type = arena_push_struct(type_storage, struct Type_FunctionCall);
+  Type_FunctionCall* call_type = arena_push_struct(type_storage, Type_FunctionCall);
   call_type->ctor = TYPE_FUNCTION_CALL;
   call_type->args_ty = args_type;
-  type_add(&type_map, (struct Type*)call_type, function_call->id);
+  type_add(&type_map, (Type*)call_type, function_call->id);
 }
 
 internal void
-visit_instantiation(struct Ast* ast)
+visit_instantiation(Ast* ast)
 {
   assert(ast->kind == AST_INSTANTIATION);
-  struct Ast_Instantiation* inst_decl = (struct Ast_Instantiation*)ast;
+  Ast_Instantiation* inst_decl = (Ast_Instantiation*)ast;
   visit_type_ref(inst_decl->type_ref);
-  struct NameEntry* ne = scope_lookup_name(root_scope, "void");
-  struct NameDecl* void_decl = ne->ns_type;
-  struct Type* args_type = type_get(&type_map, void_decl->ast->id)->object;
+  NameEntry* ne = scope_lookup_name(root_scope, "void");
+  NameDecl* void_decl = ne->ns_type;
+  Type* args_type = type_get(&type_map, void_decl->ast->id)->object;
   if (inst_decl->args) {
-    struct DList* li = inst_decl->args;
-    struct Ast* arg = li->object;
+    DList* li = inst_decl->args;
+    Ast* arg = li->object;
     visit_expression(arg);
     args_type = type_get(&type_map, arg->id)->object;
     li = li->next;
     while (li) {
-      struct Ast* arg = li->object;
+      Ast* arg = li->object;
       visit_expression(arg);
-      struct Type_Product* product_type = arena_push_struct(type_storage, struct Type_Product);
+      Type_Product* product_type = arena_push_struct(type_storage, Type_Product);
       product_type->ctor = TYPE_PRODUCT;
       product_type->lhs_ty = args_type;
       product_type->rhs_ty = type_get(&type_map, arg->id)->object;
-      args_type = (struct Type*)product_type;
+      args_type = (Type*)product_type;
       li = li->next;
     }
   }
-  struct Type_FunctionCall* inst_type = arena_push_struct(type_storage, struct Type_FunctionCall);
+  Type_FunctionCall* inst_type = arena_push_struct(type_storage, Type_FunctionCall);
   inst_type->ctor = TYPE_FUNCTION_CALL;
   inst_type->args_ty = args_type;
-  type_add(&type_map, (struct Type*)inst_type, inst_decl->id);
+  type_add(&type_map, (Type*)inst_type, inst_decl->id);
 }
 
 internal void
-visit_switch_label(struct Ast* ast)
+visit_switch_label(Ast* ast)
 {
   if (ast->kind == AST_DEFAULT_STMT) {
     ; // pass
@@ -377,19 +377,19 @@ visit_switch_label(struct Ast* ast)
 }
 
 internal void
-visit_switch_case(struct Ast* ast)
+visit_switch_case(Ast* ast)
 {
   assert(ast->kind == AST_SWITCH_CASE);
-  struct Ast_SwitchCase* switch_case = (struct Ast_SwitchCase*)ast;
+  Ast_SwitchCase* switch_case = (Ast_SwitchCase*)ast;
   visit_switch_label(switch_case->label);
-  struct Ast* case_stmt = switch_case->stmt;
+  Ast* case_stmt = switch_case->stmt;
   if (case_stmt && case_stmt->kind == AST_BLOCK_STMT) {
     visit_block_statement(case_stmt);
   }
 }
 
 internal void
-visit_keyset_expr(struct Ast* ast)
+visit_keyset_expr(Ast* ast)
 {
   if (ast->kind == AST_DEFAULT_STMT || ast->kind == AST_DONTCARE) {
     ; // pass
@@ -399,13 +399,13 @@ visit_keyset_expr(struct Ast* ast)
 }
 
 internal void
-visit_select_keyset(struct Ast* ast)
+visit_select_keyset(Ast* ast)
 {
   if (ast->kind == AST_TUPLE_KEYSET) {
-    struct Ast_TupleKeyset* keyset = (struct Ast_TupleKeyset*)ast;
-    struct DList* li = keyset->expr_list;
+    Ast_TupleKeyset* keyset = (Ast_TupleKeyset*)ast;
+    DList* li = keyset->expr_list;
     while (li) {
-      struct Ast* expr = li->object;
+      Ast* expr = li->object;
       visit_keyset_expr(expr);
       li = li->next;
     }
@@ -415,15 +415,15 @@ visit_select_keyset(struct Ast* ast)
 }
 
 internal void
-visit_action_ref(struct Ast* ast)
+visit_action_ref(Ast* ast)
 {
   assert(ast->kind == AST_ACTION_REF);
-  struct Ast_ActionRef* action = (struct Ast_ActionRef*)ast;
+  Ast_ActionRef* action = (Ast_ActionRef*)ast;
   visit_expression(action->name);
   if (action->args) {
-    struct DList* li = action->args;
+    DList* li = action->args;
     while (li) {
-      struct Ast* arg = li->object;
+      Ast* arg = li->object;
       visit_expression(arg);
       li = li->next;
     }
@@ -431,53 +431,53 @@ visit_action_ref(struct Ast* ast)
 }
 
 internal void
-visit_table_keyelem(struct Ast* ast)
+visit_table_keyelem(Ast* ast)
 {
   assert(ast->kind == AST_KEY_ELEMENT);
-  struct Ast_KeyElement* keyelem = (struct Ast_KeyElement*)ast;
+  Ast_KeyElement* keyelem = (Ast_KeyElement*)ast;
   visit_expression(keyelem->expr);
 }
 
 internal void
-visit_table_entry(struct Ast* ast)
+visit_table_entry(Ast* ast)
 {
   assert(ast->kind == AST_TABLE_ENTRY);
-  struct Ast_TableEntry* entry = (struct Ast_TableEntry*)ast;
+  Ast_TableEntry* entry = (Ast_TableEntry*)ast;
   visit_select_keyset(entry->keyset);
   visit_action_ref(entry->action);
 }
 
 internal void
-visit_table_property(struct Ast* ast)
+visit_table_property(Ast* ast)
 {
   if (ast->kind == AST_TABLE_ACTIONS) {
-    struct Ast_TableActions* prop = (struct Ast_TableActions*)ast;
+    Ast_TableActions* prop = (Ast_TableActions*)ast;
     if (prop->action_list) {
-      struct DList* li = prop->action_list;
+      DList* li = prop->action_list;
       while (li) {
-        struct Ast* action = li->object;
+        Ast* action = li->object;
         visit_action_ref(action);
         li = li->next;
       }
     }
   } else if (ast->kind == AST_TABLE_SINGLE_ENTRY) {
-    struct Ast_TableSingleEntry* prop = (struct Ast_TableSingleEntry*)ast;
+    Ast_TableSingleEntry* prop = (Ast_TableSingleEntry*)ast;
     if (prop->init_expr) {
       visit_expression(prop->init_expr);
     }
   } else if (ast->kind == AST_TABLE_KEY) {
-    struct Ast_TableKey* prop = (struct Ast_TableKey*)ast;
-    struct DList* li = prop->keyelem_list;
+    Ast_TableKey* prop = (Ast_TableKey*)ast;
+    DList* li = prop->keyelem_list;
     while (li) {
-      struct Ast* keyelem = li->object;
+      Ast* keyelem = li->object;
       visit_table_keyelem(keyelem);
       li = li->next;
     }
   } else if (ast->kind == AST_TABLE_ENTRIES) {
-    struct Ast_TableEntries* prop = (struct Ast_TableEntries*)ast;
-    struct DList* li = prop->entries;
+    Ast_TableEntries* prop = (Ast_TableEntries*)ast;
+    DList* li = prop->entries;
     while (li) {
-      struct Ast* entry = li->object;
+      Ast* entry = li->object;
       visit_table_entry(entry);
       li = li->next;
     }
@@ -486,14 +486,14 @@ visit_table_property(struct Ast* ast)
 }
 
 internal void
-visit_table(struct Ast* ast)
+visit_table(Ast* ast)
 {
   assert(ast->kind == AST_TABLE);
-  struct Ast_Table* decl = (struct Ast_Table*)ast;
+  Ast_Table* decl = (Ast_Table*)ast;
   if (decl->prop_list) {
-    struct DList* li = decl->prop_list;
+    DList* li = decl->prop_list;
     while (li) {
-      struct Ast* prop = li->object;
+      Ast* prop = li->object;
       visit_table_property(prop);
       li = li->next;
     }
@@ -501,24 +501,24 @@ visit_table(struct Ast* ast)
 }
 
 internal void
-visit_action(struct Ast* ast)
+visit_action(Ast* ast)
 {
   assert(ast->kind == AST_ACTION);
-  struct Ast_Action* action_decl = (struct Ast_Action*)ast;
+  Ast_Action* action_decl = (Ast_Action*)ast;
   if (action_decl->params) {
-    struct DList* li = action_decl->params;
+    DList* li = action_decl->params;
     while (li) {
-      struct Ast* param = li->object;
+      Ast* param = li->object;
       visit_param(param);
       li = li->next;
     }
   }
-  struct Ast_BlockStmt* action_body = (struct Ast_BlockStmt*)action_decl->stmt;
+  Ast_BlockStmt* action_body = (Ast_BlockStmt*)action_decl->stmt;
   if (action_body) {
     if (action_body->stmt_list) {
-      struct DList* li = action_body->stmt_list;
+      DList* li = action_body->stmt_list;
       while (li) {
-        struct Ast* stmt = li->object;
+        Ast* stmt = li->object;
         visit_statement(stmt);
         li = li->next;
       }
@@ -527,42 +527,42 @@ visit_action(struct Ast* ast)
 }
 
 internal void
-visit_var(struct Ast* ast)
+visit_var(Ast* ast)
 {
   assert(ast->kind == AST_VAR);
-  struct Ast_Var* decl = (struct Ast_Var*)ast;
+  Ast_Var* decl = (Ast_Var*)ast;
   visit_type_ref(decl->type);
   if (decl->init_expr) {
     visit_expression(decl->init_expr);
   }
-  struct Type* decl_type = type_get(&type_map, decl->type->id)->object;
+  Type* decl_type = type_get(&type_map, decl->type->id)->object;
   type_add(&type_map, decl_type, decl->id);
 }
 
 internal void
-visit_if_stmt(struct Ast* ast)
+visit_if_stmt(Ast* ast)
 {
   assert(ast->kind == AST_IF_STMT);
-  struct Ast_IfStmt* stmt = (struct Ast_IfStmt*)ast;
-  struct Ast* if_stmt = stmt->stmt;
+  Ast_IfStmt* stmt = (Ast_IfStmt*)ast;
+  Ast* if_stmt = stmt->stmt;
   visit_expression(stmt->cond_expr);
   visit_statement(if_stmt);
-  struct Ast* else_stmt = stmt->else_stmt;
+  Ast* else_stmt = stmt->else_stmt;
   if (else_stmt) {
     visit_statement(else_stmt);
   }
 }
 
 internal void
-visit_switch_stmt(struct Ast* ast)
+visit_switch_stmt(Ast* ast)
 {
   assert(ast->kind == AST_SWITCH_STMT);
-  struct Ast_SwitchStmt* stmt = (struct Ast_SwitchStmt*)ast;
+  Ast_SwitchStmt* stmt = (Ast_SwitchStmt*)ast;
   visit_expression(stmt->expr);
   if (stmt->switch_cases) {
-    struct DList* li = stmt->switch_cases;
+    DList* li = stmt->switch_cases;
     while (li) {
-      struct Ast* switch_case = li->object;
+      Ast* switch_case = li->object;
       visit_switch_case(switch_case);
       li = li->next;
     }
@@ -570,33 +570,33 @@ visit_switch_stmt(struct Ast* ast)
 }
 
 internal void
-visit_assignment_stmt(struct Ast* ast)
+visit_assignment_stmt(Ast* ast)
 {
   assert(ast->kind == AST_ASSIGNMENT_STMT);
-  struct Ast_AssignmentStmt* stmt = (struct Ast_AssignmentStmt*)ast;
+  Ast_AssignmentStmt* stmt = (Ast_AssignmentStmt*)ast;
   visit_expression(stmt->lvalue);
   visit_expression(stmt->expr);
-  struct Type_Product* args_type = arena_push_struct(type_storage, struct Type_Product);
+  Type_Product* args_type = arena_push_struct(type_storage, Type_Product);
   args_type->ctor = TYPE_PRODUCT;
   args_type->lhs_ty = type_get(&type_map, stmt->lvalue->id)->object;
   args_type->rhs_ty = type_get(&type_map, stmt->expr->id)->object;
-  struct Type_FunctionCall* stmt_type = arena_push_struct(type_storage, struct Type_FunctionCall);
+  Type_FunctionCall* stmt_type = arena_push_struct(type_storage, Type_FunctionCall);
   stmt_type->ctor = TYPE_FUNCTION_CALL;
-  stmt_type->args_ty = (struct Type*)args_type;
-  type_add(&type_map, (struct Type*)stmt_type, stmt->id);
+  stmt_type->args_ty = (Type*)args_type;
+  type_add(&type_map, (Type*)stmt_type, stmt->id);
 }
 
 internal void
-visit_return_stmt(struct Ast* ast)
+visit_return_stmt(Ast* ast)
 {
   assert(ast->kind == AST_RETURN_STMT);
-  struct Ast_ReturnStmt* stmt = (struct Ast_ReturnStmt*)ast;
+  Ast_ReturnStmt* stmt = (Ast_ReturnStmt*)ast;
   if (stmt->expr) {
     visit_expression(stmt->expr);
   }
-  struct NameEntry* ne = scope_lookup_name(root_scope, "void");
-  struct NameDecl* void_decl = ne->ns_type;
-  struct Type* return_type = type_get(&type_map, void_decl->ast->id)->object;
+  NameEntry* ne = scope_lookup_name(root_scope, "void");
+  NameDecl* void_decl = ne->ns_type;
+  Type* return_type = type_get(&type_map, void_decl->ast->id)->object;
   if (stmt->expr) {
     return_type = type_get(&type_map, stmt->expr->id)->object;
   }
@@ -604,7 +604,7 @@ visit_return_stmt(struct Ast* ast)
 }
 
 internal void
-visit_statement(struct Ast* ast)
+visit_statement(Ast* ast)
 {
   if (ast->kind == AST_VAR) {
     visit_var(ast);
@@ -633,70 +633,70 @@ visit_statement(struct Ast* ast)
 }
 
 internal void
-visit_function_return_type(struct Ast* ast)
+visit_function_return_type(Ast* ast)
 {
   if (ast->kind == AST_NAME) {
-    struct Ast_Name* return_type = (struct Ast_Name*)ast;
-    visit_type_param((struct Ast*)return_type);
+    Ast_Name* return_type = (Ast_Name*)ast;
+    visit_type_param((Ast*)return_type);
   } else {
     visit_type_ref(ast);
   }
 }
 
 internal void
-visit_function_proto(struct Ast* ast)
+visit_function_proto(Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION_PROTO);
-  struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)ast;
+  Ast_FunctionProto* function_proto = (Ast_FunctionProto*)ast;
   if (function_proto->return_type) {
     visit_function_return_type(function_proto->return_type);
   }
   if (function_proto->type_params) {
-    struct DList* li = function_proto->type_params;
+    DList* li = function_proto->type_params;
     while (li) {
-      struct Ast* type_param = li->object;
+      Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
   }
-  struct NameEntry* ne = scope_lookup_name(root_scope, "void");
-  struct NameDecl* void_decl = ne->ns_type;
-  struct Type* params_type = type_get(&type_map, void_decl->ast->id)->object;
+  NameEntry* ne = scope_lookup_name(root_scope, "void");
+  NameDecl* void_decl = ne->ns_type;
+  Type* params_type = type_get(&type_map, void_decl->ast->id)->object;
   if (function_proto->params) {
-    struct DList* li = function_proto->params;
-    struct Ast* param = li->object;
+    DList* li = function_proto->params;
+    Ast* param = li->object;
     visit_param(param);
     params_type = type_get(&type_map, param->id)->object;
     li = li->next;
     while (li) {
-      struct Ast* param = li->object;
+      Ast* param = li->object;
       visit_param(param);
-      struct Type_Product* product_type = arena_push_struct(type_storage, struct Type_Product); 
+      Type_Product* product_type = arena_push_struct(type_storage, Type_Product); 
       product_type->ctor = TYPE_PRODUCT;
       product_type->lhs_ty = params_type;
       product_type->rhs_ty = type_get(&type_map, param->id)->object;
-      params_type = (struct Type*)product_type;
+      params_type = (Type*)product_type;
       li = li->next;
     }
   }
-  struct Type_Function* function_type = arena_push_struct(type_storage, struct Type_Function);
+  Type_Function* function_type = arena_push_struct(type_storage, Type_Function);
   function_type->ctor = TYPE_FUNCTION;
   function_type->params_ty = params_type;
   if (function_proto->return_type) {
     function_type->return_ty = type_get(&type_map, function_proto->return_type->id)->object;
   }
-  type_add(&type_map, (struct Type*)function_type, function_proto->id);
+  type_add(&type_map, (Type*)function_type, function_proto->id);
 }
 
 internal void
-visit_block_statement(struct Ast* ast)
+visit_block_statement(Ast* ast)
 {
   assert(ast->kind == AST_BLOCK_STMT);
-  struct Ast_BlockStmt* block_stmt = (struct Ast_BlockStmt*)ast;
+  Ast_BlockStmt* block_stmt = (Ast_BlockStmt*)ast;
   if (block_stmt->stmt_list) {
-    struct DList* li = block_stmt->stmt_list;
+    DList* li = block_stmt->stmt_list;
     while (li) {
-      struct Ast* decl = li->object;
+      Ast* decl = li->object;
       visit_statement(decl);
       li = li->next;
     }
@@ -704,56 +704,56 @@ visit_block_statement(struct Ast* ast)
 }
 
 internal void
-visit_control(struct Ast* ast)
+visit_control(Ast* ast)
 {
   assert(ast->kind == AST_CONTROL);
-  struct Ast_Control* control_decl = (struct Ast_Control*)ast;
-  struct Ast_ControlProto* type_decl = (struct Ast_ControlProto*)control_decl->type_decl;
+  Ast_Control* control_decl = (Ast_Control*)ast;
+  Ast_ControlProto* type_decl = (Ast_ControlProto*)control_decl->type_decl;
   if (type_decl->type_params) {
-    struct DList* li = type_decl->type_params;
+    DList* li = type_decl->type_params;
     while (li) {
-      struct Ast* type_param = li->object;
+      Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
   }
-  struct NameEntry* ne = scope_lookup_name(root_scope, "void");
-  struct NameDecl* void_decl = ne->ns_type;
-  struct Type* params_type = type_get(&type_map, void_decl->ast->id)->object;
+  NameEntry* ne = scope_lookup_name(root_scope, "void");
+  NameDecl* void_decl = ne->ns_type;
+  Type* params_type = type_get(&type_map, void_decl->ast->id)->object;
   if (type_decl->params) {
-    struct DList* li = type_decl->params;
-    struct Ast* param = li->object;
+    DList* li = type_decl->params;
+    Ast* param = li->object;
     visit_param(param);
     params_type = type_get(&type_map, param->id)->object;
     li = li->next;
     while (li) {
-      struct Ast* param = li->object;
+      Ast* param = li->object;
       visit_param(param);
-      struct Type_Product* product_type = arena_push_struct(type_storage, struct Type_Product); 
+      Type_Product* product_type = arena_push_struct(type_storage, Type_Product); 
       product_type->ctor = TYPE_PRODUCT;
       product_type->lhs_ty = params_type;
       product_type->rhs_ty = type_get(&type_map, param->id)->object;
-      params_type = (struct Type*)product_type;
+      params_type = (Type*)product_type;
       li = li->next;
     }
   }
   if (control_decl->ctor_params) {
-    struct DList* li = control_decl->ctor_params;
+    DList* li = control_decl->ctor_params;
     while (li) {
-      struct Ast* param = li->object;
+      Ast* param = li->object;
       visit_param(param);
       li = li->next;
     }
   }
-  struct Type_Function* function_type = arena_push_struct(type_storage, struct Type_Function);
+  Type_Function* function_type = arena_push_struct(type_storage, Type_Function);
   function_type->ctor = TYPE_FUNCTION;
   function_type->params_ty = params_type;
   function_type->return_ty = type_get(&type_map, void_decl->ast->id)->object;
-  type_add(&type_map, (struct Type*)function_type, control_decl->id);
+  type_add(&type_map, (Type*)function_type, control_decl->id);
   if (control_decl->local_decls) {
-    struct DList* li = control_decl->local_decls;
+    DList* li = control_decl->local_decls;
     while (li) {
-      struct Ast* decl = li->object;
+      Ast* decl = li->object;
       visit_statement(decl);
       li = li->next;
     }
@@ -764,27 +764,27 @@ visit_control(struct Ast* ast)
 }
 
 internal void
-visit_extern(struct Ast* ast)
+visit_extern(Ast* ast)
 {
   assert(ast->kind == AST_EXTERN);
-  struct Ast_Extern* extern_decl = (struct Ast_Extern*)ast;
-  struct Ast_Name* name = (struct Ast_Name*)extern_decl->name;
-  struct Type_TypeName* extern_type = arena_push_struct(type_storage, struct Type_TypeName);
+  Ast_Extern* extern_decl = (Ast_Extern*)ast;
+  Ast_Name* name = (Ast_Name*)extern_decl->name;
+  Type_TypeName* extern_type = arena_push_struct(type_storage, Type_TypeName);
   extern_type->ctor = TYPE_NAME;
   extern_type->strname = name->strname;
-  type_add(&type_map, (struct Type*)extern_decl, extern_decl->id);
+  type_add(&type_map, (Type*)extern_decl, extern_decl->id);
   if (extern_decl->type_params) {
-    struct DList* li = extern_decl->type_params;
+    DList* li = extern_decl->type_params;
     while (li) {
-      struct Ast* type_param = li->object;
+      Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
   }
   if (extern_decl->method_protos) {
-    struct DList* li = extern_decl->method_protos;
+    DList* li = extern_decl->method_protos;
     while (li) {
-      struct Ast* proto = li->object;
+      Ast* proto = li->object;
       visit_function_proto(proto);
       li = li->next;
     }
@@ -792,19 +792,19 @@ visit_extern(struct Ast* ast)
 }
 
 internal void
-visit_package(struct Ast* ast)
+visit_package(Ast* ast)
 {
   assert(ast->kind == AST_PACKAGE);
-  struct Ast_Package* package_decl = (struct Ast_Package*)ast;
-  struct Ast_Name* name = (struct Ast_Name*)package_decl->name;
-  struct Type_TypeName* package_type = arena_push_struct(type_storage, struct Type_TypeName);
+  Ast_Package* package_decl = (Ast_Package*)ast;
+  Ast_Name* name = (Ast_Name*)package_decl->name;
+  Type_TypeName* package_type = arena_push_struct(type_storage, Type_TypeName);
   package_type->ctor = TYPE_NAME;
   package_type->strname = name->strname;
-  type_add(&type_map, (struct Type*)package_type, package_decl->id);
+  type_add(&type_map, (Type*)package_type, package_decl->id);
   if (package_decl->params) {
-    struct DList* li = package_decl->params;
+    DList* li = package_decl->params;
     while (li) {
-      struct Ast* param = li->object;
+      Ast* param = li->object;
       visit_param(param);
       li = li->next;
     }
@@ -812,29 +812,29 @@ visit_package(struct Ast* ast)
 }
 
 internal void
-visit_transition_select_case(struct Ast* ast)
+visit_transition_select_case(Ast* ast)
 {
   assert(ast->kind == AST_SELECT_CASE);
-  struct Ast_SelectCase* select_case = (struct Ast_SelectCase*)ast;
+  Ast_SelectCase* select_case = (Ast_SelectCase*)ast;
   visit_select_keyset(select_case->keyset);
 }
 
 internal void
-visit_parser_transition(struct Ast* ast)
+visit_parser_transition(Ast* ast)
 {
   if (ast->kind == AST_NAME) {
     visit_expression(ast);
   } else if (ast->kind == AST_SELECT_EXPR) {
-    struct Ast_SelectExpr* trans_stmt = (struct Ast_SelectExpr*)ast;
-    struct DList* li = trans_stmt->expr_list;
+    Ast_SelectExpr* trans_stmt = (Ast_SelectExpr*)ast;
+    DList* li = trans_stmt->expr_list;
     while (li) {
-      struct Ast* expr = li->object;
+      Ast* expr = li->object;
       visit_expression(expr);
       li = li->next;
     }
     li = trans_stmt->case_list;
     while (li) {
-      struct Ast* select_case = li->object;
+      Ast* select_case = li->object;
       visit_transition_select_case(select_case);
       li = li->next;
     }
@@ -843,14 +843,14 @@ visit_parser_transition(struct Ast* ast)
 }
 
 internal void
-visit_parser_state(struct Ast* ast)
+visit_parser_state(Ast* ast)
 {
   assert(ast->kind == AST_PARSER_STATE);
-  struct Ast_ParserState* state = (struct Ast_ParserState*)ast;
+  Ast_ParserState* state = (Ast_ParserState*)ast;
   if (state->stmt_list) {
-    struct DList* li = state->stmt_list;
+    DList* li = state->stmt_list;
     while (li) {
-      struct Ast* stmt = li->object;
+      Ast* stmt = li->object;
       visit_statement(stmt);
       li = li->next;
     }
@@ -859,18 +859,18 @@ visit_parser_state(struct Ast* ast)
 }
 
 internal void
-visit_const(struct Ast* ast)
+visit_const(Ast* ast)
 {
   assert(ast->kind == AST_CONST);
-  struct Ast_Const* decl = (struct Ast_Const*)ast;
+  Ast_Const* decl = (Ast_Const*)ast;
   visit_type_ref(decl->type_ref);
-  struct Type* decl_type = type_get(&type_map, decl->type_ref->id)->object;
+  Type* decl_type = type_get(&type_map, decl->type_ref->id)->object;
   type_add(&type_map, decl_type, decl->id);
   visit_expression(decl->expr);
 }
 
 internal void
-visit_local_parser_element(struct Ast* ast)
+visit_local_parser_element(Ast* ast)
 {
   if (ast->kind == AST_CONST) {
     visit_const(ast);
@@ -882,64 +882,64 @@ visit_local_parser_element(struct Ast* ast)
 }
 
 internal void
-visit_parser(struct Ast* ast)
+visit_parser(Ast* ast)
 {
   assert(ast->kind == AST_PARSER);
-  struct Ast_Parser* parser_decl = (struct Ast_Parser*)ast;
-  struct Ast_ParserProto* type_decl = (struct Ast_ParserProto*)parser_decl->type_decl;
+  Ast_Parser* parser_decl = (Ast_Parser*)ast;
+  Ast_ParserProto* type_decl = (Ast_ParserProto*)parser_decl->type_decl;
   if (type_decl->type_params) {
-    struct DList* li = type_decl->type_params;
+    DList* li = type_decl->type_params;
     while (li) {
-      struct Ast* type_param = li->object;
+      Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
   }
-  struct NameEntry* ne = scope_lookup_name(root_scope, "void");
-  struct NameDecl* void_decl = ne->ns_type;
-  struct Type* params_type = type_get(&type_map, void_decl->ast->id)->object;
+  NameEntry* ne = scope_lookup_name(root_scope, "void");
+  NameDecl* void_decl = ne->ns_type;
+  Type* params_type = type_get(&type_map, void_decl->ast->id)->object;
   if (type_decl->params) {
-    struct DList* li = type_decl->params;
-    struct Ast* param = li->object;
+    DList* li = type_decl->params;
+    Ast* param = li->object;
     visit_param(param);
     params_type = type_get(&type_map, param->id)->object;
     li = li->next;
     while (li) {
-      struct Ast* param = li->object;
+      Ast* param = li->object;
       visit_param(param);
-      struct Type_Product* product_type = arena_push_struct(type_storage, struct Type_Product); 
+      Type_Product* product_type = arena_push_struct(type_storage, Type_Product); 
       product_type->ctor = TYPE_PRODUCT; 
       product_type->lhs_ty = params_type;
       product_type->rhs_ty = type_get(&type_map, param->id)->object;
-      params_type = (struct Type*)product_type;
+      params_type = (Type*)product_type;
       li = li->next;
     }
   }
   if (parser_decl->ctor_params) {
-    struct DList* li = parser_decl->ctor_params;
+    DList* li = parser_decl->ctor_params;
     while (li) {
-      struct Ast* param = li->object;
+      Ast* param = li->object;
       visit_param(param);
       li = li->next;
     }
   }
-  struct Type_Function* function_type = arena_push_struct(type_storage, struct Type_Function);
+  Type_Function* function_type = arena_push_struct(type_storage, Type_Function);
   function_type->ctor = TYPE_FUNCTION;
   function_type->params_ty = params_type;
   function_type->return_ty = type_get(&type_map, void_decl->ast->id)->object;
-  type_add(&type_map, (struct Type*)function_type, parser_decl->id);
+  type_add(&type_map, (Type*)function_type, parser_decl->id);
   if (parser_decl->local_elements) {
-    struct DList* li = parser_decl->local_elements;
+    DList* li = parser_decl->local_elements;
     while (li) {
-      struct Ast* element = li->object;
+      Ast* element = li->object;
       visit_local_parser_element(element);
       li = li->next;
     }
   }
   if (parser_decl->states) {
-    struct DList* li = parser_decl->states;
+    DList* li = parser_decl->states;
     while (li) {
-      struct Ast* state = li->object;
+      Ast* state = li->object;
       visit_parser_state(state);
       li = li->next;
     }
@@ -947,65 +947,65 @@ visit_parser(struct Ast* ast)
 }
 
 internal void
-visit_type(struct Ast* ast)
+visit_type(Ast* ast)
 {
   assert(ast->kind == AST_TYPE);
-  struct Ast_Type* type_decl = (struct Ast_Type*)ast;
+  Ast_Type* type_decl = (Ast_Type*)ast;
   visit_type_ref(type_decl->type_ref);
 }
 
 internal void
-visit_function(struct Ast* ast)
+visit_function(Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION);
-  struct Ast_Function* function_decl = (struct Ast_Function*)ast;
-  struct Ast_FunctionProto* function_proto = (struct Ast_FunctionProto*)function_decl->proto;
+  Ast_Function* function_decl = (Ast_Function*)ast;
+  Ast_FunctionProto* function_proto = (Ast_FunctionProto*)function_decl->proto;
   if (function_proto->return_type) {
     visit_function_return_type(function_proto->return_type);
   }
   if (function_proto->type_params) {
-    struct DList* li = function_proto->type_params;
+    DList* li = function_proto->type_params;
     while (li) {
-      struct Ast* type_param = li->object;
+      Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
   }
-  struct NameEntry* ne = scope_lookup_name(root_scope, "void");
-  struct NameDecl* void_decl = ne->ns_type;
-  struct Type* params_type = type_get(&type_map, void_decl->ast->id)->object;
+  NameEntry* ne = scope_lookup_name(root_scope, "void");
+  NameDecl* void_decl = ne->ns_type;
+  Type* params_type = type_get(&type_map, void_decl->ast->id)->object;
   if (function_proto->params) {
-    struct DList* li = function_proto->params;
-    struct Ast* param = li->object;
+    DList* li = function_proto->params;
+    Ast* param = li->object;
     visit_param(param);
     params_type = type_get(&type_map, param->id)->object;
     li = li->next;
     while (li) {
-      struct Ast* param = li->object;
+      Ast* param = li->object;
       visit_param(param);
-      struct Type_Product* product_type = arena_push_struct(type_storage, struct Type_Product); 
+      Type_Product* product_type = arena_push_struct(type_storage, Type_Product); 
       product_type->ctor = TYPE_PRODUCT;
       product_type->lhs_ty = params_type;
       product_type->rhs_ty = type_get(&type_map, param->id)->object;
-      params_type = (struct Type*)product_type;
+      params_type = (Type*)product_type;
       li = li->next;
     }
   }
-  struct Type_Function* function_type = arena_push_struct(type_storage, struct Type_Function);
+  Type_Function* function_type = arena_push_struct(type_storage, Type_Function);
   function_type->ctor = TYPE_FUNCTION;
   function_type->params_ty = params_type;
   function_type->return_ty = type_get(&type_map, void_decl->ast->id)->object;
   if (function_proto->return_type) {
     function_type->return_ty = type_get(&type_map, function_proto->return_type->id)->object;
   }
-  type_add(&type_map, (struct Type*)function_type, function_proto->id);
-  type_add(&type_map, (struct Type*)function_type, function_decl->id);
-  struct Ast_BlockStmt* function_body = (struct Ast_BlockStmt*)function_decl->stmt;
+  type_add(&type_map, (Type*)function_type, function_proto->id);
+  type_add(&type_map, (Type*)function_type, function_decl->id);
+  Ast_BlockStmt* function_body = (Ast_BlockStmt*)function_decl->stmt;
   if (function_body) {
     if (function_body->stmt_list) {
-      struct DList* li = function_body->stmt_list;
+      DList* li = function_body->stmt_list;
       while (li) {
-        struct Ast* stmt = li->object;
+        Ast* stmt = li->object;
         visit_statement(stmt);
         li = li->next;
       }
@@ -1014,26 +1014,26 @@ visit_function(struct Ast* ast)
 }
 
 internal void
-visit_enum_field(struct Ast* ast)
+visit_enum_field(Ast* ast)
 {
   assert(ast->kind == AST_NAME);
 }
 
 internal void
-visit_specified_id(struct Ast* ast)
+visit_specified_id(Ast* ast)
 {
   // pass
 }
 
 internal void
-visit_error(struct Ast* ast)
+visit_error(Ast* ast)
 {
   assert (ast->kind == AST_ERROR);
-  struct Ast_Error* decl = (struct Ast_Error*)ast;
+  Ast_Error* decl = (Ast_Error*)ast;
   if (decl->id_list) {
-    struct DList* li = decl->id_list;
+    DList* li = decl->id_list;
     while (li) {
-      struct Ast* id = li->object;
+      Ast* id = li->object;
       if (id->kind == AST_NAME) {
         visit_enum_field(id);
       }
@@ -1044,80 +1044,80 @@ visit_error(struct Ast* ast)
 }
 
 internal void
-visit_enum(struct Ast* ast)
+visit_enum(Ast* ast)
 {
   assert(ast->kind == AST_ENUM);
-  struct Ast_Enum* enum_decl = (struct Ast_Enum*)ast;
-  struct Ast_Name* name = (struct Ast_Name*)enum_decl->name;
-  struct Type_TypeName* enum_type = arena_push_struct(type_storage, struct Type_TypeName);
+  Ast_Enum* enum_decl = (Ast_Enum*)ast;
+  Ast_Name* name = (Ast_Name*)enum_decl->name;
+  Type_TypeName* enum_type = arena_push_struct(type_storage, Type_TypeName);
   enum_type->ctor = TYPE_NAME;
   enum_type->strname = name->strname;
-  type_add(&type_map, (struct Type*)enum_type, enum_decl->id);
+  type_add(&type_map, (Type*)enum_type, enum_decl->id);
 }
 
 internal void
-visit_binary_expr(struct Ast* ast)
+visit_binary_expr(Ast* ast)
 {
   assert(ast->kind == AST_BINARY_EXPR);
-  struct Ast_BinaryExpr* expr = (struct Ast_BinaryExpr*)ast;
+  Ast_BinaryExpr* expr = (Ast_BinaryExpr*)ast;
   visit_expression(expr->left_operand);
   visit_expression(expr->right_operand);
-  struct Type_Product* args_type = arena_push_struct(type_storage, struct Type_Product);
+  Type_Product* args_type = arena_push_struct(type_storage, Type_Product);
   args_type->ctor = TYPE_PRODUCT;
   args_type->lhs_ty = type_get(&type_map, expr->left_operand->id)->object;
   args_type->rhs_ty = type_get(&type_map, expr->right_operand->id)->object;
-  struct Type_FunctionCall* expr_type = arena_push_struct(type_storage, struct Type_FunctionCall);
+  Type_FunctionCall* expr_type = arena_push_struct(type_storage, Type_FunctionCall);
   expr_type->ctor = TYPE_FUNCTION_CALL;
-  expr_type->args_ty = (struct Type*)args_type;
-  type_add(&type_map, (struct Type*)expr_type, expr->id);
+  expr_type->args_ty = (Type*)args_type;
+  type_add(&type_map, (Type*)expr_type, expr->id);
 }
 
 internal void
-visit_unary_expr(struct Ast* ast)
+visit_unary_expr(Ast* ast)
 {
   assert(ast->kind == AST_UNARY_EXPR);
-  struct Ast_UnaryExpr* expr = (struct Ast_UnaryExpr*)ast;
+  Ast_UnaryExpr* expr = (Ast_UnaryExpr*)ast;
   visit_expression(expr->operand);
-  struct Type* args_type = type_get(&type_map, expr->operand->id)->object;
-  struct Type_FunctionCall* expr_type = arena_push_struct(type_storage, struct Type_FunctionCall);
+  Type* args_type = type_get(&type_map, expr->operand->id)->object;
+  Type_FunctionCall* expr_type = arena_push_struct(type_storage, Type_FunctionCall);
   expr_type->ctor = TYPE_FUNCTION_CALL;
-  expr_type->args_ty = (struct Type*)args_type;
-  type_add(&type_map, (struct Type*)expr_type, expr->id);
+  expr_type->args_ty = (Type*)args_type;
+  type_add(&type_map, (Type*)expr_type, expr->id);
 }
 
 internal void
-visit_member_select(struct Ast* ast)
+visit_member_select(Ast* ast)
 {
   assert(ast->kind == AST_MEMBER_SELECT);
-  struct Ast_MemberSelect* expr = (struct Ast_MemberSelect*)ast;
+  Ast_MemberSelect* expr = (Ast_MemberSelect*)ast;
   visit_expression(expr->lhs_expr);
-  struct Type_TypeVar* member_type = arena_push_struct(type_storage, struct Type_TypeVar);
+  Type_TypeVar* member_type = arena_push_struct(type_storage, Type_TypeVar);
   member_type->ctor = TYPE_TYPEVAR;
-  type_add(&type_map, (struct Type*)member_type, expr->id);
+  type_add(&type_map, (Type*)member_type, expr->id);
 }
 
 internal void
-visit_expression(struct Ast* ast)
+visit_expression(Ast* ast)
 {
   if (ast->kind == AST_BINARY_EXPR) {
     visit_binary_expr(ast);
   } else if (ast->kind == AST_UNARY_EXPR) {
     visit_unary_expr(ast);
   } else if (ast->kind == AST_NAME) {
-    struct Ast_Name* name = (struct Ast_Name*)ast;
-    struct NameRef* ref = nameref_get(nameref_map, name->id);
-    struct NameEntry* ne = scope_lookup_name(ref->scope, ref->strname);
+    Ast_Name* name = (Ast_Name*)ast;
+    NameRef* ref = nameref_get(nameref_map, name->id);
+    NameEntry* ne = scope_lookup_name(ref->scope, ref->strname);
     if (ne->ns_type) {
-      struct NameDecl* decl = ne->ns_type;
+      NameDecl* decl = ne->ns_type;
       while (decl) {
-        struct Type* type = type_get(&type_map, decl->ast->id)->object;
+        Type* type = type_get(&type_map, decl->ast->id)->object;
         type_add(&type_map, type, ast->id);
         decl = decl->nextdecl_in_scope;
       }
     } else if (ne->ns_var) {
-      struct NameDecl* decl = ne->ns_var;
+      NameDecl* decl = ne->ns_var;
       assert(!decl->nextdecl_in_scope);
-      struct Type* type = type_get(&type_map, decl->ast->id)->object;
+      Type* type = type_get(&type_map, decl->ast->id)->object;
       type_add(&type_map, type, ast->id);
     } else error("at line %d: unresolved name `%s`.", ref->line_no, ref->strname);
   } else if (ast->kind == AST_FUNCTION_CALL) {
@@ -1125,51 +1125,51 @@ visit_expression(struct Ast* ast)
   } else if (ast->kind == AST_MEMBER_SELECT) {
     visit_member_select(ast);
   } else if (ast->kind == AST_EXPRLIST) {
-    struct Ast_ExprList* expr = (struct Ast_ExprList*)ast;
+    Ast_ExprList* expr = (Ast_ExprList*)ast;
     if (expr->expr_list) {
-      struct DList* li = expr->expr_list;
+      DList* li = expr->expr_list;
       while (li) {
-        struct Ast* expr_expr = li->object;
+        Ast* expr_expr = li->object;
         visit_expression(expr_expr);
         li = li->next;
       }
     }
   } else if (ast->kind == AST_CAST_EXPR) {
-    struct Ast_CastExpr* expr = (struct Ast_CastExpr*)ast;
+    Ast_CastExpr* expr = (Ast_CastExpr*)ast;
     visit_type_ref(expr->to_type);
     visit_expression(expr->expr);
   } else if (ast->kind == AST_SUBSCRIPT) {
-    struct Ast_Subscript* expr = (struct Ast_Subscript*)ast;
+    Ast_Subscript* expr = (Ast_Subscript*)ast;
     visit_expression(expr->index);
     if (expr->colon_index) {
       visit_expression(expr->colon_index);
     }
   } else if (ast->kind == AST_KVPAIR) {
-    struct Ast_KVPair* expr = (struct Ast_KVPair*)ast;
+    Ast_KVPair* expr = (Ast_KVPair*)ast;
     visit_expression(expr->expr);
   } else if (ast->kind == AST_INT_LITERAL || ast->kind == AST_BOOL_LITERAL) {
-    struct NameEntry* ne = scope_lookup_name(root_scope, "int");
-    struct NameDecl* decl = ne->ns_type;
-    struct Type* int_type = type_get(&type_map, decl->ast->id)->object;
+    NameEntry* ne = scope_lookup_name(root_scope, "int");
+    NameDecl* decl = ne->ns_type;
+    Type* int_type = type_get(&type_map, decl->ast->id)->object;
     type_add(&type_map, int_type, ast->id);
   } else if (ast->kind == AST_STRING_LITERAL) {
-    struct NameEntry* ne = scope_lookup_name(root_scope, "string");
-    struct NameDecl* decl = ne->ns_type;
-    struct Type* string_type = type_get(&type_map, decl->ast->id)->object;
+    NameEntry* ne = scope_lookup_name(root_scope, "string");
+    NameDecl* decl = ne->ns_type;
+    Type* string_type = type_get(&type_map, decl->ast->id)->object;
     type_add(&type_map, string_type, ast->id);
   }
   else assert(0);
 }
 
 internal void
-visit_match_kind(struct Ast* ast)
+visit_match_kind(Ast* ast)
 {
   assert(ast->kind == AST_MATCH_KIND);
-  struct Ast_MatchKind* decl = (struct Ast_MatchKind*)ast;
+  Ast_MatchKind* decl = (Ast_MatchKind*)ast;
   if (decl->id_list) {
-    struct DList* li = decl->id_list;
+    DList* li = decl->id_list;
     while (li) {
-      struct Ast* id = li->object;
+      Ast* id = li->object;
       if (id->kind == AST_NAME) {
         visit_enum_field(id);
       } else if (id->kind == AST_SPECIFIED_IDENT) {
@@ -1182,13 +1182,13 @@ visit_match_kind(struct Ast* ast)
 }
 
 internal void
-visit_p4program(struct Ast* ast)
+visit_p4program(Ast* ast)
 {
   assert(ast->kind == AST_P4PROGRAM);
-  struct Ast_P4Program* program = (struct Ast_P4Program*)ast;
-  struct DList* li = program->decl_list;
+  Ast_P4Program* program = (Ast_P4Program*)ast;
+  DList* li = program->decl_list;
   while (li) {
-    struct Ast* decl = li->object;
+    Ast* decl = li->object;
     if (decl->kind == AST_CONTROL) {
       visit_control(decl);
     } else if (decl->kind == AST_EXTERN) {
@@ -1227,20 +1227,20 @@ visit_p4program(struct Ast* ast)
   }
 }
 
-struct Hashmap*
-build_type(struct Ast_P4Program* p4program, struct Scope* root_scope_,
-           struct Hashmap* nameref_map_, struct Arena* type_storage_)
+Hashmap*
+build_type(Ast_P4Program* p4program, Scope* root_scope_,
+           Hashmap* nameref_map_, Arena* type_storage_)
 {
-  struct Type_Basic*
+  Type_Basic*
   add_basic_type(char* strname, enum BasicType basic_ty)
   {
-    struct Type_Basic* type = arena_push_struct(type_storage, struct Type_Basic);
+    Type_Basic* type = arena_push_struct(type_storage, Type_Basic);
     type->ctor = TYPE_BASIC;
     type->basic_ty = basic_ty;
     type->strname = strname;
-    struct NameEntry* ne = scope_lookup_name(root_scope, strname);
-    struct NameDecl* decl = ne->ns_type;
-    type_add(&type_map, (struct Type*)type, decl->ast->id);
+    NameEntry* ne = scope_lookup_name(root_scope, strname);
+    NameDecl* decl = ne->ns_type;
+    type_add(&type_map, (Type*)type, decl->ast->id);
     return type;
   }
 
@@ -1256,6 +1256,6 @@ build_type(struct Ast_P4Program* p4program, struct Scope* root_scope_,
   add_basic_type("varbit", TYPE_INT);
   add_basic_type("string", TYPE_STRING);
 
-  visit_p4program((struct Ast*)p4program);
+  visit_p4program((Ast*)p4program);
   return &type_map;
 }

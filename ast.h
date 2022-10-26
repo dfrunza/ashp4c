@@ -89,7 +89,7 @@ enum TokenClass {
   TK_LEXICAL_ERROR,
 };
 
-struct Token {
+typedef struct Token {
   enum TokenClass klass;
   char* lexeme;
   int line_no;
@@ -102,7 +102,7 @@ struct Token {
     } i;  /* integer */
     char* str;
   };
-};
+} Token;
 
 enum AstEnum {
   AST_NAME = 1,
@@ -209,426 +209,426 @@ enum AstParamDirection {
   PARAMDIR_INOUT,
 };
 
-struct Ast {
+typedef struct Ast {
   enum AstEnum kind;
   uint32_t id;
   int line_no;
-};
+} Ast;
 
-struct Ast_Expression {
-  struct Ast;
-  struct DList* type_args;
-};
+typedef struct Ast_Expression {
+  Ast;
+  DList* type_args;
+} Ast_Expression;
 
-struct Ast_Name {
-  struct Ast_Expression;
+typedef struct Ast_Name {
+  Ast_Expression;
   char* strname;
-};
+} Ast_Name;
 
-struct Ast_BasicType {
-  struct Ast;
-  struct Ast* name;
-};
+typedef struct Ast_BasicType {
+  Ast;
+  Ast* name;
+} Ast_BasicType;
 
-struct Ast_BoolType {
-  struct Ast_BasicType;
-};
+typedef struct Ast_BoolType {
+  Ast_BasicType;
+} Ast_BoolType;
 
-struct Ast_ErrorType {
-  struct Ast_BasicType;
-};
+typedef struct Ast_ErrorType {
+  Ast_BasicType;
+} Ast_ErrorType;
 
-struct Ast_IntType {
-  struct Ast_BasicType;
-  struct Ast* size;
-};
+typedef struct Ast_IntType {
+  Ast_BasicType;
+  Ast* size;
+} Ast_IntType;
 
-struct Ast_BitType {
-  struct Ast_BasicType;
-  struct Ast* size;
-};
+typedef struct Ast_BitType {
+  Ast_BasicType;
+  Ast* size;
+} Ast_BitType;
 
-struct Ast_VarbitType {
-  struct Ast_BasicType;
-  struct Ast* size;
-};
+typedef struct Ast_VarbitType {
+  Ast_BasicType;
+  Ast* size;
+} Ast_VarbitType;
 
-struct Ast_StringType {
-  struct Ast_BasicType;
-};
+typedef struct Ast_StringType {
+  Ast_BasicType;
+} Ast_StringType;
 
-struct Ast_VoidType {
-  struct Ast_BasicType;
-};
+typedef struct Ast_VoidType {
+  Ast_BasicType;
+} Ast_VoidType;
 
-struct Ast_Const {
-  struct Ast;
-  struct Ast* name;
-  struct Ast* type_ref;
-  struct Ast* expr;
-};
+typedef struct Ast_Const {
+  Ast;
+  Ast* name;
+  Ast* type_ref;
+  Ast* expr;
+} Ast_Const;
 
-struct Ast_Extern {
-  struct Ast;
-  struct Ast* name;
-  struct DList* type_params;
-  struct DList* method_protos;
-};
+typedef struct Ast_Extern {
+  Ast;
+  Ast* name;
+  DList* type_params;
+  DList* method_protos;
+} Ast_Extern;
 
-struct Ast_FunctionProto {
-  struct Ast;
+typedef struct Ast_FunctionProto {
+  Ast;
   bool is_extern;
-  struct Ast* return_type;
-  struct Ast* name;
-  struct DList* type_params;
-  struct DList* params;
-};
+  Ast* return_type;
+  Ast* name;
+  DList* type_params;
+  DList* params;
+} Ast_FunctionProto;
 
-struct Ast_Action {
-  struct Ast;
-  struct Ast* name;
-  struct DList* params;
-  struct Ast* stmt;
-};
+typedef struct Ast_Action {
+  Ast;
+  Ast* name;
+  DList* params;
+  Ast* stmt;
+} Ast_Action;
 
-struct Ast_Header {
-  struct Ast;
-  struct Ast* name;
-  struct DList* fields;
-};
+typedef struct Ast_Header {
+  Ast;
+  Ast* name;
+  DList* fields;
+} Ast_Header;
 
-struct Ast_HeaderUnion {
-  struct Ast;
-  struct Ast* name;
-  struct DList* fields;
-};
+typedef struct Ast_HeaderUnion {
+  Ast;
+  Ast* name;
+  DList* fields;
+} Ast_HeaderUnion;
 
-struct Ast_Struct {
-  struct Ast;
-  struct Ast* name;
-  struct DList* fields;
-};
+typedef struct Ast_Struct {
+  Ast;
+  Ast* name;
+  DList* fields;
+} Ast_Struct;
 
-struct Ast_Enum {
-  struct Ast;
-  struct Ast* name;
-  struct Ast* type_size;
-  struct DList* id_list;
-};
+typedef struct Ast_Enum {
+  Ast;
+  Ast* name;
+  Ast* type_size;
+  DList* id_list;
+} Ast_Enum;
 
-struct Ast_Type {
-  struct Ast;
-  struct Ast* name;
+typedef struct Ast_Type {
+  Ast;
+  Ast* name;
   bool is_typedef;
-  struct Ast* type_ref;
-};
+  Ast* type_ref;
+} Ast_Type;
 
-struct Ast_Parser {
-  struct Ast;
-  struct Ast* type_decl;
-  struct DList* ctor_params;
-  struct DList* local_elements;
-  struct DList* states;
-};
+typedef struct Ast_Parser {
+  Ast;
+  Ast* type_decl;
+  DList* ctor_params;
+  DList* local_elements;
+  DList* states;
+} Ast_Parser;
 
-struct Ast_Control {
-  struct Ast;
-  struct Ast* type_decl;
-  struct DList* ctor_params;
-  struct DList* local_decls;
-  struct Ast* apply_stmt;
-};
+typedef struct Ast_Control {
+  Ast;
+  Ast* type_decl;
+  DList* ctor_params;
+  DList* local_decls;
+  Ast* apply_stmt;
+} Ast_Control;
 
-struct Ast_Package {
-  struct Ast;
-  struct Ast* name;
-  struct DList* type_params;
-  struct DList* params;
-};
+typedef struct Ast_Package {
+  Ast;
+  Ast* name;
+  DList* type_params;
+  DList* params;
+} Ast_Package;
 
-struct Ast_Instantiation {
-  struct Ast;
-  struct Ast* name;
-  struct Ast* type_ref;
-  struct DList* args;
-};
+typedef struct Ast_Instantiation {
+  Ast;
+  Ast* name;
+  Ast* type_ref;
+  DList* args;
+} Ast_Instantiation;
 
-struct Ast_Error {
-  struct Ast;
-  struct DList* id_list;
-};
+typedef struct Ast_Error {
+  Ast;
+  DList* id_list;
+} Ast_Error;
 
-struct Ast_MatchKind {
-  struct Ast;
-  struct DList* id_list;
-};
+typedef struct Ast_MatchKind {
+  Ast;
+  DList* id_list;
+} Ast_MatchKind;
 
-struct Ast_Function {
-  struct Ast;
-  struct Ast* proto;
-  struct Ast* stmt;
-};
+typedef struct Ast_Function {
+  Ast;
+  Ast* proto;
+  Ast* stmt;
+} Ast_Function;
 
-struct Ast_Dontcare {
-  struct Ast;
-};
+typedef struct Ast_Dontcare {
+  Ast;
+} Ast_Dontcare;
 
-struct Ast_IntTypeSize {
-  struct Ast;
-  struct Ast* size;
-};
+typedef struct Ast_IntTypeSize {
+  Ast;
+  Ast* size;
+} Ast_IntTypeSize;
 
-struct Ast_IntLiteral {
-  struct Ast_Expression;
+typedef struct Ast_IntLiteral {
+  Ast_Expression;
   bool is_signed;
   int value;
   int width;
-};
+} Ast_IntLiteral;
 
-struct Ast_BoolLiteral {
-  struct Ast_Expression;
+typedef struct Ast_BoolLiteral {
+  Ast_Expression;
   bool value;
-};
+} Ast_BoolLiteral;
 
-struct Ast_StringLiteral {
-  struct Ast_Expression;
+typedef struct Ast_StringLiteral {
+  Ast_Expression;
   char* value;
-};
+} Ast_StringLiteral;
 
-struct Ast_Tuple {
-  struct Ast;
-  struct DList* type_args;
-};
+typedef struct Ast_Tuple {
+  Ast;
+  DList* type_args;
+} Ast_Tuple;
 
-struct Ast_TupleKeyset {
-  struct Ast;
-  struct DList* expr_list;
-};
+typedef struct Ast_TupleKeyset {
+  Ast;
+  DList* expr_list;
+} Ast_TupleKeyset;
 
-struct Ast_HeaderStack {
-  struct Ast;
-  struct Ast* name;
-  struct Ast* stack_expr;
-};
+typedef struct Ast_HeaderStack {
+  Ast;
+  Ast* name;
+  Ast* stack_expr;
+} Ast_HeaderStack;
 
-struct Ast_SpecializedType {
-  struct Ast;
-  struct Ast* name;
-  struct DList* type_args;
-};
+typedef struct Ast_SpecializedType {
+  Ast;
+  Ast* name;
+  DList* type_args;
+} Ast_SpecializedType;
 
-struct Ast_SpecifiedIdent {
-  struct Ast;
-  struct Ast* name;
-  struct Ast* init_expr;
-};
+typedef struct Ast_SpecifiedIdent {
+  Ast;
+  Ast* name;
+  Ast* init_expr;
+} Ast_SpecifiedIdent;
 
-struct Ast_StructField {
-  struct Ast;
-  struct Ast* name;
-  struct Ast* type;
-};
+typedef struct Ast_StructField {
+  Ast;
+  Ast* name;
+  Ast* type;
+} Ast_StructField;
 
-struct Ast_ParserProto {
-  struct Ast;
-  struct Ast* name;
-  struct DList* type_params;
-  struct DList* params;
-};
+typedef struct Ast_ParserProto {
+  Ast;
+  Ast* name;
+  DList* type_params;
+  DList* params;
+} Ast_ParserProto;
 
-struct Ast_Argument {
-  struct Ast;
-  struct Ast* name;
-  struct Ast* init_expr;
-};
+typedef struct Ast_Argument {
+  Ast;
+  Ast* name;
+  Ast* init_expr;
+} Ast_Argument;
 
-struct Ast_Var {
-  struct Ast;
-  struct Ast* name;
-  struct Ast* type;
-  struct Ast* init_expr;
-};
+typedef struct Ast_Var {
+  Ast;
+  Ast* name;
+  Ast* type;
+  Ast* init_expr;
+} Ast_Var;
 
-struct Ast_Param {
-  struct Ast;
+typedef struct Ast_Param {
+  Ast;
   enum AstParamDirection direction;
-  struct Ast* name;
-  struct Ast* type;
-  struct Ast* init_expr;
-};
+  Ast* name;
+  Ast* type;
+  Ast* init_expr;
+} Ast_Param;
 
-struct Ast_AssignmentStmt {
-  struct Ast;
-  struct Ast* lvalue;
-  struct Ast* expr;
-};
+typedef struct Ast_AssignmentStmt {
+  Ast;
+  Ast* lvalue;
+  Ast* expr;
+} Ast_AssignmentStmt;
 
-struct Ast_EmptyStmt {
-  struct Ast;
-};
+typedef struct Ast_EmptyStmt {
+  Ast;
+} Ast_EmptyStmt;
 
-struct Ast_DefaultStmt {
-  struct Ast;
-};
+typedef struct Ast_DefaultStmt {
+  Ast;
+} Ast_DefaultStmt;
 
-struct Ast_SelectCase {
-  struct Ast;
-  struct Ast* name;
-  struct Ast* keyset;
-};
+typedef struct Ast_SelectCase {
+  Ast;
+  Ast* name;
+  Ast* keyset;
+} Ast_SelectCase;
 
-struct Ast_ParserState {
-  struct Ast;
-  struct Ast* name;
-  struct DList* stmt_list;
-  struct Ast* trans_stmt;
-};
+typedef struct Ast_ParserState {
+  Ast;
+  Ast* name;
+  DList* stmt_list;
+  Ast* trans_stmt;
+} Ast_ParserState;
 
-struct Ast_ControlProto {
-  struct Ast;
-  struct Ast* name;
-  struct DList* type_params;
-  struct DList* params;
-};
+typedef struct Ast_ControlProto {
+  Ast;
+  Ast* name;
+  DList* type_params;
+  DList* params;
+} Ast_ControlProto;
 
-struct Ast_KeyElement {
-  struct Ast;
-  struct Ast* name;
-  struct Ast* expr;
-};
+typedef struct Ast_KeyElement {
+  Ast;
+  Ast* name;
+  Ast* expr;
+} Ast_KeyElement;
 
-struct Ast_ActionRef {
-  struct Ast;
-  struct Ast* name;
-  struct DList* args;
-};
+typedef struct Ast_ActionRef {
+  Ast;
+  Ast* name;
+  DList* args;
+} Ast_ActionRef;
 
-struct Ast_TableEntry {
-  struct Ast;
-  struct Ast* keyset;
-  struct Ast* action;
-};
+typedef struct Ast_TableEntry {
+  Ast;
+  Ast* keyset;
+  Ast* action;
+} Ast_TableEntry;
 
-struct Ast_TableKey {
-  struct Ast;
-  struct DList* keyelem_list;
-};
+typedef struct Ast_TableKey {
+  Ast;
+  DList* keyelem_list;
+} Ast_TableKey;
 
-struct Ast_TableActions {
-  struct Ast;
-  struct DList* action_list;
-};
+typedef struct Ast_TableActions {
+  Ast;
+  DList* action_list;
+} Ast_TableActions;
 
-struct Ast_TableEntries {
-  struct Ast;
+typedef struct Ast_TableEntries {
+  Ast;
   bool is_const;
-  struct DList* entries;
-};
+  DList* entries;
+} Ast_TableEntries;
 
-struct Ast_TableSingleEntry {
-  struct Ast;
-  struct Ast* name;
-  struct Ast* init_expr;
-};
+typedef struct Ast_TableSingleEntry {
+  Ast;
+  Ast* name;
+  Ast* init_expr;
+} Ast_TableSingleEntry;
 
-struct Ast_Table {
-  struct Ast;
-  struct Ast* name;
-  struct DList* prop_list;
-};
+typedef struct Ast_Table {
+  Ast;
+  Ast* name;
+  DList* prop_list;
+} Ast_Table;
 
-struct Ast_IfStmt {
-  struct Ast;
-  struct Ast* cond_expr;
-  struct Ast* stmt;
-  struct Ast* else_stmt;
-};
+typedef struct Ast_IfStmt {
+  Ast;
+  Ast* cond_expr;
+  Ast* stmt;
+  Ast* else_stmt;
+} Ast_IfStmt;
 
-struct Ast_ExitStmt {
-  struct Ast;
-};
+typedef struct Ast_ExitStmt {
+  Ast;
+} Ast_ExitStmt;
 
-struct Ast_ReturnStmt {
-  struct Ast;
-  struct Ast* expr;
-};
+typedef struct Ast_ReturnStmt {
+  Ast;
+  Ast* expr;
+} Ast_ReturnStmt;
 
-struct Ast_SwitchCase {
-  struct Ast;
-  struct Ast* label;
-  struct Ast* stmt;
-};
+typedef struct Ast_SwitchCase {
+  Ast;
+  Ast* label;
+  Ast* stmt;
+} Ast_SwitchCase;
 
-struct Ast_SwitchStmt {
-  struct Ast;
-  struct Ast* expr;
-  struct DList* switch_cases;
-};
+typedef struct Ast_SwitchStmt {
+  Ast;
+  Ast* expr;
+  DList* switch_cases;
+} Ast_SwitchStmt;
 
-struct Ast_BlockStmt {
-  struct Ast;
-  struct DList* stmt_list;
-};
+typedef struct Ast_BlockStmt {
+  Ast;
+  DList* stmt_list;
+} Ast_BlockStmt;
 
-struct Ast_KVPair {
-  struct Ast_Expression;
-  struct Ast* name;
-  struct Ast* expr;
-};
+typedef struct Ast_KVPair {
+  Ast_Expression;
+  Ast* name;
+  Ast* expr;
+} Ast_KVPair;
 
-struct Ast_P4Program {
-  struct Ast;
-  struct DList* decl_list;
+typedef struct Ast_P4Program {
+  Ast;
+  DList* decl_list;
   int last_node_id;
-};
+} Ast_P4Program;
 
-struct Ast_SelectExpr {
-  struct Ast_Expression;
-  struct DList* expr_list;
-  struct DList* case_list;
-};
+typedef struct Ast_SelectExpr {
+  Ast_Expression;
+  DList* expr_list;
+  DList* case_list;
+} Ast_SelectExpr;
 
-struct Ast_ExprList {
-  struct Ast_Expression;
-  struct DList* expr_list;
-};
+typedef struct Ast_ExprList {
+  Ast_Expression;
+  DList* expr_list;
+} Ast_ExprList;
 
-struct Ast_CastExpr {
-  struct Ast_Expression;
-  struct Ast* to_type;
-  struct Ast* expr;
-};
+typedef struct Ast_CastExpr {
+  Ast_Expression;
+  Ast* to_type;
+  Ast* expr;
+} Ast_CastExpr;
 
-struct Ast_UnaryExpr {
-  struct Ast_Expression;
+typedef struct Ast_UnaryExpr {
+  Ast_Expression;
   enum AstOperator op;
-  struct Ast* operand;
-};
+  Ast* operand;
+} Ast_UnaryExpr;
 
-struct Ast_BinaryExpr {
-  struct Ast_Expression;
+typedef struct Ast_BinaryExpr {
+  Ast_Expression;
   enum AstOperator op;
-  struct Ast* left_operand;
-  struct Ast* right_operand;
-};
+  Ast* left_operand;
+  Ast* right_operand;
+} Ast_BinaryExpr;
 
-struct Ast_MemberSelect {
-  struct Ast_Expression;
-  struct Ast* lhs_expr;
-  struct Ast* member_name;
-};
+typedef struct Ast_MemberSelect {
+  Ast_Expression;
+  Ast* lhs_expr;
+  Ast* member_name;
+} Ast_MemberSelect;
 
-struct Ast_Subscript {
-  struct Ast_Expression;
-  struct Ast* index;
-  struct Ast* colon_index;
-};
+typedef struct Ast_Subscript {
+  Ast_Expression;
+  Ast* index;
+  Ast* colon_index;
+} Ast_Subscript;
 
-struct Ast_FunctionCall {
-  struct Ast_Expression;
-  struct Ast* callee_expr;
-  struct DList* args;
-};
+typedef struct Ast_FunctionCall {
+  Ast_Expression;
+  Ast* callee_expr;
+  DList* args;
+} Ast_FunctionCall;
 
 enum Namespace {
   NAMESPACE_TYPE = 1,
@@ -636,46 +636,46 @@ enum Namespace {
   NAMESPACE_KEYWORD,
 };
 
-struct NameDecl {
+typedef struct Scope {
+  int scope_level;
+  struct Scope* parent_scope;
+  Hashmap decls;
+} Scope;
+
+typedef struct NameDecl {
   union {
-    struct Ast* ast;
+    Ast* ast;
     enum TokenClass token_class;
   };
   char* strname;
   int line_no;
-  struct Scope* scope;
+  Scope* scope;
   struct NameDecl* nextdecl_in_scope;
-};  
+} NameDecl;
 
-struct NameRef {
-  struct Ast* ast;
+typedef struct NameRef {
+  Ast* ast;
   char* strname;
   int line_no;
-  struct Scope* scope;
-};
+  Scope* scope;
+} NameRef;
 
-struct NameEntry {
+typedef struct NameEntry {
   char* strname;
-  struct NameDecl* ns_type;
-  struct NameDecl* ns_var;
-  struct NameDecl* ns_keyword;
-};
+  NameDecl* ns_type;
+  NameDecl* ns_var;
+  NameDecl* ns_keyword;
+} NameEntry;
 
-struct Scope {
-  int scope_level;
-  struct Scope* parent_scope;
-  struct Hashmap decls;
-};
-
-void scope_init(struct Arena* scope_storage);
-struct NameEntry* namedecl_get_or_create(struct Hashmap* decls, char* name);
-struct NameEntry* namedecl_get(struct Hashmap* decls, char* name);
-struct Scope* push_scope();
-struct Scope* pop_scope();
-struct NameEntry* scope_lookup_name(struct Scope* scope, char* name);
-struct NameEntry* declare_name_in_scope(struct Scope* scope, enum Namespace ns, struct NameDecl* decl);
-struct NameRef* nameref_get(struct Hashmap* map, uint32_t id);
-void nameref_add(struct Hashmap* map, struct NameRef* nameref, uint32_t id);
+void scope_init(Arena* scope_storage);
+NameEntry* namedecl_get_or_create(Hashmap* decls, char* name);
+NameEntry* namedecl_get(Hashmap* decls, char* name);
+Scope* push_scope();
+Scope* pop_scope();
+NameEntry* scope_lookup_name(Scope* scope, char* name);
+NameEntry* declare_name_in_scope(Scope* scope, enum Namespace ns, NameDecl* decl);
+NameRef* nameref_get(Hashmap* map, uint32_t id);
+void nameref_add(Hashmap* map, NameRef* nameref, uint32_t id);
 
 enum TypeEnum {
   TYPE_NAME = 1,
@@ -695,55 +695,55 @@ enum BasicType {
   TYPE_STRING,
 };
 
-struct Type {
+typedef struct Type {
   enum TypeEnum ctor;
-  struct Ast* ast;
+  Ast* ast;
   struct Type* type_params;
-};
+} Type;
 
-struct Type_Basic {
-  struct Type;
+typedef struct Type_Basic {
+  Type;
   char* strname;
   enum BasicType basic_ty;
-};
+} Type_Basic;
 
-struct Type_TypeVar {
-  struct Type;
-};
+typedef struct Type_TypeVar {
+  Type;
+} Type_TypeVar;
 
-struct Type_TypeDef {
-  struct Type;
+typedef struct Type_TypeDef {
+  Type;
   char* strname;
-};
+} Type_TypeDef;
 
-struct Type_TypeName {
-  struct Type;
+typedef struct Type_TypeName {
+  Type;
   char* strname;
-};
+} Type_TypeName;
 
-struct Type_TypeParam {
-  struct Type;
+typedef struct Type_TypeParam {
+  Type;
   char* strname;
-};
+} Type_TypeParam;
 
-struct Type_Product {
-  struct Type;
-  struct Type* lhs_ty;
-  struct Type* rhs_ty;
-};
+typedef struct Type_Product {
+  Type;
+  Type* lhs_ty;
+  Type* rhs_ty;
+} Type_Product;
 
-struct Type_Function {
-  struct Type;
-  struct Type* params_ty;
-  struct Type* return_ty;
-};
+typedef struct Type_Function {
+  Type;
+  Type* params_ty;
+  Type* return_ty;
+} Type_Function;
 
-struct Type_FunctionCall {
-  struct Type;
-  struct Type* args_ty;
-  struct Type* return_ty;
-};
+typedef struct Type_FunctionCall {
+  Type;
+  Type* args_ty;
+  Type* return_ty;
+} Type_FunctionCall;
 
-struct SList* type_get(struct Hashmap* map, uint32_t id);
-struct SList* type_add(struct Hashmap* map, struct Type* type, uint32_t id);
+SList* type_get(Hashmap* map, uint32_t id);
+SList* type_add(Hashmap* map, Type* type, uint32_t id);
 

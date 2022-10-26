@@ -26,64 +26,57 @@ bool cstr_match(char* str_a, char* str_b);
 void cstr_print_substr(char* begin_char, char* end_char);
 bool bytes_match(uint8_t* bytes_a, int len_a, uint8_t* bytes_b, int len_b);
 
-struct PageBlock {
+typedef struct PageBlock {
   struct PageBlock* next_block;
   struct PageBlock* prev_block;
   uint8_t* memory_begin;
   uint8_t* memory_end;
-};
+} PageBlock;
 
-struct Arena {
-  struct PageBlock* owned_pages;
+typedef struct Arena {
+  PageBlock* owned_pages;
   void* memory_avail;
   void* memory_limit;
-};
-
-struct ArenaUsage {
-  int total;
-  int free;
-  int in_use;
-  int arena_count;
-};
+} Arena;
 
 void alloc_memory(int memory_amount);
-void* arena_push(struct Arena* arena, uint32_t size);
+void* arena_push(Arena* arena, uint32_t size);
 #define arena_push_struct(arena, type) ({ \
   type* o = arena_push(arena, sizeof(type)); \
   memset(o, 0, sizeof(type)); \
   o; \
 })
-void arena_delete(struct Arena* arena);
+void arena_delete(Arena* arena);
 
-struct DList {
+typedef struct DList {
   struct DList* prev;
   struct DList* next;
   void* object;
-};
+} DList;
 
-struct SList {
+typedef struct SList {
   struct SList* next;
   void* object;
-};
+} SList;
 
-void dlist_concat(struct DList* tail, struct DList* head);
-void slist_concat(struct SList* tail, struct SList* head);
+void dlist_concat(DList* tail, DList* head);
+void slist_concat(SList* tail, SList* head);
 
 // Max 1,048,575 elements
 #define ARRAY_MAX_SEGMENT 20
 
-struct UnboundedArray {
+typedef struct UnboundedArray {
   void* segment_table[ARRAY_MAX_SEGMENT];
   int elem_size;
   int elem_count;
   int capacity;
-  struct Arena* storage;
-};
+  Arena* storage;
+} UnboundedArray;
 
-void array_init(struct UnboundedArray* array, int elem_size, struct Arena* storage);
-void* array_get(struct UnboundedArray* array, int i);
-void* array_set(struct UnboundedArray* array, int i, void* elem);
-void* array_append(struct UnboundedArray* array, void* elem);
+void array_init(UnboundedArray* array, int elem_size, Arena* storage);
+void* array_get(UnboundedArray* array, int i);
+void* array_set(UnboundedArray* array, int i, void* elem);
+void* array_append(UnboundedArray* array, void* elem);
 
 enum HashmapKeyType {
   HASHMAP_KEY_STRING = 1,
@@ -91,15 +84,15 @@ enum HashmapKeyType {
   HASHMAP_KEY_UINT32,
 };
 
-struct Hashmap {
-  struct UnboundedArray entries;
+typedef struct Hashmap {
+  UnboundedArray entries;
   enum HashmapKeyType key_type;
   int capacity_log2;
   int capacity;
   int entry_count;
-};
+} Hashmap;
 
-struct HashmapKey {
+typedef struct HashmapKey {
   uint32_t h;
   union {
     uint8_t* s_key;
@@ -107,24 +100,24 @@ struct HashmapKey {
     uint32_t i_key;
   };
   int keylen;
-};
+} HashmapKey;
 
-struct HashmapEntry {
-  struct HashmapKey key;
+typedef struct HashmapEntry {
+  HashmapKey key;
   void* object;
   struct HashmapEntry* next_entry;
-};
+} HashmapEntry;
 
-struct HashmapIterator {
-  struct Hashmap* hashmap;
+typedef struct HashmapIterator {
+  Hashmap* hashmap;
   int i;
-  struct HashmapEntry* entry;
-};
+  HashmapEntry* entry;
+} HashmapIterator;
 
-void hashmap_init(struct Hashmap* hashmap, enum HashmapKeyType type, int capacity_log2, struct Arena* storage);
-void hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ struct HashmapKey* key, int capacity_log2);
-struct HashmapEntry* hashmap_get_or_create_entry(struct Hashmap* hashmap, struct HashmapKey* key);
-struct HashmapEntry* hashmap_get_entry(struct Hashmap* hashmap, struct HashmapKey* key);
-void hashmap_iter_init(struct HashmapIterator* it, struct Hashmap* hashmap);
-struct HashmapEntry* hashmap_iter_next(struct HashmapIterator* it);
+void hashmap_init(Hashmap* hashmap, enum HashmapKeyType type, int capacity_log2, Arena* storage);
+void hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ HashmapKey* key, int capacity_log2);
+HashmapEntry* hashmap_get_or_create_entry(Hashmap* hashmap, HashmapKey* key);
+HashmapEntry* hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
+void hashmap_iter_init(HashmapIterator* it, Hashmap* hashmap);
+HashmapEntry* hashmap_iter_next(HashmapIterator* it);
 

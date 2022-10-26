@@ -4,23 +4,23 @@
 #include "arena.h"
 #include "ast.h"
 
-internal struct Arena *ast_storage;
-internal struct UnboundedArray* tokens_array;
+internal Arena *ast_storage;
+internal UnboundedArray* tokens_array;
 internal int token_at = 0;
-internal struct Token* token = 0;
+internal Token* token = 0;
 internal int prev_token_at = 0;
-internal struct Token* prev_token = 0;
+internal Token* prev_token = 0;
 internal int node_id = 0;
-internal struct Scope* root_scope;
-internal struct Scope* current_scope;
+internal Scope* root_scope;
+internal Scope* current_scope;
 
-internal struct Ast* build_expression(int priority_threshold);
-internal struct Ast* build_typeRef();
-internal struct Ast* build_blockStatement();
-internal struct Ast* build_statement(struct Ast* type_name);
-internal struct Ast* build_parserStatement();
+internal Ast* build_expression(int priority_threshold);
+internal Ast* build_typeRef();
+internal Ast* build_blockStatement();
+internal Ast* build_statement(Ast* type_name);
+internal Ast* build_parserStatement();
 
-internal struct Token*
+internal Token*
 next_token()
 {
   assert (token_at < tokens_array->elem_count);
@@ -31,9 +31,9 @@ next_token()
     token = array_get(tokens_array, ++token_at);
   }
   if (token->klass == TK_IDENTIFIER) {
-    struct NameEntry* ne = scope_lookup_name(current_scope, token->lexeme);
+    NameEntry* ne = scope_lookup_name(current_scope, token->lexeme);
     if (ne->ns_keyword) {
-      struct NameDecl* nd = ne->ns_keyword;
+      NameDecl* nd = ne->ns_keyword;
       token->klass = nd->token_class;
       return token;
     }
@@ -45,31 +45,31 @@ next_token()
   return token;
 }
 
-internal struct Token*
+internal Token*
 peek_token()
 {
   prev_token = token;
   prev_token_at = token_at;
-  struct Token* peek_token = next_token();
+  Token* peek_token = next_token();
   token = prev_token;
   token_at = prev_token_at;
   return peek_token;
 }
 
 internal bool
-token_is_typeName(struct Token* token)
+token_is_typeName(Token* token)
 {
   return token->klass == TK_TYPE_IDENTIFIER || token->klass == TK_DOTPREFIX;
 }
 
 internal bool
-token_is_prefixedType(struct Token* token)
+token_is_prefixedType(Token* token)
 {
   return token->klass == TK_TYPE_IDENTIFIER || token->klass == TK_DOTPREFIX;
 }
 
 internal bool
-token_is_baseType(struct Token* token)
+token_is_baseType(Token* token)
 {
   bool result = token->klass == TK_BOOL || token->klass == TK_ERROR || token->klass == TK_INT
     || token->klass == TK_BIT || token->klass == TK_VARBIT || token->klass == TK_STRING
@@ -78,28 +78,28 @@ token_is_baseType(struct Token* token)
 }
 
 internal bool
-token_is_typeRef(struct Token* token)
+token_is_typeRef(Token* token)
 {
   bool result = token_is_baseType(token) || token_is_prefixedType(token) || token->klass == TK_TUPLE;
   return result;
 }
 
 internal bool
-token_is_direction(struct Token* token)
+token_is_direction(Token* token)
 {
   bool result = token->klass == TK_IN || token->klass == TK_OUT || token->klass == TK_INOUT;
   return result;
 }
 
 internal bool
-token_is_parameter(struct Token* token)
+token_is_parameter(Token* token)
 {
   bool result = token_is_direction(token) || token_is_typeRef(token);
   return result;
 }
 
 internal bool
-token_is_derivedTypeDeclaration(struct Token* token)
+token_is_derivedTypeDeclaration(Token* token)
 {
   bool result = token->klass == TK_HEADER || token->klass == TK_HEADER_UNION || token->klass == TK_STRUCT
     || token->klass == TK_ENUM;
@@ -107,7 +107,7 @@ token_is_derivedTypeDeclaration(struct Token* token)
 }
 
 internal bool
-token_is_typeDeclaration(struct Token* token)
+token_is_typeDeclaration(Token* token)
 {
   bool result = token_is_derivedTypeDeclaration(token) || token->klass == TK_TYPEDEF || token->klass == TK_TYPE
     || token->klass == TK_PARSER || token->klass == TK_CONTROL || token->klass == TK_PACKAGE;
@@ -115,7 +115,7 @@ token_is_typeDeclaration(struct Token* token)
 }
 
 internal bool
-token_is_nonTypeName(struct Token* token)
+token_is_nonTypeName(Token* token)
 {
   bool result = token->klass == TK_IDENTIFIER || token->klass == TK_APPLY || token->klass == TK_KEY
     || token->klass == TK_ACTIONS || token->klass == TK_STATE || token->klass == TK_ENTRIES || token->klass == TK_TYPE;
@@ -123,14 +123,14 @@ token_is_nonTypeName(struct Token* token)
 }
 
 internal bool
-token_is_name(struct Token* token)
+token_is_name(Token* token)
 {
   bool result = token_is_nonTypeName(token) || token->klass == TK_TYPE_IDENTIFIER;
   return result;
 }
 
 internal bool
-token_is_nonTableKwName(struct Token* token)
+token_is_nonTableKwName(Token* token)
 {
   bool result = token->klass == TK_IDENTIFIER || token->klass == TK_TYPE_IDENTIFIER
     || token->klass == TK_APPLY || token->klass == TK_STATE || token->klass == TK_TYPE;
@@ -138,27 +138,27 @@ token_is_nonTableKwName(struct Token* token)
 }
 
 internal bool
-token_is_typeArg(struct Token* token)
+token_is_typeArg(Token* token)
 {
   bool result = token->klass == TK_DONTCARE || token_is_typeRef(token) || token_is_nonTypeName(token);
   return result;
 }
 
 internal bool
-token_is_typeParameterList(struct Token* token)
+token_is_typeParameterList(Token* token)
 {
   return token_is_name(token);
 }
 
 internal bool
-token_is_typeOrVoid(struct Token* token)
+token_is_typeOrVoid(Token* token)
 {
   bool result = token_is_typeRef(token) || token->klass == TK_VOID || token->klass == TK_IDENTIFIER;
   return result;
 }
 
 internal bool
-token_is_actionRef(struct Token* token)
+token_is_actionRef(Token* token)
 {
   bool result = token->klass == TK_DOTPREFIX || token_is_nonTypeName(token)
     || token->klass == TK_PARENTH_OPEN;
@@ -166,7 +166,7 @@ token_is_actionRef(struct Token* token)
 }
 
 internal bool
-token_is_tableProperty(struct Token* token)
+token_is_tableProperty(Token* token)
 {
   bool result = token->klass == TK_KEY || token->klass == TK_ACTIONS
     || token->klass == TK_CONST || token->klass == TK_ENTRIES
@@ -175,14 +175,14 @@ token_is_tableProperty(struct Token* token)
 }
 
 internal bool
-token_is_switchLabel(struct Token* token)
+token_is_switchLabel(Token* token)
 {
   bool result = token_is_name(token) || token->klass == TK_DEFAULT;
   return result;
 }
 
 internal bool
-token_is_expressionPrimary(struct Token* token)
+token_is_expressionPrimary(Token* token)
 {
   bool result = token->klass == TK_INT_LITERAL || token->klass == TK_TRUE || token->klass == TK_FALSE
     || token->klass == TK_STRING_LITERAL || token->klass == TK_DOTPREFIX || token_is_nonTypeName(token)
@@ -193,48 +193,48 @@ token_is_expressionPrimary(struct Token* token)
 }
 
 internal bool
-token_is_expression(struct Token* token)
+token_is_expression(Token* token)
 {
   return token_is_expressionPrimary(token);
 }
 
 internal bool
-token_is_methodPrototype(struct Token* token)
+token_is_methodPrototype(Token* token)
 {
   return token_is_typeOrVoid(token) || token->klass == TK_TYPE_IDENTIFIER;
 }
 
-internal struct Ast*
+internal Ast*
 build_nonTypeName(bool is_type)
 {
-  struct Ast_Name* name = 0;
+  Ast_Name* name = 0;
   if (token_is_nonTypeName(token)) {
-    name = arena_push_struct(ast_storage, struct Ast_Name);
+    name = arena_push_struct(ast_storage, Ast_Name);
     name->kind = AST_NAME;
     name->id = node_id++;
     name->line_no = token->line_no;
     name->strname = token->lexeme;
     if (is_type) {
-      struct NameDecl* decl = arena_push_struct(ast_storage, struct NameDecl);
-      decl->ast = (struct Ast*)name;
+      NameDecl* decl = arena_push_struct(ast_storage, NameDecl);
+      decl->ast = (Ast*)name;
       decl->strname = name->strname;
       decl->line_no = token->line_no;
       declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
     }
     next_token();
   } else error("at line %d: non-type name was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)name;
+  return (Ast*)name;
 }
 
-internal struct Ast*
+internal Ast*
 build_name(bool is_type)
 {
-  struct Ast_Name* name = 0;
+  Ast_Name* name = 0;
   if (token_is_name(token)) {
     if (token_is_nonTypeName(token)) {
-      name = (struct Ast_Name*)build_nonTypeName(is_type);
+      name = (Ast_Name*)build_nonTypeName(is_type);
     } else if (token->klass == TK_TYPE_IDENTIFIER) {
-      struct Ast_Name* type_name = arena_push_struct(ast_storage, struct Ast_Name);
+      Ast_Name* type_name = arena_push_struct(ast_storage, Ast_Name);
       type_name->kind = AST_NAME;
       type_name->id = node_id++;
       type_name->line_no = token->line_no;
@@ -243,20 +243,20 @@ build_name(bool is_type)
       next_token();
     } else assert(0);
   } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)name;
+  return (Ast*)name;
 }
 
-internal struct DList*
+internal DList*
 build_typeParameterList()
 {
-  struct DList* params = 0, *last = 0;
+  DList* params = 0, *last = 0;
   if (token_is_typeParameterList(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_name(true);
     params = last = li;
     while (token->klass == TK_COMMA) {
       next_token();
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_name(true);
       dlist_concat(last, li);
       last = li;
@@ -265,10 +265,10 @@ build_typeParameterList()
   return params;
 }
 
-internal struct DList*
+internal DList*
 build_optTypeParameters()
 {
-  struct DList* params = 0;
+  DList* params = 0;
   if (token->klass == TK_ANGLE_OPEN) {
     next_token();
     if (token_is_typeParameterList(token)) {
@@ -281,18 +281,18 @@ build_optTypeParameters()
   return params;
 }
 
-internal struct Ast*
+internal Ast*
 build_typeArg()
 {
-  struct Ast* arg = 0;
+  Ast* arg = 0;
   if (token_is_typeArg(token))
   {
     if (token->klass == TK_DONTCARE) {
-      struct Ast_Dontcare* dontcare = arena_push_struct(ast_storage, struct Ast_Dontcare);
+      Ast_Dontcare* dontcare = arena_push_struct(ast_storage, Ast_Dontcare);
       dontcare->kind = AST_DONTCARE;
       dontcare->id = node_id++;
       dontcare->line_no = token->line_no;
-      arg = (struct Ast*)dontcare;
+      arg = (Ast*)dontcare;
       next_token();
     } else if (token_is_typeRef(token)) {
       arg = build_typeRef();
@@ -320,10 +320,10 @@ build_direction()
   return dir;
 }
 
-internal struct Ast*
+internal Ast*
 build_parameter()
 {
-  struct Ast_Param* param = arena_push_struct(ast_storage, struct Ast_Param);
+  Ast_Param* param = arena_push_struct(ast_storage, Ast_Param);
   param->kind = AST_PARAM;
   param->id = node_id++;
   param->line_no = token->line_no;
@@ -340,20 +340,20 @@ build_parameter()
       }
     } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: type was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)param;
+  return (Ast*)param;
 }
 
-internal struct DList*
+internal DList*
 build_parameterList()
 {
-  struct DList* params = 0, *last = 0;
+  DList* params = 0, *last = 0;
   if (token_is_parameter(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_parameter();
     params = last = li;
     while (token->klass == TK_COMMA) {
       next_token();
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_parameter();
       dlist_concat(last, li);
       last = li;
@@ -362,31 +362,31 @@ build_parameterList()
   return params;
 }
 
-internal struct Ast*
+internal Ast*
 build_typeOrVoid(bool is_type)
 {
-  struct Ast* type = 0;
+  Ast* type = 0;
   if (token_is_typeOrVoid(token)) {
     if (token_is_typeRef(token)) {
-      type = (struct Ast*)build_typeRef();
+      type = (Ast*)build_typeRef();
     } else if (token->klass == TK_VOID) {
-      struct Ast_Name* void_name = arena_push_struct(ast_storage, struct Ast_Name);
+      Ast_Name* void_name = arena_push_struct(ast_storage, Ast_Name);
       void_name->kind = AST_NAME;
       void_name->id = node_id++;
       void_name->line_no = token->line_no;
       void_name->strname = token->lexeme;
-      type = (struct Ast*)void_name;
+      type = (Ast*)void_name;
       next_token();
     } else if (token->klass == TK_IDENTIFIER) {
-      struct Ast_Name* name = arena_push_struct(ast_storage, struct Ast_Name);
+      Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
       name->kind = AST_NAME;
       name->id = node_id++;
       name->line_no = token->line_no;
       name->strname = token->lexeme;
-      type = (struct Ast*)name;
+      type = (Ast*)name;
       if (is_type) {
-        struct NameDecl* decl = arena_push_struct(ast_storage, struct NameDecl);
-        decl->ast = (struct Ast*)name;
+        NameDecl* decl = arena_push_struct(ast_storage, NameDecl);
+        decl->ast = (Ast*)name;
         decl->strname = name->strname;
         decl->line_no = token->line_no;
         declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
@@ -394,15 +394,15 @@ build_typeOrVoid(bool is_type)
       next_token();
     } else assert(0);
   } else error("at line %d: type was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)type;
+  return (Ast*)type;
 }
 
-internal struct Ast*
-build_functionPrototype(struct Ast* return_type)
+internal Ast*
+build_functionPrototype(Ast* return_type)
 {
-  struct Ast_FunctionProto* proto = 0;
+  Ast_FunctionProto* proto = 0;
   if (token_is_typeOrVoid(token) || return_type) {
-    proto = arena_push_struct(ast_storage, struct Ast_FunctionProto);
+    proto = arena_push_struct(ast_storage, Ast_FunctionProto);
     proto->kind = AST_FUNCTION_PROTO;
     proto->id = node_id++;
     proto->line_no = token->line_no;
@@ -423,17 +423,17 @@ build_functionPrototype(struct Ast* return_type)
       } else error("at line %d: `(` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: function name was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: type was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)proto;
+  return (Ast*)proto;
 }
 
-internal struct Ast*
+internal Ast*
 build_methodPrototype()
 {
-  struct Ast_FunctionProto* proto = 0;
+  Ast_FunctionProto* proto = 0;
   if (token_is_methodPrototype(token)) {
     if (token->klass == TK_TYPE_IDENTIFIER && peek_token()->klass == TK_PARENTH_OPEN) {
       /* Constructor */
-      proto = arena_push_struct(ast_storage, struct Ast_FunctionProto);
+      proto = arena_push_struct(ast_storage, Ast_FunctionProto);
       proto->kind = AST_FUNCTION_PROTO;
       proto->id = node_id++;
       proto->line_no = token->line_no;
@@ -446,25 +446,25 @@ build_methodPrototype()
         } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
       } else error("at line %d: `(` as expected, got `%s`.", token->line_no, token->lexeme);
     } else if (token_is_typeOrVoid(token)) {
-      proto = (struct Ast_FunctionProto*)build_functionPrototype(0);
+      proto = (Ast_FunctionProto*)build_functionPrototype(0);
     } else error("at line %d: type was expected, got `%s`.", token->line_no, token->lexeme);
     if (token->klass == TK_SEMICOLON) {
       next_token();
     } else error("at line %d: `;` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: type was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)proto;
+  return (Ast*)proto;
 }
 
-internal struct DList*
+internal DList*
 build_methodPrototypes()
 {
-  struct DList* protos = 0, *last = 0;
+  DList* protos = 0, *last = 0;
   if (token_is_methodPrototype(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_methodPrototype();
     protos = last = li;
     while (token_is_methodPrototype(token)) {
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_methodPrototype();
       dlist_concat(last, li);
       last = li;
@@ -473,10 +473,10 @@ build_methodPrototypes()
   return protos;
 }
 
-internal struct Ast*
+internal Ast*
 build_externDeclaration()
 {
-  struct Ast* decl = 0;
+  Ast* decl = 0;
   if (token->klass == TK_EXTERN) {
     next_token();
     bool is_function_proto = false;
@@ -489,18 +489,18 @@ build_externDeclaration()
     } else error("at line %d: extern declaration was expected, got `%s`.", token->line_no, token->lexeme);
 
     if (is_function_proto) {
-      struct Ast_FunctionProto* proto = (struct Ast_FunctionProto*)build_functionPrototype(0);
-      decl = (struct Ast*)proto;
+      Ast_FunctionProto* proto = (Ast_FunctionProto*)build_functionPrototype(0);
+      decl = (Ast*)proto;
       proto->is_extern = true;
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("at line %d: `;` was expected, got `%s`.", token->line_no, token->lexeme);
     } else {
-      struct Ast_Extern* extern_decl = arena_push_struct(ast_storage, struct Ast_Extern);
+      Ast_Extern* extern_decl = arena_push_struct(ast_storage, Ast_Extern);
       extern_decl->kind = AST_EXTERN;
       extern_decl->id = node_id++;
       extern_decl->line_no = token->line_no;
-      decl = (struct Ast*)extern_decl;
+      decl = (Ast*)extern_decl;
       extern_decl->name = build_nonTypeName(true);
       extern_decl->type_params = build_optTypeParameters();
       if (token->klass == TK_BRACE_OPEN) {
@@ -515,12 +515,12 @@ build_externDeclaration()
   return decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_integer()
 {
-  struct Ast_IntLiteral* int_node = 0;
+  Ast_IntLiteral* int_node = 0;
   if (token->klass == TK_INT_LITERAL) {
-    int_node = arena_push_struct(ast_storage, struct Ast_IntLiteral);
+    int_node = arena_push_struct(ast_storage, Ast_IntLiteral);
     int_node->kind = AST_INT_LITERAL;
     int_node->id = node_id++;
     int_node->line_no = token->line_no;
@@ -529,43 +529,43 @@ build_integer()
     int_node->value = token->i.value;
     next_token();
   }
-  return (struct Ast*)int_node;
+  return (Ast*)int_node;
 }
 
-internal struct Ast*
+internal Ast*
 build_boolean()
 {
-  struct Ast_BoolLiteral* bool_node = 0;
+  Ast_BoolLiteral* bool_node = 0;
   if (token->klass == TK_TRUE || token->klass == TK_FALSE) {
-    bool_node = arena_push_struct(ast_storage, struct Ast_BoolLiteral);
+    bool_node = arena_push_struct(ast_storage, Ast_BoolLiteral);
     bool_node->kind = AST_BOOL_LITERAL;
     bool_node->id = node_id++;
     bool_node->line_no = token->line_no;
     bool_node->value = (token->klass == TK_TRUE);
     next_token();
   }
-  return (struct Ast*)bool_node;
+  return (Ast*)bool_node;
 }
 
-internal struct Ast*
+internal Ast*
 build_stringLiteral()
 {
-  struct Ast_StringLiteral* string = 0;
+  Ast_StringLiteral* string = 0;
   if (token->klass == TK_STRING_LITERAL) {
-    string = arena_push_struct(ast_storage, struct Ast_StringLiteral);
+    string = arena_push_struct(ast_storage, Ast_StringLiteral);
     string->kind = AST_STRING_LITERAL;
     string->id = node_id++;
     string->line_no = token->line_no;
     string->value = token->lexeme;
     next_token();
   }
-  return (struct Ast*)string;
+  return (Ast*)string;
 }
 
-internal struct Ast*
+internal Ast*
 build_integerTypeSize()
 {
-  struct Ast_IntTypeSize* type_size = arena_push_struct(ast_storage, struct Ast_IntTypeSize);
+  Ast_IntTypeSize* type_size = arena_push_struct(ast_storage, Ast_IntTypeSize);
   type_size->kind = AST_INT_TYPESIZE;
   type_size->id = node_id++;
   type_size->line_no = token->line_no;
@@ -576,44 +576,44 @@ build_integerTypeSize()
     type_size->size = build_expression(1); */
     error("at line %d: integer was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `(` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)type_size;
+  return (Ast*)type_size;
 }
 
-internal struct Ast*
+internal Ast*
 build_baseType()
 {
-  struct Ast* base_type = 0;
+  Ast* base_type = 0;
   if (token_is_baseType(token)) {
-    struct Ast_Name* type_name = arena_push_struct(ast_storage, struct Ast_Name);
+    Ast_Name* type_name = arena_push_struct(ast_storage, Ast_Name);
     type_name->kind = AST_NAME;
     type_name->id = node_id++;
     type_name->line_no = token->line_no;
     if (token->klass == TK_BOOL) {
-      struct Ast_BoolType* bool_type = arena_push_struct(ast_storage, struct Ast_BoolType);
+      Ast_BoolType* bool_type = arena_push_struct(ast_storage, Ast_BoolType);
       bool_type->kind = AST_BOOL_TYPE;
       bool_type->id = node_id++;
       bool_type->line_no = token->line_no;
       type_name->strname = "bool";
-      bool_type->name = (struct Ast*)type_name;
-      base_type = (struct Ast*)bool_type;
+      bool_type->name = (Ast*)type_name;
+      base_type = (Ast*)bool_type;
       next_token();
     } else if (token->klass == TK_ERROR) {
-      struct Ast_ErrorType* error_type = arena_push_struct(ast_storage, struct Ast_ErrorType);
+      Ast_ErrorType* error_type = arena_push_struct(ast_storage, Ast_ErrorType);
       error_type->kind = AST_ERROR_TYPE;
       error_type->id = node_id++;
       error_type->line_no = token->line_no;
       type_name->strname = "error";
-      error_type->name = (struct Ast*)type_name;
-      base_type = (struct Ast*)error_type;
+      error_type->name = (Ast*)type_name;
+      base_type = (Ast*)error_type;
       next_token();
     } else if (token->klass == TK_INT) {
-      struct Ast_IntType* int_type = arena_push_struct(ast_storage, struct Ast_IntType);
+      Ast_IntType* int_type = arena_push_struct(ast_storage, Ast_IntType);
       int_type->kind = AST_INT_TYPE;
       int_type->id = node_id++;
       int_type->line_no = node_id++;
       type_name->strname = "int";
-      int_type->name = (struct Ast*)type_name;
-      base_type = (struct Ast*)int_type;
+      int_type->name = (Ast*)type_name;
+      base_type = (Ast*)int_type;
       next_token();
       if (token->klass == TK_ANGLE_OPEN) {
         next_token();
@@ -623,13 +623,13 @@ build_baseType()
         } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
       }
     } else if (token->klass == TK_BIT) {
-      struct Ast_BitType* bit_type = arena_push_struct(ast_storage, struct Ast_BitType);
+      Ast_BitType* bit_type = arena_push_struct(ast_storage, Ast_BitType);
       bit_type->kind = AST_BIT_TYPE;
       bit_type->id = node_id++;
       bit_type->line_no = token->line_no;
       type_name->strname = "bit";
-      bit_type->name = (struct Ast*)type_name;
-      base_type = (struct Ast*)bit_type;
+      bit_type->name = (Ast*)type_name;
+      base_type = (Ast*)bit_type;
       next_token();
       if (token->klass == TK_ANGLE_OPEN) {
         next_token();
@@ -639,13 +639,13 @@ build_baseType()
         } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
       }
     } else if (token->klass == TK_VARBIT) {
-      struct Ast_VarbitType* varbit_type = arena_push_struct(ast_storage, struct Ast_VarbitType);
+      Ast_VarbitType* varbit_type = arena_push_struct(ast_storage, Ast_VarbitType);
       varbit_type->kind = AST_VARBIT_TYPE;
       varbit_type->id = node_id++;
       varbit_type->line_no = node_id++;
       type_name->strname = "varbit";
-      varbit_type->name = (struct Ast*)type_name;
-      base_type = (struct Ast*)varbit_type;
+      varbit_type->name = (Ast*)type_name;
+      base_type = (Ast*)varbit_type;
       next_token();
       if (token->klass == TK_ANGLE_OPEN) {
         next_token();
@@ -655,22 +655,22 @@ build_baseType()
         } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
       }
     } else if (token->klass == TK_STRING) {
-      struct Ast_StringType* string_type = arena_push_struct(ast_storage, struct Ast_StringType);
+      Ast_StringType* string_type = arena_push_struct(ast_storage, Ast_StringType);
       string_type->kind = AST_STRING_TYPE;
       string_type->id = node_id++;
       string_type->line_no = token->line_no;
       type_name->strname = "string";
-      string_type->name = (struct Ast*)type_name;
-      base_type = (struct Ast*)string_type;
+      string_type->name = (Ast*)type_name;
+      base_type = (Ast*)string_type;
       next_token();
     } else if (token->klass == TK_VOID) {
-      struct Ast_VoidType* void_type = arena_push_struct(ast_storage, struct Ast_VoidType);
+      Ast_VoidType* void_type = arena_push_struct(ast_storage, Ast_VoidType);
       void_type->kind = AST_VOID_TYPE;
       void_type->id = node_id++;
       void_type->line_no = token->line_no;
       type_name->strname = "void";
-      void_type->name = (struct Ast*)type_name;
-      base_type = (struct Ast*)void_type;
+      void_type->name = (Ast*)type_name;
+      base_type = (Ast*)void_type;
       next_token();
     }
     else assert(0);
@@ -678,17 +678,17 @@ build_baseType()
   return base_type;
 }
 
-internal struct DList*
+internal DList*
 build_typeArgumentList()
 {
-  struct DList* args = 0, *last = 0;
+  DList* args = 0, *last = 0;
   if (token_is_typeArg(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_typeArg();
     args = last = li;
     while (token->klass == TK_COMMA) {
       next_token();
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_typeArg();
       dlist_concat(last, li);
       last = li;
@@ -697,13 +697,13 @@ build_typeArgumentList()
   return args;
 }
 
-internal struct Ast*
+internal Ast*
 build_tupleType()
 {
-  struct Ast_Tuple* tuple = 0;
+  Ast_Tuple* tuple = 0;
   if (token->klass == TK_TUPLE) {
     next_token();
-    tuple = arena_push_struct(ast_storage, struct Ast_Tuple);
+    tuple = arena_push_struct(ast_storage, Ast_Tuple);
     tuple->kind = AST_TUPLE;
     tuple->id = node_id++;
     tuple->line_no = token->line_no;
@@ -715,16 +715,16 @@ build_tupleType()
       } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `<` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `tuple` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)tuple;
+  return (Ast*)tuple;
 }
 
-internal struct Ast*
+internal Ast*
 build_headerStackType()
 {
-  struct Ast_HeaderStack* stack = 0;
+  Ast_HeaderStack* stack = 0;
   if (token->klass == TK_BRACKET_OPEN) {
     next_token();
-    stack = arena_push_struct(ast_storage, struct Ast_HeaderStack);
+    stack = arena_push_struct(ast_storage, Ast_HeaderStack);
     stack->kind = AST_HEADER_STACK;
     stack->id = node_id++;
     stack->line_no = token->line_no;
@@ -735,16 +735,16 @@ build_headerStackType()
       } else error("at line %d: `]` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: an expression expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `[` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)stack;
+  return (Ast*)stack;
 }
 
-internal struct Ast*
+internal Ast*
 build_specializedType()
 {
-  struct Ast_SpecializedType* type = 0;
+  Ast_SpecializedType* type = 0;
   if (token->klass == TK_ANGLE_OPEN) {
     next_token();
-    type = arena_push_struct(ast_storage, struct Ast_SpecializedType);
+    type = arena_push_struct(ast_storage, Ast_SpecializedType);
     type->kind = AST_SPECIALIZED_TYPE;
     type->id = node_id++;
     type->line_no = token->line_no;
@@ -753,54 +753,54 @@ build_specializedType()
       next_token();
     } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `<` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)type;
+  return (Ast*)type;
 }
 
-internal struct Ast*
+internal Ast*
 build_prefixedType()
 {
-  struct Ast_Name* name = 0;
+  Ast_Name* name = 0;
   bool is_dotprefixed = false;
   if (token->klass == TK_DOTPREFIX) {
     next_token();
     is_dotprefixed = true;
   }
   if (token->klass == TK_TYPE_IDENTIFIER) {
-    name = arena_push_struct(ast_storage, struct Ast_Name);
+    name = arena_push_struct(ast_storage, Ast_Name);
     name->kind = is_dotprefixed ? AST_DOTNAME : AST_NAME;
     name->id = node_id++;
     name->line_no = token->line_no;
     name->strname = token->lexeme;
     next_token();
   } else error("at line %d: type was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)name;
+  return (Ast*)name;
 }
 
-internal struct Ast*
+internal Ast*
 build_typeName()
 {
-  struct Ast* name = 0;
+  Ast* name = 0;
   if (token_is_typeName(token)) {
     name = build_prefixedType();
     if (token->klass == TK_ANGLE_OPEN) {
-      struct Ast* speclzd_type = build_specializedType();
+      Ast* speclzd_type = build_specializedType();
       assert (speclzd_type->kind == AST_SPECIALIZED_TYPE);
-      ((struct Ast_SpecializedType*)speclzd_type)->name = name;
+      ((Ast_SpecializedType*)speclzd_type)->name = name;
       name = speclzd_type;
     } if (token->klass == TK_BRACKET_OPEN) {
-      struct Ast* stack_type = build_headerStackType();
+      Ast* stack_type = build_headerStackType();
       assert (stack_type->kind == AST_HEADER_STACK);
-      ((struct Ast_HeaderStack*)stack_type)->name = name;
+      ((Ast_HeaderStack*)stack_type)->name = name;
       name = stack_type;
     }
   } else error("at line %d: type was expected, got `%s`.", token->line_no, token->lexeme);
   return name;
 }
 
-internal struct Ast*
+internal Ast*
 build_typeRef()
 {
-  struct Ast* ref = 0;
+  Ast* ref = 0;
   if (token_is_typeRef(token)) {
     if (token_is_baseType(token)) {
       ref = build_baseType();
@@ -815,16 +815,16 @@ build_typeRef()
 }
 
 internal bool
-token_is_structField(struct Token* token)
+token_is_structField(Token* token)
 {
   bool result = token_is_typeRef(token);
   return result;
 }
 
-internal struct Ast*
+internal Ast*
 build_structField()
 {
-  struct Ast_StructField* field = arena_push_struct(ast_storage, struct Ast_StructField);
+  Ast_StructField* field = arena_push_struct(ast_storage, Ast_StructField);
   field->kind = AST_STRUCT_FIELD;
   field->id = node_id++;
   field->line_no = token->line_no;
@@ -837,19 +837,19 @@ build_structField()
       } else error("at line %d: `;` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: struct field was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)field;
+  return (Ast*)field;
 }
 
-internal struct DList*
+internal DList*
 build_structFieldList()
 {
-  struct DList* fields = 0, *last = 0;
+  DList* fields = 0, *last = 0;
   if (token_is_structField(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_structField();
     fields = last = li;
     while (token_is_structField(token)) {
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_structField();
       dlist_concat(last, li);
       last = li;
@@ -858,13 +858,13 @@ build_structFieldList()
   return fields;
 }
 
-internal struct Ast*
+internal Ast*
 build_headerTypeDeclaration()
 {
-  struct Ast_Header* decl = 0;
+  Ast_Header* decl = 0;
   if (token->klass == TK_HEADER) {
     next_token();
-    decl = arena_push_struct(ast_storage, struct Ast_Header);
+    decl = arena_push_struct(ast_storage, Ast_Header);
     decl->kind = AST_HEADER;
     decl->id = node_id++;
     decl->line_no = token->line_no;
@@ -879,16 +879,16 @@ build_headerTypeDeclaration()
       } else error("at line %d: `{` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `header` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)decl;
+  return (Ast*)decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_headerUnionDeclaration()
 {
-  struct Ast_HeaderUnion* decl = 0;
+  Ast_HeaderUnion* decl = 0;
   if (token->klass == TK_HEADER_UNION) {
     next_token();
-    decl = arena_push_struct(ast_storage, struct Ast_HeaderUnion);
+    decl = arena_push_struct(ast_storage, Ast_HeaderUnion);
     decl->kind = AST_HEADER_UNION;
     decl->id = node_id++;
     decl->line_no = token->line_no;
@@ -903,16 +903,16 @@ build_headerUnionDeclaration()
       } else error("at line %d: `{` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `header_union` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)decl;
+  return (Ast*)decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_structTypeDeclaration()
 {
-  struct Ast_Struct* decl = 0;
+  Ast_Struct* decl = 0;
   if (token->klass == TK_STRUCT) {
     next_token();
-    decl = arena_push_struct(ast_storage, struct Ast_Struct);
+    decl = arena_push_struct(ast_storage, Ast_Struct);
     decl->kind = AST_STRUCT;
     decl->id = node_id++;
     decl->line_no = token->line_no;
@@ -927,25 +927,25 @@ build_structTypeDeclaration()
       } else error("at line %d: `{` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `struct` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)decl;
+  return (Ast*)decl;
 }
 
 internal bool
-token_is_specifiedIdentifier(struct Token* token)
+token_is_specifiedIdentifier(Token* token)
 {
   return token_is_name(token);
 }
 
-internal struct Ast*
+internal Ast*
 build_initializer()
 {
   return build_expression(1);
 }
 
-internal struct Ast*
+internal Ast*
 build_optInitializer()
 {
-  struct Ast* init = 0;
+  Ast* init = 0;
   if (token->klass == TK_EQUAL) {
     next_token();
     init = build_initializer();
@@ -953,12 +953,12 @@ build_optInitializer()
   return init;
 }
 
-internal struct Ast*
+internal Ast*
 build_specifiedIdentifier()
 {
-  struct Ast_SpecifiedIdent* id = 0;
+  Ast_SpecifiedIdent* id = 0;
   if (token_is_specifiedIdentifier(token)) {
-    id = arena_push_struct(ast_storage, struct Ast_SpecifiedIdent);
+    id = arena_push_struct(ast_storage, Ast_SpecifiedIdent);
     id->kind = AST_SPECIFIED_IDENT;
     id->id = node_id++;
     id->line_no = token->line_no;
@@ -970,20 +970,20 @@ build_specifiedIdentifier()
       } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
     }
   } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)id;
+  return (Ast*)id;
 }
 
-internal struct DList*
+internal DList*
 build_specifiedIdentifierList()
 {
-  struct DList* ids = 0, *last = 0;
+  DList* ids = 0, *last = 0;
   if (token_is_specifiedIdentifier(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_specifiedIdentifier();
     ids = last = li;
     while (token->klass == TK_COMMA) {
       next_token();
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_specifiedIdentifier();
       dlist_concat(last, li);
       last = li;
@@ -992,13 +992,13 @@ build_specifiedIdentifierList()
   return ids;
 }
 
-internal struct Ast*
+internal Ast*
 build_enumDeclaration()
 {
-  struct Ast_Enum* decl = 0;
+  Ast_Enum* decl = 0;
   if (token->klass == TK_ENUM) {
     next_token();
-    decl = arena_push_struct(ast_storage, struct Ast_Enum);
+    decl = arena_push_struct(ast_storage, Ast_Enum);
     decl->kind = AST_ENUM;
     decl->id = node_id++;
     decl->line_no = token->line_no;
@@ -1027,13 +1027,13 @@ build_enumDeclaration()
       } else error("at line %d: `{` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `enum` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)decl;
+  return (Ast*)decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_derivedTypeDeclaration()
 {
-  struct Ast* decl = 0;
+  Ast* decl = 0;
   if (token_is_derivedTypeDeclaration(token)) {
     if (token->klass == TK_HEADER) {
       decl = build_headerTypeDeclaration();
@@ -1048,13 +1048,13 @@ build_derivedTypeDeclaration()
   return decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_parserTypeDeclaration()
 {
-  struct Ast_ParserProto* type = 0;
+  Ast_ParserProto* type = 0;
   if (token->klass == TK_PARSER) {
     next_token();
-    type = arena_push_struct(ast_storage, struct Ast_ParserProto);
+    type = arena_push_struct(ast_storage, Ast_ParserProto);
     type->kind = AST_PARSER_PROTO;
     type->id = node_id++;
     type->line_no = token->line_no; 
@@ -1070,13 +1070,13 @@ build_parserTypeDeclaration()
       } else error("at line %d: `(` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `parser` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)type;
+  return (Ast*)type;
 }
 
-internal struct DList*
+internal DList*
 build_optConstructorParameters()
 {
-  struct DList* ctor_params = 0;
+  DList* ctor_params = 0;
   if (token->klass == TK_PARENTH_OPEN) {
     next_token();
     ctor_params = build_parameterList();
@@ -1087,13 +1087,13 @@ build_optConstructorParameters()
   return ctor_params;
 }
 
-internal struct Ast*
+internal Ast*
 build_constantDeclaration()
 {
-  struct Ast_Const* decl = 0;
+  Ast_Const* decl = 0;
   if (token->klass == TK_CONST) {
     next_token();
-    decl = arena_push_struct(ast_storage, struct Ast_Const);
+    decl = arena_push_struct(ast_storage, Ast_Const);
     decl->kind = AST_CONST;
     decl->id = node_id++;
     decl->line_no = token->line_no;
@@ -1113,11 +1113,11 @@ build_constantDeclaration()
       } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: type was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `const` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)decl;
+  return (Ast*)decl;
 }
 
 internal bool
-token_is_declaration(struct Token* token)
+token_is_declaration(Token* token)
 {
   bool result = token->klass == TK_CONST || token->klass == TK_EXTERN || token->klass == TK_ACTION
     || token->klass == TK_PARSER || token_is_typeDeclaration(token) || token->klass == TK_CONTROL
@@ -1127,14 +1127,14 @@ token_is_declaration(struct Token* token)
 }
 
 internal bool
-token_is_lvalue(struct Token* token)
+token_is_lvalue(Token* token)
 {
   bool result = token_is_nonTypeName(token) | token->klass == TK_DOTPREFIX;
   return result;
 }
 
 internal bool
-token_is_assignmentOrMethodCallStatement(struct Token* token)
+token_is_assignmentOrMethodCallStatement(Token* token)
 {
   bool result = token_is_lvalue(token) || token->klass == TK_PARENTH_OPEN || token->klass == TK_ANGLE_OPEN
     || token->klass == TK_EQUAL;
@@ -1142,7 +1142,7 @@ token_is_assignmentOrMethodCallStatement(struct Token* token)
 }
 
 internal bool
-token_is_statement(struct Token* token)
+token_is_statement(Token* token)
 {
   bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token) || token->klass == TK_IF
     || token->klass == TK_SEMICOLON || token->klass == TK_BRACE_OPEN || token->klass == TK_EXIT
@@ -1151,28 +1151,28 @@ token_is_statement(struct Token* token)
 }
 
 internal bool
-token_is_statementOrDeclaration(struct Token* token)
+token_is_statementOrDeclaration(Token* token)
 {
   bool result = token_is_typeRef(token) || token->klass == TK_CONST || token_is_statement(token);
   return result;
 }
 
 internal bool
-token_is_argument(struct Token* token)
+token_is_argument(Token* token)
 {
   bool result = token_is_expression(token) || token_is_name(token) || token->klass == TK_DONTCARE;
   return result;
 }
 
 internal bool
-token_is_parserLocalElement(struct Token* token)
+token_is_parserLocalElement(Token* token)
 {
   bool result = token->klass == TK_CONST || token_is_typeRef(token);
   return result;
 }
 
 internal bool
-token_is_parserStatement(struct Token* token)
+token_is_parserStatement(Token* token)
 {
   bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token)
     || token->klass == TK_BRACE_OPEN || token->klass == TK_CONST || token_is_typeRef(token)
@@ -1181,45 +1181,45 @@ token_is_parserStatement(struct Token* token)
 }
 
 internal bool
-token_is_simpleKeysetExpression(struct Token* token) {
+token_is_simpleKeysetExpression(Token* token) {
   bool result = token_is_expression(token) || token->klass == TK_DEFAULT || token->klass == TK_DONTCARE;
   return result;
 }
 
 internal bool
-token_is_keysetExpression(struct Token* token)
+token_is_keysetExpression(Token* token)
 {
   bool result = token->klass == TK_TUPLE || token_is_simpleKeysetExpression(token);
   return result;
 }
 
 internal bool
-token_is_selectCase(struct Token* token)
+token_is_selectCase(Token* token)
 {
   return token_is_keysetExpression(token);
 }
 
 internal bool
-token_is_controlLocalDeclaration(struct Token* token)
+token_is_controlLocalDeclaration(Token* token)
 {
   bool result = token->klass == TK_CONST || token->klass == TK_ACTION
     || token->klass == TK_TABLE || token_is_typeRef(token) || token_is_typeRef(token);
   return result;
 }
 
-internal struct Ast*
+internal Ast*
 build_argument()
 {
-  struct Ast* arg = 0;
+  Ast* arg = 0;
   if (token_is_argument(token)) {
     if (token_is_expression(token)) {
       arg = build_expression(1);
     } else if (token_is_name(token)) {
-      struct Ast_Argument* name_arg = arena_push_struct(ast_storage, struct Ast_Argument);
+      Ast_Argument* name_arg = arena_push_struct(ast_storage, Ast_Argument);
       name_arg->kind = AST_ARGUMENT;
       name_arg->id = node_id++;
       name_arg->line_no = token->line_no;
-      arg = (struct Ast*)name_arg;
+      arg = (Ast*)name_arg;
       name_arg->name = build_name(false);
       if (token->klass == TK_EQUAL) {
         next_token();
@@ -1228,28 +1228,28 @@ build_argument()
         } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
       } else error("at line %d: `=` was expected, got `%s`.", token->line_no, token->lexeme);
     } else if (token->klass == TK_DONTCARE) {
-      struct Ast_Dontcare* dontcare_arg = arena_push_struct(ast_storage, struct Ast_Dontcare);
+      Ast_Dontcare* dontcare_arg = arena_push_struct(ast_storage, Ast_Dontcare);
       dontcare_arg->kind = AST_DONTCARE;
       dontcare_arg->id = node_id++;
       dontcare_arg->line_no = token->line_no;
-      arg = (struct Ast*)dontcare_arg;
+      arg = (Ast*)dontcare_arg;
       next_token();
     } else assert(0);
   } else error("at line %d: an argument was expected, got `%s`.", token->line_no, token->lexeme);
   return arg;
 }
 
-internal struct DList*
+internal DList*
 build_argumentList()
 {
-  struct DList* args = 0, *last = 0;
+  DList* args = 0, *last = 0;
   if (token_is_argument(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_argument();
     args = last = li;
     while (token->klass == TK_COMMA) {
       next_token();
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_argument();
       dlist_concat(last, li);
       last = li;
@@ -1258,12 +1258,12 @@ build_argumentList()
   return args;
 }
 
-internal struct Ast*
-build_variableDeclaration(struct Ast* type_ref)
+internal Ast*
+build_variableDeclaration(Ast* type_ref)
 {
-  struct Ast_Var* decl = 0;
+  Ast_Var* decl = 0;
   if (token_is_typeRef(token) || type_ref) {
-    decl = arena_push_struct(ast_storage, struct Ast_Var);
+    decl = arena_push_struct(ast_storage, Ast_Var);
     decl->kind = AST_VAR;
     decl->id = node_id++;
     decl->line_no = token->line_no;
@@ -1276,15 +1276,15 @@ build_variableDeclaration(struct Ast* type_ref)
       } else error("at line %d: `;` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: type was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)decl;
+  return (Ast*)decl;
 }
 
-internal struct Ast*
-build_instantiation(struct Ast* type_ref)
+internal Ast*
+build_instantiation(Ast* type_ref)
 {
-  struct Ast_Instantiation* inst = 0;
+  Ast_Instantiation* inst = 0;
   if (token_is_typeRef(token) || type_ref) {
-    inst = arena_push_struct(ast_storage, struct Ast_Instantiation);
+    inst = arena_push_struct(ast_storage, Ast_Instantiation);
     inst->kind = AST_INSTANTIATION;
     inst->id = node_id++;
     inst->line_no = token->line_no;
@@ -1303,18 +1303,18 @@ build_instantiation(struct Ast* type_ref)
       } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `(` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: type was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)inst;
+  return (Ast*)inst;
 }
 
-internal struct Ast*
+internal Ast*
 build_parserLocalElement()
 {
-  struct Ast* elem = 0;
+  Ast* elem = 0;
   if (token_is_parserLocalElement(token)) {
     if (token->klass == TK_CONST) {
       elem = build_constantDeclaration();
     } else if (token_is_typeRef(token)) {
-      struct Ast* type_ref = build_typeRef();
+      Ast* type_ref = build_typeRef();
       if (token->klass == TK_PARENTH_OPEN) {
         elem = build_instantiation(type_ref);
       } else if (token_is_name(token)) {
@@ -1325,16 +1325,16 @@ build_parserLocalElement()
   return elem;
 }
 
-internal struct DList*
+internal DList*
 build_parserLocalElements()
 {
-  struct DList* elems = 0, *last = 0;
+  DList* elems = 0, *last = 0;
   if (token_is_parserLocalElement(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_parserLocalElement();
     elems = last = li;
     while (token_is_parserLocalElement(token)) {
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_parserLocalElement();
       dlist_concat(last, li);
       last = li;
@@ -1343,27 +1343,27 @@ build_parserLocalElements()
   return elems;
 }
 
-internal struct Ast*
-build_directApplication(struct Ast* type_name)
+internal Ast*
+build_directApplication(Ast* type_name)
 {
-  struct Ast_FunctionCall* apply_expr = 0;
+  Ast_FunctionCall* apply_expr = 0;
   if (token_is_typeName(token) || type_name) {
-    apply_expr = arena_push_struct(ast_storage, struct Ast_FunctionCall);
+    apply_expr = arena_push_struct(ast_storage, Ast_FunctionCall);
     apply_expr->kind = AST_FUNCTION_CALL;
     apply_expr->id = node_id++;
     apply_expr->line_no = token->line_no;
-    struct Ast_MemberSelect* apply_select = arena_push_struct(ast_storage, struct Ast_MemberSelect);
+    Ast_MemberSelect* apply_select = arena_push_struct(ast_storage, Ast_MemberSelect);
     apply_select->kind = AST_MEMBER_SELECT;
     apply_select->id = node_id++;
     apply_select->line_no = token->line_no;
     apply_select->lhs_expr = type_name ? type_name : build_typeName();
-    struct Ast_Name* apply_name = arena_push_struct(ast_storage, struct Ast_Name);
+    Ast_Name* apply_name = arena_push_struct(ast_storage, Ast_Name);
     apply_name->kind = AST_NAME;
     apply_name->id = node_id++;
     apply_name->line_no = token->line_no;
     apply_name->strname = "apply";
-    apply_select->member_name = (struct Ast*)apply_name;
-    apply_expr->callee_expr = (struct Ast*)apply_select;
+    apply_select->member_name = (Ast*)apply_name;
+    apply_expr->callee_expr = (Ast*)apply_select;
     if (token->klass == TK_DOTPREFIX) {
       next_token();
       if (token->klass == TK_APPLY) {
@@ -1381,29 +1381,29 @@ build_directApplication(struct Ast* type_name)
       } else error("at line %d: `apply` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `.` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: type name was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)apply_expr;
+  return (Ast*)apply_expr;
 }
 
-internal struct Ast*
+internal Ast*
 build_prefixedNonTypeName()
 {
-  struct Ast_Name* name = 0;
+  Ast_Name* name = 0;
   bool is_dotprefixed = false;
   if (token->klass == TK_DOTPREFIX) {
     next_token();
     is_dotprefixed = true;
   }
   if (token_is_nonTypeName) {
-    name = (struct Ast_Name*)build_nonTypeName(false);
+    name = (Ast_Name*)build_nonTypeName(false);
     name->kind = is_dotprefixed ? AST_DOTNAME : AST_NAME;
   } else error("at line %d: non-type name was expected, ", token->line_no, token->lexeme);
-  return (struct Ast*)name;
+  return (Ast*)name;
 }
 
-internal struct Ast*
+internal Ast*
 build_arraySubscript()
 {
-  struct Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, struct Ast_Subscript);
+  Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, Ast_Subscript);
   subscript_expr->kind = AST_SUBSCRIPT;
   subscript_expr->id = node_id++;
   subscript_expr->line_no = token->line_no;
@@ -1416,18 +1416,18 @@ build_arraySubscript()
       subscript_expr->colon_index = build_expression(1);
     } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
   }
-  return (struct Ast*)subscript_expr;
+  return (Ast*)subscript_expr;
 }
 
-internal struct Ast*
+internal Ast*
 build_lvalueExpr()
 {
-  struct Ast* expr = 0;
+  Ast* expr = 0;
   if (token->klass == TK_DOTPREFIX) {
     next_token();
-    struct Ast_Name* dot_member = (struct Ast_Name*)build_name(false);
+    Ast_Name* dot_member = (Ast_Name*)build_name(false);
     dot_member->kind = AST_DOTNAME;
-    expr = (struct Ast*)dot_member;
+    expr = (Ast*)dot_member;
   } else if (token->klass == TK_BRACKET_OPEN) {
     next_token();
     expr = build_arraySubscript();
@@ -1438,51 +1438,51 @@ build_lvalueExpr()
   return expr;
 }
 
-internal struct Ast*
+internal Ast*
 build_lvalue()
 {
-  struct Ast* lvalue = 0;
+  Ast* lvalue = 0;
   if (token_is_lvalue(token)) {
-    struct Ast* name = build_prefixedNonTypeName();
+    Ast* name = build_prefixedNonTypeName();
     lvalue = name;
     while(token->klass == TK_DOTPREFIX || token->klass == TK_BRACKET_OPEN) {
       if (token->klass == TK_DOTPREFIX) {
         next_token();
-        struct Ast_MemberSelect* select_expr = arena_push_struct(ast_storage, struct Ast_MemberSelect);
+        Ast_MemberSelect* select_expr = arena_push_struct(ast_storage, Ast_MemberSelect);
         select_expr->kind = AST_MEMBER_SELECT;
         select_expr->id = node_id++;
         select_expr->line_no = token->line_no;
         select_expr->lhs_expr = lvalue;
-        lvalue = (struct Ast*)select_expr;
+        lvalue = (Ast*)select_expr;
         if (token_is_name(token)) {
           select_expr->member_name = build_name(false);
         } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
       }
       else if (token->klass == TK_BRACKET_OPEN) {
         next_token();
-        struct Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, struct Ast_Subscript);
+        Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, Ast_Subscript);
         subscript_expr->kind = AST_SUBSCRIPT;
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;
         subscript_expr->index = lvalue;
         subscript_expr->colon_index = build_arraySubscript();
-        lvalue = (struct Ast*)subscript_expr;
+        lvalue = (Ast*)subscript_expr;
         if (token->klass == TK_BRACKET_CLOSE) {
           next_token();
         } else error("at line %d: `]` was expected, got `%s`.", token->line_no, token->lexeme);
       }
     }
   } else error("at line %d: lvalue was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)lvalue;
+  return (Ast*)lvalue;
 }
 
-internal struct Ast*
+internal Ast*
 build_assignmentOrMethodCallStatement()
 {
-  struct Ast* stmt = 0;
+  Ast* stmt = 0;
   if (token_is_lvalue(token)) {
-    struct Ast* lvalue = build_lvalue();
-    struct DList* type_args = 0;
+    Ast* lvalue = build_lvalue();
+    DList* type_args = 0;
     stmt = lvalue;
     if (token->klass == TK_ANGLE_OPEN) {
       next_token();
@@ -1493,26 +1493,26 @@ build_assignmentOrMethodCallStatement()
     }
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
-      struct Ast_FunctionCall* call_stmt = arena_push_struct(ast_storage, struct Ast_FunctionCall);
+      Ast_FunctionCall* call_stmt = arena_push_struct(ast_storage, Ast_FunctionCall);
       call_stmt->kind = AST_FUNCTION_CALL;
       call_stmt->id = node_id++;
       call_stmt->line_no = token->line_no;
       call_stmt->callee_expr = lvalue;
       call_stmt->type_args = type_args;
       call_stmt->args = build_argumentList();
-      stmt = (struct Ast*)call_stmt;
+      stmt = (Ast*)call_stmt;
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
       } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
     } else if (token->klass == TK_EQUAL) {
       next_token();
-      struct Ast_AssignmentStmt* assign_stmt = arena_push_struct(ast_storage, struct Ast_AssignmentStmt);
+      Ast_AssignmentStmt* assign_stmt = arena_push_struct(ast_storage, Ast_AssignmentStmt);
       assign_stmt->kind = AST_ASSIGNMENT_STMT;
       assign_stmt->id = node_id++;
       assign_stmt->line_no = token->line_no;
       assign_stmt->lvalue = lvalue;
       assign_stmt->expr = build_expression(1);
-      stmt = (struct Ast*)assign_stmt;
+      stmt = (Ast*)assign_stmt;
     } else error("at line %d: assignment or function call was expected, got `%s`.", token->line_no, token->lexeme);
     if (token->klass == TK_SEMICOLON) {
       next_token();
@@ -1521,16 +1521,16 @@ build_assignmentOrMethodCallStatement()
   return stmt;
 }
 
-internal struct DList*
+internal DList*
 build_parserStatements()
 {
-  struct DList* stmts = 0, *last = 0;
+  DList* stmts = 0, *last = 0;
   if (token_is_parserStatement(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_parserStatement();
     stmts = last = li;
     while (token_is_parserStatement(token)) {
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_parserStatement();
       dlist_concat(last, li);
       last = li;
@@ -1539,12 +1539,12 @@ build_parserStatements()
   return stmts;
 }
 
-internal struct Ast*
+internal Ast*
 build_parserBlockStatements()
 {
-  struct Ast_BlockStmt* stmt = 0;
+  Ast_BlockStmt* stmt = 0;
   if (token->klass == TK_BRACE_OPEN) {
-    stmt = arena_push_struct(ast_storage, struct Ast_BlockStmt);
+    stmt = arena_push_struct(ast_storage, Ast_BlockStmt);
     stmt->kind = AST_BLOCK_STMT;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
@@ -1554,15 +1554,15 @@ build_parserBlockStatements()
       next_token();
     } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `{` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)stmt;
+  return (Ast*)stmt;
 }
 
-internal struct Ast*
+internal Ast*
 build_parserStatement()
 {
-  struct Ast* stmt = 0;
+  Ast* stmt = 0;
   if (token_is_typeRef(token)) {
-    struct Ast* type_ref = build_typeRef();
+    Ast* type_ref = build_typeRef();
     if (token_is_name(token)) {
       stmt = build_variableDeclaration(type_ref);
     } else {
@@ -1575,7 +1575,7 @@ build_parserStatement()
   } else if (token->klass == TK_CONST) {
     stmt = build_constantDeclaration();
   } else if (token->klass == TK_SEMICOLON) {
-    stmt = (struct Ast*)arena_push_struct(ast_storage, struct Ast_EmptyStmt);
+    stmt = (Ast*)arena_push_struct(ast_storage, Ast_EmptyStmt);
     stmt->kind = AST_EMPTY_STMT;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
@@ -1583,17 +1583,17 @@ build_parserStatement()
   return stmt;
 }
 
-internal struct DList*
+internal DList*
 build_expressionList()
 {
-  struct DList* exprs = 0, *last = 0;
+  DList* exprs = 0, *last = 0;
   if (token_is_expression(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_expression(1);
     exprs = last = li;
     while (token->klass == TK_COMMA) {
       next_token();
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_expression(1);
       dlist_concat(last, li);
       last = li;
@@ -1602,21 +1602,21 @@ build_expressionList()
   return exprs;
 }
 
-internal struct Ast*
+internal Ast*
 build_simpleKeysetExpression()
 {
-  struct Ast* expr = 0;
+  Ast* expr = 0;
   if (token_is_expression(token)) {
     expr = build_expression(1);
   } else if (token->klass == TK_DEFAULT) {
     next_token();
-    expr = (struct Ast*)arena_push_struct(ast_storage, struct Ast_DefaultStmt);
+    expr = (Ast*)arena_push_struct(ast_storage, Ast_DefaultStmt);
     expr->kind = AST_DEFAULT_STMT;
     expr->id = node_id++;
     expr->line_no = token->line_no;
   } else if (token->klass == TK_DONTCARE) {
     next_token();
-    expr = (struct Ast*)arena_push_struct(ast_storage, struct Ast_Dontcare);
+    expr = (Ast*)arena_push_struct(ast_storage, Ast_Dontcare);
     expr->kind = AST_DONTCARE;
     expr->id = node_id++;
     expr->line_no = token->line_no;
@@ -1624,23 +1624,23 @@ build_simpleKeysetExpression()
   return expr;
 }
 
-internal struct Ast*
+internal Ast*
 build_tupleKeysetExpression()
 {
-  struct Ast_TupleKeyset* tuple_keyset = 0;
+  Ast_TupleKeyset* tuple_keyset = 0;
   if (token->klass == TK_PARENTH_OPEN) {
-    tuple_keyset = arena_push_struct(ast_storage, struct Ast_TupleKeyset);
+    tuple_keyset = arena_push_struct(ast_storage, Ast_TupleKeyset);
     tuple_keyset->kind = AST_TUPLE_KEYSET;
     tuple_keyset->id = node_id++;
     tuple_keyset->line_no = token->line_no;
     next_token();
-    struct DList* exprs = 0, *last = 0;
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* exprs = 0, *last = 0;
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_simpleKeysetExpression();
     exprs = last = li;
     while (token->klass == TK_COMMA) {
       next_token();
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_simpleKeysetExpression();
       dlist_concat(last, li);
       last = li;
@@ -1650,13 +1650,13 @@ build_tupleKeysetExpression()
       next_token();
     } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `(` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)tuple_keyset;
+  return (Ast*)tuple_keyset;
 }
 
-internal struct Ast*
+internal Ast*
 build_keysetExpression()
 {
-  struct Ast* expr = 0;
+  Ast* expr = 0;
   if (token->klass == TK_PARENTH_OPEN) {
     expr = build_tupleKeysetExpression();
   } else if (token_is_simpleKeysetExpression(token)) {
@@ -1665,12 +1665,12 @@ build_keysetExpression()
   return expr;
 }
 
-internal struct Ast*
+internal Ast*
 build_selectCase()
 {
-  struct Ast_SelectCase* select_case = 0;
+  Ast_SelectCase* select_case = 0;
   if (token_is_keysetExpression(token)) {
-    select_case = arena_push_struct(ast_storage, struct Ast_SelectCase);
+    select_case = arena_push_struct(ast_storage, Ast_SelectCase);
     select_case->kind = AST_SELECT_CASE;
     select_case->id = node_id++;
     select_case->line_no = token->line_no;
@@ -1685,19 +1685,19 @@ build_selectCase()
       } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `:` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: keyset expression was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)select_case;
+  return (Ast*)select_case;
 }
 
-internal struct DList*
+internal DList*
 build_selectCaseList()
 {
-  struct DList* cases = 0, *last = 0;
+  DList* cases = 0, *last = 0;
   if (token_is_selectCase(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_selectCase();
     cases = last = li;
     while (token_is_selectCase(token)) {
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_selectCase();
       dlist_concat(last, li);
       last = li;
@@ -1706,13 +1706,13 @@ build_selectCaseList()
   return cases;
 }
 
-internal struct Ast*
+internal Ast*
 build_selectExpression()
 {
-  struct Ast_SelectExpr* select_expr = 0;
+  Ast_SelectExpr* select_expr = 0;
   if (token->klass == TK_SELECT) {
     next_token();
-    select_expr = arena_push_struct(ast_storage, struct Ast_SelectExpr);
+    select_expr = arena_push_struct(ast_storage, Ast_SelectExpr);
     select_expr->kind = AST_SELECT_EXPR;
     select_expr->id = node_id++;
     select_expr->line_no = token->line_no;
@@ -1731,13 +1731,13 @@ build_selectExpression()
       } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `(` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `select` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)select_expr;
+  return (Ast*)select_expr;
 }
 
-internal struct Ast*
+internal Ast*
 build_stateExpression()
 {
-  struct Ast* state_expr = 0;
+  Ast* state_expr = 0;
   if (token_is_name(token)) {
     state_expr = build_name(false);
     if (token->klass == TK_SEMICOLON) {
@@ -1749,10 +1749,10 @@ build_stateExpression()
   return state_expr;
 }
 
-internal struct Ast*
+internal Ast*
 build_transitionStatement()
 {
-  struct Ast* stmt = 0;
+  Ast* stmt = 0;
   if (token->klass == TK_TRANSITION) {
     next_token();
     stmt = build_stateExpression();
@@ -1760,13 +1760,13 @@ build_transitionStatement()
   return stmt;
 }
 
-internal struct Ast*
+internal Ast*
 build_parserState()
 {
-  struct Ast_ParserState* state = 0;
+  Ast_ParserState* state = 0;
   if (token->klass == TK_STATE) {
     next_token();
-    state = arena_push_struct(ast_storage, struct Ast_ParserState);
+    state = arena_push_struct(ast_storage, Ast_ParserState);
     state->kind = AST_PARSER_STATE;
     state->id = node_id++;
     state->line_no = token->line_no;
@@ -1780,19 +1780,19 @@ build_parserState()
       } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `state` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)state;
+  return (Ast*)state;
 }
 
-internal struct DList*
+internal DList*
 build_parserStates()
 {
-  struct DList* states = 0, *last = 0;
+  DList* states = 0, *last = 0;
   if (token->klass == TK_STATE) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_parserState();
     states = last = li;
     while (token->klass == TK_STATE) {
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_parserState();
       dlist_concat(last, li);
       last = li;
@@ -1801,12 +1801,12 @@ build_parserStates()
   return states;
 }
 
-internal struct Ast*
+internal Ast*
 build_parserDeclaration()
 {
-  struct Ast_Parser* decl = 0;
+  Ast_Parser* decl = 0;
   if (token->klass == TK_PARSER) {
-    decl = arena_push_struct(ast_storage, struct Ast_Parser);
+    decl = arena_push_struct(ast_storage, Ast_Parser);
     decl->kind = AST_PARSER;
     decl->id = node_id++;
     decl->line_no = token->line_no;
@@ -1825,16 +1825,16 @@ build_parserDeclaration()
       } else error("at line %d: `{` was expected, got `%s`.", token->line_no, token->lexeme);
     }
   } else error("at line %d: `parser` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)decl;
+  return (Ast*)decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_controlTypeDeclaration()
 {
-  struct Ast_ControlProto* decl = 0;
+  Ast_ControlProto* decl = 0;
   if (token->klass == TK_CONTROL) {
     next_token();
-    decl = arena_push_struct(ast_storage, struct Ast_ControlProto);
+    decl = arena_push_struct(ast_storage, Ast_ControlProto);
     decl->kind = AST_CONTROL_PROTO;
     decl->id = node_id++;
     decl->line_no = token->line_no;
@@ -1850,16 +1850,16 @@ build_controlTypeDeclaration()
       } else error("at line %d: `(` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `control` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)decl;
+  return (Ast*)decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_actionDeclaration()
 {
-  struct Ast_Action* decl = 0;
+  Ast_Action* decl = 0;
   if (token->klass == TK_ACTION) {
     next_token();
-    decl = arena_push_struct(ast_storage, struct Ast_Action);
+    decl = arena_push_struct(ast_storage, Ast_Action);
     decl->kind = AST_ACTION;
     decl->id = node_id++;
     decl->line_no = token->line_no;
@@ -1877,15 +1877,15 @@ build_actionDeclaration()
       } else error("at line %d: `(` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `action` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)decl;
+  return (Ast*)decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_keyElement()
 {
-  struct Ast_KeyElement* key_elem = 0;
+  Ast_KeyElement* key_elem = 0;
   if (token_is_expression(token)) {
-    key_elem = arena_push_struct(ast_storage, struct Ast_KeyElement);
+    key_elem = arena_push_struct(ast_storage, Ast_KeyElement);
     key_elem->kind = AST_KEY_ELEMENT;
     key_elem->id = node_id++;
     key_elem->line_no = token->line_no;
@@ -1898,19 +1898,19 @@ build_keyElement()
       } else error("at line %d: `;` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `:` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)key_elem;
+  return (Ast*)key_elem;
 }
 
-internal struct DList*
+internal DList*
 build_keyElementList()
 {
-  struct DList* elems = 0, *last = 0;
+  DList* elems = 0, *last = 0;
   if (token_is_expression(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_keyElement();
     elems = last = li;
     while (token_is_expression(token)) {
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_keyElement();
       dlist_concat(last, li);
       last = li;
@@ -1919,12 +1919,12 @@ build_keyElementList()
   return elems;
 }
 
-internal struct Ast*
+internal Ast*
 build_actionRef()
 {
-  struct Ast_ActionRef* ref = 0;
+  Ast_ActionRef* ref = 0;
   if (token->klass == TK_DOTPREFIX || token_is_nonTypeName(token)) {
-    ref = arena_push_struct(ast_storage, struct Ast_ActionRef);
+    ref = arena_push_struct(ast_storage, Ast_ActionRef);
     ref->kind = AST_ACTION_REF;
     ref->id = node_id++;
     ref->line_no = token->line_no;
@@ -1937,22 +1937,22 @@ build_actionRef()
       } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
     }
   } else error("at line %d: non-type name was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)ref;
+  return (Ast*)ref;
 }
 
-internal struct DList*
+internal DList*
 build_actionList()
 {
-  struct DList* actions = 0, *last = 0;
+  DList* actions = 0, *last = 0;
   if (token_is_actionRef(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_actionRef();
     actions = last = li;
     if (token->klass == TK_SEMICOLON) {
       next_token();
     } else error("at line %d: `;` was expected, got `%s`.", token->line_no, token->lexeme);
     while (token_is_actionRef(token)) {
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_actionRef();
       dlist_concat(last, li);
       last = li;
@@ -1964,12 +1964,12 @@ build_actionList()
   return actions;
 }
 
-internal struct Ast*
+internal Ast*
 build_entry()
 {
-  struct Ast_TableEntry* entry = 0;
+  Ast_TableEntry* entry = 0;
   if (token_is_keysetExpression(token)) {
-    entry = arena_push_struct(ast_storage, struct Ast_TableEntry);
+    entry = arena_push_struct(ast_storage, Ast_TableEntry);
     entry->kind = AST_TABLE_ENTRY;
     entry->id = node_id++;
     entry->line_no = token->line_no;
@@ -1982,19 +1982,19 @@ build_entry()
       } else error("at line %d: `;` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `:` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: keyset was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)entry;
+  return (Ast*)entry;
 }
 
-internal struct DList*
+internal DList*
 build_entriesList()
 {
-  struct DList* entries = 0, *last = 0;
+  DList* entries = 0, *last = 0;
   if (token_is_keysetExpression(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_entry();
     entries = last = li;
     while (token_is_keysetExpression(token)) {
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_entry();
       dlist_concat(last, li);
       last = li;
@@ -2003,10 +2003,10 @@ build_entriesList()
   return entries;
 }
 
-internal struct Ast*
+internal Ast*
 build_tableProperty()
 {
-  struct Ast* prop = 0;
+  Ast* prop = 0;
   if (token_is_tableProperty(token)) {
     bool is_const = false;
     if (token->klass == TK_CONST) {
@@ -2015,11 +2015,11 @@ build_tableProperty()
     }
     if (token->klass == TK_KEY) {
       next_token();
-      struct Ast_TableKey* key_prop = arena_push_struct(ast_storage, struct Ast_TableKey);
+      Ast_TableKey* key_prop = arena_push_struct(ast_storage, Ast_TableKey);
       key_prop->kind = AST_TABLE_KEY;
       key_prop->id = node_id++;
       key_prop->line_no = token->line_no;
-      prop = (struct Ast*)key_prop;
+      prop = (Ast*)key_prop;
       if (token->klass == TK_EQUAL) {
         next_token();
         if (token->klass == TK_BRACE_OPEN) {
@@ -2032,11 +2032,11 @@ build_tableProperty()
       } else error("at line %d: `=` was expected, got `%s`.", token->line_no, token->lexeme);
     } else if (token->klass == TK_ACTIONS) {
       next_token();
-      struct Ast_TableActions* actions_prop = arena_push_struct(ast_storage, struct Ast_TableActions);
+      Ast_TableActions* actions_prop = arena_push_struct(ast_storage, Ast_TableActions);
       actions_prop->kind = AST_TABLE_ACTIONS;
       actions_prop->id = node_id++;
       actions_prop->line_no = token->line_no;
-      prop = (struct Ast*)actions_prop;
+      prop = (Ast*)actions_prop;
       if (token->klass == TK_EQUAL) {
         next_token();
         if (token->klass == TK_BRACE_OPEN) {
@@ -2049,12 +2049,12 @@ build_tableProperty()
       } else error("at line %d: `=` was expected, got `%s`.", token->line_no, token->lexeme);
     } else if (token->klass == TK_ENTRIES) {
       next_token();
-      struct Ast_TableEntries* entries_prop = arena_push_struct(ast_storage, struct Ast_TableEntries);
+      Ast_TableEntries* entries_prop = arena_push_struct(ast_storage, Ast_TableEntries);
       entries_prop->kind = AST_TABLE_ENTRIES;
       entries_prop->id = node_id++;
       entries_prop->line_no = token->line_no;
       entries_prop->is_const = is_const;
-      prop = (struct Ast*)entries_prop;
+      prop = (Ast*)entries_prop;
       if (token->klass == TK_EQUAL) {
         next_token();
         if (token->klass == TK_BRACE_OPEN) {
@@ -2066,12 +2066,12 @@ build_tableProperty()
         } else error("at line %d: `{` was expected, got `%s`.", token->line_no, token->lexeme);
       } else error("at line %d: `=` was expected, got `%s`.", token->line_no, token->lexeme);
     } else if (token_is_nonTableKwName(token)) {
-      struct Ast_TableSingleEntry* entry_prop = arena_push_struct(ast_storage, struct Ast_TableSingleEntry);
+      Ast_TableSingleEntry* entry_prop = arena_push_struct(ast_storage, Ast_TableSingleEntry);
       entry_prop->kind = AST_TABLE_SINGLE_ENTRY;
       entry_prop->id = node_id++;
       entry_prop->line_no = token->line_no;
       entry_prop->name = build_name(false);
-      prop = (struct Ast*)entry_prop;
+      prop = (Ast*)entry_prop;
       if (token->klass == TK_EQUAL) {
         next_token();
         entry_prop->init_expr = build_initializer();
@@ -2084,16 +2084,16 @@ build_tableProperty()
   return prop;
 }
 
-internal struct DList*
+internal DList*
 build_tablePropertyList()
 {
-  struct DList* props = 0, *last = 0;
+  DList* props = 0, *last = 0;
   if (token_is_tableProperty(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_tableProperty();
     props = last = li;
     while (token_is_tableProperty(token)) {
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_tableProperty();
       dlist_concat(last, li);
       last = li;
@@ -2102,13 +2102,13 @@ build_tablePropertyList()
   return props;
 }
 
-internal struct Ast*
+internal Ast*
 build_tableDeclaration()
 {
-  struct Ast_Table* table = 0;
+  Ast_Table* table = 0;
   if (token->klass == TK_TABLE) {
     next_token();
-    table = arena_push_struct(ast_storage, struct Ast_Table);
+    table = arena_push_struct(ast_storage, Ast_Table);
     table->kind = AST_TABLE;
     table->id = node_id++;
     table->line_no = token->line_no;
@@ -2121,13 +2121,13 @@ build_tableDeclaration()
       } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `table` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)table;
+  return (Ast*)table;
 }
 
-internal struct Ast*
+internal Ast*
 build_controlLocalDeclaration()
 {
-  struct Ast* decl = 0;
+  Ast* decl = 0;
   if (token->klass == TK_CONST) {
     decl = build_constantDeclaration();
   } else if (token->klass == TK_ACTION) {
@@ -2135,7 +2135,7 @@ build_controlLocalDeclaration()
   } else if (token->klass == TK_TABLE) {
     decl = build_tableDeclaration();
   } else if (token_is_typeRef(token)) {
-    struct Ast* type_ref = build_typeRef();
+    Ast* type_ref = build_typeRef();
     if (token->klass == TK_PARENTH_OPEN) {
       decl = build_instantiation(type_ref);
     } else if (token_is_name(token)) {
@@ -2145,16 +2145,16 @@ build_controlLocalDeclaration()
   return decl;
 }
 
-internal struct DList*
+internal DList*
 build_controlLocalDeclarations()
 {
-  struct DList* decls = 0, *last = 0;
+  DList* decls = 0, *last = 0;
   if (token_is_controlLocalDeclaration(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_controlLocalDeclaration();
     decls = last = li;
     while (token_is_controlLocalDeclaration(token)) {
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_controlLocalDeclaration();
       dlist_concat(last, li);
       last = li;
@@ -2163,12 +2163,12 @@ build_controlLocalDeclarations()
   return decls;
 }
 
-internal struct Ast*
+internal Ast*
 build_controlDeclaration()
 {
-  struct Ast_Control* decl = 0;
+  Ast_Control* decl = 0;
   if (token->klass == TK_CONTROL) {
-    decl = arena_push_struct(ast_storage, struct Ast_Control);
+    decl = arena_push_struct(ast_storage, Ast_Control);
     decl->kind = AST_CONTROL;
     decl->id = node_id++;
     decl->line_no = token->line_no;
@@ -2190,16 +2190,16 @@ build_controlDeclaration()
       } else error("at line %d: `{` was expected, got `%s`.", token->line_no, token->lexeme);
     }
   } else error("at line %d: `control` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)decl;
+  return (Ast*)decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_packageTypeDeclaration()
 {
-  struct Ast_Package* decl = 0;
+  Ast_Package* decl = 0;
   if (token->klass == TK_PACKAGE) {
     next_token();
-    decl = arena_push_struct(ast_storage, struct Ast_Package);
+    decl = arena_push_struct(ast_storage, Ast_Package);
     decl->kind = AST_PACKAGE;
     decl->id = node_id++;
     decl->line_no = token->line_no;
@@ -2215,13 +2215,13 @@ build_packageTypeDeclaration()
       } else error("at line %d: `(` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `package` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)decl;
+  return (Ast*)decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_typedefDeclaration()
 {
-  struct Ast* decl = 0;
+  Ast* decl = 0;
   if (token->klass == TK_TYPEDEF || token->klass == TK_TYPE) {
     bool is_typedef = false;
     if (token->klass == TK_TYPEDEF) {
@@ -2232,12 +2232,12 @@ build_typedefDeclaration()
     } else assert(0);
 
     if (token_is_typeRef(token) || token_is_derivedTypeDeclaration(token)) {
-      struct Ast_Type* type_decl = arena_push_struct(ast_storage, struct Ast_Type);
+      Ast_Type* type_decl = arena_push_struct(ast_storage, Ast_Type);
       type_decl->kind = AST_TYPE;
       type_decl->id = node_id++;
       type_decl->line_no = token->line_no;
       type_decl->is_typedef = is_typedef;
-      decl = (struct Ast*)type_decl;
+      decl = (Ast*)type_decl;
       if (token_is_typeRef(token)) {
         type_decl->type_ref = build_typeRef();
       } else if (token_is_derivedTypeDeclaration(token)) {
@@ -2254,10 +2254,10 @@ build_typedefDeclaration()
   return decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_typeDeclaration()
 {
-  struct Ast* decl = 0;
+  Ast* decl = 0;
   if (token_is_typeDeclaration(token)) {
     if (token_is_derivedTypeDeclaration(token)) {
       decl = build_derivedTypeDeclaration();
@@ -2279,13 +2279,13 @@ build_typeDeclaration()
   return decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_conditionalStatement()
 {
-  struct Ast_IfStmt* if_stmt = 0;
+  Ast_IfStmt* if_stmt = 0;
   if (token->klass == TK_IF) {
     next_token();
-    if_stmt = arena_push_struct(ast_storage, struct Ast_IfStmt);
+    if_stmt = arena_push_struct(ast_storage, Ast_IfStmt);
     if_stmt->kind = AST_IF_STMT;
     if_stmt->id = node_id++;
     if_stmt->line_no = token->line_no;
@@ -2308,16 +2308,16 @@ build_conditionalStatement()
       } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `(` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `if` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)if_stmt;
+  return (Ast*)if_stmt;
 }
 
-internal struct Ast*
+internal Ast*
 build_exitStatement()
 {
-  struct Ast_ExitStmt* exit_stmt = 0;
+  Ast_ExitStmt* exit_stmt = 0;
   if (token->klass == TK_EXIT) {
     next_token();
-    exit_stmt = arena_push_struct(ast_storage, struct Ast_ExitStmt);
+    exit_stmt = arena_push_struct(ast_storage, Ast_ExitStmt);
     exit_stmt->kind = AST_EXIT_STMT;
     exit_stmt->id = node_id++;
     exit_stmt->line_no = token->line_no;
@@ -2325,16 +2325,16 @@ build_exitStatement()
       next_token();
     } else error("at line %d: `;` expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `exit` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)exit_stmt;
+  return (Ast*)exit_stmt;
 }
 
-internal struct Ast*
+internal Ast*
 build_returnStatement()
 {
-  struct Ast_ReturnStmt* ret_stmt = 0;
+  Ast_ReturnStmt* ret_stmt = 0;
   if (token->klass == TK_RETURN) {
     next_token();
-    ret_stmt = arena_push_struct(ast_storage, struct Ast_ReturnStmt);
+    ret_stmt = arena_push_struct(ast_storage, Ast_ReturnStmt);
     ret_stmt->kind = AST_RETURN_STMT;
     ret_stmt->id = node_id++;
     ret_stmt->line_no = token->line_no;
@@ -2344,18 +2344,18 @@ build_returnStatement()
       next_token();
     } else error("at line %d: `;` expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `return` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)ret_stmt;
+  return (Ast*)ret_stmt;
 }
 
-internal struct Ast*
+internal Ast*
 build_switchLabel()
 {
-  struct Ast* label = 0;
+  Ast* label = 0;
   if (token_is_name(token)) {
     label = build_name(false);
   } else if (token->klass == TK_DEFAULT) {
     next_token();
-    label = (struct Ast*)arena_push_struct(ast_storage, struct Ast_DefaultStmt);
+    label = (Ast*)arena_push_struct(ast_storage, Ast_DefaultStmt);
     label->kind = AST_DEFAULT_STMT;
     label->id = node_id++;
     label->line_no = token->line_no;
@@ -2363,12 +2363,12 @@ build_switchLabel()
   return label;
 }
 
-internal struct Ast*
+internal Ast*
 build_switchCase()
 {
-  struct Ast_SwitchCase* switch_case = 0;
+  Ast_SwitchCase* switch_case = 0;
   if (token_is_switchLabel(token)) {
-    switch_case = arena_push_struct(ast_storage, struct Ast_SwitchCase);
+    switch_case = arena_push_struct(ast_storage, Ast_SwitchCase);
     switch_case->kind = AST_SWITCH_CASE;
     switch_case->id = node_id++;
     switch_case->line_no = token->line_no;
@@ -2380,19 +2380,19 @@ build_switchCase()
       }
     } else error("at line %d: `:` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: switch label was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)switch_case;
+  return (Ast*)switch_case;
 }
 
-internal struct DList*
+internal DList*
 build_switchCases()
 {
-  struct DList* cases = 0, *last = 0;
+  DList* cases = 0, *last = 0;
   if (token_is_switchLabel(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_switchCase();
     cases = last = li;
     while (token_is_switchLabel(token)) {
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_switchCase();
       dlist_concat(last, li);
       last = li;
@@ -2401,13 +2401,13 @@ build_switchCases()
   return cases;
 }
 
-internal struct Ast*
+internal Ast*
 build_switchStatement()
 {
-  struct Ast_SwitchStmt* stmt = 0;
+  Ast_SwitchStmt* stmt = 0;
   if (token->klass == TK_SWITCH) {
     next_token();
-    stmt = arena_push_struct(ast_storage, struct Ast_SwitchStmt);
+    stmt = arena_push_struct(ast_storage, Ast_SwitchStmt);
     stmt->kind = AST_SWITCH_STMT;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
@@ -2426,13 +2426,13 @@ build_switchStatement()
       } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `(` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `switch` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)stmt;
+  return (Ast*)stmt;
 }
 
-internal struct Ast*
-build_statement(struct Ast* type_name)
+internal Ast*
+build_statement(Ast* type_name)
 {
-  struct Ast* stmt = 0;
+  Ast* stmt = 0;
   if (token_is_typeName(token) || type_name) {
     stmt = build_directApplication(type_name);
   } else if (token_is_assignmentOrMethodCallStatement(token)) {
@@ -2441,7 +2441,7 @@ build_statement(struct Ast* type_name)
     stmt = build_conditionalStatement();
   } else if (token->klass == TK_SEMICOLON) {
     next_token();
-    stmt = (struct Ast*)arena_push_struct(ast_storage, struct Ast_EmptyStmt);
+    stmt = (Ast*)arena_push_struct(ast_storage, Ast_EmptyStmt);
     stmt->kind = AST_EMPTY_STMT;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
@@ -2457,13 +2457,13 @@ build_statement(struct Ast* type_name)
   return stmt;
 }
 
-internal struct Ast*
+internal Ast*
 build_statementOrDecl()
 {
-  struct Ast* stmt = 0;
+  Ast* stmt = 0;
   if (token_is_statementOrDeclaration(token)) {
     if (token_is_typeRef(token)) {
-      struct Ast* type_ref = build_typeRef();
+      Ast* type_ref = build_typeRef();
       if (token->klass == TK_PARENTH_OPEN) {
         stmt = build_instantiation(type_ref);
       } else if (token_is_name(token)) {
@@ -2480,16 +2480,16 @@ build_statementOrDecl()
   return stmt;
 }
 
-internal struct DList*
+internal DList*
 build_statementOrDeclList()
 {
-  struct DList* stmts = 0, *last = 0;
+  DList* stmts = 0, *last = 0;
   if (token_is_statementOrDeclaration(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_statementOrDecl();
     stmts = last = li;
     while (token_is_statementOrDeclaration(token)) {
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_statementOrDecl();
       dlist_concat(last, li);
       last = li;
@@ -2498,12 +2498,12 @@ build_statementOrDeclList()
   return stmts;
 }
 
-internal struct Ast*
+internal Ast*
 build_blockStatement()
 {
-  struct Ast_BlockStmt* stmt = 0;
+  Ast_BlockStmt* stmt = 0;
   if (token->klass == TK_BRACE_OPEN) {
-    stmt = arena_push_struct(ast_storage, struct Ast_BlockStmt);
+    stmt = arena_push_struct(ast_storage, Ast_BlockStmt);
     stmt->kind = AST_BLOCK_STMT;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
@@ -2513,20 +2513,20 @@ build_blockStatement()
       next_token();
     } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `{` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)stmt;
+  return (Ast*)stmt;
 }
 
-internal struct DList*
+internal DList*
 build_identifierList()
 {
-  struct DList* ids = 0, *last = 0;
+  DList* ids = 0, *last = 0;
   if (token_is_name(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_name(false);
     ids = last = li;
     while (token->klass == TK_COMMA) {
       next_token();
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_name(false);
       dlist_concat(last, li);
       last = li;
@@ -2535,13 +2535,13 @@ build_identifierList()
   return ids;
 }
 
-internal struct Ast*
+internal Ast*
 build_errorDeclaration()
 {
-  struct Ast_Error* decl = 0;
+  Ast_Error* decl = 0;
   if (token->klass == TK_ERROR) {
     next_token();
-    decl = arena_push_struct(ast_storage, struct Ast_Error);
+    decl = arena_push_struct(ast_storage, Ast_Error);
     decl->kind = AST_ERROR;
     decl->id = node_id++;
     decl->line_no = token->line_no;
@@ -2555,16 +2555,16 @@ build_errorDeclaration()
       } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `error` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)decl;
+  return (Ast*)decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_matchKindDeclaration()
 {
-  struct Ast_MatchKind* decl = 0;
+  Ast_MatchKind* decl = 0;
   if (token->klass == TK_MATCH_KIND) {
     next_token();
-    decl = arena_push_struct(ast_storage, struct Ast_MatchKind);
+    decl = arena_push_struct(ast_storage, Ast_MatchKind);
     decl->kind = AST_MATCH_KIND;
     decl->id = node_id++;
     decl->line_no = token->line_no;
@@ -2578,15 +2578,15 @@ build_matchKindDeclaration()
       } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `{` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `match_kind` was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)decl;
+  return (Ast*)decl;
 }
 
-internal struct Ast*
-build_functionDeclaration(struct Ast* type_ref)
+internal Ast*
+build_functionDeclaration(Ast* type_ref)
 {
-  struct Ast_Function* decl = 0;
+  Ast_Function* decl = 0;
   if (token_is_typeOrVoid(token)) {
-    decl = arena_push_struct(ast_storage, struct Ast_Function);
+    decl = arena_push_struct(ast_storage, Ast_Function);
     decl->kind = AST_FUNCTION;
     decl->id = node_id++;
     decl->line_no = token->line_no;
@@ -2595,13 +2595,13 @@ build_functionDeclaration(struct Ast* type_ref)
       decl->stmt = build_blockStatement();
     } else error("at line %d: `{` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: type was expected, got `%s`.", token->line_no, token->lexeme);
-  return (struct Ast*)decl;
+  return (Ast*)decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_declaration()
 {
-  struct Ast* decl = 0;
+  Ast* decl = 0;
   if (token_is_declaration(token)) {
     if (token->klass == TK_CONST) {
       decl = build_constantDeclaration();
@@ -2617,7 +2617,7 @@ build_declaration()
     } else if (token->klass == TK_MATCH_KIND) {
       decl = build_matchKindDeclaration();
     } else if (token_is_typeRef(token)) {
-      struct Ast* type_ref = build_typeRef();
+      Ast* type_ref = build_typeRef();
       if (token->klass == TK_PARENTH_OPEN) {
         decl = build_instantiation(type_ref);
       } else if (token_is_name(token)) {
@@ -2630,25 +2630,25 @@ build_declaration()
   return decl;
 }
 
-internal struct Ast*
+internal Ast*
 build_p4program()
 {
-  struct Ast_P4Program* program = arena_push_struct(ast_storage, struct Ast_P4Program);
+  Ast_P4Program* program = arena_push_struct(ast_storage, Ast_P4Program);
   program->kind = AST_P4PROGRAM;
   program->id = node_id++;
   program->line_no = token->line_no;
-  struct DList* decls = 0, *last = 0;
+  DList* decls = 0, *last = 0;
   while (token->klass == TK_SEMICOLON) {
     next_token(); /* empty declaration */
   }
   if (token_is_declaration(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_declaration();
     decls = last = li;
   }
   while (token_is_declaration(token) || token->klass == TK_SEMICOLON) {
     if (token_is_declaration(token)) {
-      struct DList* li = arena_push_struct(ast_storage, struct DList);
+      DList* li = arena_push_struct(ast_storage, DList);
       li->object = build_declaration();
       dlist_concat(last, li);
       last = li;
@@ -2660,18 +2660,18 @@ build_p4program()
   if (token->klass != TK_END_OF_INPUT) {
     error("at line %d: unexpected token `%s`.", token->line_no, token->lexeme);
   }
-  return (struct Ast*)program;
+  return (Ast*)program;
 }
 
 internal bool
-token_is_realTypeArg(struct Token* token)
+token_is_realTypeArg(Token* token)
 {
   bool result = token->klass == TK_DONTCARE|| token_is_typeRef(token);
   return result;
 }
 
 internal bool
-token_is_binaryOperator(struct Token* token)
+token_is_binaryOperator(Token* token)
 {
   bool result = token->klass == TK_STAR || token->klass == TK_SLASH
     || token->klass == TK_PLUS || token->klass == TK_MINUS
@@ -2687,7 +2687,7 @@ token_is_binaryOperator(struct Token* token)
 }
 
 internal bool
-token_is_exprOperator(struct Token* token)
+token_is_exprOperator(Token* token)
 {
   bool result = token_is_binaryOperator(token) || token->klass == TK_DOTPREFIX
     || token->klass == TK_BRACKET_OPEN || token->klass == TK_PARENTH_OPEN
@@ -2695,13 +2695,13 @@ token_is_exprOperator(struct Token* token)
   return result;
 }
 
-internal struct Ast*
+internal Ast*
 build_realTypeArg()
 {
-  struct Ast* arg = 0;
+  Ast* arg = 0;
   if (token->klass == TK_DONTCARE) {
     next_token();
-    arg = (struct Ast*)arena_push_struct(ast_storage, struct Ast_Dontcare);
+    arg = (Ast*)arena_push_struct(ast_storage, Ast_Dontcare);
     arg->kind = AST_DONTCARE;
     arg->id = node_id++;
     arg->line_no = token->line_no;
@@ -2711,17 +2711,17 @@ build_realTypeArg()
   return arg;
 }
 
-internal struct DList*
+internal DList*
 build_realTypeArgumentList()
 {
-  struct DList* args = 0, *last = 0;
+  DList* args = 0, *last = 0;
   if (token_is_realTypeArg(token)) {
-    struct DList* li = arena_push_struct(ast_storage, struct DList);
+    DList* li = arena_push_struct(ast_storage, DList);
     li->object = build_realTypeArg();
     args = last = li;
     while (token->klass == TK_COMMA) {
       next_token();
-      li = arena_push_struct(ast_storage, struct DList);
+      li = arena_push_struct(ast_storage, DList);
       li->object = build_realTypeArg();
       dlist_concat(last, li);
       last = li;
@@ -2730,10 +2730,10 @@ build_realTypeArgumentList()
   return args;
 }
 
-internal struct Ast*
+internal Ast*
 build_expressionPrimary()
 {
-  struct Ast* primary = 0;
+  Ast* primary = 0;
   if (token_is_expression(token)) {
     if (token->klass == TK_INT_LITERAL) {
       primary = build_integer();
@@ -2744,36 +2744,36 @@ build_expressionPrimary()
     } else if (token->klass == TK_DOTPREFIX) {
       next_token();
       if (token->klass == TK_IDENTIFIER) {
-        struct Ast_Name* name = (struct Ast_Name*)build_nonTypeName(false);
+        Ast_Name* name = (Ast_Name*)build_nonTypeName(false);
         name->kind = AST_DOTNAME;
-        primary = (struct Ast*)name;
+        primary = (Ast*)name;
       } else if (token->klass == TK_TYPE_IDENTIFIER) {
-        struct Ast_Name* name = (struct Ast_Name*)build_typeName(false);
+        Ast_Name* name = (Ast_Name*)build_typeName(false);
         name->kind = AST_DOTNAME;
-        primary = (struct Ast*)name;
+        primary = (Ast*)name;
       } else error("at line %d: unexpected token `%s`.", token->line_no, token->lexeme);
     } else if (token_is_nonTypeName(token)) {
       primary = build_nonTypeName(false);
     } else if (token->klass == TK_BRACE_OPEN) {
       next_token();
-      struct Ast_ExprList* expr_list = arena_push_struct(ast_storage, struct Ast_ExprList);
+      Ast_ExprList* expr_list = arena_push_struct(ast_storage, Ast_ExprList);
       expr_list->kind = AST_EXPRLIST;
       expr_list->id = node_id++;
       expr_list->line_no = token->line_no;
       expr_list->expr_list = build_expressionList();
-      primary = (struct Ast*)expr_list;
+      primary = (Ast*)expr_list;
       if (token->klass == TK_BRACE_CLOSE) {
         next_token();
       } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
     } else if (token->klass == TK_PARENTH_OPEN) {
       next_token();
       if (token_is_typeRef(token)) {
-        struct Ast_CastExpr* cast_expr = arena_push_struct(ast_storage, struct Ast_CastExpr);
+        Ast_CastExpr* cast_expr = arena_push_struct(ast_storage, Ast_CastExpr);
         cast_expr->kind = AST_CAST_EXPR;
         cast_expr->id = node_id++;
         cast_expr->line_no = token->line_no;
         cast_expr->to_type = build_typeRef();
-        primary = (struct Ast*)cast_expr;
+        primary = (Ast*)cast_expr;
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
           cast_expr->expr = build_expression(1);
@@ -2786,40 +2786,40 @@ build_expressionPrimary()
       } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
     } else if (token->klass == TK_EXCLAMATION) {
       next_token();
-      struct Ast_UnaryExpr* unary_expr = arena_push_struct(ast_storage, struct Ast_UnaryExpr);
+      Ast_UnaryExpr* unary_expr = arena_push_struct(ast_storage, Ast_UnaryExpr);
       unary_expr->kind = AST_UNARY_EXPR;
       unary_expr->id = node_id++;
       unary_expr->line_no = token->line_no;
       unary_expr->op = OP_NOT;
       unary_expr->operand = build_expression(1);
-      primary = (struct Ast*)unary_expr;
+      primary = (Ast*)unary_expr;
     } else if (token->klass == TK_TILDA) {
       next_token();
-      struct Ast_UnaryExpr* unary_expr = arena_push_struct(ast_storage, struct Ast_UnaryExpr);
+      Ast_UnaryExpr* unary_expr = arena_push_struct(ast_storage, Ast_UnaryExpr);
       unary_expr->kind = AST_UNARY_EXPR;
       unary_expr->id = node_id++;
       unary_expr->line_no = token->line_no;
       unary_expr->op = OP_BITWISE_NOT;
       unary_expr->operand = build_expression(1);
-      primary = (struct Ast*)unary_expr;
+      primary = (Ast*)unary_expr;
     } else if (token->klass == TK_UNARY_MINUS) {
       next_token();
-      struct Ast_UnaryExpr* unary_expr = arena_push_struct(ast_storage, struct Ast_UnaryExpr);
+      Ast_UnaryExpr* unary_expr = arena_push_struct(ast_storage, Ast_UnaryExpr);
       unary_expr->kind = AST_UNARY_EXPR;
       unary_expr->id = node_id++;
       unary_expr->line_no = token->line_no;
       unary_expr->op = OP_NEG;
       unary_expr->operand = build_expression(1);
-      primary = (struct Ast*)unary_expr;
+      primary = (Ast*)unary_expr;
     } else if (token_is_typeName(token)) {
       primary = build_typeName();
     } else if (token->klass == TK_ERROR) {
-      struct Ast_Name* name = arena_push_struct(ast_storage, struct Ast_Name);
+      Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
       name->kind = AST_NAME;
       name->id = node_id++;
       name->line_no = token->line_no;
       name->strname = token->lexeme;
-      primary = (struct Ast*)name;
+      primary = (Ast*)name;
       next_token();
     } else assert(0);
   } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
@@ -2827,7 +2827,7 @@ build_expressionPrimary()
 }
 
 internal int
-get_operator_priority(struct Token* token)
+get_operator_priority(Token* token)
 {
   int prio = 0;
   if (token->klass == TK_DOUBLE_AMPERSAND || token->klass == TK_DOUBLE_PIPE) {
@@ -2859,7 +2859,7 @@ get_operator_priority(struct Token* token)
 }
 
 internal enum AstOperator
-token_to_binop(struct Token* token)
+token_to_binop(Token* token)
 {
   switch (token->klass) {
     case TK_DOUBLE_AMPERSAND:
@@ -2902,71 +2902,71 @@ token_to_binop(struct Token* token)
   }
 }
 
-internal struct Ast*
+internal Ast*
 build_expression(int priority_threshold)
 {
-  struct Ast* expr = 0;
+  Ast* expr = 0;
   if (token_is_expression(token)) {
     expr = build_expressionPrimary();
     while (token_is_exprOperator(token)) {
       if (token->klass == TK_DOTPREFIX) {
         next_token();
-        struct Ast_MemberSelect* select_expr = arena_push_struct(ast_storage, struct Ast_MemberSelect);
+        Ast_MemberSelect* select_expr = arena_push_struct(ast_storage, Ast_MemberSelect);
         select_expr->kind = AST_MEMBER_SELECT;
         select_expr->id = node_id++;
         select_expr->line_no = token->line_no;
         select_expr->lhs_expr = expr;
-        expr = (struct Ast*)select_expr;
+        expr = (Ast*)select_expr;
         if (token_is_name(token)) {
           select_expr->member_name = build_name(false);
         } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
       }
       else if (token->klass == TK_BRACKET_OPEN) {
         next_token();
-        struct Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, struct Ast_Subscript);
+        Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, Ast_Subscript);
         subscript_expr->kind = AST_SUBSCRIPT;
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;
         subscript_expr->index = expr;
         subscript_expr->colon_index = build_arraySubscript();
-        expr = (struct Ast*)subscript_expr;
+        expr = (Ast*)subscript_expr;
         if (token->klass == TK_BRACKET_CLOSE) {
           next_token();
         } else error("at line %d: `]` was expected, got `%s`.", token->line_no, token->lexeme);
       }
       else if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        struct Ast_FunctionCall* call_expr = arena_push_struct(ast_storage, struct Ast_FunctionCall);
+        Ast_FunctionCall* call_expr = arena_push_struct(ast_storage, Ast_FunctionCall);
         call_expr->kind = AST_FUNCTION_CALL;
         call_expr->id = node_id++;
         call_expr->line_no = token->line_no;
         call_expr->callee_expr = expr;
         call_expr->args = build_argumentList();
-        expr = (struct Ast*)call_expr;
+        expr = (Ast*)call_expr;
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
       }
       else if (token->klass == TK_ANGLE_OPEN && token_is_realTypeArg(peek_token())) {
         next_token();
-        ((struct Ast_Expression*)expr)->type_args = build_realTypeArgumentList();
+        ((Ast_Expression*)expr)->type_args = build_realTypeArgumentList();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
         } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
       } else if (token->klass == TK_EQUAL) {
         next_token();
-        struct Ast_KVPair* kv_pair = arena_push_struct(ast_storage, struct Ast_KVPair);
+        Ast_KVPair* kv_pair = arena_push_struct(ast_storage, Ast_KVPair);
         kv_pair->kind = AST_KVPAIR;
         kv_pair->id = node_id++;
         kv_pair->line_no = token->line_no;
         kv_pair->name = expr;
         kv_pair->expr = build_expression(1);
-        expr = (struct Ast*)kv_pair;
+        expr = (Ast*)kv_pair;
       }
       else if (token_is_binaryOperator(token)){
         int priority = get_operator_priority(token);
         if (priority >= priority_threshold) {
-          struct Ast_BinaryExpr* bin_expr = arena_push_struct(ast_storage, struct Ast_BinaryExpr);
+          Ast_BinaryExpr* bin_expr = arena_push_struct(ast_storage, Ast_BinaryExpr);
           bin_expr->kind = AST_BINARY_EXPR;
           bin_expr->id = node_id++;
           bin_expr->line_no = token->line_no;
@@ -2974,7 +2974,7 @@ build_expression(int priority_threshold)
           bin_expr->op = token_to_binop(token);
           next_token();
           bin_expr->right_operand = build_expression(priority + 1);
-          expr = (struct Ast*)bin_expr;
+          expr = (Ast*)bin_expr;
         } else break;
       } else assert(0);
     }
@@ -2982,13 +2982,13 @@ build_expression(int priority_threshold)
   return expr;
 }
 
-struct Ast_P4Program*
-build_ast(struct UnboundedArray* tokens_array_, struct Arena* ast_storage_)
+Ast_P4Program*
+build_ast(UnboundedArray* tokens_array_, Arena* ast_storage_)
 {
-  struct NameDecl*
+  NameDecl*
   declare_keyword(char* strname, enum TokenClass token_class)
   {
-    struct NameDecl* decl = arena_push_struct(ast_storage, struct NameDecl);
+    NameDecl* decl = arena_push_struct(ast_storage, NameDecl);
     decl->strname = strname;
     decl->token_class = token_class;
     declare_name_in_scope(root_scope, NAMESPACE_KEYWORD, decl);
@@ -3044,7 +3044,7 @@ build_ast(struct UnboundedArray* tokens_array_, struct Arena* ast_storage_)
   token_at = 0;
   token = array_get(tokens_array, token_at);
   next_token();
-  struct Ast_P4Program* p4program = (struct Ast_P4Program*)build_p4program();
+  Ast_P4Program* p4program = (Ast_P4Program*)build_p4program();
   p4program->last_node_id = node_id;
   current_scope = pop_scope();
   assert(current_scope == 0);
