@@ -120,6 +120,8 @@ visit_param(Ast* ast)
   Ast_Param* param = (Ast_Param*)ast;
   visit_type_ref(param->type);
   Type* param_type = type_get(&type_map, param->type->id)->object;
+  param_type = clone_type(param_type);
+  param_type->ast = ast;
   type_add(&type_map, param_type, param->id);
 }
 
@@ -133,6 +135,7 @@ visit_type_param(Ast* ast)
     Type_TypeParam* type = arena_push_struct(type_storage, Type_TypeParam);
     type->ctor = TYPE_TYPEPARAM;
     type->strname = name->strname;
+    type->ast = ast;
     type_add(&type_map, (Type*)type, ast->id);
   } else {
     visit_expression(ast);
@@ -146,6 +149,8 @@ visit_struct_field(Ast* ast)
   Ast_StructField* field = (Ast_StructField*)ast;
   visit_type_ref(field->type);
   Type* field_type = type_get(&type_map, field->type->id)->object;
+  field_type = clone_type(field_type);
+  field_type->ast = ast;
   type_add(&type_map, field_type, field->id);
 }
 
@@ -177,6 +182,8 @@ visit_header(Ast* ast)
     Ast* field = li->object;
     visit_struct_field(field);
     struct_type = type_get(&type_map, field->id)->object;
+    struct_type = clone_type(struct_type);
+    struct_type->ast = ast;
     li = li->next;
     while (li) {
       Ast* field = li->object;
@@ -185,6 +192,7 @@ visit_header(Ast* ast)
       product_type->ctor = TYPE_PRODUCT;
       product_type->lhs_ty = struct_type;
       product_type->rhs_ty = type_get(&type_map, field->id)->object;
+      product_type->ast = ast;
       struct_type = (Type*)product_type;
       li = li->next;
     }
