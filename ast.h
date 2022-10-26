@@ -738,5 +738,6 @@ struct Type_FunctionCall {
   struct Type* return_ty;
 };
 
-struct Type* type_get(struct Hashmap* map, uint32_t id);
-void type_add(struct Hashmap* map, struct Type* type, uint32_t id);
+struct SList* type_get(struct Hashmap* map, uint32_t id);
+struct SList* type_add(struct Hashmap* map, struct Type* type, uint32_t id);
+
