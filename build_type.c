@@ -18,7 +18,7 @@ struct Type*
 type_get(struct Hashmap* map, uint32_t id)
 {
   struct HashmapKey key = { .i_key = id };
-  hashmap_hash_key(HASHMAP_KEY_INT, &key, map->capacity_log2);
+  hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
   struct HashmapEntry* he = hashmap_get_entry(map, &key);
   struct Type* type = 0;
   if (he) {
@@ -31,7 +31,7 @@ void
 type_add(struct Hashmap* map, struct Type* type, uint32_t id)
 {
   struct HashmapKey key = { .i_key = id };
-  hashmap_hash_key(HASHMAP_KEY_INT, &key, map->capacity_log2);
+  hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
   struct HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
   assert(!he->object);
   he->object = type;
@@ -1156,7 +1156,7 @@ build_type(struct Ast_P4Program* p4program, struct Scope* root_scope_,
   root_scope = root_scope_;
   nameref_map = nameref_map_;
   type_storage = type_storage_;
-  hashmap_init(&type_map, HASHMAP_KEY_INT, 8, type_storage);
+  hashmap_init(&type_map, HASHMAP_KEY_UINT32, 8, type_storage);
 
   add_basic_type("void", TYPE_VOID);
   add_basic_type("bool", TYPE_INT);

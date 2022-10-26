@@ -18,7 +18,7 @@ struct NameRef*
 nameref_get(struct Hashmap* map, uint32_t id)
 {
   struct HashmapKey key = { .i_key = id };
-  hashmap_hash_key(HASHMAP_KEY_INT, &key, map->capacity_log2);
+  hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
   struct HashmapEntry* he = hashmap_get_entry(map, &key);
   struct NameRef* nameref = 0;
   if (he) {
@@ -31,7 +31,7 @@ void
 nameref_add(struct Hashmap* map, struct NameRef* nameref, uint32_t id)
 {
   struct HashmapKey key = { .i_key = id };
-  hashmap_hash_key(HASHMAP_KEY_INT, &key, map->capacity_log2);
+  hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
   struct HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
   assert(!he->object);
   he->object = nameref;
@@ -1118,7 +1118,7 @@ build_symtable(struct Ast_P4Program* p4program, struct Arena* symtable_storage_,
 
   symtable_storage = symtable_storage_;
   scope_init(symtable_storage);
-  hashmap_init(&nameref_map, HASHMAP_KEY_INT, 8, symtable_storage);
+  hashmap_init(&nameref_map, HASHMAP_KEY_UINT32, 8, symtable_storage);
   root_scope = current_scope = push_scope();
 
   struct Ast_VoidType* void_type = arena_push_struct(symtable_storage, struct Ast_VoidType);

@@ -54,7 +54,7 @@ hash_bytes(uint8_t* bytes, int length, uint32_t m)
 }
 
 internal uint32_t
-hash_int(uint32_t i, uint32_t m)
+hash_uint32(uint32_t i, uint32_t m)
 {
   assert(m > 0 && m <= 32);
   uint32_t h = multiply_hash(i, m) % ((1 << m) - 1);  // 0 <= h < 2^{m} - 1
@@ -69,8 +69,8 @@ hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ struct HashmapKey* key
   } else if (key_type == HASHMAP_KEY_BLOB) {
     assert (key->keylen > 0);
     key->h = hash_bytes(key->b_key, key->keylen, capacity_log2);
-  } else if (key_type == HASHMAP_KEY_INT) {
-    key->h = hash_int(key->i_key, capacity_log2);
+  } else if (key_type == HASHMAP_KEY_UINT32) {
+    key->h = hash_uint32(key->i_key, capacity_log2);
   } else assert(0);
 }
 
@@ -97,7 +97,7 @@ hashmap_key_equal(enum HashmapKeyType key_type, struct HashmapKey* key_A, struct
     }
     result = (at_i == key_A->keylen);
     return result;
-  } else if (key_type == HASHMAP_KEY_INT) {
+  } else if (key_type == HASHMAP_KEY_UINT32) {
     return key_A->i_key == key_B->i_key;
   } else assert(0);
   return false;
