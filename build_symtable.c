@@ -43,22 +43,21 @@ visit_function_call(Ast* ast)
   assert(ast->kind == AST_FUNCTION_CALL);
   Ast_FunctionCall* expr = (Ast_FunctionCall*)ast;
   visit_expression(expr->callee_expr);
-  Ast_Expression* callee_expr = (Ast_Expression*)(expr->callee_expr);
-  if (callee_expr->type_args) {
-    DList* li = callee_expr->type_args;
-    while (li) {
-      Ast* type_arg = li->object;
-      visit_type_ref(type_arg);
-      li = li->next;
-    }
+  Ast_Expression* callee_expr = (Ast_Expression*)expr->callee_expr;
+  DList* li;
+  Ast_ElementList* type_args = (Ast_ElementList*)callee_expr->type_args;
+  li = type_args->head.next;
+  while (li) {
+    Ast* type_arg = li->object;
+    visit_type_ref(type_arg);
+    li = li->next;
   }
-  if (expr->args) {
-    DList* li = expr->args;
-    while (li) {
-      Ast* arg = li->object;
-      visit_expression(arg);
-      li = li->next;
-    }
+  Ast_ElementList* args = (Ast_ElementList*)expr->args;
+  li = args->head.next;
+  while (li) {
+    Ast* arg = li->object;
+    visit_expression(arg);
+    li = li->next;
   }
 }
 
@@ -87,13 +86,12 @@ visit_expression(Ast* ast)
     visit_expression(expr->member_name);
   } else if (ast->kind == AST_EXPRLIST) {
     Ast_ExprList* expr = (Ast_ExprList*)ast;
-    if (expr->expr_list) {
-      DList* li = expr->expr_list;
-      while (li) {
-        Ast* expr_expr = li->object;
-        visit_expression(expr_expr);
-        li = li->next;
-      }
+    Ast_ElementList* expr_list = (Ast_ElementList*)expr->expr_list;
+    DList* li = expr_list->head.next;
+    while (li) {
+      Ast* expr_expr = li->object;
+      visit_expression(expr_expr);
+      li = li->next;
     }
   } else if (ast->kind == AST_CAST_EXPR) {
     Ast_CastExpr* expr = (Ast_CastExpr*)ast;
@@ -164,23 +162,21 @@ visit_action(Ast* ast)
     declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   current_scope = push_scope();
-  if (action_decl->params) {
-    DList* li = action_decl->params;
-    while (li) {
-      Ast* param = li->object;
-      visit_param(param);
-      li = li->next;
-    }
+  Ast_ElementList* params = (Ast_ElementList*)action_decl->params;
+  DList* li = params->head.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
   }
   Ast_BlockStmt* action_body = (Ast_BlockStmt*)action_decl->stmt;
   if (action_body) {
-    if (action_body->stmt_list) {
-      DList* li = action_body->stmt_list;
-      while (li) {
-        Ast* stmt = li->object;
-        visit_statement(stmt);
-        li = li->next;
-      }
+    Ast_ElementList* stmt_list = (Ast_ElementList*)action_body->stmt_list;
+    DList* li = stmt_list->head.next;
+    while (li) {
+      Ast* stmt = li->object;
+      visit_statement(stmt);
+      li = li->next;
     }
   }
   current_scope = pop_scope();
@@ -201,13 +197,12 @@ visit_instantiation(Ast* ast)
     declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   visit_type_ref(decl->type_ref);
-  if (decl->args) {
-    DList* li = decl->args;
-    while (li) {
-      Ast* arg = li->object;
-      visit_expression(arg);
-      li = li->next;
-    }
+  Ast_ElementList* args = (Ast_ElementList*)decl->args;
+  DList* li = args->head.next;
+  while (li) {
+    Ast* arg = li->object;
+    visit_expression(arg);
+    li = li->next;
   }
 }
 
@@ -217,13 +212,12 @@ visit_action_ref(Ast* ast)
   assert(ast->kind == AST_ACTION_REF);
   Ast_ActionRef* action = (Ast_ActionRef*)ast;
   visit_expression(action->name);
-  if (action->args) {
-    DList* li = action->args;
-    while (li) {
-      Ast* arg = li->object;
-      visit_expression(arg);
-      li = li->next;
-    }
+  Ast_ElementList* args = (Ast_ElementList*)action->args;
+  DList* li = args->head.next;
+  while (li) {
+    Ast* arg = li->object;
+    visit_expression(arg);
+    li = li->next;
   }
 }
 
@@ -251,7 +245,8 @@ visit_select_keyset(Ast* ast)
 {
   if (ast->kind == AST_TUPLE_KEYSET) {
     Ast_TupleKeyset* keyset = (Ast_TupleKeyset*)ast;
-    DList* li = keyset->expr_list;
+    Ast_ElementList* expr_list = (Ast_ElementList*)keyset->expr_list;
+    DList* li = expr_list->head.next;
     while (li) {
       Ast* expr = li->object;
       visit_keyset_expr(expr);
@@ -276,13 +271,12 @@ visit_table_property(Ast* ast)
 {
   if (ast->kind == AST_TABLE_ACTIONS) {
     Ast_TableActions* prop = (Ast_TableActions*)ast;
-    if (prop->action_list) {
-      DList* li = prop->action_list;
-      while (li) {
-        Ast* action = li->object;
-        visit_action_ref(action);
-        li = li->next;
-      }
+    Ast_ElementList* action_list = (Ast_ElementList*)prop->action_list;
+    DList* li = action_list->head.next;
+    while (li) {
+      Ast* action = li->object;
+      visit_action_ref(action);
+      li = li->next;
     }
   } else if (ast->kind == AST_TABLE_SINGLE_ENTRY) {
     Ast_TableSingleEntry* prop = (Ast_TableSingleEntry*)ast;
@@ -291,7 +285,8 @@ visit_table_property(Ast* ast)
     }
   } else if (ast->kind == AST_TABLE_KEY) {
     Ast_TableKey* prop = (Ast_TableKey*)ast;
-    DList* li = prop->keyelem_list;
+    Ast_ElementList* keyelem_list = (Ast_ElementList*)prop->keyelem_list;
+    DList* li = keyelem_list->head.next;
     while (li) {
       Ast* keyelem = li->object;
       visit_table_keyelem(keyelem);
@@ -299,7 +294,8 @@ visit_table_property(Ast* ast)
     }
   } else if (ast->kind == AST_TABLE_ENTRIES) {
     Ast_TableEntries* prop = (Ast_TableEntries*)ast;
-    DList* li = prop->entries;
+    Ast_ElementList* entries = (Ast_ElementList*)prop->entries;
+    DList* li = entries->head.next;
     while (li) {
       Ast* entry = li->object;
       visit_table_entry(entry);
@@ -323,13 +319,12 @@ visit_table(Ast* ast)
     decl->line_no = name->line_no;
     declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
-  if (decl->prop_list) {
-    DList* li = decl->prop_list;
-    while (li) {
-      Ast* prop = li->object;
-      visit_table_property(prop);
-      li = li->next;
-    }
+  Ast_ElementList* prop_list = (Ast_ElementList*)decl->prop_list;
+  DList* li = prop_list->head.next;
+  while (li) {
+    Ast* prop = li->object;
+    visit_table_property(prop);
+    li = li->next;
   }
 }
 
@@ -411,13 +406,12 @@ visit_statement(Ast* ast)
   } else if (ast->kind == AST_SWITCH_STMT) {
     Ast_SwitchStmt* stmt = (Ast_SwitchStmt*)ast;
     visit_expression(stmt->expr);
-    if (stmt->switch_cases) {
-      DList* li = stmt->switch_cases;
-      while (li) {
-        Ast* switch_case = li->object;
-        visit_switch_case(switch_case);
-        li = li->next;
-      }
+    Ast_ElementList* switch_cases = (Ast_ElementList*)stmt->switch_cases;
+    DList* li = switch_cases->head.next;
+    while (li) {
+      Ast* switch_case = li->object;
+      visit_switch_case(switch_case);
+      li = li->next;
     }
   } else if (ast->kind == AST_ASSIGNMENT_STMT) {
     Ast_AssignmentStmt* stmt = (Ast_AssignmentStmt*)ast;
@@ -431,7 +425,7 @@ visit_statement(Ast* ast)
     if (stmt->expr) {
       visit_expression(stmt->expr);
     }
-  } else if (ast->kind == AST_EXIT_STMT || ast->kind == AST_EMPTY_STMT) {
+  } else if (ast->kind == AST_EXIT_STMT || ast->kind == AST_EMPTY_ELEMENT) {
     ; // pass
   }
   else assert(0);
@@ -443,13 +437,12 @@ visit_block_statement(Ast* ast)
   assert(ast->kind == AST_BLOCK_STMT);
   Ast_BlockStmt* block_stmt = (Ast_BlockStmt*)ast;
   current_scope = push_scope();
-  if (block_stmt->stmt_list) {
-    DList* li = block_stmt->stmt_list;
-    while (li) {
-      Ast* decl = li->object;
-      visit_statement(decl);
-      li = li->next;
-    }
+  Ast_ElementList* stmt_list = (Ast_ElementList*)block_stmt->stmt_list;
+  DList* li = stmt_list->head.next;
+  while (li) {
+    Ast* decl = li->object;
+    visit_statement(decl);
+    li = li->next;
   }
   current_scope = pop_scope();
 }
@@ -467,37 +460,33 @@ visit_control(Ast* ast)
   decl->line_no = name->line_no;
   declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   current_scope = push_scope();
-  if (type_decl->type_params) {
-    DList* li = type_decl->type_params;
-    while (li) {
-      Ast* type_param = li->object;
-      visit_type_param(type_param);
-      li = li->next;
-    }
+  DList* li;
+  Ast_ElementList* type_params = (Ast_ElementList*)type_decl->type_params;
+  while (li) {
+    Ast* type_param = li->object;
+    visit_type_param(type_param);
+    li = li->next;
   }
-  if (type_decl->params) {
-    DList* li = type_decl->params;
-    while (li) {
-      Ast* param = li->object;
-      visit_param(param);
-      li = li->next;
-    }
+  Ast_ElementList* params = (Ast_ElementList*)type_decl->params;
+  li = params->head.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
   }
-  if (control_decl->ctor_params) {
-    DList* li = control_decl->ctor_params;
-    while (li) {
-      Ast* param = li->object;
-      visit_param(param);
-      li = li->next;
-    }
+  Ast_ElementList* ctor_params = (Ast_ElementList*)control_decl->ctor_params;
+  li = ctor_params->head.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
   }
-  if (control_decl->local_decls) {
-    DList* li = control_decl->local_decls;
-    while (li) {
-      Ast* decl = li->object;
-      visit_statement(decl);
-      li = li->next;
-    }
+  Ast_ElementList* local_decls = (Ast_ElementList*)control_decl->local_decls;
+  li = local_decls->head.next;
+  while (li) {
+    Ast* decl = li->object;
+    visit_statement(decl);
+    li = li->next;
   }
   if (control_decl->apply_stmt) {
     visit_block_statement(control_decl->apply_stmt);
@@ -533,6 +522,7 @@ visit_parser_transition(Ast* ast)
     visit_expression(ast);
   } else if (ast->kind == AST_SELECT_EXPR) {
     Ast_SelectExpr* trans_stmt = (Ast_SelectExpr*)ast;
+    /*
     DList* li = trans_stmt->expr_list;
     while (li) {
       Ast* expr = li->object;
@@ -545,6 +535,7 @@ visit_parser_transition(Ast* ast)
       visit_transition_select_case(select_case);
       li = li->next;
     }
+    */
   }
   else assert(0);
 }
@@ -565,12 +556,14 @@ visit_parser_state(Ast* ast)
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   current_scope = push_scope();
   if (state->stmt_list) {
+    /*
     DList* li = state->stmt_list;
     while (li) {
       Ast* stmt = li->object;
       visit_statement(stmt);
       li = li->next;
     }
+    */
   }
   visit_parser_transition(state->trans_stmt);
   current_scope = pop_scope();
@@ -590,44 +583,54 @@ visit_parser(Ast* ast)
   declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   current_scope = push_scope();
   if (type_decl->type_params) {
+    /* TODO
     DList* li = type_decl->type_params;
     while (li) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
+    */
   }
   if (type_decl->params) {
+    /* TODO
     DList* li = type_decl->params;
     while (li) {
       Ast* param = li->object;
       visit_param(param);
       li = li->next;
     }
+    */
   }
   if (parser_decl->ctor_params) {
+    /*
     DList* li = parser_decl->ctor_params;
     while (li) {
       Ast* param = li->object;
       visit_param(param);
       li = li->next;
     }
+    */
   }
   if (parser_decl->local_elements) {
+    /*
     DList* li = parser_decl->local_elements;
     while (li) {
       Ast* element = li->object;
       visit_local_parser_element(element);
       li = li->next;
     }
+    */
   }
   if (parser_decl->states) {
+    /*
     DList* li = parser_decl->states;
     while (li) {
       Ast* state = li->object;
       visit_parser_state(state);
       li = li->next;
     }
+    */
   }
   current_scope = pop_scope();
 }
@@ -668,20 +671,24 @@ visit_function_proto(Ast* ast)
     visit_function_return_type(function_proto->return_type);
   }
   if (function_proto->type_params) {
+    /*
     DList* li = function_proto->type_params;
     while (li) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
+    */
   }
   if (function_proto->params) {
+    /*
     DList* li = function_proto->params;
     while (li) {
       Ast* param = li->object;
       visit_param(param);
       li = li->next;
     }
+    */
   }
   current_scope = pop_scope();
 }
@@ -699,20 +706,24 @@ visit_extern(Ast* ast)
   declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   current_scope = push_scope();
   if (extern_decl->type_params) {
+    /* TODO
     DList* li = extern_decl->type_params;
     while (li) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
+    */
   }
   if (extern_decl->method_protos) {
+    /*
     DList* li = extern_decl->method_protos;
     while (li) {
       Ast* proto = li->object;
       visit_function_proto(proto);
       li = li->next;
     }
+    */
   }
   current_scope = pop_scope();
 }
@@ -750,12 +761,14 @@ visit_struct(Ast* ast)
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   current_scope = push_scope();
   if (struct_decl->fields) {
+    /*
     DList* li = struct_decl->fields;
     while (li) {
       Ast* field = li->object;
       visit_struct_field(field);
       li = li->next;
     }
+    */
   }
   current_scope = pop_scope();
 }
@@ -776,12 +789,14 @@ visit_header(Ast* ast)
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   current_scope = push_scope();
   if (header_decl->fields) {
+    /*
     DList* li = header_decl->fields;
     while (li) {
       Ast* field = li->object;
       visit_struct_field(field);
       li = li->next;
     }
+    */
   }
   current_scope = pop_scope();
 }
@@ -802,12 +817,14 @@ visit_header_union(Ast* ast)
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   current_scope = push_scope();
   if (header_union_decl->fields) {
+    /*
     DList* li = header_union_decl->fields;
     while (li) {
       Ast* field = li->object;
       visit_struct_field(field);
       li = li->next;
     }
+    */
   }
   current_scope = pop_scope();
 }
@@ -839,21 +856,25 @@ visit_type_ref(Ast* ast)
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
     Ast_SpecializedType* speclzd_type = (Ast_SpecializedType*)ast;
     visit_expression(speclzd_type->name);
+    /* TODO
     DList* li = speclzd_type->type_args;
     while (li) {
       Ast* type_arg = li->object;
       visit_type_ref(type_arg);
       li = li->next;
     }
+    */
   } else if (ast->kind == AST_TUPLE) {
     Ast_Tuple* type_ref = (Ast_Tuple*)ast;
     if (type_ref->type_args) {
+      /* TODO
       DList* li = type_ref->type_args;
       while (li) {
         Ast* type_arg = li->object;
         visit_type_ref(type_arg);
         li = li->next;
       }
+      */
     }
   } else if (ast->kind == AST_STRUCT) {
     visit_struct(ast);
@@ -911,6 +932,7 @@ visit_enum(Ast* ast)
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   current_scope = push_scope();
   if (enum_decl->id_list) {
+    /*
     DList* li = enum_decl->id_list;
     while (li) {
       Ast* id = li->object;
@@ -920,6 +942,7 @@ visit_enum(Ast* ast)
       else assert(0);
       li = li->next;
     }
+    */
   }
   current_scope = pop_scope();
 }
@@ -940,20 +963,24 @@ visit_package(Ast* ast)
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   current_scope = push_scope();
   if (package_decl->type_params) {
+    /* TODO
     DList* li = package_decl->type_params;
     while (li) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
+    */
   }
   if (package_decl->params) {
+    /* TODO
     DList* li = package_decl->params;
     while (li) {
       Ast* param = li->object;
       visit_param(param);
       li = li->next;
     }
+    */
   }
   current_scope = pop_scope();
 }
@@ -993,30 +1020,36 @@ visit_function(Ast* ast)
     visit_function_return_type(function_proto->return_type);
   }
   if (function_proto->type_params) {
+    /* TODO
     DList* li = function_proto->type_params;
     while (li) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
+    */
   }
   if (function_proto->params) {
+    /* TODO
     DList* li = function_proto->params;
     while (li) {
       Ast* param = li->object;
       visit_param(param);
       li = li->next;
     }
+    */
   }
   Ast_BlockStmt* function_body = (Ast_BlockStmt*)function_decl->stmt;
   if (function_body) {
     if (function_body->stmt_list) {
+      /*
       DList* li = function_body->stmt_list;
       while (li) {
         Ast* stmt = li->object;
         visit_statement(stmt);
         li = li->next;
       }
+      */
     }
   }
   current_scope = pop_scope();
@@ -1029,6 +1062,7 @@ visit_match_kind(Ast* ast)
   Ast_MatchKind* decl = (Ast_MatchKind*)ast;
   assert(current_scope->scope_level == 1);
   if (decl->id_list) {
+    /*
     DList* li = decl->id_list;
     while (li) {
       Ast* id = li->object;
@@ -1040,6 +1074,7 @@ visit_match_kind(Ast* ast)
       else assert(0);
       li = li->next;
     }
+    */
   }
 }
 
@@ -1050,6 +1085,7 @@ visit_error(Ast* ast)
   Ast_Error* decl = (Ast_Error*)ast;
   current_scope = push_scope();
   if (decl->id_list) {
+    /*
     DList* li = decl->id_list;
     while (li) {
       Ast* id = li->object;
@@ -1059,6 +1095,7 @@ visit_error(Ast* ast)
       else assert(0);
       li = li->next;
     }
+    */
   }
   current_scope = pop_scope();
 }
@@ -1069,6 +1106,7 @@ visit_p4program(Ast* ast)
   assert(ast->kind == AST_P4PROGRAM);
   Ast_P4Program* program = (Ast_P4Program*)ast;
   current_scope = push_scope();
+  /*
   DList* li = program->decl_list;
   while (li) {
     Ast* decl = li->object;
@@ -1108,6 +1146,7 @@ visit_p4program(Ast* ast)
     else assert(0);
     li = li->next;
   }
+  */
   current_scope = pop_scope();
 }
 

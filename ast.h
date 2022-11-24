@@ -147,8 +147,9 @@ enum AstEnum {
   AST_ARGUMENT,
   AST_VAR,
   AST_PARAM,
+  AST_ELEM_LIST,
   AST_ASSIGNMENT_STMT,
-  AST_EMPTY_STMT,
+  AST_EMPTY_ELEMENT,
   AST_DEFAULT_STMT,
   AST_SELECT_CASE,
   AST_PARSER_STATE,
@@ -215,9 +216,14 @@ typedef struct Ast {
   int line_no;
 } Ast;
 
+typedef struct Ast_ElementList {
+  Ast;
+  DList head;
+} Ast_ElementList;
+
 typedef struct Ast_Expression {
   Ast;
-  DList* type_args;
+  Ast* type_args;
 } Ast_Expression;
 
 typedef struct Ast_Name {
@@ -273,8 +279,8 @@ typedef struct Ast_Const {
 typedef struct Ast_Extern {
   Ast;
   Ast* name;
-  DList* type_params;
-  DList* method_protos;
+  Ast* type_params;
+  Ast* method_protos;
 } Ast_Extern;
 
 typedef struct Ast_FunctionProto {
@@ -282,40 +288,40 @@ typedef struct Ast_FunctionProto {
   bool is_extern;
   Ast* return_type;
   Ast* name;
-  DList* type_params;
-  DList* params;
+  Ast* type_params;
+  Ast* params;
 } Ast_FunctionProto;
 
 typedef struct Ast_Action {
   Ast;
   Ast* name;
-  DList* params;
+  Ast* params;
   Ast* stmt;
 } Ast_Action;
 
 typedef struct Ast_Header {
   Ast;
   Ast* name;
-  DList* fields;
+  Ast* fields;
 } Ast_Header;
 
 typedef struct Ast_HeaderUnion {
   Ast;
   Ast* name;
-  DList* fields;
+  Ast* fields;
 } Ast_HeaderUnion;
 
 typedef struct Ast_Struct {
   Ast;
   Ast* name;
-  DList* fields;
+  Ast* fields;
 } Ast_Struct;
 
 typedef struct Ast_Enum {
   Ast;
   Ast* name;
   Ast* type_size;
-  DList* id_list;
+  Ast* id_list;
 } Ast_Enum;
 
 typedef struct Ast_Type {
@@ -328,41 +334,41 @@ typedef struct Ast_Type {
 typedef struct Ast_Parser {
   Ast;
   Ast* type_decl;
-  DList* ctor_params;
-  DList* local_elements;
-  DList* states;
+  Ast* ctor_params;
+  Ast* local_elements;
+  Ast* states;
 } Ast_Parser;
 
 typedef struct Ast_Control {
   Ast;
   Ast* type_decl;
-  DList* ctor_params;
-  DList* local_decls;
+  Ast* ctor_params;
+  Ast* local_decls;
   Ast* apply_stmt;
 } Ast_Control;
 
 typedef struct Ast_Package {
   Ast;
   Ast* name;
-  DList* type_params;
-  DList* params;
+  Ast* type_params;
+  Ast* params;
 } Ast_Package;
 
 typedef struct Ast_Instantiation {
   Ast;
   Ast* name;
   Ast* type_ref;
-  DList* args;
+  Ast* args;
 } Ast_Instantiation;
 
 typedef struct Ast_Error {
   Ast;
-  DList* id_list;
+  Ast* id_list;
 } Ast_Error;
 
 typedef struct Ast_MatchKind {
   Ast;
-  DList* id_list;
+  Ast* id_list;
 } Ast_MatchKind;
 
 typedef struct Ast_Function {
@@ -370,10 +376,6 @@ typedef struct Ast_Function {
   Ast* proto;
   Ast* stmt;
 } Ast_Function;
-
-typedef struct Ast_Dontcare {
-  Ast;
-} Ast_Dontcare;
 
 typedef struct Ast_IntTypeSize {
   Ast;
@@ -399,12 +401,12 @@ typedef struct Ast_StringLiteral {
 
 typedef struct Ast_Tuple {
   Ast;
-  DList* type_args;
+  Ast* type_args;
 } Ast_Tuple;
 
 typedef struct Ast_TupleKeyset {
   Ast;
-  DList* expr_list;
+  Ast* expr_list;
 } Ast_TupleKeyset;
 
 typedef struct Ast_HeaderStack {
@@ -416,7 +418,7 @@ typedef struct Ast_HeaderStack {
 typedef struct Ast_SpecializedType {
   Ast;
   Ast* name;
-  DList* type_args;
+  Ast* type_args;
 } Ast_SpecializedType;
 
 typedef struct Ast_SpecifiedIdent {
@@ -434,8 +436,8 @@ typedef struct Ast_StructField {
 typedef struct Ast_ParserProto {
   Ast;
   Ast* name;
-  DList* type_params;
-  DList* params;
+  Ast* type_params;
+  Ast* params;
 } Ast_ParserProto;
 
 typedef struct Ast_Argument {
@@ -465,10 +467,6 @@ typedef struct Ast_AssignmentStmt {
   Ast* expr;
 } Ast_AssignmentStmt;
 
-typedef struct Ast_DefaultStmt {
-  Ast;
-} Ast_DefaultStmt;
-
 typedef struct Ast_SelectCase {
   Ast;
   Ast* name;
@@ -478,15 +476,15 @@ typedef struct Ast_SelectCase {
 typedef struct Ast_ParserState {
   Ast;
   Ast* name;
-  DList* stmt_list;
+  Ast* stmt_list;
   Ast* trans_stmt;
 } Ast_ParserState;
 
 typedef struct Ast_ControlProto {
   Ast;
   Ast* name;
-  DList* type_params;
-  DList* params;
+  Ast* type_params;
+  Ast* params;
 } Ast_ControlProto;
 
 typedef struct Ast_KeyElement {
@@ -498,7 +496,7 @@ typedef struct Ast_KeyElement {
 typedef struct Ast_ActionRef {
   Ast;
   Ast* name;
-  DList* args;
+  Ast* args;
 } Ast_ActionRef;
 
 typedef struct Ast_TableEntry {
@@ -509,18 +507,18 @@ typedef struct Ast_TableEntry {
 
 typedef struct Ast_TableKey {
   Ast;
-  DList* keyelem_list;
+  Ast* keyelem_list;
 } Ast_TableKey;
 
 typedef struct Ast_TableActions {
   Ast;
-  DList* action_list;
+  Ast* action_list;
 } Ast_TableActions;
 
 typedef struct Ast_TableEntries {
   Ast;
   bool is_const;
-  DList* entries;
+  Ast* entries;
 } Ast_TableEntries;
 
 typedef struct Ast_TableSingleEntry {
@@ -532,7 +530,7 @@ typedef struct Ast_TableSingleEntry {
 typedef struct Ast_Table {
   Ast;
   Ast* name;
-  DList* prop_list;
+  Ast* prop_list;
 } Ast_Table;
 
 typedef struct Ast_IfStmt {
@@ -541,10 +539,6 @@ typedef struct Ast_IfStmt {
   Ast* stmt;
   Ast* else_stmt;
 } Ast_IfStmt;
-
-typedef struct Ast_ExitStmt {
-  Ast;
-} Ast_ExitStmt;
 
 typedef struct Ast_ReturnStmt {
   Ast;
@@ -560,12 +554,12 @@ typedef struct Ast_SwitchCase {
 typedef struct Ast_SwitchStmt {
   Ast;
   Ast* expr;
-  DList* switch_cases;
+  Ast* switch_cases;
 } Ast_SwitchStmt;
 
 typedef struct Ast_BlockStmt {
   Ast;
-  DList* stmt_list;
+  Ast* stmt_list;
 } Ast_BlockStmt;
 
 typedef struct Ast_KVPair {
@@ -576,19 +570,19 @@ typedef struct Ast_KVPair {
 
 typedef struct Ast_P4Program {
   Ast;
-  DList* decl_list;
+  Ast* decl_list;
   int last_node_id;
 } Ast_P4Program;
 
 typedef struct Ast_SelectExpr {
   Ast_Expression;
-  DList* expr_list;
-  DList* case_list;
+  Ast* expr_list;
+  Ast* case_list;
 } Ast_SelectExpr;
 
 typedef struct Ast_ExprList {
   Ast_Expression;
-  DList* expr_list;
+  Ast* expr_list;
 } Ast_ExprList;
 
 typedef struct Ast_CastExpr {
@@ -625,7 +619,7 @@ typedef struct Ast_Subscript {
 typedef struct Ast_FunctionCall {
   Ast_Expression;
   Ast* callee_expr;
-  DList* args;
+  Ast* args;
 } Ast_FunctionCall;
 
 enum Namespace {
