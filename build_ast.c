@@ -2001,6 +2001,7 @@ build_parserDeclaration()
     decl->type_decl = build_parserTypeDeclaration();
     if (token->klass == TK_SEMICOLON) {
       next_token(); /* <parserTypeDeclaration> */
+      return decl->type_decl;
     } else {
       decl->ctor_params = build_optConstructorParameters();
       if (token->klass == TK_BRACE_OPEN) {
@@ -2400,6 +2401,7 @@ build_controlDeclaration()
     decl->type_decl = build_controlTypeDeclaration();
     if (token->klass == TK_SEMICOLON) {
       next_token(); /* <controlTypeDeclaration> */
+      return decl->type_decl;
     } else {
       decl->ctor_params = build_optConstructorParameters();
       if (token->klass == TK_BRACE_OPEN) {

@@ -448,10 +448,41 @@ visit_block_statement(Ast* ast)
 }
 
 internal void
+visit_control_proto(Ast* ast)
+{
+  assert(ast->kind == AST_CONTROL_PROTO);
+  Ast_ControlProto* type_decl = (Ast_ControlProto*)ast;
+  Ast_Name* name = (Ast_Name*)type_decl->name;
+  NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
+  decl->ast = ast;
+  decl->strname = name->strname;
+  decl->line_no = name->line_no;
+  declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
+  current_scope = push_scope();
+  DList* li;
+  Ast_ElementList* type_params = (Ast_ElementList*)type_decl->type_params;
+  li = type_params->head.next;
+  while (li) {
+    Ast* type_param = li->object;
+    visit_type_param(type_param);
+    li = li->next;
+  }
+  Ast_ElementList* params = (Ast_ElementList*)type_decl->params;
+  li = params->head.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
+  current_scope = pop_scope();
+}
+
+internal void
 visit_control(Ast* ast)
 {
   assert(ast->kind == AST_CONTROL);
   Ast_Control* control_decl = (Ast_Control*)ast;
+  assert(control_decl->local_decls);
   Ast_ControlProto* type_decl = (Ast_ControlProto*)control_decl->type_decl;
   Ast_Name* name = (Ast_Name*)type_decl->name;
   NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
@@ -475,24 +506,22 @@ visit_control(Ast* ast)
     visit_param(param);
     li = li->next;
   }
-  if (control_decl->local_decls) {
-    Ast_ElementList* ctor_params = (Ast_ElementList*)control_decl->ctor_params;
-    li = ctor_params->head.next;
-    while (li) {
-      Ast* param = li->object;
-      visit_param(param);
-      li = li->next;
-    }
-    Ast_ElementList* local_decls = (Ast_ElementList*)control_decl->local_decls;
-    li = local_decls->head.next;
-    while (li) {
-      Ast* decl = li->object;
-      visit_statement(decl);
-      li = li->next;
-    }
-    if (control_decl->apply_stmt) {
-      visit_block_statement(control_decl->apply_stmt);
-    }
+  Ast_ElementList* ctor_params = (Ast_ElementList*)control_decl->ctor_params;
+  li = ctor_params->head.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
+  Ast_ElementList* local_decls = (Ast_ElementList*)control_decl->local_decls;
+  li = local_decls->head.next;
+  while (li) {
+    Ast* decl = li->object;
+    visit_statement(decl);
+    li = li->next;
+  }
+  if (control_decl->apply_stmt) {
+    visit_block_statement(control_decl->apply_stmt);
   }
   current_scope = pop_scope();
 }
@@ -571,10 +600,41 @@ visit_parser_state(Ast* ast)
 }
 
 internal void
+visit_parser_proto(Ast* ast)
+{
+  assert(ast->kind == AST_PARSER_PROTO);
+  Ast_ParserProto* type_decl = (Ast_ParserProto*)ast;
+  Ast_Name* name = (Ast_Name*)type_decl->name;
+  NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
+  decl->ast = ast;
+  decl->strname = name->strname;
+  decl->line_no = name->line_no;
+  declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
+  current_scope = push_scope();
+  DList* li;
+  Ast_ElementList* type_params = (Ast_ElementList*)type_decl->type_params;
+  li = type_params->head.next;
+  while (li) {
+    Ast* type_param = li->object;
+    visit_type_param(type_param);
+    li = li->next;
+  }
+  Ast_ElementList* params = (Ast_ElementList*)type_decl->params;
+  li = params->head.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
+  current_scope = pop_scope();
+}
+
+internal void
 visit_parser(Ast* ast)
 {
   assert(ast->kind == AST_PARSER);
   Ast_Parser* parser_decl = (Ast_Parser*)ast;
+  assert(parser_decl->local_elements);
   Ast_ParserProto* type_decl = (Ast_ParserProto*)parser_decl->type_decl;
   Ast_Name* name = (Ast_Name*)type_decl->name;
   NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
@@ -598,28 +658,26 @@ visit_parser(Ast* ast)
     visit_param(param);
     li = li->next;
   }
-  if (parser_decl->local_elements) {
-    Ast_ElementList* ctor_params = (Ast_ElementList*)parser_decl->ctor_params;
-    li = ctor_params->head.next;
-    while (li) {
-      Ast* param = li->object;
-      visit_param(param);
-      li = li->next;
-    }
-    Ast_ElementList* local_elements = (Ast_ElementList*)parser_decl->local_elements;
-    li = local_elements->head.next;
-    while (li) {
-      Ast* element = li->object;
-      visit_local_parser_element(element);
-      li = li->next;
-    }
-    Ast_ElementList* states = (Ast_ElementList*)parser_decl->states;
-    li = states->head.next;
-    while (li) {
-      Ast* state = li->object;
-      visit_parser_state(state);
-      li = li->next;
-    }
+  Ast_ElementList* ctor_params = (Ast_ElementList*)parser_decl->ctor_params;
+  li = ctor_params->head.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
+  Ast_ElementList* local_elements = (Ast_ElementList*)parser_decl->local_elements;
+  li = local_elements->head.next;
+  while (li) {
+    Ast* element = li->object;
+    visit_local_parser_element(element);
+    li = li->next;
+  }
+  Ast_ElementList* states = (Ast_ElementList*)parser_decl->states;
+  li = states->head.next;
+  while (li) {
+    Ast* state = li->object;
+    visit_parser_state(state);
+    li = li->next;
   }
   current_scope = pop_scope();
 }
@@ -673,6 +731,50 @@ visit_function_proto(Ast* ast)
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
+  }
+  current_scope = pop_scope();
+}
+  
+internal void
+visit_function(Ast* ast)
+{
+  assert(ast->kind == AST_FUNCTION);
+  Ast_Function* function_decl = (Ast_Function*)ast;
+  Ast_FunctionProto* function_proto = (Ast_FunctionProto*)function_decl->proto;
+  Ast_Name* name = (Ast_Name*)function_proto->name;
+  NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
+  decl->ast = ast;
+  decl->strname = name->strname;
+  decl->line_no = name->line_no;
+  declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
+  current_scope = push_scope();
+  if (function_proto->return_type) {
+    visit_function_return_type(function_proto->return_type);
+  }
+  DList* li;
+  Ast_ElementList* type_params = (Ast_ElementList*)function_proto->type_params;
+  li = type_params->head.next;
+  while (li) {
+    Ast* type_param = li->object;
+    visit_type_param(type_param);
+    li = li->next;
+  }
+  Ast_ElementList* params = (Ast_ElementList*)function_proto->params;
+  li = params->head.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
+  Ast_BlockStmt* function_body = (Ast_BlockStmt*)function_decl->stmt;
+  if (function_body) {
+    Ast_ElementList* stmt_list = (Ast_ElementList*)function_body->stmt_list;
+    DList* li = stmt_list->head.next;
+    while (li) {
+      Ast* stmt = li->object;
+      visit_statement(stmt);
+      li = li->next;
+    }
   }
   current_scope = pop_scope();
 }
@@ -962,50 +1064,6 @@ visit_type(Ast* ast)
 }
 
 internal void
-visit_function(Ast* ast)
-{
-  assert(ast->kind == AST_FUNCTION);
-  Ast_Function* function_decl = (Ast_Function*)ast;
-  Ast_FunctionProto* function_proto = (Ast_FunctionProto*)function_decl->proto;
-  Ast_Name* name = (Ast_Name*)function_proto->name;
-  NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
-  decl->ast = ast;
-  decl->strname = name->strname;
-  decl->line_no = name->line_no;
-  declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
-  current_scope = push_scope();
-  if (function_proto->return_type) {
-    visit_function_return_type(function_proto->return_type);
-  }
-  DList* li;
-  Ast_ElementList* type_params = (Ast_ElementList*)function_proto->type_params;
-  li = type_params->head.next;
-  while (li) {
-    Ast* type_param = li->object;
-    visit_type_param(type_param);
-    li = li->next;
-  }
-  Ast_ElementList* params = (Ast_ElementList*)function_proto->params;
-  li = params->head.next;
-  while (li) {
-    Ast* param = li->object;
-    visit_param(param);
-    li = li->next;
-  }
-  Ast_BlockStmt* function_body = (Ast_BlockStmt*)function_decl->stmt;
-  if (function_body) {
-    Ast_ElementList* stmt_list = (Ast_ElementList*)function_body->stmt_list;
-    DList* li = stmt_list->head.next;
-    while (li) {
-      Ast* stmt = li->object;
-      visit_statement(stmt);
-      li = li->next;
-    }
-  }
-  current_scope = pop_scope();
-}
-
-internal void
 visit_match_kind(Ast* ast)
 {
   assert(ast->kind == AST_MATCH_KIND);
@@ -1056,6 +1114,8 @@ visit_p4program(Ast* ast)
     Ast* decl = li->object;
     if (decl->kind == AST_CONTROL) {
       visit_control(decl);
+    } else if (decl->kind == AST_CONTROL_PROTO) {
+      visit_control_proto(decl);
     } else if (decl->kind == AST_EXTERN) {
       visit_extern(decl);
     } else if (decl->kind == AST_STRUCT) {
@@ -1068,18 +1128,20 @@ visit_p4program(Ast* ast)
       visit_package(decl);
     } else if (decl->kind == AST_PARSER) {
       visit_parser(decl);
+    } else if (decl->kind == AST_PARSER_PROTO) {
+      visit_parser_proto(decl);
     } else if (decl->kind == AST_INSTANTIATION) {
       visit_instantiation(decl);
     } else if (decl->kind == AST_TYPE) {
       visit_type(decl);
+    } else if (decl->kind == AST_FUNCTION) {
+      visit_function(decl);
     } else if (decl->kind == AST_FUNCTION_PROTO) {
       visit_function_proto(decl);
     } else if (decl->kind == AST_CONST) {
       visit_const(decl);
     } else if (decl->kind == AST_ENUM) {
       visit_enum(decl);
-    } else if (decl->kind == AST_FUNCTION) {
-      visit_function(decl);
     } else if (decl->kind == AST_ACTION) {
       visit_action(decl);
     } else if (decl->kind == AST_MATCH_KIND) {
