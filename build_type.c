@@ -1206,8 +1206,8 @@ visit_expression(Ast* ast)
   } else if (ast->kind == AST_SUBSCRIPT) {
     Ast_Subscript* expr = (Ast_Subscript*)ast;
     visit_expression(expr->index);
-    if (expr->after_colon) {
-      visit_expression(expr->after_colon);
+    if (expr->end_index) {
+      visit_expression(expr->end_index);
     }
   } else if (ast->kind == AST_KVPAIR) {
     Ast_KVPair* expr = (Ast_KVPair*)ast;

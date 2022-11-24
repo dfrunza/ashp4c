@@ -613,7 +613,7 @@ typedef struct Ast_MemberSelect {
 typedef struct Ast_Subscript {
   Ast_Expression;
   Ast* index;
-  Ast* after_colon;
+  Ast* end_index;
 } Ast_Subscript;
 
 typedef struct Ast_FunctionCall {

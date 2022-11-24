@@ -289,7 +289,9 @@ build_optTypeParameters()
         next_token();
       } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
       return params;
-    } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
+    } else if (token->klass == TK_ANGLE_CLOSE) {
+      next_token();
+    } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
   }
   Ast_ElementList* params = arena_push_struct(ast_storage, Ast_ElementList);
   params->kind = AST_ELEM_LIST;
@@ -470,6 +472,7 @@ build_methodPrototype()
       proto->id = node_id++;
       proto->line_no = token->line_no;
       proto->name = build_name(false);
+      proto->type_params = build_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
         proto->params = build_parameterList();
@@ -740,6 +743,29 @@ build_typeArgumentList()
 }
 
 internal Ast*
+build_optTypeArguments()
+{
+  if (token->klass == TK_ANGLE_OPEN) {
+    next_token();
+    if (token_is_typeArg(token)) {
+      Ast* args = build_typeArgumentList();
+      if (token->klass == TK_ANGLE_CLOSE) {
+        next_token();
+      } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
+      return args;
+    } else if (token->klass == TK_ANGLE_CLOSE) {
+      next_token();
+    } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
+  }
+  Ast_ElementList* args = arena_push_struct(ast_storage, Ast_ElementList);
+  args->kind = AST_ELEM_LIST;
+  args->id = node_id++;
+  args->line_no = token->line_no;
+  args->head.next = 0;
+  return (Ast*)args;
+}
+
+internal Ast*
 build_tupleType()
 {
   Ast_Tuple* tuple = 0;
@@ -775,7 +801,7 @@ build_headerStackType()
       if (token->klass == TK_BRACKET_CLOSE) {
         next_token();
       } else error("at line %d: `]` was expected, got `%s`.", token->line_no, token->lexeme);
-    } else error("at line %d: an expression expected, got `%s`.", token->line_no, token->lexeme);
+    } else error("at line %d: expression expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `[` was expected, got `%s`.", token->line_no, token->lexeme);
   return (Ast*)stack;
 }
@@ -1014,7 +1040,7 @@ build_specifiedIdentifier()
       next_token();
       if (token_is_expression(token)) {
         id->init_expr = build_initializer();
-      } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
+      } else error("at line %d: expression was expected, got `%s`.", token->line_no, token->lexeme);
     }
   } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
   return (Ast*)id;
@@ -1130,11 +1156,15 @@ build_optConstructorParameters()
 {
   if (token->klass == TK_PARENTH_OPEN) {
     next_token();
-    Ast* params = build_parameterList();
-    if (token->klass == TK_PARENTH_CLOSE) {
+    if (token_is_parameter(token)) {
+      Ast* params = build_parameterList();
+      if (token->klass == TK_PARENTH_CLOSE) {
+        next_token();
+      } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
+      return params;
+    } else if (token->klass == TK_PARENTH_CLOSE) {
       next_token();
     } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
-    return params;
   }
   Ast_ElementList* params = arena_push_struct(ast_storage, Ast_ElementList);
   params->kind = AST_ELEM_LIST;
@@ -1165,7 +1195,7 @@ build_constantDeclaration()
             if (token->klass == TK_SEMICOLON) {
               next_token();
             } else error("at line %d: `;` expected, got `%s`.", token->line_no, token->lexeme);
-          } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
+          } else error("at line %d: expression was expected, got `%s`.", token->line_no, token->lexeme);
         } else error("at line %d: `=` was expected, got `%s`.", token->line_no, token->lexeme);
       } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: type was expected, got `%s`.", token->line_no, token->lexeme);
@@ -1282,7 +1312,7 @@ build_argument()
         next_token();
         if (token_is_expression(token)) {
           name_arg->init_expr = build_expression(1);
-        } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
+        } else error("at line %d: expression was expected, got `%s`.", token->line_no, token->lexeme);
       } else error("at line %d: `=` was expected, got `%s`.", token->line_no, token->lexeme);
     } else if (token->klass == TK_DONTCARE) {
       Ast* dontcare_arg = arena_push_struct(ast_storage, Ast);
@@ -1317,6 +1347,29 @@ build_argumentList()
       last = li;
     }
   }
+  return (Ast*)args;
+}
+
+internal Ast*
+build_optArguments()
+{
+  if (token->klass == TK_PARENTH_OPEN) {
+    next_token();
+    if (token_is_argument(token)) {
+      Ast* args = build_argumentList();
+      if (token->klass == TK_PARENTH_CLOSE) {
+        next_token();
+      } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
+      return args;
+    } else if (token->klass == TK_PARENTH_CLOSE) {
+      next_token();
+    } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
+  }
+  Ast_ElementList* args = arena_push_struct(ast_storage, Ast_ElementList);
+  args->kind = AST_ELEM_LIST;
+  args->id = node_id++;
+  args->line_no = token->line_no;
+  args->head.next = 0;
   return (Ast*)args;
 }
 
@@ -1431,6 +1484,12 @@ build_directApplication(Ast* type_name)
     apply_name->strname = "apply";
     apply_select->member_name = (Ast*)apply_name;
     apply_expr->callee_expr = (Ast*)apply_select;
+    Ast_ElementList* type_args = arena_push_struct(ast_storage, Ast_ElementList);
+    type_args->kind = AST_ELEM_LIST;
+    type_args->id = node_id++;
+    type_args->line_no = token->line_no;
+    type_args->head.next = 0;
+    apply_expr->type_args = (Ast*)type_args;
     if (token->klass == TK_DOTPREFIX) {
       next_token();
       if (token->klass == TK_APPLY) {
@@ -1476,12 +1535,12 @@ build_arraySubscript()
   subscript_expr->line_no = token->line_no;
   if (token_is_expression(token)) {
     subscript_expr->index = build_expression(1);
-  } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
+  } else error("at line %d: expression was expected, got `%s`.", token->line_no, token->lexeme);
   if (token->klass == TK_COLON) {
     next_token();
     if (token_is_expression(token)) {
-      subscript_expr->after_colon = build_expression(1);
-    } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
+      subscript_expr->end_index = build_expression(1);
+    } else error("at line %d: expression was expected, got `%s`.", token->line_no, token->lexeme);
   }
   return (Ast*)subscript_expr;
 }
@@ -1532,7 +1591,7 @@ build_lvalue()
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;
         subscript_expr->index = lvalue;
-        subscript_expr->after_colon = build_arraySubscript();
+        subscript_expr->end_index = build_arraySubscript();
         lvalue = (Ast*)subscript_expr;
         if (token->klass == TK_BRACKET_CLOSE) {
           next_token();
@@ -1546,31 +1605,35 @@ build_lvalue()
 internal Ast*
 build_assignmentOrMethodCallStatement()
 {
-  Ast* stmt = 0;
   if (token_is_lvalue(token)) {
     Ast* lvalue = build_lvalue();
-    Ast* type_args = 0;
-    stmt = lvalue;
+    Ast_ElementList* type_args = 0;
     if (token->klass == TK_ANGLE_OPEN) {
-      next_token();
-      type_args = build_typeArgumentList();
-      if (token->klass == TK_ANGLE_CLOSE) {
-        next_token();
-      } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
+      type_args = (Ast_ElementList*)build_optTypeArguments();
     }
     if (token->klass == TK_PARENTH_OPEN) {
+      if (!type_args) {
+        type_args = arena_push_struct(ast_storage, Ast_ElementList);
+        type_args->kind = AST_ELEM_LIST;
+        type_args->id = node_id++;
+        type_args->line_no = token->line_no;
+        type_args->head.next = 0;
+      }
       next_token();
       Ast_FunctionCall* call_stmt = arena_push_struct(ast_storage, Ast_FunctionCall);
       call_stmt->kind = AST_FUNCTION_CALL;
       call_stmt->id = node_id++;
       call_stmt->line_no = token->line_no;
       call_stmt->callee_expr = lvalue;
-      call_stmt->type_args = type_args;
+      call_stmt->type_args = (Ast*)type_args;
       call_stmt->args = build_argumentList();
-      stmt = (Ast*)call_stmt;
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
       } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
+      if (token->klass == TK_SEMICOLON) {
+        next_token();
+      } else error("at line %d: `;` expected, got `%s`.", token->line_no, token->lexeme);
+      return (Ast*)call_stmt;
     } else if (token->klass == TK_EQUAL) {
       next_token();
       Ast_AssignmentStmt* assign_stmt = arena_push_struct(ast_storage, Ast_AssignmentStmt);
@@ -1579,12 +1642,16 @@ build_assignmentOrMethodCallStatement()
       assign_stmt->line_no = token->line_no;
       assign_stmt->lvalue = lvalue;
       assign_stmt->expr = build_expression(1);
-      stmt = (Ast*)assign_stmt;
+      if (token->klass == TK_SEMICOLON) {
+        next_token();
+      } else error("at line %d: `;` expected, got `%s`.", token->line_no, token->lexeme);
+      return (Ast*)assign_stmt;
     } else error("at line %d: assignment or function call was expected, got `%s`.", token->line_no, token->lexeme);
-    if (token->klass == TK_SEMICOLON) {
-      next_token();
-    } else error("at line %d: `;` expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: lvalue was expected, got `%s`.", token->line_no, token->lexeme);
+  Ast* stmt = arena_push_struct(ast_storage, Ast);
+  stmt->kind = AST_EMPTY_ELEMENT;
+  stmt->id = node_id++;
+  stmt->line_no = token->line_no;
   return stmt;
 }
 
@@ -1999,7 +2066,7 @@ build_keyElement()
         next_token();
       } else error("at line %d: `;` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `:` was expected, got `%s`.", token->line_no, token->lexeme);
-  } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
+  } else error("at line %d: expression was expected, got `%s`.", token->line_no, token->lexeme);
   return (Ast*)key_elem;
 }
 
@@ -2036,13 +2103,7 @@ build_actionRef()
     ref->id = node_id++;
     ref->line_no = token->line_no;
     ref->name = build_prefixedNonTypeName();
-    if (token->klass == TK_PARENTH_OPEN) {
-      next_token();
-      ref->args = build_argumentList();
-      if (token->klass == TK_PARENTH_CLOSE) {
-        next_token();
-      } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
-    }
+    ref->args = build_optArguments();
   } else error("at line %d: non-type name was expected, got `%s`.", token->line_no, token->lexeme);
   return (Ast*)ref;
 }
@@ -2436,7 +2497,7 @@ build_conditionalStatement()
             }
           } else error("at line %d: statement was expected, got `%s`.", token->line_no, token->lexeme);
         } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
-      } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
+      } else error("at line %d: expression was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: `(` was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: `if` was expected, got `%s`.", token->line_no, token->lexeme);
   return (Ast*)if_stmt;
@@ -2793,7 +2854,7 @@ build_declarationList()
     li->object = build_declaration();
     while (token_is_declaration(token) || token->klass == TK_SEMICOLON) {
       if (token_is_declaration(token)) {
-        DList* li = arena_push_struct(ast_storage, DList);
+        li = arena_push_struct(ast_storage, DList);
         li->object = build_declaration();
         dlist_concat(last, li);
         last = li;
@@ -2947,7 +3008,7 @@ build_expressionPrimary()
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
-      } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
+      } else error("at line %d: expression was expected, got `%s`.", token->line_no, token->lexeme);
     } else if (token->klass == TK_EXCLAMATION) {
       next_token();
       Ast_UnaryExpr* unary_expr = arena_push_struct(ast_storage, Ast_UnaryExpr);
@@ -2986,7 +3047,7 @@ build_expressionPrimary()
       primary = (Ast*)name;
       next_token();
     } else assert(0);
-  } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
+  } else error("at line %d: expression was expected, got `%s`.", token->line_no, token->lexeme);
   return primary;
 }
 
@@ -3092,7 +3153,7 @@ build_expression(int priority_threshold)
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;
         subscript_expr->index = expr;
-        subscript_expr->after_colon = build_arraySubscript();
+        subscript_expr->end_index = build_arraySubscript();
         expr = (Ast*)subscript_expr;
         if (token->klass == TK_BRACKET_CLOSE) {
           next_token();
@@ -3105,6 +3166,7 @@ build_expression(int priority_threshold)
         call_expr->id = node_id++;
         call_expr->line_no = token->line_no;
         call_expr->callee_expr = expr;
+        call_expr->type_args = build_optTypeArguments();
         call_expr->args = build_argumentList();
         expr = (Ast*)call_expr;
         if (token->klass == TK_PARENTH_CLOSE) {
@@ -3142,7 +3204,7 @@ build_expression(int priority_threshold)
         } else break;
       } else assert(0);
     }
-  } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
+  } else error("at line %d: expression was expected, got `%s`.", token->line_no, token->lexeme);
   return expr;
 }
 

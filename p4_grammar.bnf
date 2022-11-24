@@ -159,7 +159,7 @@
 /*****  STATEMENTS  *****/
 
 <assignmentOrMethodCallStatement> := <lvalue> (
-  | { '<' <typeArgumentList> '>' } '(' <argumentList> ')' ';'
+    { '<' <typeArgumentList> '>' } '(' <argumentList> ')' ';'
   | '=' <expression> ';' )
 
 <emptyStatement> := ';'
