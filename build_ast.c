@@ -223,11 +223,8 @@ build_nonTypeName(bool is_type)
     next_token();
     return (Ast*)name;
   } else error("at line %d: non-type name was expected, got `%s`.", token->line_no, token->lexeme);
-  Ast* name = arena_push_struct(ast_storage, Ast);
-  name->kind = AST_EMPTY_ELEMENT;
-  name->id = node_id++;
-  name->line_no = token->line_no;
-  return name;
+  assert(0);
+  return 0;
 }
 
 internal Ast*
@@ -247,11 +244,8 @@ build_name(bool is_type)
       return (Ast*)type_name;
     } else assert(0);
   } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
-  Ast* name = arena_push_struct(ast_storage, Ast);
-  name->kind = AST_EMPTY_ELEMENT;
-  name->id = node_id++;
-  name->line_no = token->line_no;
-  return name;
+  assert(0);
+  return 0;
 }
 
 internal Ast*
@@ -320,11 +314,8 @@ build_typeArg()
       return arg;
     } else assert(0);
   } else error("at line %d: type argument was expected, got `%s`.", token->line_no, token->lexeme);
-  Ast* arg = arena_push_struct(ast_storage, Ast);
-  arg->kind = AST_EMPTY_ELEMENT;
-  arg->id = node_id++;
-  arg->line_no = token->line_no;
-  return arg;
+  assert(0);
+  return 0;
 }
 
 internal enum AstParamDirection
@@ -424,11 +415,8 @@ build_typeOrVoid(bool is_type)
       return (Ast*)name;
     } else assert(0);
   } else error("at line %d: type was expected, got `%s`.", token->line_no, token->lexeme);
-  Ast* type = arena_push_struct(ast_storage, Ast);
-  type->kind = AST_EMPTY_ELEMENT;
-  type->id = node_id++;
-  type->line_no = token->line_no;
-  return type;
+  assert(0);
+  return 0;
 }
 
 internal Ast*
@@ -739,29 +727,6 @@ build_typeArgumentList()
       last = li;
     }
   }
-  return (Ast*)args;
-}
-
-internal Ast*
-build_optTypeArguments()
-{
-  if (token->klass == TK_ANGLE_OPEN) {
-    next_token();
-    if (token_is_typeArg(token)) {
-      Ast* args = build_typeArgumentList();
-      if (token->klass == TK_ANGLE_CLOSE) {
-        next_token();
-      } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
-      return args;
-    } else if (token->klass == TK_ANGLE_CLOSE) {
-      next_token();
-    } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
-  }
-  Ast_ElementList* args = arena_push_struct(ast_storage, Ast_ElementList);
-  args->kind = AST_ELEM_LIST;
-  args->id = node_id++;
-  args->line_no = token->line_no;
-  args->head.next = 0;
   return (Ast*)args;
 }
 
@@ -1609,7 +1574,11 @@ build_assignmentOrMethodCallStatement()
     Ast* lvalue = build_lvalue();
     Ast_ElementList* type_args = 0;
     if (token->klass == TK_ANGLE_OPEN) {
-      type_args = (Ast_ElementList*)build_optTypeArguments();
+      next_token();
+      type_args = (Ast_ElementList*)build_typeArgumentList();
+      if (token->klass == TK_ANGLE_CLOSE) {
+        next_token();
+      } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
     }
     if (token->klass == TK_PARENTH_OPEN) {
       if (!type_args) {
@@ -1648,11 +1617,8 @@ build_assignmentOrMethodCallStatement()
       return (Ast*)assign_stmt;
     } else error("at line %d: assignment or function call was expected, got `%s`.", token->line_no, token->lexeme);
   } else error("at line %d: lvalue was expected, got `%s`.", token->line_no, token->lexeme);
-  Ast* stmt = arena_push_struct(ast_storage, Ast);
-  stmt->kind = AST_EMPTY_ELEMENT;
-  stmt->id = node_id++;
-  stmt->line_no = token->line_no;
-  return stmt;
+  assert(0);
+  return 0;
 }
 
 internal Ast*
@@ -3166,7 +3132,12 @@ build_expression(int priority_threshold)
         call_expr->id = node_id++;
         call_expr->line_no = token->line_no;
         call_expr->callee_expr = expr;
-        call_expr->type_args = build_optTypeArguments();
+        Ast_ElementList* type_args = arena_push_struct(ast_storage, Ast_ElementList);
+        type_args->kind = AST_ELEM_LIST;
+        type_args->id = node_id++;
+        type_args->line_no = token->line_no;
+        type_args->head.next = 0;
+        call_expr->type_args = (Ast*)type_args;
         call_expr->args = build_argumentList();
         expr = (Ast*)call_expr;
         if (token->klass == TK_PARENTH_CLOSE) {
