@@ -102,8 +102,8 @@ visit_expression(Ast* ast)
   } else if (ast->kind == AST_SUBSCRIPT) {
     Ast_Subscript* expr = (Ast_Subscript*)ast;
     visit_expression(expr->index);
-    if (expr->colon_index) {
-      visit_expression(expr->colon_index);
+    if (expr->after_colon) {
+      visit_expression(expr->after_colon);
     }
   } else if (ast->kind == AST_KVPAIR) {
     Ast_KVPair* expr = (Ast_KVPair*)ast;
@@ -815,11 +815,20 @@ visit_header_union(Ast* ast)
 internal void
 visit_type_ref(Ast* ast)
 {
-  if (ast->kind == AST_BOOL_TYPE || ast->kind == AST_ERROR_TYPE
-      || ast->kind == AST_INT_TYPE || ast->kind == AST_BIT_TYPE
-      || ast->kind == AST_VARBIT_TYPE || ast->kind == AST_STRING_TYPE
-      || ast->kind == AST_VOID_TYPE) {
-    visit_expression(((Ast_BasicType*)ast)->name);
+  if (ast->kind == AST_BOOL_TYPE) {
+    visit_expression(((Ast_BoolType*)ast)->name);
+  } else if (ast->kind == AST_INT_TYPE) {
+    visit_expression(((Ast_IntType*)ast)->name);
+  } else if (ast->kind == AST_BIT_TYPE) {
+    visit_expression(((Ast_BitType*)ast)->name);
+  } else if (ast->kind == AST_VARBIT_TYPE) {
+    visit_expression(((Ast_VarbitType*)ast)->name);
+  } else if (ast->kind == AST_STRING_TYPE) {
+    visit_expression(((Ast_StringType*)ast)->name);
+  } else if (ast->kind == AST_VOID_TYPE) {
+    visit_expression(((Ast_VoidType*)ast)->name);
+  } else if (ast->kind == AST_ERROR_TYPE) {
+    visit_expression(((Ast_ErrorType*)ast)->name);
   } else if (ast->kind == AST_HEADER_STACK) {
     Ast_HeaderStack* type_ref = (Ast_HeaderStack*)ast;
     visit_expression(type_ref->name);
@@ -1106,75 +1115,110 @@ Scope*
 build_symtable(Ast_P4Program* p4program, Arena* symtable_storage_,
                /*out*/Hashmap** nameref_map_)
 {
-  NameDecl*
-  declare_builtin_ident(Ast* ast, char* strname, enum Namespace ns)
-  {
-    NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
-    decl->strname = strname;
-    decl->ast = ast;
-    declare_name_in_scope(root_scope, ns, decl);
-    return decl;
-  }
-
   symtable_storage = symtable_storage_;
   scope_init(symtable_storage);
   hashmap_init(&nameref_map, HASHMAP_KEY_UINT32, 8, symtable_storage);
   root_scope = current_scope = push_scope();
 
-  Ast_VoidType* void_type = arena_push_struct(symtable_storage, Ast_VoidType);
-  void_type->kind = AST_VOID_TYPE;
-  void_type->id = ++p4program->last_node_id;
-  declare_builtin_ident((Ast*)void_type, "void", NAMESPACE_TYPE);
-
-  Ast_BoolType* bool_type = arena_push_struct(symtable_storage, Ast_BoolType);
-  bool_type->kind = AST_BOOL_TYPE;
-  bool_type->id = ++p4program->last_node_id;
-  declare_builtin_ident((Ast*)bool_type, "bool", NAMESPACE_TYPE);
-
-  Ast_IntType* int_type = arena_push_struct(symtable_storage, Ast_IntType);
-  int_type->kind = AST_INT_TYPE;
-  int_type->id = ++p4program->last_node_id;
-  declare_builtin_ident((Ast*)int_type, "int", NAMESPACE_TYPE);
-
-  Ast_BitType* bit_type = arena_push_struct(symtable_storage, Ast_BitType);
-  bit_type->kind = AST_BIT_TYPE;
-  bit_type->id = ++p4program->last_node_id;
-  declare_builtin_ident((Ast*)bit_type, "bit", NAMESPACE_TYPE);
-
-  Ast_VarbitType* varbit_type = arena_push_struct(symtable_storage, Ast_VarbitType);
-  varbit_type->kind = AST_VARBIT_TYPE;
-  varbit_type->id = ++p4program->last_node_id;
-  declare_builtin_ident((Ast*)varbit_type, "varbit", NAMESPACE_TYPE);
-
-  Ast_StringType* string_type = arena_push_struct(symtable_storage, Ast_StringType);
-  string_type->kind = AST_STRING_TYPE;
-  string_type->id = ++p4program->last_node_id;
-  declare_builtin_ident((Ast*)string_type, "string", NAMESPACE_TYPE);
-
-  Ast_ErrorType* error_type = arena_push_struct(symtable_storage, Ast_ErrorType);
-  error_type->kind = AST_ERROR_TYPE;
-  error_type->id = ++p4program->last_node_id;
-  declare_builtin_ident((Ast*)error_type, "error", NAMESPACE_TYPE);
-
-  Ast_MatchKind* mk_type = arena_push_struct(symtable_storage, Ast_MatchKind);
-  mk_type->kind = AST_MATCH_KIND;
-  mk_type->id = ++p4program->last_node_id;
-  declare_builtin_ident((Ast*)mk_type, "match_kind", NAMESPACE_TYPE);
-
-  Ast_ParserState* accept_state = arena_push_struct(symtable_storage, Ast_ParserState);
-  accept_state->kind = AST_PARSER_STATE;
-  accept_state->id = ++p4program->last_node_id;
-  declare_builtin_ident((Ast*)accept_state, "accept", NAMESPACE_VAR);
-
-  Ast_ParserState* reject_state = arena_push_struct(symtable_storage, Ast_ParserState);
-  reject_state->kind = AST_PARSER_STATE;
-  reject_state->id = ++p4program->last_node_id;
-  declare_builtin_ident((Ast*)reject_state, "reject", NAMESPACE_VAR);
-
-  Ast_Error* error_var = arena_push_struct(symtable_storage, Ast_Error);
-  error_var->kind = AST_ERROR;
-  error_var->id = ++p4program->last_node_id;
-  declare_builtin_ident((Ast*)error_var, "error", NAMESPACE_VAR);
+  {
+    Ast_VoidType* void_type = arena_push_struct(symtable_storage, Ast_VoidType);
+    void_type->kind = AST_VOID_TYPE;
+    void_type->id = ++p4program->last_node_id;
+    NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
+    decl->strname = "void";
+    decl->ast = (Ast*)void_type;
+    declare_name_in_scope(root_scope, NAMESPACE_TYPE, decl);
+  }
+  {
+    Ast_BoolType* bool_type = arena_push_struct(symtable_storage, Ast_BoolType);
+    bool_type->kind = AST_BOOL_TYPE;
+    bool_type->id = ++p4program->last_node_id;
+    NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
+    decl->strname = "bool";
+    decl->ast = (Ast*)bool_type;
+    declare_name_in_scope(root_scope, NAMESPACE_TYPE, decl);
+  }
+  {
+    Ast_IntType* int_type = arena_push_struct(symtable_storage, Ast_IntType);
+    int_type->kind = AST_INT_TYPE;
+    int_type->id = ++p4program->last_node_id;
+    NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
+    decl->strname = "int";
+    decl->ast = (Ast*)int_type;
+    declare_name_in_scope(root_scope, NAMESPACE_TYPE, decl);
+  }
+  {
+    Ast_BitType* bit_type = arena_push_struct(symtable_storage, Ast_BitType);
+    bit_type->kind = AST_BIT_TYPE;
+    bit_type->id = ++p4program->last_node_id;
+    NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
+    decl->strname = "bit";
+    decl->ast = (Ast*)bit_type;
+    declare_name_in_scope(root_scope, NAMESPACE_TYPE, decl);
+  }
+  {
+    Ast_VarbitType* varbit_type = arena_push_struct(symtable_storage, Ast_VarbitType);
+    varbit_type->kind = AST_VARBIT_TYPE;
+    varbit_type->id = ++p4program->last_node_id;
+    NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
+    decl->strname = "varbit";
+    decl->ast = (Ast*)varbit_type;
+    declare_name_in_scope(root_scope, NAMESPACE_TYPE, decl);
+  }
+  {
+    Ast_StringType* string_type = arena_push_struct(symtable_storage, Ast_StringType);
+    string_type->kind = AST_STRING_TYPE;
+    string_type->id = ++p4program->last_node_id;
+    NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
+    decl->strname = "string";
+    decl->ast = (Ast*)string_type;
+    declare_name_in_scope(root_scope, NAMESPACE_TYPE, decl);
+  }
+  {
+    Ast_ErrorType* error_type = arena_push_struct(symtable_storage, Ast_ErrorType);
+    error_type->kind = AST_ERROR_TYPE;
+    error_type->id = ++p4program->last_node_id;
+    NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
+    decl->strname = "error";
+    decl->ast = (Ast*)error_type;
+    declare_name_in_scope(root_scope, NAMESPACE_TYPE, decl);
+  }
+  {
+    Ast_MatchKind* match_type = arena_push_struct(symtable_storage, Ast_MatchKind);
+    match_type->kind = AST_MATCH_KIND;
+    match_type->id = ++p4program->last_node_id;
+    NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
+    decl->strname = "match_kind";
+    decl->ast = (Ast*)match_type;
+    declare_name_in_scope(root_scope, NAMESPACE_TYPE, decl);
+  }
+  {
+    Ast_ParserState* accept_state = arena_push_struct(symtable_storage, Ast_ParserState);
+    accept_state->kind = AST_PARSER_STATE;
+    accept_state->id = ++p4program->last_node_id;
+    NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
+    decl->strname = "accept";
+    decl->ast = (Ast*)accept_state;
+    declare_name_in_scope(root_scope, NAMESPACE_VAR, decl);
+  }
+  {
+    Ast_ParserState* reject_state = arena_push_struct(symtable_storage, Ast_ParserState);
+    reject_state->kind = AST_PARSER_STATE;
+    reject_state->id = ++p4program->last_node_id;
+    NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
+    decl->strname = "reject";
+    decl->ast = (Ast*)reject_state;
+    declare_name_in_scope(root_scope, NAMESPACE_VAR, decl);
+  }
+  {
+    Ast_Error* error_var = arena_push_struct(symtable_storage, Ast_Error);
+    error_var->kind = AST_ERROR;
+    error_var->id = ++p4program->last_node_id;
+    NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
+    decl->strname = "error";
+    decl->ast = (Ast*)error_var;
+    declare_name_in_scope(root_scope, NAMESPACE_VAR, decl);
+  }
 
   visit_p4program((Ast*)p4program);
   current_scope = pop_scope();

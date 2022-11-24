@@ -1413,7 +1413,7 @@ build_arraySubscript()
   if (token->klass == TK_COLON) {
     next_token();
     if (token_is_expression(token)) {
-      subscript_expr->colon_index = build_expression(1);
+      subscript_expr->after_colon = build_expression(1);
     } else error("at line %d: an expression was expected, got `%s`.", token->line_no, token->lexeme);
   }
   return (Ast*)subscript_expr;
@@ -1465,7 +1465,7 @@ build_lvalue()
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;
         subscript_expr->index = lvalue;
-        subscript_expr->colon_index = build_arraySubscript();
+        subscript_expr->after_colon = build_arraySubscript();
         lvalue = (Ast*)subscript_expr;
         if (token->klass == TK_BRACKET_CLOSE) {
           next_token();
@@ -1575,7 +1575,7 @@ build_parserStatement()
   } else if (token->klass == TK_CONST) {
     stmt = build_constantDeclaration();
   } else if (token->klass == TK_SEMICOLON) {
-    stmt = (Ast*)arena_push_struct(ast_storage, Ast_EmptyStmt);
+    stmt = (Ast*)arena_push_struct(ast_storage, Ast);
     stmt->kind = AST_EMPTY_STMT;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
@@ -2441,7 +2441,7 @@ build_statement(Ast* type_name)
     stmt = build_conditionalStatement();
   } else if (token->klass == TK_SEMICOLON) {
     next_token();
-    stmt = (Ast*)arena_push_struct(ast_storage, Ast_EmptyStmt);
+    stmt = arena_push_struct(ast_storage, Ast);
     stmt->kind = AST_EMPTY_STMT;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
@@ -2928,7 +2928,7 @@ build_expression(int priority_threshold)
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;
         subscript_expr->index = expr;
-        subscript_expr->colon_index = build_arraySubscript();
+        subscript_expr->after_colon = build_arraySubscript();
         expr = (Ast*)subscript_expr;
         if (token->klass == TK_BRACKET_CLOSE) {
           next_token();

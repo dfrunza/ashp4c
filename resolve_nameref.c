@@ -85,12 +85,20 @@ visit_struct(Ast* ast)
 internal void
 visit_type_ref(Ast* ast)
 {
-  if (ast->kind == AST_BOOL_TYPE || ast->kind == AST_ERROR_TYPE
-      || ast->kind == AST_INT_TYPE || ast->kind == AST_BIT_TYPE
-      || ast->kind == AST_VARBIT_TYPE || ast->kind == AST_STRING_TYPE
-      || ast->kind == AST_VOID_TYPE) {
-    Ast_BasicType* base_type = (Ast_BasicType*)ast;
-    visit_type_ref(base_type->name);
+  if (ast->kind == AST_BOOL_TYPE) {
+    visit_type_ref(((Ast_BoolType*)ast)->name);
+  } else if (ast->kind == AST_INT_TYPE) {
+    visit_type_ref(((Ast_IntType*)ast)->name);
+  } else if (ast->kind == AST_BIT_TYPE) {
+    visit_type_ref(((Ast_BitType*)ast)->name);
+  } else if (ast->kind == AST_VARBIT_TYPE) {
+    visit_type_ref(((Ast_VarbitType*)ast)->name);
+  } else if (ast->kind == AST_STRING_TYPE) {
+    visit_type_ref(((Ast_StringType*)ast)->name);
+  } else if (ast->kind == AST_VOID_TYPE) {
+    visit_type_ref(((Ast_VoidType*)ast)->name);
+  } else if (ast->kind == AST_ERROR_TYPE) {
+    visit_type_ref(((Ast_ErrorType*)ast)->name);
   } else if (ast->kind == AST_HEADER_STACK) {
     Ast_HeaderStack* type_ref = (Ast_HeaderStack*)ast;
     visit_type_ref(type_ref->name);
@@ -777,8 +785,8 @@ visit_expression(Ast* ast)
   } else if (ast->kind == AST_SUBSCRIPT) {
     Ast_Subscript* expr = (Ast_Subscript*)ast;
     visit_expression(expr->index);
-    if (expr->colon_index) {
-      visit_expression(expr->colon_index);
+    if (expr->after_colon) {
+      visit_expression(expr->after_colon);
     }
   } else if (ast->kind == AST_KVPAIR) {
     Ast_KVPair* expr = (Ast_KVPair*)ast;

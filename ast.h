@@ -225,40 +225,42 @@ typedef struct Ast_Name {
   char* strname;
 } Ast_Name;
 
-typedef struct Ast_BasicType {
+typedef struct Ast_BoolType {
   Ast;
   Ast* name;
-} Ast_BasicType;
-
-typedef struct Ast_BoolType {
-  Ast_BasicType;
 } Ast_BoolType;
 
 typedef struct Ast_ErrorType {
-  Ast_BasicType;
+  Ast;
+  Ast* name;
 } Ast_ErrorType;
 
 typedef struct Ast_IntType {
-  Ast_BasicType;
+  Ast;
+  Ast* name;
   Ast* size;
 } Ast_IntType;
 
 typedef struct Ast_BitType {
-  Ast_BasicType;
+  Ast;
+  Ast* name;
   Ast* size;
 } Ast_BitType;
 
 typedef struct Ast_VarbitType {
-  Ast_BasicType;
+  Ast;
+  Ast* name;
   Ast* size;
 } Ast_VarbitType;
 
 typedef struct Ast_StringType {
-  Ast_BasicType;
+  Ast;
+  Ast* name;
 } Ast_StringType;
 
 typedef struct Ast_VoidType {
-  Ast_BasicType;
+  Ast;
+  Ast* name;
 } Ast_VoidType;
 
 typedef struct Ast_Const {
@@ -463,10 +465,6 @@ typedef struct Ast_AssignmentStmt {
   Ast* expr;
 } Ast_AssignmentStmt;
 
-typedef struct Ast_EmptyStmt {
-  Ast;
-} Ast_EmptyStmt;
-
 typedef struct Ast_DefaultStmt {
   Ast;
 } Ast_DefaultStmt;
@@ -621,7 +619,7 @@ typedef struct Ast_MemberSelect {
 typedef struct Ast_Subscript {
   Ast_Expression;
   Ast* index;
-  Ast* colon_index;
+  Ast* after_colon;
 } Ast_Subscript;
 
 typedef struct Ast_FunctionCall {
@@ -679,7 +677,14 @@ void nameref_add(Hashmap* map, NameRef* nameref, uint32_t id);
 
 enum TypeEnum {
   TYPE_NAME = 1,
-  TYPE_BASIC,
+  TYPE_VOID,
+  TYPE_BOOL,
+  TYPE_INT,
+  TYPE_BIT,
+  TYPE_VARBIT,
+  TYPE_STRING,
+  TYPE_ERROR,
+  TYPE_TYPEREF,
   TYPE_TYPEVAR,
   TYPE_TYPEDEF,
   TYPE_TYPENAME,
@@ -689,23 +694,16 @@ enum TypeEnum {
   TYPE_FUNCTION_CALL,
 };
 
-enum BasicType {
-  TYPE_VOID = 1,
-  TYPE_INT,
-  TYPE_STRING,
-};
-
 typedef struct Type {
   enum TypeEnum ctor;
   Ast* ast;
   struct Type* type_params;
 } Type;
 
-typedef struct Type_Basic {
+typedef struct Type_TypeRef {
   Type;
-  char* strname;
-  enum BasicType basic_ty;
-} Type_Basic;
+  Type* ref;
+} Type_TypeRef;
 
 typedef struct Type_TypeVar {
   Type;
@@ -744,6 +742,6 @@ typedef struct Type_FunctionCall {
   Type* return_ty;
 } Type_FunctionCall;
 
-SList* type_get(Hashmap* map, uint32_t id);
-SList* type_add(Hashmap* map, Type* type, uint32_t id);
+Type* type_get(Hashmap* map, uint32_t id);
+void type_add(Hashmap* map, Type* type, uint32_t id);
 
