@@ -359,10 +359,9 @@ build_parameter()
   return (Ast*)param;
 }
 
-internal Ast*
-build_parameterList()
+internal void
+build_parameterList(Ast_ElementList* params)
 {
-  Ast_ElementList* params = arena_push_struct(ast_storage, Ast_ElementList);
   params->kind = AST_ELEM_LIST;
   params->id = node_id++;
   params->line_no = token->line_no;
@@ -380,7 +379,6 @@ build_parameterList()
       last = li;
     }
   }
-  return (Ast*)params;
 }
 
 internal Ast*
@@ -434,10 +432,10 @@ build_functionPrototype(Ast* return_type)
     }
     if (token_is_name(token)) {
       proto->name = build_name(false);
-      proto->type_params = build_optTypeParameters();
+      build_optTypeParameters(&proto->type_params);
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        proto->params = build_parameterList();
+        build_parameterList(&proto->params);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -460,10 +458,10 @@ build_methodPrototype()
       proto->id = node_id++;
       proto->line_no = token->line_no;
       proto->name = build_name(false);
-      proto->type_params = build_optTypeParameters();
+      build_optTypeParameters(&proto->type_params);
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        proto->params = build_parameterList();
+        build_parameterList(&proto->params);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -534,10 +532,10 @@ build_externDeclaration()
       extern_decl->id = node_id++;
       extern_decl->line_no = token->line_no;
       extern_decl->name = build_nonTypeName(true);
-      extern_decl->type_params = build_optTypeParameters();
+      build_optTypeParameters(&extern_decl->type_params);
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        extern_decl->method_protos = build_methodPrototypes();
+        build_methodPrototypes(&extern_decl->method_protos);
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -714,7 +712,7 @@ build_baseType()
   return 0;
 }
 
-void
+internal void
 build_typeArgumentList(Ast_ElementList* args)
 {
   args->kind = AST_ELEM_LIST;
@@ -923,7 +921,7 @@ build_headerTypeDeclaration()
       decl->name = build_name(true);
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        decl->fields = build_structFieldList();
+        build_structFieldList(&decl->fields);
         if (token->klass == TK_BRACE_CLOSE) {
           next_token(token);
         } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -948,7 +946,7 @@ build_headerUnionDeclaration()
       decl->name = build_name(true);
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        decl->fields = build_structFieldList();
+        build_structFieldList(decl->fields);
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -973,7 +971,7 @@ build_structTypeDeclaration()
       decl->name = build_name(true);
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        decl->fields = build_structFieldList();
+        build_structFieldList(&decl->fields);
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -1125,10 +1123,10 @@ build_parserTypeDeclaration()
     type->line_no = token->line_no; 
     if (token_is_name(token)) {
       type->name = build_name(true);
-      type->type_params = build_optTypeParameters();
+      build_optTypeParameters(&type->type_params);
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        type->params = build_parameterList();
+        build_parameterList(&type->params);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -1140,27 +1138,20 @@ build_parserTypeDeclaration()
   return 0;
 }
 
-internal Ast*
-build_optConstructorParameters()
+internal void
+build_optConstructorParameters(Ast_ElementList* params)
 {
   if (token->klass == TK_PARENTH_OPEN) {
     next_token();
     if (token_is_parameter(token)) {
-      Ast* params = build_parameterList();
+      build_parameterList(params);
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
       } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
-      return params;
     } else if (token->klass == TK_PARENTH_CLOSE) {
       next_token();
     } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
   }
-  Ast_ElementList* params = arena_push_struct(ast_storage, Ast_ElementList);
-  params->kind = AST_ELEM_LIST;
-  params->id = node_id++;
-  params->line_no = token->line_no;
-  params->head.next = 0;
-  return (Ast*)params;
 }
 
 internal Ast*
@@ -1397,7 +1388,7 @@ build_instantiation(Ast* type_ref)
     inst_stmt->type_ref = type_ref ? type_ref : build_typeRef();
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
-      inst_stmt->args = build_argumentList();
+      build_argumentList(&inst_stmt->args);
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
         if (token_is_name(token)) {
@@ -1479,21 +1470,13 @@ build_directApplication(Ast* type_name)
     apply_name->strname = "apply";
     apply_select->member_name = (Ast*)apply_name;
     apply_expr->callee_expr = (Ast*)apply_select;
-#if 0
-    Ast_ElementList* type_args = arena_push_struct(ast_storage, Ast_ElementList);
-    type_args->kind = AST_ELEM_LIST;
-    type_args->id = node_id++;
-    type_args->line_no = token->line_no;
-    type_args->head.next = 0;
-    apply_expr->type_args = (Ast*)type_args;
-#endif
     if (token->klass == TK_DOTPREFIX) {
       next_token();
       if (token->klass == TK_APPLY) {
         next_token();
         if (token->klass == TK_PARENTH_OPEN) {
           next_token();
-          apply_expr->args = build_argumentList();
+          build_argumentList(&apply_expr->args);
           if (token->klass == TK_PARENTH_CLOSE) {
             next_token();
             if (token->klass == TK_SEMICOLON) {
@@ -1608,10 +1591,10 @@ internal Ast*
 build_assignmentOrMethodCallStatement()
 {
   if (token_is_lvalue(token)) {
-    Ast* lvalue = build_lvalue();
+    Ast_Expression* lvalue = (Ast_Expression*)build_lvalue();
     if (token->klass == TK_ANGLE_OPEN) {
       next_token();
-      build_typeArgumentList(&((Ast_Expression*)lvalue)->type_args);
+      build_typeArgumentList(&lvalue->type_args);
       if (token->klass == TK_ANGLE_CLOSE) {
         next_token();
       } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -1622,8 +1605,8 @@ build_assignmentOrMethodCallStatement()
       call_stmt->kind = AST_FUNCTION_CALL;
       call_stmt->id = node_id++;
       call_stmt->line_no = token->line_no;
-      call_stmt->callee_expr = lvalue;
-      call_stmt->args = build_argumentList();
+      call_stmt->callee_expr = (Ast*)lvalue;
+      build_argumentList(&call_stmt->args);
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
       } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -1637,7 +1620,7 @@ build_assignmentOrMethodCallStatement()
       assign_stmt->kind = AST_ASSIGNMENT_STMT;
       assign_stmt->id = node_id++;
       assign_stmt->line_no = token->line_no;
-      assign_stmt->lvalue = lvalue;
+      assign_stmt->lvalue = (Ast*)lvalue;
       assign_stmt->expr = build_expression(1);
       if (token->klass == TK_SEMICOLON) {
         next_token();
@@ -1681,7 +1664,7 @@ build_parserBlockStatements()
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
     next_token();
-    stmt->stmt_list = build_parserStatements();
+    build_parserStatements(&stmt->stmt_list);
     if (token->klass == TK_BRACE_CLOSE) {
       next_token();
     } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -1805,7 +1788,7 @@ build_tupleKeysetExpression()
     tuple_keyset->id = node_id++;
     tuple_keyset->line_no = token->line_no;
     next_token();
-    tuple_keyset->expr_list = build_keysetExpressionList();
+    build_keysetExpressionList(&tuple_keyset->expr_list);
     if (token->klass == TK_PARENTH_CLOSE) {
       next_token();
     } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -1887,12 +1870,12 @@ build_selectExpression()
     select_expr->line_no = token->line_no;
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
-      select_expr->expr_list = build_expressionList();
+      build_expressionList(&select_expr->expr_list);
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
-          select_expr->case_list = build_selectCaseList();
+          build_selectCaseList(&select_expr->case_list);
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -1946,7 +1929,7 @@ build_parserState()
     state->name = build_name(false);
     if (token->klass == TK_BRACE_OPEN) {
       next_token();
-      state->stmt_list = build_parserStatements();
+      build_parserStatements(&state->stmt_list);
       state->trans_stmt = build_transitionStatement();
       if (token->klass == TK_BRACE_CLOSE) {
         next_token();
@@ -1994,12 +1977,12 @@ build_parserDeclaration()
       next_token(); /* <parserTypeDeclaration> */
       return decl->type_decl;
     } else {
-      decl->ctor_params = build_optConstructorParameters();
+      build_optConstructorParameters(&decl->ctor_params);
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        decl->local_elements = build_parserLocalElements();
+        build_parserLocalElements(&decl->local_elements);
         if (token->klass == TK_STATE) {
-          decl->states = build_parserStates();
+          build_parserStates(&decl->states);
         } else error("at line %d: `state` was expected, got `%s`.", token->line_no, token->lexeme);
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
@@ -2023,10 +2006,10 @@ build_controlTypeDeclaration()
     decl->line_no = token->line_no;
     if (token_is_name(token)) {
       decl->name = build_name(true);
-      decl->type_params = build_optTypeParameters();
+      build_optTypeParameters(&decl->type_params);
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        decl->params = build_parameterList();
+        build_parameterList(&decl->params);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -2051,7 +2034,7 @@ build_actionDeclaration()
       decl->name = build_name(false);
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        decl->params = build_parameterList();
+        build_parameterList(&decl->params);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
           if (token->klass == TK_BRACE_OPEN) {
@@ -2120,7 +2103,7 @@ build_actionRef()
     ref->id = node_id++;
     ref->line_no = token->line_no;
     ref->name = build_prefixedNonTypeName();
-    ref->args = build_optArguments();
+    build_optArguments(&ref->args);
     return (Ast*)ref;
   } else error("at line %d: non-type name was expected, got `%s`.", token->line_no, token->lexeme);
   assert(0);
@@ -2220,7 +2203,7 @@ build_tableProperty()
         next_token();
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
-          key_prop->keyelem_list = build_keyElementList();
+          build_keyElementList(&key_prop->keyelem_list);
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -2237,7 +2220,7 @@ build_tableProperty()
         next_token();
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
-          actions_prop->action_list = build_actionList();
+          build_actionList(&actions_prop->action_list);
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -2256,7 +2239,7 @@ build_tableProperty()
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
           if (token_is_keysetExpression(token)) {
-            entries_prop->entries = build_entriesList();
+            build_entriesList(&entries_prop->entries);
           } else error("at line %d: keyset expression was expected, got `%s`.", token->line_no, token->lexeme);
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
@@ -2320,7 +2303,7 @@ build_tableDeclaration()
     if (token->klass == TK_BRACE_OPEN) {
       next_token();
       if (token_is_tableProperty(token)) {
-        table->prop_list = build_tablePropertyList();
+        build_tablePropertyList(&table->prop_list);
       } else error("at line %d: table property was expected, got `%s`.", token->line_no, token->lexeme);
       if (token->klass == TK_BRACE_CLOSE) {
         next_token();
@@ -2394,10 +2377,10 @@ build_controlDeclaration()
       next_token(); /* <controlTypeDeclaration> */
       return decl->type_decl;
     } else {
-      decl->ctor_params = build_optConstructorParameters();
+      build_optConstructorParameters(&decl->ctor_params);
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        decl->local_decls = build_controlLocalDeclarations();
+        build_controlLocalDeclarations(&decl->local_decls);
         if (token->klass == TK_APPLY) {
           next_token();
           decl->apply_stmt = build_blockStatement();
@@ -2424,10 +2407,10 @@ build_packageTypeDeclaration()
     decl->line_no = token->line_no;
     if (token_is_name(token)) {
       decl->name = build_name(true);
-      decl->type_params = build_optTypeParameters();
+      build_optTypeParameters(&decl->type_params);
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        decl->params = build_parameterList();
+        build_parameterList(&decl->params);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -2654,7 +2637,7 @@ build_switchStatement()
         next_token();
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
-          stmt->switch_cases = build_switchCases();
+          build_switchCases(&stmt->switch_cases);
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -2764,7 +2747,7 @@ build_blockStatement()
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
     next_token();
-    stmt->stmt_list = build_statementOrDeclList();
+    build_statementOrDeclList(&stmt->stmt_list);
     if (token->klass == TK_BRACE_CLOSE) {
       next_token();
     } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -2811,7 +2794,7 @@ build_errorDeclaration()
       next_token();
       if (token_is_name(token)) {
         if (token_is_name(token)) {
-          decl->id_list = build_identifierList();
+          build_identifierList(&decl->id_list);
         } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
@@ -2836,7 +2819,7 @@ build_matchKindDeclaration()
     if (token->klass == TK_BRACE_OPEN) {
       next_token();
       if (token_is_name(token)) {
-        decl->id_list = build_identifierList();
+        build_identifierList(&decl->id_list);
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -2945,7 +2928,7 @@ build_p4program()
   while (token->klass == TK_SEMICOLON) {
     next_token(); /* empty declaration */
   }
-  program->decl_list = build_declarationList();
+  build_declarationList(&program->decl_list);
   if (token->klass != TK_END_OF_INPUT) {
     error("at line %d: unexpected token `%s`.", token->line_no, token->lexeme);
   }
@@ -3060,7 +3043,7 @@ build_expressionPrimary()
       expr_list->kind = AST_EXPRLIST;
       expr_list->id = node_id++;
       expr_list->line_no = token->line_no;
-      expr_list->expr_list = build_expressionList();
+      build_expressionList(&expr_list->expr_list);
       if (token->klass == TK_BRACE_CLOSE) {
         next_token();
       } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -3244,7 +3227,7 @@ build_expression(int priority_threshold)
         call_expr->id = node_id++;
         call_expr->line_no = token->line_no;
         call_expr->callee_expr = (Ast*)expr;
-        call_expr->args = build_argumentList();
+        build_argumentList(&call_expr->args);
         expr = (Ast_Expression*)call_expr;
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
