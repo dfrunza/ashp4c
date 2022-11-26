@@ -223,7 +223,7 @@ typedef struct Ast_ElementList {
 
 typedef struct Ast_Expression {
   Ast;
-  Ast* type_args;
+  Ast_ElementList type_args;
 } Ast_Expression;
 
 typedef struct Ast_Name {
@@ -401,7 +401,7 @@ typedef struct Ast_StringLiteral {
 
 typedef struct Ast_Tuple {
   Ast;
-  Ast* type_args;
+  Ast_ElementList type_args;
 } Ast_Tuple;
 
 typedef struct Ast_TupleKeyset {
@@ -418,7 +418,7 @@ typedef struct Ast_HeaderStack {
 typedef struct Ast_SpecializedType {
   Ast;
   Ast* name;
-  Ast* type_args;
+  Ast_ElementList type_args;
 } Ast_SpecializedType;
 
 typedef struct Ast_SpecifiedIdent {

@@ -45,7 +45,7 @@ visit_function_call(Ast* ast)
   visit_expression(expr->callee_expr);
   Ast_Expression* callee_expr = (Ast_Expression*)expr->callee_expr;
   DList* li;
-  Ast_ElementList* type_args = (Ast_ElementList*)callee_expr->type_args;
+  Ast_ElementList* type_args = &callee_expr->type_args;
   li = type_args->head.next;
   while (li) {
     Ast* type_arg = li->object;
@@ -928,7 +928,7 @@ visit_type_ref(Ast* ast)
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
     Ast_SpecializedType* speclzd_type = (Ast_SpecializedType*)ast;
     visit_expression(speclzd_type->name);
-    Ast_ElementList* type_args = (Ast_ElementList*)speclzd_type->type_args;
+    Ast_ElementList* type_args = &speclzd_type->type_args;
     DList* li = type_args->head.next;
     while (li) {
       Ast* type_arg = li->object;
@@ -937,7 +937,7 @@ visit_type_ref(Ast* ast)
     }
   } else if (ast->kind == AST_TUPLE) {
     Ast_Tuple* type_ref = (Ast_Tuple*)ast;
-    Ast_ElementList* type_args = (Ast_ElementList*)type_ref->type_args;
+    Ast_ElementList* type_args = &type_ref->type_args;
     DList* li = type_args->head.next;
     while (li) {
       Ast* type_arg = li->object;

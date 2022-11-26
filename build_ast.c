@@ -714,10 +714,9 @@ build_baseType()
   return 0;
 }
 
-internal Ast*
-build_typeArgumentList()
+void
+build_typeArgumentList(Ast_ElementList* args)
 {
-  Ast_ElementList* args = arena_push_struct(ast_storage, Ast_ElementList);
   args->kind = AST_ELEM_LIST;
   args->id = node_id++;
   args->line_no = token->line_no;
@@ -735,7 +734,6 @@ build_typeArgumentList()
       last = li;
     }
   }
-  return (Ast*)args;
 }
 
 internal Ast*
@@ -749,7 +747,7 @@ build_tupleType()
     tuple->line_no = token->line_no;
     if (token->klass == TK_ANGLE_OPEN) {
       next_token();
-      tuple->type_args = build_typeArgumentList();
+      build_typeArgumentList(&tuple->type_args);
       if (token->klass == TK_ANGLE_CLOSE) {
         next_token();
       } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -790,7 +788,7 @@ build_specializedType()
     type->kind = AST_SPECIALIZED_TYPE;
     type->id = node_id++;
     type->line_no = token->line_no;
-    type->type_args = build_typeArgumentList();
+    build_typeArgumentList(&type->type_args);
     if (token->klass == TK_ANGLE_CLOSE) {
       next_token();
     } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -1613,17 +1611,10 @@ build_assignmentOrMethodCallStatement()
     Ast* lvalue = build_lvalue();
     if (token->klass == TK_ANGLE_OPEN) {
       next_token();
-      ((Ast_Expression*)lvalue)->type_args = build_typeArgumentList();
+      build_typeArgumentList(&((Ast_Expression*)lvalue)->type_args);
       if (token->klass == TK_ANGLE_CLOSE) {
         next_token();
       } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
-    } else {
-      Ast_ElementList* type_args = arena_push_struct(ast_storage, Ast_ElementList);
-      type_args->kind = AST_ELEM_LIST;
-      type_args->id = node_id++;
-      type_args->line_no = token->line_no;
-      type_args->head.next = 0;
-      ((Ast_Expression*)lvalue)->type_args = (Ast*)type_args;
     }
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
@@ -3219,13 +3210,7 @@ internal Ast*
 build_expression(int priority_threshold)
 {
   if (token_is_expression(token)) {
-    Ast* expr = build_expressionPrimary();
-    Ast_ElementList* type_args = arena_push_struct(ast_storage, Ast_ElementList);
-    type_args->kind = AST_ELEM_LIST;
-    type_args->id = node_id++;
-    type_args->line_no = token->line_no;
-    type_args->head.next = 0;
-    ((Ast_Expression*)expr)->type_args = (Ast*)type_args;
+    Ast_Expression* expr = (Ast_Expression*)build_expressionPrimary();
     while (token_is_exprOperator(token)) {
       if (token->klass == TK_DOTPREFIX) {
         next_token();
@@ -3233,8 +3218,8 @@ build_expression(int priority_threshold)
         select_expr->kind = AST_MEMBER_SELECT;
         select_expr->id = node_id++;
         select_expr->line_no = token->line_no;
-        select_expr->lhs_expr = expr;
-        expr = (Ast*)select_expr;
+        select_expr->lhs_expr = (Ast*)expr;
+        expr = (Ast_Expression*)select_expr;
         if (token_is_name(token)) {
           select_expr->member_name = build_name(false);
         } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
@@ -3245,9 +3230,9 @@ build_expression(int priority_threshold)
         subscript_expr->kind = AST_SUBSCRIPT;
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;
-        subscript_expr->index = expr;
+        subscript_expr->index = (Ast*)expr;
         subscript_expr->end_index = build_arraySubscript();
-        expr = (Ast*)subscript_expr;
+        expr = (Ast_Expression*)subscript_expr;
         if (token->klass == TK_BRACKET_CLOSE) {
           next_token();
         } else error("at line %d: `]` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -3258,16 +3243,16 @@ build_expression(int priority_threshold)
         call_expr->kind = AST_FUNCTION_CALL;
         call_expr->id = node_id++;
         call_expr->line_no = token->line_no;
-        call_expr->callee_expr = expr;
+        call_expr->callee_expr = (Ast*)expr;
         call_expr->args = build_argumentList();
-        expr = (Ast*)call_expr;
+        expr = (Ast_Expression*)call_expr;
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
       }
       else if (token->klass == TK_ANGLE_OPEN && token_is_realTypeArg(peek_token())) {
         next_token();
-        ((Ast_Expression*)expr)->type_args = build_realTypeArgumentList();
+        build_realTypeArgumentList(&expr->type_args);
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
         } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -3277,9 +3262,9 @@ build_expression(int priority_threshold)
         kv_pair->kind = AST_KVPAIR;
         kv_pair->id = node_id++;
         kv_pair->line_no = token->line_no;
-        kv_pair->name = expr;
+        kv_pair->name = (Ast*)expr;
         kv_pair->expr = build_expression(1);
-        expr = (Ast*)kv_pair;
+        expr = (Ast_Expression*)kv_pair;
       }
       else if (token_is_binaryOperator(token)){
         int priority = get_operator_priority(token);
@@ -3288,15 +3273,15 @@ build_expression(int priority_threshold)
           bin_expr->kind = AST_BINARY_EXPR;
           bin_expr->id = node_id++;
           bin_expr->line_no = token->line_no;
-          bin_expr->left_operand = expr;
+          bin_expr->left_operand = (Ast*)expr;
           bin_expr->op = token_to_binop(token);
           next_token();
           bin_expr->right_operand = build_expression(priority + 1);
-          expr = (Ast*)bin_expr;
+          expr = (Ast_Expression*)bin_expr;
         } else break;
       } else assert(0);
     }
-    return expr;
+    return (Ast*)expr;
   } else error("at line %d: expression was expected, got `%s`.", token->line_no, token->lexeme);
   assert(0);
   return 0;

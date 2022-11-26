@@ -124,16 +124,14 @@ visit_type_ref(Ast* ast)
     */
   } else if (ast->kind == AST_TUPLE) {
     Ast_Tuple* type_ref = (Ast_Tuple*)ast;
-    if (type_ref->type_args) {
-      /*
-      DList* li = type_ref->type_args;
-      while (li) {
-        Ast* type_arg = li->object;
-        visit_type_ref(type_arg);
-        li = li->next;
-      }
-      */
+    /*
+    DList* li = type_ref->type_args;
+    while (li) {
+      Ast* type_arg = li->object;
+      visit_type_ref(type_arg);
+      li = li->next;
     }
+    */
   } else if (ast->kind == AST_STRUCT) {
     visit_struct(ast);
   } else if (ast->kind == AST_HEADER) {
@@ -153,16 +151,14 @@ visit_function_call(Ast* ast)
   Ast_FunctionCall* expr = (Ast_FunctionCall*)ast;
   visit_expression(expr->callee_expr);
   Ast_Expression* callee_expr = (Ast_Expression*)(expr->callee_expr);
-  if (callee_expr->type_args) {
-    /*
-    DList* li = callee_expr->type_args;
-    while (li) {
-      Ast* type_arg = li->object;
-      visit_type_ref(type_arg);
-      li = li->next;
-    }
-    */
+  /*
+  DList* li = callee_expr->type_args;
+  while (li) {
+    Ast* type_arg = li->object;
+    visit_type_ref(type_arg);
+    li = li->next;
   }
+  */
   if (expr->args) {
     /*
     DList* li = expr->args;
