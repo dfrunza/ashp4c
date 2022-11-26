@@ -83,14 +83,13 @@ visit_header_union(Ast* ast)
   assert(ast->kind == AST_HEADER_UNION);
   Ast_HeaderUnion* header_union_decl = (Ast_HeaderUnion*)ast;
   if (header_union_decl->fields) {
-    /*
-    DList* li = header_union_decl->fields;
+    Ast_ElementList* fields = (Ast_ElementList*)header_union_decl->fields;
+    DList* li = fields->head.next;
     while (li) {
       Ast* field = li->object;
       visit_struct_field(field);
       li = li->next;
     }
-    */
   }
 }
 
@@ -100,33 +99,34 @@ visit_header(Ast* ast)
   assert(ast->kind == AST_HEADER);
   Ast_Header* header_decl = (Ast_Header*)ast;
   if (header_decl->fields) {
-    /*
-    DList* li = header_decl->fields;
-    Ast* field = li->object;
-    visit_struct_field(field);
-    if (li->next) {
-      Type* struct_type = type_get(&type_map, field->id);
-      li = li->next;
-      while (li) {
-        Ast* field = li->object;
-        visit_struct_field(field);
-        Type_Product* product_type = arena_push_struct(type_storage, Type_Product);
-        product_type->ctor = TYPE_PRODUCT;
-        product_type->lhs_ty = struct_type;
-        product_type->rhs_ty = type_get(&type_map, field->id);
-        product_type->ast = ast;
-        struct_type = (Type*)product_type;
+    Ast_ElementList* fields = (Ast_ElementList*)header_decl->fields;
+    if (fields->head.next) {
+      DList* li = fields->head.next;
+      Ast* field = li->object;
+      visit_struct_field(field);
+      if (li->next) {
+        Type* struct_type = type_get(&type_map, field->id);
         li = li->next;
+        while (li) {
+          Ast* field = li->object;
+          visit_struct_field(field);
+          Type_Product* product_type = arena_push_struct(type_storage, Type_Product);
+          product_type->ctor = TYPE_PRODUCT;
+          product_type->lhs_ty = struct_type;
+          product_type->rhs_ty = type_get(&type_map, field->id);
+          product_type->ast = ast;
+          struct_type = (Type*)product_type;
+          li = li->next;
+        }
+        type_add(&type_map, struct_type, header_decl->id);
+      } else {
+        Type_TypeRef* struct_type = arena_push_struct(type_storage, Type_TypeRef);
+        struct_type->ctor = TYPE_TYPEREF;
+        struct_type->ref = type_get(&type_map, field->id);
+        struct_type->ast = ast;
+        type_add(&type_map, (Type*)struct_type, header_decl->id);
       }
-      type_add(&type_map, struct_type, header_decl->id);
-    } else {
-      Type_TypeRef* struct_type = arena_push_struct(type_storage, Type_TypeRef);
-      struct_type->ctor = TYPE_TYPEREF;
-      struct_type->ref = type_get(&type_map, field->id);
-      struct_type->ast = ast;
-      type_add(&type_map, (Type*)struct_type, header_decl->id);
     }
-    */
   } else {
     NameEntry* ne = scope_lookup_name(root_scope, "void");
     NameDecl* void_decl = ne->ns_type;
@@ -144,31 +144,32 @@ visit_struct(Ast* ast)
   assert(ast->kind == AST_STRUCT);
   Ast_Struct* struct_decl = (Ast_Struct*)ast;
   if (struct_decl->fields) {
-    /*
-    DList* li = struct_decl->fields;
-    Ast* field = li->object;
-    visit_struct_field(field);
-    if (li->next) {
-      Type* struct_type = type_get(&type_map, field->id);
-      li = li->next;
-      while (li) {
-        Ast* field = li->object;
-        visit_struct_field(field);
-        Type_Product* product_type = arena_push_struct(type_storage, Type_Product);
-        product_type->ctor = TYPE_PRODUCT;
-        product_type->lhs_ty = struct_type;
-        product_type->rhs_ty = type_get(&type_map, field->id);
-        struct_type = (Type*)product_type;
+    Ast_ElementList* fields = (Ast_ElementList*)struct_decl->fields;
+    if (fields->head.next) {
+      DList* li = fields->head.next;
+      Ast* field = li->object;
+      visit_struct_field(field);
+      if (li->next) {
+        Type* struct_type = type_get(&type_map, field->id);
         li = li->next;
+        while (li) {
+          Ast* field = li->object;
+          visit_struct_field(field);
+          Type_Product* product_type = arena_push_struct(type_storage, Type_Product);
+          product_type->ctor = TYPE_PRODUCT;
+          product_type->lhs_ty = struct_type;
+          product_type->rhs_ty = type_get(&type_map, field->id);
+          struct_type = (Type*)product_type;
+          li = li->next;
+        }
+      } else {
+        Type_TypeRef* struct_type = arena_push_struct(type_storage, Type_TypeRef);
+        struct_type->ctor = TYPE_TYPEREF;
+        struct_type->ref = type_get(&type_map, field->id);
+        struct_type->ast = ast;
+        type_add(&type_map, (Type*)struct_type, struct_decl->id);
       }
-    } else {
-      Type_TypeRef* struct_type = arena_push_struct(type_storage, Type_TypeRef);
-      struct_type->ctor = TYPE_TYPEREF;
-      struct_type->ref = type_get(&type_map, field->id);
-      struct_type->ast = ast;
-      type_add(&type_map, (Type*)struct_type, struct_decl->id);
     }
-    */
   } else {
     NameEntry* ne = scope_lookup_name(root_scope, "void");
     NameDecl* void_decl = ne->ns_type;
@@ -250,25 +251,23 @@ visit_type_ref(Ast* ast)
     visit_expression(ast);
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
     Ast_SpecializedType* speclzd_type = (Ast_SpecializedType*)ast;
-    /*
-    DList* li = speclzd_type->type_args;
+    Ast_ElementList* type_args = (Ast_ElementList*)speclzd_type->type_args;
+    DList* li = type_args->head.next;
     while (li) {
       Ast* type_arg = li->object;
       visit_type_ref(type_arg);
       li = li->next;
     }
-    */
   } else if (ast->kind == AST_TUPLE) {
     Ast_Tuple* type_ref = (Ast_Tuple*)ast;
     if (type_ref->type_args) {
-      /*
-      DList* li = type_ref->type_args;
+      Ast_ElementList* type_args = (Ast_ElementList*)type_ref->type_args;
+      DList* li = type_args->head.next;
       while (li) {
         Ast* type_arg = li->object;
         visit_type_ref(type_arg);
         li = li->next;
       }
-      */
     }
   } else if (ast->kind == AST_STRUCT) {
     visit_struct(ast);
@@ -290,36 +289,36 @@ visit_function_call(Ast* ast)
   visit_expression(function_call->callee_expr);
   Ast_Expression* callee_expr = (Ast_Expression*)(function_call->callee_expr);
   if (callee_expr->type_args) {
-    /* TODO
-    DList* li = callee_expr->type_args;
+    Ast_ElementList* type_args = (Ast_ElementList*)callee_expr->type_args;
+    DList* li = type_args->head.next;
     while (li) {
       Ast* type_arg = li->object;
       visit_type_ref(type_arg);
       li = li->next;
     }
-    */
   }
   NameEntry* ne = scope_lookup_name(root_scope, "void");
   NameDecl* void_decl = ne->ns_type;
   Type* args_type = type_get(&type_map, void_decl->ast->id);
   if (function_call->args) {
-    /*
-    DList* li = function_call->args;
-    Ast* arg = li->object;
-    visit_expression(arg);
-    args_type = type_get(&type_map, arg->id);
-    li = li->next;
-    while (li) {
+    Ast_ElementList* args = (Ast_ElementList*)function_call->args;
+    if (args->head.next) {
+      DList* li = args->head.next;
       Ast* arg = li->object;
       visit_expression(arg);
-      Type_Product* product_type = arena_push_struct(type_storage, Type_Product);
-      product_type->ctor = TYPE_PRODUCT;
-      product_type->lhs_ty = args_type;
-      product_type->rhs_ty = type_get(&type_map, arg->id);
-      args_type = (Type*)product_type;
+      args_type = type_get(&type_map, arg->id);
       li = li->next;
+      while (li) {
+        Ast* arg = li->object;
+        visit_expression(arg);
+        Type_Product* product_type = arena_push_struct(type_storage, Type_Product);
+        product_type->ctor = TYPE_PRODUCT;
+        product_type->lhs_ty = args_type;
+        product_type->rhs_ty = type_get(&type_map, arg->id);
+        args_type = (Type*)product_type;
+        li = li->next;
+      }
     }
-    */
   }
   Type_FunctionCall* call_type = arena_push_struct(type_storage, Type_FunctionCall);
   call_type->ctor = TYPE_FUNCTION_CALL;
@@ -337,23 +336,24 @@ visit_instantiation(Ast* ast)
   NameDecl* void_decl = ne->ns_type;
   Type* args_type = type_get(&type_map, void_decl->ast->id);
   if (inst_decl->args) {
-    /*
-    DList* li = inst_decl->args;
-    Ast* arg = li->object;
-    visit_expression(arg);
-    args_type = type_get(&type_map, arg->id);
-    li = li->next;
-    while (li) {
+    Ast_ElementList* args = (Ast_ElementList*)inst_decl->args;
+    if (args->head.next) {
+      DList* li = args->head.next;
       Ast* arg = li->object;
       visit_expression(arg);
-      Type_Product* product_type = arena_push_struct(type_storage, Type_Product);
-      product_type->ctor = TYPE_PRODUCT;
-      product_type->lhs_ty = args_type;
-      product_type->rhs_ty = type_get(&type_map, arg->id);
-      args_type = (Type*)product_type;
+      args_type = type_get(&type_map, arg->id);
       li = li->next;
+      while (li) {
+        Ast* arg = li->object;
+        visit_expression(arg);
+        Type_Product* product_type = arena_push_struct(type_storage, Type_Product);
+        product_type->ctor = TYPE_PRODUCT;
+        product_type->lhs_ty = args_type;
+        product_type->rhs_ty = type_get(&type_map, arg->id);
+        args_type = (Type*)product_type;
+        li = li->next;
+      }
     }
-    */
   }
   Type_FunctionCall* inst_type = arena_push_struct(type_storage, Type_FunctionCall);
   inst_type->ctor = TYPE_FUNCTION_CALL;
@@ -398,14 +398,13 @@ visit_select_keyset(Ast* ast)
 {
   if (ast->kind == AST_TUPLE_KEYSET) {
     Ast_TupleKeyset* keyset = (Ast_TupleKeyset*)ast;
-    /*
-    DList* li = keyset->expr_list;
+    Ast_ElementList* expr_list = (Ast_ElementList*)keyset->expr_list;
+    DList* li = expr_list->head.next;
     while (li) {
       Ast* expr = li->object;
       visit_keyset_expr(expr);
       li = li->next;
     }
-    */
   } else {
     visit_keyset_expr(ast);
   }
@@ -418,14 +417,13 @@ visit_action_ref(Ast* ast)
   Ast_ActionRef* action = (Ast_ActionRef*)ast;
   visit_expression(action->name);
   if (action->args) {
-    /*
-    DList* li = action->args;
+    Ast_ElementList* args = (Ast_ElementList*)action->args;
+    DList* li = args->head.next;
     while (li) {
       Ast* arg = li->object;
       visit_expression(arg);
       li = li->next;
     }
-    */
   }
 }
 
@@ -452,14 +450,13 @@ visit_table_property(Ast* ast)
   if (ast->kind == AST_TABLE_ACTIONS) {
     Ast_TableActions* prop = (Ast_TableActions*)ast;
     if (prop->action_list) {
-      /*
-      DList* li = prop->action_list;
+      Ast_ElementList* action_list = (Ast_ElementList*)prop->action_list;
+      DList* li = action_list->head.next;
       while (li) {
         Ast* action = li->object;
         visit_action_ref(action);
         li = li->next;
       }
-      */
     }
   } else if (ast->kind == AST_TABLE_SINGLE_ENTRY) {
     Ast_TableSingleEntry* prop = (Ast_TableSingleEntry*)ast;
@@ -468,24 +465,22 @@ visit_table_property(Ast* ast)
     }
   } else if (ast->kind == AST_TABLE_KEY) {
     Ast_TableKey* prop = (Ast_TableKey*)ast;
-    /*
-    DList* li = prop->keyelem_list;
+    Ast_ElementList* keyelem_list = (Ast_ElementList*)prop->keyelem_list;
+    DList* li = keyelem_list->head.next;
     while (li) {
       Ast* keyelem = li->object;
       visit_table_keyelem(keyelem);
       li = li->next;
     }
-    */
   } else if (ast->kind == AST_TABLE_ENTRIES) {
     Ast_TableEntries* prop = (Ast_TableEntries*)ast;
-    /*
-    DList* li = prop->entries;
+    Ast_ElementList* entries = (Ast_ElementList*)prop->entries;
+    DList* li = entries->head.next;
     while (li) {
       Ast* entry = li->object;
       visit_table_entry(entry);
       li = li->next;
     }
-    */
   }
   else assert(0);
 }
@@ -496,14 +491,13 @@ visit_table(Ast* ast)
   assert(ast->kind == AST_TABLE);
   Ast_Table* decl = (Ast_Table*)ast;
   if (decl->prop_list) {
-    /*
-    DList* li = decl->prop_list;
+    Ast_ElementList* prop_list = (Ast_ElementList*)decl->prop_list;
+    DList* li = prop_list->head.next;
     while (li) {
       Ast* prop = li->object;
       visit_table_property(prop);
       li = li->next;
     }
-    */
   }
 }
 
@@ -513,26 +507,24 @@ visit_action(Ast* ast)
   assert(ast->kind == AST_ACTION);
   Ast_Action* action_decl = (Ast_Action*)ast;
   if (action_decl->params) {
-    /* TODO
-    DList* li = action_decl->params;
+    Ast_ElementList* params = (Ast_ElementList*)action_decl->params;
+    DList* li = params->head.next;
     while (li) {
       Ast* param = li->object;
       visit_param(param);
       li = li->next;
     }
-    */
   }
   Ast_BlockStmt* action_body = (Ast_BlockStmt*)action_decl->stmt;
   if (action_body) {
     if (action_body->stmt_list) {
-      /*
-      DList* li = action_body->stmt_list;
+      Ast_ElementList* stmt_list = (Ast_ElementList*)action_body->stmt_list;
+      DList* li = stmt_list->head.next;
       while (li) {
         Ast* stmt = li->object;
         visit_statement(stmt);
         li = li->next;
       }
-      */
     }
   }
 }
@@ -571,14 +563,13 @@ visit_switch_stmt(Ast* ast)
   Ast_SwitchStmt* stmt = (Ast_SwitchStmt*)ast;
   visit_expression(stmt->expr);
   if (stmt->switch_cases) {
-    /*
-    DList* li = stmt->switch_cases;
+    Ast_ElementList* switch_cases = (Ast_ElementList*)stmt->switch_cases;
+    DList* li = switch_cases->head.next;
     while (li) {
       Ast* switch_case = li->object;
       visit_switch_case(switch_case);
       li = li->next;
     }
-    */
   }
 }
 
@@ -665,36 +656,36 @@ visit_function_proto(Ast* ast)
     visit_function_return_type(function_proto->return_type);
   }
   if (function_proto->type_params) {
-    /* TODO
-    DList* li = function_proto->type_params;
+    Ast_ElementList* type_params = (Ast_ElementList*)function_proto->type_params;
+    DList* li = type_params->head.next;
     while (li) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
-    */
   }
   NameEntry* ne = scope_lookup_name(root_scope, "void");
   NameDecl* void_decl = ne->ns_type;
   Type* params_type = type_get(&type_map, void_decl->ast->id);
   if (function_proto->params) {
-    /* TODO
-    DList* li = function_proto->params;
-    Ast* param = li->object;
-    visit_param(param);
-    params_type = type_get(&type_map, param->id);
-    li = li->next;
-    while (li) {
+    Ast_ElementList* params = (Ast_ElementList*)function_proto->params;
+    if (params->head.next) {
+      DList* li = params->head.next;
       Ast* param = li->object;
       visit_param(param);
-      Type_Product* product_type = arena_push_struct(type_storage, Type_Product); 
-      product_type->ctor = TYPE_PRODUCT;
-      product_type->lhs_ty = params_type;
-      product_type->rhs_ty = type_get(&type_map, param->id);
-      params_type = (Type*)product_type;
+      params_type = type_get(&type_map, param->id);
       li = li->next;
+      while (li) {
+        Ast* param = li->object;
+        visit_param(param);
+        Type_Product* product_type = arena_push_struct(type_storage, Type_Product); 
+        product_type->ctor = TYPE_PRODUCT;
+        product_type->lhs_ty = params_type;
+        product_type->rhs_ty = type_get(&type_map, param->id);
+        params_type = (Type*)product_type;
+        li = li->next;
+      }
     }
-    */
   }
   Type_Function* function_type = arena_push_struct(type_storage, Type_Function);
   function_type->ctor = TYPE_FUNCTION;
@@ -711,15 +702,20 @@ visit_block_statement(Ast* ast)
   assert(ast->kind == AST_BLOCK_STMT);
   Ast_BlockStmt* block_stmt = (Ast_BlockStmt*)ast;
   if (block_stmt->stmt_list) {
-    /*
-    DList* li = block_stmt->stmt_list;
+    Ast_ElementList* stmt_list = (Ast_ElementList*)block_stmt->stmt_list;
+    DList* li = stmt_list->head.next;
     while (li) {
       Ast* decl = li->object;
       visit_statement(decl);
       li = li->next;
     }
-    */
   }
+}
+
+internal void
+visit_control_proto(Ast* ast)
+{
+
 }
 
 internal void
@@ -729,36 +725,36 @@ visit_control(Ast* ast)
   Ast_Control* control_decl = (Ast_Control*)ast;
   Ast_ControlProto* type_decl = (Ast_ControlProto*)control_decl->type_decl;
   if (type_decl->type_params) {
-    /* TODO
-    DList* li = type_decl->type_params;
+    Ast_ElementList* type_params = (Ast_ElementList*)type_decl->type_params;
+    DList* li = type_params->head.next;
     while (li) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
-    */
   }
   if (type_decl->params) {
-    /* TODO
-    DList* li = type_decl->params;
-    Ast* param = li->object;
-    visit_param(param);
-    if (li->next) {
-      Type* params_type = type_get(&type_map, param->id);
-      li = li->next;
-      while (li) {
-        Ast* param = li->object;
-        visit_param(param);
-        Type_Product* product_type = arena_push_struct(type_storage, Type_Product); 
-        product_type->ctor = TYPE_PRODUCT;
-        product_type->lhs_ty = params_type;
-        product_type->rhs_ty = type_get(&type_map, param->id);
-        params_type = (Type*)product_type;
+    Ast_ElementList* params = (Ast_ElementList*)type_decl->params;
+    if (params->head.next) {
+      DList* li = params->head.next;
+      Ast* param = li->object;
+      visit_param(param);
+      if (li->next) {
+        Type* params_type = type_get(&type_map, param->id);
         li = li->next;
+        while (li) {
+          Ast* param = li->object;
+          visit_param(param);
+          Type_Product* product_type = arena_push_struct(type_storage, Type_Product); 
+          product_type->ctor = TYPE_PRODUCT;
+          product_type->lhs_ty = params_type;
+          product_type->rhs_ty = type_get(&type_map, param->id);
+          params_type = (Type*)product_type;
+          li = li->next;
+        }
+        type_add(&type_map, params_type, type_decl->id);
       }
-      type_add(&type_map, params_type, type_decl->id);
     }
-    */
   } else {
     NameEntry* ne = scope_lookup_name(root_scope, "void");
     NameDecl* void_decl = ne->ns_type;
@@ -769,14 +765,13 @@ visit_control(Ast* ast)
     type_add(&type_map, (Type*)params_type, type_decl->id);
   }
   if (control_decl->ctor_params) {
-    /* TODO
-    DList* li = control_decl->ctor_params;
+    Ast_ElementList* ctor_params = (Ast_ElementList*)control_decl->ctor_params;
+    DList* li = ctor_params->head.next;
     while (li) {
       Ast* param = li->object;
       visit_param(param);
       li = li->next;
     }
-    */
   }
   Type_Function* function_type = arena_push_struct(type_storage, Type_Function);
   function_type->ctor = TYPE_FUNCTION;
@@ -784,14 +779,13 @@ visit_control(Ast* ast)
   function_type->return_ty = 0; //type_get(&type_map, void_decl->ast->id);
   type_add(&type_map, (Type*)function_type, control_decl->id);
   if (control_decl->local_decls) {
-    /*
-    DList* li = control_decl->local_decls;
+    Ast_ElementList* local_decls = (Ast_ElementList*)control_decl->local_decls;
+    DList* li = local_decls->head.next;
     while (li) {
       Ast* decl = li->object;
       visit_statement(decl);
       li = li->next;
     }
-    */
   }
   if (control_decl->apply_stmt) {
     visit_block_statement(control_decl->apply_stmt);
@@ -809,24 +803,22 @@ visit_extern(Ast* ast)
   extern_type->strname = name->strname;
   type_add(&type_map, (Type*)extern_decl, extern_decl->id);
   if (extern_decl->type_params) {
-    /* TODO
-    DList* li = extern_decl->type_params;
+    Ast_ElementList* type_params = (Ast_ElementList*)extern_decl->type_params;
+    DList* li = type_params->head.next;
     while (li) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
-    */
   }
   if (extern_decl->method_protos) {
-    /*
-    DList* li = extern_decl->method_protos;
+    Ast_ElementList* method_protos = (Ast_ElementList*)extern_decl->method_protos;
+    DList* li = method_protos->head.next;
     while (li) {
       Ast* proto = li->object;
       visit_function_proto(proto);
       li = li->next;
     }
-    */
   }
 }
 
@@ -841,14 +833,13 @@ visit_package(Ast* ast)
   package_type->strname = name->strname;
   type_add(&type_map, (Type*)package_type, package_decl->id);
   if (package_decl->params) {
-    /* TODO
-    DList* li = package_decl->params;
+    Ast_ElementList* params = (Ast_ElementList*)package_decl->params;
+    DList* li = params->head.next;
     while (li) {
       Ast* param = li->object;
       visit_param(param);
       li = li->next;
     }
-    */
   }
 }
 
@@ -867,20 +858,21 @@ visit_parser_transition(Ast* ast)
     visit_expression(ast);
   } else if (ast->kind == AST_SELECT_EXPR) {
     Ast_SelectExpr* trans_stmt = (Ast_SelectExpr*)ast;
-    /*
-    DList* li = trans_stmt->expr_list;
+    Ast_ElementList* expr_list = (Ast_ElementList*)trans_stmt->expr_list;
+    DList* li;
+    li = expr_list->head.next;
     while (li) {
       Ast* expr = li->object;
       visit_expression(expr);
       li = li->next;
     }
-    li = trans_stmt->case_list;
+    Ast_ElementList* case_list = (Ast_ElementList*)trans_stmt->case_list;
+    li = case_list->head.next;
     while (li) {
       Ast* select_case = li->object;
       visit_transition_select_case(select_case);
       li = li->next;
     }
-    */
   }
   else assert(0);
 }
@@ -891,14 +883,13 @@ visit_parser_state(Ast* ast)
   assert(ast->kind == AST_PARSER_STATE);
   Ast_ParserState* state = (Ast_ParserState*)ast;
   if (state->stmt_list) {
-    /*
-    DList* li = state->stmt_list;
+    Ast_ElementList* stmt_list = (Ast_ElementList*)state->stmt_list;
+    DList* li = stmt_list->head.next;
     while (li) {
       Ast* stmt = li->object;
       visit_statement(stmt);
       li = li->next;
     }
-    */
   }
   visit_parser_transition(state->trans_stmt);
 }
@@ -927,52 +918,57 @@ visit_local_parser_element(Ast* ast)
 }
 
 internal void
+visit_parser_proto(Ast* ast)
+{
+
+}
+
+internal void
 visit_parser(Ast* ast)
 {
   assert(ast->kind == AST_PARSER);
   Ast_Parser* parser_decl = (Ast_Parser*)ast;
   Ast_ParserProto* type_decl = (Ast_ParserProto*)parser_decl->type_decl;
   if (type_decl->type_params) {
-    /*
-    DList* li = type_decl->type_params;
+    Ast_ElementList* type_params = (Ast_ElementList*)type_decl->type_params;
+    DList* li = type_params->head.next;
     while (li) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
-    */
   }
   NameEntry* ne = scope_lookup_name(root_scope, "void");
   NameDecl* void_decl = ne->ns_type;
   Type* params_type = type_get(&type_map, void_decl->ast->id);
   if (type_decl->params) {
-    /* TODO
-    DList* li = type_decl->params;
-    Ast* param = li->object;
-    visit_param(param);
-    params_type = type_get(&type_map, param->id);
-    li = li->next;
-    while (li) {
+    Ast_ElementList* params = (Ast_ElementList*)type_decl->params;
+    if (params->head.next) {
+      DList* li = params->head.next;
       Ast* param = li->object;
       visit_param(param);
-      Type_Product* product_type = arena_push_struct(type_storage, Type_Product); 
-      product_type->ctor = TYPE_PRODUCT; 
-      product_type->lhs_ty = params_type;
-      product_type->rhs_ty = type_get(&type_map, param->id);
-      params_type = (Type*)product_type;
+      params_type = type_get(&type_map, param->id);
       li = li->next;
+      while (li) {
+        Ast* param = li->object;
+        visit_param(param);
+        Type_Product* product_type = arena_push_struct(type_storage, Type_Product); 
+        product_type->ctor = TYPE_PRODUCT; 
+        product_type->lhs_ty = params_type;
+        product_type->rhs_ty = type_get(&type_map, param->id);
+        params_type = (Type*)product_type;
+        li = li->next;
+      }
     }
-    */
   }
   if (parser_decl->ctor_params) {
-    /* TODO
-    DList* li = parser_decl->ctor_params;
+    Ast_ElementList* ctor_params = (Ast_ElementList*)parser_decl->ctor_params;
+    DList* li = ctor_params->head.next;
     while (li) {
       Ast* param = li->object;
       visit_param(param);
       li = li->next;
     }
-    */
   }
   Type_Function* function_type = arena_push_struct(type_storage, Type_Function);
   function_type->ctor = TYPE_FUNCTION;
@@ -980,24 +976,22 @@ visit_parser(Ast* ast)
   function_type->return_ty = type_get(&type_map, void_decl->ast->id);
   type_add(&type_map, (Type*)function_type, parser_decl->id);
   if (parser_decl->local_elements) {
-    /*
-    DList* li = parser_decl->local_elements;
+    Ast_ElementList* local_elements = (Ast_ElementList*)parser_decl->local_elements;
+    DList* li = local_elements->head.next;
     while (li) {
       Ast* element = li->object;
       visit_local_parser_element(element);
       li = li->next;
     }
-    */
   }
   if (parser_decl->states) {
-    /*
-    DList* li = parser_decl->states;
+    Ast_ElementList* states = (Ast_ElementList*)parser_decl->states;
+    DList* li = states->head.next;
     while (li) {
       Ast* state = li->object;
       visit_parser_state(state);
       li = li->next;
     }
-    */
   }
 }
 
@@ -1019,36 +1013,36 @@ visit_function(Ast* ast)
     visit_function_return_type(function_proto->return_type);
   }
   if (function_proto->type_params) {
-    /*
-    DList* li = function_proto->type_params;
+    Ast_ElementList* type_params = (Ast_ElementList*)function_proto->type_params;
+    DList* li = type_params->head.next;
     while (li) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
       li = li->next;
     }
-    */
   }
   NameEntry* ne = scope_lookup_name(root_scope, "void");
   NameDecl* void_decl = ne->ns_type;
   Type* params_type = type_get(&type_map, void_decl->ast->id);
   if (function_proto->params) {
-    /* TODO
-    DList* li = function_proto->params;
-    Ast* param = li->object;
-    visit_param(param);
-    params_type = type_get(&type_map, param->id);
-    li = li->next;
-    while (li) {
+    Ast_ElementList* params = (Ast_ElementList*)function_proto->params;
+    if (params->head.next) {
+      DList* li = params->head.next;
       Ast* param = li->object;
       visit_param(param);
-      Type_Product* product_type = arena_push_struct(type_storage, Type_Product); 
-      product_type->ctor = TYPE_PRODUCT;
-      product_type->lhs_ty = params_type;
-      product_type->rhs_ty = type_get(&type_map, param->id);
-      params_type = (Type*)product_type;
+      params_type = type_get(&type_map, param->id);
       li = li->next;
+      while (li) {
+        Ast* param = li->object;
+        visit_param(param);
+        Type_Product* product_type = arena_push_struct(type_storage, Type_Product); 
+        product_type->ctor = TYPE_PRODUCT;
+        product_type->lhs_ty = params_type;
+        product_type->rhs_ty = type_get(&type_map, param->id);
+        params_type = (Type*)product_type;
+        li = li->next;
+      }
     }
-    */
   }
   Type_Function* function_type = arena_push_struct(type_storage, Type_Function);
   function_type->ctor = TYPE_FUNCTION;
@@ -1062,14 +1056,13 @@ visit_function(Ast* ast)
   Ast_BlockStmt* function_body = (Ast_BlockStmt*)function_decl->stmt;
   if (function_body) {
     if (function_body->stmt_list) {
-      /*
-      DList* li = function_body->stmt_list;
+      Ast_ElementList* stmt_list = (Ast_ElementList*)function_body->stmt_list;
+      DList* li = stmt_list->head.next;
       while (li) {
         Ast* stmt = li->object;
         visit_statement(stmt);
         li = li->next;
       }
-      */
     }
   }
 }
@@ -1092,8 +1085,8 @@ visit_error(Ast* ast)
   assert (ast->kind == AST_ERROR);
   Ast_Error* decl = (Ast_Error*)ast;
   if (decl->id_list) {
-    /*
-    DList* li = decl->id_list;
+    Ast_ElementList* id_list = (Ast_ElementList*)decl->id_list;
+    DList* li = id_list->head.next;
     while (li) {
       Ast* id = li->object;
       if (id->kind == AST_NAME) {
@@ -1102,7 +1095,6 @@ visit_error(Ast* ast)
       else assert(0);
       li = li->next;
     }
-    */
   }
 }
 
@@ -1190,14 +1182,13 @@ visit_expression(Ast* ast)
   } else if (ast->kind == AST_EXPRLIST) {
     Ast_ExprList* expr = (Ast_ExprList*)ast;
     if (expr->expr_list) {
-      /*
-      DList* li = expr->expr_list;
+      Ast_ElementList* expr_list = (Ast_ElementList*)expr->expr_list;
+      DList* li = expr_list->head.next;
       while (li) {
         Ast* expr_expr = li->object;
         visit_expression(expr_expr);
         li = li->next;
       }
-      */
     }
   } else if (ast->kind == AST_CAST_EXPR) {
     Ast_CastExpr* expr = (Ast_CastExpr*)ast;
@@ -1232,8 +1223,8 @@ visit_match_kind(Ast* ast)
   assert(ast->kind == AST_MATCH_KIND);
   Ast_MatchKind* decl = (Ast_MatchKind*)ast;
   if (decl->id_list) {
-    /*
-    DList* li = decl->id_list;
+    Ast_ElementList* id_list = (Ast_ElementList*)decl->id_list;
+    DList* li = id_list->head.next;
     while (li) {
       Ast* id = li->object;
       if (id->kind == AST_NAME) {
@@ -1244,7 +1235,6 @@ visit_match_kind(Ast* ast)
       else assert(0);
       li = li->next;
     }
-    */
   }
 }
 
@@ -1253,12 +1243,14 @@ visit_p4program(Ast* ast)
 {
   assert(ast->kind == AST_P4PROGRAM);
   Ast_P4Program* program = (Ast_P4Program*)ast;
-  /*
-  DList* li = program->decl_list;
+  Ast_ElementList* decl_list = (Ast_ElementList*)program->decl_list;
+  DList* li = decl_list->head.next;
   while (li) {
     Ast* decl = li->object;
     if (decl->kind == AST_CONTROL) {
       visit_control(decl);
+    } else if (decl->kind == AST_CONTROL_PROTO) {
+      visit_control_proto(decl);
     } else if (decl->kind == AST_EXTERN) {
       visit_extern(decl);
     } else if (decl->kind == AST_STRUCT) {
@@ -1271,16 +1263,18 @@ visit_p4program(Ast* ast)
       visit_package(decl);
     } else if (decl->kind == AST_PARSER) {
       visit_parser(decl);
+    } else if (decl->kind == AST_PARSER_PROTO) {
+      visit_parser_proto(decl);
     } else if (decl->kind == AST_INSTANTIATION) {
       visit_instantiation(decl);
     } else if (decl->kind == AST_TYPE) {
       visit_type(decl);
-    } else if (decl->kind == AST_FUNCTION_PROTO) {
-      visit_function_proto(decl);
     } else if (decl->kind == AST_CONST) {
       visit_const(decl);
     } else if (decl->kind == AST_FUNCTION) {
       visit_function(decl);
+    } else if (decl->kind == AST_FUNCTION_PROTO) {
+      visit_function_proto(decl);
     } else if (decl->kind == AST_ACTION) {
       visit_action(decl);
     } else if (decl->kind == AST_ENUM) {
@@ -1289,11 +1283,9 @@ visit_p4program(Ast* ast)
       visit_match_kind(decl);
     } else if (decl->kind == AST_ERROR) {
       visit_error(decl);
-    }
-    else assert(0);
+    } else assert(0);
     li = li->next;
   }
-  */
 }
 
 Hashmap*

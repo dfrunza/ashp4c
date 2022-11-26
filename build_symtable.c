@@ -45,7 +45,7 @@ visit_function_call(Ast* ast)
   visit_expression(expr->callee_expr);
   Ast_Expression* callee_expr = (Ast_Expression*)expr->callee_expr;
   DList* li;
-  Ast_ElementList* type_args = (Ast_ElementList*)expr->type_args;
+  Ast_ElementList* type_args = (Ast_ElementList*)callee_expr->type_args;
   li = type_args->head.next;
   while (li) {
     Ast* type_arg = li->object;
