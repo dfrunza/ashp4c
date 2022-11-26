@@ -248,10 +248,9 @@ build_name(bool is_type)
   return 0;
 }
 
-internal Ast*
-build_typeParameterList()
+internal void
+build_typeParameterList(Ast_ElementList* params)
 {
-  Ast_ElementList* params = arena_push_struct(ast_storage, Ast_ElementList);
   params->kind = AST_ELEM_LIST;
   params->id = node_id++;
   params->line_no = token->line_no;
@@ -269,30 +268,22 @@ build_typeParameterList()
       last = li;
     }
   }
-  return (Ast*)params;
 }
 
-internal Ast*
-build_optTypeParameters()
+internal void
+build_optTypeParameters(Ast_ElementList* params)
 {
   if (token->klass == TK_ANGLE_OPEN) {
     next_token();
     if (token_is_typeParameterList(token)) {
-      Ast* params = build_typeParameterList();
+      build_typeParameterList(params);
       if (token->klass == TK_ANGLE_CLOSE) {
         next_token();
       } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
-      return params;
     } else if (token->klass == TK_ANGLE_CLOSE) {
       next_token();
     } else error("at line %d: `>` was expected, got `%s`.", token->line_no, token->lexeme);
   }
-  Ast_ElementList* params = arena_push_struct(ast_storage, Ast_ElementList);
-  params->kind = AST_ELEM_LIST;
-  params->id = node_id++;
-  params->line_no = token->line_no;
-  params->head.next = 0;
-  return (Ast*)params;
 }
 
 internal Ast*
@@ -482,10 +473,9 @@ build_methodPrototype()
   return 0;
 }
 
-internal Ast*
-build_methodPrototypes()
+internal void
+build_methodPrototypes(Ast_ElementList* protos)
 {
-  Ast_ElementList* protos = arena_push_struct(ast_storage, Ast_ElementList);
   protos->kind = AST_ELEM_LIST;
   protos->id = node_id++;
   protos->line_no = token->line_no;
@@ -502,7 +492,6 @@ build_methodPrototypes()
       last = li;
     }
   }
-  return (Ast*)protos;
 }
 
 internal Ast*
@@ -885,10 +874,10 @@ build_structField()
   return (Ast*)field;
 }
 
-internal Ast*
-build_structFieldList()
+internal void
+build_structFieldList(Ast_ElementList* fields)
 {
-  Ast_ElementList* fields = arena_push_struct(ast_storage, Ast_ElementList);
+  arena_push_struct(ast_storage, Ast_ElementList);
   fields->kind = AST_ELEM_LIST;
   fields->id = node_id++;
   fields->line_no = token->line_no;
@@ -905,7 +894,6 @@ build_structFieldList()
       last = li;
     }
   }
-  return (Ast*)fields;
 }
 
 internal Ast*
@@ -946,7 +934,7 @@ build_headerUnionDeclaration()
       decl->name = build_name(true);
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        build_structFieldList(decl->fields);
+        build_structFieldList(&decl->fields);
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);
@@ -1027,10 +1015,9 @@ build_specifiedIdentifier()
   return 0;
 }
 
-internal Ast*
-build_specifiedIdentifierList()
+internal void
+build_specifiedIdentifierList(Ast_ElementList* ids)
 {
-  Ast_ElementList* ids = arena_push_struct(ast_storage, Ast_ElementList);
   ids->kind = AST_ELEM_LIST;
   ids->id = node_id++;
   ids->line_no = token->line_no;
@@ -1048,7 +1035,6 @@ build_specifiedIdentifierList()
       last = li;
     }
   }
-  return (Ast*)ids;
 }
 
 internal Ast*
@@ -1308,10 +1294,9 @@ build_argument()
   return 0;
 }
 
-internal Ast*
-build_argumentList()
+internal void
+build_argumentList(Ast_ElementList* args)
 {
-  Ast_ElementList* args = arena_push_struct(ast_storage, Ast_ElementList);
   args->kind = AST_ELEM_LIST;
   args->id = node_id++;
   args->line_no = token->line_no;
@@ -1329,30 +1314,22 @@ build_argumentList()
       last = li;
     }
   }
-  return (Ast*)args;
 }
 
-internal Ast*
-build_optArguments()
+internal void
+build_optArguments(Ast_ElementList* args)
 {
   if (token->klass == TK_PARENTH_OPEN) {
     next_token();
     if (token_is_argument(token)) {
-      Ast* args = build_argumentList();
+      build_argumentList(args);
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
       } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
-      return args;
     } else if (token->klass == TK_PARENTH_CLOSE) {
       next_token();
     } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
   }
-  Ast_ElementList* args = arena_push_struct(ast_storage, Ast_ElementList);
-  args->kind = AST_ELEM_LIST;
-  args->id = node_id++;
-  args->line_no = token->line_no;
-  args->head.next = 0;
-  return (Ast*)args;
 }
 
 internal Ast*
@@ -1427,10 +1404,9 @@ build_parserLocalElement()
   return 0;
 }
 
-internal Ast*
-build_parserLocalElements()
+internal void
+build_parserLocalElements(Ast_ElementList* elems)
 {
-  Ast_ElementList* elems = arena_push_struct(ast_storage, Ast_ElementList);
   elems->kind = AST_ELEM_LIST;
   elems->id = node_id++;
   elems->line_no = token->line_no;
@@ -1447,7 +1423,6 @@ build_parserLocalElements()
       last = li;
     }
   }
-  return (Ast*)elems;
 }
 
 internal Ast*
@@ -1632,10 +1607,9 @@ build_assignmentOrMethodCallStatement()
   return 0;
 }
 
-internal Ast*
-build_parserStatements()
+internal void
+build_parserStatements(Ast_ElementList* stmts)
 {
-  Ast_ElementList* stmts = arena_push_struct(ast_storage, Ast_ElementList);
   stmts->kind = AST_ELEM_LIST;
   stmts->id = node_id++;
   stmts->line_no = token->line_no;
@@ -1652,7 +1626,6 @@ build_parserStatements()
       last = li;
     }
   }
-  return (Ast*)stmts;
 }
 
 internal Ast*
@@ -1706,10 +1679,9 @@ build_parserStatement()
   return 0;
 }
 
-internal Ast*
-build_expressionList()
+internal void
+build_expressionList(Ast_ElementList* exprs)
 {
-  Ast_ElementList* exprs = arena_push_struct(ast_storage, Ast_ElementList);
   exprs->kind = AST_ELEM_LIST;
   exprs->id = node_id++;
   exprs->line_no = token->line_no;
@@ -1727,7 +1699,6 @@ build_expressionList()
       last = li;
     }
   }
-  return (Ast*)exprs;
 }
 
 internal Ast*
@@ -1755,10 +1726,9 @@ build_simpleKeysetExpression()
   return 0;
 }
 
-internal Ast*
-build_keysetExpressionList()
+internal void
+build_keysetExpressionList(Ast_ElementList* exprs)
 {
-  Ast_ElementList* exprs = arena_push_struct(ast_storage, Ast_ElementList);
   exprs->kind = AST_ELEM_LIST;
   exprs->id = node_id++;
   exprs->line_no = token->line_no;
@@ -1776,7 +1746,6 @@ build_keysetExpressionList()
       last = li;
     }
   }
-  return (Ast*)exprs;
 }
 
 internal Ast*
@@ -1836,10 +1805,9 @@ build_selectCase()
   return 0;
 }
 
-internal Ast*
-build_selectCaseList()
+internal void
+build_selectCaseList(Ast_ElementList* cases)
 {
-  Ast_ElementList* cases = arena_push_struct(ast_storage, Ast_ElementList);
   cases->kind = AST_ELEM_LIST;
   cases->id = node_id++;
   cases->line_no = token->line_no;
@@ -1856,7 +1824,6 @@ build_selectCaseList()
       last = li;
     }
   }
-  return (Ast*)cases;
 }
 
 internal Ast*
@@ -1941,10 +1908,9 @@ build_parserState()
   return 0;
 }
 
-internal Ast*
-build_parserStates()
+internal void
+build_parserStates(Ast_ElementList* states)
 {
-  Ast_ElementList* states = arena_push_struct(ast_storage, Ast_ElementList);
   states->kind = AST_ELEM_LIST;
   states->id = node_id++;
   states->line_no = token->line_no;
@@ -1961,7 +1927,6 @@ build_parserStates()
       last = li;
     }
   }
-  return (Ast*)states;
 }
 
 internal Ast*
@@ -2071,10 +2036,9 @@ build_keyElement()
   return 0;
 }
 
-internal Ast*
-build_keyElementList()
+internal void
+build_keyElementList(Ast_ElementList* elems)
 {
-  Ast_ElementList* elems = arena_push_struct(ast_storage, Ast_ElementList);
   elems->kind = AST_ELEM_LIST;
   elems->id = node_id++;
   elems->line_no = token->line_no;
@@ -2091,7 +2055,6 @@ build_keyElementList()
       last = li;
     }
   }
-  return (Ast*)elems;
 }
 
 internal Ast*
@@ -2110,10 +2073,9 @@ build_actionRef()
   return 0;
 }
 
-internal Ast*
-build_actionList()
+internal void
+build_actionList(Ast_ElementList* actions)
 {
-  Ast_ElementList* actions = arena_push_struct(ast_storage, Ast_ElementList);
   actions->kind = AST_ELEM_LIST;
   actions->id = node_id++;
   actions->line_no = token->line_no;
@@ -2136,7 +2098,6 @@ build_actionList()
       } else error("at line %d: `;` was expected, got `%s`.", token->line_no, token->lexeme);
     }
   }
-  return (Ast*)actions;
 }
 
 internal Ast*
@@ -2161,10 +2122,9 @@ build_entry()
   return 0;
 }
 
-internal Ast*
-build_entriesList()
+internal void
+build_entriesList(Ast_ElementList* entries)
 {
-  Ast_ElementList* entries = arena_push_struct(ast_storage, Ast_ElementList);
   entries->kind = AST_ELEM_LIST;
   entries->id = node_id++;
   entries->line_no = token->line_no;
@@ -2181,7 +2141,6 @@ build_entriesList()
       last = li;
     }
   }
-  return (Ast*)entries;
 }
 
 internal Ast*
@@ -2267,10 +2226,9 @@ build_tableProperty()
   return 0;
 }
 
-internal Ast*
-build_tablePropertyList()
+internal void
+build_tablePropertyList(Ast_ElementList* props)
 {
-  Ast_ElementList* props = arena_push_struct(ast_storage, Ast_ElementList);
   props->kind = AST_ELEM_LIST;
   props->id = node_id++;
   props->line_no = token->line_no;
@@ -2287,7 +2245,6 @@ build_tablePropertyList()
       last = li;
     }
   }
-  return (Ast*)props;
 }
 
 internal Ast*
@@ -2341,10 +2298,9 @@ build_controlLocalDeclaration()
   return 0;
 }
 
-internal Ast*
-build_controlLocalDeclarations()
+internal void
+build_controlLocalDeclarations(Ast_ElementList* decls)
 {
-  Ast_ElementList* decls = arena_push_struct(ast_storage, Ast_ElementList);
   decls->kind = AST_ELEM_LIST;
   decls->id = node_id++;
   decls->line_no = token->line_no;
@@ -2361,7 +2317,6 @@ build_controlLocalDeclarations()
       last = li;
     }
   }
-  return (Ast*)decls;
 }
 
 internal Ast*
@@ -2598,10 +2553,9 @@ build_switchCase()
   return 0;
 }
 
-internal Ast*
-build_switchCases()
+internal void
+build_switchCases(Ast_ElementList* cases)
 {
-  Ast_ElementList* cases = arena_push_struct(ast_storage, Ast_ElementList);
   cases->kind = AST_ELEM_LIST;
   cases->id = node_id++;
   cases->line_no = token->line_no;
@@ -2618,7 +2572,6 @@ build_switchCases()
       last = li;
     }
   }
-  return (Ast*)cases;
 }
 
 internal Ast*
@@ -2715,10 +2668,9 @@ build_statementOrDecl()
   return 0;
 }
 
-internal Ast*
-build_statementOrDeclList()
+internal void
+build_statementOrDeclList(Ast_ElementList* stmts)
 {
-  Ast_ElementList* stmts = arena_push_struct(ast_storage, Ast_ElementList);
   stmts->kind = AST_ELEM_LIST;
   stmts->id = node_id++;
   stmts->line_no = token->line_no;
@@ -2735,7 +2687,6 @@ build_statementOrDeclList()
       last = li;
     }
   }
-  return (Ast*)stmts;
 }
 
 internal Ast*
@@ -2757,10 +2708,9 @@ build_blockStatement()
   return 0;
 }
 
-internal Ast*
-build_identifierList()
+internal void
+build_identifierList(Ast_ElementList* ids)
 {
-  Ast_ElementList* ids = arena_push_struct(ast_storage, Ast_ElementList);
   ids->kind = AST_ELEM_LIST;
   ids->id = node_id++;
   ids->line_no = token->line_no;
@@ -2778,7 +2728,6 @@ build_identifierList()
       last = li;
     }
   }
-  return (Ast*)ids;
 }
 
 internal Ast*
@@ -2891,10 +2840,9 @@ build_declaration()
   return 0;
 }
 
-internal Ast*
-build_declarationList()
+internal void
+build_declarationList(Ast_ElementList* decls)
 {
-  Ast_ElementList* decls = arena_push_struct(ast_storage, Ast_ElementList);
   decls->kind = AST_ELEM_LIST;
   decls->id = node_id++;
   decls->line_no = token->line_no;
@@ -2915,7 +2863,6 @@ build_declarationList()
       }
     }
   }
-  return (Ast*)decls;
 }
 
 internal Ast*
@@ -2985,10 +2932,9 @@ build_realTypeArg()
   return 0;
 }
 
-internal Ast*
-build_realTypeArgumentList()
+internal void
+build_realTypeArgumentList(Ast_ElementList* args)
 {
-  Ast_ElementList* args = arena_push_struct(ast_storage, Ast_ElementList);
   args->kind = AST_ELEM_LIST;
   args->id = node_id++;
   args->line_no = token->line_no;
@@ -3006,7 +2952,6 @@ build_realTypeArgumentList()
       last = li;
     }
   }
-  return (Ast*)args;
 }
 
 internal Ast*

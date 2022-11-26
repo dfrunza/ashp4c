@@ -435,6 +435,11 @@ visit_block_statement(Ast* ast)
   }
 }
 
+internal void
+visit_control_proto(Ast* ast)
+{
+
+}
 
 internal void
 visit_control(Ast* ast)
@@ -580,6 +585,12 @@ visit_local_parser_element(Ast* ast)
   } else if (ast->kind == AST_VAR) {
     visit_statement(ast);
   } else assert(0);
+}
+
+internal void
+visit_parser_proto(Ast* ast)
+{
+
 }
 
 internal void
@@ -805,6 +816,8 @@ visit_p4program(Ast* ast)
     Ast* decl = li->object;
     if (decl->kind == AST_CONTROL) {
       visit_control(decl);
+    } else if (decl->kind == AST_CONTROL_PROTO) {
+      visit_control_proto(decl);
     } else if (decl->kind == AST_EXTERN) {
       visit_extern(decl);
     } else if (decl->kind == AST_STRUCT) {
@@ -817,6 +830,8 @@ visit_p4program(Ast* ast)
       visit_package(decl);
     } else if (decl->kind == AST_PARSER) {
       visit_parser(decl);
+    } else if (decl->kind == AST_PARSER_PROTO) {
+      visit_parser_proto(decl);
     } else if (decl->kind == AST_INSTANTIATION) {
       visit_instantiation(decl);
     } else if (decl->kind == AST_TYPE) {
@@ -835,8 +850,7 @@ visit_p4program(Ast* ast)
       visit_match_kind(decl);
     } else if (decl->kind == AST_ERROR) {
       visit_error(decl);
-    }
-    else assert(0);
+    } else assert(0);
     li = li->next;
   }
 }
