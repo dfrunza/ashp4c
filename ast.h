@@ -321,7 +321,7 @@ typedef struct Ast_Enum {
   Ast;
   Ast* name;
   Ast* type_size;
-  Ast* id_list;
+  Ast_ElementList id_list;
 } Ast_Enum;
 
 typedef struct Ast_Type {

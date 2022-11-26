@@ -1077,7 +1077,7 @@ build_enumDeclaration()
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
         if (token_is_specifiedIdentifier(token)) {
-          decl->id_list = build_specifiedIdentifierList();
+          build_specifiedIdentifierList(&decl->id_list);
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("at line %d: `}` was expected, got `%s`.", token->line_no, token->lexeme);

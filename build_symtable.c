@@ -997,7 +997,7 @@ visit_enum(Ast* ast)
     declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   } else error("at line %d: name `%s` redeclared.", name->line_no, name->strname);
   current_scope = push_scope();
-  Ast_ElementList* id_list = (Ast_ElementList*)enum_decl->id_list;
+  Ast_ElementList* id_list = &enum_decl->id_list;
   DList* li = id_list->head.next;
   while (li) {
     Ast* id = li->object;
