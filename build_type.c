@@ -41,10 +41,10 @@ visit_param(Ast* ast)
   Ast_Param* param = (Ast_Param*)ast;
   visit_type_ref(param->type);
   Type_TypeRef* param_ty = arena_push_struct(type_storage, Type_TypeRef);
+  type_add(&type_map, (Type*)param_ty, param->id);
   param_ty->ctor = TYPE_TYPEREF;
   param_ty->ref = type_get(&type_map, param->type->id);
-  param_ty->ast = ast;
-  type_add(&type_map, (Type*)param_ty, param->id);
+  param_ty->ast = (Ast*)param;
 }
 
 internal void
@@ -55,10 +55,10 @@ visit_type_param(Ast* ast)
   NameRef* ref = nameref_get(nameref_map, name->id);
   if (!ref) {
     Type_TypeParam* param_ty = arena_push_struct(type_storage, Type_TypeParam);
+    type_add(&type_map, (Type*)param_ty, ast->id);
     param_ty->ctor = TYPE_TYPEPARAM;
     param_ty->strname = name->strname;
-    param_ty->ast = ast;
-    type_add(&type_map, (Type*)param_ty, ast->id);
+    param_ty->ast = (Ast*)name;
   } else {
     visit_expression(ast);
   }
@@ -71,10 +71,10 @@ visit_struct_field(Ast* ast)
   Ast_StructField* field = (Ast_StructField*)ast;
   visit_type_ref(field->type);
   Type_TypeRef* field_ty = arena_push_struct(type_storage, Type_TypeRef);
+  type_add(&type_map, (Type*)field_ty, field->id);
   field_ty->ctor = TYPE_TYPEREF;
   field_ty->ref = type_get(&type_map, field->type->id);
-  field_ty->ast = ast;
-  type_add(&type_map, (Type*)field_ty, field->id);
+  field_ty->ast = (Ast*)field;
 }
 
 internal void
@@ -102,37 +102,33 @@ visit_header(Ast* ast)
     DList* li = fields->head.next;
     Ast* field = li->object;
     visit_struct_field(field);
-    if (li->next) {
-      Type* struct_ty = type_get(&type_map, field->id);
-      li = li->next;
+    li = li->next;
+    if (li) {
+      Type* fields_ty = type_get(&type_map, field->id);
       while (li) {
         Ast* field = li->object;
         visit_struct_field(field);
-        Type_Product* protuct_ty = arena_push_struct(type_storage, Type_Product);
-        protuct_ty->ctor = TYPE_PRODUCT;
-        protuct_ty->lhs_ty = struct_ty;
-        protuct_ty->rhs_ty = type_get(&type_map, field->id);
-        protuct_ty->ast = ast;
-        struct_ty = (Type*)protuct_ty;
+        Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
+        product_ty->ctor = TYPE_PRODUCT;
+        product_ty->lhs_ty = fields_ty;
+        product_ty->rhs_ty = type_get(&type_map, field->id);
+        fields_ty = (Type*)product_ty;
         li = li->next;
       }
-      type_add(&type_map, struct_ty, header_decl->id);
+      type_add(&type_map, fields_ty, fields->id);
     } else {
-      Type_TypeRef* struct_ty = arena_push_struct(type_storage, Type_TypeRef);
-      struct_ty->ctor = TYPE_TYPEREF;
-      struct_ty->ref = type_get(&type_map, field->id);
-      struct_ty->ast = ast;
-      type_add(&type_map, (Type*)struct_ty, header_decl->id);
+      Type_TypeRef* fields_ty = arena_push_struct(type_storage, Type_TypeRef);
+      type_add(&type_map, (Type*)fields_ty, fields->id);
+      fields_ty->ctor = TYPE_TYPEREF;
+      fields_ty->ref = type_get(&type_map, field->id);
+      fields_ty->ast = (Ast*)fields;
     }
-  } else {
-    NameEntry* ne = scope_lookup_name(root_scope, "void");
-    NameDecl* void_decl = ne->ns_type;
-    Type_TypeRef* struct_ty = arena_push_struct(type_storage, Type_TypeRef);
-    struct_ty->ctor = TYPE_TYPEREF;
-    struct_ty->ref = type_get(&type_map, void_decl->ast->id);
-    struct_ty->ast = ast;
-    type_add(&type_map, (Type*)struct_ty, header_decl->id);
   }
+  Type_TypeRef* header_ty = arena_push_struct(type_storage, Type_TypeRef);
+  type_add(&type_map, (Type*)header_ty, header_decl->id);
+  header_ty->ctor = TYPE_TYPEREF;
+  header_ty->ref = type_get(&type_map, fields->id);
+  header_ty->ast = (Ast*)header_decl;
 }
 
 internal void
@@ -145,35 +141,33 @@ visit_struct(Ast* ast)
     DList* li = fields->head.next;
     Ast* field = li->object;
     visit_struct_field(field);
-    if (li->next) {
-      Type* struct_type = type_get(&type_map, field->id);
-      li = li->next;
+    li = li->next;
+    if (li) {
+      Type* fields_ty = type_get(&type_map, field->id);
       while (li) {
         Ast* field = li->object;
         visit_struct_field(field);
         Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
-        product_ty->lhs_ty = struct_type;
+        product_ty->lhs_ty = fields_ty;
         product_ty->rhs_ty = type_get(&type_map, field->id);
-        struct_type = (Type*)product_ty;
+        fields_ty = (Type*)product_ty;
         li = li->next;
       }
+      type_add(&type_map, fields_ty, fields->id);
     } else {
-      Type_TypeRef* struct_ty = arena_push_struct(type_storage, Type_TypeRef);
-      struct_ty->ctor = TYPE_TYPEREF;
-      struct_ty->ref = type_get(&type_map, field->id);
-      struct_ty->ast = ast;
-      type_add(&type_map, (Type*)struct_ty, struct_decl->id);
+      Type_TypeRef* fields_ty = arena_push_struct(type_storage, Type_TypeRef);
+      type_add(&type_map, (Type*)fields_ty, fields->id);
+      fields_ty->ctor = TYPE_TYPEREF;
+      fields_ty->ref = type_get(&type_map, field->id);
+      fields_ty->ast = (Ast*)fields;
     }
-  } else {
-    NameEntry* ne = scope_lookup_name(root_scope, "void");
-    NameDecl* void_decl = ne->ns_type;
-    Type_TypeRef* struct_ty = arena_push_struct(type_storage, Type_TypeRef);
-    struct_ty->ctor = TYPE_TYPEREF;
-    struct_ty->ref = type_get(&type_map, void_decl->ast->id);
-    struct_ty->ast = ast;
-    type_add(&type_map, (Type*)struct_ty, struct_decl->id);
   }
+  Type_TypeRef* struct_ty = arena_push_struct(type_storage, Type_TypeRef);
+  type_add(&type_map, (Type*)struct_ty, struct_decl->id);
+  struct_ty->ctor = TYPE_TYPEREF;
+  struct_ty->ref = type_get(&type_map, fields->id);
+  struct_ty->ast = (Ast*)struct_decl;
 }
 
 internal void
@@ -183,58 +177,58 @@ visit_type_ref(Ast* ast)
     NameEntry* ne = scope_lookup_name(root_scope, "bool");
     NameDecl* bool_decl = ne->ns_type;
     Type_TypeRef* bool_ty = arena_push_struct(type_storage, Type_TypeRef);
+    type_add(&type_map, (Type*)bool_ty, ast->id);
     bool_ty->ctor = TYPE_TYPEREF;
     bool_ty->ref = type_get(&type_map, bool_decl->ast->id);
     bool_ty->ast = ast;
-    type_add(&type_map, (Type*)bool_ty, ast->id);
   } else if (ast->kind == AST_INT_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "int");
     NameDecl* int_decl = ne->ns_type;
     Type_TypeRef* int_ty = arena_push_struct(type_storage, Type_TypeRef);
+    type_add(&type_map, (Type*)int_ty, ast->id);
     int_ty->ctor = TYPE_TYPEREF;
     int_ty->ref = type_get(&type_map, int_decl->ast->id);
     int_ty->ast = ast;
-    type_add(&type_map, (Type*)int_ty, ast->id);
   } else if (ast->kind == AST_BIT_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "bit");
     NameDecl* bit_decl = ne->ns_type;
     Type_TypeRef* bit_ty = arena_push_struct(type_storage, Type_TypeRef);
+    type_add(&type_map, (Type*)bit_ty, ast->id);
     bit_ty->ctor = TYPE_TYPEREF;
     bit_ty->ref = type_get(&type_map, bit_decl->ast->id);
     bit_ty->ast = ast;
-    type_add(&type_map, (Type*)bit_ty, ast->id);
   } else if (ast->kind == AST_VARBIT_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "varbit");
     NameDecl* varbit_decl = ne->ns_type;
     Type_TypeRef* varbit_ty = arena_push_struct(type_storage, Type_TypeRef);
+    type_add(&type_map, (Type*)varbit_ty, ast->id);
     varbit_ty->ctor = TYPE_TYPEREF;
     varbit_ty->ref = type_get(&type_map, varbit_decl->ast->id);
     varbit_ty->ast = ast;
-    type_add(&type_map, (Type*)varbit_ty, ast->id);
   } else if (ast->kind == AST_STRING_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "string");
     NameDecl* string_decl = ne->ns_type;
     Type_TypeRef* string_ty = arena_push_struct(type_storage, Type_TypeRef);
+    type_add(&type_map, (Type*)string_ty, ast->id);
     string_ty->ctor = TYPE_TYPEREF;
     string_ty->ref = type_get(&type_map, string_decl->ast->id);
     string_ty->ast = ast;
-    type_add(&type_map, (Type*)string_ty, ast->id);
   } else if (ast->kind == AST_VOID_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "void");
     NameDecl* void_decl = ne->ns_type;
     Type_TypeRef* void_ty = arena_push_struct(type_storage, Type_TypeRef);
+    type_add(&type_map, (Type*)void_ty, ast->id);
     void_ty->ctor = TYPE_TYPEREF;
     void_ty->ref = type_get(&type_map, void_decl->ast->id);
     void_ty->ast = ast;
-    type_add(&type_map, (Type*)void_ty, ast->id);
   } else if (ast->kind == AST_ERROR_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "error");
     NameDecl* error_decl = ne->ns_type;
     Type_TypeRef* error_ty = arena_push_struct(type_storage, Type_TypeRef);
+    type_add(&type_map, (Type*)error_ty, ast->id);
     error_ty->ctor = TYPE_TYPEREF;
     error_ty->ref = type_get(&type_map, error_decl->ast->id);
     error_ty->ast = ast;
-    type_add(&type_map, (Type*)error_ty, ast->id);
   } else if (ast->kind == AST_HEADER_STACK) {
     Ast_HeaderStack* type_ref = (Ast_HeaderStack*)ast;
     visit_expression(type_ref->name);
@@ -310,8 +304,8 @@ visit_function_call(Ast* ast)
   }
   Type_FunctionCall* call_ty = arena_push_struct(type_storage, Type_FunctionCall);
   call_ty->ctor = TYPE_FUNCTION_CALL;
-  call_ty->args_ty = args_type;
   type_add(&type_map, (Type*)call_ty, function_call->id);
+  call_ty->args_ty = args_type;
 }
 
 internal void
@@ -509,13 +503,16 @@ internal void
 visit_var(Ast* ast)
 {
   assert(ast->kind == AST_VAR);
-  Ast_Var* decl = (Ast_Var*)ast;
-  visit_type_ref(decl->type);
-  if (decl->init_expr) {
-    visit_expression(decl->init_expr);
+  Ast_Var* var_decl = (Ast_Var*)ast;
+  visit_type_ref(var_decl->type);
+  if (var_decl->init_expr) {
+    visit_expression(var_decl->init_expr);
   }
-  Type* decl_type = type_get(&type_map, decl->type->id);
-  type_add(&type_map, decl_type, decl->id);
+  Type_TypeRef* var_ty = arena_push_struct(type_storage, Type_TypeRef);
+  type_add(&type_map, (Type*)var_ty, var_decl->id);
+  var_ty->ctor = TYPE_TYPEREF;
+  var_ty->ref = type_get(&type_map, var_decl->type->id);
+  var_ty->ast = (Ast*)var_decl;
 }
 
 internal void
@@ -523,12 +520,10 @@ visit_if_stmt(Ast* ast)
 {
   assert(ast->kind == AST_IF_STMT);
   Ast_IfStmt* stmt = (Ast_IfStmt*)ast;
-  Ast* if_stmt = stmt->stmt;
   visit_expression(stmt->cond_expr);
-  visit_statement(if_stmt);
-  Ast* else_stmt = stmt->else_stmt;
-  if (else_stmt) {
-    visit_statement(else_stmt);
+  visit_statement(stmt->stmt);
+  if (stmt->else_stmt) {
+    visit_statement(stmt->else_stmt);
   }
 }
 
@@ -559,9 +554,10 @@ visit_assignment_stmt(Ast* ast)
   args_ty->lhs_ty = type_get(&type_map, stmt->lvalue->id);
   args_ty->rhs_ty = type_get(&type_map, stmt->expr->id);
   Type_FunctionCall* stmt_ty = arena_push_struct(type_storage, Type_FunctionCall);
+  type_add(&type_map, (Type*)stmt_ty, stmt->id);
   stmt_ty->ctor = TYPE_FUNCTION_CALL;
   stmt_ty->args_ty = (Type*)args_ty;
-  type_add(&type_map, (Type*)stmt_ty, stmt->id);
+  stmt_ty->ast = (Ast*)stmt;
 }
 
 internal void
@@ -705,9 +701,9 @@ visit_control(Ast* ast)
     DList* li = params->head.next;
     Ast* param = li->object;
     visit_param(param);
-    if (li->next) {
+    li = li->next;
+    if (li) {
       Type* params_ty = type_get(&type_map, param->id);
-      li = li->next;
       while (li) {
         Ast* param = li->object;
         visit_param(param);
@@ -721,19 +717,19 @@ visit_control(Ast* ast)
       type_add(&type_map, params_ty, params->id);
     } else {
       Type_TypeRef* params_ty = arena_push_struct(type_storage, Type_TypeRef);
+      type_add(&type_map, (Type*)params_ty, params->id);
       params_ty->ctor = TYPE_TYPEREF;
       params_ty->ref = type_get(&type_map, param->id);
       params_ty->ast = (Ast*)params;
-      type_add(&type_map, (Type*)params_ty, params->id);
     }
   } else {
     NameEntry* ne = scope_lookup_name(root_scope, "void");
     NameDecl* void_decl = ne->ns_type;
     Type_TypeRef* params_ty = arena_push_struct(type_storage, Type_TypeRef);
+    type_add(&type_map, (Type*)params_ty, params->id);
     params_ty->ctor = TYPE_TYPEREF;
     params_ty->ref = type_get(&type_map, void_decl->ast->id);
-    params_ty->ast = ast;
-    type_add(&type_map, (Type*)params_ty, params->id);
+    params_ty->ast = (Ast*)params;
   }
   Ast_ElementList* ctor_params = &control_decl->ctor_params;
   li = ctor_params->head.next;
@@ -742,18 +738,10 @@ visit_control(Ast* ast)
     visit_param(param);
     li = li->next;
   }
-  Type_Function* function_ty = arena_push_struct(type_storage, Type_Function);
-  function_ty->ctor = TYPE_FUNCTION;
-  type_add(&type_map, (Type*)function_ty, control_decl->id);
-  function_ty->params_ty = type_get(&type_map, params->id);
-
-  NameEntry* ne = scope_lookup_name(root_scope, "void");
-  NameDecl* void_decl = ne->ns_type;
-  Type_TypeRef* return_ty = arena_push_struct(type_storage, Type_TypeRef);
-  return_ty->ctor = TYPE_TYPEREF;
-  return_ty->ref = type_get(&type_map, void_decl->ast->id);
-  return_ty->ast = ast;
-  function_ty->return_ty = (Type*)return_ty;
+  Type_Function* control_ty = arena_push_struct(type_storage, Type_Function);
+  type_add(&type_map, (Type*)control_ty, control_decl->id);
+  control_ty->ctor = TYPE_FUNCTION;
+  control_ty->params_ty = type_get(&type_map, params->id);
 
   Ast_ElementList* local_decls = &control_decl->local_decls;
   li = local_decls->head.next;
@@ -1073,9 +1061,10 @@ visit_binary_expr(Ast* ast)
   args_ty->lhs_ty = type_get(&type_map, expr->left_operand->id);
   args_ty->rhs_ty = type_get(&type_map, expr->right_operand->id);
   Type_FunctionCall* expr_ty = arena_push_struct(type_storage, Type_FunctionCall);
+  type_add(&type_map, (Type*)expr_ty, expr->id);
   expr_ty->ctor = TYPE_FUNCTION_CALL;
   expr_ty->args_ty = (Type*)args_ty;
-  type_add(&type_map, (Type*)expr_ty, expr->id);
+  expr_ty->ast = (Ast*)expr;
 }
 
 internal void
