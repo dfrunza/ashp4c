@@ -219,6 +219,7 @@ typedef struct Ast {
 typedef struct Ast_NodeList {
   Ast;
   DList head;
+  int count;
 } Ast_NodeList;
 
 typedef struct Ast_Expression {
