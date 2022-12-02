@@ -719,6 +719,12 @@ visit_control(Ast* ast)
         li = li->next;
       }
       type_add(&type_map, params_ty, params->id);
+    } else {
+      Type_TypeRef* params_ty = arena_push_struct(type_storage, Type_TypeRef);
+      params_ty->ctor = TYPE_TYPEREF;
+      params_ty->ref = type_get(&type_map, param->id);
+      params_ty->ast = (Ast*)params;
+      type_add(&type_map, (Type*)params_ty, params->id);
     }
   } else {
     NameEntry* ne = scope_lookup_name(root_scope, "void");
