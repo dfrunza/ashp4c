@@ -249,9 +249,9 @@ build_name(bool is_type)
 }
 
 internal void
-build_typeParameterList(Ast_ElementList* params)
+build_typeParameterList(Ast_NodeList* params)
 {
-  params->kind = AST_ELEM_LIST;
+  params->kind = AST_NODE_LIST;
   params->id = node_id++;
   params->line_no = token->line_no;
   params->head.next = 0;
@@ -271,7 +271,7 @@ build_typeParameterList(Ast_ElementList* params)
 }
 
 internal void
-build_optTypeParameters(Ast_ElementList* params)
+build_optTypeParameters(Ast_NodeList* params)
 {
   if (token->klass == TK_ANGLE_OPEN) {
     next_token();
@@ -351,9 +351,9 @@ build_parameter()
 }
 
 internal void
-build_parameterList(Ast_ElementList* params)
+build_parameterList(Ast_NodeList* params)
 {
-  params->kind = AST_ELEM_LIST;
+  params->kind = AST_NODE_LIST;
   params->id = node_id++;
   params->line_no = token->line_no;
   params->head.next = 0;
@@ -474,9 +474,9 @@ build_methodPrototype()
 }
 
 internal void
-build_methodPrototypes(Ast_ElementList* protos)
+build_methodPrototypes(Ast_NodeList* protos)
 {
-  protos->kind = AST_ELEM_LIST;
+  protos->kind = AST_NODE_LIST;
   protos->id = node_id++;
   protos->line_no = token->line_no;
   protos->head.next = 0;
@@ -702,9 +702,9 @@ build_baseType()
 }
 
 internal void
-build_typeArgumentList(Ast_ElementList* args)
+build_typeArgumentList(Ast_NodeList* args)
 {
-  args->kind = AST_ELEM_LIST;
+  args->kind = AST_NODE_LIST;
   args->id = node_id++;
   args->line_no = token->line_no;
   args->head.next = 0;
@@ -875,10 +875,10 @@ build_structField()
 }
 
 internal void
-build_structFieldList(Ast_ElementList* fields)
+build_structFieldList(Ast_NodeList* fields)
 {
-  arena_push_struct(ast_storage, Ast_ElementList);
-  fields->kind = AST_ELEM_LIST;
+  arena_push_struct(ast_storage, Ast_NodeList);
+  fields->kind = AST_NODE_LIST;
   fields->id = node_id++;
   fields->line_no = token->line_no;
   fields->head.next = 0;
@@ -1016,9 +1016,9 @@ build_specifiedIdentifier()
 }
 
 internal void
-build_specifiedIdentifierList(Ast_ElementList* ids)
+build_specifiedIdentifierList(Ast_NodeList* ids)
 {
-  ids->kind = AST_ELEM_LIST;
+  ids->kind = AST_NODE_LIST;
   ids->id = node_id++;
   ids->line_no = token->line_no;
   ids->head.next = 0;
@@ -1125,7 +1125,7 @@ build_parserTypeDeclaration()
 }
 
 internal void
-build_optConstructorParameters(Ast_ElementList* params)
+build_optConstructorParameters(Ast_NodeList* params)
 {
   if (token->klass == TK_PARENTH_OPEN) {
     next_token();
@@ -1295,9 +1295,9 @@ build_argument()
 }
 
 internal void
-build_argumentList(Ast_ElementList* args)
+build_argumentList(Ast_NodeList* args)
 {
-  args->kind = AST_ELEM_LIST;
+  args->kind = AST_NODE_LIST;
   args->id = node_id++;
   args->line_no = token->line_no;
   args->head.next = 0;
@@ -1317,7 +1317,7 @@ build_argumentList(Ast_ElementList* args)
 }
 
 internal void
-build_optArguments(Ast_ElementList* args)
+build_optArguments(Ast_NodeList* args)
 {
   if (token->klass == TK_PARENTH_OPEN) {
     next_token();
@@ -1405,9 +1405,9 @@ build_parserLocalElement()
 }
 
 internal void
-build_parserLocalElements(Ast_ElementList* elems)
+build_parserLocalElements(Ast_NodeList* elems)
 {
-  elems->kind = AST_ELEM_LIST;
+  elems->kind = AST_NODE_LIST;
   elems->id = node_id++;
   elems->line_no = token->line_no;
   elems->head.next = 0;
@@ -1608,9 +1608,9 @@ build_assignmentOrMethodCallStatement()
 }
 
 internal void
-build_parserStatements(Ast_ElementList* stmts)
+build_parserStatements(Ast_NodeList* stmts)
 {
-  stmts->kind = AST_ELEM_LIST;
+  stmts->kind = AST_NODE_LIST;
   stmts->id = node_id++;
   stmts->line_no = token->line_no;
   stmts->head.next = 0;
@@ -1680,9 +1680,9 @@ build_parserStatement()
 }
 
 internal void
-build_expressionList(Ast_ElementList* exprs)
+build_expressionList(Ast_NodeList* exprs)
 {
-  exprs->kind = AST_ELEM_LIST;
+  exprs->kind = AST_NODE_LIST;
   exprs->id = node_id++;
   exprs->line_no = token->line_no;
   exprs->head.next = 0;
@@ -1727,9 +1727,9 @@ build_simpleKeysetExpression()
 }
 
 internal void
-build_keysetExpressionList(Ast_ElementList* exprs)
+build_keysetExpressionList(Ast_NodeList* exprs)
 {
-  exprs->kind = AST_ELEM_LIST;
+  exprs->kind = AST_NODE_LIST;
   exprs->id = node_id++;
   exprs->line_no = token->line_no;
   exprs->head.next = 0;
@@ -1806,9 +1806,9 @@ build_selectCase()
 }
 
 internal void
-build_selectCaseList(Ast_ElementList* cases)
+build_selectCaseList(Ast_NodeList* cases)
 {
-  cases->kind = AST_ELEM_LIST;
+  cases->kind = AST_NODE_LIST;
   cases->id = node_id++;
   cases->line_no = token->line_no;
   cases->head.next = 0;
@@ -1909,9 +1909,9 @@ build_parserState()
 }
 
 internal void
-build_parserStates(Ast_ElementList* states)
+build_parserStates(Ast_NodeList* states)
 {
-  states->kind = AST_ELEM_LIST;
+  states->kind = AST_NODE_LIST;
   states->id = node_id++;
   states->line_no = token->line_no;
   states->head.next = 0;
@@ -2037,9 +2037,9 @@ build_keyElement()
 }
 
 internal void
-build_keyElementList(Ast_ElementList* elems)
+build_keyElementList(Ast_NodeList* elems)
 {
-  elems->kind = AST_ELEM_LIST;
+  elems->kind = AST_NODE_LIST;
   elems->id = node_id++;
   elems->line_no = token->line_no;
   elems->head.next = 0;
@@ -2074,9 +2074,9 @@ build_actionRef()
 }
 
 internal void
-build_actionList(Ast_ElementList* actions)
+build_actionList(Ast_NodeList* actions)
 {
-  actions->kind = AST_ELEM_LIST;
+  actions->kind = AST_NODE_LIST;
   actions->id = node_id++;
   actions->line_no = token->line_no;
   actions->head.next = 0;
@@ -2123,9 +2123,9 @@ build_entry()
 }
 
 internal void
-build_entriesList(Ast_ElementList* entries)
+build_entriesList(Ast_NodeList* entries)
 {
-  entries->kind = AST_ELEM_LIST;
+  entries->kind = AST_NODE_LIST;
   entries->id = node_id++;
   entries->line_no = token->line_no;
   entries->head.next = 0;
@@ -2227,9 +2227,9 @@ build_tableProperty()
 }
 
 internal void
-build_tablePropertyList(Ast_ElementList* props)
+build_tablePropertyList(Ast_NodeList* props)
 {
-  props->kind = AST_ELEM_LIST;
+  props->kind = AST_NODE_LIST;
   props->id = node_id++;
   props->line_no = token->line_no;
   props->head.next = 0;
@@ -2299,9 +2299,9 @@ build_controlLocalDeclaration()
 }
 
 internal void
-build_controlLocalDeclarations(Ast_ElementList* decls)
+build_controlLocalDeclarations(Ast_NodeList* decls)
 {
-  decls->kind = AST_ELEM_LIST;
+  decls->kind = AST_NODE_LIST;
   decls->id = node_id++;
   decls->line_no = token->line_no;
   decls->head.next = 0;
@@ -2554,9 +2554,9 @@ build_switchCase()
 }
 
 internal void
-build_switchCases(Ast_ElementList* cases)
+build_switchCases(Ast_NodeList* cases)
 {
-  cases->kind = AST_ELEM_LIST;
+  cases->kind = AST_NODE_LIST;
   cases->id = node_id++;
   cases->line_no = token->line_no;
   cases->head.next = 0;
@@ -2669,9 +2669,9 @@ build_statementOrDecl()
 }
 
 internal void
-build_statementOrDeclList(Ast_ElementList* stmts)
+build_statementOrDeclList(Ast_NodeList* stmts)
 {
-  stmts->kind = AST_ELEM_LIST;
+  stmts->kind = AST_NODE_LIST;
   stmts->id = node_id++;
   stmts->line_no = token->line_no;
   stmts->head.next = 0;
@@ -2709,9 +2709,9 @@ build_blockStatement()
 }
 
 internal void
-build_identifierList(Ast_ElementList* ids)
+build_identifierList(Ast_NodeList* ids)
 {
-  ids->kind = AST_ELEM_LIST;
+  ids->kind = AST_NODE_LIST;
   ids->id = node_id++;
   ids->line_no = token->line_no;
   ids->head.next = 0;
@@ -2841,9 +2841,9 @@ build_declaration()
 }
 
 internal void
-build_declarationList(Ast_ElementList* decls)
+build_declarationList(Ast_NodeList* decls)
 {
-  decls->kind = AST_ELEM_LIST;
+  decls->kind = AST_NODE_LIST;
   decls->id = node_id++;
   decls->line_no = token->line_no;
   decls->head.next = 0;
@@ -2933,9 +2933,9 @@ build_realTypeArg()
 }
 
 internal void
-build_realTypeArgumentList(Ast_ElementList* args)
+build_realTypeArgumentList(Ast_NodeList* args)
 {
-  args->kind = AST_ELEM_LIST;
+  args->kind = AST_NODE_LIST;
   args->id = node_id++;
   args->line_no = token->line_no;
   args->head.next = 0;
