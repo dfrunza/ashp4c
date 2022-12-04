@@ -92,3 +92,12 @@ automatically by GCC and other major compilers in strict standards-conformance m
 _GNU_SOURCE (or _ALL_SOURCE)
 
 Adds everything above, plus interfaces modeled after GNU libc extensions and interfaces for making use of Linux-specific features.
+
+
+== Core Dump ==
+======================
+
+Enable coredump:
+$ ulimit -c unlimited
+$ echo "/.coredump" > /proc/sys/kernel/core_pattern
+
