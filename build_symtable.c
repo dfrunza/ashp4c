@@ -482,8 +482,8 @@ visit_control(Ast* ast)
 {
   assert(ast->kind == AST_CONTROL);
   Ast_Control* control_decl = (Ast_Control*)ast;
-  Ast_ControlProto* type_decl = (Ast_ControlProto*)control_decl->type_decl;
-  Ast_Name* name = (Ast_Name*)type_decl->name;
+  Ast_ControlProto* proto = (Ast_ControlProto*)control_decl->proto;
+  Ast_Name* name = (Ast_Name*)proto->name;
   NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
   decl->ast = ast;
   decl->strname = name->strname;
@@ -491,14 +491,14 @@ visit_control(Ast* ast)
   declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   current_scope = push_scope();
   DList* li;
-  Ast_NodeList* type_params = &type_decl->type_params;
+  Ast_NodeList* type_params = &proto->type_params;
   li = type_params->head.next;
   while (li) {
     Ast* type_param = li->object;
     visit_type_param(type_param);
     li = li->next;
   }
-  Ast_NodeList* params = &type_decl->params;
+  Ast_NodeList* params = &proto->params;
   li = params->head.next;
   while (li) {
     Ast* param = li->object;
@@ -633,8 +633,8 @@ visit_parser(Ast* ast)
 {
   assert(ast->kind == AST_PARSER);
   Ast_Parser* parser_decl = (Ast_Parser*)ast;
-  Ast_ParserProto* type_decl = (Ast_ParserProto*)parser_decl->type_decl;
-  Ast_Name* name = (Ast_Name*)type_decl->name;
+  Ast_ParserProto* proto = (Ast_ParserProto*)parser_decl->proto;
+  Ast_Name* name = (Ast_Name*)proto->name;
   NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
   decl->ast = ast;
   decl->strname = name->strname;
@@ -642,14 +642,14 @@ visit_parser(Ast* ast)
   declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   current_scope = push_scope();
   DList* li;
-  Ast_NodeList* type_params = &type_decl->type_params;
+  Ast_NodeList* type_params = &proto->type_params;
   li = type_params->head.next;
   while (li) {
     Ast* type_param = li->object;
     visit_type_param(type_param);
     li = li->next;
   }
-  Ast_NodeList* params = &type_decl->params;
+  Ast_NodeList* params = &proto->params;
   li = params->head.next;
   while (li) {
     Ast* param = li->object;

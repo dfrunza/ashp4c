@@ -621,45 +621,52 @@ internal void
 visit_function_proto(Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION_PROTO);
-  Ast_FunctionProto* function_proto = (Ast_FunctionProto*)ast;
-  if (function_proto->return_type) {
-    visit_function_return_type(function_proto->return_type);
+  Ast_FunctionProto* proto = (Ast_FunctionProto*)ast;
+  if (proto->return_type) {
+    visit_function_return_type(proto->return_type);
   }
-  Ast_NodeList* type_params = &function_proto->type_params;
+  Ast_NodeList* type_params = &proto->type_params;
   DList* li = type_params->head.next;
   while (li) {
     Ast* type_param = li->object;
     visit_type_param(type_param);
     li = li->next;
   }
-  NameEntry* ne = scope_lookup_name(root_scope, "void");
-  NameDecl* void_decl = ne->ns_type;
-  Type* params_type = type_get(&type_map, void_decl->ast->id);
-  Ast_NodeList* params = &function_proto->params;
+  Ast_NodeList* params = &proto->params;
   if (params->head.next) {
     DList* li = params->head.next;
     Ast* param = li->object;
     visit_param(param);
-    params_type = type_get(&type_map, param->id);
     li = li->next;
-    while (li) {
-      Ast* param = li->object;
-      visit_param(param);
-      Type_Product* product_ty = arena_push_struct(type_storage, Type_Product); 
-      product_ty->ctor = TYPE_PRODUCT;
-      product_ty->lhs_ty = params_type;
-      product_ty->rhs_ty = type_get(&type_map, param->id);
-      params_type = (Type*)product_ty;
-      li = li->next;
+    if (li) {
+      Type* params_ty = type_get(&type_map, param->id);
+      while (li) {
+        Ast* param = li->object;
+        visit_param(param);
+        Type_Product* product_ty = arena_push_struct(type_storage, Type_Product); 
+        product_ty->ctor = TYPE_PRODUCT;
+        product_ty->lhs_ty = params_ty;
+        product_ty->rhs_ty = type_get(&type_map, param->id);
+        params_ty = (Type*)product_ty;
+        li = li->next;
+      }
+      type_add(&type_map, params_ty, params->id);
+    } else {
+      Type_TypeRef* params_ty = arena_push_struct(type_storage, Type_TypeRef);
+      type_add(&type_map, (Type*)params_ty, params->id);
+      params_ty->ctor = TYPE_TYPEREF;
+      params_ty->ref = type_get(&type_map, param->id);
+      params_ty->ast = (Ast*)params;
     }
   }
   Type_Function* function_ty = arena_push_struct(type_storage, Type_Function);
+  type_add(&type_map, (Type*)function_ty, proto->id);
   function_ty->ctor = TYPE_FUNCTION;
-  function_ty->params_ty = params_type;
-  if (function_proto->return_type) {
-    function_ty->return_ty = type_get(&type_map, function_proto->return_type->id);
+  function_ty->params_ty = type_get(&type_map, params->id);
+  if (proto->return_type) {
+    function_ty->return_ty = type_get(&type_map, proto->return_type->id);
   }
-  type_add(&type_map, (Type*)function_ty, function_proto->id);
+  function_ty->ast = (Ast*)proto;
 }
 
 internal void
@@ -720,6 +727,7 @@ visit_control_proto(Ast* ast)
   type_add(&type_map, (Type*)control_ty, proto->id);
   control_ty->ctor = TYPE_FUNCTION;
   control_ty->params_ty = type_get(&type_map, params->id);
+  control_ty->ast = (Ast*)proto;
 }
 
 internal void
@@ -727,7 +735,13 @@ visit_control(Ast* ast)
 {
   assert(ast->kind == AST_CONTROL);
   Ast_Control* control_decl = (Ast_Control*)ast;
-  visit_control_proto(control_decl->type_decl);
+  visit_control_proto(control_decl->proto);
+  Type_TypeRef* decl_ty = arena_push_struct(type_storage, Type_TypeRef);
+  type_add(&type_map, (Type*)decl_ty, control_decl->id);
+  decl_ty->ctor = TYPE_TYPEREF;
+  decl_ty->ref = type_get(&type_map, control_decl->proto->id);
+  decl_ty->ast = (Ast*)control_decl;
+
   Ast_NodeList* ctor_params = &control_decl->ctor_params;
   DList* li;
   li = ctor_params->head.next;
@@ -869,16 +883,9 @@ visit_local_parser_element(Ast* ast)
 internal void
 visit_parser_proto(Ast* ast)
 {
-
-}
-
-internal void
-visit_parser(Ast* ast)
-{
-  assert(ast->kind == AST_PARSER);
-  Ast_Parser* parser_decl = (Ast_Parser*)ast;
-  Ast_ParserProto* type_decl = (Ast_ParserProto*)parser_decl->type_decl;
-  Ast_NodeList* type_params = &type_decl->type_params;
+  assert(ast->kind == AST_PARSER_PROTO);
+  Ast_ParserProto* proto = (Ast_ParserProto*)ast;
+  Ast_NodeList* type_params = &proto->type_params;
   DList* li;
   li = type_params->head.next;
   while (li) {
@@ -886,39 +893,60 @@ visit_parser(Ast* ast)
     visit_type_param(type_param);
     li = li->next;
   }
-  NameEntry* ne = scope_lookup_name(root_scope, "void");
-  NameDecl* void_decl = ne->ns_type;
-  Type* params_type = type_get(&type_map, void_decl->ast->id);
-  Ast_NodeList* params = &type_decl->params;
+  Ast_NodeList* params = &proto->params;
   if (params->head.next) {
     DList* li = params->head.next;
     Ast* param = li->object;
     visit_param(param);
-    params_type = type_get(&type_map, param->id);
     li = li->next;
-    while (li) {
-      Ast* param = li->object;
-      visit_param(param);
-      Type_Product* product_ty = arena_push_struct(type_storage, Type_Product); 
-      product_ty->ctor = TYPE_PRODUCT; 
-      product_ty->lhs_ty = params_type;
-      product_ty->rhs_ty = type_get(&type_map, param->id);
-      params_type = (Type*)product_ty;
-      li = li->next;
+    if (li) {
+      Type* params_ty = type_get(&type_map, param->id);
+      while (li) {
+        Ast* param = li->object;
+        visit_param(param);
+        Type_Product* product_ty = arena_push_struct(type_storage, Type_Product); 
+        product_ty->ctor = TYPE_PRODUCT; 
+        product_ty->lhs_ty = params_ty;
+        product_ty->rhs_ty = type_get(&type_map, param->id);
+        params_ty = (Type*)product_ty;
+        li = li->next;
+      }
+      type_add(&type_map, params_ty, params->id);
+    } else {
+      Type_TypeRef* params_ty = arena_push_struct(type_storage, Type_TypeRef);
+      type_add(&type_map, (Type*)params_ty, params->id);
+      params_ty->ctor = TYPE_TYPEREF;
+      params_ty->ref = type_get(&type_map, param->id);
+      params_ty->ast = (Ast*)params;
     }
   }
+  Type_Function* parser_ty = arena_push_struct(type_storage, Type_Function);
+  type_add(&type_map, (Type*)parser_ty, proto->id);
+  parser_ty->ctor = TYPE_FUNCTION;
+  parser_ty->params_ty = type_get(&type_map, params->id);
+  parser_ty->ast = (Ast*)proto;
+}
+
+internal void
+visit_parser(Ast* ast)
+{
+  assert(ast->kind == AST_PARSER);
+  Ast_Parser* parser_decl = (Ast_Parser*)ast;
+  visit_parser_proto(parser_decl->proto);
+  Type_TypeRef* decl_ty = arena_push_struct(type_storage, Type_TypeRef);
+  type_add(&type_map, (Type*)decl_ty, parser_decl->id);
+  decl_ty->ctor = TYPE_TYPEREF;
+  decl_ty->ref = type_get(&type_map, parser_decl->proto->id);
+  decl_ty->ast = (Ast*)parser_decl;
+
   Ast_NodeList* ctor_params = &parser_decl->ctor_params;
+  DList* li;
   li = ctor_params->head.next;
   while (li) {
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
   }
-  Type_Function* function_ty = arena_push_struct(type_storage, Type_Function);
-  function_ty->ctor = TYPE_FUNCTION;
-  function_ty->params_ty = params_type;
-  function_ty->return_ty = type_get(&type_map, void_decl->ast->id);
-  type_add(&type_map, (Type*)function_ty, parser_decl->id);
   Ast_NodeList* local_elements = &parser_decl->local_elements;
   li = local_elements->head.next;
   while (li) {
@@ -948,47 +976,13 @@ visit_function(Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION);
   Ast_Function* function_decl = (Ast_Function*)ast;
-  Ast_FunctionProto* function_proto = (Ast_FunctionProto*)function_decl->proto;
-  if (function_proto->return_type) {
-    visit_function_return_type(function_proto->return_type);
-  }
-  Ast_NodeList* type_params = &function_proto->type_params;
-  DList* li = type_params->head.next;
-  while (li) {
-    Ast* type_param = li->object;
-    visit_type_param(type_param);
-    li = li->next;
-  }
-  NameEntry* ne = scope_lookup_name(root_scope, "void");
-  NameDecl* void_decl = ne->ns_type;
-  Type* params_type = type_get(&type_map, void_decl->ast->id);
-  Ast_NodeList* params = &function_proto->params;
-  if (params->head.next) {
-    DList* li = params->head.next;
-    Ast* param = li->object;
-    visit_param(param);
-    params_type = type_get(&type_map, param->id);
-    li = li->next;
-    while (li) {
-      Ast* param = li->object;
-      visit_param(param);
-      Type_Product* product_ty = arena_push_struct(type_storage, Type_Product); 
-      product_ty->ctor = TYPE_PRODUCT;
-      product_ty->lhs_ty = params_type;
-      product_ty->rhs_ty = type_get(&type_map, param->id);
-      params_type = (Type*)product_ty;
-      li = li->next;
-    }
-  }
-  Type_Function* function_ty = arena_push_struct(type_storage, Type_Function);
-  function_ty->ctor = TYPE_FUNCTION;
-  function_ty->params_ty = params_type;
-  function_ty->return_ty = type_get(&type_map, void_decl->ast->id);
-  if (function_proto->return_type) {
-    function_ty->return_ty = type_get(&type_map, function_proto->return_type->id);
-  }
-  type_add(&type_map, (Type*)function_ty, function_proto->id);
-  type_add(&type_map, (Type*)function_ty, function_decl->id);
+  visit_function_proto(function_decl->proto);
+  Type_TypeRef* decl_ty = arena_push_struct(type_storage, Type_TypeRef);
+  type_add(&type_map, (Type*)decl_ty, function_decl->id);
+  decl_ty->ctor = TYPE_TYPEREF;
+  decl_ty->ref = type_get(&type_map, function_decl->proto->id);
+  decl_ty->ast = (Ast*)function_decl;
+
   Ast_BlockStmt* function_body = (Ast_BlockStmt*)function_decl->stmt;
   if (function_body) {
     Ast_NodeList* stmt_list = &function_body->stmt_list;
