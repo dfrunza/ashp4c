@@ -1121,22 +1121,22 @@ build_parserTypeDeclaration()
 {
   if (token->klass == TK_PARSER) {
     next_token();
-    Ast_ParserProto* type = arena_push_struct(ast_storage, Ast_ParserProto);
-    type->kind = AST_PARSER_PROTO;
-    type->id = node_id++;
-    type->line_no = token->line_no; 
+    Ast_ParserProto* proto = arena_push_struct(ast_storage, Ast_ParserProto);
+    proto->kind = AST_PARSER_PROTO;
+    proto->id = node_id++;
+    proto->line_no = token->line_no; 
     if (token_is_name(token)) {
-      type->name = build_name(true);
-      build_optTypeParameters(&type->type_params);
+      proto->name = build_name(true);
+      build_optTypeParameters(&proto->type_params);
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        build_parameterList(&type->params);
+        build_parameterList(&proto->params);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
       } else error("at line %d: `(` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
-    return (Ast*)type;
+    return (Ast*)proto;
   } else error("at line %d: `parser` was expected, got `%s`.", token->line_no, token->lexeme);
   assert(0);
   return 0;
@@ -2004,22 +2004,22 @@ build_controlTypeDeclaration()
 {
   if (token->klass == TK_CONTROL) {
     next_token();
-    Ast_ControlProto* decl = arena_push_struct(ast_storage, Ast_ControlProto);
-    decl->kind = AST_CONTROL_PROTO;
-    decl->id = node_id++;
-    decl->line_no = token->line_no;
+    Ast_ControlProto* proto = arena_push_struct(ast_storage, Ast_ControlProto);
+    proto->kind = AST_CONTROL_PROTO;
+    proto->id = node_id++;
+    proto->line_no = token->line_no;
     if (token_is_name(token)) {
-      decl->name = build_name(true);
-      build_optTypeParameters(&decl->type_params);
+      proto->name = build_name(true);
+      build_optTypeParameters(&proto->type_params);
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        build_parameterList(&decl->params);
+        build_parameterList(&proto->params);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("at line %d: `)` was expected, got `%s`.", token->line_no, token->lexeme);
       } else error("at line %d: `(` was expected, got `%s`.", token->line_no, token->lexeme);
     } else error("at line %d: name was expected, got `%s`.", token->line_no, token->lexeme);
-    return (Ast*)decl;
+    return (Ast*)proto;
   } else error("at line %d: `control` was expected, got `%s`.", token->line_no, token->lexeme);
   assert(0);
   return 0;

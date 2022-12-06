@@ -679,16 +679,9 @@ visit_block_statement(Ast* ast)
 internal void
 visit_control_proto(Ast* ast)
 {
-
-}
-
-internal void
-visit_control(Ast* ast)
-{
-  assert(ast->kind == AST_CONTROL);
-  Ast_Control* control_decl = (Ast_Control*)ast;
-  Ast_ControlProto* type_decl = (Ast_ControlProto*)control_decl->type_decl;
-  Ast_NodeList* type_params = &type_decl->type_params;
+  assert(ast->kind == AST_CONTROL_PROTO);
+  Ast_ControlProto* proto = (Ast_ControlProto*)ast;
+  Ast_NodeList* type_params = &proto->type_params;
   DList* li;
   li = type_params->head.next;
   while (li) {
@@ -696,7 +689,7 @@ visit_control(Ast* ast)
     visit_type_param(type_param);
     li = li->next;
   }
-  Ast_NodeList* params = &type_decl->params;
+  Ast_NodeList* params = &proto->params;
   if (params->head.next) {
     DList* li = params->head.next;
     Ast* param = li->object;
@@ -723,18 +716,26 @@ visit_control(Ast* ast)
       params_ty->ast = (Ast*)params;
     }
   }
+  Type_Function* control_ty = arena_push_struct(type_storage, Type_Function);
+  type_add(&type_map, (Type*)control_ty, proto->id);
+  control_ty->ctor = TYPE_FUNCTION;
+  control_ty->params_ty = type_get(&type_map, params->id);
+}
+
+internal void
+visit_control(Ast* ast)
+{
+  assert(ast->kind == AST_CONTROL);
+  Ast_Control* control_decl = (Ast_Control*)ast;
+  visit_control_proto(control_decl->type_decl);
   Ast_NodeList* ctor_params = &control_decl->ctor_params;
+  DList* li;
   li = ctor_params->head.next;
   while (li) {
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
   }
-  Type_Function* control_ty = arena_push_struct(type_storage, Type_Function);
-  type_add(&type_map, (Type*)control_ty, control_decl->id);
-  control_ty->ctor = TYPE_FUNCTION;
-  control_ty->params_ty = type_get(&type_map, params->id);
-
   Ast_NodeList* local_decls = &control_decl->local_decls;
   li = local_decls->head.next;
   while (li) {
