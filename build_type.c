@@ -147,9 +147,10 @@ visit_header(Ast* ast)
       typeset_add_set(ty_set, typeset_get(&type_map, field->id));
       ty_set->ast = (Ast*)header_decl;
     }
+  } else {
+    Type* ty_set = typeset_create(&type_map, header_decl->id);
+    ty_set->ast = (Ast*)header_decl;
   }
-  Type* ty_set = typeset_create(&type_map, header_decl->id);
-  ty_set->ast = (Ast*)header_decl;
 }
 
 internal void
@@ -164,31 +165,29 @@ visit_struct(Ast* ast)
     visit_struct_field(field);
     li = li->next;
     if (li) {
-      Type* fields_ty = type_get(&type_map, field->id);
+      Type* fields_ty = typeset_get(&type_map, field->id);
       while (li) {
         Ast* field = li->object;
         visit_struct_field(field);
         Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = fields_ty;
-        product_ty->rhs_ty = type_get(&type_map, field->id);
+        product_ty->rhs_ty = typeset_get(&type_map, field->id);
         fields_ty = (Type*)product_ty;
         li = li->next;
       }
-      type_add(&type_map, fields_ty, fields->id);
+      Type* ty_set = typeset_create(&type_map, field->id);
+      typeset_add_type(ty_set, fields_ty);
+      ty_set->ast = (Ast*)struct_decl;
     } else {
-      Type_TypeRef* fields_ty = arena_push_struct(type_storage, Type_TypeRef);
-      type_add(&type_map, (Type*)fields_ty, fields->id);
-      fields_ty->ctor = TYPE_TYPEREF;
-      fields_ty->ref = type_get(&type_map, field->id);
-      fields_ty->ast = (Ast*)fields;
+      Type* ty_set = typeset_create(&type_map, struct_decl->id);
+      typeset_add_set(ty_set, typeset_get(&type_map, field->id));
+      ty_set->ast = (Ast*)struct_decl;
     }
+  } else {
+    Type* ty_set = typeset_create(&type_map, struct_decl->id);
+    ty_set->ast = (Ast*)struct_decl;
   }
-  Type_TypeRef* struct_ty = arena_push_struct(type_storage, Type_TypeRef);
-  type_add(&type_map, (Type*)struct_ty, struct_decl->id);
-  struct_ty->ctor = TYPE_TYPEREF;
-  struct_ty->ref = type_get(&type_map, fields->id);
-  struct_ty->ast = (Ast*)struct_decl;
 }
 
 internal void
@@ -240,8 +239,9 @@ visit_type_ref(Ast* ast)
     Ast_HeaderStack* type_ref = (Ast_HeaderStack*)ast;
     visit_expression(type_ref->name);
     visit_expression(type_ref->stack_expr);
-    Type* header_stack_type = type_get(&type_map, type_ref->name->id);
-    type_add(&type_map, header_stack_type, type_ref->id);
+    Type* ty_set = typeset_create(&type_map, type_ref->id);
+    typeset_add_set(ty_set, typeset_get(&type_map, type_ref->name->id));
+    ty_set->ast = (Ast*)type_ref;
   } else if (ast->kind == AST_NAME) {
     visit_expression(ast);
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
@@ -290,6 +290,7 @@ visit_function_call(Ast* ast)
   }
   NameEntry* ne = scope_lookup_name(root_scope, "void");
   NameDecl* void_decl = ne->ns_type;
+
   Type* args_type = type_get(&type_map, void_decl->ast->id);
   Ast_NodeList* args = &function_call->args;
   if (args->head.next) {
