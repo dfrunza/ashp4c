@@ -693,12 +693,8 @@ typedef struct Type {
   enum TypeEnum ctor;
   Ast* ast;
   struct Type* type_params;
-} Type;
-
-typedef struct TypeSet {
-  Ast* ast;
   DList members;
-};
+} Type;
 
 typedef struct Type_TypeRef {
   Type;
@@ -742,6 +738,8 @@ typedef struct Type_FunctionCall {
   Type* return_ty;
 } Type_FunctionCall;
 
-TypeSet* typeset_get(Hashmap* map, uint32_t id);
-TypeSet typeset_add_type(Hashmap* map, Type* type, uint32_t id);
+Type* typeset_create(Hashmap* map, uint32_t id);
+Type* typeset_get(Hashmap* map, uint32_t id);
+Type* typeset_add_type(Type* ty_set, Type* type);
+Type* typeset_add_set(Type* to_set, Type* from_set);
 

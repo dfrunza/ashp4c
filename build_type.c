@@ -15,27 +15,49 @@ internal void visit_expression(Ast* expr);
 internal void visit_type_ref(Ast* type_ref);
 
 Type*
-type_get(Hashmap* map, uint32_t id)
-{
-  HashmapKey key = { .i_key = id };
-  hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
-  HashmapEntry* he = hashmap_get_entry(map, &key);
-  Type* type = he ? he->object : 0;
-  return type;
-}
-
-TypeSet*
-type_add_type(Hashmap* map, Type* type, uint32_t id)
+typeset_create(Hashmap* map, uint32_t id)
 {
   HashmapKey key = { .i_key = id };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
   HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
-  TypeSet* tyset = (TypeSet*)he->object;
-  if (!tyset) {
-    tyset = arena_push_struct(type_storage, TypeSet);
+  Type* ty_set = he->object;
+  if (!ty_set) {
+    ty_set = arena_push_struct(type_storage, Type);
+    he->object = ty_set;
   }
-  tyset->members.object = type;
-  return tyset;
+  assert((!ty_set->members.next) && (ty_set->members.count == 0));
+  return ty_set;
+}
+
+Type*
+typeset_get(Hashmap* map, uint32_t id)
+{
+  HashmapKey key = { .i_key = id };
+  hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
+  HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
+  Type* ty_set = he->object;
+  return ty_set;
+}
+
+Type*
+typeset_add_type(Type* ty_set, Type* type)
+{
+  DList* li = arena_push_struct(type_storage, DList);
+  li->object = type;
+  dlist_concat(li, ty_set->members.next);
+  ty_set->members.next = li;
+  ty_set->members.count += 1;
+  return ty_set;
+}
+
+Type* typeset_add_set(Type* to_set, Type* from_set)
+{
+  DList* li = from_set->members.next;
+  while (li) {
+    typeset_add_type(to_set, li->object);
+    li = li->next;
+  }
+  return to_set;
 }
 
 internal void
@@ -44,11 +66,9 @@ visit_param(Ast* ast)
   assert(ast->kind == AST_PARAM);
   Ast_Param* param = (Ast_Param*)ast;
   visit_type_ref(param->type);
-  Type_TypeRef* param_ty = arena_push_struct(type_storage, Type_TypeRef);
-  type_add(&type_map, (Type*)param_ty, param->id);
-  param_ty->ctor = TYPE_TYPEREF;
-  param_ty->ref = type_get(&type_map, param->type->id);
-  param_ty->ast = (Ast*)param;
+  Type* ty_set = typeset_create(&type_map, param->id);
+  typeset_add_set(ty_set, typeset_get(&type_map, param->type->id));
+  ty_set->ast = (Ast*)param;
 }
 
 internal void
@@ -59,10 +79,12 @@ visit_type_param(Ast* ast)
   NameRef* ref = nameref_get(nameref_map, name->id);
   if (!ref) {
     Type_TypeParam* param_ty = arena_push_struct(type_storage, Type_TypeParam);
-    type_add(&type_map, (Type*)param_ty, ast->id);
     param_ty->ctor = TYPE_TYPEPARAM;
     param_ty->strname = name->strname;
     param_ty->ast = (Ast*)name;
+    Type* ty_set = typeset_create(&type_map, name->id);
+    typeset_add_type(ty_set, (Type*)param_ty);
+    ty_set->ast = (Ast*)name;
   } else {
     visit_expression(ast);
   }
@@ -74,11 +96,9 @@ visit_struct_field(Ast* ast)
   assert(ast->kind == AST_STRUCT_FIELD);
   Ast_StructField* field = (Ast_StructField*)ast;
   visit_type_ref(field->type);
-  Type_TypeRef* field_ty = arena_push_struct(type_storage, Type_TypeRef);
-  type_add(&type_map, (Type*)field_ty, field->id);
-  field_ty->ctor = TYPE_TYPEREF;
-  field_ty->ref = type_get(&type_map, field->type->id);
-  field_ty->ast = (Ast*)field;
+  Type* ty_set = typeset_create(&type_map, field->id);
+  typeset_add_set(ty_set, typeset_get(&type_map, field->type->id));
+  ty_set->ast = (Ast*)field;
 }
 
 internal void
@@ -108,31 +128,28 @@ visit_header(Ast* ast)
     visit_struct_field(field);
     li = li->next;
     if (li) {
-      Type* fields_ty = type_get(&type_map, field->id);
+      Type* fields_ty = typeset_get(&type_map, field->id);
       while (li) {
         Ast* field = li->object;
         visit_struct_field(field);
         Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = fields_ty;
-        product_ty->rhs_ty = type_get(&type_map, field->id);
+        product_ty->rhs_ty = typeset_get(&type_map, field->id);
         fields_ty = (Type*)product_ty;
         li = li->next;
       }
-      type_add(&type_map, fields_ty, fields->id);
+      Type* ty_set = typeset_create(&type_map, header_decl->id);
+      typeset_add_type(ty_set, fields_ty);
+      ty_set->ast = (Ast*)header_decl;
     } else {
-      Type_TypeRef* fields_ty = arena_push_struct(type_storage, Type_TypeRef);
-      type_add(&type_map, (Type*)fields_ty, fields->id);
-      fields_ty->ctor = TYPE_TYPEREF;
-      fields_ty->ref = type_get(&type_map, field->id);
-      fields_ty->ast = (Ast*)fields;
+      Type* ty_set = typeset_create(&type_map, header_decl->id);
+      typeset_add_set(ty_set, typeset_get(&type_map, field->id));
+      ty_set->ast = (Ast*)header_decl;
     }
   }
-  Type_TypeRef* header_ty = arena_push_struct(type_storage, Type_TypeRef);
-  type_add(&type_map, (Type*)header_ty, header_decl->id);
-  header_ty->ctor = TYPE_TYPEREF;
-  header_ty->ref = type_get(&type_map, fields->id);
-  header_ty->ast = (Ast*)header_decl;
+  Type* ty_set = typeset_create(&type_map, header_decl->id);
+  ty_set->ast = (Ast*)header_decl;
 }
 
 internal void
@@ -179,60 +196,46 @@ visit_type_ref(Ast* ast)
 {
   if (ast->kind == AST_BOOL_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "bool");
-    NameDecl* bool_decl = ne->ns_type;
-    Type_TypeRef* bool_ty = arena_push_struct(type_storage, Type_TypeRef);
-    type_add(&type_map, (Type*)bool_ty, ast->id);
-    bool_ty->ctor = TYPE_TYPEREF;
-    bool_ty->ref = type_get(&type_map, bool_decl->ast->id);
-    bool_ty->ast = ast;
+    Ast* bool_decl = ne->ns_type->ast;
+    Type* ty_set = typeset_create(&type_map, ast->id);
+    typeset_add_set(ty_set, typeset_get(&type_map, bool_decl->id));
+    ty_set->ast = ast;
   } else if (ast->kind == AST_INT_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "int");
-    NameDecl* int_decl = ne->ns_type;
-    Type_TypeRef* int_ty = arena_push_struct(type_storage, Type_TypeRef);
-    type_add(&type_map, (Type*)int_ty, ast->id);
-    int_ty->ctor = TYPE_TYPEREF;
-    int_ty->ref = type_get(&type_map, int_decl->ast->id);
-    int_ty->ast = ast;
+    Ast* int_decl = ne->ns_type->ast;
+    Type* ty_set = typeset_create(&type_map, ast->id);
+    typeset_add_set(ty_set, typeset_get(&type_map, int_decl->id));
+    ty_set->ast = ast;
   } else if (ast->kind == AST_BIT_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "bit");
-    NameDecl* bit_decl = ne->ns_type;
-    Type_TypeRef* bit_ty = arena_push_struct(type_storage, Type_TypeRef);
-    type_add(&type_map, (Type*)bit_ty, ast->id);
-    bit_ty->ctor = TYPE_TYPEREF;
-    bit_ty->ref = type_get(&type_map, bit_decl->ast->id);
-    bit_ty->ast = ast;
+    Ast* bit_decl = ne->ns_type->ast;
+    Type* ty_set = typeset_create(&type_map, ast->id);
+    typeset_add_set(ty_set, typeset_get(&type_map, bit_decl->id));
+    ty_set->ast = ast;
   } else if (ast->kind == AST_VARBIT_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "varbit");
-    NameDecl* varbit_decl = ne->ns_type;
-    Type_TypeRef* varbit_ty = arena_push_struct(type_storage, Type_TypeRef);
-    type_add(&type_map, (Type*)varbit_ty, ast->id);
-    varbit_ty->ctor = TYPE_TYPEREF;
-    varbit_ty->ref = type_get(&type_map, varbit_decl->ast->id);
-    varbit_ty->ast = ast;
+    Ast* varbit_decl = ne->ns_type->ast;
+    Type* ty_set = typeset_create(&type_map, ast->id);
+    typeset_add_set(ty_set, typeset_get(&type_map, varbit_decl->id));
+    ty_set->ast = ast;
   } else if (ast->kind == AST_STRING_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "string");
-    NameDecl* string_decl = ne->ns_type;
-    Type_TypeRef* string_ty = arena_push_struct(type_storage, Type_TypeRef);
-    type_add(&type_map, (Type*)string_ty, ast->id);
-    string_ty->ctor = TYPE_TYPEREF;
-    string_ty->ref = type_get(&type_map, string_decl->ast->id);
-    string_ty->ast = ast;
+    Ast* string_decl = ne->ns_type->ast;
+    Type* ty_set = typeset_create(&type_map, ast->id);
+    typeset_add_set(ty_set, typeset_get(&type_map, string_decl->id));
+    ty_set->ast = ast;
   } else if (ast->kind == AST_VOID_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "void");
-    NameDecl* void_decl = ne->ns_type;
-    Type_TypeRef* void_ty = arena_push_struct(type_storage, Type_TypeRef);
-    type_add(&type_map, (Type*)void_ty, ast->id);
-    void_ty->ctor = TYPE_TYPEREF;
-    void_ty->ref = type_get(&type_map, void_decl->ast->id);
-    void_ty->ast = ast;
+    Ast* void_decl = ne->ns_type->ast;
+    Type* ty_set = typeset_create(&type_map, ast->id);
+    typeset_add_set(ty_set, typeset_get(&type_map, void_decl->id));
+    ty_set->ast = ast;
   } else if (ast->kind == AST_ERROR_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "error");
-    NameDecl* error_decl = ne->ns_type;
-    Type_TypeRef* error_ty = arena_push_struct(type_storage, Type_TypeRef);
-    type_add(&type_map, (Type*)error_ty, ast->id);
-    error_ty->ctor = TYPE_TYPEREF;
-    error_ty->ref = type_get(&type_map, error_decl->ast->id);
-    error_ty->ast = ast;
+    Ast* error_decl = ne->ns_type->ast;
+    Type* ty_set = typeset_create(&type_map, ast->id);
+    typeset_add_set(ty_set, typeset_get(&type_map, error_decl->id));
+    ty_set->ast = ast;
   } else if (ast->kind == AST_HEADER_STACK) {
     Ast_HeaderStack* type_ref = (Ast_HeaderStack*)ast;
     visit_expression(type_ref->name);
@@ -1226,45 +1229,73 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
 
   {
     NameEntry* ne = scope_lookup_name(root_scope, "void");
+    Ast* void_decl = ne->ns_type->ast;
     Type* void_type = arena_push_struct(type_storage, Type);
     void_type->ctor = TYPE_VOID;
-    void_type->ast = ne->ns_type->ast;
-    type_add(&type_map, void_type, void_type->ast->id);
+    void_type->ast = void_decl;
+    Type* ty_set = typeset_create(&type_map, void_decl->id);
+    typeset_add_type(ty_set, void_type);
+    ty_set->ast = void_decl;
   }
   {
     NameEntry* ne = scope_lookup_name(root_scope, "bool");
+    Ast* bool_decl = ne->ns_type->ast;
     Type* bool_type = arena_push_struct(type_storage, Type);
     bool_type->ctor = TYPE_BOOL;
-    bool_type->ast = ne->ns_type->ast;
-    type_add(&type_map, bool_type, bool_type->ast->id);
+    bool_type->ast = bool_decl;
+    Type* ty_set = typeset_create(&type_map, bool_decl->id);
+    typeset_add_type(ty_set, bool_type);
+    ty_set->ast = bool_decl;
   }
   {
     NameEntry* ne = scope_lookup_name(root_scope, "int");
+    Ast* int_decl = ne->ns_type->ast;
     Type* int_type = arena_push_struct(type_storage, Type);
     int_type->ctor = TYPE_INT;
-    int_type->ast = ne->ns_type->ast;
-    type_add(&type_map, int_type, int_type->ast->id);
+    int_type->ast = int_decl;
+    Type* ty_set = typeset_create(&type_map, int_decl->id);
+    typeset_add_type(ty_set, int_type);
+    ty_set->ast = int_decl;
   }
   {
     NameEntry* ne = scope_lookup_name(root_scope, "bit");
+    Ast* bit_decl = ne->ns_type->ast;
     Type* bit_type = arena_push_struct(type_storage, Type);
     bit_type->ctor = TYPE_BIT;
-    bit_type->ast = ne->ns_type->ast;
-    type_add(&type_map, bit_type, bit_type->ast->id);
+    bit_type->ast = bit_decl;
+    Type* ty_set = typeset_create(&type_map, bit_decl->id);
+    typeset_add_type(ty_set, bit_type);
+    ty_set->ast = bit_decl;
   }
   {
     NameEntry* ne = scope_lookup_name(root_scope, "varbit");
+    Ast* varbit_decl = ne->ns_type->ast;
     Type* varbit_type = arena_push_struct(type_storage, Type);
     varbit_type->ctor = TYPE_VARBIT;
-    varbit_type->ast = ne->ns_type->ast;
-    type_add(&type_map, varbit_type, varbit_type->ast->id);
+    varbit_type->ast = varbit_decl;
+    Type* ty_set = typeset_create(&type_map, varbit_decl->id);
+    typeset_add_type(ty_set, varbit_type);
+    ty_set->ast = varbit_decl;
   }
   {
     NameEntry* ne = scope_lookup_name(root_scope, "string");
+    Ast* string_decl = ne->ns_type->ast;
     Type* string_type = arena_push_struct(type_storage, Type);
     string_type->ctor = TYPE_STRING;
-    string_type->ast = ne->ns_type->ast;
-    type_add(&type_map, string_type, string_type->ast->id);
+    string_type->ast = string_decl;
+    Type* ty_set = typeset_create(&type_map, string_decl->id);
+    typeset_add_type(ty_set, string_type);
+    ty_set->ast = string_decl;
+  }
+  {
+    NameEntry* ne = scope_lookup_name(root_scope, "error");
+    Ast* error_decl = ne->ns_type->ast;
+    Type* error_type = arena_push_struct(type_storage, Type);
+    error_type->ctor = TYPE_ERROR;
+    error_type->ast = error_decl;
+    Type* ty_set = typeset_create(&type_map, error_decl->id);
+    typeset_add_type(ty_set, error_type);
+    ty_set->ast = error_decl;
   }
 
   visit_p4program((Ast*)p4program);

@@ -51,12 +51,18 @@ void arena_delete(Arena* arena);
 typedef struct DList {
   struct DList* prev;
   struct DList* next;
-  void* object;
+  union {
+    void* object;
+    int count;
+  };
 } DList;
 
 typedef struct SList {
   struct SList* next;
-  void* object;
+  union {
+    void* object;
+    int count;
+  };
 } SList;
 
 void dlist_concat(DList* tail, DList* head);
