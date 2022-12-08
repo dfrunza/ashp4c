@@ -695,6 +695,11 @@ typedef struct Type {
   struct Type* type_params;
 } Type;
 
+typedef struct TypeSet {
+  Ast* ast;
+  DList members;
+};
+
 typedef struct Type_TypeRef {
   Type;
   Type* ref;
@@ -737,6 +742,6 @@ typedef struct Type_FunctionCall {
   Type* return_ty;
 } Type_FunctionCall;
 
-Type* type_get(Hashmap* map, uint32_t id);
-void type_add(Hashmap* map, Type* type, uint32_t id);
+TypeSet* typeset_get(Hashmap* map, uint32_t id);
+TypeSet typeset_add_type(Hashmap* map, Type* type, uint32_t id);
 

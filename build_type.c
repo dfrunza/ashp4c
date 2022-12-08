@@ -24,14 +24,18 @@ type_get(Hashmap* map, uint32_t id)
   return type;
 }
 
-void
-type_add(Hashmap* map, Type* type, uint32_t id)
+TypeSet*
+type_add_type(Hashmap* map, Type* type, uint32_t id)
 {
   HashmapKey key = { .i_key = id };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
   HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
-  he->object = type;
-  return;
+  TypeSet* tyset = (TypeSet*)he->object;
+  if (!tyset) {
+    tyset = arena_push_struct(type_storage, TypeSet);
+  }
+  tyset->members.object = type;
+  return tyset;
 }
 
 internal void
