@@ -446,8 +446,8 @@ visit_control(Ast* ast)
 {
   assert(ast->kind == AST_CONTROL);
   Ast_Control* control_decl = (Ast_Control*)ast;
-  Ast_ControlProto* type_decl = (Ast_ControlProto*)control_decl->type_decl;
-  Ast_NodeList* type_params = &type_decl->type_params;
+  Ast_ControlProto* proto = (Ast_ControlProto*)control_decl->proto;
+  Ast_NodeList* type_params = &proto->type_params;
   DList* li;
   li = type_params->head.next;
   while (li) {
@@ -455,7 +455,7 @@ visit_control(Ast* ast)
     visit_type_param(type_param);
     li = li->next;
   }
-  Ast_NodeList* params = &type_decl->params;
+  Ast_NodeList* params = &proto->params;
   li = params->head.next;
   while (li) {
     Ast* param = li->object;
@@ -598,8 +598,8 @@ visit_parser(Ast* ast)
 {
   assert(ast->kind == AST_PARSER);
   Ast_Parser* parser_decl = (Ast_Parser*)ast;
-  Ast_ParserProto* type_decl = (Ast_ParserProto*)parser_decl->type_decl;
-  Ast_NodeList* type_params = &type_decl->type_params;
+  Ast_ParserProto* proto = (Ast_ParserProto*)parser_decl->proto;
+  Ast_NodeList* type_params = &proto->type_params;
   DList* li;
   li = type_params->head.next;
   while (li) {
@@ -607,7 +607,7 @@ visit_parser(Ast* ast)
     visit_type_param(type_param);
     li = li->next;
   }
-  Ast_NodeList* params = &type_decl->params;
+  Ast_NodeList* params = &proto->params;
   li = params->head.next;
   while (li) {
     Ast* param = li->object;

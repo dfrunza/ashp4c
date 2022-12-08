@@ -334,7 +334,7 @@ typedef struct Ast_Type {
 
 typedef struct Ast_Parser {
   Ast;
-  Ast* type_decl;
+  Ast* proto;
   Ast_NodeList ctor_params;
   Ast_NodeList local_elements;
   Ast_NodeList states;
@@ -342,7 +342,7 @@ typedef struct Ast_Parser {
 
 typedef struct Ast_Control {
   Ast;
-  Ast* type_decl;
+  Ast* proto;
   Ast_NodeList ctor_params;
   Ast_NodeList local_decls;
   Ast* apply_stmt;

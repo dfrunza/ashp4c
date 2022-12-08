@@ -78,10 +78,10 @@ declare_name_in_scope(Scope* scope, enum Namespace ns, NameDecl* decl)
     decl->nextdecl_in_scope = ne->ns_type;
     ne->ns_type = decl;
   } else if (ns == NAMESPACE_VAR) {
-    decl->nextdecl_in_scope = ne->ns_var;
+    assert(!ne->ns_var);
     ne->ns_var = decl;
   } else if (ns == NAMESPACE_KEYWORD) {
-    assert(!decl->nextdecl_in_scope);
+    assert(!ne->ns_keyword);
     ne->ns_keyword = decl;
   } else assert(0);
   return ne;

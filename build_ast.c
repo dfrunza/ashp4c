@@ -1976,10 +1976,10 @@ build_parserDeclaration()
     decl->kind = AST_PARSER;
     decl->id = node_id++;
     decl->line_no = token->line_no;
-    decl->type_decl = build_parserTypeDeclaration();
+    decl->proto = build_parserTypeDeclaration();
     if (token->klass == TK_SEMICOLON) {
       next_token(); /* <parserTypeDeclaration> */
-      return decl->type_decl;
+      return decl->proto;
     } else {
       build_optConstructorParameters(&decl->ctor_params);
       if (token->klass == TK_BRACE_OPEN) {
@@ -2381,10 +2381,10 @@ build_controlDeclaration()
     decl->kind = AST_CONTROL;
     decl->id = node_id++;
     decl->line_no = token->line_no;
-    decl->type_decl = build_controlTypeDeclaration();
+    decl->proto = build_controlTypeDeclaration();
     if (token->klass == TK_SEMICOLON) {
       next_token(); /* <controlTypeDeclaration> */
-      return decl->type_decl;
+      return decl->proto;
     } else {
       build_optConstructorParameters(&decl->ctor_params);
       if (token->klass == TK_BRACE_OPEN) {
