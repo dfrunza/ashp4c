@@ -171,7 +171,7 @@ enum AstEnum {
   AST_P4PROGRAM,
   AST_KVPAIR,
   AST_SELECT_EXPR,
-  AST_EXPRLIST,
+  AST_EXPRESSION_LIST,
   AST_CAST_EXPR,
   AST_UNARY_EXPR,
   AST_BINARY_EXPR,
@@ -581,10 +581,10 @@ typedef struct Ast_SelectExpr {
   Ast_NodeList case_list;
 } Ast_SelectExpr;
 
-typedef struct Ast_ExprList {
+typedef struct Ast_ExpressionList {
   Ast_Expression;
   Ast_NodeList expr_list;
-} Ast_ExprList;
+} Ast_ExpressionList;
 
 typedef struct Ast_CastExpr {
   Ast_Expression;
@@ -679,8 +679,8 @@ enum TypeEnum {
   TYPE_VARBIT,
   TYPE_STRING,
   TYPE_ERROR,
+  TYPE_TYPESET,
   TYPE_TYPEREF,
-  TYPE_TYPEVAR,
   TYPE_TYPEDEF,
   TYPE_TYPENAME,
   TYPE_TYPEPARAM,

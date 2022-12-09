@@ -3053,8 +3053,8 @@ build_expressionPrimary()
       return primary;
     } else if (token->klass == TK_BRACE_OPEN) {
       next_token();
-      Ast_ExprList* expr_list = arena_push_struct(ast_storage, Ast_ExprList);
-      expr_list->kind = AST_EXPRLIST;
+      Ast_ExpressionList* expr_list = arena_push_struct(ast_storage, Ast_ExpressionList);
+      expr_list->kind = AST_EXPRESSION_LIST;
       expr_list->id = node_id++;
       expr_list->line_no = token->line_no;
       build_expressionList(&expr_list->expr_list);

@@ -84,8 +84,8 @@ visit_expression(Ast* ast)
     Ast_MemberSelect* expr = (Ast_MemberSelect*)ast;
     visit_expression(expr->lhs_expr);
     visit_expression(expr->member_name);
-  } else if (ast->kind == AST_EXPRLIST) {
-    Ast_ExprList* expr = (Ast_ExprList*)ast;
+  } else if (ast->kind == AST_EXPRESSION_LIST) {
+    Ast_ExpressionList* expr = (Ast_ExpressionList*)ast;
     Ast_NodeList* expr_list = &expr->expr_list;
     DList* li = expr_list->head.next;
     while (li) {
@@ -159,7 +159,7 @@ visit_action(Ast* ast)
     decl->ast = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
   current_scope = push_scope();
   Ast_NodeList* params = &action_decl->params;
@@ -317,7 +317,7 @@ visit_table(Ast* ast)
     decl->ast = ast;
     decl->strname = name->strname;
     decl->line_no = name->line_no;
-    declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
+    declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
   Ast_NodeList* prop_list = &decl->prop_list;
   DList* li = prop_list->head.next;

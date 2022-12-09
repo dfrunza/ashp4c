@@ -757,8 +757,8 @@ visit_expression(Ast* ast)
     visit_expression(expr->lhs_expr);
     // skip expr->member_name;
     Ast_Name* name = (Ast_Name*)expr->member_name;
-  } else if (ast->kind == AST_EXPRLIST) {
-    Ast_ExprList* expr = (Ast_ExprList*)ast;
+  } else if (ast->kind == AST_EXPRESSION_LIST) {
+    Ast_ExpressionList* expr = (Ast_ExpressionList*)ast;
     Ast_NodeList* expr_list = &expr->expr_list;
     DList* li = expr_list->head.next;
     while (li) {

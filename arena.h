@@ -49,11 +49,16 @@ void* arena_push(Arena* arena, uint32_t size);
 void arena_delete(Arena* arena);
 
 typedef struct DList {
-  struct DList* prev;
   struct DList* next;
   union {
-    void* object;
-    int count;
+    struct {
+      struct DList* prev;
+      void* object;
+    };
+    struct {
+      struct DList* last;
+      int count;
+    };
   };
 } DList;
 
