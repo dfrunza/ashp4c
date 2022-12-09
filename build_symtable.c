@@ -196,7 +196,7 @@ visit_instantiation(Ast* ast)
     decl->line_no = name->line_no;
     declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
   } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
-  visit_type_ref(decl->type_ref);
+  visit_type_ref(decl->type);
   Ast_NodeList* args = &decl->args;
   DList* li = args->head.next;
   while (li) {
@@ -364,7 +364,7 @@ visit_const(Ast* ast)
     decl->line_no = name->line_no;
     declare_name_in_scope(current_scope, NAMESPACE_VAR, decl);
   } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
-  visit_type_ref(decl->type_ref);
+  visit_type_ref(decl->type);
   visit_expression(decl->expr);
 }
 

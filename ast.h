@@ -273,7 +273,7 @@ typedef struct Ast_VoidType {
 typedef struct Ast_Const {
   Ast;
   Ast* name;
-  Ast* type_ref;
+  Ast* type;
   Ast* expr;
 } Ast_Const;
 
@@ -358,7 +358,7 @@ typedef struct Ast_Package {
 typedef struct Ast_Instantiation {
   Ast;
   Ast* name;
-  Ast* type_ref;
+  Ast* type;
   Ast_NodeList args;
 } Ast_Instantiation;
 
@@ -700,10 +700,6 @@ typedef struct Type_TypeRef {
   Type;
   Type* ref;
 } Type_TypeRef;
-
-typedef struct Type_TypeVar {
-  Type;
-} Type_TypeVar;
 
 typedef struct Type_TypeDef {
   Type;

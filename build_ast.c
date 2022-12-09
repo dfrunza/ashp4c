@@ -1168,7 +1168,7 @@ build_constantDeclaration()
     decl->id = node_id++;
     decl->line_no = token->line_no;
     if (token_is_typeRef(token)) {
-      decl->type_ref = build_typeRef();
+      decl->type = build_typeRef();
       if (token_is_name(token)) {
         decl->name = build_name(false);
         if (token->klass == TK_EQUAL) {
@@ -1383,7 +1383,7 @@ build_instantiation(Ast* type_ref)
     inst_stmt->kind = AST_INSTANTIATION;
     inst_stmt->id = node_id++;
     inst_stmt->line_no = token->line_no;
-    inst_stmt->type_ref = type_ref ? type_ref : build_typeRef();
+    inst_stmt->type = type_ref ? type_ref : build_typeRef();
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
       build_argumentList(&inst_stmt->args);

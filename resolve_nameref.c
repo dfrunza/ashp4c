@@ -162,7 +162,7 @@ visit_instantiation(Ast* ast)
 {
   assert(ast->kind == AST_INSTANTIATION);
   Ast_Instantiation* decl = (Ast_Instantiation*)ast;
-  visit_type_ref(decl->type_ref);
+  visit_type_ref(decl->type);
   Ast_NodeList* args = &decl->args;
   DList* li = args->head.next;
   while (li) {
@@ -571,7 +571,7 @@ visit_const(Ast* ast)
 {
   assert(ast->kind == AST_CONST);
   Ast_Const* decl = (Ast_Const*)ast;
-  visit_type_ref(decl->type_ref);
+  visit_type_ref(decl->type);
   visit_expression(decl->expr);
 }
 
