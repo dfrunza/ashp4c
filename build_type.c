@@ -78,8 +78,8 @@ visit_type_param(Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   Ast_Name* name = (Ast_Name*)ast;
-  NameRef* ref = nameref_get(nameref_map, name->id);
-  if (!ref) {
+  NameRef* nref = nameref_get(nameref_map, name->id);
+  if (!nref) {
     Type_TypeParam* param_ty = arena_push_struct(type_storage, Type_TypeParam);
     param_ty->ctor = TYPE_TYPEPARAM;
     param_ty->strname = name->strname;
@@ -267,13 +267,31 @@ visit_type_ref(Ast* ast)
       li = li->next;
     }
   } else if (ast->kind == AST_TUPLE) {
-    Ast_Tuple* type_ref = (Ast_Tuple*)ast;
-    Ast_NodeList* type_args = &type_ref->type_args;
-    DList* li = type_args->head.next;
-    while (li) {
-      Ast* type_arg = li->object;
-      visit_type_ref(type_arg);
+    Ast_Tuple* tuple_decl = (Ast_Tuple*)ast;
+    Ast_NodeList* args = &tuple_decl->type_args;
+    Type* ty_set = typeset_create(&type_map, tuple_decl->id);
+    ty_set->ast = (Ast*)tuple_decl;
+    if (args->head.next) {
+      DList* li = args->head.next;
+      Ast* arg = li->object;
+      visit_type_ref(arg);
       li = li->next;
+      if (li) {
+        Type* args_ty = typeset_get(&type_map, arg->id);
+        while (li) {
+          Ast* arg = li->object;
+          visit_type_ref(arg);
+          Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
+          product_ty->ctor = TYPE_PRODUCT;
+          product_ty->lhs_ty = args_ty;
+          product_ty->rhs_ty = typeset_get(&type_map, arg->id);
+          args_ty = (Type*)product_ty;
+          li = li->next;
+        }
+        typeset_add_type(ty_set, args_ty);
+      } else {
+        typeset_add_set(ty_set, typeset_get(&type_map, arg->id));
+      }
     }
   } else if (ast->kind == AST_STRUCT) {
     visit_struct(ast);
@@ -920,7 +938,7 @@ internal void
 visit_parser_transition(Ast* ast)
 {
   if (ast->kind == AST_NAME) {
-    visit_expression(ast);
+    ; // skip
   } else if (ast->kind == AST_SELECT_EXPR) {
     Ast_SelectExpr* trans_stmt = (Ast_SelectExpr*)ast;
     Ast_NodeList* expr_list = &trans_stmt->expr_list;
@@ -947,14 +965,6 @@ visit_parser_state(Ast* ast)
 {
   assert(ast->kind == AST_PARSER_STATE);
   Ast_ParserState* state_decl = (Ast_ParserState*)ast;
-  Ast_Name* name = (Ast_Name*)state_decl->name;
-  Type_TypeName* state_ty = arena_push_struct(type_storage, Type_TypeName);
-  state_ty->ctor = TYPE_TYPENAME;
-  state_ty->ast = (Ast*)state_decl;
-  state_ty->strname = name->strname;
-  Type* ty_set = typeset_create(&type_map, state_decl->id);
-  ty_set->ast = (Ast*)state_decl;
-  typeset_add_type(ty_set, (Type*)state_ty);
   Ast_NodeList* stmt_list = &state_decl->stmt_list;
   DList* li = stmt_list->head.next;
   while (li) {
@@ -1206,21 +1216,24 @@ visit_expression(Ast* ast)
     visit_unary_expr(ast);
   } else if (ast->kind == AST_NAME) {
     Ast_Name* name = (Ast_Name*)ast;
-    NameRef* ref = nameref_get(nameref_map, name->id);
-    NameEntry* ne = scope_lookup_name(ref->scope, ref->strname);
+    NameRef* nref = nameref_get(nameref_map, name->id);
+    NameEntry* ne = scope_lookup_name(nref->scope, nref->strname);
     Type* ty_set = typeset_create(&type_map, name->id);
     ty_set->ast = (Ast*)name;
     if (ne->ns_type) {
-      NameDecl* decl = ne->ns_type;
-      while (decl) {
-        typeset_add_set(ty_set, typeset_get(&type_map, decl->ast->id));
-        decl = decl->nextdecl_in_scope;
-      }
+      NameDecl* ndecl = ne->ns_type;
+      if (nref->line_no >= ndecl->line_no) {
+        while (ndecl) {
+          typeset_add_set(ty_set, typeset_get(&type_map, ndecl->ast->id));
+          ndecl = ndecl->nextdecl_in_scope;
+        }
+      } else error("at line %d: forward name reference `%s`.", nref->line_no, nref->strname);
     } else if (ne->ns_var) {
-      NameDecl* decl = ne->ns_var;
-      assert(!decl->nextdecl_in_scope);
-      typeset_add_set(ty_set, typeset_get(&type_map, decl->ast->id));
-    } else error("at line %d: unresolved name `%s`.", ref->line_no, ref->strname);
+      NameDecl* ndecl = ne->ns_var;
+      assert(!ndecl->nextdecl_in_scope);
+      assert(nref->line_no >= ndecl->line_no);
+      typeset_add_set(ty_set, typeset_get(&type_map, ndecl->ast->id));
+    } else error("at line %d: unresolved name `%s`.", nref->line_no, nref->strname);
   } else if (ast->kind == AST_FUNCTION_CALL) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT) {
@@ -1440,28 +1453,6 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     Type* ty_set = typeset_create(&type_map, error_decl->id);
     ty_set->ast = error_decl;
     typeset_add_type(ty_set, error_ty);
-  }
-  {
-    NameEntry* ne = scope_lookup_name(root_scope, "accept");
-    Ast* state_decl = ne->ns_var->ast;
-    Type_TypeName* state_ty = arena_push_struct(type_storage, Type_TypeName);
-    state_ty->ctor = TYPE_TYPENAME;
-    state_ty->ast = state_decl;
-    state_ty->strname = ne->strname;
-    Type* ty_set = typeset_create(&type_map, state_decl->id);
-    ty_set->ast = state_decl;
-    typeset_add_type(ty_set, (Type*)state_ty);
-  }
-  {
-    NameEntry* ne = scope_lookup_name(root_scope, "reject");
-    Ast* state_decl = ne->ns_var->ast;
-    Type_TypeName* state_ty = arena_push_struct(type_storage, Type_TypeName);
-    state_ty->ctor = TYPE_TYPENAME;
-    state_ty->ast = state_decl;
-    state_ty->strname = ne->strname;
-    Type* ty_set = typeset_create(&type_map, state_decl->id);
-    ty_set->ast = state_decl;
-    typeset_add_type(ty_set, (Type*)state_ty);
   }
 
   visit_p4program((Ast*)p4program);

@@ -33,8 +33,8 @@ next_token()
   if (token->klass == TK_IDENTIFIER) {
     NameEntry* ne = scope_lookup_name(current_scope, token->lexeme);
     if (ne->ns_keyword) {
-      NameDecl* nd = ne->ns_keyword;
-      token->klass = nd->token_class;
+      NameDecl* ndecl = ne->ns_keyword;
+      token->klass = ndecl->token_class;
       return token;
     }
     if (ne->ns_type) {
@@ -214,11 +214,11 @@ build_nonTypeName(bool is_type)
     name->line_no = token->line_no;
     name->strname = token->lexeme;
     if (is_type) {
-      NameDecl* decl = arena_push_struct(ast_storage, NameDecl);
-      decl->ast = (Ast*)name;
-      decl->strname = name->strname;
-      decl->line_no = token->line_no;
-      declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
+      NameDecl* ndecl = arena_push_struct(ast_storage, NameDecl);
+      ndecl->ast = (Ast*)name;
+      ndecl->strname = name->strname;
+      ndecl->line_no = token->line_no;
+      declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
     }
     next_token();
     return (Ast*)name;
@@ -400,11 +400,11 @@ build_typeOrVoid(bool is_type)
       name->line_no = token->line_no;
       name->strname = token->lexeme;
       if (is_type) {
-        NameDecl* decl = arena_push_struct(ast_storage, NameDecl);
-        decl->ast = (Ast*)name;
-        decl->strname = name->strname;
-        decl->line_no = token->line_no;
-        declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
+        NameDecl* ndecl = arena_push_struct(ast_storage, NameDecl);
+        ndecl->ast = (Ast*)name;
+        ndecl->strname = name->strname;
+        ndecl->line_no = token->line_no;
+        declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
       }
       next_token();
       return (Ast*)name;
@@ -3290,11 +3290,11 @@ build_ast(UnboundedArray* tokens_array_, Arena* ast_storage_)
   NameDecl*
   declare_keyword(char* strname, enum TokenClass token_class)
   {
-    NameDecl* decl = arena_push_struct(ast_storage, NameDecl);
-    decl->strname = strname;
-    decl->token_class = token_class;
-    declare_name_in_scope(root_scope, NAMESPACE_KEYWORD, decl);
-    return decl;
+    NameDecl* ndecl = arena_push_struct(ast_storage, NameDecl);
+    ndecl->strname = strname;
+    ndecl->token_class = token_class;
+    declare_name_in_scope(root_scope, NAMESPACE_KEYWORD, ndecl);
+    return ndecl;
   }
 
   tokens_array = tokens_array_;

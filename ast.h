@@ -679,7 +679,6 @@ enum TypeEnum {
   TYPE_STRING,
   TYPE_ERROR,
   TYPE_TYPESET,
-  TYPE_TYPEREF,
   TYPE_TYPEDEF,
   TYPE_TYPENAME,
   TYPE_TYPEPARAM,
@@ -695,11 +694,6 @@ typedef struct Type {
   struct Type* type_params;
   DList members;
 } Type;
-
-typedef struct Type_TypeRef {
-  Type;
-  Type* ref;
-} Type_TypeRef;
 
 typedef struct Type_TypeDef {
   Type;

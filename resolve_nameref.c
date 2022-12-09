@@ -23,8 +23,8 @@ visit_type_param(Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   Ast_Name* name = (Ast_Name*)ast;
-  NameRef* ref = nameref_get(nameref_map, name->id);
-  if (ref) {
+  NameRef* nref = nameref_get(nameref_map, name->id);
+  if (nref) {
     visit_expression(ast);
   } // else it's a declaration of a generic type
 }
@@ -745,10 +745,10 @@ visit_expression(Ast* ast)
     visit_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     Ast_Name* name = (Ast_Name*)ast;
-    NameRef* ref = nameref_get(nameref_map, name->id);
-    NameEntry* ne = scope_lookup_name(ref->scope, ref->strname);
+    NameRef* nref = nameref_get(nameref_map, name->id);
+    NameEntry* ne = scope_lookup_name(nref->scope, nref->strname);
     if (!(ne->ns_type || ne->ns_var)) {
-      error("at line %d: unresolved name '%s'.", ref->line_no, ref->strname);
+      error("at line %d: unresolved name '%s'.", nref->line_no, nref->strname);
     }
   } else if (ast->kind == AST_FUNCTION_CALL) {
     visit_function_call(ast);
