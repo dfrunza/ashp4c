@@ -702,8 +702,8 @@ visit_specified_id(Ast* ast)
 internal void
 visit_error(Ast* ast)
 {
-  assert (ast->kind == AST_ERROR);
-  Ast_Error* decl = (Ast_Error*)ast;
+  assert (ast->kind == AST_ERROR_ENUM);
+  Ast_ErrorEnum* decl = (Ast_ErrorEnum*)ast;
   Ast_NodeList* id_list = &decl->id_list;
   DList* li = id_list->head.next;
   while (li) {
@@ -848,7 +848,7 @@ visit_p4program(Ast* ast)
       visit_action(decl);
     } else if (decl->kind == AST_MATCH_KIND) {
       visit_match_kind(decl);
-    } else if (decl->kind == AST_ERROR) {
+    } else if (decl->kind == AST_ERROR_ENUM) {
       visit_error(decl);
     } else assert(0);
     li = li->next;

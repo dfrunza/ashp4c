@@ -2798,8 +2798,8 @@ build_errorDeclaration()
 {
   if (token->klass == TK_ERROR) {
     next_token();
-    Ast_Error* decl = arena_push_struct(ast_storage, Ast_Error);
-    decl->kind = AST_ERROR;
+    Ast_ErrorEnum* decl = arena_push_struct(ast_storage, Ast_ErrorEnum);
+    decl->kind = AST_ERROR_ENUM;
     decl->id = node_id++;
     decl->line_no = token->line_no;
     if (token->klass == TK_BRACE_OPEN) {

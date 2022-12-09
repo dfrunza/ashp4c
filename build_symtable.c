@@ -878,8 +878,8 @@ internal void
 visit_header_union(Ast* ast)
 {
   assert(ast->kind == AST_HEADER_UNION);
-  Ast_HeaderUnion* header_union_decl = (Ast_HeaderUnion*)ast;
-  Ast_Name* name = (Ast_Name*)header_union_decl->name;
+  Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
+  Ast_Name* name = (Ast_Name*)union_decl->name;
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_type) {
     NameDecl* decl = arena_push_struct(symtable_storage, NameDecl);
@@ -889,7 +889,7 @@ visit_header_union(Ast* ast)
     declare_name_in_scope(current_scope, NAMESPACE_TYPE, decl);
   } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
   current_scope = push_scope();
-  Ast_NodeList* fields = &header_union_decl->fields;
+  Ast_NodeList* fields = &union_decl->fields;
   DList* li = fields->head.next;
   while (li) {
     Ast* field = li->object;
@@ -1084,8 +1084,8 @@ visit_match_kind(Ast* ast)
 internal void
 visit_error(Ast* ast)
 {
-  assert (ast->kind == AST_ERROR);
-  Ast_Error* decl = (Ast_Error*)ast;
+  assert (ast->kind == AST_ERROR_ENUM);
+  Ast_ErrorEnum* decl = (Ast_ErrorEnum*)ast;
   current_scope = push_scope();
   Ast_NodeList* id_list = &decl->id_list;
   DList* li = id_list->head.next;
@@ -1144,7 +1144,7 @@ visit_p4program(Ast* ast)
       visit_action(decl);
     } else if (decl->kind == AST_MATCH_KIND) {
       visit_match_kind(decl);
-    } else if (decl->kind == AST_ERROR) {
+    } else if (decl->kind == AST_ERROR_ENUM) {
       visit_error(decl);
     }
     else assert(0);

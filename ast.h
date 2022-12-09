@@ -108,7 +108,6 @@ enum AstEnum {
   AST_NAME = 1,
   AST_DOTNAME = AST_NAME,
   AST_BOOL_TYPE,
-  AST_ERROR_TYPE,
   AST_INT_TYPE,
   AST_BIT_TYPE,
   AST_VARBIT_TYPE,
@@ -129,8 +128,9 @@ enum AstEnum {
   AST_CONTROL,
   AST_PACKAGE,
   AST_INSTANTIATION,
-  AST_ERROR,
+  AST_ERROR_ENUM,
   AST_MATCH_KIND,
+  AST_ERROR_TYPE,
   AST_FUNCTION,
   AST_DONTCARE,
   AST_INT_TYPESIZE,
@@ -362,10 +362,10 @@ typedef struct Ast_Instantiation {
   Ast_NodeList args;
 } Ast_Instantiation;
 
-typedef struct Ast_Error {
+typedef struct Ast_ErrorEnum {
   Ast;
   Ast_NodeList id_list;
-} Ast_Error;
+} Ast_ErrorEnum;
 
 typedef struct Ast_MatchKind {
   Ast;
@@ -671,8 +671,7 @@ NameRef* nameref_get(Hashmap* map, uint32_t id);
 void nameref_add(Hashmap* map, NameRef* nameref, uint32_t id);
 
 enum TypeEnum {
-  TYPE_NAME = 1,
-  TYPE_VOID,
+  TYPE_VOID = 1,
   TYPE_BOOL,
   TYPE_INT,
   TYPE_BIT,
@@ -685,6 +684,7 @@ enum TypeEnum {
   TYPE_TYPENAME,
   TYPE_TYPEPARAM,
   TYPE_PRODUCT,
+  TYPE_UNION,
   TYPE_FUNCTION,
   TYPE_FUNCTION_CALL,
 };
@@ -721,6 +721,12 @@ typedef struct Type_Product {
   Type* lhs_ty;
   Type* rhs_ty;
 } Type_Product;
+
+typedef struct Type_Union {
+  Type;
+  Type* lhs_ty;
+  Type* rhs_ty;
+} Type_Union;
 
 typedef struct Type_Function {
   Type;

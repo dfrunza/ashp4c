@@ -107,13 +107,31 @@ internal void
 visit_header_union(Ast* ast)
 {
   assert(ast->kind == AST_HEADER_UNION);
-  Ast_HeaderUnion* header_union_decl = (Ast_HeaderUnion*)ast;
-  Ast_NodeList* fields = &header_union_decl->fields;
-  DList* li = fields->head.next;
-  while (li) {
+  Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
+  Ast_NodeList* fields = &union_decl->fields;
+  Type* ty_set = typeset_create(&type_map, union_decl->id);
+  ty_set->ast = (Ast*)union_decl;
+  if (fields->head.next) {
+    DList* li = fields->head.next;
     Ast* field = li->object;
     visit_struct_field(field);
     li = li->next;
+    if (li) {
+      Type* fields_ty = typeset_get(&type_map, field->id);
+      while (li) {
+        Ast* field = li->object;
+        visit_struct_field(field);
+        Type_Union* union_ty = arena_push_struct(type_storage, Type_Union);
+        union_ty->ctor = TYPE_UNION;
+        union_ty->lhs_ty = fields_ty;
+        union_ty->rhs_ty = typeset_get(&type_map, field->id);
+        fields_ty = (Type*)union_ty;
+        li = li->next;
+      }
+      typeset_add_type(ty_set, fields_ty);
+    } else {
+      typeset_add_set(ty_set, typeset_get(&type_map, field->id));
+    }
   }
 }
 
@@ -511,7 +529,7 @@ visit_table(Ast* ast)
   Ast_Table* table_decl = (Ast_Table*)ast;
   Ast_Name* name = (Ast_Name*)table_decl->name;
   Type_TypeName* table_ty = arena_push_struct(type_storage, Type_TypeName);
-  table_ty->ctor = TYPE_NAME;
+  table_ty->ctor = TYPE_TYPENAME;
   table_ty->ast = (Ast*)table_decl;
   table_ty->strname = name->strname;
   Type* ty_set = typeset_create(&type_map, table_decl->id);
@@ -837,7 +855,7 @@ visit_extern(Ast* ast)
   Ast_Extern* extern_decl = (Ast_Extern*)ast;
   Ast_Name* name = (Ast_Name*)extern_decl->name;
   Type_TypeName* extern_ty = arena_push_struct(type_storage, Type_TypeName);
-  extern_ty->ctor = TYPE_NAME;
+  extern_ty->ctor = TYPE_TYPENAME;
   extern_ty->ast = (Ast*)extern_decl;
   extern_ty->strname = name->strname;
   Type* ty_set = typeset_create(&type_map, extern_decl->id);
@@ -868,7 +886,7 @@ visit_package(Ast* ast)
   Ast_Name* name = (Ast_Name*)package_decl->name;
   Ast_NodeList* type_params = &package_decl->type_params;
   Type_TypeName* package_ty = arena_push_struct(type_storage, Type_TypeName);
-  package_ty->ctor = TYPE_NAME;
+  package_ty->ctor = TYPE_TYPENAME;
   package_ty->ast = (Ast*)package_decl;
   package_ty->strname = name->strname;
   Type* ty_set = typeset_create(&type_map, package_decl->id);
@@ -928,15 +946,23 @@ internal void
 visit_parser_state(Ast* ast)
 {
   assert(ast->kind == AST_PARSER_STATE);
-  Ast_ParserState* state = (Ast_ParserState*)ast;
-  Ast_NodeList* stmt_list = &state->stmt_list;
+  Ast_ParserState* state_decl = (Ast_ParserState*)ast;
+  Ast_Name* name = (Ast_Name*)state_decl->name;
+  Type_TypeName* state_ty = arena_push_struct(type_storage, Type_TypeName);
+  state_ty->ctor = TYPE_TYPENAME;
+  state_ty->ast = (Ast*)state_decl;
+  state_ty->strname = name->strname;
+  Type* ty_set = typeset_create(&type_map, state_decl->id);
+  ty_set->ast = (Ast*)state_decl;
+  typeset_add_type(ty_set, (Type*)state_ty);
+  Ast_NodeList* stmt_list = &state_decl->stmt_list;
   DList* li = stmt_list->head.next;
   while (li) {
     Ast* stmt = li->object;
     visit_statement(stmt);
     li = li->next;
   }
-  visit_parser_transition(state->trans_stmt);
+  visit_parser_transition(state_decl->trans_stmt);
 }
 
 internal void
@@ -1090,8 +1116,8 @@ visit_specified_id(Ast* ast)
 internal void
 visit_error(Ast* ast)
 {
-  assert (ast->kind == AST_ERROR);
-  Ast_Error* decl = (Ast_Error*)ast;
+  assert (ast->kind == AST_ERROR_ENUM);
+  Ast_ErrorEnum* decl = (Ast_ErrorEnum*)ast;
   Ast_NodeList* id_list = &decl->id_list;
   DList* li = id_list->head.next;
   while (li) {
@@ -1111,7 +1137,7 @@ visit_enum(Ast* ast)
   Ast_Enum* enum_decl = (Ast_Enum*)ast;
   Ast_Name* name = (Ast_Name*)enum_decl->name;
   Type_TypeName* enum_ty = arena_push_struct(type_storage, Type_TypeName);
-  enum_ty->ctor = TYPE_NAME;
+  enum_ty->ctor = TYPE_TYPENAME;
   enum_ty->strname = name->strname;
   enum_ty->ast = (Ast*)enum_decl;
   Type* ty_set = typeset_create(&type_map, enum_decl->id);
@@ -1329,7 +1355,7 @@ visit_p4program(Ast* ast)
       visit_enum(decl);
     } else if (decl->kind == AST_MATCH_KIND) {
       visit_match_kind(decl);
-    } else if (decl->kind == AST_ERROR) {
+    } else if (decl->kind == AST_ERROR_ENUM) {
       visit_error(decl);
     } else assert(0);
     li = li->next;
@@ -1348,72 +1374,94 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
   {
     NameEntry* ne = scope_lookup_name(root_scope, "void");
     Ast* void_decl = ne->ns_type->ast;
-    Type* void_type = arena_push_struct(type_storage, Type);
-    void_type->ctor = TYPE_VOID;
-    void_type->ast = void_decl;
+    Type* void_ty = arena_push_struct(type_storage, Type);
+    void_ty->ctor = TYPE_VOID;
+    void_ty->ast = void_decl;
     Type* ty_set = typeset_create(&type_map, void_decl->id);
     ty_set->ast = void_decl;
-    typeset_add_type(ty_set, void_type);
+    typeset_add_type(ty_set, void_ty);
   }
   {
     NameEntry* ne = scope_lookup_name(root_scope, "bool");
     Ast* bool_decl = ne->ns_type->ast;
-    Type* bool_type = arena_push_struct(type_storage, Type);
-    bool_type->ctor = TYPE_BOOL;
-    bool_type->ast = bool_decl;
+    Type* bool_ty = arena_push_struct(type_storage, Type);
+    bool_ty->ctor = TYPE_BOOL;
+    bool_ty->ast = bool_decl;
     Type* ty_set = typeset_create(&type_map, bool_decl->id);
     ty_set->ast = bool_decl;
-    typeset_add_type(ty_set, bool_type);
+    typeset_add_type(ty_set, bool_ty);
   }
   {
     NameEntry* ne = scope_lookup_name(root_scope, "int");
     Ast* int_decl = ne->ns_type->ast;
-    Type* int_type = arena_push_struct(type_storage, Type);
-    int_type->ctor = TYPE_INT;
-    int_type->ast = int_decl;
+    Type* int_ty = arena_push_struct(type_storage, Type);
+    int_ty->ctor = TYPE_INT;
+    int_ty->ast = int_decl;
     Type* ty_set = typeset_create(&type_map, int_decl->id);
     ty_set->ast = int_decl;
-    typeset_add_type(ty_set, int_type);
+    typeset_add_type(ty_set, int_ty);
   }
   {
     NameEntry* ne = scope_lookup_name(root_scope, "bit");
     Ast* bit_decl = ne->ns_type->ast;
-    Type* bit_type = arena_push_struct(type_storage, Type);
-    bit_type->ctor = TYPE_BIT;
-    bit_type->ast = bit_decl;
+    Type* bit_ty = arena_push_struct(type_storage, Type);
+    bit_ty->ctor = TYPE_BIT;
+    bit_ty->ast = bit_decl;
     Type* ty_set = typeset_create(&type_map, bit_decl->id);
     ty_set->ast = bit_decl;
-    typeset_add_type(ty_set, bit_type);
+    typeset_add_type(ty_set, bit_ty);
   }
   {
     NameEntry* ne = scope_lookup_name(root_scope, "varbit");
     Ast* varbit_decl = ne->ns_type->ast;
-    Type* varbit_type = arena_push_struct(type_storage, Type);
-    varbit_type->ctor = TYPE_VARBIT;
-    varbit_type->ast = varbit_decl;
+    Type* varbit_ty = arena_push_struct(type_storage, Type);
+    varbit_ty->ctor = TYPE_VARBIT;
+    varbit_ty->ast = varbit_decl;
     Type* ty_set = typeset_create(&type_map, varbit_decl->id);
     ty_set->ast = varbit_decl;
-    typeset_add_type(ty_set, varbit_type);
+    typeset_add_type(ty_set, varbit_ty);
   }
   {
     NameEntry* ne = scope_lookup_name(root_scope, "string");
     Ast* string_decl = ne->ns_type->ast;
-    Type* string_type = arena_push_struct(type_storage, Type);
-    string_type->ctor = TYPE_STRING;
-    string_type->ast = string_decl;
+    Type* string_ty = arena_push_struct(type_storage, Type);
+    string_ty->ctor = TYPE_STRING;
+    string_ty->ast = string_decl;
     Type* ty_set = typeset_create(&type_map, string_decl->id);
     ty_set->ast = string_decl;
-    typeset_add_type(ty_set, string_type);
+    typeset_add_type(ty_set, string_ty);
   }
   {
     NameEntry* ne = scope_lookup_name(root_scope, "error");
     Ast* error_decl = ne->ns_type->ast;
-    Type* error_type = arena_push_struct(type_storage, Type);
-    error_type->ctor = TYPE_ERROR;
-    error_type->ast = error_decl;
+    Type* error_ty = arena_push_struct(type_storage, Type);
+    error_ty->ctor = TYPE_ERROR;
+    error_ty->ast = error_decl;
     Type* ty_set = typeset_create(&type_map, error_decl->id);
     ty_set->ast = error_decl;
-    typeset_add_type(ty_set, error_type);
+    typeset_add_type(ty_set, error_ty);
+  }
+  {
+    NameEntry* ne = scope_lookup_name(root_scope, "accept");
+    Ast* state_decl = ne->ns_var->ast;
+    Type_TypeName* state_ty = arena_push_struct(type_storage, Type_TypeName);
+    state_ty->ctor = TYPE_TYPENAME;
+    state_ty->ast = state_decl;
+    state_ty->strname = ne->strname;
+    Type* ty_set = typeset_create(&type_map, state_decl->id);
+    ty_set->ast = state_decl;
+    typeset_add_type(ty_set, (Type*)state_ty);
+  }
+  {
+    NameEntry* ne = scope_lookup_name(root_scope, "reject");
+    Ast* state_decl = ne->ns_var->ast;
+    Type_TypeName* state_ty = arena_push_struct(type_storage, Type_TypeName);
+    state_ty->ctor = TYPE_TYPENAME;
+    state_ty->ast = state_decl;
+    state_ty->strname = ne->strname;
+    Type* ty_set = typeset_create(&type_map, state_decl->id);
+    ty_set->ast = state_decl;
+    typeset_add_type(ty_set, (Type*)state_ty);
   }
 
   visit_p4program((Ast*)p4program);
