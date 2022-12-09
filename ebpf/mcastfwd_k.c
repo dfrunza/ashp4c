@@ -9,12 +9,16 @@
    __attribute__((section(NAME), used))
 #endif
 
+#if 0
 #define bpf_debug(fmt, ...)                          \
     ({                                               \
         char ____fmt[] = fmt;                        \
         bpf_trace_printk(____fmt, sizeof(____fmt),   \
             ##__VA_ARGS__);                          \
     })
+#else
+#define bpf_debug(fmt, ...) ;
+#endif
 
 struct bpf_map_def __section("maps") tx_port = {
   .type = BPF_MAP_TYPE_ARRAY,
@@ -74,7 +78,7 @@ int xdp_mcastfwd_out_prog(struct xdp_md *ctx)
       return action;
     }
 
-    //bpf_debug("ifindex %d, packet 0x%x\n", *ifindex, data);
+    bpf_debug("ifindex %d, packet 0x%x\n", *ifindex, data);
 
     __u32 key = 0;
     value = bpf_map_lookup_elem(&rxcnt, &key);
@@ -85,7 +89,7 @@ int xdp_mcastfwd_out_prog(struct xdp_md *ctx)
     return bpf_redirect(*ifindex, 0);
   }
 
-  //bpf_debug("eth_dest=0x%x. group_fwd? no\n", eth_dst);
+  bpf_debug("eth_dest=0x%x. group_fwd? no\n", eth_dst);
   return action;
 }
 
@@ -130,7 +134,7 @@ int xdp_mcastfwd_in_prog(struct xdp_md* ctx)
       return action;
     }
 
-    //bpf_debug("ifindex %d, packet 0x%x\n", *ifindex, data);
+    bpf_debug("ifindex %d, packet 0x%x\n", *ifindex, data);
 
     __u32 key = 1;
     value = bpf_map_lookup_elem(&rxcnt, &key);
@@ -141,7 +145,7 @@ int xdp_mcastfwd_in_prog(struct xdp_md* ctx)
     return bpf_redirect(*ifindex, 0);
   }
 
-  //bpf_debug("eth_dest=0x%x. group_fwd? no\n", eth_dst);
+  bpf_debug("eth_dest=0x%x. group_fwd? no\n", eth_dst);
   return action;
 }
 
