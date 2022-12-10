@@ -252,7 +252,19 @@ visit_type_ref(Ast* ast)
     ty_set->ast = (Ast*)type_ref;
     typeset_add_set(ty_set, typeset_get(&type_map, type_ref->name->id));
   } else if (ast->kind == AST_NAME) {
-    visit_expression(ast);
+    Ast_Name* name = (Ast_Name*)ast;
+    NameRef* nref = nameref_get(nameref_map, name->id);
+    if (!nref) {
+      Type_TypeParam* param_ty = arena_push_struct(type_storage, Type_TypeParam);
+      param_ty->ctor = TYPE_TYPEPARAM;
+      param_ty->strname = name->strname;
+      param_ty->ast = (Ast*)name;
+      Type* ty_set = typeset_create(&type_map, name->id);
+      ty_set->ast = (Ast*)name;
+      typeset_add_type(ty_set, (Type*)param_ty);
+    } else {
+      visit_expression(ast);
+    }
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
     Ast_SpecializedType* speclzd_type = (Ast_SpecializedType*)ast;
     visit_expression(speclzd_type->name);
@@ -715,17 +727,6 @@ visit_statement(Ast* ast)
 }
 
 internal void
-visit_function_return_type(Ast* ast)
-{
-  if (ast->kind == AST_NAME) {
-    Ast_Name* return_type = (Ast_Name*)ast;
-    visit_type_param((Ast*)return_type);
-  } else {
-    visit_type_ref(ast);
-  }
-}
-
-internal void
 visit_function_proto(Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION_PROTO);
@@ -738,7 +739,7 @@ visit_function_proto(Ast* ast)
   ty_set->ast = (Ast*)proto;
   typeset_add_type(ty_set, (Type*)function_ty);
   if (proto->return_type) {
-    visit_function_return_type(proto->return_type);
+    visit_type_ref(proto->return_type);
     function_ty->return_ty = typeset_get(&type_map, proto->return_type->id);
   }
   DList* li = type_params->head.next;

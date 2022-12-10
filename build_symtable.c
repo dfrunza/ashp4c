@@ -681,26 +681,6 @@ visit_parser(Ast* ast)
 }
 
 internal void
-visit_function_return_type(Ast* ast)
-{
-  if (ast->kind == AST_NAME) {
-    Ast_Name* name = (Ast_Name*)ast;
-    NameEntry* ne = scope_lookup_name(current_scope, name->strname);
-    if (!ne->ns_type) {
-      NameDecl* ndecl = arena_push_struct(symtable_storage, NameDecl);
-      ndecl->ast = ast;
-      ndecl->strname = name->strname;
-      ndecl->line_no = name->line_no;
-      declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
-    } else {
-      visit_type_ref(ast);
-    }
-  } else {
-    visit_type_ref(ast);
-  }
-}
-
-internal void
 visit_function_proto(Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION_PROTO);
@@ -713,7 +693,7 @@ visit_function_proto(Ast* ast)
   declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
   current_scope = push_scope();
   if (function_proto->return_type) {
-    visit_function_return_type(function_proto->return_type);
+    visit_type_ref(function_proto->return_type);
   }
   DList* li;
   Ast_NodeList* type_params = &function_proto->type_params;
@@ -747,7 +727,7 @@ visit_function(Ast* ast)
   declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
   current_scope = push_scope();
   if (function_proto->return_type) {
-    visit_function_return_type(function_proto->return_type);
+    visit_type_ref(function_proto->return_type);
   }
   DList* li;
   Ast_NodeList* type_params = &function_proto->type_params;
@@ -922,7 +902,18 @@ visit_type_ref(Ast* ast)
     Ast* stack_expr = type_ref->stack_expr;
     visit_expression(stack_expr);
   } else if (ast->kind == AST_NAME) {
-    visit_expression(ast);
+    Ast_Name* name = (Ast_Name*)ast;
+    NameEntry* ne = scope_lookup_name(current_scope, name->strname);
+    if (!ne->ns_type) {
+      /* Assume that the name is a type parameter. */
+      NameDecl* ndecl = arena_push_struct(symtable_storage, NameDecl);
+      ndecl->ast = ast;
+      ndecl->strname = name->strname;
+      ndecl->line_no = name->line_no;
+      declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
+    } else {
+      visit_expression(ast);
+    }
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
     Ast_SpecializedType* speclzd_type = (Ast_SpecializedType*)ast;
     visit_expression(speclzd_type->name);
