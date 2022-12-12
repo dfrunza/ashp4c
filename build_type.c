@@ -38,7 +38,6 @@ typeset_get(Hashmap* map, uint32_t id)
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
   HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
   Type* ty_set = he->object;
-  assert(ty_set->ctor == TYPE_TYPESET);
   return ty_set;
 }
 
@@ -1223,16 +1222,18 @@ visit_expression(Ast* ast)
     ty_set->ast = (Ast*)name;
     if (ne->ns_type) {
       NameDecl* ndecl = ne->ns_type;
-      if (nref->line_no >= ndecl->line_no) {
-        while (ndecl) {
-          typeset_add_set(ty_set, typeset_get(&type_map, ndecl->ast->id));
-          ndecl = ndecl->nextdecl_in_scope;
+      while (ndecl) {
+        Type* decl_ty = typeset_get(&type_map, ndecl->ast->id);
+        if (!decl_ty) {
+          error("at line %d: unknown type `%s`.", nref->line_no, nref->strname);
+          continue;
         }
-      } else error("at line %d: forward name reference `%s`.", nref->line_no, nref->strname);
+        typeset_add_set(ty_set, decl_ty);
+        ndecl = ndecl->nextdecl_in_scope;
+      }
     } else if (ne->ns_var) {
       NameDecl* ndecl = ne->ns_var;
       assert(!ndecl->nextdecl_in_scope);
-      assert(nref->line_no >= ndecl->line_no);
       typeset_add_set(ty_set, typeset_get(&type_map, ndecl->ast->id));
     } else error("at line %d: unresolved name `%s`.", nref->line_no, nref->strname);
   } else if (ast->kind == AST_FUNCTION_CALL) {
