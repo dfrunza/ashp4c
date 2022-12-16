@@ -76,6 +76,7 @@ visit_expression(Ast* ast)
     NameRef* nameref = arena_push_struct(symtable_storage, NameRef);
     nameref->strname = name->strname;
     nameref->line_no = name->line_no;
+    nameref->column_no = name->column_no;
     nameref->scope = current_scope;
     nameref_add(&nameref_map, nameref, name->id);
   } else if (ast->kind == AST_FUNCTION_CALL) {
@@ -125,8 +126,10 @@ visit_param(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_VAR, ndecl);
-  } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+  } else error("at %d:%d redeclared name `%s`.",
+               name->line_no, name->column_no, name->strname);
   visit_type_ref(param->type);
 }
 
@@ -141,6 +144,7 @@ visit_type_param(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
   } else {
     visit_type_ref((Ast*)name);
@@ -159,8 +163,10 @@ visit_action(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
-  } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+  } else error("at %d:%d redeclared name `%s`.",
+               name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
   Ast_NodeList* params = &action_decl->params;
   DList* li = params->head.next;
@@ -194,8 +200,10 @@ visit_instantiation(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_VAR, ndecl);
-  } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+  } else error("at %d:%d redeclared name `%s`.",
+               name->line_no, name->column_no, name->strname);
   visit_type_ref(ndecl->type);
   Ast_NodeList* args = &ndecl->args;
   DList* li = args->head.next;
@@ -317,8 +325,10 @@ visit_table(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
-  } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+  } else error("at %d:%d redeclared name `%s`.",
+               name->line_no, name->column_no, name->strname);
   Ast_NodeList* prop_list = &table_decl->prop_list;
   DList* li = prop_list->head.next;
   while (li) {
@@ -362,8 +372,10 @@ visit_const(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_VAR, ndecl);
-  } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+  } else error("at %d:%d redeclared name `%s`.",
+               name->line_no, name->column_no, name->strname);
   visit_type_ref(const_decl->type);
   visit_expression(const_decl->expr);
 }
@@ -380,8 +392,10 @@ visit_statement(Ast* ast)
       ndecl->ast = ast;
       ndecl->strname = name->strname;
       ndecl->line_no = name->line_no;
+      ndecl->column_no = name->column_no;
       declare_name_in_scope(current_scope, NAMESPACE_VAR, ndecl);
-    } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+    } else error("at %d:%d redeclared name `%s`.",
+                 name->line_no, name->column_no, name->strname);
     visit_type_ref(var_decl->type);
     if (var_decl->init_expr) {
       visit_expression(var_decl->init_expr);
@@ -457,6 +471,7 @@ visit_control_proto(Ast* ast)
   ndecl->ast = ast;
   ndecl->strname = name->strname;
   ndecl->line_no = name->line_no;
+  ndecl->column_no = name->column_no;
   declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
   current_scope = push_scope();
   DList* li;
@@ -488,6 +503,7 @@ visit_control(Ast* ast)
   ndecl->ast = ast;
   ndecl->strname = name->strname;
   ndecl->line_no = name->line_no;
+  ndecl->column_no = name->column_no;
   declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
   current_scope = push_scope();
   DList* li;
@@ -584,8 +600,10 @@ visit_parser_state(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_VAR, ndecl);
-  } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+  } else error("at %d:%d redeclared name `%s`.",
+               name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
   Ast_NodeList* stmt_list = &state->stmt_list;
   DList* li = stmt_list->head.next;
@@ -608,6 +626,7 @@ visit_parser_proto(Ast* ast)
   ndecl->ast = ast;
   ndecl->strname = name->strname;
   ndecl->line_no = name->line_no;
+  ndecl->column_no = name->column_no;
   declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
   current_scope = push_scope();
   DList* li;
@@ -639,6 +658,7 @@ visit_parser(Ast* ast)
   ndecl->ast = ast;
   ndecl->strname = name->strname;
   ndecl->line_no = name->line_no;
+  ndecl->column_no = name->column_no;
   declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
   current_scope = push_scope();
   DList* li;
@@ -690,6 +710,7 @@ visit_function_proto(Ast* ast)
   ndecl->ast = ast;
   ndecl->strname = name->strname;
   ndecl->line_no = name->line_no;
+  ndecl->column_no = name->column_no;
   declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
   current_scope = push_scope();
   if (function_proto->return_type) {
@@ -724,6 +745,7 @@ visit_function(Ast* ast)
   ndecl->ast = ast;
   ndecl->strname = name->strname;
   ndecl->line_no = name->line_no;
+  ndecl->column_no = name->column_no;
   declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
   current_scope = push_scope();
   if (function_proto->return_type) {
@@ -767,6 +789,7 @@ visit_extern(Ast* ast)
   ndecl->ast = ast;
   ndecl->strname = name->strname;
   ndecl->line_no = name->line_no;
+  ndecl->column_no = name->column_no;
   declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
   current_scope = push_scope();
   DList* li;
@@ -799,8 +822,10 @@ visit_struct_field(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_VAR, ndecl);
-  } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+  } else error("at %d:%d redeclared name `%s`.",
+               name->line_no, name->column_no, name->strname);
   visit_type_ref(field->type);
 }
 
@@ -816,8 +841,10 @@ visit_struct(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
-  } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+  } else error("at %d:%d redeclared name `%s`.",
+               name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
   Ast_NodeList* fields = &struct_decl->fields;
   DList* li = fields->head.next;
@@ -841,8 +868,10 @@ visit_header(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
-  } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+  } else error("at %d:%d redeclared name `%s`.",
+               name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
   Ast_NodeList* fields = &header_decl->fields;
   DList* li = fields->head.next;
@@ -866,8 +895,10 @@ visit_header_union(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
-  } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+  } else error("at %d:%d redeclared name `%s`.",
+               name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
   Ast_NodeList* fields = &union_decl->fields;
   DList* li = fields->head.next;
@@ -905,11 +936,12 @@ visit_type_ref(Ast* ast)
     Ast_Name* name = (Ast_Name*)ast;
     NameEntry* ne = scope_lookup_name(current_scope, name->strname);
     if (!ne->ns_type) {
-      /* Assume that the name is a type parameter. */
+      /* The name is a type parameter. */
       NameDecl* ndecl = arena_push_struct(symtable_storage, NameDecl);
       ndecl->ast = ast;
       ndecl->strname = name->strname;
       ndecl->line_no = name->line_no;
+      ndecl->column_no = name->column_no;
       declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
     } else {
       visit_expression(ast);
@@ -956,8 +988,10 @@ visit_enum_field(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_VAR, ndecl);
-  } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+  } else error("at %d:%d redeclared name `%s`.",
+               name->line_no, name->column_no, name->strname);
 }
 
 internal void
@@ -985,8 +1019,10 @@ visit_enum(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
-  } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+  } else error("at %d:%d redeclared name `%s`.",
+               name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
   Ast_NodeList* id_list = &enum_decl->id_list;
   DList* li = id_list->head.next;
@@ -1013,8 +1049,10 @@ visit_package(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
-  } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+  } else error("at %d:%d redeclared name `%s`.",
+               name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
   DList* li;
   Ast_NodeList* type_params = &package_decl->type_params;
@@ -1046,8 +1084,10 @@ visit_type(Ast* ast)
     ndecl->ast = ast;
     ndecl->strname = name->strname;
     ndecl->line_no = name->line_no;
+    ndecl->column_no = name->column_no;
     declare_name_in_scope(current_scope, NAMESPACE_TYPE, ndecl);
-  } else error("at line %d: redeclared name `%s`.", name->line_no, name->strname);
+  } else error("at %d:%d redeclared name `%s`.",
+               name->line_no, name->column_no, name->strname);
   Ast* type_ref = type_decl->type_ref;
   visit_type_ref(type_ref);
 }

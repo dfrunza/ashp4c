@@ -1225,7 +1225,8 @@ visit_expression(Ast* ast)
       while (ndecl) {
         Type* decl_ty = typeset_get(&type_map, ndecl->ast->id);
         if (!decl_ty) {
-          error("at line %d: unknown type `%s`.", nref->line_no, nref->strname);
+          error("at %d:%d unknown type `%s`.",
+                nref->line_no, nref->column_no, nref->strname);
           continue;
         }
         typeset_add_set(ty_set, decl_ty);
@@ -1235,7 +1236,8 @@ visit_expression(Ast* ast)
       NameDecl* ndecl = ne->ns_var;
       assert(!ndecl->nextdecl_in_scope);
       typeset_add_set(ty_set, typeset_get(&type_map, ndecl->ast->id));
-    } else error("at line %d: unresolved name `%s`.", nref->line_no, nref->strname);
+    } else error("at %d:%d unresolved name `%s`.",
+                 nref->line_no, nref->column_no, nref->strname);
   } else if (ast->kind == AST_FUNCTION_CALL) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT) {

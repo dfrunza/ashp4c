@@ -215,6 +215,7 @@ typedef struct Ast {
   enum AstEnum kind;
   uint32_t id;
   int line_no;
+  int column_no;
 } Ast;
 
 typedef struct Ast_NodeList {
@@ -643,6 +644,7 @@ typedef struct NameDecl {
   };
   char* strname;
   int line_no;
+  int column_no;
   Scope* scope;
   struct NameDecl* nextdecl_in_scope;
 } NameDecl;
@@ -651,6 +653,7 @@ typedef struct NameRef {
   Ast* ast;
   char* strname;
   int line_no;
+  int column_no;
   Scope* scope;
 } NameRef;
 
