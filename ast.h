@@ -93,6 +93,7 @@ typedef struct Token {
   enum TokenClass klass;
   char* lexeme;
   int line_no;
+  int column_no;
 
   union {
     struct {

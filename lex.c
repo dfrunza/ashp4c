@@ -14,8 +14,9 @@ internal char* text;
 internal int text_size;
 internal Arena* tokens_storage;
 internal UnboundedArray tokens_array = {};
-internal int line_no = 1;
-internal int state = 0;
+internal int line_no;
+internal char* line_start;
+internal int state;
 internal Lexeme lexeme[2];
 
 internal char
@@ -183,7 +184,8 @@ next_token(Token* token)
             if (c + cc == '\n' + '\r') {
               lexeme_advance();
             }
-            line_no++;
+            line_no += 1;
+            line_start = lexeme->start;
           }
           state = 1;
         }
@@ -257,6 +259,7 @@ next_token(Token* token)
       {
         token->klass = TK_UNKNOWN;
         token->lexeme = "<unknown>";
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -265,6 +268,7 @@ next_token(Token* token)
       {
         token->klass = TK_LEXICAL_ERROR;
         token->lexeme = "<error>";
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -273,6 +277,7 @@ next_token(Token* token)
       {
         token->klass = TK_SEMICOLON;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -289,6 +294,7 @@ next_token(Token* token)
           token->klass = TK_ANGLE_OPEN;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -305,6 +311,7 @@ next_token(Token* token)
           token->klass = TK_ANGLE_CLOSE;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -317,6 +324,7 @@ next_token(Token* token)
         } else {
           token->klass = TK_DONTCARE;
           token->lexeme = lexeme_to_cstring(lexeme);
+          token->column_no = lexeme->start - line_start + 1;
           lexeme_advance();
           state = 0;
         }
@@ -326,6 +334,7 @@ next_token(Token* token)
       {
         token->klass = TK_COLON;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -334,6 +343,7 @@ next_token(Token* token)
       {
         token->klass = TK_PARENTH_OPEN;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       }
@@ -343,6 +353,7 @@ next_token(Token* token)
       {
         token->klass = TK_PARENTH_CLOSE;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -351,6 +362,7 @@ next_token(Token* token)
       {
         token->klass = TK_DOTPREFIX;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -359,6 +371,7 @@ next_token(Token* token)
       {
         token->klass = TK_BRACE_OPEN;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -367,6 +380,7 @@ next_token(Token* token)
       {
         token->klass = TK_BRACE_CLOSE;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -375,6 +389,7 @@ next_token(Token* token)
       {
         token->klass = TK_BRACKET_OPEN;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -383,6 +398,7 @@ next_token(Token* token)
       {
         token->klass = TK_BRACKET_CLOSE;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -391,6 +407,7 @@ next_token(Token* token)
       {
         token->klass = TK_COMMA;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -404,6 +421,7 @@ next_token(Token* token)
           token->klass = TK_MINUS;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -412,6 +430,7 @@ next_token(Token* token)
       {
         token->klass = TK_PLUS;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -420,6 +439,7 @@ next_token(Token* token)
       {
         token->klass = TK_STAR;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -434,6 +454,7 @@ next_token(Token* token)
         } else {
           token->klass = TK_SLASH;
           token->lexeme = lexeme_to_cstring(lexeme);
+          token->column_no = lexeme->start - line_start + 1;
           lexeme_advance();
           state = 0;
         }
@@ -448,6 +469,7 @@ next_token(Token* token)
           token->klass = TK_EQUAL;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -461,6 +483,7 @@ next_token(Token* token)
           token->klass = TK_EXCLAMATION;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -479,6 +502,7 @@ next_token(Token* token)
           token->klass = TK_AMPERSAND;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -492,6 +516,7 @@ next_token(Token* token)
           token->klass = TK_PIPE;
         }
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -500,6 +525,7 @@ next_token(Token* token)
       {
         token->klass = TK_CIRCUMFLEX;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -508,6 +534,7 @@ next_token(Token* token)
       {
         token->klass = TK_TILDA;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -526,6 +553,7 @@ next_token(Token* token)
 
         token->klass = TK_STRING_LITERAL;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -534,7 +562,8 @@ next_token(Token* token)
       {
         c = char_advance(1);
         if (c == '\n' || c == '\r') {
-          line_no++;
+          line_no += 1;
+          line_start = lexeme->start;
           state = 200;
         } else if (c == '\\' || c =='"' || c == 'n' || c == 'r') {
           state = 200; // ok
@@ -551,7 +580,8 @@ next_token(Token* token)
             char cc = char_lookahead(1);
             if (c + cc == '\n' + '\r')
               c = char_advance(1);
-            line_no++;
+            line_no += 1;
+            line_start = lexeme->start;
           }
         } while (c != '*');
 
@@ -559,6 +589,7 @@ next_token(Token* token)
           char_advance(1);
           token->klass = TK_COMMENT;
           token->lexeme = lexeme_to_cstring(lexeme);
+          token->column_no = lexeme->start - line_start + 1;
           lexeme_advance();
           state = 0;
         } else {
@@ -571,9 +602,11 @@ next_token(Token* token)
         do {
           c = char_advance(1);
         } while (c != '\n' && c != '\r');
-        line_no++;
+        line_no += 1;
+        line_start = lexeme->start;
         token->klass = TK_COMMENT;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -623,6 +656,7 @@ next_token(Token* token)
           token->i.is_signed = true;
           token_install_integer(token, &lexeme[1], 10);
           token->lexeme = lexeme_to_cstring(lexeme);
+          token->column_no = lexeme->start - line_start + 1;
           lexeme_advance();
           state = 0;
         }
@@ -642,6 +676,7 @@ next_token(Token* token)
         token->i.is_signed = true;
         token_install_integer(token, &lexeme[1], 16);
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -660,6 +695,7 @@ next_token(Token* token)
         token->i.is_signed = true;
         token_install_integer(token, &lexeme[1], 8);
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -678,6 +714,7 @@ next_token(Token* token)
         token->i.is_signed = true;
         token_install_integer(token, &lexeme[1], 2);
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -715,6 +752,7 @@ next_token(Token* token)
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 16);
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -731,6 +769,7 @@ next_token(Token* token)
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 8);
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -747,6 +786,7 @@ next_token(Token* token)
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 2);
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -763,6 +803,7 @@ next_token(Token* token)
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 10);
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
@@ -775,12 +816,14 @@ next_token(Token* token)
         char_retract();
         token->klass = TK_IDENTIFIER;
         token->lexeme = lexeme_to_cstring(lexeme);
+        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
         state = 0;
       } break;
     }
   }
   token->line_no = line_no;
+  printf("token `%s` is at %d:%d\n", token->lexeme, token->line_no, token->column_no);
 }
 
 UnboundedArray*
@@ -792,6 +835,8 @@ lex_tokenize(char* text_, int text_size_, Arena* lexeme_storage_, Arena* tokens_
   tokens_storage = tokens_storage_;
 
   lexeme->start = lexeme->end = text;
+  line_start = text;
+  line_no = 1;
 
   Token token = {};
   token.klass = TK_START_OF_INPUT;
