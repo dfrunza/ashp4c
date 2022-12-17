@@ -7,58 +7,61 @@
 internal Scope* root_scope;
 internal Arena *type_storage;
 internal Hashmap* nameref_map;
-internal Hashmap type_map = {};
+internal Hashmap potential_types = {};
 
 internal void visit_block_statement(Ast* block_stmt);
 internal void visit_statement(Ast* decl);
 internal void visit_expression(Ast* expr);
 internal void visit_type_ref(Ast* type_ref);
 
-Type*
+Type_TypeSet*
 typeset_create(Hashmap* map, uint32_t id)
 {
   HashmapKey key = { .i_key = id };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
   HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
-  Type* ty_set = he->object;
+  Type_TypeSet* ty_set = he->object;
   if (!ty_set) {
-    ty_set = arena_push_struct(type_storage, Type);
+    ty_set = arena_push_struct(type_storage, Type_TypeSet);
     ty_set->ctor = TYPE_TYPESET;
-    ty_set->members.last = &ty_set->members;
+    ty_set->last_member = &ty_set->members;
     he->object = ty_set;
   }
-  assert((!ty_set->members.next) && (ty_set->members.count == 0));
+  assert(ty_set->ctor == TYPE_TYPESET);
+  assert(ty_set->last_member == &ty_set->members);
+  assert(!ty_set->members.next);
   return ty_set;
 }
 
-Type*
+Type_TypeSet*
 typeset_get(Hashmap* map, uint32_t id)
 {
   HashmapKey key = { .i_key = id };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
   HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
-  Type* ty_set = he->object;
+  Type_TypeSet* ty_set = he->object;
+  assert(ty_set->ctor == TYPE_TYPESET);
   return ty_set;
 }
 
-Type*
-typeset_add_type(Type* ty_set, Type* type)
+void
+typeset_add_type(Type_TypeSet* ty_set, Type* type)
 {
   DList* li = arena_push_struct(type_storage, DList);
   li->object = type;
-  dlist_concat(ty_set->members.last, li);
-  ty_set->members.count += 1;
-  return ty_set;
+  dlist_concat(ty_set->last_member, li);
+  ty_set->last_member = li;
+  ty_set->member_count += 1;
 }
 
-Type* typeset_add_set(Type* to_set, Type* from_set)
+void
+typeset_add_set(Type_TypeSet* to_set, Type_TypeSet* from_set)
 {
   DList* li = from_set->members.next;
   while (li) {
     typeset_add_type(to_set, li->object);
     li = li->next;
   }
-  return to_set;
 }
 
 internal void
@@ -67,9 +70,9 @@ visit_param(Ast* ast)
   assert(ast->kind == AST_PARAM);
   Ast_Param* param = (Ast_Param*)ast;
   visit_type_ref(param->type);
-  Type* ty_set = typeset_create(&type_map, param->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, param->id);
   ty_set->ast = (Ast*)param;
-  typeset_add_set(ty_set, typeset_get(&type_map, param->type->id));
+  typeset_add_set(ty_set, typeset_get(&potential_types, param->type->id));
 }
 
 internal void
@@ -83,7 +86,7 @@ visit_type_param(Ast* ast)
     param_ty->ctor = TYPE_TYPEPARAM;
     param_ty->strname = name->strname;
     param_ty->ast = (Ast*)name;
-    Type* ty_set = typeset_create(&type_map, name->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, name->id);
     ty_set->ast = (Ast*)name;
     typeset_add_type(ty_set, (Type*)param_ty);
   } else {
@@ -97,9 +100,9 @@ visit_struct_field(Ast* ast)
   assert(ast->kind == AST_STRUCT_FIELD);
   Ast_StructField* field = (Ast_StructField*)ast;
   visit_type_ref(field->type);
-  Type* ty_set = typeset_create(&type_map, field->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, field->id);
   ty_set->ast = (Ast*)field;
-  typeset_add_set(ty_set, typeset_get(&type_map, field->type->id));
+  typeset_add_set(ty_set, typeset_get(&potential_types, field->type->id));
 }
 
 internal void
@@ -108,28 +111,28 @@ visit_header_union(Ast* ast)
   assert(ast->kind == AST_HEADER_UNION);
   Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
   Ast_NodeList* fields = &union_decl->fields;
-  Type* ty_set = typeset_create(&type_map, union_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, union_decl->id);
   ty_set->ast = (Ast*)union_decl;
-  if (fields->head.next) {
-    DList* li = fields->head.next;
+  if (fields->list.next) {
+    DList* li = fields->list.next;
     Ast* field = li->object;
     visit_struct_field(field);
     li = li->next;
     if (li) {
-      Type* fields_ty = typeset_get(&type_map, field->id);
+      Type* fields_ty = (Type*)typeset_get(&potential_types, field->id);
       while (li) {
         Ast* field = li->object;
         visit_struct_field(field);
         Type_Union* union_ty = arena_push_struct(type_storage, Type_Union);
         union_ty->ctor = TYPE_UNION;
         union_ty->lhs_ty = fields_ty;
-        union_ty->rhs_ty = typeset_get(&type_map, field->id);
+        union_ty->rhs_ty = (Type*)typeset_get(&potential_types, field->id);
         fields_ty = (Type*)union_ty;
         li = li->next;
       }
       typeset_add_type(ty_set, fields_ty);
     } else {
-      typeset_add_set(ty_set, typeset_get(&type_map, field->id));
+      typeset_add_set(ty_set, typeset_get(&potential_types, field->id));
     }
   }
 }
@@ -140,28 +143,28 @@ visit_header(Ast* ast)
   assert(ast->kind == AST_HEADER);
   Ast_Header* header_decl = (Ast_Header*)ast;
   Ast_NodeList* fields = &header_decl->fields;
-  Type* ty_set = typeset_create(&type_map, header_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, header_decl->id);
   ty_set->ast = (Ast*)header_decl;
-  if (fields->head.next) {
-    DList* li = fields->head.next;
+  if (fields->list.next) {
+    DList* li = fields->list.next;
     Ast* field = li->object;
     visit_struct_field(field);
     li = li->next;
     if (li) {
-      Type* fields_ty = typeset_get(&type_map, field->id);
+      Type* fields_ty = (Type*)typeset_get(&potential_types, field->id);
       while (li) {
         Ast* field = li->object;
         visit_struct_field(field);
         Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = fields_ty;
-        product_ty->rhs_ty = typeset_get(&type_map, field->id);
+        product_ty->rhs_ty = (Type*)typeset_get(&potential_types, field->id);
         fields_ty = (Type*)product_ty;
         li = li->next;
       }
       typeset_add_type(ty_set, fields_ty);
     } else {
-      typeset_add_set(ty_set, typeset_get(&type_map, field->id));
+      typeset_add_set(ty_set, typeset_get(&potential_types, field->id));
     }
   }
 }
@@ -172,28 +175,28 @@ visit_struct(Ast* ast)
   assert(ast->kind == AST_STRUCT);
   Ast_Struct* struct_decl = (Ast_Struct*)ast;
   Ast_NodeList* fields = &struct_decl->fields;
-  Type* ty_set = typeset_create(&type_map, struct_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, struct_decl->id);
   ty_set->ast = (Ast*)struct_decl;
-  if (fields->head.next) {
-    DList* li = fields->head.next;
+  if (fields->list.next) {
+    DList* li = fields->list.next;
     Ast* field = li->object;
     visit_struct_field(field);
     li = li->next;
     if (li) {
-      Type* fields_ty = typeset_get(&type_map, field->id);
+      Type* fields_ty = (Type*)typeset_get(&potential_types, field->id);
       while (li) {
         Ast* field = li->object;
         visit_struct_field(field);
         Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = fields_ty;
-        product_ty->rhs_ty = typeset_get(&type_map, field->id);
+        product_ty->rhs_ty = (Type*)typeset_get(&potential_types, field->id);
         fields_ty = (Type*)product_ty;
         li = li->next;
       }
       typeset_add_type(ty_set, fields_ty);
     } else {
-      typeset_add_set(ty_set, typeset_get(&type_map, field->id));
+      typeset_add_set(ty_set, typeset_get(&potential_types, field->id));
     }
   }
 }
@@ -204,52 +207,52 @@ visit_type_ref(Ast* ast)
   if (ast->kind == AST_BOOL_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "bool");
     Ast* bool_decl = ne->ns_type->ast;
-    Type* ty_set = typeset_create(&type_map, ast->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&type_map, bool_decl->id));
+    typeset_add_set(ty_set, typeset_get(&potential_types, bool_decl->id));
   } else if (ast->kind == AST_INT_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "int");
     Ast* int_decl = ne->ns_type->ast;
-    Type* ty_set = typeset_create(&type_map, ast->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&type_map, int_decl->id));
+    typeset_add_set(ty_set, typeset_get(&potential_types, int_decl->id));
   } else if (ast->kind == AST_BIT_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "bit");
     Ast* bit_decl = ne->ns_type->ast;
-    Type* ty_set = typeset_create(&type_map, ast->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&type_map, bit_decl->id));
+    typeset_add_set(ty_set, typeset_get(&potential_types, bit_decl->id));
   } else if (ast->kind == AST_VARBIT_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "varbit");
     Ast* varbit_decl = ne->ns_type->ast;
-    Type* ty_set = typeset_create(&type_map, ast->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&type_map, varbit_decl->id));
+    typeset_add_set(ty_set, typeset_get(&potential_types, varbit_decl->id));
   } else if (ast->kind == AST_STRING_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "string");
     Ast* string_decl = ne->ns_type->ast;
-    Type* ty_set = typeset_create(&type_map, ast->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&type_map, string_decl->id));
+    typeset_add_set(ty_set, typeset_get(&potential_types, string_decl->id));
   } else if (ast->kind == AST_VOID_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "void");
     Ast* void_decl = ne->ns_type->ast;
-    Type* ty_set = typeset_create(&type_map, ast->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&type_map, void_decl->id));
+    typeset_add_set(ty_set, typeset_get(&potential_types, void_decl->id));
   } else if (ast->kind == AST_ERROR_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "error");
     Ast* error_decl = ne->ns_type->ast;
-    Type* ty_set = typeset_create(&type_map, ast->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&type_map, error_decl->id));
+    typeset_add_set(ty_set, typeset_get(&potential_types, error_decl->id));
   } else if (ast->kind == AST_HEADER_STACK) {
     Ast_HeaderStack* type_ref = (Ast_HeaderStack*)ast;
     visit_expression(type_ref->name);
     visit_expression(type_ref->stack_expr);
-    Type* ty_set = typeset_create(&type_map, type_ref->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, type_ref->id);
     ty_set->ast = (Ast*)type_ref;
-    typeset_add_set(ty_set, typeset_get(&type_map, type_ref->name->id));
+    typeset_add_set(ty_set, typeset_get(&potential_types, type_ref->name->id));
   } else if (ast->kind == AST_NAME) {
     Ast_Name* name = (Ast_Name*)ast;
     NameRef* nref = nameref_get(nameref_map, name->id);
@@ -258,7 +261,7 @@ visit_type_ref(Ast* ast)
       param_ty->ctor = TYPE_TYPEPARAM;
       param_ty->strname = name->strname;
       param_ty->ast = (Ast*)name;
-      Type* ty_set = typeset_create(&type_map, name->id);
+      Type_TypeSet* ty_set = typeset_create(&potential_types, name->id);
       ty_set->ast = (Ast*)name;
       typeset_add_type(ty_set, (Type*)param_ty);
     } else {
@@ -267,11 +270,11 @@ visit_type_ref(Ast* ast)
   } else if (ast->kind == AST_SPECIALIZED_TYPE) {
     Ast_SpecializedType* speclzd_type = (Ast_SpecializedType*)ast;
     visit_expression(speclzd_type->name);
-    Type* ty_set = typeset_create(&type_map, speclzd_type->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, speclzd_type->id);
     ty_set->ast = (Ast*)speclzd_type;
-    typeset_add_set(ty_set, typeset_get(&type_map, speclzd_type->name->id));
+    typeset_add_set(ty_set, typeset_get(&potential_types, speclzd_type->name->id));
     Ast_NodeList* type_args = &speclzd_type->type_args;
-    DList* li = type_args->head.next;
+    DList* li = type_args->list.next;
     while (li) {
       Ast* type_arg = li->object;
       visit_type_ref(type_arg);
@@ -280,28 +283,28 @@ visit_type_ref(Ast* ast)
   } else if (ast->kind == AST_TUPLE) {
     Ast_Tuple* tuple_decl = (Ast_Tuple*)ast;
     Ast_NodeList* args = &tuple_decl->type_args;
-    Type* ty_set = typeset_create(&type_map, tuple_decl->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, tuple_decl->id);
     ty_set->ast = (Ast*)tuple_decl;
-    if (args->head.next) {
-      DList* li = args->head.next;
+    if (args->list.next) {
+      DList* li = args->list.next;
       Ast* arg = li->object;
       visit_type_ref(arg);
       li = li->next;
       if (li) {
-        Type* args_ty = typeset_get(&type_map, arg->id);
+        Type* args_ty = (Type*)typeset_get(&potential_types, arg->id);
         while (li) {
           Ast* arg = li->object;
           visit_type_ref(arg);
           Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
           product_ty->ctor = TYPE_PRODUCT;
           product_ty->lhs_ty = args_ty;
-          product_ty->rhs_ty = typeset_get(&type_map, arg->id);
+          product_ty->rhs_ty = (Type*)typeset_get(&potential_types, arg->id);
           args_ty = (Type*)product_ty;
           li = li->next;
         }
         typeset_add_type(ty_set, args_ty);
       } else {
-        typeset_add_set(ty_set, typeset_get(&type_map, arg->id));
+        typeset_add_set(ty_set, typeset_get(&potential_types, arg->id));
       }
     }
   } else if (ast->kind == AST_STRUCT) {
@@ -326,42 +329,42 @@ visit_function_call(Ast* ast)
   Type_FunctionCall* fcall_ty = arena_push_struct(type_storage, Type_FunctionCall);
   fcall_ty->ctor = TYPE_FUNCTION_CALL;
   fcall_ty->ast = (Ast*)function_call;
-  Type* ty_set = typeset_create(&type_map, function_call->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, function_call->id);
   ty_set->ast = (Ast*)function_call;
   typeset_add_type(ty_set, (Type*)fcall_ty);
   Ast_NodeList* type_args = &callee_expr->type_args;
-  DList* li = type_args->head.next;
+  DList* li = type_args->list.next;
   while (li) {
     Ast* type_arg = li->object;
     visit_type_ref(type_arg);
     li = li->next;
   }
   Ast_NodeList* args = &function_call->args;
-  if (args->head.next) {
-    DList* li = args->head.next;
+  if (args->list.next) {
+    DList* li = args->list.next;
     Ast* arg = li->object;
     visit_expression(arg);
     li = li->next;
     if (li) {
-      Type* args_ty = typeset_get(&type_map, arg->id);
+      Type* args_ty = (Type*)typeset_get(&potential_types, arg->id);
       while (li) {
         Ast* arg = li->object;
         visit_expression(arg);
         Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = args_ty;
-        product_ty->rhs_ty = typeset_get(&type_map, arg->id);
+        product_ty->rhs_ty = (Type*)typeset_get(&potential_types, arg->id);
         args_ty = (Type*)product_ty;
         li = li->next;
       }
       fcall_ty->args_ty = args_ty;
     } else {
-      fcall_ty->args_ty = typeset_get(&type_map, arg->id);
+      fcall_ty->args_ty = (Type*)typeset_get(&potential_types, arg->id);
     }
   } else {
-    Type* args_ty = typeset_create(&type_map, args->id);
+    Type_TypeSet* args_ty = typeset_create(&potential_types, args->id);
     args_ty->ast = (Ast*)args;
-    fcall_ty->args_ty = args_ty;
+    fcall_ty->args_ty = (Type*)args_ty;
   }
 }
 
@@ -374,35 +377,35 @@ visit_instantiation(Ast* ast)
   Type_FunctionCall* inst_ty = arena_push_struct(type_storage, Type_FunctionCall);
   inst_ty->ctor = TYPE_FUNCTION_CALL;
   inst_ty->ast = (Ast*)inst_decl;
-  Type* ty_set = typeset_create(&type_map, inst_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, inst_decl->id);
   ty_set->ast = (Ast*)inst_decl;
   typeset_add_type(ty_set, (Type*)inst_ty);
   Ast_NodeList* args = &inst_decl->args;
-  if (args->head.next) {
-    DList* li = args->head.next;
+  if (args->list.next) {
+    DList* li = args->list.next;
     Ast* arg = li->object;
     visit_expression(arg);
     li = li->next;
     if (li) {
-      Type* args_ty = typeset_get(&type_map, arg->id);
+      Type* args_ty = (Type*)typeset_get(&potential_types, arg->id);
       while (li) {
         Ast* arg = li->object;
         visit_expression(arg);
         Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = args_ty;
-        product_ty->rhs_ty = typeset_get(&type_map, arg->id);
+        product_ty->rhs_ty = (Type*)typeset_get(&potential_types, arg->id);
         args_ty = (Type*)product_ty;
         li = li->next;
       }
       inst_ty->args_ty = args_ty;
     } else {
-      inst_ty->args_ty = typeset_get(&type_map, arg->id);
+      inst_ty->args_ty = (Type*)typeset_get(&potential_types, arg->id);
     }
   } else {
-    Type* args_ty = typeset_create(&type_map, args->id);
-    args_ty->ast = (Ast*)inst_decl;
-    inst_ty->args_ty = args_ty;
+    Type_TypeSet* args_ty = typeset_create(&potential_types, args->id);
+    args_ty->ast = (Ast*)args;
+    inst_ty->args_ty = (Type*)args_ty;
   }
 }
 
@@ -444,7 +447,7 @@ visit_select_keyset(Ast* ast)
   if (ast->kind == AST_TUPLE_KEYSET) {
     Ast_TupleKeyset* keyset = (Ast_TupleKeyset*)ast;
     Ast_NodeList* expr_list = &keyset->expr_list;
-    DList* li = expr_list->head.next;
+    DList* li = expr_list->list.next;
     while (li) {
       Ast* expr = li->object;
       visit_keyset_expr(expr);
@@ -463,35 +466,35 @@ visit_action_ref(Ast* ast)
   Type_FunctionCall* fcall_ty = arena_push_struct(type_storage, Type_FunctionCall);
   fcall_ty->ctor = TYPE_FUNCTION_CALL;
   fcall_ty->ast = (Ast*)action;
-  Type* ty_set = typeset_create(&type_map, action->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, action->id);
   ty_set->ast = (Ast*)action;
   typeset_add_type(ty_set, (Type*)fcall_ty);
   Ast_NodeList* args = &action->args;
-  if (args->head.next) {
-    DList* li = args->head.next;
+  if (args->list.next) {
+    DList* li = args->list.next;
     Ast* arg = li->object;
     visit_expression(arg);
     li = li->next;
     if (li) {
-      Type* args_ty = typeset_get(&type_map, arg->id);
+      Type* args_ty = (Type*)typeset_get(&potential_types, arg->id);
       while (li) {
         Ast* arg = li->object;
         visit_expression(arg);
         Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = args_ty;
-        product_ty->rhs_ty = typeset_get(&type_map, arg->id);
+        product_ty->rhs_ty = (Type*)typeset_get(&potential_types, arg->id);
         args_ty = (Type*)product_ty;
         li = li->next;
       }
       fcall_ty->args_ty = args_ty;
     } else {
-      fcall_ty->args_ty = typeset_get(&type_map, arg->id);
+      fcall_ty->args_ty = (Type*)typeset_get(&potential_types, arg->id);
     }
   } else {
-    Type* args_ty = typeset_create(&type_map, args->id);
+    Type_TypeSet* args_ty = typeset_create(&potential_types, args->id);
     args_ty->ast = (Ast*)args;
-    fcall_ty->args_ty = args_ty;
+    fcall_ty->args_ty = (Type*)args_ty;
   }
 }
 
@@ -518,7 +521,7 @@ visit_table_property(Ast* ast)
   if (ast->kind == AST_TABLE_ACTIONS) {
     Ast_TableActions* prop = (Ast_TableActions*)ast;
     Ast_NodeList* action_list = &prop->action_list;
-    DList* li = action_list->head.next;
+    DList* li = action_list->list.next;
     while (li) {
       Ast* action = li->object;
       visit_action_ref(action);
@@ -532,7 +535,7 @@ visit_table_property(Ast* ast)
   } else if (ast->kind == AST_TABLE_KEY) {
     Ast_TableKey* prop = (Ast_TableKey*)ast;
     Ast_NodeList* keyelem_list = &prop->keyelem_list;
-    DList* li = keyelem_list->head.next;
+    DList* li = keyelem_list->list.next;
     while (li) {
       Ast* keyelem = li->object;
       visit_table_keyelem(keyelem);
@@ -541,7 +544,7 @@ visit_table_property(Ast* ast)
   } else if (ast->kind == AST_TABLE_ENTRIES) {
     Ast_TableEntries* prop = (Ast_TableEntries*)ast;
     Ast_NodeList* entries = &prop->entries;
-    DList* li = entries->head.next;
+    DList* li = entries->list.next;
     while (li) {
       Ast* entry = li->object;
       visit_table_entry(entry);
@@ -561,11 +564,11 @@ visit_table(Ast* ast)
   table_ty->ctor = TYPE_TYPENAME;
   table_ty->ast = (Ast*)table_decl;
   table_ty->strname = name->strname;
-  Type* ty_set = typeset_create(&type_map, table_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, table_decl->id);
   ty_set->ast = (Ast*)table_decl;
   typeset_add_type(ty_set, (Type*)table_ty);
   Ast_NodeList* prop_list = &table_decl->prop_list;
-  DList* li = prop_list->head.next;
+  DList* li = prop_list->list.next;
   while (li) {
     Ast* prop = li->object;
     visit_table_property(prop);
@@ -581,39 +584,40 @@ visit_action(Ast* ast)
   Type_Function* function_ty = arena_push_struct(type_storage, Type_Function);
   function_ty->ctor = TYPE_FUNCTION;
   function_ty->ast = (Ast*)action_decl;
-  Type* ty_set = typeset_create(&type_map, action_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, action_decl->id);
+  ty_set->ast = (Ast*)action_decl;
   typeset_add_type(ty_set, (Type*)function_ty);
   Ast_NodeList* params = &action_decl->params;
-  if (params->head.next) {
-    DList* li = params->head.next;
+  if (params->list.next) {
+    DList* li = params->list.next;
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
     if (li) {
-      Type* params_ty = typeset_get(&type_map, param->id);
+      Type* params_ty = (Type*)typeset_get(&potential_types, param->id);
       while (li) {
         Ast* param = li->object;
         visit_param(param);
         Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = params_ty;
-        product_ty->rhs_ty = typeset_get(&type_map, param->id);
+        product_ty->rhs_ty = (Type*)typeset_get(&potential_types, param->id);
         params_ty = (Type*)product_ty;
         li = li->next;
       }
       function_ty->params_ty = params_ty;
     } else {
-      function_ty->params_ty = typeset_get(&type_map, param->id);
+      function_ty->params_ty = (Type*)typeset_get(&potential_types, param->id);
     }
   } else {
-    Type* params_ty = typeset_create(&type_map, params->id);
+    Type_TypeSet* params_ty = typeset_create(&potential_types, params->id);
     params_ty->ast = (Ast*)params;
-    function_ty->params_ty = params_ty;
+    function_ty->params_ty = (Type*)params_ty;
   }
   Ast_BlockStmt* action_body = (Ast_BlockStmt*)action_decl->stmt;
   if (action_body) {
     Ast_NodeList* stmt_list = &action_body->stmt_list;
-    DList* li = stmt_list->head.next;
+    DList* li = stmt_list->list.next;
     while (li) {
       Ast* stmt = li->object;
       visit_statement(stmt);
@@ -631,9 +635,9 @@ visit_var(Ast* ast)
   if (var_decl->init_expr) {
     visit_expression(var_decl->init_expr);
   }
-  Type* ty_set = typeset_create(&type_map, var_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, var_decl->id);
   ty_set->ast = (Ast*)var_decl;
-  typeset_add_set(ty_set, typeset_get(&type_map, var_decl->type->id));
+  typeset_add_set(ty_set, typeset_get(&potential_types, var_decl->type->id));
 }
 
 internal void
@@ -655,7 +659,7 @@ visit_switch_stmt(Ast* ast)
   Ast_SwitchStmt* stmt = (Ast_SwitchStmt*)ast;
   visit_expression(stmt->expr);
   Ast_NodeList* switch_cases = &stmt->switch_cases;
-  DList* li = switch_cases->head.next;
+  DList* li = switch_cases->list.next;
   while (li) {
     Ast* switch_case = li->object;
     visit_switch_case(switch_case);
@@ -672,13 +676,13 @@ visit_assignment_stmt(Ast* ast)
   visit_expression(stmt->expr);
   Type_Product* operands_ty = arena_push_struct(type_storage, Type_Product);
   operands_ty->ctor = TYPE_PRODUCT;
-  operands_ty->lhs_ty = typeset_get(&type_map, stmt->lvalue->id);
-  operands_ty->rhs_ty = typeset_get(&type_map, stmt->expr->id);
+  operands_ty->lhs_ty = (Type*)typeset_get(&potential_types, stmt->lvalue->id);
+  operands_ty->rhs_ty = (Type*)typeset_get(&potential_types, stmt->expr->id);
   Type_FunctionCall* assgn_ty = arena_push_struct(type_storage, Type_FunctionCall);
   assgn_ty->ctor = TYPE_FUNCTION_CALL;
   assgn_ty->args_ty = (Type*)operands_ty;
   assgn_ty->ast = (Ast*)stmt;
-  Type* ty_set = typeset_create(&type_map, stmt->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, stmt->id);
   ty_set->ast = (Ast*)stmt;
   typeset_add_type(ty_set, (Type*)assgn_ty);
 }
@@ -688,11 +692,11 @@ visit_return_stmt(Ast* ast)
 {
   assert(ast->kind == AST_RETURN_STMT);
   Ast_ReturnStmt* stmt = (Ast_ReturnStmt*)ast;
-  Type* ty_set = typeset_create(&type_map, stmt->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, stmt->id);
   ty_set->ast = (Ast*)stmt;
   if (stmt->expr) {
     visit_expression(stmt->expr);
-    typeset_add_set(ty_set, typeset_get(&type_map, stmt->expr->id));
+    typeset_add_set(ty_set, typeset_get(&potential_types, stmt->expr->id));
   }
 }
 
@@ -734,45 +738,45 @@ visit_function_proto(Ast* ast)
   Type_Function* function_ty = arena_push_struct(type_storage, Type_Function);
   function_ty->ctor = TYPE_FUNCTION;
   function_ty->ast = (Ast*)proto;
-  Type* ty_set = typeset_create(&type_map, proto->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, proto->id);
   ty_set->ast = (Ast*)proto;
   typeset_add_type(ty_set, (Type*)function_ty);
   if (proto->return_type) {
     visit_type_ref(proto->return_type);
-    function_ty->return_ty = typeset_get(&type_map, proto->return_type->id);
+    function_ty->return_ty = (Type*)typeset_get(&potential_types, proto->return_type->id);
   }
-  DList* li = type_params->head.next;
+  DList* li = type_params->list.next;
   while (li) {
     Ast* type_param = li->object;
     visit_type_param(type_param);
     li = li->next;
   }
   Ast_NodeList* params = &proto->params;
-  if (params->head.next) {
-    DList* li = params->head.next;
+  if (params->list.next) {
+    DList* li = params->list.next;
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
     if (li) {
-      Type* params_ty = typeset_get(&type_map, param->id);
+      Type* params_ty = (Type*)typeset_get(&potential_types, param->id);
       while (li) {
         Ast* param = li->object;
         visit_param(param);
         Type_Product* product_ty = arena_push_struct(type_storage, Type_Product); 
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = params_ty;
-        product_ty->rhs_ty = typeset_get(&type_map, param->id);
+        product_ty->rhs_ty = (Type*)typeset_get(&potential_types, param->id);
         params_ty = (Type*)product_ty;
         li = li->next;
       }
       function_ty->params_ty = params_ty;
     } else {
-      function_ty->params_ty = typeset_get(&type_map, param->id);
+      function_ty->params_ty = (Type*)typeset_get(&potential_types, param->id);
     }
   } else {
-    Type* params_ty = typeset_create(&type_map, params->id);
+    Type_TypeSet* params_ty = typeset_create(&potential_types, params->id);
     params_ty->ast = (Ast*)params;
-    function_ty->params_ty = params_ty;
+    function_ty->params_ty = (Type*)params_ty;
   }
 }
 
@@ -782,7 +786,7 @@ visit_block_statement(Ast* ast)
   assert(ast->kind == AST_BLOCK_STMT);
   Ast_BlockStmt* block_stmt = (Ast_BlockStmt*)ast;
   Ast_NodeList* stmt_list = &block_stmt->stmt_list;
-  DList* li = stmt_list->head.next;
+  DList* li = stmt_list->list.next;
   while (li) {
     Ast* decl = li->object;
     visit_statement(decl);
@@ -799,41 +803,41 @@ visit_control_proto(Ast* ast)
   Type_Function* control_ty = arena_push_struct(type_storage, Type_Function);
   control_ty->ctor = TYPE_FUNCTION;
   control_ty->ast = (Ast*)proto;
-  Type* ty_set = typeset_create(&type_map, proto->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, proto->id);
   ty_set->ast = (Ast*)proto;
   typeset_add_type(ty_set, (Type*)control_ty);
-  DList* li = type_params->head.next;
+  DList* li = type_params->list.next;
   while (li) {
     Ast* type_param = li->object;
     visit_type_param(type_param);
     li = li->next;
   }
   Ast_NodeList* params = &proto->params;
-  if (params->head.next) {
-    DList* li = params->head.next;
+  if (params->list.next) {
+    DList* li = params->list.next;
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
     if (li) {
-      Type* params_ty = typeset_get(&type_map, param->id);
+      Type* params_ty = (Type*)typeset_get(&potential_types, param->id);
       while (li) {
         Ast* param = li->object;
         visit_param(param);
         Type_Product* product_ty = arena_push_struct(type_storage, Type_Product); 
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = params_ty;
-        product_ty->rhs_ty = typeset_get(&type_map, param->id);
+        product_ty->rhs_ty = (Type*)typeset_get(&potential_types, param->id);
         params_ty = (Type*)product_ty;
         li = li->next;
       }
       control_ty->params_ty = params_ty;
     } else {
-      control_ty->params_ty = typeset_get(&type_map, param->id);
+      control_ty->params_ty = (Type*)typeset_get(&potential_types, param->id);
     }
   } else {
-    Type* params_ty = typeset_create(&type_map, params->id);
+    Type_TypeSet* params_ty = typeset_create(&potential_types, params->id);
     params_ty->ast = (Ast*)params;
-    control_ty->params_ty = params_ty;
+    control_ty->params_ty = (Type*)params_ty;
   }
 }
 
@@ -843,19 +847,19 @@ visit_control(Ast* ast)
   assert(ast->kind == AST_CONTROL);
   Ast_Control* control_decl = (Ast_Control*)ast;
   visit_control_proto(control_decl->proto);
-  Type* ty_set = typeset_create(&type_map, control_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, control_decl->id);
   ty_set->ast = (Ast*)control_decl;
-  typeset_add_set(ty_set, typeset_get(&type_map, control_decl->proto->id));
+  typeset_add_set(ty_set, typeset_get(&potential_types, control_decl->proto->id));
   Ast_NodeList* ctor_params = &control_decl->ctor_params;
   DList* li;
-  li = ctor_params->head.next;
+  li = ctor_params->list.next;
   while (li) {
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
   }
   Ast_NodeList* local_decls = &control_decl->local_decls;
-  li = local_decls->head.next;
+  li = local_decls->list.next;
   while (li) {
     Ast* decl = li->object;
     visit_statement(decl);
@@ -876,19 +880,19 @@ visit_extern(Ast* ast)
   extern_ty->ctor = TYPE_TYPENAME;
   extern_ty->ast = (Ast*)extern_decl;
   extern_ty->strname = name->strname;
-  Type* ty_set = typeset_create(&type_map, extern_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, extern_decl->id);
   ty_set->ast = (Ast*)extern_decl;
   typeset_add_type(ty_set, (Type*)extern_ty);
   Ast_NodeList* type_params = &extern_decl->type_params;
   DList* li;
-  li = type_params->head.next;
+  li = type_params->list.next;
   while (li) {
     Ast* type_param = li->object;
     visit_type_param(type_param);
     li = li->next;
   }
   Ast_NodeList* method_protos = &extern_decl->method_protos;
-  li = method_protos->head.next;
+  li = method_protos->list.next;
   while (li) {
     Ast* proto = li->object;
     visit_function_proto(proto);
@@ -907,18 +911,18 @@ visit_package(Ast* ast)
   package_ty->ctor = TYPE_TYPENAME;
   package_ty->ast = (Ast*)package_decl;
   package_ty->strname = name->strname;
-  Type* ty_set = typeset_create(&type_map, package_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, package_decl->id);
   ty_set->ast = (Ast*)package_decl;
   typeset_add_type(ty_set, (Type*)package_ty);
   Ast_NodeList* params = &package_decl->params;
   DList* li;
-  li = type_params->head.next;
+  li = type_params->list.next;
   while (li) {
     Ast* type_param = li->object;
     visit_type_param(type_param);
     li = li->next;
   }
-  li = params->head.next;
+  li = params->list.next;
   while (li) {
     Ast* param = li->object;
     visit_param(param);
@@ -943,14 +947,14 @@ visit_parser_transition(Ast* ast)
     Ast_SelectExpr* trans_stmt = (Ast_SelectExpr*)ast;
     Ast_NodeList* expr_list = &trans_stmt->expr_list;
     DList* li;
-    li = expr_list->head.next;
+    li = expr_list->list.next;
     while (li) {
       Ast* expr = li->object;
       visit_expression(expr);
       li = li->next;
     }
     Ast_NodeList* case_list = &trans_stmt->case_list;
-    li = case_list->head.next;
+    li = case_list->list.next;
     while (li) {
       Ast* select_case = li->object;
       visit_transition_select_case(select_case);
@@ -966,7 +970,7 @@ visit_parser_state(Ast* ast)
   assert(ast->kind == AST_PARSER_STATE);
   Ast_ParserState* state_decl = (Ast_ParserState*)ast;
   Ast_NodeList* stmt_list = &state_decl->stmt_list;
-  DList* li = stmt_list->head.next;
+  DList* li = stmt_list->list.next;
   while (li) {
     Ast* stmt = li->object;
     visit_statement(stmt);
@@ -982,9 +986,9 @@ visit_const(Ast* ast)
   Ast_Const* const_decl = (Ast_Const*)ast;
   visit_type_ref(const_decl->type);
   visit_expression(const_decl->expr);
-  Type* ty_set = typeset_create(&type_map, const_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, const_decl->id);
   ty_set->ast = (Ast*)const_decl;
-  typeset_add_set(ty_set, typeset_get(&type_map, const_decl->type->id));
+  typeset_add_set(ty_set, typeset_get(&potential_types, const_decl->type->id));
 }
 
 internal void
@@ -1008,41 +1012,41 @@ visit_parser_proto(Ast* ast)
   Type_Function* parser_ty = arena_push_struct(type_storage, Type_Function);
   parser_ty->ctor = TYPE_FUNCTION;
   parser_ty->ast = (Ast*)proto;
-  Type* ty_set = typeset_create(&type_map, proto->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, proto->id);
   ty_set->ast = (Ast*)proto;
   typeset_add_type(ty_set, (Type*)parser_ty);
-  DList* li = type_params->head.next;
+  DList* li = type_params->list.next;
   while (li) {
     Ast* type_param = li->object;
     visit_type_param(type_param);
     li = li->next;
   }
   Ast_NodeList* params = &proto->params;
-  if (params->head.next) {
-    DList* li = params->head.next;
+  if (params->list.next) {
+    DList* li = params->list.next;
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
     if (li) {
-      Type* params_ty = typeset_get(&type_map, param->id);
+      Type* params_ty = (Type*)typeset_get(&potential_types, param->id);
       while (li) {
         Ast* param = li->object;
         visit_param(param);
         Type_Product* product_ty = arena_push_struct(type_storage, Type_Product); 
         product_ty->ctor = TYPE_PRODUCT; 
         product_ty->lhs_ty = params_ty;
-        product_ty->rhs_ty = typeset_get(&type_map, param->id);
+        product_ty->rhs_ty = (Type*)typeset_get(&potential_types, param->id);
         params_ty = (Type*)product_ty;
         li = li->next;
       }
       parser_ty->params_ty = params_ty;
     } else {
-      parser_ty->params_ty = typeset_get(&type_map, param->id);
+      parser_ty->params_ty = (Type*)typeset_get(&potential_types, param->id);
     }
   } else {
-    Type* params_ty = typeset_create(&type_map, params->id);
+    Type_TypeSet* params_ty = typeset_create(&potential_types, params->id);
     params_ty->ast = (Ast*)params;
-    parser_ty->params_ty = params_ty;
+    parser_ty->params_ty = (Type*)params_ty;
   }
 }
 
@@ -1052,26 +1056,26 @@ visit_parser(Ast* ast)
   assert(ast->kind == AST_PARSER);
   Ast_Parser* parser_decl = (Ast_Parser*)ast;
   visit_parser_proto(parser_decl->proto);
-  Type* ty_set = typeset_create(&type_map, parser_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, parser_decl->id);
   ty_set->ast = (Ast*)parser_decl;
-  typeset_add_set(ty_set, typeset_get(&type_map, parser_decl->id));
+  typeset_add_set(ty_set, typeset_get(&potential_types, parser_decl->id));
   Ast_NodeList* ctor_params = &parser_decl->ctor_params;
   DList* li;
-  li = ctor_params->head.next;
+  li = ctor_params->list.next;
   while (li) {
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
   }
   Ast_NodeList* local_elements = &parser_decl->local_elements;
-  li = local_elements->head.next;
+  li = local_elements->list.next;
   while (li) {
     Ast* element = li->object;
     visit_local_parser_element(element);
     li = li->next;
   }
   Ast_NodeList* states = &parser_decl->states;
-  li = states->head.next;
+  li = states->list.next;
   while (li) {
     Ast* state = li->object;
     visit_parser_state(state);
@@ -1085,9 +1089,9 @@ visit_type(Ast* ast)
   assert(ast->kind == AST_TYPE);
   Ast_Type* type_decl = (Ast_Type*)ast;
   visit_type_ref(type_decl->type_ref);
-  Type* ty_set = typeset_create(&type_map, type_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, type_decl->id);
   ty_set->ast = (Ast*)type_decl;
-  typeset_add_set(ty_set, typeset_get(&type_map, type_decl->type_ref->id));
+  typeset_add_set(ty_set, typeset_get(&potential_types, type_decl->type_ref->id));
 }
 
 internal void
@@ -1096,13 +1100,13 @@ visit_function(Ast* ast)
   assert(ast->kind == AST_FUNCTION);
   Ast_Function* function_decl = (Ast_Function*)ast;
   visit_function_proto(function_decl->proto);
-  Type* ty_set = typeset_create(&type_map, function_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, function_decl->id);
   ty_set->ast = (Ast*)function_decl;
-  typeset_add_set(ty_set, typeset_get(&type_map, function_decl->proto->id));
+  typeset_add_set(ty_set, typeset_get(&potential_types, function_decl->proto->id));
   Ast_BlockStmt* function_body = (Ast_BlockStmt*)function_decl->stmt;
   if (function_body) {
     Ast_NodeList* stmt_list = &function_body->stmt_list;
-    DList* li = stmt_list->head.next;
+    DList* li = stmt_list->list.next;
     while (li) {
       Ast* stmt = li->object;
       visit_statement(stmt);
@@ -1129,7 +1133,7 @@ visit_error(Ast* ast)
   assert (ast->kind == AST_ERROR_ENUM);
   Ast_ErrorEnum* decl = (Ast_ErrorEnum*)ast;
   Ast_NodeList* id_list = &decl->id_list;
-  DList* li = id_list->head.next;
+  DList* li = id_list->list.next;
   while (li) {
     Ast* id = li->object;
     if (id->kind == AST_NAME) {
@@ -1150,7 +1154,7 @@ visit_enum(Ast* ast)
   enum_ty->ctor = TYPE_TYPENAME;
   enum_ty->strname = name->strname;
   enum_ty->ast = (Ast*)enum_decl;
-  Type* ty_set = typeset_create(&type_map, enum_decl->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, enum_decl->id);
   ty_set->ast = (Ast*)enum_decl;
   typeset_add_type(ty_set, (Type*)enum_ty);
 }
@@ -1164,13 +1168,13 @@ visit_binary_expr(Ast* ast)
   visit_expression(expr->right_operand);
   Type_Product* args_ty = arena_push_struct(type_storage, Type_Product);
   args_ty->ctor = TYPE_PRODUCT;
-  args_ty->lhs_ty = typeset_get(&type_map, expr->left_operand->id);
-  args_ty->rhs_ty = typeset_get(&type_map, expr->right_operand->id);
+  args_ty->lhs_ty = (Type*)typeset_get(&potential_types, expr->left_operand->id);
+  args_ty->rhs_ty = (Type*)typeset_get(&potential_types, expr->right_operand->id);
   Type_FunctionCall* expr_ty = arena_push_struct(type_storage, Type_FunctionCall);
   expr_ty->ctor = TYPE_FUNCTION_CALL;
   expr_ty->args_ty = (Type*)args_ty;
   expr_ty->ast = (Ast*)expr;
-  Type* ty_set = typeset_create(&type_map, expr->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, expr->id);
   ty_set->ast = (Ast*)expr;
   typeset_add_type(ty_set, (Type*)expr_ty);
 }
@@ -1181,12 +1185,11 @@ visit_unary_expr(Ast* ast)
   assert(ast->kind == AST_UNARY_EXPR);
   Ast_UnaryExpr* expr = (Ast_UnaryExpr*)ast;
   visit_expression(expr->operand);
-  Type* args_ty = typeset_get(&type_map, expr->operand->id);
   Type_FunctionCall* expr_ty = arena_push_struct(type_storage, Type_FunctionCall);
   expr_ty->ctor = TYPE_FUNCTION_CALL;
-  expr_ty->args_ty = (Type*)args_ty;
+  expr_ty->args_ty = (Type*)(Type*)typeset_get(&potential_types, expr->operand->id);
   expr_ty->ast = (Ast*)expr;
-  Type* ty_set = typeset_create(&type_map, expr->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, expr->id);
   ty_set->ast = (Ast*)expr;
   typeset_add_type(ty_set, (Type*)expr_ty);
 }
@@ -1197,12 +1200,11 @@ visit_member_select(Ast* ast)
   assert(ast->kind == AST_MEMBER_SELECT);
   Ast_MemberSelect* expr = (Ast_MemberSelect*)ast;
   visit_expression(expr->lhs_expr);
-  Type* args_ty = typeset_get(&type_map, expr->lhs_expr->id);
   Type_FunctionCall* expr_ty = arena_push_struct(type_storage, Type_FunctionCall);
   expr_ty->ctor = TYPE_FUNCTION_CALL;
-  expr_ty->args_ty = (Type*)args_ty;
+  expr_ty->args_ty = (Type*)(Type*)typeset_get(&potential_types, expr->lhs_expr->id);
   expr_ty->ast = (Ast*)expr;
-  Type* ty_set = typeset_create(&type_map, expr->id);
+  Type_TypeSet* ty_set = typeset_create(&potential_types, expr->id);
   ty_set->ast = (Ast*)expr;
   typeset_add_type(ty_set, (Type*)expr_ty);
 }
@@ -1218,24 +1220,22 @@ visit_expression(Ast* ast)
     Ast_Name* name = (Ast_Name*)ast;
     NameRef* nref = nameref_get(nameref_map, name->id);
     NameEntry* ne = scope_lookup_name(nref->scope, nref->strname);
-    Type* ty_set = typeset_create(&type_map, name->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, name->id);
     ty_set->ast = (Ast*)name;
     if (ne->ns_type) {
       NameDecl* ndecl = ne->ns_type;
       while (ndecl) {
-        Type* decl_ty = typeset_get(&type_map, ndecl->ast->id);
+        Type_TypeSet* decl_ty = typeset_get(&potential_types, ndecl->ast->id);
         if (!decl_ty) {
-          error("at %d:%d unknown type `%s`.",
-                nref->line_no, nref->column_no, nref->strname);
+          ndecl = ndecl->next_decl;
           continue;
         }
         typeset_add_set(ty_set, decl_ty);
-        ndecl = ndecl->nextdecl_in_scope;
+        ndecl = ndecl->next_decl;
       }
     } else if (ne->ns_var) {
       NameDecl* ndecl = ne->ns_var;
-      assert(!ndecl->nextdecl_in_scope);
-      typeset_add_set(ty_set, typeset_get(&type_map, ndecl->ast->id));
+      typeset_add_set(ty_set, typeset_get(&potential_types, ndecl->ast->id));
     } else error("at %d:%d unresolved name `%s`.",
                  nref->line_no, nref->column_no, nref->strname);
   } else if (ast->kind == AST_FUNCTION_CALL) {
@@ -1245,67 +1245,70 @@ visit_expression(Ast* ast)
   } else if (ast->kind == AST_EXPRESSION_LIST) {
     Ast_ExpressionList* expr = (Ast_ExpressionList*)ast;
     Ast_NodeList* expr_list = &expr->expr_list;
-    Type* ty_set = typeset_create(&type_map, expr->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, expr->id);
     ty_set->ast = (Ast*)expr;
-    if (expr_list->head.next) {
-      DList* li = expr_list->head.next;
+    if (expr_list->list.next) {
+      DList* li = expr_list->list.next;
       Ast* item = li->object;
       visit_expression(item);
       li = li->next;
       if (li) {
-        Type* items_ty = typeset_get(&type_map, item->id);
+        Type* items_ty = (Type*)typeset_get(&potential_types, item->id);
         while (li) {
           Ast* item = li->object;
           visit_expression(item);
           Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
           product_ty->ctor = TYPE_PRODUCT;
           product_ty->lhs_ty = items_ty;
-          product_ty->rhs_ty = typeset_get(&type_map, item->id);
+          product_ty->rhs_ty = (Type*)typeset_get(&potential_types, item->id);
           items_ty = (Type*)product_ty;
           li = li->next;
         }
         typeset_add_type(ty_set, items_ty);
       } else {
-        typeset_add_set(ty_set, typeset_get(&type_map, item->id));
+        typeset_add_set(ty_set, typeset_get(&potential_types, item->id));
       }
     }
   } else if (ast->kind == AST_CAST_EXPR) {
     Ast_CastExpr* expr = (Ast_CastExpr*)ast;
     visit_type_ref(expr->to_type);
     visit_expression(expr->expr);
-    Type* ty_set = typeset_create(&type_map, expr->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, expr->id);
     ty_set->ast = (Ast*)expr;
-    typeset_add_set(ty_set, typeset_get(&type_map, expr->to_type->id));
+    typeset_add_set(ty_set, typeset_get(&potential_types, expr->to_type->id));
   } else if (ast->kind == AST_SUBSCRIPT) {
     Ast_Subscript* expr = (Ast_Subscript*)ast;
     visit_expression(expr->index);
     if (expr->end_index) {
       visit_expression(expr->end_index);
     }
-    Type* ty_set = typeset_create(&type_map, expr->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, expr->id);
     ty_set->ast = (Ast*)expr;
-    typeset_add_set(ty_set, typeset_get(&type_map, expr->index->id));
+    typeset_add_set(ty_set, typeset_get(&potential_types, expr->index->id));
   } else if (ast->kind == AST_KVPAIR) {
     Ast_KVPair* expr = (Ast_KVPair*)ast;
     visit_expression(expr->expr);
-    Type* ty_set = typeset_create(&type_map, expr->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, expr->id);
     ty_set->ast = (Ast*)expr;
-    typeset_add_set(ty_set, typeset_get(&type_map, expr->expr->id));
+    typeset_add_set(ty_set, typeset_get(&potential_types, expr->expr->id));
   } else if (ast->kind == AST_INT_LITERAL) {
     NameEntry* ne = scope_lookup_name(root_scope, "int");
     Ast* int_decl = ne->ns_type->ast;
-    Type* ty_set = typeset_create(&type_map, ast->id);
-    typeset_add_type(ty_set, typeset_get(&type_map, ast->id));
+    Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
+    ty_set->ast = ast;
+    typeset_add_set(ty_set, typeset_get(&potential_types, ast->id));
   } else if (ast->kind == AST_BOOL_LITERAL) {
     NameEntry* ne = scope_lookup_name(root_scope, "bool");
     Ast* bool_decl = ne->ns_type->ast;
-    Type* ty_set = typeset_create(&type_map, ast->id);
-    typeset_add_type(ty_set, typeset_get(&type_map, bool_decl->id));
+    Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
+    ty_set->ast = ast;
+    typeset_add_set(ty_set, typeset_get(&potential_types, bool_decl->id));
   } else if (ast->kind == AST_STRING_LITERAL) {
     NameEntry* ne = scope_lookup_name(root_scope, "string");
     Ast* string_decl = ne->ns_type->ast;
-    Type* ty_set = typeset_create(&type_map, ast->id);
-    typeset_add_type(ty_set, typeset_get(&type_map, string_decl->id));
+    Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
+    ty_set->ast = ast;
+    typeset_add_set(ty_set, typeset_get(&potential_types, string_decl->id));
   }
   else assert(0);
 }
@@ -1316,7 +1319,7 @@ visit_match_kind(Ast* ast)
   assert(ast->kind == AST_MATCH_KIND);
   Ast_MatchKind* decl = (Ast_MatchKind*)ast;
   Ast_NodeList* id_list = &decl->id_list;
-  DList* li = id_list->head.next;
+  DList* li = id_list->list.next;
   while (li) {
     Ast* id = li->object;
     if (id->kind == AST_NAME) {
@@ -1335,7 +1338,7 @@ visit_p4program(Ast* ast)
   assert(ast->kind == AST_P4PROGRAM);
   Ast_P4Program* program = (Ast_P4Program*)ast;
   Ast_NodeList* decl_list = &program->decl_list;
-  DList* li = decl_list->head.next;
+  DList* li = decl_list->list.next;
   while (li) {
     Ast* decl = li->object;
     if (decl->kind == AST_CONTROL) {
@@ -1386,7 +1389,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
   root_scope = root_scope_;
   nameref_map = nameref_map_;
   type_storage = type_storage_;
-  hashmap_init(&type_map, HASHMAP_KEY_UINT32, 8, type_storage);
+  hashmap_init(&potential_types, HASHMAP_KEY_UINT32, 8, type_storage);
 
   {
     NameEntry* ne = scope_lookup_name(root_scope, "void");
@@ -1394,7 +1397,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     Type* void_ty = arena_push_struct(type_storage, Type);
     void_ty->ctor = TYPE_VOID;
     void_ty->ast = void_decl;
-    Type* ty_set = typeset_create(&type_map, void_decl->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, void_decl->id);
     ty_set->ast = void_decl;
     typeset_add_type(ty_set, void_ty);
   }
@@ -1404,7 +1407,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     Type* bool_ty = arena_push_struct(type_storage, Type);
     bool_ty->ctor = TYPE_BOOL;
     bool_ty->ast = bool_decl;
-    Type* ty_set = typeset_create(&type_map, bool_decl->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, bool_decl->id);
     ty_set->ast = bool_decl;
     typeset_add_type(ty_set, bool_ty);
   }
@@ -1414,7 +1417,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     Type* int_ty = arena_push_struct(type_storage, Type);
     int_ty->ctor = TYPE_INT;
     int_ty->ast = int_decl;
-    Type* ty_set = typeset_create(&type_map, int_decl->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, int_decl->id);
     ty_set->ast = int_decl;
     typeset_add_type(ty_set, int_ty);
   }
@@ -1424,7 +1427,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     Type* bit_ty = arena_push_struct(type_storage, Type);
     bit_ty->ctor = TYPE_BIT;
     bit_ty->ast = bit_decl;
-    Type* ty_set = typeset_create(&type_map, bit_decl->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, bit_decl->id);
     ty_set->ast = bit_decl;
     typeset_add_type(ty_set, bit_ty);
   }
@@ -1434,7 +1437,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     Type* varbit_ty = arena_push_struct(type_storage, Type);
     varbit_ty->ctor = TYPE_VARBIT;
     varbit_ty->ast = varbit_decl;
-    Type* ty_set = typeset_create(&type_map, varbit_decl->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, varbit_decl->id);
     ty_set->ast = varbit_decl;
     typeset_add_type(ty_set, varbit_ty);
   }
@@ -1444,7 +1447,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     Type* string_ty = arena_push_struct(type_storage, Type);
     string_ty->ctor = TYPE_STRING;
     string_ty->ast = string_decl;
-    Type* ty_set = typeset_create(&type_map, string_decl->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, string_decl->id);
     ty_set->ast = string_decl;
     typeset_add_type(ty_set, string_ty);
   }
@@ -1454,11 +1457,11 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     Type* error_ty = arena_push_struct(type_storage, Type);
     error_ty->ctor = TYPE_ERROR;
     error_ty->ast = error_decl;
-    Type* ty_set = typeset_create(&type_map, error_decl->id);
+    Type_TypeSet* ty_set = typeset_create(&potential_types, error_decl->id);
     ty_set->ast = error_decl;
     typeset_add_type(ty_set, error_ty);
   }
 
   visit_p4program((Ast*)p4program);
-  return &type_map;
+  return &potential_types;
 }

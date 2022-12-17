@@ -220,8 +220,8 @@ typedef struct Ast {
 
 typedef struct Ast_NodeList {
   Ast;
-  DList head;
-  int count;
+  DList list;
+  int node_count;
 } Ast_NodeList;
 
 typedef struct Ast_Expression {
@@ -625,12 +625,6 @@ typedef struct Ast_FunctionCall {
   Ast_NodeList args;
 } Ast_FunctionCall;
 
-enum Namespace {
-  NAMESPACE_TYPE = 1,
-  NAMESPACE_VAR,
-  NAMESPACE_KEYWORD,
-};
-
 typedef struct Scope {
   int scope_level;
   struct Scope* parent_scope;
@@ -645,8 +639,7 @@ typedef struct NameDecl {
   char* strname;
   int line_no;
   int column_no;
-  Scope* scope;
-  struct NameDecl* nextdecl_in_scope;
+  struct NameDecl* next_decl;
 } NameDecl;
 
 typedef struct NameRef {
@@ -670,7 +663,9 @@ NameEntry* namedecl_get(Hashmap* decls, char* name);
 Scope* push_scope();
 Scope* pop_scope();
 NameEntry* scope_lookup_name(Scope* scope, char* name);
-NameEntry* declare_name_in_scope(Scope* scope, enum Namespace ns, NameDecl* decl);
+void declare_type_name(Scope* scope, Ast_Name* name);
+void declare_var_name(Scope* scope, Ast_Name* name);
+void declare_keyword(Scope* scope, char* strname, enum TokenClass token_class);
 NameRef* nameref_get(Hashmap* map, uint32_t id);
 void nameref_add(Hashmap* map, NameRef* nameref, uint32_t id);
 
@@ -696,8 +691,14 @@ typedef struct Type {
   enum TypeEnum ctor;
   Ast* ast;
   struct Type* type_params;
-  DList members;
 } Type;
+
+typedef struct Type_TypeSet {
+  Type;
+  DList members;
+  DList* last_member;
+  int member_count;
+} Type_TypeSet;
 
 typedef struct Type_TypeDef {
   Type;
@@ -738,8 +739,8 @@ typedef struct Type_FunctionCall {
   Type* return_ty;
 } Type_FunctionCall;
 
-Type* typeset_create(Hashmap* map, uint32_t id);
-Type* typeset_get(Hashmap* map, uint32_t id);
-Type* typeset_add_type(Type* ty_set, Type* type);
-Type* typeset_add_set(Type* to_set, Type* from_set);
+Type_TypeSet* typeset_create(Hashmap* map, uint32_t id);
+Type_TypeSet* typeset_get(Hashmap* map, uint32_t id);
+void typeset_add_type(Type_TypeSet* ty_set, Type* type);
+void typeset_add_set(Type_TypeSet* to_set, Type_TypeSet* from_set);
 

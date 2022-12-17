@@ -56,6 +56,46 @@ namedecl_get(Hashmap* decls, char* name)
   return entry;
 }
 
+void
+declare_type_name(Scope* scope, Ast_Name* name)
+{
+  NameDecl* ndecl = arena_push_struct(scope_storage, NameDecl);
+  ndecl->ast = (Ast*)name;
+  ndecl->strname = name->strname;
+  ndecl->line_no = name->line_no;
+  ndecl->column_no = name->column_no;
+  NameEntry* ne = namedecl_get_or_create(&scope->decls, name->strname);
+  if (ne->ns_type) {
+    ndecl->next_decl = ne->ns_type;
+    ne->ns_type = ndecl;
+  } else {
+    ne->ns_type = ndecl;
+  }
+}
+
+void
+declare_var_name(Scope* scope, Ast_Name* name)
+{
+  NameDecl* ndecl = arena_push_struct(scope_storage, NameDecl);
+  ndecl->ast = (Ast*)name;
+  ndecl->strname = name->strname;
+  ndecl->line_no = name->line_no;
+  ndecl->column_no = name->column_no;
+  NameEntry* ne = namedecl_get_or_create(&scope->decls, name->strname);
+  assert(!ne->ns_var);
+  ne->ns_var = ndecl;
+}
+
+void
+declare_keyword(Scope* scope, char* strname, enum TokenClass token_class)
+{
+  NameDecl* ndecl = arena_push_struct(scope_storage, NameDecl);
+  ndecl->strname = strname;
+  ndecl->token_class = token_class;
+  NameEntry* ne = namedecl_get_or_create(&scope->decls, strname);
+  ne->ns_keyword = ndecl;
+}
+
 NameEntry*
 scope_lookup_name(Scope* scope, char* name)
 {
@@ -67,23 +107,6 @@ scope_lookup_name(Scope* scope, char* name)
     }
     scope = scope->parent_scope;
   }
-  return ne;
-}
-
-NameEntry*
-declare_name_in_scope(Scope* scope, enum Namespace ns, NameDecl* decl)
-{
-  NameEntry* ne = namedecl_get_or_create(&scope->decls, decl->strname);
-  if (ns == NAMESPACE_TYPE) {
-    decl->nextdecl_in_scope = ne->ns_type;
-    ne->ns_type = decl;
-  } else if (ns == NAMESPACE_VAR) {
-    assert(!ne->ns_var);
-    ne->ns_var = decl;
-  } else if (ns == NAMESPACE_KEYWORD) {
-    assert(!ne->ns_keyword);
-    ne->ns_keyword = decl;
-  } else assert(0);
   return ne;
 }
 

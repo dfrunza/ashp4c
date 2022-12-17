@@ -117,7 +117,8 @@ main(int arg_count, char* args[])
 
   Hashmap* nameref_map;
   Scope* root_scope = build_symtable(p4program, &main_storage, &nameref_map);
-  Hashmap* type_map = build_type(p4program, root_scope, nameref_map, &main_storage);
+  Hashmap* potential_types = build_type(p4program, root_scope, nameref_map, &main_storage);
+  select_type(p4program, potential_types);
 
   arena_delete(&main_storage);
   return 0;
