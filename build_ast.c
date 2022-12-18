@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "arena.h"
-#include "ast.h"
+#include "frontend.h"
 
 internal Arena *ast_storage;
 internal UnboundedArray* tokens_array;

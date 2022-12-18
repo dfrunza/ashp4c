@@ -4,7 +4,7 @@
 #include <stdlib.h>   // exit
 #include <stdarg.h>   // va_list, va_start, va_end
 #include "arena.h"
-#include "ast.h"
+#include "frontend.h"
 #include "ashp4c.h"
 
 internal Arena main_storage = {};

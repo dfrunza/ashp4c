@@ -1,7 +1,7 @@
 #include <memory.h>  // memset
 #include <stdint.h>
 #include "arena.h"
-#include "ast.h"
+#include "frontend.h"
 
 internal Arena *scope_storage;
 internal Scope* current_scope;
