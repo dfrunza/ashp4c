@@ -57,32 +57,27 @@ namedecl_get(Hashmap* decls, char* name)
 }
 
 void
-declare_type_name(Scope* scope, Ast_Name* name)
+declare_type_name(Scope* scope, Ast_Name* name, Ast* ast)
 {
   NameDecl* ndecl = arena_push_struct(scope_storage, NameDecl);
-  ndecl->ast = (Ast*)name;
+  ndecl->ast = ast;
   ndecl->strname = name->strname;
   ndecl->line_no = name->line_no;
   ndecl->column_no = name->column_no;
   NameEntry* ne = namedecl_get_or_create(&scope->decls, name->strname);
-  if (ne->ns_type) {
-    ndecl->next_decl = ne->ns_type;
-    ne->ns_type = ndecl;
-  } else {
-    ne->ns_type = ndecl;
-  }
+  ndecl->next_decl = ne->ns_type;
+  ne->ns_type = ndecl;
 }
 
 void
-declare_var_name(Scope* scope, Ast_Name* name)
+declare_var_name(Scope* scope, Ast_Name* name, Ast* ast)
 {
   NameDecl* ndecl = arena_push_struct(scope_storage, NameDecl);
-  ndecl->ast = (Ast*)name;
+  ndecl->ast = ast;
   ndecl->strname = name->strname;
   ndecl->line_no = name->line_no;
   ndecl->column_no = name->column_no;
   NameEntry* ne = namedecl_get_or_create(&scope->decls, name->strname);
-  assert(!ne->ns_var);
   ne->ns_var = ndecl;
 }
 

@@ -36,8 +36,7 @@ next_token()
       NameDecl* ndecl = ne->ns_keyword;
       token->klass = ndecl->token_class;
       return token;
-    }
-    if (ne->ns_type) {
+    } else if (ne->ns_type) {
       token->klass = TK_TYPE_IDENTIFIER;
       return token;
     }
@@ -215,7 +214,7 @@ build_nonTypeName(bool is_type)
     name->column_no = token->column_no;
     name->strname = token->lexeme;
     if (is_type) {
-      declare_type_name(current_scope, name);
+      declare_type_name(current_scope, name, 0);
     }
     next_token();
     return (Ast*)name;
@@ -412,7 +411,7 @@ build_typeOrVoid(bool is_type)
       name->column_no = token->column_no;
       name->strname = token->lexeme;
       if (is_type) {
-        declare_type_name(current_scope, name);
+        declare_type_name(current_scope, name, 0);
       }
       next_token();
       return (Ast*)name;
