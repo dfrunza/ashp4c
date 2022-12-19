@@ -39,7 +39,7 @@ typeset_get(Hashmap* map, uint32_t ast_id)
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
   HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
   Type_TypeSet* ty_set = he->object;
-  assert(ty_set->ctor == TYPE_TYPESET);
+  if (ty_set) { assert(ty_set->ctor == TYPE_TYPESET); }
   return ty_set;
 }
 
@@ -1225,7 +1225,8 @@ visit_expression(Ast* ast)
       while (ndecl) {
         Type_TypeSet* decl_ty = typeset_get(&potential_types, ndecl->ast->id);
         if (!decl_ty) {
-          ndecl = ndecl->next_decl;
+          error("At %d:%d forward reference to `%s`.",
+                name->line_no, name->column_no, name->strname);
           continue;
         }
         typeset_add_set(ty_set, decl_ty);

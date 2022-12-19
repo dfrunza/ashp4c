@@ -24,6 +24,21 @@ type_select(Type* type, uint32_t ast_id)
 }
 
 internal void
+visit_param(Ast* ast)
+{
+  assert(ast->kind == AST_PARAM);
+  Ast_Param* param = (Ast_Param*)ast;
+  Type_TypeSet* ty_set = typeset_get(potential_types, param->id);
+  Type* param_ty = ty_set->members.next->object;
+  type_select(param_ty, param->id);
+  if (ty_set->member_count > 1) {
+    Ast_Name* name = (Ast_Name*)param->name;
+    error("At %d:%d type of `%s` is ambiguous.",
+          name->line_no, name->column_no, name->strname);
+  }
+}
+
+internal void
 visit_control(Ast* ast)
 {
 
@@ -77,6 +92,7 @@ visit_package(Ast* ast)
   DList* li = params->list.next;
   while (li) {
     Ast* param = li->object;
+    visit_param(param);
     li = li->next;
   }
 }
