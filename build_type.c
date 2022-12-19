@@ -15,9 +15,9 @@ internal void visit_expression(Ast* expr);
 internal void visit_type_ref(Ast* type_ref);
 
 Type_TypeSet*
-typeset_create(Hashmap* map, uint32_t id)
+typeset_create(Hashmap* map, uint32_t ast_id)
 {
-  HashmapKey key = { .i_key = id };
+  HashmapKey key = { .i_key = ast_id };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
   HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
   Type_TypeSet* ty_set = he->object;
@@ -34,9 +34,9 @@ typeset_create(Hashmap* map, uint32_t id)
 }
 
 Type_TypeSet*
-typeset_get(Hashmap* map, uint32_t id)
+typeset_get(Hashmap* map, uint32_t ast_id)
 {
-  HashmapKey key = { .i_key = id };
+  HashmapKey key = { .i_key = ast_id };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
   HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
   Type_TypeSet* ty_set = he->object;
@@ -110,9 +110,9 @@ visit_header_union(Ast* ast)
 {
   assert(ast->kind == AST_HEADER_UNION);
   Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
-  Ast_NodeList* fields = &union_decl->fields;
   Type_TypeSet* ty_set = typeset_create(&potential_types, union_decl->id);
   ty_set->ast = (Ast*)union_decl;
+  Ast_NodeList* fields = &union_decl->fields;
   if (fields->list.next) {
     DList* li = fields->list.next;
     Ast* field = li->object;
@@ -142,9 +142,9 @@ visit_header(Ast* ast)
 {
   assert(ast->kind == AST_HEADER);
   Ast_Header* header_decl = (Ast_Header*)ast;
-  Ast_NodeList* fields = &header_decl->fields;
   Type_TypeSet* ty_set = typeset_create(&potential_types, header_decl->id);
   ty_set->ast = (Ast*)header_decl;
+  Ast_NodeList* fields = &header_decl->fields;
   if (fields->list.next) {
     DList* li = fields->list.next;
     Ast* field = li->object;
@@ -174,9 +174,9 @@ visit_struct(Ast* ast)
 {
   assert(ast->kind == AST_STRUCT);
   Ast_Struct* struct_decl = (Ast_Struct*)ast;
-  Ast_NodeList* fields = &struct_decl->fields;
   Type_TypeSet* ty_set = typeset_create(&potential_types, struct_decl->id);
   ty_set->ast = (Ast*)struct_decl;
+  Ast_NodeList* fields = &struct_decl->fields;
   if (fields->list.next) {
     DList* li = fields->list.next;
     Ast* field = li->object;
@@ -282,9 +282,9 @@ visit_type_ref(Ast* ast)
     }
   } else if (ast->kind == AST_TUPLE) {
     Ast_Tuple* tuple_decl = (Ast_Tuple*)ast;
-    Ast_NodeList* args = &tuple_decl->type_args;
     Type_TypeSet* ty_set = typeset_create(&potential_types, tuple_decl->id);
     ty_set->ast = (Ast*)tuple_decl;
+    Ast_NodeList* args = &tuple_decl->type_args;
     if (args->list.next) {
       DList* li = args->list.next;
       Ast* arg = li->object;
@@ -850,8 +850,8 @@ visit_control(Ast* ast)
   Type_TypeSet* ty_set = typeset_create(&potential_types, control_decl->id);
   ty_set->ast = (Ast*)control_decl;
   typeset_add_set(ty_set, typeset_get(&potential_types, control_decl->proto->id));
-  Ast_NodeList* ctor_params = &control_decl->ctor_params;
   DList* li;
+  Ast_NodeList* ctor_params = &control_decl->ctor_params;
   li = ctor_params->list.next;
   while (li) {
     Ast* param = li->object;
@@ -913,7 +913,6 @@ visit_package(Ast* ast)
   Type_TypeSet* ty_set = typeset_create(&potential_types, package_decl->id);
   ty_set->ast = (Ast*)package_decl;
   typeset_add_type(ty_set, (Type*)package_ty);
-  Ast_NodeList* params = &package_decl->params;
   DList* li;
   Ast_NodeList* type_params = &package_decl->type_params;
   li = type_params->list.next;
@@ -922,6 +921,7 @@ visit_package(Ast* ast)
     visit_type_param(type_param);
     li = li->next;
   }
+  Ast_NodeList* params = &package_decl->params;
   li = params->list.next;
   while (li) {
     Ast* param = li->object;
@@ -945,8 +945,8 @@ visit_parser_transition(Ast* ast)
     ; // skip
   } else if (ast->kind == AST_SELECT_EXPR) {
     Ast_SelectExpr* trans_stmt = (Ast_SelectExpr*)ast;
-    Ast_NodeList* expr_list = &trans_stmt->expr_list;
     DList* li;
+    Ast_NodeList* expr_list = &trans_stmt->expr_list;
     li = expr_list->list.next;
     while (li) {
       Ast* expr = li->object;
@@ -1059,8 +1059,8 @@ visit_parser(Ast* ast)
   Type_TypeSet* ty_set = typeset_create(&potential_types, parser_decl->id);
   ty_set->ast = (Ast*)parser_decl;
   typeset_add_set(ty_set, typeset_get(&potential_types, parser_decl->id));
-  Ast_NodeList* ctor_params = &parser_decl->ctor_params;
   DList* li;
+  Ast_NodeList* ctor_params = &parser_decl->ctor_params;
   li = ctor_params->list.next;
   while (li) {
     Ast* param = li->object;
@@ -1244,9 +1244,9 @@ visit_expression(Ast* ast)
     visit_member_select(ast);
   } else if (ast->kind == AST_EXPRESSION_LIST) {
     Ast_ExpressionList* expr = (Ast_ExpressionList*)ast;
-    Ast_NodeList* expr_list = &expr->expr_list;
     Type_TypeSet* ty_set = typeset_create(&potential_types, expr->id);
     ty_set->ast = (Ast*)expr;
+    Ast_NodeList* expr_list = &expr->expr_list;
     if (expr_list->list.next) {
       DList* li = expr_list->list.next;
       Ast* item = li->object;

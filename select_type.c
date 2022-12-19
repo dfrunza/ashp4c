@@ -4,6 +4,7 @@
 #include "arena.h"
 #include "frontend.h"
 
+internal Scope* root_scope;
 internal Arena *type_storage;
 internal Hashmap selected_type = {};
 internal Hashmap* potential_types;
@@ -12,6 +13,15 @@ internal void visit_block_statement(Ast* block_stmt);
 internal void visit_statement(Ast* decl);
 internal void visit_expression(Ast* expr);
 internal void visit_type_ref(Ast* type_ref);
+
+void
+type_select(Type* type, uint32_t ast_id)
+{
+  HashmapKey key = { .i_key = ast_id };
+  hashmap_hash_key(HASHMAP_KEY_UINT32, &key, selected_type.capacity_log2);
+  HashmapEntry* he = hashmap_get_or_create_entry(&selected_type, &key);
+  he->object = type;
+}
 
 internal void
 visit_control(Ast* ast)
@@ -22,7 +32,13 @@ visit_control(Ast* ast)
 internal void
 visit_control_proto(Ast* ast)
 {
-
+  assert(ast->kind == AST_CONTROL_PROTO);
+  Ast_ControlProto* proto = (Ast_ControlProto*)ast;
+  Type_TypeSet* ty_set = typeset_get(potential_types, proto->id);
+  Type_Function* proto_ty = ty_set->members.next->object;
+  type_select((Type*)proto_ty, proto->id);
+  Ast* void_decl = scope_lookup_name(root_scope, "void")->ns_type->ast;
+  proto_ty->return_ty = typeset_get(potential_types, void_decl->id)->members.next->object;
 }
 
 internal void
@@ -52,7 +68,17 @@ visit_header_union(Ast* ast)
 internal void
 visit_package(Ast* ast)
 {
-
+  assert(ast->kind == AST_PACKAGE);
+  Ast_Package* package_decl = (Ast_Package*)ast;
+  Type_TypeSet* ty_set = typeset_get(potential_types, package_decl->id);
+  Type_TypeName* package_ty = ty_set->members.next->object;
+  type_select((Type*)package_ty, package_decl->id);
+  Ast_NodeList* params = &package_decl->params;
+  DList* li = params->list.next;
+  while (li) {
+    Ast* param = li->object;
+    li = li->next;
+  }
 }
 
 internal void
@@ -96,6 +122,9 @@ visit_function_proto(Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION_PROTO);
   Ast_FunctionProto* proto = (Ast_FunctionProto*)ast;
+  Type_TypeSet* ty_set = typeset_get(potential_types, proto->id);
+  Type_Function* proto_ty = ty_set->members.next->object;
+  type_select((Type*)proto_ty, proto->id);
 }
 
 internal void
@@ -172,12 +201,14 @@ visit_p4program(Ast* ast)
   }
 }
 
-void
-select_type(Ast_P4Program* p4program, Hashmap* potential_types_, Arena* type_storage_)
+Hashmap*
+select_type(Ast_P4Program* p4program, Scope* root_scope_, Hashmap* potential_types_, Arena* type_storage_)
 {
-  type_storage = type_storage_;
+  root_scope = root_scope_;
   potential_types = potential_types_;
+  type_storage = type_storage_;
   hashmap_init(&selected_type, HASHMAP_KEY_UINT32, 8, type_storage);
 
   visit_p4program((Ast*)p4program);
+  return &selected_type;
 }

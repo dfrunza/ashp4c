@@ -15,9 +15,9 @@ internal void visit_expression(Ast* expr);
 internal void visit_type_ref(Ast* type_ref);
 
 NameRef*
-nameref_get(Hashmap* map, uint32_t id)
+nameref_get(Hashmap* map, uint32_t ast_id)
 {
-  HashmapKey key = { .i_key = id };
+  HashmapKey key = { .i_key = ast_id };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
   HashmapEntry* he = hashmap_get_entry(map, &key);
   NameRef* nameref = 0;
@@ -28,9 +28,9 @@ nameref_get(Hashmap* map, uint32_t id)
 }
 
 void
-nameref_add(Hashmap* map, NameRef* nameref, uint32_t id)
+nameref_add(Hashmap* map, NameRef* nameref, uint32_t ast_id)
 {
-  HashmapKey key = { .i_key = id };
+  HashmapKey key = { .i_key = ast_id };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
   HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
   assert(!he->object);

@@ -288,11 +288,11 @@ typedef struct Ast_Extern {
 
 typedef struct Ast_FunctionProto {
   Ast;
-  bool is_extern;
-  Ast* return_type;
   Ast* name;
+  Ast* return_type;
   Ast_NodeList type_params;
   Ast_NodeList params;
+  bool is_extern;
 } Ast_FunctionProto;
 
 typedef struct Ast_Action {
@@ -666,8 +666,8 @@ NameEntry* scope_lookup_name(Scope* scope, char* name);
 void declare_type_name(Scope* scope, Ast_Name* name, Ast* ast);
 void declare_var_name(Scope* scope, Ast_Name* name, Ast* ast);
 void declare_keyword(Scope* scope, char* strname, enum TokenClass token_class);
-NameRef* nameref_get(Hashmap* map, uint32_t id);
-void nameref_add(Hashmap* map, NameRef* nameref, uint32_t id);
+NameRef* nameref_get(Hashmap* map, uint32_t ast_id);
+void nameref_add(Hashmap* map, NameRef* nameref, uint32_t ast_id);
 
 enum TypeEnum {
   TYPE_VOID = 1,
@@ -739,8 +739,8 @@ typedef struct Type_FunctionCall {
   Type* return_ty;
 } Type_FunctionCall;
 
-Type_TypeSet* typeset_create(Hashmap* map, uint32_t id);
-Type_TypeSet* typeset_get(Hashmap* map, uint32_t id);
+Type_TypeSet* typeset_create(Hashmap* map, uint32_t ast_id);
+Type_TypeSet* typeset_get(Hashmap* map, uint32_t ast_id);
 void typeset_add_type(Type_TypeSet* ty_set, Type* type);
 void typeset_add_set(Type_TypeSet* to_set, Type_TypeSet* from_set);
 
