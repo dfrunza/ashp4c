@@ -54,6 +54,13 @@ visit_control_proto(Ast* ast)
   type_select((Type*)proto_ty, proto->id);
   Ast* void_decl = scope_lookup_name(root_scope, "void")->ns_type->ast;
   proto_ty->return_ty = typeset_get(potential_types, void_decl->id)->members.next->object;
+  Ast_NodeList* params = &proto->params;
+  DList* li = params->list.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
 }
 
 internal void
@@ -141,6 +148,13 @@ visit_function_proto(Ast* ast)
   Type_TypeSet* ty_set = typeset_get(potential_types, proto->id);
   Type_Function* proto_ty = ty_set->members.next->object;
   type_select((Type*)proto_ty, proto->id);
+  Ast_NodeList* params = &proto->params;
+  DList* li = params->list.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
 }
 
 internal void
