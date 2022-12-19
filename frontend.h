@@ -211,6 +211,12 @@ enum AstParamDirection {
   PARAMDIR_INOUT,
 };
 
+typedef struct Scope {
+  int scope_level;
+  struct Scope* parent_scope;
+  Hashmap decls;
+} Scope;
+
 typedef struct Ast {
   enum AstEnum kind;
   uint32_t id;
@@ -232,6 +238,7 @@ typedef struct Ast_Expression {
 typedef struct Ast_Name {
   Ast_Expression;
   char* strname;
+  Scope* scope;
 } Ast_Name;
 
 typedef struct Ast_BoolType {
@@ -625,12 +632,6 @@ typedef struct Ast_FunctionCall {
   Ast_NodeList args;
 } Ast_FunctionCall;
 
-typedef struct Scope {
-  int scope_level;
-  struct Scope* parent_scope;
-  Hashmap decls;
-} Scope;
-
 typedef struct NameDecl {
   union {
     Ast* ast;
@@ -641,14 +642,6 @@ typedef struct NameDecl {
   int column_no;
   struct NameDecl* next_decl;
 } NameDecl;
-
-typedef struct NameRef {
-  Ast* ast;
-  char* strname;
-  int line_no;
-  int column_no;
-  Scope* scope;
-} NameRef;
 
 typedef struct NameEntry {
   char* strname;
@@ -666,8 +659,6 @@ NameEntry* scope_lookup_name(Scope* scope, char* name);
 void declare_type_name(Scope* scope, Ast_Name* name, Ast* ast);
 void declare_var_name(Scope* scope, Ast_Name* name, Ast* ast);
 void declare_keyword(Scope* scope, char* strname, enum TokenClass token_class);
-NameRef* nameref_get(Hashmap* map, uint32_t ast_id);
-void nameref_add(Hashmap* map, NameRef* nameref, uint32_t ast_id);
 
 enum TypeEnum {
   TYPE_VOID = 1,

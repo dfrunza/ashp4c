@@ -115,9 +115,8 @@ main(int arg_count, char* args[])
     assert(!"TODO");
   }
 
-  Hashmap* nameref_map;
-  Scope* root_scope = build_symtable(p4program, &main_storage, &nameref_map);
-  Hashmap* potential_types = build_type(p4program, root_scope, nameref_map, &main_storage);
+  Scope* root_scope = build_symtable(p4program, &main_storage);
+  Hashmap* potential_types = build_type(p4program, root_scope, &main_storage);
   select_type(p4program, root_scope, potential_types, &main_storage);
 
   arena_delete(&main_storage);

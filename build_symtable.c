@@ -7,35 +7,11 @@
 internal Arena* symtable_storage;
 internal Scope* root_scope;
 internal Scope* current_scope;
-internal Hashmap nameref_map = {};
 
 internal void visit_block_statement(Ast* block_stmt);
 internal void visit_statement(Ast* decl);
 internal void visit_expression(Ast* expr);
 internal void visit_type_ref(Ast* type_ref);
-
-NameRef*
-nameref_get(Hashmap* map, uint32_t ast_id)
-{
-  HashmapKey key = { .i_key = ast_id };
-  hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
-  HashmapEntry* he = hashmap_get_entry(map, &key);
-  NameRef* nameref = 0;
-  if (he) {
-    nameref = he->object;
-  }
-  return nameref;
-}
-
-void
-nameref_add(Hashmap* map, NameRef* nameref, uint32_t ast_id)
-{
-  HashmapKey key = { .i_key = ast_id };
-  hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
-  HashmapEntry* he = hashmap_get_or_create_entry(map, &key);
-  assert(!he->object);
-  he->object = nameref;
-}
 
 internal void
 visit_function_call(Ast* ast)
@@ -73,13 +49,7 @@ visit_expression(Ast* ast)
     visit_expression(expr->operand);
   } else if (ast->kind == AST_NAME) {
     Ast_Name* name = (Ast_Name*)ast;
-    NameRef* nameref = arena_push_struct(symtable_storage, NameRef);
-    nameref->ast = (Ast*)name;
-    nameref->strname = name->strname;
-    nameref->line_no = name->line_no;
-    nameref->column_no = name->column_no;
-    nameref->scope = current_scope;
-    nameref_add(&nameref_map, nameref, name->id);
+    name->scope = current_scope;
   } else if (ast->kind == AST_FUNCTION_CALL) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT) {
@@ -842,7 +812,7 @@ visit_type_ref(Ast* ast)
     Ast_Name* name = (Ast_Name*)ast;
     NameEntry* ne = scope_lookup_name(current_scope, name->strname);
     if (!ne->ns_type) {
-      /* We got a type parameter. */
+      /* Declaration of a type parameter. */
       declare_type_name(current_scope, name, (Ast*)name);
     } else {
       visit_expression(ast);
@@ -1066,12 +1036,10 @@ visit_p4program(Ast* ast)
 }
 
 Scope*
-build_symtable(Ast_P4Program* p4program, Arena* symtable_storage_,
-               /*out*/Hashmap** nameref_map_)
+build_symtable(Ast_P4Program* p4program, Arena* symtable_storage_)
 {
   symtable_storage = symtable_storage_;
   scope_init(symtable_storage);
-  hashmap_init(&nameref_map, HASHMAP_KEY_UINT32, 8, symtable_storage);
   root_scope = current_scope = push_scope();
 
   {
@@ -1155,7 +1123,5 @@ build_symtable(Ast_P4Program* p4program, Arena* symtable_storage_,
   visit_p4program((Ast*)p4program);
   current_scope = pop_scope();
   assert(current_scope == 0);
-  *nameref_map_ = &nameref_map;
-
   return root_scope;
 }

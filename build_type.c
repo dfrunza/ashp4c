@@ -6,7 +6,6 @@
 
 internal Scope* root_scope;
 internal Arena *type_storage;
-internal Hashmap* nameref_map;
 internal Hashmap potential_types = {};
 
 internal void visit_block_statement(Ast* block_stmt);
@@ -80,8 +79,8 @@ visit_type_param(Ast* ast)
 {
   assert(ast->kind == AST_NAME);
   Ast_Name* name = (Ast_Name*)ast;
-  NameRef* nref = nameref_get(nameref_map, name->id);
-  if (!nref) {
+  if (!name->scope) {
+    /* Declaration of a type parameter. */
     Type_TypeParam* param_ty = arena_push_struct(type_storage, Type_TypeParam);
     param_ty->ctor = TYPE_TYPEPARAM;
     param_ty->strname = name->strname;
@@ -255,8 +254,8 @@ visit_type_ref(Ast* ast)
     typeset_add_set(ty_set, typeset_get(&potential_types, type_ref->name->id));
   } else if (ast->kind == AST_NAME) {
     Ast_Name* name = (Ast_Name*)ast;
-    NameRef* nref = nameref_get(nameref_map, name->id);
-    if (!nref) {
+    if (!name->scope) {
+      /* Declaration of a type parameter. */
       Type_TypeParam* param_ty = arena_push_struct(type_storage, Type_TypeParam);
       param_ty->ctor = TYPE_TYPEPARAM;
       param_ty->strname = name->strname;
@@ -1218,8 +1217,7 @@ visit_expression(Ast* ast)
     visit_unary_expr(ast);
   } else if (ast->kind == AST_NAME) {
     Ast_Name* name = (Ast_Name*)ast;
-    NameRef* nref = nameref_get(nameref_map, name->id);
-    NameEntry* ne = scope_lookup_name(nref->scope, nref->strname);
+    NameEntry* ne = scope_lookup_name(name->scope, name->strname);
     Type_TypeSet* ty_set = typeset_create(&potential_types, name->id);
     ty_set->ast = (Ast*)name;
     if (ne->ns_type) {
@@ -1237,7 +1235,7 @@ visit_expression(Ast* ast)
       NameDecl* ndecl = ne->ns_var;
       typeset_add_set(ty_set, typeset_get(&potential_types, ndecl->ast->id));
     } else error("At %d:%d unresolved name `%s`.",
-                 nref->line_no, nref->column_no, nref->strname);
+                 name->line_no, name->column_no, name->strname);
   } else if (ast->kind == AST_FUNCTION_CALL) {
     visit_function_call(ast);
   } else if (ast->kind == AST_MEMBER_SELECT) {
@@ -1383,10 +1381,9 @@ visit_p4program(Ast* ast)
 }
 
 Hashmap*
-build_type(Ast_P4Program* p4program, Scope* root_scope_, Hashmap* nameref_map_, Arena* type_storage_)
+build_type(Ast_P4Program* p4program, Scope* root_scope_, Arena* type_storage_)
 {
   root_scope = root_scope_;
-  nameref_map = nameref_map_;
   type_storage = type_storage_;
   hashmap_init(&potential_types, HASHMAP_KEY_UINT32, 8, type_storage);
 
