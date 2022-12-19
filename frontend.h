@@ -203,6 +203,8 @@ enum AstOperator {
   OP_BITWISE_SHIFT_RIGHT,
   OP_MASK,
   OP_NEG,
+
+  OP__COUNT__
 };
 
 enum AstParamDirection {
@@ -685,6 +687,8 @@ enum TypeEnum {
   TYPE_UNION,
   TYPE_FUNCTION,
   TYPE_FUNCTION_CALL,
+
+  TYPE__COUNT__
 };
 
 typedef struct Type {

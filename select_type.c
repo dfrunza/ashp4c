@@ -93,7 +93,8 @@ visit_function(Ast* ast)
 internal void
 visit_function_proto(Ast* ast)
 {
-
+  assert(ast->kind == AST_FUNCTION_PROTO);
+  Ast_FunctionProto* proto = (Ast_FunctionProto*)ast;
 }
 
 internal void

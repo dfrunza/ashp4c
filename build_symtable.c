@@ -1144,6 +1144,13 @@ build_symtable(Ast_P4Program* p4program, Arena* symtable_storage_,
     reject_state->strname = "reject";
     declare_var_name(root_scope, reject_state, (Ast*)reject_state);
   }
+  {
+    Ast_Name* add_op = arena_push_struct(symtable_storage, Ast_Name);
+    add_op->kind = AST_NAME;
+    add_op->id = ++p4program->last_node_id;
+    add_op->strname = "+";
+    declare_type_name(root_scope, add_op, (Ast*)add_op);
+  }
 
   visit_p4program((Ast*)p4program);
   current_scope = pop_scope();
