@@ -4,7 +4,8 @@
 #include "arena.h"
 #include "frontend.h"
 
-internal Hashmap concrete_type = {};
+internal Arena *type_storage;
+internal Hashmap selected_type = {};
 internal Hashmap* potential_types;
 
 internal void visit_block_statement(Ast* block_stmt);
@@ -172,8 +173,11 @@ visit_p4program(Ast* ast)
 }
 
 void
-select_type(Ast_P4Program* p4program, Hashmap* potential_types_)
+select_type(Ast_P4Program* p4program, Hashmap* potential_types_, Arena* type_storage_)
 {
+  type_storage = type_storage_;
   potential_types = potential_types_;
+  hashmap_init(&selected_type, HASHMAP_KEY_UINT32, 8, type_storage);
+
   visit_p4program((Ast*)p4program);
 }

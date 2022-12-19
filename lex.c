@@ -154,16 +154,16 @@ token_install_integer(Token* token, Lexeme* lexeme, int base)
     token->i.value = parse_integer(string, base);
   } else {
     if (base == 10) {
-      error("at %d:%d expected one or more digits, got '%s'.",
+      error("At %d:%d expected one or more digits, got '%s'.",
             token->line_no, token->column_no, string);
     } else if (base == 16) {
-      error("at %d:%d expected one or more hexadecimal digits, got '%s'.",
+      error("At %d:%d expected one or more hexadecimal digits, got '%s'.",
             token->line_no, token->column_no, string);
     } else if (base == 8) {
-      error("at %d:%d expected one or more octal digits, got '%s'.",
+      error("At %d:%d expected one or more octal digits, got '%s'.",
             token->line_no, token->column_no, string);
     } else if (base == 2) {
-      error("at %d:%d expected one or more binary digits, got '%s'.",
+      error("At %d:%d expected one or more binary digits, got '%s'.",
             token->line_no, token->column_no, string);
     } else assert(0);
   }
@@ -850,9 +850,9 @@ lex_tokenize(char* text_, int text_size_, Arena* lexeme_storage_, Arena* tokens_
   array_append(&tokens_array, &token);
   while (token.klass != TK_END_OF_INPUT) {
     if (token.klass == TK_UNKNOWN) {
-      error("at %d:%d unknown token.", token.line_no, token.column_no);
+      error("At %d:%d unknown token.", token.line_no, token.column_no);
     } else if (token.klass == TK_LEXICAL_ERROR) {
-      error("at %d:%d lexical error.", token.line_no, token.column_no);
+      error("At %d:%d lexical error.", token.line_no, token.column_no);
     }
     next_token(&token);
     array_append(&tokens_array, &token);

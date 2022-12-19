@@ -8,8 +8,6 @@ internal Scope* root_scope;
 internal Arena *type_storage;
 internal Hashmap* nameref_map;
 internal Hashmap potential_types = {};
-internal Type basic_types[TYPE__COUNT__];
-internal Type op_types[OP__COUNT__];
 
 internal void visit_block_statement(Ast* block_stmt);
 internal void visit_statement(Ast* decl);
@@ -1238,7 +1236,7 @@ visit_expression(Ast* ast)
     } else if (ne->ns_var) {
       NameDecl* ndecl = ne->ns_var;
       typeset_add_set(ty_set, typeset_get(&potential_types, ndecl->ast->id));
-    } else error("at %d:%d unresolved name `%s`.",
+    } else error("At %d:%d unresolved name `%s`.",
                  nref->line_no, nref->column_no, nref->strname);
   } else if (ast->kind == AST_FUNCTION_CALL) {
     visit_function_call(ast);
@@ -1385,8 +1383,7 @@ visit_p4program(Ast* ast)
 }
 
 Hashmap*
-build_type(Ast_P4Program* p4program, Scope* root_scope_,
-           Hashmap* nameref_map_, Arena* type_storage_)
+build_type(Ast_P4Program* p4program, Scope* root_scope_, Hashmap* nameref_map_, Arena* type_storage_)
 {
   root_scope = root_scope_;
   nameref_map = nameref_map_;
@@ -1394,8 +1391,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
   hashmap_init(&potential_types, HASHMAP_KEY_UINT32, 8, type_storage);
 
   {
-    NameEntry* ne = scope_lookup_name(root_scope, "void");
-    Ast* void_decl = ne->ns_type->ast;
+    Ast* void_decl = scope_lookup_name(root_scope, "void")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, void_decl->id);
     ty_set->ast = void_decl;
     Type* void_ty = arena_push_struct(type_storage, Type);
@@ -1404,8 +1400,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     typeset_add_type(ty_set, void_ty);
   }
   {
-    NameEntry* ne = scope_lookup_name(root_scope, "bool");
-    Ast* bool_decl = ne->ns_type->ast;
+    Ast* bool_decl = scope_lookup_name(root_scope, "bool")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, bool_decl->id);
     ty_set->ast = bool_decl;
     Type* bool_ty = arena_push_struct(type_storage, Type);
@@ -1414,8 +1409,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     typeset_add_type(ty_set, bool_ty);
   }
   {
-    NameEntry* ne = scope_lookup_name(root_scope, "int");
-    Ast* int_decl = ne->ns_type->ast;
+    Ast* int_decl = scope_lookup_name(root_scope, "int")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, int_decl->id);
     ty_set->ast = int_decl;
     Type* int_ty = arena_push_struct(type_storage, Type);
@@ -1424,8 +1418,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     typeset_add_type(ty_set, int_ty);
   }
   {
-    NameEntry* ne = scope_lookup_name(root_scope, "bit");
-    Ast* bit_decl = ne->ns_type->ast;
+    Ast* bit_decl = scope_lookup_name(root_scope, "bit")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, bit_decl->id);
     ty_set->ast = bit_decl;
     Type* bit_ty = arena_push_struct(type_storage, Type);
@@ -1434,8 +1427,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     typeset_add_type(ty_set, bit_ty);
   }
   {
-    NameEntry* ne = scope_lookup_name(root_scope, "varbit");
-    Ast* varbit_decl = ne->ns_type->ast;
+    Ast* varbit_decl = scope_lookup_name(root_scope, "varbit")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, varbit_decl->id);
     ty_set->ast = varbit_decl;
     Type* varbit_ty = arena_push_struct(type_storage, Type);
@@ -1444,8 +1436,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     typeset_add_type(ty_set, varbit_ty);
   }
   {
-    NameEntry* ne = scope_lookup_name(root_scope, "string");
-    Ast* string_decl = ne->ns_type->ast;
+    Ast* string_decl = scope_lookup_name(root_scope, "string")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, string_decl->id);
     ty_set->ast = string_decl;
     Type* string_ty = arena_push_struct(type_storage, Type);
@@ -1454,8 +1445,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     typeset_add_type(ty_set, string_ty);
   }
   {
-    NameEntry* ne = scope_lookup_name(root_scope, "error");
-    Ast* error_decl = ne->ns_type->ast;
+    Ast* error_decl = scope_lookup_name(root_scope, "error")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, error_decl->id);
     ty_set->ast = error_decl;
     Type* error_ty = arena_push_struct(type_storage, Type);
@@ -1464,8 +1454,7 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     typeset_add_type(ty_set, error_ty);
   }
   {
-    NameEntry* ne = scope_lookup_name(root_scope, "+");
-    Ast* op_decl = ne->ns_type->ast;
+    Ast* op_decl = scope_lookup_name(root_scope, "+")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, op_decl->id);
     ty_set->ast = op_decl;
     Type_Function* op_ty;
@@ -1475,7 +1464,12 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_,
     typeset_add_type(ty_set, (Type*)op_ty);
     Type_Product* params_ty = arena_push_struct(type_storage, Type_Product);
     params_ty->ctor = TYPE_PRODUCT;
-    //params_ty->lhs_ty 
+    Ast* int_decl = scope_lookup_name(root_scope, "int")->ns_type->ast;
+    Type* int_ty = typeset_get(&potential_types, int_decl->id)->members.next->object;
+    params_ty->lhs_ty = int_ty;
+    params_ty->rhs_ty = int_ty;
+    op_ty->params_ty = (Type*)params_ty;
+    op_ty->return_ty = int_ty;
   }
 
   visit_p4program((Ast*)p4program);
