@@ -9,10 +9,12 @@ internal Arena *type_storage;
 internal Hashmap selected_type = {};
 internal Hashmap* potential_types;
 
+/*
 internal void visit_block_statement(Ast* block_stmt);
 internal void visit_statement(Ast* decl);
 internal void visit_expression(Ast* expr);
 internal void visit_type_ref(Ast* type_ref);
+*/
 
 void
 type_select(Type* type, uint32_t ast_id)

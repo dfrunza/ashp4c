@@ -1314,7 +1314,7 @@ token_is_declaration(Token* token)
 internal bool
 token_is_lvalue(Token* token)
 {
-  bool result = token_is_nonTypeName(token) | token->klass == TK_DOTPREFIX;
+  bool result = token_is_nonTypeName(token) | (token->klass == TK_DOTPREFIX);
   return result;
 }
 
@@ -1642,7 +1642,7 @@ build_prefixedNonTypeName()
     next_token();
     is_dotprefixed = true;
   }
-  if (token_is_nonTypeName) {
+  if (token_is_nonTypeName(token)) {
     Ast_Name* name = (Ast_Name*)build_nonTypeName(false);
     name->kind = is_dotprefixed ? AST_DOTNAME : AST_NAME;
     return (Ast*)name;
@@ -1674,28 +1674,6 @@ build_arraySubscript()
     }
     return (Ast*)subscript_expr;
   } else error("At %d:%d expression or `:` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
-  assert(0);
-  return 0;
-}
-
-internal Ast*
-build_lvalueExpr()
-{
-  if (token->klass == TK_DOTPREFIX) {
-    next_token();
-    Ast_Name* dot_member = (Ast_Name*)build_name(false);
-    dot_member->kind = AST_DOTNAME;
-    return (Ast*)dot_member;
-  } else if (token->klass == TK_BRACKET_OPEN) {
-    next_token();
-    Ast* subscript_expr = build_arraySubscript();
-    if (token->klass == TK_BRACKET_CLOSE) {
-      next_token();
-    } else error("At %d:%d `]` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
-    return subscript_expr;
-  } else error("At %d:%d lvalue was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;

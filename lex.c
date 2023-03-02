@@ -84,21 +84,6 @@ lexeme_len(Lexeme* lexeme)
   return result;
 }
 
-internal bool
-lexeme_match_cstr(Lexeme* lexeme, char* str)
-{
-  char* l = lexeme->start;
-  char* s = str;
-  while (*l == *s) {
-    l++;
-    s++;
-    if (*s == '\0')
-      break;
-  }
-  bool result = (s - str) == lexeme_len(lexeme) && (*s == '\0');
-  return result;
-}
-
 internal char*
 lexeme_to_cstring(Lexeme* lexeme)
 {

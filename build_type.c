@@ -1295,7 +1295,7 @@ visit_expression(Ast* ast)
     Ast* int_decl = ne->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&potential_types, ast->id));
+    typeset_add_set(ty_set, typeset_get(&potential_types, int_decl->id));
   } else if (ast->kind == AST_BOOL_LITERAL) {
     NameEntry* ne = scope_lookup_name(root_scope, "bool");
     Ast* bool_decl = ne->ns_type->ast;
