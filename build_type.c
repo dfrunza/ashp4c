@@ -1451,24 +1451,6 @@ build_type(Ast_P4Program* p4program, Scope* root_scope_, Arena* type_storage_)
     error_ty->ast = error_decl;
     typeset_add_type(ty_set, error_ty);
   }
-  {
-    Ast* op_decl = scope_lookup_name(root_scope, "+")->ns_type->ast;
-    Type_TypeSet* ty_set = typeset_create(&potential_types, op_decl->id);
-    ty_set->ast = op_decl;
-    Type_Function* op_ty;
-    op_ty = arena_push_struct(type_storage, Type_Function);
-    op_ty->ctor = TYPE_FUNCTION;
-    op_ty->ast = op_decl;
-    typeset_add_type(ty_set, (Type*)op_ty);
-    Type_Product* params_ty = arena_push_struct(type_storage, Type_Product);
-    params_ty->ctor = TYPE_PRODUCT;
-    Ast* int_decl = scope_lookup_name(root_scope, "int")->ns_type->ast;
-    Type* int_ty = typeset_get(&potential_types, int_decl->id)->members.next->object;
-    params_ty->lhs_ty = int_ty;
-    params_ty->rhs_ty = int_ty;
-    op_ty->params_ty = (Type*)params_ty;
-    op_ty->return_ty = int_ty;
-  }
 
   visit_p4program((Ast*)p4program);
   return &potential_types;
