@@ -137,13 +137,13 @@ hashmap_get_or_create_entry(Hashmap* hashmap, HashmapKey* key)
     return entry;
   }
   if (hashmap->entry_count >= hashmap->capacity) {
-    HashmapIterator it = {};
-    hashmap_iter_init(&it, hashmap);
-    HashmapEntry* first_entry = hashmap_iter_next(&it);
+    HashmapCursor it = {};
+    hashmap_cursor_init(&it, hashmap);
+    HashmapEntry* first_entry = hashmap_move_cursor(&it);
     HashmapEntry* last_entry = first_entry;
     int entry_count = first_entry ? 1 : 0;
-    for (HashmapEntry* entry = hashmap_iter_next(&it);
-         entry != 0; entry = hashmap_iter_next(&it)) {
+    for (HashmapEntry* entry = hashmap_move_cursor(&it);
+         entry != 0; entry = hashmap_move_cursor(&it)) {
       last_entry->next_entry = entry;
       last_entry = entry;
       entry_count += 1;
@@ -174,7 +174,7 @@ hashmap_get_or_create_entry(Hashmap* hashmap, HashmapKey* key)
 }
 
 void
-hashmap_iter_init(HashmapIterator* it, Hashmap* hashmap)
+hashmap_cursor_init(HashmapCursor* it, Hashmap* hashmap)
 {
   it->hashmap = hashmap;
   it->i = -1;
@@ -182,7 +182,7 @@ hashmap_iter_init(HashmapIterator* it, Hashmap* hashmap)
 }
 
 HashmapEntry*
-hashmap_iter_next(HashmapIterator* it)
+hashmap_move_cursor(HashmapCursor* it)
 {
   HashmapEntry* next_entry = 0;
   if (it->entry) {

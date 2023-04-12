@@ -733,5 +733,5 @@ typedef struct Type_FunctionCall {
 Type_TypeSet* typeset_create(Hashmap* map, uint32_t ast_id);
 Type_TypeSet* typeset_get(Hashmap* map, uint32_t ast_id);
 void typeset_add_type(Type_TypeSet* ty_set, Type* type);
-void typeset_add_set(Type_TypeSet* to_set, Type_TypeSet* from_set);
+void typeset_merge_set(Type_TypeSet* to_set, Type_TypeSet* from_set);
 

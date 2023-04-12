@@ -117,7 +117,7 @@ cstr_print_substr(char* begin_char, char* end_char)
 void
 error_(char* file, int line, char* message, ...)
 {
-  printf("ERROR: ");
+  printf("[ERROR] ");
   if (!message) {
     printf("at %s:%d\n", file, line);
   } else {

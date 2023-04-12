@@ -108,16 +108,16 @@ typedef struct HashmapEntry {
   struct HashmapEntry* next_entry;
 } HashmapEntry;
 
-typedef struct HashmapIterator {
+typedef struct HashmapCursor {
   Hashmap* hashmap;
   int i;
   HashmapEntry* entry;
-} HashmapIterator;
+} HashmapCursor;
 
 void hashmap_init(Hashmap* hashmap, enum HashmapKeyType type, int capacity_log2, Arena* storage);
 void hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ HashmapKey* key, int capacity_log2);
 HashmapEntry* hashmap_get_or_create_entry(Hashmap* hashmap, HashmapKey* key);
 HashmapEntry* hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
-void hashmap_iter_init(HashmapIterator* it, Hashmap* hashmap);
-HashmapEntry* hashmap_iter_next(HashmapIterator* it);
+void hashmap_cursor_init(HashmapCursor* it, Hashmap* hashmap);
+HashmapEntry* hashmap_move_cursor(HashmapCursor* it);
 

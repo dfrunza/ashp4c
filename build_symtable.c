@@ -94,7 +94,7 @@ visit_param(Ast* ast)
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_var) {
     declare_var_name(current_scope, name, (Ast*)param);
-  } else error("At %d:%d redeclaration of name `%s`.",
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   visit_type_ref(param->type);
 }
@@ -121,7 +121,7 @@ visit_action(Ast* ast)
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_var) {
     declare_type_name(current_scope, name, (Ast*)action_decl);
-  } else error("At %d:%d redeclaration of name `%s`.",
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
   Ast_NodeList* params = &action_decl->params;
@@ -153,7 +153,7 @@ visit_instantiation(Ast* ast)
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_var) {
     declare_var_name(current_scope, name, (Ast*)inst_decl);
-  } else error("At %d:%d redeclaration of name `%s`.",
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   visit_type_ref(inst_decl->type);
   Ast_NodeList* args = &inst_decl->args;
@@ -273,7 +273,7 @@ visit_table(Ast* ast)
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_var) {
     declare_type_name(current_scope, name, (Ast*)table_decl);
-  } else error("At %d:%d redeclaration of name `%s`.",
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   Ast_NodeList* prop_list = &table_decl->prop_list;
   DList* li = prop_list->list.next;
@@ -315,7 +315,7 @@ visit_const(Ast* ast)
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_var) {
     declare_var_name(current_scope, name, (Ast*)const_decl);
-  } else error("At %d:%d redeclaration of name `%s`.",
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   visit_type_ref(const_decl->type);
   visit_expression(const_decl->expr);
@@ -330,7 +330,7 @@ visit_statement(Ast* ast)
     NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
     if (!ne->ns_var) {
       declare_var_name(current_scope, name, (Ast*)var_decl);
-    } else error("At %d:%d redeclaration of name `%s`.",
+    } else error("At line %d, column %d: redeclaration of name `%s`.",
                  name->line_no, name->column_no, name->strname);
     visit_type_ref(var_decl->type);
     if (var_decl->init_expr) {
@@ -523,7 +523,7 @@ visit_parser_state(Ast* ast)
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_var) {
     declare_var_name(current_scope, name, (Ast*)state);
-  } else error("At %d:%d redeclaration of name `%s`.",
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
   Ast_NodeList* stmt_list = &state->stmt_list;
@@ -715,7 +715,7 @@ visit_struct_field(Ast* ast)
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_var) {
     declare_var_name(current_scope, name, (Ast*)field);
-  } else error("At %d:%d redeclaration of name `%s`.",
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   visit_type_ref(field->type);
 }
@@ -729,7 +729,7 @@ visit_struct(Ast* ast)
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_type) {
     declare_type_name(current_scope, name, (Ast*)struct_decl);
-  } else error("At %d:%d redeclaration of name `%s`.",
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
   Ast_NodeList* fields = &struct_decl->fields;
@@ -751,7 +751,7 @@ visit_header(Ast* ast)
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_type) {
     declare_type_name(current_scope, name, (Ast*)header_decl);
-  } else error("At %d:%d redeclaration of name `%s`.",
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
   Ast_NodeList* fields = &header_decl->fields;
@@ -773,7 +773,7 @@ visit_header_union(Ast* ast)
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_type) {
     declare_type_name(current_scope, name, (Ast*)union_decl);
-  } else error("At %d:%d redeclaration of name `%s`.",
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
   Ast_NodeList* fields = &union_decl->fields;
@@ -856,7 +856,7 @@ visit_enum_field(Ast* ast)
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_var) {
     declare_var_name(current_scope, name, (Ast*)name);
-  } else error("At %d:%d redeclaration of name `%s`.",
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
 }
 
@@ -882,7 +882,7 @@ visit_enum(Ast* ast)
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_type) {
     declare_type_name(current_scope, name, (Ast*)enum_decl);
-  } else error("At %d:%d redeclaration of name `%s`.",
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
   Ast_NodeList* id_list = &enum_decl->id_list;
@@ -907,7 +907,7 @@ visit_package(Ast* ast)
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_type) {
     declare_type_name(current_scope, name, (Ast*)package_decl);
-  } else error("At %d:%d redeclaration of name `%s`.",
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
   DList* li;
@@ -937,7 +937,7 @@ visit_type(Ast* ast)
   NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
   if (!ne->ns_type) {
     declare_type_name(current_scope, name, (Ast*)type_decl);
-  } else error("At %d:%d redeclaration of name `%s`.",
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   Ast* type_ref = type_decl->type_ref;
   visit_type_ref(type_ref);

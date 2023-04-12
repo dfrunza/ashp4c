@@ -54,7 +54,7 @@ typeset_add_type(Type_TypeSet* ty_set, Type* type)
 }
 
 void
-typeset_add_set(Type_TypeSet* to_set, Type_TypeSet* from_set)
+typeset_merge_set(Type_TypeSet* to_set, Type_TypeSet* from_set)
 {
   DList* li = from_set->members.next;
   while (li) {
@@ -71,7 +71,7 @@ visit_param(Ast* ast)
   visit_type_ref(param->type);
   Type_TypeSet* ty_set = typeset_create(&potential_types, param->id);
   ty_set->ast = (Ast*)param;
-  typeset_add_set(ty_set, typeset_get(&potential_types, param->type->id));
+  typeset_merge_set(ty_set, typeset_get(&potential_types, param->type->id));
 }
 
 internal void
@@ -101,7 +101,7 @@ visit_struct_field(Ast* ast)
   visit_type_ref(field->type);
   Type_TypeSet* ty_set = typeset_create(&potential_types, field->id);
   ty_set->ast = (Ast*)field;
-  typeset_add_set(ty_set, typeset_get(&potential_types, field->type->id));
+  typeset_merge_set(ty_set, typeset_get(&potential_types, field->type->id));
 }
 
 internal void
@@ -131,7 +131,7 @@ visit_header_union(Ast* ast)
       }
       typeset_add_type(ty_set, fields_ty);
     } else {
-      typeset_add_set(ty_set, typeset_get(&potential_types, field->id));
+      typeset_merge_set(ty_set, typeset_get(&potential_types, field->id));
     }
   }
 }
@@ -163,7 +163,7 @@ visit_header(Ast* ast)
       }
       typeset_add_type(ty_set, fields_ty);
     } else {
-      typeset_add_set(ty_set, typeset_get(&potential_types, field->id));
+      typeset_merge_set(ty_set, typeset_get(&potential_types, field->id));
     }
   }
 }
@@ -195,7 +195,7 @@ visit_struct(Ast* ast)
       }
       typeset_add_type(ty_set, fields_ty);
     } else {
-      typeset_add_set(ty_set, typeset_get(&potential_types, field->id));
+      typeset_merge_set(ty_set, typeset_get(&potential_types, field->id));
     }
   }
 }
@@ -208,50 +208,50 @@ visit_type_ref(Ast* ast)
     Ast* bool_decl = ne->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&potential_types, bool_decl->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, bool_decl->id));
   } else if (ast->kind == AST_INT_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "int");
     Ast* int_decl = ne->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&potential_types, int_decl->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, int_decl->id));
   } else if (ast->kind == AST_BIT_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "bit");
     Ast* bit_decl = ne->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&potential_types, bit_decl->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, bit_decl->id));
   } else if (ast->kind == AST_VARBIT_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "varbit");
     Ast* varbit_decl = ne->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&potential_types, varbit_decl->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, varbit_decl->id));
   } else if (ast->kind == AST_STRING_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "string");
     Ast* string_decl = ne->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&potential_types, string_decl->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, string_decl->id));
   } else if (ast->kind == AST_VOID_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "void");
     Ast* void_decl = ne->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&potential_types, void_decl->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, void_decl->id));
   } else if (ast->kind == AST_ERROR_TYPE) {
     NameEntry* ne = scope_lookup_name(root_scope, "error");
     Ast* error_decl = ne->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&potential_types, error_decl->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, error_decl->id));
   } else if (ast->kind == AST_HEADER_STACK) {
     Ast_HeaderStack* type_ref = (Ast_HeaderStack*)ast;
     visit_expression(type_ref->name);
     visit_expression(type_ref->stack_expr);
     Type_TypeSet* ty_set = typeset_create(&potential_types, type_ref->id);
     ty_set->ast = (Ast*)type_ref;
-    typeset_add_set(ty_set, typeset_get(&potential_types, type_ref->name->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, type_ref->name->id));
   } else if (ast->kind == AST_NAME) {
     Ast_Name* name = (Ast_Name*)ast;
     if (!name->scope) {
@@ -271,7 +271,7 @@ visit_type_ref(Ast* ast)
     visit_expression(speclzd_type->name);
     Type_TypeSet* ty_set = typeset_create(&potential_types, speclzd_type->id);
     ty_set->ast = (Ast*)speclzd_type;
-    typeset_add_set(ty_set, typeset_get(&potential_types, speclzd_type->name->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, speclzd_type->name->id));
     Ast_NodeList* type_args = &speclzd_type->type_args;
     DList* li = type_args->list.next;
     while (li) {
@@ -303,7 +303,7 @@ visit_type_ref(Ast* ast)
         }
         typeset_add_type(ty_set, args_ty);
       } else {
-        typeset_add_set(ty_set, typeset_get(&potential_types, arg->id));
+        typeset_merge_set(ty_set, typeset_get(&potential_types, arg->id));
       }
     }
   } else if (ast->kind == AST_STRUCT) {
@@ -636,7 +636,7 @@ visit_var(Ast* ast)
   }
   Type_TypeSet* ty_set = typeset_create(&potential_types, var_decl->id);
   ty_set->ast = (Ast*)var_decl;
-  typeset_add_set(ty_set, typeset_get(&potential_types, var_decl->type->id));
+  typeset_merge_set(ty_set, typeset_get(&potential_types, var_decl->type->id));
 }
 
 internal void
@@ -695,7 +695,7 @@ visit_return_stmt(Ast* ast)
   ty_set->ast = (Ast*)stmt;
   if (stmt->expr) {
     visit_expression(stmt->expr);
-    typeset_add_set(ty_set, typeset_get(&potential_types, stmt->expr->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, stmt->expr->id));
   }
 }
 
@@ -848,7 +848,7 @@ visit_control(Ast* ast)
   visit_control_proto(control_decl->proto);
   Type_TypeSet* ty_set = typeset_create(&potential_types, control_decl->id);
   ty_set->ast = (Ast*)control_decl;
-  typeset_add_set(ty_set, typeset_get(&potential_types, control_decl->proto->id));
+  typeset_merge_set(ty_set, typeset_get(&potential_types, control_decl->proto->id));
   DList* li;
   Ast_NodeList* ctor_params = &control_decl->ctor_params;
   li = ctor_params->list.next;
@@ -987,7 +987,7 @@ visit_const(Ast* ast)
   visit_expression(const_decl->expr);
   Type_TypeSet* ty_set = typeset_create(&potential_types, const_decl->id);
   ty_set->ast = (Ast*)const_decl;
-  typeset_add_set(ty_set, typeset_get(&potential_types, const_decl->type->id));
+  typeset_merge_set(ty_set, typeset_get(&potential_types, const_decl->type->id));
 }
 
 internal void
@@ -1057,7 +1057,7 @@ visit_parser(Ast* ast)
   visit_parser_proto(parser_decl->proto);
   Type_TypeSet* ty_set = typeset_create(&potential_types, parser_decl->id);
   ty_set->ast = (Ast*)parser_decl;
-  typeset_add_set(ty_set, typeset_get(&potential_types, parser_decl->id));
+  typeset_merge_set(ty_set, typeset_get(&potential_types, parser_decl->id));
   DList* li;
   Ast_NodeList* ctor_params = &parser_decl->ctor_params;
   li = ctor_params->list.next;
@@ -1090,7 +1090,7 @@ visit_type(Ast* ast)
   visit_type_ref(type_decl->type_ref);
   Type_TypeSet* ty_set = typeset_create(&potential_types, type_decl->id);
   ty_set->ast = (Ast*)type_decl;
-  typeset_add_set(ty_set, typeset_get(&potential_types, type_decl->type_ref->id));
+  typeset_merge_set(ty_set, typeset_get(&potential_types, type_decl->type_ref->id));
 }
 
 internal void
@@ -1101,7 +1101,7 @@ visit_function(Ast* ast)
   visit_function_proto(function_decl->proto);
   Type_TypeSet* ty_set = typeset_create(&potential_types, function_decl->id);
   ty_set->ast = (Ast*)function_decl;
-  typeset_add_set(ty_set, typeset_get(&potential_types, function_decl->proto->id));
+  typeset_merge_set(ty_set, typeset_get(&potential_types, function_decl->proto->id));
   Ast_BlockStmt* function_body = (Ast_BlockStmt*)function_decl->stmt;
   if (function_body) {
     Ast_NodeList* stmt_list = &function_body->stmt_list;
@@ -1225,17 +1225,17 @@ visit_expression(Ast* ast)
       while (ndecl) {
         Type_TypeSet* decl_ty = typeset_get(&potential_types, ndecl->ast->id);
         if (!decl_ty) {
-          error("At %d:%d forward reference to `%s`.",
+          error("At line %d, column %d: forward reference to `%s`.",
                 name->line_no, name->column_no, name->strname);
           continue;
         }
-        typeset_add_set(ty_set, decl_ty);
+        typeset_merge_set(ty_set, decl_ty);
         ndecl = ndecl->next_decl;
       }
     } else if (ne->ns_var) {
       NameDecl* ndecl = ne->ns_var;
-      typeset_add_set(ty_set, typeset_get(&potential_types, ndecl->ast->id));
-    } else error("At %d:%d unresolved name `%s`.",
+      typeset_merge_set(ty_set, typeset_get(&potential_types, ndecl->ast->id));
+    } else error("At line %d, column %d: unresolved name `%s`.",
                  name->line_no, name->column_no, name->strname);
   } else if (ast->kind == AST_FUNCTION_CALL) {
     visit_function_call(ast);
@@ -1265,7 +1265,7 @@ visit_expression(Ast* ast)
         }
         typeset_add_type(ty_set, items_ty);
       } else {
-        typeset_add_set(ty_set, typeset_get(&potential_types, item->id));
+        typeset_merge_set(ty_set, typeset_get(&potential_types, item->id));
       }
     }
   } else if (ast->kind == AST_CAST_EXPR) {
@@ -1274,7 +1274,7 @@ visit_expression(Ast* ast)
     visit_expression(expr->expr);
     Type_TypeSet* ty_set = typeset_create(&potential_types, expr->id);
     ty_set->ast = (Ast*)expr;
-    typeset_add_set(ty_set, typeset_get(&potential_types, expr->to_type->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, expr->to_type->id));
   } else if (ast->kind == AST_SUBSCRIPT) {
     Ast_Subscript* expr = (Ast_Subscript*)ast;
     visit_expression(expr->index);
@@ -1283,31 +1283,31 @@ visit_expression(Ast* ast)
     }
     Type_TypeSet* ty_set = typeset_create(&potential_types, expr->id);
     ty_set->ast = (Ast*)expr;
-    typeset_add_set(ty_set, typeset_get(&potential_types, expr->index->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, expr->index->id));
   } else if (ast->kind == AST_KVPAIR) {
     Ast_KVPair* expr = (Ast_KVPair*)ast;
     visit_expression(expr->expr);
     Type_TypeSet* ty_set = typeset_create(&potential_types, expr->id);
     ty_set->ast = (Ast*)expr;
-    typeset_add_set(ty_set, typeset_get(&potential_types, expr->expr->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, expr->expr->id));
   } else if (ast->kind == AST_INT_LITERAL) {
     NameEntry* ne = scope_lookup_name(root_scope, "int");
     Ast* int_decl = ne->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&potential_types, int_decl->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, int_decl->id));
   } else if (ast->kind == AST_BOOL_LITERAL) {
     NameEntry* ne = scope_lookup_name(root_scope, "bool");
     Ast* bool_decl = ne->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&potential_types, bool_decl->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, bool_decl->id));
   } else if (ast->kind == AST_STRING_LITERAL) {
     NameEntry* ne = scope_lookup_name(root_scope, "string");
     Ast* string_decl = ne->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_types, ast->id);
     ty_set->ast = ast;
-    typeset_add_set(ty_set, typeset_get(&potential_types, string_decl->id));
+    typeset_merge_set(ty_set, typeset_get(&potential_types, string_decl->id));
   }
   else assert(0);
 }
