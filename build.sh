@@ -18,14 +18,14 @@ gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/arena.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/hashmap.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/scope.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/lex.c
-gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/build_ast.c
-gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/build_symtable.c 
-gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/build_type.c 
+gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/parse.c
+gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/symtable.c 
+gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/collect_type.c 
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/select_type.c 
 
 ld $LD_FLAGS -L$MUSL_LIB -o ashp4c $MUSL_LIB/crt1.o \
-  ashp4c.o basic.o arena.o hashmap.o scope.o lex.o build_ast.o build_symtable.o \
-  build_type.o select_type.o \
+  ashp4c.o basic.o arena.o hashmap.o scope.o lex.o parse.o symtable.o \
+  collect_type.o select_type.o \
   -lc
 
 if [ $? -ne 0 ]; then
