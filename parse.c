@@ -1479,7 +1479,7 @@ build_variableDeclaration(Ast* type_ref)
 {
   if (token_is_typeRef(token) || type_ref) {
     Ast_Var* var_decl = arena_push_struct(ast_storage, Ast_Var);
-    var_decl->kind = AST_VAR;
+    var_decl->kind = AST_VAR_DECL;
     var_decl->id = node_id++;
     var_decl->line_no = token->line_no;
     var_decl->column_no = token->column_no;
@@ -1846,7 +1846,7 @@ build_parserStatement()
     return stmt;
   } else if (token->klass == TK_SEMICOLON) {
     Ast* stmt = arena_push_struct(ast_storage, Ast);
-    stmt->kind = AST_EMPTY_ELEMENT;
+    stmt->kind = AST_EMPTY_STMT;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
@@ -2954,7 +2954,7 @@ build_statement(Ast* type_name)
   } else if (token->klass == TK_SEMICOLON) {
     next_token();
     Ast* stmt = arena_push_struct(ast_storage, Ast);
-    stmt->kind = AST_EMPTY_ELEMENT;
+    stmt->kind = AST_EMPTY_STMT;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;

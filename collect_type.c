@@ -628,7 +628,7 @@ visit_action(Ast* ast)
 internal void
 visit_var(Ast* ast)
 {
-  assert(ast->kind == AST_VAR);
+  assert(ast->kind == AST_VAR_DECL);
   Ast_Var* var_decl = (Ast_Var*)ast;
   visit_type_ref(var_decl->type);
   if (var_decl->init_expr) {
@@ -702,7 +702,7 @@ visit_return_stmt(Ast* ast)
 internal void
 visit_statement(Ast* ast)
 {
-  if (ast->kind == AST_VAR) {
+  if (ast->kind == AST_VAR_DECL) {
     visit_var(ast);
   } else if (ast->kind == AST_ACTION) {
     visit_action(ast);
@@ -722,7 +722,7 @@ visit_statement(Ast* ast)
     visit_function_call(ast);
   } else if (ast->kind == AST_RETURN_STMT) {
     visit_return_stmt(ast);
-  } else if (ast->kind == AST_EXIT_STMT || ast->kind == AST_EMPTY_ELEMENT) {
+  } else if (ast->kind == AST_EXIT_STMT || ast->kind == AST_EMPTY_STMT) {
     ; // pass
   }
   else assert(0);
@@ -997,7 +997,7 @@ visit_local_parser_element(Ast* ast)
     visit_const(ast);
   } else if (ast->kind == AST_INSTANTIATION) {
     visit_instantiation(ast);
-  } else if (ast->kind == AST_VAR) {
+  } else if (ast->kind == AST_VAR_DECL) {
     visit_statement(ast);
   } else assert(0);
 }
