@@ -603,11 +603,11 @@ typedef struct Ast_ExpressionList {
   Ast_NodeList expr_list;
 } Ast_ExpressionList;
 
-typedef struct Ast_CastExpr {
+typedef struct Ast_Cast {
   Ast_Expression;
   Ast* to_type;
   Ast* expr;
-} Ast_CastExpr;
+} Ast_Cast;
 
 typedef struct Ast_UnaryExpr {
   Ast_Expression;

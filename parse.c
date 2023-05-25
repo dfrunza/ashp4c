@@ -5,7 +5,7 @@
 #include "frontend.h"
 
 internal Arena *ast_storage;
-internal UnboundedArray* tokens_array;
+internal UnboundedArray* tokens;
 internal int token_at = 0;
 internal Token* token = 0;
 internal int prev_token_at = 0;
@@ -23,12 +23,12 @@ internal Ast* build_parserStatement();
 internal Token*
 next_token()
 {
-  assert (token_at < tokens_array->elem_count);
+  assert (token_at < tokens->elem_count);
   prev_token = token;
   prev_token_at = token_at;
-  token = array_get(tokens_array, ++token_at);
+  token = array_get(tokens, ++token_at);
   while (token->klass == TK_COMMENT) {
-    token = array_get(tokens_array, ++token_at);
+    token = array_get(tokens, ++token_at);
   }
   if (token->klass == TK_IDENTIFIER) {
     NameEntry* ne = scope_lookup_name(current_scope, token->lexeme);
@@ -3376,7 +3376,7 @@ build_expressionPrimary()
     } else if (token->klass == TK_PARENTH_OPEN) {
       next_token();
       if (token_is_typeRef(token)) {
-        Ast_CastExpr* cast_expr = arena_push_struct(ast_storage, Ast_CastExpr);
+        Ast_Cast* cast_expr = arena_push_struct(ast_storage, Ast_Cast);
         cast_expr->kind = AST_CAST_EXPR;
         cast_expr->id = node_id++;
         cast_expr->line_no = token->line_no;
@@ -3472,7 +3472,7 @@ get_operator_priority(Token* token)
     return 4;
   }
   else if (token->klass == TK_TRIPLE_AMPERSAND) {
-    /* Masking */
+    /* Mask */
     return 5;
   }
   else assert(0);
@@ -3615,9 +3615,9 @@ build_expression(int priority_threshold)
 }
 
 Ast_P4Program*
-build_ast(UnboundedArray* tokens_array_, Arena* ast_storage_)
+parse_tokens(UnboundedArray* tokens_, Arena* ast_storage_)
 {
-  tokens_array = tokens_array_;
+  tokens = tokens_;
   ast_storage = ast_storage_;
   scope_init(ast_storage);
   root_scope = current_scope = push_scope();
@@ -3664,7 +3664,7 @@ build_ast(UnboundedArray* tokens_array_, Arena* ast_storage_)
   declare_keyword(root_scope, "string", TK_STRING);
 
   token_at = 0;
-  token = array_get(tokens_array, token_at);
+  token = array_get(tokens, token_at);
   next_token();
   Ast_P4Program* p4program = (Ast_P4Program*)build_p4program();
   p4program->last_node_id = node_id;

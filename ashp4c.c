@@ -102,22 +102,19 @@ main(int arg_count, char* args[])
   char* text = 0;
   int text_size = 0;
   read_source(&text, &text_size, filename_arg->value, &text_storage);
+  UnboundedArray* tokens = tokenize_text(text, text_size, &main_storage, &text_storage);
 
-  Arena tokens_storage = {};
-  UnboundedArray* tokens_array = lex_tokenize(text, text_size, &main_storage, &tokens_storage);
-  arena_delete(&text_storage);
-
-  Ast_P4Program* p4program = build_ast(tokens_array, &main_storage);
+  Ast_P4Program* p4program = parse_tokens(tokens, &main_storage);
   assert(p4program && p4program->kind == AST_P4PROGRAM);
-  arena_delete(&tokens_storage);
+  arena_delete(&text_storage);
 
   if (find_named_arg("print-ast", cmdline_args)) {
     assert(!"TODO");
   }
 
   Scope* root_scope = build_symtable(p4program, &main_storage);
-  Hashmap* potential_types = build_type(p4program, root_scope, &main_storage);
-  select_type(p4program, root_scope, potential_types, &main_storage);
+  Hashmap* possible_types = build_possible_type(p4program, root_scope, &main_storage);
+  select_type(p4program, root_scope, possible_types, &main_storage);
 
   arena_delete(&main_storage);
   return 0;

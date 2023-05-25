@@ -12,8 +12,8 @@ typedef struct Lexeme {
 internal Arena* lexeme_storage;
 internal char* text;
 internal int text_size;
-internal Arena* tokens_storage;
-internal UnboundedArray tokens_array = {};
+internal Arena* token_storage;
+internal UnboundedArray tokens = {};
 internal int line_no;
 internal char* line_start;
 internal int state;
@@ -403,7 +403,7 @@ next_token(Token* token)
 
       case 113:
       {
-        Token* prev_token = array_get(&tokens_array, tokens_array.elem_count - 1);
+        Token* prev_token = array_get(&tokens, tokens.elem_count - 1);
         if (prev_token->klass == TK_PARENTH_OPEN) {
           token->klass = TK_UNARY_MINUS;
         } else {
@@ -815,12 +815,12 @@ next_token(Token* token)
 }
 
 UnboundedArray*
-lex_tokenize(char* text_, int text_size_, Arena* lexeme_storage_, Arena* tokens_storage_)
+tokenize_text(char* text_, int text_size_, Arena* lexeme_storage_, Arena* token_storage_)
 {
   text = text_;
   text_size = text_size_;
   lexeme_storage = lexeme_storage_;
-  tokens_storage = tokens_storage_;
+  token_storage = token_storage_;
 
   lexeme->start = lexeme->end = text;
   line_start = text;
@@ -828,11 +828,11 @@ lex_tokenize(char* text_, int text_size_, Arena* lexeme_storage_, Arena* tokens_
 
   Token token = {};
   token.klass = TK_START_OF_INPUT;
-  array_init(&tokens_array, sizeof(token), tokens_storage);
-  array_append(&tokens_array, &token);
+  array_init(&tokens, sizeof(token), token_storage);
+  array_append(&tokens, &token);
 
   next_token(&token);
-  array_append(&tokens_array, &token);
+  array_append(&tokens, &token);
   while (token.klass != TK_END_OF_INPUT) {
     if (token.klass == TK_UNKNOWN) {
       error("At line %d, column %d: unknown token.", token.line_no, token.column_no);
@@ -840,8 +840,8 @@ lex_tokenize(char* text_, int text_size_, Arena* lexeme_storage_, Arena* tokens_
       error("At line %d, column %d: lexical error.", token.line_no, token.column_no);
     }
     next_token(&token);
-    array_append(&tokens_array, &token);
+    array_append(&tokens, &token);
   }
-  return &tokens_array;
+  return &tokens;
 }
 

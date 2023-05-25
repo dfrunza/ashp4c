@@ -80,14 +80,14 @@ block_insert_and_coalesce(PageBlock* block_list, PageBlock* new_block)
   PageBlock* right_neighbour = 0;
   PageBlock* p = block_list;
   while (p) {
-    // Find the left neighbour of 'new_block' in the ordered list of blocks.
+    /* Find the left neighbour of 'new_block' in the ordered list of blocks. */
     if (p->memory_begin <= new_block->memory_begin) {
       left_neighbour = p;
       break;
     }
     p = p->next_block;
   }
-  // Insert the 'new_block' in the ordered list of blocks.
+  /* Insert the 'new_block' in the ordered list of blocks. */
   if (left_neighbour) {
     right_neighbour = left_neighbour->next_block;
     left_neighbour->next_block = new_block;
@@ -103,7 +103,7 @@ block_insert_and_coalesce(PageBlock* block_list, PageBlock* new_block)
     merged_list = new_block;
   }
 
-  // Coalesce adjacent blocks.
+  /* Coalesce adjacent blocks. */
   const int STITCH_LEFT = 1 << 1, STITCH_RIGHT = 1 << 2;
   int stitch_type = 0;
   if (left_neighbour && (left_neighbour->memory_end == new_block->memory_begin)) {
