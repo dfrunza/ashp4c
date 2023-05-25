@@ -1,6 +1,7 @@
 #pragma once
 
 enum TokenClass {
+  /* Operators and syntactic structure */
   TK_SEMICOLON = 1,
   TK_IDENTIFIER,
   TK_TYPE_IDENTIFIER,
@@ -169,7 +170,6 @@ enum AstEnum {
   AST_SWITCH_STMT,
   AST_SWITCH_CASE,
   AST_BLOCK_STMT,
-  AST_P4PROGRAM,
   AST_KVPAIR,
   AST_SELECT_EXPR,
   AST_EXPRESSION_LIST,
@@ -179,22 +179,31 @@ enum AstEnum {
   AST_MEMBER_SELECT,
   AST_SUBSCRIPT,
   AST_FUNCTION_CALL,
+  AST_P4PROGRAM,
 };
 
 enum AstOperator {
+  /* Arithmetic */
   OP_ADD = 1,
   OP_SUB,
   OP_MUL,
   OP_DIV,
+  OP_NEG,
+
+  /* Logical */
   OP_AND,
   OP_OR,
   OP_NOT,
+
+  /* Relational */
   OP_EQUAL,
   OP_NOT_EQUAL,
   OP_LESS,
   OP_GREATER,
   OP_LESS_EQUAL,
   OP_GREATER_EQUAL,
+
+  /* Bitwise */
   OP_BITWISE_AND,
   OP_BITWISE_OR,
   OP_BITWISE_XOR,
@@ -202,7 +211,6 @@ enum AstOperator {
   OP_BITWISE_SHIFT_LEFT,
   OP_BITWISE_SHIFT_RIGHT,
   OP_MASK,
-  OP_NEG,
 };
 
 enum AstParamDirection {

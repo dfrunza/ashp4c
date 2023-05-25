@@ -90,7 +90,7 @@ parse_cmdline_args(int arg_count, char* args[])
 int
 main(int arg_count, char* args[])
 {
-  alloc_memory(400*KILOBYTE);
+  alloc_memory(500*KILOBYTE);
 
   CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
   CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
