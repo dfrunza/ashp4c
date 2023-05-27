@@ -112,9 +112,9 @@ main(int arg_count, char* args[])
     assert(!"TODO");
   }
 
-  Scope* root_scope = build_symtable(p4program, &main_storage);
-  Hashmap* possible_types = build_possible_type(p4program, root_scope, &main_storage);
-  select_type(p4program, root_scope, possible_types, &main_storage);
+  Scope* root_scope = build_name_decl(p4program, &main_storage);
+  Hashmap* possible_type = build_possible_type(p4program, root_scope, &main_storage);
+  select_type(p4program, root_scope, possible_type, &main_storage);
 
   arena_delete(&main_storage);
   return 0;

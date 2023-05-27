@@ -106,7 +106,7 @@ scope_lookup_name(Scope* scope, char* name)
 }
 
 void
-scope_init(Arena* scope_storage_)
+symbol_table_init(Arena* scope_storage_)
 {
   scope_storage = scope_storage_;
   scope_level = 0;

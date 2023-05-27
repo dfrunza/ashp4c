@@ -658,7 +658,7 @@ typedef struct NameEntry {
   NameDecl* ns_keyword;
 } NameEntry;
 
-void scope_init(Arena* scope_storage);
+void symbol_table_init(Arena* scope_storage);
 NameEntry* namedecl_get_or_create(Hashmap* decls, char* name);
 NameEntry* namedecl_get(Hashmap* decls, char* name);
 Scope* push_scope();
@@ -741,5 +741,5 @@ typedef struct Type_FunctionCall {
 Type_TypeSet* typeset_create(Hashmap* map, uint32_t ast_id);
 Type_TypeSet* typeset_get(Hashmap* map, uint32_t ast_id);
 void typeset_add_type(Type_TypeSet* ty_set, Type* type);
-void typeset_merge_set(Type_TypeSet* to_set, Type_TypeSet* from_set);
+void typeset_import_set(Type_TypeSet* to_set, Type_TypeSet* from_set);
 

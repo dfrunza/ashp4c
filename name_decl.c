@@ -4,7 +4,7 @@
 #include "arena.h"
 #include "frontend.h"
 
-internal Arena* symtable_storage;
+internal Arena* decl_storage;
 internal Scope* root_scope;
 internal Scope* current_scope;
 
@@ -574,76 +574,6 @@ visit_statement(Ast* ast)
 }
 
 internal void
-visit_control_proto(Ast* ast)
-{
-  assert(ast->kind == AST_CONTROL_PROTO);
-  Ast_ControlProto* proto_decl = (Ast_ControlProto*)ast;
-  Ast_Name* name = (Ast_Name*)proto_decl->name;
-  declare_type_name(current_scope, name, (Ast*)proto_decl);
-  current_scope = push_scope();
-  DList* li;
-  Ast_NodeList* type_params = &proto_decl->type_params;
-  li = type_params->list.next;
-  while (li) {
-    Ast* type_param = li->object;
-    visit_type_param(type_param);
-    li = li->next;
-  }
-  Ast_NodeList* params = &proto_decl->params;
-  li = params->list.next;
-  while (li) {
-    Ast* param = li->object;
-    visit_param(param);
-    li = li->next;
-  }
-  current_scope = pop_scope();
-}
-
-internal void
-visit_control(Ast* ast)
-{
-  assert(ast->kind == AST_CONTROL);
-  Ast_Control* control_decl = (Ast_Control*)ast;
-  Ast_ControlProto* proto = (Ast_ControlProto*)control_decl->proto;
-  Ast_Name* name = (Ast_Name*)proto->name;
-  declare_type_name(current_scope, name, (Ast*)control_decl);
-  current_scope = push_scope();
-  DList* li;
-  Ast_NodeList* type_params = &proto->type_params;
-  li = type_params->list.next;
-  while (li) {
-    Ast* type_param = li->object;
-    visit_type_param(type_param);
-    li = li->next;
-  }
-  Ast_NodeList* params = &proto->params;
-  li = params->list.next;
-  while (li) {
-    Ast* param = li->object;
-    visit_param(param);
-    li = li->next;
-  }
-  Ast_NodeList* ctor_params = &control_decl->ctor_params;
-  li = ctor_params->list.next;
-  while (li) {
-    Ast* param = li->object;
-    visit_param(param);
-    li = li->next;
-  }
-  Ast_NodeList* local_decls = &control_decl->local_decls;
-  li = local_decls->list.next;
-  while (li) {
-    Ast* decl = li->object;
-    visit_statement(decl);
-    li = li->next;
-  }
-  if (control_decl->apply_stmt) {
-    visit_block_statement(control_decl->apply_stmt);
-  }
-  current_scope = pop_scope();
-}
-
-internal void
 visit_local_parser_element(Ast* ast)
 {
   if (ast->kind == AST_CONST) {
@@ -721,80 +651,6 @@ visit_parser_state(Ast* ast)
 }
 
 internal void
-visit_parser_proto(Ast* ast)
-{
-  assert(ast->kind == AST_PARSER_PROTO);
-  Ast_ParserProto* proto_decl = (Ast_ParserProto*)ast;
-  Ast_Name* name = (Ast_Name*)proto_decl->name;
-  declare_type_name(current_scope, name, (Ast*)proto_decl);
-  current_scope = push_scope();
-  DList* li;
-  Ast_NodeList* type_params = &proto_decl->type_params;
-  li = type_params->list.next;
-  while (li) {
-    Ast* type_param = li->object;
-    visit_type_param(type_param);
-    li = li->next;
-  }
-  Ast_NodeList* params = &proto_decl->params;
-  li = params->list.next;
-  while (li) {
-    Ast* param = li->object;
-    visit_param(param);
-    li = li->next;
-  }
-  current_scope = pop_scope();
-}
-
-internal void
-visit_parser(Ast* ast)
-{
-  assert(ast->kind == AST_PARSER);
-  Ast_Parser* parser_decl = (Ast_Parser*)ast;
-  Ast_ParserProto* proto = (Ast_ParserProto*)parser_decl->proto;
-  Ast_Name* name = (Ast_Name*)proto->name;
-  declare_type_name(current_scope, name, (Ast*)parser_decl);
-  current_scope = push_scope();
-  DList* li;
-  Ast_NodeList* type_params = &proto->type_params;
-  li = type_params->list.next;
-  while (li) {
-    Ast* type_param = li->object;
-    visit_type_param(type_param);
-    li = li->next;
-  }
-  Ast_NodeList* params = &proto->params;
-  li = params->list.next;
-  while (li) {
-    Ast* param = li->object;
-    visit_param(param);
-    li = li->next;
-  }
-  Ast_NodeList* ctor_params = &parser_decl->ctor_params;
-  li = ctor_params->list.next;
-  while (li) {
-    Ast* param = li->object;
-    visit_param(param);
-    li = li->next;
-  }
-  Ast_NodeList* local_elements = &parser_decl->local_elements;
-  li = local_elements->list.next;
-  while (li) {
-    Ast* element = li->object;
-    visit_local_parser_element(element);
-    li = li->next;
-  }
-  Ast_NodeList* states = &parser_decl->states;
-  li = states->list.next;
-  while (li) {
-    Ast* state = li->object;
-    visit_parser_state(state);
-    li = li->next;
-  }
-  current_scope = pop_scope();
-}
-
-internal void
 visit_function_proto(Ast* ast)
 {
   assert(ast->kind == AST_FUNCTION_PROTO);
@@ -818,72 +674,6 @@ visit_function_proto(Ast* ast)
   while (li) {
     Ast* param = li->object;
     visit_param(param);
-    li = li->next;
-  }
-  current_scope = pop_scope();
-}
-  
-internal void
-visit_function(Ast* ast)
-{
-  assert(ast->kind == AST_FUNCTION);
-  Ast_Function* func_decl = (Ast_Function*)ast;
-  Ast_FunctionProto* func_proto = (Ast_FunctionProto*)func_decl->proto;
-  Ast_Name* name = (Ast_Name*)func_proto->name;
-  declare_type_name(current_scope, name, (Ast*)func_decl);
-  current_scope = push_scope();
-  if (func_proto->return_type) {
-    visit_type_ref(func_proto->return_type);
-  }
-  DList* li;
-  Ast_NodeList* type_params = &func_proto->type_params;
-  li = type_params->list.next;
-  while (li) {
-    Ast* type_param = li->object;
-    visit_type_param(type_param);
-    li = li->next;
-  }
-  Ast_NodeList* params = &func_proto->params;
-  li = params->list.next;
-  while (li) {
-    Ast* param = li->object;
-    visit_param(param);
-    li = li->next;
-  }
-  Ast_BlockStmt* func_body = (Ast_BlockStmt*)func_decl->stmt;
-  if (func_body) {
-    Ast_NodeList* stmt_list = &func_body->stmt_list;
-    DList* li = stmt_list->list.next;
-    while (li) {
-      Ast* stmt = li->object;
-      visit_statement(stmt);
-      li = li->next;
-    }
-  }
-  current_scope = pop_scope();
-}
-
-internal void
-visit_extern(Ast* ast)
-{
-  assert(ast->kind == AST_EXTERN);
-  Ast_Extern* extern_decl = (Ast_Extern*)ast;
-  Ast_Name* name = (Ast_Name*)extern_decl->name;
-  declare_type_name(current_scope, name, (Ast*)extern_decl);
-  current_scope = push_scope();
-  DList* li;
-  Ast_NodeList* type_params = &extern_decl->type_params;
-  li = type_params->list.next;
-  while (li) {
-    Ast* type_param = li->object;
-    visit_type_param(type_param);
-    li = li->next;
-  }
-  Ast_NodeList* method_protos = &extern_decl->method_protos;
-  li = method_protos->list.next;
-  while (li) {
-    Ast* proto = li->object;
-    visit_function_proto(proto);
     li = li->next;
   }
   current_scope = pop_scope();
@@ -1136,29 +926,106 @@ visit_specified_identifier(Ast* ast)
 }
 
 internal void
-visit_enum(Ast* ast)
+visit_control(Ast* ast)
 {
-  assert(ast->kind == AST_ENUM);
-  Ast_Enum* enum_decl = (Ast_Enum*)ast;
-  Ast_Name* name = (Ast_Name*)enum_decl->name;
-  NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
-  if (!ne->ns_type) {
-    declare_type_name(current_scope, name, (Ast*)enum_decl);
-  } else error("At line %d, column %d: redeclaration of name `%s`.",
-               name->line_no, name->column_no, name->strname);
+  assert(ast->kind == AST_CONTROL);
+  Ast_Control* control_decl = (Ast_Control*)ast;
+  Ast_ControlProto* proto = (Ast_ControlProto*)control_decl->proto;
+  Ast_Name* name = (Ast_Name*)proto->name;
+  declare_type_name(current_scope, name, (Ast*)control_decl);
   current_scope = push_scope();
-  Ast_NodeList* id_list = &enum_decl->id_list;
-  DList* li = id_list->list.next;
+  DList* li;
+  Ast_NodeList* type_params = &proto->type_params;
+  li = type_params->list.next;
   while (li) {
-    Ast* id = li->object;
-    if (id->kind == AST_SPECIFIED_IDENT) {
-      visit_specified_identifier(id);
-    }
-    else assert(0);
+    Ast* type_param = li->object;
+    visit_type_param(type_param);
+    li = li->next;
+  }
+  Ast_NodeList* params = &proto->params;
+  li = params->list.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
+  Ast_NodeList* ctor_params = &control_decl->ctor_params;
+  li = ctor_params->list.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
+  Ast_NodeList* local_decls = &control_decl->local_decls;
+  li = local_decls->list.next;
+  while (li) {
+    Ast* decl = li->object;
+    visit_statement(decl);
+    li = li->next;
+  }
+  if (control_decl->apply_stmt) {
+    visit_block_statement(control_decl->apply_stmt);
+  }
+  current_scope = pop_scope();
+}
+
+internal void
+visit_control_proto(Ast* ast)
+{
+  assert(ast->kind == AST_CONTROL_PROTO);
+  Ast_ControlProto* proto_decl = (Ast_ControlProto*)ast;
+  Ast_Name* name = (Ast_Name*)proto_decl->name;
+  declare_type_name(current_scope, name, (Ast*)proto_decl);
+  current_scope = push_scope();
+  DList* li;
+  Ast_NodeList* type_params = &proto_decl->type_params;
+  li = type_params->list.next;
+  while (li) {
+    Ast* type_param = li->object;
+    visit_type_param(type_param);
+    li = li->next;
+  }
+  Ast_NodeList* params = &proto_decl->params;
+  li = params->list.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
     li = li->next;
   }
   current_scope = pop_scope();
 }
+
+internal void
+visit_extern(Ast* ast)
+{
+  assert(ast->kind == AST_EXTERN);
+  Ast_Extern* extern_decl = (Ast_Extern*)ast;
+  Ast_Name* name = (Ast_Name*)extern_decl->name;
+  declare_type_name(current_scope, name, (Ast*)extern_decl);
+  current_scope = push_scope();
+  DList* li;
+  Ast_NodeList* type_params = &extern_decl->type_params;
+  li = type_params->list.next;
+  while (li) {
+    Ast* type_param = li->object;
+    visit_type_param(type_param);
+    li = li->next;
+  }
+  Ast_NodeList* method_protos = &extern_decl->method_protos;
+  li = method_protos->list.next;
+  while (li) {
+    Ast* proto = li->object;
+    visit_function_proto(proto);
+    li = li->next;
+  }
+  current_scope = pop_scope();
+}
+
+/* visit_struct() */
+
+/* visit_header() */
+
+/* visit_header_union() */
 
 internal void
 visit_package(Ast* ast)
@@ -1191,6 +1058,82 @@ visit_package(Ast* ast)
 }
 
 internal void
+visit_parser(Ast* ast)
+{
+  assert(ast->kind == AST_PARSER);
+  Ast_Parser* parser_decl = (Ast_Parser*)ast;
+  Ast_ParserProto* proto = (Ast_ParserProto*)parser_decl->proto;
+  Ast_Name* name = (Ast_Name*)proto->name;
+  declare_type_name(current_scope, name, (Ast*)parser_decl);
+  current_scope = push_scope();
+  DList* li;
+  Ast_NodeList* type_params = &proto->type_params;
+  li = type_params->list.next;
+  while (li) {
+    Ast* type_param = li->object;
+    visit_type_param(type_param);
+    li = li->next;
+  }
+  Ast_NodeList* params = &proto->params;
+  li = params->list.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
+  Ast_NodeList* ctor_params = &parser_decl->ctor_params;
+  li = ctor_params->list.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
+  Ast_NodeList* local_elements = &parser_decl->local_elements;
+  li = local_elements->list.next;
+  while (li) {
+    Ast* element = li->object;
+    visit_local_parser_element(element);
+    li = li->next;
+  }
+  Ast_NodeList* states = &parser_decl->states;
+  li = states->list.next;
+  while (li) {
+    Ast* state = li->object;
+    visit_parser_state(state);
+    li = li->next;
+  }
+  current_scope = pop_scope();
+}
+
+internal void
+visit_parser_proto(Ast* ast)
+{
+  assert(ast->kind == AST_PARSER_PROTO);
+  Ast_ParserProto* proto_decl = (Ast_ParserProto*)ast;
+  Ast_Name* name = (Ast_Name*)proto_decl->name;
+  declare_type_name(current_scope, name, (Ast*)proto_decl);
+  current_scope = push_scope();
+  DList* li;
+  Ast_NodeList* type_params = &proto_decl->type_params;
+  li = type_params->list.next;
+  while (li) {
+    Ast* type_param = li->object;
+    visit_type_param(type_param);
+    li = li->next;
+  }
+  Ast_NodeList* params = &proto_decl->params;
+  li = params->list.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
+  current_scope = pop_scope();
+}
+
+/* visit_instantiation() */
+
+internal void
 visit_type(Ast* ast)
 {
   assert(ast->kind == AST_TYPE);
@@ -1204,6 +1147,77 @@ visit_type(Ast* ast)
   Ast* type_ref = type_decl->type_ref;
   visit_type_ref(type_ref);
 }
+
+internal void
+visit_function(Ast* ast)
+{
+  assert(ast->kind == AST_FUNCTION);
+  Ast_Function* func_decl = (Ast_Function*)ast;
+  Ast_FunctionProto* func_proto = (Ast_FunctionProto*)func_decl->proto;
+  Ast_Name* name = (Ast_Name*)func_proto->name;
+  declare_type_name(current_scope, name, (Ast*)func_decl);
+  current_scope = push_scope();
+  if (func_proto->return_type) {
+    visit_type_ref(func_proto->return_type);
+  }
+  DList* li;
+  Ast_NodeList* type_params = &func_proto->type_params;
+  li = type_params->list.next;
+  while (li) {
+    Ast* type_param = li->object;
+    visit_type_param(type_param);
+    li = li->next;
+  }
+  Ast_NodeList* params = &func_proto->params;
+  li = params->list.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
+  Ast_BlockStmt* func_body = (Ast_BlockStmt*)func_decl->stmt;
+  if (func_body) {
+    Ast_NodeList* stmt_list = &func_body->stmt_list;
+    DList* li = stmt_list->list.next;
+    while (li) {
+      Ast* stmt = li->object;
+      visit_statement(stmt);
+      li = li->next;
+    }
+  }
+  current_scope = pop_scope();
+}
+
+/* visit_function_proto() */
+
+/* visit_const_decl() */
+
+internal void
+visit_enum(Ast* ast)
+{
+  assert(ast->kind == AST_ENUM);
+  Ast_Enum* enum_decl = (Ast_Enum*)ast;
+  Ast_Name* name = (Ast_Name*)enum_decl->name;
+  NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
+  if (!ne->ns_type) {
+    declare_type_name(current_scope, name, (Ast*)enum_decl);
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
+               name->line_no, name->column_no, name->strname);
+  current_scope = push_scope();
+  Ast_NodeList* id_list = &enum_decl->id_list;
+  DList* li = id_list->list.next;
+  while (li) {
+    Ast* id = li->object;
+    if (id->kind == AST_SPECIFIED_IDENT) {
+      visit_specified_identifier(id);
+    }
+    else assert(0);
+    li = li->next;
+  }
+  current_scope = pop_scope();
+}
+
+/* visit_action() */
 
 internal void
 visit_match_kind(Ast* ast)
@@ -1298,84 +1312,84 @@ visit_p4program(Ast* ast)
 }
 
 Scope*
-build_symtable(Ast_P4Program* p4program, Arena* symtable_storage_)
+build_name_decl(Ast_P4Program* p4program, Arena* decl_storage_)
 {
-  symtable_storage = symtable_storage_;
-  scope_init(symtable_storage);
+  decl_storage = decl_storage_;
+  symbol_table_init(decl_storage);
   root_scope = current_scope = push_scope();
 
   {
-    Ast_Name* void_type = arena_push_struct(symtable_storage, Ast_Name);
+    Ast_Name* void_type = arena_push_struct(decl_storage, Ast_Name);
     void_type->kind = AST_NAME;
     void_type->strname = "void";
     void_type->id = ++p4program->last_node_id;
     declare_type_name(root_scope, void_type, (Ast*)void_type);
   }
   {
-    Ast_Name* bool_type = arena_push_struct(symtable_storage, Ast_Name);
+    Ast_Name* bool_type = arena_push_struct(decl_storage, Ast_Name);
     bool_type->kind = AST_NAME;
     bool_type->id = ++p4program->last_node_id;
     bool_type->strname = "bool";
     declare_type_name(root_scope, bool_type, (Ast*)bool_type);
   }
   {
-    Ast_Name* int_type = arena_push_struct(symtable_storage, Ast_Name);
+    Ast_Name* int_type = arena_push_struct(decl_storage, Ast_Name);
     int_type->kind = AST_NAME;
     int_type->id = ++p4program->last_node_id;
     int_type->strname = "int";
     declare_type_name(root_scope, int_type, (Ast*)int_type);
   }
   {
-    Ast_Name* bit_type = arena_push_struct(symtable_storage, Ast_Name);
+    Ast_Name* bit_type = arena_push_struct(decl_storage, Ast_Name);
     bit_type->kind = AST_NAME;
     bit_type->id = ++p4program->last_node_id;
     bit_type->strname = "bit";
     declare_type_name(root_scope, bit_type, (Ast*)bit_type);
   }
   {
-    Ast_Name* varbit_type = arena_push_struct(symtable_storage, Ast_Name);
+    Ast_Name* varbit_type = arena_push_struct(decl_storage, Ast_Name);
     varbit_type->kind = AST_NAME;
     varbit_type->id = ++p4program->last_node_id;
     varbit_type->strname = "varbit";
     declare_type_name(root_scope, varbit_type, (Ast*)varbit_type);
   }
   {
-    Ast_Name* string_type = arena_push_struct(symtable_storage, Ast_Name);
+    Ast_Name* string_type = arena_push_struct(decl_storage, Ast_Name);
     string_type->kind = AST_NAME;
     string_type->id = ++p4program->last_node_id;
     string_type->strname = "string";
     declare_type_name(root_scope, string_type, (Ast*)string_type);
   }
   {
-    Ast_Name* error_type = arena_push_struct(symtable_storage, Ast_Name);
+    Ast_Name* error_type = arena_push_struct(decl_storage, Ast_Name);
     error_type->kind = AST_NAME;
     error_type->id = ++p4program->last_node_id;
     error_type->strname = "error";
     declare_type_name(root_scope, error_type, (Ast*)error_type);
   }
   {
-    Ast_Name* match_type = arena_push_struct(symtable_storage, Ast_Name);
+    Ast_Name* match_type = arena_push_struct(decl_storage, Ast_Name);
     match_type->kind = AST_NAME;
     match_type->id = ++p4program->last_node_id;
     match_type->strname = "match_kind";
     declare_type_name(root_scope, match_type, (Ast*)match_type);
   }
   {
-    Ast_Name* accept_state = arena_push_struct(symtable_storage, Ast_Name);
+    Ast_Name* accept_state = arena_push_struct(decl_storage, Ast_Name);
     accept_state->kind = AST_NAME;
     accept_state->id = ++p4program->last_node_id;
     accept_state->strname = "accept";
     declare_var_name(root_scope, accept_state, (Ast*)accept_state);
   }
   {
-    Ast_Name* reject_state = arena_push_struct(symtable_storage, Ast_Name);
+    Ast_Name* reject_state = arena_push_struct(decl_storage, Ast_Name);
     reject_state->kind = AST_NAME;
     reject_state->id = ++p4program->last_node_id;
     reject_state->strname = "reject";
     declare_var_name(root_scope, reject_state, (Ast*)reject_state);
   }
   {
-    Ast_Name* add_op = arena_push_struct(symtable_storage, Ast_Name);
+    Ast_Name* add_op = arena_push_struct(decl_storage, Ast_Name);
     add_op->kind = AST_NAME;
     add_op->id = ++p4program->last_node_id;
     add_op->strname = "+";

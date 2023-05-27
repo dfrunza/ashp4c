@@ -3619,7 +3619,7 @@ parse_tokens(UnboundedArray* tokens_, Arena* ast_storage_)
 {
   tokens = tokens_;
   ast_storage = ast_storage_;
-  scope_init(ast_storage);
+  symbol_table_init(ast_storage);
   root_scope = current_scope = push_scope();
 
   declare_keyword(root_scope, "action", TK_ACTION);
@@ -3670,6 +3670,5 @@ parse_tokens(UnboundedArray* tokens_, Arena* ast_storage_)
   p4program->last_node_id = node_id;
   current_scope = pop_scope();
   assert(current_scope == 0);
-
   return p4program;
 }
