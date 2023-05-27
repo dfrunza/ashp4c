@@ -8,9 +8,18 @@ internal Arena* decl_storage;
 internal Scope* root_scope;
 internal Scope* current_scope;
 
-internal void visit_statement(Ast* ast);
 internal void visit_expression(Ast* ast);
 internal void visit_type_ref(Ast* ast);
+internal void visit_statement(Ast* ast);
+internal void visit_control_proto(Ast* ast);
+internal void visit_struct(Ast* ast);
+internal void visit_header(Ast* ast);
+internal void visit_header_union(Ast* ast);
+internal void visit_instantiation(Ast* ast);
+internal void visit_function_proto(Ast* ast);
+internal void visit_const_decl(Ast* ast);
+internal void visit_action(Ast* ast);
+internal void visit_parser_proto(Ast* ast);
 
 internal void
 visit_binary_expr(Ast* ast)
@@ -22,19 +31,19 @@ visit_binary_expr(Ast* ast)
 }
 
 internal void
-visit_name_identifier(Ast* ast)
-{
-  assert(ast->kind == AST_NAME);
-  Ast_Name* name = (Ast_Name*)ast;
-  name->scope = current_scope;
-}
-
-internal void
 visit_unary_expr(Ast* ast)
 {
   assert(ast->kind == AST_UNARY_EXPR);
   Ast_UnaryExpr* expr = (Ast_UnaryExpr*)ast;
   visit_expression(expr->operand);
+}
+
+internal void
+visit_name_identifier(Ast* ast)
+{
+  assert(ast->kind == AST_NAME);
+  Ast_Name* name = (Ast_Name*)ast;
+  name->scope = current_scope;
 }
 
 internal void
@@ -94,7 +103,7 @@ visit_cast_expr(Ast* ast)
 }
 
 internal void
-visit_subscript(Ast* ast)
+visit_subscript_expr(Ast* ast)
 {
   assert(ast->kind == AST_SUBSCRIPT);
   Ast_Subscript* expr = (Ast_Subscript*)ast;
@@ -149,7 +158,7 @@ visit_expression(Ast* ast)
   } else if (ast->kind == AST_CAST_EXPR) {
     visit_cast_expr(ast);
   } else if (ast->kind == AST_SUBSCRIPT) {
-    visit_subscript(ast);
+    visit_subscript_expr(ast);
   } else if (ast->kind == AST_KVPAIR) {
     visit_kvpair(ast);
   } else if (ast->kind == AST_INT_LITERAL) {
@@ -382,21 +391,6 @@ visit_switch_case(Ast* ast)
 }
 
 internal void
-visit_const_decl(Ast* ast)
-{
-  assert(ast->kind == AST_CONST);
-  Ast_Const* const_decl = (Ast_Const*)ast;
-  Ast_Name* name = (Ast_Name*)const_decl->name;
-  NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
-  if (!ne->ns_var) {
-    declare_var_name(current_scope, name, (Ast*)const_decl);
-  } else error("At line %d, column %d: redeclaration of name `%s`.",
-               name->line_no, name->column_no, name->strname);
-  visit_type_ref(const_decl->type);
-  visit_expression(const_decl->expr);
-}
-
-internal void
 visit_var_decl(Ast* ast)
 {
   Ast_Var* var_decl = (Ast_Var*)ast;
@@ -409,59 +403,6 @@ visit_var_decl(Ast* ast)
   visit_type_ref(var_decl->type);
   if (var_decl->init_expr) {
     visit_expression(var_decl->init_expr);
-  }
-}
-
-internal void
-visit_action(Ast* ast)
-{
-  assert(ast->kind == AST_ACTION);
-  Ast_Action* action_decl = (Ast_Action*)ast;
-  Ast_Name* name = (Ast_Name*)action_decl->name;
-  NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
-  if (!ne->ns_var) {
-    declare_type_name(current_scope, name, (Ast*)action_decl);
-  } else error("At line %d, column %d: redeclaration of name `%s`.",
-               name->line_no, name->column_no, name->strname);
-  current_scope = push_scope();
-  Ast_NodeList* params = &action_decl->params;
-  DList* li = params->list.next;
-  while (li) {
-    Ast* param = li->object;
-    visit_param(param);
-    li = li->next;
-  }
-  Ast_BlockStmt* action_body = (Ast_BlockStmt*)action_decl->stmt;
-  if (action_body) {
-    Ast_NodeList* stmt_list = &action_body->stmt_list;
-    DList* li = stmt_list->list.next;
-    while (li) {
-      Ast* stmt = li->object;
-      visit_statement(stmt);
-      li = li->next;
-    }
-  }
-  current_scope = pop_scope();
-}
-
-internal void
-visit_instantiation(Ast* ast)
-{
-  assert(ast->kind == AST_INSTANTIATION);
-  Ast_Instantiation* inst_decl = (Ast_Instantiation*)ast;
-  Ast_Name* name = (Ast_Name*)inst_decl->name;
-  NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
-  if (!ne->ns_var) {
-    declare_var_name(current_scope, name, (Ast*)inst_decl);
-  } else error("At line %d, column %d: redeclaration of name `%s`.",
-               name->line_no, name->column_no, name->strname);
-  visit_type_ref(inst_decl->type);
-  Ast_NodeList* args = &inst_decl->args;
-  DList* li = args->list.next;
-  while (li) {
-    Ast* arg = li->object;
-    visit_expression(arg);
-    li = li->next;
   }
 }
 
@@ -651,35 +592,6 @@ visit_parser_state(Ast* ast)
 }
 
 internal void
-visit_function_proto(Ast* ast)
-{
-  assert(ast->kind == AST_FUNCTION_PROTO);
-  Ast_FunctionProto* func_proto = (Ast_FunctionProto*)ast;
-  Ast_Name* name = (Ast_Name*)func_proto->name;
-  declare_type_name(current_scope, name, (Ast*)func_proto);
-  current_scope = push_scope();
-  if (func_proto->return_type) {
-    visit_type_ref(func_proto->return_type);
-  }
-  DList* li;
-  Ast_NodeList* type_params = &func_proto->type_params;
-  li = type_params->list.next;
-  while (li) {
-    Ast* type_param = li->object;
-    visit_type_param(type_param);
-    li = li->next;
-  }
-  Ast_NodeList* params = &func_proto->params;
-  li = params->list.next;
-  while (li) {
-    Ast* param = li->object;
-    visit_param(param);
-    li = li->next;
-  }
-  current_scope = pop_scope();
-}
-
-internal void
 visit_struct_field(Ast* ast)
 {
   assert(ast->kind == AST_STRUCT_FIELD);
@@ -754,6 +666,7 @@ visit_header_stack(Ast* ast)
 internal void
 visit_name_type(Ast* ast)
 {
+  assert(ast->kind == AST_NAME);
   Ast_Name* name = (Ast_Name*)ast;
   NameEntry* ne = scope_lookup_name(current_scope, name->strname);
   if (!ne->ns_type) {
@@ -789,72 +702,6 @@ visit_tuple(Ast* ast)
     visit_type_ref(type_arg);
     li = li->next;
   }
-}
-
-internal void
-visit_struct(Ast* ast)
-{
-  assert(ast->kind == AST_STRUCT);
-  Ast_Struct* struct_decl = (Ast_Struct*)ast;
-  Ast_Name* name = (Ast_Name*)struct_decl->name;
-  NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
-  if (!ne->ns_type) {
-    declare_type_name(current_scope, name, (Ast*)struct_decl);
-  } else error("At line %d, column %d: redeclaration of name `%s`.",
-               name->line_no, name->column_no, name->strname);
-  current_scope = push_scope();
-  Ast_NodeList* fields = &struct_decl->fields;
-  DList* li = fields->list.next;
-  while (li) {
-    Ast* field = li->object;
-    visit_struct_field(field);
-    li = li->next;
-  }
-  current_scope = pop_scope();
-}
-
-internal void
-visit_header(Ast* ast)
-{
-  assert(ast->kind == AST_HEADER);
-  Ast_Header* header_decl = (Ast_Header*)ast;
-  Ast_Name* name = (Ast_Name*)header_decl->name;
-  NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
-  if (!ne->ns_type) {
-    declare_type_name(current_scope, name, (Ast*)header_decl);
-  } else error("At line %d, column %d: redeclaration of name `%s`.",
-               name->line_no, name->column_no, name->strname);
-  current_scope = push_scope();
-  Ast_NodeList* fields = &header_decl->fields;
-  DList* li = fields->list.next;
-  while (li) {
-    Ast* field = li->object;
-    visit_struct_field(field);
-    li = li->next;
-  }
-  current_scope = pop_scope();
-}
-
-internal void
-visit_header_union(Ast* ast)
-{
-  assert(ast->kind == AST_HEADER_UNION);
-  Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
-  Ast_Name* name = (Ast_Name*)union_decl->name;
-  NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
-  if (!ne->ns_type) {
-    declare_type_name(current_scope, name, (Ast*)union_decl);
-  } else error("At line %d, column %d: redeclaration of name `%s`.",
-               name->line_no, name->column_no, name->strname);
-  current_scope = push_scope();
-  Ast_NodeList* fields = &union_decl->fields;
-  DList* li = fields->list.next;
-  while (li) {
-    Ast* field = li->object;
-    visit_struct_field(field);
-    li = li->next;
-  }
-  current_scope = pop_scope();
 }
 
 internal void
@@ -929,42 +776,42 @@ internal void
 visit_control(Ast* ast)
 {
   assert(ast->kind == AST_CONTROL);
-  Ast_Control* control_decl = (Ast_Control*)ast;
-  Ast_ControlProto* proto = (Ast_ControlProto*)control_decl->proto;
-  Ast_Name* name = (Ast_Name*)proto->name;
-  declare_type_name(current_scope, name, (Ast*)control_decl);
+  Ast_Control* ctrl_decl = (Ast_Control*)ast;
+  Ast_ControlProto* ctrl_proto = (Ast_ControlProto*)ctrl_decl->proto;
+  Ast_Name* name = (Ast_Name*)ctrl_proto->name;
+  declare_type_name(current_scope, name, (Ast*)ctrl_decl);
   current_scope = push_scope();
   DList* li;
-  Ast_NodeList* type_params = &proto->type_params;
+  Ast_NodeList* type_params = &ctrl_proto->type_params;
   li = type_params->list.next;
   while (li) {
     Ast* type_param = li->object;
     visit_type_param(type_param);
     li = li->next;
   }
-  Ast_NodeList* params = &proto->params;
+  Ast_NodeList* params = &ctrl_proto->params;
   li = params->list.next;
   while (li) {
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
   }
-  Ast_NodeList* ctor_params = &control_decl->ctor_params;
+  Ast_NodeList* ctor_params = &ctrl_decl->ctor_params;
   li = ctor_params->list.next;
   while (li) {
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
   }
-  Ast_NodeList* local_decls = &control_decl->local_decls;
+  Ast_NodeList* local_decls = &ctrl_decl->local_decls;
   li = local_decls->list.next;
   while (li) {
     Ast* decl = li->object;
     visit_statement(decl);
     li = li->next;
   }
-  if (control_decl->apply_stmt) {
-    visit_block_statement(control_decl->apply_stmt);
+  if (ctrl_decl->apply_stmt) {
+    visit_block_statement(ctrl_decl->apply_stmt);
   }
   current_scope = pop_scope();
 }
@@ -973,19 +820,19 @@ internal void
 visit_control_proto(Ast* ast)
 {
   assert(ast->kind == AST_CONTROL_PROTO);
-  Ast_ControlProto* proto_decl = (Ast_ControlProto*)ast;
-  Ast_Name* name = (Ast_Name*)proto_decl->name;
-  declare_type_name(current_scope, name, (Ast*)proto_decl);
+  Ast_ControlProto* ctrl_proto = (Ast_ControlProto*)ast;
+  Ast_Name* name = (Ast_Name*)ctrl_proto->name;
+  declare_type_name(current_scope, name, (Ast*)ctrl_proto);
   current_scope = push_scope();
   DList* li;
-  Ast_NodeList* type_params = &proto_decl->type_params;
+  Ast_NodeList* type_params = &ctrl_proto->type_params;
   li = type_params->list.next;
   while (li) {
     Ast* type_param = li->object;
     visit_type_param(type_param);
     li = li->next;
   }
-  Ast_NodeList* params = &proto_decl->params;
+  Ast_NodeList* params = &ctrl_proto->params;
   li = params->list.next;
   while (li) {
     Ast* param = li->object;
@@ -1021,11 +868,71 @@ visit_extern(Ast* ast)
   current_scope = pop_scope();
 }
 
-/* visit_struct() */
+internal void
+visit_struct(Ast* ast)
+{
+  assert(ast->kind == AST_STRUCT);
+  Ast_Struct* struct_decl = (Ast_Struct*)ast;
+  Ast_Name* name = (Ast_Name*)struct_decl->name;
+  NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
+  if (!ne->ns_type) {
+    declare_type_name(current_scope, name, (Ast*)struct_decl);
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
+               name->line_no, name->column_no, name->strname);
+  current_scope = push_scope();
+  Ast_NodeList* fields = &struct_decl->fields;
+  DList* li = fields->list.next;
+  while (li) {
+    Ast* field = li->object;
+    visit_struct_field(field);
+    li = li->next;
+  }
+  current_scope = pop_scope();
+}
 
-/* visit_header() */
+internal void
+visit_header(Ast* ast)
+{
+  assert(ast->kind == AST_HEADER);
+  Ast_Header* header_decl = (Ast_Header*)ast;
+  Ast_Name* name = (Ast_Name*)header_decl->name;
+  NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
+  if (!ne->ns_type) {
+    declare_type_name(current_scope, name, (Ast*)header_decl);
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
+               name->line_no, name->column_no, name->strname);
+  current_scope = push_scope();
+  Ast_NodeList* fields = &header_decl->fields;
+  DList* li = fields->list.next;
+  while (li) {
+    Ast* field = li->object;
+    visit_struct_field(field);
+    li = li->next;
+  }
+  current_scope = pop_scope();
+}
 
-/* visit_header_union() */
+internal void
+visit_header_union(Ast* ast)
+{
+  assert(ast->kind == AST_HEADER_UNION);
+  Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
+  Ast_Name* name = (Ast_Name*)union_decl->name;
+  NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
+  if (!ne->ns_type) {
+    declare_type_name(current_scope, name, (Ast*)union_decl);
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
+               name->line_no, name->column_no, name->strname);
+  current_scope = push_scope();
+  Ast_NodeList* fields = &union_decl->fields;
+  DList* li = fields->list.next;
+  while (li) {
+    Ast* field = li->object;
+    visit_struct_field(field);
+    li = li->next;
+  }
+  current_scope = pop_scope();
+}
 
 internal void
 visit_package(Ast* ast)
@@ -1131,7 +1038,26 @@ visit_parser_proto(Ast* ast)
   current_scope = pop_scope();
 }
 
-/* visit_instantiation() */
+internal void
+visit_instantiation(Ast* ast)
+{
+  assert(ast->kind == AST_INSTANTIATION);
+  Ast_Instantiation* inst_decl = (Ast_Instantiation*)ast;
+  Ast_Name* name = (Ast_Name*)inst_decl->name;
+  NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
+  if (!ne->ns_var) {
+    declare_var_name(current_scope, name, (Ast*)inst_decl);
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
+               name->line_no, name->column_no, name->strname);
+  visit_type_ref(inst_decl->type);
+  Ast_NodeList* args = &inst_decl->args;
+  DList* li = args->list.next;
+  while (li) {
+    Ast* arg = li->object;
+    visit_expression(arg);
+    li = li->next;
+  }
+}
 
 internal void
 visit_type(Ast* ast)
@@ -1188,9 +1114,49 @@ visit_function(Ast* ast)
   current_scope = pop_scope();
 }
 
-/* visit_function_proto() */
+internal void
+visit_function_proto(Ast* ast)
+{
+  assert(ast->kind == AST_FUNCTION_PROTO);
+  Ast_FunctionProto* func_proto = (Ast_FunctionProto*)ast;
+  Ast_Name* name = (Ast_Name*)func_proto->name;
+  declare_type_name(current_scope, name, (Ast*)func_proto);
+  current_scope = push_scope();
+  if (func_proto->return_type) {
+    visit_type_ref(func_proto->return_type);
+  }
+  DList* li;
+  Ast_NodeList* type_params = &func_proto->type_params;
+  li = type_params->list.next;
+  while (li) {
+    Ast* type_param = li->object;
+    visit_type_param(type_param);
+    li = li->next;
+  }
+  Ast_NodeList* params = &func_proto->params;
+  li = params->list.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
+  current_scope = pop_scope();
+}
 
-/* visit_const_decl() */
+internal void
+visit_const_decl(Ast* ast)
+{
+  assert(ast->kind == AST_CONST);
+  Ast_Const* const_decl = (Ast_Const*)ast;
+  Ast_Name* name = (Ast_Name*)const_decl->name;
+  NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
+  if (!ne->ns_var) {
+    declare_var_name(current_scope, name, (Ast*)const_decl);
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
+               name->line_no, name->column_no, name->strname);
+  visit_type_ref(const_decl->type);
+  visit_expression(const_decl->expr);
+}
 
 internal void
 visit_enum(Ast* ast)
@@ -1217,7 +1183,37 @@ visit_enum(Ast* ast)
   current_scope = pop_scope();
 }
 
-/* visit_action() */
+internal void
+visit_action(Ast* ast)
+{
+  assert(ast->kind == AST_ACTION);
+  Ast_Action* action_decl = (Ast_Action*)ast;
+  Ast_Name* name = (Ast_Name*)action_decl->name;
+  NameEntry* ne = namedecl_get_or_create(&current_scope->decls, name->strname);
+  if (!ne->ns_var) {
+    declare_type_name(current_scope, name, (Ast*)action_decl);
+  } else error("At line %d, column %d: redeclaration of name `%s`.",
+               name->line_no, name->column_no, name->strname);
+  current_scope = push_scope();
+  Ast_NodeList* params = &action_decl->params;
+  DList* li = params->list.next;
+  while (li) {
+    Ast* param = li->object;
+    visit_param(param);
+    li = li->next;
+  }
+  Ast_BlockStmt* action_body = (Ast_BlockStmt*)action_decl->stmt;
+  if (action_body) {
+    Ast_NodeList* stmt_list = &action_body->stmt_list;
+    DList* li = stmt_list->list.next;
+    while (li) {
+      Ast* stmt = li->object;
+      visit_statement(stmt);
+      li = li->next;
+    }
+  }
+  current_scope = pop_scope();
+}
 
 internal void
 visit_match_kind(Ast* ast)
