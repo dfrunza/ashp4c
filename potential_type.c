@@ -158,7 +158,7 @@ internal void
 visit_expression_list(Ast* ast)
 {
   assert(ast->kind == AST_exprListExpression);
-  Ast_ExpressionList* expr = (Ast_ExpressionList*)ast;
+  Ast_ExprListExpression* expr = (Ast_ExprListExpression*)ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, expr->id);
   ty_set->ast = (Ast*)expr;
   Ast_NodeList* expr_list = &expr->expr_list;

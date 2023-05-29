@@ -3307,7 +3307,7 @@ build_realTypeArg()
   if (token->klass == TK_DONTCARE) {
     next_token();
     Ast* arg = arena_push_struct(ast_storage, Ast);
-    arg->kind = AST_dontcareArgument;
+    arg->kind = AST_dontcareTypeArgument;
     arg->id = node_id++;
     arg->line_no = token->line_no;
     arg->column_no = token->column_no;
@@ -3364,11 +3364,11 @@ build_expressionPrimary()
     } else if (token->klass == TK_DOTPREFIX) {
       next_token();
       if (token->klass == TK_IDENTIFIER) {
-        Ast_Name* name = (Ast_Name*)build_nonTypeName(false);
-        return (Ast*)name;
+        Ast* primary = build_nonTypeName(false);
+        return primary;
       } else if (token->klass == TK_TYPE_IDENTIFIER) {
-        Ast_Name* name = (Ast_Name*)build_typeName(false);
-        return (Ast*)name;
+        Ast* primary = build_typeName(false);
+        return primary;
       } else error("At line %d, column %d: unexpected token `%s`.",
                    token->line_no, token->column_no, token->lexeme);
       assert(0);
@@ -3377,7 +3377,7 @@ build_expressionPrimary()
       return primary;
     } else if (token->klass == TK_BRACE_OPEN) {
       next_token();
-      Ast_ExpressionList* expr_list = arena_push_struct(ast_storage, Ast_ExpressionList);
+      Ast_ExprListExpression* expr_list = arena_push_struct(ast_storage, Ast_ExprListExpression);
       expr_list->kind = AST_exprListExpression;
       expr_list->id = node_id++;
       expr_list->line_no = token->line_no;

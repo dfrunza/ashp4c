@@ -96,7 +96,7 @@ internal void
 visit_expression_list(Ast* ast)
 {
   assert(ast->kind == AST_exprListExpression);
-  Ast_ExpressionList* expr = (Ast_ExpressionList*)ast;
+  Ast_ExprListExpression* expr = (Ast_ExprListExpression*)ast;
   Ast_NodeList* expr_list = &expr->expr_list;
   DList* li = expr_list->list.next;
   while (li) {

@@ -620,10 +620,10 @@ typedef struct Ast_SelectExpr {
   Ast* case_list;
 } Ast_SelectExpr;
 
-typedef struct Ast_ExpressionList {
+typedef struct Ast_ExprListExpression {
   Ast_Expression;
   Ast* expr_list;
-} Ast_ExpressionList;
+} Ast_ExprListExpression;
 
 typedef struct Ast_Cast {
   Ast_Expression;
