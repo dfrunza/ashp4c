@@ -4,7 +4,7 @@
 #include "arena.h"
 #include "frontend.h"
 
-internal Arena* decl_storage;
+internal Arena* name_storage;
 internal Scope* root_scope;
 internal Scope* current_scope;
 
@@ -182,8 +182,8 @@ visit_param(Ast* ast)
   assert(ast->kind == AST_parameter);
   Ast_Param* param = (Ast_Param*)ast;
   Ast_Name* name = (Ast_Name*)param->name;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
@@ -415,8 +415,8 @@ visit_var_decl(Ast* ast)
 {
   Ast_Var* var_decl = (Ast_Var*)ast;
   Ast_Name* name = (Ast_Name*)var_decl->name;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
@@ -435,8 +435,8 @@ visit_table(Ast* ast)
   assert(ast->kind == AST_tableDeclaration);
   Ast_Table* table_decl = (Ast_Table*)ast;
   Ast_Name* name = (Ast_Name*)table_decl->name;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
@@ -607,8 +607,8 @@ visit_parser_state(Ast* ast)
   assert(ast->kind == AST_parserState);
   Ast_ParserState* state = (Ast_ParserState*)ast;
   Ast_Name* name = (Ast_Name*)state->name;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
@@ -635,8 +635,8 @@ visit_struct_field(Ast* ast)
   assert(ast->kind == AST_structField);
   Ast_StructField* field = (Ast_StructField*)ast;
   Ast_Name* name = (Ast_Name*)field->name;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
@@ -797,8 +797,8 @@ visit_enum_field(Ast* ast)
 {
   assert(ast->kind == AST_name);
   Ast_Name* name = (Ast_Name*)ast;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
@@ -935,8 +935,8 @@ visit_struct(Ast* ast)
   assert(ast->kind == AST_structTypeDeclaration);
   Ast_Struct* struct_decl = (Ast_Struct*)ast;
   Ast_Name* name = (Ast_Name*)struct_decl->name;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_type) {
@@ -962,8 +962,8 @@ visit_header(Ast* ast)
   assert(ast->kind == AST_headerTypeDeclaration);
   Ast_Header* header_decl = (Ast_Header*)ast;
   Ast_Name* name = (Ast_Name*)header_decl->name;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_type) {
@@ -989,8 +989,8 @@ visit_header_union(Ast* ast)
   assert(ast->kind == AST_headerUnionDeclaration);
   Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
   Ast_Name* name = (Ast_Name*)union_decl->name;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_type) {
@@ -1016,8 +1016,8 @@ visit_package(Ast* ast)
   assert(ast->kind == AST_packageTypeDeclaration);
   Ast_Package* package_decl = (Ast_Package*)ast;
   Ast_Name* name = (Ast_Name*)package_decl->name;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_type) {
@@ -1138,8 +1138,8 @@ visit_instantiation(Ast* ast)
   assert(ast->kind == AST_instantiation);
   Ast_Instantiation* inst_decl = (Ast_Instantiation*)ast;
   Ast_Name* name = (Ast_Name*)inst_decl->name;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
@@ -1164,8 +1164,8 @@ visit_typedef(Ast* ast)
   assert(ast->kind == AST_typedefDeclaration);
   Ast_TypeDef* type_decl = (Ast_TypeDef*)ast;
   Ast_Name* name = (Ast_Name*)type_decl->name;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_type) {
@@ -1259,8 +1259,8 @@ visit_const(Ast* ast)
   assert(ast->kind == AST_constantDeclaration);
   Ast_Const* const_decl = (Ast_Const*)ast;
   Ast_Name* name = (Ast_Name*)const_decl->name;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
@@ -1277,8 +1277,8 @@ visit_enum(Ast* ast)
   assert(ast->kind == AST_enumDeclaration);
   Ast_Enum* enum_decl = (Ast_Enum*)ast;
   Ast_Name* name = (Ast_Name*)enum_decl->name;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_type) {
@@ -1291,10 +1291,7 @@ visit_enum(Ast* ast)
     DList* li = fields->members.next;
     while (li) {
       Ast* id = li->object;
-      if (id->kind == AST_specifiedIdentifier) {
-        visit_specified_identifier(id);
-      }
-      else assert(0);
+      visit_specified_identifier(id);
       li = li->next;
     }
   }
@@ -1307,8 +1304,8 @@ visit_action(Ast* ast)
   assert(ast->kind == AST_actionDeclaration);
   Ast_Action* action_decl = (Ast_Action*)ast;
   Ast_Name* name = (Ast_Name*)action_decl->name;
-  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->name_decls, name->strname);
-  NameEntry* ne = arena_push_struct(decl_storage, NameEntry);
+  HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
@@ -1373,10 +1370,7 @@ visit_error_enum(Ast* ast)
     DList* li = fields->members.next;
     while (li) {
       Ast* id = li->object;
-      if (id->kind == AST_name) {
-        visit_enum_field(id);
-      }
-      else assert(0);
+      visit_enum_field(id);
       li = li->next;
     }
   }
@@ -1441,82 +1435,82 @@ visit_p4program(Ast* ast)
 Scope*
 build_name_decl(Ast_P4Program* p4program, Arena* decl_storage_)
 {
-  decl_storage = decl_storage_;
-  symbol_table_init(decl_storage);
+  name_storage = decl_storage_;
+  symbol_table_init(name_storage);
   root_scope = current_scope = push_scope();
 
   {
-    Ast_Name* void_type = arena_push_struct(decl_storage, Ast_Name);
+    Ast_Name* void_type = arena_push_struct(name_storage, Ast_Name);
     void_type->kind = AST_name;
     void_type->strname = "void";
     void_type->id = ++p4program->last_node_id;
     declare_type_name(root_scope, void_type, (Ast*)void_type);
   }
   {
-    Ast_Name* bool_type = arena_push_struct(decl_storage, Ast_Name);
+    Ast_Name* bool_type = arena_push_struct(name_storage, Ast_Name);
     bool_type->kind = AST_name;
     bool_type->id = ++p4program->last_node_id;
     bool_type->strname = "bool";
     declare_type_name(root_scope, bool_type, (Ast*)bool_type);
   }
   {
-    Ast_Name* int_type = arena_push_struct(decl_storage, Ast_Name);
+    Ast_Name* int_type = arena_push_struct(name_storage, Ast_Name);
     int_type->kind = AST_name;
     int_type->id = ++p4program->last_node_id;
     int_type->strname = "int";
     declare_type_name(root_scope, int_type, (Ast*)int_type);
   }
   {
-    Ast_Name* bit_type = arena_push_struct(decl_storage, Ast_Name);
+    Ast_Name* bit_type = arena_push_struct(name_storage, Ast_Name);
     bit_type->kind = AST_name;
     bit_type->id = ++p4program->last_node_id;
     bit_type->strname = "bit";
     declare_type_name(root_scope, bit_type, (Ast*)bit_type);
   }
   {
-    Ast_Name* varbit_type = arena_push_struct(decl_storage, Ast_Name);
+    Ast_Name* varbit_type = arena_push_struct(name_storage, Ast_Name);
     varbit_type->kind = AST_name;
     varbit_type->id = ++p4program->last_node_id;
     varbit_type->strname = "varbit";
     declare_type_name(root_scope, varbit_type, (Ast*)varbit_type);
   }
   {
-    Ast_Name* string_type = arena_push_struct(decl_storage, Ast_Name);
+    Ast_Name* string_type = arena_push_struct(name_storage, Ast_Name);
     string_type->kind = AST_name;
     string_type->id = ++p4program->last_node_id;
     string_type->strname = "string";
     declare_type_name(root_scope, string_type, (Ast*)string_type);
   }
   {
-    Ast_Name* error_type = arena_push_struct(decl_storage, Ast_Name);
+    Ast_Name* error_type = arena_push_struct(name_storage, Ast_Name);
     error_type->kind = AST_name;
     error_type->id = ++p4program->last_node_id;
     error_type->strname = "error";
     declare_type_name(root_scope, error_type, (Ast*)error_type);
   }
   {
-    Ast_Name* match_type = arena_push_struct(decl_storage, Ast_Name);
+    Ast_Name* match_type = arena_push_struct(name_storage, Ast_Name);
     match_type->kind = AST_name;
     match_type->id = ++p4program->last_node_id;
     match_type->strname = "match_kind";
     declare_type_name(root_scope, match_type, (Ast*)match_type);
   }
   {
-    Ast_Name* accept_state = arena_push_struct(decl_storage, Ast_Name);
+    Ast_Name* accept_state = arena_push_struct(name_storage, Ast_Name);
     accept_state->kind = AST_name;
     accept_state->id = ++p4program->last_node_id;
     accept_state->strname = "accept";
     declare_var_name(root_scope, accept_state, (Ast*)accept_state);
   }
   {
-    Ast_Name* reject_state = arena_push_struct(decl_storage, Ast_Name);
+    Ast_Name* reject_state = arena_push_struct(name_storage, Ast_Name);
     reject_state->kind = AST_name;
     reject_state->id = ++p4program->last_node_id;
     reject_state->strname = "reject";
     declare_var_name(root_scope, reject_state, (Ast*)reject_state);
   }
   {
-    Ast_Name* add_op = arena_push_struct(decl_storage, Ast_Name);
+    Ast_Name* add_op = arena_push_struct(name_storage, Ast_Name);
     add_op->kind = AST_name;
     add_op->id = ++p4program->last_node_id;
     add_op->strname = "+";

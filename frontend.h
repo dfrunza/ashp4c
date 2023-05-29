@@ -245,7 +245,7 @@ enum AstParamDirection {
 typedef struct Scope {
   int scope_level;
   struct Scope* parent_scope;
-  Hashmap name_decls;
+  Hashmap sym_table;
 } Scope;
 
 typedef struct Ast {
