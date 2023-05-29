@@ -188,6 +188,7 @@ enum AstEnum {
   AST_argumentList,
   AST_parserLocalElements,
   AST_parserStatements,
+  AST_directApplication,
   AST_expressionList,
   AST_keysetExpressionList,
   AST_selectCaseList,
@@ -601,6 +602,12 @@ typedef struct Ast_BlockStmt {
   Ast;
   Ast* stmt_list;
 } Ast_BlockStmt;
+
+typedef struct Ast_DirectApplyStmt {
+  Ast;
+  Ast* lhs_expr;
+  Ast* args;
+} Ast_DirectApplyStmt;
 
 typedef struct Ast_KVPairExpr {
   Ast_Expression;

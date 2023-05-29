@@ -203,6 +203,217 @@ token_is_methodPrototype(Token* token)
   return token_is_typeOrVoid(token) || token->klass == TK_TYPE_IDENTIFIER;
 }
 
+internal bool
+token_is_structField(Token* token)
+{
+  bool result = token_is_typeRef(token);
+  return result;
+}
+
+internal bool
+token_is_specifiedIdentifier(Token* token)
+{
+  return token_is_name(token);
+}
+
+internal bool
+token_is_declaration(Token* token)
+{
+  bool result = token->klass == TK_CONST || token->klass == TK_EXTERN || token->klass == TK_ACTION
+    || token->klass == TK_PARSER || token_is_typeDeclaration(token) || token->klass == TK_CONTROL
+    || token_is_typeRef(token) || token->klass == TK_ERROR || token->klass == TK_MATCH_KIND
+    || token_is_typeOrVoid(token) || token->klass == TK_DOTPREFIX;
+  return result;
+}
+
+internal bool
+token_is_lvalue(Token* token)
+{
+  bool result = token_is_nonTypeName(token) | (token->klass == TK_DOTPREFIX);
+  return result;
+}
+
+internal bool
+token_is_assignmentOrMethodCallStatement(Token* token)
+{
+  bool result = token_is_lvalue(token) || token->klass == TK_PARENTH_OPEN || token->klass == TK_ANGLE_OPEN
+    || token->klass == TK_EQUAL;
+  return result;
+}
+
+internal bool
+token_is_statement(Token* token)
+{
+  bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token) || token->klass == TK_IF
+    || token->klass == TK_SEMICOLON || token->klass == TK_BRACE_OPEN || token->klass == TK_EXIT
+    || token->klass == TK_RETURN || token->klass == TK_SWITCH;
+  return result;
+}
+
+internal bool
+token_is_statementOrDeclaration(Token* token)
+{
+  bool result = token_is_typeRef(token) || token->klass == TK_CONST || token_is_statement(token);
+  return result;
+}
+
+internal bool
+token_is_argument(Token* token)
+{
+  bool result = token_is_expression(token) || token_is_name(token) || token->klass == TK_DONTCARE;
+  return result;
+}
+
+internal bool
+token_is_parserLocalElement(Token* token)
+{
+  bool result = token->klass == TK_CONST || token_is_typeRef(token);
+  return result;
+}
+
+internal bool
+token_is_parserStatement(Token* token)
+{
+  bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token)
+    || token->klass == TK_BRACE_OPEN || token->klass == TK_CONST || token_is_typeRef(token)
+    || token->klass == TK_SEMICOLON;
+  return result;
+}
+
+internal bool
+token_is_simpleKeysetExpression(Token* token) {
+  bool result = token_is_expression(token) || token->klass == TK_DEFAULT || token->klass == TK_DONTCARE;
+  return result;
+}
+
+internal bool
+token_is_keysetExpression(Token* token)
+{
+  bool result = token->klass == TK_TUPLE || token_is_simpleKeysetExpression(token);
+  return result;
+}
+
+internal bool
+token_is_selectCase(Token* token)
+{
+  return token_is_keysetExpression(token);
+}
+
+internal bool
+token_is_controlLocalDeclaration(Token* token)
+{
+  bool result = token->klass == TK_CONST || token->klass == TK_ACTION
+    || token->klass == TK_TABLE || token_is_typeRef(token) || token_is_typeRef(token);
+  return result;
+}
+
+internal bool
+token_is_realTypeArg(Token* token)
+{
+  bool result = token->klass == TK_DONTCARE|| token_is_typeRef(token);
+  return result;
+}
+
+internal bool
+token_is_binaryOperator(Token* token)
+{
+  bool result = token->klass == TK_STAR || token->klass == TK_SLASH
+    || token->klass == TK_PLUS || token->klass == TK_MINUS
+    || token->klass == TK_ANGLE_OPEN_EQUAL || token->klass == TK_ANGLE_CLOSE_EQUAL
+    || token->klass == TK_ANGLE_OPEN || token->klass == TK_ANGLE_CLOSE
+    || token->klass == TK_EXCLAMATION_EQUAL || token->klass == TK_DOUBLE_EQUAL
+    || token->klass == TK_DOUBLE_PIPE || token->klass == TK_DOUBLE_AMPERSAND
+    || token->klass == TK_PIPE || token->klass == TK_AMPERSAND
+    || token->klass == TK_CIRCUMFLEX || token->klass == TK_DOUBLE_ANGLE_OPEN
+    || token->klass == TK_DOUBLE_ANGLE_CLOSE || token->klass == TK_TRIPLE_AMPERSAND
+    || token->klass == TK_EQUAL;
+  return result;
+}
+
+internal bool
+token_is_exprOperator(Token* token)
+{
+  bool result = token_is_binaryOperator(token) || token->klass == TK_DOTPREFIX
+    || token->klass == TK_BRACKET_OPEN || token->klass == TK_PARENTH_OPEN
+    || token->klass == TK_ANGLE_OPEN;
+  return result;
+}
+
+internal int
+get_operator_priority(Token* token)
+{
+  if (token->klass == TK_DOUBLE_AMPERSAND || token->klass == TK_DOUBLE_PIPE) {
+    /* Logical AND, OR */
+    return 1;
+  } else if (token->klass == TK_DOUBLE_EQUAL || token->klass == TK_EXCLAMATION_EQUAL
+      || token->klass == TK_ANGLE_OPEN /* Less */ || token->klass == TK_ANGLE_CLOSE /* Greater */
+      || token->klass == TK_ANGLE_OPEN_EQUAL /* Less-equal */ || token->klass == TK_ANGLE_CLOSE_EQUAL /* Greater-equal */) {
+    /* Relational ops  */
+    return 2;
+  }
+  else if (token->klass == TK_PLUS || token->klass == TK_MINUS
+           || token->klass == TK_AMPERSAND || token->klass == TK_PIPE
+           || token->klass == TK_CIRCUMFLEX || token->klass == TK_DOUBLE_ANGLE_OPEN /* BitshiftLeft */
+           || token->klass == TK_DOUBLE_ANGLE_CLOSE /* BitshiftRight */) {
+    /* Addition and subtraction; bitwise ops */
+    return 3;
+  }
+  else if (token->klass == TK_STAR || token->klass == TK_SLASH) {
+    /* Multiplication and division */
+    return 4;
+  }
+  else if (token->klass == TK_TRIPLE_AMPERSAND) {
+    /* Mask */
+    return 5;
+  }
+  else assert(0);
+  return 0;
+}
+
+internal enum AstOperator
+token_to_binop(Token* token)
+{
+  switch (token->klass) {
+    case TK_DOUBLE_AMPERSAND:
+      return OP_AND;
+    case TK_DOUBLE_PIPE:
+      return OP_OR;
+    case TK_DOUBLE_EQUAL:
+      return OP_EQ;
+    case TK_EXCLAMATION_EQUAL:
+      return OP_NEQ;
+    case TK_ANGLE_OPEN:
+      return OP_LESS;
+    case TK_ANGLE_CLOSE:
+      return OP_GREAT;
+    case TK_ANGLE_OPEN_EQUAL:
+      return OP_LESS_EQ;
+    case TK_ANGLE_CLOSE_EQUAL:
+      return OP_GREAT_EQ;
+    case TK_PLUS:
+      return OP_ADD;
+    case TK_MINUS:
+      return OP_SUB;
+    case TK_STAR:
+      return OP_MUL;
+    case TK_SLASH:
+      return OP_DIV;
+    case TK_AMPERSAND:
+      return OP_BITW_AND;
+    case TK_PIPE:
+      return OP_BITW_OR;
+    case TK_CIRCUMFLEX:
+      return OP_BITW_XOR;
+    case TK_DOUBLE_ANGLE_OPEN:
+      return OP_BITW_SHL;
+    case TK_DOUBLE_ANGLE_CLOSE:
+      return OP_BITW_SHR;
+    case TK_TRIPLE_AMPERSAND:
+      return OP_MASK;
+    default: return 0;
+  }
+}
+
 internal Ast*
 build_nonTypeName(bool is_type)
 {
@@ -928,13 +1139,6 @@ build_typeRef()
   return 0;
 }
 
-internal bool
-token_is_structField(Token* token)
-{
-  bool result = token_is_typeRef(token);
-  return result;
-}
-
 internal Ast*
 build_structField()
 {
@@ -1074,12 +1278,6 @@ build_structTypeDeclaration()
                token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
-}
-
-internal bool
-token_is_specifiedIdentifier(Token* token)
-{
-  return token_is_name(token);
 }
 
 internal Ast*
@@ -1309,97 +1507,6 @@ build_constantDeclaration()
   return 0;
 }
 
-internal bool
-token_is_declaration(Token* token)
-{
-  bool result = token->klass == TK_CONST || token->klass == TK_EXTERN || token->klass == TK_ACTION
-    || token->klass == TK_PARSER || token_is_typeDeclaration(token) || token->klass == TK_CONTROL
-    || token_is_typeRef(token) || token->klass == TK_ERROR || token->klass == TK_MATCH_KIND
-    || token_is_typeOrVoid(token) || token->klass == TK_DOTPREFIX;
-  return result;
-}
-
-internal bool
-token_is_lvalue(Token* token)
-{
-  bool result = token_is_nonTypeName(token) | (token->klass == TK_DOTPREFIX);
-  return result;
-}
-
-internal bool
-token_is_assignmentOrMethodCallStatement(Token* token)
-{
-  bool result = token_is_lvalue(token) || token->klass == TK_PARENTH_OPEN || token->klass == TK_ANGLE_OPEN
-    || token->klass == TK_EQUAL;
-  return result;
-}
-
-internal bool
-token_is_statement(Token* token)
-{
-  bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token) || token->klass == TK_IF
-    || token->klass == TK_SEMICOLON || token->klass == TK_BRACE_OPEN || token->klass == TK_EXIT
-    || token->klass == TK_RETURN || token->klass == TK_SWITCH;
-  return result;
-}
-
-internal bool
-token_is_statementOrDeclaration(Token* token)
-{
-  bool result = token_is_typeRef(token) || token->klass == TK_CONST || token_is_statement(token);
-  return result;
-}
-
-internal bool
-token_is_argument(Token* token)
-{
-  bool result = token_is_expression(token) || token_is_name(token) || token->klass == TK_DONTCARE;
-  return result;
-}
-
-internal bool
-token_is_parserLocalElement(Token* token)
-{
-  bool result = token->klass == TK_CONST || token_is_typeRef(token);
-  return result;
-}
-
-internal bool
-token_is_parserStatement(Token* token)
-{
-  bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token)
-    || token->klass == TK_BRACE_OPEN || token->klass == TK_CONST || token_is_typeRef(token)
-    || token->klass == TK_SEMICOLON;
-  return result;
-}
-
-internal bool
-token_is_simpleKeysetExpression(Token* token) {
-  bool result = token_is_expression(token) || token->klass == TK_DEFAULT || token->klass == TK_DONTCARE;
-  return result;
-}
-
-internal bool
-token_is_keysetExpression(Token* token)
-{
-  bool result = token->klass == TK_TUPLE || token_is_simpleKeysetExpression(token);
-  return result;
-}
-
-internal bool
-token_is_selectCase(Token* token)
-{
-  return token_is_keysetExpression(token);
-}
-
-internal bool
-token_is_controlLocalDeclaration(Token* token)
-{
-  bool result = token->klass == TK_CONST || token->klass == TK_ACTION
-    || token->klass == TK_TABLE || token_is_typeRef(token) || token_is_typeRef(token);
-  return result;
-}
-
 internal Ast*
 build_argument()
 {
@@ -1599,32 +1706,19 @@ internal Ast*
 build_directApplication(Ast* type_name)
 {
   if (token_is_typeName(token) || type_name) {
-    Ast_FunctionCall* apply_expr = arena_push_struct(ast_storage, Ast_FunctionCall);
-    apply_expr->kind = AST_functionCall;
-    apply_expr->id = node_id++;
-    apply_expr->line_no = token->line_no;
-    apply_expr->column_no = token->column_no;
-    Ast_MemberSelect* apply_select = arena_push_struct(ast_storage, Ast_MemberSelect);
-    apply_select->kind = AST_memberSelectExpression;
-    apply_select->id = node_id++;
-    apply_select->line_no = token->line_no;
-    apply_select->column_no = token->column_no;
-    apply_select->lhs_expr = type_name ? type_name : build_typeName();
-    Ast_Name* apply_name = arena_push_struct(ast_storage, Ast_Name);
-    apply_name->kind = AST_nonTypeName;
-    apply_name->id = node_id++;
-    apply_name->line_no = token->line_no;
-    apply_name->column_no = token->column_no;
-    apply_name->strname = "apply";
-    apply_select->member_name = (Ast*)apply_name;
-    apply_expr->callee_expr = (Ast*)apply_select;
+    Ast_DirectApplyStmt* apply_stmt = arena_push_struct(ast_storage, Ast_DirectApplyStmt);
+    apply_stmt->kind = AST_directApplication;
+    apply_stmt->id = node_id++;
+    apply_stmt->line_no = token->line_no;
+    apply_stmt->column_no = token->column_no;
+    apply_stmt->lhs_expr = type_name ? type_name : build_typeName();
     if (token->klass == TK_DOTPREFIX) {
       next_token();
       if (token->klass == TK_APPLY) {
         next_token();
         if (token->klass == TK_PARENTH_OPEN) {
           next_token();
-          apply_expr->args = build_argumentList();
+          apply_stmt->args = build_argumentList();
           if (token->klass == TK_PARENTH_CLOSE) {
             next_token();
             if (token->klass == TK_SEMICOLON) {
@@ -1639,7 +1733,7 @@ build_directApplication(Ast* type_name)
                    token->line_no, token->column_no, token->lexeme);
     } else error("At line %d, column %d: `.` was expected, got `%s`.",
                  token->line_no, token->column_no, token->lexeme);
-    return (Ast*)apply_expr;
+    return (Ast*)apply_stmt;
   } else error("At line %d, column %d: type name was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -3269,38 +3363,6 @@ build_p4program()
   return (Ast*)program;
 }
 
-internal bool
-token_is_realTypeArg(Token* token)
-{
-  bool result = token->klass == TK_DONTCARE|| token_is_typeRef(token);
-  return result;
-}
-
-internal bool
-token_is_binaryOperator(Token* token)
-{
-  bool result = token->klass == TK_STAR || token->klass == TK_SLASH
-    || token->klass == TK_PLUS || token->klass == TK_MINUS
-    || token->klass == TK_ANGLE_OPEN_EQUAL || token->klass == TK_ANGLE_CLOSE_EQUAL
-    || token->klass == TK_ANGLE_OPEN || token->klass == TK_ANGLE_CLOSE
-    || token->klass == TK_EXCLAMATION_EQUAL || token->klass == TK_DOUBLE_EQUAL
-    || token->klass == TK_DOUBLE_PIPE || token->klass == TK_DOUBLE_AMPERSAND
-    || token->klass == TK_PIPE || token->klass == TK_AMPERSAND
-    || token->klass == TK_CIRCUMFLEX || token->klass == TK_DOUBLE_ANGLE_OPEN
-    || token->klass == TK_DOUBLE_ANGLE_CLOSE || token->klass == TK_TRIPLE_AMPERSAND
-    || token->klass == TK_EQUAL;
-  return result;
-}
-
-internal bool
-token_is_exprOperator(Token* token)
-{
-  bool result = token_is_binaryOperator(token) || token->klass == TK_DOTPREFIX
-    || token->klass == TK_BRACKET_OPEN || token->klass == TK_PARENTH_OPEN
-    || token->klass == TK_ANGLE_OPEN;
-  return result;
-}
-
 internal Ast*
 build_realTypeArg()
 {
@@ -3461,81 +3523,6 @@ build_expressionPrimary()
                token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
-}
-
-internal int
-get_operator_priority(Token* token)
-{
-  if (token->klass == TK_DOUBLE_AMPERSAND || token->klass == TK_DOUBLE_PIPE) {
-    /* Logical AND, OR */
-    return 1;
-  } else if (token->klass == TK_DOUBLE_EQUAL || token->klass == TK_EXCLAMATION_EQUAL
-      || token->klass == TK_ANGLE_OPEN /* Less */ || token->klass == TK_ANGLE_CLOSE /* Greater */
-      || token->klass == TK_ANGLE_OPEN_EQUAL /* Less-equal */ || token->klass == TK_ANGLE_CLOSE_EQUAL /* Greater-equal */) {
-    /* Relational ops  */
-    return 2;
-  }
-  else if (token->klass == TK_PLUS || token->klass == TK_MINUS
-           || token->klass == TK_AMPERSAND || token->klass == TK_PIPE
-           || token->klass == TK_CIRCUMFLEX || token->klass == TK_DOUBLE_ANGLE_OPEN /* BitshiftLeft */
-           || token->klass == TK_DOUBLE_ANGLE_CLOSE /* BitshiftRight */) {
-    /* Addition and subtraction; bitwise ops */
-    return 3;
-  }
-  else if (token->klass == TK_STAR || token->klass == TK_SLASH) {
-    /* Multiplication and division */
-    return 4;
-  }
-  else if (token->klass == TK_TRIPLE_AMPERSAND) {
-    /* Mask */
-    return 5;
-  }
-  else assert(0);
-  return 0;
-}
-
-internal enum AstOperator
-token_to_binop(Token* token)
-{
-  switch (token->klass) {
-    case TK_DOUBLE_AMPERSAND:
-      return OP_AND;
-    case TK_DOUBLE_PIPE:
-      return OP_OR;
-    case TK_DOUBLE_EQUAL:
-      return OP_EQ;
-    case TK_EXCLAMATION_EQUAL:
-      return OP_NEQ;
-    case TK_ANGLE_OPEN:
-      return OP_LESS;
-    case TK_ANGLE_CLOSE:
-      return OP_GREAT;
-    case TK_ANGLE_OPEN_EQUAL:
-      return OP_LESS_EQ;
-    case TK_ANGLE_CLOSE_EQUAL:
-      return OP_GREAT_EQ;
-    case TK_PLUS:
-      return OP_ADD;
-    case TK_MINUS:
-      return OP_SUB;
-    case TK_STAR:
-      return OP_MUL;
-    case TK_SLASH:
-      return OP_DIV;
-    case TK_AMPERSAND:
-      return OP_BITW_AND;
-    case TK_PIPE:
-      return OP_BITW_OR;
-    case TK_CIRCUMFLEX:
-      return OP_BITW_XOR;
-    case TK_DOUBLE_ANGLE_OPEN:
-      return OP_BITW_SHL;
-    case TK_DOUBLE_ANGLE_CLOSE:
-      return OP_BITW_SHR;
-    case TK_TRIPLE_AMPERSAND:
-      return OP_MASK;
-    default: return 0;
-  }
 }
 
 internal Ast*
