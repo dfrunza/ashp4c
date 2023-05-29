@@ -20,12 +20,14 @@ gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/symbol_table.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/lex.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/parse.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/name_decl.c 
-gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/collect_type.c 
-gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/select_type.c 
+gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/type.c 
+gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/decl_type.c 
+#gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/potential_type.c 
+#gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/select_type.c 
 
 ld $LD_FLAGS -L$MUSL_LIB -o ashp4c $MUSL_LIB/crt1.o \
   ashp4c.o basic.o arena.o hashmap.o symbol_table.o lex.o parse.o name_decl.o \
-  collect_type.o select_type.o \
+  type.o decl_type.o \
   -lc
 
 if [ $? -ne 0 ]; then

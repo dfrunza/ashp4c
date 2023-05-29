@@ -10,10 +10,10 @@
 #define MEGABYTE 1024*KILOBYTE
 
 void assert_(char* message, char* file, int line);
-#define assert(expr) \
-  do { if(!(expr)) assert_(#expr, __FILE__, __LINE__); } while(0)
+#define assert(EXPR) \
+  do { if(!(EXPR)) assert_(#EXPR, __FILE__, __LINE__); } while(0)
 void error_(char* file, int line, char* message, ...);
-#define error(msg, ...) error_(__FILE__, __LINE__, (msg), ## __VA_ARGS__)
+#define error(MSG, ...) error_(__FILE__, __LINE__, (MSG), ## __VA_ARGS__)
 bool cstr_is_letter(char c);
 bool cstr_is_digit(char c, int base);
 bool cstr_is_ascii_printable(char c);
@@ -41,9 +41,9 @@ typedef struct Arena {
 
 void alloc_memory(int memory_amount);
 void* arena_push(Arena* arena, uint32_t size);
-#define arena_push_struct(arena, type) ({ \
-  type* o = arena_push(arena, sizeof(type)); \
-  memset(o, 0, sizeof(type)); \
+#define arena_push_struct(ARENA, TYPE) ({ \
+  TYPE* o = arena_push(ARENA, sizeof(TYPE)); \
+  memset(o, 0, sizeof(TYPE)); \
   o; \
 })
 void arena_delete(Arena* arena);
@@ -80,7 +80,7 @@ void* array_append(UnboundedArray* array, void* elem);
 
 enum HashmapKeyType {
   HASHMAP_KEY_STRING = 1,
-  HASHMAP_KEY_BLOB,
+  HASHMAP_KEY_BIT,
   HASHMAP_KEY_UINT32,
 };
 
@@ -95,9 +95,9 @@ typedef struct Hashmap {
 typedef struct HashmapKey {
   uint32_t h;
   union {
-    uint8_t* s_key;
-    uint8_t* b_key;
-    uint32_t i_key;
+    uint8_t* str_key;
+    uint8_t* bit_key;
+    uint32_t int_key;
   };
   int keylen;
 } HashmapKey;
@@ -116,8 +116,10 @@ typedef struct HashmapCursor {
 
 void hashmap_init(Hashmap* hashmap, enum HashmapKeyType type, int capacity_log2, Arena* storage);
 void hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ HashmapKey* key, int capacity_log2);
-HashmapEntry* hashmap_get_or_create_entry(Hashmap* hashmap, HashmapKey* key);
+HashmapEntry* hashmap_create_entry(Hashmap* hashmap, HashmapKey* key);
 HashmapEntry* hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
+HashmapEntry* hashmap_create_entry_uint32(Hashmap* map, uint32_t int_key);
+HashmapEntry* hashmap_get_entry_uint32(Hashmap* map, uint32_t int_key);
 void hashmap_cursor_init(HashmapCursor* it, Hashmap* hashmap);
 HashmapEntry* hashmap_move_cursor(HashmapCursor* it);
 

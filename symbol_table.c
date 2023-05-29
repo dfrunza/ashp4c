@@ -11,7 +11,7 @@ Scope*
 push_scope()
 {
   Scope* scope = arena_push_struct(scope_storage, Scope);
-  hashmap_init(&scope->decls, HASHMAP_KEY_STRING, 4, scope_storage);
+  hashmap_init(&scope->name_decls, HASHMAP_KEY_STRING, 4, scope_storage);
   scope->scope_level = scope_level++;
   scope->parent_scope = current_scope;
   current_scope = scope;
@@ -28,16 +28,16 @@ pop_scope()
 }
 
 NameEntry*
-namedecl_get_or_create(Hashmap* decls, char* name)
+namedecl_create(Hashmap* decls, char* name)
 {
-  HashmapKey key = { .s_key = (uint8_t*)name };
+  HashmapKey key = { .str_key = (uint8_t*)name };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, decls->capacity_log2);
-  HashmapEntry* he = hashmap_get_or_create_entry(decls, &key);
-  if (he->object) {
-    return (NameEntry*)he->object;
+  HashmapEntry* name_he = hashmap_create_entry(decls, &key);
+  if (name_he->object) {
+    return (NameEntry*)name_he->object;
   }
   NameEntry* entry = arena_push_struct(scope_storage, NameEntry);
-  he->object = entry;
+  name_he->object = entry;
   memset(entry, 0, sizeof(*entry));
   entry->strname = name;
   return entry;
@@ -46,12 +46,12 @@ namedecl_get_or_create(Hashmap* decls, char* name)
 NameEntry*
 namedecl_get(Hashmap* decls, char* name)
 {
-  HashmapKey key = { .s_key = (uint8_t*)name };
+  HashmapKey key = { .str_key = (uint8_t*)name };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, decls->capacity_log2);
-  HashmapEntry* hmap_entry = hashmap_get_entry(decls, &key);
+  HashmapEntry* name_he = hashmap_get_entry(decls, &key);
   NameEntry* entry = 0;
-  if (hmap_entry) {
-    entry = hmap_entry->object;
+  if (name_he) {
+    entry = (NameEntry*)name_he->object;
   }
   return entry;
 }
@@ -59,36 +59,36 @@ namedecl_get(Hashmap* decls, char* name)
 void
 declare_type_name(Scope* scope, Ast_Name* name, Ast* ast)
 {
-  NameDecl* ndecl = arena_push_struct(scope_storage, NameDecl);
-  ndecl->ast = ast;
-  ndecl->strname = name->strname;
-  ndecl->line_no = name->line_no;
-  ndecl->column_no = name->column_no;
-  NameEntry* ne = namedecl_get_or_create(&scope->decls, name->strname);
-  ndecl->next_decl = ne->ns_type;
-  ne->ns_type = ndecl;
+  NameDecl* decl = arena_push_struct(scope_storage, NameDecl);
+  decl->ast = ast;
+  decl->strname = name->strname;
+  decl->line_no = name->line_no;
+  decl->column_no = name->column_no;
+  NameEntry* ne = namedecl_create(&scope->name_decls, name->strname);
+  decl->next_decl = ne->ns_type;
+  ne->ns_type = decl;
 }
 
 void
 declare_var_name(Scope* scope, Ast_Name* name, Ast* ast)
 {
-  NameDecl* ndecl = arena_push_struct(scope_storage, NameDecl);
-  ndecl->ast = ast;
-  ndecl->strname = name->strname;
-  ndecl->line_no = name->line_no;
-  ndecl->column_no = name->column_no;
-  NameEntry* ne = namedecl_get_or_create(&scope->decls, name->strname);
-  ne->ns_var = ndecl;
+  NameDecl* decl = arena_push_struct(scope_storage, NameDecl);
+  decl->ast = ast;
+  decl->strname = name->strname;
+  decl->line_no = name->line_no;
+  decl->column_no = name->column_no;
+  NameEntry* ne = namedecl_create(&scope->name_decls, name->strname);
+  ne->ns_var = decl;
 }
 
 void
 declare_keyword(Scope* scope, char* strname, enum TokenClass token_class)
 {
-  NameDecl* ndecl = arena_push_struct(scope_storage, NameDecl);
-  ndecl->strname = strname;
-  ndecl->token_class = token_class;
-  NameEntry* ne = namedecl_get_or_create(&scope->decls, strname);
-  ne->ns_keyword = ndecl;
+  NameDecl* decl = arena_push_struct(scope_storage, NameDecl);
+  decl->strname = strname;
+  decl->token_class = token_class;
+  NameEntry* ne = namedecl_create(&scope->name_decls, strname);
+  ne->ns_keyword = decl;
 }
 
 NameEntry*
@@ -96,7 +96,7 @@ scope_lookup_name(Scope* scope, char* name)
 {
   NameEntry* ne = 0;
   while (scope) {
-    ne = namedecl_get_or_create(&scope->decls, name);
+    ne = namedecl_create(&scope->name_decls, name);
     if (ne->ns_type || ne->ns_var || ne->ns_keyword) {
       break;
     }

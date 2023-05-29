@@ -113,8 +113,10 @@ main(int arg_count, char* args[])
   }
 
   Scope* root_scope = build_name_decl(p4program, &main_storage);
-  Hashmap* possible_type = build_possible_type(p4program, root_scope, &main_storage);
-  select_type(p4program, root_scope, possible_type, &main_storage);
+  Hashmap* decl_type = build_decl_type(p4program, root_scope, &main_storage);
+  /*
+  Hashmap* potential_type = build_potential_type(p4program, root_scope, &main_storage);
+  select_type(p4program, root_scope, potential_type, &main_storage); */
 
   arena_delete(&main_storage);
   return 0;

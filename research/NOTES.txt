@@ -45,10 +45,12 @@ You should compile your program against uClibc or musl libc instead.
 =================================
 
 Disable address-space randomization :
-  echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
+  sudo sysctl -w kernel.randomize_va_space=0
+  sudo sysctl -p
 
 Enable address-space randomization :
-  echo 2 | sudo tee /proc/sys/kernel/randomize_va_space
+  sudo sysctl -w kernel.randomize_va_space=2
+  sudo sysctl -p
 
 
 == Why C99? ==

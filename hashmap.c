@@ -65,28 +65,28 @@ void
 hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ HashmapKey* key, int capacity_log2)
 {
   if (key_type == HASHMAP_KEY_STRING) {
-    key->h = hash_string(key->s_key, capacity_log2);
-  } else if (key_type == HASHMAP_KEY_BLOB) {
+    key->h = hash_string(key->str_key, capacity_log2);
+  } else if (key_type == HASHMAP_KEY_BIT) {
     assert (key->keylen > 0);
-    key->h = hash_bytes(key->b_key, key->keylen, capacity_log2);
+    key->h = hash_bytes(key->bit_key, key->keylen, capacity_log2);
   } else if (key_type == HASHMAP_KEY_UINT32) {
-    key->h = hash_uint32(key->i_key, capacity_log2);
+    key->h = hash_uint32(key->int_key, capacity_log2);
   } else assert(0);
 }
 
 internal bool
-hashmap_key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
+key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 {
   if (key_type == HASHMAP_KEY_STRING) {
-    return cstr_match((char*)key_A->s_key, (char*)key_B->s_key);
-  } else if (key_type == HASHMAP_KEY_BLOB) {
+    return cstr_match((char*)key_A->str_key, (char*)key_B->str_key);
+  } else if (key_type == HASHMAP_KEY_BIT) {
     assert ((key_A->keylen > 0) && (key_B->keylen > 0));
     bool result = (key_A->keylen == key_B->keylen);
     if (!result) {
       return result;
     }
-    uint8_t *p_a = key_A->b_key,
-            *p_b = key_B->b_key;
+    uint8_t *p_a = key_A->bit_key,
+            *p_b = key_B->bit_key;
     int at_i = 0;
     while (*p_a == *p_b) {
       p_a++;
@@ -98,7 +98,7 @@ hashmap_key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* k
     result = (at_i == key_A->keylen);
     return result;
   } else if (key_type == HASHMAP_KEY_UINT32) {
-    return key_A->i_key == key_B->i_key;
+    return key_A->int_key == key_B->int_key;
   } else assert(0);
   return false;
 }
@@ -121,7 +121,7 @@ hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
 {
   HashmapEntry* entry = *(HashmapEntry**)array_get(&hashmap->entries, key->h);
   while (entry) {
-    if (hashmap_key_equal(hashmap->key_type, &entry->key, key)) {
+    if (key_equal(hashmap->key_type, &entry->key, key)) {
       break;
     }
     entry = entry->next_entry;
@@ -130,20 +130,20 @@ hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
 }
 
 HashmapEntry*
-hashmap_get_or_create_entry(Hashmap* hashmap, HashmapKey* key)
+hashmap_create_entry(Hashmap* hashmap, HashmapKey* key)
 {
   HashmapEntry* entry = hashmap_get_entry(hashmap, key);
   if (entry) {
     return entry;
   }
   if (hashmap->entry_count >= hashmap->capacity) {
-    HashmapCursor it = {};
-    hashmap_cursor_init(&it, hashmap);
-    HashmapEntry* first_entry = hashmap_move_cursor(&it);
+    HashmapCursor entry_it = {};
+    hashmap_cursor_init(&entry_it, hashmap);
+    HashmapEntry* first_entry = hashmap_move_cursor(&entry_it);
     HashmapEntry* last_entry = first_entry;
     int entry_count = first_entry ? 1 : 0;
-    for (HashmapEntry* entry = hashmap_move_cursor(&it);
-         entry != 0; entry = hashmap_move_cursor(&it)) {
+    for (HashmapEntry* entry = hashmap_move_cursor(&entry_it);
+         entry != 0; entry = hashmap_move_cursor(&entry_it)) {
       last_entry->next_entry = entry;
       last_entry = entry;
       entry_count += 1;
@@ -171,6 +171,26 @@ hashmap_get_or_create_entry(Hashmap* hashmap, HashmapKey* key)
   array_set(&hashmap->entries, key->h, &entry);
   hashmap->entry_count += 1;
   return entry;
+}
+
+HashmapEntry*
+hashmap_create_entry_uint32(Hashmap* map, uint32_t int_key)
+{
+  assert(map->key_type == HASHMAP_KEY_UINT32);
+  HashmapKey key = { .int_key = int_key };
+  hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
+  HashmapEntry* he = hashmap_create_entry(map, &key);
+  return he;
+}
+
+HashmapEntry*
+hashmap_get_entry_uint32(Hashmap* map, uint32_t int_key)
+{
+  assert(map->key_type == HASHMAP_KEY_UINT32);
+  HashmapKey key = { .int_key = int_key };
+  hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
+  HashmapEntry* he = hashmap_get_entry(map, &key);
+  return he;
 }
 
 void

@@ -83,7 +83,7 @@ enum TokenClass {
   TK_STRUCT,
   TK_CONST,
 
-  /* Special */
+  /* Control */
   TK_UNKNOWN,
   TK_START_OF_INPUT,
   TK_END_OF_INPUT,
@@ -117,23 +117,28 @@ enum AstEnum {
   AST_VOID_TYPE,
   AST_CONST,
   AST_EXTERN,
-  AST_FUNCTION_PROTO,
   AST_ACTION,
   AST_HEADER,
   AST_HEADER_UNION,
+  AST_HEADER_STACK,
   AST_STRUCT,
+  AST_STRUCT_FIELD,
   AST_ENUM,
   AST_ENUM_FIELD,
-  AST_TYPE,
+  AST_TYPEDEF,
   AST_TYPE_PARAM,
   AST_PARSER,
+  AST_PARSER_PROTO,
+  AST_PARSER_STATE,
   AST_CONTROL,
+  AST_CONTROL_PROTO,
   AST_PACKAGE,
   AST_INSTANTIATION,
   AST_ERROR_ENUM,
-  AST_MATCH_KIND,
   AST_ERROR_TYPE,
+  AST_MATCH_KIND,
   AST_FUNCTION,
+  AST_FUNCTION_PROTO,
   AST_DONTCARE,
   AST_INT_TYPESIZE,
   AST_INT_LITERAL,
@@ -141,11 +146,8 @@ enum AstEnum {
   AST_STRING_LITERAL,
   AST_TUPLE,
   AST_TUPLE_KEYSET,
-  AST_HEADER_STACK,
   AST_SPECIALIZED_TYPE,
   AST_SPECIFIED_IDENT,
-  AST_STRUCT_FIELD,
-  AST_PARSER_PROTO,
   AST_ARGUMENT,
   AST_VAR_DECL,
   AST_PARAM,
@@ -154,8 +156,6 @@ enum AstEnum {
   AST_EMPTY_STMT,
   AST_DEFAULT_STMT,
   AST_SELECT_CASE,
-  AST_PARSER_STATE,
-  AST_CONTROL_PROTO,
   AST_KEY_ELEMENT,
   AST_ACTION_REF,
   AST_TABLE,
@@ -196,20 +196,20 @@ enum AstOperator {
   OP_NOT,
 
   /* Relational */
-  OP_EQUAL,
-  OP_NOT_EQUAL,
+  OP_EQ,
+  OP_NEQ,
   OP_LESS,
-  OP_GREATER,
-  OP_LESS_EQUAL,
-  OP_GREATER_EQUAL,
+  OP_GREAT,
+  OP_LESS_EQ,
+  OP_GREAT_EQ,
 
   /* Bitwise */
-  OP_BITWISE_AND,
-  OP_BITWISE_OR,
-  OP_BITWISE_XOR,
-  OP_BITWISE_NOT,
-  OP_BITWISE_SHIFT_LEFT,
-  OP_BITWISE_SHIFT_RIGHT,
+  OP_BITW_AND,
+  OP_BITW_OR,
+  OP_BITW_XOR,
+  OP_BITW_NOT,
+  OP_BITW_SHL,
+  OP_BITW_SHR,
   OP_MASK,
 };
 
@@ -222,7 +222,7 @@ enum AstParamDirection {
 typedef struct Scope {
   int scope_level;
   struct Scope* parent_scope;
-  Hashmap decls;
+  Hashmap name_decls;
 } Scope;
 
 typedef struct Ast {
@@ -234,7 +234,8 @@ typedef struct Ast {
 
 typedef struct Ast_NodeList {
   Ast;
-  DList list;
+  DList members;
+  DList* last_member;
   int node_count;
 } Ast_NodeList;
 
@@ -339,15 +340,14 @@ typedef struct Ast_Enum {
   Ast;
   Ast* name;
   Ast* type_size;
-  Ast_NodeList id_list;
+  Ast_NodeList fields;
 } Ast_Enum;
 
-typedef struct Ast_Type {
+typedef struct Ast_TypeDef {
   Ast;
   Ast* name;
-  bool is_typedef;
   Ast* type_ref;
-} Ast_Type;
+} Ast_TypeDef;
 
 typedef struct Ast_Parser {
   Ast;
@@ -381,12 +381,12 @@ typedef struct Ast_Instantiation {
 
 typedef struct Ast_ErrorEnum {
   Ast;
-  Ast_NodeList id_list;
+  Ast_NodeList fields;
 } Ast_ErrorEnum;
 
 typedef struct Ast_MatchKind {
   Ast;
-  Ast_NodeList id_list;
+  Ast_NodeList fields;
 } Ast_MatchKind;
 
 typedef struct Ast_Function {
@@ -659,7 +659,7 @@ typedef struct NameEntry {
 } NameEntry;
 
 void symbol_table_init(Arena* scope_storage);
-NameEntry* namedecl_get_or_create(Hashmap* decls, char* name);
+NameEntry* namedecl_create(Hashmap* decls, char* name);
 NameEntry* namedecl_get(Hashmap* decls, char* name);
 Scope* push_scope();
 Scope* pop_scope();
@@ -675,56 +675,40 @@ enum TypeEnum {
   TYPE_BIT,
   TYPE_VARBIT,
   TYPE_STRING,
-  TYPE_ERROR,
-  TYPE_TYPESET,
+  TYPE_TYPE,
   TYPE_TYPEDEF,
-  TYPE_TYPENAME,
-  TYPE_TYPEPARAM,
   TYPE_PRODUCT,
   TYPE_UNION,
   TYPE_FUNCTION,
-  TYPE_FUNCTION_CALL,
+  TYPE_ARRAY,
 };
 
 typedef struct Type {
   enum TypeEnum ctor;
-  Ast* ast;
-  struct Type* type_params;
+  char* strname;
 } Type;
 
-typedef struct Type_TypeSet {
-  Type;
+typedef struct TypeSet {
+  Ast* ast;
   DList members;
   DList* last_member;
   int member_count;
-} Type_TypeSet;
+} TypeSet;
+
+typedef struct Type_Type {
+  Type;
+} Type_Type;
+
+typedef struct Type_Tuple {
+  Type;
+  Type* lhs_ty;
+  Type* rhs_ty;
+} Type_Tuple;
 
 typedef struct Type_TypeDef {
   Type;
-  char* strname;
+  Type* ref_ty;
 } Type_TypeDef;
-
-typedef struct Type_TypeName {
-  Type;
-  char* strname;
-} Type_TypeName;
-
-typedef struct Type_TypeParam {
-  Type;
-  char* strname;
-} Type_TypeParam;
-
-typedef struct Type_Product {
-  Type;
-  Type* lhs_ty;
-  Type* rhs_ty;
-} Type_Product;
-
-typedef struct Type_Union {
-  Type;
-  Type* lhs_ty;
-  Type* rhs_ty;
-} Type_Union;
 
 typedef struct Type_Function {
   Type;
@@ -732,14 +716,13 @@ typedef struct Type_Function {
   Type* return_ty;
 } Type_Function;
 
-typedef struct Type_FunctionCall {
+typedef struct Type_Array {
   Type;
-  Type* args_ty;
-  Type* return_ty;
-} Type_FunctionCall;
+  Type* element_ty;
+  int size;
+} Type_Array;
 
-Type_TypeSet* typeset_create(Hashmap* map, uint32_t ast_id);
-Type_TypeSet* typeset_get(Hashmap* map, uint32_t ast_id);
-void typeset_add_type(Type_TypeSet* ty_set, Type* type);
-void typeset_import_set(Type_TypeSet* to_set, Type_TypeSet* from_set);
+void tyset_add_type(Arena *type_storage, TypeSet* set, Type* type);
+void tyset_import_set(Arena *type_storage, TypeSet* to_set, TypeSet* from_set);
+bool tyset_contains_type(TypeSet* set, Type* target_type);
 

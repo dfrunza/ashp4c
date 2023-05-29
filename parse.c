@@ -254,12 +254,12 @@ build_typeParameterList(Ast_NodeList* params)
   params->id = node_id++;
   params->line_no = token->line_no;
   params->column_no = token->column_no;
-  params->list.next = 0;
+  params->members.next = 0;
   params->node_count = 0;
   if (token_is_typeParameterList(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&params->list, li);
+    dlist_concat(&params->members, li);
     params->node_count += 1;
     li->object = build_name(true);
     while (token->klass == TK_COMMA) {
@@ -368,12 +368,12 @@ build_parameterList(Ast_NodeList* params)
   params->id = node_id++;
   params->line_no = token->line_no;
   params->column_no = token->column_no;
-  params->list.next = 0;
+  params->members.next = 0;
   params->node_count = 0;
   if (token_is_parameter(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&params->list, li);
+    dlist_concat(&params->members, li);
     params->node_count += 1;
     li->object = build_parameter();
     while (token->klass == TK_COMMA) {
@@ -506,12 +506,12 @@ build_methodPrototypes(Ast_NodeList* protos)
   protos->id = node_id++;
   protos->line_no = token->line_no;
   protos->column_no = token->column_no;
-  protos->list.next = 0;
+  protos->members.next = 0;
   protos->node_count = 0;
   if (token_is_methodPrototype(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&protos->list, li);
+    dlist_concat(&protos->members, li);
     protos->node_count += 1;
     li->object = build_methodPrototype();
     while (token_is_methodPrototype(token)) {
@@ -765,12 +765,12 @@ build_typeArgumentList(Ast_NodeList* args)
   args->id = node_id++;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
-  args->list.next = 0;
+  args->members.next = 0;
   args->node_count = 0;
   if (token_is_typeArg(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&args->list, li);
+    dlist_concat(&args->members, li);
     args->node_count += 1;
     li->object = build_typeArg();
     while (token->klass == TK_COMMA) {
@@ -963,12 +963,12 @@ build_structFieldList(Ast_NodeList* fields)
   fields->id = node_id++;
   fields->line_no = token->line_no;
   fields->column_no = token->column_no;
-  fields->list.next = 0;
+  fields->members.next = 0;
   fields->node_count = 0;
   if (token_is_structField(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&fields->list, li);
+    dlist_concat(&fields->members, li);
     fields->node_count += 1;
     li->object = build_structField();
     while (token_is_structField(token)) {
@@ -1125,12 +1125,12 @@ build_specifiedIdentifierList(Ast_NodeList* ids)
   ids->id = node_id++;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
-  ids->list.next = 0;
+  ids->members.next = 0;
   ids->node_count = 0;
   if (token_is_specifiedIdentifier(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&ids->list, li);
+    dlist_concat(&ids->members, li);
     ids->node_count += 1;
     li->object = build_specifiedIdentifier();
     while (token->klass == TK_COMMA) {
@@ -1174,7 +1174,7 @@ build_enumDeclaration()
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
         if (token_is_specifiedIdentifier(token)) {
-          build_specifiedIdentifierList(&enum_decl->id_list);
+          build_specifiedIdentifierList(&enum_decl->fields);
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -1437,12 +1437,12 @@ build_argumentList(Ast_NodeList* args)
   args->id = node_id++;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
-  args->list.next = 0;
+  args->members.next = 0;
   args->node_count = 0;
   if (token_is_argument(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&args->list, li);
+    dlist_concat(&args->members, li);
     args->node_count += 1;
     li->object = build_argument();
     while (token->klass == TK_COMMA) {
@@ -1565,12 +1565,12 @@ build_parserLocalElements(Ast_NodeList* elems)
   elems->id = node_id++;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
-  elems->list.next = 0;
+  elems->members.next = 0;
   elems->node_count = 0;
   if (token_is_parserLocalElement(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&elems->list, li);
+    dlist_concat(&elems->members, li);
     elems->node_count += 1;
     li->object = build_parserLocalElement();
     while (token_is_parserLocalElement(token)) {
@@ -1783,12 +1783,12 @@ build_parserStatements(Ast_NodeList* stmts)
   stmts->id = node_id++;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
-  stmts->list.next = 0;
+  stmts->members.next = 0;
   stmts->node_count = 0;
   if (token_is_parserStatement(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&stmts->list, li);
+    dlist_concat(&stmts->members, li);
     stmts->node_count += 1;
     li->object = build_parserStatement();
     while (token_is_parserStatement(token)) {
@@ -1864,12 +1864,12 @@ build_expressionList(Ast_NodeList* exprs)
   exprs->id = node_id++;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
-  exprs->list.next = 0;
+  exprs->members.next = 0;
   exprs->node_count = 0;
   if (token_is_expression(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&exprs->list, li);
+    dlist_concat(&exprs->members, li);
     exprs->node_count += 1;
     li->object = build_expression(1);
     while (token->klass == TK_COMMA) {
@@ -1918,12 +1918,12 @@ build_keysetExpressionList(Ast_NodeList* exprs)
   exprs->id = node_id++;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
-  exprs->list.next = 0;
+  exprs->members.next = 0;
   exprs->node_count = 0;
   if (token_is_expression(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&exprs->list, li);
+    dlist_concat(&exprs->members, li);
     exprs->node_count += 1;
     li->object = build_simpleKeysetExpression();
     while (token->klass == TK_COMMA) {
@@ -2010,12 +2010,12 @@ build_selectCaseList(Ast_NodeList* cases)
   cases->id = node_id++;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
-  cases->list.next = 0;
+  cases->members.next = 0;
   cases->node_count = 0;
   if (token_is_selectCase(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&cases->list, li);
+    dlist_concat(&cases->members, li);
     cases->node_count += 1;
     li->object = build_selectCase();
     while (token_is_selectCase(token)) {
@@ -2130,12 +2130,12 @@ build_parserStates(Ast_NodeList* states)
   states->id = node_id++;
   states->line_no = token->line_no;
   states->column_no = token->column_no;
-  states->list.next = 0;
+  states->members.next = 0;
   states->node_count = 0;
   if (token->klass == TK_STATE) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&states->list, li);
+    dlist_concat(&states->members, li);
     states->node_count += 1;
     li->object = build_parserState();
     while (token->klass == TK_STATE) {
@@ -2282,12 +2282,12 @@ build_keyElementList(Ast_NodeList* elems)
   elems->id = node_id++;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
-  elems->list.next = 0;
+  elems->members.next = 0;
   elems->node_count = 0;
   if (token_is_expression(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&elems->list, li);
+    dlist_concat(&elems->members, li);
     elems->node_count += 1;
     li->object = build_keyElement();
     while (token_is_expression(token)) {
@@ -2325,12 +2325,12 @@ build_actionList(Ast_NodeList* actions)
   actions->id = node_id++;
   actions->line_no = token->line_no;
   actions->column_no = token->column_no;
-  actions->list.next = 0;
+  actions->members.next = 0;
   actions->node_count = 0;
   if (token_is_actionRef(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&actions->list, li);
+    dlist_concat(&actions->members, li);
     actions->node_count += 1;
     li->object = build_actionRef();
     if (token->klass == TK_SEMICOLON) {
@@ -2384,12 +2384,12 @@ build_entriesList(Ast_NodeList* entries)
   entries->id = node_id++;
   entries->line_no = token->line_no;
   entries->column_no = token->column_no;
-  entries->list.next = 0;
+  entries->members.next = 0;
   entries->node_count = 0;
   if (token_is_keysetExpression(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&entries->list, li);
+    dlist_concat(&entries->members, li);
     entries->node_count += 1;
     li->object = build_entry();
     while (token_is_keysetExpression(token)) {
@@ -2509,12 +2509,12 @@ build_tablePropertyList(Ast_NodeList* props)
   props->id = node_id++;
   props->line_no = token->line_no;
   props->column_no = token->column_no;
-  props->list.next = 0;
+  props->members.next = 0;
   props->node_count = 0;
   if (token_is_tableProperty(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&props->list, li);
+    dlist_concat(&props->members, li);
     props->node_count += 1;
     li->object = build_tableProperty();
     while (token_is_tableProperty(token)) {
@@ -2592,12 +2592,12 @@ build_controlLocalDeclarations(Ast_NodeList* decls)
   decls->id = node_id++;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
-  decls->list.next = 0;
+  decls->members.next = 0;
   decls->node_count = 0;
   if (token_is_controlLocalDeclaration(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&decls->list, li);
+    dlist_concat(&decls->members, li);
     decls->node_count += 1;
     li->object = build_controlLocalDeclaration();
     while (token_is_controlLocalDeclaration(token)) {
@@ -2682,21 +2682,13 @@ internal Ast*
 build_typedefDeclaration()
 {
   if (token->klass == TK_TYPEDEF || token->klass == TK_TYPE) {
-    bool is_typedef = false;
-    if (token->klass == TK_TYPEDEF) {
-      is_typedef = true;
-      next_token();
-    } else if (token->klass == TK_TYPE) {
-      next_token();
-    } else assert(0);
-
+    next_token();
     if (token_is_typeRef(token) || token_is_derivedTypeDeclaration(token)) {
-      Ast_Type* type_decl = arena_push_struct(ast_storage, Ast_Type);
-      type_decl->kind = AST_TYPE;
+      Ast_TypeDef* type_decl = arena_push_struct(ast_storage, Ast_TypeDef);
+      type_decl->kind = AST_TYPEDEF;
       type_decl->id = node_id++;
       type_decl->line_no = token->line_no;
       type_decl->column_no = token->column_no;
-      type_decl->is_typedef = is_typedef;
       if (token_is_typeRef(token)) {
         type_decl->type_ref = build_typeRef();
       } else if (token_is_derivedTypeDeclaration(token)) {
@@ -2886,12 +2878,12 @@ build_switchCases(Ast_NodeList* cases)
   cases->id = node_id++;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
-  cases->list.next = 0;
+  cases->members.next = 0;
   cases->node_count = 0;
   if (token_is_switchLabel(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&cases->list, li);
+    dlist_concat(&cases->members, li);
     cases->node_count += 1;
     li->object = build_switchCase();
     while (token_is_switchLabel(token)) {
@@ -3013,12 +3005,12 @@ build_statementOrDeclList(Ast_NodeList* stmts)
   stmts->id = node_id++;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
-  stmts->list.next = 0;
+  stmts->members.next = 0;
   stmts->node_count = 0;
   if (token_is_statementOrDeclaration(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&stmts->list, li);
+    dlist_concat(&stmts->members, li);
     stmts->node_count += 1;
     li->object = build_statementOrDecl();
     while (token_is_statementOrDeclaration(token)) {
@@ -3060,12 +3052,12 @@ build_identifierList(Ast_NodeList* ids)
   ids->id = node_id++;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
-  ids->list.next = 0;
+  ids->members.next = 0;
   ids->node_count = 0;
   if (token_is_name(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&ids->list, li);
+    dlist_concat(&ids->members, li);
     ids->node_count += 1;
     li->object = build_name(false);
     while (token->klass == TK_COMMA) {
@@ -3093,7 +3085,7 @@ build_errorDeclaration()
       next_token();
       if (token_is_name(token)) {
         if (token_is_name(token)) {
-          build_identifierList(&error_decl->id_list);
+          build_identifierList(&error_decl->fields);
         } else error("At line %d, column %d: name was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
         if (token->klass == TK_BRACE_CLOSE) {
@@ -3124,7 +3116,7 @@ build_matchKindDeclaration()
     if (token->klass == TK_BRACE_OPEN) {
       next_token();
       if (token_is_name(token)) {
-        build_identifierList(&match_decl->id_list);
+        build_identifierList(&match_decl->fields);
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -3212,12 +3204,12 @@ build_declarationList(Ast_NodeList* decls)
   decls->id = node_id++;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
-  decls->list.next = 0;
+  decls->members.next = 0;
   decls->node_count = 0;
   if (token_is_declaration(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&decls->list, li);
+    dlist_concat(&decls->members, li);
     decls->node_count += 1;
     li->object = build_declaration();
     while (token_is_declaration(token) || token->klass == TK_SEMICOLON) {
@@ -3312,12 +3304,12 @@ build_realTypeArgumentList(Ast_NodeList* args)
   args->id = node_id++;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
-  args->list.next = 0;
+  args->members.next = 0;
   args->node_count = 0;
   if (token_is_realTypeArg(token)) {
     DList* li = arena_push_struct(ast_storage, DList);
     DList* last = li;
-    dlist_concat(&args->list, li);
+    dlist_concat(&args->members, li);
     args->node_count += 1;
     li->object = build_realTypeArg();
     while (token->klass == TK_COMMA) {
@@ -3415,7 +3407,7 @@ build_expressionPrimary()
       unary_expr->id = node_id++;
       unary_expr->line_no = token->line_no;
       unary_expr->column_no = token->column_no;
-      unary_expr->op = OP_BITWISE_NOT;
+      unary_expr->op = OP_BITW_NOT;
       unary_expr->operand = build_expression(1);
       return (Ast*)unary_expr;
     } else if (token->klass == TK_UNARY_MINUS) {
@@ -3488,17 +3480,17 @@ token_to_binop(Token* token)
     case TK_DOUBLE_PIPE:
       return OP_OR;
     case TK_DOUBLE_EQUAL:
-      return OP_EQUAL;
+      return OP_EQ;
     case TK_EXCLAMATION_EQUAL:
-      return OP_NOT_EQUAL;
+      return OP_NEQ;
     case TK_ANGLE_OPEN:
       return OP_LESS;
     case TK_ANGLE_CLOSE:
-      return OP_GREATER;
+      return OP_GREAT;
     case TK_ANGLE_OPEN_EQUAL:
-      return OP_LESS_EQUAL;
+      return OP_LESS_EQ;
     case TK_ANGLE_CLOSE_EQUAL:
-      return OP_GREATER_EQUAL;
+      return OP_GREAT_EQ;
     case TK_PLUS:
       return OP_ADD;
     case TK_MINUS:
@@ -3508,15 +3500,15 @@ token_to_binop(Token* token)
     case TK_SLASH:
       return OP_DIV;
     case TK_AMPERSAND:
-      return OP_BITWISE_AND;
+      return OP_BITW_AND;
     case TK_PIPE:
-      return OP_BITWISE_OR;
+      return OP_BITW_OR;
     case TK_CIRCUMFLEX:
-      return OP_BITWISE_XOR;
+      return OP_BITW_XOR;
     case TK_DOUBLE_ANGLE_OPEN:
-      return OP_BITWISE_SHIFT_LEFT;
+      return OP_BITW_SHL;
     case TK_DOUBLE_ANGLE_CLOSE:
-      return OP_BITWISE_SHIFT_RIGHT;
+      return OP_BITW_SHR;
     case TK_TRIPLE_AMPERSAND:
       return OP_MASK;
     default: return 0;
