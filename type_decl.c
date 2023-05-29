@@ -41,7 +41,7 @@ visit_unary_expr(Ast* ast)
 internal void
 visit_name_identifier(Ast* ast)
 {
-  assert(ast->kind == AST_nonTypeName);
+  assert(ast->kind == AST_name);
   // pass
 }
 
@@ -151,7 +151,7 @@ visit_expression(Ast* ast)
     visit_binary_expr(ast);
   } else if (ast->kind == AST_unaryExpression) {
     visit_unary_expr(ast);
-  } else if (ast->kind == AST_nonTypeName) {
+  } else if (ast->kind == AST_name) {
     visit_name_identifier(ast);
   } else if (ast->kind == AST_functionCall) {
     visit_function_call(ast);
@@ -186,7 +186,7 @@ visit_param(Ast* ast)
 internal void
 visit_type_param(Ast* ast)
 {
-  assert(ast->kind == AST_nonTypeName);
+  assert(ast->kind == AST_name);
   Ast_Name* name = (Ast_Name*)ast;
   if (!name->scope) {
     /* Declaration of a type parameter. */
@@ -561,7 +561,7 @@ visit_select_expr(Ast* ast)
 internal void
 visit_parser_transition(Ast* ast)
 {
-  if (ast->kind == AST_nonTypeName) {
+  if (ast->kind == AST_name) {
     // pass
   } else if (ast->kind == AST_selectExpression) {
     visit_select_expr(ast);
@@ -648,7 +648,7 @@ visit_header_stack(Ast* ast)
 internal void
 visit_name_type(Ast* ast)
 {
-  assert(ast->kind == AST_nonTypeName);
+  assert(ast->kind == AST_name);
   Ast_Name* name = (Ast_Name*)ast;
   if (!name->scope) {
     /* Declaration of a type parameter. */
@@ -715,7 +715,7 @@ visit_type_ref(Ast* ast)
     visit_error_type(ast);
   } else if (ast->kind == AST_headerStackType) {
     visit_header_stack(ast);
-  } else if (ast->kind == AST_nonTypeName) {
+  } else if (ast->kind == AST_name) {
     visit_name_type(ast);
   } else if (ast->kind == AST_specializedType) {
     visit_specialized_type(ast);
@@ -736,7 +736,7 @@ visit_type_ref(Ast* ast)
 internal void
 visit_enum_field(Ast* ast)
 {
-  assert(ast->kind == AST_nonTypeName);
+  assert(ast->kind == AST_name);
   // pass
 }
 
@@ -1055,7 +1055,7 @@ visit_enum(Ast* ast)
     DList* field_li = fields->members.next;
     while (field_li) {
       Ast* field = field_li->object;
-      if (field->kind == AST_nonTypeName) {
+      if (field->kind == AST_name) {
         visit_enum_field(field);
       } else if (field->kind == AST_specifiedIdentifier) {
         visit_specified_identifier(field);
@@ -1104,7 +1104,7 @@ visit_match_kind(Ast* ast)
     DList* field_li = fields->members.next;
     while (field_li) {
       Ast* field = field_li->object;
-      if (field->kind == AST_nonTypeName) {
+      if (field->kind == AST_name) {
         visit_enum_field(field);
       } else if (field->kind == AST_specifiedIdentifier) {
         visit_specified_identifier(field);
@@ -1125,7 +1125,7 @@ visit_error_enum(Ast* ast)
     DList* field_li = fields->members.next;
     while (field_li) {
       Ast* field = field_li->object;
-      if (field->kind == AST_nonTypeName) {
+      if (field->kind == AST_name) {
         visit_enum_field(field);
       }
       else assert(0);

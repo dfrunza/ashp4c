@@ -117,9 +117,11 @@ typedef struct HashmapCursor {
 void hashmap_init(Hashmap* hashmap, enum HashmapKeyType type, int capacity_log2, Arena* storage);
 void hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ HashmapKey* key, int capacity_log2);
 HashmapEntry* hashmap_create_entry(Hashmap* hashmap, HashmapKey* key);
-HashmapEntry* hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
 HashmapEntry* hashmap_create_entry_uint32(Hashmap* map, uint32_t int_key);
+HashmapEntry* hashmap_create_entry_string(Hashmap* map, char* str_key);
+HashmapEntry* hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
 HashmapEntry* hashmap_get_entry_uint32(Hashmap* map, uint32_t int_key);
+HashmapEntry* hashmap_get_entry_string(Hashmap* map, char* str_key);
 void hashmap_cursor_init(HashmapCursor* it, Hashmap* hashmap);
 HashmapEntry* hashmap_move_cursor(HashmapCursor* it);
 

@@ -107,7 +107,7 @@ typedef struct Token {
 } Token;
 
 enum AstEnum {
-  AST_nonTypeName = 1,
+  AST_name = 1,
   AST_baseTypeBool,
   AST_baseTypeInt,
   AST_baseTypeBit,
@@ -688,7 +688,6 @@ typedef struct NameEntry {
 } NameEntry;
 
 void symbol_table_init(Arena* scope_storage);
-NameEntry* namedecl_create(Hashmap* decls, char* name);
 NameEntry* namedecl_get(Hashmap* decls, char* name);
 Scope* push_scope();
 Scope* pop_scope();

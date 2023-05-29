@@ -419,7 +419,7 @@ build_nonTypeName(bool is_type)
 {
   if (token_is_nonTypeName(token)) {
     Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
-    name->kind = AST_nonTypeName;
+    name->kind = AST_name;
     name->id = node_id++;
     name->line_no = token->line_no;
     name->column_no = token->column_no;
@@ -444,7 +444,7 @@ build_name(bool is_type)
       return (Ast*)name;
     } else if (token->klass == TK_TYPE_IDENTIFIER) {
       Ast_Name* type_name = arena_push_struct(ast_storage, Ast_Name);
-      type_name->kind = AST_nonTypeName;
+      type_name->kind = AST_name;
       type_name->id = node_id++;
       type_name->line_no = token->line_no;
       type_name->column_no = token->column_no;
@@ -611,7 +611,7 @@ build_typeOrVoid(bool is_type)
       return type;
     } else if (token->klass == TK_VOID) {
       Ast_Name* void_name = arena_push_struct(ast_storage, Ast_Name);
-      void_name->kind = AST_nonTypeName;
+      void_name->kind = AST_name;
       void_name->id = node_id++;
       void_name->line_no = token->line_no;
       void_name->column_no = token->column_no;
@@ -620,7 +620,7 @@ build_typeOrVoid(bool is_type)
       return (Ast*)void_name;
     } else if (token->klass == TK_IDENTIFIER) {
       Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
-      name->kind = AST_nonTypeName;
+      name->kind = AST_name;
       name->id = node_id++;
       name->line_no = token->line_no;
       name->column_no = token->column_no;
@@ -869,7 +869,7 @@ build_baseType()
 {
   if (token_is_baseType(token)) {
     Ast_Name* type_name = arena_push_struct(ast_storage, Ast_Name);
-    type_name->kind = AST_nonTypeName;
+    type_name->kind = AST_name;
     type_name->id = node_id++;
     type_name->line_no = token->line_no;
     type_name->column_no = token->column_no;
@@ -1082,7 +1082,7 @@ build_prefixedType()
   }
   if (token->klass == TK_TYPE_IDENTIFIER) {
     Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
-    name->kind = AST_nonTypeName;
+    name->kind = AST_name;
     name->id = node_id++;
     name->line_no = token->line_no;
     name->column_no = token->column_no;
@@ -1748,7 +1748,7 @@ build_prefixedNonTypeName()
   }
   if (token_is_nonTypeName(token)) {
     Ast_Name* name = (Ast_Name*)build_nonTypeName(false);
-    name->kind = AST_nonTypeName;
+    name->kind = AST_name;
     return (Ast*)name;
   } else error("At line %d, column %d: non-type name was expected, ",
                token->line_no, token->column_no, token->lexeme);
@@ -3510,7 +3510,7 @@ build_expressionPrimary()
       return primary;
     } else if (token->klass == TK_ERROR) {
       Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
-      name->kind = AST_nonTypeName;
+      name->kind = AST_name;
       name->id = node_id++;
       name->line_no = token->line_no;
       name->column_no = token->column_no;
