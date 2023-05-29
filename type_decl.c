@@ -598,56 +598,42 @@ internal void
 visit_bool_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeBool);
-  NameEntry* ne = scope_lookup_name(root_scope, "bool");
-  Ast* bool_decl = ne->ns_type->ast;
 }
 
 internal void
 visit_int_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeInt);
-  NameEntry* ne = scope_lookup_name(root_scope, "int");
-  Ast* int_decl = ne->ns_type->ast;
 }
 
 internal void
 visit_bit_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeBit);
-  NameEntry* ne = scope_lookup_name(root_scope, "bit");
-  Ast* bit_decl = ne->ns_type->ast;
 }
 
 internal void
 visit_varbit_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeVarbit);
-  NameEntry* ne = scope_lookup_name(root_scope, "varbit");
-  Ast* varbit_decl = ne->ns_type->ast;
 }
 
 internal void
 visit_string_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeString);
-  NameEntry* ne = scope_lookup_name(root_scope, "string");
-  Ast* string_decl = ne->ns_type->ast;
 }
 
 internal void
 visit_void_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeVoid);
-  NameEntry* ne = scope_lookup_name(root_scope, "void");
-  Ast* void_decl = ne->ns_type->ast;
 }
 
 internal void
 visit_error_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeError);
-  NameEntry* ne = scope_lookup_name(root_scope, "error");
-  Ast* error_decl = ne->ns_type->ast;
 }
 
 internal void
@@ -1201,7 +1187,7 @@ visit_p4program(Ast* ast)
 }
 
 Hashmap*
-build_decl_type(Ast_P4Program* p4program, Scope* root_scope_, Arena* type_storage_)
+build_type_decl(Ast_P4Program* p4program, Scope* root_scope_, Arena* type_storage_)
 {
   root_scope = root_scope_;
   type_storage = type_storage_;
