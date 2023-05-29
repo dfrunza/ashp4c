@@ -230,20 +230,14 @@ typedef struct Ast {
   uint32_t id;
   int line_no;
   int column_no;
-  struct {
-    DList members;
-    DList* last_member;
-    int member_count;
-  } children;
 } Ast;
 
-/*
-typedef struct Ast_NodeList {
+typedef struct Ast_List {
   Ast;
   DList members;
   DList* last_member;
-  int node_count;
-} Ast_NodeList; */
+  int member_count;
+} Ast_List;
 
 typedef struct Ast_Expression {
   Ast;
@@ -705,11 +699,12 @@ typedef struct Type_Type {
   Type;
 } Type_Type;
 
-typedef struct Type_Tuple {
+typedef struct Type_Vector {
   Type;
-  Type* lhs_ty;
-  Type* rhs_ty;
-} Type_Tuple;
+  DList members;
+  DList* last_member;
+  int size;
+} Type_Vector;
 
 typedef struct Type_TypeDef {
   Type;
