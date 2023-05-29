@@ -208,7 +208,7 @@ build_nonTypeName(bool is_type)
 {
   if (token_is_nonTypeName(token)) {
     Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
-    name->kind = AST_NAME;
+    name->kind = AST_nonTypeName;
     name->id = node_id++;
     name->line_no = token->line_no;
     name->column_no = token->column_no;
@@ -233,7 +233,7 @@ build_name(bool is_type)
       return (Ast*)name;
     } else if (token->klass == TK_TYPE_IDENTIFIER) {
       Ast_Name* type_name = arena_push_struct(ast_storage, Ast_Name);
-      type_name->kind = AST_NAME;
+      type_name->kind = AST_nonTypeName;
       type_name->id = node_id++;
       type_name->line_no = token->line_no;
       type_name->column_no = token->column_no;
@@ -251,7 +251,7 @@ internal Ast*
 build_typeParameterList()
 {
   Ast_List* params = arena_push_struct(ast_storage, Ast_List);
-  params->kind = AST_NODE_LIST;
+  params->kind = AST_typeParameterList;
   params->id = node_id++;
   params->line_no = token->line_no;
   params->column_no = token->column_no;
@@ -300,7 +300,7 @@ build_typeArg()
   if (token_is_typeArg(token)) {
     if (token->klass == TK_DONTCARE) {
       Ast* dontcare = arena_push_struct(ast_storage, Ast);
-      dontcare->kind = AST_DONTCARE;
+      dontcare->kind = AST_dontcareTypeArgument;
       dontcare->id = node_id++;
       dontcare->line_no = token->line_no;
       dontcare->column_no = token->column_no;
@@ -341,7 +341,7 @@ internal Ast*
 build_parameter()
 {
   Ast_Param* param = arena_push_struct(ast_storage, Ast_Param);
-  param->kind = AST_PARAM;
+  param->kind = AST_parameter;
   param->id = node_id++;
   param->line_no = token->line_no;
   param->column_no = token->column_no;
@@ -368,7 +368,7 @@ internal Ast*
 build_parameterList()
 {
   Ast_List* params = arena_push_struct(ast_storage, Ast_List);
-  params->kind = AST_NODE_LIST;
+  params->kind = AST_parameterList;
   params->id = node_id++;
   params->line_no = token->line_no;
   params->column_no = token->column_no;
@@ -400,7 +400,7 @@ build_typeOrVoid(bool is_type)
       return type;
     } else if (token->klass == TK_VOID) {
       Ast_Name* void_name = arena_push_struct(ast_storage, Ast_Name);
-      void_name->kind = AST_NAME;
+      void_name->kind = AST_nonTypeName;
       void_name->id = node_id++;
       void_name->line_no = token->line_no;
       void_name->column_no = token->column_no;
@@ -409,7 +409,7 @@ build_typeOrVoid(bool is_type)
       return (Ast*)void_name;
     } else if (token->klass == TK_IDENTIFIER) {
       Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
-      name->kind = AST_NAME;
+      name->kind = AST_nonTypeName;
       name->id = node_id++;
       name->line_no = token->line_no;
       name->column_no = token->column_no;
@@ -431,7 +431,7 @@ build_functionPrototype(Ast* return_type)
 {
   if (token_is_typeOrVoid(token) || return_type) {
     Ast_FunctionProto* proto = arena_push_struct(ast_storage, Ast_FunctionProto);
-    proto->kind = AST_FUNCTION_PROTO;
+    proto->kind = AST_functionPrototype;
     proto->id = node_id++;
     proto->line_no = token->line_no;
     proto->column_no = token->column_no;
@@ -468,7 +468,7 @@ build_methodPrototype()
     if (token->klass == TK_TYPE_IDENTIFIER && peek_token()->klass == TK_PARENTH_OPEN) {
       /* Constructor */
       Ast_FunctionProto* proto = arena_push_struct(ast_storage, Ast_FunctionProto);
-      proto->kind = AST_FUNCTION_PROTO;
+      proto->kind = AST_functionPrototype;
       proto->id = node_id++;
       proto->line_no = token->line_no;
       proto->column_no = token->column_no;
@@ -507,7 +507,7 @@ internal Ast*
 build_methodPrototypes()
 {
   Ast_List* protos = arena_push_struct(ast_storage, Ast_List);
-  protos->kind = AST_NODE_LIST;
+  protos->kind = AST_methodPrototypes;
   protos->id = node_id++;
   protos->line_no = token->line_no;
   protos->column_no = token->column_no;
@@ -554,7 +554,7 @@ build_externDeclaration()
       return (Ast*)proto;
     } else {
       Ast_Extern* extern_decl = arena_push_struct(ast_storage, Ast_Extern);
-      extern_decl->kind = AST_EXTERN;
+      extern_decl->kind = AST_externDeclaration;
       extern_decl->id = node_id++;
       extern_decl->line_no = token->line_no;
       extern_decl->column_no = token->column_no;
@@ -582,7 +582,7 @@ build_integer()
 {
   if (token->klass == TK_INT_LITERAL) {
     Ast_IntLiteral* int_literal = arena_push_struct(ast_storage, Ast_IntLiteral);
-    int_literal->kind = AST_INT_LITERAL;
+    int_literal->kind = AST_integerLiteral;
     int_literal->id = node_id++;
     int_literal->line_no = token->line_no;
     int_literal->column_no = token->column_no;
@@ -602,7 +602,7 @@ build_boolean()
 {
   if (token->klass == TK_TRUE || token->klass == TK_FALSE) {
     Ast_BoolLiteral* bool_literal = arena_push_struct(ast_storage, Ast_BoolLiteral);
-    bool_literal->kind = AST_BOOL_LITERAL;
+    bool_literal->kind = AST_booleanLiteral;
     bool_literal->id = node_id++;
     bool_literal->line_no = token->line_no;
     bool_literal->column_no = token->column_no;
@@ -620,7 +620,7 @@ build_stringLiteral()
 {
   if (token->klass == TK_STRING_LITERAL) {
     Ast_StringLiteral* string_literal = arena_push_struct(ast_storage, Ast_StringLiteral);
-    string_literal->kind = AST_STRING_LITERAL;
+    string_literal->kind = AST_stringLiteral;
     string_literal->id = node_id++;
     string_literal->line_no = token->line_no;
     string_literal->column_no = token->column_no;
@@ -637,7 +637,7 @@ internal Ast*
 build_integerTypeSize()
 {
   Ast_IntTypeSize* type_size = arena_push_struct(ast_storage, Ast_IntTypeSize);
-  type_size->kind = AST_INT_TYPESIZE;
+  type_size->kind = AST_integerTypeSize;
   type_size->id = node_id++;
   type_size->line_no = token->line_no;
   type_size->column_no = token->column_no;
@@ -658,13 +658,13 @@ build_baseType()
 {
   if (token_is_baseType(token)) {
     Ast_Name* type_name = arena_push_struct(ast_storage, Ast_Name);
-    type_name->kind = AST_NAME;
+    type_name->kind = AST_nonTypeName;
     type_name->id = node_id++;
     type_name->line_no = token->line_no;
     type_name->column_no = token->column_no;
     if (token->klass == TK_BOOL) {
       Ast_BoolType* bool_type = arena_push_struct(ast_storage, Ast_BoolType);
-      bool_type->kind = AST_BOOL_TYPE;
+      bool_type->kind = AST_baseTypeBool;
       bool_type->id = node_id++;
       bool_type->line_no = token->line_no;
       bool_type->column_no = token->column_no;
@@ -674,7 +674,7 @@ build_baseType()
       return (Ast*)bool_type;
     } else if (token->klass == TK_ERROR) {
       Ast_ErrorType* error_type = arena_push_struct(ast_storage, Ast_ErrorType);
-      error_type->kind = AST_ERROR_TYPE;
+      error_type->kind = AST_baseTypeError;
       error_type->id = node_id++;
       error_type->line_no = token->line_no;
       error_type->column_no = token->column_no;
@@ -684,7 +684,7 @@ build_baseType()
       return (Ast*)error_type;
     } else if (token->klass == TK_INT) {
       Ast_IntType* int_type = arena_push_struct(ast_storage, Ast_IntType);
-      int_type->kind = AST_INT_TYPE;
+      int_type->kind = AST_baseTypeInt;
       int_type->id = node_id++;
       int_type->line_no = token->line_no;
       int_type->column_no = token->column_no;
@@ -702,7 +702,7 @@ build_baseType()
       return (Ast*)int_type;
     } else if (token->klass == TK_BIT) {
       Ast_BitType* bit_type = arena_push_struct(ast_storage, Ast_BitType);
-      bit_type->kind = AST_BIT_TYPE;
+      bit_type->kind = AST_baseTypeBit;
       bit_type->id = node_id++;
       bit_type->line_no = token->line_no;
       bit_type->column_no = token->column_no;
@@ -720,7 +720,7 @@ build_baseType()
       return (Ast*)bit_type;
     } else if (token->klass == TK_VARBIT) {
       Ast_VarbitType* varbit_type = arena_push_struct(ast_storage, Ast_VarbitType);
-      varbit_type->kind = AST_VARBIT_TYPE;
+      varbit_type->kind = AST_baseTypeVarbit;
       varbit_type->id = node_id++;
       varbit_type->line_no = token->line_no;
       varbit_type->column_no = token->column_no;
@@ -738,7 +738,7 @@ build_baseType()
       return (Ast*)varbit_type;
     } else if (token->klass == TK_STRING) {
       Ast_StringType* string_type = arena_push_struct(ast_storage, Ast_StringType);
-      string_type->kind = AST_STRING_TYPE;
+      string_type->kind = AST_baseTypeString;
       string_type->id = node_id++;
       string_type->line_no = token->line_no;
       string_type->column_no = token->column_no;
@@ -748,7 +748,7 @@ build_baseType()
       return (Ast*)string_type;
     } else if (token->klass == TK_VOID) {
       Ast_VoidType* void_type = arena_push_struct(ast_storage, Ast_VoidType);
-      void_type->kind = AST_VOID_TYPE;
+      void_type->kind = AST_baseTypeVoid;
       void_type->id = node_id++;
       void_type->line_no = token->line_no;
       void_type->column_no = token->column_no;
@@ -767,7 +767,7 @@ internal Ast*
 build_typeArgumentList()
 {
   Ast_List* args = arena_push_struct(ast_storage, Ast_List);
-  args->kind = AST_NODE_LIST;
+  args->kind = AST_typeArgumentList;
   args->id = node_id++;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
@@ -796,7 +796,7 @@ build_tupleType()
   if (token->klass == TK_TUPLE) {
     next_token();
     Ast_Tuple* tuple = arena_push_struct(ast_storage, Ast_Tuple);
-    tuple->kind = AST_TUPLE;
+    tuple->kind = AST_tupleType;
     tuple->id = node_id++;
     tuple->line_no = token->line_no;
     tuple->column_no = token->column_no;
@@ -822,7 +822,7 @@ build_headerStackType()
   if (token->klass == TK_BRACKET_OPEN) {
     next_token();
     Ast_HeaderStack* stack = arena_push_struct(ast_storage, Ast_HeaderStack);
-    stack->kind = AST_HEADER_STACK;
+    stack->kind = AST_headerStackType;
     stack->id = node_id++;
     stack->line_no = token->line_no;
     stack->column_no = token->column_no;
@@ -847,7 +847,7 @@ build_specializedType()
   if (token->klass == TK_ANGLE_OPEN) {
     next_token();
     Ast_SpecializedType* type = arena_push_struct(ast_storage, Ast_SpecializedType);
-    type->kind = AST_SPECIALIZED_TYPE;
+    type->kind = AST_specializedType;
     type->id = node_id++;
     type->line_no = token->line_no;
     type->column_no = token->column_no;
@@ -866,14 +866,12 @@ build_specializedType()
 internal Ast*
 build_prefixedType()
 {
-  bool is_dotprefixed = false;
   if (token->klass == TK_DOTPREFIX) {
     next_token();
-    is_dotprefixed = true;
   }
   if (token->klass == TK_TYPE_IDENTIFIER) {
     Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
-    name->kind = is_dotprefixed ? AST_DOTNAME : AST_NAME;
+    name->kind = AST_nonTypeName;
     name->id = node_id++;
     name->line_no = token->line_no;
     name->column_no = token->column_no;
@@ -893,12 +891,12 @@ build_typeName()
     Ast* name = build_prefixedType();
     if (token->klass == TK_ANGLE_OPEN) {
       Ast* speclzd_type = build_specializedType();
-      assert (speclzd_type->kind == AST_SPECIALIZED_TYPE);
+      assert (speclzd_type->kind == AST_specializedType);
       ((Ast_SpecializedType*)speclzd_type)->name = name;
       name = speclzd_type;
     } if (token->klass == TK_BRACKET_OPEN) {
       Ast* stack_type = build_headerStackType();
-      assert (stack_type->kind == AST_HEADER_STACK);
+      assert (stack_type->kind == AST_headerStackType);
       ((Ast_HeaderStack*)stack_type)->name = name;
       name = stack_type;
     }
@@ -942,7 +940,7 @@ build_structField()
 {
   if (token_is_structField(token)) {
     Ast_StructField* field = arena_push_struct(ast_storage, Ast_StructField);
-    field->kind = AST_STRUCT_FIELD;
+    field->kind = AST_structField;
     field->id = node_id++;
     field->line_no = token->line_no;
     field->column_no = token->column_no;
@@ -966,7 +964,7 @@ internal Ast*
 build_structFieldList()
 {
   Ast_List* fields = arena_push_struct(ast_storage, Ast_List);
-  fields->kind = AST_NODE_LIST;
+  fields->kind = AST_structFieldList;
   fields->id = node_id++;
   fields->line_no = token->line_no;
   fields->column_no = token->column_no;
@@ -994,7 +992,7 @@ build_headerTypeDeclaration()
   if (token->klass == TK_HEADER) {
     next_token();
     Ast_Header* header_decl = arena_push_struct(ast_storage, Ast_Header);
-    header_decl->kind = AST_HEADER;
+    header_decl->kind = AST_headerTypeDeclaration;
     header_decl->id = node_id++;
     header_decl->line_no = token->line_no;
     header_decl->column_no = token->column_no;
@@ -1024,7 +1022,7 @@ build_headerUnionDeclaration()
   if (token->klass == TK_HEADER_UNION) {
     next_token();
     Ast_HeaderUnion* union_decl = arena_push_struct(ast_storage, Ast_HeaderUnion);
-    union_decl->kind = AST_HEADER_UNION;
+    union_decl->kind = AST_headerUnionDeclaration;
     union_decl->id = node_id++;
     union_decl->line_no = token->line_no;
     union_decl->column_no = token->column_no;
@@ -1054,7 +1052,7 @@ build_structTypeDeclaration()
   if (token->klass == TK_STRUCT) {
     next_token();
     Ast_Struct* struct_decl = arena_push_struct(ast_storage, Ast_Struct);
-    struct_decl->kind = AST_STRUCT;
+    struct_decl->kind = AST_structTypeDeclaration;
     struct_decl->id = node_id++;
     struct_decl->line_no = token->line_no;
     struct_decl->column_no = token->column_no;
@@ -1106,7 +1104,7 @@ build_specifiedIdentifier()
 {
   if (token_is_specifiedIdentifier(token)) {
     Ast_SpecifiedIdent* id = arena_push_struct(ast_storage, Ast_SpecifiedIdent);
-    id->kind = AST_SPECIFIED_IDENT;
+    id->kind = AST_specifiedIdentifier;
     id->id = node_id++;
     id->line_no = token->line_no;
     id->column_no = token->column_no;
@@ -1129,7 +1127,7 @@ internal Ast*
 build_specifiedIdentifierList()
 {
   Ast_List* ids = arena_push_struct(ast_storage, Ast_List);
-  ids->kind = AST_NODE_LIST;
+  ids->kind = AST_specifiedIdentifierList;
   ids->id = node_id++;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
@@ -1158,7 +1156,7 @@ build_enumDeclaration()
   if (token->klass == TK_ENUM) {
     next_token();
     Ast_Enum* enum_decl = arena_push_struct(ast_storage, Ast_Enum);
-    enum_decl->kind = AST_ENUM;
+    enum_decl->kind = AST_enumDeclaration;
     enum_decl->id = node_id++;
     enum_decl->line_no = token->line_no;
     enum_decl->column_no = token->column_no;
@@ -1229,7 +1227,7 @@ build_parserTypeDeclaration()
   if (token->klass == TK_PARSER) {
     next_token();
     Ast_ParserProto* proto = arena_push_struct(ast_storage, Ast_ParserProto);
-    proto->kind = AST_PARSER_PROTO;
+    proto->kind = AST_parserTypeDeclaration;
     proto->id = node_id++;
     proto->line_no = token->line_no; 
     proto->column_no = token->column_no;
@@ -1280,7 +1278,7 @@ build_constantDeclaration()
   if (token->klass == TK_CONST) {
     next_token();
     Ast_Const* const_decl = arena_push_struct(ast_storage, Ast_Const);
-    const_decl->kind = AST_CONST;
+    const_decl->kind = AST_constantDeclaration;
     const_decl->id = node_id++;
     const_decl->line_no = token->line_no;
     const_decl->column_no = token->column_no;
@@ -1411,7 +1409,7 @@ build_argument()
       return arg;
     } else if (token_is_name(token)) {
       Ast_Argument* name_arg = arena_push_struct(ast_storage, Ast_Argument);
-      name_arg->kind = AST_ARGUMENT;
+      name_arg->kind = AST_argument;
       name_arg->id = node_id++;
       name_arg->line_no = token->line_no;
       name_arg->column_no = token->column_no;
@@ -1427,7 +1425,7 @@ build_argument()
       return (Ast*)name_arg;
     } else if (token->klass == TK_DONTCARE) {
       Ast* dontcare_arg = arena_push_struct(ast_storage, Ast);
-      dontcare_arg->kind = AST_DONTCARE;
+      dontcare_arg->kind = AST_dontcareArgument;
       dontcare_arg->id = node_id++;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
@@ -1444,7 +1442,7 @@ internal Ast*
 build_argumentList()
 {
   Ast_List* args = arena_push_struct(ast_storage, Ast_List);
-  args->kind = AST_NODE_LIST;
+  args->kind = AST_argumentList;
   args->id = node_id++;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
@@ -1492,7 +1490,7 @@ build_variableDeclaration(Ast* type_ref)
 {
   if (token_is_typeRef(token) || type_ref) {
     Ast_Var* var_decl = arena_push_struct(ast_storage, Ast_Var);
-    var_decl->kind = AST_VAR_DECL;
+    var_decl->kind = AST_variableDeclaration;
     var_decl->id = node_id++;
     var_decl->line_no = token->line_no;
     var_decl->column_no = token->column_no;
@@ -1518,7 +1516,7 @@ build_instantiation(Ast* type_ref)
 {
   if (token_is_typeRef(token) || type_ref) {
     Ast_Instantiation* inst_stmt = arena_push_struct(ast_storage, Ast_Instantiation);
-    inst_stmt->kind = AST_INSTANTIATION;
+    inst_stmt->kind = AST_instantiation;
     inst_stmt->id = node_id++;
     inst_stmt->line_no = token->line_no;
     inst_stmt->column_no = token->column_no;
@@ -1575,7 +1573,7 @@ internal Ast*
 build_parserLocalElements()
 {
   Ast_List* elems = arena_push_struct(ast_storage, Ast_List);
-  elems->kind = AST_NODE_LIST;
+  elems->kind = AST_parserLocalElements;
   elems->id = node_id++;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
@@ -1602,18 +1600,18 @@ build_directApplication(Ast* type_name)
 {
   if (token_is_typeName(token) || type_name) {
     Ast_FunctionCall* apply_expr = arena_push_struct(ast_storage, Ast_FunctionCall);
-    apply_expr->kind = AST_FUNCTION_CALL;
+    apply_expr->kind = AST_functionCall;
     apply_expr->id = node_id++;
     apply_expr->line_no = token->line_no;
     apply_expr->column_no = token->column_no;
     Ast_MemberSelect* apply_select = arena_push_struct(ast_storage, Ast_MemberSelect);
-    apply_select->kind = AST_MEMBER_SELECT;
+    apply_select->kind = AST_memberSelectExpression;
     apply_select->id = node_id++;
     apply_select->line_no = token->line_no;
     apply_select->column_no = token->column_no;
     apply_select->lhs_expr = type_name ? type_name : build_typeName();
     Ast_Name* apply_name = arena_push_struct(ast_storage, Ast_Name);
-    apply_name->kind = AST_NAME;
+    apply_name->kind = AST_nonTypeName;
     apply_name->id = node_id++;
     apply_name->line_no = token->line_no;
     apply_name->column_no = token->column_no;
@@ -1651,14 +1649,12 @@ build_directApplication(Ast* type_name)
 internal Ast*
 build_prefixedNonTypeName()
 {
-  bool is_dotprefixed = false;
   if (token->klass == TK_DOTPREFIX) {
     next_token();
-    is_dotprefixed = true;
   }
   if (token_is_nonTypeName(token)) {
     Ast_Name* name = (Ast_Name*)build_nonTypeName(false);
-    name->kind = is_dotprefixed ? AST_DOTNAME : AST_NAME;
+    name->kind = AST_nonTypeName;
     return (Ast*)name;
   } else error("At line %d, column %d: non-type name was expected, ",
                token->line_no, token->column_no, token->lexeme);
@@ -1671,7 +1667,7 @@ build_arraySubscript()
 {
   if (token_is_expression(token) || token->klass == TK_COLON) {
     Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, Ast_Subscript);
-    subscript_expr->kind = AST_SUBSCRIPT;
+    subscript_expr->kind = AST_arraySubscript;
     subscript_expr->id = node_id++;
     subscript_expr->line_no = token->line_no;
     subscript_expr->column_no = token->column_no;
@@ -1703,7 +1699,7 @@ build_lvalue()
       if (token->klass == TK_DOTPREFIX) {
         next_token();
         Ast_MemberSelect* select_expr = arena_push_struct(ast_storage, Ast_MemberSelect);
-        select_expr->kind = AST_MEMBER_SELECT;
+        select_expr->kind = AST_memberSelectExpression;
         select_expr->id = node_id++;
         select_expr->line_no = token->line_no;
         select_expr->column_no = token->column_no;
@@ -1717,7 +1713,7 @@ build_lvalue()
       else if (token->klass == TK_BRACKET_OPEN) {
         next_token();
         Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, Ast_Subscript);
-        subscript_expr->kind = AST_SUBSCRIPT;
+        subscript_expr->kind = AST_arraySubscript;
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;
         subscript_expr->column_no = token->column_no;
@@ -1753,7 +1749,7 @@ build_assignmentOrMethodCallStatement()
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
       Ast_FunctionCall* call_stmt = arena_push_struct(ast_storage, Ast_FunctionCall);
-      call_stmt->kind = AST_FUNCTION_CALL;
+      call_stmt->kind = AST_functionCall;
       call_stmt->id = node_id++;
       call_stmt->line_no = token->line_no;
       call_stmt->column_no = token->column_no;
@@ -1771,7 +1767,7 @@ build_assignmentOrMethodCallStatement()
     } else if (token->klass == TK_EQUAL) {
       next_token();
       Ast_AssignmentStmt* assign_stmt = arena_push_struct(ast_storage, Ast_AssignmentStmt);
-      assign_stmt->kind = AST_ASSIGNMENT_STMT;
+      assign_stmt->kind = AST_assignmentStatement;
       assign_stmt->id = node_id++;
       assign_stmt->line_no = token->line_no;
       assign_stmt->column_no = token->column_no;
@@ -1794,7 +1790,7 @@ internal Ast*
 build_parserStatements()
 {
   Ast_List* stmts = arena_push_struct(ast_storage, Ast_List);
-  stmts->kind = AST_NODE_LIST;
+  stmts->kind = AST_parserStatements;
   stmts->id = node_id++;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
@@ -1821,7 +1817,7 @@ build_parserBlockStatements()
 {
   if (token->klass == TK_BRACE_OPEN) {
     Ast_BlockStmt* stmt = arena_push_struct(ast_storage, Ast_BlockStmt);
-    stmt->kind = AST_BLOCK_STMT;
+    stmt->kind = AST_parserBlockStatement;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
@@ -1861,7 +1857,7 @@ build_parserStatement()
     return stmt;
   } else if (token->klass == TK_SEMICOLON) {
     Ast* stmt = arena_push_struct(ast_storage, Ast);
-    stmt->kind = AST_EMPTY_STMT;
+    stmt->kind = AST_emptyStatement;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
@@ -1876,7 +1872,7 @@ internal Ast*
 build_expressionList()
 {
   Ast_List* exprs = arena_push_struct(ast_storage, Ast_List);
-  exprs->kind = AST_NODE_LIST;
+  exprs->kind = AST_expressionList;
   exprs->id = node_id++;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
@@ -1908,7 +1904,7 @@ build_simpleKeysetExpression()
   } else if (token->klass == TK_DEFAULT) {
     next_token();
     Ast* expr = arena_push_struct(ast_storage, Ast);
-    expr->kind = AST_DEFAULT_STMT;
+    expr->kind = AST_defaultKeysetExpression;
     expr->id = node_id++;
     expr->line_no = token->line_no;
     expr->column_no = token->column_no;
@@ -1916,7 +1912,7 @@ build_simpleKeysetExpression()
   } else if (token->klass == TK_DONTCARE) {
     next_token();
     Ast* expr = arena_push_struct(ast_storage, Ast);
-    expr->kind = AST_DONTCARE;
+    expr->kind = AST_dontcareKeysetExpression;
     expr->id = node_id++;
     expr->line_no = token->line_no;
     expr->column_no = token->column_no;
@@ -1931,7 +1927,7 @@ internal Ast*
 build_keysetExpressionList()
 {
   Ast_List* exprs = arena_push_struct(ast_storage, Ast_List);
-  exprs->kind = AST_NODE_LIST;
+  exprs->kind = AST_keysetExpressionList;
   exprs->id = node_id++;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
@@ -1959,7 +1955,7 @@ build_tupleKeysetExpression()
 {
   if (token->klass == TK_PARENTH_OPEN) {
     Ast_TupleKeyset* tuple_keyset = arena_push_struct(ast_storage, Ast_TupleKeyset);
-    tuple_keyset->kind = AST_TUPLE_KEYSET;
+    tuple_keyset->kind = AST_tupleKeysetExpression;
     tuple_keyset->id = node_id++;
     tuple_keyset->line_no = token->line_no;
     tuple_keyset->column_no = token->column_no;
@@ -1996,7 +1992,7 @@ build_selectCase()
 {
   if (token_is_keysetExpression(token)) {
     Ast_SelectCase* select_case = arena_push_struct(ast_storage, Ast_SelectCase);
-    select_case->kind = AST_SELECT_CASE;
+    select_case->kind = AST_selectCase;
     select_case->id = node_id++;
     select_case->line_no = token->line_no;
     select_case->column_no = token->column_no;
@@ -2024,7 +2020,7 @@ internal Ast*
 build_selectCaseList()
 {
   Ast_List* cases = arena_push_struct(ast_storage, Ast_List);
-  cases->kind = AST_NODE_LIST;
+  cases->kind = AST_selectCaseList;
   cases->id = node_id++;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
@@ -2052,7 +2048,7 @@ build_selectExpression()
   if (token->klass == TK_SELECT) {
     next_token();
     Ast_SelectExpr* select_expr = arena_push_struct(ast_storage, Ast_SelectExpr);
-    select_expr->kind = AST_SELECT_EXPR;
+    select_expr->kind = AST_selectExpression;
     select_expr->id = node_id++;
     select_expr->line_no = token->line_no;
     select_expr->column_no = token->column_no;
@@ -2119,7 +2115,7 @@ build_parserState()
   if (token->klass == TK_STATE) {
     next_token();
     Ast_ParserState* state = arena_push_struct(ast_storage, Ast_ParserState);
-    state->kind = AST_PARSER_STATE;
+    state->kind = AST_parserState;
     state->id = node_id++;
     state->line_no = token->line_no;
     state->column_no = token->column_no;
@@ -2145,7 +2141,7 @@ internal Ast*
 build_parserStates()
 {
   Ast_List* states = arena_push_struct(ast_storage, Ast_List);
-  states->kind = AST_NODE_LIST;
+  states->kind = AST_parserStates;
   states->id = node_id++;
   states->line_no = token->line_no;
   states->column_no = token->column_no;
@@ -2172,7 +2168,7 @@ build_parserDeclaration()
 {
   if (token->klass == TK_PARSER) {
     Ast_Parser* parser_decl = arena_push_struct(ast_storage, Ast_Parser);
-    parser_decl->kind = AST_PARSER;
+    parser_decl->kind = AST_parserDeclaration;
     parser_decl->id = node_id++;
     parser_decl->line_no = token->line_no;
     parser_decl->column_no = token->column_no;
@@ -2209,7 +2205,7 @@ build_controlTypeDeclaration()
   if (token->klass == TK_CONTROL) {
     next_token();
     Ast_ControlProto* proto = arena_push_struct(ast_storage, Ast_ControlProto);
-    proto->kind = AST_CONTROL_PROTO;
+    proto->kind = AST_controlTypeDeclaration;
     proto->id = node_id++;
     proto->line_no = token->line_no;
     proto->column_no = token->column_no;
@@ -2240,7 +2236,7 @@ build_actionDeclaration()
   if (token->klass == TK_ACTION) {
     next_token();
     Ast_Action* action_decl = arena_push_struct(ast_storage, Ast_Action);
-    action_decl->kind = AST_ACTION;
+    action_decl->kind = AST_actionDeclaration;
     action_decl->id = node_id++;
     action_decl->line_no = token->line_no;
     action_decl->column_no = token->column_no;
@@ -2273,7 +2269,7 @@ build_keyElement()
 {
   if (token_is_expression(token)) {
     Ast_KeyElement* key_elem = arena_push_struct(ast_storage, Ast_KeyElement);
-    key_elem->kind = AST_KEY_ELEMENT;
+    key_elem->kind = AST_keyElement;
     key_elem->id = node_id++;
     key_elem->line_no = token->line_no;
     key_elem->column_no = token->column_no;
@@ -2298,7 +2294,7 @@ internal Ast*
 build_keyElementList()
 {
   Ast_List* elems = arena_push_struct(ast_storage, Ast_List);
-  elems->kind = AST_NODE_LIST;
+  elems->kind = AST_keyElementList;
   elems->id = node_id++;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
@@ -2325,7 +2321,7 @@ build_actionRef()
 {
   if (token->klass == TK_DOTPREFIX || token_is_nonTypeName(token)) {
     Ast_ActionRef* ref = arena_push_struct(ast_storage, Ast_ActionRef);
-    ref->kind = AST_ACTION_REF;
+    ref->kind = AST_actionRef;
     ref->id = node_id++;
     ref->line_no = token->line_no;
     ref->column_no = token->column_no;
@@ -2342,7 +2338,7 @@ internal Ast*
 build_actionList()
 {
   Ast_List* actions = arena_push_struct(ast_storage, Ast_List);
-  actions->kind = AST_NODE_LIST;
+  actions->kind = AST_actionList;
   actions->id = node_id++;
   actions->line_no = token->line_no;
   actions->column_no = token->column_no;
@@ -2377,7 +2373,7 @@ build_entry()
 {
   if (token_is_keysetExpression(token)) {
     Ast_TableEntry* entry = arena_push_struct(ast_storage, Ast_TableEntry);
-    entry->kind = AST_TABLE_ENTRY;
+    entry->kind = AST_tableEntry;
     entry->id = node_id++;
     entry->line_no = token->line_no;
     entry->column_no = token->column_no;
@@ -2402,7 +2398,7 @@ internal Ast*
 build_entriesList()
 {
   Ast_List* entries = arena_push_struct(ast_storage, Ast_List);
-  entries->kind = AST_NODE_LIST;
+  entries->kind = AST_entriesList;
   entries->id = node_id++;
   entries->line_no = token->line_no;
   entries->column_no = token->column_no;
@@ -2436,7 +2432,7 @@ build_tableProperty()
     if (token->klass == TK_KEY) {
       next_token();
       Ast_TableKey* key_prop = arena_push_struct(ast_storage, Ast_TableKey);
-      key_prop->kind = AST_TABLE_KEY;
+      key_prop->kind = AST_tableKey;
       key_prop->id = node_id++;
       key_prop->line_no = token->line_no;
       key_prop->column_no = token->column_no;
@@ -2457,7 +2453,7 @@ build_tableProperty()
     } else if (token->klass == TK_ACTIONS) {
       next_token();
       Ast_TableActions* actions_prop = arena_push_struct(ast_storage, Ast_TableActions);
-      actions_prop->kind = AST_TABLE_ACTIONS;
+      actions_prop->kind = AST_tableActions;
       actions_prop->id = node_id++;
       actions_prop->line_no = token->line_no;
       actions_prop->column_no = token->column_no;
@@ -2478,7 +2474,7 @@ build_tableProperty()
     } else if (token->klass == TK_ENTRIES) {
       next_token();
       Ast_TableEntries* entries_prop = arena_push_struct(ast_storage, Ast_TableEntries);
-      entries_prop->kind = AST_TABLE_ENTRIES;
+      entries_prop->kind = AST_tableEntries;
       entries_prop->id = node_id++;
       entries_prop->line_no = token->line_no;
       entries_prop->column_no = token->column_no;
@@ -2501,8 +2497,8 @@ build_tableProperty()
                    token->line_no, token->column_no, token->lexeme);
       return (Ast*)entries_prop;
     } else if (token_is_nonTableKwName(token)) {
-      Ast_TableSingleEntry* entry_prop = arena_push_struct(ast_storage, Ast_TableSingleEntry);
-      entry_prop->kind = AST_TABLE_SINGLE_ENTRY;
+      Ast_TableProperty* entry_prop = arena_push_struct(ast_storage, Ast_TableProperty);
+      entry_prop->kind = AST_tableProperty;
       entry_prop->id = node_id++;
       entry_prop->line_no = token->line_no;
       entry_prop->column_no = token->column_no;
@@ -2528,7 +2524,7 @@ internal Ast*
 build_tablePropertyList()
 {
   Ast_List* props = arena_push_struct(ast_storage, Ast_List);
-  props->kind = AST_NODE_LIST;
+  props->kind = AST_tablePropertyList;
   props->id = node_id++;
   props->line_no = token->line_no;
   props->column_no = token->column_no;
@@ -2556,7 +2552,7 @@ build_tableDeclaration()
   if (token->klass == TK_TABLE) {
     next_token();
     Ast_Table* table = arena_push_struct(ast_storage, Ast_Table);
-    table->kind = AST_TABLE;
+    table->kind = AST_tableDeclaration;
     table->id = node_id++;
     table->line_no = token->line_no;
     table->column_no = token->column_no;
@@ -2612,7 +2608,7 @@ internal Ast*
 build_controlLocalDeclarations()
 {
   Ast_List* decls = arena_push_struct(ast_storage, Ast_List);
-  decls->kind = AST_NODE_LIST;
+  decls->kind = AST_controlLocalDeclarations;
   decls->id = node_id++;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
@@ -2639,7 +2635,7 @@ build_controlDeclaration()
 {
   if (token->klass == TK_CONTROL) {
     Ast_Control* control_decl = arena_push_struct(ast_storage, Ast_Control);
-    control_decl->kind = AST_CONTROL;
+    control_decl->kind = AST_controlDeclaration;
     control_decl->id = node_id++;
     control_decl->line_no = token->line_no;
     control_decl->column_no = token->column_no;
@@ -2677,7 +2673,7 @@ build_packageTypeDeclaration()
   if (token->klass == TK_PACKAGE) {
     next_token();
     Ast_Package* package_decl = arena_push_struct(ast_storage, Ast_Package);
-    package_decl->kind = AST_PACKAGE;
+    package_decl->kind = AST_packageTypeDeclaration;
     package_decl->id = node_id++;
     package_decl->line_no = token->line_no;
     package_decl->column_no = token->column_no;
@@ -2709,7 +2705,7 @@ build_typedefDeclaration()
     next_token();
     if (token_is_typeRef(token) || token_is_derivedTypeDeclaration(token)) {
       Ast_TypeDef* type_decl = arena_push_struct(ast_storage, Ast_TypeDef);
-      type_decl->kind = AST_TYPEDEF;
+      type_decl->kind = AST_typedefDeclaration;
       type_decl->id = node_id++;
       type_decl->line_no = token->line_no;
       type_decl->column_no = token->column_no;
@@ -2773,7 +2769,7 @@ build_conditionalStatement()
   if (token->klass == TK_IF) {
     next_token();
     Ast_IfStmt* if_stmt = arena_push_struct(ast_storage, Ast_IfStmt);
-    if_stmt->kind = AST_IF_STMT;
+    if_stmt->kind = AST_conditionalStatement;
     if_stmt->id = node_id++;
     if_stmt->line_no = token->line_no;
     if_stmt->column_no = token->column_no;
@@ -2813,7 +2809,7 @@ build_exitStatement()
   if (token->klass == TK_EXIT) {
     next_token();
     Ast* exit_stmt = arena_push_struct(ast_storage, Ast);
-    exit_stmt->kind = AST_EXIT_STMT;
+    exit_stmt->kind = AST_exitStatement;
     exit_stmt->id = node_id++;
     exit_stmt->line_no = token->line_no;
     exit_stmt->column_no = token->column_no;
@@ -2834,7 +2830,7 @@ build_returnStatement()
   if (token->klass == TK_RETURN) {
     next_token();
     Ast_ReturnStmt* ret_stmt = arena_push_struct(ast_storage, Ast_ReturnStmt);
-    ret_stmt->kind = AST_RETURN_STMT;
+    ret_stmt->kind = AST_returnStatement;
     ret_stmt->id = node_id++;
     ret_stmt->line_no = token->line_no;
     ret_stmt->column_no = token->column_no;
@@ -2860,7 +2856,7 @@ build_switchLabel()
   } else if (token->klass == TK_DEFAULT) {
     next_token();
     Ast* label = arena_push_struct(ast_storage, Ast);
-    label->kind = AST_DEFAULT_STMT;
+    label->kind = AST_defaultKeysetExpression;
     label->id = node_id++;
     label->line_no = token->line_no;
     label->column_no = token->column_no;
@@ -2876,7 +2872,7 @@ build_switchCase()
 {
   if (token_is_switchLabel(token)) {
     Ast_SwitchCase* switch_case = arena_push_struct(ast_storage, Ast_SwitchCase);
-    switch_case->kind = AST_SWITCH_CASE;
+    switch_case->kind = AST_switchCase;
     switch_case->id = node_id++;
     switch_case->line_no = token->line_no;
     switch_case->column_no = token->column_no;
@@ -2899,7 +2895,7 @@ internal Ast*
 build_switchCases()
 {
   Ast_List* cases = arena_push_struct(ast_storage, Ast_List);
-  cases->kind = AST_NODE_LIST;
+  cases->kind = AST_switchCases;
   cases->id = node_id++;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
@@ -2927,7 +2923,7 @@ build_switchStatement()
   if (token->klass == TK_SWITCH) {
     next_token();
     Ast_SwitchStmt* stmt = arena_push_struct(ast_storage, Ast_SwitchStmt);
-    stmt->kind = AST_SWITCH_STMT;
+    stmt->kind = AST_switchStatement;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
@@ -2971,7 +2967,7 @@ build_statement(Ast* type_name)
   } else if (token->klass == TK_SEMICOLON) {
     next_token();
     Ast* stmt = arena_push_struct(ast_storage, Ast);
-    stmt->kind = AST_EMPTY_STMT;
+    stmt->kind = AST_emptyStatement;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
@@ -3027,7 +3023,7 @@ internal Ast*
 build_statementOrDeclList()
 {
   Ast_List* stmts = arena_push_struct(ast_storage, Ast_List);
-  stmts->kind = AST_NODE_LIST;
+  stmts->kind = AST_statementOrDeclList;
   stmts->id = node_id++;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
@@ -3054,7 +3050,7 @@ build_blockStatement()
 {
   if (token->klass == TK_BRACE_OPEN) {
     Ast_BlockStmt* stmt = arena_push_struct(ast_storage, Ast_BlockStmt);
-    stmt->kind = AST_BLOCK_STMT;
+    stmt->kind = AST_blockStatement;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
@@ -3075,7 +3071,7 @@ internal Ast*
 build_identifierList()
 {
   Ast_List* ids = arena_push_struct(ast_storage, Ast_List);
-  ids->kind = AST_NODE_LIST;
+  ids->kind = AST_identifierList;
   ids->id = node_id++;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
@@ -3104,7 +3100,7 @@ build_errorDeclaration()
   if (token->klass == TK_ERROR) {
     next_token();
     Ast_ErrorEnum* error_decl = arena_push_struct(ast_storage, Ast_ErrorEnum);
-    error_decl->kind = AST_ERROR_ENUM;
+    error_decl->kind = AST_errorDeclaration;
     error_decl->id = node_id++;
     error_decl->line_no = token->line_no;
     error_decl->column_no = token->column_no;
@@ -3136,7 +3132,7 @@ build_matchKindDeclaration()
   if (token->klass == TK_MATCH_KIND) {
     next_token();
     Ast_MatchKind* match_decl = arena_push_struct(ast_storage, Ast_MatchKind);
-    match_decl->kind = AST_MATCH_KIND;
+    match_decl->kind = AST_matchKindDeclaration;
     match_decl->id = node_id++;
     match_decl->line_no = token->line_no;
     match_decl->column_no = token->column_no;
@@ -3164,7 +3160,7 @@ build_functionDeclaration(Ast* type_ref)
 {
   if (token_is_typeOrVoid(token)) {
     Ast_Function* func_decl = arena_push_struct(ast_storage, Ast_Function);
-    func_decl->kind = AST_FUNCTION;
+    func_decl->kind = AST_functionDeclaration;
     func_decl->id = node_id++;
     func_decl->line_no = token->line_no;
     func_decl->column_no = token->column_no;
@@ -3228,7 +3224,7 @@ internal Ast*
 build_declarationList()
 {
   Ast_List* decls = arena_push_struct(ast_storage, Ast_List);
-  decls->kind = AST_NODE_LIST;
+  decls->kind = AST_declarationList;
   decls->id = node_id++;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
@@ -3258,7 +3254,7 @@ internal Ast*
 build_p4program()
 {
   Ast_P4Program* program = arena_push_struct(ast_storage, Ast_P4Program);
-  program->kind = AST_P4PROGRAM;
+  program->kind = AST_p4program;
   program->id = node_id++;
   program->line_no = token->line_no;
   program->column_no = token->column_no;
@@ -3311,7 +3307,7 @@ build_realTypeArg()
   if (token->klass == TK_DONTCARE) {
     next_token();
     Ast* arg = arena_push_struct(ast_storage, Ast);
-    arg->kind = AST_DONTCARE;
+    arg->kind = AST_dontcareArgument;
     arg->id = node_id++;
     arg->line_no = token->line_no;
     arg->column_no = token->column_no;
@@ -3329,7 +3325,7 @@ internal Ast*
 build_realTypeArgumentList()
 {
   Ast_List* args = arena_push_struct(ast_storage, Ast_List);
-  args->kind = AST_NODE_LIST;
+  args->kind = AST_realTypeArgumentList;
   args->id = node_id++;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
@@ -3369,11 +3365,9 @@ build_expressionPrimary()
       next_token();
       if (token->klass == TK_IDENTIFIER) {
         Ast_Name* name = (Ast_Name*)build_nonTypeName(false);
-        name->kind = AST_DOTNAME;
         return (Ast*)name;
       } else if (token->klass == TK_TYPE_IDENTIFIER) {
         Ast_Name* name = (Ast_Name*)build_typeName(false);
-        name->kind = AST_DOTNAME;
         return (Ast*)name;
       } else error("At line %d, column %d: unexpected token `%s`.",
                    token->line_no, token->column_no, token->lexeme);
@@ -3384,7 +3378,7 @@ build_expressionPrimary()
     } else if (token->klass == TK_BRACE_OPEN) {
       next_token();
       Ast_ExpressionList* expr_list = arena_push_struct(ast_storage, Ast_ExpressionList);
-      expr_list->kind = AST_EXPRESSION_LIST;
+      expr_list->kind = AST_exprListExpression;
       expr_list->id = node_id++;
       expr_list->line_no = token->line_no;
       expr_list->column_no = token->column_no;
@@ -3398,7 +3392,7 @@ build_expressionPrimary()
       next_token();
       if (token_is_typeRef(token)) {
         Ast_Cast* cast_expr = arena_push_struct(ast_storage, Ast_Cast);
-        cast_expr->kind = AST_CAST_EXPR;
+        cast_expr->kind = AST_castExpression;
         cast_expr->id = node_id++;
         cast_expr->line_no = token->line_no;
         cast_expr->column_no = token->column_no;
@@ -3422,7 +3416,7 @@ build_expressionPrimary()
     } else if (token->klass == TK_EXCLAMATION) {
       next_token();
       Ast_UnaryExpr* unary_expr = arena_push_struct(ast_storage, Ast_UnaryExpr);
-      unary_expr->kind = AST_UNARY_EXPR;
+      unary_expr->kind = AST_unaryExpression;
       unary_expr->id = node_id++;
       unary_expr->line_no = token->line_no;
       unary_expr->column_no = token->column_no;
@@ -3432,7 +3426,7 @@ build_expressionPrimary()
     } else if (token->klass == TK_TILDA) {
       next_token();
       Ast_UnaryExpr* unary_expr = arena_push_struct(ast_storage, Ast_UnaryExpr);
-      unary_expr->kind = AST_UNARY_EXPR;
+      unary_expr->kind = AST_unaryExpression;
       unary_expr->id = node_id++;
       unary_expr->line_no = token->line_no;
       unary_expr->column_no = token->column_no;
@@ -3442,7 +3436,7 @@ build_expressionPrimary()
     } else if (token->klass == TK_UNARY_MINUS) {
       next_token();
       Ast_UnaryExpr* unary_expr = arena_push_struct(ast_storage, Ast_UnaryExpr);
-      unary_expr->kind = AST_UNARY_EXPR;
+      unary_expr->kind = AST_unaryExpression;
       unary_expr->id = node_id++;
       unary_expr->line_no = token->line_no;
       unary_expr->column_no = token->column_no;
@@ -3454,7 +3448,7 @@ build_expressionPrimary()
       return primary;
     } else if (token->klass == TK_ERROR) {
       Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
-      name->kind = AST_NAME;
+      name->kind = AST_nonTypeName;
       name->id = node_id++;
       name->line_no = token->line_no;
       name->column_no = token->column_no;
@@ -3553,7 +3547,7 @@ build_expression(int priority_threshold)
       if (token->klass == TK_DOTPREFIX) {
         next_token();
         Ast_MemberSelect* select_expr = arena_push_struct(ast_storage, Ast_MemberSelect);
-        select_expr->kind = AST_MEMBER_SELECT;
+        select_expr->kind = AST_memberSelectExpression;
         select_expr->id = node_id++;
         select_expr->line_no = token->line_no;
         select_expr->column_no = token->column_no;
@@ -3567,7 +3561,7 @@ build_expression(int priority_threshold)
       else if (token->klass == TK_BRACKET_OPEN) {
         next_token();
         Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, Ast_Subscript);
-        subscript_expr->kind = AST_SUBSCRIPT;
+        subscript_expr->kind = AST_arraySubscript;
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;
         subscript_expr->column_no = token->column_no;
@@ -3582,7 +3576,7 @@ build_expression(int priority_threshold)
       else if (token->klass == TK_PARENTH_OPEN) {
         next_token();
         Ast_FunctionCall* call_expr = arena_push_struct(ast_storage, Ast_FunctionCall);
-        call_expr->kind = AST_FUNCTION_CALL;
+        call_expr->kind = AST_functionCall;
         call_expr->id = node_id++;
         call_expr->line_no = token->line_no;
         call_expr->column_no = token->column_no;
@@ -3603,8 +3597,8 @@ build_expression(int priority_threshold)
                      token->line_no, token->column_no, token->lexeme);
       } else if (token->klass == TK_EQUAL) {
         next_token();
-        Ast_KVPair* kv_pair = arena_push_struct(ast_storage, Ast_KVPair);
-        kv_pair->kind = AST_KVPAIR;
+        Ast_KVPairExpr* kv_pair = arena_push_struct(ast_storage, Ast_KVPairExpr);
+        kv_pair->kind = AST_kvPairExpression;
         kv_pair->id = node_id++;
         kv_pair->line_no = token->line_no;
         kv_pair->column_no = token->column_no;
@@ -3616,7 +3610,7 @@ build_expression(int priority_threshold)
         int priority = get_operator_priority(token);
         if (priority >= priority_threshold) {
           Ast_BinaryExpr* bin_expr = arena_push_struct(ast_storage, Ast_BinaryExpr);
-          bin_expr->kind = AST_BINARY_EXPR;
+          bin_expr->kind = AST_binaryExpression;
           bin_expr->id = node_id++;
           bin_expr->line_no = token->line_no;
           bin_expr->column_no = token->column_no;

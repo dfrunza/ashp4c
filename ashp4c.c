@@ -105,7 +105,7 @@ main(int arg_count, char* args[])
   UnboundedArray* tokens = tokenize_text(text, text_size, &main_storage, &text_storage);
 
   Ast_P4Program* p4program = parse_tokens(tokens, &main_storage);
-  assert(p4program && p4program->kind == AST_P4PROGRAM);
+  assert(p4program && p4program->kind == AST_p4program);
   arena_delete(&text_storage);
 
   if (find_named_arg("print-ast", cmdline_args)) {
