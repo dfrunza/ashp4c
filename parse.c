@@ -31,7 +31,7 @@ next_token()
     token = array_get(tokens, ++token_at);
   }
   if (token->klass == TK_IDENTIFIER) {
-    NameEntry* ne = scope_lookup_name(current_scope, token->lexeme);
+    NamespaceEntry* ne = scope_lookup_name(current_scope, token->lexeme);
     if (ne->ns_keyword) {
       NameDecl* ndecl = ne->ns_keyword;
       token->klass = ndecl->token_class;
@@ -425,7 +425,7 @@ build_nonTypeName(bool is_type)
     name->column_no = token->column_no;
     name->strname = token->lexeme;
     if (is_type) {
-      declare_type_name(current_scope, name, 0);
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
     }
     next_token();
     return (Ast*)name;
@@ -618,7 +618,7 @@ build_typeOrVoid(bool is_type)
       name->column_no = token->column_no;
       name->strname = token->lexeme;
       if (is_type) {
-        declare_type_name(current_scope, name, 0);
+        declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
       }
       next_token();
       return (Ast*)name;
@@ -1728,7 +1728,7 @@ internal Ast*
 build_arraySubscript()
 {
   if (token_is_expression(token) || token->klass == TK_COLON) {
-    Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, Ast_Subscript);
+    Ast_ArraySubscript* subscript_expr = arena_push_struct(ast_storage, Ast_ArraySubscript);
     subscript_expr->kind = AST_arraySubscript;
     subscript_expr->id = node_id++;
     subscript_expr->line_no = token->line_no;
@@ -1774,7 +1774,7 @@ build_lvalue()
       }
       else if (token->klass == TK_BRACKET_OPEN) {
         next_token();
-        Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, Ast_Subscript);
+        Ast_ArraySubscript* subscript_expr = arena_push_struct(ast_storage, Ast_ArraySubscript);
         subscript_expr->kind = AST_arraySubscript;
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;
@@ -3361,7 +3361,7 @@ build_expressionPrimary()
     } else if (token->klass == TK_PARENTH_OPEN) {
       next_token();
       if (token_is_typeRef(token)) {
-        Ast_Cast* cast_expr = arena_push_struct(ast_storage, Ast_Cast);
+        Ast_CastExpr* cast_expr = arena_push_struct(ast_storage, Ast_CastExpr);
         cast_expr->kind = AST_castExpression;
         cast_expr->id = node_id++;
         cast_expr->line_no = token->line_no;
@@ -3455,7 +3455,7 @@ build_expression(int priority_threshold)
       }
       else if (token->klass == TK_BRACKET_OPEN) {
         next_token();
-        Ast_Subscript* subscript_expr = arena_push_struct(ast_storage, Ast_Subscript);
+        Ast_ArraySubscript* subscript_expr = arena_push_struct(ast_storage, Ast_ArraySubscript);
         subscript_expr->kind = AST_arraySubscript;
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;

@@ -34,7 +34,7 @@ visit_binary_expr(Ast* ast)
   ty_set->ast = (Ast*)expr;
   if (expr->op == OP_ADD || expr->op == OP_SUB ||
       expr->op == OP_MUL || expr->op == OP_DIV) {
-    NameEntry* ne = scope_lookup_name(root_scope, "int");
+    NamespaceEntry* ne = scope_lookup_name(root_scope, "int");
     Ast* int_decl = ne->ns_type->ast;
     Type_TypeSet* int_ty = typeset_get(&potential_type, int_decl->id);
     assert(int_ty->member_count == 1);
@@ -68,7 +68,7 @@ internal void
 visit_name_identifier(Ast* ast)
 {
   Ast_Name* name = (Ast_Name*)ast;
-  NameEntry* ne = scope_lookup_name(name->scope, name->strname);
+  NamespaceEntry* ne = scope_lookup_name(name->scope, name->strname);
   Type_TypeSet* ty_set = typeset_create(&potential_type, name->id);
   ty_set->ast = (Ast*)name;
   if (ne->ns_type) {
@@ -190,7 +190,7 @@ internal void
 visit_cast_expr(Ast* ast)
 {
   assert(ast->kind == AST_castExpression);
-  Ast_Cast* expr = (Ast_Cast*)ast;
+  Ast_CastExpr* expr = (Ast_CastExpr*)ast;
   visit_type_ref(expr->to_type);
   visit_expression(expr->expr);
   Type_TypeSet* ty_set = typeset_create(&potential_type, expr->id);
@@ -202,7 +202,7 @@ internal void
 visit_subscript(Ast* ast)
 {
   assert(ast->kind == AST_arraySubscript);
-  Ast_Subscript* expr = (Ast_Subscript*)ast;
+  Ast_ArraySubscript* expr = (Ast_ArraySubscript*)ast;
   visit_expression(expr->index);
   if (expr->end_index) {
     visit_expression(expr->end_index);
@@ -227,7 +227,7 @@ internal void
 visit_int_literal(Ast* ast)
 {
   assert(ast->kind == AST_integerLiteral);
-  NameEntry* ne = scope_lookup_name(root_scope, "int");
+  NamespaceEntry* ne = scope_lookup_name(root_scope, "int");
   Ast* int_decl = ne->ns_type->ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, ast->id);
   ty_set->ast = ast;
@@ -238,7 +238,7 @@ internal void
 visit_bool_literal(Ast* ast)
 {
   assert(ast->kind == AST_booleanLiteral);
-  NameEntry* ne = scope_lookup_name(root_scope, "bool");
+  NamespaceEntry* ne = scope_lookup_name(root_scope, "bool");
   Ast* bool_decl = ne->ns_type->ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, ast->id);
   ty_set->ast = ast;
@@ -249,7 +249,7 @@ internal void
 visit_string_literal(Ast* ast)
 {
   assert(ast->kind == AST_stringLiteral);
-  NameEntry* ne = scope_lookup_name(root_scope, "string");
+  NamespaceEntry* ne = scope_lookup_name(root_scope, "string");
   Ast* string_decl = ne->ns_type->ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, ast->id);
   ty_set->ast = ast;
@@ -753,7 +753,7 @@ internal void
 visit_bool_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeBool);
-  NameEntry* ne = scope_lookup_name(root_scope, "bool");
+  NamespaceEntry* ne = scope_lookup_name(root_scope, "bool");
   Ast* bool_decl = ne->ns_type->ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, ast->id);
   ty_set->ast = ast;
@@ -764,7 +764,7 @@ internal void
 visit_int_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeInt);
-  NameEntry* ne = scope_lookup_name(root_scope, "int");
+  NamespaceEntry* ne = scope_lookup_name(root_scope, "int");
   Ast* int_decl = ne->ns_type->ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, ast->id);
   ty_set->ast = ast;
@@ -775,7 +775,7 @@ internal void
 visit_bit_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeBit);
-  NameEntry* ne = scope_lookup_name(root_scope, "bit");
+  NamespaceEntry* ne = scope_lookup_name(root_scope, "bit");
   Ast* bit_decl = ne->ns_type->ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, ast->id);
   ty_set->ast = ast;
@@ -786,7 +786,7 @@ internal void
 visit_varbit_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeVarbit);
-  NameEntry* ne = scope_lookup_name(root_scope, "varbit");
+  NamespaceEntry* ne = scope_lookup_name(root_scope, "varbit");
   Ast* varbit_decl = ne->ns_type->ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, ast->id);
   ty_set->ast = ast;
@@ -797,7 +797,7 @@ internal void
 visit_string_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeString);
-  NameEntry* ne = scope_lookup_name(root_scope, "string");
+  NamespaceEntry* ne = scope_lookup_name(root_scope, "string");
   Ast* string_decl = ne->ns_type->ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, ast->id);
   ty_set->ast = ast;
@@ -808,7 +808,7 @@ internal void
 visit_void_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeVoid);
-  NameEntry* ne = scope_lookup_name(root_scope, "void");
+  NamespaceEntry* ne = scope_lookup_name(root_scope, "void");
   Ast* void_decl = ne->ns_type->ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, ast->id);
   ty_set->ast = ast;
@@ -819,7 +819,7 @@ internal void
 visit_error_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeError);
-  NameEntry* ne = scope_lookup_name(root_scope, "error");
+  NamespaceEntry* ne = scope_lookup_name(root_scope, "error");
   Ast* error_decl = ne->ns_type->ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, ast->id);
   ty_set->ast = ast;

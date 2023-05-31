@@ -161,7 +161,7 @@ arena_push(Arena* arena, uint32_t size)
   if (client_memory + size >= (uint8_t*)arena->memory_limit) {
     PageBlock* free_block = find_block_first_fit(size);
     if (!free_block) {
-      printf("\nERROR: Out of memory.\n");
+      printf("\nOut of memory.\n");
       exit(1);
     }
     uint8_t* alloc_memory_begin = 0, *alloc_memory_end = 0;

@@ -110,7 +110,7 @@ internal void
 visit_cast_expr(Ast* ast)
 {
   assert(ast->kind == AST_castExpression);
-  Ast_Cast* expr = (Ast_Cast*)ast;
+  Ast_CastExpr* expr = (Ast_CastExpr*)ast;
   visit_type_ref(expr->to_type);
   visit_expression(expr->expr, 0);
 }
@@ -119,7 +119,7 @@ internal void
 visit_subscript(Ast* ast)
 {
   assert(ast->kind == AST_arraySubscript);
-  Ast_Subscript* expr = (Ast_Subscript*)ast;
+  Ast_ArraySubscript* expr = (Ast_ArraySubscript*)ast;
   visit_expression(expr->index, 0);
   if (expr->end_index) {
     visit_expression(expr->end_index, 0);

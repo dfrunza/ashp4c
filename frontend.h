@@ -630,11 +630,11 @@ typedef struct Ast_ExprListExpression {
   Ast* expr_list;
 } Ast_ExprListExpression;
 
-typedef struct Ast_Cast {
+typedef struct Ast_CastExpr {
   Ast_Expression;
   Ast* to_type;
   Ast* expr;
-} Ast_Cast;
+} Ast_CastExpr;
 
 typedef struct Ast_UnaryExpr {
   Ast_Expression;
@@ -655,11 +655,11 @@ typedef struct Ast_MemberSelect {
   Ast* member_name;
 } Ast_MemberSelect;
 
-typedef struct Ast_Subscript {
+typedef struct Ast_ArraySubscript {
   Ast_Expression;
   Ast* index;
   Ast* end_index;
-} Ast_Subscript;
+} Ast_ArraySubscript;
 
 typedef struct Ast_FunctionCall {
   Ast_Expression;
@@ -678,20 +678,19 @@ typedef struct NameDecl {
   struct NameDecl* next_decl;
 } NameDecl;
 
-typedef struct NameEntry {
+typedef struct NamespaceEntry {
   char* strname;
   NameDecl* ns_type;
   NameDecl* ns_var;
   NameDecl* ns_keyword;
-} NameEntry;
+} NamespaceEntry;
 
 void symbol_table_init(Arena* scope_storage);
-NameEntry* namedecl_get(Hashmap* decls, char* name);
 Scope* push_scope();
 Scope* pop_scope();
-NameEntry* scope_lookup_name(Scope* scope, char* name);
-void declare_type_name(Scope* scope, Ast_Name* name, Ast* ast);
-void declare_var_name(Scope* scope, Ast_Name* name, Ast* ast);
+NamespaceEntry* scope_lookup_name(Scope* scope, char* name);
+void declare_type_name(Scope* scope, char* strname, int line_no, int column_no, Ast* ast);
+void declare_var_name(Scope* scope, char* strname, int line_no, int column_no, Ast* ast);
 void declare_keyword(Scope* scope, char* strname, enum TokenClass token_class);
 
 enum TypeEnum {

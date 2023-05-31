@@ -99,7 +99,7 @@ internal void
 visit_cast_expr(Ast* ast)
 {
   assert(ast->kind == AST_castExpression);
-  Ast_Cast* expr = (Ast_Cast*)ast;
+  Ast_CastExpr* expr = (Ast_CastExpr*)ast;
   visit_type_ref(expr->to_type);
   visit_expression(expr->expr);
 }
@@ -108,7 +108,7 @@ internal void
 visit_subscript(Ast* ast)
 {
   assert(ast->kind == AST_arraySubscript);
-  Ast_Subscript* expr = (Ast_Subscript*)ast;
+  Ast_ArraySubscript* expr = (Ast_ArraySubscript*)ast;
   visit_expression(expr->index);
   if (expr->end_index) {
     visit_expression(expr->end_index);
@@ -180,11 +180,11 @@ visit_param(Ast* ast)
   Ast_Param* param = (Ast_Param*)ast;
   Ast_Name* name = (Ast_Name*)param->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
-    declare_var_name(current_scope, name, (Ast*)param);
+    declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)param);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   visit_type_ref(param->type);
@@ -195,9 +195,9 @@ visit_type_param(Ast* ast)
 {
   assert(ast->kind == AST_name);
   Ast_Name* name = (Ast_Name*)ast;
-  NameEntry* ne = scope_lookup_name(current_scope, name->strname);
+  NamespaceEntry* ne = scope_lookup_name(current_scope, name->strname);
   if (!ne->ns_type) {
-    declare_type_name(current_scope, name, (Ast*)name);
+    declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)name);
   } else {
     visit_type_ref((Ast*)name);
   }
@@ -408,11 +408,11 @@ visit_var_decl(Ast* ast)
   Ast_Var* var_decl = (Ast_Var*)ast;
   Ast_Name* name = (Ast_Name*)var_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
-    declare_var_name(current_scope, name, (Ast*)var_decl);
+    declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)var_decl);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                 name->line_no, name->column_no, name->strname);
   visit_type_ref(var_decl->type);
@@ -428,11 +428,11 @@ visit_table(Ast* ast)
   Ast_Table* table_decl = (Ast_Table*)ast;
   Ast_Name* name = (Ast_Name*)table_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
-    declare_type_name(current_scope, name, (Ast*)table_decl);
+    declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)table_decl);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   Ast_List* prop_list = (Ast_List*)table_decl->prop_list;
@@ -596,11 +596,11 @@ visit_parser_state(Ast* ast)
   Ast_ParserState* state = (Ast_ParserState*)ast;
   Ast_Name* name = (Ast_Name*)state->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
-    declare_var_name(current_scope, name, (Ast*)state);
+    declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)state);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
@@ -623,11 +623,11 @@ visit_struct_field(Ast* ast)
   Ast_StructField* field = (Ast_StructField*)ast;
   Ast_Name* name = (Ast_Name*)field->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
-    declare_var_name(current_scope, name, (Ast*)field);
+    declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)field);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   visit_type_ref(field->type);
@@ -696,10 +696,10 @@ visit_name_type(Ast* ast)
 {
   assert(ast->kind == AST_name);
   Ast_Name* name = (Ast_Name*)ast;
-  NameEntry* ne = scope_lookup_name(current_scope, name->strname);
+  NamespaceEntry* ne = scope_lookup_name(current_scope, name->strname);
   if (!ne->ns_type) {
     /* Declaration of a type parameter. */
-    declare_type_name(current_scope, name, (Ast*)name);
+    declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)name);
   } else {
     visit_expression(ast);
   }
@@ -783,11 +783,11 @@ visit_enum_field(Ast* ast)
   assert(ast->kind == AST_name);
   Ast_Name* name = (Ast_Name*)ast;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
-    declare_var_name(current_scope, name, (Ast*)name);
+    declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)name);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
 }
@@ -812,7 +812,7 @@ visit_control(Ast* ast)
   Ast_Control* ctrl_decl = (Ast_Control*)ast;
   Ast_ControlProto* ctrl_proto = (Ast_ControlProto*)ctrl_decl->proto;
   Ast_Name* name = (Ast_Name*)ctrl_proto->name;
-  declare_type_name(current_scope, name, (Ast*)ctrl_decl);
+  declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)ctrl_decl);
   current_scope = push_scope();
   Ast_List* type_params = (Ast_List*)ctrl_proto->type_params;
   if (type_params) {
@@ -858,7 +858,7 @@ visit_control_proto(Ast* ast)
   assert(ast->kind == AST_controlTypeDeclaration);
   Ast_ControlProto* ctrl_proto = (Ast_ControlProto*)ast;
   Ast_Name* name = (Ast_Name*)ctrl_proto->name;
-  declare_type_name(current_scope, name, (Ast*)ctrl_proto);
+  declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)ctrl_proto);
   current_scope = push_scope();
   Ast_List* type_params = (Ast_List*)ctrl_proto->type_params;
   if (type_params) {
@@ -885,7 +885,7 @@ visit_extern(Ast* ast)
   assert(ast->kind == AST_externDeclaration);
   Ast_Extern* extern_decl = (Ast_Extern*)ast;
   Ast_Name* name = (Ast_Name*)extern_decl->name;
-  declare_type_name(current_scope, name, (Ast*)extern_decl);
+  declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)extern_decl);
   current_scope = push_scope();
   Ast_List* type_params = (Ast_List*)extern_decl->type_params;
   if (type_params) {
@@ -913,11 +913,11 @@ visit_struct(Ast* ast)
   Ast_Struct* struct_decl = (Ast_Struct*)ast;
   Ast_Name* name = (Ast_Name*)struct_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_type) {
-    declare_type_name(current_scope, name, (Ast*)struct_decl);
+    declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)struct_decl);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
@@ -939,11 +939,11 @@ visit_header(Ast* ast)
   Ast_Header* header_decl = (Ast_Header*)ast;
   Ast_Name* name = (Ast_Name*)header_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_type) {
-    declare_type_name(current_scope, name, (Ast*)header_decl);
+    declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)header_decl);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
@@ -965,11 +965,11 @@ visit_header_union(Ast* ast)
   Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
   Ast_Name* name = (Ast_Name*)union_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_type) {
-    declare_type_name(current_scope, name, (Ast*)union_decl);
+    declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)union_decl);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
@@ -991,11 +991,11 @@ visit_package(Ast* ast)
   Ast_Package* package_decl = (Ast_Package*)ast;
   Ast_Name* name = (Ast_Name*)package_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_type) {
-    declare_type_name(current_scope, name, (Ast*)package_decl);
+    declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)package_decl);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
@@ -1025,7 +1025,7 @@ visit_parser(Ast* ast)
   Ast_Parser* parser_decl = (Ast_Parser*)ast;
   Ast_ParserProto* proto = (Ast_ParserProto*)parser_decl->proto;
   Ast_Name* name = (Ast_Name*)proto->name;
-  declare_type_name(current_scope, name, (Ast*)parser_decl);
+  declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)parser_decl);
   current_scope = push_scope();
   Ast_List* type_params = (Ast_List*)proto->type_params;
   if (type_params) {
@@ -1076,7 +1076,7 @@ visit_parser_proto(Ast* ast)
   assert(ast->kind == AST_parserTypeDeclaration);
   Ast_ParserProto* proto_decl = (Ast_ParserProto*)ast;
   Ast_Name* name = (Ast_Name*)proto_decl->name;
-  declare_type_name(current_scope, name, (Ast*)proto_decl);
+  declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)proto_decl);
   current_scope = push_scope();
   Ast_List* type_params = (Ast_List*)proto_decl->type_params;
   if (type_params) {
@@ -1104,11 +1104,11 @@ visit_instantiation(Ast* ast)
   Ast_Instantiation* inst_decl = (Ast_Instantiation*)ast;
   Ast_Name* name = (Ast_Name*)inst_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
-    declare_var_name(current_scope, name, (Ast*)inst_decl);
+    declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)inst_decl);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   visit_type_ref(inst_decl->type);
@@ -1129,11 +1129,11 @@ visit_typedef(Ast* ast)
   Ast_TypeDef* type_decl = (Ast_TypeDef*)ast;
   Ast_Name* name = (Ast_Name*)type_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_type) {
-    declare_type_name(current_scope, name, (Ast*)type_decl);
+    declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)type_decl);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   Ast* type_ref = type_decl->type_ref;
@@ -1147,7 +1147,7 @@ visit_function(Ast* ast)
   Ast_Function* func_decl = (Ast_Function*)ast;
   Ast_FunctionProto* func_proto = (Ast_FunctionProto*)func_decl->proto;
   Ast_Name* name = (Ast_Name*)func_proto->name;
-  declare_type_name(current_scope, name, (Ast*)func_decl);
+  declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)func_decl);
   current_scope = push_scope();
   if (func_proto->return_type) {
     visit_type_ref(func_proto->return_type);
@@ -1188,7 +1188,7 @@ visit_function_proto(Ast* ast)
   assert(ast->kind == AST_functionPrototype);
   Ast_FunctionProto* func_proto = (Ast_FunctionProto*)ast;
   Ast_Name* name = (Ast_Name*)func_proto->name;
-  declare_type_name(current_scope, name, (Ast*)func_proto);
+  declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)func_proto);
   current_scope = push_scope();
   if (func_proto->return_type) {
     visit_type_ref(func_proto->return_type);
@@ -1219,11 +1219,11 @@ visit_const(Ast* ast)
   Ast_Const* const_decl = (Ast_Const*)ast;
   Ast_Name* name = (Ast_Name*)const_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
-    declare_var_name(current_scope, name, (Ast*)const_decl);
+    declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)const_decl);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   visit_type_ref(const_decl->type);
@@ -1237,11 +1237,11 @@ visit_enum(Ast* ast)
   Ast_Enum* enum_decl = (Ast_Enum*)ast;
   Ast_Name* name = (Ast_Name*)enum_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_type) {
-    declare_type_name(current_scope, name, (Ast*)enum_decl);
+    declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)enum_decl);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
@@ -1263,11 +1263,11 @@ visit_action(Ast* ast)
   Ast_Action* action_decl = (Ast_Action*)ast;
   Ast_Name* name = (Ast_Name*)action_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
-  NameEntry* ne = arena_push_struct(name_storage, NameEntry);
+  NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
   ne->strname = name->strname;
   name_he->object = ne;
   if (!ne->ns_var) {
-    declare_type_name(current_scope, name, (Ast*)action_decl);
+    declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)action_decl);
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
   current_scope = push_scope();
@@ -1397,77 +1397,70 @@ build_name_decl(Ast_P4Program* p4program, Arena* decl_storage_)
     void_type->kind = AST_name;
     void_type->strname = "void";
     void_type->id = ++p4program->last_node_id;
-    declare_type_name(root_scope, void_type, (Ast*)void_type);
+    declare_type_name(root_scope, void_type->strname, 0, 0, (Ast*)void_type);
   }
   {
     Ast_Name* bool_type = arena_push_struct(name_storage, Ast_Name);
     bool_type->kind = AST_name;
     bool_type->id = ++p4program->last_node_id;
     bool_type->strname = "bool";
-    declare_type_name(root_scope, bool_type, (Ast*)bool_type);
+    declare_type_name(root_scope, bool_type->strname, 0, 0, (Ast*)bool_type);
   }
   {
     Ast_Name* int_type = arena_push_struct(name_storage, Ast_Name);
     int_type->kind = AST_name;
     int_type->id = ++p4program->last_node_id;
     int_type->strname = "int";
-    declare_type_name(root_scope, int_type, (Ast*)int_type);
+    declare_type_name(root_scope, int_type->strname, 0, 0, (Ast*)int_type);
   }
   {
     Ast_Name* bit_type = arena_push_struct(name_storage, Ast_Name);
     bit_type->kind = AST_name;
     bit_type->id = ++p4program->last_node_id;
     bit_type->strname = "bit";
-    declare_type_name(root_scope, bit_type, (Ast*)bit_type);
+    declare_type_name(root_scope, bit_type->strname, 0, 0, (Ast*)bit_type);
   }
   {
     Ast_Name* varbit_type = arena_push_struct(name_storage, Ast_Name);
     varbit_type->kind = AST_name;
     varbit_type->id = ++p4program->last_node_id;
     varbit_type->strname = "varbit";
-    declare_type_name(root_scope, varbit_type, (Ast*)varbit_type);
+    declare_type_name(root_scope, varbit_type->strname, 0, 0, (Ast*)varbit_type);
   }
   {
     Ast_Name* string_type = arena_push_struct(name_storage, Ast_Name);
     string_type->kind = AST_name;
     string_type->id = ++p4program->last_node_id;
     string_type->strname = "string";
-    declare_type_name(root_scope, string_type, (Ast*)string_type);
+    declare_type_name(root_scope, string_type->strname, 0, 0, (Ast*)string_type);
   }
   {
     Ast_Name* error_type = arena_push_struct(name_storage, Ast_Name);
     error_type->kind = AST_name;
     error_type->id = ++p4program->last_node_id;
     error_type->strname = "error";
-    declare_type_name(root_scope, error_type, (Ast*)error_type);
+    declare_type_name(root_scope, error_type->strname, 0, 0, (Ast*)error_type);
   }
   {
     Ast_Name* match_type = arena_push_struct(name_storage, Ast_Name);
     match_type->kind = AST_name;
     match_type->id = ++p4program->last_node_id;
     match_type->strname = "match_kind";
-    declare_type_name(root_scope, match_type, (Ast*)match_type);
+    declare_type_name(root_scope, match_type->strname, 0, 0, (Ast*)match_type);
   }
   {
     Ast_Name* accept_state = arena_push_struct(name_storage, Ast_Name);
     accept_state->kind = AST_name;
     accept_state->id = ++p4program->last_node_id;
     accept_state->strname = "accept";
-    declare_var_name(root_scope, accept_state, (Ast*)accept_state);
+    declare_var_name(root_scope, accept_state->strname, 0, 0, (Ast*)accept_state);
   }
   {
     Ast_Name* reject_state = arena_push_struct(name_storage, Ast_Name);
     reject_state->kind = AST_name;
     reject_state->id = ++p4program->last_node_id;
     reject_state->strname = "reject";
-    declare_var_name(root_scope, reject_state, (Ast*)reject_state);
-  }
-  {
-    Ast_Name* add_op = arena_push_struct(name_storage, Ast_Name);
-    add_op->kind = AST_name;
-    add_op->id = ++p4program->last_node_id;
-    add_op->strname = "+";
-    declare_type_name(root_scope, add_op, (Ast*)add_op);
+    declare_var_name(root_scope, reject_state->strname, 0, 0, (Ast*)reject_state);
   }
 
   visit_p4program((Ast*)p4program);

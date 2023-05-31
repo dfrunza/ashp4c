@@ -175,7 +175,7 @@ hashmap_create_entry(Hashmap* hashmap, HashmapKey* key)
     for (int i = 0; i < hashmap->capacity; i++) {
       array_set(&hashmap->entries, i, &NULL_ENTRY);
     }
-    for (HashmapEntry* entry = first_entry; entry != 0;) {
+    for (HashmapEntry* entry = first_entry; entry != 0; ) {
       HashmapEntry* next_entry = entry->next_entry;
       hashmap_hash_key(hashmap->key_type, &entry->key, hashmap->capacity_log2);
       entry->next_entry = *(HashmapEntry**)array_get(&hashmap->entries, entry->key.h);
