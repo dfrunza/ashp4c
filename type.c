@@ -7,30 +7,28 @@
 void
 tyset_add_type(Arena *type_storage, TypeSet* set, Type* type)
 {
-  DList* set_li = arena_push_struct(type_storage, DList);
-  set_li->object = type;
-  dlist_concat(set->last_member, set_li);
-  set->last_member = set_li;
-  set->member_count += 1;
+  DListItem* new_li = arena_push_struct(type_storage, DListItem);
+  new_li->object = type;
+  dlist_append_item(&set->members, new_li, 1);
 }
 
 void
 tyset_import_set(Arena *type_storage, TypeSet* to_set, TypeSet* from_set)
 {
-  DList* set_li = from_set->members.next;
-  while (set_li) {
-    tyset_add_type(type_storage, to_set, set_li->object);
-    set_li = set_li->next;
+  for (DListItem* li = from_set->members.sentinel.next;
+       li != 0; li = li->next) {
+    tyset_add_type(type_storage, to_set, li->object);
+    ;
   }
 }
 
 bool
 tyset_contains_type(TypeSet* set, Type* target_type)
 {
-  DList* set_li = set->members.next;
   bool found_it = false;
-  while (set_li) {
-    Type* type = set_li->object;
+  for (DListItem* li = set->members.sentinel.next;
+       li != 0; li = li->next) {
+    Type* type = li->object;
     if (type == target_type) {
       found_it = true;
       break;
@@ -43,7 +41,6 @@ tyset_contains_type(TypeSet* set, Type* target_type)
         break;
       }
     }
-    set_li = set_li->next;
   }
   return found_it;
 }

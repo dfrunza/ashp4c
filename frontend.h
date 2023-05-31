@@ -258,8 +258,6 @@ typedef struct Ast {
 typedef struct Ast_List {
   Ast;
   DList members;
-  DList* last_member;
-  int member_count;
 } Ast_List;
 
 typedef struct Ast_Expression {
@@ -719,8 +717,6 @@ typedef struct Type {
 typedef struct TypeSet {
   Ast* ast;
   DList members;
-  DList* last_member;
-  int member_count;
 } TypeSet;
 
 typedef struct Type_Type {
@@ -730,8 +726,6 @@ typedef struct Type_Type {
 typedef struct Type_Vector {
   Type;
   DList members;
-  DList* last_member;
-  int size;
 } Type_Vector;
 
 typedef struct Type_TypeDef {

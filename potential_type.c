@@ -104,7 +104,7 @@ visit_function_call(Ast* ast)
   ty_set->ast = (Ast*)function_call;
   typeset_add_type(ty_set, (Type*)fcall_ty);
   Ast_NodeList* type_args = &callee_expr->type_args;
-  DList* li = type_args->list.next;
+  DListItem* li = type_args->list.next;
   while (li) {
     Ast* type_arg = li->object;
     visit_type_ref(type_arg);
@@ -112,7 +112,7 @@ visit_function_call(Ast* ast)
   }
   Ast_NodeList* args = &function_call->args;
   if (args->list.next) {
-    DList* li = args->list.next;
+    DListItem* li = args->list.next;
     Ast* arg = li->object;
     visit_expression(arg);
     li = li->next;
@@ -163,7 +163,7 @@ visit_expression_list(Ast* ast)
   ty_set->ast = (Ast*)expr;
   Ast_NodeList* expr_list = &expr->expr_list;
   if (expr_list->list.next) {
-    DList* li = expr_list->list.next;
+    DListItem* li = expr_list->list.next;
     Ast* item = li->object;
     visit_expression(item);
     li = li->next;
@@ -323,7 +323,7 @@ visit_block_statement(Ast* ast)
   assert(ast->kind == AST_blockStatement);
   Ast_BlockStmt* block_stmt = (Ast_BlockStmt*)ast;
   Ast_NodeList* stmt_list = &block_stmt->stmt_list;
-  DList* li = stmt_list->list.next;
+  DListItem* li = stmt_list->list.next;
   while (li) {
     Ast* decl = li->object;
     visit_statement(decl);
@@ -344,7 +344,7 @@ visit_action_ref(Ast* ast)
   typeset_add_type(ty_set, (Type*)fcall_ty);
   Ast_NodeList* args = &action->args;
   if (args->list.next) {
-    DList* li = args->list.next;
+    DListItem* li = args->list.next;
     Ast* arg = li->object;
     visit_expression(arg);
     li = li->next;
@@ -409,7 +409,7 @@ visit_tuple_keyset(Ast* ast)
   assert(ast->kind == AST_tupleKeysetExpression);
   Ast_TupleKeyset* keyset = (Ast_TupleKeyset*)ast;
   Ast_NodeList* expr_list = &keyset->expr_list;
-  DList* li = expr_list->list.next;
+  DListItem* li = expr_list->list.next;
   while (li) {
     Ast* expr = li->object;
     visit_keyset_expr(expr);
@@ -442,7 +442,7 @@ visit_table_actions(Ast *ast)
   assert(ast->kind == AST_tableActions);
   Ast_TableActions* prop = (Ast_TableActions*)ast;
   Ast_NodeList* action_list = &prop->action_list;
-  DList* li = action_list->list.next;
+  DListItem* li = action_list->list.next;
   while (li) {
     Ast* action = li->object;
     visit_action_ref(action);
@@ -466,7 +466,7 @@ visit_table_key(Ast* ast)
   assert(ast->kind == AST_tableKey);
   Ast_TableKey* prop = (Ast_TableKey*)ast;
   Ast_NodeList* keyelem_list = &prop->keyelem_list;
-  DList* li = keyelem_list->list.next;
+  DListItem* li = keyelem_list->list.next;
   while (li) {
     Ast* keyelem = li->object;
     visit_table_keyelem(keyelem);
@@ -480,7 +480,7 @@ visit_table_entries(Ast* ast)
   assert(ast->kind == AST_tableEntries);
   Ast_TableEntries* prop = (Ast_TableEntries*)ast;
   Ast_NodeList* entries = &prop->entries;
-  DList* li = entries->list.next;
+  DListItem* li = entries->list.next;
   while (li) {
     Ast* entry = li->object;
     visit_table_entry(entry);
@@ -559,7 +559,7 @@ visit_table(Ast* ast)
   ty_set->ast = (Ast*)table_decl;
   typeset_add_type(ty_set, (Type*)table_ty);
   Ast_NodeList* prop_list = &table_decl->prop_list;
-  DList* li = prop_list->list.next;
+  DListItem* li = prop_list->list.next;
   while (li) {
     Ast* prop = li->object;
     visit_table_property(prop);
@@ -586,7 +586,7 @@ visit_switch_stmt(Ast* ast)
   Ast_SwitchStmt* stmt = (Ast_SwitchStmt*)ast;
   visit_expression(stmt->expr);
   Ast_NodeList* switch_cases = &stmt->switch_cases;
-  DList* li = switch_cases->list.next;
+  DListItem* li = switch_cases->list.next;
   while (li) {
     Ast* switch_case = li->object;
     visit_switch_case(switch_case);
@@ -695,7 +695,7 @@ visit_select_expr(Ast* ast)
 {
   assert(ast->kind == AST_selectExpression);
   Ast_SelectExpr* trans_stmt = (Ast_SelectExpr*)ast;
-  DList* li;
+  DListItem* li;
   Ast_NodeList* expr_list = &trans_stmt->expr_list;
   li = expr_list->list.next;
   while (li) {
@@ -729,7 +729,7 @@ visit_parser_state(Ast* ast)
   assert(ast->kind == AST_parserState);
   Ast_ParserState* state_decl = (Ast_ParserState*)ast;
   Ast_NodeList* stmt_list = &state_decl->stmt_list;
-  DList* li = stmt_list->list.next;
+  DListItem* li = stmt_list->list.next;
   while (li) {
     Ast* stmt = li->object;
     visit_statement(stmt);
@@ -867,7 +867,7 @@ visit_specialized_type(Ast* ast)
   ty_set->ast = (Ast*)speclzd_type;
   typeset_import_set(ty_set, typeset_get(&potential_type, speclzd_type->name->id));
   Ast_NodeList* type_args = &speclzd_type->type_args;
-  DList* li = type_args->list.next;
+  DListItem* li = type_args->list.next;
   while (li) {
     Ast* type_arg = li->object;
     visit_type_ref(type_arg);
@@ -884,7 +884,7 @@ visit_tuple(Ast* ast)
   ty_set->ast = (Ast*)tuple_decl;
   Ast_NodeList* args = &tuple_decl->type_args;
   if (args->list.next) {
-    DList* li = args->list.next;
+    DListItem* li = args->list.next;
     Ast* arg = li->object;
     visit_type_ref(arg);
     li = li->next;
@@ -973,7 +973,7 @@ visit_control(Ast* ast)
   Type_TypeSet* ty_set = typeset_create(&potential_type, ctrl_decl->id);
   ty_set->ast = (Ast*)ctrl_decl;
   typeset_import_set(ty_set, typeset_get(&potential_type, ctrl_decl->proto->id));
-  DList* li;
+  DListItem* li;
   Ast_NodeList* ctor_params = &ctrl_decl->ctor_params;
   li = ctor_params->list.next;
   while (li) {
@@ -1005,7 +1005,7 @@ visit_control_proto(Ast* ast)
   ty_set->ast = (Ast*)proto;
   typeset_add_type(ty_set, (Type*)control_ty);
   Ast_NodeList* type_params = &proto->type_params;
-  DList* li = type_params->list.next;
+  DListItem* li = type_params->list.next;
   while (li) {
     Ast* type_param = li->object;
     visit_type_param(type_param);
@@ -1013,7 +1013,7 @@ visit_control_proto(Ast* ast)
   }
   Ast_NodeList* params = &proto->params;
   if (params->list.next) {
-    DList* li = params->list.next;
+    DListItem* li = params->list.next;
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
@@ -1053,7 +1053,7 @@ visit_extern(Ast* ast)
   Type_TypeSet* ty_set = typeset_create(&potential_type, extern_decl->id);
   ty_set->ast = (Ast*)extern_decl;
   typeset_add_type(ty_set, (Type*)extern_ty);
-  DList* li;
+  DListItem* li;
   Ast_NodeList* type_params = &extern_decl->type_params;
   li = type_params->list.next;
   while (li) {
@@ -1079,7 +1079,7 @@ visit_struct(Ast* ast)
   ty_set->ast = (Ast*)struct_decl;
   Ast_NodeList* fields = &struct_decl->fields;
   if (fields->list.next) {
-    DList* li = fields->list.next;
+    DListItem* li = fields->list.next;
     Ast* field = li->object;
     visit_struct_field(field);
     li = li->next;
@@ -1111,7 +1111,7 @@ visit_header(Ast* ast)
   ty_set->ast = (Ast*)header_decl;
   Ast_NodeList* fields = &header_decl->fields;
   if (fields->list.next) {
-    DList* li = fields->list.next;
+    DListItem* li = fields->list.next;
     Ast* field = li->object;
     visit_struct_field(field);
     li = li->next;
@@ -1143,7 +1143,7 @@ visit_header_union(Ast* ast)
   ty_set->ast = (Ast*)union_decl;
   Ast_NodeList* fields = &union_decl->fields;
   if (fields->list.next) {
-    DList* li = fields->list.next;
+    DListItem* li = fields->list.next;
     Ast* field = li->object;
     visit_struct_field(field);
     li = li->next;
@@ -1179,7 +1179,7 @@ visit_package(Ast* ast)
   Type_TypeSet* ty_set = typeset_create(&potential_type, package_decl->id);
   ty_set->ast = (Ast*)package_decl;
   typeset_add_type(ty_set, (Type*)package_ty);
-  DList* li;
+  DListItem* li;
   Ast_NodeList* type_params = &package_decl->type_params;
   li = type_params->list.next;
   while (li) {
@@ -1205,7 +1205,7 @@ visit_parser(Ast* ast)
   Type_TypeSet* ty_set = typeset_create(&potential_type, parser_decl->id);
   ty_set->ast = (Ast*)parser_decl;
   typeset_import_set(ty_set, typeset_get(&potential_type, parser_decl->id));
-  DList* li;
+  DListItem* li;
   Ast_NodeList* ctor_params = &parser_decl->ctor_params;
   li = ctor_params->list.next;
   while (li) {
@@ -1241,7 +1241,7 @@ visit_parser_proto(Ast* ast)
   ty_set->ast = (Ast*)proto;
   typeset_add_type(ty_set, (Type*)parser_ty);
   Ast_NodeList* type_params = &proto->type_params;
-  DList* li = type_params->list.next;
+  DListItem* li = type_params->list.next;
   while (li) {
     Ast* type_param = li->object;
     visit_type_param(type_param);
@@ -1249,7 +1249,7 @@ visit_parser_proto(Ast* ast)
   }
   Ast_NodeList* params = &proto->params;
   if (params->list.next) {
-    DList* li = params->list.next;
+    DListItem* li = params->list.next;
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
@@ -1290,7 +1290,7 @@ visit_instantiation(Ast* ast)
   typeset_add_type(ty_set, (Type*)inst_ty);
   Ast_NodeList* args = &inst_decl->args;
   if (args->list.next) {
-    DList* li = args->list.next;
+    DListItem* li = args->list.next;
     Ast* arg = li->object;
     visit_expression(arg);
     li = li->next;
@@ -1340,7 +1340,7 @@ visit_function(Ast* ast)
   Ast_BlockStmt* function_body = (Ast_BlockStmt*)function_decl->stmt;
   if (function_body) {
     Ast_NodeList* stmt_list = &function_body->stmt_list;
-    DList* li = stmt_list->list.next;
+    DListItem* li = stmt_list->list.next;
     while (li) {
       Ast* stmt = li->object;
       visit_statement(stmt);
@@ -1365,7 +1365,7 @@ visit_function_proto(Ast* ast)
     function_ty->return_ty = (Type*)typeset_get(&potential_type, proto->return_type->id);
   }
   Ast_NodeList* type_params = &proto->type_params;
-  DList* li = type_params->list.next;
+  DListItem* li = type_params->list.next;
   while (li) {
     Ast* type_param = li->object;
     visit_type_param(type_param);
@@ -1373,7 +1373,7 @@ visit_function_proto(Ast* ast)
   }
   Ast_NodeList* params = &proto->params;
   if (params->list.next) {
-    DList* li = params->list.next;
+    DListItem* li = params->list.next;
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
@@ -1440,7 +1440,7 @@ visit_action(Ast* ast)
   typeset_add_type(ty_set, (Type*)function_ty);
   Ast_NodeList* params = &action_decl->params;
   if (params->list.next) {
-    DList* li = params->list.next;
+    DListItem* li = params->list.next;
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
@@ -1468,7 +1468,7 @@ visit_action(Ast* ast)
   Ast_BlockStmt* action_body = (Ast_BlockStmt*)action_decl->stmt;
   if (action_body) {
     Ast_NodeList* stmt_list = &action_body->stmt_list;
-    DList* li = stmt_list->list.next;
+    DListItem* li = stmt_list->list.next;
     while (li) {
       Ast* stmt = li->object;
       visit_statement(stmt);
@@ -1483,7 +1483,7 @@ visit_match_kind(Ast* ast)
   assert(ast->kind == AST_matchKindDeclaration);
   Ast_MatchKind* decl = (Ast_MatchKind*)ast;
   Ast_NodeList* id_list = &decl->id_list;
-  DList* li = id_list->list.next;
+  DListItem* li = id_list->list.next;
   while (li) {
     Ast* id = li->object;
     if (id->kind == AST_nonTypeName) {
@@ -1502,7 +1502,7 @@ visit_error(Ast* ast)
   assert (ast->kind == AST_ERROR);
   Ast_ErrorEnum* decl = (Ast_ErrorEnum*)ast;
   Ast_NodeList* id_list = &decl->id_list;
-  DList* li = id_list->list.next;
+  DListItem* li = id_list->list.next;
   while (li) {
     Ast* id = li->object;
     if (id->kind == AST_nonTypeName) {
@@ -1520,7 +1520,7 @@ visit_p4program(Ast* ast)
   assert(ast->kind == AST_p4program);
   Ast_P4Program* program = (Ast_P4Program*)ast;
   Ast_NodeList* decl_list = &program->decl_list;
-  DList* li = decl_list->list.next;
+  DListItem* li = decl_list->list.next;
   while (li) {
     Ast* decl = li->object;
     if (decl->kind == AST_controlDeclaration) {
