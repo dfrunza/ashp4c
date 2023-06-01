@@ -667,6 +667,15 @@ typedef struct Ast_FunctionCall {
   Ast* args;
 } Ast_FunctionCall;
 
+enum AstHookPoint {
+  HOOK_ENTER_AST = 1,
+  HOOK_EXIT_AST,
+};
+
+typedef struct AstTraversalHooks {
+  void (*visit_p4program)(enum AstEnum, enum AstHookPoint, Ast*);
+} AstTraversalHooks;
+
 typedef struct NameDecl {
   union {
     Ast* ast;
