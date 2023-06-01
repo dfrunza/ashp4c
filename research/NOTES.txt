@@ -12,7 +12,7 @@ for i in {0..3}; do sudo ip link set dev veth$i xdp off; done
 sudo echo 1 > /sys/kernel/debug/tracing/tracing_on
 sudo cat /sys/kernel/debug/tracing/trace_pipe
 
-The XDP _kernel_ program should be compiled with -02, or else there's a chance that the BPF loader is going to reject it.
+The XDP _kernel_ program should be compiled with -02, or the BPF loader could reject it.
 
 llvm-objdump -S -no-show-raw-insn xdp-example.o
 readelf -a xde-example.o
