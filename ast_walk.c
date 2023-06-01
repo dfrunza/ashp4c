@@ -471,29 +471,53 @@ internal void
 visit_statement(AstTraversalHooks* hooks, Ast* ast)
 {
   if (ast->kind == AST_variableDeclaration) {
+    hooks->visit_var_decl(AST_statement, HOOK_ENTER_AST, ast);
     visit_var_decl(ast);
+    hooks->visit_var_decl(AST_statement, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_actionDeclaration) {
+    hooks->visit_action(AST_statement, HOOK_ENTER_AST, ast);
     visit_action(ast);
+    hooks->visit_action(AST_statement, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_blockStatement) {
+    hooks->visit_block_stmt(AST_statement, HOOK_ENTER_AST, ast);
     visit_block_stmt(ast);
+    hooks->visit_block_stmt(AST_statement, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_instantiation) {
+    hooks->visit_instantiation(AST_statement, HOOK_ENTER_AST, ast);
     visit_instantiation(ast);
+    hooks->visit_instantiation(AST_statement, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_tableDeclaration) {
+    hooks->visit_table(AST_statement, HOOK_ENTER_AST, ast);
     visit_table(ast);
+    hooks->visit_table(AST_statement, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_conditionalStatement) {
+    hooks->visit_if_stmt(AST_statement, HOOK_ENTER_AST, ast);
     visit_if_stmt(ast);
+    hooks->visit_if_stmt(AST_statement, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_switchStatement) {
+    hooks->visit_switch_stmt(AST_statement, HOOK_ENTER_AST, ast);
     visit_switch_stmt(ast);
+    hooks->visit_switch_stmt(AST_statement, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_assignmentStatement) {
+    hooks->visit_assignment_stmt(AST_statement, HOOK_ENTER_AST, ast);
     visit_assignment_stmt(ast);
+    hooks->visit_assignment_stmt(AST_statement, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_functionCall) {
+    hooks->visit_function_call(AST_statement, HOOK_ENTER_AST, ast);
     visit_function_call(ast);
+    hooks->visit_function_call(AST_statement, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_returnStatement) {
+    hooks->visit_return_stmt(AST_statement, HOOK_ENTER_AST, ast);
     visit_return_stmt(ast);
+    hooks->visit_return_stmt(AST_statement, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_exitStatement) {
+    hooks->visit_exit_stmt(AST_statement, HOOK_ENTER_AST, ast);
     visit_exit_stmt(ast);
+    hooks->visit_exit_stmt(AST_statement, HOOK_EXIT_AST, ast);
   } else if(ast->kind == AST_emptyStatement) {
+    hooks->visit_empty_stmt(AST_statement, HOOK_ENTER_AST, ast);
     visit_empty_stmt(ast);
+    hooks->visit_empty_stmt(AST_statement, HOOK_EXIT_AST, ast);
   }
   else assert(0);
 }
@@ -502,11 +526,17 @@ internal void
 visit_local_parser_element(AstTraversalHooks* hooks, Ast* ast)
 {
   if (ast->kind == AST_constantDeclaration) {
+    hooks->visit_const(AST_parserLocalElement, HOOK_ENTER_AST, ast);
     visit_const(ast);
+    hooks->visit_const(AST_parserLocalElement, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_instantiation) {
+    hooks->visit_instantiation(AST_parserLocalElement, HOOK_ENTER_AST, ast);
     visit_instantiation(ast);
+    hooks->visit_instantiation(AST_parserLocalElement, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_variableDeclaration) {
+    hooks->visit_statement(AST_parserLocalElement, HOOK_ENTER_AST, ast);
     visit_statement(ast);
+    hooks->visit_statement(AST_parserLocalElement, HOOK_EXIT_AST, ast);
   } else assert(0);
 }
 
@@ -515,8 +545,12 @@ visit_transition_select_case(AstTraversalHooks* hooks, Ast* ast)
 {
   assert(ast->kind == AST_selectCase);
   Ast_SelectCase* select_case = (Ast_SelectCase*)ast;
+  hooks->visit_select_keyset(AST_selectCase, HOOK_ENTER_AST, select_case->keyset);
   visit_select_keyset(select_case->keyset);
+  hooks->visit_select_keyset(AST_selectCase, HOOK_EXIT_AST, select_case->keyset);
+  hooks->visit_expression(AST_selectCase, HOOK_ENTER_AST, select_case->name)
   visit_expression(select_case->name);
+  hooks->visit_expression(AST_selectCase, HOOK_EXIT_AST, select_case->name)
 }
 
 internal void
@@ -529,7 +563,9 @@ visit_select_expr(AstTraversalHooks* hooks, Ast* ast)
     for (DListItem* li = expr_list->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* expr = li->object;
+      hooks->visit_expression(AST_selectExpression, HOOK_ENTER_AST, expr);
       visit_expression(expr);
+      hooks->visit_expression(AST_selectExpression, HOOK_EXIT_AST, expr);
     }
   }
   Ast_List* case_list = (Ast_List*)trans_stmt->case_list;
@@ -537,7 +573,9 @@ visit_select_expr(AstTraversalHooks* hooks, Ast* ast)
     for (DListItem* li = case_list->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* select_case = li->object;
+      hooks->visit_transition_select_case(AST_selectExpression, HOOK_ENTER_AST, select_case);
       visit_transition_select_case(select_case);
+      hooks->visit_transition_select_case(AST_selectExpression, HOOK_EXIT_AST, select_case);
     }
   }
 }
@@ -546,9 +584,13 @@ internal void
 visit_parser_transition(AstTraversalHooks* hooks, Ast* ast)
 {
   if (ast->kind == AST_name) {
+    hooks->visit_expression(AST_parserTransition, HOOK_ENTER_AST, ast);
     visit_expression(ast);
+    hooks->visit_expression(AST_parserTransition, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_selectExpression) {
+    hooks->visit_select_expr(AST_parserTransition, HOOK_ENTER_AST, ast);
     visit_select_expr(ast);
+    hooks->visit_select_expr(AST_parserTransition, HOOK_EXIT_AST, ast);
   }
   else assert(0);
 }
@@ -563,10 +605,14 @@ visit_parser_state(AstTraversalHooks* hooks, Ast* ast)
     for (DListItem* li = stmt_list->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* stmt = li->object;
+      hooks->visit_statement(AST_parserState, HOOK_ENTER_AST, stmt);
       visit_statement(stmt);
+      hooks->visit_statement(AST_parserState, HOOK_EXIT_AST, stmt);
     }
   }
+  hooks->visit_transition(AST_parserState, HOOK_ENTER_AST, state->trans_stmt);
   visit_parser_transition(state->trans_stmt);
+  hooks->visit_transition(AST_parserState, HOOK_EXIT_AST, state->trans_stmt);
 }
 
 internal void
