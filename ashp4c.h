@@ -2,8 +2,6 @@
 
 UnboundedArray* tokenize_text(char* text, int text_size, Arena* lexeme_storage, Arena* tokens_storage);
 Ast_P4Program* parse_tokens(UnboundedArray* tokens, Arena* ast_storage);
-void default_traversal_hooks(AstTraversalHooks* hooks);
-void traverse_ast_preorder(AstTraversalHooks* hooks, Ast_P4Program* p4program);
 Scope* build_name_decl(Ast_P4Program* p4program, Arena* decl_storage);
 Hashmap* build_type_decl(Ast_P4Program* p4program, Scope* root_scope, Arena* type_storage);
 Hashmap* build_potential_type(Ast_P4Program* p4program, Scope* root_scope, Arena* type_storage);

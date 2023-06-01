@@ -112,11 +112,10 @@ main(int arg_count, char* args[])
     assert(!"TODO");
   }
 
-  AstTraversalHooks hooks;
-  default_traversal_hooks(&hooks);
-  traverse_ast_preorder(&hooks, p4program);
   Scope* root_scope = build_name_decl(p4program, &main_storage);
-  build_type_decl(p4program, root_scope, &main_storage);
+  /*
+  build_type_decl(p4program, root_scope, &main_storage); */
+
   /*
   Hashmap* potential_type = build_potential_type(p4program, root_scope, &main_storage);
   select_type(p4program, root_scope, potential_type, &main_storage); */

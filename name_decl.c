@@ -105,7 +105,7 @@ visit_cast_expr(Ast* ast)
 }
 
 internal void
-visit_subscript(Ast* ast)
+visit_array_subscript(Ast* ast)
 {
   assert(ast->kind == AST_arraySubscript);
   Ast_ArraySubscript* expr = (Ast_ArraySubscript*)ast;
@@ -116,7 +116,7 @@ visit_subscript(Ast* ast)
 }
 
 internal void
-visit_kvpair(Ast* ast)
+visit_kvpair_expr(Ast* ast)
 {
   assert(ast->kind == AST_kvPairExpression);
   Ast_KVPairExpr* expr = (Ast_KVPairExpr*)ast;
@@ -160,9 +160,9 @@ visit_expression(Ast* ast)
   } else if (ast->kind == AST_castExpression) {
     visit_cast_expr(ast);
   } else if (ast->kind == AST_arraySubscript) {
-    visit_subscript(ast);
+    visit_array_subscript(ast);
   } else if (ast->kind == AST_kvPairExpression) {
-    visit_kvpair(ast);
+    visit_kvpair_expr(ast);
   } else if (ast->kind == AST_integerLiteral) {
     visit_int_literal(ast);
   } else if (ast->kind == AST_booleanLiteral) {
@@ -204,7 +204,7 @@ visit_type_param(Ast* ast)
 }
 
 internal void
-visit_block_statement(Ast* ast)
+visit_block_stmt(Ast* ast)
 {
   assert(ast->kind == AST_blockStatement);
   Ast_BlockStmt* block_stmt = (Ast_BlockStmt*)ast;
@@ -398,7 +398,7 @@ visit_switch_case(Ast* ast)
   visit_switch_label(switch_case->label);
   Ast* case_stmt = switch_case->stmt;
   if (case_stmt && case_stmt->kind == AST_blockStatement) {
-    visit_block_statement(case_stmt);
+    visit_block_stmt(case_stmt);
   }
 }
 
@@ -511,7 +511,7 @@ visit_statement(Ast* ast)
   } else if (ast->kind == AST_actionDeclaration) {
     visit_action(ast);
   } else if (ast->kind == AST_blockStatement) {
-    visit_block_statement(ast);
+    visit_block_stmt(ast);
   } else if (ast->kind == AST_instantiation) {
     visit_instantiation(ast);
   } else if (ast->kind == AST_tableDeclaration) {
@@ -847,7 +847,7 @@ visit_control(Ast* ast)
     }
   }
   if (ctrl_decl->apply_stmt) {
-    visit_block_statement(ctrl_decl->apply_stmt);
+    visit_block_stmt(ctrl_decl->apply_stmt);
   }
   current_scope = pop_scope();
 }
@@ -1315,7 +1315,7 @@ visit_match_kind(Ast* ast)
 }
 
 internal void
-visit_error_enum(Ast* ast)
+visit_error_enum(enum AstEnum context, enum AstHookPoint point, Ast* ast)
 {
   assert (ast->kind == AST_errorDeclaration);
   Ast_ErrorEnum* error_decl = (Ast_ErrorEnum*)ast;
@@ -1332,57 +1332,14 @@ visit_error_enum(Ast* ast)
 }
 
 internal void
-visit_p4program(Ast* ast)
+visit_p4program(enum AstEnum context, enum AstHookPoint point, Ast* ast)
 {
-  assert(ast->kind == AST_p4program);
-  Ast_P4Program* program = (Ast_P4Program*)ast;
-  current_scope = push_scope();
-  Ast_List* decl_list = (Ast_List*)program->decl_list;
-  if (decl_list) {
-    for (DListItem* li = decl_list->members.sentinel.next;
-         li != 0; li = li->next) {
-      Ast* decl = li->object;
-      if (decl->kind == AST_controlDeclaration) {
-        visit_control(decl);
-      } else if (decl->kind == AST_controlTypeDeclaration) {
-        visit_control_proto(decl);
-      } else if (decl->kind == AST_externDeclaration) {
-        visit_extern(decl);
-      } else if (decl->kind == AST_structTypeDeclaration) {
-        visit_struct(decl);
-      } else if (decl->kind == AST_headerTypeDeclaration) {
-        visit_header(decl);
-      } else if (decl->kind == AST_headerUnionDeclaration) {
-        visit_header_union(decl);
-      } else if (decl->kind == AST_packageTypeDeclaration) {
-        visit_package(decl);
-      } else if (decl->kind == AST_parserDeclaration) {
-        visit_parser(decl);
-      } else if (decl->kind == AST_parserTypeDeclaration) {
-        visit_parser_proto(decl);
-      } else if (decl->kind == AST_instantiation) {
-        visit_instantiation(decl);
-      } else if (decl->kind == AST_typedefDeclaration) {
-        visit_typedef(decl);
-      } else if (decl->kind == AST_functionDeclaration) {
-        visit_function(decl);
-      } else if (decl->kind == AST_functionPrototype) {
-        visit_function_proto(decl);
-      } else if (decl->kind == AST_constantDeclaration) {
-        visit_const(decl);
-      } else if (decl->kind == AST_enumDeclaration) {
-        visit_enum(decl);
-      } else if (decl->kind == AST_actionDeclaration) {
-        visit_action(decl);
-      } else if (decl->kind == AST_matchKindDeclaration) {
-        visit_match_kind(decl);
-      } else if (decl->kind == AST_errorDeclaration) {
-        visit_error_enum(decl);
-      }
-      else assert(0);
-    }
+  if (point == HOOK_ENTER_AST) {
+    current_scope = push_scope();
+  } else if (point == HOOK_EXIT_AST) {
+    current_scope = pop_scope();
   }
-  current_scope = pop_scope();
+  else assert(0);
 }
 
 Scope*
@@ -1463,7 +1420,13 @@ build_name_decl(Ast_P4Program* p4program, Arena* decl_storage_)
     declare_var_name(root_scope, reject_state->strname, 0, 0, (Ast*)reject_state);
   }
 
-  visit_p4program((Ast*)p4program);
+  /* visit_p4program((Ast*)p4program); */
+  AstTraversalHooks hooks;
+  init_traversal_hooks(&hooks);
+  hooks.visit_p4program = visit_p4program;
+  hooks.visit_error_enum = visit_error_enum;
+  traverse_ast_preorder(&hooks, p4program);
+
   current_scope = pop_scope();
   assert(current_scope == 0);
   return root_scope;
