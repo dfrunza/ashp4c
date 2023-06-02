@@ -257,11 +257,28 @@ typedef struct Scope {
   Hashmap sym_table;
 } Scope;
 
+enum AstWalkBranch {
+  BRANCH_args = 1,
+};
+
+enum AstWalkDirection {
+  WALK_DOWN = 1,
+  WALK_UP,
+};
+
+typedef struct AstWalkContext {
+  struct Ast* ast;
+  enum AstWalkBranch branch;
+} AstWalkContext;
+
+typedef void (*AstVisit)(AstWalkContext*, enum AstWalkDirection, struct Ast*);
+
 typedef struct Ast {
   enum AstEnum kind;
   uint32_t id;
   int line_no;
   int column_no;
+  AstVisit visit;
 } Ast;
 
 typedef struct Ast_List {
@@ -676,96 +693,8 @@ typedef struct Ast_FunctionCall {
   Ast* args;
 } Ast_FunctionCall;
 
-enum AstHookPoint {
-  HOOK_ENTER_AST = 1,
-  HOOK_EXIT_AST,
-};
-
-typedef struct AstTraversalHooks {
-  void (*visit_p4program)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_error_enum)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_match_kind)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_action)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_enum)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_const)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_function_proto)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_function)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_typedef)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_instantiation)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_parser_proto)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_parser)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_package)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_header_union)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_header)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_struct)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_extern)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_control_proto)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_control)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_specified_identifier)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_enum_field)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_type_ref)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_dontcare_type)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_tuple)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_specialized_type)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_name_type)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_header_stack)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_error_type)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_void_type)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_string_type)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_varbit_type)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_bit_type)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_int_type)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_bool_type)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_struct_field)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_parser_state)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_parser_transition)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_select_expr)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_transition_select_case)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_local_parser_element)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_statement)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_empty_stmt)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_exit_stmt)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_return_stmt)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_assignment_stmt)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_switch_stmt)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_if_stmt)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_table)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_var_decl)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_switch_case)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_switch_default)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_table_property)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_table_entries)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_table_key)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_table_single_entry)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_table_actions)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_table_entry)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_select_keyset)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_tuple_keyset)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_keyset_expr)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_dontcare_keyset)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_default_keyset)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_table_keyelem)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_action_ref)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_block_stmt)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_type_param)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_param)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_expression)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_string_literal)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_bool_literal)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_int_literal)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_kvpair_expr)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_array_subscript)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_cast_expr)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_expression_list)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_member_select)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_function_call)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_name_identifier)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_unary_expr)(enum AstEnum, enum AstHookPoint, Ast*);
-  void (*visit_binary_expr)(enum AstEnum, enum AstHookPoint, Ast*);
-} AstTraversalHooks;
-
-void init_traversal_hooks(AstTraversalHooks* hooks);
-void traverse_ast_preorder(AstTraversalHooks* hooks, Ast_P4Program* p4program);
+void install_visitor(Ast* ast, AstVisit visit);
+void traverse_ast(Ast* p4program);
 
 typedef struct NameDecl {
   union {

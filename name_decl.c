@@ -8,6 +8,7 @@ internal Arena* name_storage;
 internal Scope* root_scope;
 internal Scope* current_scope;
 
+#if 0
 internal void visit_expression(Ast* ast);
 internal void visit_type_ref(Ast* ast);
 internal void visit_statement(Ast* ast);
@@ -20,7 +21,9 @@ internal void visit_function_proto(Ast* ast);
 internal void visit_const(Ast* ast);
 internal void visit_action(Ast* ast);
 internal void visit_parser_proto(Ast* ast);
+#endif
 
+#if 0
 internal void
 visit_binary_expr(Ast* ast)
 {
@@ -29,7 +32,9 @@ visit_binary_expr(Ast* ast)
   visit_expression(expr->left_operand);
   visit_expression(expr->right_operand);
 }
+#endif
 
+#if 0
 internal void
 visit_unary_expr(Ast* ast)
 {
@@ -37,7 +42,9 @@ visit_unary_expr(Ast* ast)
   Ast_UnaryExpr* expr = (Ast_UnaryExpr*)ast;
   visit_expression(expr->operand);
 }
+#endif
 
+#if 0
 internal void
 visit_name_identifier(Ast* ast)
 {
@@ -45,7 +52,9 @@ visit_name_identifier(Ast* ast)
   Ast_Name* name = (Ast_Name*)ast;
   name->scope = current_scope;
 }
+#endif
 
+#if 0
 internal void
 visit_function_call(Ast* ast)
 {
@@ -70,7 +79,9 @@ visit_function_call(Ast* ast)
     }
   }
 }
+#endif
 
+#if 0
 internal void
 visit_member_select(Ast* ast)
 {
@@ -79,7 +90,9 @@ visit_member_select(Ast* ast)
   visit_expression(expr->lhs_expr);
   visit_expression(expr->member_name);
 }
+#endif
 
+#if 0
 internal void
 visit_expression_list(Ast* ast)
 {
@@ -94,7 +107,9 @@ visit_expression_list(Ast* ast)
     }
   }
 }
+#endif
 
+#if 0
 internal void
 visit_cast_expr(Ast* ast)
 {
@@ -103,7 +118,9 @@ visit_cast_expr(Ast* ast)
   visit_type_ref(expr->to_type);
   visit_expression(expr->expr);
 }
+#endif
 
+#if 0
 internal void
 visit_array_subscript(Ast* ast)
 {
@@ -114,7 +131,9 @@ visit_array_subscript(Ast* ast)
     visit_expression(expr->end_index);
   }
 }
+#endif
 
+#if 0
 internal void
 visit_kvpair_expr(Ast* ast)
 {
@@ -123,25 +142,33 @@ visit_kvpair_expr(Ast* ast)
   visit_expression(expr->name);
   visit_expression(expr->expr);
 }
+#endif
 
+#if 0
 internal void
 visit_int_literal(Ast* ast)
 {
   // pass
 }
+#endif
 
+#if 0
 internal void
 visit_bool_literal(Ast* ast)
 {
   // pass
 }
+#endif
 
+#if 0
 internal void
 visit_string_literal(Ast* ast)
 {
   // pass
 }
+#endif
 
+#if 0
 internal void
 visit_expression(Ast* ast)
 {
@@ -172,7 +199,9 @@ visit_expression(Ast* ast)
   }
   else assert(0);
 }
+#endif
 
+#if 0
 internal void
 visit_param(Ast* ast)
 {
@@ -189,7 +218,9 @@ visit_param(Ast* ast)
                name->line_no, name->column_no, name->strname);
   visit_type_ref(param->type);
 }
+#endif
 
+#if 0
 internal void
 visit_type_param(Ast* ast)
 {
@@ -202,7 +233,9 @@ visit_type_param(Ast* ast)
     visit_type_ref((Ast*)name);
   }
 }
+#endif
 
+#if 0
 internal void
 visit_block_stmt(Ast* ast)
 {
@@ -219,7 +252,9 @@ visit_block_stmt(Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_action_ref(Ast* ast)
 {
@@ -235,7 +270,9 @@ visit_action_ref(Ast* ast)
     }
   }
 }
+#endif
 
+#if 0
 internal void
 visit_table_keyelem(Ast* ast)
 {
@@ -244,19 +281,25 @@ visit_table_keyelem(Ast* ast)
   visit_expression(keyelem->expr);
   visit_expression(keyelem->name);
 }
+#endif
 
+#if 0
 internal void
 visit_default_keyset(Ast *ast)
 {
   // pass
 }
+#endif
 
+#if 0
 internal void
 visit_dontcare_keyset(Ast* ast)
 {
   // pass
 }
+#endif
 
+#if 0
 internal void
 visit_keyset_expr(Ast* ast)
 {
@@ -268,7 +311,9 @@ visit_keyset_expr(Ast* ast)
     visit_expression(ast);
   }
 }
+#endif
 
+#if 0
 internal void
 visit_tuple_keyset(Ast* ast)
 {
@@ -283,7 +328,9 @@ visit_tuple_keyset(Ast* ast)
     }
   }
 }
+#endif
 
+#if 0
 internal void
 visit_select_keyset(Ast* ast)
 {
@@ -293,7 +340,9 @@ visit_select_keyset(Ast* ast)
     visit_keyset_expr(ast);
   }
 }
+#endif
 
+#if 0
 internal void
 visit_table_entry(Ast* ast)
 {
@@ -302,7 +351,9 @@ visit_table_entry(Ast* ast)
   visit_select_keyset(entry->keyset);
   visit_action_ref(entry->action);
 }
+#endif
 
+#if 0
 internal void
 visit_table_actions(Ast *ast)
 {
@@ -318,7 +369,9 @@ visit_table_actions(Ast *ast)
     }
   }
 }
+#endif
 
+#if 0
 internal void
 visit_table_single_entry(Ast* ast)
 {
@@ -328,7 +381,9 @@ visit_table_single_entry(Ast* ast)
     visit_expression(prop->init_expr);
   }
 }
+#endif
 
+#if 0
 internal void
 visit_table_key(Ast* ast)
 {
@@ -343,7 +398,9 @@ visit_table_key(Ast* ast)
     }
   }
 }
+#endif
 
+#if 0
 internal void
 visit_table_entries(Ast* ast)
 {
@@ -358,7 +415,9 @@ visit_table_entries(Ast* ast)
     }
   }
 }
+#endif
 
+#if 0
 internal void
 visit_table_property(Ast* ast)
 {
@@ -373,13 +432,17 @@ visit_table_property(Ast* ast)
   }
   else assert(0);
 }
+#endif
 
+#if 0
 internal void
 visit_switch_default(Ast* ast)
 {
   // pass
 }
+#endif
 
+#if 0
 internal void
 visit_switch_label(Ast* ast)
 {
@@ -389,7 +452,9 @@ visit_switch_label(Ast* ast)
     visit_expression(ast);
   }
 }
+#endif
 
+#if 0
 internal void
 visit_switch_case(Ast* ast)
 {
@@ -401,7 +466,9 @@ visit_switch_case(Ast* ast)
     visit_block_stmt(case_stmt);
   }
 }
+#endif
 
+#if 0
 internal void
 visit_var_decl(Ast* ast)
 {
@@ -420,7 +487,9 @@ visit_var_decl(Ast* ast)
     visit_expression(var_decl->init_expr);
   }
 }
+#endif
 
+#if 0
 internal void
 visit_table(Ast* ast)
 {
@@ -444,7 +513,9 @@ visit_table(Ast* ast)
     }
   }
 }
+#endif
 
+#if 0
 internal void
 visit_if_stmt(Ast* ast)
 {
@@ -457,7 +528,9 @@ visit_if_stmt(Ast* ast)
     visit_statement(else_stmt);
   }
 }
+#endif
 
+#if 0
 internal void
 visit_switch_stmt(Ast* ast)
 {
@@ -472,7 +545,9 @@ visit_switch_stmt(Ast* ast)
     }
   }
 }
+#endif
 
+#if 0
 internal void
 visit_assignment_stmt(Ast* ast)
 {
@@ -481,7 +556,9 @@ visit_assignment_stmt(Ast* ast)
   Ast* assign_expr = stmt->expr;
   visit_expression(assign_expr);
 }
+#endif
 
+#if 0
 internal void
 visit_return_stmt(Ast* ast)
 {
@@ -490,19 +567,25 @@ visit_return_stmt(Ast* ast)
     visit_expression(stmt->expr);
   }
 }
+#endif
 
+#if 0
 internal void
 visit_exit_stmt(Ast* ast)
 {
   // pass
 }
+#endif
 
+#if 0
 internal void
 visit_empty_stmt(Ast* ast)
 {
   // pass
 }
+#endif
 
+#if 0
 internal void
 visit_statement(Ast* ast)
 {
@@ -533,7 +616,9 @@ visit_statement(Ast* ast)
   }
   else assert(0);
 }
+#endif
 
+#if 0
 internal void
 visit_local_parser_element(Ast* ast)
 {
@@ -545,7 +630,9 @@ visit_local_parser_element(Ast* ast)
     visit_statement(ast);
   } else assert(0);
 }
+#endif
 
+#if 0
 internal void
 visit_transition_select_case(Ast* ast)
 {
@@ -554,7 +641,9 @@ visit_transition_select_case(Ast* ast)
   visit_select_keyset(select_case->keyset);
   visit_expression(select_case->name);
 }
+#endif
 
+#if 0
 internal void
 visit_select_expr(Ast* ast)
 {
@@ -577,7 +666,9 @@ visit_select_expr(Ast* ast)
     }
   }
 }
+#endif
 
+#if 0
 internal void
 visit_parser_transition(Ast* ast)
 {
@@ -588,7 +679,9 @@ visit_parser_transition(Ast* ast)
   }
   else assert(0);
 }
+#endif
 
+#if 0
 internal void
 visit_parser_state(Ast* ast)
 {
@@ -615,7 +708,9 @@ visit_parser_state(Ast* ast)
   visit_parser_transition(state->trans_stmt);
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_struct_field(Ast* ast)
 {
@@ -632,56 +727,72 @@ visit_struct_field(Ast* ast)
                name->line_no, name->column_no, name->strname);
   visit_type_ref(field->type);
 }
+#endif
 
+#if 0
 internal void
 visit_bool_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeBool);
   visit_expression(((Ast_BoolType*)ast)->name);
 }
+#endif
 
+#if 0
 internal void
 visit_int_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeInt);
   visit_expression(((Ast_IntType*)ast)->name);
 }
+#endif
 
+#if 0
 internal void
 visit_bit_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeBit);
   visit_expression(((Ast_BitType*)ast)->name);
 }
+#endif
 
+#if 0
 internal void
 visit_varbit_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeVarbit);
   visit_expression(((Ast_VarbitType*)ast)->name);
 }
+#endif
 
+#if 0
 internal void
 visit_string_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeString);
   visit_expression(((Ast_StringType*)ast)->name);
 }
+#endif
 
+#if 0
 internal void
 visit_void_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeVoid);
   visit_expression(((Ast_VoidType*)ast)->name);
 }
+#endif
 
+#if 0
 internal void
 visit_error_type(Ast* ast)
 {
   assert(ast->kind == AST_baseTypeError);
   visit_expression(((Ast_ErrorType*)ast)->name);
 }
+#endif
 
+#if 0
 internal void
 visit_header_stack(Ast* ast)
 {
@@ -690,7 +801,9 @@ visit_header_stack(Ast* ast)
   Ast* stack_expr = type_ref->stack_expr;
   visit_expression(stack_expr);
 }
+#endif
 
+#if 0
 internal void
 visit_name_type(Ast* ast)
 {
@@ -704,7 +817,9 @@ visit_name_type(Ast* ast)
     visit_expression(ast);
   }
 }
+#endif
 
+#if 0
 internal void
 visit_specialized_type(Ast* ast)
 {
@@ -719,7 +834,9 @@ visit_specialized_type(Ast* ast)
     }
   }
 }
+#endif
 
+#if 0
 internal void
 visit_tuple(Ast* ast)
 {
@@ -733,13 +850,17 @@ visit_tuple(Ast* ast)
     }
   }
 }
+#endif
 
+#if 0
 internal void
 visit_dontcare_type(Ast* ast)
 {
   // pass
 }
+#endif
 
+#if 0
 internal void
 visit_type_ref(Ast* ast)
 {
@@ -776,7 +897,9 @@ visit_type_ref(Ast* ast)
   }
   else assert(0);
 }
+#endif
 
+#if 0
 internal void
 visit_enum_field(Ast* ast)
 {
@@ -791,7 +914,9 @@ visit_enum_field(Ast* ast)
   } else error("At line %d, column %d: redeclaration of name `%s`.",
                name->line_no, name->column_no, name->strname);
 }
+#endif
 
+#if 0
 internal void
 visit_specified_identifier(Ast* ast)
 {
@@ -804,7 +929,9 @@ visit_specified_identifier(Ast* ast)
     visit_expression(init_expr);
   }
 }
+#endif
 
+#if 0
 internal void
 visit_control(Ast* ast)
 {
@@ -851,7 +978,9 @@ visit_control(Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_control_proto(Ast* ast)
 {
@@ -878,7 +1007,9 @@ visit_control_proto(Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_extern(Ast* ast)
 {
@@ -905,7 +1036,9 @@ visit_extern(Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_struct(Ast* ast)
 {
@@ -931,7 +1064,9 @@ visit_struct(Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_header(Ast* ast)
 {
@@ -957,7 +1092,9 @@ visit_header(Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_header_union(Ast* ast)
 {
@@ -983,7 +1120,9 @@ visit_header_union(Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_package(Ast* ast)
 {
@@ -1017,7 +1156,9 @@ visit_package(Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_parser(Ast* ast)
 {
@@ -1069,7 +1210,9 @@ visit_parser(Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_parser_proto(Ast* ast)
 {
@@ -1096,7 +1239,9 @@ visit_parser_proto(Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_instantiation(Ast* ast)
 {
@@ -1121,7 +1266,9 @@ visit_instantiation(Ast* ast)
     }
   }
 }
+#endif
 
+#if 0
 internal void
 visit_typedef(Ast* ast)
 {
@@ -1139,7 +1286,9 @@ visit_typedef(Ast* ast)
   Ast* type_ref = type_decl->type_ref;
   visit_type_ref(type_ref);
 }
+#endif
 
+#if 0
 internal void
 visit_function(Ast* ast)
 {
@@ -1181,7 +1330,9 @@ visit_function(Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_function_proto(Ast* ast)
 {
@@ -1211,7 +1362,9 @@ visit_function_proto(Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_const(Ast* ast)
 {
@@ -1229,7 +1382,9 @@ visit_const(Ast* ast)
   visit_type_ref(const_decl->type);
   visit_expression(const_decl->expr);
 }
+#endif
 
+#if 0
 internal void
 visit_enum(Ast* ast)
 {
@@ -1255,7 +1410,9 @@ visit_enum(Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_action(Ast* ast)
 {
@@ -1292,7 +1449,9 @@ visit_action(Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
+#if 0
 internal void
 visit_match_kind(Ast* ast)
 {
@@ -1313,9 +1472,11 @@ visit_match_kind(Ast* ast)
     }
   }
 }
+#endif
 
+#if 0
 internal void
-visit_error_enum(enum AstEnum context, enum AstHookPoint point, Ast* ast)
+visit_error_enum(AstWalkContext* context, Ast* ast)
 {
   assert (ast->kind == AST_errorDeclaration);
   Ast_ErrorEnum* error_decl = (Ast_ErrorEnum*)ast;
@@ -1330,14 +1491,332 @@ visit_error_enum(enum AstEnum context, enum AstHookPoint point, Ast* ast)
   }
   current_scope = pop_scope();
 }
+#endif
 
 internal void
-visit_p4program(enum AstEnum context, enum AstHookPoint point, Ast* ast)
+visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
 {
-  if (point == HOOK_ENTER_AST) {
-    current_scope = push_scope();
-  } else if (point == HOOK_EXIT_AST) {
-    current_scope = pop_scope();
+  if (ast->kind == AST_p4program) {
+    if (direction == WALK_DOWN) {
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_errorDeclaration) {
+    if (direction == WALK_DOWN) {
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_matchKindDeclaration) {
+    assert(current_scope->scope_level == 1);
+  } else if (ast->kind == AST_actionDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_Action* action_decl = (Ast_Action*)ast;
+      Ast_Name* name = (Ast_Name*)action_decl->name;
+      HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+      NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
+      ne->strname = name->strname;
+      name_he->object = ne;
+      if (!ne->ns_var) {
+        declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)action_decl);
+      } else error("At line %d, column %d: redeclaration of name `%s`.",
+                  name->line_no, name->column_no, name->strname);
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_enumDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_Enum* enum_decl = (Ast_Enum*)ast;
+      Ast_Name* name = (Ast_Name*)enum_decl->name;
+      HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+      NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
+      ne->strname = name->strname;
+      name_he->object = ne;
+      if (!ne->ns_type) {
+        declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)enum_decl);
+      } else error("At line %d, column %d: redeclaration of name `%s`.",
+                  name->line_no, name->column_no, name->strname);
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_constantDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_Const* const_decl = (Ast_Const*)ast;
+      Ast_Name* name = (Ast_Name*)const_decl->name;
+      HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+      NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
+      ne->strname = name->strname;
+      name_he->object = ne;
+      if (!ne->ns_var) {
+        declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)const_decl);
+      } else error("At line %d, column %d: redeclaration of name `%s`.",
+                  name->line_no, name->column_no, name->strname);
+    } else if (direction == WALK_UP) {
+    } else assert(0);
+  } else if (ast->kind == AST_functionPrototype) {
+    if (direction == WALK_DOWN) {
+      Ast_FunctionProto* func_proto = (Ast_FunctionProto*)ast;
+      Ast_Name* name = (Ast_Name*)func_proto->name;
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)func_proto);
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_functionDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_Function* func_decl = (Ast_Function*)ast;
+      Ast_FunctionProto* func_proto = (Ast_FunctionProto*)func_decl->proto;
+      Ast_Name* name = (Ast_Name*)func_proto->name;
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)func_decl);
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_typedefDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_TypeDef* type_decl = (Ast_TypeDef*)ast;
+      Ast_Name* name = (Ast_Name*)type_decl->name;
+      HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+      NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
+      ne->strname = name->strname;
+      name_he->object = ne;
+      if (!ne->ns_type) {
+        declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)type_decl);
+      } else error("At line %d, column %d: redeclaration of name `%s`.",
+                  name->line_no, name->column_no, name->strname);
+    } else if (direction == WALK_UP) {
+    } else assert(0);
+  } else if (ast->kind == AST_instantiation) {
+    if (direction == WALK_DOWN) {
+      Ast_Instantiation* inst_decl = (Ast_Instantiation*)ast;
+      Ast_Name* name = (Ast_Name*)inst_decl->name;
+      HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+      NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
+      ne->strname = name->strname;
+      name_he->object = ne;
+      if (!ne->ns_var) {
+        declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)inst_decl);
+      } else error("At line %d, column %d: redeclaration of name `%s`.",
+                  name->line_no, name->column_no, name->strname);
+    } else if (direction == WALK_UP) {
+    } else assert(0);
+  } else if (ast->kind == AST_parserTypeDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_ParserProto* proto_decl = (Ast_ParserProto*)ast;
+      Ast_Name* name = (Ast_Name*)proto_decl->name;
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)proto_decl);
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_parserDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_Parser* parser_decl = (Ast_Parser*)ast;
+      Ast_ParserProto* proto = (Ast_ParserProto*)parser_decl->proto;
+      Ast_Name* name = (Ast_Name*)proto->name;
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)parser_decl);
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_packageTypeDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_Package* package_decl = (Ast_Package*)ast;
+      Ast_Name* name = (Ast_Name*)package_decl->name;
+      HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+      NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
+      ne->strname = name->strname;
+      name_he->object = ne;
+      if (!ne->ns_type) {
+        declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)package_decl);
+      } else error("At line %d, column %d: redeclaration of name `%s`.",
+                  name->line_no, name->column_no, name->strname);
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_headerUnionDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
+      Ast_Name* name = (Ast_Name*)union_decl->name;
+      HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+      NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
+      ne->strname = name->strname;
+      name_he->object = ne;
+      if (!ne->ns_type) {
+        declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)union_decl);
+      } else error("At line %d, column %d: redeclaration of name `%s`.",
+                  name->line_no, name->column_no, name->strname);
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_headerTypeDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_Header* header_decl = (Ast_Header*)ast;
+      Ast_Name* name = (Ast_Name*)header_decl->name;
+      HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+      NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
+      ne->strname = name->strname;
+      name_he->object = ne;
+      if (!ne->ns_type) {
+        declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)header_decl);
+      } else error("At line %d, column %d: redeclaration of name `%s`.",
+                  name->line_no, name->column_no, name->strname);
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_structTypeDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_Struct* struct_decl = (Ast_Struct*)ast;
+      Ast_Name* name = (Ast_Name*)struct_decl->name;
+      HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+      NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
+      ne->strname = name->strname;
+      name_he->object = ne;
+      if (!ne->ns_type) {
+        declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)struct_decl);
+      } else error("At line %d, column %d: redeclaration of name `%s`.",
+                  name->line_no, name->column_no, name->strname);
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_externDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_Extern* extern_decl = (Ast_Extern*)ast;
+      Ast_Name* name = (Ast_Name*)extern_decl->name;
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)extern_decl);
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_controlTypeDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_ControlProto* ctrl_proto = (Ast_ControlProto*)ast;
+      Ast_Name* name = (Ast_Name*)ctrl_proto->name;
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)ctrl_proto);
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_specializedType) {
+  } else if (ast->kind == AST_headerStackType) {
+  } else if (ast->kind == AST_baseTypeError) {
+  } else if (ast->kind == AST_baseTypeVoid) {
+  } else if (ast->kind == AST_baseTypeString) {
+  } else if (ast->kind == AST_baseTypeVarbit) {
+  } else if (ast->kind == AST_baseTypeBit) {
+  } else if (ast->kind == AST_baseTypeBool) {
+  } else if (ast->kind == AST_structField) {
+    if (direction == WALK_DOWN) {
+      Ast_StructField* field = (Ast_StructField*)ast;
+      Ast_Name* name = (Ast_Name*)field->name;
+      HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+      NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
+      ne->strname = name->strname;
+      name_he->object = ne;
+      if (!ne->ns_var) {
+        declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)field);
+      } else error("At line %d, column %d: redeclaration of name `%s`.",
+                  name->line_no, name->column_no, name->strname);
+    } else if (direction == WALK_UP) {
+    } else assert(0);
+  } else if (ast->kind == AST_parserState) {
+    if (direction == WALK_DOWN) {
+      Ast_ParserState* state = (Ast_ParserState*)ast;
+      Ast_Name* name = (Ast_Name*)state->name;
+      HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+      NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
+      ne->strname = name->strname;
+      name_he->object = ne;
+      if (!ne->ns_var) {
+        declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)state);
+      } else error("At line %d, column %d: redeclaration of name `%s`.",
+                  name->line_no, name->column_no, name->strname);
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_selectExpression) {
+  } else if (ast->kind == AST_selectCase) {
+  } else if (ast->kind == AST_returnStatement) {
+  } else if (ast->kind == AST_assignmentStatement) {
+  } else if (ast->kind == AST_switchStatement) {
+  } else if (ast->kind == AST_conditionalStatement) {
+  } else if (ast->kind == AST_switchCase) {
+  } else if (ast->kind == AST_defaultKeysetExpression) {
+  } else if (ast->kind == AST_tableDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_Table* table_decl = (Ast_Table*)ast;
+      Ast_Name* name = (Ast_Name*)table_decl->name;
+      HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+      NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
+      ne->strname = name->strname;
+      name_he->object = ne;
+      if (!ne->ns_var) {
+        declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)table_decl);
+      } else error("At line %d, column %d: redeclaration of name `%s`.",
+                  name->line_no, name->column_no, name->strname);
+    } else if (direction == WALK_UP) {
+    } else assert(0);
+  } else if (ast->kind == AST_variableDeclaration) {
+    if (direction == WALK_DOWN) {
+      Ast_Var* var_decl = (Ast_Var*)ast;
+      Ast_Name* name = (Ast_Name*)var_decl->name;
+      HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+      NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
+      ne->strname = name->strname;
+      name_he->object = ne;
+      if (!ne->ns_var) {
+        declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)var_decl);
+      } else error("At line %d, column %d: redeclaration of name `%s`.",
+                    name->line_no, name->column_no, name->strname);
+    } else if (direction == WALK_UP) {
+    } else assert(0);
+  } else if (ast->kind == AST_tableEntries) {
+  } else if (ast->kind == AST_tableKey) {
+  } else if (ast->kind == AST_tableProperty) {
+  } else if (ast->kind == AST_tableActions) {
+  } else if (ast->kind == AST_tableEntry) {
+  } else if (ast->kind == AST_tupleKeysetExpression) {
+  } else if (ast->kind == AST_defaultKeysetExpression) {
+  } else if (ast->kind == AST_keyElement) {
+  } else if (ast->kind == AST_actionRef) {
+  } else if (ast->kind == AST_blockStatement) {
+    if (direction == WALK_DOWN) {
+      current_scope = push_scope();
+    } else if (direction == WALK_UP) {
+      current_scope = pop_scope();
+    } else assert(0);
+  } else if (ast->kind == AST_parameter) {
+    if (direction == WALK_DOWN) {
+      Ast_Param* param = (Ast_Param*)ast;
+      Ast_Name* name = (Ast_Name*)param->name;
+      HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
+      NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
+      ne->strname = name->strname;
+      name_he->object = ne;
+      if (!ne->ns_var) {
+        declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)param);
+      } else error("At line %d, column %d: redeclaration of name `%s`.",
+                  name->line_no, name->column_no, name->strname);
+    } else if (direction == WALK_UP) {
+    } else assert(0);
+  } else if (ast->kind == AST_name) {
+  } else if (ast->kind == AST_specifiedIdentifier) {
+  } else if (ast->kind == AST_kvPairExpression) {
+  } else if (ast->kind == AST_arraySubscript) {
+  } else if (ast->kind == AST_castExpression) {
+  } else if (ast->kind == AST_exprListExpression) {
+  } else if (ast->kind == AST_memberSelectExpression) {
+  } else if (ast->kind == AST_functionCall) {
+  } else if (ast->kind == AST_unaryExpression) {
+  } else if (ast->kind == AST_binaryExpression) {
   }
   else assert(0);
 }
@@ -1420,12 +1899,9 @@ build_name_decl(Ast_P4Program* p4program, Arena* decl_storage_)
     declare_var_name(root_scope, reject_state->strname, 0, 0, (Ast*)reject_state);
   }
 
-  /* visit_p4program((Ast*)p4program); */
-  AstTraversalHooks hooks;
-  init_traversal_hooks(&hooks);
-  hooks.visit_p4program = visit_p4program;
-  hooks.visit_error_enum = visit_error_enum;
-  traverse_ast_preorder(&hooks, p4program);
+  install_visitor((Ast*)p4program, visit);
+  traverse_ast((Ast*)p4program);
+  install_visitor((Ast*)p4program, 0);
 
   current_scope = pop_scope();
   assert(current_scope == 0);
