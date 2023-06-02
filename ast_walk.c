@@ -22,8 +22,12 @@ visit_binary_expr(AstTraversalHooks* hooks, Ast* ast)
 {
   assert(ast->kind == AST_binaryExpression);
   Ast_BinaryExpr* expr = (Ast_BinaryExpr*)ast;
+  hooks->visit_expression(AST_binaryExpression, HOOK_ENTER_AST, expr->left_operand);
   visit_expression(expr->left_operand);
+  hooks->visit_expression(AST_binaryExpression, HOOK_EXIT_AST, expr->left_operand);
+  hooks->visit_expression(AST_binaryExpression, HOOK_ENTER_AST, expr->right_operand);
   visit_expression(expr->right_operand);
+  hooks->visit_expression(AST_binaryExpression, HOOK_EXIT_AST, expr->right_operand);
 }
 
 internal void
@@ -31,7 +35,9 @@ visit_unary_expr(AstTraversalHooks* hooks, Ast* ast)
 {
   assert(ast->kind == AST_unaryExpression);
   Ast_UnaryExpr* expr = (Ast_UnaryExpr*)ast;
+  hooks->visit_expression(AST_unaryExpression, HOOK_ENTER_AST, expr->operand);
   visit_expression(expr->operand);
+  hooks->visit_expression(AST_unaryExpression, HOOK_EXIT_AST, expr->operand);
 }
 
 internal void
@@ -45,14 +51,18 @@ visit_function_call(AstTraversalHooks* hooks, Ast* ast)
 {
   assert(ast->kind == AST_functionCall);
   Ast_FunctionCall* expr = (Ast_FunctionCall*)ast;
+  hooks->visit_expression(AST_functionCall, HOOK_ENTER_AST, expr->callee_expr);
   visit_expression(expr->callee_expr);
+  hooks->visit_expression(AST_functionCall, HOOK_EXIT_AST, expr->callee_expr);
   Ast_Expression* callee_expr = (Ast_Expression*)expr->callee_expr;
   Ast_List* type_args = (Ast_List*)callee_expr->type_args;
   if (type_args) {
     for (DListItem* li = type_args->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* type_arg = li->object;
+      hooks->visit_type_ref(AST_functionCall, HOOK_ENTER_AST, type_arg);
       visit_type_ref(type_arg);
+      hooks->visit_type_ref(AST_functionCall, HOOK_EXIT_AST, type_arg);
     }
   }
   Ast_List* args = (Ast_List*)expr->args;
@@ -60,7 +70,9 @@ visit_function_call(AstTraversalHooks* hooks, Ast* ast)
     for (DListItem* li = args->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* arg = li->object;
+      hooks->visit_expression(AST_functionCall, HOOK_ENTER_AST, arg);
       visit_expression(arg);
+      hooks->visit_expression(AST_functionCall, HOOK_EXIT_AST, arg);
     }
   }
 }
@@ -70,8 +82,12 @@ visit_member_select(AstTraversalHooks* hooks, Ast* ast)
 {
   assert(ast->kind == AST_memberSelectExpression);
   Ast_MemberSelect* expr = (Ast_MemberSelect*)ast;
+  hooks->visit_expression(AST_memberSelectExpression, HOOK_ENTER_AST, expr->lhs_expr);
   visit_expression(expr->lhs_expr);
+  hooks->visit_expression(AST_memberSelectExpression, HOOK_EXIT_AST, expr->lhs_expr);
+  hooks->visit_expression(AST_memberSelectExpression, HOOK_ENTER_AST, expr->member_name);
   visit_expression(expr->member_name);
+  hooks->visit_expression(AST_memberSelectExpression, HOOK_EXIT_AST, expr->member_name);
 }
 
 internal void
@@ -84,7 +100,9 @@ visit_expression_list(AstTraversalHooks* hooks, Ast* ast)
     for (DListItem* li = expr_list->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* expr_expr = li->object;
+      hooks->visit_expression(AST_exprListExpression, HOOK_ENTER_AST, expr_expr);
       visit_expression(expr_expr);
+      hooks->visit_expression(AST_exprListExpression, HOOK_EXIT_AST, expr_expr);
     }
   }
 }
@@ -94,8 +112,12 @@ visit_cast_expr(AstTraversalHooks* hooks, Ast* ast)
 {
   assert(ast->kind == AST_castExpression);
   Ast_CastExpr* expr = (Ast_CastExpr*)ast;
+  hooks->visit_type_ref(AST_castExpression, HOOK_ENTER_AST, expr->to_type);
   visit_type_ref(expr->to_type);
+  hooks->visit_type_ref(AST_castExpression, HOOK_EXIT_AST, expr->to_type);
+  hooks->visit_expression(AST_castExpression, HOOK_ENTER_AST, expr->expr);
   visit_expression(expr->expr);
+  hooks->visit_expression(AST_castExpression, HOOK_EXIT_AST, expr->expr);
 }
 
 internal void
@@ -103,9 +125,13 @@ visit_array_subscript(AstTraversalHooks* hooks, Ast* ast)
 {
   assert(ast->kind == AST_arraySubscript);
   Ast_ArraySubscript* expr = (Ast_ArraySubscript*)ast;
+  hooks->visit_expression(AST_arraySubscript, HOOK_ENTER_AST, expr->index);
   visit_expression(expr->index);
+  hooks->visit_expression(AST_arraySubscript, HOOK_EXIT_AST, expr->index);
   if (expr->end_index) {
+    hooks->visit_expression(AST_arraySubscript, HOOK_ENTER_AST, expr->end_index);
     visit_expression(expr->end_index);
+    hooks->visit_expression(AST_arraySubscript, HOOK_EXIT_AST, expr->end_index);
   }
 }
 
@@ -114,8 +140,12 @@ visit_kvpair_expr(AstTraversalHooks* hooks, Ast* ast)
 {
   assert(ast->kind == AST_kvPairExpression);
   Ast_KVPairExpr* expr = (Ast_KVPairExpr*)ast;
+  hooks->visit_expression(AST_kvPairExpression, HOOK_ENTER_AST, expr->name);
   visit_expression(expr->name);
+  hooks->visit_expression(AST_kvPairExpression, HOOK_EXIT_AST, expr->name);
+  hooks->visit_expression(AST_kvPairExpression, HOOK_ENTER_AST, expr->expr);
   visit_expression(expr->expr);
+  hooks->visit_expression(AST_kvPairExpression, HOOK_EXIT_AST, expr->expr);
 }
 
 internal void
@@ -140,29 +170,53 @@ internal void
 visit_expression(AstTraversalHooks* hooks, Ast* ast)
 {
   if (ast->kind == AST_binaryExpression) {
+    hooks->visit_binary_expr(AST_expression, HOOK_ENTER_AST, ast);
     visit_binary_expr(ast);
+    hooks->visit_binary_expr(AST_expression, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_unaryExpression) {
+    hooks->visit_unary_expr(AST_expression, HOOK_ENTER_AST, ast);
     visit_unary_expr(ast);
+    hooks->visit_unary_expr(AST_expression, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_name) {
+    hooks->visit_name_identifier(AST_expression, HOOK_ENTER_AST, ast);
     visit_name_identifier(ast);
+    hooks->visit_name_identifier(AST_expression, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_functionCall) {
+    hooks->visit_function_call(AST_expression, HOOK_ENTER_AST, ast);
     visit_function_call(ast);
+    hooks->visit_function_call(AST_expression, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_memberSelectExpression) {
+    hooks->visit_member_select(AST_expression, HOOK_ENTER_AST, ast);
     visit_member_select(ast);
+    hooks->visit_member_select(AST_expression, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_exprListExpression) {
+    hooks->visit_expression_list(AST_expression, HOOK_ENTER_AST, ast);
     visit_expression_list(ast);
+    hooks->visit_expression_list(AST_expression, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_castExpression) {
+    hooks->visit_cast_expr(AST_expression, HOOK_ENTER_AST, ast);
     visit_cast_expr(ast);
+    hooks->visit_cast_expr(AST_expression, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_arraySubscript) {
+    hooks->visit_array_subscript(AST_expression, HOOK_ENTER_AST, ast);
     visit_array_subscript(ast);
+    hooks->visit_array_subscript(AST_expression, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_kvPairExpression) {
+    hooks->visit_kvpair_expr(AST_expression, HOOK_ENTER_AST, ast);
     visit_kvpair_expr(ast);
+    hooks->visit_kvpair_expr(AST_expression, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_integerLiteral) {
+    hooks->visit_int_literal(AST_expression, HOOK_ENTER_AST, ast);
     visit_int_literal(ast);
+    hooks->visit_int_literal(AST_expression, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_booleanLiteral) {
+    hooks->visit_bool_literal(AST_expression, HOOK_ENTER_AST, ast);
     visit_bool_literal(ast);
+    hooks->visit_bool_literal(AST_expression, HOOK_EXIT_AST, ast);
   } else if (ast->kind == AST_stringLiteral) {
+    hooks->visit_string_literal(AST_expression, HOOK_ENTER_AST, ast);
     visit_string_literal(ast);
+    hooks->visit_string_literal(AST_expression, HOOK_EXIT_AST, ast);
   }
   else assert(0);
 }

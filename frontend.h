@@ -199,6 +199,7 @@ enum AstEnum {
   AST_specifiedIdentifierList,
   AST_argumentList,
   AST_directApplication,
+  AST_expression,
   AST_expressionList,
   AST_keysetExpr,
   AST_keysetExpressionList,
