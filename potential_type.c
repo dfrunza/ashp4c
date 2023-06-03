@@ -1044,7 +1044,7 @@ internal void
 visit_extern(Ast* ast)
 {
   assert(ast->kind == AST_externDeclaration);
-  Ast_Extern* extern_decl = (Ast_Extern*)ast;
+  Ast_ExternType* extern_decl = (Ast_ExternType*)ast;
   Ast_Name* name = (Ast_Name*)extern_decl->name;
   Type_TypeName* extern_ty = arena_push_struct(type_storage, Type_TypeName);
   extern_ty->ctor = TYPE_TYPENAME;

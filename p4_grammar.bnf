@@ -1,3 +1,7 @@
+
+== PROGRAM ==
+=============
+
 <p4program> := { <declaration> | ';' /* empty declaration */ }*
 
 <declaration> := <constantDeclaration> | <externDeclaration> | <actionDeclaration> | <parserDeclaration> | <typeDeclaration>
@@ -22,7 +26,8 @@
 <optConstructorParameters> := { '(' <parameterList> ')' }
 
 
-/*****  PARSER  *****/
+==  PARSER  ==
+==============
 
 <parserDeclaration> := <parserTypeDeclaration> <optConstructorParameters> '{' <parserLocalElements> <parserStates> '}'
 
@@ -59,10 +64,11 @@
 
 <simpleKeysetExpression> := <expression> /* { ( MASK | RANGE ) <expression> } */ | DEFAULT | DONTCARE
 
-<valueSetDeclaration> := VALUESET '<' ( <baseType> | <tupleType> | <typeName> ) '>' '(' <expression> ')' <name> ';'
+/* <valueSetDeclaration> := VALUESET '<' ( <baseType> | <tupleType> | <typeName> ) '>' '(' <expression> ')' <name> ';' */
 
 
-/*****  CONTROL  *****/
+==  CONTROL  ==
+===============
 
 <controlDeclaration> := <controlTypeDeclaration> <optConstructorParameters> '{' { <controlLocalDeclaration> }* APPLY <controlBody> '}'
 
@@ -73,7 +79,8 @@
 <controlBody> := <blockStatement>
 
 
-/*****  EXTERN  *****/
+==  EXTERN  ==
+==============
 
 <externDeclaration> := EXTERN (
     <nonTypeName> <optTypeParameters> '{' <methodPrototypes> '}'
@@ -87,30 +94,31 @@
   | TYPE_IDENTIFIER '(' <parameterList> ')' ';' /* constructor */
 
 
-/*****  TYPES  *****/
+==  TYPES  ==
+=============
 
-<typeRef> := <baseType> | <typeName> | <specializedType> | <headerStackType> | <tupleType>
+<typeRef> := <baseType> | <namedType> | <tupleType>
 
-<namedType> := <typeName> | <specializedType>
-
-<prefixedType> := { '.' } TYPE_IDENTIFIER
+<namedType> := <typeName> | <specializedType> | <headerStackType>
 
 <typeName> := <prefixedType>
+
+<prefixedType> := { '.' } TYPE_IDENTIFIER
 
 <tupleType> := TUPLE '<' <typeArgumentList> '>'
 
 <headerStackType> := <typeName> '[' <expression> ']'
 
-<specializedType> := <prefixedType> '<' <typeArgumentList> '>'
+<specializedType> := <typeName> '<' <typeArgumentList> '>'
 
 <baseType> := BOOL | ERROR
   | INT { '<' <integerTypeSize> '>' }
   | BIT { '<' <integerTypeSize> '>' }
   | VARBIT { '<' <integerTypeSize> '>' }
 
-<integerTypeSize> := INTEGER | '(' <expression> ')'
+<integerTypeSize> := INTEGER /* | '(' <expression> ')' */
 
-<typeOrVoid> := <typeRef> | VOID | IDENTIFIER /* may be a type variable */
+<typeOrVoid> := <typeRef> | VOID | IDENTIFIER /* possibly a type variable */
 
 <optTypeParameters> := { '<' <typeParameterList> '>' }
 
@@ -156,7 +164,8 @@
   | TYPE ( <typeRef> | <derivedTypeDeclaration> ) <name> ';'
 
 
-/*****  STATEMENTS  *****/
+==  STATEMENTS  ==
+==================
 
 <assignmentOrMethodCallStatement> := <lvalue> (
     { '<' <typeArgumentList> '>' } '(' <argumentList> ')' ';'
@@ -191,7 +200,8 @@
 <statementOrDeclaration> := <variableDeclaration> | <constantDeclaration> | <statement> | <instantiation>
 
 
-/*****  TABLES  *****/
+==  TABLES  ==
+==============
 
 <tableDeclaration> := TABLE <name> '{' <tablePropertyList> '}'
 
@@ -217,7 +227,8 @@
 <actionDeclaration> := ACTION <name> '(' <parameterList> ')' <blockStatement>
 
 
-/*****  VARIABLES  *****/
+==  VARIABLES  ==
+=================
 
 <variableDeclaration> := <typeRef> <name> <optInitializer> ';'
 
@@ -228,7 +239,8 @@
 <initializer> := <expression>
 
 
-/*****  EXPRESSIONS  *****/
+==  EXPRESSIONS  ==
+===================
 
 <functionDeclaration> := <functionPrototype> <blockStatement>
 
@@ -248,7 +260,7 @@
 
 <lvalue> := <prefixedNonTypeName> {
       '.' <member>
-    | '[' <expression> { ':' <expression> } ']'  /* subscript */
+    | '[' <expression> { ':' <expression> } ']'  /* array subscript */
   }*
 
 <expression> := <expressionPrimary> { <exprOperator> <expression> }*
@@ -266,7 +278,7 @@
 <exprOperator> :=
   | <binaryOperator>
   | '.' <member>
-  | '[' <expression> { ':' <expression> } ']' /* subscript */
+  | '[' <expression> { ':' <expression> } ']' /* array subscript */
   | '(' <argumentList> ')' /* function call */
   | '<' <realTypeArgumentList> '>'
 

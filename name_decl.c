@@ -1014,7 +1014,7 @@ internal void
 visit_extern(Ast* ast)
 {
   assert(ast->kind == AST_externDeclaration);
-  Ast_Extern* extern_decl = (Ast_Extern*)ast;
+  Ast_ExternType* extern_decl = (Ast_ExternType*)ast;
   Ast_Name* name = (Ast_Name*)extern_decl->name;
   declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)extern_decl);
   current_scope = push_scope();
@@ -1494,7 +1494,7 @@ visit_error_enum(AstWalkContext* context, Ast* ast)
 #endif
 
 internal void
-visit(Ast* ast, Ast* parent_ast, enum AstWalkDirection direction)
+visit(Ast* ast, enum AstWalkDirection direction)
 {
   if (ast->kind == AST_p4program) {
     if (direction == WALK_IN) {
@@ -1528,7 +1528,7 @@ visit(Ast* ast, Ast* parent_ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_enumDeclaration) {
     if (direction == WALK_IN) {
-      Ast_Enum* enum_decl = (Ast_Enum*)ast;
+      Ast_EnumDeclaration* enum_decl = (Ast_EnumDeclaration*)ast;
       Ast_Name* name = (Ast_Name*)enum_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
       NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1688,7 +1688,7 @@ visit(Ast* ast, Ast* parent_ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_externDeclaration) {
     if (direction == WALK_IN) {
-      Ast_Extern* extern_decl = (Ast_Extern*)ast;
+      Ast_ExternType* extern_decl = (Ast_ExternType*)ast;
       Ast_Name* name = (Ast_Name*)extern_decl->name;
       declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)extern_decl);
       current_scope = push_scope();

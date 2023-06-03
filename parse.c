@@ -14,11 +14,11 @@ internal int node_id = 0;
 internal Scope* root_scope;
 internal Scope* current_scope;
 
-internal Ast* build_expression(int priority_threshold);
-internal Ast* build_typeRef();
-internal Ast* build_blockStatement();
-internal Ast* build_statement(Ast* type_name);
-internal Ast* build_parserStatement();
+internal Ast* parse_expression(int priority_threshold);
+internal Ast* parse_typeRef();
+internal Ast* parse_blockStatement();
+internal Ast* parse_statement(Ast* type_name);
+internal Ast* parse_parserStatement();
 
 internal Token*
 next_token()
@@ -415,7 +415,7 @@ token_to_binop(Token* token)
 }
 
 internal Ast*
-build_nonTypeName(bool is_type)
+parse_nonTypeName()
 {
   if (token_is_nonTypeName(token)) {
     Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
@@ -424,9 +424,6 @@ build_nonTypeName(bool is_type)
     name->line_no = token->line_no;
     name->column_no = token->column_no;
     name->strname = token->lexeme;
-    if (is_type) {
-      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
-    }
     next_token();
     return (Ast*)name;
   } else error("At line %d, column %d: non-type name was expected, got `%s`.",
@@ -436,20 +433,20 @@ build_nonTypeName(bool is_type)
 }
 
 internal Ast*
-build_name(bool is_type)
+parse_name()
 {
   if (token_is_name(token)) {
     if (token_is_nonTypeName(token)) {
-      Ast_Name* name = (Ast_Name*)build_nonTypeName(is_type);
+      Ast_Name* name = (Ast_Name*)parse_nonTypeName();
       return (Ast*)name;
     } else if (token->klass == TK_TYPE_IDENTIFIER) {
+      next_token();
       Ast_Name* type_name = arena_push_struct(ast_storage, Ast_Name);
       type_name->kind = AST_name;
       type_name->id = node_id++;
       type_name->line_no = token->line_no;
       type_name->column_no = token->column_no;
       type_name->strname = token->lexeme;
-      next_token();
       return (Ast*)type_name;
     } else assert(0);
   } else error("At line %d, column %d: name was expected, got `%s`.",
@@ -459,7 +456,7 @@ build_name(bool is_type)
 }
 
 internal Ast*
-build_typeParameterList()
+parse_typeParameterList()
 {
   Ast_List* params = arena_push_struct(ast_storage, Ast_List);
   params->kind = AST_typeParameterList;
@@ -470,11 +467,15 @@ build_typeParameterList()
   if (token_is_typeParameterList(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&params->members, li, 1);
-    li->object = build_name(true);
+    Ast_Name* name = (Ast_Name*)parse_name();
+    declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+    li->object = name;
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_name(true);
+      Ast_Name* name = (Ast_Name*)parse_name();
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      li->object = name;
       dlist_append_item(&params->members, li, 1);
     }
   }
@@ -482,18 +483,20 @@ build_typeParameterList()
 }
 
 internal Ast*
-build_optTypeParameters()
+parse_optTypeParameters()
 {
   if (token->klass == TK_ANGLE_OPEN) {
     next_token();
     if (token_is_typeParameterList(token)) {
-      Ast* params = build_typeParameterList();
+      Ast* params = parse_typeParameterList();
       if (token->klass == TK_ANGLE_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `>` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
       return params;
-    } else if (token->klass == TK_ANGLE_CLOSE) {
+    } else error("At line %d, column %d: name was expected, got `%s`.",
+                 token->line_no, token->column_no, token->lexeme);
+    if (token->klass == TK_ANGLE_CLOSE) {
       next_token();
     } else error("At line %d, column %d: `>` was expected, got `%s`.",
                  token->line_no, token->column_no, token->lexeme);
@@ -502,23 +505,29 @@ build_optTypeParameters()
 }
 
 internal Ast*
-build_typeArg()
+parse_typeArg()
 {
   if (token_is_typeArg(token)) {
+    Ast_TypeArgument* type_arg = arena_push_struct(ast_storage, Ast_TypeArgument);
+    type_arg->kind = AST_typeArgument;
+    type_arg->id = node_id++;
+    type_arg->line_no = token->line_no;
+    type_arg->column_no = token->column_no;
     if (token->klass == TK_DONTCARE) {
+      next_token();
       Ast* dontcare = arena_push_struct(ast_storage, Ast);
       dontcare->kind = AST_dontcareTypeArgument;
       dontcare->id = node_id++;
       dontcare->line_no = token->line_no;
       dontcare->column_no = token->column_no;
-      next_token();
-      return dontcare;
+      type_arg->arg = (Ast*)dontcare;
+      return (Ast*)type_arg;
     } else if (token_is_typeRef(token)) {
-      Ast* arg = build_typeRef();
-      return arg;
+      type_arg->arg = parse_typeRef();
+      return (Ast*)type_arg;
     } else if (token_is_nonTypeName(token)) {
-      Ast* arg = build_nonTypeName(false);
-      return arg;
+      type_arg->arg = parse_nonTypeName();
+      return (Ast*)type_arg;
     } else assert(0);
   } else error("At line %d, column %d: type argument was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -526,8 +535,31 @@ build_typeArg()
   return 0;
 }
 
+internal Ast*
+parse_typeArgumentList()
+{
+  Ast_List* args = arena_push_struct(ast_storage, Ast_List);
+  args->kind = AST_typeArgumentList;
+  args->id = node_id++;
+  args->line_no = token->line_no;
+  args->column_no = token->column_no;
+  dlist_init(&args->members);
+  if (token_is_typeArg(token)) {
+    DListItem* li = arena_push_struct(ast_storage, DListItem);
+    dlist_append_item(&args->members, li, 1);
+    li->object = parse_typeArg();
+    while (token->klass == TK_COMMA) {
+      next_token();
+      li = arena_push_struct(ast_storage, DListItem);
+      li->object = parse_typeArg();
+      dlist_append_item(&args->members, li, 1);
+    }
+  }
+  return (Ast*)args;
+}
+
 internal enum AstParamDirection
-build_direction()
+parse_direction()
 {
   if (token_is_direction(token)) {
     if (token->klass == TK_IN) {
@@ -545,22 +577,22 @@ build_direction()
 }
 
 internal Ast*
-build_parameter()
+parse_parameter()
 {
   Ast_Param* param = arena_push_struct(ast_storage, Ast_Param);
   param->kind = AST_parameter;
   param->id = node_id++;
   param->line_no = token->line_no;
   param->column_no = token->column_no;
-  param->direction = build_direction();
+  param->direction = parse_direction();
   if (token_is_typeRef(token)) {
-    param->type = build_typeRef();
+    param->type = parse_typeRef();
     if (token_is_name(token)) {
-      param->name = build_name(false);
+      param->name = parse_name();
       if (token->klass == TK_EQUAL) {
         next_token();
         if (token_is_expression(token)) {
-          param->init_expr = build_expression(1);
+          param->init_expr = parse_expression(1);
         } else error("At line %d, column %d: expression was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
       }
@@ -572,7 +604,7 @@ build_parameter()
 }
 
 internal Ast*
-build_parameterList()
+parse_parameterList()
 {
   Ast_List* params = arena_push_struct(ast_storage, Ast_List);
   params->kind = AST_parameterList;
@@ -583,11 +615,11 @@ build_parameterList()
   if (token_is_parameter(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&params->members, li, 1);
-    li->object = build_parameter();
+    li->object = parse_parameter();
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_parameter();
+      li->object = parse_parameter();
       dlist_append_item(&params->members, li, 1);
     }
   }
@@ -595,32 +627,28 @@ build_parameterList()
 }
 
 internal Ast*
-build_typeOrVoid(bool is_type)
+parse_typeOrVoid()
 {
   if (token_is_typeOrVoid(token)) {
     if (token_is_typeRef(token)) {
-      Ast* type = build_typeRef();
+      Ast* type = parse_typeRef();
       return type;
     } else if (token->klass == TK_VOID) {
-      Ast_Name* void_name = arena_push_struct(ast_storage, Ast_Name);
-      void_name->kind = AST_name;
-      void_name->id = node_id++;
-      void_name->line_no = token->line_no;
-      void_name->column_no = token->column_no;
-      void_name->strname = token->lexeme;
       next_token();
-      return (Ast*)void_name;
+      Ast_VoidType* void_type = arena_push_struct(ast_storage, Ast_VoidType);
+      void_type->kind = AST_baseTypeVoid;
+      void_type->id = node_id++;
+      void_type->line_no = token->line_no;
+      void_type->column_no = token->column_no;
+      return (Ast*)void_type;
     } else if (token->klass == TK_IDENTIFIER) {
+      next_token();
       Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
       name->kind = AST_name;
       name->id = node_id++;
       name->line_no = token->line_no;
       name->column_no = token->column_no;
       name->strname = token->lexeme;
-      if (is_type) {
-        declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
-      }
-      next_token();
       return (Ast*)name;
     } else assert(0);
   } else error("At line %d, column %d: type was expected, got `%s`.",
@@ -630,7 +658,7 @@ build_typeOrVoid(bool is_type)
 }
 
 internal Ast*
-build_functionPrototype(Ast* return_type)
+parse_functionPrototype(Ast* return_type)
 {
   if (token_is_typeOrVoid(token) || return_type) {
     Ast_FunctionProto* proto = arena_push_struct(ast_storage, Ast_FunctionProto);
@@ -641,14 +669,18 @@ build_functionPrototype(Ast* return_type)
     if (return_type) {
       proto->return_type = return_type;
     } else {
-      proto->return_type = build_typeOrVoid(true);
+      proto->return_type = parse_typeOrVoid();
+      if (proto->return_type->kind == AST_name) {
+        Ast_Name* name = (Ast_Name*)proto->return_type;
+        declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      }
     }
     if (token_is_name(token)) {
-      proto->name = build_name(false);
-      proto->type_params = build_optTypeParameters();
+      proto->name = parse_name();
+      proto->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        proto->params = build_parameterList();
+        proto->params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -665,7 +697,7 @@ build_functionPrototype(Ast* return_type)
 }
 
 internal Ast*
-build_methodPrototype()
+parse_methodPrototype()
 {
   if (token_is_methodPrototype(token)) {
     if (token->klass == TK_TYPE_IDENTIFIER && peek_token()->klass == TK_PARENTH_OPEN) {
@@ -675,11 +707,11 @@ build_methodPrototype()
       proto->id = node_id++;
       proto->line_no = token->line_no;
       proto->column_no = token->column_no;
-      proto->name = build_name(false);
-      proto->type_params = build_optTypeParameters();
+      proto->name = parse_name();
+      proto->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        proto->params = build_parameterList();
+        proto->params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -692,7 +724,7 @@ build_methodPrototype()
                    token->line_no, token->column_no, token->lexeme);
       return (Ast*)proto;
     } else if (token_is_typeOrVoid(token)) {
-      Ast_FunctionProto* proto = (Ast_FunctionProto*)build_functionPrototype(0);
+      Ast_FunctionProto* proto = (Ast_FunctionProto*)parse_functionPrototype(0);
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -707,7 +739,7 @@ build_methodPrototype()
 }
 
 internal Ast*
-build_methodPrototypes()
+parse_methodPrototypes()
 {
   Ast_List* protos = arena_push_struct(ast_storage, Ast_List);
   protos->kind = AST_methodPrototypes;
@@ -718,10 +750,10 @@ build_methodPrototypes()
   if (token_is_methodPrototype(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&protos->members, li, 1);
-    li->object = build_methodPrototype();
+    li->object = parse_methodPrototype();
     while (token_is_methodPrototype(token)) {
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_methodPrototype();
+      li->object = parse_methodPrototype();
       dlist_append_item(&protos->members, li, 1);
     }
   }
@@ -729,45 +761,53 @@ build_methodPrototypes()
 }
 
 internal Ast*
-build_externDeclaration()
+parse_externDeclaration()
 {
   if (token->klass == TK_EXTERN) {
     next_token();
-    bool is_function_proto = false;
+    Ast_ExternDeclaration* extern_decl = arena_push_struct(ast_storage, Ast_ExternDeclaration);
+    extern_decl->kind = AST_externDeclaration;
+    extern_decl->id = node_id++;
+    extern_decl->line_no = token->line_no;
+    extern_decl->column_no = token->column_no;
+
+    bool is_function_type = false;
     if (token_is_typeOrVoid(token) && token_is_nonTypeName(token)) {
-      is_function_proto = token_is_typeOrVoid(token) && token_is_name(peek_token());
+      is_function_type = token_is_typeOrVoid(token) && token_is_name(peek_token());
     } else if (token_is_typeOrVoid(token)) {
-      is_function_proto = true;
+      is_function_type = true;
     } else if (token_is_nonTypeName(token)) {
-      is_function_proto = false;
+      is_function_type = false;
     } else error("At line %d, column %d: extern declaration was expected, got `%s`.",
                  token->line_no, token->column_no, token->lexeme);
 
-    if (is_function_proto) {
-      Ast_FunctionProto* proto = (Ast_FunctionProto*)build_functionPrototype(0);
-      proto->is_extern = true;
+    if (is_function_type) {
+      extern_decl->decl = parse_functionPrototype(0);
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
-      return (Ast*)proto;
+      return (Ast*)extern_decl;
     } else {
-      Ast_Extern* extern_decl = arena_push_struct(ast_storage, Ast_Extern);
-      extern_decl->kind = AST_externDeclaration;
-      extern_decl->id = node_id++;
-      extern_decl->line_no = token->line_no;
-      extern_decl->column_no = token->column_no;
-      extern_decl->name = build_nonTypeName(true);
-      extern_decl->type_params = build_optTypeParameters();
+      Ast_ExternType* extern_type = arena_push_struct(ast_storage, Ast_ExternType);
+      extern_type->kind = AST_externType;
+      extern_type->id = node_id++;
+      extern_type->line_no = token->line_no;
+      extern_type->column_no = token->column_no;
+      extern_type->name = parse_nonTypeName();
+      Ast_Name* name = (Ast_Name*)extern_type->name;
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      extern_type->type_params = parse_optTypeParameters();
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        extern_decl->method_protos = build_methodPrototypes();
+        extern_type->method_protos = parse_methodPrototypes();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `}` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
       } else error("At line %d, column %d: `{` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
+      extern_decl->decl = (Ast*)extern_type;
       return (Ast*)extern_decl;
     }
   } else error("At line %d, column %d: `extern` was expected, got `%s`.",
@@ -777,9 +817,10 @@ build_externDeclaration()
 }
 
 internal Ast*
-build_integer()
+parse_integer()
 {
   if (token->klass == TK_INT_LITERAL) {
+    next_token();
     Ast_IntLiteral* int_literal = arena_push_struct(ast_storage, Ast_IntLiteral);
     int_literal->kind = AST_integerLiteral;
     int_literal->id = node_id++;
@@ -788,7 +829,6 @@ build_integer()
     int_literal->is_signed = token->i.is_signed;
     int_literal->width = token->i.width;
     int_literal->value = token->i.value;
-    next_token();
     return (Ast*)int_literal;
   } else error("At line %d, column %d: integer was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -797,16 +837,16 @@ build_integer()
 }
 
 internal Ast*
-build_boolean()
+parse_boolean()
 {
   if (token->klass == TK_TRUE || token->klass == TK_FALSE) {
+    next_token();
     Ast_BoolLiteral* bool_literal = arena_push_struct(ast_storage, Ast_BoolLiteral);
     bool_literal->kind = AST_booleanLiteral;
     bool_literal->id = node_id++;
     bool_literal->line_no = token->line_no;
     bool_literal->column_no = token->column_no;
     bool_literal->value = (token->klass == TK_TRUE);
-    next_token();
     return (Ast*)bool_literal;
   } else error("At line %d, column %d: boolean was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -815,16 +855,16 @@ build_boolean()
 }
 
 internal Ast*
-build_stringLiteral()
+parse_stringLiteral()
 {
   if (token->klass == TK_STRING_LITERAL) {
+    next_token();
     Ast_StringLiteral* string_literal = arena_push_struct(ast_storage, Ast_StringLiteral);
     string_literal->kind = AST_stringLiteral;
     string_literal->id = node_id++;
     string_literal->line_no = token->line_no;
     string_literal->column_no = token->column_no;
     string_literal->value = token->lexeme;
-    next_token();
     return (Ast*)string_literal;
   } else error("At line %d, column %d: string was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -833,7 +873,7 @@ build_stringLiteral()
 }
 
 internal Ast*
-build_integerTypeSize()
+parse_integerTypeSize()
 {
   Ast_IntTypeSize* type_size = arena_push_struct(ast_storage, Ast_IntTypeSize);
   type_size->kind = AST_integerTypeSize;
@@ -841,10 +881,10 @@ build_integerTypeSize()
   type_size->line_no = token->line_no;
   type_size->column_no = token->column_no;
   if (token->klass == TK_INT_LITERAL) {
-    type_size->size = build_integer();
+    type_size->size = parse_integer();
   } else if (token->klass == TK_PARENTH_OPEN) {
-    /* FIXME
-    type_size->size = build_expression(1); */
+    /* TODO
+    type_size->size = parse_expression(1); */
     error("At line %d, column %d: integer was expected, got `%s`.",
           token->line_no, token->column_no, token->lexeme);
   } else error("At line %d, column %d: `(` was expected, got `%s`.",
@@ -853,7 +893,7 @@ build_integerTypeSize()
 }
 
 internal Ast*
-build_baseType()
+parse_baseType()
 {
   if (token_is_baseType(token)) {
     Ast_Name* type_name = arena_push_struct(ast_storage, Ast_Name);
@@ -862,6 +902,7 @@ build_baseType()
     type_name->line_no = token->line_no;
     type_name->column_no = token->column_no;
     if (token->klass == TK_BOOL) {
+      next_token();
       Ast_BoolType* bool_type = arena_push_struct(ast_storage, Ast_BoolType);
       bool_type->kind = AST_baseTypeBool;
       bool_type->id = node_id++;
@@ -869,9 +910,9 @@ build_baseType()
       bool_type->column_no = token->column_no;
       type_name->strname = "bool";
       bool_type->name = (Ast*)type_name;
-      next_token();
       return (Ast*)bool_type;
     } else if (token->klass == TK_ERROR) {
+      next_token();
       Ast_ErrorType* error_type = arena_push_struct(ast_storage, Ast_ErrorType);
       error_type->kind = AST_baseTypeError;
       error_type->id = node_id++;
@@ -879,9 +920,9 @@ build_baseType()
       error_type->column_no = token->column_no;
       type_name->strname = "error";
       error_type->name = (Ast*)type_name;
-      next_token();
       return (Ast*)error_type;
     } else if (token->klass == TK_INT) {
+      next_token();
       Ast_IntType* int_type = arena_push_struct(ast_storage, Ast_IntType);
       int_type->kind = AST_baseTypeInt;
       int_type->id = node_id++;
@@ -889,10 +930,9 @@ build_baseType()
       int_type->column_no = token->column_no;
       type_name->strname = "int";
       int_type->name = (Ast*)type_name;
-      next_token();
       if (token->klass == TK_ANGLE_OPEN) {
         next_token();
-        int_type->size = build_integerTypeSize();
+        int_type->size = parse_integerTypeSize();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -900,6 +940,7 @@ build_baseType()
       }
       return (Ast*)int_type;
     } else if (token->klass == TK_BIT) {
+      next_token();
       Ast_BitType* bit_type = arena_push_struct(ast_storage, Ast_BitType);
       bit_type->kind = AST_baseTypeBit;
       bit_type->id = node_id++;
@@ -907,10 +948,9 @@ build_baseType()
       bit_type->column_no = token->column_no;
       type_name->strname = "bit";
       bit_type->name = (Ast*)type_name;
-      next_token();
       if (token->klass == TK_ANGLE_OPEN) {
         next_token();
-        bit_type->size = build_integerTypeSize();
+        bit_type->size = parse_integerTypeSize();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -918,6 +958,7 @@ build_baseType()
       }
       return (Ast*)bit_type;
     } else if (token->klass == TK_VARBIT) {
+      next_token();
       Ast_VarbitType* varbit_type = arena_push_struct(ast_storage, Ast_VarbitType);
       varbit_type->kind = AST_baseTypeVarbit;
       varbit_type->id = node_id++;
@@ -925,10 +966,9 @@ build_baseType()
       varbit_type->column_no = token->column_no;
       type_name->strname = "varbit";
       varbit_type->name = (Ast*)type_name;
-      next_token();
       if (token->klass == TK_ANGLE_OPEN) {
         next_token();
-        varbit_type->size = build_integerTypeSize();
+        varbit_type->size = parse_integerTypeSize();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -936,6 +976,7 @@ build_baseType()
       }
       return (Ast*)varbit_type;
     } else if (token->klass == TK_STRING) {
+      next_token();
       Ast_StringType* string_type = arena_push_struct(ast_storage, Ast_StringType);
       string_type->kind = AST_baseTypeString;
       string_type->id = node_id++;
@@ -943,9 +984,9 @@ build_baseType()
       string_type->column_no = token->column_no;
       type_name->strname = "string";
       string_type->name = (Ast*)type_name;
-      next_token();
       return (Ast*)string_type;
     } else if (token->klass == TK_VOID) {
+      next_token();
       Ast_VoidType* void_type = arena_push_struct(ast_storage, Ast_VoidType);
       void_type->kind = AST_baseTypeVoid;
       void_type->id = node_id++;
@@ -953,7 +994,6 @@ build_baseType()
       void_type->column_no = token->column_no;
       type_name->strname = "void";
       void_type->name = (Ast*)type_name;
-      next_token();
       return (Ast*)void_type;
     } else assert(0);
   } else error("At line %d, column %d: base type was expected, got `%s`.",
@@ -963,30 +1003,7 @@ build_baseType()
 }
 
 internal Ast*
-build_typeArgumentList()
-{
-  Ast_List* args = arena_push_struct(ast_storage, Ast_List);
-  args->kind = AST_typeArgumentList;
-  args->id = node_id++;
-  args->line_no = token->line_no;
-  args->column_no = token->column_no;
-  dlist_init(&args->members);
-  if (token_is_typeArg(token)) {
-    DListItem* li = arena_push_struct(ast_storage, DListItem);
-    dlist_append_item(&args->members, li, 1);
-    li->object = build_typeArg();
-    while (token->klass == TK_COMMA) {
-      next_token();
-      li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_typeArg();
-      dlist_append_item(&args->members, li, 1);
-    }
-  }
-  return (Ast*)args;
-}
-
-internal Ast*
-build_tupleType()
+parse_tupleType()
 {
   if (token->klass == TK_TUPLE) {
     next_token();
@@ -997,7 +1014,7 @@ build_tupleType()
     tuple->column_no = token->column_no;
     if (token->klass == TK_ANGLE_OPEN) {
       next_token();
-      tuple->type_args = build_typeArgumentList();
+      tuple->type_args = parse_typeArgumentList();
       if (token->klass == TK_ANGLE_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -1012,7 +1029,7 @@ build_tupleType()
 }
 
 internal Ast*
-build_headerStackType()
+parse_headerStackType()
 {
   if (token->klass == TK_BRACKET_OPEN) {
     next_token();
@@ -1022,7 +1039,7 @@ build_headerStackType()
     stack->line_no = token->line_no;
     stack->column_no = token->column_no;
     if (token_is_expression(token)) {
-      stack->stack_expr = build_expression(1);
+      stack->stack_expr = parse_expression(1);
       if (token->klass == TK_BRACKET_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `]` was expected, got `%s`.",
@@ -1037,7 +1054,7 @@ build_headerStackType()
 }
 
 internal Ast*
-build_specializedType()
+parse_specializedType()
 {
   if (token->klass == TK_ANGLE_OPEN) {
     next_token();
@@ -1046,7 +1063,7 @@ build_specializedType()
     type->id = node_id++;
     type->line_no = token->line_no;
     type->column_no = token->column_no;
-    type->type_args = build_typeArgumentList();
+    type->type_args = parse_typeArgumentList();
     if (token->klass == TK_ANGLE_CLOSE) {
       next_token();
     } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -1059,19 +1076,19 @@ build_specializedType()
 }
 
 internal Ast*
-build_prefixedType()
+parse_prefixedType()
 {
   if (token->klass == TK_DOTPREFIX) {
     next_token();
   }
   if (token->klass == TK_TYPE_IDENTIFIER) {
+    next_token();
     Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
     name->kind = AST_name;
     name->id = node_id++;
     name->line_no = token->line_no;
     name->column_no = token->column_no;
     name->strname = token->lexeme;
-    next_token();
     return (Ast*)name;
   } else error("At line %d, column %d: type was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -1080,22 +1097,27 @@ build_prefixedType()
 }
 
 internal Ast*
-build_typeName()
+parse_namedType()
 {
   if (token_is_typeName(token)) {
-    Ast* name = build_prefixedType();
+    Ast_NamedType* named_type = arena_push_struct(ast_storage, Ast_NamedType);
+    named_type->kind = AST_namedType;
+    named_type->id = node_id++;
+    named_type->line_no = token->line_no;
+    named_type->column_no = token->column_no;
+    Ast* type = parse_prefixedType();
     if (token->klass == TK_ANGLE_OPEN) {
-      Ast* speclzd_type = build_specializedType();
-      assert (speclzd_type->kind == AST_specializedType);
-      ((Ast_SpecializedType*)speclzd_type)->name = name;
-      name = speclzd_type;
-    } if (token->klass == TK_BRACKET_OPEN) {
-      Ast* stack_type = build_headerStackType();
-      assert (stack_type->kind == AST_headerStackType);
-      ((Ast_HeaderStack*)stack_type)->name = name;
-      name = stack_type;
+      Ast_SpecializedType* specd_type = (Ast_SpecializedType*)parse_specializedType();
+      specd_type->name = type;
+      named_type->type = (Ast*)specd_type;
+    } else if (token->klass == TK_BRACKET_OPEN) {
+      Ast_HeaderStack* stack_type = (Ast_HeaderStack*)parse_headerStackType();
+      stack_type->name = type;
+      named_type->type = (Ast*)stack_type;
+    } else {
+      named_type->type = type;
     }
-    return name;
+    return (Ast*)named_type;
   } else error("At line %d, column %d: type was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -1103,19 +1125,23 @@ build_typeName()
 }
 
 internal Ast*
-build_typeRef()
+parse_typeRef()
 {
   if (token_is_typeRef(token)) {
+    Ast_TypeRef* type_ref = arena_push_struct(ast_storage, Ast_TypeRef);
+    type_ref->kind = AST_typeRef;
+    type_ref->id = node_id++;
+    type_ref->line_no = token->line_no;
+    type_ref->column_no = token->column_no;
     if (token_is_baseType(token)) {
-      Ast* ref = build_baseType();
-      return ref;
+      type_ref->type = parse_baseType();
+      return (Ast*)type_ref;
     } else if (token_is_typeName(token)) {
-      /* <typeName> | <specializedType> | <headerStackType> */
-      Ast* ref = build_typeName();
-      return ref;
+      type_ref->type = parse_namedType();
+      return (Ast*)type_ref;
     } else if (token->klass == TK_TUPLE) {
-      Ast* ref = build_tupleType();
-      return ref;
+      type_ref->type = parse_tupleType();
+      return (Ast*)type_ref;
     } else assert(0);
   } else error("At line %d, column %d: type was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -1124,7 +1150,7 @@ build_typeRef()
 }
 
 internal Ast*
-build_structField()
+parse_structField()
 {
   if (token_is_structField(token)) {
     Ast_StructField* field = arena_push_struct(ast_storage, Ast_StructField);
@@ -1132,9 +1158,9 @@ build_structField()
     field->id = node_id++;
     field->line_no = token->line_no;
     field->column_no = token->column_no;
-    field->type = build_typeRef();
+    field->type = parse_typeRef();
     if (token_is_name(token)) {
-      field->name = build_name(false);
+      field->name = parse_name();
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -1149,7 +1175,7 @@ build_structField()
 }
 
 internal Ast*
-build_structFieldList()
+parse_structFieldList()
 {
   Ast_List* fields = arena_push_struct(ast_storage, Ast_List);
   fields->kind = AST_structFieldList;
@@ -1160,10 +1186,10 @@ build_structFieldList()
   if (token_is_structField(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&fields->members, li, 1);
-    li->object = build_structField();
+    li->object = parse_structField();
     while (token_is_structField(token)) {
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_structField();
+      li->object = parse_structField();
       dlist_append_item(&fields->members, li, 1);
     }
   }
@@ -1171,7 +1197,7 @@ build_structFieldList()
 }
 
 internal Ast*
-build_headerTypeDeclaration()
+parse_headerTypeDeclaration()
 {
   if (token->klass == TK_HEADER) {
     next_token();
@@ -1181,10 +1207,12 @@ build_headerTypeDeclaration()
     header_decl->line_no = token->line_no;
     header_decl->column_no = token->column_no;
     if (token_is_name(token)) {
-      header_decl->name = build_name(true);
+      Ast_Name* name = (Ast_Name*)parse_name();
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      header_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        header_decl->fields = build_structFieldList();
+        header_decl->fields = parse_structFieldList();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token(token);
         } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -1201,7 +1229,7 @@ build_headerTypeDeclaration()
 }
 
 internal Ast*
-build_headerUnionDeclaration()
+parse_headerUnionDeclaration()
 {
   if (token->klass == TK_HEADER_UNION) {
     next_token();
@@ -1211,10 +1239,12 @@ build_headerUnionDeclaration()
     union_decl->line_no = token->line_no;
     union_decl->column_no = token->column_no;
     if (token_is_name(token)) {
-      union_decl->name = build_name(true);
+      Ast_Name* name = (Ast_Name*)parse_name();
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      union_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        union_decl->fields = build_structFieldList();
+        union_decl->fields = parse_structFieldList();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -1231,7 +1261,7 @@ build_headerUnionDeclaration()
 }
 
 internal Ast*
-build_structTypeDeclaration()
+parse_structTypeDeclaration()
 {
   if (token->klass == TK_STRUCT) {
     next_token();
@@ -1241,10 +1271,12 @@ build_structTypeDeclaration()
     struct_decl->line_no = token->line_no;
     struct_decl->column_no = token->column_no;
     if (token_is_name(token)) {
-      struct_decl->name = build_name(true);
+      Ast_Name* name = (Ast_Name*)parse_name();
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      struct_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        struct_decl->fields = build_structFieldList();
+        struct_decl->fields = parse_structFieldList();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -1261,24 +1293,24 @@ build_structTypeDeclaration()
 }
 
 internal Ast*
-build_initializer()
+parse_initializer()
 {
-  return build_expression(1);
+  return parse_expression(1);
 }
 
 internal Ast*
-build_optInitializer()
+parse_optInitializer()
 {
   if (token->klass == TK_EQUAL) {
     next_token();
-    Ast* init_stmt = build_initializer();
+    Ast* init_stmt = parse_initializer();
     return init_stmt;
   }
   return 0;
 }
 
 internal Ast*
-build_specifiedIdentifier()
+parse_specifiedIdentifier()
 {
   if (token_is_specifiedIdentifier(token)) {
     Ast_SpecifiedIdent* id = arena_push_struct(ast_storage, Ast_SpecifiedIdent);
@@ -1286,11 +1318,11 @@ build_specifiedIdentifier()
     id->id = node_id++;
     id->line_no = token->line_no;
     id->column_no = token->column_no;
-    id->name = build_name(false);
+    id->name = parse_name();
     if (token->klass == TK_EQUAL) {
       next_token();
       if (token_is_expression(token)) {
-        id->init_expr = build_initializer();
+        id->init_expr = parse_initializer();
       } else error("At line %d, column %d: expression was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
     }
@@ -1302,7 +1334,7 @@ build_specifiedIdentifier()
 }
 
 internal Ast*
-build_specifiedIdentifierList()
+parse_specifiedIdentifierList()
 {
   Ast_List* ids = arena_push_struct(ast_storage, Ast_List);
   ids->kind = AST_specifiedIdentifierList;
@@ -1313,11 +1345,11 @@ build_specifiedIdentifierList()
   if (token_is_specifiedIdentifier(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&ids->members, li, 1);
-    li->object = build_specifiedIdentifier();
+    li->object = parse_specifiedIdentifier();
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_specifiedIdentifier();
+      li->object = parse_specifiedIdentifier();
       dlist_append_item(&ids->members, li, 1);
     }
   }
@@ -1325,11 +1357,11 @@ build_specifiedIdentifierList()
 }
 
 internal Ast*
-build_enumDeclaration()
+parse_enumDeclaration()
 {
   if (token->klass == TK_ENUM) {
     next_token();
-    Ast_Enum* enum_decl = arena_push_struct(ast_storage, Ast_Enum);
+    Ast_EnumDeclaration* enum_decl = arena_push_struct(ast_storage, Ast_EnumDeclaration);
     enum_decl->kind = AST_enumDeclaration;
     enum_decl->id = node_id++;
     enum_decl->line_no = token->line_no;
@@ -1339,7 +1371,7 @@ build_enumDeclaration()
       if (token->klass == TK_ANGLE_OPEN) {
         next_token();
         if (token->klass == TK_INT_LITERAL) {
-          enum_decl->type_size = build_integer();
+          enum_decl->type_size = parse_integer();
           if (token->klass == TK_ANGLE_CLOSE) {
             next_token();
           } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -1350,11 +1382,13 @@ build_enumDeclaration()
                    token->line_no, token->column_no, token->lexeme);
     }
     if (token_is_name(token)) {
-      enum_decl->name = build_name(true);
+      Ast_Name* name = (Ast_Name*)parse_name();
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      enum_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
         if (token_is_specifiedIdentifier(token)) {
-          enum_decl->fields = build_specifiedIdentifierList();
+          enum_decl->fields = parse_specifiedIdentifierList();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -1373,21 +1407,26 @@ build_enumDeclaration()
 }
 
 internal Ast*
-build_derivedTypeDeclaration()
+parse_derivedTypeDeclaration()
 {
   if (token_is_derivedTypeDeclaration(token)) {
+    Ast_DerivedTypeDeclaration* type_decl = arena_push_struct(ast_storage, Ast_DerivedTypeDeclaration);
+    type_decl->kind = AST_derivedTypeDeclaration;
+    type_decl->id = node_id++;
+    type_decl->line_no = token->line_no;
+    type_decl->column_no = token->column_no;
     if (token->klass == TK_HEADER) {
-      Ast* decl = build_headerTypeDeclaration();
-      return decl;
+      type_decl->decl = parse_headerTypeDeclaration();
+      return (Ast*)type_decl;
     } else if (token->klass == TK_HEADER_UNION) {
-      Ast* decl = build_headerUnionDeclaration();
-      return decl;
+      type_decl->decl = parse_headerUnionDeclaration();
+      return (Ast*)type_decl;
     } else if (token->klass == TK_STRUCT) {
-      Ast* decl = build_structTypeDeclaration();
-      return decl;
+      type_decl->decl = parse_structTypeDeclaration();
+      return (Ast*)type_decl;
     } else if (token->klass == TK_ENUM) {
-      Ast* decl = build_enumDeclaration();
-      return decl;
+      type_decl->decl = parse_enumDeclaration();
+      return (Ast*)type_decl;
     } else assert(0);
   } else error("At line %d, column %d: structure declaration was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -1396,7 +1435,7 @@ build_derivedTypeDeclaration()
 }
 
 internal Ast*
-build_parserTypeDeclaration()
+parse_parserTypeDeclaration()
 {
   if (token->klass == TK_PARSER) {
     next_token();
@@ -1406,11 +1445,13 @@ build_parserTypeDeclaration()
     proto->line_no = token->line_no; 
     proto->column_no = token->column_no;
     if (token_is_name(token)) {
-      proto->name = build_name(true);
-      proto->type_params = build_optTypeParameters();
+      Ast_Name* name = (Ast_Name*)parse_name();
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      proto->name = (Ast*)name;
+      proto->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        proto->params = build_parameterList();
+        proto->params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -1427,12 +1468,12 @@ build_parserTypeDeclaration()
 }
 
 internal Ast*
-build_optConstructorParameters()
+parse_optConstructorParameters()
 {
   if (token->klass == TK_PARENTH_OPEN) {
     next_token();
     if (token_is_parameter(token)) {
-      Ast* params = build_parameterList();
+      Ast* params = parse_parameterList();
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -1447,7 +1488,7 @@ build_optConstructorParameters()
 }
 
 internal Ast*
-build_constantDeclaration()
+parse_constantDeclaration()
 {
   if (token->klass == TK_CONST) {
     next_token();
@@ -1457,13 +1498,13 @@ build_constantDeclaration()
     const_decl->line_no = token->line_no;
     const_decl->column_no = token->column_no;
     if (token_is_typeRef(token)) {
-      const_decl->type = build_typeRef();
+      const_decl->type = parse_typeRef();
       if (token_is_name(token)) {
-        const_decl->name = build_name(false);
+        const_decl->name = parse_name();
         if (token->klass == TK_EQUAL) {
           next_token();
           if (token_is_expression(token)) {
-            const_decl->expr = build_expression(1);
+            const_decl->expr = parse_expression(1);
             if (token->klass == TK_SEMICOLON) {
               next_token();
             } else error("At line %d, column %d: `;` expected, got `%s`.",
@@ -1484,36 +1525,26 @@ build_constantDeclaration()
 }
 
 internal Ast*
-build_argument()
+parse_argument()
 {
   if (token_is_argument(token)) {
+    Ast_Argument* arg = arena_push_struct(ast_storage, Ast_Argument);
+    arg->kind = AST_argument;
+    arg->id = node_id++;
+    arg->line_no = token->line_no;
+    arg->column_no = token->column_no;
     if (token_is_expression(token)) {
-      Ast* arg = build_expression(1);
-      return arg;
-    } else if (token_is_name(token)) {
-      Ast_Argument* name_arg = arena_push_struct(ast_storage, Ast_Argument);
-      name_arg->kind = AST_argument;
-      name_arg->id = node_id++;
-      name_arg->line_no = token->line_no;
-      name_arg->column_no = token->column_no;
-      name_arg->name = build_name(false);
-      if (token->klass == TK_EQUAL) {
-        next_token();
-        if (token_is_expression(token)) {
-          name_arg->init_expr = build_expression(1);
-        } else error("At line %d, column %d: expression was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `=` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-      return (Ast*)name_arg;
+      arg->arg = parse_expression(1);
+      return (Ast*)arg;
     } else if (token->klass == TK_DONTCARE) {
+      next_token();
       Ast* dontcare_arg = arena_push_struct(ast_storage, Ast);
       dontcare_arg->kind = AST_dontcareArgument;
       dontcare_arg->id = node_id++;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
-      next_token();
-      return dontcare_arg;
+      arg->arg = dontcare_arg;
+      return (Ast*)arg;
     } else assert(0);
   } else error("At line %d, column %d: an argument was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -1522,7 +1553,7 @@ build_argument()
 }
 
 internal Ast*
-build_argumentList()
+parse_argumentList()
 {
   Ast_List* args = arena_push_struct(ast_storage, Ast_List);
   args->kind = AST_argumentList;
@@ -1533,11 +1564,11 @@ build_argumentList()
   if (token_is_argument(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&args->members, li, 1);
-    li->object = build_argument();
+    li->object = parse_argument();
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_argument();
+      li->object = parse_argument();
       dlist_append_item(&args->members, li, 1);
     }
   }
@@ -1545,12 +1576,12 @@ build_argumentList()
 }
 
 internal Ast*
-build_optArguments()
+parse_optArguments()
 {
   if (token->klass == TK_PARENTH_OPEN) {
     next_token();
     if (token_is_argument(token)) {
-      Ast* args = build_argumentList();
+      Ast* args = parse_argumentList();
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -1565,7 +1596,7 @@ build_optArguments()
 }
 
 internal Ast*
-build_variableDeclaration(Ast* type_ref)
+parse_variableDeclaration(Ast* type_ref)
 {
   if (token_is_typeRef(token) || type_ref) {
     Ast_Var* var_decl = arena_push_struct(ast_storage, Ast_Var);
@@ -1573,10 +1604,10 @@ build_variableDeclaration(Ast* type_ref)
     var_decl->id = node_id++;
     var_decl->line_no = token->line_no;
     var_decl->column_no = token->column_no;
-    var_decl->type = type_ref ? type_ref : build_typeRef();
+    var_decl->type = type_ref ? type_ref : parse_typeRef();
     if (token_is_name(token)) {
-      var_decl->name = build_name(false);
-      var_decl->init_expr = build_optInitializer();
+      var_decl->name = parse_name();
+      var_decl->init_expr = parse_optInitializer();
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -1591,7 +1622,7 @@ build_variableDeclaration(Ast* type_ref)
 }
 
 internal Ast*
-build_instantiation(Ast* type_ref)
+parse_instantiation(Ast* type_ref)
 {
   if (token_is_typeRef(token) || type_ref) {
     Ast_Instantiation* inst_stmt = arena_push_struct(ast_storage, Ast_Instantiation);
@@ -1599,14 +1630,14 @@ build_instantiation(Ast* type_ref)
     inst_stmt->id = node_id++;
     inst_stmt->line_no = token->line_no;
     inst_stmt->column_no = token->column_no;
-    inst_stmt->type = type_ref ? type_ref : build_typeRef();
+    inst_stmt->type_ref = type_ref ? type_ref : parse_typeRef();
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
-      inst_stmt->args = build_argumentList();
+      inst_stmt->args = parse_argumentList();
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
         if (token_is_name(token)) {
-          inst_stmt->name = build_name(false);
+          inst_stmt->name = parse_name();
           if (token->klass == TK_SEMICOLON) {
             next_token();
           } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -1625,20 +1656,25 @@ build_instantiation(Ast* type_ref)
 }
 
 internal Ast*
-build_parserLocalElement()
+parse_parserLocalElement()
 {
   if (token_is_parserLocalElement(token)) {
+    Ast_ParserLocalElement* local_element = arena_push_struct(ast_storage, Ast_ParserLocalElement);
+    local_element->kind = AST_parserLocalElement;
+    local_element->id = node_id++;
+    local_element->line_no = token->line_no;
+    local_element->column_no = token->column_no;
     if (token->klass == TK_CONST) {
-      Ast* elem = build_constantDeclaration();
-      return elem;
+      local_element->element = parse_constantDeclaration();
+      return (Ast*)local_element;
     } else if (token_is_typeRef(token)) {
-      Ast* type_ref = build_typeRef();
+      Ast* type_ref = parse_typeRef();
       if (token->klass == TK_PARENTH_OPEN) {
-        Ast* elem = build_instantiation(type_ref);
-        return elem;
+        local_element->element = parse_instantiation(type_ref);
+        return (Ast*)local_element;
       } else if (token_is_name(token)) {
-        Ast* elem = build_variableDeclaration(type_ref);
-        return elem;
+        local_element->element = parse_variableDeclaration(type_ref);
+        return (Ast*)local_element;
       } else error("At line %d, column %d: unexpected token `%s`.",
                    token->line_no, token->column_no, token->lexeme);
     } else assert(0);
@@ -1649,7 +1685,7 @@ build_parserLocalElement()
 }
 
 internal Ast*
-build_parserLocalElements()
+parse_parserLocalElements()
 {
   Ast_List* elems = arena_push_struct(ast_storage, Ast_List);
   elems->kind = AST_parserLocalElements;
@@ -1660,10 +1696,10 @@ build_parserLocalElements()
   if (token_is_parserLocalElement(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&elems->members, li, 1);
-    li->object = build_parserLocalElement();
+    li->object = parse_parserLocalElement();
     while (token_is_parserLocalElement(token)) {
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_parserLocalElement();
+      li->object = parse_parserLocalElement();
       dlist_append_item(&elems->members, li, 1);
     }
   }
@@ -1671,7 +1707,7 @@ build_parserLocalElements()
 }
 
 internal Ast*
-build_directApplication(Ast* type_name)
+parse_directApplication(Ast* type_name)
 {
   if (token_is_typeName(token) || type_name) {
     Ast_DirectApplyStmt* apply_stmt = arena_push_struct(ast_storage, Ast_DirectApplyStmt);
@@ -1679,14 +1715,14 @@ build_directApplication(Ast* type_name)
     apply_stmt->id = node_id++;
     apply_stmt->line_no = token->line_no;
     apply_stmt->column_no = token->column_no;
-    apply_stmt->lhs_expr = type_name ? type_name : build_typeName();
+    apply_stmt->lhs_expr = type_name ? type_name : parse_namedType();
     if (token->klass == TK_DOTPREFIX) {
       next_token();
       if (token->klass == TK_APPLY) {
         next_token();
         if (token->klass == TK_PARENTH_OPEN) {
           next_token();
-          apply_stmt->args = build_argumentList();
+          apply_stmt->args = parse_argumentList();
           if (token->klass == TK_PARENTH_CLOSE) {
             next_token();
             if (token->klass == TK_SEMICOLON) {
@@ -1709,13 +1745,13 @@ build_directApplication(Ast* type_name)
 }
 
 internal Ast*
-build_prefixedNonTypeName()
+parse_prefixedNonTypeName()
 {
   if (token->klass == TK_DOTPREFIX) {
     next_token();
   }
   if (token_is_nonTypeName(token)) {
-    Ast_Name* name = (Ast_Name*)build_nonTypeName(false);
+    Ast_Name* name = (Ast_Name*)parse_nonTypeName();
     name->kind = AST_name;
     return (Ast*)name;
   } else error("At line %d, column %d: non-type name was expected, ",
@@ -1725,7 +1761,7 @@ build_prefixedNonTypeName()
 }
 
 internal Ast*
-build_arraySubscript()
+parse_arraySubscript()
 {
   if (token_is_expression(token) || token->klass == TK_COLON) {
     Ast_ArraySubscript* subscript_expr = arena_push_struct(ast_storage, Ast_ArraySubscript);
@@ -1734,13 +1770,13 @@ build_arraySubscript()
     subscript_expr->line_no = token->line_no;
     subscript_expr->column_no = token->column_no;
     if (token_is_expression(token)) {
-      subscript_expr->index = build_expression(1);
+      subscript_expr->index = parse_expression(1);
     } else error("At line %d, column %d: expression was expected, got `%s`.",
                 token->line_no, token->column_no, token->lexeme);
     if (token->klass == TK_COLON) {
       next_token();
       if (token_is_expression(token)) {
-        subscript_expr->end_index = build_expression(1);
+        subscript_expr->end_index = parse_expression(1);
       } else error("At line %d, column %d: expression was expected, got `%s`.",
                   token->line_no, token->column_no, token->lexeme);
     }
@@ -1752,10 +1788,10 @@ build_arraySubscript()
 }
 
 internal Ast*
-build_lvalue()
+parse_lvalue()
 {
   if (token_is_lvalue(token)) {
-    Ast* name = build_prefixedNonTypeName();
+    Ast* name = parse_prefixedNonTypeName();
     Ast* lvalue = name;
     while(token->klass == TK_DOTPREFIX || token->klass == TK_BRACKET_OPEN) {
       if (token->klass == TK_DOTPREFIX) {
@@ -1768,7 +1804,7 @@ build_lvalue()
         select_expr->lhs_expr = lvalue;
         lvalue = (Ast*)select_expr;
         if (token_is_name(token)) {
-          select_expr->member_name = build_name(false);
+          select_expr->member_name = parse_name();
         } else error("At line %d, column %d: name was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
       }
@@ -1780,7 +1816,7 @@ build_lvalue()
         subscript_expr->line_no = token->line_no;
         subscript_expr->column_no = token->column_no;
         subscript_expr->index = lvalue;
-        subscript_expr->end_index = build_arraySubscript();
+        subscript_expr->end_index = parse_arraySubscript();
         lvalue = (Ast*)subscript_expr;
         if (token->klass == TK_BRACKET_CLOSE) {
           next_token();
@@ -1796,13 +1832,13 @@ build_lvalue()
 }
 
 internal Ast*
-build_assignmentOrMethodCallStatement()
+parse_assignmentOrMethodCallStatement()
 {
   if (token_is_lvalue(token)) {
-    Ast_Expression* lvalue = (Ast_Expression*)build_lvalue();
+    Ast_Expression* lvalue = (Ast_Expression*)parse_lvalue();
     if (token->klass == TK_ANGLE_OPEN) {
       next_token();
-      lvalue->type_args = build_typeArgumentList();
+      lvalue->type_args = parse_typeArgumentList();
       if (token->klass == TK_ANGLE_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -1816,7 +1852,7 @@ build_assignmentOrMethodCallStatement()
       call_stmt->line_no = token->line_no;
       call_stmt->column_no = token->column_no;
       call_stmt->callee_expr = (Ast*)lvalue;
-      call_stmt->args = build_argumentList();
+      call_stmt->args = parse_argumentList();
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -1834,7 +1870,7 @@ build_assignmentOrMethodCallStatement()
       assign_stmt->line_no = token->line_no;
       assign_stmt->column_no = token->column_no;
       assign_stmt->lvalue = (Ast*)lvalue;
-      assign_stmt->expr = build_expression(1);
+      assign_stmt->expr = parse_expression(1);
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` expected, got `%s`.",
@@ -1849,7 +1885,7 @@ build_assignmentOrMethodCallStatement()
 }
 
 internal Ast*
-build_parserStatements()
+parse_parserStatements()
 {
   Ast_List* stmts = arena_push_struct(ast_storage, Ast_List);
   stmts->kind = AST_parserStatements;
@@ -1860,10 +1896,10 @@ build_parserStatements()
   if (token_is_parserStatement(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&stmts->members, li, 1);
-    li->object = build_parserStatement();
+    li->object = parse_parserStatement();
     while (token_is_parserStatement(token)) {
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_parserStatement();
+      li->object = parse_parserStatement();
       dlist_append_item(&stmts->members, li, 1);
     }
   }
@@ -1871,16 +1907,16 @@ build_parserStatements()
 }
 
 internal Ast*
-build_parserBlockStatements()
+parse_parserBlockStatement()
 {
   if (token->klass == TK_BRACE_OPEN) {
+    next_token();
     Ast_BlockStmt* stmt = arena_push_struct(ast_storage, Ast_BlockStmt);
     stmt->kind = AST_parserBlockStatement;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
-    next_token();
-    stmt->stmt_list = build_parserStatements();
+    stmt->stmt_list = parse_parserStatements();
     if (token->klass == TK_BRACE_CLOSE) {
       next_token();
     } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -1893,33 +1929,41 @@ build_parserBlockStatements()
 }
 
 internal Ast*
-build_parserStatement()
+parse_parserStatement()
 {
-  if (token_is_typeRef(token)) {
-    Ast* type_ref = build_typeRef();
-    if (token_is_name(token)) {
-      Ast* stmt = build_variableDeclaration(type_ref);
-      return stmt;
-    } else {
-      Ast* stmt = build_directApplication(type_ref);
-      return stmt;
-    }
-  } else if (token_is_assignmentOrMethodCallStatement(token)) {
-    Ast* stmt = build_assignmentOrMethodCallStatement();
-    return stmt;
-  } else if (token->klass == TK_BRACE_OPEN) {
-    Ast* stmt = build_parserBlockStatements();
-    return stmt;
-  } else if (token->klass == TK_CONST) {
-    Ast* stmt = build_constantDeclaration();
-    return stmt;
-  } else if (token->klass == TK_SEMICOLON) {
-    Ast* stmt = arena_push_struct(ast_storage, Ast);
-    stmt->kind = AST_emptyStatement;
-    stmt->id = node_id++;
-    stmt->line_no = token->line_no;
-    stmt->column_no = token->column_no;
-    return stmt;
+  if (token_is_parserStatement(token)) {
+    Ast_ParserStatement* parser_stmt = arena_push_struct(ast_storage, Ast_ParserStatement);
+    parser_stmt->kind = AST_parserStatement;
+    parser_stmt->id = node_id++;
+    parser_stmt->line_no = token->line_no;
+    parser_stmt->column_no = token->column_no;
+    if (token_is_typeRef(token)) {
+      Ast* type_ref = parse_typeRef();
+      if (token_is_name(token)) {
+        parser_stmt->stmt = parse_variableDeclaration(type_ref);
+        return (Ast*)parser_stmt;
+      } else {
+        parser_stmt->stmt = parse_directApplication(type_ref);
+        return (Ast*)parser_stmt;
+      }
+    } else if (token_is_assignmentOrMethodCallStatement(token)) {
+      parser_stmt->stmt = parse_assignmentOrMethodCallStatement();
+      return (Ast*)parser_stmt;
+    } else if (token->klass == TK_BRACE_OPEN) {
+      parser_stmt->stmt = parse_parserBlockStatement();
+      return (Ast*)parser_stmt;
+    } else if (token->klass == TK_CONST) {
+      parser_stmt->stmt = parse_constantDeclaration();
+      return (Ast*)parser_stmt;
+    } else if (token->klass == TK_SEMICOLON) {
+      Ast* stmt = arena_push_struct(ast_storage, Ast);
+      stmt->kind = AST_emptyStatement;
+      stmt->id = node_id++;
+      stmt->line_no = token->line_no;
+      stmt->column_no = token->column_no;
+      parser_stmt->stmt = stmt;
+      return (Ast*)parser_stmt;
+    } else assert(0);
   } else error("At line %d, column %d: statement was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -1927,7 +1971,7 @@ build_parserStatement()
 }
 
 internal Ast*
-build_expressionList()
+parse_expressionList()
 {
   Ast_List* exprs = arena_push_struct(ast_storage, Ast_List);
   exprs->kind = AST_expressionList;
@@ -1938,11 +1982,11 @@ build_expressionList()
   if (token_is_expression(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&exprs->members, li, 1);
-    li->object = build_expression(1);
+    li->object = parse_expression(1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_expression(1);
+      li->object = parse_expression(1);
       dlist_append_item(&exprs->members, li, 1);
     }
   }
@@ -1950,10 +1994,10 @@ build_expressionList()
 }
 
 internal Ast*
-build_simpleKeysetExpression()
+parse_simpleKeysetExpression()
 {
   if (token_is_expression(token)) {
-    Ast* expr = build_expression(1);
+    Ast* expr = parse_expression(1);
     return expr;
   } else if (token->klass == TK_DEFAULT) {
     next_token();
@@ -1978,7 +2022,7 @@ build_simpleKeysetExpression()
 }
 
 internal Ast*
-build_keysetExpressionList()
+parse_keysetExpressionList()
 {
   Ast_List* exprs = arena_push_struct(ast_storage, Ast_List);
   exprs->kind = AST_keysetExpressionList;
@@ -1989,11 +2033,11 @@ build_keysetExpressionList()
   if (token_is_expression(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&exprs->members, li, 1);
-    li->object = build_simpleKeysetExpression();
+    li->object = parse_simpleKeysetExpression();
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_simpleKeysetExpression();
+      li->object = parse_simpleKeysetExpression();
       dlist_append_item(&exprs->members, li, 1);
     }
   }
@@ -2001,16 +2045,16 @@ build_keysetExpressionList()
 }
 
 internal Ast*
-build_tupleKeysetExpression()
+parse_tupleKeysetExpression()
 {
   if (token->klass == TK_PARENTH_OPEN) {
+    next_token();
     Ast_TupleKeyset* tuple_keyset = arena_push_struct(ast_storage, Ast_TupleKeyset);
     tuple_keyset->kind = AST_tupleKeysetExpression;
     tuple_keyset->id = node_id++;
     tuple_keyset->line_no = token->line_no;
     tuple_keyset->column_no = token->column_no;
-    next_token();
-    build_keysetExpressionList(tuple_keyset->expr_list);
+    parse_keysetExpressionList(tuple_keyset->expr_list);
     if (token->klass == TK_PARENTH_CLOSE) {
       next_token();
     } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -2023,14 +2067,21 @@ build_tupleKeysetExpression()
 }
 
 internal Ast*
-build_keysetExpression()
+parse_keysetExpression()
 {
-  if (token->klass == TK_PARENTH_OPEN) {
-    Ast* expr = build_tupleKeysetExpression();
-    return expr;
-  } else if (token_is_simpleKeysetExpression(token)) {
-    Ast* expr = build_simpleKeysetExpression();
-    return expr;
+  if (token->klass == TK_PARENTH_OPEN || token_is_simpleKeysetExpression(token)) {
+    Ast_KeysetExpression* keyset_expr = arena_push_struct(ast_storage, Ast_KeysetExpression);
+    keyset_expr->kind = AST_keysetExpression;
+    keyset_expr->id = node_id++;
+    keyset_expr->line_no = token->line_no;
+    keyset_expr->column_no = token->column_no;
+    if (token->klass == TK_PARENTH_OPEN) {
+      keyset_expr->expr = parse_tupleKeysetExpression();
+      return (Ast*)keyset_expr;
+    } else if (token_is_simpleKeysetExpression(token)) {
+      keyset_expr->expr = parse_simpleKeysetExpression();
+      return (Ast*)keyset_expr;
+    } else assert(0);
   } else error("At line %d, column %d: keyset expression was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -2038,7 +2089,7 @@ build_keysetExpression()
 }
 
 internal Ast*
-build_selectCase()
+parse_selectCase()
 {
   if (token_is_keysetExpression(token)) {
     Ast_SelectCase* select_case = arena_push_struct(ast_storage, Ast_SelectCase);
@@ -2046,11 +2097,11 @@ build_selectCase()
     select_case->id = node_id++;
     select_case->line_no = token->line_no;
     select_case->column_no = token->column_no;
-    select_case->keyset = build_keysetExpression();
+    select_case->keyset = parse_keysetExpression();
     if (token->klass == TK_COLON) {
       next_token();
       if (token_is_name(token)) {
-        select_case->name = build_name(false);
+        select_case->name = parse_name();
         if (token->klass == TK_SEMICOLON) {
           next_token();
         } else error("At line %d, column %d: `;` expected, got `%s`.",
@@ -2067,7 +2118,7 @@ build_selectCase()
 }
 
 internal Ast*
-build_selectCaseList()
+parse_selectCaseList()
 {
   Ast_List* cases = arena_push_struct(ast_storage, Ast_List);
   cases->kind = AST_selectCaseList;
@@ -2078,10 +2129,10 @@ build_selectCaseList()
   if (token_is_selectCase(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&cases->members, li, 1);
-    li->object = build_selectCase();
+    li->object = parse_selectCase();
     while (token_is_selectCase(token)) {
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_selectCase();
+      li->object = parse_selectCase();
       dlist_append_item(&cases->members, li, 1);
     }
   }
@@ -2089,7 +2140,7 @@ build_selectCaseList()
 }
 
 internal Ast*
-build_selectExpression()
+parse_selectExpression()
 {
   if (token->klass == TK_SELECT) {
     next_token();
@@ -2100,12 +2151,12 @@ build_selectExpression()
     select_expr->column_no = token->column_no;
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
-      select_expr->expr_list = build_expressionList();
+      select_expr->expr_list = parse_expressionList();
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
-          select_expr->case_list = build_selectCaseList();
+          select_expr->case_list = parse_selectCaseList();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2124,18 +2175,25 @@ build_selectExpression()
 }
 
 internal Ast*
-build_stateExpression()
+parse_stateExpression()
 {
-  if (token_is_name(token)) {
-    Ast* state_expr = build_name(false);
-    if (token->klass == TK_SEMICOLON) {
-      next_token();
-    } else error("At line %d, column %d: `;` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
-    return state_expr;
-  } else if (token->klass == TK_SELECT) {
-    Ast* state_expr = build_selectExpression();
-    return state_expr;
+  if (token_is_name(token) || token->klass == TK_SELECT) {
+    Ast_StateExpression* state_expr = arena_push_struct(ast_storage, Ast_StateExpression);
+    state_expr->kind = AST_stateExpression;
+    state_expr->id = node_id++;
+    state_expr->line_no = token->line_no;
+    state_expr->column_no = token->column_no;
+    if (token_is_name(token)) {
+      state_expr->expr = parse_name();
+      if (token->klass == TK_SEMICOLON) {
+        next_token();
+      } else error("At line %d, column %d: `;` was expected, got `%s`.",
+                  token->line_no, token->column_no, token->lexeme);
+      return (Ast*)state_expr;
+    } else if (token->klass == TK_SELECT) {
+      state_expr->expr = parse_selectExpression();
+      return (Ast*)state_expr;
+    } else assert(0);
   } else error("At line %d, column %d: state expression was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -2143,12 +2201,17 @@ build_stateExpression()
 }
 
 internal Ast*
-build_transitionStatement()
+parse_transitionStatement()
 {
   if (token->klass == TK_TRANSITION) {
     next_token();
-    Ast* stmt = build_stateExpression();
-    return stmt;
+    Ast_ParserTransition* transition = arena_push_struct(ast_storage, Ast_ParserTransition);
+    transition->kind = AST_parserTransition;
+    transition->id = node_id++;
+    transition->line_no = token->line_no;
+    transition->column_no = token->column_no;
+    transition->stmt = parse_stateExpression();
+    return (Ast*)transition;
   } else error("At line %d, column %d: `transition` was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -2156,7 +2219,7 @@ build_transitionStatement()
 }
 
 internal Ast*
-build_parserState()
+parse_parserState()
 {
   if (token->klass == TK_STATE) {
     next_token();
@@ -2165,11 +2228,11 @@ build_parserState()
     state->id = node_id++;
     state->line_no = token->line_no;
     state->column_no = token->column_no;
-    state->name = build_name(false);
+    state->name = parse_name();
     if (token->klass == TK_BRACE_OPEN) {
       next_token();
-      state->stmt_list = build_parserStatements();
-      state->trans_stmt = build_transitionStatement();
+      state->stmt_list = parse_parserStatements();
+      state->transition_stmt = parse_transitionStatement();
       if (token->klass == TK_BRACE_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2184,7 +2247,7 @@ build_parserState()
 }
 
 internal Ast*
-build_parserStates()
+parse_parserStates()
 {
   Ast_List* states = arena_push_struct(ast_storage, Ast_List);
   states->kind = AST_parserStates;
@@ -2195,10 +2258,10 @@ build_parserStates()
   if (token->klass == TK_STATE) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&states->members, li, 1);
-    li->object = build_parserState();
+    li->object = parse_parserState();
     while (token->klass == TK_STATE) {
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_parserState();
+      li->object = parse_parserState();
       dlist_append_item(&states->members, li, 1);
     }
   }
@@ -2206,7 +2269,7 @@ build_parserStates()
 }
 
 internal Ast*
-build_parserDeclaration()
+parse_parserDeclaration()
 {
   if (token->klass == TK_PARSER) {
     Ast_Parser* parser_decl = arena_push_struct(ast_storage, Ast_Parser);
@@ -2214,17 +2277,17 @@ build_parserDeclaration()
     parser_decl->id = node_id++;
     parser_decl->line_no = token->line_no;
     parser_decl->column_no = token->column_no;
-    parser_decl->proto = build_parserTypeDeclaration();
+    parser_decl->proto = parse_parserTypeDeclaration();
     if (token->klass == TK_SEMICOLON) {
       next_token(); /* <parserTypeDeclaration> */
       return parser_decl->proto;
     } else {
-      build_optConstructorParameters(parser_decl->ctor_params);
+      parser_decl->ctor_params = parse_optConstructorParameters();
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        parser_decl->local_elements = build_parserLocalElements();
+        parser_decl->local_elements = parse_parserLocalElements();
         if (token->klass == TK_STATE) {
-          parser_decl->states = build_parserStates();
+          parser_decl->states = parse_parserStates();
         } else error("At line %d, column %d: `state` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
         if (token->klass == TK_BRACE_CLOSE) {
@@ -2242,7 +2305,7 @@ build_parserDeclaration()
 }
 
 internal Ast*
-build_controlTypeDeclaration()
+parse_controlTypeDeclaration()
 {
   if (token->klass == TK_CONTROL) {
     next_token();
@@ -2252,11 +2315,13 @@ build_controlTypeDeclaration()
     proto->line_no = token->line_no;
     proto->column_no = token->column_no;
     if (token_is_name(token)) {
-      proto->name = build_name(true);
-      proto->type_params = build_optTypeParameters();
+      Ast_Name* name = (Ast_Name*)parse_name();
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      proto->name = (Ast*)name;
+      proto->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        proto->params = build_parameterList();
+        proto->params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -2273,7 +2338,7 @@ build_controlTypeDeclaration()
 }
 
 internal Ast*
-build_actionDeclaration()
+parse_actionDeclaration()
 {
   if (token->klass == TK_ACTION) {
     next_token();
@@ -2283,14 +2348,14 @@ build_actionDeclaration()
     action_decl->line_no = token->line_no;
     action_decl->column_no = token->column_no;
     if (token_is_name(token)) {
-      action_decl->name = build_name(false);
+      action_decl->name = parse_name();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        action_decl->params = build_parameterList();
+        action_decl->params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
           if (token->klass == TK_BRACE_OPEN) {
-            action_decl->stmt = build_blockStatement();
+            action_decl->stmt = parse_blockStatement();
           } else error("At line %d, column %d: `{` was expected, got `%s`.",
                        token->line_no, token->column_no, token->lexeme);
         } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2307,7 +2372,7 @@ build_actionDeclaration()
 }
 
 internal Ast*
-build_keyElement()
+parse_keyElement()
 {
   if (token_is_expression(token)) {
     Ast_KeyElement* key_elem = arena_push_struct(ast_storage, Ast_KeyElement);
@@ -2315,10 +2380,10 @@ build_keyElement()
     key_elem->id = node_id++;
     key_elem->line_no = token->line_no;
     key_elem->column_no = token->column_no;
-    key_elem->expr = build_expression(1);
+    key_elem->expr = parse_expression(1);
     if (token->klass == TK_COLON) {
       next_token();
-      key_elem->name = build_name(false);
+      key_elem->name = parse_name();
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -2333,7 +2398,7 @@ build_keyElement()
 }
 
 internal Ast*
-build_keyElementList()
+parse_keyElementList()
 {
   Ast_List* elems = arena_push_struct(ast_storage, Ast_List);
   elems->kind = AST_keyElementList;
@@ -2344,10 +2409,10 @@ build_keyElementList()
   if (token_is_expression(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&elems->members, li, 1);
-    li->object = build_keyElement();
+    li->object = parse_keyElement();
     while (token_is_expression(token)) {
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_keyElement();
+      li->object = parse_keyElement();
       dlist_append_item(&elems->members, li, 1);
     }
   }
@@ -2355,7 +2420,7 @@ build_keyElementList()
 }
 
 internal Ast*
-build_actionRef()
+parse_actionRef()
 {
   if (token->klass == TK_DOTPREFIX || token_is_nonTypeName(token)) {
     Ast_ActionRef* ref = arena_push_struct(ast_storage, Ast_ActionRef);
@@ -2363,8 +2428,8 @@ build_actionRef()
     ref->id = node_id++;
     ref->line_no = token->line_no;
     ref->column_no = token->column_no;
-    ref->name = build_prefixedNonTypeName();
-    build_optArguments(ref->args);
+    ref->name = parse_prefixedNonTypeName();
+    parse_optArguments(ref->args);
     return (Ast*)ref;
   } else error("At line %d, column %d: non-type name was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -2373,7 +2438,7 @@ build_actionRef()
 }
 
 internal Ast*
-build_actionList()
+parse_actionList()
 {
   Ast_List* actions = arena_push_struct(ast_storage, Ast_List);
   actions->kind = AST_actionList;
@@ -2384,14 +2449,14 @@ build_actionList()
   if (token_is_actionRef(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&actions->members, li, 1);
-    li->object = build_actionRef();
+    li->object = parse_actionRef();
     if (token->klass == TK_SEMICOLON) {
       next_token();
     } else error("At line %d, column %d: `;` was expected, got `%s`.",
                  token->line_no, token->column_no, token->lexeme);
     while (token_is_actionRef(token)) {
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_actionRef();
+      li->object = parse_actionRef();
       dlist_append_item(&actions->members, li, 1);
       if (token->klass == TK_SEMICOLON) {
         next_token();
@@ -2403,7 +2468,7 @@ build_actionList()
 }
 
 internal Ast*
-build_entry()
+parse_entry()
 {
   if (token_is_keysetExpression(token)) {
     Ast_TableEntry* entry = arena_push_struct(ast_storage, Ast_TableEntry);
@@ -2411,10 +2476,10 @@ build_entry()
     entry->id = node_id++;
     entry->line_no = token->line_no;
     entry->column_no = token->column_no;
-    entry->keyset = build_keysetExpression();
+    entry->keyset = parse_keysetExpression();
     if (token->klass == TK_COLON) {
       next_token();
-      entry->action = build_actionRef();
+      entry->action = parse_actionRef();
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -2429,7 +2494,7 @@ build_entry()
 }
 
 internal Ast*
-build_entriesList()
+parse_entriesList()
 {
   Ast_List* entries = arena_push_struct(ast_storage, Ast_List);
   entries->kind = AST_entriesList;
@@ -2440,10 +2505,10 @@ build_entriesList()
   if (token_is_keysetExpression(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&entries->members, li, 1);
-    li->object = build_entry();
+    li->object = parse_entry();
     while (token_is_keysetExpression(token)) {
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_entry();
+      li->object = parse_entry();
       dlist_append_item(&entries->members, li, 1);
     }
   }
@@ -2451,7 +2516,7 @@ build_entriesList()
 }
 
 internal Ast*
-build_tableProperty()
+parse_tableProperty()
 {
   if (token_is_tableProperty(token)) {
     bool is_const = false;
@@ -2470,7 +2535,7 @@ build_tableProperty()
         next_token();
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
-          key_prop->keyelem_list = build_keyElementList();
+          key_prop->keyelem_list = parse_keyElementList();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2491,7 +2556,7 @@ build_tableProperty()
         next_token();
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
-          actions_prop->action_list = build_actionList();
+          actions_prop->action_list = parse_actionList();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2514,7 +2579,7 @@ build_tableProperty()
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
           if (token_is_keysetExpression(token)) {
-            entries_prop->entries = build_entriesList();
+            entries_prop->entries = parse_entriesList();
           } else error("At line %d, column %d: keyset expression was expected, got `%s`.",
                        token->line_no, token->column_no, token->lexeme);
           if (token->klass == TK_BRACE_CLOSE) {
@@ -2532,10 +2597,10 @@ build_tableProperty()
       entry_prop->id = node_id++;
       entry_prop->line_no = token->line_no;
       entry_prop->column_no = token->column_no;
-      entry_prop->name = build_name(false);
+      entry_prop->name = parse_name();
       if (token->klass == TK_EQUAL) {
         next_token();
-        entry_prop->init_expr = build_initializer();
+        entry_prop->init_expr = parse_initializer();
         if (token->klass == TK_SEMICOLON) {
           next_token();
         } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -2551,7 +2616,7 @@ build_tableProperty()
 }
 
 internal Ast*
-build_tablePropertyList()
+parse_tablePropertyList()
 {
   Ast_List* props = arena_push_struct(ast_storage, Ast_List);
   props->kind = AST_tablePropertyList;
@@ -2562,10 +2627,10 @@ build_tablePropertyList()
   if (token_is_tableProperty(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&props->members, li, 1);
-    li->object = build_tableProperty();
+    li->object = parse_tableProperty();
     while (token_is_tableProperty(token)) {
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_tableProperty();
+      li->object = parse_tableProperty();
       dlist_append_item(&props->members, li, 1);
     }
   }
@@ -2573,7 +2638,7 @@ build_tablePropertyList()
 }
 
 internal Ast*
-build_tableDeclaration()
+parse_tableDeclaration()
 {
   if (token->klass == TK_TABLE) {
     next_token();
@@ -2582,11 +2647,11 @@ build_tableDeclaration()
     table->id = node_id++;
     table->line_no = token->line_no;
     table->column_no = token->column_no;
-    table->name = build_name(false);
+    table->name = parse_name();
     if (token->klass == TK_BRACE_OPEN) {
       next_token();
       if (token_is_tableProperty(token)) {
-        table->prop_list = build_tablePropertyList();
+        table->prop_list = parse_tablePropertyList();
       } else error("At line %d, column %d: table property was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
       if (token->klass == TK_BRACE_CLOSE) {
@@ -2603,27 +2668,34 @@ build_tableDeclaration()
 }
 
 internal Ast*
-build_controlLocalDeclaration()
+parse_controlLocalDeclaration()
 {
-  if (token->klass == TK_CONST) {
-    Ast* decl = build_constantDeclaration();
-    return decl;
-  } else if (token->klass == TK_ACTION) {
-    Ast* decl = build_actionDeclaration();
-    return decl;
-  } else if (token->klass == TK_TABLE) {
-    Ast* decl = build_tableDeclaration();
-    return decl;
-  } else if (token_is_typeRef(token)) {
-    Ast* type_ref = build_typeRef();
-    if (token->klass == TK_PARENTH_OPEN) {
-      Ast* decl = build_instantiation(type_ref);
-      return decl;
-    } else if (token_is_name(token)) {
-      Ast* decl = build_variableDeclaration(type_ref);
-      return decl;
-    } else error("At line %d, column %d: unexpected token `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+  if (token_is_controlLocalDeclaration(token)) {
+    Ast_ControlLocalDeclaration* local_decl = arena_push_struct(ast_storage, Ast_ControlLocalDeclaration);
+    local_decl->kind = AST_controlLocalDeclaration;
+    local_decl->id = node_id++;
+    local_decl->line_no = token->line_no;
+    local_decl->column_no = token->column_no;
+    if (token->klass == TK_CONST) {
+      local_decl->decl = parse_constantDeclaration();
+      return (Ast*)local_decl;
+    } else if (token->klass == TK_ACTION) {
+      local_decl->decl = parse_actionDeclaration();
+      return (Ast*)local_decl;
+    } else if (token->klass == TK_TABLE) {
+      local_decl->decl = parse_tableDeclaration();
+      return (Ast*)local_decl;
+    } else if (token_is_typeRef(token)) {
+      Ast* type_ref = parse_typeRef();
+      if (token->klass == TK_PARENTH_OPEN) {
+        local_decl->decl = parse_instantiation(type_ref);
+        return (Ast*)local_decl;
+      } else if (token_is_name(token)) {
+        local_decl->decl = parse_variableDeclaration(type_ref);
+        return (Ast*)local_decl;
+      } else error("At line %d, column %d: unexpected token `%s`.",
+                  token->line_no, token->column_no, token->lexeme);
+    } else assert(0);
   } else error("At line %d, column %d: local declaration was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -2631,7 +2703,7 @@ build_controlLocalDeclaration()
 }
 
 internal Ast*
-build_controlLocalDeclarations()
+parse_controlLocalDeclarations()
 {
   Ast_List* decls = arena_push_struct(ast_storage, Ast_List);
   decls->kind = AST_controlLocalDeclarations;
@@ -2642,10 +2714,10 @@ build_controlLocalDeclarations()
   if (token_is_controlLocalDeclaration(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&decls->members, li, 1);
-    li->object = build_controlLocalDeclaration();
+    li->object = parse_controlLocalDeclaration();
     while (token_is_controlLocalDeclaration(token)) {
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_controlLocalDeclaration();
+      li->object = parse_controlLocalDeclaration();
       dlist_append_item(&decls->members, li, 1);
     }
   }
@@ -2653,26 +2725,27 @@ build_controlLocalDeclarations()
 }
 
 internal Ast*
-build_controlDeclaration()
+parse_controlDeclaration()
 {
   if (token->klass == TK_CONTROL) {
-    Ast_Control* control_decl = arena_push_struct(ast_storage, Ast_Control);
-    control_decl->kind = AST_controlDeclaration;
-    control_decl->id = node_id++;
-    control_decl->line_no = token->line_no;
-    control_decl->column_no = token->column_no;
-    control_decl->proto = build_controlTypeDeclaration();
+    Ast* control_proto = parse_controlTypeDeclaration();
     if (token->klass == TK_SEMICOLON) {
       next_token(); /* <controlTypeDeclaration> */
-      return control_decl->proto;
+      return control_proto;
     } else {
-      build_optConstructorParameters(control_decl->ctor_params);
+      Ast_Control* control_decl = arena_push_struct(ast_storage, Ast_Control);
+      control_decl->kind = AST_controlDeclaration;
+      control_decl->id = node_id++;
+      control_decl->line_no = token->line_no;
+      control_decl->column_no = token->column_no;
+      control_decl->proto = control_proto;
+      control_decl->ctor_params = parse_optConstructorParameters();
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        control_decl->local_decls = build_controlLocalDeclarations();
+        control_decl->local_decls = parse_controlLocalDeclarations();
         if (token->klass == TK_APPLY) {
           next_token();
-          control_decl->apply_stmt = build_blockStatement();
+          control_decl->apply_stmt = parse_blockStatement();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2681,8 +2754,8 @@ build_controlDeclaration()
                      token->line_no, token->column_no, token->lexeme);
       } else error("At line %d, column %d: `{` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
+      return (Ast*)control_decl;
     }
-    return (Ast*)control_decl;
   } else error("At line %d, column %d: `control` was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -2690,7 +2763,7 @@ build_controlDeclaration()
 }
 
 internal Ast*
-build_packageTypeDeclaration()
+parse_packageTypeDeclaration()
 {
   if (token->klass == TK_PACKAGE) {
     next_token();
@@ -2700,11 +2773,13 @@ build_packageTypeDeclaration()
     package_decl->line_no = token->line_no;
     package_decl->column_no = token->column_no;
     if (token_is_name(token)) {
-      package_decl->name = build_name(true);
-      package_decl->type_params = build_optTypeParameters();
+      Ast_Name* name = (Ast_Name*)parse_name();
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      package_decl->name = (Ast*)name;
+      package_decl->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        package_decl->params = build_parameterList();
+        package_decl->params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -2721,7 +2796,7 @@ build_packageTypeDeclaration()
 }
 
 internal Ast*
-build_typedefDeclaration()
+parse_typedefDeclaration()
 {
   if (token->klass == TK_TYPEDEF || token->klass == TK_TYPE) {
     next_token();
@@ -2732,12 +2807,14 @@ build_typedefDeclaration()
       type_decl->line_no = token->line_no;
       type_decl->column_no = token->column_no;
       if (token_is_typeRef(token)) {
-        type_decl->type_ref = build_typeRef();
+        type_decl->type_ref = parse_typeRef();
       } else if (token_is_derivedTypeDeclaration(token)) {
-        type_decl->type_ref = build_derivedTypeDeclaration();
+        type_decl->type_ref = parse_derivedTypeDeclaration();
       } else assert(0);
       if (token_is_name(token)) {
-        type_decl->name = build_name(true);
+        Ast_Name* name = (Ast_Name*)parse_name();
+        declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+        type_decl->name = (Ast*)name;
         if (token->klass == TK_SEMICOLON) {
           next_token();
         } else error("At line %d, column %d: `;` expected, got `%s`.",
@@ -2754,30 +2831,35 @@ build_typedefDeclaration()
 }
 
 internal Ast*
-build_typeDeclaration()
+parse_typeDeclaration()
 {
   if (token_is_typeDeclaration(token)) {
+    Ast_TypeDeclaration* type_decl = arena_push_struct(ast_storage, Ast_TypeDeclaration);
+    type_decl->kind = AST_typeDeclaration;
+    type_decl->id = node_id++;
+    type_decl->line_no = token->line_no;
+    type_decl->column_no = token->column_no;
     if (token_is_derivedTypeDeclaration(token)) {
-      Ast* decl = build_derivedTypeDeclaration();
-      return decl;
+      type_decl->decl = parse_derivedTypeDeclaration();
+      return (Ast*)type_decl;
     } else if (token->klass == TK_TYPEDEF || token->klass == TK_TYPE) {
-      Ast* decl = build_typedefDeclaration();
-      return decl;
+      type_decl->decl = parse_typedefDeclaration();
+      return (Ast*)type_decl;
     } else if (token->klass == TK_PARSER) {
       /* <parserTypeDeclaration> | <parserDeclaration> */
-      Ast* decl = build_parserDeclaration();
-      return decl;
+      type_decl->decl = parse_parserDeclaration();
+      return (Ast*)type_decl;
     } else if (token->klass == TK_CONTROL) {
       /* <controlTypeDeclaration> | <controlDeclaration> */
-      Ast* decl = build_controlDeclaration();
-      return decl;
+      type_decl->decl = parse_controlDeclaration();
+      return (Ast*)type_decl;
     } else if (token->klass == TK_PACKAGE) {
-      Ast* decl = build_packageTypeDeclaration();
+      type_decl->decl = parse_packageTypeDeclaration();
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
-      return decl;
+      return (Ast*)type_decl;
     } else assert(0);
   } else error("At line %d, column %d: type declaration was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme); 
@@ -2786,7 +2868,7 @@ build_typeDeclaration()
 }
 
 internal Ast*
-build_conditionalStatement()
+parse_conditionalStatement()
 {
   if (token->klass == TK_IF) {
     next_token();
@@ -2798,15 +2880,15 @@ build_conditionalStatement()
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
       if (token_is_expression(token)) {
-        if_stmt->cond_expr = build_expression(1);
+        if_stmt->cond_expr = parse_expression(1);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
           if (token_is_statement(token)) {
-            if_stmt->stmt = build_statement(0);
+            if_stmt->stmt = parse_statement(0);
             if (token->klass == TK_ELSE) {
               next_token();
               if (token_is_statement(token)) {
-                if_stmt->else_stmt = build_statement(0);
+                if_stmt->else_stmt = parse_statement(0);
               } else error("At line %d, column %d: statement was expected, got `%s`.",
                            token->line_no, token->column_no, token->lexeme);
             }
@@ -2826,7 +2908,7 @@ build_conditionalStatement()
 }
 
 internal Ast*
-build_exitStatement()
+parse_exitStatement()
 {
   if (token->klass == TK_EXIT) {
     next_token();
@@ -2847,7 +2929,7 @@ build_exitStatement()
 }
 
 internal Ast*
-build_returnStatement()
+parse_returnStatement()
 {
   if (token->klass == TK_RETURN) {
     next_token();
@@ -2857,7 +2939,7 @@ build_returnStatement()
     ret_stmt->line_no = token->line_no;
     ret_stmt->column_no = token->column_no;
     if (token_is_expression(token))
-      ret_stmt->expr = build_expression(1);
+      ret_stmt->expr = parse_expression(1);
     if (token->klass == TK_SEMICOLON) {
       next_token();
     } else error("At line %d, column %d: `;` expected, got `%s`.",
@@ -2870,10 +2952,10 @@ build_returnStatement()
 }
 
 internal Ast*
-build_switchLabel()
+parse_switchLabel()
 {
   if (token_is_name(token)) {
-    Ast* label = build_name(false);
+    Ast* label = parse_name();
     return label;
   } else if (token->klass == TK_DEFAULT) {
     next_token();
@@ -2890,7 +2972,7 @@ build_switchLabel()
 }
 
 internal Ast*
-build_switchCase()
+parse_switchCase()
 {
   if (token_is_switchLabel(token)) {
     Ast_SwitchCase* switch_case = arena_push_struct(ast_storage, Ast_SwitchCase);
@@ -2898,11 +2980,11 @@ build_switchCase()
     switch_case->id = node_id++;
     switch_case->line_no = token->line_no;
     switch_case->column_no = token->column_no;
-    switch_case->label = build_switchLabel();
+    switch_case->label = parse_switchLabel();
     if (token->klass == TK_COLON) {
       next_token();
       if (token->klass == TK_BRACE_OPEN) {
-        switch_case->stmt = build_blockStatement();
+        switch_case->stmt = parse_blockStatement();
       }
     } else error("At line %d, column %d: `:` was expected, got `%s`.",
                  token->line_no, token->column_no, token->lexeme);
@@ -2914,7 +2996,7 @@ build_switchCase()
 }
 
 internal Ast*
-build_switchCases()
+parse_switchCases()
 {
   Ast_List* cases = arena_push_struct(ast_storage, Ast_List);
   cases->kind = AST_switchCases;
@@ -2925,10 +3007,10 @@ build_switchCases()
   if (token_is_switchLabel(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&cases->members, li, 1);
-    li->object = build_switchCase();
+    li->object = parse_switchCase();
     while (token_is_switchLabel(token)) {
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_switchCase();
+      li->object = parse_switchCase();
       dlist_append_item(&cases->members, li, 1);
     }
   }
@@ -2936,7 +3018,7 @@ build_switchCases()
 }
 
 internal Ast*
-build_switchStatement()
+parse_switchStatement()
 {
   if (token->klass == TK_SWITCH) {
     next_token();
@@ -2947,12 +3029,12 @@ build_switchStatement()
     stmt->column_no = token->column_no;
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
-      stmt->expr = build_expression(1);
+      stmt->expr = parse_expression(1);
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
-          stmt->switch_cases = build_switchCases();
+          stmt->switch_cases = parse_switchCases();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2971,16 +3053,16 @@ build_switchStatement()
 }
 
 internal Ast*
-build_statement(Ast* type_name)
+parse_statement(Ast* type_name)
 {
   if (token_is_typeName(token) || type_name) {
-    Ast* stmt = build_directApplication(type_name);
+    Ast* stmt = parse_directApplication(type_name);
     return stmt;
   } else if (token_is_assignmentOrMethodCallStatement(token)) {
-    Ast* stmt = build_assignmentOrMethodCallStatement();
+    Ast* stmt = parse_assignmentOrMethodCallStatement();
     return stmt;
   } else if (token->klass == TK_IF) {
-    Ast* stmt = build_conditionalStatement();
+    Ast* stmt = parse_conditionalStatement();
     return stmt;
   } else if (token->klass == TK_SEMICOLON) {
     next_token();
@@ -2991,16 +3073,16 @@ build_statement(Ast* type_name)
     stmt->column_no = token->column_no;
     return stmt;
   } else if (token->klass == TK_BRACE_OPEN) {
-    Ast* stmt = build_blockStatement();
+    Ast* stmt = parse_blockStatement();
     return stmt;
   } else if (token->klass == TK_EXIT) {
-    Ast* stmt = build_exitStatement();
+    Ast* stmt = parse_exitStatement();
     return stmt;
   } else if (token->klass == TK_RETURN) {
-    Ast* stmt = build_returnStatement();
+    Ast* stmt = parse_returnStatement();
     return stmt;
   } else if (token->klass == TK_SWITCH) {
-    Ast* stmt = build_switchStatement();
+    Ast* stmt = parse_switchStatement();
     return stmt;
   } else error("At line %d, column %d: statement was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -3009,26 +3091,26 @@ build_statement(Ast* type_name)
 }
 
 internal Ast*
-build_statementOrDecl()
+parse_statementOrDecl()
 {
   if (token_is_statementOrDeclaration(token)) {
     if (token_is_typeRef(token)) {
-      Ast* type_ref = build_typeRef();
+      Ast* type_ref = parse_typeRef();
       if (token->klass == TK_PARENTH_OPEN) {
-        Ast* stmt = build_instantiation(type_ref);
+        Ast* stmt = parse_instantiation(type_ref);
         return stmt;
       } else if (token_is_name(token)) {
-        Ast* stmt = build_variableDeclaration(type_ref);
+        Ast* stmt = parse_variableDeclaration(type_ref);
         return stmt;
       } else {
-        Ast* stmt = build_statement(type_ref);
+        Ast* stmt = parse_statement(type_ref);
         return stmt;
       }
     } else if (token_is_statement(token)) {
-      Ast* stmt = build_statement(0);
+      Ast* stmt = parse_statement(0);
       return stmt;
     } else if (token->klass == TK_CONST) {
-      Ast* stmt = build_constantDeclaration();
+      Ast* stmt = parse_constantDeclaration();
       return stmt;
     } else assert(0);
     assert(0);
@@ -3038,7 +3120,7 @@ build_statementOrDecl()
 }
 
 internal Ast*
-build_statementOrDeclList()
+parse_statementOrDeclList()
 {
   Ast_List* stmts = arena_push_struct(ast_storage, Ast_List);
   stmts->kind = AST_statementOrDeclList;
@@ -3049,10 +3131,10 @@ build_statementOrDeclList()
   if (token_is_statementOrDeclaration(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&stmts->members, li, 1);
-    li->object = build_statementOrDecl();
+    li->object = parse_statementOrDecl();
     while (token_is_statementOrDeclaration(token)) {
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_statementOrDecl();
+      li->object = parse_statementOrDecl();
       dlist_append_item(&stmts->members, li, 1);
     }
   }
@@ -3060,16 +3142,16 @@ build_statementOrDeclList()
 }
 
 internal Ast*
-build_blockStatement()
+parse_blockStatement()
 {
   if (token->klass == TK_BRACE_OPEN) {
+    next_token();
     Ast_BlockStmt* stmt = arena_push_struct(ast_storage, Ast_BlockStmt);
     stmt->kind = AST_blockStatement;
     stmt->id = node_id++;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
-    next_token();
-    stmt->stmt_list = build_statementOrDeclList();
+    stmt->stmt_list = parse_statementOrDeclList();
     if (token->klass == TK_BRACE_CLOSE) {
       next_token();
     } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -3082,7 +3164,7 @@ build_blockStatement()
 }
 
 internal Ast*
-build_identifierList()
+parse_identifierList()
 {
   Ast_List* ids = arena_push_struct(ast_storage, Ast_List);
   ids->kind = AST_identifierList;
@@ -3093,11 +3175,11 @@ build_identifierList()
   if (token_is_name(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&ids->members, li, 1);
-    li->object = build_name(false);
+    li->object = parse_name();
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_name(false);
+      li->object = parse_name();
       dlist_append_item(&ids->members, li, 1);
     }
   }
@@ -3105,11 +3187,11 @@ build_identifierList()
 }
 
 internal Ast*
-build_errorDeclaration()
+parse_errorDeclaration()
 {
   if (token->klass == TK_ERROR) {
     next_token();
-    Ast_ErrorEnum* error_decl = arena_push_struct(ast_storage, Ast_ErrorEnum);
+    Ast_ErrorDeclaration* error_decl = arena_push_struct(ast_storage, Ast_ErrorDeclaration);
     error_decl->kind = AST_errorDeclaration;
     error_decl->id = node_id++;
     error_decl->line_no = token->line_no;
@@ -3118,7 +3200,7 @@ build_errorDeclaration()
       next_token();
       if (token_is_name(token)) {
         if (token_is_name(token)) {
-          error_decl->fields = build_identifierList();
+          error_decl->fields = parse_identifierList();
         } else error("At line %d, column %d: name was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
         if (token->klass == TK_BRACE_CLOSE) {
@@ -3137,11 +3219,11 @@ build_errorDeclaration()
 }
 
 internal Ast*
-build_matchKindDeclaration()
+parse_matchKindDeclaration()
 {
   if (token->klass == TK_MATCH_KIND) {
     next_token();
-    Ast_MatchKind* match_decl = arena_push_struct(ast_storage, Ast_MatchKind);
+    Ast_MatchKindDeclaration* match_decl = arena_push_struct(ast_storage, Ast_MatchKindDeclaration);
     match_decl->kind = AST_matchKindDeclaration;
     match_decl->id = node_id++;
     match_decl->line_no = token->line_no;
@@ -3149,7 +3231,7 @@ build_matchKindDeclaration()
     if (token->klass == TK_BRACE_OPEN) {
       next_token();
       if (token_is_name(token)) {
-        match_decl->fields = build_identifierList();
+        match_decl->fields = parse_identifierList();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -3166,7 +3248,7 @@ build_matchKindDeclaration()
 }
 
 internal Ast*
-build_functionDeclaration(Ast* type_ref)
+parse_functionDeclaration(Ast* type_ref)
 {
   if (token_is_typeOrVoid(token)) {
     Ast_Function* func_decl = arena_push_struct(ast_storage, Ast_Function);
@@ -3174,9 +3256,9 @@ build_functionDeclaration(Ast* type_ref)
     func_decl->id = node_id++;
     func_decl->line_no = token->line_no;
     func_decl->column_no = token->column_no;
-    func_decl->proto = build_functionPrototype(type_ref);
+    func_decl->proto = parse_functionPrototype(type_ref);
     if (token->klass == TK_BRACE_OPEN) {
-      func_decl->stmt = build_blockStatement();
+      func_decl->stmt = parse_blockStatement();
     } else error("At line %d, column %d: `{` was expected, got `%s`.",
                  token->line_no, token->column_no, token->lexeme);
     return (Ast*)func_decl;
@@ -3187,42 +3269,47 @@ build_functionDeclaration(Ast* type_ref)
 }
 
 internal Ast*
-build_declaration()
+parse_declaration()
 {
   if (token_is_declaration(token)) {
+    Ast_Declaration* decl = arena_push_struct(ast_storage, Ast_Declaration);
+    decl->kind = AST_declaration;
+    decl->id = node_id++;
+    decl->line_no = token->line_no;
+    decl->column_no = token->column_no;
     if (token->klass == TK_CONST) {
-      Ast* decl = build_constantDeclaration();
-      return decl;
+      decl->decl = parse_constantDeclaration();
+      return (Ast*)decl;
     } else if (token->klass == TK_EXTERN) {
-      Ast* decl = build_externDeclaration();
-      return decl;
+      decl->decl = parse_externDeclaration();
+      return (Ast*)decl;
     } else if (token->klass == TK_ACTION) {
-      Ast* decl = build_actionDeclaration();
-      return decl;
+      decl->decl = parse_actionDeclaration();
+      return (Ast*)decl;
     } else if (token_is_typeDeclaration(token)) {
       /* <parserDeclaration> | <typeDeclaration> | <controlDeclaration> */
-      Ast* decl = build_typeDeclaration();
-      return decl;
+      decl->decl = parse_typeDeclaration();
+      return (Ast*)decl;
     } else if (token->klass == TK_ERROR) {
-      Ast* decl = build_errorDeclaration();
-      return decl;
+      decl->decl = parse_errorDeclaration();
+      return (Ast*)decl;
     } else if (token->klass == TK_MATCH_KIND) {
-      Ast* decl = build_matchKindDeclaration();
-      return decl;
+      decl->decl = parse_matchKindDeclaration();
+      return (Ast*)decl;
     } else if (token_is_typeRef(token)) {
-      Ast* type_ref = build_typeRef();
+      Ast* type_ref = parse_typeRef();
       if (token->klass == TK_PARENTH_OPEN) {
-        Ast* decl = build_instantiation(type_ref);
-        return decl;
+        decl->decl = parse_instantiation(type_ref);
+        return (Ast*)decl;
       } else if (token_is_name(token)) {
-        Ast* decl = build_functionDeclaration(type_ref);
-        return decl;
+        decl->decl = parse_functionDeclaration(type_ref);
+        return (Ast*)decl;
       } else error("At line %d, column %d: unexpected token `%s`.",
                    token->line_no, token->column_no, token->lexeme);
       assert(0);
     } else if (token_is_typeOrVoid(token)) {
-      Ast* decl = build_functionDeclaration(build_typeRef());
-      return decl;
+      decl->decl = parse_functionDeclaration(parse_typeRef());
+      return (Ast*)decl;
     } else assert(0);
   } else error("At line %d, column %d: top-level declaration as expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -3231,7 +3318,7 @@ build_declaration()
 }
 
 internal Ast*
-build_declarationList()
+parse_declarationList()
 {
   Ast_List* decls = arena_push_struct(ast_storage, Ast_List);
   decls->kind = AST_declarationList;
@@ -3242,11 +3329,11 @@ build_declarationList()
   if (token_is_declaration(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&decls->members, li, 1);
-    li->object = build_declaration();
+    li->object = parse_declaration();
     while (token_is_declaration(token) || token->klass == TK_SEMICOLON) {
       if (token_is_declaration(token)) {
         li = arena_push_struct(ast_storage, DListItem);
-        li->object = build_declaration();
+        li->object = parse_declaration();
         dlist_append_item(&decls->members, li, 1);
       } else if (token->klass == TK_SEMICOLON) {
         next_token(); /* empty declaration */
@@ -3257,7 +3344,7 @@ build_declarationList()
 }
 
 internal Ast*
-build_p4program()
+parse_p4program()
 {
   Ast_P4Program* program = arena_push_struct(ast_storage, Ast_P4Program);
   program->kind = AST_p4program;
@@ -3267,7 +3354,7 @@ build_p4program()
   while (token->klass == TK_SEMICOLON) {
     next_token(); /* empty declaration */
   }
-  program->decl_list = build_declarationList();
+  program->decl_list = parse_declarationList();
   if (token->klass != TK_END_OF_INPUT) {
     error("At line %d, column %d: unexpected token `%s`.",
           token->line_no, token->column_no, token->lexeme);
@@ -3276,19 +3363,27 @@ build_p4program()
 }
 
 internal Ast*
-build_realTypeArg()
+parse_realTypeArg()
 {
-  if (token->klass == TK_DONTCARE) {
-    next_token();
-    Ast* arg = arena_push_struct(ast_storage, Ast);
-    arg->kind = AST_dontcareTypeArgument;
-    arg->id = node_id++;
-    arg->line_no = token->line_no;
-    arg->column_no = token->column_no;
-    return arg;
-  } else if (token_is_typeRef(token)) {
-    Ast* arg = build_typeRef();
-    return arg;
+  if (token_is_realTypeArg(token)) {
+    Ast_RealTypeArgument* type_arg = arena_push_struct(ast_storage, Ast_RealTypeArgument);
+    type_arg->kind = AST_realTypeArgumentList;
+    type_arg->id = node_id++;
+    type_arg->line_no = token->line_no;
+    type_arg->column_no = token->column_no;
+    if (token->klass == TK_DONTCARE) {
+      next_token();
+      Ast* arg = arena_push_struct(ast_storage, Ast);
+      arg->kind = AST_dontcareTypeArgument;
+      arg->id = node_id++;
+      arg->line_no = token->line_no;
+      arg->column_no = token->column_no;
+      type_arg->arg = arg;
+      return (Ast*)type_arg;
+    } else if (token_is_typeRef(token)) {
+      type_arg->arg = parse_typeRef();
+      return (Ast*)type_arg;
+    } else assert(0);
   } else error("At line %d, column %d: type argument was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -3296,7 +3391,7 @@ build_realTypeArg()
 }
 
 internal Ast*
-build_realTypeArgumentList()
+parse_realTypeArgumentList()
 {
   Ast_List* args = arena_push_struct(ast_storage, Ast_List);
   args->kind = AST_realTypeArgumentList;
@@ -3307,11 +3402,11 @@ build_realTypeArgumentList()
   if (token_is_realTypeArg(token)) {
     DListItem* li = arena_push_struct(ast_storage, DListItem);
     dlist_append_item(&args->members, li, 1);
-    li->object = build_realTypeArg();
+    li->object = parse_realTypeArg();
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, DListItem);
-      li->object = build_realTypeArg();
+      li->object = parse_realTypeArg();
       dlist_append_item(&args->members, li, 1);
     }
   }
@@ -3319,45 +3414,45 @@ build_realTypeArgumentList()
 }
 
 internal Ast*
-build_expressionPrimary()
+parse_expressionPrimary()
 {
   if (token_is_expression(token)) {
+    Ast_Expression* primary = arena_push_struct(ast_storage, Ast_Expression);
+    primary->kind = AST_expression;
+    primary->id = node_id++;
+    primary->line_no = token->line_no;
+    primary->column_no = token->column_no;
     if (token->klass == TK_INT_LITERAL) {
-      Ast* primary = build_integer();
-      return primary;
+      primary->expr = parse_integer();
+      return (Ast*)primary;
     } else if (token->klass == TK_TRUE || token->klass == TK_FALSE) {
-      Ast* primary = build_boolean();
-      return primary;
+      primary->expr = parse_boolean();
+      return (Ast*)primary;
     } else if (token->klass == TK_STRING_LITERAL) {
-      Ast* primary = build_stringLiteral();
-      return primary;
+      primary->expr = parse_stringLiteral();
+      return (Ast*)primary;
     } else if (token->klass == TK_DOTPREFIX) {
       next_token();
       if (token->klass == TK_IDENTIFIER) {
-        Ast* primary = build_nonTypeName(false);
-        return primary;
+        primary->expr = parse_nonTypeName();
+        return (Ast*)primary;
       } else if (token->klass == TK_TYPE_IDENTIFIER) {
-        Ast* primary = build_typeName(false);
-        return primary;
+        primary->expr = parse_namedType();
+        return (Ast*)primary;
       } else error("At line %d, column %d: unexpected token `%s`.",
                    token->line_no, token->column_no, token->lexeme);
       assert(0);
     } else if (token_is_nonTypeName(token)) {
-      Ast* primary = build_nonTypeName(false);
-      return primary;
+      primary->expr = parse_nonTypeName();
+      return (Ast*)primary;
     } else if (token->klass == TK_BRACE_OPEN) {
       next_token();
-      Ast_ExprListExpression* expr_list = arena_push_struct(ast_storage, Ast_ExprListExpression);
-      expr_list->kind = AST_exprListExpression;
-      expr_list->id = node_id++;
-      expr_list->line_no = token->line_no;
-      expr_list->column_no = token->column_no;
-      expr_list->expr_list = build_expressionList();
+      primary->expr = parse_expressionList();
       if (token->klass == TK_BRACE_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `}` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
-      return (Ast*)expr_list;
+      return (Ast*)primary;
     } else if (token->klass == TK_PARENTH_OPEN) {
       next_token();
       if (token_is_typeRef(token)) {
@@ -3366,20 +3461,21 @@ build_expressionPrimary()
         cast_expr->id = node_id++;
         cast_expr->line_no = token->line_no;
         cast_expr->column_no = token->column_no;
-        cast_expr->to_type = build_typeRef();
+        cast_expr->to_type = parse_typeRef();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
-          cast_expr->expr = build_expression(1);
+          cast_expr->expr = parse_expression(1);
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
-        return (Ast*)cast_expr;
+        primary->expr = (Ast*)cast_expr;
+        return (Ast*)primary;
       } else if (token_is_expression(token)) {
-        Ast* primary = build_expression(1);
+        primary->expr = parse_expression(1);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
-        return primary;
+        return (Ast*)primary;
       } else error("At line %d, column %d: expression was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
       assert(0);
@@ -3391,8 +3487,9 @@ build_expressionPrimary()
       unary_expr->line_no = token->line_no;
       unary_expr->column_no = token->column_no;
       unary_expr->op = OP_NOT;
-      unary_expr->operand = build_expression(1);
-      return (Ast*)unary_expr;
+      unary_expr->operand = parse_expression(1);
+      primary->expr = (Ast*)unary_expr;
+      return (Ast*)primary;
     } else if (token->klass == TK_TILDA) {
       next_token();
       Ast_UnaryExpr* unary_expr = arena_push_struct(ast_storage, Ast_UnaryExpr);
@@ -3401,8 +3498,9 @@ build_expressionPrimary()
       unary_expr->line_no = token->line_no;
       unary_expr->column_no = token->column_no;
       unary_expr->op = OP_BITW_NOT;
-      unary_expr->operand = build_expression(1);
-      return (Ast*)unary_expr;
+      unary_expr->operand = parse_expression(1);
+      primary->expr = (Ast*)unary_expr;
+      return (Ast*)primary;
     } else if (token->klass == TK_UNARY_MINUS) {
       next_token();
       Ast_UnaryExpr* unary_expr = arena_push_struct(ast_storage, Ast_UnaryExpr);
@@ -3411,20 +3509,22 @@ build_expressionPrimary()
       unary_expr->line_no = token->line_no;
       unary_expr->column_no = token->column_no;
       unary_expr->op = OP_NEG;
-      unary_expr->operand = build_expression(1);
-      return (Ast*)unary_expr;
+      unary_expr->operand = parse_expression(1);
+      primary->expr = (Ast*)unary_expr;
+      return (Ast*)primary;
     } else if (token_is_typeName(token)) {
-      Ast* primary = build_typeName();
-      return primary;
+      primary->expr = parse_namedType();
+      return (Ast*)primary;
     } else if (token->klass == TK_ERROR) {
+      next_token();
       Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
       name->kind = AST_name;
       name->id = node_id++;
       name->line_no = token->line_no;
       name->column_no = token->column_no;
       name->strname = token->lexeme;
-      next_token();
-      return (Ast*)name;
+      primary->expr = (Ast*)name;
+      return (Ast*)primary;
     } else assert(0);
     assert(0);
   } else error("At line %d, column %d: expression was expected, got `%s`.",
@@ -3434,24 +3534,29 @@ build_expressionPrimary()
 }
 
 internal Ast*
-build_expression(int priority_threshold)
+parse_expression(int priority_threshold)
 {
   if (token_is_expression(token)) {
-    Ast_Expression* expr = (Ast_Expression*)build_expressionPrimary();
+    Ast_Expression* primary = (Ast_Expression*)parse_expressionPrimary();
     while (token_is_exprOperator(token)) {
       if (token->klass == TK_DOTPREFIX) {
         next_token();
-        Ast_MemberSelect* select_expr = arena_push_struct(ast_storage, Ast_MemberSelect);
-        select_expr->kind = AST_memberSelectExpression;
-        select_expr->id = node_id++;
-        select_expr->line_no = token->line_no;
-        select_expr->column_no = token->column_no;
-        select_expr->lhs_expr = (Ast*)expr;
-        expr = (Ast_Expression*)select_expr;
-        if (token_is_name(token)) {
-          select_expr->member_name = build_name(false);
-        } else error("At line %d, column %d: name was expected, got `%s`.",
+        Ast_MemberSelect* member_expr = arena_push_struct(ast_storage, Ast_MemberSelect);
+        member_expr->kind = AST_memberSelectExpression;
+        member_expr->id = node_id++;
+        member_expr->line_no = token->line_no;
+        member_expr->column_no = token->column_no;
+        member_expr->lhs_expr = (Ast*)primary;
+        if (token_is_nonTypeName(token)) {
+          member_expr->member_name = parse_nonTypeName();
+        } else error("At line %d, column %d: non-type name was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
+        primary = arena_push_struct(ast_storage, Ast_Expression);
+        primary->kind = AST_expression;
+        primary->id = node_id++;
+        primary->line_no = token->line_no;
+        primary->column_no = token->column_no;
+        primary->expr = (Ast*)member_expr;
       }
       else if (token->klass == TK_BRACKET_OPEN) {
         next_token();
@@ -3460,13 +3565,18 @@ build_expression(int priority_threshold)
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;
         subscript_expr->column_no = token->column_no;
-        subscript_expr->index = (Ast*)expr;
-        subscript_expr->end_index = build_arraySubscript();
-        expr = (Ast_Expression*)subscript_expr;
+        subscript_expr->index = (Ast*)primary;
+        subscript_expr->end_index = parse_arraySubscript();
         if (token->klass == TK_BRACKET_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `]` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
+        primary = arena_push_struct(ast_storage, Ast_Expression);
+        primary->kind = AST_expression;
+        primary->id = node_id++;
+        primary->line_no = token->line_no;
+        primary->column_no = token->column_no;
+        primary->expr = (Ast*)subscript_expr;
       }
       else if (token->klass == TK_PARENTH_OPEN) {
         next_token();
@@ -3475,17 +3585,22 @@ build_expression(int priority_threshold)
         call_expr->id = node_id++;
         call_expr->line_no = token->line_no;
         call_expr->column_no = token->column_no;
-        call_expr->callee_expr = (Ast*)expr;
-        call_expr->args = build_argumentList();
-        expr = (Ast_Expression*)call_expr;
+        call_expr->callee_expr = (Ast*)primary;
+        call_expr->args = parse_argumentList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
+        primary = arena_push_struct(ast_storage, Ast_Expression);
+        primary->kind = AST_expression;
+        primary->id = node_id++;
+        primary->line_no = token->line_no;
+        primary->column_no = token->column_no;
+        primary->expr = (Ast*)call_expr;
       }
       else if (token->klass == TK_ANGLE_OPEN && token_is_realTypeArg(peek_token())) {
         next_token();
-        expr->type_args = build_realTypeArgumentList();
+        primary->type_args = parse_realTypeArgumentList();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -3497,27 +3612,37 @@ build_expression(int priority_threshold)
         kv_pair->id = node_id++;
         kv_pair->line_no = token->line_no;
         kv_pair->column_no = token->column_no;
-        kv_pair->name = (Ast*)expr;
-        kv_pair->expr = build_expression(1);
-        expr = (Ast_Expression*)kv_pair;
+        kv_pair->name = (Ast*)primary;
+        kv_pair->expr = parse_expression(1);
+        primary = arena_push_struct(ast_storage, Ast_Expression);
+        primary->kind = AST_expression;
+        primary->id = node_id++;
+        primary->line_no = token->line_no;
+        primary->column_no = token->column_no;
+        primary->expr = (Ast*)kv_pair;
       }
       else if (token_is_binaryOperator(token)){
         int priority = get_operator_priority(token);
         if (priority >= priority_threshold) {
-          Ast_BinaryExpr* bin_expr = arena_push_struct(ast_storage, Ast_BinaryExpr);
-          bin_expr->kind = AST_binaryExpression;
-          bin_expr->id = node_id++;
-          bin_expr->line_no = token->line_no;
-          bin_expr->column_no = token->column_no;
-          bin_expr->left_operand = (Ast*)expr;
-          bin_expr->op = token_to_binop(token);
           next_token();
-          bin_expr->right_operand = build_expression(priority + 1);
-          expr = (Ast_Expression*)bin_expr;
+          Ast_BinaryExpr* binary_expr = arena_push_struct(ast_storage, Ast_BinaryExpr);
+          binary_expr->kind = AST_binaryExpression;
+          binary_expr->id = node_id++;
+          binary_expr->line_no = token->line_no;
+          binary_expr->column_no = token->column_no;
+          binary_expr->left_operand = (Ast*)primary;
+          binary_expr->op = token_to_binop(token);
+          binary_expr->right_operand = parse_expression(priority + 1);
+          primary = arena_push_struct(ast_storage, Ast_Expression);
+          primary->kind = AST_expression;
+          primary->id = node_id++;
+          primary->line_no = token->line_no;
+          primary->column_no = token->column_no;
+          primary->expr = (Ast*)binary_expr;
         } else break;
       } else assert(0);
     }
-    return (Ast*)expr;
+    return (Ast*)primary;
   } else error("At line %d, column %d: expression was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -3576,7 +3701,7 @@ parse_tokens(UnboundedArray* tokens_, Arena* ast_storage_)
   token_at = 0;
   token = array_get(tokens, token_at);
   next_token();
-  Ast_P4Program* p4program = (Ast_P4Program*)build_p4program();
+  Ast_P4Program* p4program = (Ast_P4Program*)parse_p4program();
   p4program->last_node_id = node_id;
   current_scope = pop_scope();
   assert(current_scope == 0);

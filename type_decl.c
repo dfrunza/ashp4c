@@ -79,21 +79,6 @@ visit_member_select(Ast* ast)
 }
 
 internal void
-visit_expression_list(Ast* ast)
-{
-  assert(ast->kind == AST_exprListExpression);
-  Ast_ExprListExpression* expr = (Ast_ExprListExpression*)ast;
-  Ast_List* expr_list = (Ast_List*)expr->expr_list;
-  if (expr_list) {
-    for (DListItem* li = expr_list->members.sentinel.next;
-         li != 0; li = li->next) {
-      Ast* item = li->object;
-      visit_expression(item);
-    }
-  }
-}
-
-internal void
 visit_cast_expr(Ast* ast)
 {
   assert(ast->kind == AST_castExpression);
@@ -154,8 +139,6 @@ visit_expression(Ast* ast)
     visit_function_call(ast);
   } else if (ast->kind == AST_memberSelectExpression) {
     visit_member_select(ast);
-  } else if (ast->kind == AST_exprListExpression) {
-    visit_expression_list(ast);
   } else if (ast->kind == AST_castExpression) {
     visit_cast_expr(ast);
   } else if (ast->kind == AST_arraySubscript) {
@@ -569,7 +552,7 @@ visit_parser_state(Ast* ast)
       visit_statement(stmt);
     }
   }
-  visit_parser_transition(state_decl->trans_stmt);
+  visit_parser_transition(state_decl->transition_stmt);
 }
 
 internal void
@@ -785,7 +768,7 @@ internal void
 visit_extern(Ast* ast)
 {
   assert(ast->kind == AST_externDeclaration);
-  Ast_Extern* extern_decl = (Ast_Extern*)ast;
+  Ast_ExternType* extern_decl = (Ast_ExternType*)ast;
   Ast_List* type_params = (Ast_List*)extern_decl->type_params;
   if (type_params) {
     for (DListItem* li = type_params->members.sentinel.next;
@@ -936,7 +919,7 @@ visit_instantiation(Ast* ast)
 {
   assert(ast->kind == AST_instantiation);
   Ast_Instantiation* inst_decl = (Ast_Instantiation*)ast;
-  visit_type_ref(inst_decl->type);
+  visit_type_ref(inst_decl->type_ref);
   Ast_List* args = (Ast_List*)inst_decl->args;
   if (args) {
     for (DListItem* li = args->members.sentinel.next;
@@ -1013,7 +996,7 @@ internal void
 visit_enum(Ast* ast)
 {
   assert(ast->kind == AST_enumDeclaration);
-  Ast_Enum* enum_decl = (Ast_Enum*)ast;
+  Ast_EnumDeclaration* enum_decl = (Ast_EnumDeclaration*)ast;
   Ast_List* fields = (Ast_List*)enum_decl->fields;
   if (fields) {
     for (DListItem* li = fields->members.sentinel.next;
@@ -1059,7 +1042,7 @@ internal void
 visit_match_kind(Ast* ast)
 {
   assert(ast->kind == AST_matchKindDeclaration);
-  Ast_MatchKind* match_decl = (Ast_MatchKind*)ast;
+  Ast_MatchKindDeclaration* match_decl = (Ast_MatchKindDeclaration*)ast;
   Ast_List* fields = (Ast_List*)match_decl->fields;
   if (fields) {
     for (DListItem* li = fields->members.sentinel.next;
@@ -1079,7 +1062,7 @@ internal void
 visit_error_enum(Ast* ast)
 {
   assert (ast->kind == AST_errorDeclaration);
-  Ast_ErrorEnum* error_decl = (Ast_ErrorEnum*)ast;
+  Ast_ErrorDeclaration* error_decl = (Ast_ErrorDeclaration*)ast;
   Ast_List* fields = (Ast_List*)error_decl->fields;
   if (fields) {
     for (DListItem* li = fields->members.sentinel.next;

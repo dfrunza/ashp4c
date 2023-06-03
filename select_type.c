@@ -823,7 +823,7 @@ internal void
 visit_extern(Ast* ast)
 {
   assert(ast->kind == AST_externDeclaration);
-  Ast_Extern* extern_decl = (Ast_Extern*)ast;
+  Ast_ExternType* extern_decl = (Ast_ExternType*)ast;
   DListItem* li;
   Ast_NodeList* type_params = &extern_decl->type_params;
   li = type_params->list.next;
