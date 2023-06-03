@@ -1,7 +1,7 @@
 #include <memory.h>  // memset
 #include <stdint.h>
 #include <stdio.h>
-#include "arena.h"
+#include "foundation.h"
 #include "frontend.h"
 
 internal Arena *ast_storage;
@@ -2272,16 +2272,17 @@ internal Ast*
 parse_parserDeclaration()
 {
   if (token->klass == TK_PARSER) {
-    Ast_Parser* parser_decl = arena_push_struct(ast_storage, Ast_Parser);
-    parser_decl->kind = AST_parserDeclaration;
-    parser_decl->id = node_id++;
-    parser_decl->line_no = token->line_no;
-    parser_decl->column_no = token->column_no;
-    parser_decl->proto = parse_parserTypeDeclaration();
+    Ast* parser_proto = parse_parserTypeDeclaration();
     if (token->klass == TK_SEMICOLON) {
       next_token(); /* <parserTypeDeclaration> */
-      return parser_decl->proto;
+      return parser_proto;
     } else {
+      Ast_Parser* parser_decl = arena_push_struct(ast_storage, Ast_Parser);
+      parser_decl->kind = AST_parserDeclaration;
+      parser_decl->id = node_id++;
+      parser_decl->line_no = token->line_no;
+      parser_decl->column_no = token->column_no;
+      parser_decl->proto = parser_proto;
       parser_decl->ctor_params = parse_optConstructorParameters();
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2296,8 +2297,8 @@ parse_parserDeclaration()
                      token->line_no, token->column_no, token->lexeme);
       } else error("At line %d, column %d: `{` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
+      return (Ast*)parser_decl;
     }
-    return (Ast*)parser_decl;
   } else error("At line %d, column %d: `parser` was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -3287,7 +3288,7 @@ parse_declaration()
       decl->decl = parse_actionDeclaration();
       return (Ast*)decl;
     } else if (token_is_typeDeclaration(token)) {
-      /* <parserDeclaration> | <typeDeclaration> | <controlDeclaration> */
+      /* <parserDeclaration> | <controlDeclaration> */
       decl->decl = parse_typeDeclaration();
       return (Ast*)decl;
     } else if (token->klass == TK_ERROR) {

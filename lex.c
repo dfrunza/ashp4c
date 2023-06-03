@@ -1,7 +1,7 @@
 #include <memory.h>  // memset
 #include <stdint.h>
 #include <stdio.h>
-#include "arena.h"
+#include "foundation.h"
 #include "frontend.h"
 
 typedef struct Lexeme {

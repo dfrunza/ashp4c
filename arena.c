@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>   // exit
 #include <math.h> // ceil
-#include "arena.h"
+#include "foundation.h"
 
 #define ZERO_MEMORY_ON_FREE  0
 
