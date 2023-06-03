@@ -1494,24 +1494,24 @@ visit_error_enum(AstWalkContext* context, Ast* ast)
 #endif
 
 internal void
-visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
+visit(Ast* ast, Ast* parent_ast, enum AstWalkDirection direction)
 {
   if (ast->kind == AST_p4program) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_errorDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_matchKindDeclaration) {
     assert(current_scope->scope_level == 1);
   } else if (ast->kind == AST_actionDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_Action* action_decl = (Ast_Action*)ast;
       Ast_Name* name = (Ast_Name*)action_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
@@ -1523,11 +1523,11 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
       } else error("At line %d, column %d: redeclaration of name `%s`.",
                   name->line_no, name->column_no, name->strname);
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_enumDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_Enum* enum_decl = (Ast_Enum*)ast;
       Ast_Name* name = (Ast_Name*)enum_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
@@ -1539,11 +1539,11 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
       } else error("At line %d, column %d: redeclaration of name `%s`.",
                   name->line_no, name->column_no, name->strname);
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_constantDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_Const* const_decl = (Ast_Const*)ast;
       Ast_Name* name = (Ast_Name*)const_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
@@ -1554,29 +1554,29 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
         declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)const_decl);
       } else error("At line %d, column %d: redeclaration of name `%s`.",
                   name->line_no, name->column_no, name->strname);
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
     } else assert(0);
   } else if (ast->kind == AST_functionPrototype) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_FunctionProto* func_proto = (Ast_FunctionProto*)ast;
       Ast_Name* name = (Ast_Name*)func_proto->name;
       declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)func_proto);
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_functionDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_Function* func_decl = (Ast_Function*)ast;
       Ast_FunctionProto* func_proto = (Ast_FunctionProto*)func_decl->proto;
       Ast_Name* name = (Ast_Name*)func_proto->name;
       declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)func_decl);
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_typedefDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_TypeDef* type_decl = (Ast_TypeDef*)ast;
       Ast_Name* name = (Ast_Name*)type_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
@@ -1587,10 +1587,10 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
         declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)type_decl);
       } else error("At line %d, column %d: redeclaration of name `%s`.",
                   name->line_no, name->column_no, name->strname);
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
     } else assert(0);
   } else if (ast->kind == AST_instantiation) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_Instantiation* inst_decl = (Ast_Instantiation*)ast;
       Ast_Name* name = (Ast_Name*)inst_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
@@ -1601,29 +1601,29 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
         declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)inst_decl);
       } else error("At line %d, column %d: redeclaration of name `%s`.",
                   name->line_no, name->column_no, name->strname);
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
     } else assert(0);
   } else if (ast->kind == AST_parserTypeDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_ParserProto* proto_decl = (Ast_ParserProto*)ast;
       Ast_Name* name = (Ast_Name*)proto_decl->name;
       declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)proto_decl);
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_parserDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_Parser* parser_decl = (Ast_Parser*)ast;
       Ast_ParserProto* proto = (Ast_ParserProto*)parser_decl->proto;
       Ast_Name* name = (Ast_Name*)proto->name;
       declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)parser_decl);
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_packageTypeDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_Package* package_decl = (Ast_Package*)ast;
       Ast_Name* name = (Ast_Name*)package_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
@@ -1635,11 +1635,11 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
       } else error("At line %d, column %d: redeclaration of name `%s`.",
                   name->line_no, name->column_no, name->strname);
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_headerUnionDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
       Ast_Name* name = (Ast_Name*)union_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
@@ -1651,11 +1651,11 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
       } else error("At line %d, column %d: redeclaration of name `%s`.",
                   name->line_no, name->column_no, name->strname);
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_headerTypeDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_Header* header_decl = (Ast_Header*)ast;
       Ast_Name* name = (Ast_Name*)header_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
@@ -1667,11 +1667,11 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
       } else error("At line %d, column %d: redeclaration of name `%s`.",
                   name->line_no, name->column_no, name->strname);
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_structTypeDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_Struct* struct_decl = (Ast_Struct*)ast;
       Ast_Name* name = (Ast_Name*)struct_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
@@ -1683,25 +1683,25 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
       } else error("At line %d, column %d: redeclaration of name `%s`.",
                   name->line_no, name->column_no, name->strname);
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_externDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_Extern* extern_decl = (Ast_Extern*)ast;
       Ast_Name* name = (Ast_Name*)extern_decl->name;
       declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)extern_decl);
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_controlTypeDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_ControlProto* ctrl_proto = (Ast_ControlProto*)ast;
       Ast_Name* name = (Ast_Name*)ctrl_proto->name;
       declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)ctrl_proto);
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_specializedType) {
@@ -1712,8 +1712,9 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
   } else if (ast->kind == AST_baseTypeVarbit) {
   } else if (ast->kind == AST_baseTypeBit) {
   } else if (ast->kind == AST_baseTypeBool) {
+  } else if (ast->kind == AST_baseTypeInt) {
   } else if (ast->kind == AST_structField) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_StructField* field = (Ast_StructField*)ast;
       Ast_Name* name = (Ast_Name*)field->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
@@ -1724,10 +1725,10 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
         declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)field);
       } else error("At line %d, column %d: redeclaration of name `%s`.",
                   name->line_no, name->column_no, name->strname);
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
     } else assert(0);
   } else if (ast->kind == AST_parserState) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_ParserState* state = (Ast_ParserState*)ast;
       Ast_Name* name = (Ast_Name*)state->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
@@ -1739,7 +1740,7 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
       } else error("At line %d, column %d: redeclaration of name `%s`.",
                   name->line_no, name->column_no, name->strname);
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_selectExpression) {
@@ -1751,7 +1752,7 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
   } else if (ast->kind == AST_switchCase) {
   } else if (ast->kind == AST_defaultKeysetExpression) {
   } else if (ast->kind == AST_tableDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_Table* table_decl = (Ast_Table*)ast;
       Ast_Name* name = (Ast_Name*)table_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
@@ -1762,10 +1763,10 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
         declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)table_decl);
       } else error("At line %d, column %d: redeclaration of name `%s`.",
                   name->line_no, name->column_no, name->strname);
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
     } else assert(0);
   } else if (ast->kind == AST_variableDeclaration) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_Var* var_decl = (Ast_Var*)ast;
       Ast_Name* name = (Ast_Name*)var_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
@@ -1776,7 +1777,7 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
         declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)var_decl);
       } else error("At line %d, column %d: redeclaration of name `%s`.",
                     name->line_no, name->column_no, name->strname);
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
     } else assert(0);
   } else if (ast->kind == AST_tableEntries) {
   } else if (ast->kind == AST_tableKey) {
@@ -1788,13 +1789,13 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
   } else if (ast->kind == AST_keyElement) {
   } else if (ast->kind == AST_actionRef) {
   } else if (ast->kind == AST_blockStatement) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       current_scope = push_scope();
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
     } else assert(0);
   } else if (ast->kind == AST_parameter) {
-    if (direction == WALK_DOWN) {
+    if (direction == WALK_IN) {
       Ast_Param* param = (Ast_Param*)ast;
       Ast_Name* name = (Ast_Name*)param->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
@@ -1805,10 +1806,13 @@ visit(AstWalkContext* context, enum AstWalkDirection direction, struct Ast* ast)
         declare_var_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)param);
       } else error("At line %d, column %d: redeclaration of name `%s`.",
                   name->line_no, name->column_no, name->strname);
-    } else if (direction == WALK_UP) {
+    } else if (direction == WALK_OUT) {
     } else assert(0);
   } else if (ast->kind == AST_name) {
   } else if (ast->kind == AST_specifiedIdentifier) {
+  } else if (AST_integerLiteral) {
+  } else if (AST_booleanLiteral) {
+  } else if (AST_stringLiteral) {
   } else if (ast->kind == AST_kvPairExpression) {
   } else if (ast->kind == AST_arraySubscript) {
   } else if (ast->kind == AST_castExpression) {
@@ -1899,9 +1903,7 @@ build_name_decl(Ast_P4Program* p4program, Arena* decl_storage_)
     declare_var_name(root_scope, reject_state->strname, 0, 0, (Ast*)reject_state);
   }
 
-  install_visitor((Ast*)p4program, visit);
-  traverse_ast((Ast*)p4program);
-  install_visitor((Ast*)p4program, 0);
+  traverse_p4program(p4program, visit);
 
   current_scope = pop_scope();
   assert(current_scope == 0);

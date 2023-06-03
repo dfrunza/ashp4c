@@ -262,23 +262,15 @@ enum AstWalkBranch {
 };
 
 enum AstWalkDirection {
-  WALK_DOWN = 1,
-  WALK_UP,
+  WALK_IN = 1,
+  WALK_OUT,
 };
-
-typedef struct AstWalkContext {
-  struct Ast* ast;
-  enum AstWalkBranch branch;
-} AstWalkContext;
-
-typedef void (*AstVisit)(AstWalkContext*, enum AstWalkDirection, struct Ast*);
 
 typedef struct Ast {
   enum AstEnum kind;
   uint32_t id;
   int line_no;
   int column_no;
-  AstVisit visit;
 } Ast;
 
 typedef struct Ast_List {
@@ -693,8 +685,8 @@ typedef struct Ast_FunctionCall {
   Ast* args;
 } Ast_FunctionCall;
 
-void install_visitor(Ast* ast, AstVisit visit);
-void traverse_ast(Ast* p4program);
+typedef void (*AstVisitor)(Ast*, Ast*, enum AstWalkDirection);
+void traverse_p4program(Ast_P4Program* p4program, AstVisitor visitor);
 
 typedef struct NameDecl {
   union {
