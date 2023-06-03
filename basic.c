@@ -202,7 +202,7 @@ array_append(UnboundedArray* array, void* elem)
 }
 
 void
-dlist_init(DList* list)
+list_init(List* list)
 {
   list->last_item = &list->sentinel;
   list->sentinel.next = list->sentinel.prev = 0;
@@ -210,7 +210,7 @@ dlist_init(DList* list)
 }
 
 void
-dlist_append_item(DList* list, DListItem* item, int count)
+list_append_item(List* list, DListItem* item, int count)
 {
   DListItem* tail = list->last_item;
   tail->next = item;

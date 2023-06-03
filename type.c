@@ -9,7 +9,7 @@ tyset_add_type(Arena *type_storage, TypeSet* set, Type* type)
 {
   DListItem* new_li = arena_push_struct(type_storage, DListItem);
   new_li->object = type;
-  dlist_append_item(&set->members, new_li, 1);
+  list_append_item(&set->members, new_li, 1);
 }
 
 void

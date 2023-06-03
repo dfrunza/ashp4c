@@ -54,14 +54,14 @@ typedef struct DListItem {
   void* object;
 } DListItem;
 
-typedef struct DList {
+typedef struct List {
   DListItem sentinel;
   DListItem* last_item;
   int item_count;
-} DList;
+} List;
 
-void dlist_init(DList* list);
-void dlist_append_item(DList* list, DListItem* item, int count);
+void list_init(List* list);
+void list_append_item(List* list, DListItem* item, int count);
 
 // Max 1,048,575 elements
 #define ARRAY_MAX_SEGMENT 20
