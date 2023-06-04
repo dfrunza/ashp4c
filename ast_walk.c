@@ -390,7 +390,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       traverse_ast(block_stmt->stmt_list, visitor);
     }
   } else if (ast->kind == AST_statementOrDecl) {
-    Ast_Statement* stmt = (Ast_Statement*)stmt;
+    Ast_Statement* stmt = (Ast_Statement*)ast;
     traverse_ast(stmt->stmt, visitor);
   } else if (ast->kind == AST_statementOrDeclList) {
     Ast_List* list = (Ast_List*)ast;
@@ -413,7 +413,9 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
   } else if (ast->kind == AST_switchCase) {
     Ast_SwitchCase* switch_case = (Ast_SwitchCase*)ast;
     traverse_ast(switch_case->label, visitor);
-    traverse_ast(switch_case->stmt, visitor);
+    if (switch_case->stmt) {
+      traverse_ast(switch_case->stmt, visitor);
+    }
   }
   else if (ast->kind == AST_switchLabel) {
     Ast_SwitchLabel* switch_label = (Ast_SwitchLabel*)ast;
