@@ -349,7 +349,7 @@ next_token(Token* token)
 
       case 107:
       {
-        token->klass = TK_DOTPREFIX;
+        token->klass = TK_DOT;
         token->lexeme = lexeme_to_cstring(lexeme);
         token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();

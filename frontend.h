@@ -17,7 +17,7 @@ enum TokenClass {
   TK_BRACKET_CLOSE,
   TK_DONTCARE,
   TK_COLON,
-  TK_DOTPREFIX,
+  TK_DOT,
   TK_COMMA,
   TK_MINUS,
   TK_UNARY_MINUS,
@@ -157,8 +157,6 @@ enum AstEnum {
   AST_specializedType,
   AST_tupleType,
   AST_variableDeclaration,
-  AST_defaultKeysetExpression,
-  AST_dontcareKeysetExpression,
   AST_selectCase,
   AST_selectCaseList,
   AST_selectExpression,
@@ -172,6 +170,7 @@ enum AstEnum {
   AST_tableProperty,
   AST_tablePropertyList,
   AST_statement,
+  AST_statementOrDecl,
   AST_statementOrDeclList,
   AST_conditionalStatement,
   AST_assignmentStatement,
@@ -182,6 +181,7 @@ enum AstEnum {
   AST_switchCase,
   AST_switchCases,
   AST_switchLabel,
+  AST_defaultSwitchLabel,
   AST_blockStatement,
   AST_kvPairExpression,
   AST_exprListExpression,
@@ -190,7 +190,9 @@ enum AstEnum {
   AST_binaryExpression,
   AST_memberSelectExpression,
   AST_arraySubscript,
+  AST_arrayIndex,
   AST_functionCall,
+  AST_lvalue,
   AST_directApplication,
   AST_typeParameter,
   AST_typeParameterList,
@@ -207,6 +209,8 @@ enum AstEnum {
   AST_argumentList,
   AST_expression,
   AST_expressionList,
+  AST_defaultKeysetExpression,
+  AST_dontcareKeysetExpression,
   AST_keysetExpression,
   AST_keysetExpressionList,
   AST_keyElement,
@@ -650,6 +654,11 @@ typedef struct Ast_Table {
   Ast* prop_list;
 } Ast_Table;
 
+typedef struct Ast_Statement {
+  Ast;
+  Ast* stmt;
+} Ast_Statement;
+
 typedef struct Ast_IfStmt {
   Ast;
   Ast* cond_expr;
@@ -662,28 +671,33 @@ typedef struct Ast_ReturnStmt {
   Ast* expr;
 } Ast_ReturnStmt;
 
-typedef struct Ast_SwitchCase {
-  Ast;
-  Ast* label;
-  Ast* stmt;
-} Ast_SwitchCase;
-
 typedef struct Ast_SwitchStmt {
   Ast;
   Ast* expr;
   Ast* switch_cases;
 } Ast_SwitchStmt;
 
+typedef struct Ast_SwitchCase {
+  Ast;
+  Ast* label;
+  Ast* stmt;
+} Ast_SwitchCase;
+
+typedef struct Ast_SwitchLabel {
+  Ast;
+  Ast* label;
+} Ast_SwitchLabel;
+
 typedef struct Ast_BlockStmt {
   Ast;
   Ast* stmt_list;
 } Ast_BlockStmt;
 
-typedef struct Ast_DirectApplyStmt {
+typedef struct Ast_DirectApplication {
   Ast;
   Ast* lhs_expr;
   Ast* args;
-} Ast_DirectApplyStmt;
+} Ast_DirectApplication;
 
 typedef struct Ast_KVPairExpr {
   Ast;
@@ -745,9 +759,15 @@ typedef struct Ast_MemberSelect {
 
 typedef struct Ast_ArraySubscript {
   Ast;
-  Ast* index;
-  Ast* end_index;
+  Ast* lhs_expr;
+  Ast* index_expr;
 } Ast_ArraySubscript;
+
+typedef struct Ast_ArrayIndex {
+  Ast;
+  Ast* start_index;
+  Ast* end_index;
+} Ast_ArrayIndex;
 
 typedef struct Ast_FunctionCall {
   Ast;
@@ -755,8 +775,8 @@ typedef struct Ast_FunctionCall {
   Ast* args;
 } Ast_FunctionCall;
 
-typedef void (*AstVisitor)(Ast*, enum AstWalkDirection);
-void traverse_p4program(Ast_P4Program* p4program, AstVisitor visitor);
+typedef void AstVisitor(Ast*, enum AstWalkDirection);
+void traverse_p4program(Ast_P4Program* p4program, AstVisitor* visitor);
 
 typedef struct NameDecl {
   union {

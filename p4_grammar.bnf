@@ -4,8 +4,9 @@
 
 <p4program> := { <declaration> | ';' /* empty declaration */ }*
 
-<declaration> := <constantDeclaration> | <externDeclaration> | <actionDeclaration> | <parserDeclaration> | <typeDeclaration>
-    | <controlDeclaration> | <instantiation> | <errorDeclaration> | <matchKindDeclaration> | <functionDeclaration>
+<declaration> := <constantDeclaration> | <externDeclaration> | <actionDeclaration> |
+  <parserDeclaration> | <typeDeclaration> | <controlDeclaration> | <instantiation> |
+  <errorDeclaration> | <matchKindDeclaration> | <functionDeclaration>
 
 <nonTypeName> := IDENTIFIER | APPLY | KEY | ACTIONS | STATE | ENTRIES | TYPE
 
@@ -29,7 +30,8 @@
 ==  PARSER  ==
 ==============
 
-<parserDeclaration> := <parserTypeDeclaration> <optConstructorParameters> '{' <parserLocalElements> <parserStates> '}'
+<parserDeclaration> := <parserTypeDeclaration> <optConstructorParameters>
+  '{' <parserLocalElements> <parserStates> '}'
 
 <parserLocalElements> := { <parserLocalElement> { <parserLocalElement> }* }
 
@@ -43,8 +45,8 @@
 
 <parserStatements> := { <parserStatement> { <parserStatement }* }
 
-<parserStatement> := <assignmentOrMethodCallStatement> | <directApplication> | <parserBlockStatement>
-  | <constantDeclaration> | <variableDeclaration> | <emptyStatement>
+<parserStatement> := <assignmentOrMethodCallStatement> | <directApplication> | <parserBlockStatement> |
+  <constantDeclaration> | <variableDeclaration> | <emptyStatement>
 
 <parserBlockStatement> := '{' <parserStatements> '}'
 
@@ -70,11 +72,13 @@
 ==  CONTROL  ==
 ===============
 
-<controlDeclaration> := <controlTypeDeclaration> <optConstructorParameters> '{' { <controlLocalDeclaration> }* APPLY <controlBody> '}'
+<controlDeclaration> := <controlTypeDeclaration> <optConstructorParameters>
+  '{' { <controlLocalDeclaration> }* APPLY <controlBody> '}'
 
 <controlTypeDeclaration> := CONTROL <name> <optTypeParameters> '(' <parameterList> ')'
 
-<controlLocalDeclaration> := <constantDeclaration> | <actionDeclaration> | <tableDeclaration> | <instantiation> | <variableDeclaration>
+<controlLocalDeclaration> := <constantDeclaration> | <actionDeclaration> | <tableDeclaration> |
+  <instantiation> | <variableDeclaration>
 
 <controlBody> := <blockStatement>
 
@@ -83,15 +87,15 @@
 ==============
 
 <externDeclaration> := EXTERN (
-    <nonTypeName> <optTypeParameters> '{' <methodPrototypes> '}'
-  | <functionPrototype> ';' )
+  <nonTypeName> <optTypeParameters> '{' <methodPrototypes> '}' |
+  <functionPrototype> ';' )
 
 <methodPrototypes> := { <methodPrototype> }*
 
 <functionPrototype> := <typeOrVoid> <name> <optTypeParameters> '(' <parameterList> ')'
 
-<methodPrototype> := <functionPrototype> ';'
-  | TYPE_IDENTIFIER '(' <parameterList> ')' ';' /* constructor */
+<methodPrototype> := <functionPrototype> ';' |
+  TYPE_IDENTIFIER '(' <parameterList> ')' ';' /* constructor */
 
 
 ==  TYPES  ==
@@ -111,10 +115,10 @@
 
 <specializedType> := <typeName> '<' <typeArgumentList> '>'
 
-<baseType> := BOOL | ERROR
-  | INT { '<' <integerTypeSize> '>' }
-  | BIT { '<' <integerTypeSize> '>' }
-  | VARBIT { '<' <integerTypeSize> '>' }
+<baseType> := BOOL | ERROR |
+  INT { '<' <integerTypeSize> '>' } |
+  BIT { '<' <integerTypeSize> '>' } |
+  VARBIT { '<' <integerTypeSize> '>' }
 
 <integerTypeSize> := INTEGER /* | '(' <expression> ')' */
 
@@ -135,7 +139,8 @@
 <typeDeclaration> := <derivedTypeDeclaration> | <typedefDeclaration> | <parserTypeDeclaration> ';'
   | <controlTypeDeclaration> ';' | <packageTypeDeclaration> ';'
 
-<derivedTypeDeclaration> := <headerTypeDeclaration> | <headerUnionDeclaration> | <structTypeDeclaration> | <enumDeclaration>
+<derivedTypeDeclaration> := <headerTypeDeclaration> | <headerUnionDeclaration> |
+  <structTypeDeclaration> | <enumDeclaration>
 
 <headerTypeDeclaration> := HEADER <name> '{' <structFieldList> '}'
 
@@ -160,16 +165,17 @@
 <specifiedIdentifier> := <name> { '=' <initializer> }
 
 <typedefDeclaration> :=
-    TYPEDEF ( <typeRef> | <derivedTypeDeclaration> ) <name> ';'
-  | TYPE ( <typeRef> | <derivedTypeDeclaration> ) <name> ';'
+  TYPEDEF ( <typeRef> | <derivedTypeDeclaration> ) <name> ';' |
+  TYPE ( <typeRef> | <derivedTypeDeclaration> ) <name> ';'
 
 
 ==  STATEMENTS  ==
 ==================
 
 <assignmentOrMethodCallStatement> := <lvalue> (
-    { '<' <typeArgumentList> '>' } '(' <argumentList> ')' ';'
-  | '=' <expression> ';' )
+    { '<' <typeArgumentList> '>' } '(' <argumentList> ')' ';' |
+    '=' <expression> ';'
+  )
 
 <emptyStatement> := ';'
 
@@ -182,8 +188,8 @@
 /* To support direct invocation of a control or parser without instantiation */
 <directApplication> := <typeName> '.' APPLY '(' <argumentList> ')' ';'
 
-<statement> := <assignmentOrMethodCallStatement> | <directApplication> | <conditionalStatement>
-  | <emptyStatement> | <blockStatement> | <exitStatement> | <returnStatement> | <switchStatement>
+<statement> := <assignmentOrMethodCallStatement> | <directApplication> | <conditionalStatement> |
+  <emptyStatement> | <blockStatement> | <exitStatement> | <returnStatement> | <switchStatement>
 
 <blockStatement> := '{' <statementOrDeclList> '}'
 
@@ -191,7 +197,7 @@
 
 <switchStatement> := SWITCH '(' <expression> ')' '{' <switchCases> '}'
 
-<switchCases> := { switchCase }*
+<switchCases> := { <switchCase> }*
 
 <switchCase> := <switchLabel> ':' { <blockStatement> }
 
@@ -207,10 +213,10 @@
 
 <tablePropertyList> := <tableProperty> { <tableProperty> }*
 
-<tableProperty> := KEY '=' '{' <keyElementList> '}'
-  | ACTIONS '=' '{' <actionList> '}'
-  | CONST ENTRIES '=' '{' <entriesList> '}'  /* immutable entries */
-  | { CONST } <nonTableKwName> '=' <initializer> ';'
+<tableProperty> := KEY '=' '{' <keyElementList> '}' |
+  ACTIONS '=' '{' <actionList> '}' |
+  CONST ENTRIES '=' '{' <entriesList> '}' |  /* immutable entries */
+  { CONST } <nonTableKwName> '=' <initializer> ';'
 
 <keyElementList> := { <keyElement> }*
 
@@ -259,29 +265,27 @@
 <prefixedNonTypeName> := { '.' } <nonTypeName>
 
 <lvalue> := <prefixedNonTypeName> {
-      '.' <member>
-    | '[' <expression> { ':' <expression> } ']'  /* array subscript */
+    '.' <member> |
+    '[' <expression> { ':' <expression> } ']'  /* array subscript */
   }*
 
 <expression> := <expressionPrimary> { <exprOperator> <expression> }*
 
-<expressionPrimary> := INTEGER | TRUE | FALSE | STRING_LITERAL
-  | { '.' } <nonTypeName>
-  | '{' <expressionList> '}'  /* <kvList> */
-  | '(' <expression> ')'
-  | ( '!' | '~' ) <expression>
-  | '-' /* UnaryMinus */ <expression>
-  | ( <typeName> | ERROR ) '.' <member>
-  | <namedType> '(' <argumentList> ')'
-  | '(' <typeRef> ')' <expression> /* cast */
+<expressionPrimary> := INTEGER | TRUE | FALSE | STRING_LITERAL |
+  { '.' } <nonTypeName> |
+  '{' <expressionList> '}' |  /* <kvList> | */ 
+  '(' <expression> ')' |
+  ( '!' | '~' | '-' ) <expression> |
+  ( <typeName> | ERROR ) '.' <member> |
+  <namedType> '(' <argumentList> ')' |
+  '(' <typeRef> ')' <expression> /* cast */
 
-<exprOperator> :=
-  | <binaryOperator>
-  | '.' <member>
-  | '[' <expression> { ':' <expression> } ']' /* array subscript */
-  | '(' <argumentList> ')' /* function call */
-  | '<' <realTypeArgumentList> '>'
+<exprOperator> := <binaryOperator> |
+  '.' <member> |
+  '[' <expression> { ':' <expression> } ']' |  /* array subscript */
+  '(' <argumentList> ')' |  /* function call */
+  '<' <realTypeArgumentList> '>'
 
-<binaryOperator> := '*' | '/' | '+' | '-' | '<=' | '>=' | '<' | '>' | '!='
-  | '==' | '||' | '&&' | '|' | '&' | '<<' | '>>' | '='
+<binaryOperator> := '*' | '/' | '+' | '-' | '<=' | '>=' | '<' | '>' | '!=' |
+  '==' | '||' | '&&' | '|' | '&' | '<<' | '>>' | '='
 

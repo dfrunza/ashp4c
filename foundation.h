@@ -49,20 +49,20 @@ void* arena_push(Arena* arena, uint32_t size);
 })
 void arena_delete(Arena* arena);
 
-typedef struct DListItem {
-  struct DListItem* next;
-  struct DListItem* prev;
+typedef struct ListItem {
+  struct ListItem* next;
+  struct ListItem* prev;
   void* object;
-} DListItem;
+} ListItem;
 
 typedef struct List {
-  DListItem sentinel;
-  DListItem* last_item;
+  ListItem sentinel;
+  ListItem* last_item;
   int item_count;
 } List;
 
 void list_init(List* list);
-void list_append_item(List* list, DListItem* item, int count);
+void list_append_item(List* list, ListItem* item, int count);
 
 // Max 1,048,575 elements
 #define ARRAY_MAX_SEGMENT 20

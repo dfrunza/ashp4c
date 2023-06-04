@@ -77,9 +77,9 @@ list_init(List* list)
 }
 
 void
-list_append_item(List* list, DListItem* item, int count)
+list_append_item(List* list, ListItem* item, int count)
 {
-  DListItem* tail = list->last_item;
+  ListItem* tail = list->last_item;
   tail->next = item;
   item->prev = tail;
   list->item_count += count;

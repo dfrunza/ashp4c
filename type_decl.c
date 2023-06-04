@@ -54,7 +54,7 @@ visit_function_call(Ast* ast)
   Ast_Expression* callee_expr = (Ast_Expression*)function_call->callee_expr;
   Ast_List* type_args = (Ast_List*)callee_expr->type_args;
   if (type_args) {
-    for (DListItem* li = type_args->members.sentinel.next;
+    for (ListItem* li = type_args->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* type_arg = li->object;
       visit_type_ref(type_arg);
@@ -62,7 +62,7 @@ visit_function_call(Ast* ast)
   }
   Ast_List* args = (Ast_List*)function_call->args;
   if (args) {
-    for (DListItem* li = args->members.sentinel.next;
+    for (ListItem* li = args->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* arg = li->object;
       visit_expression(arg);
@@ -92,10 +92,8 @@ visit_subscript(Ast* ast)
 {
   assert(ast->kind == AST_arraySubscript);
   Ast_ArraySubscript* expr = (Ast_ArraySubscript*)ast;
-  visit_expression(expr->index);
-  if (expr->end_index) {
-    visit_expression(expr->end_index);
-  }
+  visit_expression(expr->lhs_expr);
+  visit_expression(expr->index_expr);
 }
 
 internal void
@@ -182,7 +180,7 @@ visit_block_statement(Ast* ast)
   Ast_BlockStmt* block_stmt = (Ast_BlockStmt*)ast;
   Ast_List* stmt_list = (Ast_List*)block_stmt->stmt_list;
   if (stmt_list) {
-    for (DListItem* li = stmt_list->members.sentinel.next;
+    for (ListItem* li = stmt_list->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* decl = li->object;
       visit_statement(decl);
@@ -197,7 +195,7 @@ visit_action_ref(Ast* ast)
   Ast_ActionRef* action = (Ast_ActionRef*)ast;
   Ast_List* args = (Ast_List*)action->args;
   if (args) {
-    for (DListItem* li = args->members.sentinel.next;
+    for (ListItem* li = args->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* arg = li->object;
       visit_expression(arg);
@@ -244,7 +242,7 @@ visit_tuple_keyset(Ast* ast)
   Ast_TupleKeyset* keyset = (Ast_TupleKeyset*)ast;
   Ast_List* expr_list = (Ast_List*)keyset->expr_list;
   if (expr_list) {
-    for (DListItem* li = expr_list->members.sentinel.next;
+    for (ListItem* li = expr_list->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* expr = li->object;
       visit_keyset_expr(expr);
@@ -278,7 +276,7 @@ visit_table_actions(Ast *ast)
   Ast_TableActions* prop = (Ast_TableActions*)ast;
   Ast_List* action_list = (Ast_List*)prop->action_list;
   if (action_list) {
-    for (DListItem* li = action_list->members.sentinel.next;
+    for (ListItem* li = action_list->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* action = li->object;
       visit_action_ref(action);
@@ -303,7 +301,7 @@ visit_table_key(Ast* ast)
   Ast_TableKey* prop = (Ast_TableKey*)ast;
   Ast_List* keyelem_list = (Ast_List*)prop->keyelem_list;
   if (keyelem_list) {
-    for (DListItem* li = keyelem_list->members.sentinel.next;
+    for (ListItem* li = keyelem_list->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* keyelem = li->object;
       visit_table_keyelem(keyelem);
@@ -318,7 +316,7 @@ visit_table_entries(Ast* ast)
   Ast_TableEntries* prop = (Ast_TableEntries*)ast;
   Ast_List* entries = (Ast_List*)prop->entries;
   if (entries) {
-    for (DListItem* li = entries->members.sentinel.next;
+    for (ListItem* li = entries->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* entry = li->object;
       visit_table_entry(entry);
@@ -387,7 +385,7 @@ visit_table(Ast* ast)
   Ast_Table* table_decl = (Ast_Table*)ast;
   Ast_List* prop_list = (Ast_List*)table_decl->prop_list;
   if (prop_list) {
-    for (DListItem* li = prop_list->members.sentinel.next;
+    for (ListItem* li = prop_list->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* prop = li->object;
       visit_table_property(prop);
@@ -415,7 +413,7 @@ visit_switch_stmt(Ast* ast)
   visit_expression(stmt->expr);
   Ast_List* switch_cases = (Ast_List*)stmt->switch_cases;
   if (switch_cases) {
-    for (DListItem* li = switch_cases->members.sentinel.next;
+    for (ListItem* li = switch_cases->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* switch_case = li->object;
       visit_switch_case(switch_case);
@@ -512,7 +510,7 @@ visit_select_expr(Ast* ast)
   Ast_SelectExpr* trans_stmt = (Ast_SelectExpr*)ast;
   Ast_List* expr_list = (Ast_List*)trans_stmt->expr_list;
   if (expr_list) {
-    for (DListItem* li = expr_list->members.sentinel.next;
+    for (ListItem* li = expr_list->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* expr = li->object;
       visit_expression(expr);
@@ -520,7 +518,7 @@ visit_select_expr(Ast* ast)
   }
   Ast_List* case_list = (Ast_List*)trans_stmt->case_list;
   if (case_list) {
-    for (DListItem* li = case_list->members.sentinel.next;
+    for (ListItem* li = case_list->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* select_case = li->object;
       visit_transition_select_case(select_case);
@@ -546,7 +544,7 @@ visit_parser_state(Ast* ast)
   Ast_ParserState* state_decl = (Ast_ParserState*)ast;
   Ast_List* stmt_list = (Ast_List*)state_decl->stmt_list;
   if (stmt_list) {
-    for (DListItem* li = stmt_list->members.sentinel.next;
+    for (ListItem* li = stmt_list->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* stmt = li->object;
       visit_statement(stmt);
@@ -634,7 +632,7 @@ visit_specialized_type(Ast* ast)
   visit_expression(speclzd_type->name);
   Ast_List* type_args = (Ast_List*)speclzd_type->type_args;
   if (type_args) {
-    for (DListItem* li = type_args->members.sentinel.next;
+    for (ListItem* li = type_args->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* type_arg = li->object;
       visit_type_ref(type_arg);
@@ -649,7 +647,7 @@ visit_tuple(Ast* ast)
   Ast_Tuple* tuple_decl = (Ast_Tuple*)ast;
   Ast_List* args = (Ast_List*)tuple_decl->type_args;
   if (args) {
-    for (DListItem* li = args->members.sentinel.next;
+    for (ListItem* li = args->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* arg = li->object;
       visit_type_ref(arg);
@@ -722,7 +720,7 @@ visit_control(Ast* ast)
   visit_control_proto(ctrl_decl->proto);
   Ast_List* ctor_params = (Ast_List*)ctrl_decl->ctor_params;
   if (ctor_params) {
-    for (DListItem* li = ctor_params->members.sentinel.next;
+    for (ListItem* li = ctor_params->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* param = li->object;
       visit_param(param);
@@ -730,7 +728,7 @@ visit_control(Ast* ast)
   }
   Ast_List* local_decls = (Ast_List*)ctrl_decl->local_decls;
   if (local_decls) {
-    for (DListItem* li = local_decls->members.sentinel.next;
+    for (ListItem* li = local_decls->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* decl = li->object;
       visit_statement(decl);
@@ -748,7 +746,7 @@ visit_control_proto(Ast* ast)
   Ast_ControlProto* proto = (Ast_ControlProto*)ast;
   Ast_List* type_params = (Ast_List*)proto->type_params;
   if (type_params) {
-    for (DListItem* li = type_params->members.sentinel.next;
+    for (ListItem* li = type_params->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
@@ -756,7 +754,7 @@ visit_control_proto(Ast* ast)
   }
   Ast_List* params = (Ast_List*)proto->params;
   if (params) {
-    for (DListItem* li = params->members.sentinel.next;
+    for (ListItem* li = params->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* param = li->object;
       visit_param(param);
@@ -771,7 +769,7 @@ visit_extern(Ast* ast)
   Ast_ExternType* extern_decl = (Ast_ExternType*)ast;
   Ast_List* type_params = (Ast_List*)extern_decl->type_params;
   if (type_params) {
-    for (DListItem* li = type_params->members.sentinel.next;
+    for (ListItem* li = type_params->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
@@ -779,7 +777,7 @@ visit_extern(Ast* ast)
   }
   Ast_List* method_protos = (Ast_List*)extern_decl->method_protos;
   if (method_protos) {
-    for (DListItem* li = method_protos->members.sentinel.next;
+    for (ListItem* li = method_protos->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* proto = li->object;
       visit_function_proto(proto);
@@ -798,7 +796,7 @@ visit_struct(Ast* ast)
   struct_he->object = (Type*)struct_ty;
   Ast_List* fields = (Ast_List*)struct_decl->fields;
   if (fields) {
-    for (DListItem* li = fields->members.sentinel.next;
+    for (ListItem* li = fields->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* field = li->object;
       visit_struct_field(field);
@@ -813,7 +811,7 @@ visit_header(Ast* ast)
   Ast_Header* header_decl = (Ast_Header*)ast;
   Ast_List* fields = (Ast_List*)header_decl->fields;
   if (fields) {
-    for (DListItem* li = fields->members.sentinel.next;
+    for (ListItem* li = fields->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* field = li->object;
       visit_struct_field(field);
@@ -828,7 +826,7 @@ visit_header_union(Ast* ast)
   Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
   Ast_List* fields = (Ast_List*)union_decl->fields;
   if (fields) {
-    for (DListItem* li = fields->members.sentinel.next;
+    for (ListItem* li = fields->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* field = li->object;
       visit_struct_field(field);
@@ -843,7 +841,7 @@ visit_package(Ast* ast)
   Ast_Package* package_decl = (Ast_Package*)ast;
   Ast_List* type_params = (Ast_List*)package_decl->type_params;
   if (type_params) {
-    for (DListItem* li = type_params->members.sentinel.next;
+    for (ListItem* li = type_params->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
@@ -851,7 +849,7 @@ visit_package(Ast* ast)
   }
   Ast_List* params = (Ast_List*)package_decl->params;
   if (params) {
-    for (DListItem* li = params->members.sentinel.next;
+    for (ListItem* li = params->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* param = li->object;
       visit_param(param);
@@ -867,7 +865,7 @@ visit_parser(Ast* ast)
   visit_parser_proto(parser_decl->proto);
   Ast_List* ctor_params = (Ast_List*)parser_decl->ctor_params;
   if (ctor_params) {
-    for (DListItem* li = ctor_params->members.sentinel.next;
+    for (ListItem* li = ctor_params->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* param = li->object;
       visit_param(param);
@@ -875,7 +873,7 @@ visit_parser(Ast* ast)
   }
   Ast_List* local_elements = (Ast_List*)parser_decl->local_elements;
   if (local_elements) {
-    for (DListItem* li = local_elements->members.sentinel.next;
+    for (ListItem* li = local_elements->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* element = li->object;
       visit_local_parser_element(element);
@@ -883,7 +881,7 @@ visit_parser(Ast* ast)
   }
   Ast_List* states = (Ast_List*)parser_decl->states;
   if (states) {
-    for (DListItem* li = states->members.sentinel.next;
+    for (ListItem* li = states->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* state = li->object;
       visit_parser_state(state);
@@ -898,7 +896,7 @@ visit_parser_proto(Ast* ast)
   Ast_ParserProto* proto = (Ast_ParserProto*)ast;
   Ast_List* type_params = (Ast_List*)proto->type_params;
   if (type_params) {
-    for (DListItem* li = type_params->members.sentinel.next;
+    for (ListItem* li = type_params->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
@@ -906,7 +904,7 @@ visit_parser_proto(Ast* ast)
   }
   Ast_List* params = (Ast_List*)proto->params;
   if (params) {
-    for (DListItem* li = params->members.sentinel.next;
+    for (ListItem* li = params->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* param = li->object;
       visit_param(param);
@@ -922,7 +920,7 @@ visit_instantiation(Ast* ast)
   visit_type_ref(inst_decl->type_ref);
   Ast_List* args = (Ast_List*)inst_decl->args;
   if (args) {
-    for (DListItem* li = args->members.sentinel.next;
+    for (ListItem* li = args->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* arg = li->object;
       visit_expression(arg);
@@ -948,7 +946,7 @@ visit_function(Ast* ast)
   if (function_body) {
     Ast_List* stmt_list = (Ast_List*)function_body->stmt_list;
     if (stmt_list) {
-      for (DListItem* li = stmt_list->members.sentinel.next;
+      for (ListItem* li = stmt_list->members.sentinel.next;
            li != 0; li = li->next) {
         Ast* stmt = li->object;
         visit_statement(stmt);
@@ -967,7 +965,7 @@ visit_function_proto(Ast* ast)
   }
   Ast_List* type_params = (Ast_List*)proto->type_params;
   if (type_params) {
-    for (DListItem* li = type_params->members.sentinel.next;
+    for (ListItem* li = type_params->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* type_param = li->object;
       visit_type_param(type_param);
@@ -975,7 +973,7 @@ visit_function_proto(Ast* ast)
   }
   Ast_List* params = (Ast_List*)proto->params;
   if (params) {
-    for (DListItem* li = params->members.sentinel.next;
+    for (ListItem* li = params->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* param = li->object;
       visit_param(param);
@@ -999,7 +997,7 @@ visit_enum(Ast* ast)
   Ast_EnumDeclaration* enum_decl = (Ast_EnumDeclaration*)ast;
   Ast_List* fields = (Ast_List*)enum_decl->fields;
   if (fields) {
-    for (DListItem* li = fields->members.sentinel.next;
+    for (ListItem* li = fields->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* field = li->object;
       if (field->kind == AST_name) {
@@ -1019,7 +1017,7 @@ visit_action(Ast* ast)
   Ast_Action* action_decl = (Ast_Action*)ast;
   Ast_List* params = (Ast_List*)action_decl->params;
   if (params) {
-    for (DListItem* li = params->members.sentinel.next;
+    for (ListItem* li = params->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* param = li->object;
       visit_param(param);
@@ -1029,7 +1027,7 @@ visit_action(Ast* ast)
   if (action_body) {
     Ast_List* stmt_list = (Ast_List*)action_body->stmt_list;
     if (stmt_list) {
-      for (DListItem* li = stmt_list->members.sentinel.next;
+      for (ListItem* li = stmt_list->members.sentinel.next;
            li != 0; li = li->next) {
         Ast* stmt = li->object;
         visit_statement(stmt);
@@ -1045,7 +1043,7 @@ visit_match_kind(Ast* ast)
   Ast_MatchKindDeclaration* match_decl = (Ast_MatchKindDeclaration*)ast;
   Ast_List* fields = (Ast_List*)match_decl->fields;
   if (fields) {
-    for (DListItem* li = fields->members.sentinel.next;
+    for (ListItem* li = fields->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* field = li->object;
       if (field->kind == AST_name) {
@@ -1065,7 +1063,7 @@ visit_error_enum(Ast* ast)
   Ast_ErrorDeclaration* error_decl = (Ast_ErrorDeclaration*)ast;
   Ast_List* fields = (Ast_List*)error_decl->fields;
   if (fields) {
-    for (DListItem* li = fields->members.sentinel.next;
+    for (ListItem* li = fields->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* field = li->object;
       if (field->kind == AST_name) {
@@ -1083,7 +1081,7 @@ visit_p4program(Ast* ast)
   Ast_P4Program* program = (Ast_P4Program*)ast;
   Ast_List* decl_list = (Ast_List*)program->decl_list;
   if (decl_list) {
-    for (DListItem* li = decl_list->members.sentinel.next;
+    for (ListItem* li = decl_list->members.sentinel.next;
          li != 0; li = li->next) {
       Ast* decl = li->object;
       if (decl->kind == AST_controlDeclaration) {

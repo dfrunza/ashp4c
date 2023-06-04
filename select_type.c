@@ -66,7 +66,7 @@ visit_function_call(Ast* ast)
   Ast_FunctionCall* expr = (Ast_FunctionCall*)ast;
   visit_expression(expr->callee_expr, 0);
   Ast_Expression* callee_expr = (Ast_Expression*)expr->callee_expr;
-  DListItem* li;
+  ListItem* li;
   Ast_NodeList* type_args = &callee_expr->type_args;
   li = type_args->list.next;
   while (li) {
@@ -98,7 +98,7 @@ visit_expression_list(Ast* ast)
   assert(ast->kind == AST_exprListExpression);
   Ast_ExprListExpression* expr = (Ast_ExprListExpression*)ast;
   Ast_NodeList* expr_list = &expr->expr_list;
-  DListItem* li = expr_list->list.next;
+  ListItem* li = expr_list->list.next;
   while (li) {
     Ast* expr_expr = li->object;
     visit_expression(expr_expr, 0);
@@ -224,7 +224,7 @@ visit_block_statement(Ast* ast)
   assert(ast->kind == AST_blockStatement);
   Ast_BlockStmt* block_stmt = (Ast_BlockStmt*)ast;
   Ast_NodeList* stmt_list = &block_stmt->stmt_list;
-  DListItem* li = stmt_list->list.next;
+  ListItem* li = stmt_list->list.next;
   while (li) {
     Ast* decl = li->object;
     visit_statement(decl);
@@ -239,7 +239,7 @@ visit_action_ref(Ast* ast)
   Ast_ActionRef* action = (Ast_ActionRef*)ast;
   visit_expression(action->name, 0);
   Ast_NodeList* args = &action->args;
-  DListItem* li = args->list.next;
+  ListItem* li = args->list.next;
   while (li) {
     Ast* arg = li->object;
     visit_expression(arg, 0);
@@ -286,7 +286,7 @@ visit_tuple_keyset(Ast* ast)
   assert(ast->kind == AST_tupleKeysetExpression);
   Ast_TupleKeyset* keyset = (Ast_TupleKeyset*)ast;
   Ast_NodeList* expr_list = &keyset->expr_list;
-  DListItem* li = expr_list->list.next;
+  ListItem* li = expr_list->list.next;
   while (li) {
     Ast* expr = li->object;
     visit_keyset_expr(expr);
@@ -319,7 +319,7 @@ visit_table_actions(Ast *ast)
   assert(ast->kind == AST_tableActions);
   Ast_TableActions* prop = (Ast_TableActions*)ast;
   Ast_NodeList* action_list = &prop->action_list;
-  DListItem* li = action_list->list.next;
+  ListItem* li = action_list->list.next;
   while (li) {
     Ast* action = li->object;
     visit_action_ref(action);
@@ -343,7 +343,7 @@ visit_table_key(Ast* ast)
   assert(ast->kind == AST_tableKey);
   Ast_TableKey* prop = (Ast_TableKey*)ast;
   Ast_NodeList* keyelem_list = &prop->keyelem_list;
-  DListItem* li = keyelem_list->list.next;
+  ListItem* li = keyelem_list->list.next;
   while (li) {
     Ast* keyelem = li->object;
     visit_table_keyelem(keyelem);
@@ -357,7 +357,7 @@ visit_table_entries(Ast* ast)
   assert(ast->kind == AST_tableEntries);
   Ast_TableEntries* prop = (Ast_TableEntries*)ast;
   Ast_NodeList* entries = &prop->entries;
-  DListItem* li = entries->list.next;
+  ListItem* li = entries->list.next;
   while (li) {
     Ast* entry = li->object;
     visit_table_entry(entry);
@@ -424,7 +424,7 @@ visit_table(Ast* ast)
   assert(ast->kind == AST_tableDeclaration);
   Ast_Table* table_decl = (Ast_Table*)ast;
   Ast_NodeList* prop_list = &table_decl->prop_list;
-  DListItem* li = prop_list->list.next;
+  ListItem* li = prop_list->list.next;
   while (li) {
     Ast* prop = li->object;
     visit_table_property(prop);
@@ -451,7 +451,7 @@ visit_switch_stmt(Ast* ast)
   Ast_SwitchStmt* stmt = (Ast_SwitchStmt*)ast;
   visit_expression(stmt->expr, 0);
   Ast_NodeList* switch_cases = &stmt->switch_cases;
-  DListItem* li = switch_cases->list.next;
+  ListItem* li = switch_cases->list.next;
   while (li) {
     Ast* switch_case = li->object;
     visit_switch_case(switch_case);
@@ -546,7 +546,7 @@ visit_select_expr(Ast* ast)
 {
   assert(ast->kind == AST_selectExpression);
   Ast_SelectExpr* trans_stmt = (Ast_SelectExpr*)ast;
-  DListItem* li;
+  ListItem* li;
   Ast_NodeList* expr_list = &trans_stmt->expr_list;
   li = expr_list->list.next;
   while (li) {
@@ -580,7 +580,7 @@ visit_parser_state(Ast* ast)
   assert(ast->kind == AST_parserState);
   Ast_ParserState* state = (Ast_ParserState*)ast;
   Ast_NodeList* stmt_list = &state->stmt_list;
-  DListItem* li = stmt_list->list.next;
+  ListItem* li = stmt_list->list.next;
   while (li) {
     Ast* stmt = li->object;
     visit_statement(stmt);
@@ -667,7 +667,7 @@ visit_specialized_type(Ast* ast)
   Ast_SpecializedType* speclzd_type = (Ast_SpecializedType*)ast;
   visit_expression(speclzd_type->name, 0);
   Ast_NodeList* type_args = &speclzd_type->type_args;
-  DListItem* li = type_args->list.next;
+  ListItem* li = type_args->list.next;
   while (li) {
     Ast* type_arg = li->object;
     visit_type_ref(type_arg);
@@ -680,7 +680,7 @@ visit_tuple(Ast* ast)
 {
   Ast_Tuple* type_ref = (Ast_Tuple*)ast;
   Ast_NodeList* type_args = &type_ref->type_args;
-  DListItem* li = type_args->list.next;
+  ListItem* li = type_args->list.next;
   while (li) {
     Ast* type_arg = li->object;
     visit_type_ref(type_arg);
@@ -756,7 +756,7 @@ visit_control(Ast* ast)
   assert(ast->kind == AST_controlDeclaration);
   Ast_Control* control_decl = (Ast_Control*)ast;
   Ast_ControlProto* proto = (Ast_ControlProto*)control_decl->proto;
-  DListItem* li;
+  ListItem* li;
   Ast_NodeList* type_params = &proto->type_params;
   li = type_params->list.next;
   while (li) {
@@ -802,7 +802,7 @@ visit_control_proto(Ast* ast)
   Ast* void_decl = scope_lookup_name(root_scope, "void")->ns_type->ast;
   proto_ty->return_ty = typeset_get(potential_type, void_decl->id)->members.next->object;
   */
-  DListItem* li;
+  ListItem* li;
   Ast_NodeList* type_params = &ctrl_proto->type_params;
   li = type_params->list.next;
   while (li) {
@@ -824,7 +824,7 @@ visit_extern(Ast* ast)
 {
   assert(ast->kind == AST_externDeclaration);
   Ast_ExternType* extern_decl = (Ast_ExternType*)ast;
-  DListItem* li;
+  ListItem* li;
   Ast_NodeList* type_params = &extern_decl->type_params;
   li = type_params->list.next;
   while (li) {
@@ -847,7 +847,7 @@ visit_struct(Ast* ast)
   assert(ast->kind == AST_structTypeDeclaration);
   Ast_Struct* struct_decl = (Ast_Struct*)ast;
   Ast_NodeList* fields = &struct_decl->fields;
-  DListItem* li = fields->list.next;
+  ListItem* li = fields->list.next;
   while (li) {
     Ast* field = li->object;
     visit_struct_field(field);
@@ -861,7 +861,7 @@ visit_header(Ast* ast)
   assert(ast->kind == AST_headerTypeDeclaration);
   Ast_Header* header_decl = (Ast_Header*)ast;
   Ast_NodeList* fields = &header_decl->fields;
-  DListItem* li = fields->list.next;
+  ListItem* li = fields->list.next;
   while (li) {
     Ast* field = li->object;
     visit_struct_field(field);
@@ -875,7 +875,7 @@ visit_header_union(Ast* ast)
   assert(ast->kind == AST_headerUnionDeclaration);
   Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
   Ast_NodeList* fields = &union_decl->fields;
-  DListItem* li = fields->list.next;
+  ListItem* li = fields->list.next;
   while (li) {
     Ast* field = li->object;
     visit_struct_field(field);
@@ -893,7 +893,7 @@ visit_package(Ast* ast)
   Type_TypeName* package_ty = ty_set->members.next->object;
   type_select((Type*)package_ty, package_decl->id);
   */
-  DListItem* li;
+  ListItem* li;
   Ast_NodeList* type_params = &package_decl->type_params;
   li = type_params->list.next;
   while (li) {
@@ -916,7 +916,7 @@ visit_parser(Ast* ast)
   assert(ast->kind == AST_parserDeclaration);
   Ast_Parser* parser_decl = (Ast_Parser*)ast;
   Ast_ParserProto* proto = (Ast_ParserProto*)parser_decl->proto;
-  DListItem* li;
+  ListItem* li;
   Ast_NodeList* type_params = &proto->type_params;
   li = type_params->list.next;
   while (li) {
@@ -959,7 +959,7 @@ visit_parser_proto(Ast* ast)
 {
   assert(ast->kind == AST_parserTypeDeclaration);
   Ast_ParserProto* proto_decl = (Ast_ParserProto*)ast;
-  DListItem* li;
+  ListItem* li;
   Ast_NodeList* type_params = &proto_decl->type_params;
   li = type_params->list.next;
   while (li) {
@@ -983,7 +983,7 @@ visit_instantiation(Ast* ast)
   Ast_Instantiation* inst_decl = (Ast_Instantiation*)ast;
   visit_type_ref(inst_decl->type);
   Ast_NodeList* args = &inst_decl->args;
-  DListItem* li = args->list.next;
+  ListItem* li = args->list.next;
   while (li) {
     Ast* arg = li->object;
     visit_expression(arg, 0);
@@ -1009,7 +1009,7 @@ visit_function(Ast* ast)
   if (func_proto->return_type) {
     visit_type_ref(func_proto->return_type);
   }
-  DListItem* li;
+  ListItem* li;
   Ast_NodeList* type_params = &func_proto->type_params;
   li = type_params->list.next;
   while (li) {
@@ -1027,7 +1027,7 @@ visit_function(Ast* ast)
   Ast_BlockStmt* func_body = (Ast_BlockStmt*)func_decl->stmt;
   if (func_body) {
     Ast_NodeList* stmt_list = &func_body->stmt_list;
-    DListItem* li = stmt_list->list.next;
+    ListItem* li = stmt_list->list.next;
     while (li) {
       Ast* stmt = li->object;
       visit_statement(stmt);
@@ -1049,7 +1049,7 @@ visit_function_proto(Ast* ast)
   if (func_proto->return_type) {
     visit_type_ref(func_proto->return_type);
   }
-  DListItem* li;
+  ListItem* li;
   Ast_NodeList* type_params = &func_proto->type_params;
   li = type_params->list.next;
   while (li) {
@@ -1090,7 +1090,7 @@ visit_enum(Ast* ast)
   assert(ast->kind == AST_enumDeclaration);
   Ast_Enum* enum_decl = (Ast_Enum*)ast;
   Ast_NodeList* id_list = &enum_decl->id_list;
-  DListItem* li = id_list->list.next;
+  ListItem* li = id_list->list.next;
   while (li) {
     Ast* id = li->object;
     if (id->kind == AST_specifiedIdentifier) {
@@ -1107,7 +1107,7 @@ visit_action(Ast* ast)
   assert(ast->kind == AST_actionDeclaration);
   Ast_Action* action_decl = (Ast_Action*)ast;
   Ast_NodeList* params = &action_decl->params;
-  DListItem* li = params->list.next;
+  ListItem* li = params->list.next;
   while (li) {
     Ast* param = li->object;
     visit_param(param);
@@ -1116,7 +1116,7 @@ visit_action(Ast* ast)
   Ast_BlockStmt* action_body = (Ast_BlockStmt*)action_decl->stmt;
   if (action_body) {
     Ast_NodeList* stmt_list = &action_body->stmt_list;
-    DListItem* li = stmt_list->list.next;
+    ListItem* li = stmt_list->list.next;
     while (li) {
       Ast* stmt = li->object;
       visit_statement(stmt);
@@ -1131,7 +1131,7 @@ visit_match_kind(Ast* ast)
   assert(ast->kind == AST_matchKindDeclaration);
   Ast_MatchKind* match_decl = (Ast_MatchKind*)ast;
   Ast_NodeList* id_list = &match_decl->id_list;
-  DListItem* li = id_list->list.next;
+  ListItem* li = id_list->list.next;
   while (li) {
     Ast* id = li->object;
     if (id->kind == AST_nonTypeName) {
@@ -1150,7 +1150,7 @@ visit_error(Ast* ast)
   assert (ast->kind == AST_ERROR);
   Ast_ErrorEnum* error_decl = (Ast_ErrorEnum*)ast;
   Ast_NodeList* id_list = &error_decl->id_list;
-  DListItem* li = id_list->list.next;
+  ListItem* li = id_list->list.next;
   while (li) {
     Ast* id = li->object;
     if (id->kind == AST_nonTypeName) {
@@ -1167,7 +1167,7 @@ visit_p4program(Ast* ast)
   assert(ast->kind == AST_p4program);
   Ast_P4Program* program = (Ast_P4Program*)ast;
   Ast_NodeList* decl_list = &program->decl_list;
-  DListItem* li = decl_list->list.next;
+  ListItem* li = decl_list->list.next;
   while (li) {
     Ast* decl = li->object;
     if (decl->kind == AST_controlDeclaration) {
