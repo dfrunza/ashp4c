@@ -987,7 +987,7 @@ visit_const(Ast* ast)
   assert(ast->kind == AST_constantDeclaration);
   Ast_Const* const_decl = (Ast_Const*)ast;
   visit_type_ref(const_decl->type);
-  visit_expression(const_decl->expr);
+  visit_expression(const_decl->init_expr);
 }
 
 internal void

@@ -496,7 +496,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
   } else if (ast->kind == AST_constantDeclaration) {
     Ast_Const* const_decl = (Ast_Const*)ast;
     traverse_ast(const_decl->type, visitor);
-    traverse_ast(const_decl->expr, visitor);
+    traverse_ast(const_decl->init_expr, visitor);
   } else if (ast->kind == AST_enumDeclaration) {
     Ast_EnumDeclaration* enum_decl = (Ast_EnumDeclaration*)ast;
     Ast_List* fields = (Ast_List*)enum_decl->fields;

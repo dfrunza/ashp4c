@@ -258,7 +258,7 @@
 
 <argument> := <expression> | <name> '=' <expression> | DONTCARE
 
-<kvList> := <kvPair> { ',' <kvPair> }*
+/* <kvList> := <kvPair> { ',' <kvPair> }* */
 
 <kvPair> := <name> '=' <expression>
 
@@ -277,12 +277,12 @@
 
 <expressionPrimary> := INTEGER | TRUE | FALSE | STRING_LITERAL |
   { '.' } <nonTypeName> |
-  '{' <expressionList> '}' |  /* <kvList> | */ 
+  '{' <expressionList> '}' /* | <kvList> */ |
   '(' <expression> ')' |
   ( '!' | '~' | '-' ) <expression> |
   ( <typeName> | ERROR ) '.' <member> |
   <namedType> '(' <argumentList> ')' |
-  '(' <typeRef> ')' <expression> /* cast */
+  '(' <typeRef> ')' <expression>  /* cast */
 
 <exprOperator> := <binaryOperator> |
   '.' <member> |

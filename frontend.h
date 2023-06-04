@@ -353,7 +353,7 @@ typedef struct Ast_Const {
   Ast;
   Ast* name;
   Ast* type;
-  Ast* expr;
+  Ast* init_expr;
 } Ast_Const;
 
 typedef struct Ast_ExternDeclaration {

@@ -1510,7 +1510,7 @@ parse_constantDeclaration()
         if (token->klass == TK_EQUAL) {
           next_token();
           if (token_is_expression(token)) {
-            const_decl->expr = parse_expression(1);
+            const_decl->init_expr = parse_expression(1);
             if (token->klass == TK_SEMICOLON) {
               next_token();
             } else error("At line %d, column %d: `;` expected, got `%s`.",
@@ -3592,7 +3592,7 @@ internal Ast*
 parse_expression(int priority_threshold)
 {
   if (token_is_expression(token)) {
-    Ast_Expression* primary = (Ast_Expression*)parse_expressionPrimary();
+    Ast_Expression* expr = (Ast_Expression*)parse_expressionPrimary();
     while (token_is_exprOperator(token)) {
       if (token->klass == TK_DOT) {
         next_token();
@@ -3601,61 +3601,58 @@ parse_expression(int priority_threshold)
         member_expr->id = node_id++;
         member_expr->line_no = token->line_no;
         member_expr->column_no = token->column_no;
-        member_expr->lhs_expr = (Ast*)primary;
+        member_expr->lhs_expr = (Ast*)expr;
         if (token_is_nonTypeName(token)) {
           member_expr->member_name = parse_nonTypeName();
         } else error("At line %d, column %d: non-type name was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
-        primary = arena_push_struct(ast_storage, Ast_Expression);
-        primary->kind = AST_expression;
-        primary->id = node_id++;
-        primary->line_no = token->line_no;
-        primary->column_no = token->column_no;
-        primary->expr = (Ast*)member_expr;
-      }
-      else if (token->klass == TK_BRACKET_OPEN) {
+        expr = arena_push_struct(ast_storage, Ast_Expression);
+        expr->kind = AST_expression;
+        expr->id = node_id++;
+        expr->line_no = token->line_no;
+        expr->column_no = token->column_no;
+        expr->expr = (Ast*)member_expr;
+      } else if (token->klass == TK_BRACKET_OPEN) {
         next_token();
         Ast_ArraySubscript* subscript_expr = arena_push_struct(ast_storage, Ast_ArraySubscript);
         subscript_expr->kind = AST_arraySubscript;
         subscript_expr->id = node_id++;
         subscript_expr->line_no = token->line_no;
         subscript_expr->column_no = token->column_no;
-        subscript_expr->lhs_expr = (Ast*)primary;
+        subscript_expr->lhs_expr = (Ast*)expr;
         subscript_expr->index_expr = parse_arrayIndex();
         if (token->klass == TK_BRACKET_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `]` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
-        primary = arena_push_struct(ast_storage, Ast_Expression);
-        primary->kind = AST_expression;
-        primary->id = node_id++;
-        primary->line_no = token->line_no;
-        primary->column_no = token->column_no;
-        primary->expr = (Ast*)subscript_expr;
-      }
-      else if (token->klass == TK_PARENTH_OPEN) {
+        expr = arena_push_struct(ast_storage, Ast_Expression);
+        expr->kind = AST_expression;
+        expr->id = node_id++;
+        expr->line_no = token->line_no;
+        expr->column_no = token->column_no;
+        expr->expr = (Ast*)subscript_expr;
+      } else if (token->klass == TK_PARENTH_OPEN) {
         next_token();
         Ast_FunctionCall* call_expr = arena_push_struct(ast_storage, Ast_FunctionCall);
         call_expr->kind = AST_functionCall;
         call_expr->id = node_id++;
         call_expr->line_no = token->line_no;
         call_expr->column_no = token->column_no;
-        call_expr->callee_expr = (Ast*)primary;
+        call_expr->callee_expr = (Ast*)expr;
         call_expr->args = parse_argumentList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
-        primary = arena_push_struct(ast_storage, Ast_Expression);
-        primary->kind = AST_expression;
-        primary->id = node_id++;
-        primary->line_no = token->line_no;
-        primary->column_no = token->column_no;
-        primary->expr = (Ast*)call_expr;
-      }
-      else if (token->klass == TK_ANGLE_OPEN && token_is_realTypeArg(peek_token())) {
+        expr = arena_push_struct(ast_storage, Ast_Expression);
+        expr->kind = AST_expression;
+        expr->id = node_id++;
+        expr->line_no = token->line_no;
+        expr->column_no = token->column_no;
+        expr->expr = (Ast*)call_expr;
+      } else if (token->klass == TK_ANGLE_OPEN && token_is_realTypeArg(peek_token())) {
         next_token();
-        primary->type_args = parse_realTypeArgumentList();
+        expr->type_args = parse_realTypeArgumentList();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -3667,16 +3664,15 @@ parse_expression(int priority_threshold)
         kv_pair->id = node_id++;
         kv_pair->line_no = token->line_no;
         kv_pair->column_no = token->column_no;
-        kv_pair->name = (Ast*)primary;
+        kv_pair->name = (Ast*)expr;
         kv_pair->expr = parse_expression(1);
-        primary = arena_push_struct(ast_storage, Ast_Expression);
-        primary->kind = AST_expression;
-        primary->id = node_id++;
-        primary->line_no = token->line_no;
-        primary->column_no = token->column_no;
-        primary->expr = (Ast*)kv_pair;
-      }
-      else if (token_is_binaryOperator(token)){
+        expr = arena_push_struct(ast_storage, Ast_Expression);
+        expr->kind = AST_expression;
+        expr->id = node_id++;
+        expr->line_no = token->line_no;
+        expr->column_no = token->column_no;
+        expr->expr = (Ast*)kv_pair;
+      } else if (token_is_binaryOperator(token)){
         int priority = get_operator_priority(token);
         if (priority >= priority_threshold) {
           next_token();
@@ -3685,19 +3681,19 @@ parse_expression(int priority_threshold)
           binary_expr->id = node_id++;
           binary_expr->line_no = token->line_no;
           binary_expr->column_no = token->column_no;
-          binary_expr->left_operand = (Ast*)primary;
+          binary_expr->left_operand = (Ast*)expr;
           binary_expr->op = token_to_binop(token);
           binary_expr->right_operand = parse_expression(priority + 1);
-          primary = arena_push_struct(ast_storage, Ast_Expression);
-          primary->kind = AST_expression;
-          primary->id = node_id++;
-          primary->line_no = token->line_no;
-          primary->column_no = token->column_no;
-          primary->expr = (Ast*)binary_expr;
+          expr = arena_push_struct(ast_storage, Ast_Expression);
+          expr->kind = AST_expression;
+          expr->id = node_id++;
+          expr->line_no = token->line_no;
+          expr->column_no = token->column_no;
+          expr->expr = (Ast*)binary_expr;
         } else break;
       } else assert(0);
     }
-    return (Ast*)primary;
+    return (Ast*)expr;
   } else error("At line %d, column %d: expression was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
