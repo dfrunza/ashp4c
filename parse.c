@@ -56,15 +56,43 @@ peek_token()
 }
 
 internal bool
+token_is_nonTypeName(Token* token)
+{
+  bool result = token->klass == TK_IDENTIFIER || token->klass == TK_APPLY || token->klass == TK_KEY
+    || token->klass == TK_ACTIONS || token->klass == TK_STATE || token->klass == TK_ENTRIES || token->klass == TK_TYPE;
+  return result;
+}
+
+internal bool
+token_is_name(Token* token)
+{
+  bool result = token_is_nonTypeName(token) || token->klass == TK_TYPE_IDENTIFIER;
+  return result;
+}
+
+internal bool
 token_is_typeName(Token* token)
 {
-  return token->klass == TK_TYPE_IDENTIFIER || token->klass == TK_DOT;
+  return token->klass == TK_DOT || token->klass == TK_TYPE_IDENTIFIER;
 }
 
 internal bool
 token_is_prefixedType(Token* token)
 {
-  return token->klass == TK_TYPE_IDENTIFIER || token->klass == TK_DOT;
+  return token->klass == TK_DOT || token->klass == TK_TYPE_IDENTIFIER;
+}
+
+internal bool
+token_is_prefixedNonTypeName(Token* token) {
+  return token->klass == TK_DOT || token_is_nonTypeName(token);
+}
+
+internal bool
+token_is_nonTableKwName(Token* token)
+{
+  bool result = token->klass == TK_IDENTIFIER || token->klass == TK_TYPE_IDENTIFIER
+    || token->klass == TK_APPLY || token->klass == TK_STATE || token->klass == TK_TYPE;
+  return result;
 }
 
 internal bool
@@ -110,29 +138,6 @@ token_is_typeDeclaration(Token* token)
 {
   bool result = token_is_derivedTypeDeclaration(token) || token->klass == TK_TYPEDEF || token->klass == TK_TYPE
     || token->klass == TK_PARSER || token->klass == TK_CONTROL || token->klass == TK_PACKAGE;
-  return result;
-}
-
-internal bool
-token_is_nonTypeName(Token* token)
-{
-  bool result = token->klass == TK_IDENTIFIER || token->klass == TK_APPLY || token->klass == TK_KEY
-    || token->klass == TK_ACTIONS || token->klass == TK_STATE || token->klass == TK_ENTRIES || token->klass == TK_TYPE;
-  return result;
-}
-
-internal bool
-token_is_name(Token* token)
-{
-  bool result = token_is_nonTypeName(token) || token->klass == TK_TYPE_IDENTIFIER;
-  return result;
-}
-
-internal bool
-token_is_nonTableKwName(Token* token)
-{
-  bool result = token->klass == TK_IDENTIFIER || token->klass == TK_TYPE_IDENTIFIER
-    || token->klass == TK_APPLY || token->klass == TK_STATE || token->klass == TK_TYPE;
   return result;
 }
 
@@ -437,8 +442,7 @@ parse_name()
 {
   if (token_is_name(token)) {
     if (token_is_nonTypeName(token)) {
-      Ast_Name* name = (Ast_Name*)parse_nonTypeName();
-      return (Ast*)name;
+      return parse_nonTypeName();
     } else if (token->klass == TK_TYPE_IDENTIFIER) {
       next_token();
       Ast_Name* type_name = arena_push_struct(ast_storage, Ast_Name);
@@ -1085,13 +1089,13 @@ parse_prefixedType()
   }
   if (token->klass == TK_TYPE_IDENTIFIER) {
     next_token();
-    Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
-    name->kind = AST_name;
-    name->id = node_id++;
-    name->line_no = token->line_no;
-    name->column_no = token->column_no;
-    name->strname = token->lexeme;
-    return (Ast*)name;
+    Ast_Name* type_name = arena_push_struct(ast_storage, Ast_Name);
+    type_name->kind = AST_name;
+    type_name->id = node_id++;
+    type_name->line_no = token->line_no;
+    type_name->column_no = token->column_no;
+    type_name->strname = token->lexeme;
+    return (Ast*)type_name;
   } else error("At line %d, column %d: type was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -2442,15 +2446,15 @@ parse_keyElementList()
 internal Ast*
 parse_actionRef()
 {
-  if (token->klass == TK_DOT || token_is_nonTypeName(token)) {
-    Ast_ActionRef* ref = arena_push_struct(ast_storage, Ast_ActionRef);
-    ref->kind = AST_actionRef;
-    ref->id = node_id++;
-    ref->line_no = token->line_no;
-    ref->column_no = token->column_no;
-    ref->name = parse_prefixedNonTypeName();
-    parse_optArguments(ref->args);
-    return (Ast*)ref;
+  if (token_is_prefixedNonTypeName(token)) {
+    Ast_ActionRef* action_ref = arena_push_struct(ast_storage, Ast_ActionRef);
+    action_ref->kind = AST_actionRef;
+    action_ref->id = node_id++;
+    action_ref->line_no = token->line_no;
+    action_ref->column_no = token->column_no;
+    action_ref->name = parse_prefixedNonTypeName();
+    action_ref->args = parse_optArguments();
+    return (Ast*)action_ref;
   } else error("At line %d, column %d: non-type name was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -2544,6 +2548,11 @@ parse_tableProperty()
       next_token();
       is_const = true;
     }
+    Ast_TableProperty* table_prop = arena_push_struct(ast_storage, Ast_TableProperty);
+    table_prop->kind = AST_tableProperty;
+    table_prop->id = node_id++;
+    table_prop->line_no = token->line_no;
+    table_prop->column_no = token->column_no;
     if (token->klass == TK_KEY) {
       next_token();
       Ast_TableKey* key_prop = arena_push_struct(ast_storage, Ast_TableKey);
@@ -2564,7 +2573,8 @@ parse_tableProperty()
                      token->line_no, token->column_no, token->lexeme);
       } else error("At line %d, column %d: `=` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
-      return (Ast*)key_prop;
+      table_prop->prop = (Ast*)key_prop;
+      return (Ast*)table_prop;
     } else if (token->klass == TK_ACTIONS) {
       next_token();
       Ast_TableActions* actions_prop = arena_push_struct(ast_storage, Ast_TableActions);
@@ -2585,7 +2595,8 @@ parse_tableProperty()
                      token->line_no, token->column_no, token->lexeme);
       } else error("At line %d, column %d: `=` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
-      return (Ast*)actions_prop;
+      table_prop->prop = (Ast*)actions_prop;
+      return (Ast*)table_prop;
     } else if (token->klass == TK_ENTRIES) {
       next_token();
       Ast_TableEntries* entries_prop = arena_push_struct(ast_storage, Ast_TableEntries);
@@ -2610,24 +2621,27 @@ parse_tableProperty()
                      token->line_no, token->column_no, token->lexeme);
       } else error("At line %d, column %d: `=` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
-      return (Ast*)entries_prop;
+      table_prop->prop = (Ast*)entries_prop;
+      return (Ast*)table_prop;
     } else if (token_is_nonTableKwName(token)) {
-      Ast_TableProperty* entry_prop = arena_push_struct(ast_storage, Ast_TableProperty);
-      entry_prop->kind = AST_tableProperty;
-      entry_prop->id = node_id++;
-      entry_prop->line_no = token->line_no;
-      entry_prop->column_no = token->column_no;
-      entry_prop->name = parse_name();
+      Ast_SimpleTableProperty* simple_prop = arena_push_struct(ast_storage, Ast_SimpleTableProperty);
+      simple_prop->kind = AST_simpleTableProperty;
+      simple_prop->id = node_id++;
+      simple_prop->line_no = token->line_no;
+      simple_prop->column_no = token->column_no;
+      simple_prop->is_const = is_const;
+      simple_prop->name = parse_name();
       if (token->klass == TK_EQUAL) {
         next_token();
-        entry_prop->init_expr = parse_initializer();
+        simple_prop->init_expr = parse_initializer();
         if (token->klass == TK_SEMICOLON) {
           next_token();
         } else error("At line %d, column %d: `;` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
       } else error("At line %d, column %d: `=` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
-      return (Ast*)entry_prop;
+      table_prop->prop = (Ast*)simple_prop;
+      return (Ast*)table_prop;
     } else assert(0);
   } else error("At line %d, column %d: table property was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);

@@ -87,14 +87,16 @@
 ==============
 
 <externDeclaration> := EXTERN (
-  <nonTypeName> <optTypeParameters> '{' <methodPrototypes> '}' |
-  <functionPrototype> ';' )
+    <nonTypeName> <optTypeParameters> '{' <methodPrototypes> '}' |
+    <functionPrototype> ';'
+  )
 
 <methodPrototypes> := { <methodPrototype> }*
 
 <functionPrototype> := <typeOrVoid> <name> <optTypeParameters> '(' <parameterList> ')'
 
-<methodPrototype> := <functionPrototype> ';' |
+<methodPrototype> :=
+  <functionPrototype> ';' |
   TYPE_IDENTIFIER '(' <parameterList> ')' ';' /* constructor */
 
 
@@ -115,7 +117,8 @@
 
 <specializedType> := <typeName> '<' <typeArgumentList> '>'
 
-<baseType> := BOOL | ERROR |
+<baseType> :=
+  BOOL | ERROR |
   INT { '<' <integerTypeSize> '>' } |
   BIT { '<' <integerTypeSize> '>' } |
   VARBIT { '<' <integerTypeSize> '>' }
@@ -213,7 +216,8 @@
 
 <tablePropertyList> := <tableProperty> { <tableProperty> }*
 
-<tableProperty> := KEY '=' '{' <keyElementList> '}' |
+<tableProperty> :=
+  KEY '=' '{' <keyElementList> '}' |
   ACTIONS '=' '{' <actionList> '}' |
   CONST ENTRIES '=' '{' <entriesList> '}' |  /* immutable entries */
   { CONST } <nonTableKwName> '=' <initializer> ';'

@@ -163,12 +163,13 @@ enum AstEnum {
   AST_selectKeyset,
   AST_actionRef,
   AST_tableDeclaration,
+  AST_tableProperty,
+  AST_tablePropertyList,
+  AST_simpleTableProperty,
   AST_tableEntry,
   AST_tableKey,
   AST_tableActions,
   AST_tableEntries,
-  AST_tableProperty,
-  AST_tablePropertyList,
   AST_statement,
   AST_statementOrDecl,
   AST_statementOrDeclList,
@@ -620,6 +621,17 @@ typedef struct Ast_ActionRef {
   Ast* args;
 } Ast_ActionRef;
 
+typedef struct Ast_Table {
+  Ast;
+  Ast* name;
+  Ast* prop_list;
+} Ast_Table;
+
+typedef struct Ast_TableProperty {
+  Ast;
+  Ast* prop;
+} Ast_TableProperty;
+
 typedef struct Ast_TableEntry {
   Ast;
   Ast* keyset;
@@ -642,17 +654,12 @@ typedef struct Ast_TableEntries {
   Ast* entries;
 } Ast_TableEntries;
 
-typedef struct Ast_TableProperty {
+typedef struct Ast_SimpleTableProperty {
   Ast;
+  bool is_const;
   Ast* name;
   Ast* init_expr;
-} Ast_TableProperty;
-
-typedef struct Ast_Table {
-  Ast;
-  Ast* name;
-  Ast* prop_list;
-} Ast_Table;
+} Ast_SimpleTableProperty;
 
 typedef struct Ast_Statement {
   Ast;

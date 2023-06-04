@@ -74,7 +74,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       }
     }
   } else if (ast->kind == AST_tableProperty) {
-    Ast_TableProperty* table_prop = (Ast_TableProperty*)ast;
+    Ast_SimpleTableProperty* table_prop = (Ast_SimpleTableProperty*)ast;
     if (table_prop->init_expr) {
       traverse_ast(table_prop->init_expr, visitor);
     }

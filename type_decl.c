@@ -288,7 +288,7 @@ internal void
 visit_table_single_entry(Ast* ast)
 {
   assert(ast->kind == AST_tableProperty);
-  Ast_TableProperty* prop = (Ast_TableProperty*)ast;
+  Ast_SimpleTableProperty* prop = (Ast_SimpleTableProperty*)ast;
   if (prop->init_expr) {
     visit_expression(prop->init_expr);
   }
