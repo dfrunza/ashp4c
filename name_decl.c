@@ -1127,7 +1127,7 @@ internal void
 visit_package(Ast* ast)
 {
   assert(ast->kind == AST_packageTypeDeclaration);
-  Ast_PackageDeclaration* package_decl = (Ast_PackageDeclaration*)ast;
+  Ast_PackageTypeDeclaration* package_decl = (Ast_PackageTypeDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)package_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
   NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1164,7 +1164,7 @@ visit_parser(Ast* ast)
 {
   assert(ast->kind == AST_parserDeclaration);
   Ast_ParserDeclaration* parser_decl = (Ast_ParserDeclaration*)ast;
-  Ast_ParserProto* proto = (Ast_ParserProto*)parser_decl->proto;
+  Ast_ParserPrototype* proto = (Ast_ParserPrototype*)parser_decl->proto;
   Ast_Name* name = (Ast_Name*)proto->name;
   declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)parser_decl);
   current_scope = push_scope();
@@ -1217,7 +1217,7 @@ internal void
 visit_parser_proto(Ast* ast)
 {
   assert(ast->kind == AST_parserTypeDeclaration);
-  Ast_ParserProto* proto_decl = (Ast_ParserProto*)ast;
+  Ast_ParserPrototype* proto_decl = (Ast_ParserPrototype*)ast;
   Ast_Name* name = (Ast_Name*)proto_decl->name;
   declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)proto_decl);
   current_scope = push_scope();
@@ -1605,7 +1605,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_parserTypeDeclaration) {
     if (direction == WALK_IN) {
-      Ast_ParserProto* proto_decl = (Ast_ParserProto*)ast;
+      Ast_ParserPrototype* proto_decl = (Ast_ParserPrototype*)ast;
       Ast_Name* name = (Ast_Name*)proto_decl->name;
       declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)proto_decl);
       current_scope = push_scope();
@@ -1615,7 +1615,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
   } else if (ast->kind == AST_parserDeclaration) {
     if (direction == WALK_IN) {
       Ast_ParserDeclaration* parser_decl = (Ast_ParserDeclaration*)ast;
-      Ast_ParserProto* proto = (Ast_ParserProto*)parser_decl->proto;
+      Ast_ParserPrototype* proto = (Ast_ParserPrototype*)parser_decl->proto;
       Ast_Name* name = (Ast_Name*)proto->name;
       declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)parser_decl);
       current_scope = push_scope();
@@ -1624,7 +1624,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_packageTypeDeclaration) {
     if (direction == WALK_IN) {
-      Ast_PackageDeclaration* package_decl = (Ast_PackageDeclaration*)ast;
+      Ast_PackageTypeDeclaration* package_decl = (Ast_PackageTypeDeclaration*)ast;
       Ast_Name* name = (Ast_Name*)package_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
       NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1697,9 +1697,9 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_controlTypeDeclaration) {
     if (direction == WALK_IN) {
-      Ast_ControlTypeDeclaration* ctrl_proto = (Ast_ControlTypeDeclaration*)ast;
-      Ast_Name* name = (Ast_Name*)ctrl_proto->name;
-      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)ctrl_proto);
+      Ast_ControlPrototype* control_proto = (Ast_ControlPrototype*)ast;
+      Ast_Name* name = (Ast_Name*)control_proto->name;
+      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)control_proto);
       current_scope = push_scope();
     } else if (direction == WALK_OUT) {
       current_scope = pop_scope();
@@ -1779,11 +1779,11 @@ visit(Ast* ast, enum AstWalkDirection direction)
                     name->line_no, name->column_no, name->strname);
     } else if (direction == WALK_OUT) {
     } else assert(0);
-  } else if (ast->kind == AST_tableEntries) {
+  } else if (ast->kind == AST_entriesList) {
   } else if (ast->kind == AST_tableKey) {
   } else if (ast->kind == AST_tableProperty) {
   } else if (ast->kind == AST_tableActions) {
-  } else if (ast->kind == AST_tableEntry) {
+  } else if (ast->kind == AST_entry) {
   } else if (ast->kind == AST_tupleKeysetExpression) {
   } else if (ast->kind == AST_defaultKeysetExpression) {
   } else if (ast->kind == AST_keyElement) {

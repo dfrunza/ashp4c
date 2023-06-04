@@ -887,7 +887,7 @@ internal void
 visit_package(Ast* ast)
 {
   assert(ast->kind == AST_packageTypeDeclaration);
-  Ast_PackageDeclaration* package_decl = (Ast_PackageDeclaration*)ast;
+  Ast_PackageTypeDeclaration* package_decl = (Ast_PackageTypeDeclaration*)ast;
   /*
   Type_TypeSet* ty_set = typeset_get(potential_type, package_decl->id);
   Type_TypeName* package_ty = ty_set->members.next->object;
@@ -915,7 +915,7 @@ visit_parser(Ast* ast)
 {
   assert(ast->kind == AST_parserDeclaration);
   Ast_ParserDeclaration* parser_decl = (Ast_ParserDeclaration*)ast;
-  Ast_ParserProto* proto = (Ast_ParserProto*)parser_decl->proto;
+  Ast_ParserPrototype* proto = (Ast_ParserPrototype*)parser_decl->proto;
   ListItem* li;
   Ast_NodeList* type_params = &proto->type_params;
   li = type_params->list.next;
@@ -958,7 +958,7 @@ internal void
 visit_parser_proto(Ast* ast)
 {
   assert(ast->kind == AST_parserTypeDeclaration);
-  Ast_ParserProto* proto_decl = (Ast_ParserProto*)ast;
+  Ast_ParserPrototype* proto_decl = (Ast_ParserPrototype*)ast;
   ListItem* li;
   Ast_NodeList* type_params = &proto_decl->type_params;
   li = type_params->list.next;

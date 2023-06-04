@@ -107,7 +107,57 @@ typedef struct Token {
 } Token;
 
 enum AstEnum {
+
+  /** PROGRAM **/
   AST_p4program = 1,
+  AST_declarationList,
+  AST_declaration,
+  AST_name,
+  AST_parameterList,
+  AST_parameter,
+  AST_packageTypeDeclaration,
+
+  /** PARSER **/
+  AST_instantiation,
+  AST_parserDeclaration,
+  AST_parserTypeDeclaration,
+  AST_parserLocalElements,
+  AST_parserLocalElement,
+  AST_parserStates,
+  AST_parserState,
+  AST_parserStatements,
+  AST_parserStatement,
+  AST_parserBlockStatement,
+  AST_transitionStatement,
+  AST_stateExpression,
+  AST_selectExpression,
+  AST_selectCaseList,
+  AST_selectCase,
+  AST_keysetExpression,
+  AST_keysetExpressionList,
+  AST_tupleKeysetExpression,
+  AST_defaultKeysetExpression,
+  AST_dontcareKeysetExpression,
+
+  /** CONTROL **/
+  AST_controlDeclaration,
+  AST_controlTypeDeclaration,
+  AST_controlLocalDeclarations,
+  AST_controlLocalDeclaration,
+
+  /** EXTERN **/
+  AST_externDeclaration,
+  AST_externType,
+  AST_methodPrototypes,
+  AST_functionPrototype,
+  AST_methodPrototype,
+
+  /** TYPES **/
+  AST_typeRef,
+  AST_namedType,
+  AST_tupleType,
+  AST_headerStackType,
+  AST_specializedType,
   AST_baseTypeBool,
   AST_baseTypeInteger,
   AST_baseTypeBit,
@@ -115,118 +165,84 @@ enum AstEnum {
   AST_baseTypeString,
   AST_baseTypeVoid,
   AST_baseTypeError,
-  AST_constantDeclaration,
-  AST_externDeclaration,
-  AST_externType,
-  AST_actionDeclaration,
+  AST_integerTypeSize,
+  AST_typeParameterList,
+  AST_realTypeArgument,
+  AST_typeArgument,
+  AST_dontcareTypeArgument,
+  AST_realTypeArgumentList,
+  AST_typeArgumentList,
+  AST_typeDeclaration,
+  AST_derivedTypeDeclaration,
   AST_headerTypeDeclaration,
   AST_headerUnionDeclaration,
-  AST_headerStackType,
   AST_structTypeDeclaration,
+  AST_structFieldList,
+  AST_structField,
   AST_enumDeclaration,
-  AST_typedefDeclaration,
-  AST_parserDeclaration,
-  AST_parserTypeDeclaration,
-  AST_parserState,
-  AST_parserStates,
-  AST_parserBlockStatement,
-  AST_parserLocalElement,
-  AST_parserLocalElements,
-  AST_parserStatement,
-  AST_parserStatements,
-  AST_transitionStatement,
-  AST_stateExpression,
-  AST_controlDeclaration,
-  AST_controlTypeDeclaration,
-  AST_packageTypeDeclaration,
-  AST_instantiation,
   AST_errorDeclaration,
   AST_matchKindDeclaration,
-  AST_functionDeclaration,
-  AST_functionPrototype,
-  AST_methodPrototype,
-  AST_dontcareArgument,
-  AST_dontcareTypeArgument,
-  AST_integerTypeSize,
-  AST_integerLiteral,
-  AST_booleanLiteral,
-  AST_stringLiteral,
-  AST_name,
-  AST_typeRef,
-  AST_namedType,
-  AST_specializedType,
-  AST_tupleType,
-  AST_variableDeclaration,
-  AST_selectCase,
-  AST_selectCaseList,
-  AST_selectExpression,
-  AST_selectKeyset,
-  AST_actionRef,
+  AST_identifierList,
+  AST_specifiedIdentifierList,
+  AST_specifiedIdentifier,
+  AST_typedefDeclaration,
+
+  /** STATEMENTS **/
+  AST_assignmentStatement,
+  AST_emptyStatement,
+  AST_returnStatement,
+  AST_exitStatement,
+  AST_conditionalStatement,
+  AST_directApplication,
+  AST_statement,
+  AST_blockStatement,
+  AST_statementOrDecl,
+  AST_statementOrDeclList,
+  AST_switchStatement,
+  AST_switchCases,
+  AST_switchCase,
+  AST_switchLabel,
+  AST_defaultSwitchLabel,
+
+  /** TABLES **/
   AST_tableDeclaration,
-  AST_tableProperty,
   AST_tablePropertyList,
-  AST_simpleTableProperty,
-  AST_tableEntry,
+  AST_tableProperty,
   AST_tableKey,
   AST_tableActions,
   AST_tableEntries,
-  AST_statement,
-  AST_statementOrDecl,
-  AST_statementOrDeclList,
-  AST_conditionalStatement,
-  AST_assignmentStatement,
-  AST_emptyStatement,
-  AST_exitStatement,
-  AST_returnStatement,
-  AST_switchStatement,
-  AST_switchCase,
-  AST_switchCases,
-  AST_switchLabel,
-  AST_defaultSwitchLabel,
-  AST_blockStatement,
-  AST_castExpression,
-  AST_unaryExpression,
-  AST_binaryExpression,
+  AST_simpleTableProperty,
+  AST_keyElementList,
+  AST_keyElement,
+  AST_actionList,
+  AST_actionRef,
+  AST_entriesList,
+  AST_entry,
+  AST_actionDeclaration,
+
+  /** VARIABLES **/
+  AST_variableDeclaration,
+  AST_constantDeclaration,
+
+  /** EXPRESSIONS **/
+  AST_functionDeclaration,
+  AST_argumentList,
+  AST_argument,
+  AST_dontcareArgument,
   AST_kvPair,
+  AST_expressionList,
+  AST_lvalue,
+  AST_expression,
+  AST_binaryExpression,
+  AST_unaryExpression,
+  AST_functionCall,
   AST_memberSelector,
+  AST_castExpression,
   AST_arraySubscript,
   AST_arrayIndex,
-  AST_functionCall,
-  AST_lvalue,
-  AST_directApplication,
-  AST_typeParameter,
-  AST_typeParameterList,
-  AST_parameter,
-  AST_parameterList,
-  AST_methodPrototypes,
-  AST_typeArgument,
-  AST_typeArgumentList,
-  AST_structField,
-  AST_structFieldList,
-  AST_specifiedIdentifier,
-  AST_specifiedIdentifierList,
-  AST_argument,
-  AST_argumentList,
-  AST_expression,
-  AST_expressionList,
-  AST_defaultKeysetExpression,
-  AST_dontcareKeysetExpression,
-  AST_tupleKeysetExpression,
-  AST_keysetExpression,
-  AST_keysetExpressionList,
-  AST_keyElement,
-  AST_keyElementList,
-  AST_actionList,
-  AST_entriesList,
-  AST_controlLocalDeclaration,
-  AST_controlLocalDeclarations,
-  AST_identifierList,
-  AST_declaration,
-  AST_declarationList,
-  AST_realTypeArgument,
-  AST_realTypeArgumentList,
-  AST_typeDeclaration,
-  AST_derivedTypeDeclaration,
+  AST_integerLiteral,
+  AST_booleanLiteral,
+  AST_stringLiteral,
 };
 
 enum AstOperator {
@@ -284,6 +300,8 @@ typedef struct Ast {
   int column_no;
 } Ast;
 
+/** PROGRAM **/
+
 typedef struct Ast_P4Program {
   Ast;
   Ast* decl_list;
@@ -295,11 +313,10 @@ typedef struct Ast_List {
   List members;
 } Ast_List;
 
-typedef struct Ast_Expression {
+typedef struct Ast_Declaration {
   Ast;
-  Ast* expr;
-  Ast* type_args;
-} Ast_Expression;
+  Ast* decl;
+} Ast_Declaration;
 
 typedef struct Ast_Name {
   Ast;
@@ -307,25 +324,171 @@ typedef struct Ast_Name {
   Scope* scope;
 } Ast_Name;
 
-typedef struct Ast_NamedType {
+typedef struct Ast_Parameter {
   Ast;
+  enum AstParamDirection direction;
+  Ast* name;
   Ast* type;
-} Ast_NamedType;
+  Ast* init_expr;
+} Ast_Parameter;
+
+typedef struct Ast_PackageTypeDeclaration {
+  Ast;
+  Ast* name;
+  Ast* type_params;
+  Ast* params;
+} Ast_PackageTypeDeclaration;
+
+/** PARSER **/
+
+typedef struct Ast_Instantiation {
+  Ast;
+  Ast* name;
+  Ast* type_ref;
+  Ast* args;
+} Ast_Instantiation;
+
+typedef struct Ast_ParserDeclaration {
+  Ast;
+  Ast* proto;
+  Ast* ctor_params;
+  Ast* local_elements;
+  Ast* states;
+} Ast_ParserDeclaration;
+
+typedef struct Ast_ParserPrototype {
+  Ast;
+  Ast* name;
+  Ast* type_params;
+  Ast* params;
+} Ast_ParserPrototype;
+
+typedef struct Ast_ParserLocalElement {
+  Ast;
+  Ast* element;
+} Ast_ParserLocalElement;
+
+typedef struct Ast_ParserState {
+  Ast;
+  Ast* name;
+  Ast* stmt_list;
+  Ast* transition_stmt;
+} Ast_ParserState;
+
+typedef struct Ast_ParserStmt {
+  Ast;
+  Ast* stmt;
+} Ast_ParserStmt;
+
+typedef struct Ast_TransitionStmt {
+  Ast;
+  Ast* stmt;
+} Ast_TransitionStmt;
+
+typedef struct Ast_StateExpression {
+  Ast;
+  Ast* expr;
+} Ast_StateExpression;
+
+typedef struct Ast_SelectExpression {
+  Ast;
+  Ast* expr_list;
+  Ast* case_list;
+} Ast_SelectExpression;
+
+typedef struct Ast_SelectCase {
+  Ast;
+  Ast* keyset_expr;
+  Ast* name;
+} Ast_SelectCase;
+
+typedef struct Ast_KeysetExpression {
+  Ast;
+  Ast* expr;
+} Ast_KeysetExpression;
+
+typedef struct Ast_TupleKeysetExpression {
+  Ast;
+  Ast* expr_list;
+} Ast_TupleKeysetExpression;
+
+/** CONTROL **/
+
+typedef struct Ast_ControlDeclaration {
+  Ast;
+  Ast* proto;
+  Ast* ctor_params;
+  Ast* local_decls;
+  Ast* apply_stmt;
+} Ast_ControlDeclaration;
+
+typedef struct Ast_ControlPrototype {
+  Ast;
+  Ast* name;
+  Ast* type_params;
+  Ast* params;
+} Ast_ControlPrototype;
+
+typedef struct Ast_ControlLocalDeclaration {
+  Ast;
+  Ast* decl;
+} Ast_ControlLocalDeclaration;
+
+/** EXTERN **/
+
+typedef struct Ast_ExternDeclaration {
+  Ast;
+  Ast* decl;
+} Ast_ExternDeclaration;
+
+typedef struct Ast_ExternType {
+  Ast;
+  Ast* name;
+  Ast* type_params;
+  Ast* method_protos;
+} Ast_ExternType;
+
+typedef struct Ast_FunctionPrototype {
+  Ast;
+  Ast* name;
+  Ast* return_type;
+  Ast* type_params;
+  Ast* params;
+} Ast_FunctionPrototype;
+
+/** TYPES **/
 
 typedef struct Ast_TypeRef {
   Ast;
   Ast* type;
 } Ast_TypeRef;
 
+typedef struct Ast_NamedType {
+  Ast;
+  Ast* type;
+} Ast_NamedType;
+
+typedef struct Ast_TupleType {
+  Ast;
+  Ast* type_args;
+} Ast_TupleType;
+
+typedef struct Ast_HeaderStackType {
+  Ast;
+  Ast* name;
+  Ast* stack_expr;
+} Ast_HeaderStackType;
+
+typedef struct Ast_SpecializedType {
+  Ast;
+  Ast* name;
+  Ast* type_args;
+} Ast_SpecializedType;
+
 typedef struct Ast_BoolType {
   Ast;
   Ast* name;
 } Ast_BoolType;
-
-typedef struct Ast_ErrorType {
-  Ast;
-  Ast* name;
-} Ast_ErrorType;
 
 typedef struct Ast_IntegerType {
   Ast;
@@ -355,39 +518,35 @@ typedef struct Ast_VoidType {
   Ast* name;
 } Ast_VoidType;
 
-typedef struct Ast_ConstDeclaration {
+typedef struct Ast_ErrorType {
   Ast;
   Ast* name;
-  Ast* type;
-  Ast* init_expr;
-} Ast_ConstDeclaration;
+} Ast_ErrorType;
 
-typedef struct Ast_ExternDeclaration {
+typedef struct Ast_IntegerTypeSize {
+  Ast;
+  Ast* size;
+} Ast_IntegerTypeSize;
+
+typedef struct Ast_RealTypeArgument {
+  Ast;
+  Ast* arg;
+} Ast_RealTypeArgument;
+
+typedef struct Ast_TypeArgument {
+  Ast;
+  Ast* arg;
+} Ast_TypeArgument;
+
+typedef struct Ast_TypeDeclaration {
   Ast;
   Ast* decl;
-} Ast_ExternDeclaration;
+} Ast_TypeDeclaration;
 
-typedef struct Ast_ExternType {
+typedef struct Ast_DerivedTypeDeclaration {
   Ast;
-  Ast* name;
-  Ast* type_params;
-  Ast* method_protos;
-} Ast_ExternType;
-
-typedef struct Ast_FunctionPrototype {
-  Ast;
-  Ast* name;
-  Ast* return_type;
-  Ast* type_params;
-  Ast* params;
-} Ast_FunctionPrototype;
-
-typedef struct Ast_ActionDeclaration {
-  Ast;
-  Ast* name;
-  Ast* params;
-  Ast* stmt;
-} Ast_ActionDeclaration;
+  Ast* decl;
+} Ast_DerivedTypeDeclaration;
 
 typedef struct Ast_HeaderTypeDeclaration {
   Ast;
@@ -407,53 +566,18 @@ typedef struct Ast_StructTypeDeclaration {
   Ast* fields;
 } Ast_StructTypeDeclaration;
 
+typedef struct Ast_StructField {
+  Ast;
+  Ast* type;
+  Ast* name;
+} Ast_StructField;
+
 typedef struct Ast_EnumDeclaration {
   Ast;
-  Ast* name;
   Ast* type_size;
+  Ast* name;
   Ast* fields;
 } Ast_EnumDeclaration;
-
-typedef struct Ast_TypedefDeclaration {
-  Ast;
-  Ast* name;
-  Ast* type_ref;
-} Ast_TypedefDeclaration;
-
-typedef struct Ast_ParserDeclaration {
-  Ast;
-  Ast* proto;
-  Ast* ctor_params;
-  Ast* local_elements;
-  Ast* states;
-} Ast_ParserDeclaration;
-
-typedef struct Ast_ControlDeclaration {
-  Ast;
-  Ast* proto;
-  Ast* ctor_params;
-  Ast* local_decls;
-  Ast* apply_stmt;
-} Ast_ControlDeclaration;
-
-typedef struct Ast_ControlLocalDeclaration {
-  Ast;
-  Ast* decl;
-} Ast_ControlLocalDeclaration;
-
-typedef struct Ast_PackageDeclaration {
-  Ast;
-  Ast* name;
-  Ast* type_params;
-  Ast* params;
-} Ast_PackageDeclaration;
-
-typedef struct Ast_Instantiation {
-  Ast;
-  Ast* name;
-  Ast* type_ref;
-  Ast* args;
-} Ast_Instantiation;
 
 typedef struct Ast_ErrorDeclaration {
   Ast;
@@ -465,104 +589,19 @@ typedef struct Ast_MatchKindDeclaration {
   Ast* fields;
 } Ast_MatchKindDeclaration;
 
-typedef struct Ast_FunctionDeclaration {
-  Ast;
-  Ast* proto;
-  Ast* stmt;
-} Ast_FunctionDeclaration;
-
-typedef struct Ast_IntegerTypeSize {
-  Ast;
-  Ast* size;
-} Ast_IntegerTypeSize;
-
-typedef struct Ast_IntegerLiteral {
-  Ast_Expression;
-  bool is_signed;
-  int value;
-  int width;
-} Ast_IntegerLiteral;
-
-typedef struct Ast_BoolLiteral {
-  Ast_Expression;
-  bool value;
-} Ast_BoolLiteral;
-
-typedef struct Ast_StringLiteral {
-  Ast_Expression;
-  char* value;
-} Ast_StringLiteral;
-
-typedef struct Ast_TupleType {
-  Ast;
-  Ast* type_args;
-} Ast_TupleType;
-
-typedef struct Ast_TupleKeysetExpression {
-  Ast;
-  Ast* expr_list;
-} Ast_TupleKeysetExpression;
-
-typedef struct Ast_HeaderStackType {
-  Ast;
-  Ast* name;
-  Ast* stack_expr;
-} Ast_HeaderStackType;
-
-typedef struct Ast_SpecializedType {
-  Ast;
-  Ast* name;
-  Ast* type_args;
-} Ast_SpecializedType;
-
 typedef struct Ast_SpecifiedIdent {
   Ast;
   Ast* name;
   Ast* init_expr;
 } Ast_SpecifiedIdent;
 
-typedef struct Ast_StructField {
+typedef struct Ast_TypedefDeclaration {
   Ast;
   Ast* name;
-  Ast* type;
-} Ast_StructField;
+  Ast* type_ref;
+} Ast_TypedefDeclaration;
 
-typedef struct Ast_ParserProto {
-  Ast;
-  Ast* name;
-  Ast* type_params;
-  Ast* params;
-} Ast_ParserProto;
-
-typedef struct Ast_Argument {
-  Ast;
-  Ast* arg;
-} Ast_Argument;
-
-typedef struct Ast_RealTypeArgument {
-  Ast;
-  Ast* arg;
-} Ast_RealTypeArgument;
-
-typedef struct Ast_TypeArgument {
-  Ast;
-  Ast* arg;
-} Ast_TypeArgument;
-
-typedef struct Ast_VarDeclaration {
-  Ast;
-  Ast* name;
-  Ast* type;
-  Ast* init_expr;
-} Ast_VarDeclaration;
-
-typedef struct Ast_Parameter {
-  Ast;
-  enum AstParamDirection direction;
-  Ast* name;
-  Ast* type;
-  Ast* init_expr;
-} Ast_Parameter;
+/** STATEMENTS **/
 
 typedef struct Ast_AssignmentStmt {
   Ast;
@@ -570,107 +609,10 @@ typedef struct Ast_AssignmentStmt {
   Ast* expr;
 } Ast_AssignmentStmt;
 
-typedef struct Ast_KeysetExpression {
+typedef struct Ast_ReturnStmt {
   Ast;
   Ast* expr;
-} Ast_KeysetExpression;
-
-typedef struct Ast_SelectCase {
-  Ast;
-  Ast* name;
-  Ast* keyset;
-} Ast_SelectCase;
-
-typedef struct Ast_ParserLocalElement {
-  Ast;
-  Ast* element;
-} Ast_ParserLocalElement;
-
-typedef struct Ast_ParserStmt {
-  Ast;
-  Ast* stmt;
-} Ast_ParserStmt;
-
-typedef struct Ast_TransitionStmt {
-  Ast;
-  Ast* stmt;
-} Ast_TransitionStmt;
-
-typedef struct Ast_ParserState {
-  Ast;
-  Ast* name;
-  Ast* stmt_list;
-  Ast* transition_stmt;
-} Ast_ParserState;
-
-typedef struct Ast_StateExpression {
-  Ast;
-  Ast* expr;
-} Ast_StateExpression;
-
-typedef struct Ast_ControlTypeDeclaration {
-  Ast;
-  Ast* name;
-  Ast* type_params;
-  Ast* params;
-} Ast_ControlTypeDeclaration;
-
-typedef struct Ast_ActionRef {
-  Ast;
-  Ast* name;
-  Ast* args;
-} Ast_ActionRef;
-
-typedef struct Ast_TableDeclaration {
-  Ast;
-  Ast* name;
-  Ast* prop_list;
-} Ast_TableDeclaration;
-
-typedef struct Ast_TableProperty {
-  Ast;
-  Ast* prop;
-} Ast_TableProperty;
-
-typedef struct Ast_TableEntry {
-  Ast;
-  Ast* keyset;
-  Ast* action;
-} Ast_TableEntry;
-
-typedef struct Ast_TableKey {
-  Ast;
-  Ast* keyelem_list;
-} Ast_TableKey;
-
-typedef struct Ast_KeyElement {
-  Ast;
-  Ast* name;
-  Ast* expr;
-} Ast_KeyElement;
-
-typedef struct Ast_TableActions {
-  Ast;
-  Ast* action_list;
-} Ast_TableActions;
-
-typedef struct Ast_TableEntries {
-  Ast;
-  bool is_const;
-  Ast* entries;
-} Ast_TableEntries;
-
-typedef struct Ast_SimpleTableProperty {
-  Ast;
-  bool is_const;
-  Ast* name;
-  Ast* init_expr;
-} Ast_SimpleTableProperty;
-
-typedef struct Ast_Statement {
-  Ast;
-  Ast* stmt;
-} Ast_Statement;
+} Ast_ReturnStmt;
 
 typedef struct Ast_ConditionalStmt {
   Ast;
@@ -679,10 +621,21 @@ typedef struct Ast_ConditionalStmt {
   Ast* else_stmt;
 } Ast_ConditionalStmt;
 
-typedef struct Ast_ReturnStmt {
+typedef struct Ast_DirectApplication {
   Ast;
-  Ast* expr;
-} Ast_ReturnStmt;
+  Ast* lhs_expr;
+  Ast* args;
+} Ast_DirectApplication;
+
+typedef struct Ast_Statement {
+  Ast;
+  Ast* stmt;
+} Ast_Statement;
+
+typedef struct Ast_BlockStmt {
+  Ast;
+  Ast* stmt_list;
+} Ast_BlockStmt;
 
 typedef struct Ast_SwitchStmt {
   Ast;
@@ -701,16 +654,95 @@ typedef struct Ast_SwitchLabel {
   Ast* label;
 } Ast_SwitchLabel;
 
-typedef struct Ast_BlockStmt {
-  Ast;
-  Ast* stmt_list;
-} Ast_BlockStmt;
+/** TABLES **/
 
-typedef struct Ast_DirectApplication {
+typedef struct Ast_TableDeclaration {
   Ast;
-  Ast* lhs_expr;
+  Ast* name;
+  Ast* prop_list;
+} Ast_TableDeclaration;
+
+typedef struct Ast_TableProperty {
+  Ast;
+  Ast* prop;
+} Ast_TableProperty;
+
+typedef struct Ast_TableKey {
+  Ast;
+  Ast* keyelem_list;
+} Ast_TableKey;
+
+typedef struct Ast_TableActions {
+  Ast;
+  Ast* action_list;
+} Ast_TableActions;
+
+typedef struct Ast_TableEntries {
+  Ast;
+  bool is_const;
+  Ast* entries_list;
+} Ast_TableEntries;
+
+typedef struct Ast_SimpleTableProperty {
+  Ast;
+  bool is_const;
+  Ast* name;
+  Ast* init_expr;
+} Ast_SimpleTableProperty;
+
+typedef struct Ast_KeyElement {
+  Ast;
+  Ast* expr;
+  Ast* name;
+} Ast_KeyElement;
+
+typedef struct Ast_ActionRef {
+  Ast;
+  Ast* name;
   Ast* args;
-} Ast_DirectApplication;
+} Ast_ActionRef;
+
+typedef struct Ast_Entry {
+  Ast;
+  Ast* keyset;
+  Ast* action;
+} Ast_Entry;
+
+typedef struct Ast_ActionDeclaration {
+  Ast;
+  Ast* name;
+  Ast* params;
+  Ast* stmt;
+} Ast_ActionDeclaration;
+
+/** VARIABLES **/
+
+typedef struct Ast_VarDeclaration {
+  Ast;
+  Ast* name;
+  Ast* type;
+  Ast* init_expr;
+} Ast_VarDeclaration;
+
+typedef struct Ast_ConstDeclaration {
+  Ast;
+  Ast* name;
+  Ast* type;
+  Ast* init_expr;
+} Ast_ConstDeclaration;
+
+/** EXPRESSIONS **/
+
+typedef struct Ast_FunctionDeclaration {
+  Ast;
+  Ast* proto;
+  Ast* stmt;
+} Ast_FunctionDeclaration;
+
+typedef struct Ast_Argument {
+  Ast;
+  Ast* arg;
+} Ast_Argument;
 
 typedef struct Ast_KVPair {
   Ast;
@@ -718,38 +750,11 @@ typedef struct Ast_KVPair {
   Ast* expr;
 } Ast_KVPair;
 
-typedef struct Ast_Declaration {
+typedef struct Ast_Expression {
   Ast;
-  Ast* decl;
-} Ast_Declaration;
-
-typedef struct Ast_TypeDeclaration {
-  Ast;
-  Ast* decl;
-} Ast_TypeDeclaration;
-
-typedef struct Ast_DerivedTypeDeclaration {
-  Ast;
-  Ast* decl;
-} Ast_DerivedTypeDeclaration;
-
-typedef struct Ast_SelectExpression {
-  Ast;
-  Ast* expr_list;
-  Ast* case_list;
-} Ast_SelectExpression;
-
-typedef struct Ast_CastExpression {
-  Ast;
-  Ast* to_type;
   Ast* expr;
-} Ast_CastExpression;
-
-typedef struct Ast_UnaryExpression {
-  Ast;
-  enum AstOperator op;
-  Ast* operand;
-} Ast_UnaryExpression;
+  Ast* type_args;
+} Ast_Expression;
 
 typedef struct Ast_BinaryExpression {
   Ast;
@@ -758,11 +763,29 @@ typedef struct Ast_BinaryExpression {
   Ast* right_operand;
 } Ast_BinaryExpression;
 
+typedef struct Ast_UnaryExpression {
+  Ast;
+  enum AstOperator op;
+  Ast* operand;
+} Ast_UnaryExpression;
+
+typedef struct Ast_FunctionCall {
+  Ast;
+  Ast* callee_expr;
+  Ast* args;
+} Ast_FunctionCall;
+
 typedef struct Ast_MemberSelector {
   Ast;
   Ast* lhs_expr;
   Ast* member_name;
 } Ast_MemberSelector;
+
+typedef struct Ast_CastExpression {
+  Ast;
+  Ast* to_type;
+  Ast* expr;
+} Ast_CastExpression;
 
 typedef struct Ast_ArraySubscript {
   Ast;
@@ -776,11 +799,22 @@ typedef struct Ast_ArrayIndex {
   Ast* end_index;
 } Ast_ArrayIndex;
 
-typedef struct Ast_FunctionCall {
-  Ast;
-  Ast* callee_expr;
-  Ast* args;
-} Ast_FunctionCall;
+typedef struct Ast_IntegerLiteral {
+  Ast_Expression;
+  bool is_signed;
+  int value;
+  int width;
+} Ast_IntegerLiteral;
+
+typedef struct Ast_BoolLiteral {
+  Ast_Expression;
+  bool value;
+} Ast_BoolLiteral;
+
+typedef struct Ast_StringLiteral {
+  Ast_Expression;
+  char* value;
+} Ast_StringLiteral;
 
 typedef void AstVisitor(Ast*, enum AstWalkDirection);
 void traverse_p4program(Ast_P4Program* p4program, AstVisitor* visitor);

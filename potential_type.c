@@ -1170,7 +1170,7 @@ internal void
 visit_package(Ast* ast)
 {
   assert(ast->kind == AST_packageTypeDeclaration);
-  Ast_PackageDeclaration* package_decl = (Ast_PackageDeclaration*)ast;
+  Ast_PackageTypeDeclaration* package_decl = (Ast_PackageTypeDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)package_decl->name;
   Type_TypeName* package_ty = arena_push_struct(type_storage, Type_TypeName);
   package_ty->ctor = TYPE_TYPENAME;
@@ -1233,7 +1233,7 @@ internal void
 visit_parser_proto(Ast* ast)
 {
   assert(ast->kind == AST_parserTypeDeclaration);
-  Ast_ParserProto* proto = (Ast_ParserProto*)ast;
+  Ast_ParserPrototype* proto = (Ast_ParserPrototype*)ast;
   Type_Function* parser_ty = arena_push_struct(type_storage, Type_Function);
   parser_ty->ctor = TYPE_FUNCTION;
   parser_ty->ast = (Ast*)proto;

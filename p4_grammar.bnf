@@ -33,11 +33,11 @@
 <parserDeclaration> := <parserTypeDeclaration> <optConstructorParameters>
   '{' <parserLocalElements> <parserStates> '}'
 
+<parserTypeDeclaration> := PARSER <name> <optTypeParameters> '(' <parameterList> ')'
+
 <parserLocalElements> := { <parserLocalElement> { <parserLocalElement> }* }
 
 <parserLocalElement> := <constantDeclaration> | <variableDeclaration> | <instantiation> /* | <valueSetDeclaration> */
-
-<parserTypeDeclaration> := PARSER <name> <optTypeParameters> '(' <parameterList> ')'
 
 <parserStates> := <parserState> { <parserState> }*
 
@@ -125,7 +125,7 @@
 
 <integerTypeSize> := INTEGER /* | '(' <expression> ')' */
 
-<typeOrVoid> := <typeRef> | VOID | IDENTIFIER  /* type variable */
+<typeOrVoid> := <typeRef> | VOID | IDENTIFIER  /* type parameter */
 
 <optTypeParameters> := { '<' <typeParameterList> '>' }
 
@@ -196,6 +196,8 @@
 
 <blockStatement> := '{' <statementOrDeclList> '}'
 
+<statementOrDeclaration> := <variableDeclaration> | <constantDeclaration> | <statement> | <instantiation>
+
 <statementOrDeclList> := { <statementOrDeclaration> }*
 
 <switchStatement> := SWITCH '(' <expression> ')' '{' <switchCases> '}'
@@ -205,8 +207,6 @@
 <switchCase> := <switchLabel> ':' { <blockStatement> }
 
 <switchLabel> := <name> | DEFAULT
-
-<statementOrDeclaration> := <variableDeclaration> | <constantDeclaration> | <statement> | <instantiation>
 
 
 ==  TABLES  ==

@@ -16,6 +16,7 @@ internal Scope* current_scope;
 
 internal Ast* parse_expression(int priority_threshold);
 internal Ast* parse_typeRef();
+internal Ast* parse_baseType();
 internal Ast* parse_blockStatement();
 internal Ast* parse_statement(Ast* type_name);
 internal Ast* parse_parserStatement();
@@ -640,13 +641,7 @@ parse_typeOrVoid()
       Ast* type = parse_typeRef();
       return type;
     } else if (token->klass == TK_VOID) {
-      next_token();
-      Ast_VoidType* void_type = arena_push_struct(ast_storage, Ast_VoidType);
-      void_type->kind = AST_baseTypeVoid;
-      void_type->id = node_id++;
-      void_type->line_no = token->line_no;
-      void_type->column_no = token->column_no;
-      return (Ast*)void_type;
+      return (Ast*)parse_baseType();
     } else if (token->klass == TK_IDENTIFIER) {
       next_token();
       Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
@@ -1451,7 +1446,7 @@ parse_parserTypeDeclaration()
 {
   if (token->klass == TK_PARSER) {
     next_token();
-    Ast_ParserProto* proto = arena_push_struct(ast_storage, Ast_ParserProto);
+    Ast_ParserPrototype* proto = arena_push_struct(ast_storage, Ast_ParserPrototype);
     proto->kind = AST_parserTypeDeclaration;
     proto->id = node_id++;
     proto->line_no = token->line_no; 
@@ -2126,7 +2121,7 @@ parse_selectCase()
     select_case->id = node_id++;
     select_case->line_no = token->line_no;
     select_case->column_no = token->column_no;
-    select_case->keyset = parse_keysetExpression();
+    select_case->keyset_expr = parse_keysetExpression();
     if (token->klass == TK_COLON) {
       next_token();
       if (token_is_name(token)) {
@@ -2339,7 +2334,7 @@ parse_controlTypeDeclaration()
 {
   if (token->klass == TK_CONTROL) {
     next_token();
-    Ast_ControlTypeDeclaration* proto = arena_push_struct(ast_storage, Ast_ControlTypeDeclaration);
+    Ast_ControlPrototype* proto = arena_push_struct(ast_storage, Ast_ControlPrototype);
     proto->kind = AST_controlTypeDeclaration;
     proto->id = node_id++;
     proto->line_no = token->line_no;
@@ -2501,8 +2496,8 @@ internal Ast*
 parse_entry()
 {
   if (token_is_keysetExpression(token)) {
-    Ast_TableEntry* entry = arena_push_struct(ast_storage, Ast_TableEntry);
-    entry->kind = AST_tableEntry;
+    Ast_Entry* entry = arena_push_struct(ast_storage, Ast_Entry);
+    entry->kind = AST_entry;
     entry->id = node_id++;
     entry->line_no = token->line_no;
     entry->column_no = token->column_no;
@@ -2616,7 +2611,7 @@ parse_tableProperty()
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
           if (token_is_keysetExpression(token)) {
-            entries_prop->entries = parse_entriesList();
+            entries_prop->entries_list = parse_entriesList();
           } else error("At line %d, column %d: keyset expression was expected, got `%s`.",
                        token->line_no, token->column_no, token->lexeme);
           if (token->klass == TK_BRACE_CLOSE) {
@@ -2807,7 +2802,7 @@ parse_packageTypeDeclaration()
 {
   if (token->klass == TK_PACKAGE) {
     next_token();
-    Ast_PackageDeclaration* package_decl = arena_push_struct(ast_storage, Ast_PackageDeclaration);
+    Ast_PackageTypeDeclaration* package_decl = arena_push_struct(ast_storage, Ast_PackageTypeDeclaration);
     package_decl->kind = AST_packageTypeDeclaration;
     package_decl->id = node_id++;
     package_decl->line_no = token->line_no;

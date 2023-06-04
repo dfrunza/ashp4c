@@ -263,8 +263,8 @@ visit_select_keyset(Ast* ast)
 internal void
 visit_table_entry(Ast* ast)
 {
-  assert(ast->kind == AST_tableEntry);
-  Ast_TableEntry* entry = (Ast_TableEntry*)ast;
+  assert(ast->kind == AST_entry);
+  Ast_Entry* entry = (Ast_Entry*)ast;
   visit_select_keyset(entry->keyset);
   visit_action_ref(entry->action);
 }
@@ -312,9 +312,9 @@ visit_table_key(Ast* ast)
 internal void
 visit_table_entries(Ast* ast)
 {
-  assert(ast->kind == AST_tableEntries);
+  assert(ast->kind == AST_entriesList);
   Ast_TableEntries* prop = (Ast_TableEntries*)ast;
-  Ast_List* entries = (Ast_List*)prop->entries;
+  Ast_List* entries = (Ast_List*)prop->entries_list;
   if (entries) {
     for (ListItem* li = entries->members.sentinel.next;
          li != 0; li = li->next) {
@@ -333,7 +333,7 @@ visit_table_property(Ast* ast)
     visit_table_single_entry(ast);
   } else if (ast->kind == AST_tableKey) {
     visit_table_key(ast);
-  } else if (ast->kind == AST_tableEntries) {
+  } else if (ast->kind == AST_entriesList) {
     visit_table_entries(ast);
   }
   else assert(0);
@@ -500,7 +500,7 @@ visit_transition_select_case(Ast* ast)
 {
   assert(ast->kind == AST_selectCase);
   Ast_SelectCase* select_case = (Ast_SelectCase*)ast;
-  visit_select_keyset(select_case->keyset);
+  visit_select_keyset(select_case->keyset_expr);
 }
 
 internal void
@@ -743,7 +743,7 @@ internal void
 visit_control_proto(Ast* ast)
 {
   assert(ast->kind == AST_controlTypeDeclaration);
-  Ast_ControlTypeDeclaration* proto = (Ast_ControlTypeDeclaration*)ast;
+  Ast_ControlPrototype* proto = (Ast_ControlPrototype*)ast;
   Ast_List* type_params = (Ast_List*)proto->type_params;
   if (type_params) {
     for (ListItem* li = type_params->members.sentinel.next;
@@ -838,7 +838,7 @@ internal void
 visit_package(Ast* ast)
 {
   assert(ast->kind == AST_packageTypeDeclaration);
-  Ast_PackageDeclaration* package_decl = (Ast_PackageDeclaration*)ast;
+  Ast_PackageTypeDeclaration* package_decl = (Ast_PackageTypeDeclaration*)ast;
   Ast_List* type_params = (Ast_List*)package_decl->type_params;
   if (type_params) {
     for (ListItem* li = type_params->members.sentinel.next;
@@ -893,7 +893,7 @@ internal void
 visit_parser_proto(Ast* ast)
 {
   assert(ast->kind == AST_parserTypeDeclaration);
-  Ast_ParserProto* proto = (Ast_ParserProto*)ast;
+  Ast_ParserPrototype* proto = (Ast_ParserPrototype*)ast;
   Ast_List* type_params = (Ast_List*)proto->type_params;
   if (type_params) {
     for (ListItem* li = type_params->members.sentinel.next;
