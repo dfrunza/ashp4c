@@ -125,7 +125,7 @@
 
 <integerTypeSize> := INTEGER /* | '(' <expression> ')' */
 
-<typeOrVoid> := <typeRef> | VOID | IDENTIFIER /* possibly a type variable */
+<typeOrVoid> := <typeRef> | VOID | IDENTIFIER  /* type variable */
 
 <optTypeParameters> := { '<' <typeParameterList> '>' }
 

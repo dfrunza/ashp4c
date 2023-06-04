@@ -21,11 +21,11 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
     Ast_Declaration* decl = (Ast_Declaration*)ast;
     traverse_ast(decl->decl, visitor);
   } else if (ast->kind == AST_binaryExpression) {
-    Ast_BinaryExpr* bin_expr = (Ast_BinaryExpr*)ast;
+    Ast_BinaryExpression* bin_expr = (Ast_BinaryExpression*)ast;
     traverse_ast(bin_expr->left_operand, visitor);
     traverse_ast(bin_expr->right_operand, visitor);
   } else if (ast->kind == AST_unaryExpression) {
-    Ast_UnaryExpr* una_expr = (Ast_UnaryExpr*)ast;
+    Ast_UnaryExpression* una_expr = (Ast_UnaryExpression*)ast;
     traverse_ast(una_expr->operand, visitor);
   } else if (ast->kind == AST_functionCall) {
     Ast_FunctionCall* call_expr = (Ast_FunctionCall*)ast;
@@ -45,20 +45,20 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
         traverse_ast(li->object, visitor);
       }
     }
-  } else if (ast->kind == AST_memberSelectExpression) {
-    Ast_MemberSelect* member_expr = (Ast_MemberSelect*)ast;
+  } else if (ast->kind == AST_memberSelector) {
+    Ast_MemberSelector* member_expr = (Ast_MemberSelector*)ast;
     traverse_ast(member_expr->lhs_expr, visitor);
     traverse_ast(member_expr->member_name, visitor);
   } else if (ast->kind == AST_castExpression) {
-    Ast_CastExpr* cast_expr = (Ast_CastExpr*)ast;
+    Ast_CastExpression* cast_expr = (Ast_CastExpression*)ast;
     traverse_ast(cast_expr->to_type, visitor);
     traverse_ast(cast_expr->expr, visitor);
   } else if (ast->kind == AST_arraySubscript) {
     Ast_ArraySubscript* subscript_expr = (Ast_ArraySubscript*)ast;
     traverse_ast(subscript_expr->lhs_expr, visitor);
     traverse_ast(subscript_expr->index_expr, visitor);
-  } else if (ast->kind == AST_kvPairExpression) {
-    Ast_KVPairExpr* kv_expr = (Ast_KVPairExpr*)ast;
+  } else if (ast->kind == AST_kvPair) {
+    Ast_KVPair* kv_expr = (Ast_KVPair*)ast;
     traverse_ast(kv_expr->name, visitor);
     traverse_ast(kv_expr->expr, visitor);
   } else if (ast->kind == AST_integerLiteral) {
@@ -101,7 +101,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
     traverse_ast(entry->keyset, visitor);
     traverse_ast(entry->action, visitor);
   } else if (ast->kind == AST_tupleKeysetExpression) {
-    Ast_TupleKeyset* keyset = (Ast_TupleKeyset*)ast;
+    Ast_TupleKeysetExpression* keyset = (Ast_TupleKeysetExpression*)ast;
     Ast_List* expr_list = (Ast_List*)keyset->expr_list;
     if (expr_list) {
       for (ListItem* li = expr_list->members.sentinel.next;
@@ -124,7 +124,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       }
     }
   } else if (ast->kind == AST_parameter) {
-    Ast_Param* param = (Ast_Param*)ast;
+    Ast_Parameter* param = (Ast_Parameter*)ast;
     traverse_ast(param->type, visitor);
   } else if (ast->kind == AST_defaultKeysetExpression) {
   } else if (ast->kind == AST_switchCase) {
@@ -142,7 +142,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
     }
     traverse_ast(state->transition_stmt, visitor);
   } else if (ast->kind == AST_selectExpression) {
-    Ast_SelectExpr* select_expr = (Ast_SelectExpr*)ast;
+    Ast_SelectExpression* select_expr = (Ast_SelectExpression*)ast;
     Ast_List* expr_list = (Ast_List*)select_expr->expr_list;
     if (expr_list) {
       for (ListItem* li = expr_list->members.sentinel.next;
@@ -162,7 +162,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
     traverse_ast(select_case->keyset, visitor);
     traverse_ast(select_case->name, visitor);
   } else if (ast->kind == AST_variableDeclaration) {
-    Ast_Var* var_decl = (Ast_Var*)ast;
+    Ast_VarDeclaration* var_decl = (Ast_VarDeclaration*)ast;
     traverse_ast(var_decl->type, visitor);
     if (var_decl->init_expr) {
       traverse_ast(var_decl->init_expr, visitor);
@@ -177,7 +177,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       }
     }
   } else if (ast->kind == AST_tableDeclaration) {
-    Ast_Table* table_decl = (Ast_Table*)ast;
+    Ast_TableDeclaration* table_decl = (Ast_TableDeclaration*)ast;
     Ast_List* prop_list = (Ast_List*)table_decl->prop_list;
     if (prop_list) {
       for (ListItem* li = prop_list->members.sentinel.next;
@@ -186,7 +186,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       }
     }
   } else if (ast->kind == AST_conditionalStatement) {
-    Ast_IfStmt* if_stmt = (Ast_IfStmt*)ast;
+    Ast_ConditionalStmt* if_stmt = (Ast_ConditionalStmt*)ast;
     traverse_ast(if_stmt->cond_expr, visitor);
     if (if_stmt->else_stmt) {
       traverse_ast(if_stmt->else_stmt, visitor);
@@ -218,8 +218,8 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
   } else if (ast->kind == AST_baseTypeBool) {
     Ast_BoolType* bool_type = (Ast_BoolType*)ast;
     traverse_ast(bool_type->name, visitor);
-  } else if (ast->kind == AST_baseTypeInt) {
-    Ast_IntType* int_type = (Ast_IntType*)ast;
+  } else if (ast->kind == AST_baseTypeInteger) {
+    Ast_IntegerType* int_type = (Ast_IntegerType*)ast;
     traverse_ast(int_type->name, visitor);
   } else if (ast->kind == AST_baseTypeBit) {
     Ast_BitType* bit_type = (Ast_BitType*)ast;
@@ -237,7 +237,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
     Ast_ErrorType* error_type = (Ast_ErrorType*)ast; 
     traverse_ast(error_type->name, visitor);
   } else if (ast->kind == AST_headerStackType) {
-    Ast_HeaderStack* type_ref = (Ast_HeaderStack*)ast;
+    Ast_HeaderStackType* type_ref = (Ast_HeaderStackType*)ast;
     traverse_ast(type_ref->name, visitor);
     traverse_ast(type_ref->stack_expr, visitor);
   } else if (ast->kind == AST_specializedType) {
@@ -251,7 +251,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       }
     }
   } else if (ast->kind == AST_tupleType) {
-    Ast_Tuple* type_ref = (Ast_Tuple*)ast;
+    Ast_TupleType* type_ref = (Ast_TupleType*)ast;
     Ast_List* type_args = (Ast_List*)type_ref->type_args;
     if (type_args) {
       for (ListItem* li = type_args->members.sentinel.next;
@@ -268,8 +268,8 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       traverse_ast(id->init_expr, visitor);
     }
   } else if (ast->kind == AST_controlDeclaration) {
-    Ast_Control* ctrl_decl = (Ast_Control*)ast;
-    Ast_ControlProto* ctrl_proto = (Ast_ControlProto*)ctrl_decl->proto;
+    Ast_ControlDeclaration* ctrl_decl = (Ast_ControlDeclaration*)ast;
+    Ast_ControlTypeDeclaration* ctrl_proto = (Ast_ControlTypeDeclaration*)ctrl_decl->proto;
     Ast_List* type_params = (Ast_List*)ctrl_proto->type_params;
     if (type_params) {
       for (ListItem* li = type_params->members.sentinel.next;
@@ -302,7 +302,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       traverse_ast(ctrl_decl->apply_stmt, visitor);
     }
   } else if (ast->kind == AST_controlTypeDeclaration) {
-    Ast_ControlProto* ctrl_proto = (Ast_ControlProto*)ast;
+    Ast_ControlTypeDeclaration* ctrl_proto = (Ast_ControlTypeDeclaration*)ast;
     Ast_List* type_params = (Ast_List*)ctrl_proto->type_params;
     if (type_params) {
       for (ListItem* li = type_params->members.sentinel.next;
@@ -334,7 +334,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       }
     }
   } else if (ast->kind == AST_structTypeDeclaration) {
-    Ast_Struct* struct_decl = (Ast_Struct*)ast;
+    Ast_StructTypeDeclaration* struct_decl = (Ast_StructTypeDeclaration*)ast;
     Ast_List* fields = (Ast_List*)struct_decl->fields;
     if (fields) {
       for (ListItem* li = fields->members.sentinel.next;
@@ -343,7 +343,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       }
     }
   } else if (ast->kind == AST_headerTypeDeclaration) {
-    Ast_Header* header_decl = (Ast_Header*)ast;
+    Ast_HeaderTypeDeclaration* header_decl = (Ast_HeaderTypeDeclaration*)ast;
     Ast_List* fields = (Ast_List*)header_decl->fields;
     if (fields) {
       for (ListItem* li = fields->members.sentinel.next;
@@ -352,7 +352,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       }
     }
   } else if (ast->kind == AST_headerUnionDeclaration) {
-    Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
+    Ast_HeaderUnionDeclaration* union_decl = (Ast_HeaderUnionDeclaration*)ast;
     Ast_List* fields = (Ast_List*)union_decl->fields;
     if (fields) {
       for (ListItem* li = fields->members.sentinel.next;
@@ -361,7 +361,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       }
     }
   } else if (ast->kind == AST_packageTypeDeclaration) {
-    Ast_Package* package_decl = (Ast_Package*)ast;
+    Ast_PackageDeclaration* package_decl = (Ast_PackageDeclaration*)ast;
     Ast_List* type_params = (Ast_List*)package_decl->type_params;
     if (type_params) {
       for (ListItem* li = type_params->members.sentinel.next;
@@ -377,7 +377,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       }
     }
   } else if (ast->kind == AST_parserDeclaration) {
-    Ast_Parser* parser_decl = (Ast_Parser*)ast;
+    Ast_ParserDeclaration* parser_decl = (Ast_ParserDeclaration*)ast;
     Ast_ParserProto* proto = (Ast_ParserProto*)parser_decl->proto;
     Ast_List* type_params = (Ast_List*)proto->type_params;
     if (type_params) {
@@ -441,11 +441,11 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       }
     }
   } else if (ast->kind == AST_typedefDeclaration) {
-    Ast_TypeDef* type_decl = (Ast_TypeDef*)ast;
+    Ast_TypedefDeclaration* type_decl = (Ast_TypedefDeclaration*)ast;
     traverse_ast(type_decl->type_ref, visitor);
   } else if (ast->kind == AST_functionDeclaration) {
-    Ast_Function* func_decl = (Ast_Function*)ast;
-    Ast_FunctionProto* func_proto = (Ast_FunctionProto*)func_decl->proto;
+    Ast_FunctionDeclaration* func_decl = (Ast_FunctionDeclaration*)ast;
+    Ast_FunctionPrototype* func_proto = (Ast_FunctionPrototype*)func_decl->proto;
     if (func_proto->return_type) {
       traverse_ast(func_proto->return_type, visitor);
     }
@@ -475,7 +475,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       }
     }
   } else if (ast->kind == AST_functionPrototype) {
-    Ast_FunctionProto* func_proto = (Ast_FunctionProto*)ast;
+    Ast_FunctionPrototype* func_proto = (Ast_FunctionPrototype*)ast;
     if (func_proto->return_type) {
       traverse_ast(func_proto->return_type, visitor);
     }
@@ -494,7 +494,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       }
     }
   } else if (ast->kind == AST_constantDeclaration) {
-    Ast_Const* const_decl = (Ast_Const*)ast;
+    Ast_ConstDeclaration* const_decl = (Ast_ConstDeclaration*)ast;
     traverse_ast(const_decl->type, visitor);
     traverse_ast(const_decl->init_expr, visitor);
   } else if (ast->kind == AST_enumDeclaration) {
@@ -507,7 +507,7 @@ traverse_ast(Ast* ast, AstVisitor* visitor)
       }
     }
   } else if (ast->kind == AST_actionDeclaration) {
-    Ast_Action* action_decl = (Ast_Action*)ast;
+    Ast_ActionDeclaration* action_decl = (Ast_ActionDeclaration*)ast;
     Ast_List* params = (Ast_List*)action_decl->params;
     if (params) {
       for (ListItem* li = params->members.sentinel.next;

@@ -28,7 +28,7 @@ internal void
 visit_binary_expr(Ast* ast)
 {
   assert(ast->kind == AST_binaryExpression);
-  Ast_BinaryExpr* expr = (Ast_BinaryExpr*)ast;
+  Ast_BinaryExpression* expr = (Ast_BinaryExpression*)ast;
   visit_expression(expr->left_operand);
   visit_expression(expr->right_operand);
 }
@@ -39,7 +39,7 @@ internal void
 visit_unary_expr(Ast* ast)
 {
   assert(ast->kind == AST_unaryExpression);
-  Ast_UnaryExpr* expr = (Ast_UnaryExpr*)ast;
+  Ast_UnaryExpression* expr = (Ast_UnaryExpression*)ast;
   visit_expression(expr->operand);
 }
 #endif
@@ -85,8 +85,8 @@ visit_function_call(Ast* ast)
 internal void
 visit_member_select(Ast* ast)
 {
-  assert(ast->kind == AST_memberSelectExpression);
-  Ast_MemberSelect* expr = (Ast_MemberSelect*)ast;
+  assert(ast->kind == AST_memberSelector);
+  Ast_MemberSelector* expr = (Ast_MemberSelector*)ast;
   visit_expression(expr->lhs_expr);
   visit_expression(expr->member_name);
 }
@@ -114,7 +114,7 @@ internal void
 visit_cast_expr(Ast* ast)
 {
   assert(ast->kind == AST_castExpression);
-  Ast_CastExpr* expr = (Ast_CastExpr*)ast;
+  Ast_CastExpression* expr = (Ast_CastExpression*)ast;
   visit_type_ref(expr->to_type);
   visit_expression(expr->expr);
 }
@@ -138,7 +138,7 @@ internal void
 visit_kvpair_expr(Ast* ast)
 {
   assert(ast->kind == AST_kvPairExpression);
-  Ast_KVPairExpr* expr = (Ast_KVPairExpr*)ast;
+  Ast_KVPair* expr = (Ast_KVPair*)ast;
   visit_expression(expr->name);
   visit_expression(expr->expr);
 }
@@ -180,7 +180,7 @@ visit_expression(Ast* ast)
     visit_name_identifier(ast);
   } else if (ast->kind == AST_functionCall) {
     visit_function_call(ast);
-  } else if (ast->kind == AST_memberSelectExpression) {
+  } else if (ast->kind == AST_memberSelector) {
     visit_member_select(ast);
   } else if (ast->kind == AST_exprListExpression) {
     visit_expression_list(ast);
@@ -318,7 +318,7 @@ internal void
 visit_tuple_keyset(Ast* ast)
 {
   assert(ast->kind == AST_tupleKeysetExpression);
-  Ast_TupleKeyset* keyset = (Ast_TupleKeyset*)ast;
+  Ast_TupleKeysetExpression* keyset = (Ast_TupleKeysetExpression*)ast;
   Ast_List* expr_list = (Ast_List*)keyset->expr_list;
   if (expr_list) {
     for (ListItem* li = expr_list->members.sentinel.next;
@@ -472,7 +472,7 @@ visit_switch_case(Ast* ast)
 internal void
 visit_var_decl(Ast* ast)
 {
-  Ast_Var* var_decl = (Ast_Var*)ast;
+  Ast_VarDeclaration* var_decl = (Ast_VarDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)var_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
   NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -494,7 +494,7 @@ internal void
 visit_table(Ast* ast)
 {
   assert(ast->kind == AST_tableDeclaration);
-  Ast_Table* table_decl = (Ast_Table*)ast;
+  Ast_TableDeclaration* table_decl = (Ast_TableDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)table_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
   NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -519,7 +519,7 @@ visit_table(Ast* ast)
 internal void
 visit_if_stmt(Ast* ast)
 {
-  Ast_IfStmt* stmt = (Ast_IfStmt*)ast;
+  Ast_ConditionalStmt* stmt = (Ast_ConditionalStmt*)ast;
   Ast* if_stmt = stmt->stmt;
   visit_expression(stmt->cond_expr);
   visit_statement(if_stmt);
@@ -648,7 +648,7 @@ internal void
 visit_select_expr(Ast* ast)
 {
   assert(ast->kind == AST_selectExpression);
-  Ast_SelectExpr* trans_stmt = (Ast_SelectExpr*)ast;
+  Ast_SelectExpression* trans_stmt = (Ast_SelectExpression*)ast;
   Ast_List* expr_list = (Ast_List*)trans_stmt->expr_list;
   if (expr_list) {
     for (ListItem* li = expr_list->members.sentinel.next;
@@ -742,8 +742,8 @@ visit_bool_type(Ast* ast)
 internal void
 visit_int_type(Ast* ast)
 {
-  assert(ast->kind == AST_baseTypeInt);
-  visit_expression(((Ast_IntType*)ast)->name);
+  assert(ast->kind == AST_baseTypeInteger);
+  visit_expression(((Ast_IntegerType*)ast)->name);
 }
 #endif
 
@@ -796,7 +796,7 @@ visit_error_type(Ast* ast)
 internal void
 visit_header_stack(Ast* ast)
 {
-  Ast_HeaderStack* type_ref = (Ast_HeaderStack*)ast;
+  Ast_HeaderStackType* type_ref = (Ast_HeaderStackType*)ast;
   visit_expression(type_ref->name);
   Ast* stack_expr = type_ref->stack_expr;
   visit_expression(stack_expr);
@@ -840,7 +840,7 @@ visit_specialized_type(Ast* ast)
 internal void
 visit_tuple(Ast* ast)
 {
-  Ast_Tuple* type_ref = (Ast_Tuple*)ast;
+  Ast_TupleType* type_ref = (Ast_TupleType*)ast;
   Ast_List* type_args = (Ast_List*)type_ref->type_args;
   if (type_args) {
     for (ListItem* li = type_args->members.sentinel.next;
@@ -866,7 +866,7 @@ visit_type_ref(Ast* ast)
 {
   if (ast->kind == AST_baseTypeBool) {
     visit_bool_type(ast);
-  } else if (ast->kind == AST_baseTypeInt) {
+  } else if (ast->kind == AST_baseTypeInteger) {
     visit_int_type(ast);
   } else if (ast->kind == AST_baseTypeBit) {
     visit_bit_type(ast);
@@ -936,8 +936,8 @@ internal void
 visit_control(Ast* ast)
 {
   assert(ast->kind == AST_controlDeclaration);
-  Ast_Control* ctrl_decl = (Ast_Control*)ast;
-  Ast_ControlProto* ctrl_proto = (Ast_ControlProto*)ctrl_decl->proto;
+  Ast_ControlDeclaration* ctrl_decl = (Ast_ControlDeclaration*)ast;
+  Ast_ControlTypeDeclaration* ctrl_proto = (Ast_ControlTypeDeclaration*)ctrl_decl->proto;
   Ast_Name* name = (Ast_Name*)ctrl_proto->name;
   declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)ctrl_decl);
   current_scope = push_scope();
@@ -985,7 +985,7 @@ internal void
 visit_control_proto(Ast* ast)
 {
   assert(ast->kind == AST_controlTypeDeclaration);
-  Ast_ControlProto* ctrl_proto = (Ast_ControlProto*)ast;
+  Ast_ControlTypeDeclaration* ctrl_proto = (Ast_ControlTypeDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)ctrl_proto->name;
   declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)ctrl_proto);
   current_scope = push_scope();
@@ -1043,7 +1043,7 @@ internal void
 visit_struct(Ast* ast)
 {
   assert(ast->kind == AST_structTypeDeclaration);
-  Ast_Struct* struct_decl = (Ast_Struct*)ast;
+  Ast_StructTypeDeclaration* struct_decl = (Ast_StructTypeDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)struct_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
   NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1071,7 +1071,7 @@ internal void
 visit_header(Ast* ast)
 {
   assert(ast->kind == AST_headerTypeDeclaration);
-  Ast_Header* header_decl = (Ast_Header*)ast;
+  Ast_HeaderTypeDeclaration* header_decl = (Ast_HeaderTypeDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)header_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
   NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1099,7 +1099,7 @@ internal void
 visit_header_union(Ast* ast)
 {
   assert(ast->kind == AST_headerUnionDeclaration);
-  Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
+  Ast_HeaderUnionDeclaration* union_decl = (Ast_HeaderUnionDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)union_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
   NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1127,7 +1127,7 @@ internal void
 visit_package(Ast* ast)
 {
   assert(ast->kind == AST_packageTypeDeclaration);
-  Ast_Package* package_decl = (Ast_Package*)ast;
+  Ast_PackageDeclaration* package_decl = (Ast_PackageDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)package_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
   NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1163,7 +1163,7 @@ internal void
 visit_parser(Ast* ast)
 {
   assert(ast->kind == AST_parserDeclaration);
-  Ast_Parser* parser_decl = (Ast_Parser*)ast;
+  Ast_ParserDeclaration* parser_decl = (Ast_ParserDeclaration*)ast;
   Ast_ParserProto* proto = (Ast_ParserProto*)parser_decl->proto;
   Ast_Name* name = (Ast_Name*)proto->name;
   declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)parser_decl);
@@ -1273,7 +1273,7 @@ internal void
 visit_typedef(Ast* ast)
 {
   assert(ast->kind == AST_typedefDeclaration);
-  Ast_TypeDef* type_decl = (Ast_TypeDef*)ast;
+  Ast_TypedefDeclaration* type_decl = (Ast_TypedefDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)type_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
   NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1293,8 +1293,8 @@ internal void
 visit_function(Ast* ast)
 {
   assert(ast->kind == AST_functionDeclaration);
-  Ast_Function* func_decl = (Ast_Function*)ast;
-  Ast_FunctionProto* func_proto = (Ast_FunctionProto*)func_decl->proto;
+  Ast_FunctionDeclaration* func_decl = (Ast_FunctionDeclaration*)ast;
+  Ast_FunctionPrototype* func_proto = (Ast_FunctionPrototype*)func_decl->proto;
   Ast_Name* name = (Ast_Name*)func_proto->name;
   declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)func_decl);
   current_scope = push_scope();
@@ -1337,7 +1337,7 @@ internal void
 visit_function_proto(Ast* ast)
 {
   assert(ast->kind == AST_functionPrototype);
-  Ast_FunctionProto* func_proto = (Ast_FunctionProto*)ast;
+  Ast_FunctionPrototype* func_proto = (Ast_FunctionPrototype*)ast;
   Ast_Name* name = (Ast_Name*)func_proto->name;
   declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)func_proto);
   current_scope = push_scope();
@@ -1369,7 +1369,7 @@ internal void
 visit_const(Ast* ast)
 {
   assert(ast->kind == AST_constantDeclaration);
-  Ast_Const* const_decl = (Ast_Const*)ast;
+  Ast_ConstDeclaration* const_decl = (Ast_ConstDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)const_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
   NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1417,7 +1417,7 @@ internal void
 visit_action(Ast* ast)
 {
   assert(ast->kind == AST_actionDeclaration);
-  Ast_Action* action_decl = (Ast_Action*)ast;
+  Ast_ActionDeclaration* action_decl = (Ast_ActionDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)action_decl->name;
   HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
   NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1512,7 +1512,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
     assert(current_scope->scope_level == 1);
   } else if (ast->kind == AST_actionDeclaration) {
     if (direction == WALK_IN) {
-      Ast_Action* action_decl = (Ast_Action*)ast;
+      Ast_ActionDeclaration* action_decl = (Ast_ActionDeclaration*)ast;
       Ast_Name* name = (Ast_Name*)action_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
       NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1544,7 +1544,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_constantDeclaration) {
     if (direction == WALK_IN) {
-      Ast_Const* const_decl = (Ast_Const*)ast;
+      Ast_ConstDeclaration* const_decl = (Ast_ConstDeclaration*)ast;
       Ast_Name* name = (Ast_Name*)const_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
       NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1558,7 +1558,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_functionPrototype) {
     if (direction == WALK_IN) {
-      Ast_FunctionProto* func_proto = (Ast_FunctionProto*)ast;
+      Ast_FunctionPrototype* func_proto = (Ast_FunctionPrototype*)ast;
       Ast_Name* name = (Ast_Name*)func_proto->name;
       declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)func_proto);
       current_scope = push_scope();
@@ -1567,8 +1567,8 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_functionDeclaration) {
     if (direction == WALK_IN) {
-      Ast_Function* func_decl = (Ast_Function*)ast;
-      Ast_FunctionProto* func_proto = (Ast_FunctionProto*)func_decl->proto;
+      Ast_FunctionDeclaration* func_decl = (Ast_FunctionDeclaration*)ast;
+      Ast_FunctionPrototype* func_proto = (Ast_FunctionPrototype*)func_decl->proto;
       Ast_Name* name = (Ast_Name*)func_proto->name;
       declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)func_decl);
       current_scope = push_scope();
@@ -1577,7 +1577,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_typedefDeclaration) {
     if (direction == WALK_IN) {
-      Ast_TypeDef* type_decl = (Ast_TypeDef*)ast;
+      Ast_TypedefDeclaration* type_decl = (Ast_TypedefDeclaration*)ast;
       Ast_Name* name = (Ast_Name*)type_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
       NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1614,7 +1614,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_parserDeclaration) {
     if (direction == WALK_IN) {
-      Ast_Parser* parser_decl = (Ast_Parser*)ast;
+      Ast_ParserDeclaration* parser_decl = (Ast_ParserDeclaration*)ast;
       Ast_ParserProto* proto = (Ast_ParserProto*)parser_decl->proto;
       Ast_Name* name = (Ast_Name*)proto->name;
       declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)parser_decl);
@@ -1624,7 +1624,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_packageTypeDeclaration) {
     if (direction == WALK_IN) {
-      Ast_Package* package_decl = (Ast_Package*)ast;
+      Ast_PackageDeclaration* package_decl = (Ast_PackageDeclaration*)ast;
       Ast_Name* name = (Ast_Name*)package_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
       NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1640,7 +1640,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_headerUnionDeclaration) {
     if (direction == WALK_IN) {
-      Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
+      Ast_HeaderUnionDeclaration* union_decl = (Ast_HeaderUnionDeclaration*)ast;
       Ast_Name* name = (Ast_Name*)union_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
       NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1656,7 +1656,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_headerTypeDeclaration) {
     if (direction == WALK_IN) {
-      Ast_Header* header_decl = (Ast_Header*)ast;
+      Ast_HeaderTypeDeclaration* header_decl = (Ast_HeaderTypeDeclaration*)ast;
       Ast_Name* name = (Ast_Name*)header_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
       NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1672,7 +1672,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_structTypeDeclaration) {
     if (direction == WALK_IN) {
-      Ast_Struct* struct_decl = (Ast_Struct*)ast;
+      Ast_StructTypeDeclaration* struct_decl = (Ast_StructTypeDeclaration*)ast;
       Ast_Name* name = (Ast_Name*)struct_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
       NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1697,7 +1697,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_controlTypeDeclaration) {
     if (direction == WALK_IN) {
-      Ast_ControlProto* ctrl_proto = (Ast_ControlProto*)ast;
+      Ast_ControlTypeDeclaration* ctrl_proto = (Ast_ControlTypeDeclaration*)ast;
       Ast_Name* name = (Ast_Name*)ctrl_proto->name;
       declare_type_name(current_scope, name->strname, name->line_no, name->column_no, (Ast*)ctrl_proto);
       current_scope = push_scope();
@@ -1712,7 +1712,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
   } else if (ast->kind == AST_baseTypeVarbit) {
   } else if (ast->kind == AST_baseTypeBit) {
   } else if (ast->kind == AST_baseTypeBool) {
-  } else if (ast->kind == AST_baseTypeInt) {
+  } else if (ast->kind == AST_baseTypeInteger) {
   } else if (ast->kind == AST_structField) {
     if (direction == WALK_IN) {
       Ast_StructField* field = (Ast_StructField*)ast;
@@ -1753,7 +1753,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
   } else if (ast->kind == AST_defaultKeysetExpression) {
   } else if (ast->kind == AST_tableDeclaration) {
     if (direction == WALK_IN) {
-      Ast_Table* table_decl = (Ast_Table*)ast;
+      Ast_TableDeclaration* table_decl = (Ast_TableDeclaration*)ast;
       Ast_Name* name = (Ast_Name*)table_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
       NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1767,7 +1767,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_variableDeclaration) {
     if (direction == WALK_IN) {
-      Ast_Var* var_decl = (Ast_Var*)ast;
+      Ast_VarDeclaration* var_decl = (Ast_VarDeclaration*)ast;
       Ast_Name* name = (Ast_Name*)var_decl->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
       NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1796,7 +1796,7 @@ visit(Ast* ast, enum AstWalkDirection direction)
     } else assert(0);
   } else if (ast->kind == AST_parameter) {
     if (direction == WALK_IN) {
-      Ast_Param* param = (Ast_Param*)ast;
+      Ast_Parameter* param = (Ast_Parameter*)ast;
       Ast_Name* name = (Ast_Name*)param->name;
       HashmapEntry* name_he = hashmap_create_entry_string(&current_scope->sym_table, name->strname);
       NamespaceEntry* ne = arena_push_struct(name_storage, NamespaceEntry);
@@ -1813,11 +1813,10 @@ visit(Ast* ast, enum AstWalkDirection direction)
   } else if (AST_integerLiteral) {
   } else if (AST_booleanLiteral) {
   } else if (AST_stringLiteral) {
-  } else if (ast->kind == AST_kvPairExpression) {
+  } else if (ast->kind == AST_kvPair) {
   } else if (ast->kind == AST_arraySubscript) {
   } else if (ast->kind == AST_castExpression) {
-  } else if (ast->kind == AST_exprListExpression) {
-  } else if (ast->kind == AST_memberSelectExpression) {
+  } else if (ast->kind == AST_memberSelector) {
   } else if (ast->kind == AST_functionCall) {
   } else if (ast->kind == AST_unaryExpression) {
   } else if (ast->kind == AST_binaryExpression) {

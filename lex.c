@@ -630,7 +630,7 @@ next_token(Token* token)
           c = char_advance(1);
         } while (cstr_is_digit(c, 10));
         if (c == 'w' || c == 's') {
-          token->klass = TK_INT_LITERAL;
+          token->klass = TK_INTEGER_LITERAL;
           if (c == 's') {
             token->i.is_signed = true;
           }
@@ -641,7 +641,7 @@ next_token(Token* token)
         } else {
           char_retract();
           lexeme[1].end = lexeme->end;
-          token->klass = TK_INT_LITERAL;
+          token->klass = TK_INTEGER_LITERAL;
           token->i.is_signed = true;
           token_install_integer(token, &lexeme[1], 10);
           token->lexeme = lexeme_to_cstring(lexeme);
@@ -661,7 +661,7 @@ next_token(Token* token)
         } while (cstr_is_digit(c, 16) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
-        token->klass = TK_INT_LITERAL;
+        token->klass = TK_INTEGER_LITERAL;
         token->i.is_signed = true;
         token_install_integer(token, &lexeme[1], 16);
         token->lexeme = lexeme_to_cstring(lexeme);
@@ -680,7 +680,7 @@ next_token(Token* token)
         } while (cstr_is_digit(c, 8) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
-        token->klass = TK_INT_LITERAL;
+        token->klass = TK_INTEGER_LITERAL;
         token->i.is_signed = true;
         token_install_integer(token, &lexeme[1], 8);
         token->lexeme = lexeme_to_cstring(lexeme);
@@ -699,7 +699,7 @@ next_token(Token* token)
         } while (cstr_is_digit(c, 2) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
-        token->klass = TK_INT_LITERAL;
+        token->klass = TK_INTEGER_LITERAL;
         token->i.is_signed = true;
         token_install_integer(token, &lexeme[1], 2);
         token->lexeme = lexeme_to_cstring(lexeme);

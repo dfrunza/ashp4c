@@ -25,7 +25,7 @@ internal void
 visit_binary_expr(Ast* ast)
 {
   assert(ast->kind == AST_binaryExpression);
-  Ast_BinaryExpr* expr = (Ast_BinaryExpr*)ast;
+  Ast_BinaryExpression* expr = (Ast_BinaryExpression*)ast;
   visit_expression(expr->left_operand);
   visit_expression(expr->right_operand);
   Type_TypeSet* lhs_ty = typeset_get(&potential_type, expr->left_operand->id);
@@ -53,7 +53,7 @@ internal void
 visit_unary_expr(Ast* ast)
 {
   assert(ast->kind == AST_unaryExpression);
-  Ast_UnaryExpr* expr = (Ast_UnaryExpr*)ast;
+  Ast_UnaryExpression* expr = (Ast_UnaryExpression*)ast;
   visit_expression(expr->operand);
   Type_FunctionCall* expr_ty = arena_push_struct(type_storage, Type_FunctionCall);
   expr_ty->ctor = TYPE_FUNCTION_CALL;
@@ -142,8 +142,8 @@ visit_function_call(Ast* ast)
 internal void
 visit_member_select(Ast* ast)
 {
-  assert(ast->kind == AST_memberSelectExpression);
-  Ast_MemberSelect* expr = (Ast_MemberSelect*)ast;
+  assert(ast->kind == AST_memberSelector);
+  Ast_MemberSelector* expr = (Ast_MemberSelector*)ast;
   visit_expression(expr->lhs_expr);
   Type_FunctionCall* expr_ty = arena_push_struct(type_storage, Type_FunctionCall);
   expr_ty->ctor = TYPE_FUNCTION_CALL;
@@ -190,7 +190,7 @@ internal void
 visit_cast_expr(Ast* ast)
 {
   assert(ast->kind == AST_castExpression);
-  Ast_CastExpr* expr = (Ast_CastExpr*)ast;
+  Ast_CastExpression* expr = (Ast_CastExpression*)ast;
   visit_type_ref(expr->to_type);
   visit_expression(expr->expr);
   Type_TypeSet* ty_set = typeset_create(&potential_type, expr->id);
@@ -216,7 +216,7 @@ internal void
 visit_kvpair(Ast* ast)
 {
   assert(ast->kind == AST_kvPairExpression);
-  Ast_KVPairExpr* expr = (Ast_KVPairExpr*)ast;
+  Ast_KVPair* expr = (Ast_KVPair*)ast;
   visit_expression(expr->expr);
   Type_TypeSet* ty_set = typeset_create(&potential_type, expr->id);
   ty_set->ast = (Ast*)expr;
@@ -267,7 +267,7 @@ visit_expression(Ast* ast)
     visit_name_identifier(ast);
   } else if (ast->kind == AST_functionCall) {
     visit_function_call(ast);
-  } else if (ast->kind == AST_memberSelectExpression) {
+  } else if (ast->kind == AST_memberSelector) {
     visit_member_select(ast);
   } else if (ast->kind == AST_exprListExpression) {
     visit_expression_list(ast);
@@ -407,7 +407,7 @@ internal void
 visit_tuple_keyset(Ast* ast)
 {
   assert(ast->kind == AST_tupleKeysetExpression);
-  Ast_TupleKeyset* keyset = (Ast_TupleKeyset*)ast;
+  Ast_TupleKeysetExpression* keyset = (Ast_TupleKeysetExpression*)ast;
   Ast_NodeList* expr_list = &keyset->expr_list;
   ListItem* li = expr_list->list.next;
   while (li) {
@@ -535,7 +535,7 @@ internal void
 visit_var_decl(Ast* ast)
 {
   assert(ast->kind == AST_variableDeclaration);
-  Ast_Var* var_decl = (Ast_Var*)ast;
+  Ast_VarDeclaration* var_decl = (Ast_VarDeclaration*)ast;
   visit_type_ref(var_decl->type);
   if (var_decl->init_expr) {
     visit_expression(var_decl->init_expr);
@@ -549,7 +549,7 @@ internal void
 visit_table(Ast* ast)
 {
   assert(ast->kind == AST_tableDeclaration);
-  Ast_Table* table_decl = (Ast_Table*)ast;
+  Ast_TableDeclaration* table_decl = (Ast_TableDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)table_decl->name;
   Type_TypeName* table_ty = arena_push_struct(type_storage, Type_TypeName);
   table_ty->ctor = TYPE_TYPENAME;
@@ -571,7 +571,7 @@ internal void
 visit_if_stmt(Ast* ast)
 {
   assert(ast->kind == AST_conditionalStatement);
-  Ast_IfStmt* stmt = (Ast_IfStmt*)ast;
+  Ast_ConditionalStmt* stmt = (Ast_ConditionalStmt*)ast;
   visit_expression(stmt->cond_expr);
   visit_statement(stmt->stmt);
   if (stmt->else_stmt) {
@@ -694,7 +694,7 @@ internal void
 visit_select_expr(Ast* ast)
 {
   assert(ast->kind == AST_selectExpression);
-  Ast_SelectExpr* trans_stmt = (Ast_SelectExpr*)ast;
+  Ast_SelectExpression* trans_stmt = (Ast_SelectExpression*)ast;
   ListItem* li;
   Ast_NodeList* expr_list = &trans_stmt->expr_list;
   li = expr_list->list.next;
@@ -763,7 +763,7 @@ visit_bool_type(Ast* ast)
 internal void
 visit_int_type(Ast* ast)
 {
-  assert(ast->kind == AST_baseTypeInt);
+  assert(ast->kind == AST_baseTypeInteger);
   NamespaceEntry* ne = scope_lookup_name(root_scope, "int");
   Ast* int_decl = ne->ns_type->ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, ast->id);
@@ -830,7 +830,7 @@ internal void
 visit_header_stack(Ast* ast)
 {
   assert(ast->kind == AST_headerStackType);
-  Ast_HeaderStack* type_ref = (Ast_HeaderStack*)ast;
+  Ast_HeaderStackType* type_ref = (Ast_HeaderStackType*)ast;
   visit_expression(type_ref->name);
   visit_expression(type_ref->stack_expr);
   Type_TypeSet* ty_set = typeset_create(&potential_type, type_ref->id);
@@ -879,7 +879,7 @@ internal void
 visit_tuple(Ast* ast)
 {
   assert(ast->kind == AST_tupleType);
-  Ast_Tuple* tuple_decl = (Ast_Tuple*)ast;
+  Ast_TupleType* tuple_decl = (Ast_TupleType*)ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, tuple_decl->id);
   ty_set->ast = (Ast*)tuple_decl;
   Ast_NodeList* args = &tuple_decl->type_args;
@@ -918,7 +918,7 @@ visit_type_ref(Ast* ast)
 {
   if (ast->kind == AST_baseTypeBool) {
     visit_bool_type(ast);
-  } else if (ast->kind == AST_baseTypeInt) {
+  } else if (ast->kind == AST_baseTypeInteger) {
     visit_int_type(ast);
   } else if (ast->kind == AST_baseTypeBit) {
     visit_bit_type(ast);
@@ -968,7 +968,7 @@ internal void
 visit_control(Ast* ast)
 {
   assert(ast->kind == AST_controlDeclaration);
-  Ast_Control* ctrl_decl = (Ast_Control*)ast;
+  Ast_ControlDeclaration* ctrl_decl = (Ast_ControlDeclaration*)ast;
   visit_control_proto(ctrl_decl->proto);
   Type_TypeSet* ty_set = typeset_create(&potential_type, ctrl_decl->id);
   ty_set->ast = (Ast*)ctrl_decl;
@@ -997,7 +997,7 @@ internal void
 visit_control_proto(Ast* ast)
 {
   assert(ast->kind == AST_controlTypeDeclaration);
-  Ast_ControlProto* proto = (Ast_ControlProto*)ast;
+  Ast_ControlTypeDeclaration* proto = (Ast_ControlTypeDeclaration*)ast;
   Type_Function* control_ty = arena_push_struct(type_storage, Type_Function);
   control_ty->ctor = TYPE_FUNCTION;
   control_ty->ast = (Ast*)proto;
@@ -1074,7 +1074,7 @@ internal void
 visit_struct(Ast* ast)
 {
   assert(ast->kind == AST_structTypeDeclaration);
-  Ast_Struct* struct_decl = (Ast_Struct*)ast;
+  Ast_StructTypeDeclaration* struct_decl = (Ast_StructTypeDeclaration*)ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, struct_decl->id);
   ty_set->ast = (Ast*)struct_decl;
   Ast_NodeList* fields = &struct_decl->fields;
@@ -1106,7 +1106,7 @@ internal void
 visit_header(Ast* ast)
 {
   assert(ast->kind == AST_headerTypeDeclaration);
-  Ast_Header* header_decl = (Ast_Header*)ast;
+  Ast_HeaderTypeDeclaration* header_decl = (Ast_HeaderTypeDeclaration*)ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, header_decl->id);
   ty_set->ast = (Ast*)header_decl;
   Ast_NodeList* fields = &header_decl->fields;
@@ -1138,7 +1138,7 @@ internal void
 visit_header_union(Ast* ast)
 {
   assert(ast->kind == AST_headerUnionDeclaration);
-  Ast_HeaderUnion* union_decl = (Ast_HeaderUnion*)ast;
+  Ast_HeaderUnionDeclaration* union_decl = (Ast_HeaderUnionDeclaration*)ast;
   Type_TypeSet* ty_set = typeset_create(&potential_type, union_decl->id);
   ty_set->ast = (Ast*)union_decl;
   Ast_NodeList* fields = &union_decl->fields;
@@ -1170,7 +1170,7 @@ internal void
 visit_package(Ast* ast)
 {
   assert(ast->kind == AST_packageTypeDeclaration);
-  Ast_Package* package_decl = (Ast_Package*)ast;
+  Ast_PackageDeclaration* package_decl = (Ast_PackageDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)package_decl->name;
   Type_TypeName* package_ty = arena_push_struct(type_storage, Type_TypeName);
   package_ty->ctor = TYPE_TYPENAME;
@@ -1200,7 +1200,7 @@ internal void
 visit_parser(Ast* ast)
 {
   assert(ast->kind == AST_parserDeclaration);
-  Ast_Parser* parser_decl = (Ast_Parser*)ast;
+  Ast_ParserDeclaration* parser_decl = (Ast_ParserDeclaration*)ast;
   visit_parser_proto(parser_decl->proto);
   Type_TypeSet* ty_set = typeset_create(&potential_type, parser_decl->id);
   ty_set->ast = (Ast*)parser_decl;
@@ -1321,7 +1321,7 @@ internal void
 visit_typedef(Ast* ast)
 {
   assert(ast->kind == AST_typedefDeclaration);
-  Ast_TypeDef* type_decl = (Ast_TypeDef*)ast;
+  Ast_TypedefDeclaration* type_decl = (Ast_TypedefDeclaration*)ast;
   visit_type_ref(type_decl->type_ref);
   Type_TypeSet* ty_set = typeset_create(&potential_type, type_decl->id);
   ty_set->ast = (Ast*)type_decl;
@@ -1332,7 +1332,7 @@ internal void
 visit_function(Ast* ast)
 {
   assert(ast->kind == AST_functionDeclaration);
-  Ast_Function* function_decl = (Ast_Function*)ast;
+  Ast_FunctionDeclaration* function_decl = (Ast_FunctionDeclaration*)ast;
   visit_function_proto(function_decl->proto);
   Type_TypeSet* ty_set = typeset_create(&potential_type, function_decl->id);
   ty_set->ast = (Ast*)function_decl;
@@ -1353,7 +1353,7 @@ internal void
 visit_function_proto(Ast* ast)
 {
   assert(ast->kind == AST_functionPrototype);
-  Ast_FunctionProto* proto = (Ast_FunctionProto*)ast;
+  Ast_FunctionPrototype* proto = (Ast_FunctionPrototype*)ast;
   Type_Function* function_ty = arena_push_struct(type_storage, Type_Function);
   function_ty->ctor = TYPE_FUNCTION;
   function_ty->ast = (Ast*)proto;
@@ -1404,7 +1404,7 @@ internal void
 visit_const(Ast* ast)
 {
   assert(ast->kind == AST_constantDeclaration);
-  Ast_Const* const_decl = (Ast_Const*)ast;
+  Ast_ConstDeclaration* const_decl = (Ast_ConstDeclaration*)ast;
   visit_type_ref(const_decl->type);
   visit_expression(const_decl->expr);
   Type_TypeSet* ty_set = typeset_create(&potential_type, const_decl->id);
@@ -1431,7 +1431,7 @@ internal void
 visit_action(Ast* ast)
 {
   assert(ast->kind == AST_actionDeclaration);
-  Ast_Action* action_decl = (Ast_Action*)ast;
+  Ast_ActionDeclaration* action_decl = (Ast_ActionDeclaration*)ast;
   Type_Function* function_ty = arena_push_struct(type_storage, Type_Function);
   function_ty->ctor = TYPE_FUNCTION;
   function_ty->ast = (Ast*)action_decl;
