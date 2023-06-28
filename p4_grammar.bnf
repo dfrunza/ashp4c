@@ -3,9 +3,10 @@
 
 <p4program> := { <declaration> | ';' /* empty declaration */ }*
 
-<declaration> := <constantDeclaration> | <externDeclaration> | <actionDeclaration> |
-  <parserDeclaration> | <typeDeclaration> | <controlDeclaration> | <instantiation> |
-  <errorDeclaration> | <matchKindDeclaration> | <functionDeclaration>
+<declaration> := <constantDeclaration> | <externDeclaration> |
+  <actionDeclaration> | <functionDeclaration> | 
+  <parserDeclaration> | <controlDeclaration> | <typeDeclaration> |
+  <errorDeclaration> | <matchKindDeclaration> | <instantiation> 
 
 <nonTypeName> := IDENTIFIER | APPLY | KEY | ACTIONS | STATE | ENTRIES | TYPE
 
@@ -15,9 +16,9 @@
 
 <parameterList> := { <parameter> { ',' <parameter> }* }
 
-<parameter> := <direction> <typeRef> <name> { '=' <expression> }
+<parameter> := { <direction> } <typeRef> <name> { '=' <expression> }
 
-<direction> := { IN | OUT | INOUT }
+<direction> := IN | OUT | INOUT
 
 <packageTypeDeclaration> := PACKAGE <name> <optTypeParameters> '(' <parameterList> ')'
 

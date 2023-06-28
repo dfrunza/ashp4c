@@ -116,9 +116,9 @@ enum AstEnum {
   AST_parameterList,
   AST_parameter,
   AST_packageTypeDeclaration,
+  AST_instantiation,
 
   /** PARSER **/
-  AST_instantiation,
   AST_parserDeclaration,
   AST_parserTypeDeclaration,
   AST_parserLocalElements,
