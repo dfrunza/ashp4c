@@ -245,7 +245,7 @@ enum AstEnum {
   AST_stringLiteral,
 };
 
-enum AstOperator {
+enum Ast_Operator {
   /* Arithmetic */
   OP_ADD = 1,
   OP_SUB,
@@ -276,7 +276,7 @@ enum AstOperator {
   OP_MASK,
 };
 
-enum AstParamDirection {
+enum Ast_ParamDirection {
   PARAMDIR_IN = 1,
   PARAMDIR_OUT,
   PARAMDIR_INOUT,
@@ -300,6 +300,11 @@ typedef struct Ast {
   int column_no;
 } Ast;
 
+typedef struct Ast_List {
+  Ast;
+  List members;
+} Ast_List;
+
 /** PROGRAM **/
 
 typedef struct Ast_P4Program {
@@ -307,11 +312,6 @@ typedef struct Ast_P4Program {
   Ast* decl_list;
   int last_node_id;
 } Ast_P4Program;
-
-typedef struct Ast_List {
-  Ast;
-  List members;
-} Ast_List;
 
 typedef struct Ast_Declaration {
   Ast;
@@ -326,7 +326,7 @@ typedef struct Ast_Name {
 
 typedef struct Ast_Parameter {
   Ast;
-  enum AstParamDirection direction;
+  enum Ast_ParamDirection direction;
   Ast* name;
   Ast* type;
   Ast* init_expr;
@@ -339,7 +339,6 @@ typedef struct Ast_PackageTypeDeclaration {
   Ast* params;
 } Ast_PackageTypeDeclaration;
 
-/** PARSER **/
 
 typedef struct Ast_Instantiation {
   Ast;
@@ -347,6 +346,8 @@ typedef struct Ast_Instantiation {
   Ast* type_ref;
   Ast* args;
 } Ast_Instantiation;
+
+/** PARSER **/
 
 typedef struct Ast_ParserDeclaration {
   Ast;
@@ -758,14 +759,14 @@ typedef struct Ast_Expression {
 
 typedef struct Ast_BinaryExpression {
   Ast;
-  enum AstOperator op;
+  enum Ast_Operator op;
   Ast* left_operand;
   Ast* right_operand;
 } Ast_BinaryExpression;
 
 typedef struct Ast_UnaryExpression {
   Ast;
-  enum AstOperator op;
+  enum Ast_Operator op;
   Ast* operand;
 } Ast_UnaryExpression;
 
@@ -816,8 +817,8 @@ typedef struct Ast_StringLiteral {
   char* value;
 } Ast_StringLiteral;
 
-typedef void AstVisitor(Ast*, enum AstWalkDirection);
-void traverse_p4program(Ast_P4Program* p4program, AstVisitor* visitor);
+typedef void AstVisit(Ast*, enum AstWalkDirection);
+void traverse_p4program(Ast_P4Program* p4program, AstVisit* visitor);
 
 typedef struct NameDecl {
   union {

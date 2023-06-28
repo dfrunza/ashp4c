@@ -1,4 +1,6 @@
-extern void log(string s);
+const int a = 5;
+const int b = 2 * a;
+const int c = b - a + 3;
 
 control C();
 
@@ -6,7 +8,6 @@ package top(C c);
 
 control c() {
     apply {
-        log("This is a message");
     }
 }
 

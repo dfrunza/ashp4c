@@ -376,7 +376,7 @@ get_operator_priority(Token* token)
   return 0;
 }
 
-internal enum AstOperator
+internal enum Ast_Operator
 token_to_binop(Token* token)
 {
   switch (token->klass) {
@@ -563,7 +563,7 @@ parse_typeArgumentList()
   return (Ast*)args;
 }
 
-internal enum AstParamDirection
+internal enum Ast_ParamDirection
 parse_direction()
 {
   if (token_is_direction(token)) {
