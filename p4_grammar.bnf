@@ -1,6 +1,5 @@
 
-== PROGRAM ==
-=============
+/** PROGRAM **/
 
 <p4program> := { <declaration> | ';' /* empty declaration */ }*
 
@@ -27,8 +26,7 @@
 <optConstructorParameters> := { '(' <parameterList> ')' }
 
 
-==  PARSER  ==
-==============
+/**  PARSER  **/
 
 <parserDeclaration> := <parserTypeDeclaration> <optConstructorParameters>
   '{' <parserLocalElements> <parserStates> '}'
@@ -69,8 +67,7 @@
 /* <valueSetDeclaration> := VALUESET '<' ( <baseType> | <tupleType> | <typeName> ) '>' '(' <expression> ')' <name> ';' */
 
 
-==  CONTROL  ==
-===============
+/**  CONTROL  **/
 
 <controlDeclaration> := <controlTypeDeclaration> <optConstructorParameters>
   '{' { <controlLocalDeclaration> }* APPLY <controlBody> '}'
@@ -83,8 +80,7 @@
 <controlBody> := <blockStatement>
 
 
-==  EXTERN  ==
-==============
+/**  EXTERN  **/
 
 <externDeclaration> := EXTERN (
     <nonTypeName> <optTypeParameters> '{' <methodPrototypes> '}' |
@@ -100,8 +96,7 @@
   TYPE_IDENTIFIER '(' <parameterList> ')' ';' /* constructor */
 
 
-==  TYPES  ==
-=============
+/**  TYPES  **/
 
 <typeRef> := <baseType> | <namedType> | <tupleType>
 
@@ -172,8 +167,7 @@
   TYPE ( <typeRef> | <derivedTypeDeclaration> ) <name> ';'
 
 
-==  STATEMENTS  ==
-==================
+/**  STATEMENTS  **/
 
 <assignmentOrMethodCallStatement> := <lvalue> (
     { '<' <typeArgumentList> '>' } '(' <argumentList> ')' ';' |
@@ -209,8 +203,7 @@
 <switchLabel> := <name> | DEFAULT
 
 
-==  TABLES  ==
-==============
+/**  TABLES  **/
 
 <tableDeclaration> := TABLE <name> '{' <tablePropertyList> '}'
 
@@ -237,8 +230,7 @@
 <actionDeclaration> := ACTION <name> '(' <parameterList> ')' <blockStatement>
 
 
-==  VARIABLES  ==
-=================
+/**  VARIABLES  **/
 
 <variableDeclaration> := <typeRef> <name> <optInitializer> ';'
 
@@ -249,8 +241,7 @@
 <initializer> := <expression>
 
 
-==  EXPRESSIONS  ==
-===================
+/**  EXPRESSIONS  **/
 
 <functionDeclaration> := <functionPrototype> <blockStatement>
 
