@@ -288,11 +288,6 @@ typedef struct Scope {
   Hashmap sym_table;
 } Scope;
 
-enum AstWalkDirection {
-  WALK_IN = 1,
-  WALK_OUT,
-};
-
 typedef struct Ast {
   enum AstEnum kind;
   uint32_t id;
@@ -817,8 +812,8 @@ typedef struct Ast_StringLiteral {
   char* value;
 } Ast_StringLiteral;
 
-typedef void AstVisit(Ast*, enum AstWalkDirection);
-void traverse_p4program(Ast_P4Program* p4program, AstVisit* visitor);
+typedef void AstVisitor(Ast*);
+void traverse_p4program(Ast_P4Program* p4program, AstVisitor* walk_in, AstVisitor* walk_out);
 
 typedef struct NameDecl {
   union {
