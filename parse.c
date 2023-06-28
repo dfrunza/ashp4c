@@ -468,7 +468,7 @@ parse_typeParameterList()
   params->id = node_id++;
   params->line_no = token->line_no;
   params->column_no = token->column_no;
-  list_init(&params->members);
+  list_reset(&params->members);
   if (token_is_typeParameterList(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&params->members, li, 1);
@@ -548,7 +548,7 @@ parse_typeArgumentList()
   args->id = node_id++;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
-  list_init(&args->members);
+  list_reset(&args->members);
   if (token_is_typeArg(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&args->members, li, 1);
@@ -618,7 +618,7 @@ parse_parameterList()
   params->id = node_id++;
   params->line_no = token->line_no;
   params->column_no = token->column_no;
-  list_init(&params->members);
+  list_reset(&params->members);
   if (token_is_parameter(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&params->members, li, 1);
@@ -755,7 +755,7 @@ parse_methodPrototypes()
   protos->id = node_id++;
   protos->line_no = token->line_no;
   protos->column_no = token->column_no;
-  list_init(&protos->members);
+  list_reset(&protos->members);
   if (token_is_methodPrototype(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&protos->members, li, 1);
@@ -1189,7 +1189,7 @@ parse_structFieldList()
   fields->id = node_id++;
   fields->line_no = token->line_no;
   fields->column_no = token->column_no;
-  list_init(&fields->members);
+  list_reset(&fields->members);
   if (token_is_structField(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&fields->members, li, 1);
@@ -1348,7 +1348,7 @@ parse_specifiedIdentifierList()
   ids->id = node_id++;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
-  list_init(&ids->members);
+  list_reset(&ids->members);
   if (token_is_specifiedIdentifier(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&ids->members, li, 1);
@@ -1567,7 +1567,7 @@ parse_argumentList()
   args->id = node_id++;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
-  list_init(&args->members);
+  list_reset(&args->members);
   if (token_is_argument(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&args->members, li, 1);
@@ -1699,7 +1699,7 @@ parse_parserLocalElements()
   elems->id = node_id++;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
-  list_init(&elems->members);
+  list_reset(&elems->members);
   if (token_is_parserLocalElement(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&elems->members, li, 1);
@@ -1908,7 +1908,7 @@ parse_parserStatements()
   stmts->id = node_id++;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
-  list_init(&stmts->members);
+  list_reset(&stmts->members);
   if (token_is_parserStatement(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&stmts->members, li, 1);
@@ -1994,7 +1994,7 @@ parse_expressionList()
   exprs->id = node_id++;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
-  list_init(&exprs->members);
+  list_reset(&exprs->members);
   if (token_is_expression(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&exprs->members, li, 1);
@@ -2054,7 +2054,7 @@ parse_keysetExpressionList()
   exprs->id = node_id++;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
-  list_init(&exprs->members);
+  list_reset(&exprs->members);
   if (token_is_expression(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&exprs->members, li, 1);
@@ -2149,7 +2149,7 @@ parse_selectCaseList()
   cases->id = node_id++;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
-  list_init(&cases->members);
+  list_reset(&cases->members);
   if (token_is_selectCase(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&cases->members, li, 1);
@@ -2278,7 +2278,7 @@ parse_parserStates()
   states->id = node_id++;
   states->line_no = token->line_no;
   states->column_no = token->column_no;
-  list_init(&states->members);
+  list_reset(&states->members);
   if (token->klass == TK_STATE) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&states->members, li, 1);
@@ -2430,7 +2430,7 @@ parse_keyElementList()
   elems->id = node_id++;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
-  list_init(&elems->members);
+  list_reset(&elems->members);
   if (token_is_expression(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&elems->members, li, 1);
@@ -2470,7 +2470,7 @@ parse_actionList()
   actions->id = node_id++;
   actions->line_no = token->line_no;
   actions->column_no = token->column_no;
-  list_init(&actions->members);
+  list_reset(&actions->members);
   if (token_is_actionRef(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&actions->members, li, 1);
@@ -2526,7 +2526,7 @@ parse_entriesList()
   entries->id = node_id++;
   entries->line_no = token->line_no;
   entries->column_no = token->column_no;
-  list_init(&entries->members);
+  list_reset(&entries->members);
   if (token_is_keysetExpression(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&entries->members, li, 1);
@@ -2658,7 +2658,7 @@ parse_tablePropertyList()
   props->id = node_id++;
   props->line_no = token->line_no;
   props->column_no = token->column_no;
-  list_init(&props->members);
+  list_reset(&props->members);
   if (token_is_tableProperty(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&props->members, li, 1);
@@ -2745,7 +2745,7 @@ parse_controlLocalDeclarations()
   decls->id = node_id++;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
-  list_init(&decls->members);
+  list_reset(&decls->members);
   if (token_is_controlLocalDeclaration(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&decls->members, li, 1);
@@ -3046,7 +3046,7 @@ parse_switchCases()
   cases->id = node_id++;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
-  list_init(&cases->members);
+  list_reset(&cases->members);
   if (token_is_switchLabel(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&cases->members, li, 1);
@@ -3183,7 +3183,7 @@ parse_statementOrDeclList()
   stmts->id = node_id++;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
-  list_init(&stmts->members);
+  list_reset(&stmts->members);
   if (token_is_statementOrDeclaration(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&stmts->members, li, 1);
@@ -3227,7 +3227,7 @@ parse_identifierList()
   ids->id = node_id++;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
-  list_init(&ids->members);
+  list_reset(&ids->members);
   if (token_is_name(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&ids->members, li, 1);
@@ -3381,7 +3381,7 @@ parse_declarationList()
   decls->id = node_id++;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
-  list_init(&decls->members);
+  list_reset(&decls->members);
   if (token_is_declaration(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&decls->members, li, 1);
@@ -3454,7 +3454,7 @@ parse_realTypeArgumentList()
   args->id = node_id++;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
-  list_init(&args->members);
+  list_reset(&args->members);
   if (token_is_realTypeArg(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     list_append_item(&args->members, li, 1);
@@ -3699,7 +3699,7 @@ parse_tokens(UnboundedArray* tokens_, Arena* ast_storage_)
 {
   tokens = tokens_;
   ast_storage = ast_storage_;
-  symbol_table_init(ast_storage);
+  symbol_table_reset(ast_storage);
   root_scope = current_scope = push_scope();
 
   declare_keyword(root_scope, "action", TK_ACTION);

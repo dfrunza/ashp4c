@@ -1217,7 +1217,7 @@ select_type(Ast_P4Program* p4program, Scope* root_scope_, Hashmap* potential_typ
   root_scope = root_scope_;
   potential_type = potential_type_;
   type_storage = type_storage_;
-  hashmap_init(&selected_type, HASHMAP_KEY_UINT32, 8, type_storage);
+  hashmap_create(&selected_type, HASHMAP_KEY_UINT32, 8, type_storage);
 
   visit_p4program((Ast*)p4program);
   return &selected_type;

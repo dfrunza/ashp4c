@@ -104,9 +104,9 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 }
 
 void
-hashmap_init(Hashmap* hashmap, enum HashmapKeyType key_type, int capacity_log2, Arena* storage)
+hashmap_create(Hashmap* hashmap, enum HashmapKeyType key_type, int capacity_log2, Arena* storage)
 {
-  array_init(&hashmap->entries, sizeof(HashmapEntry*), storage);
+  array_create(&hashmap->entries, sizeof(HashmapEntry*), storage);
   hashmap->key_type = key_type;
   hashmap->capacity = (1 << capacity_log2) - 1;
   hashmap->entry_count = 0;
@@ -157,7 +157,7 @@ hashmap_create_entry(Hashmap* hashmap, HashmapKey* key)
   }
   if (hashmap->entry_count >= hashmap->capacity) {
     HashmapCursor entry_it = {};
-    hashmap_cursor_init(&entry_it, hashmap);
+    hashmap_cursor_reset(&entry_it, hashmap);
     HashmapEntry* first_entry = hashmap_move_cursor(&entry_it);
     HashmapEntry* last_entry = first_entry;
     int entry_count = first_entry ? 1 : 0;
@@ -213,7 +213,7 @@ hashmap_create_entry_string(Hashmap* map, char* str_key)
 }
 
 void
-hashmap_cursor_init(HashmapCursor* it, Hashmap* hashmap)
+hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap)
 {
   it->hashmap = hashmap;
   it->i = -1;

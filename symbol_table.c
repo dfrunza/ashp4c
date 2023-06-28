@@ -12,7 +12,7 @@ Scope*
 push_scope()
 {
   Scope* scope = arena_push_struct(scope_storage, Scope);
-  hashmap_init(&scope->sym_table, HASHMAP_KEY_STRING, 3, scope_storage);
+  hashmap_create(&scope->sym_table, HASHMAP_KEY_STRING, 3, scope_storage);
   scope->scope_level = scope_level++;
   scope->parent_scope = current_scope;
   current_scope = scope;
@@ -90,7 +90,7 @@ scope_lookup_name(Scope* scope, char* strname)
 }
 
 void
-symbol_table_init(Arena* scope_storage_)
+symbol_table_reset(Arena* scope_storage_)
 {
   scope_storage = scope_storage_;
   scope_level = 0;

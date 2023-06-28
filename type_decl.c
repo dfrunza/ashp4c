@@ -1130,7 +1130,7 @@ build_type_decl(Ast_P4Program* p4program, Scope* root_scope_, Arena* type_storag
 {
   root_scope = root_scope_;
   type_storage = type_storage_;
-  hashmap_init(&type_table, HASHMAP_KEY_UINT32, 8, type_storage);
+  hashmap_create(&type_table, HASHMAP_KEY_UINT32, 8, type_storage);
 
   {
     Ast* void_decl = scope_lookup_name(root_scope, "void")->ns_type->ast;

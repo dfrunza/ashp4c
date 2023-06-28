@@ -61,7 +61,7 @@ typedef struct List {
   int item_count;
 } List;
 
-void list_init(List* list);
+void list_reset(List* list);
 void list_append_item(List* list, ListItem* item, int count);
 
 // Max 1,048,575 elements
@@ -75,7 +75,7 @@ typedef struct UnboundedArray {
   Arena* storage;
 } UnboundedArray;
 
-void array_init(UnboundedArray* array, int elem_size, Arena* storage);
+void array_create(UnboundedArray* array, int elem_size, Arena* storage);
 void* array_get(UnboundedArray* array, int i);
 void* array_set(UnboundedArray* array, int i, void* elem);
 void* array_append(UnboundedArray* array, void* elem);
@@ -116,7 +116,7 @@ typedef struct HashmapCursor {
   HashmapEntry* entry;
 } HashmapCursor;
 
-void hashmap_init(Hashmap* hashmap, enum HashmapKeyType type, int capacity_log2, Arena* storage);
+void hashmap_create(Hashmap* hashmap, enum HashmapKeyType type, int capacity_log2, Arena* storage);
 void hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ HashmapKey* key, int capacity_log2);
 HashmapEntry* hashmap_create_entry(Hashmap* hashmap, HashmapKey* key);
 HashmapEntry* hashmap_create_entry_uint32(Hashmap* map, uint32_t int_key);
@@ -124,6 +124,6 @@ HashmapEntry* hashmap_create_entry_string(Hashmap* map, char* str_key);
 HashmapEntry* hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
 HashmapEntry* hashmap_get_entry_uint32(Hashmap* map, uint32_t int_key);
 HashmapEntry* hashmap_get_entry_string(Hashmap* map, char* str_key);
-void hashmap_cursor_init(HashmapCursor* it, Hashmap* hashmap);
+void hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap);
 HashmapEntry* hashmap_move_cursor(HashmapCursor* it);
 

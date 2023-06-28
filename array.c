@@ -5,7 +5,7 @@
 #include "foundation.h"
 
 void
-array_init(UnboundedArray* array, int elem_size, Arena* storage)
+array_create(UnboundedArray* array, int elem_size, Arena* storage)
 {
   memset(array->segment_table, 0, sizeof(array->segment_table));
   array->elem_size = elem_size;
@@ -69,7 +69,7 @@ array_append(UnboundedArray* array, void* elem)
 }
 
 void
-list_init(List* list)
+list_reset(List* list)
 {
   list->last_item = &list->sentinel;
   list->sentinel.next = list->sentinel.prev = 0;

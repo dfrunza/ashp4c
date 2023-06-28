@@ -833,7 +833,7 @@ typedef struct NamespaceEntry {
   NameDecl* ns_keyword;
 } NamespaceEntry;
 
-void symbol_table_init(Arena* scope_storage);
+void symbol_table_reset(Arena* scope_storage);
 Scope* push_scope();
 Scope* pop_scope();
 NamespaceEntry* scope_lookup_name(Scope* scope, char* name);
