@@ -2013,14 +2013,8 @@ internal Ast*
 parse_simpleKeysetExpression()
 {
   if (token_is_simpleKeysetExpression(token)) {
-    Ast_KeysetExpression* keyset_expr = arena_push_struct(ast_storage, Ast_KeysetExpression);
-    keyset_expr->kind = AST_keysetExpression;
-    keyset_expr->id = node_id++;
-    keyset_expr->line_no = token->line_no;
-    keyset_expr->column_no = token->column_no;
     if (token_is_expression(token)) {
-      keyset_expr->expr = parse_expression(1);
-      return (Ast*)keyset_expr;
+      return parse_expression(1);
     } else if (token->klass == TK_DEFAULT) {
       next_token();
       Ast* default_set = arena_push_struct(ast_storage, Ast);
@@ -2028,8 +2022,7 @@ parse_simpleKeysetExpression()
       default_set->id = node_id++;
       default_set->line_no = token->line_no;
       default_set->column_no = token->column_no;
-      keyset_expr->expr = default_set;
-      return (Ast*)keyset_expr;
+      return default_set;
     } else if (token->klass == TK_DONTCARE) {
       next_token();
       Ast* dontcare_set = arena_push_struct(ast_storage, Ast);
@@ -2037,8 +2030,7 @@ parse_simpleKeysetExpression()
       dontcare_set->id = node_id++;
       dontcare_set->line_no = token->line_no;
       dontcare_set->column_no = token->column_no;
-      keyset_expr->expr = dontcare_set;
-      return (Ast*)keyset_expr;
+      return dontcare_set;
     }
   } else error("At line %d, column %d: keyset expression was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -2095,16 +2087,17 @@ internal Ast*
 parse_keysetExpression()
 {
   if (token->klass == TK_PARENTH_OPEN || token_is_simpleKeysetExpression(token)) {
+    Ast_KeysetExpression* keyset_expr = arena_push_struct(ast_storage, Ast_KeysetExpression);
+    keyset_expr->kind = AST_keysetExpression;
+    keyset_expr->id = node_id++;
+    keyset_expr->line_no = token->line_no;
+    keyset_expr->column_no = token->column_no;
     if (token->klass == TK_PARENTH_OPEN) {
-      Ast_KeysetExpression* keyset_expr = arena_push_struct(ast_storage, Ast_KeysetExpression);
-      keyset_expr->kind = AST_keysetExpression;
-      keyset_expr->id = node_id++;
-      keyset_expr->line_no = token->line_no;
-      keyset_expr->column_no = token->column_no;
       keyset_expr->expr = parse_tupleKeysetExpression();
       return (Ast*)keyset_expr;
     } else if (token_is_simpleKeysetExpression(token)) {
-      return parse_simpleKeysetExpression();
+      keyset_expr->expr = parse_simpleKeysetExpression();
+      return (Ast*)keyset_expr;
     } else assert(0);
   } else error("At line %d, column %d: keyset expression was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);

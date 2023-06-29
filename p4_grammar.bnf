@@ -34,15 +34,15 @@
 
 <parserTypeDeclaration> := PARSER <name> <optTypeParameters> '(' <parameterList> ')'
 
-<parserLocalElements> := { <parserLocalElement> { <parserLocalElement> }* }
+<parserLocalElements> := { <parserLocalElement> }*
 
 <parserLocalElement> := <constantDeclaration> | <variableDeclaration> | <instantiation> /* | <valueSetDeclaration> */
 
 <parserStates> := <parserState> { <parserState> }*
 
-<parserState> := STATE name '{' <parserStatements> <transitionStatement> '}'
+<parserState> := STATE <name> '{' <parserStatements> <transitionStatement> '}'
 
-<parserStatements> := { <parserStatement> { <parserStatement }* }
+<parserStatements> := { <parserStatement> }*
 
 <parserStatement> := <assignmentOrMethodCallStatement> | <directApplication> | <parserBlockStatement> |
   <constantDeclaration> | <variableDeclaration> | <emptyStatement>
@@ -55,7 +55,7 @@
 
 <selectExpression> := SELECT '(' <expressionList> ')' '{' <selectCaseList> '}'
 
-<selectCaseList> := { <selectCase> { <selectCase> }* }
+<selectCaseList> := { <selectCase> }*
 
 <selectCase> := <keysetExpression> ':' <name> ';'
 
