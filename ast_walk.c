@@ -265,13 +265,13 @@ traverse_ast(Ast* ast, AstVisitor* walk_in, AstVisitor* walk_out)
          li != 0; li = li->next) {
       traverse_ast(li->object, walk_in, walk_out);
     }
-  } else if (ast->kind == AST_realTypeArgument) {
-    Ast_RealTypeArgument* type_arg = (Ast_RealTypeArgument*)ast;
+  } else if (ast->kind == AST_realTypeArg) {
+    Ast_RealTypeArg* type_arg = (Ast_RealTypeArg*)ast;
     traverse_ast(type_arg->arg, walk_in, walk_out);
   } else if (ast->kind == AST_typeArgument) {
-    Ast_TypeArgument* type_arg = (Ast_TypeArgument*)ast;
+    Ast_TypeArg* type_arg = (Ast_TypeArg*)ast;
     traverse_ast(type_arg->arg, walk_in, walk_out);
-  } else if (ast->kind == AST_dontcareTypeArgument) {
+  } else if (ast->kind == AST_dontcareTypeArg) {
   } else if (ast->kind == AST_realTypeArgumentList) {
     Ast_List* list = (Ast_List*)ast;
     for (ListItem* li = list->members.sentinel.next;
@@ -362,8 +362,8 @@ traverse_ast(Ast* ast, AstVisitor* walk_in, AstVisitor* walk_out)
   /** STATEMENTS **/
   else if (ast->kind == AST_assignmentStatement) {
     Ast_AssignmentStmt* assign_stmt = (Ast_AssignmentStmt*)ast;
-    traverse_ast(assign_stmt->lvalue, walk_in, walk_out);
-    traverse_ast(assign_stmt->expr, walk_in, walk_out);
+    traverse_ast(assign_stmt->lhs_expr, walk_in, walk_out);
+    traverse_ast(assign_stmt->rhs_expr, walk_in, walk_out);
   } else if (ast->kind == AST_emptyStatement) {
   } else if (ast->kind == AST_returnStatement) {
     Ast_ReturnStmt* return_stmt = (Ast_ReturnStmt*)ast;
@@ -379,7 +379,7 @@ traverse_ast(Ast* ast, AstVisitor* walk_in, AstVisitor* walk_out)
     }
   } else if (ast->kind == AST_directApplication) {
     Ast_DirectApplication* apply_stmt = (Ast_DirectApplication*)ast;
-    traverse_ast(apply_stmt->lhs_expr, walk_in, walk_out);
+    traverse_ast(apply_stmt->name, walk_in, walk_out);
     traverse_ast(apply_stmt->args, walk_in, walk_out);
   } else if (ast->kind == AST_statement) {
     Ast_Statement* stmt = (Ast_Statement*)ast;
@@ -389,7 +389,7 @@ traverse_ast(Ast* ast, AstVisitor* walk_in, AstVisitor* walk_out)
     if (block_stmt->stmt_list) {
       traverse_ast(block_stmt->stmt_list, walk_in, walk_out);
     }
-  } else if (ast->kind == AST_statementOrDecl) {
+  } else if (ast->kind == AST_statementOrDeclaration) {
     Ast_Statement* stmt = (Ast_Statement*)ast;
     traverse_ast(stmt->stmt, walk_in, walk_out);
   } else if (ast->kind == AST_statementOrDeclList) {
@@ -439,19 +439,19 @@ traverse_ast(Ast* ast, AstVisitor* walk_in, AstVisitor* walk_out)
   } else if (ast->kind == AST_tableProperty) {
     Ast_TableProperty* table_prop = (Ast_TableProperty*)ast;
     traverse_ast(table_prop->prop, walk_in, walk_out);
-  } else if (ast->kind == AST_tableKey) {
-    Ast_TableKey* table_key = (Ast_TableKey*)ast;
+  } else if (ast->kind == AST_keyProperty) {
+    Ast_KeyProperty* table_key = (Ast_KeyProperty*)ast;
     traverse_ast(table_key->keyelem_list, walk_in, walk_out);
-  } else if (ast->kind == AST_tableActions) {
-    Ast_TableActions* table_actions = (Ast_TableActions*)ast;
+  } else if (ast->kind == AST_actionsProperty) {
+    Ast_ActionsProperty* table_actions = (Ast_ActionsProperty*)ast;
     traverse_ast(table_actions->action_list, walk_in, walk_out);
-  } else if (ast->kind == AST_tableEntries) {
-    Ast_TableEntries* table_entries = (Ast_TableEntries*)ast;
+  } else if (ast->kind == AST_entriesProperty) {
+    Ast_EntriesProperty* table_entries = (Ast_EntriesProperty*)ast;
     traverse_ast(table_entries->entries_list, walk_in, walk_out);
-  } else if (ast->kind == AST_simpleTableProperty) {
-    Ast_SimpleTableProperty* table_prop = (Ast_SimpleTableProperty*)ast;
-    traverse_ast(table_prop->name, walk_in, walk_out);
-    traverse_ast(table_prop->init_expr, walk_in, walk_out);
+  } else if (ast->kind == AST_simpleProperty) {
+    Ast_SimpleProperty* simple_prop = (Ast_SimpleProperty*)ast;
+    traverse_ast(simple_prop->name, walk_in, walk_out);
+    traverse_ast(simple_prop->init_expr, walk_in, walk_out);
   }
   else if (ast->kind == AST_keyElementList) {
     Ast_List* list = (Ast_List*)ast;
@@ -462,7 +462,7 @@ traverse_ast(Ast* ast, AstVisitor* walk_in, AstVisitor* walk_out)
   } else if (ast->kind == AST_keyElement) {
     Ast_KeyElement* keyelem = (Ast_KeyElement*)ast;
     traverse_ast(keyelem->expr, walk_in, walk_out);
-    traverse_ast(keyelem->name, walk_in, walk_out);
+    traverse_ast(keyelem->match, walk_in, walk_out);
   } else if (ast->kind == AST_actionList) {
     Ast_List* list = (Ast_List*)ast;
     for (ListItem* li = list->members.sentinel.next;
@@ -531,14 +531,14 @@ traverse_ast(Ast* ast, AstVisitor* walk_in, AstVisitor* walk_out)
   } else if (ast->kind == AST_kvPair) {
     Ast_KVPair* kv_expr = (Ast_KVPair*)ast;
     traverse_ast(kv_expr->name, walk_in, walk_out);
-    traverse_ast(kv_expr->expr, walk_in, walk_out);
+    traverse_ast(kv_expr->init_expr, walk_in, walk_out);
   } else if (ast->kind == AST_expressionList) {
     Ast_List* list = (Ast_List*)ast;
     for (ListItem* li = list->members.sentinel.next;
          li != 0; li = li->next) {
       traverse_ast(li->object, walk_in, walk_out);
     }
-  } else if (ast->kind == AST_lvalue) {
+  } else if (ast->kind == AST_lvalueExpression) {
     Ast_Expression* lvalue = (Ast_Expression*)ast;
     traverse_ast(lvalue->expr, walk_in, walk_out);
     if (lvalue->type_args) {
@@ -559,7 +559,7 @@ traverse_ast(Ast* ast, AstVisitor* walk_in, AstVisitor* walk_out)
     traverse_ast(unary_expr->operand, walk_in, walk_out);
   } else if (ast->kind == AST_functionCall) {
     Ast_FunctionCall* call_expr = (Ast_FunctionCall*)ast;
-    traverse_ast(call_expr->callee_expr, walk_in, walk_out);
+    traverse_ast(call_expr->lhs_expr, walk_in, walk_out);
     if (call_expr->args) {
       traverse_ast(call_expr->args, walk_in, walk_out);
     }
@@ -569,14 +569,14 @@ traverse_ast(Ast* ast, AstVisitor* walk_in, AstVisitor* walk_out)
     traverse_ast(member_expr->member_name, walk_in, walk_out);
   } else if (ast->kind == AST_castExpression) {
     Ast_CastExpression* cast_expr = (Ast_CastExpression*)ast;
-    traverse_ast(cast_expr->to_type, walk_in, walk_out);
+    traverse_ast(cast_expr->type, walk_in, walk_out);
     traverse_ast(cast_expr->expr, walk_in, walk_out);
   } else if (ast->kind == AST_arraySubscript) {
     Ast_ArraySubscript* subscript_expr = (Ast_ArraySubscript*)ast;
     traverse_ast(subscript_expr->lhs_expr, walk_in, walk_out);
     traverse_ast(subscript_expr->index_expr, walk_in, walk_out);
-  } else if (ast->kind == AST_arrayIndex) {
-    Ast_ArrayIndex* index = (Ast_ArrayIndex*)ast;
+  } else if (ast->kind == AST_indexExpression) {
+    Ast_IndexExpression* index = (Ast_IndexExpression*)ast;
     traverse_ast(index->start_index, walk_in, walk_out);
     traverse_ast(index->end_index, walk_in, walk_out);
   } else if (ast->kind == AST_integerLiteral) {

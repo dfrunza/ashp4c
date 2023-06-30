@@ -166,9 +166,9 @@ enum AstEnum {
   AST_baseTypeError,
   AST_integerTypeSize,
   AST_typeParameterList,
-  AST_realTypeArgument,
+  AST_realTypeArg,
   AST_typeArgument,
-  AST_dontcareTypeArgument,
+  AST_dontcareTypeArg,
   AST_realTypeArgumentList,
   AST_typeArgumentList,
   AST_typeDeclaration,
@@ -195,7 +195,7 @@ enum AstEnum {
   AST_directApplication,
   AST_statement,
   AST_blockStatement,
-  AST_statementOrDecl,
+  AST_statementOrDeclaration,
   AST_statementOrDeclList,
   AST_switchStatement,
   AST_switchCases,
@@ -207,10 +207,10 @@ enum AstEnum {
   AST_tableDeclaration,
   AST_tablePropertyList,
   AST_tableProperty,
-  AST_tableKey,
-  AST_tableActions,
-  AST_tableEntries,
-  AST_simpleTableProperty,
+  AST_keyProperty,
+  AST_actionsProperty,
+  AST_entriesProperty,
+  AST_simpleProperty,
   AST_keyElementList,
   AST_keyElement,
   AST_actionList,
@@ -230,15 +230,15 @@ enum AstEnum {
   AST_dontcareArgument,
   AST_kvPair,
   AST_expressionList,
-  AST_lvalue,
   AST_expression,
+  AST_lvalueExpression,
   AST_binaryExpression,
   AST_unaryExpression,
   AST_functionCall,
   AST_memberSelector,
   AST_castExpression,
   AST_arraySubscript,
-  AST_arrayIndex,
+  AST_indexExpression,
   AST_integerLiteral,
   AST_booleanLiteral,
   AST_stringLiteral,
@@ -523,15 +523,15 @@ typedef struct Ast_IntegerTypeSize {
   Ast* size;
 } Ast_IntegerTypeSize;
 
-typedef struct Ast_RealTypeArgument {
+typedef struct Ast_RealTypeArg {
   Ast;
   Ast* arg;
-} Ast_RealTypeArgument;
+} Ast_RealTypeArg;
 
-typedef struct Ast_TypeArgument {
+typedef struct Ast_TypeArg {
   Ast;
   Ast* arg;
-} Ast_TypeArgument;
+} Ast_TypeArg;
 
 typedef struct Ast_TypeDeclaration {
   Ast;
@@ -600,8 +600,8 @@ typedef struct Ast_TypedefDeclaration {
 
 typedef struct Ast_AssignmentStmt {
   Ast;
-  Ast* lvalue;
-  Ast* expr;
+  Ast* lhs_expr;
+  Ast* rhs_expr;
 } Ast_AssignmentStmt;
 
 typedef struct Ast_ReturnStmt {
@@ -618,7 +618,7 @@ typedef struct Ast_ConditionalStmt {
 
 typedef struct Ast_DirectApplication {
   Ast;
-  Ast* lhs_expr;
+  Ast* name;
   Ast* args;
 } Ast_DirectApplication;
 
@@ -662,33 +662,32 @@ typedef struct Ast_TableProperty {
   Ast* prop;
 } Ast_TableProperty;
 
-typedef struct Ast_TableKey {
+typedef struct Ast_KeyProperty {
   Ast;
   Ast* keyelem_list;
-} Ast_TableKey;
+} Ast_KeyProperty;
 
-typedef struct Ast_TableActions {
+typedef struct Ast_ActionsProperty {
   Ast;
   Ast* action_list;
-} Ast_TableActions;
+} Ast_ActionsProperty;
 
-typedef struct Ast_TableEntries {
+typedef struct Ast_EntriesProperty {
   Ast;
-  bool is_const;
   Ast* entries_list;
-} Ast_TableEntries;
+} Ast_EntriesProperty;
 
-typedef struct Ast_SimpleTableProperty {
+typedef struct Ast_SimpleProperty {
   Ast;
-  bool is_const;
   Ast* name;
   Ast* init_expr;
-} Ast_SimpleTableProperty;
+  bool is_const;
+} Ast_SimpleProperty;
 
 typedef struct Ast_KeyElement {
   Ast;
   Ast* expr;
-  Ast* name;
+  Ast* match;
 } Ast_KeyElement;
 
 typedef struct Ast_ActionRef {
@@ -717,6 +716,7 @@ typedef struct Ast_VarDeclaration {
   Ast* name;
   Ast* type;
   Ast* init_expr;
+  bool is_const;
 } Ast_VarDeclaration;
 
 typedef struct Ast_ConstDeclaration {
@@ -742,7 +742,7 @@ typedef struct Ast_Argument {
 typedef struct Ast_KVPair {
   Ast;
   Ast* name;
-  Ast* expr;
+  Ast* init_expr;
 } Ast_KVPair;
 
 typedef struct Ast_Expression {
@@ -766,7 +766,7 @@ typedef struct Ast_UnaryExpression {
 
 typedef struct Ast_FunctionCall {
   Ast;
-  Ast* callee_expr;
+  Ast* lhs_expr;
   Ast* args;
 } Ast_FunctionCall;
 
@@ -778,7 +778,7 @@ typedef struct Ast_MemberSelector {
 
 typedef struct Ast_CastExpression {
   Ast;
-  Ast* to_type;
+  Ast* type;
   Ast* expr;
 } Ast_CastExpression;
 
@@ -788,11 +788,11 @@ typedef struct Ast_ArraySubscript {
   Ast* index_expr;
 } Ast_ArraySubscript;
 
-typedef struct Ast_ArrayIndex {
+typedef struct Ast_IndexExpression {
   Ast;
   Ast* start_index;
   Ast* end_index;
-} Ast_ArrayIndex;
+} Ast_IndexExpression;
 
 typedef struct Ast_IntegerLiteral {
   Ast_Expression;

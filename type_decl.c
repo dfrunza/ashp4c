@@ -50,8 +50,8 @@ visit_function_call(Ast* ast)
 {
   assert(ast->kind == AST_functionCall);
   Ast_FunctionCall* function_call = (Ast_FunctionCall*)ast;
-  visit_expression(function_call->callee_expr);
-  Ast_Expression* callee_expr = (Ast_Expression*)function_call->callee_expr;
+  visit_expression(function_call->lhs_expr);
+  Ast_Expression* callee_expr = (Ast_Expression*)function_call->lhs_expr;
   Ast_List* type_args = (Ast_List*)callee_expr->type_args;
   if (type_args) {
     for (ListItem* li = type_args->members.sentinel.next;
@@ -83,7 +83,7 @@ visit_cast_expr(Ast* ast)
 {
   assert(ast->kind == AST_castExpression);
   Ast_CastExpression* expr = (Ast_CastExpression*)ast;
-  visit_type_ref(expr->to_type);
+  visit_type_ref(expr->type);
   visit_expression(expr->expr);
 }
 
@@ -272,8 +272,8 @@ visit_table_entry(Ast* ast)
 internal void
 visit_table_actions(Ast *ast)
 {
-  assert(ast->kind == AST_tableActions);
-  Ast_TableActions* prop = (Ast_TableActions*)ast;
+  assert(ast->kind == AST_actionsProperty);
+  Ast_ActionsProperty* prop = (Ast_ActionsProperty*)ast;
   Ast_List* action_list = (Ast_List*)prop->action_list;
   if (action_list) {
     for (ListItem* li = action_list->members.sentinel.next;
@@ -287,8 +287,8 @@ visit_table_actions(Ast *ast)
 internal void
 visit_table_single_entry(Ast* ast)
 {
-  assert(ast->kind == AST_tableProperty);
-  Ast_SimpleTableProperty* prop = (Ast_SimpleTableProperty*)ast;
+  assert(ast->kind == AST_simpleProperty);
+  Ast_SimpleProperty* prop = (Ast_SimpleProperty*)ast;
   if (prop->init_expr) {
     visit_expression(prop->init_expr);
   }
@@ -297,8 +297,8 @@ visit_table_single_entry(Ast* ast)
 internal void
 visit_table_key(Ast* ast)
 {
-  assert(ast->kind == AST_tableKey);
-  Ast_TableKey* prop = (Ast_TableKey*)ast;
+  assert(ast->kind == AST_keyProperty);
+  Ast_KeyProperty* prop = (Ast_KeyProperty*)ast;
   Ast_List* keyelem_list = (Ast_List*)prop->keyelem_list;
   if (keyelem_list) {
     for (ListItem* li = keyelem_list->members.sentinel.next;
@@ -313,7 +313,7 @@ internal void
 visit_table_entries(Ast* ast)
 {
   assert(ast->kind == AST_entriesList);
-  Ast_TableEntries* prop = (Ast_TableEntries*)ast;
+  Ast_EntriesProperty* prop = (Ast_EntriesProperty*)ast;
   Ast_List* entries = (Ast_List*)prop->entries_list;
   if (entries) {
     for (ListItem* li = entries->members.sentinel.next;
@@ -327,11 +327,11 @@ visit_table_entries(Ast* ast)
 internal void
 visit_table_property(Ast* ast)
 {
-  if (ast->kind == AST_tableActions) {
+  if (ast->kind == AST_actionsProperty) {
     visit_table_actions(ast);
   } else if (ast->kind == AST_tableProperty) {
     visit_table_single_entry(ast);
-  } else if (ast->kind == AST_tableKey) {
+  } else if (ast->kind == AST_keyProperty) {
     visit_table_key(ast);
   } else if (ast->kind == AST_entriesList) {
     visit_table_entries(ast);
@@ -426,8 +426,8 @@ visit_assignment_stmt(Ast* ast)
 {
   assert(ast->kind == AST_assignmentStatement);
   Ast_AssignmentStmt* stmt = (Ast_AssignmentStmt*)ast;
-  visit_expression(stmt->lvalue);
-  visit_expression(stmt->expr);
+  visit_expression(stmt->lhs_expr);
+  visit_expression(stmt->rhs_expr);
 }
 
 internal void
