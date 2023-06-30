@@ -71,30 +71,27 @@
 /**  CONTROL  **/
 
 <controlDeclaration> := <controlTypeDeclaration> <optConstructorParameters>
-  '{' { <controlLocalDeclaration> }* APPLY <controlBody> '}'
+  '{' { <controlLocalDeclaration> }* APPLY <blockStatement> '}'
 
 <controlTypeDeclaration> := CONTROL <name> <optTypeParameters> '(' <parameterList> ')'
 
 <controlLocalDeclaration> := <constantDeclaration> | <actionDeclaration> | <tableDeclaration> |
   <instantiation> | <variableDeclaration>
 
-<controlBody> := <blockStatement>
-
 
 /**  EXTERN  **/
 
-<externDeclaration> := EXTERN (
-    <nonTypeName> <optTypeParameters> '{' <methodPrototypes> '}' |
-    <functionPrototype> ';'
-  )
+<externDeclaration> := EXTERN
+  ( <nonTypeName> <optTypeParameters> '{' <methodPrototypes> '}' ) |
+  ( <functionPrototype> ';' )
 
 <methodPrototypes> := { <methodPrototype> }*
 
 <functionPrototype> := <typeOrVoid> <name> <optTypeParameters> '(' <parameterList> ')'
 
 <methodPrototype> :=
-  <functionPrototype> ';' |
-  TYPE_IDENTIFIER '(' <parameterList> ')' ';' /* constructor */
+  ( <functionPrototype> ';' ) |
+  ( TYPE_IDENTIFIER '(' <parameterList> ')' ';' ) /* constructor */
 
 
 /**  TYPES  **/
@@ -164,16 +161,15 @@
 <specifiedIdentifier> := <name> { '=' <initializer> }
 
 <typedefDeclaration> :=
-  TYPEDEF ( <typeRef> | <derivedTypeDeclaration> ) <name> ';' |
-  TYPE ( <typeRef> | <derivedTypeDeclaration> ) <name> ';'
+  ( TYPEDEF ( <typeRef> | <derivedTypeDeclaration> ) <name> ';' ) |
+  ( TYPE ( <typeRef> | <derivedTypeDeclaration> ) <name> ';' )
 
 
 /**  STATEMENTS  **/
 
-<assignmentOrMethodCallStatement> := <lvalue> (
-    { '<' <typeArgumentList> '>' } '(' <argumentList> ')' ';' |
-    '=' <expression> ';'
-  )
+<assignmentOrMethodCallStatement> := <lvalue>
+  ( { '<' <typeArgumentList> '>' } '(' <argumentList> ')' ';' ) |
+  ( '=' <expression> ';' )
 
 <emptyStatement> := ';'
 

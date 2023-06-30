@@ -150,7 +150,6 @@ enum AstEnum {
   AST_externType,
   AST_methodPrototypes,
   AST_functionPrototype,
-  AST_methodPrototype,
 
   /** TYPES **/
   AST_typeRef,

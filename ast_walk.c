@@ -196,7 +196,7 @@ traverse_ast(Ast* ast, AstVisitor* walk_in, AstVisitor* walk_out)
          li != 0; li = li->next) {
       traverse_ast(li->object, walk_in, walk_out);
     }
-  } else if (ast->kind == AST_functionPrototype || ast->kind == AST_methodPrototype) {
+  } else if (ast->kind == AST_functionPrototype) {
     Ast_FunctionPrototype* func_proto = (Ast_FunctionPrototype*)ast;
     if (func_proto->return_type) {
       traverse_ast(func_proto->return_type, walk_in, walk_out);

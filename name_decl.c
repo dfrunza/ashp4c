@@ -313,6 +313,7 @@ walk_out(Ast* ast)
   } else if (ast->kind == AST_typedefDeclaration) {
   }
 }
+
 Scope*
 build_name_decl(Ast_P4Program* p4program, Arena* decl_storage_)
 {

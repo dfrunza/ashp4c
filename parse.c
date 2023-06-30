@@ -712,12 +712,11 @@ parse_methodPrototype()
     if (token->klass == TK_TYPE_IDENTIFIER && peek_token()->klass == TK_PARENTH_OPEN) {
       /* Constructor */
       Ast_FunctionPrototype* proto = arena_push_struct(ast_storage, Ast_FunctionPrototype);
-      proto->kind = AST_methodPrototype;
+      proto->kind = AST_functionPrototype;
       proto->id = node_id++;
       proto->line_no = token->line_no;
       proto->column_no = token->column_no;
       proto->name = parse_name();
-      proto->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
         proto->params = parse_parameterList();
