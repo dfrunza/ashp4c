@@ -147,7 +147,7 @@ enum AstEnum {
 
   /** EXTERN **/
   AST_externDeclaration,
-  AST_externType,
+  AST_externTypeDeclaration,
   AST_methodPrototypes,
   AST_functionPrototype,
 
@@ -362,12 +362,12 @@ typedef struct Ast_ParserLocalElements {
   Ast_List;
 } Ast_ParserLocalElements;
 
-typedef struct Ast_ParserPrototype {
+typedef struct Ast_ParserTypeDeclaration {
   Ast;
   Ast* name;
   Ast* type_params;
   Ast* params;
-} Ast_ParserPrototype;
+} Ast_ParserTypeDeclaration;
 
 typedef struct Ast_ParserStates {
   Ast_List;
@@ -449,12 +449,12 @@ typedef struct Ast_ControlDeclaration {
   Ast* apply_stmt;
 } Ast_ControlDeclaration;
 
-typedef struct Ast_ControlPrototype {
+typedef struct Ast_ControlTypeDeclaration {
   Ast;
   Ast* name;
   Ast* type_params;
   Ast* params;
-} Ast_ControlPrototype;
+} Ast_ControlTypeDeclaration;
 
 typedef struct Ast_ControlLocalDeclaration {
   Ast;
@@ -476,12 +476,12 @@ typedef struct Ast_MethodPrototypes {
   Ast_List;
 } Ast_MethodPrototypes;
 
-typedef struct Ast_ExternType {
+typedef struct Ast_ExternTypeDeclaration {
   Ast;
   Ast* name;
   Ast* type_params;
   Ast* method_protos;
-} Ast_ExternType;
+} Ast_ExternTypeDeclaration;
 
 typedef struct Ast_FunctionPrototype {
   Ast;

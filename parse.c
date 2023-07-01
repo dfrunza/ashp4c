@@ -25,6 +25,7 @@ internal enum Ast_ParamDirection parse_direction();
 internal Ast* parse_packageTypeDeclaration();
 internal Ast* parse_instantiation(Ast* type_ref);
 internal Ast* parse_optConstructorParameters();
+
 /** PARSER **/
 internal Ast* parse_parserDeclaration();
 internal Ast* parse_parserLocalElements();
@@ -44,16 +45,19 @@ internal Ast* parse_keysetExpression();
 internal Ast* parse_tupleKeysetExpression();
 internal Ast* parse_keysetExpressionList();
 internal Ast* parse_simpleKeysetExpression();
+
 /** CONTROL **/
 internal Ast* parse_controlDeclaration();
 internal Ast* parse_controlTypeDeclaration();
 internal Ast* parse_controlLocalDeclaration();
 internal Ast* parse_controlLocalDeclarations();
+
 /** EXTERN **/
 internal Ast* parse_externDeclaration();
 internal Ast* parse_methodPrototypes();
 internal Ast* parse_functionPrototype(Ast* return_type);
 internal Ast* parse_methodPrototype();
+
 /** TYPES **/
 internal Ast* parse_typeRef();
 internal Ast* parse_namedType();
@@ -84,6 +88,7 @@ internal Ast* parse_identifierList();
 internal Ast* parse_specifiedIdentifierList();
 internal Ast* parse_specifiedIdentifier();
 internal Ast* parse_typedefDeclaration();
+
 /** STATEMENTS **/
 internal Ast* parse_assignmentOrMethodCallStatement();
 internal Ast* parse_returnStatement();
@@ -98,6 +103,7 @@ internal Ast* parse_switchCases();
 internal Ast* parse_switchCase();
 internal Ast* parse_switchLabel();
 internal Ast* parse_statementOrDeclaration();
+
 /** TABLES **/
 internal Ast* parse_tableDeclaration();
 internal Ast* parse_tablePropertyList();
@@ -109,8 +115,10 @@ internal Ast* parse_actionRef();
 internal Ast* parse_entriesList();
 internal Ast* parse_entry();
 internal Ast* parse_actionDeclaration();
+
 /** VARIABLES **/
 internal Ast* parse_variableDeclaration(Ast* type_ref);
+
 /** EXPRESSIONS **/
 internal Ast* parse_functionDeclaration(Ast* type_ref);
 internal Ast* parse_argumentList();
@@ -900,7 +908,7 @@ parse_parserTypeDeclaration()
 {
   if (token->klass == TK_PARSER) {
     next_token();
-    Ast_ParserPrototype* proto = arena_push_struct(ast_storage, Ast_ParserPrototype);
+    Ast_ParserTypeDeclaration* proto = arena_push_struct(ast_storage, Ast_ParserTypeDeclaration);
     proto->kind = AST_parserTypeDeclaration;
     proto->line_no = token->line_no; 
     proto->column_no = token->column_no;
@@ -1317,7 +1325,7 @@ parse_controlTypeDeclaration()
 {
   if (token->klass == TK_CONTROL) {
     next_token();
-    Ast_ControlPrototype* proto = arena_push_struct(ast_storage, Ast_ControlPrototype);
+    Ast_ControlTypeDeclaration* proto = arena_push_struct(ast_storage, Ast_ControlTypeDeclaration);
     proto->kind = AST_controlTypeDeclaration;
     proto->line_no = token->line_no;
     proto->column_no = token->column_no;
@@ -1429,8 +1437,8 @@ parse_externDeclaration()
                    token->line_no, token->column_no, token->lexeme);
       return (Ast*)extern_decl;
     } else {
-      Ast_ExternType* extern_type = arena_push_struct(ast_storage, Ast_ExternType);
-      extern_type->kind = AST_externType;
+      Ast_ExternTypeDeclaration* extern_type = arena_push_struct(ast_storage, Ast_ExternTypeDeclaration);
+      extern_type->kind = AST_externTypeDeclaration;
       extern_type->line_no = token->line_no;
       extern_type->column_no = token->column_no;
       extern_type->name = parse_nonTypeName();

@@ -15,9 +15,10 @@ internal void visit_parameterList(Ast_ParameterList* params);
 internal void visit_parameter(Ast_Parameter* param);
 internal void visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* type_decl);
 internal void visit_instantiation(Ast_Instantiation* inst);
+
 /** PARSER **/
 internal void visit_parserDeclaration(Ast_ParserDeclaration* parser_decl);
-internal void visit_parserTypeDeclaration(Ast_ParserPrototype* type_decl);
+internal void visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* type_decl);
 internal void visit_parserLocalElements(Ast_ParserLocalElements* local_elements);
 internal void visit_parserLocalElement(Ast_ParserLocalElement* local_element);
 internal void visit_parserStates(Ast_ParserStates* parser_states);
@@ -33,16 +34,19 @@ internal void visit_selectCase(Ast_SelectCase* select_case);
 internal void visit_keysetExpression(Ast_KeysetExpression* keyset_expr);
 internal void visit_tupleKeysetExpression(Ast_TupleKeysetExpression* tuple_expr);
 internal void visit_keysetExpressionList(Ast_KeysetExpressionList* keyset_list);
+
 /** CONTROL **/
 internal void visit_controlDeclaration(Ast_ControlDeclaration* ctrl_decl);
-internal void visit_controlTypeDeclaration(Ast_ControlPrototype* type_decl);
+internal void visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* type_decl);
 internal void visit_controlLocalDeclarations(Ast_ControlLocalDeclarations* local_decls);
 internal void visit_controlLocalDeclaration(Ast_ControlLocalDeclaration* local_decl);
+
 /** EXTERN **/
 internal void visit_externDeclaration(Ast_ExternDeclaration* extern_decl);
-internal void visit_externType(Ast_ExternType* type_decl);
+internal void visit_externTypeDeclaration(Ast_ExternTypeDeclaration* type_decl);
 internal void visit_methodPrototypes(Ast_MethodPrototypes* prototypes);
 internal void visit_functionPrototype(Ast_FunctionPrototype* func_decl);
+
 /** TYPES **/
 internal void visit_typeRef(Ast_TypeRef* type_ref);
 internal void visit_namedType(Ast_NamedType* type);
@@ -76,6 +80,7 @@ internal void visit_identifierList(Ast_IdentifierList* ident_list);
 internal void visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list);
 internal void visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident);
 internal void visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl);
+
 /** STATEMENTS **/
 internal void visit_assignmentStatement(Ast_AssignmentStatement* assgn_stmt);
 internal void visit_functionCall(Ast_FunctionCall* func_call);
@@ -91,6 +96,7 @@ internal void visit_switchCases(Ast_SwitchCases* switch_cases);
 internal void visit_switchCase(Ast_SwitchCase* switch_case);
 internal void visit_switchLabel(Ast_SwitchLabel* label);
 internal void visit_statementOrDeclaration(Ast_StatementOrDeclaration* stmt);
+
 /** TABLES **/
 internal void visit_tableDeclaration(Ast_TableDeclaration* table_decl);
 internal void visit_tablePropertyList(Ast_TablePropertyList* prop_list);
@@ -106,8 +112,10 @@ internal void visit_entriesList(Ast_EntriesList* entries_list);
 internal void visit_entry(Ast_Entry* entry);
 internal void visit_simpleProperty(Ast_SimpleProperty* simple_prop);
 internal void visit_actionDeclaration(Ast_ActionDeclaration* action_decl);
+
 /** VARIABLES **/
 internal void visit_variableDeclarataion(Ast_VarDeclaration* var_decl);
+
 /** EXPRESSIONS **/
 internal void visit_functionDeclaration(Ast_FunctionDeclaration* func_decl);
 internal void visit_argumentList(Ast_ArgumentList* arg_list);
