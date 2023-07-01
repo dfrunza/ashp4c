@@ -112,8 +112,9 @@ main(int arg_count, char* args[])
     assert(!"TODO");
   }
 
-  Scope* root_scope = build_name_decl(p4program, &main_storage);
+  node_id_pass(p4program);
   /*
+  Scope* root_scope = build_name_decl(p4program, &main_storage);
   build_type_decl(p4program, root_scope, &main_storage); */
 
   /*

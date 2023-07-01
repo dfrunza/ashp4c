@@ -90,7 +90,7 @@ scope_lookup_name(Scope* scope, char* strname)
 }
 
 void
-symbol_table_reset(Arena* scope_storage_)
+scope_reset(Arena* scope_storage_)
 {
   scope_storage = scope_storage_;
   scope_level = 0;

@@ -16,20 +16,20 @@ gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/basic.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/arena.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/array.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/hashmap.c
+gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/scope.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/lex.c
-gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/symbol_table.c
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/parse.c
-gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/ast_walk.c
-gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/name_decl.c 
-gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/type.c 
-gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/type_decl.c 
+gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/node_id.c
+#gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/name_decl.c 
+#gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/type.c 
+#gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/type_decl.c 
 #gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/potential_type.c 
 #gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/select_type.c 
 gcc $CC_FLAGS -I$MUSL_INCLUDE -I . -c $SRC/ashp4c.c
 
 ld $LD_FLAGS -L$MUSL_LIB -o ashp4c $MUSL_LIB/crt1.o \
-  basic.o arena.o array.o hashmap.o lex.o symbol_table.o parse.o \
-  ast_walk.o name_decl.o type.o type_decl.o ashp4c.o \
+  basic.o arena.o array.o hashmap.o scope.o lex.o parse.o \
+  node_id.o ashp4c.o \
   -lc
 
 if [ $? -ne 0 ]; then

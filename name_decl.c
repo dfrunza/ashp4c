@@ -318,7 +318,7 @@ Scope*
 build_name_decl(Ast_P4Program* p4program, Arena* decl_storage_)
 {
   name_storage = decl_storage_;
-  symbol_table_reset(name_storage);
+  scope_reset(name_storage);
   root_scope = current_scope = push_scope();
 
   {
