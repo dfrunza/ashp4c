@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CC_FLAGS="-g -ggdb -std=gnu99 -fms-extensions -ffreestanding"
-CC_FLAGS="$CC_FLAGS -Winline -Wno-write-strings -Wreturn-type -Wall"
+CC_FLAGS="$CC_FLAGS -Winline -Wno-write-strings -Wno-unused-function -Wreturn-type -Wall"
 LD_FLAGS="--nostdlib --unresolved-symbols=report-all --static"
 
 MUSL_INCLUDE=/usr/local/musl/include

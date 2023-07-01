@@ -716,9 +716,9 @@ internal void
 visit_control(Ast* ast)
 {
   assert(ast->kind == AST_controlDeclaration);
-  Ast_ControlDeclaration* ctrl_decl = (Ast_ControlDeclaration*)ast;
-  visit_control_proto(ctrl_decl->proto);
-  Ast_List* ctor_params = (Ast_List*)ctrl_decl->ctor_params;
+  Ast_ControlDeclaration* control_decl = (Ast_ControlDeclaration*)ast;
+  visit_control_proto(control_decl->proto);
+  Ast_List* ctor_params = (Ast_List*)control_decl->ctor_params;
   if (ctor_params) {
     for (ListItem* li = ctor_params->members.sentinel.next;
          li != 0; li = li->next) {
@@ -726,7 +726,7 @@ visit_control(Ast* ast)
       visit_param(param);
     }
   }
-  Ast_List* local_decls = (Ast_List*)ctrl_decl->local_decls;
+  Ast_List* local_decls = (Ast_List*)control_decl->local_decls;
   if (local_decls) {
     for (ListItem* li = local_decls->members.sentinel.next;
          li != 0; li = li->next) {
@@ -734,8 +734,8 @@ visit_control(Ast* ast)
       visit_statement(decl);
     }
   }
-  if (ctrl_decl->apply_stmt) {
-    visit_block_statement(ctrl_decl->apply_stmt);
+  if (control_decl->apply_stmt) {
+    visit_block_statement(control_decl->apply_stmt);
   }
 }
 

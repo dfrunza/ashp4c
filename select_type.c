@@ -794,23 +794,23 @@ internal void
 visit_control_proto(Ast* ast)
 {
   assert(ast->kind == AST_controlTypeDeclaration);
-  Ast_ControlTypeDeclaration* ctrl_proto = (Ast_ControlTypeDeclaration*)ast;
+  Ast_ControlTypeDeclaration* control_proto = (Ast_ControlTypeDeclaration*)ast;
   /*
-  Type_TypeSet* ty_set = typeset_get(potential_type, ctrl_proto->id);
+  Type_TypeSet* ty_set = typeset_get(potential_type, control_proto->id);
   Type_Function* proto_ty = ty_set->members.next->object;
-  type_select((Type*)proto_ty, ctrl_proto->id);
+  type_select((Type*)proto_ty, control_proto->id);
   Ast* void_decl = scope_lookup_name(root_scope, "void")->ns_type->ast;
   proto_ty->return_ty = typeset_get(potential_type, void_decl->id)->members.next->object;
   */
   ListItem* li;
-  Ast_NodeList* type_params = &ctrl_proto->type_params;
+  Ast_NodeList* type_params = &control_proto->type_params;
   li = type_params->list.next;
   while (li) {
     Ast* type_param = li->object;
     visit_type_param(type_param);
     li = li->next;
   }
-  Ast_NodeList* params = &ctrl_proto->params;
+  Ast_NodeList* params = &control_proto->params;
   li = params->list.next;
   while (li) {
     Ast* param = li->object;

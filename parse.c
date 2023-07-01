@@ -14,6 +14,7 @@ internal Scope* root_scope;
 internal Scope* current_scope;
 
 /** PROGRAM **/
+
 internal Ast* parse_p4program();
 internal Ast* parse_declarationList();
 internal Ast* parse_declaration();
@@ -27,7 +28,8 @@ internal Ast* parse_instantiation(Ast* type_ref);
 internal Ast* parse_optConstructorParameters();
 
 /** PARSER **/
-internal Ast* parse_parserDeclaration();
+
+internal Ast* parse_parserDeclaration(Ast* parser_proto);
 internal Ast* parse_parserLocalElements();
 internal Ast* parse_parserLocalElement();
 internal Ast* parse_parserTypeDeclaration();
@@ -47,18 +49,21 @@ internal Ast* parse_keysetExpressionList();
 internal Ast* parse_simpleKeysetExpression();
 
 /** CONTROL **/
-internal Ast* parse_controlDeclaration();
+
+internal Ast* parse_controlDeclaration(Ast* control_proto);
 internal Ast* parse_controlTypeDeclaration();
 internal Ast* parse_controlLocalDeclaration();
 internal Ast* parse_controlLocalDeclarations();
 
 /** EXTERN **/
+
 internal Ast* parse_externDeclaration();
 internal Ast* parse_methodPrototypes();
 internal Ast* parse_functionPrototype(Ast* return_type);
 internal Ast* parse_methodPrototype();
 
 /** TYPES **/
+
 internal Ast* parse_typeRef();
 internal Ast* parse_namedType();
 internal Ast* parse_prefixedType();
@@ -90,6 +95,7 @@ internal Ast* parse_specifiedIdentifier();
 internal Ast* parse_typedefDeclaration();
 
 /** STATEMENTS **/
+
 internal Ast* parse_assignmentOrMethodCallStatement();
 internal Ast* parse_returnStatement();
 internal Ast* parse_exitStatement();
@@ -105,6 +111,7 @@ internal Ast* parse_switchLabel();
 internal Ast* parse_statementOrDeclaration();
 
 /** TABLES **/
+
 internal Ast* parse_tableDeclaration();
 internal Ast* parse_tablePropertyList();
 internal Ast* parse_tableProperty();
@@ -117,9 +124,11 @@ internal Ast* parse_entry();
 internal Ast* parse_actionDeclaration();
 
 /** VARIABLES **/
+
 internal Ast* parse_variableDeclaration(Ast* type_ref);
 
 /** EXPRESSIONS **/
+
 internal Ast* parse_functionDeclaration(Ast* type_ref);
 internal Ast* parse_argumentList();
 internal Ast* parse_argument();
@@ -594,8 +603,25 @@ parse_declaration()
     } else if (token->klass == TK_ACTION) {
       decl->decl = parse_actionDeclaration();
       return (Ast*)decl;
+    } else if (token->klass == TK_PARSER) {
+      Ast* parser_proto = parse_typeDeclaration();
+      if (token->klass == TK_SEMICOLON) {
+        next_token();
+        decl->decl = parser_proto;
+      } else {
+        decl->decl = parse_parserDeclaration(parser_proto);
+      }
+      return (Ast*)decl;
+    } else if (token->klass == TK_CONTROL) {
+      Ast* control_proto = parse_typeDeclaration();
+      if (token->klass == TK_SEMICOLON) {
+        next_token();
+        decl->decl = control_proto;
+      } else {
+        decl->decl = parse_controlDeclaration(control_proto);
+      }
+      return (Ast*)decl;
     } else if (token_is_typeDeclaration(token)) {
-      /* <parserDeclaration> | <controlDeclaration> */
       decl->decl = parse_typeDeclaration();
       return (Ast*)decl;
     } else if (token->klass == TK_ERROR) {
@@ -819,35 +845,29 @@ parse_optConstructorParameters()
 }
 
 internal Ast*
-parse_parserDeclaration()
+parse_parserDeclaration(Ast* parser_proto)
 {
-  if (token->klass == TK_PARSER) {
-    Ast* parser_proto = parse_parserTypeDeclaration();
-    if (token->klass == TK_SEMICOLON) {
-      next_token(); /* <parserTypeDeclaration> */
-      return parser_proto;
-    } else {
-      Ast_ParserDeclaration* parser_decl = arena_push_struct(ast_storage, Ast_ParserDeclaration);
-      parser_decl->kind = AST_parserDeclaration;
-      parser_decl->line_no = token->line_no;
-      parser_decl->column_no = token->column_no;
-      parser_decl->proto = parser_proto;
-      parser_decl->ctor_params = parse_optConstructorParameters();
-      if (token->klass == TK_BRACE_OPEN) {
+  if (token->klass == TK_PARENTH_OPEN || token->klass == TK_BRACE_OPEN) {
+    Ast_ParserDeclaration* parser_decl = arena_push_struct(ast_storage, Ast_ParserDeclaration);
+    parser_decl->kind = AST_parserDeclaration;
+    parser_decl->line_no = token->line_no;
+    parser_decl->column_no = token->column_no;
+    parser_decl->proto = parser_proto;
+    parser_decl->ctor_params = parse_optConstructorParameters();
+    if (token->klass == TK_BRACE_OPEN) {
+      next_token();
+      parser_decl->local_elements = parse_parserLocalElements();
+      if (token->klass == TK_STATE) {
+        parser_decl->states = parse_parserStates();
+      } else error("At line %d, column %d: `state` was expected, got `%s`.",
+                    token->line_no, token->column_no, token->lexeme);
+      if (token->klass == TK_BRACE_CLOSE) {
         next_token();
-        parser_decl->local_elements = parse_parserLocalElements();
-        if (token->klass == TK_STATE) {
-          parser_decl->states = parse_parserStates();
-        } else error("At line %d, column %d: `state` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-        if (token->klass == TK_BRACE_CLOSE) {
-          next_token();
-        } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-      return (Ast*)parser_decl;
-    }
+      } else error("At line %d, column %d: `}` was expected, got `%s`.",
+                    token->line_no, token->column_no, token->lexeme);
+    } else error("At line %d, column %d: `{` was expected, got `%s`.",
+                  token->line_no, token->column_no, token->lexeme);
+    return (Ast*)parser_decl;
   } else error("At line %d, column %d: `parser` was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -1284,36 +1304,30 @@ parse_simpleKeysetExpression()
 /** CONTROL **/
 
 internal Ast*
-parse_controlDeclaration()
+parse_controlDeclaration(Ast* control_proto)
 {
-  if (token->klass == TK_CONTROL) {
-    Ast* control_proto = parse_controlTypeDeclaration();
-    if (token->klass == TK_SEMICOLON) {
-      next_token(); /* <controlTypeDeclaration> */
-      return control_proto;
-    } else {
-      Ast_ControlDeclaration* control_decl = arena_push_struct(ast_storage, Ast_ControlDeclaration);
-      control_decl->kind = AST_controlDeclaration;
-      control_decl->line_no = token->line_no;
-      control_decl->column_no = token->column_no;
-      control_decl->proto = control_proto;
-      control_decl->ctor_params = parse_optConstructorParameters();
-      if (token->klass == TK_BRACE_OPEN) {
+  if (token->klass == TK_PARENTH_OPEN || token->klass == TK_BRACE_OPEN) {
+    Ast_ControlDeclaration* control_decl = arena_push_struct(ast_storage, Ast_ControlDeclaration);
+    control_decl->kind = AST_controlDeclaration;
+    control_decl->line_no = token->line_no;
+    control_decl->column_no = token->column_no;
+    control_decl->proto = control_proto;
+    control_decl->ctor_params = parse_optConstructorParameters();
+    if (token->klass == TK_BRACE_OPEN) {
+      next_token();
+      control_decl->local_decls = parse_controlLocalDeclarations();
+      if (token->klass == TK_APPLY) {
         next_token();
-        control_decl->local_decls = parse_controlLocalDeclarations();
-        if (token->klass == TK_APPLY) {
+        control_decl->apply_stmt = parse_blockStatement();
+        if (token->klass == TK_BRACE_CLOSE) {
           next_token();
-          control_decl->apply_stmt = parse_blockStatement();
-          if (token->klass == TK_BRACE_CLOSE) {
-            next_token();
-          } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                       token->line_no, token->column_no, token->lexeme);
-        } else error("At line %d, column %d: `apply` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-      return (Ast*)control_decl;
-    }
+        } else error("At line %d, column %d: `}` was expected, got `%s`.",
+                      token->line_no, token->column_no, token->lexeme);
+      } else error("At line %d, column %d: `apply` was expected, got `%s`.",
+                    token->line_no, token->column_no, token->lexeme);
+    } else error("At line %d, column %d: `{` was expected, got `%s`.",
+                  token->line_no, token->column_no, token->lexeme);
+    return (Ast*)control_decl;
   } else error("At line %d, column %d: `control` was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -2018,12 +2032,10 @@ parse_typeDeclaration()
       type_decl->decl = parse_typedefDeclaration();
       return (Ast*)type_decl;
     } else if (token->klass == TK_PARSER) {
-      /* <parserTypeDeclaration> | <parserDeclaration> */
-      type_decl->decl = parse_parserDeclaration();
+      type_decl->decl = parse_parserTypeDeclaration();
       return (Ast*)type_decl;
     } else if (token->klass == TK_CONTROL) {
-      /* <controlTypeDeclaration> | <controlDeclaration> */
-      type_decl->decl = parse_controlDeclaration();
+      type_decl->decl = parse_controlTypeDeclaration();
       return (Ast*)type_decl;
     } else if (token->klass == TK_PACKAGE) {
       type_decl->decl = parse_packageTypeDeclaration();

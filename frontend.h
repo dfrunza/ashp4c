@@ -109,6 +109,7 @@ typedef struct Token {
 enum AstEnum {
 
   /** PROGRAM **/
+
   AST_p4program = 1,
   AST_declarationList,
   AST_declaration,
@@ -119,6 +120,7 @@ enum AstEnum {
   AST_instantiation,
 
   /** PARSER **/
+
   AST_parserDeclaration,
   AST_parserTypeDeclaration,
   AST_parserLocalElements,
@@ -140,18 +142,21 @@ enum AstEnum {
   AST_dontcareKeysetExpression,
 
   /** CONTROL **/
+
   AST_controlDeclaration,
   AST_controlTypeDeclaration,
   AST_controlLocalDeclarations,
   AST_controlLocalDeclaration,
 
   /** EXTERN **/
+
   AST_externDeclaration,
   AST_externTypeDeclaration,
   AST_methodPrototypes,
   AST_functionPrototype,
 
   /** TYPES **/
+
   AST_typeRef,
   AST_namedType,
   AST_tupleType,
@@ -187,6 +192,7 @@ enum AstEnum {
   AST_typedefDeclaration,
 
   /** STATEMENTS **/
+
   AST_assignmentStatement,
   AST_emptyStatement,
   AST_returnStatement,
@@ -204,6 +210,7 @@ enum AstEnum {
   AST_defaultSwitchLabel,
 
   /** TABLES **/
+
   AST_tableDeclaration,
   AST_tablePropertyList,
   AST_tableProperty,
@@ -220,10 +227,12 @@ enum AstEnum {
   AST_actionDeclaration,
 
   /** VARIABLES **/
+
   AST_variableDeclaration,
   AST_constantDeclaration,
 
   /** EXPRESSIONS **/
+
   AST_functionDeclaration,
   AST_argumentList,
   AST_argument,
@@ -914,9 +923,6 @@ typedef struct Ast_StringLiteral {
   Ast;
   char* value;
 } Ast_StringLiteral;
-
-typedef void AstVisitor(Ast*);
-void traverse_p4program(Ast_P4Program* p4program, AstVisitor* walk_in, AstVisitor* walk_out);
 
 typedef struct NameDecl {
   union {

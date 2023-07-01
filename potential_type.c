@@ -968,28 +968,28 @@ internal void
 visit_control(Ast* ast)
 {
   assert(ast->kind == AST_controlDeclaration);
-  Ast_ControlDeclaration* ctrl_decl = (Ast_ControlDeclaration*)ast;
-  visit_control_proto(ctrl_decl->proto);
-  Type_TypeSet* ty_set = typeset_create(&potential_type, ctrl_decl->id);
-  ty_set->ast = (Ast*)ctrl_decl;
-  typeset_import_set(ty_set, typeset_get(&potential_type, ctrl_decl->proto->id));
+  Ast_ControlDeclaration* control_decl = (Ast_ControlDeclaration*)ast;
+  visit_control_proto(control_decl->proto);
+  Type_TypeSet* ty_set = typeset_create(&potential_type, control_decl->id);
+  ty_set->ast = (Ast*)control_decl;
+  typeset_import_set(ty_set, typeset_get(&potential_type, control_decl->proto->id));
   ListItem* li;
-  Ast_NodeList* ctor_params = &ctrl_decl->ctor_params;
+  Ast_NodeList* ctor_params = &control_decl->ctor_params;
   li = ctor_params->list.next;
   while (li) {
     Ast* param = li->object;
     visit_param(param);
     li = li->next;
   }
-  Ast_NodeList* local_decls = &ctrl_decl->local_decls;
+  Ast_NodeList* local_decls = &control_decl->local_decls;
   li = local_decls->list.next;
   while (li) {
     Ast* decl = li->object;
     visit_statement(decl);
     li = li->next;
   }
-  if (ctrl_decl->apply_stmt) {
-    visit_block_statement(ctrl_decl->apply_stmt);
+  if (control_decl->apply_stmt) {
+    visit_block_statement(control_decl->apply_stmt);
   }
 }
 
