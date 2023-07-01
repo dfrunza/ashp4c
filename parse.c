@@ -120,10 +120,10 @@ internal Ast* parse_prefixedNonTypeName();
 internal Ast* parse_lvalue();
 internal Ast* parse_expression(int priority_threshold);
 internal Ast* parse_expressionPrimary();
+internal Ast* parse_indexExpression();
 internal Ast* parse_integer();
 internal Ast* parse_boolean();
 internal Ast* parse_string();
-internal Ast* parse_indexExpression();
 
 internal Token*
 next_token()
@@ -1000,7 +1000,7 @@ internal Ast*
 parse_parserStatement()
 {
   if (token_is_parserStatement(token)) {
-    Ast_ParserStmt* parser_stmt = arena_push_struct(ast_storage, Ast_ParserStmt);
+    Ast_ParserStatement* parser_stmt = arena_push_struct(ast_storage, Ast_ParserStatement);
     parser_stmt->kind = AST_parserStatement;
     parser_stmt->line_no = token->line_no;
     parser_stmt->column_no = token->column_no;
@@ -1041,7 +1041,7 @@ parse_parserBlockStatement()
 {
   if (token->klass == TK_BRACE_OPEN) {
     next_token();
-    Ast_BlockStmt* stmt = arena_push_struct(ast_storage, Ast_BlockStmt);
+    Ast_BlockStatement* stmt = arena_push_struct(ast_storage, Ast_BlockStatement);
     stmt->kind = AST_parserBlockStatement;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
@@ -1062,7 +1062,7 @@ parse_transitionStatement()
 {
   if (token->klass == TK_TRANSITION) {
     next_token();
-    Ast_TransitionStmt* transition = arena_push_struct(ast_storage, Ast_TransitionStmt);
+    Ast_TransitionStatement* transition = arena_push_struct(ast_storage, Ast_TransitionStatement);
     transition->kind = AST_transitionStatement;
     transition->line_no = token->line_no;
     transition->column_no = token->column_no;
@@ -2411,7 +2411,7 @@ internal Ast*
 parse_assignmentOrMethodCallStatement()
 {
   if (token_is_lvalue(token)) {
-    Ast_Expression* lvalue = (Ast_Expression*)parse_lvalue();
+    Ast_LvalueExpression* lvalue = (Ast_LvalueExpression*)parse_lvalue();
     if (token->klass == TK_ANGLE_OPEN) {
       next_token();
       lvalue->type_args = parse_typeArgumentList();
@@ -2439,7 +2439,7 @@ parse_assignmentOrMethodCallStatement()
       return (Ast*)call_stmt;
     } else if (token->klass == TK_EQUAL) {
       next_token();
-      Ast_AssignmentStmt* assign_stmt = arena_push_struct(ast_storage, Ast_AssignmentStmt);
+      Ast_AssignmentStatement* assign_stmt = arena_push_struct(ast_storage, Ast_AssignmentStatement);
       assign_stmt->kind = AST_assignmentStatement;
       assign_stmt->line_no = token->line_no;
       assign_stmt->column_no = token->column_no;
@@ -2463,7 +2463,7 @@ parse_returnStatement()
 {
   if (token->klass == TK_RETURN) {
     next_token();
-    Ast_ReturnStmt* return_stmt = arena_push_struct(ast_storage, Ast_ReturnStmt);
+    Ast_ReturnStatement* return_stmt = arena_push_struct(ast_storage, Ast_ReturnStatement);
     return_stmt->kind = AST_returnStatement;
     return_stmt->line_no = token->line_no;
     return_stmt->column_no = token->column_no;
@@ -2485,7 +2485,7 @@ parse_exitStatement()
 {
   if (token->klass == TK_EXIT) {
     next_token();
-    Ast* exit_stmt = arena_push_struct(ast_storage, Ast);
+    Ast_ExitStatement* exit_stmt = arena_push_struct(ast_storage, Ast_ExitStatement);
     exit_stmt->kind = AST_exitStatement;
     exit_stmt->line_no = token->line_no;
     exit_stmt->column_no = token->column_no;
@@ -2493,7 +2493,7 @@ parse_exitStatement()
       next_token();
     } else error("At line %d, column %d: `;` expected, got `%s`.",
                  token->line_no, token->column_no, token->lexeme);
-    return exit_stmt;
+    return (Ast*)exit_stmt;
   } else error("At line %d, column %d: `exit` was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -2505,7 +2505,7 @@ parse_conditionalStatement()
 {
   if (token->klass == TK_IF) {
     next_token();
-    Ast_ConditionalStmt* if_stmt = arena_push_struct(ast_storage, Ast_ConditionalStmt);
+    Ast_ConditionalStatement* if_stmt = arena_push_struct(ast_storage, Ast_ConditionalStatement);
     if_stmt->kind = AST_conditionalStatement;
     if_stmt->line_no = token->line_no;
     if_stmt->column_no = token->column_no;
@@ -2625,7 +2625,7 @@ parse_blockStatement()
 {
   if (token->klass == TK_BRACE_OPEN) {
     next_token();
-    Ast_BlockStmt* block_stmt = arena_push_struct(ast_storage, Ast_BlockStmt);
+    Ast_BlockStatement* block_stmt = arena_push_struct(ast_storage, Ast_BlockStatement);
     block_stmt->kind = AST_blockStatement;
     block_stmt->line_no = token->line_no;
     block_stmt->column_no = token->column_no;
@@ -2667,7 +2667,7 @@ parse_switchStatement()
 {
   if (token->klass == TK_SWITCH) {
     next_token();
-    Ast_SwitchStmt* stmt = arena_push_struct(ast_storage, Ast_SwitchStmt);
+    Ast_SwitchStatement* stmt = arena_push_struct(ast_storage, Ast_SwitchStatement);
     stmt->kind = AST_switchStatement;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
@@ -2770,27 +2770,27 @@ internal Ast*
 parse_statementOrDeclaration()
 {
   if (token_is_statementOrDeclaration(token)) {
-    Ast_Statement* stmt = arena_push_struct(ast_storage, Ast_Statement);
+    Ast_StatementOrDeclaration* stmt = arena_push_struct(ast_storage, Ast_StatementOrDeclaration);
     stmt->kind = AST_statementOrDeclaration;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
     if (token_is_typeRef(token)) {
       Ast* type_ref = parse_typeRef();
       if (token->klass == TK_PARENTH_OPEN) {
-        stmt->stmt = parse_instantiation(type_ref);
+        stmt->stmt_or_decl = parse_instantiation(type_ref);
         return (Ast*)stmt;
       } else if (token_is_name(token)) {
-        stmt->stmt = parse_variableDeclaration(type_ref);
+        stmt->stmt_or_decl = parse_variableDeclaration(type_ref);
         return (Ast*)stmt;
       } else {
-        stmt->stmt = parse_statement(type_ref);
+        stmt->stmt_or_decl = parse_statement(type_ref);
         return (Ast*)stmt;
       }
     } else if (token_is_statement(token)) {
-      stmt->stmt = parse_statement(0);
+      stmt->stmt_or_decl = parse_statement(0);
       return (Ast*)stmt;
     } else if (token->klass == TK_CONST) {
-      stmt->stmt = parse_variableDeclaration(0);
+      stmt->stmt_or_decl = parse_variableDeclaration(0);
       return (Ast*)stmt;
     } else assert(0);
     assert(0);
@@ -3284,7 +3284,7 @@ internal Ast*
 parse_lvalue()
 {
   if (token_is_lvalue(token)) {
-    Ast_Expression* lvalue = arena_push_struct(ast_storage, Ast_Expression);
+    Ast_LvalueExpression* lvalue = arena_push_struct(ast_storage, Ast_LvalueExpression);
     lvalue->kind = AST_lvalueExpression;
     lvalue->line_no = token->line_no;
     lvalue->column_no = token->column_no;
@@ -3301,7 +3301,7 @@ parse_lvalue()
           member_expr->member_name = parse_name();
         } else error("At line %d, column %d: name was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
-        lvalue = arena_push_struct(ast_storage, Ast_Expression);
+        lvalue = arena_push_struct(ast_storage, Ast_LvalueExpression);
         lvalue->kind = AST_lvalueExpression;
         lvalue->line_no = token->line_no;
         lvalue->column_no = token->column_no;
@@ -3319,7 +3319,7 @@ parse_lvalue()
           next_token();
         } else error("At line %d, column %d: `]` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
-        lvalue = arena_push_struct(ast_storage, Ast_Expression);
+        lvalue = arena_push_struct(ast_storage, Ast_LvalueExpression);
         lvalue->kind = AST_lvalueExpression;
         lvalue->line_no = token->line_no;
         lvalue->column_no = token->column_no;
@@ -3550,6 +3550,29 @@ parse_expressionPrimary()
 }
 
 internal Ast*
+parse_indexExpression()
+{
+  if (token_is_expression(token)) {
+    Ast_IndexExpression* index_expr = arena_push_struct(ast_storage, Ast_IndexExpression);
+    index_expr->kind = AST_indexExpression;
+    index_expr->line_no = token->line_no;
+    index_expr->column_no = token->column_no;
+    index_expr->start_index = parse_expression(1);
+    if (token->klass == TK_COLON) {
+      next_token();
+      if (token_is_expression(token)) {
+        index_expr->end_index = parse_expression(1);
+      } else error("At line %d, column %d: expression was expected, got `%s`.",
+                  token->line_no, token->column_no, token->lexeme);
+    }
+    return (Ast*)index_expr;
+  } else error("At line %d, column %d: expression or `:` was expected, got `%s`.",
+               token->line_no, token->column_no, token->lexeme);
+  assert(0);
+  return 0;
+}
+
+internal Ast*
 parse_integer()
 {
   if (token->klass == TK_INTEGER_LITERAL) {
@@ -3573,7 +3596,7 @@ parse_boolean()
 {
   if (token->klass == TK_TRUE || token->klass == TK_FALSE) {
     next_token();
-    Ast_BoolLiteral* bool_literal = arena_push_struct(ast_storage, Ast_BoolLiteral);
+    Ast_BooleanLiteral* bool_literal = arena_push_struct(ast_storage, Ast_BooleanLiteral);
     bool_literal->kind = AST_booleanLiteral;
     bool_literal->line_no = token->line_no;
     bool_literal->column_no = token->column_no;
@@ -3597,29 +3620,6 @@ parse_string()
     string_literal->value = token->lexeme;
     return (Ast*)string_literal;
   } else error("At line %d, column %d: string was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
-  assert(0);
-  return 0;
-}
-
-internal Ast*
-parse_indexExpression()
-{
-  if (token_is_expression(token)) {
-    Ast_IndexExpression* index_expr = arena_push_struct(ast_storage, Ast_IndexExpression);
-    index_expr->kind = AST_indexExpression;
-    index_expr->line_no = token->line_no;
-    index_expr->column_no = token->column_no;
-    index_expr->start_index = parse_expression(1);
-    if (token->klass == TK_COLON) {
-      next_token();
-      if (token_is_expression(token)) {
-        index_expr->end_index = parse_expression(1);
-      } else error("At line %d, column %d: expression was expected, got `%s`.",
-                  token->line_no, token->column_no, token->lexeme);
-    }
-    return (Ast*)index_expr;
-  } else error("At line %d, column %d: expression or `:` was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;

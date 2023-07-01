@@ -12,7 +12,7 @@ Scope*
 push_scope()
 {
   Scope* scope = arena_push_struct(scope_storage, Scope);
-  hashmap_create(&scope->sym_table, HASHMAP_KEY_STRING, 3, scope_storage);
+  hashmap_create(&scope->decls, HASHMAP_KEY_STRING, 3, scope_storage);
   scope->scope_level = scope_level++;
   scope->parent_scope = current_scope;
   current_scope = scope;
@@ -36,7 +36,7 @@ declare_type_name(Scope* scope, char* strname, int line_no, int column_no, Ast* 
   decl->strname = strname;
   decl->line_no = line_no;
   decl->column_no = column_no;
-  HashmapEntry* name_he = hashmap_create_entry_string(&scope->sym_table, strname);
+  HashmapEntry* name_he = hashmap_create_entry_string(&scope->decls, strname);
   NamespaceEntry* ne = arena_push_struct(scope_storage, NamespaceEntry);
   ne->strname = strname;
   ne->ns_type = decl;
@@ -52,7 +52,7 @@ declare_var_name(Scope* scope, char* strname, int line_no, int column_no, Ast* a
   decl->strname = strname;
   decl->line_no = line_no;
   decl->column_no = column_no;
-  HashmapEntry* name_he = hashmap_create_entry_string(&scope->sym_table, strname);
+  HashmapEntry* name_he = hashmap_create_entry_string(&scope->decls, strname);
   NamespaceEntry* ne = arena_push_struct(scope_storage, NamespaceEntry);
   ne->strname = strname;
   ne->ns_var = decl;
@@ -65,7 +65,7 @@ declare_keyword(Scope* scope, char* strname, enum TokenClass token_class)
   NameDecl* decl = arena_push_struct(scope_storage, NameDecl);
   decl->strname = strname;
   decl->token_class = token_class;
-  HashmapEntry* name_he = hashmap_create_entry_string(&scope->sym_table, strname);
+  HashmapEntry* name_he = hashmap_create_entry_string(&scope->decls, strname);
   NamespaceEntry* ne = arena_push_struct(scope_storage, NamespaceEntry);
   ne->strname = strname;
   ne->ns_keyword = decl;
@@ -77,7 +77,7 @@ scope_lookup_name(Scope* scope, char* strname)
 {
   NamespaceEntry* ne = &NULL_NAMESPACE_ENTRY;
   while (scope) {
-    HashmapEntry* name_he = hashmap_get_entry_string(&scope->sym_table, strname);
+    HashmapEntry* name_he = hashmap_get_entry_string(&scope->decls, strname);
     if (name_he && name_he->object) {
       ne = (NamespaceEntry*)name_he->object;
       if (ne->ns_type || ne->ns_var || ne->ns_keyword) {
