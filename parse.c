@@ -547,7 +547,7 @@ parse_p4program()
 internal Ast*
 parse_declarationList()
 {
-  Ast_List* decls = arena_push_struct(ast_storage, Ast_List);
+  Ast_DeclarationList* decls = arena_push_struct(ast_storage, Ast_DeclarationList);
   decls->kind = AST_declarationList;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
@@ -658,7 +658,7 @@ parse_name()
 internal Ast*
 parse_parameterList()
 {
-  Ast_List* params = arena_push_struct(ast_storage, Ast_List);
+  Ast_ParameterList* params = arena_push_struct(ast_storage, Ast_ParameterList);
   params->kind = AST_parameterList;
   params->line_no = token->line_no;
   params->column_no = token->column_no;
@@ -849,7 +849,7 @@ parse_parserDeclaration()
 internal Ast*
 parse_parserLocalElements()
 {
-  Ast_List* elems = arena_push_struct(ast_storage, Ast_List);
+  Ast_ParserLocalElements* elems = arena_push_struct(ast_storage, Ast_ParserLocalElements);
   elems->kind = AST_parserLocalElements;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
@@ -930,7 +930,7 @@ parse_parserTypeDeclaration()
 internal Ast*
 parse_parserStates()
 {
-  Ast_List* states = arena_push_struct(ast_storage, Ast_List);
+  Ast_ParserStates* states = arena_push_struct(ast_storage, Ast_ParserStates);
   states->kind = AST_parserStates;
   states->line_no = token->line_no;
   states->column_no = token->column_no;
@@ -978,7 +978,7 @@ parse_parserState()
 internal Ast*
 parse_parserStatements()
 {
-  Ast_List* stmts = arena_push_struct(ast_storage, Ast_List);
+  Ast_ParserStatements* stmts = arena_push_struct(ast_storage, Ast_ParserStatements);
   stmts->kind = AST_parserStatements;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
@@ -1136,7 +1136,7 @@ parse_selectExpression()
 internal Ast*
 parse_selectCaseList()
 {
-  Ast_List* cases = arena_push_struct(ast_storage, Ast_List);
+  Ast_SelectCaseList* cases = arena_push_struct(ast_storage, Ast_SelectCaseList);
   cases->kind = AST_selectCaseList;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
@@ -1227,7 +1227,7 @@ parse_tupleKeysetExpression()
 internal Ast*
 parse_keysetExpressionList()
 {
-  Ast_List* exprs = arena_push_struct(ast_storage, Ast_List);
+  Ast_KeysetExpressionList* exprs = arena_push_struct(ast_storage, Ast_KeysetExpressionList);
   exprs->kind = AST_keysetExpressionList;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
@@ -1381,7 +1381,7 @@ parse_controlLocalDeclaration()
 internal Ast*
 parse_controlLocalDeclarations()
 {
-  Ast_List* decls = arena_push_struct(ast_storage, Ast_List);
+  Ast_ControlLocalDeclarations* decls = arena_push_struct(ast_storage, Ast_ControlLocalDeclarations);
   decls->kind = AST_controlLocalDeclarations;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
@@ -1458,7 +1458,7 @@ parse_externDeclaration()
 internal Ast*
 parse_methodPrototypes()
 {
-  Ast_List* protos = arena_push_struct(ast_storage, Ast_List);
+  Ast_MethodPrototypes* protos = arena_push_struct(ast_storage, Ast_MethodPrototypes);
   protos->kind = AST_methodPrototypes;
   protos->line_no = token->line_no;
   protos->column_no = token->column_no;
@@ -1873,7 +1873,7 @@ parse_optTypeParameters()
 internal Ast*
 parse_typeParameterList()
 {
-  Ast_List* params = arena_push_struct(ast_storage, Ast_List);
+  Ast_TypeParameterList* params = arena_push_struct(ast_storage, Ast_TypeParameterList);
   params->kind = AST_typeParameterList;
   params->line_no = token->line_no;
   params->column_no = token->column_no;
@@ -1954,7 +1954,7 @@ parse_typeArg()
 internal Ast*
 parse_realTypeArgumentList()
 {
-  Ast_List* args = arena_push_struct(ast_storage, Ast_List);
+  Ast_RealTypeArgumentList* args = arena_push_struct(ast_storage, Ast_RealTypeArgumentList);
   args->kind = AST_realTypeArgumentList;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
@@ -1976,7 +1976,7 @@ parse_realTypeArgumentList()
 internal Ast*
 parse_typeArgumentList()
 {
-  Ast_List* args = arena_push_struct(ast_storage, Ast_List);
+  Ast_TypeArgumentList* args = arena_push_struct(ast_storage, Ast_TypeArgumentList);
   args->kind = AST_typeArgumentList;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
@@ -2154,7 +2154,7 @@ parse_structTypeDeclaration()
 internal Ast*
 parse_structFieldList()
 {
-  Ast_List* fields = arena_push_struct(ast_storage, Ast_List);
+  Ast_StructFieldList* fields = arena_push_struct(ast_storage, Ast_StructFieldList);
   fields->kind = AST_structFieldList;
   fields->line_no = token->line_no;
   fields->column_no = token->column_no;
@@ -2307,7 +2307,7 @@ parse_matchKindDeclaration()
 internal Ast*
 parse_identifierList()
 {
-  Ast_List* ids = arena_push_struct(ast_storage, Ast_List);
+  Ast_IdentifierList* ids = arena_push_struct(ast_storage, Ast_IdentifierList);
   ids->kind = AST_identifierList;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
@@ -2329,7 +2329,7 @@ parse_identifierList()
 internal Ast*
 parse_specifiedIdentifierList()
 {
-  Ast_List* ids = arena_push_struct(ast_storage, Ast_List);
+  Ast_SpecifiedIdentifierList* ids = arena_push_struct(ast_storage, Ast_SpecifiedIdentifierList);
   ids->kind = AST_specifiedIdentifierList;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
@@ -2352,7 +2352,7 @@ internal Ast*
 parse_specifiedIdentifier()
 {
   if (token_is_specifiedIdentifier(token)) {
-    Ast_SpecifiedIdent* id = arena_push_struct(ast_storage, Ast_SpecifiedIdent);
+    Ast_SpecifiedIdentifier* id = arena_push_struct(ast_storage, Ast_SpecifiedIdentifier);
     id->kind = AST_specifiedIdentifier;
     id->line_no = token->line_no;
     id->column_no = token->column_no;
@@ -2644,7 +2644,7 @@ parse_blockStatement()
 internal Ast*
 parse_statementOrDeclList()
 {
-  Ast_List* stmts = arena_push_struct(ast_storage, Ast_List);
+  Ast_StatementOrDeclList* stmts = arena_push_struct(ast_storage, Ast_StatementOrDeclList);
   stmts->kind = AST_statementOrDeclList;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
@@ -2699,7 +2699,7 @@ parse_switchStatement()
 internal Ast*
 parse_switchCases()
 {
-  Ast_List* cases = arena_push_struct(ast_storage, Ast_List);
+  Ast_SwitchCases* cases = arena_push_struct(ast_storage, Ast_SwitchCases);
   cases->kind = AST_switchCases;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
@@ -2833,7 +2833,7 @@ parse_tableDeclaration()
 internal Ast*
 parse_tablePropertyList()
 {
-  Ast_List* props = arena_push_struct(ast_storage, Ast_List);
+  Ast_TablePropertyList* props = arena_push_struct(ast_storage, Ast_TablePropertyList);
   props->kind = AST_tablePropertyList;
   props->line_no = token->line_no;
   props->column_no = token->column_no;
@@ -2958,7 +2958,7 @@ parse_tableProperty()
 internal Ast*
 parse_keyElementList()
 {
-  Ast_List* elems = arena_push_struct(ast_storage, Ast_List);
+  Ast_KeyElementList* elems = arena_push_struct(ast_storage, Ast_KeyElementList);
   elems->kind = AST_keyElementList;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
@@ -3004,7 +3004,7 @@ parse_keyElement()
 internal Ast*
 parse_actionList()
 {
-  Ast_List* actions = arena_push_struct(ast_storage, Ast_List);
+  Ast_ActionList* actions = arena_push_struct(ast_storage, Ast_ActionList);
   actions->kind = AST_actionList;
   actions->line_no = token->line_no;
   actions->column_no = token->column_no;
@@ -3062,7 +3062,7 @@ parse_actionRef()
 internal Ast*
 parse_entriesList()
 {
-  Ast_List* entries = arena_push_struct(ast_storage, Ast_List);
+  Ast_EntriesList* entries = arena_push_struct(ast_storage, Ast_EntriesList);
   entries->kind = AST_entriesList;
   entries->line_no = token->line_no;
   entries->column_no = token->column_no;
@@ -3199,7 +3199,7 @@ parse_functionDeclaration(Ast* type_ref)
 internal Ast*
 parse_argumentList()
 {
-  Ast_List* args = arena_push_struct(ast_storage, Ast_List);
+  Ast_ArgumentList* args = arena_push_struct(ast_storage, Ast_ArgumentList);
   args->kind = AST_argumentList;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
@@ -3247,7 +3247,7 @@ parse_argument()
 internal Ast*
 parse_expressionList()
 {
-  Ast_List* exprs = arena_push_struct(ast_storage, Ast_List);
+  Ast_ExpressionList* exprs = arena_push_struct(ast_storage, Ast_ExpressionList);
   exprs->kind = AST_expressionList;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
