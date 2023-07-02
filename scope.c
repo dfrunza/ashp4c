@@ -6,7 +6,6 @@
 internal Arena *scope_storage;
 internal Scope* current_scope;
 internal int scope_level;
-internal NamespaceEntry NULL_NAMESPACE_ENTRY = {0};
 
 Scope*
 push_scope()
@@ -36,12 +35,13 @@ declare_type_name(Scope* scope, char* strname, int line_no, int column_no, Ast* 
   decl->strname = strname;
   decl->line_no = line_no;
   decl->column_no = column_no;
-  HashmapEntry* name_he = hashmap_create_entry_string(&scope->decls, strname);
-  NamespaceEntry* ne = arena_push_struct(scope_storage, NamespaceEntry);
-  ne->strname = strname;
-  ne->ns_type = decl;
-  name_he->object = ne;
-  decl->next_decl = ne->ns_type;
+  HashmapEntry* he = hashmap_create_entry_string(&scope->decls, strname);
+  NamespaceEntry* ns = arena_push_struct(scope_storage, NamespaceEntry);
+  ns->strname = strname;
+  ns->scope = scope;
+  ns->ns_type = decl;
+  he->object = ns;
+  decl->next_decl = ns->ns_type;
 }
 
 void
@@ -52,11 +52,12 @@ declare_var_name(Scope* scope, char* strname, int line_no, int column_no, Ast* a
   decl->strname = strname;
   decl->line_no = line_no;
   decl->column_no = column_no;
-  HashmapEntry* name_he = hashmap_create_entry_string(&scope->decls, strname);
-  NamespaceEntry* ne = arena_push_struct(scope_storage, NamespaceEntry);
-  ne->strname = strname;
-  ne->ns_var = decl;
-  name_he->object = ne;
+  HashmapEntry* he = hashmap_create_entry_string(&scope->decls, strname);
+  NamespaceEntry* ns = arena_push_struct(scope_storage, NamespaceEntry);
+  ns->strname = strname;
+  ns->scope = scope;
+  ns->ns_var = decl;
+  he->object = ns;
 }
 
 void
@@ -65,28 +66,29 @@ declare_keyword(Scope* scope, char* strname, enum TokenClass token_class)
   NameDecl* decl = arena_push_struct(scope_storage, NameDecl);
   decl->strname = strname;
   decl->token_class = token_class;
-  HashmapEntry* name_he = hashmap_create_entry_string(&scope->decls, strname);
-  NamespaceEntry* ne = arena_push_struct(scope_storage, NamespaceEntry);
-  ne->strname = strname;
-  ne->ns_keyword = decl;
-  name_he->object = ne;
+  HashmapEntry* he = hashmap_create_entry_string(&scope->decls, strname);
+  NamespaceEntry* ns = arena_push_struct(scope_storage, NamespaceEntry);
+  ns->strname = strname;
+  ns->scope = scope;
+  ns->ns_keyword = decl;
+  he->object = ns;
 }
 
 NamespaceEntry*
 scope_lookup_name(Scope* scope, char* strname)
 {
-  NamespaceEntry* ne = &NULL_NAMESPACE_ENTRY;
+  NamespaceEntry* ns = 0;
   while (scope) {
-    HashmapEntry* name_he = hashmap_get_entry_string(&scope->decls, strname);
-    if (name_he && name_he->object) {
-      ne = (NamespaceEntry*)name_he->object;
-      if (ne->ns_type || ne->ns_var || ne->ns_keyword) {
+    HashmapEntry* he = hashmap_get_entry_string(&scope->decls, strname);
+    if (he && he->object) {
+      ns = (NamespaceEntry*)he->object;
+      if (ns->ns_type || ns->ns_var || ns->ns_keyword) {
         break;
       }
     }
     scope = scope->parent_scope;
   }
-  return ne;
+  return ns;
 }
 
 void

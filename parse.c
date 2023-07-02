@@ -153,12 +153,12 @@ next_token()
     token = array_get(tokens, ++token_at);
   }
   if (token->klass == TK_IDENTIFIER) {
-    NamespaceEntry* ne = scope_lookup_name(current_scope, token->lexeme);
-    if (ne->ns_keyword) {
-      NameDecl* ndecl = ne->ns_keyword;
+    NamespaceEntry* ns = scope_lookup_name(current_scope, token->lexeme);
+    if (ns && ns->ns_keyword) {
+      NameDecl* ndecl = ns->ns_keyword;
       token->klass = ndecl->token_class;
       return token;
-    } else if (ne->ns_type) {
+    } else if (ns && ns->ns_type) {
       token->klass = TK_TYPE_IDENTIFIER;
       return token;
     }
@@ -1953,7 +1953,7 @@ parse_typeArg()
 {
   if (token_is_typeArg(token)) {
     Ast_TypeArg* type_arg = arena_push_struct(ast_storage, Ast_TypeArg);
-    type_arg->kind = AST_typeArgument;
+    type_arg->kind = AST_typeArg;
     type_arg->line_no = token->line_no;
     type_arg->column_no = token->column_no;
     if (token->klass == TK_DONTCARE) {
@@ -2571,7 +2571,7 @@ parse_directApplication(Ast* type_name)
     apply_stmt->kind = AST_directApplication;
     apply_stmt->line_no = token->line_no;
     apply_stmt->column_no = token->column_no;
-    apply_stmt->name = type_name ? type_name : parse_namedType();
+    apply_stmt->name = type_name ? type_name : parse_prefixedType();
     if (token->klass == TK_DOT) {
       next_token();
       if (token->klass == TK_APPLY) {

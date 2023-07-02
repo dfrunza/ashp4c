@@ -172,7 +172,7 @@ enum AstEnum {
   AST_integerTypeSize,
   AST_typeParameterList,
   AST_realTypeArg,
-  AST_typeArgument,
+  AST_typeArg,
   AST_realTypeArgumentList,
   AST_typeArgumentList,
   AST_typeDeclaration,
@@ -942,7 +942,6 @@ typedef struct Ast_Default {
   Ast;
 } Ast_Default;
 
-
 typedef struct NameDecl {
   union {
     Ast* ast;
@@ -956,6 +955,7 @@ typedef struct NameDecl {
 
 typedef struct NamespaceEntry {
   char* strname;
+  Scope* scope;
   NameDecl* ns_type;
   NameDecl* ns_var;
   NameDecl* ns_keyword;
@@ -990,7 +990,6 @@ typedef struct Type {
 } Type;
 
 typedef struct TypeSet {
-  Ast* ast;
   List members;
 } TypeSet;
 
@@ -998,15 +997,24 @@ typedef struct Type_Type {
   Type;
 } Type_Type;
 
-typedef struct Type_Vector {
+typedef struct Type_Basic {
   Type;
-  List members;
-} Type_Vector;
+} Type_Basic;
 
-typedef struct Type_TypeDef {
+typedef struct Type_Typedef {
   Type;
   Type* ref_ty;
-} Type_TypeDef;
+} Type_Typedef;
+
+typedef struct Type_Product {
+  Type;
+  List members;
+} Type_Product;
+
+typedef struct Type_Union {
+  Type;
+  List members;
+} Type_Union;
 
 typedef struct Type_Function {
   Type;
