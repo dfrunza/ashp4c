@@ -673,12 +673,12 @@ parse_name()
     if (token_is_nonTypeName(token)) {
       return parse_nonTypeName();
     } else if (token->klass == TK_TYPE_IDENTIFIER) {
-      next_token();
       Ast_Name* type_name = arena_push_struct(ast_storage, Ast_Name);
       type_name->kind = AST_name;
       type_name->line_no = token->line_no;
       type_name->column_no = token->column_no;
       type_name->strname = token->lexeme;
+      next_token();
       return (Ast*)type_name;
     } else assert(0);
   } else error("At line %d, column %d: name was expected, got `%s`.",
@@ -1644,13 +1644,13 @@ parse_prefixedType()
     is_prefixed = true;
   }
   if (token->klass == TK_TYPE_IDENTIFIER) {
-    next_token();
     Ast_Name* type_name = arena_push_struct(ast_storage, Ast_Name);
     type_name->kind = AST_name;
     type_name->line_no = token->line_no;
     type_name->column_no = token->column_no;
     type_name->strname = token->lexeme;
     type_name->is_prefixed = is_prefixed;
+    next_token();
     return (Ast*)type_name;
   } else error("At line %d, column %d: type was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -1737,31 +1737,31 @@ parse_baseType()
     type_name->line_no = token->line_no;
     type_name->column_no = token->column_no;
     if (token->klass == TK_BOOL) {
-      next_token();
       Ast_BooleanType* bool_type = arena_push_struct(ast_storage, Ast_BooleanType);
       bool_type->kind = AST_baseTypeBoolean;
       bool_type->line_no = token->line_no;
       bool_type->column_no = token->column_no;
-      type_name->strname = "bool";
+      type_name->strname = token->lexeme;
       bool_type->name = (Ast*)type_name;
+      next_token();
       return (Ast*)bool_type;
     } else if (token->klass == TK_ERROR) {
-      next_token();
       Ast_ErrorType* error_type = arena_push_struct(ast_storage, Ast_ErrorType);
       error_type->kind = AST_baseTypeError;
       error_type->line_no = token->line_no;
       error_type->column_no = token->column_no;
-      type_name->strname = "error";
+      type_name->strname = token->lexeme;
       error_type->name = (Ast*)type_name;
+      next_token();
       return (Ast*)error_type;
     } else if (token->klass == TK_INT) {
-      next_token();
       Ast_IntegerType* int_type = arena_push_struct(ast_storage, Ast_IntegerType);
       int_type->kind = AST_baseTypeInteger;
       int_type->line_no = token->line_no;
       int_type->column_no = token->column_no;
-      type_name->strname = "int";
+      type_name->strname = token->lexeme;
       int_type->name = (Ast*)type_name;
+      next_token();
       if (token->klass == TK_ANGLE_OPEN) {
         next_token();
         int_type->size = parse_integerTypeSize();
@@ -1772,13 +1772,13 @@ parse_baseType()
       }
       return (Ast*)int_type;
     } else if (token->klass == TK_BIT) {
-      next_token();
       Ast_BitType* bit_type = arena_push_struct(ast_storage, Ast_BitType);
       bit_type->kind = AST_baseTypeBit;
       bit_type->line_no = token->line_no;
       bit_type->column_no = token->column_no;
-      type_name->strname = "bit";
+      type_name->strname = token->lexeme;
       bit_type->name = (Ast*)type_name;
+      next_token();
       if (token->klass == TK_ANGLE_OPEN) {
         next_token();
         bit_type->size = parse_integerTypeSize();
@@ -1789,13 +1789,13 @@ parse_baseType()
       }
       return (Ast*)bit_type;
     } else if (token->klass == TK_VARBIT) {
-      next_token();
       Ast_VarbitType* varbit_type = arena_push_struct(ast_storage, Ast_VarbitType);
       varbit_type->kind = AST_baseTypeVarbit;
       varbit_type->line_no = token->line_no;
       varbit_type->column_no = token->column_no;
-      type_name->strname = "varbit";
+      type_name->strname = token->lexeme;
       varbit_type->name = (Ast*)type_name;
+      next_token();
       if (token->klass == TK_ANGLE_OPEN) {
         next_token();
         varbit_type->size = parse_integerTypeSize();
@@ -1807,22 +1807,22 @@ parse_baseType()
                    token->line_no, token->column_no, token->lexeme);
       return (Ast*)varbit_type;
     } else if (token->klass == TK_STRING) {
-      next_token();
       Ast_StringType* string_type = arena_push_struct(ast_storage, Ast_StringType);
       string_type->kind = AST_baseTypeString;
       string_type->line_no = token->line_no;
       string_type->column_no = token->column_no;
-      type_name->strname = "string";
+      type_name->strname = token->lexeme;
       string_type->name = (Ast*)type_name;
+      next_token();
       return (Ast*)string_type;
     } else if (token->klass == TK_VOID) {
-      next_token();
       Ast_VoidType* void_type = arena_push_struct(ast_storage, Ast_VoidType);
       void_type->kind = AST_baseTypeVoid;
       void_type->line_no = token->line_no;
       void_type->column_no = token->column_no;
-      type_name->strname = "void";
+      type_name->strname = token->lexeme;
       void_type->name = (Ast*)type_name;
+      next_token();
       return (Ast*)void_type;
     } else assert(0);
   } else error("At line %d, column %d: base type was expected, got `%s`.",
@@ -1860,12 +1860,12 @@ parse_typeOrVoid()
     } else if (token->klass == TK_VOID) {
       return (Ast*)parse_baseType();
     } else if (token->klass == TK_IDENTIFIER) {
-      next_token();
       Ast_Name* name = arena_push_struct(ast_storage, Ast_Name);
       name->kind = AST_name;
       name->line_no = token->line_no;
       name->column_no = token->column_no;
       name->strname = token->lexeme;
+      next_token();
       return (Ast*)name;
     } else assert(0);
   } else error("At line %d, column %d: type was expected, got `%s`.",
@@ -3600,7 +3600,6 @@ internal Ast*
 parse_integer()
 {
   if (token->klass == TK_INTEGER_LITERAL) {
-    next_token();
     Ast_IntegerLiteral* int_literal = arena_push_struct(ast_storage, Ast_IntegerLiteral);
     int_literal->kind = AST_integerLiteral;
     int_literal->line_no = token->line_no;
@@ -3608,6 +3607,7 @@ parse_integer()
     int_literal->is_signed = token->i.is_signed;
     int_literal->width = token->i.width;
     int_literal->value = token->i.value;
+    next_token();
     return (Ast*)int_literal;
   } else error("At line %d, column %d: integer was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -3619,12 +3619,12 @@ internal Ast*
 parse_boolean()
 {
   if (token->klass == TK_TRUE || token->klass == TK_FALSE) {
-    next_token();
     Ast_BooleanLiteral* bool_literal = arena_push_struct(ast_storage, Ast_BooleanLiteral);
     bool_literal->kind = AST_booleanLiteral;
     bool_literal->line_no = token->line_no;
     bool_literal->column_no = token->column_no;
     bool_literal->value = (token->klass == TK_TRUE);
+    next_token();
     return (Ast*)bool_literal;
   } else error("At line %d, column %d: boolean was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -3636,12 +3636,12 @@ internal Ast*
 parse_string()
 {
   if (token->klass == TK_STRING_LITERAL) {
-    next_token();
     Ast_StringLiteral* string_literal = arena_push_struct(ast_storage, Ast_StringLiteral);
     string_literal->kind = AST_stringLiteral;
     string_literal->line_no = token->line_no;
     string_literal->column_no = token->column_no;
     string_literal->value = token->lexeme;
+    next_token();
     return (Ast*)string_literal;
   } else error("At line %d, column %d: string was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
