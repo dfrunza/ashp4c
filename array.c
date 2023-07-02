@@ -82,5 +82,6 @@ list_append_item(List* list, ListItem* item, int count)
   ListItem* tail = list->last_item;
   tail->next = item;
   item->prev = tail;
+  list->last_item = item;
   list->item_count += count;
 }

@@ -8,151 +8,152 @@ internal int node_id = 0;
 
 /** PROGRAM **/
 
-/* 1 */ internal void visit_p4program(Ast_P4Program* p4program);
-/* 2 */ internal void visit_declarationList(Ast_DeclarationList* decl_list);
-/* 3 */ internal void visit_declaration(Ast_Declaration* decl);
-/* 4 */ internal void visit_name(Ast_Name* name);
-/* 5 */ internal void visit_parameterList(Ast_ParameterList* params);
-/* 6 */ internal void visit_parameter(Ast_Parameter* param);
-/* 7 */ internal void visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* type_decl);
-/* 8 */ internal void visit_instantiation(Ast_Instantiation* inst);
+internal void visit_p4program(Ast_P4Program* p4program);
+internal void visit_declarationList(Ast_DeclarationList* decl_list);
+internal void visit_declaration(Ast_Declaration* decl);
+internal void visit_name(Ast_Name* name);
+internal void visit_parameterList(Ast_ParameterList* params);
+internal void visit_parameter(Ast_Parameter* param);
+internal void visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* type_decl);
+internal void visit_instantiation(Ast_Instantiation* inst);
 
 /** PARSER **/
 
-/* 1 */ internal void visit_parserDeclaration(Ast_ParserDeclaration* parser_decl);
-/* 2 */ internal void visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* type_decl);
-/* 3 */ internal void visit_parserLocalElements(Ast_ParserLocalElements* local_elements);
-/* 4 */ internal void visit_parserLocalElement(Ast_ParserLocalElement* local_element);
-/* 5 */ internal void visit_parserStates(Ast_ParserStates* states);
-/* 6 */ internal void visit_parserState(Ast_ParserState* state);
-/* 7 */ internal void visit_parserStatements(Ast_ParserStatements* stmts);
-/* 8 */ internal void visit_parserStatement(Ast_ParserStatement* stmt);
-/* 9 */ internal void visit_parserBlockStatement(Ast_ParserBlockStatement* block_stmt);
-/* 10 */ internal void visit_transitionStatement(Ast_TransitionStatement* transition_stmt);
-/* 11 */ internal void visit_stateExpression(Ast_StateExpression* state_expr);
-/* 12 */ internal void visit_selectExpression(Ast_SelectExpression* select_expr);
-/* 13 */ internal void visit_selectCaseList(Ast_SelectCaseList* case_list);
-/* 14 */ internal void visit_selectCase(Ast_SelectCase* select_case);
-/* 15 */ internal void visit_keysetExpression(Ast_KeysetExpression* keyset_expr);
-/* 16 */ internal void visit_tupleKeysetExpression(Ast_TupleKeysetExpression* tuple_expr);
-/* 17 */ internal void visit_keysetExpressionList(Ast_KeysetExpressionList* keyset_list);
+internal void visit_parserDeclaration(Ast_ParserDeclaration* parser_decl);
+internal void visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* type_decl);
+internal void visit_parserLocalElements(Ast_ParserLocalElements* local_elements);
+internal void visit_parserLocalElement(Ast_ParserLocalElement* local_element);
+internal void visit_parserStates(Ast_ParserStates* states);
+internal void visit_parserState(Ast_ParserState* state);
+internal void visit_parserStatements(Ast_ParserStatements* stmts);
+internal void visit_parserStatement(Ast_ParserStatement* stmt);
+internal void visit_parserBlockStatement(Ast_ParserBlockStatement* block_stmt);
+internal void visit_transitionStatement(Ast_TransitionStatement* transition_stmt);
+internal void visit_stateExpression(Ast_StateExpression* state_expr);
+internal void visit_selectExpression(Ast_SelectExpression* select_expr);
+internal void visit_selectCaseList(Ast_SelectCaseList* case_list);
+internal void visit_selectCase(Ast_SelectCase* select_case);
+internal void visit_keysetExpression(Ast_KeysetExpression* keyset_expr);
+internal void visit_tupleKeysetExpression(Ast_TupleKeysetExpression* tuple_expr);
+internal void visit_simpleKeysetExpression(Ast_SimpleKeysetExpression* simple_expr);
+internal void visit_simpleExpressionList(Ast_SimpleExpressionList* keyset_list);
 
 /** CONTROL **/
 
-/* 1 */ internal void visit_controlDeclaration(Ast_ControlDeclaration* control_decl);
-/* 2 */ internal void visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* type_decl);
-/* 3 */ internal void visit_controlLocalDeclarations(Ast_ControlLocalDeclarations* local_decls);
-/* 4 */ internal void visit_controlLocalDeclaration(Ast_ControlLocalDeclaration* local_decl);
+internal void visit_controlDeclaration(Ast_ControlDeclaration* control_decl);
+internal void visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* type_decl);
+internal void visit_controlLocalDeclarations(Ast_ControlLocalDeclarations* local_decls);
+internal void visit_controlLocalDeclaration(Ast_ControlLocalDeclaration* local_decl);
 
 /** EXTERN **/
 
-/* 1 */ internal void visit_externDeclaration(Ast_ExternDeclaration* extern_decl);
-/* 2 */ internal void visit_externTypeDeclaration(Ast_ExternTypeDeclaration* type_decl);
-/* 3 */ internal void visit_methodPrototypes(Ast_MethodPrototypes* prototypes);
-/* 4 */ internal void visit_functionPrototype(Ast_FunctionPrototype* func_decl);
+internal void visit_externDeclaration(Ast_ExternDeclaration* extern_decl);
+internal void visit_externTypeDeclaration(Ast_ExternTypeDeclaration* type_decl);
+internal void visit_methodPrototypes(Ast_MethodPrototypes* protos);
+internal void visit_functionPrototype(Ast_FunctionPrototype* func_proto);
 
 /** TYPES **/
 
-/* 1 */ internal void visit_typeRef(Ast_TypeRef* type_ref);
-/* 2 */ internal void visit_namedType(Ast_NamedType* type);
-/* 3 */ internal void visit_tupleType(Ast_TupleType* type);
-/* 4 */ internal void visit_headerStackType(Ast_HeaderTypeDeclaration* type_decl);
-/* 5 */ internal void visit_specializedType(Ast_SpecializedType* type_decl);
-/* 6 */ internal void visit_baseTypeBool(Ast_BoolType* bool_type);
-/* 7 */ internal void visit_baseTypeInteger(Ast_IntegerType* int_type);
-/* 8 */ internal void visit_baseTypeBit(Ast_BitType* bit_type);
-/* 9 */ internal void visit_baseTypeVarbit(Ast_VarbitType* varbit_type);
-/* 10 */ internal void visit_baseTypeString(Ast_StringType* str_type);
-/* 11 */ internal void visit_baseTypeVoid(Ast_VoidType* void_type);
-/* 12 */ internal void visit_baseTypeError(Ast_ErrorType* error_type);
-/* 13 */ internal void visit_integerTypeSize(Ast_IntegerTypeSize* type_size);
-/* 14 */ internal void visit_typeParameterList(Ast_TypeParameterList* param_list);
-/* 15 */ internal void visit_realTypeArg(Ast_RealTypeArg* type_arg);
-/* 16 */ internal void visit_typeArg(Ast_TypeArg* type_arg);
-/* 17 */ internal void visit_realTypeArgumentList(Ast_RealTypeArgumentList* arg_list);
-/* 18 */ internal void visit_typeArgumentList(Ast_TypeArgumentList* arg_list);
-/* 19 */ internal void visit_typeDeclaration(Ast_TypeDeclaration* type_decl);
-/* 20 */ internal void visit_derivedTypeDeclaration(Ast_DerivedTypeDeclaration* type_decl);
-/* 21 */ internal void visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl);
-/* 22 */ internal void visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl);
-/* 23 */ internal void visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl);
-/* 24 */ internal void visit_structFieldList(Ast_StructFieldList* field_list);
-/* 25 */ internal void visit_structField(Ast_StructField* field);
-/* 26 */ internal void visit_enumDeclaration(Ast_EnumDeclaration* enum_decl);
-/* 27 */ internal void visit_errorDeclaration(Ast_ErrorDeclaration* error_decl);
-/* 28 */ internal void visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl);
-/* 29 */ internal void visit_identifierList(Ast_IdentifierList* ident_list);
-/* 30 */ internal void visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list);
-/* 31 */ internal void visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident);
-/* 32 */ internal void visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl);
+internal void visit_typeRef(Ast_TypeRef* type_ref);
+internal void visit_tupleType(Ast_TupleType* type);
+internal void visit_headerStackType(Ast_HeaderStackType* type_decl);
+internal void visit_specializedType(Ast_SpecializedType* type_decl);
+internal void visit_baseTypeBoolean(Ast_BooleanType* bool_type);
+internal void visit_baseTypeInteger(Ast_IntegerType* int_type);
+internal void visit_baseTypeBit(Ast_BitType* bit_type);
+internal void visit_baseTypeVarbit(Ast_VarbitType* varbit_type);
+internal void visit_baseTypeString(Ast_StringType* str_type);
+internal void visit_baseTypeVoid(Ast_VoidType* void_type);
+internal void visit_baseTypeError(Ast_ErrorType* error_type);
+internal void visit_integerTypeSize(Ast_IntegerTypeSize* type_size);
+internal void visit_typeParameterList(Ast_TypeParameterList* param_list);
+internal void visit_realTypeArg(Ast_RealTypeArg* type_arg);
+internal void visit_typeArg(Ast_TypeArg* type_arg);
+internal void visit_realTypeArgumentList(Ast_RealTypeArgumentList* arg_list);
+internal void visit_typeArgumentList(Ast_TypeArgumentList* arg_list);
+internal void visit_typeDeclaration(Ast_TypeDeclaration* type_decl);
+internal void visit_derivedTypeDeclaration(Ast_DerivedTypeDeclaration* type_decl);
+internal void visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl);
+internal void visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl);
+internal void visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl);
+internal void visit_structFieldList(Ast_StructFieldList* field_list);
+internal void visit_structField(Ast_StructField* field);
+internal void visit_enumDeclaration(Ast_EnumDeclaration* enum_decl);
+internal void visit_errorDeclaration(Ast_ErrorDeclaration* error_decl);
+internal void visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl);
+internal void visit_identifierList(Ast_IdentifierList* ident_list);
+internal void visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list);
+internal void visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident);
+internal void visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl);
 
 /** STATEMENTS **/
 
-/* 1 */ internal void visit_assignmentStatement(Ast_AssignmentStatement* assgn_stmt);
-/* 2 */ internal void visit_functionCall(Ast_FunctionCall* func_call);
-/* 3 */ internal void visit_returnStatement(Ast_ReturnStatement* return_stmt);
-/* 4 */ internal void visit_exitStatement(Ast_ExitStatement* exit_stmt);
-/* 5 */ internal void visit_conditionalStatement(Ast_ConditionalStatement* cond_stmt);
-/* 6 */ internal void visit_directApplication(Ast_DirectApplication* applic_stmt);
-/* 7 */ internal void visit_statement(Ast_Statement* stmt);
-/* 8 */ internal void visit_blockStatement(Ast_BlockStatement* block_stmt);
-/* 9 */ internal void visit_statementOrDeclList(Ast_StatementOrDeclList* stmt_list);
-/* 10 */ internal void visit_switchStatement(Ast_SwitchStatement* switch_stmt);
-/* 11 */ internal void visit_switchCases(Ast_SwitchCases* switch_cases);
-/* 12 */ internal void visit_switchCase(Ast_SwitchCase* switch_case);
-/* 13 */ internal void visit_switchLabel(Ast_SwitchLabel* label);
-/* 14 */ internal void visit_statementOrDeclaration(Ast_StatementOrDeclaration* stmt);
+internal void visit_assignmentStatement(Ast_AssignmentStatement* assign_stmt);
+internal void visit_functionCall(Ast_FunctionCall* func_call);
+internal void visit_returnStatement(Ast_ReturnStatement* return_stmt);
+internal void visit_exitStatement(Ast_ExitStatement* exit_stmt);
+internal void visit_conditionalStatement(Ast_ConditionalStatement* cond_stmt);
+internal void visit_directApplication(Ast_DirectApplication* applic_stmt);
+internal void visit_statement(Ast_Statement* stmt);
+internal void visit_blockStatement(Ast_BlockStatement* block_stmt);
+internal void visit_statementOrDeclList(Ast_StatementOrDeclList* stmt_list);
+internal void visit_switchStatement(Ast_SwitchStatement* switch_stmt);
+internal void visit_switchCases(Ast_SwitchCases* switch_cases);
+internal void visit_switchCase(Ast_SwitchCase* switch_case);
+internal void visit_switchLabel(Ast_SwitchLabel* label);
+internal void visit_statementOrDeclaration(Ast_StatementOrDeclaration* stmt);
 
 /** TABLES **/
 
-/* 1 */ internal void visit_tableDeclaration(Ast_TableDeclaration* table_decl);
-/* 2 */ internal void visit_tablePropertyList(Ast_TablePropertyList* prop_list);
-/* 3 */ internal void visit_tableProperty(Ast_TableProperty* table_prop);
-/* 4 */ internal void visit_keyProperty(Ast_KeyProperty* key_prop);
-/* 5 */ internal void visit_keyElementList(Ast_KeyElementList* element_list);
-/* 6 */ internal void visit_keyElement(Ast_KeyElement* element);
-/* 7 */ internal void visit_actionsProperty(Ast_ActionsProperty* actions_prop);
-/* 8 */ internal void visit_actionList(Ast_ActionList* action_list);
-/* 9 */ internal void visit_actionRef(Ast_ActionRef* action_ref);
-/* 10 */ internal void visit_entriesProperty(Ast_EntriesProperty* entries_prop);
-/* 11 */ internal void visit_entriesList(Ast_EntriesList* entries_list);
-/* 12 */ internal void visit_entry(Ast_Entry* entry);
-/* 13 */ internal void visit_simpleProperty(Ast_SimpleProperty* simple_prop);
-/* 14 */ internal void visit_actionDeclaration(Ast_ActionDeclaration* action_decl);
+internal void visit_tableDeclaration(Ast_TableDeclaration* table_decl);
+internal void visit_tablePropertyList(Ast_TablePropertyList* prop_list);
+internal void visit_tableProperty(Ast_TableProperty* table_prop);
+internal void visit_keyProperty(Ast_KeyProperty* key_prop);
+internal void visit_keyElementList(Ast_KeyElementList* element_list);
+internal void visit_keyElement(Ast_KeyElement* element);
+internal void visit_actionsProperty(Ast_ActionsProperty* actions_prop);
+internal void visit_actionList(Ast_ActionList* action_list);
+internal void visit_actionRef(Ast_ActionRef* action_ref);
+internal void visit_entriesProperty(Ast_EntriesProperty* entries_prop);
+internal void visit_entriesList(Ast_EntriesList* entries_list);
+internal void visit_entry(Ast_Entry* entry);
+internal void visit_simpleProperty(Ast_SimpleProperty* simple_prop);
+internal void visit_actionDeclaration(Ast_ActionDeclaration* action_decl);
 
 /** VARIABLES **/
 
-/* 1 */ internal void visit_variableDeclaration(Ast_VarDeclaration* var_decl);
+internal void visit_variableDeclaration(Ast_VarDeclaration* var_decl);
 
 /** EXPRESSIONS **/
 
-/* 1 */ internal void visit_functionDeclaration(Ast_FunctionDeclaration* func_decl);
-/* 2 */ internal void visit_argumentList(Ast_ArgumentList* arg_list);
-/* 3 */ internal void visit_argument(Ast_Argument* arg);
-/* 4 */ internal void visit_kvPair(Ast_KVPair* pair);
-/* 5 */ internal void visit_expressionList(Ast_ExpressionList* expr_list);
-/* 6 */ internal void visit_lvalueExpression(Ast_LvalueExpression* lvalue_expr);
-/* 7 */ internal void visit_expression(Ast_Expression* expr);
-/* 8 */ internal void visit_castExpression(Ast_CastExpression* cast_expr);
-/* 9 */ internal void visit_unaryExpression(Ast_UnaryExpression* unary_expr);
-/* 10 */ internal void visit_binaryExpression(Ast_BinaryExpression* binary_expr);
-/* 11 */ internal void visit_memberSelector(Ast_MemberSelector* selector);
-/* 12 */ internal void visit_arraySubscript(Ast_ArraySubscript* subscript);
-/* 13 */ internal void visit_indexExpression(Ast_IndexExpression* index_expr);
-/* 14 */ internal void visit_integerLiteral(Ast_IntegerLiteral* int_literal);
-/* 15 */ internal void visit_booleanLiteral(Ast_BooleanLiteral* bool_literal);
-/* 16 */ internal void visit_stringLiteral(Ast_StringLiteral* str_literal);
+internal void visit_functionDeclaration(Ast_FunctionDeclaration* func_decl);
+internal void visit_argumentList(Ast_ArgumentList* arg_list);
+internal void visit_argument(Ast_Argument* arg);
+internal void visit_expressionList(Ast_ExpressionList* expr_list);
+internal void visit_lvalueExpression(Ast_LvalueExpression* lvalue_expr);
+internal void visit_expression(Ast_Expression* expr);
+internal void visit_castExpression(Ast_CastExpression* cast_expr);
+internal void visit_unaryExpression(Ast_UnaryExpression* unary_expr);
+internal void visit_binaryExpression(Ast_BinaryExpression* binary_expr);
+internal void visit_memberSelector(Ast_MemberSelector* selector);
+internal void visit_arraySubscript(Ast_ArraySubscript* subscript);
+internal void visit_indexExpression(Ast_IndexExpression* index_expr);
+internal void visit_booleanLiteral(Ast_BooleanLiteral* bool_literal);
+internal void visit_integerLiteral(Ast_IntegerLiteral* int_literal);
+internal void visit_stringLiteral(Ast_StringLiteral* str_literal);
+internal void visit_default(Ast_Default* default_);
+internal void visit_dontcare(Ast_Dontcare* dontcare_);
 
 /** PROGRAM **/
 
 internal void
-/* 1 */ visit_p4program(Ast_P4Program* p4program)
+visit_p4program(Ast_P4Program* p4program)
 {
   p4program->id = ++node_id;
   visit_declarationList((Ast_DeclarationList*)p4program->decl_list);
 }
 
-/* 2 */ internal void
+internal void
 visit_declarationList(Ast_DeclarationList* decl_list)
 {
   decl_list->id = ++node_id;
@@ -162,45 +163,45 @@ visit_declarationList(Ast_DeclarationList* decl_list)
   }
 }
 
-/* 3 */ internal void
+internal void
 visit_declaration(Ast_Declaration* decl)
 {
   decl->id = ++node_id;
-  Ast* inner_decl = decl->decl;
-  if (inner_decl->kind == AST_variableDeclaration) {
-    visit_variableDeclaration((Ast_VarDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_externDeclaration) {
-    visit_externDeclaration((Ast_ExternDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_actionDeclaration) {
-    visit_actionDeclaration((Ast_ActionDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_functionDeclaration) {
-    visit_functionDeclaration((Ast_FunctionDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_parserDeclaration) {
-    visit_parserDeclaration((Ast_ParserDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_parserTypeDeclaration) {
-    visit_parserTypeDeclaration((Ast_ParserTypeDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_controlDeclaration) {
-    visit_controlDeclaration((Ast_ControlDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_controlTypeDeclaration) {
-    visit_controlTypeDeclaration((Ast_ControlTypeDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_typeDeclaration) {
-    visit_typeDeclaration((Ast_TypeDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_errorDeclaration) {
-    visit_errorDeclaration((Ast_ErrorDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_matchKindDeclaration) {
-    visit_matchKindDeclaration((Ast_MatchKindDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_instantiation) {
-    visit_instantiation((Ast_Instantiation*)inner_decl);
-  }
-  else assert(0);
+  if (decl->decl->kind == AST_variableDeclaration) {
+    visit_variableDeclaration((Ast_VarDeclaration*)decl->decl);
+  } else if (decl->decl->kind == AST_externDeclaration) {
+    visit_externDeclaration((Ast_ExternDeclaration*)decl->decl);
+  } else if (decl->decl->kind == AST_actionDeclaration) {
+    visit_actionDeclaration((Ast_ActionDeclaration*)decl->decl);
+  } else if (decl->decl->kind == AST_functionDeclaration) {
+    visit_functionDeclaration((Ast_FunctionDeclaration*)decl->decl);
+  } else if (decl->decl->kind == AST_parserDeclaration) {
+    visit_parserDeclaration((Ast_ParserDeclaration*)decl->decl);
+  } else if (decl->decl->kind == AST_parserTypeDeclaration) {
+    visit_parserTypeDeclaration((Ast_ParserTypeDeclaration*)decl->decl);
+  } else if (decl->decl->kind == AST_controlDeclaration) {
+    visit_controlDeclaration((Ast_ControlDeclaration*)decl->decl);
+  } else if (decl->decl->kind == AST_controlTypeDeclaration) {
+    visit_controlTypeDeclaration((Ast_ControlTypeDeclaration*)decl->decl);
+  } else if (decl->decl->kind == AST_typeDeclaration) {
+    visit_typeDeclaration((Ast_TypeDeclaration*)decl->decl);
+  } else if (decl->decl->kind == AST_errorDeclaration) {
+    visit_errorDeclaration((Ast_ErrorDeclaration*)decl->decl);
+  } else if (decl->decl->kind == AST_matchKindDeclaration) {
+    visit_matchKindDeclaration((Ast_MatchKindDeclaration*)decl->decl);
+  } else if (decl->decl->kind == AST_instantiation) {
+    visit_instantiation((Ast_Instantiation*)decl->decl);
+  } else assert(0);
 }
 
-/* 4 */ internal void visit_name(Ast_Name* name)
+internal void
+visit_name(Ast_Name* name)
 {
   name->id = ++node_id;
 }
 
-/* 5 */ internal void visit_parameterList(Ast_ParameterList* params)
+internal void
+visit_parameterList(Ast_ParameterList* params)
 {
   params->id = ++node_id;
   for (ListItem* li = params->members.sentinel.next;
@@ -209,7 +210,8 @@ visit_declaration(Ast_Declaration* decl)
   }
 }
 
-/* 6 */ internal void visit_parameter(Ast_Parameter* param)
+internal void
+visit_parameter(Ast_Parameter* param)
 {
   param->id = ++node_id;
   visit_typeRef((Ast_TypeRef*)param->type);
@@ -219,7 +221,8 @@ visit_declaration(Ast_Declaration* decl)
   }
 }
 
-/* 7 */ internal void visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* type_decl)
+internal void
+visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* type_decl)
 {
   type_decl->id = ++node_id;
   visit_name((Ast_Name*)type_decl->name);
@@ -229,7 +232,8 @@ visit_declaration(Ast_Declaration* decl)
   visit_parameterList((Ast_ParameterList*)type_decl->params);
 }
 
-/* 8 */ internal void visit_instantiation(Ast_Instantiation* inst)
+internal void
+visit_instantiation(Ast_Instantiation* inst)
 {
   inst->id = ++node_id;
   visit_typeRef((Ast_TypeRef*)inst->type_ref);
@@ -238,7 +242,9 @@ visit_declaration(Ast_Declaration* decl)
 }
 
 /** PARSER **/
-/* 1 */ internal void visit_parserDeclaration(Ast_ParserDeclaration* parser_decl)
+
+internal void
+visit_parserDeclaration(Ast_ParserDeclaration* parser_decl)
 {
   parser_decl->id = ++node_id;
   visit_typeDeclaration((Ast_TypeDeclaration*)parser_decl->proto);
@@ -249,7 +255,8 @@ visit_declaration(Ast_Declaration* decl)
   visit_parserStates((Ast_ParserStates*)parser_decl->states);
 }
 
-/* 2 */ internal void visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* type_decl)
+internal void
+visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* type_decl)
 {
   type_decl->id = ++node_id;
   visit_name((Ast_Name*)type_decl->name);
@@ -259,7 +266,8 @@ visit_declaration(Ast_Declaration* decl)
   visit_parameterList((Ast_ParameterList*)type_decl->params);
 }
 
-/* 3 */ internal void visit_parserLocalElements(Ast_ParserLocalElements* local_elements)
+internal void
+visit_parserLocalElements(Ast_ParserLocalElements* local_elements)
 {
   local_elements->id = ++node_id;
   for (ListItem* li = local_elements->members.sentinel.next;
@@ -268,19 +276,19 @@ visit_declaration(Ast_Declaration* decl)
   }
 }
 
-/* 4 */ internal void visit_parserLocalElement(Ast_ParserLocalElement* local_element)
+internal void
+visit_parserLocalElement(Ast_ParserLocalElement* local_element)
 {
   local_element->id = ++node_id;
-  Ast* inner_element = local_element->element;
-  if (inner_element->kind == AST_variableDeclaration) {
-    visit_variableDeclaration((Ast_VarDeclaration*)inner_element);
-  } else if (inner_element->kind == AST_instantiation) {
-    visit_instantiation((Ast_Instantiation*)inner_element);
-  }
-  else assert(0);
+  if (local_element->element->kind == AST_variableDeclaration) {
+    visit_variableDeclaration((Ast_VarDeclaration*)local_element->element);
+  } else if (local_element->element->kind == AST_instantiation) {
+    visit_instantiation((Ast_Instantiation*)local_element->element);
+  } else assert(0);
 }
 
-/* 5 */ internal void visit_parserStates(Ast_ParserStates* states)
+internal void
+visit_parserStates(Ast_ParserStates* states)
 {
   states->id = ++node_id;
   for (ListItem* li = states->members.sentinel.next;
@@ -289,7 +297,8 @@ visit_declaration(Ast_Declaration* decl)
   }
 }
 
-/* 6 */ internal void visit_parserState(Ast_ParserState* state)
+internal void
+visit_parserState(Ast_ParserState* state)
 {
   state->id = ++node_id;
   visit_name((Ast_Name*)state->name);
@@ -297,53 +306,129 @@ visit_declaration(Ast_Declaration* decl)
   visit_transitionStatement((Ast_TransitionStatement*)state->transition_stmt);
 }
 
-/* 7 */ internal void visit_parserStatements(Ast_ParserStatements* stmts)
+internal void
+visit_parserStatements(Ast_ParserStatements* stmts)
 {
-  assert(0);
+  stmts->id = ++node_id;
+  for (ListItem* li = stmts->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_parserStatement((Ast_ParserStatement*)li->object);
+  }
 }
-/* 8 */ internal void visit_parserStatement(Ast_ParserStatement* stmt)
+
+internal void
+visit_parserStatement(Ast_ParserStatement* stmt)
 {
-  assert(0);
+  stmt->id = ++node_id;
+  if (stmt->stmt->kind == AST_assignmentStatement) {
+    visit_assignmentStatement((Ast_AssignmentStatement*)stmt->stmt);
+  } else if (stmt->stmt->kind == AST_functionCall) {
+    visit_functionCall((Ast_FunctionCall*)stmt->stmt);
+  } else if (stmt->stmt->kind == AST_directApplication) {
+    visit_directApplication((Ast_DirectApplication*)stmt->stmt);
+  } else if (stmt->stmt->kind == AST_parserBlockStatement) {
+    visit_parserBlockStatement((Ast_ParserBlockStatement*)stmt->stmt);
+  } else if (stmt->stmt->kind == AST_variableDeclaration) {
+    visit_variableDeclaration((Ast_VarDeclaration*)stmt->stmt);
+  } else assert(0);
 }
-/* 9 */ internal void visit_parserBlockStatement(Ast_ParserBlockStatement* block_stmt)
+
+internal void
+visit_parserBlockStatement(Ast_ParserBlockStatement* block_stmt)
 {
-  assert(0);
+  block_stmt->id = ++node_id;
+  visit_parserStatements((Ast_ParserStatements*)block_stmt->stmt_list);
 }
-/* 10 */ internal void visit_transitionStatement(Ast_TransitionStatement* transition_stmt)
+
+internal void
+visit_transitionStatement(Ast_TransitionStatement* transition_stmt)
 {
-  assert(0);
+  transition_stmt->id = ++node_id;
+  visit_stateExpression((Ast_StateExpression*)transition_stmt->stmt);
 }
-/* 11 */ internal void visit_stateExpression(Ast_StateExpression* state_expr)
+
+internal void
+visit_stateExpression(Ast_StateExpression* state_expr)
 {
-  assert(0);
+  state_expr->id = ++node_id;
+  if (state_expr->expr->kind == AST_name) {
+    visit_name((Ast_Name*)state_expr->expr);
+  } else if (state_expr->expr->kind == AST_selectExpression) {
+    visit_selectExpression((Ast_SelectExpression*)state_expr->expr);
+  } else assert(0);
 }
-/* 12 */ internal void visit_selectExpression(Ast_SelectExpression* select_expr)
+
+internal void
+visit_selectExpression(Ast_SelectExpression* select_expr)
 {
-  assert(0);
+  select_expr->id = ++node_id;
+  visit_expressionList((Ast_ExpressionList*)select_expr->expr_list);
+  visit_selectCaseList((Ast_SelectCaseList*)select_expr->case_list);
 }
-/* 13 */ internal void visit_selectCaseList(Ast_SelectCaseList* case_list)
+
+internal void
+visit_selectCaseList(Ast_SelectCaseList* case_list)
 {
-  assert(0);
+  case_list->id = ++node_id;
+  for (ListItem* li = case_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_selectCase((Ast_SelectCase*)li->object);
+  }
 }
-/* 14 */ internal void visit_selectCase(Ast_SelectCase* select_case)
+
+internal void
+visit_selectCase(Ast_SelectCase* select_case)
 {
-  assert(0);
+  select_case->id = ++node_id;
+  visit_keysetExpression((Ast_KeysetExpression*)select_case->keyset_expr);
+  visit_name((Ast_Name*)select_case->name);
 }
-/* 15 */ internal void visit_keysetExpression(Ast_KeysetExpression* keyset_expr)
+
+internal void
+visit_keysetExpression(Ast_KeysetExpression* keyset_expr)
 {
-  assert(0);
+  keyset_expr->id = ++node_id;
+  if (keyset_expr->expr->kind == AST_tupleKeysetExpression) {
+    visit_tupleKeysetExpression((Ast_TupleKeysetExpression*)keyset_expr->expr);
+  } else if (keyset_expr->expr->kind == AST_simpleKeysetExpression) {
+    visit_simpleKeysetExpression((Ast_SimpleKeysetExpression*)keyset_expr->expr);
+  } else assert(0);
 }
-/* 16 */ internal void visit_tupleKeysetExpression(Ast_TupleKeysetExpression* tuple_expr)
+
+internal void
+visit_tupleKeysetExpression(Ast_TupleKeysetExpression* tuple_expr)
 {
-  assert(0);
+  tuple_expr->id = ++node_id;
+  visit_simpleExpressionList((Ast_SimpleExpressionList*)tuple_expr->expr_list);
 }
-/* 17 */ internal void visit_keysetExpressionList(Ast_KeysetExpressionList* keyset_list)
+
+internal void
+visit_simpleKeysetExpression(Ast_SimpleKeysetExpression* simple_expr)
 {
-  assert(0);
+  simple_expr->id = ++node_id;
+  if (simple_expr->expr->kind == AST_expression) {
+    visit_expression((Ast_Expression*)simple_expr->expr);
+  } else if (simple_expr->expr->kind == AST_default) {
+    visit_default((Ast_Default*)simple_expr->expr);
+  } else if (simple_expr->expr->kind == AST_dontcare) {
+    visit_dontcare((Ast_Dontcare*)simple_expr->expr);
+  } else assert(0);
+}
+
+internal void
+visit_simpleExpressionList(Ast_SimpleExpressionList* keyset_list)
+{
+  keyset_list->id = ++node_id;
+  for (ListItem* li = keyset_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_simpleKeysetExpression((Ast_SimpleKeysetExpression*)li->object);
+  }
 }
 
 /** CONTROL **/
-/* 1 */ internal void visit_controlDeclaration(Ast_ControlDeclaration* control_decl)
+
+internal void
+visit_controlDeclaration(Ast_ControlDeclaration* control_decl)
 {
   control_decl->id = ++node_id;
   visit_typeDeclaration((Ast_TypeDeclaration*)control_decl->proto);
@@ -354,7 +439,8 @@ visit_declaration(Ast_Declaration* decl)
   visit_blockStatement((Ast_BlockStatement*)control_decl->apply_stmt);
 }
 
-/* 2 */ internal void visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* type_decl)
+internal void
+visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* type_decl)
 {
   type_decl->id = ++node_id;
   visit_name((Ast_Name*)type_decl->name);
@@ -364,305 +450,658 @@ visit_declaration(Ast_Declaration* decl)
   visit_parameterList((Ast_ParameterList*)type_decl->params);
 }
 
-/* 3 */ internal void visit_controlLocalDeclarations(Ast_ControlLocalDeclarations* local_decls)
+internal void
+visit_controlLocalDeclarations(Ast_ControlLocalDeclarations* local_decls)
 {
-  assert(0);
+  local_decls->id = ++node_id;
+  for (ListItem* li = local_decls->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_controlLocalDeclaration((Ast_ControlLocalDeclaration*)li->object);
+  }
 }
 
-/* 4 */ internal void visit_controlLocalDeclaration(Ast_ControlLocalDeclaration* local_decl)
+internal void
+visit_controlLocalDeclaration(Ast_ControlLocalDeclaration* local_decl)
 {
-  assert(0);
+  local_decl->id = ++node_id;
+  if (local_decl->decl->kind == AST_variableDeclaration) {
+    visit_variableDeclaration((Ast_VarDeclaration*)local_decl->decl);
+  } else if (local_decl->decl->kind == AST_actionDeclaration) {
+    visit_actionDeclaration((Ast_ActionDeclaration*)local_decl->decl);
+  } else if (local_decl->decl->kind == AST_tableDeclaration) {
+    visit_tableDeclaration((Ast_TableDeclaration*)local_decl->decl);
+  } else if (local_decl->decl->kind == AST_instantiation) {
+    visit_instantiation((Ast_Instantiation*)local_decl->decl);
+  } else assert(0);
 }
 
 /** EXTERN **/
-/* 1 */ internal void visit_externDeclaration(Ast_ExternDeclaration* extern_decl)
+
+internal void
+visit_externDeclaration(Ast_ExternDeclaration* extern_decl)
 {
   extern_decl->id = ++node_id;
-  Ast* inner_decl = extern_decl->decl;
-  if (inner_decl->kind == AST_externTypeDeclaration) {
-    visit_externTypeDeclaration((Ast_ExternTypeDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_functionPrototype) {
-    visit_functionPrototype((Ast_FunctionPrototype*)inner_decl);
-  }
-  else assert(0);
+  if (extern_decl->decl->kind == AST_externTypeDeclaration) {
+    visit_externTypeDeclaration((Ast_ExternTypeDeclaration*)extern_decl->decl);
+  } else if (extern_decl->decl->kind == AST_functionPrototype) {
+    visit_functionPrototype((Ast_FunctionPrototype*)extern_decl->decl);
+  } else assert(0);
 }
 
-/* 2 */ internal void visit_externTypeDeclaration(Ast_ExternTypeDeclaration* type_decl)
+internal void
+visit_externTypeDeclaration(Ast_ExternTypeDeclaration* type_decl)
 {
-  assert(0);
+  type_decl->id = ++node_id;
+  visit_name((Ast_Name*)type_decl->name);
+  if (type_decl->type_params) {
+    visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
+  }
+  visit_methodPrototypes((Ast_MethodPrototypes*)type_decl->method_protos);
 }
-/* 3 */ internal void visit_methodPrototypes(Ast_MethodPrototypes* prototypes)
+
+internal void
+visit_methodPrototypes(Ast_MethodPrototypes* protos)
 {
-  assert(0);
+  protos->id = ++node_id;
+  for (ListItem* li = protos->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_functionPrototype((Ast_FunctionPrototype*)li->object);
+  }
 }
-/* 4 */ internal void visit_functionPrototype(Ast_FunctionPrototype* func_decl)
+
+internal void
+visit_functionPrototype(Ast_FunctionPrototype* func_proto)
 {
-  assert(0);
+  func_proto->id = ++node_id;
+  if (func_proto->return_type) {
+    visit_typeRef((Ast_TypeRef*)func_proto->return_type);
+  }
+  visit_name((Ast_Name*)func_proto->name);
+  if (func_proto->type_params) {
+    visit_typeParameterList((Ast_TypeParameterList*)func_proto->type_params);
+  }
 }
 
 /** TYPES **/
-/* 1 */ internal void visit_typeRef(Ast_TypeRef* type_ref)
+
+internal void
+visit_typeRef(Ast_TypeRef* type_ref)
 {
-  assert(0);
-}
-/* 2 */ internal void visit_namedType(Ast_NamedType* type)
-{
-  assert(0);
-}
-/* 3 */ internal void visit_tupleType(Ast_TupleType* type)
-{
-  assert(0);
-}
-/* 4 */ internal void visit_headerStackType(Ast_HeaderTypeDeclaration* type_decl)
-{
-  assert(0);
-}
-/* 5 */ internal void visit_specializedType(Ast_SpecializedType* type_decl)
-{
-  assert(0);
-}
-/* 6 */ internal void visit_baseTypeBool(Ast_BoolType* bool_type)
-{
-  assert(0);
-}
-/* 7 */ internal void visit_baseTypeInteger(Ast_IntegerType* int_type)
-{
-  assert(0);
-}
-/* 8 */ internal void visit_baseTypeBit(Ast_BitType* bit_type)
-{
-  assert(0);
-}
-/* 9 */ internal void visit_baseTypeVarbit(Ast_VarbitType* varbit_type)
-{
-  assert(0);
-}
-/* 10 */ internal void visit_baseTypeString(Ast_StringType* str_type)
-{
-  assert(0);
-}
-/* 11 */ internal void visit_baseTypeVoid(Ast_VoidType* void_type)
-{
-  assert(0);
-}
-/* 12 */ internal void visit_baseTypeError(Ast_ErrorType* error_type)
-{
-  assert(0);
-}
-/* 13 */ internal void visit_integerTypeSize(Ast_IntegerTypeSize* type_size)
-{
-  assert(0);
-}
-/* 14 */ internal void visit_typeParameterList(Ast_TypeParameterList* param_list)
-{
-  assert(0);
-}
-/* 15 */ internal void visit_realTypeArg(Ast_RealTypeArg* type_arg)
-{
-  assert(0);
-}
-/* 16 */ internal void visit_typeArg(Ast_TypeArg* type_arg)
-{
-  assert(0);
-}
-/* 17 */ internal void visit_realTypeArgumentList(Ast_RealTypeArgumentList* arg_list)
-{
-  assert(0);
-}
-/* 18 */ internal void visit_typeArgumentList(Ast_TypeArgumentList* arg_list)
-{
-  assert(0);
+  type_ref->id = ++node_id;
+  if (type_ref->type->kind == AST_baseTypeBoolean) {
+    visit_baseTypeBoolean((Ast_BooleanType*)type_ref->type);
+  } else if (type_ref->type->kind == AST_baseTypeInteger) {
+    visit_baseTypeInteger((Ast_IntegerType*)type_ref->type);
+  } else if (type_ref->type->kind == AST_baseTypeBit) {
+    visit_baseTypeBit((Ast_BitType*)type_ref->type);
+  } else if (type_ref->type->kind == AST_baseTypeVarbit) {
+    visit_baseTypeVarbit((Ast_VarbitType*)type_ref->type);
+  } else if (type_ref->type->kind == AST_baseTypeString) {
+    visit_baseTypeString((Ast_StringType*)type_ref->type);
+  } else if (type_ref->type->kind == AST_baseTypeVoid) {
+    visit_baseTypeVoid((Ast_VoidType*)type_ref->type);
+  } else if (type_ref->type->kind == AST_baseTypeError) {
+    visit_baseTypeError((Ast_ErrorType*)type_ref->type);
+  } else if (type_ref->type->kind == AST_name) {
+    visit_name((Ast_Name*)type_ref->type);
+  } else if (type_ref->type->kind == AST_specializedType) {
+    visit_specializedType((Ast_SpecializedType*)type_ref->type);
+  } else if (type_ref->type->kind == AST_headerStackType) {
+    visit_headerStackType((Ast_HeaderStackType*)type_ref->type);
+  } else if (type_ref->type->kind == AST_tupleType) {
+    visit_tupleType((Ast_TupleType*)type_ref->type);
+  } else assert(0);
 }
 
-/* 19 */ internal void visit_typeDeclaration(Ast_TypeDeclaration* type_decl)
+internal void
+visit_tupleType(Ast_TupleType* type)
+{
+  type->id = ++node_id;
+  visit_typeArgumentList((Ast_TypeArgumentList*)type->type_args);
+}
+
+internal void
+visit_headerStackType(Ast_HeaderStackType* type_decl)
 {
   type_decl->id = ++node_id;
-  Ast* inner_decl = type_decl->decl;
-  if (inner_decl->kind == AST_derivedTypeDeclaration) {
-    visit_derivedTypeDeclaration((Ast_DerivedTypeDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_typedefDeclaration) {
-    visit_typedefDeclaration((Ast_TypedefDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_parserTypeDeclaration) {
-    visit_parserTypeDeclaration((Ast_ParserTypeDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_controlTypeDeclaration) {
-    visit_controlTypeDeclaration((Ast_ControlTypeDeclaration*)inner_decl);
-  } else if (inner_decl->kind == AST_packageTypeDeclaration) {
-    visit_packageTypeDeclaration((Ast_PackageTypeDeclaration*)inner_decl);
+  visit_name((Ast_Name*)type_decl->name);
+  visit_expression((Ast_Expression*)type_decl->stack_expr);
+}
+
+internal void
+visit_specializedType(Ast_SpecializedType* type_decl)
+{
+  type_decl->id = ++node_id;
+  visit_name((Ast_Name*)type_decl->name);
+  visit_typeArgumentList((Ast_TypeArgumentList*)type_decl->type_args);
+}
+
+internal void
+visit_baseTypeBoolean(Ast_BooleanType* bool_type)
+{
+  bool_type->id = ++node_id;
+  visit_name((Ast_Name*)bool_type->name);
+}
+
+internal void
+visit_baseTypeInteger(Ast_IntegerType* int_type)
+{
+  int_type->id = ++node_id;
+  visit_name((Ast_Name*)int_type->name);
+  if (int_type->size) {
+    visit_integerTypeSize((Ast_IntegerTypeSize*)int_type->size);
   }
-  else assert(0);
 }
 
-/* 20 */ internal void visit_derivedTypeDeclaration(Ast_DerivedTypeDeclaration* type_decl)
+internal void
+visit_baseTypeBit(Ast_BitType* bit_type)
 {
-  assert(0);
-}
-/* 21 */ internal void visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
-{
-  assert(0);
-}
-/* 22 */ internal void visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
-{
-  assert(0);
-}
-/* 23 */ internal void visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
-{
-  assert(0);
-}
-/* 24 */ internal void visit_structFieldList(Ast_StructFieldList* field_list)
-{
-  assert(0);
-}
-/* 25 */ internal void visit_structField(Ast_StructField* field)
-{
-  assert(0);
-}
-/* 26 */ internal void visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
-{
-  assert(0);
+  bit_type->id = ++node_id;
+  visit_name((Ast_Name*)bit_type->name);
+  if (bit_type->size) {
+    visit_integerTypeSize((Ast_IntegerTypeSize*)bit_type->size);
+  }
 }
 
-/* 27 */ internal void visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
+internal void
+visit_baseTypeVarbit(Ast_VarbitType* varbit_type)
+{
+  varbit_type->id = ++node_id;
+  visit_name((Ast_Name*)varbit_type->name);
+  visit_integerTypeSize((Ast_IntegerTypeSize*)varbit_type->size);
+}
+
+internal void
+visit_baseTypeString(Ast_StringType* str_type)
+{
+  str_type->id = ++node_id;
+  visit_name((Ast_Name*)str_type->name);
+}
+
+internal void
+visit_baseTypeVoid(Ast_VoidType* void_type)
+{
+  void_type->id = ++node_id;
+  visit_name((Ast_Name*)void_type->name);
+}
+
+internal void
+visit_baseTypeError(Ast_ErrorType* error_type)
+{
+  error_type->id = ++node_id;
+  visit_name((Ast_Name*)error_type->name);
+}
+
+internal void
+visit_integerTypeSize(Ast_IntegerTypeSize* type_size)
+{
+  type_size->id = ++node_id;
+}
+
+internal void
+visit_typeParameterList(Ast_TypeParameterList* param_list)
+{
+  param_list->id = ++node_id;
+  for (ListItem* li = param_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_name((Ast_Name*)li->object);
+  }
+}
+
+internal void
+visit_realTypeArg(Ast_RealTypeArg* type_arg)
+{
+  type_arg->id = ++node_id;
+  if (type_arg->arg->kind == AST_typeRef) {
+    visit_typeRef((Ast_TypeRef*)type_arg->arg);
+  } else if (type_arg->arg->kind == AST_dontcare) {
+    visit_dontcare((Ast_Dontcare*)type_arg->arg);
+  } else assert(0);
+}
+
+internal void
+visit_typeArg(Ast_TypeArg* type_arg)
+{
+  type_arg->id = ++node_id;
+  if (type_arg->arg->kind == AST_typeRef) {
+    visit_typeRef((Ast_TypeRef*)type_arg->arg);
+  } else if (type_arg->arg->kind == AST_name) {
+    visit_name((Ast_Name*)type_arg->arg);
+  } else if (type_arg->arg->kind == AST_dontcare) {
+    visit_dontcare((Ast_Dontcare*)type_arg->arg);
+  } else assert(0);
+}
+
+internal void
+visit_realTypeArgumentList(Ast_RealTypeArgumentList* arg_list)
+{
+  arg_list->id = ++node_id;
+  for (ListItem* li = arg_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_realTypeArg((Ast_RealTypeArg*)li->object);
+  }
+}
+
+internal void
+visit_typeArgumentList(Ast_TypeArgumentList* arg_list)
+{
+  arg_list->id = ++node_id;
+  for (ListItem* li = arg_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_typeArg((Ast_TypeArg*)li->object);
+  }
+}
+
+internal void
+visit_typeDeclaration(Ast_TypeDeclaration* type_decl)
+{
+  type_decl->id = ++node_id;
+  if (type_decl->decl->kind == AST_derivedTypeDeclaration) {
+    visit_derivedTypeDeclaration((Ast_DerivedTypeDeclaration*)type_decl->decl);
+  } else if (type_decl->decl->kind == AST_typedefDeclaration) {
+    visit_typedefDeclaration((Ast_TypedefDeclaration*)type_decl->decl);
+  } else if (type_decl->decl->kind == AST_parserTypeDeclaration) {
+    visit_parserTypeDeclaration((Ast_ParserTypeDeclaration*)type_decl->decl);
+  } else if (type_decl->decl->kind == AST_controlTypeDeclaration) {
+    visit_controlTypeDeclaration((Ast_ControlTypeDeclaration*)type_decl->decl);
+  } else if (type_decl->decl->kind == AST_packageTypeDeclaration) {
+    visit_packageTypeDeclaration((Ast_PackageTypeDeclaration*)type_decl->decl);
+  } else assert(0);
+}
+
+internal void
+visit_derivedTypeDeclaration(Ast_DerivedTypeDeclaration* type_decl)
+{
+  type_decl->id = ++node_id;
+  if (type_decl->decl->kind == AST_headerTypeDeclaration) {
+    visit_headerTypeDeclaration((Ast_HeaderTypeDeclaration*)type_decl->decl);
+  } else if (type_decl->decl->kind == AST_headerUnionDeclaration) {
+    visit_headerUnionDeclaration((Ast_HeaderUnionDeclaration*)type_decl->decl);
+  } else if (type_decl->decl->kind == AST_structTypeDeclaration) {
+    visit_structTypeDeclaration((Ast_StructTypeDeclaration*)type_decl->decl);
+  } else if (type_decl->decl->kind == AST_enumDeclaration) {
+    visit_enumDeclaration((Ast_EnumDeclaration*)type_decl->decl);
+  } else assert(0);
+}
+
+internal void
+visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
+{
+  header_decl->id = ++node_id;
+  visit_name((Ast_Name*)header_decl->name);
+  visit_structFieldList((Ast_StructFieldList*)header_decl->fields);
+}
+
+internal void
+visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
+{
+  union_decl->id = ++node_id;
+  visit_name((Ast_Name*)union_decl->name);
+  visit_structFieldList((Ast_StructFieldList*)union_decl->fields);
+}
+
+internal void
+visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
+{
+  struct_decl->id = ++node_id;
+  visit_name((Ast_Name*)struct_decl->name);
+  visit_structFieldList((Ast_StructFieldList*)struct_decl->fields);
+}
+
+internal void
+visit_structFieldList(Ast_StructFieldList* field_list)
+{
+  field_list->id = ++node_id;
+  for (ListItem* li = field_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_structField((Ast_StructField*)li->object);
+  }
+}
+
+internal void
+visit_structField(Ast_StructField* field)
+{
+  field->id = ++node_id;
+  visit_typeRef((Ast_TypeRef*)field->type);
+  visit_name((Ast_Name*)field->name);
+}
+
+internal void
+visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
+{
+  enum_decl->id = ++node_id;
+  visit_name((Ast_Name*)enum_decl->name);
+  visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields);
+}
+
+internal void
+visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
 {
   error_decl->id = ++node_id;
   visit_identifierList((Ast_IdentifierList*)error_decl->fields);
 }
 
-/* 28 */ internal void visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
+internal void
+visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
 {
   match_decl->id = ++node_id;
   visit_identifierList((Ast_IdentifierList*)match_decl->fields);
 }
 
-/* 29 */ internal void visit_identifierList(Ast_IdentifierList* ident_list)
+internal void
+visit_identifierList(Ast_IdentifierList* ident_list)
 {
-  assert(0);
+  ident_list->id = ++node_id;
+  for (ListItem* li = ident_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_name((Ast_Name*)li->object);
+  }
 }
-/* 30 */ internal void visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list)
+
+internal void
+visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list)
 {
-  assert(0);
+  ident_list->id = ++node_id;
+  for (ListItem* li = ident_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_specifiedIdentifier((Ast_SpecifiedIdentifier*)li->object);
+  }
 }
-/* 31 */ internal void visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident)
+
+internal void
+visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident)
 {
-  assert(0);
+  ident->id = ++node_id;
+  visit_name((Ast_Name*)ident->name);
+  if (ident->init_expr) {
+    visit_expression((Ast_Expression*)ident->init_expr);
+  }
 }
-/* 32 */ internal void visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl)
+
+internal void
+visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl)
 {
-  assert(0);
+  typedef_decl->id = ++node_id;
+  if (typedef_decl->type_ref->kind == AST_typeRef) {
+    visit_typeRef((Ast_TypeRef*)typedef_decl->type_ref);
+  } else if (typedef_decl->type_ref->kind == AST_derivedTypeDeclaration) {
+    visit_derivedTypeDeclaration((Ast_DerivedTypeDeclaration*)typedef_decl->type_ref);
+  } else assert(0);
+  visit_name((Ast_Name*)typedef_decl->name);
 }
 
 /** STATEMENTS **/
-/* 1 */ internal void visit_assignmentStatement(Ast_AssignmentStatement* assgn_stmt)
+
+internal void
+visit_assignmentStatement(Ast_AssignmentStatement* assign_stmt)
 {
-  assert(0);
+  assign_stmt->id = ++node_id;
+  visit_lvalueExpression((Ast_LvalueExpression*)assign_stmt->lhs_expr);
+  visit_expression((Ast_Expression*)assign_stmt->rhs_expr);
 }
-/* 2 */ internal void visit_functionCall(Ast_FunctionCall* func_call)
+
+internal void
+visit_functionCall(Ast_FunctionCall* func_call)
 {
-  assert(0);
+  func_call->id = ++node_id;
+  Ast* lhs_expr = func_call->lhs_expr;
+  if (lhs_expr->kind == AST_expression) {
+    visit_expression((Ast_Expression*)lhs_expr);
+  } else if (lhs_expr->kind == AST_lvalueExpression) {
+    visit_lvalueExpression((Ast_LvalueExpression*)lhs_expr);
+  } else assert(0);
+  visit_argumentList((Ast_ArgumentList*)func_call->args);
 }
-/* 3 */ internal void visit_returnStatement(Ast_ReturnStatement* return_stmt)
+
+internal void
+visit_returnStatement(Ast_ReturnStatement* return_stmt)
 {
-  assert(0);
+  return_stmt->id = ++node_id;
+  if (return_stmt->expr) {
+    visit_expression((Ast_Expression*)return_stmt->expr);
+  }
 }
-/* 4 */ internal void visit_exitStatement(Ast_ExitStatement* exit_stmt)
+
+internal void
+visit_exitStatement(Ast_ExitStatement* exit_stmt)
 {
-  assert(0);
+  exit_stmt->id = ++node_id;
 }
-/* 5 */ internal void visit_conditionalStatement(Ast_ConditionalStatement* cond_stmt)
+
+internal void
+visit_conditionalStatement(Ast_ConditionalStatement* cond_stmt)
 {
-  assert(0);
+  cond_stmt->id = ++node_id;
+  visit_expression((Ast_Expression*)cond_stmt->cond_expr);
+  visit_statement((Ast_Statement*)cond_stmt->stmt);
+  if (cond_stmt->else_stmt) {
+    visit_statement((Ast_Statement*)cond_stmt->else_stmt);
+  }
 }
-/* 6 */ internal void visit_directApplication(Ast_DirectApplication* applic_stmt)
+
+internal void
+visit_directApplication(Ast_DirectApplication* applic_stmt)
 {
-  assert(0);
+  applic_stmt->id = ++node_id;
+  visit_name((Ast_Name*)applic_stmt->name);
+  visit_argumentList((Ast_ArgumentList*)applic_stmt->args);
 }
-/* 7 */ internal void visit_statement(Ast_Statement* stmt)
+
+internal void
+visit_statement(Ast_Statement* stmt)
 {
-  assert(0);
+  stmt->id = ++node_id;
+  if (stmt->stmt->kind == AST_assignmentStatement) {
+    visit_assignmentStatement((Ast_AssignmentStatement*)stmt->stmt);
+  } else if (stmt->stmt->kind == AST_functionCall) {
+    visit_functionCall((Ast_FunctionCall*)stmt->stmt);
+  } else if (stmt->stmt->kind == AST_directApplication) {
+    visit_directApplication((Ast_DirectApplication*)stmt->stmt);
+  } else if (stmt->stmt->kind == AST_conditionalStatement) {
+    visit_conditionalStatement((Ast_ConditionalStatement*)stmt->stmt);
+  } else if (stmt->stmt->kind == AST_emptyStatement) {
+  } else if (stmt->stmt->kind == AST_blockStatement) {
+    visit_blockStatement((Ast_BlockStatement*)stmt->stmt);
+  } else if (stmt->stmt->kind == AST_exitStatement) {
+    visit_exitStatement((Ast_ExitStatement*)stmt->stmt);
+  } else if (stmt->stmt->kind == AST_returnStatement) {
+    visit_returnStatement((Ast_ReturnStatement*)stmt->stmt);
+  } else if (stmt->stmt->kind == AST_switchStatement) {
+    visit_switchStatement((Ast_SwitchStatement*)stmt->stmt);
+  } else assert(0);
 }
-/* 8 */ internal void visit_blockStatement(Ast_BlockStatement* block_stmt)
+
+internal void
+visit_blockStatement(Ast_BlockStatement* block_stmt)
 {
-  assert(0);
+  block_stmt->id = ++node_id;
+  visit_statementOrDeclList((Ast_StatementOrDeclList*)block_stmt->stmt_list);
 }
-/* 9 */ internal void visit_statementOrDeclList(Ast_StatementOrDeclList* stmt_list)
+
+internal void
+visit_statementOrDeclList(Ast_StatementOrDeclList* stmt_list)
 {
-  assert(0);
+  stmt_list->id = ++node_id;
+  for (ListItem* li = stmt_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_statementOrDeclaration((Ast_StatementOrDeclaration*)li->object);
+  }
 }
-/* 10 */ internal void visit_switchStatement(Ast_SwitchStatement* switch_stmt)
+
+internal void
+visit_switchStatement(Ast_SwitchStatement* switch_stmt)
 {
-  assert(0);
+  switch_stmt->id = ++node_id;
+  visit_expression((Ast_Expression*)switch_stmt->expr);
+  visit_switchCases((Ast_SwitchCases*)switch_stmt->switch_cases);
 }
-/* 11 */ internal void visit_switchCases(Ast_SwitchCases* switch_cases)
+
+internal void
+visit_switchCases(Ast_SwitchCases* switch_cases)
 {
-  assert(0);
+  switch_cases->id = ++node_id;
+  for (ListItem* li = switch_cases->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_switchCase((Ast_SwitchCase*)li->object);
+  }
 }
-/* 12 */ internal void visit_switchCase(Ast_SwitchCase* switch_case)
+
+internal void
+visit_switchCase(Ast_SwitchCase* switch_case)
 {
-  assert(0);
+  switch_case->id = ++node_id;
+  visit_switchLabel((Ast_SwitchLabel*)switch_case->label);
+  if (switch_case->stmt) {
+    visit_blockStatement((Ast_BlockStatement*)switch_case->stmt);
+  }
 }
-/* 13 */ internal void visit_switchLabel(Ast_SwitchLabel* label)
+
+internal void
+visit_switchLabel(Ast_SwitchLabel* label)
 {
-  assert(0);
+  label->id = ++node_id;
+  if (label->label->kind == AST_name) {
+    visit_name((Ast_Name*)label->label);
+  } else if (label->label->kind == AST_default) {
+    visit_default((Ast_Default*)label->label);
+  } else assert(0);
 }
-/* 14 */ internal void visit_statementOrDeclaration(Ast_StatementOrDeclaration* stmt)
+
+internal void
+visit_statementOrDeclaration(Ast_StatementOrDeclaration* stmt)
 {
-  assert(0);
+  stmt->id = ++node_id;
+  if (stmt->stmt->kind == AST_variableDeclaration) {
+    visit_variableDeclaration((Ast_VarDeclaration*)stmt->stmt);
+  } else if (stmt->stmt->kind == AST_statement) {
+    visit_statement((Ast_Statement*)stmt->stmt);
+  } else if (stmt->stmt->kind == AST_instantiation) {
+    visit_instantiation((Ast_Instantiation*)stmt->stmt);
+  } else assert(0);
 }
 
 /** TABLES **/
-/* 1 */ internal void visit_tableDeclaration(Ast_TableDeclaration* table_decl)
+
+internal void
+visit_tableDeclaration(Ast_TableDeclaration* table_decl)
 {
-  assert(0);
-}
-/* 2 */ internal void visit_tablePropertyList(Ast_TablePropertyList* prop_list)
-{
-  assert(0);
-}
-/* 3 */ internal void visit_tableProperty(Ast_TableProperty* table_prop)
-{
-  assert(0);
-}
-/* 4 */ internal void visit_keyProperty(Ast_KeyProperty* key_prop)
-{
-  assert(0);
-}
-/* 5 */ internal void visit_keyElementList(Ast_KeyElementList* element_list)
-{
-  assert(0);
-}
-/* 6 */ internal void visit_keyElement(Ast_KeyElement* element)
-{
-  assert(0);
-}
-/* 7 */ internal void visit_actionsProperty(Ast_ActionsProperty* actions_prop)
-{
-  assert(0);
-}
-/* 8 */ internal void visit_actionList(Ast_ActionList* action_list)
-{
-  assert(0);
-}
-/* 9 */ internal void visit_actionRef(Ast_ActionRef* action_ref)
-{
-  assert(0);
-}
-/* 10 */ internal void visit_entriesProperty(Ast_EntriesProperty* entries_prop)
-{
-  assert(0);
-}
-/* 11 */ internal void visit_entriesList(Ast_EntriesList* entries_list)
-{
-  assert(0);
-}
-/* 12 */ internal void visit_entry(Ast_Entry* entry)
-{
-  assert(0);
-}
-/* 13 */ internal void visit_simpleProperty(Ast_SimpleProperty* simple_prop)
-{
-  assert(0);
+  table_decl->id = ++node_id;
+  visit_name((Ast_Name*)table_decl->name);
+  visit_tablePropertyList((Ast_TablePropertyList*)table_decl->prop_list);
 }
 
-/* 14 */ internal void visit_actionDeclaration(Ast_ActionDeclaration* action_decl)
+internal void
+visit_tablePropertyList(Ast_TablePropertyList* prop_list)
+{
+  prop_list->id = ++node_id;
+  for (ListItem* li = prop_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_tableProperty((Ast_TableProperty*)li->object);
+  }
+}
+
+internal void
+visit_tableProperty(Ast_TableProperty* table_prop)
+{
+  table_prop->id = ++node_id;
+  if (table_prop->prop->kind == AST_keyProperty) {
+    visit_keyProperty((Ast_KeyProperty*)table_prop->prop);
+  } else if (table_prop->prop->kind == AST_actionsProperty) {
+    visit_actionsProperty((Ast_ActionsProperty*)table_prop->prop);
+  } else if (table_prop->prop->kind == AST_entriesProperty) {
+    visit_entriesProperty((Ast_EntriesProperty*)table_prop->prop);
+  } else if (table_prop->prop->kind == AST_simpleProperty) {
+    visit_simpleProperty((Ast_SimpleProperty*)table_prop->prop);
+  } else assert(0);
+}
+
+internal void
+visit_keyProperty(Ast_KeyProperty* key_prop)
+{
+  key_prop->id = ++node_id;
+  visit_keyElementList((Ast_KeyElementList*)key_prop->keyelem_list);
+}
+
+internal void
+visit_keyElementList(Ast_KeyElementList* element_list)
+{
+  element_list->id = ++node_id;
+  for (ListItem* li = element_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_keyElement((Ast_KeyElement*)li->object);
+  }
+}
+
+internal void
+visit_keyElement(Ast_KeyElement* element)
+{
+  element->id = ++node_id;
+  visit_expression((Ast_Expression*)element->expr);
+  visit_name((Ast_Name*)element->match);
+}
+
+internal void
+visit_actionsProperty(Ast_ActionsProperty* actions_prop)
+{
+  actions_prop->id = ++node_id;
+  visit_actionList((Ast_ActionList*)actions_prop->action_list);
+}
+
+internal void
+visit_actionList(Ast_ActionList* action_list)
+{
+  action_list->id = ++node_id;
+  for (ListItem* li = action_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_actionRef((Ast_ActionRef*)li->object);
+  }
+}
+
+internal void
+visit_actionRef(Ast_ActionRef* action_ref)
+{
+  action_ref->id = ++node_id;
+  visit_name((Ast_Name*)action_ref->name);
+  if (action_ref->args) {
+    visit_argumentList((Ast_ArgumentList*)action_ref->args);
+  }
+}
+
+internal void
+visit_entriesProperty(Ast_EntriesProperty* entries_prop)
+{
+  entries_prop->id = ++node_id;
+  visit_entriesList((Ast_EntriesList*)entries_prop->entries_list);
+}
+
+internal void
+visit_entriesList(Ast_EntriesList* entries_list)
+{
+  entries_list->id = ++node_id;
+  for (ListItem* li = entries_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_entry((Ast_Entry*)li->object);
+  }
+}
+
+internal void
+visit_entry(Ast_Entry* entry)
+{
+  entry->id = ++node_id;
+  visit_keysetExpression((Ast_KeysetExpression*)entry->keyset);
+  visit_actionRef((Ast_ActionRef*)entry->action);
+}
+
+internal void
+visit_simpleProperty(Ast_SimpleProperty* simple_prop)
+{
+  simple_prop->id = ++node_id;
+  visit_name((Ast_Name*)simple_prop->name);
+  visit_expression((Ast_Expression*)simple_prop->init_expr);
+}
+
+internal void
+visit_actionDeclaration(Ast_ActionDeclaration* action_decl)
 {
   action_decl->id = ++node_id;
   visit_name((Ast_Name*)action_decl->name);
@@ -672,7 +1111,7 @@ visit_declaration(Ast_Declaration* decl)
 
 /** VARIABLES **/
 
-/* 1 */ internal void
+internal void
 visit_variableDeclaration(Ast_VarDeclaration* var_decl)
 {
   var_decl->id = ++node_id;
@@ -684,72 +1123,176 @@ visit_variableDeclaration(Ast_VarDeclaration* var_decl)
 }
 
 /** EXPRESSIONS **/
-/* 1 */ internal void visit_functionDeclaration(Ast_FunctionDeclaration* func_decl)
+
+internal void
+visit_functionDeclaration(Ast_FunctionDeclaration* func_decl)
 {
   func_decl->id = ++node_id;
   visit_functionPrototype((Ast_FunctionPrototype*)func_decl->proto);
   visit_blockStatement((Ast_BlockStatement*)func_decl->stmt);
 }
 
-/* 2 */ internal void visit_argumentList(Ast_ArgumentList* arg_list)
+internal void
+visit_argumentList(Ast_ArgumentList* arg_list)
 {
-  assert(0);
+  arg_list->id = ++node_id;
+  for (ListItem* li = arg_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_argument((Ast_Argument*)li->object);
+  }
 }
-/* 3 */ internal void visit_argument(Ast_Argument* arg)
+
+internal void
+visit_argument(Ast_Argument* arg)
 {
-  assert(0);
+  arg->id = ++node_id;
+  if (arg->arg->kind == AST_expression) {
+    visit_expression((Ast_Expression*)arg->arg);
+  } else if (arg->arg->kind == AST_dontcare) {
+    visit_dontcare((Ast_Dontcare*)arg->arg);
+  } else assert(0);
 }
-/* 4 */ internal void visit_kvPair(Ast_KVPair* pair)
+
+internal void
+visit_expressionList(Ast_ExpressionList* expr_list)
 {
-  assert(0);
+  expr_list->id = ++node_id;
+  for (ListItem* li = expr_list->members.sentinel.next;
+        li != 0; li = li->next) {
+    visit_expression((Ast_Expression*)li->object);
+  }
 }
-/* 5 */ internal void visit_expressionList(Ast_ExpressionList* expr_list)
+
+internal void
+visit_lvalueExpression(Ast_LvalueExpression* lvalue_expr)
 {
-  assert(0);
+  lvalue_expr->id = ++node_id;
+  if (lvalue_expr->expr->kind == AST_name) {
+    visit_name((Ast_Name*)lvalue_expr->expr);
+  } else if (lvalue_expr->expr->kind == AST_memberSelector) {
+    visit_memberSelector((Ast_MemberSelector*)lvalue_expr->expr);
+  } else if (lvalue_expr->expr->kind == AST_arraySubscript) {
+    visit_arraySubscript((Ast_ArraySubscript*)lvalue_expr->expr);
+  } else assert(0);
 }
-/* 6 */ internal void visit_lvalueExpression(Ast_LvalueExpression* lvalue_expr)
+
+internal void
+visit_expression(Ast_Expression* expr)
 {
-  assert(0);
+  expr->id = ++node_id;
+  if (expr->expr->kind == AST_expression) {
+    visit_expression((Ast_Expression*)expr->expr);
+  } else if (expr->expr->kind == AST_booleanLiteral) {
+    visit_booleanLiteral((Ast_BooleanLiteral*)expr->expr);
+  } else if (expr->expr->kind == AST_integerLiteral) {
+    visit_integerLiteral((Ast_IntegerLiteral*)expr->expr);
+  } else if (expr->expr->kind == AST_stringLiteral) {
+    visit_stringLiteral((Ast_StringLiteral*)expr->expr);
+  } else if (expr->expr->kind == AST_name) {
+    visit_name((Ast_Name*)expr->expr);
+  } else if (expr->expr->kind == AST_specializedType) {
+    visit_specializedType((Ast_SpecializedType*)expr->expr);
+  } else if (expr->expr->kind == AST_headerStackType) {
+    visit_headerStackType((Ast_HeaderStackType*)expr->expr);
+  } else if (expr->expr->kind == AST_expressionList) {
+    visit_expressionList((Ast_ExpressionList*)expr->expr);
+  } else if (expr->expr->kind == AST_castExpression) {
+    visit_castExpression((Ast_CastExpression*)expr->expr);
+  } else if (expr->expr->kind == AST_unaryExpression) {
+    visit_unaryExpression((Ast_UnaryExpression*)expr->expr);
+  } else if (expr->expr->kind == AST_binaryExpression) {
+    visit_binaryExpression((Ast_BinaryExpression*)expr->expr);
+  } else if (expr->expr->kind == AST_memberSelector) {
+    visit_memberSelector((Ast_MemberSelector*)expr->expr);
+  } else if (expr->expr->kind == AST_arraySubscript) {
+    visit_arraySubscript((Ast_ArraySubscript*)expr->expr);
+  } else if (expr->expr->kind == AST_functionCall) {
+    visit_functionCall((Ast_FunctionCall*)expr->expr);
+  } else if (expr->expr->kind == AST_assignmentStatement) {
+    visit_assignmentStatement((Ast_AssignmentStatement*)expr->expr);
+  } else assert(0);
+  if (expr->type_args) {
+    visit_realTypeArgumentList((Ast_RealTypeArgumentList*)expr->type_args);
+  }
 }
-/* 7 */ internal void visit_expression(Ast_Expression* expr)
+
+internal void
+visit_castExpression(Ast_CastExpression* cast_expr)
 {
-  assert(0);
+  cast_expr->id = ++node_id;
+  visit_typeRef((Ast_TypeRef*)cast_expr->type);
+  visit_expression((Ast_Expression*)cast_expr->expr);
 }
-/* 8 */ internal void visit_castExpression(Ast_CastExpression* cast_expr)
+
+internal void
+visit_unaryExpression(Ast_UnaryExpression* unary_expr)
 {
-  assert(0);
+  unary_expr->id = ++node_id;
+  visit_expression((Ast_Expression*)unary_expr->operand);
 }
-/* 9 */ internal void visit_unaryExpression(Ast_UnaryExpression* unary_expr)
+
+internal void
+visit_binaryExpression(Ast_BinaryExpression* binary_expr)
 {
-  assert(0);
+  binary_expr->id = ++node_id;
+  visit_expression((Ast_Expression*)binary_expr->left_operand);
+  visit_expression((Ast_Expression*)binary_expr->right_operand);
 }
-/* 10 */ internal void visit_binaryExpression(Ast_BinaryExpression* binary_expr)
+
+internal void
+visit_memberSelector(Ast_MemberSelector* selector)
 {
-  assert(0);
+  selector->id = ++node_id;
+  visit_expression((Ast_Expression*)selector->lhs_expr);
+  visit_name((Ast_Name*)selector->name);
 }
-/* 11 */ internal void visit_memberSelector(Ast_MemberSelector* selector)
+
+internal void
+visit_arraySubscript(Ast_ArraySubscript* subscript)
 {
-  assert(0);
+  subscript->id = ++node_id;
+  visit_expression((Ast_Expression*)subscript->lhs_expr);
+  visit_indexExpression((Ast_IndexExpression*)subscript->index_expr);
 }
-/* 12 */ internal void visit_arraySubscript(Ast_ArraySubscript* subscript)
+
+internal void
+visit_indexExpression(Ast_IndexExpression* index_expr)
 {
-  assert(0);
+  index_expr->id = ++node_id;
+  visit_expression((Ast_Expression*)index_expr->start_index);
+  if (index_expr->end_index) {
+    visit_expression((Ast_Expression*)index_expr->end_index);
+  }
 }
-/* 13 */ internal void visit_indexExpression(Ast_IndexExpression* index_expr)
+
+internal void
+visit_booleanLiteral(Ast_BooleanLiteral* bool_literal)
 {
-  assert(0);
+  bool_literal->id = ++node_id;
 }
-/* 14 */ internal void visit_integerLiteral(Ast_IntegerLiteral* int_literal)
+
+internal void
+visit_integerLiteral(Ast_IntegerLiteral* int_literal)
 {
-  assert(0);
+  int_literal->id = ++node_id;
 }
-/* 15 */ internal void visit_booleanLiteral(Ast_BooleanLiteral* bool_literal)
+
+internal void
+visit_stringLiteral(Ast_StringLiteral* str_literal)
 {
-  assert(0);
+  str_literal->id = ++node_id;
 }
-/* 16 */ internal void visit_stringLiteral(Ast_StringLiteral* str_literal)
+
+internal void
+visit_default(Ast_Default* default_)
 {
-  assert(0);
+  default_->id = ++node_id;
+}
+
+internal void
+visit_dontcare(Ast_Dontcare* dontcare)
+{
+  dontcare->id = ++node_id;
 }
 
 void

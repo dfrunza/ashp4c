@@ -45,7 +45,7 @@ internal Ast* parse_selectCaseList();
 internal Ast* parse_selectCase();
 internal Ast* parse_keysetExpression();
 internal Ast* parse_tupleKeysetExpression();
-internal Ast* parse_keysetExpressionList();
+internal Ast* parse_simpleExpressionList();
 internal Ast* parse_simpleKeysetExpression();
 
 /** CONTROL **/
@@ -571,8 +571,8 @@ parse_declarationList()
   list_reset(&decls->members);
   if (token_is_declaration(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&decls->members, li, 1);
     li->object = parse_declaration();
+    list_append_item(&decls->members, li, 1);
     while (token_is_declaration(token) || token->klass == TK_SEMICOLON) {
       if (token_is_declaration(token)) {
         li = arena_push_struct(ast_storage, ListItem);
@@ -604,21 +604,19 @@ parse_declaration()
       decl->decl = parse_actionDeclaration();
       return (Ast*)decl;
     } else if (token->klass == TK_PARSER) {
-      Ast* parser_proto = parse_typeDeclaration();
+      decl->decl = parse_typeDeclaration();
       if (token->klass == TK_SEMICOLON) {
         next_token();
-        decl->decl = parser_proto;
       } else {
-        decl->decl = parse_parserDeclaration(parser_proto);
+        decl->decl = parse_parserDeclaration(decl->decl);
       }
       return (Ast*)decl;
     } else if (token->klass == TK_CONTROL) {
-      Ast* control_proto = parse_typeDeclaration();
+      decl->decl = parse_typeDeclaration();
       if (token->klass == TK_SEMICOLON) {
         next_token();
-        decl->decl = control_proto;
       } else {
-        decl->decl = parse_controlDeclaration(control_proto);
+        decl->decl = parse_controlDeclaration(decl->decl);
       }
       return (Ast*)decl;
     } else if (token_is_typeDeclaration(token)) {
@@ -699,8 +697,8 @@ parse_parameterList()
   list_reset(&params->members);
   if (token_is_parameter(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&params->members, li, 1);
     li->object = parse_parameter();
+    list_append_item(&params->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, ListItem);
@@ -884,8 +882,8 @@ parse_parserLocalElements()
   list_reset(&elems->members);
   if (token_is_parserLocalElement(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&elems->members, li, 1);
     li->object = parse_parserLocalElement();
+    list_append_item(&elems->members, li, 1);
     while (token_is_parserLocalElement(token)) {
       li = arena_push_struct(ast_storage, ListItem);
       li->object = parse_parserLocalElement();
@@ -965,8 +963,8 @@ parse_parserStates()
   list_reset(&states->members);
   if (token->klass == TK_STATE) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&states->members, li, 1);
     li->object = parse_parserState();
+    list_append_item(&states->members, li, 1);
     while (token->klass == TK_STATE) {
       li = arena_push_struct(ast_storage, ListItem);
       li->object = parse_parserState();
@@ -1013,8 +1011,8 @@ parse_parserStatements()
   list_reset(&stmts->members);
   if (token_is_parserStatement(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&stmts->members, li, 1);
     li->object = parse_parserStatement();
+    list_append_item(&stmts->members, li, 1);
     while (token_is_parserStatement(token)) {
       li = arena_push_struct(ast_storage, ListItem);
       li->object = parse_parserStatement();
@@ -1069,7 +1067,7 @@ parse_parserBlockStatement()
 {
   if (token->klass == TK_BRACE_OPEN) {
     next_token();
-    Ast_BlockStatement* stmt = arena_push_struct(ast_storage, Ast_BlockStatement);
+    Ast_ParserBlockStatement* stmt = arena_push_struct(ast_storage, Ast_ParserBlockStatement);
     stmt->kind = AST_parserBlockStatement;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
@@ -1171,8 +1169,8 @@ parse_selectCaseList()
   list_reset(&cases->members);
   if (token_is_selectCase(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&cases->members, li, 1);
     li->object = parse_selectCase();
+    list_append_item(&cases->members, li, 1);
     while (token_is_selectCase(token)) {
       li = arena_push_struct(ast_storage, ListItem);
       li->object = parse_selectCase();
@@ -1240,7 +1238,7 @@ parse_tupleKeysetExpression()
     tuple_keyset->kind = AST_tupleKeysetExpression;
     tuple_keyset->line_no = token->line_no;
     tuple_keyset->column_no = token->column_no;
-    tuple_keyset->expr_list = parse_keysetExpressionList();
+    tuple_keyset->expr_list = parse_simpleExpressionList();
     if (token->klass == TK_PARENTH_CLOSE) {
       next_token();
     } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -1253,17 +1251,17 @@ parse_tupleKeysetExpression()
 }
 
 internal Ast*
-parse_keysetExpressionList()
+parse_simpleExpressionList()
 {
-  Ast_KeysetExpressionList* exprs = arena_push_struct(ast_storage, Ast_KeysetExpressionList);
-  exprs->kind = AST_keysetExpressionList;
+  Ast_SimpleExpressionList* exprs = arena_push_struct(ast_storage, Ast_SimpleExpressionList);
+  exprs->kind = AST_simpleExpressionList;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
   list_reset(&exprs->members);
   if (token_is_expression(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&exprs->members, li, 1);
     li->object = parse_simpleKeysetExpression();
+    list_append_item(&exprs->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, ListItem);
@@ -1278,22 +1276,29 @@ internal Ast*
 parse_simpleKeysetExpression()
 {
   if (token_is_simpleKeysetExpression(token)) {
+    Ast_SimpleKeysetExpression* simple_keyset = arena_push_struct(ast_storage, Ast_SimpleKeysetExpression);
+    simple_keyset->kind = AST_simpleKeysetExpression;
+    simple_keyset->line_no = token->line_no;
+    simple_keyset->column_no = token->column_no;
     if (token_is_expression(token)) {
-      return parse_expression(1);
+      simple_keyset->expr = parse_expression(1);
+      return (Ast*)simple_keyset;
     } else if (token->klass == TK_DEFAULT) {
       next_token();
-      Ast* default_set = arena_push_struct(ast_storage, Ast);
-      default_set->kind = AST_defaultKeysetExpression;
-      default_set->line_no = token->line_no;
-      default_set->column_no = token->column_no;
-      return default_set;
+      Ast_Default* default_keyset = arena_push_struct(ast_storage, Ast_Default);
+      default_keyset->kind = AST_default;
+      default_keyset->line_no = token->line_no;
+      default_keyset->column_no = token->column_no;
+      simple_keyset->expr = (Ast*)default_keyset;
+      return (Ast*)simple_keyset;
     } else if (token->klass == TK_DONTCARE) {
       next_token();
-      Ast* dontcare_set = arena_push_struct(ast_storage, Ast);
-      dontcare_set->kind = AST_dontcareKeysetExpression;
-      dontcare_set->line_no = token->line_no;
-      dontcare_set->column_no = token->column_no;
-      return dontcare_set;
+      Ast_Dontcare* dontcare_keyset = arena_push_struct(ast_storage, Ast_Dontcare);
+      dontcare_keyset->kind = AST_dontcare;
+      dontcare_keyset->line_no = token->line_no;
+      dontcare_keyset->column_no = token->column_no;
+      simple_keyset->expr = (Ast*)dontcare_keyset;
+      return (Ast*)simple_keyset;
     }
   } else error("At line %d, column %d: keyset expression was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -1410,8 +1415,8 @@ parse_controlLocalDeclarations()
   list_reset(&decls->members);
   if (token_is_controlLocalDeclaration(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&decls->members, li, 1);
     li->object = parse_controlLocalDeclaration();
+    list_append_item(&decls->members, li, 1);
     while (token_is_controlLocalDeclaration(token)) {
       li = arena_push_struct(ast_storage, ListItem);
       li->object = parse_controlLocalDeclaration();
@@ -1487,8 +1492,8 @@ parse_methodPrototypes()
   list_reset(&protos->members);
   if (token_is_methodPrototype(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&protos->members, li, 1);
     li->object = parse_methodPrototype();
+    list_append_item(&protos->members, li, 1);
     while (token_is_methodPrototype(token)) {
       li = arena_push_struct(ast_storage, ListItem);
       li->object = parse_methodPrototype();
@@ -1613,19 +1618,15 @@ internal Ast*
 parse_namedType()
 {
   if (token_is_typeName(token)) {
-    Ast_NamedType* named_type = arena_push_struct(ast_storage, Ast_NamedType);
-    named_type->kind = AST_namedType;
-    named_type->line_no = token->line_no;
-    named_type->column_no = token->column_no;
-    named_type->type = parse_prefixedType();
+    Ast* named_type = parse_prefixedType();
     if (token->klass == TK_ANGLE_OPEN) {
       Ast_SpecializedType* specd_type = (Ast_SpecializedType*)parse_specializedType();
-      specd_type->name = named_type->type;
-      named_type->type = (Ast*)specd_type;
+      specd_type->name = named_type;
+      return (Ast*)specd_type;
     } else if (token->klass == TK_BRACKET_OPEN) {
       Ast_HeaderStackType* stack_type = (Ast_HeaderStackType*)parse_headerStackType();
-      stack_type->name = named_type->type;
-      named_type->type = (Ast*)stack_type;
+      stack_type->name = named_type;
+      return (Ast*)stack_type;
     }
     return (Ast*)named_type;
   } else error("At line %d, column %d: type was expected, got `%s`.",
@@ -1637,8 +1638,10 @@ parse_namedType()
 internal Ast*
 parse_prefixedType()
 {
+  bool is_prefixed = false;
   if (token->klass == TK_DOT) {
     next_token();
+    is_prefixed = true;
   }
   if (token->klass == TK_TYPE_IDENTIFIER) {
     next_token();
@@ -1647,6 +1650,7 @@ parse_prefixedType()
     type_name->line_no = token->line_no;
     type_name->column_no = token->column_no;
     type_name->strname = token->lexeme;
+    type_name->is_prefixed = is_prefixed;
     return (Ast*)type_name;
   } else error("At line %d, column %d: type was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -1734,8 +1738,8 @@ parse_baseType()
     type_name->column_no = token->column_no;
     if (token->klass == TK_BOOL) {
       next_token();
-      Ast_BoolType* bool_type = arena_push_struct(ast_storage, Ast_BoolType);
-      bool_type->kind = AST_baseTypeBool;
+      Ast_BooleanType* bool_type = arena_push_struct(ast_storage, Ast_BooleanType);
+      bool_type->kind = AST_baseTypeBoolean;
       bool_type->line_no = token->line_no;
       bool_type->column_no = token->column_no;
       type_name->strname = "bool";
@@ -1902,10 +1906,10 @@ parse_typeParameterList()
   list_reset(&params->members);
   if (token_is_typeParameterList(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&params->members, li, 1);
     Ast_Name* name = (Ast_Name*)parse_name();
     declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
     li->object = name;
+    list_append_item(&params->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, ListItem);
@@ -1928,11 +1932,11 @@ parse_realTypeArg()
     type_arg->column_no = token->column_no;
     if (token->klass == TK_DONTCARE) {
       next_token();
-      Ast* dontcare_arg = arena_push_struct(ast_storage, Ast);
-      dontcare_arg->kind = AST_dontcareTypeArg;
+      Ast_Dontcare* dontcare_arg = arena_push_struct(ast_storage, Ast_Dontcare);
+      dontcare_arg->kind = AST_dontcare;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
-      type_arg->arg = dontcare_arg;
+      type_arg->arg = (Ast*)dontcare_arg;
       return (Ast*)type_arg;
     } else if (token_is_typeRef(token)) {
       type_arg->arg = parse_typeRef();
@@ -1954,11 +1958,11 @@ parse_typeArg()
     type_arg->column_no = token->column_no;
     if (token->klass == TK_DONTCARE) {
       next_token();
-      Ast* dontcare_arg = arena_push_struct(ast_storage, Ast);
-      dontcare_arg->kind = AST_dontcareTypeArg;
+      Ast_Dontcare* dontcare_arg = arena_push_struct(ast_storage, Ast_Dontcare);
+      dontcare_arg->kind = AST_dontcare;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
-      type_arg->arg = dontcare_arg;
+      type_arg->arg = (Ast*)dontcare_arg;
       return (Ast*)type_arg;
     } else if (token_is_typeRef(token)) {
       type_arg->arg = parse_typeRef();
@@ -1983,8 +1987,8 @@ parse_realTypeArgumentList()
   list_reset(&args->members);
   if (token_is_realTypeArg(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&args->members, li, 1);
     li->object = parse_realTypeArg();
+    list_append_item(&args->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, ListItem);
@@ -2005,8 +2009,8 @@ parse_typeArgumentList()
   list_reset(&args->members);
   if (token_is_typeArg(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&args->members, li, 1);
     li->object = parse_typeArg();
+    list_append_item(&args->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, ListItem);
@@ -2181,8 +2185,8 @@ parse_structFieldList()
   list_reset(&fields->members);
   if (token_is_structField(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&fields->members, li, 1);
     li->object = parse_structField();
+    list_append_item(&fields->members, li, 1);
     while (token_is_structField(token)) {
       li = arena_push_struct(ast_storage, ListItem);
       li->object = parse_structField();
@@ -2334,8 +2338,8 @@ parse_identifierList()
   list_reset(&ids->members);
   if (token_is_name(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&ids->members, li, 1);
     li->object = parse_name();
+    list_append_item(&ids->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, ListItem);
@@ -2356,8 +2360,8 @@ parse_specifiedIdentifierList()
   list_reset(&ids->members);
   if (token_is_specifiedIdentifier(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&ids->members, li, 1);
     li->object = parse_specifiedIdentifier();
+    list_append_item(&ids->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, ListItem);
@@ -2671,8 +2675,8 @@ parse_statementOrDeclList()
   list_reset(&stmts->members);
   if (token_is_statementOrDeclaration(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&stmts->members, li, 1);
     li->object = parse_statementOrDeclaration();
+    list_append_item(&stmts->members, li, 1);
     while (token_is_statementOrDeclaration(token)) {
       li = arena_push_struct(ast_storage, ListItem);
       li->object = parse_statementOrDeclaration();
@@ -2726,8 +2730,8 @@ parse_switchCases()
   list_reset(&cases->members);
   if (token_is_switchLabel(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&cases->members, li, 1);
     li->object = parse_switchCase();
+    list_append_item(&cases->members, li, 1);
     while (token_is_switchLabel(token)) {
       li = arena_push_struct(ast_storage, ListItem);
       li->object = parse_switchCase();
@@ -2773,11 +2777,11 @@ parse_switchLabel()
       return (Ast*)switch_label;
     } else if (token->klass == TK_DEFAULT) {
       next_token();
-      Ast* default_label = arena_push_struct(ast_storage, Ast);
-      default_label->kind = AST_defaultSwitchLabel;
+      Ast_Default* default_label = arena_push_struct(ast_storage, Ast_Default);
+      default_label->kind = AST_default;
       default_label->line_no = token->line_no;
       default_label->column_no = token->column_no;
-      switch_label->label = default_label;
+      switch_label->label = (Ast*)default_label;
       return (Ast*)switch_label;
     } else assert(0);
   } else error("At line %d, column %d: switch label was expected, got `%s`.",
@@ -2797,20 +2801,20 @@ parse_statementOrDeclaration()
     if (token_is_typeRef(token)) {
       Ast* type_ref = parse_typeRef();
       if (token->klass == TK_PARENTH_OPEN) {
-        stmt->stmt_or_decl = parse_instantiation(type_ref);
+        stmt->stmt = parse_instantiation(type_ref);
         return (Ast*)stmt;
       } else if (token_is_name(token)) {
-        stmt->stmt_or_decl = parse_variableDeclaration(type_ref);
+        stmt->stmt = parse_variableDeclaration(type_ref);
         return (Ast*)stmt;
       } else {
-        stmt->stmt_or_decl = parse_statement(type_ref);
+        stmt->stmt = parse_statement(type_ref);
         return (Ast*)stmt;
       }
     } else if (token_is_statement(token)) {
-      stmt->stmt_or_decl = parse_statement(0);
+      stmt->stmt = parse_statement(0);
       return (Ast*)stmt;
     } else if (token->klass == TK_CONST) {
-      stmt->stmt_or_decl = parse_variableDeclaration(0);
+      stmt->stmt = parse_variableDeclaration(0);
       return (Ast*)stmt;
     } else assert(0);
     assert(0);
@@ -2860,8 +2864,8 @@ parse_tablePropertyList()
   list_reset(&props->members);
   if (token_is_tableProperty(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&props->members, li, 1);
     li->object = parse_tableProperty();
+    list_append_item(&props->members, li, 1);
     while (token_is_tableProperty(token)) {
       li = arena_push_struct(ast_storage, ListItem);
       li->object = parse_tableProperty();
@@ -2985,8 +2989,8 @@ parse_keyElementList()
   list_reset(&elems->members);
   if (token_is_expression(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&elems->members, li, 1);
     li->object = parse_keyElement();
+    list_append_item(&elems->members, li, 1);
     while (token_is_expression(token)) {
       li = arena_push_struct(ast_storage, ListItem);
       li->object = parse_keyElement();
@@ -3031,8 +3035,8 @@ parse_actionList()
   list_reset(&actions->members);
   if (token_is_actionRef(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&actions->members, li, 1);
     li->object = parse_actionRef();
+    list_append_item(&actions->members, li, 1);
     if (token->klass == TK_SEMICOLON) {
       next_token();
     } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -3089,8 +3093,8 @@ parse_entriesList()
   list_reset(&entries->members);
   if (token_is_keysetExpression(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&entries->members, li, 1);
     li->object = parse_entry();
+    list_append_item(&entries->members, li, 1);
     while (token_is_keysetExpression(token)) {
       li = arena_push_struct(ast_storage, ListItem);
       li->object = parse_entry();
@@ -3226,8 +3230,8 @@ parse_argumentList()
   list_reset(&args->members);
   if (token_is_argument(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&args->members, li, 1);
     li->object = parse_argument();
+    list_append_item(&args->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, ListItem);
@@ -3251,11 +3255,11 @@ parse_argument()
       return (Ast*)arg;
     } else if (token->klass == TK_DONTCARE) {
       next_token();
-      Ast* dontcare_arg = arena_push_struct(ast_storage, Ast);
-      dontcare_arg->kind = AST_dontcareArgument;
+      Ast_Dontcare* dontcare_arg = arena_push_struct(ast_storage, Ast_Dontcare);
+      dontcare_arg->kind = AST_dontcare;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
-      arg->arg = dontcare_arg;
+      arg->arg = (Ast*)dontcare_arg;
       return (Ast*)arg;
     } else assert(0);
   } else error("At line %d, column %d: an argument was expected, got `%s`.",
@@ -3274,8 +3278,8 @@ parse_expressionList()
   list_reset(&exprs->members);
   if (token_is_expression(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
-    list_append_item(&exprs->members, li, 1);
     li->object = parse_expression(1);
+    list_append_item(&exprs->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, ListItem);
@@ -3318,7 +3322,7 @@ parse_lvalue()
         member_expr->column_no = token->column_no;
         member_expr->lhs_expr = (Ast*)lvalue;
         if (token_is_name(token)) {
-          member_expr->member_name = parse_name();
+          member_expr->name = parse_name();
         } else error("At line %d, column %d: name was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
         lvalue = arena_push_struct(ast_storage, Ast_LvalueExpression);
@@ -3367,7 +3371,7 @@ parse_expression(int priority_threshold)
         member_expr->column_no = token->column_no;
         member_expr->lhs_expr = (Ast*)expr;
         if (token_is_nonTypeName(token)) {
-          member_expr->member_name = parse_nonTypeName();
+          member_expr->name = parse_nonTypeName();
         } else error("At line %d, column %d: non-type name was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
         expr = arena_push_struct(ast_storage, Ast_Expression);
@@ -3418,17 +3422,17 @@ parse_expression(int priority_threshold)
                      token->line_no, token->column_no, token->lexeme);
       } else if (token->klass == TK_EQUAL) {
         next_token();
-        Ast_KVPair* kv_pair = arena_push_struct(ast_storage, Ast_KVPair);
-        kv_pair->kind = AST_kvPair;
-        kv_pair->line_no = token->line_no;
-        kv_pair->column_no = token->column_no;
-        kv_pair->name = (Ast*)expr;
-        kv_pair->init_expr = parse_expression(1);
+        Ast_AssignmentStatement* assign_stmt = arena_push_struct(ast_storage, Ast_AssignmentStatement);
+        assign_stmt->kind = AST_assignmentStatement;
+        assign_stmt->line_no = token->line_no;
+        assign_stmt->column_no = token->column_no;
+        assign_stmt->lhs_expr = (Ast*)expr;
+        assign_stmt->rhs_expr = parse_expression(1);
         expr = arena_push_struct(ast_storage, Ast_Expression);
         expr->kind = AST_expression;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
-        expr->expr = (Ast*)kv_pair;
+        expr->expr = (Ast*)assign_stmt;
       } else if (token_is_binaryOperator(token)){
         int priority = operator_priority_of(token);
         if (priority >= priority_threshold) {
