@@ -288,9 +288,9 @@ visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* type_decl)
     visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
   }
   visit_parameterList((Ast_ParameterList*)type_decl->params);
-  Scope* control_scope = current_scope;
+  Scope* parser_scope = current_scope;
   current_scope = pop_scope(current_scope);
-  return control_scope;
+  return parser_scope;
 }
 
 internal void
@@ -799,9 +799,7 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
   NameDecl* name_decl = declare_type_name(name_storage,
       current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)header_decl;
-  current_scope = push_scope(name_storage, current_scope);
   visit_structFieldList((Ast_StructFieldList*)header_decl->fields);
-  current_scope = pop_scope(current_scope);
 }
 
 internal void
@@ -812,9 +810,7 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
   NameDecl* name_decl = declare_type_name(name_storage,
       current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)union_decl;
-  current_scope = push_scope(name_storage, current_scope);
   visit_structFieldList((Ast_StructFieldList*)union_decl->fields);
-  current_scope = pop_scope(current_scope);
 }
 
 internal void
@@ -825,9 +821,7 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
   NameDecl* name_decl = declare_type_name(name_storage,
       current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)struct_decl;
-  current_scope = push_scope(name_storage, current_scope);
   visit_structFieldList((Ast_StructFieldList*)struct_decl->fields);
-  current_scope = pop_scope(current_scope);
 }
 
 internal void
@@ -855,9 +849,7 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
   NameDecl* name_decl = declare_type_name(name_storage,
       current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)enum_decl;
-  current_scope = push_scope(name_storage, current_scope);
   visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields);
-  current_scope = pop_scope(current_scope);
 }
 
 internal void
@@ -867,9 +859,7 @@ visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
   NameDecl* name_decl = declare_type_name(name_storage,
       current_scope, "error", error_decl->line_no, error_decl->column_no);
   name_decl->ast = (Ast*)error_decl;
-  current_scope = push_scope(name_storage, current_scope);
   visit_identifierList((Ast_IdentifierList*)error_decl->fields);
-  current_scope = pop_scope(current_scope);
 }
 
 internal void
@@ -879,9 +869,7 @@ visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
   NameDecl* name_decl = declare_type_name(name_storage,
       current_scope, "match_kind", match_decl->line_no, match_decl->column_no);
   name_decl->ast = (Ast*)match_decl;
-  current_scope = push_scope(name_storage, current_scope);
   visit_identifierList((Ast_IdentifierList*)match_decl->fields);
-  current_scope = pop_scope(current_scope);
 }
 
 internal void
