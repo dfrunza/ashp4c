@@ -704,7 +704,7 @@ visit_typeParameterList(Ast_TypeParameterList* param_list)
         li != 0; li = li->next) {
     Ast_Name* name = (Ast_Name*)li->object;
     NamespaceEntry* ns = scope_lookup_name(current_scope, name->strname);
-    if (ns && ns->ns_type.item_count > 0) {
+    if (ns && ns->ns_type) {
       visit_name(name);
     } else {
       NameDecl* name_decl = declare_type_name(name_storage,

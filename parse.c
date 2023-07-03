@@ -158,7 +158,7 @@ next_token()
       NameDecl* ndecl = ns->ns_keyword;
       token->klass = ndecl->token_class;
       return token;
-    } else if (ns && ns->ns_type.item_count > 0) {
+    } else if (ns && ns->ns_type) {
       token->klass = TK_TYPE_IDENTIFIER;
       return token;
     }

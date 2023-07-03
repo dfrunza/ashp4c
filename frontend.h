@@ -950,12 +950,13 @@ typedef struct NameDecl {
   char* strname;
   int line_no;
   int column_no;
+  struct NameDecl* next_in_scope;
 } NameDecl;
 
 typedef struct NamespaceEntry {
   char* strname;
   Scope* scope;
-  List ns_type;
+  NameDecl* ns_type;
   NameDecl* ns_var;
   NameDecl* ns_keyword;
 } NamespaceEntry;
