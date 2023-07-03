@@ -158,7 +158,7 @@ next_token()
       NameDecl* ndecl = ns->ns_keyword;
       token->klass = ndecl->token_class;
       return token;
-    } else if (ns && ns->ns_type) {
+    } else if (ns && ns->ns_type.item_count > 0) {
       token->klass = TK_TYPE_IDENTIFIER;
       return token;
     }
@@ -766,7 +766,7 @@ parse_packageTypeDeclaration()
     package_decl->column_no = token->column_no;
     if (token_is_name(token)) {
       Ast_Name* name = (Ast_Name*)parse_name();
-      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      declare_type_name(ast_storage, current_scope, name->strname, name->line_no, name->column_no);
       package_decl->name = (Ast*)name;
       package_decl->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
@@ -932,7 +932,7 @@ parse_parserTypeDeclaration()
     proto->column_no = token->column_no;
     if (token_is_name(token)) {
       Ast_Name* name = (Ast_Name*)parse_name();
-      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      declare_type_name(ast_storage, current_scope, name->strname, name->line_no, name->column_no);
       proto->name = (Ast*)name;
       proto->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
@@ -1350,7 +1350,7 @@ parse_controlTypeDeclaration()
     proto->column_no = token->column_no;
     if (token_is_name(token)) {
       Ast_Name* name = (Ast_Name*)parse_name();
-      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      declare_type_name(ast_storage, current_scope, name->strname, name->line_no, name->column_no);
       proto->name = (Ast*)name;
       proto->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
@@ -1462,7 +1462,7 @@ parse_externDeclaration()
       extern_type->column_no = token->column_no;
       extern_type->name = parse_nonTypeName();
       Ast_Name* name = (Ast_Name*)extern_type->name;
-      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      declare_type_name(ast_storage, current_scope, name->strname, name->line_no, name->column_no);
       extern_type->type_params = parse_optTypeParameters();
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -1517,7 +1517,7 @@ parse_functionPrototype(Ast* return_type)
       Ast* return_type = parse_typeOrVoid();
       if (return_type->kind == AST_name) {
         Ast_Name* name = (Ast_Name*)return_type;
-        declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+        declare_type_name(ast_storage, current_scope, name->strname, name->line_no, name->column_no);
         Ast_TypeRef* type_ref = arena_push_struct(ast_storage, Ast_TypeRef);
         type_ref->kind = AST_typeRef;
         type_ref->line_no = token->line_no;
@@ -1907,14 +1907,14 @@ parse_typeParameterList()
   if (token_is_typeParameterList(token)) {
     ListItem* li = arena_push_struct(ast_storage, ListItem);
     Ast_Name* name = (Ast_Name*)parse_name();
-    declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+    declare_type_name(ast_storage, current_scope, name->strname, name->line_no, name->column_no);
     li->object = name;
     list_append_item(&params->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_push_struct(ast_storage, ListItem);
       Ast_Name* name = (Ast_Name*)parse_name();
-      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      declare_type_name(ast_storage, current_scope, name->strname, name->line_no, name->column_no);
       li->object = name;
       list_append_item(&params->members, li, 1);
     }
@@ -2093,7 +2093,7 @@ parse_headerTypeDeclaration()
     header_decl->column_no = token->column_no;
     if (token_is_name(token)) {
       Ast_Name* name = (Ast_Name*)parse_name();
-      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      declare_type_name(ast_storage, current_scope, name->strname, name->line_no, name->column_no);
       header_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2124,7 +2124,7 @@ parse_headerUnionDeclaration()
     union_decl->column_no = token->column_no;
     if (token_is_name(token)) {
       Ast_Name* name = (Ast_Name*)parse_name();
-      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      declare_type_name(ast_storage, current_scope, name->strname, name->line_no, name->column_no);
       union_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2155,7 +2155,7 @@ parse_structTypeDeclaration()
     struct_decl->column_no = token->column_no;
     if (token_is_name(token)) {
       Ast_Name* name = (Ast_Name*)parse_name();
-      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      declare_type_name(ast_storage, current_scope, name->strname, name->line_no, name->column_no);
       struct_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2246,7 +2246,7 @@ parse_enumDeclaration()
     }
     if (token_is_name(token)) {
       Ast_Name* name = (Ast_Name*)parse_name();
-      declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+      declare_type_name(ast_storage, current_scope, name->strname, name->line_no, name->column_no);
       enum_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2412,7 +2412,7 @@ parse_typedefDeclaration()
       } else assert(0);
       if (token_is_name(token)) {
         Ast_Name* name = (Ast_Name*)parse_name();
-        declare_type_name(current_scope, name->strname, name->line_no, name->column_no, 0);
+        declare_type_name(ast_storage, current_scope, name->strname, name->line_no, name->column_no);
         type_decl->name = (Ast*)name;
         if (token->klass == TK_SEMICOLON) {
           next_token();
@@ -3654,55 +3654,98 @@ parse_tokens(UnboundedArray* tokens_, Arena* ast_storage_)
 {
   tokens = tokens_;
   ast_storage = ast_storage_;
-  scope_reset(ast_storage);
-  root_scope = current_scope = push_scope();
+  root_scope = arena_push_struct(ast_storage, Scope);
+  hashmap_create(&root_scope->decls, HASHMAP_KEY_STRING, 3, ast_storage);
+  root_scope->scope_level = 0;
+  current_scope = root_scope;
 
-  declare_keyword(root_scope, "action", TK_ACTION);
-  declare_keyword(root_scope, "actions", TK_ACTIONS);
-  declare_keyword(root_scope, "entries", TK_ENTRIES);
-  declare_keyword(root_scope, "enum", TK_ENUM);
-  declare_keyword(root_scope, "in", TK_IN);
-  declare_keyword(root_scope, "package", TK_PACKAGE);
-  declare_keyword(root_scope, "select", TK_SELECT);
-  declare_keyword(root_scope, "switch", TK_SWITCH);
-  declare_keyword(root_scope, "tuple", TK_TUPLE);
-  declare_keyword(root_scope, "control", TK_CONTROL);
-  declare_keyword(root_scope, "error", TK_ERROR);
-  declare_keyword(root_scope, "header", TK_HEADER);
-  declare_keyword(root_scope, "inout", TK_INOUT);
-  declare_keyword(root_scope, "parser", TK_PARSER);
-  declare_keyword(root_scope, "state", TK_STATE);
-  declare_keyword(root_scope, "table", TK_TABLE);
-  declare_keyword(root_scope, "key", TK_KEY);
-  declare_keyword(root_scope, "typedef", TK_TYPEDEF);
-  declare_keyword(root_scope, "type", TK_TYPE);
-  declare_keyword(root_scope, "default", TK_DEFAULT);
-  declare_keyword(root_scope, "extern", TK_EXTERN);
-  declare_keyword(root_scope, "header_union", TK_HEADER_UNION);
-  declare_keyword(root_scope, "out", TK_OUT);
-  declare_keyword(root_scope, "transition", TK_TRANSITION);
-  declare_keyword(root_scope, "else", TK_ELSE);
-  declare_keyword(root_scope, "exit", TK_EXIT);
-  declare_keyword(root_scope, "if", TK_IF);
-  declare_keyword(root_scope, "match_kind", TK_MATCH_KIND);
-  declare_keyword(root_scope, "return", TK_RETURN);
-  declare_keyword(root_scope, "struct", TK_STRUCT);
-  declare_keyword(root_scope, "apply", TK_APPLY);
-  declare_keyword(root_scope, "const", TK_CONST);
-  declare_keyword(root_scope, "bool", TK_BOOL);
-  declare_keyword(root_scope, "true", TK_TRUE);
-  declare_keyword(root_scope, "false", TK_FALSE);
-  declare_keyword(root_scope, "void", TK_VOID);
-  declare_keyword(root_scope, "int", TK_INT);
-  declare_keyword(root_scope, "bit", TK_BIT);
-  declare_keyword(root_scope, "varbit", TK_VARBIT);
-  declare_keyword(root_scope, "string", TK_STRING);
+  NameDecl* kw_decl;
+  kw_decl = declare_keyword(ast_storage, root_scope, "action");
+  kw_decl->token_class = TK_ACTION;
+  kw_decl = declare_keyword(ast_storage, root_scope, "actions");
+  kw_decl->token_class = TK_ACTIONS;
+  kw_decl = declare_keyword(ast_storage, root_scope, "entries");
+  kw_decl->token_class = TK_ENTRIES;
+  kw_decl = declare_keyword(ast_storage, root_scope, "enum");
+  kw_decl->token_class = TK_ENUM;
+  kw_decl = declare_keyword(ast_storage, root_scope, "in");
+  kw_decl->token_class = TK_IN;
+  kw_decl = declare_keyword(ast_storage, root_scope, "package");
+  kw_decl->token_class = TK_PACKAGE;
+  kw_decl = declare_keyword(ast_storage, root_scope, "select");
+  kw_decl->token_class = TK_SELECT;
+  kw_decl = declare_keyword(ast_storage, root_scope, "switch");
+  kw_decl->token_class = TK_SWITCH;
+  kw_decl = declare_keyword(ast_storage, root_scope, "tuple");
+  kw_decl->token_class = TK_TUPLE;
+  kw_decl = declare_keyword(ast_storage, root_scope, "control");
+  kw_decl->token_class = TK_CONTROL;
+  kw_decl = declare_keyword(ast_storage, root_scope, "error");
+  kw_decl->token_class = TK_ERROR;
+  kw_decl = declare_keyword(ast_storage, root_scope, "header");
+  kw_decl->token_class = TK_HEADER;
+  kw_decl = declare_keyword(ast_storage, root_scope, "inout");
+  kw_decl->token_class = TK_INOUT;
+  kw_decl = declare_keyword(ast_storage, root_scope, "parser");
+  kw_decl->token_class = TK_PARSER;
+  kw_decl = declare_keyword(ast_storage, root_scope, "state");
+  kw_decl->token_class = TK_STATE;
+  kw_decl = declare_keyword(ast_storage, root_scope, "table");
+  kw_decl->token_class = TK_TABLE;
+  kw_decl = declare_keyword(ast_storage, root_scope, "key");
+  kw_decl->token_class = TK_KEY;
+  kw_decl = declare_keyword(ast_storage, root_scope, "typedef");
+  kw_decl->token_class = TK_TYPEDEF;
+  kw_decl = declare_keyword(ast_storage, root_scope, "type");
+  kw_decl->token_class = TK_TYPE;
+  kw_decl = declare_keyword(ast_storage, root_scope, "default");
+  kw_decl->token_class = TK_DEFAULT;
+  kw_decl = declare_keyword(ast_storage, root_scope, "extern");
+  kw_decl->token_class = TK_EXTERN;
+  kw_decl = declare_keyword(ast_storage, root_scope, "header_union");
+  kw_decl->token_class = TK_HEADER_UNION;
+  kw_decl = declare_keyword(ast_storage, root_scope, "out");
+  kw_decl->token_class = TK_OUT;
+  kw_decl = declare_keyword(ast_storage, root_scope, "transition");
+  kw_decl->token_class = TK_TRANSITION;
+  kw_decl = declare_keyword(ast_storage, root_scope, "else");
+  kw_decl->token_class = TK_ELSE;
+  kw_decl = declare_keyword(ast_storage, root_scope, "exit");
+  kw_decl->token_class = TK_EXIT;
+  kw_decl = declare_keyword(ast_storage, root_scope, "if");
+  kw_decl->token_class = TK_IF;
+  kw_decl = declare_keyword(ast_storage, root_scope, "match_kind");
+  kw_decl->token_class = TK_MATCH_KIND;
+  kw_decl = declare_keyword(ast_storage, root_scope, "return");
+  kw_decl->token_class = TK_RETURN;
+  kw_decl = declare_keyword(ast_storage, root_scope, "struct");
+  kw_decl->token_class = TK_STRUCT;
+  kw_decl = declare_keyword(ast_storage, root_scope, "apply");
+  kw_decl->token_class = TK_APPLY;
+  kw_decl = declare_keyword(ast_storage, root_scope, "const");
+  kw_decl->token_class = TK_CONST;
+  kw_decl = declare_keyword(ast_storage, root_scope, "bool");
+  kw_decl->token_class = TK_BOOL;
+  kw_decl = declare_keyword(ast_storage, root_scope, "true");
+  kw_decl->token_class = TK_TRUE;
+  kw_decl = declare_keyword(ast_storage, root_scope, "false");
+  kw_decl->token_class = TK_FALSE;
+  kw_decl = declare_keyword(ast_storage, root_scope, "void");
+  kw_decl->token_class = TK_VOID;
+  kw_decl = declare_keyword(ast_storage, root_scope, "int");
+  kw_decl->token_class = TK_INT;
+  kw_decl = declare_keyword(ast_storage, root_scope, "bit");
+  kw_decl->token_class = TK_BIT;
+  kw_decl = declare_keyword(ast_storage, root_scope, "varbit");
+  kw_decl->token_class = TK_VARBIT;
+  kw_decl = declare_keyword(ast_storage, root_scope, "string");
+  kw_decl->token_class = TK_STRING;
 
   token_at = 0;
   token = array_get(tokens, token_at);
   next_token();
   Ast_P4Program* p4program = (Ast_P4Program*)parse_p4program();
-  current_scope = pop_scope();
+  current_scope = pop_scope(current_scope);
   assert(current_scope == 0);
   return p4program;
 }

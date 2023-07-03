@@ -117,7 +117,7 @@ hashmap_create(Hashmap* hashmap, enum HashmapKeyType key_type, int capacity_log2
 }
 
 HashmapEntry*
-hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
+hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key)
 {
   HashmapEntry* entry = *(HashmapEntry**)array_get(&hashmap->entries, key->h);
   while (entry) {
@@ -130,28 +130,28 @@ hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
 }
 
 HashmapEntry*
-hashmap_get_entry_uint32(Hashmap* map, uint32_t int_key)
+hashmap_lookup_entry_uint32(Hashmap* map, uint32_t int_key)
 {
   assert(map->key_type == HASHMAP_KEY_UINT32);
   HashmapKey key = { .int_key = int_key };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
-  HashmapEntry* he = hashmap_get_entry(map, &key);
+  HashmapEntry* he = hashmap_lookup_entry(map, &key);
   return he;
 }
 
 HashmapEntry*
-hashmap_get_entry_string(Hashmap* map, char* str_key)
+hashmap_lookup_entry_string(Hashmap* map, char* str_key)
 {
   HashmapKey key = { .str_key = (uint8_t*)str_key };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, map->capacity_log2);
-  HashmapEntry* he = hashmap_get_entry(map, &key);
+  HashmapEntry* he = hashmap_lookup_entry(map, &key);
   return he;
 }
 
 HashmapEntry*
-hashmap_create_entry(Hashmap* hashmap, HashmapKey* key)
+hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
 {
-  HashmapEntry* entry = hashmap_get_entry(hashmap, key);
+  HashmapEntry* entry = hashmap_lookup_entry(hashmap, key);
   if (entry) {
     return entry;
   }
@@ -193,22 +193,22 @@ hashmap_create_entry(Hashmap* hashmap, HashmapKey* key)
 }
 
 HashmapEntry*
-hashmap_create_entry_uint32(Hashmap* map, uint32_t int_key)
+hashmap_get_entry_uint32(Hashmap* map, uint32_t int_key)
 {
   assert(map->key_type == HASHMAP_KEY_UINT32);
   HashmapKey key = { .int_key = int_key };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
-  HashmapEntry* he = hashmap_create_entry(map, &key);
+  HashmapEntry* he = hashmap_get_entry(map, &key);
   return he;
 }
 
 HashmapEntry*
-hashmap_create_entry_string(Hashmap* map, char* str_key)
+hashmap_get_entry_string(Hashmap* map, char* str_key)
 {
   assert(map->key_type == HASHMAP_KEY_STRING);
   HashmapKey key = { .str_key = (uint8_t*)str_key };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, map->capacity_log2);
-  HashmapEntry* he = hashmap_create_entry(map, &key);
+  HashmapEntry* he = hashmap_get_entry(map, &key);
   return he;
 }
 

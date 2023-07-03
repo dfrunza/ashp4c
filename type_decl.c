@@ -792,7 +792,7 @@ visit_struct(Ast* ast)
   Ast_StructTypeDeclaration* struct_decl = (Ast_StructTypeDeclaration*)ast;
   Type_Type* struct_ty = arena_push_struct(type_storage, Type_Type);
   struct_ty->ctor = TYPE_TYPE;
-  HashmapEntry* struct_he = hashmap_create_entry_uint32(&type_table, struct_decl->id);
+  HashmapEntry* struct_he = hashmap_get_entry_uint32(&type_table, struct_decl->id);
   struct_he->object = (Type*)struct_ty;
   Ast_List* fields = (Ast_List*)struct_decl->fields;
   if (fields) {
@@ -1136,42 +1136,42 @@ build_type_decl(Ast_P4Program* p4program, Scope* root_scope_, Arena* type_storag
     Ast* void_decl = scope_lookup_name(root_scope, "void")->ns_type->ast;
     Type* void_ty = arena_push_struct(type_storage, Type);
     void_ty->ctor = TYPE_VOID;
-    HashmapEntry* bit_he = hashmap_create_entry_uint32(&type_table, void_decl->id);
+    HashmapEntry* bit_he = hashmap_get_entry_uint32(&type_table, void_decl->id);
     bit_he->object = void_ty;
   }
   {
     Ast* bool_decl = scope_lookup_name(root_scope, "bool")->ns_type->ast;
     Type* bool_ty = arena_push_struct(type_storage, Type);
     bool_ty->ctor = TYPE_BOOL;
-    HashmapEntry* bool_he = hashmap_create_entry_uint32(&type_table, bool_decl->id);
+    HashmapEntry* bool_he = hashmap_get_entry_uint32(&type_table, bool_decl->id);
     bool_he->object = bool_decl;
   }
   {
     Ast* int_decl = scope_lookup_name(root_scope, "int")->ns_type->ast;
     Type* int_ty = arena_push_struct(type_storage, Type);
     int_ty->ctor = TYPE_INT;
-    HashmapEntry* bit_he = hashmap_create_entry_uint32(&type_table, int_decl->id);
+    HashmapEntry* bit_he = hashmap_get_entry_uint32(&type_table, int_decl->id);
     bit_he->object = int_ty;
   }
   {
     Ast* bit_decl = scope_lookup_name(root_scope, "bit")->ns_type->ast;
     Type* bit_ty = arena_push_struct(type_storage, Type);
     bit_ty->ctor = TYPE_BIT;
-    HashmapEntry* bit_he = hashmap_create_entry_uint32(&type_table, bit_decl->id);
+    HashmapEntry* bit_he = hashmap_get_entry_uint32(&type_table, bit_decl->id);
     bit_he->object = bit_ty;
   }
   {
     Ast* varbit_decl = scope_lookup_name(root_scope, "varbit")->ns_type->ast;
     Type* varbit_ty = arena_push_struct(type_storage, Type);
     varbit_ty->ctor = TYPE_VARBIT;
-    HashmapEntry* varbit_he = hashmap_create_entry_uint32(&type_table, varbit_decl->id);
+    HashmapEntry* varbit_he = hashmap_get_entry_uint32(&type_table, varbit_decl->id);
     varbit_he->object = varbit_ty;
   }
   {
     Ast* string_decl = scope_lookup_name(root_scope, "string")->ns_type->ast;
     Type* string_ty = arena_push_struct(type_storage, Type);
     string_ty->ctor = TYPE_STRING;
-    HashmapEntry* string_he = hashmap_create_entry_uint32(&type_table, string_decl->id);
+    HashmapEntry* string_he = hashmap_get_entry_uint32(&type_table, string_decl->id);
     string_he->object = string_ty;
   }
 

@@ -950,24 +950,22 @@ typedef struct NameDecl {
   char* strname;
   int line_no;
   int column_no;
-  struct NameDecl* next_decl;
 } NameDecl;
 
 typedef struct NamespaceEntry {
   char* strname;
   Scope* scope;
-  NameDecl* ns_type;
+  List ns_type;
   NameDecl* ns_var;
   NameDecl* ns_keyword;
 } NamespaceEntry;
 
-void scope_reset(Arena* scope_storage);
-Scope* push_scope();
-Scope* pop_scope();
+Scope* push_scope(Arena* storage, Scope* parent_scope);
+Scope* pop_scope(Scope* scope);
 NamespaceEntry* scope_lookup_name(Scope* scope, char* name);
-void declare_type_name(Scope* scope, char* strname, int line_no, int column_no, Ast* ast);
-void declare_var_name(Scope* scope, char* strname, int line_no, int column_no, Ast* ast);
-void declare_keyword(Scope* scope, char* strname, enum TokenClass token_class);
+NameDecl* declare_type_name(Arena* storage, Scope* scope, char* strname, int line_no, int column_no);
+NameDecl* declare_var_name(Arena* storage, Scope* scope, char* strname, int line_no, int column_no);
+NameDecl* declare_keyword(Arena* storage, Scope* scope, char* strname);
 
 enum TypeEnum {
   TYPE_VOID = 1,

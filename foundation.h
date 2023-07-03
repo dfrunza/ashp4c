@@ -64,8 +64,8 @@ typedef struct List {
 void list_reset(List* list);
 void list_append_item(List* list, ListItem* item, int count);
 
-// Max 1,048,575 elements
-#define ARRAY_MAX_SEGMENT 20
+// Max 2,048 elements
+#define ARRAY_MAX_SEGMENT 11
 
 typedef struct UnboundedArray {
   void* segment_table[ARRAY_MAX_SEGMENT];
@@ -118,12 +118,12 @@ typedef struct HashmapCursor {
 
 void hashmap_create(Hashmap* hashmap, enum HashmapKeyType type, int capacity_log2, Arena* storage);
 void hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ HashmapKey* key, int capacity_log2);
-HashmapEntry* hashmap_create_entry(Hashmap* hashmap, HashmapKey* key);
-HashmapEntry* hashmap_create_entry_uint32(Hashmap* map, uint32_t int_key);
-HashmapEntry* hashmap_create_entry_string(Hashmap* map, char* str_key);
 HashmapEntry* hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
 HashmapEntry* hashmap_get_entry_uint32(Hashmap* map, uint32_t int_key);
 HashmapEntry* hashmap_get_entry_string(Hashmap* map, char* str_key);
+HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key);
+HashmapEntry* hashmap_lookup_entry_uint32(Hashmap* map, uint32_t int_key);
+HashmapEntry* hashmap_lookup_entry_string(Hashmap* map, char* str_key);
 void hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap);
 HashmapEntry* hashmap_move_cursor(HashmapCursor* it);
 

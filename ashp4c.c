@@ -111,8 +111,8 @@ main(int arg_count, char* args[])
   arena_delete(&text_storage);
 
   node_id_pass(p4program);
+  name_decl_pass(p4program, &main_storage);
   /*
-  Scope* root_scope = build_name_decl(p4program, &main_storage);
   build_type_decl(p4program, root_scope, &main_storage); */
 
   /*
