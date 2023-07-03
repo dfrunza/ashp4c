@@ -356,7 +356,7 @@ token_is_declaration(Token* token)
 internal bool
 token_is_lvalue(Token* token)
 {
-  bool result = token_is_nonTypeName(token) | (token->klass == TK_DOT);
+  bool result = token_is_nonTypeName(token) || (token->klass == TK_DOT);
   return result;
 }
 

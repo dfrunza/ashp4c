@@ -161,7 +161,7 @@ internal void
 visit_declarationList(Ast_DeclarationList* decl_list)
 {
   assert(decl_list->kind == AST_declarationList);
-  for (ListItem* li = decl_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&decl_list->members);
         li != 0; li = li->next) {
     visit_declaration((Ast_Declaration*)li->object);
   }
@@ -210,7 +210,7 @@ internal void
 visit_parameterList(Ast_ParameterList* params)
 {
   assert(params->kind == AST_parameterList);
-  for (ListItem* li = params->members.sentinel.next;
+  for (ListItem* li = list_first_item(&params->members);
         li != 0; li = li->next) {
     visit_parameter((Ast_Parameter*)li->object);
   }
@@ -297,7 +297,7 @@ internal void
 visit_parserLocalElements(Ast_ParserLocalElements* local_elements)
 {
   assert(local_elements->kind == AST_parserLocalElements);
-  for (ListItem* li = local_elements->members.sentinel.next;
+  for (ListItem* li = list_first_item(&local_elements->members);
         li != 0; li = li->next) {
     visit_parserLocalElement((Ast_ParserLocalElement*)li->object);
   }
@@ -318,7 +318,7 @@ internal void
 visit_parserStates(Ast_ParserStates* states)
 {
   assert(states->kind == AST_parserStates);
-  for (ListItem* li = states->members.sentinel.next;
+  for (ListItem* li = list_first_item(&states->members);
         li != 0; li = li->next) {
     visit_parserState((Ast_ParserState*)li->object);
   }
@@ -342,7 +342,7 @@ internal void
 visit_parserStatements(Ast_ParserStatements* stmts)
 {
   assert(stmts->kind == AST_parserStatements);
-  for (ListItem* li = stmts->members.sentinel.next;
+  for (ListItem* li = list_first_item(&stmts->members);
         li != 0; li = li->next) {
     visit_parserStatement((Ast_ParserStatement*)li->object);
   }
@@ -404,7 +404,7 @@ internal void
 visit_selectCaseList(Ast_SelectCaseList* case_list)
 {
   assert(case_list->kind == AST_selectCaseList);
-  for (ListItem* li = case_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&case_list->members);
         li != 0; li = li->next) {
     visit_selectCase((Ast_SelectCase*)li->object);
   }
@@ -453,7 +453,7 @@ internal void
 visit_simpleExpressionList(Ast_SimpleExpressionList* expr_list)
 {
   assert(expr_list->kind == AST_simpleExpressionList);
-  for (ListItem* li = expr_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&expr_list->members);
         li != 0; li = li->next) {
     visit_simpleKeysetExpression((Ast_SimpleKeysetExpression*)li->object);
   }
@@ -498,7 +498,7 @@ internal void
 visit_controlLocalDeclarations(Ast_ControlLocalDeclarations* local_decls)
 {
   assert(local_decls->kind == AST_controlLocalDeclarations);
-  for (ListItem* li = local_decls->members.sentinel.next;
+  for (ListItem* li = list_first_item(&local_decls->members);
         li != 0; li = li->next) {
     visit_controlLocalDeclaration((Ast_ControlLocalDeclaration*)li->object);
   }
@@ -553,7 +553,7 @@ internal void
 visit_methodPrototypes(Ast_MethodPrototypes* protos)
 {
   assert(protos->kind == AST_methodPrototypes);
-  for (ListItem* li = protos->members.sentinel.next;
+  for (ListItem* li = list_first_item(&protos->members);
         li != 0; li = li->next) {
     visit_functionPrototype((Ast_FunctionPrototype*)li->object);
   }
@@ -700,7 +700,7 @@ internal void
 visit_typeParameterList(Ast_TypeParameterList* param_list)
 {
   assert(param_list->kind == AST_typeParameterList);
-  for (ListItem* li = param_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&param_list->members);
         li != 0; li = li->next) {
     Ast_Name* name = (Ast_Name*)li->object;
     NamespaceEntry* ns = scope_lookup_name(current_scope, name->strname);
@@ -742,7 +742,7 @@ internal void
 visit_realTypeArgumentList(Ast_RealTypeArgumentList* arg_list)
 {
   assert(arg_list->kind == AST_realTypeArgumentList);
-  for (ListItem* li = arg_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&arg_list->members);
         li != 0; li = li->next) {
     visit_realTypeArg((Ast_RealTypeArg*)li->object);
   }
@@ -752,7 +752,7 @@ internal void
 visit_typeArgumentList(Ast_TypeArgumentList* arg_list)
 {
   assert(arg_list->kind == AST_typeArgumentList);
-  for (ListItem* li = arg_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&arg_list->members);
         li != 0; li = li->next) {
     visit_typeArg((Ast_TypeArg*)li->object);
   }
@@ -834,7 +834,7 @@ internal void
 visit_structFieldList(Ast_StructFieldList* field_list)
 {
   assert(field_list->kind == AST_structFieldList);
-  for (ListItem* li = field_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&field_list->members);
         li != 0; li = li->next) {
     visit_structField((Ast_StructField*)li->object);
   }
@@ -888,7 +888,7 @@ internal void
 visit_identifierList(Ast_IdentifierList* ident_list)
 {
   assert(ident_list->kind == AST_identifierList);
-  for (ListItem* li = ident_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&ident_list->members);
         li != 0; li = li->next) {
     ; /* pass */
   }
@@ -898,7 +898,7 @@ internal void
 visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
-  for (ListItem* li = ident_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&ident_list->members);
         li != 0; li = li->next) {
     visit_specifiedIdentifier((Ast_SpecifiedIdentifier*)li->object);
   }
@@ -1030,7 +1030,7 @@ internal void
 visit_statementOrDeclList(Ast_StatementOrDeclList* stmt_list)
 {
   assert(stmt_list->kind == AST_statementOrDeclList);
-  for (ListItem* li = stmt_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&stmt_list->members);
         li != 0; li = li->next) {
     visit_statementOrDeclaration((Ast_StatementOrDeclaration*)li->object);
   }
@@ -1048,7 +1048,7 @@ internal void
 visit_switchCases(Ast_SwitchCases* switch_cases)
 {
   assert(switch_cases->kind == AST_switchCases);
-  for (ListItem* li = switch_cases->members.sentinel.next;
+  for (ListItem* li = list_first_item(&switch_cases->members);
         li != 0; li = li->next) {
     visit_switchCase((Ast_SwitchCase*)li->object);
   }
@@ -1105,7 +1105,7 @@ internal void
 visit_tablePropertyList(Ast_TablePropertyList* prop_list)
 {
   assert(prop_list->kind == AST_tablePropertyList);
-  for (ListItem* li = prop_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&prop_list->members);
         li != 0; li = li->next) {
     visit_tableProperty((Ast_TableProperty*)li->object);
   }
@@ -1137,7 +1137,7 @@ internal void
 visit_keyElementList(Ast_KeyElementList* element_list)
 {
   assert(element_list->kind == AST_keyElementList);
-  for (ListItem* li = element_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&element_list->members);
         li != 0; li = li->next) {
     visit_keyElement((Ast_KeyElement*)li->object);
   }
@@ -1162,7 +1162,7 @@ internal void
 visit_actionList(Ast_ActionList* action_list)
 {
   assert(action_list->kind == AST_actionList);
-  for (ListItem* li = action_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&action_list->members);
         li != 0; li = li->next) {
     visit_actionRef((Ast_ActionRef*)li->object);
   }
@@ -1189,7 +1189,7 @@ internal void
 visit_entriesList(Ast_EntriesList* entries_list)
 {
   assert(entries_list->kind == AST_entriesList);
-  for (ListItem* li = entries_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&entries_list->members);
         li != 0; li = li->next) {
     visit_entry((Ast_Entry*)li->object);
   }
@@ -1257,7 +1257,7 @@ internal void
 visit_argumentList(Ast_ArgumentList* arg_list)
 {
   assert(arg_list->kind == AST_argumentList);
-  for (ListItem* li = arg_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&arg_list->members);
         li != 0; li = li->next) {
     visit_argument((Ast_Argument*)li->object);
   }
@@ -1278,7 +1278,7 @@ internal void
 visit_expressionList(Ast_ExpressionList* expr_list)
 {
   assert(expr_list->kind == AST_expressionList);
-  for (ListItem* li = expr_list->members.sentinel.next;
+  for (ListItem* li = list_first_item(&expr_list->members);
         li != 0; li = li->next) {
     visit_expression((Ast_Expression*)li->object);
   }

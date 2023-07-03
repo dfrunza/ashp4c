@@ -76,6 +76,13 @@ list_reset(List* list)
   list->item_count = 0;
 }
 
+ListItem*
+list_first_item(List* list)
+{
+  ListItem* li = list->sentinel.next;
+  return li;
+}
+
 void
 list_append_item(List* list, ListItem* item, int count)
 {

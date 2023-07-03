@@ -62,6 +62,7 @@ typedef struct List {
 } List;
 
 void list_reset(List* list);
+ListItem* list_first_item(List* list);
 void list_append_item(List* list, ListItem* item, int count);
 
 // Max 2,048 elements
