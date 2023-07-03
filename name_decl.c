@@ -203,7 +203,7 @@ internal void
 visit_name(Ast_Name* name)
 {
   assert(name->kind == AST_name);
-  name->scope = current_scope;
+  name->attr = current_scope;
 }
 
 internal void

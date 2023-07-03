@@ -299,6 +299,7 @@ typedef struct Ast {
   uint32_t id;
   int line_no;
   int column_no;
+  void* attr;
 } Ast;
 
 /** PROGRAM **/
@@ -322,7 +323,6 @@ typedef struct Ast_Name {
   Ast;
   char* strname;
   bool is_prefixed;
-  Scope* scope;
 } Ast_Name;
 
 typedef struct Ast_ParameterList {
