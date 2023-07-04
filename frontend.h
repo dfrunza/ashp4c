@@ -970,6 +970,12 @@ typedef struct Ast_Default {
   Ast;
 } Ast_Default;
 
+typedef enum NameSpace {
+  NS_VAR = 0,
+  NS_TYPE,
+  NS_KEYWORD,
+} NameSpace;
+
 typedef struct NameDecl {
   union {
     Ast* ast;
@@ -980,12 +986,6 @@ typedef struct NameDecl {
   int column_no;
   struct NameDecl* next_in_scope;
 } NameDecl;
-
-typedef enum NameSpace {
-  NS_TYPE = 0,
-  NS_VAR,
-  NS_KEYWORD,
-} NameSpace;
 
 typedef struct NameSpaceEntry {
   NameDecl* decls[3];

@@ -916,7 +916,7 @@ visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident, Hashmap* field_decls)
 {
   assert(ident->kind == AST_specifiedIdentifier);
   Ast_Name* name = (Ast_Name*)ident->name;
-  declare_struct_field(name_storage, field_decls, name->strname,
+  declare_scope_name(name_storage, field_decls, name->strname, NS_VAR,
     name->line_no, name->column_no);
   if (ident->init_expr) {
     visit_expression((Ast_Expression*)ident->init_expr);
