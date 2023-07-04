@@ -981,21 +981,24 @@ typedef struct NameDecl {
   struct NameDecl* next_in_scope;
 } NameDecl;
 
+typedef enum Namespace {
+  NS_TYPE = 0,
+  NS_VAR,
+  NS_KEYWORD,
+} Namespace;
+
 typedef struct NamespaceEntry {
   char* strname;
-  Scope* scope;
-  NameDecl* ns_type;
-  NameDecl* ns_var;
-  NameDecl* ns_keyword;
+  NameDecl* decls[3];
 } NamespaceEntry;
 
 Scope* push_scope(Arena* storage, Scope* parent_scope);
 Scope* pop_scope(Scope* scope);
 NamespaceEntry* scope_lookup_name(Scope* scope, char* name);
-NameDecl* declare_type_name(Arena* storage, Scope* scope, char* strname, int line_no, int column_no);
-NameDecl* declare_var_name(Arena* storage, Scope* scope, char* strname, int line_no, int column_no);
-NameDecl* declare_keyword(Arena* storage, Scope* scope, char* strname);
-NameDecl* declare_struct_field(Arena* storage, Hashmap* fields, char* strname, int line_no, int column_no);
+NameDecl* declare_name(Arena* storage, Hashmap* decls, char* strname, enum Namespace ns,
+            int line_no, int column_no);
+NameDecl* declare_struct_field(Arena* storage, Hashmap* fields, char* strname,
+            int line_no, int column_no);
 
 enum TypeEnum {
   TYPE_VOID = 1,

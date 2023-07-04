@@ -26,6 +26,7 @@ bool cstr_match(char* str_a, char* str_b);
 void cstr_print_substr(char* begin_char, char* end_char);
 bool bytes_match(uint8_t* bytes_a, int len_a, uint8_t* bytes_b, int len_b);
 int floor_log2(int x);
+int ceil_log2(int x);
 
 typedef struct PageBlock {
   struct PageBlock* next_block;

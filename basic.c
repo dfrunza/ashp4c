@@ -130,10 +130,14 @@ error_(char* file, int line, char* message, ...)
   exit(1);
 }
 
-int
-floor_log2(int x)
+int floor_log2(int x)
 {
   int result = floor(log10(x) / log10(2));
   return result;
 }
 
+int ceil_log2(int x)
+{
+  int result = ceil(log10(x) / log10(2));
+  return result;
+}

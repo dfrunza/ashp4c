@@ -222,8 +222,8 @@ visit_parameter(Ast_Parameter* param)
   assert(param->kind == AST_parameter);
   visit_typeRef((Ast_TypeRef*)param->type);
   Ast_Name* name = (Ast_Name*)param->name;
-  NameDecl* name_decl = declare_var_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_VAR, name->line_no, name->column_no);
   name_decl->ast = (Ast*)param;
   if (param->init_expr) {
     visit_expression((Ast_Expression*)param->init_expr);
@@ -235,8 +235,8 @@ visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* type_decl)
 {
   assert(type_decl->kind == AST_packageTypeDeclaration);
   Ast_Name* name = (Ast_Name*)type_decl->name;
-  NameDecl* name_decl = declare_type_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_TYPE, name->line_no, name->column_no);
   name_decl->ast = (Ast*)type_decl;
   current_scope = push_scope(name_storage, current_scope);
   if (type_decl->type_params) {
@@ -253,8 +253,8 @@ visit_instantiation(Ast_Instantiation* inst)
   visit_typeRef((Ast_TypeRef*)inst->type_ref);
   visit_argumentList((Ast_ArgumentList*)inst->args);
   Ast_Name* name = (Ast_Name*)inst->name;
-  NameDecl* name_decl = declare_var_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_VAR, name->line_no, name->column_no);
   name_decl->ast = (Ast*)inst;
 }
 
@@ -280,8 +280,8 @@ visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* type_decl)
 {
   assert(type_decl->kind == AST_parserTypeDeclaration);
   Ast_Name* name = (Ast_Name*)type_decl->name;
-  NameDecl* name_decl = declare_type_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_TYPE, name->line_no, name->column_no);
   name_decl->ast = (Ast*)type_decl;
   current_scope = push_scope(name_storage, current_scope);
   if (type_decl->type_params) {
@@ -329,8 +329,8 @@ visit_parserState(Ast_ParserState* state)
 {
   assert(state->kind == AST_parserState);
   Ast_Name* name = (Ast_Name*)state->name;
-  NameDecl* name_decl = declare_var_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_VAR, name->line_no, name->column_no);
   name_decl->ast = (Ast*)state;
   current_scope = push_scope(name_storage, current_scope);
   visit_parserStatements((Ast_ParserStatements*)state->stmt_list);
@@ -481,8 +481,8 @@ visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* type_decl)
 {
   assert(type_decl->kind == AST_controlTypeDeclaration);
   Ast_Name* name = (Ast_Name*)type_decl->name;
-  NameDecl* name_decl = declare_type_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_TYPE, name->line_no, name->column_no);
   name_decl->ast = (Ast*)type_decl;
   current_scope = push_scope(name_storage, current_scope);
   if (type_decl->type_params) {
@@ -538,8 +538,8 @@ visit_externTypeDeclaration(Ast_ExternTypeDeclaration* type_decl)
 {
   assert(type_decl->kind == AST_externTypeDeclaration);
   Ast_Name* name = (Ast_Name*)type_decl->name;
-  NameDecl* name_decl = declare_type_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_TYPE, name->line_no, name->column_no);
   name_decl->ast = (Ast*)name;
   current_scope = push_scope(name_storage, current_scope);
   if (type_decl->type_params) {
@@ -567,8 +567,8 @@ visit_functionPrototype(Ast_FunctionPrototype* func_proto)
     visit_typeRef((Ast_TypeRef*)func_proto->return_type);
   }
   Ast_Name* name = (Ast_Name*)func_proto->name;
-  NameDecl* name_decl = declare_type_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_TYPE, name->line_no, name->column_no);
   name_decl->ast = (Ast*)func_proto;
   current_scope = push_scope(name_storage, current_scope);
   if (func_proto->type_params) {
@@ -704,11 +704,11 @@ visit_typeParameterList(Ast_TypeParameterList* param_list)
         li != 0; li = li->next) {
     Ast_Name* name = (Ast_Name*)li->object;
     NamespaceEntry* ns = scope_lookup_name(current_scope, name->strname);
-    if (ns && ns->ns_type) {
+    if (ns && ns->decls[NS_TYPE]) {
       visit_name(name);
     } else {
-      NameDecl* name_decl = declare_type_name(name_storage,
-        current_scope, name->strname, name->line_no, name->column_no);
+      NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+        name->strname, NS_TYPE, name->line_no, name->column_no);
       name_decl->ast = (Ast*)name;
     }
   }
@@ -796,8 +796,8 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
   Ast_Name* name = (Ast_Name*)header_decl->name;
-  NameDecl* name_decl = declare_type_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_TYPE, name->line_no, name->column_no);
   name_decl->ast = (Ast*)header_decl;
   visit_structFieldList((Ast_StructFieldList*)header_decl->fields);
 }
@@ -807,8 +807,8 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
 {
   assert(union_decl->kind == AST_headerUnionDeclaration);
   Ast_Name* name = (Ast_Name*)union_decl->name;
-  NameDecl* name_decl = declare_type_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_TYPE, name->line_no, name->column_no);
   name_decl->ast = (Ast*)union_decl;
   visit_structFieldList((Ast_StructFieldList*)union_decl->fields);
 }
@@ -818,8 +818,8 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
   Ast_Name* name = (Ast_Name*)struct_decl->name;
-  NameDecl* name_decl = declare_type_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_TYPE, name->line_no, name->column_no);
   name_decl->ast = (Ast*)struct_decl;
   visit_structFieldList((Ast_StructFieldList*)struct_decl->fields);
 }
@@ -846,11 +846,11 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
 {
   assert(enum_decl->kind == AST_enumDeclaration);
   Ast_Name* name = (Ast_Name*)enum_decl->name;
-  NameDecl* name_decl = declare_type_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_TYPE, name->line_no, name->column_no);
   name_decl->ast = (Ast*)enum_decl;
   hashmap_create(&enum_decl->attr.fields, HASHMAP_KEY_STRING,
-    floor_log2(enum_decl->attr.field_count)+1, name_storage);
+    ceil_log2(enum_decl->attr.field_count+1), name_storage);
   visit_specifiedIdentifierList(
     (Ast_SpecifiedIdentifierList*)enum_decl->fields, &enum_decl->attr.fields);
 }
@@ -859,8 +859,8 @@ internal void
 visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
 {
   assert(error_decl->kind == AST_errorDeclaration);
-  NameDecl* name_decl = declare_type_name(name_storage,
-    current_scope, "error", error_decl->line_no, error_decl->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    "error", NS_TYPE, error_decl->line_no, error_decl->column_no);
   name_decl->ast = (Ast*)error_decl;
   visit_identifierList((Ast_IdentifierList*)error_decl->fields);
 }
@@ -869,8 +869,8 @@ internal void
 visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
 {
   assert(match_decl->kind == AST_matchKindDeclaration);
-  NameDecl* name_decl = declare_type_name(name_storage,
-    current_scope, "match_kind", match_decl->line_no, match_decl->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    "match_kind", NS_TYPE, match_decl->line_no, match_decl->column_no);
   name_decl->ast = (Ast*)match_decl;
   visit_identifierList((Ast_IdentifierList*)match_decl->fields);
 }
@@ -900,8 +900,8 @@ visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident, Hashmap* field_decls)
 {
   assert(ident->kind == AST_specifiedIdentifier);
   Ast_Name* name = (Ast_Name*)ident->name;
-  declare_struct_field(
-    name_storage, field_decls, name->strname, name->line_no, name->column_no);
+  declare_struct_field(name_storage, field_decls, name->strname,
+    name->line_no, name->column_no);
   if (ident->init_expr) {
     visit_expression((Ast_Expression*)ident->init_expr);
   }
@@ -917,8 +917,8 @@ visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl)
     visit_derivedTypeDeclaration((Ast_DerivedTypeDeclaration*)typedef_decl->type_ref);
   } else assert(0);
   Ast_Name* name = (Ast_Name*)typedef_decl->name;
-  NameDecl* name_decl = declare_type_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_TYPE, name->line_no, name->column_no);
   name_decl->ast = (Ast*)typedef_decl;
 }
 
@@ -1089,8 +1089,8 @@ visit_tableDeclaration(Ast_TableDeclaration* table_decl)
 {
   assert(table_decl->kind == AST_tableDeclaration);
   Ast_Name* name = (Ast_Name*)table_decl->name;
-  NameDecl* name_decl = declare_var_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_VAR, name->line_no, name->column_no);
   name_decl->ast = (Ast*)table_decl;
   visit_tablePropertyList((Ast_TablePropertyList*)table_decl->prop_list);
 }
@@ -1209,8 +1209,8 @@ visit_actionDeclaration(Ast_ActionDeclaration* action_decl)
 {
   assert(action_decl->kind == AST_actionDeclaration);
   Ast_Name* name = (Ast_Name*)action_decl->name;
-  NameDecl* name_decl = declare_type_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_VAR, name->line_no, name->column_no);
   name_decl->ast = (Ast*)action_decl;
   current_scope = push_scope(name_storage, current_scope);
   visit_parameterList((Ast_ParameterList*)action_decl->params);
@@ -1226,8 +1226,8 @@ visit_variableDeclaration(Ast_VarDeclaration* var_decl)
   assert(var_decl->kind == AST_variableDeclaration);
   visit_typeRef((Ast_TypeRef*)var_decl->type);
   Ast_Name* name = (Ast_Name*)var_decl->name;
-  NameDecl* name_decl = declare_var_name(name_storage,
-    current_scope, name->strname, name->line_no, name->column_no);
+  NameDecl* name_decl = declare_name(name_storage, &current_scope->decls,
+    name->strname, NS_VAR, name->line_no, name->column_no);
   name_decl->ast = (Ast*)var_decl;
   if (var_decl->init_expr) {
     visit_expression((Ast_Expression*)var_decl->init_expr);
@@ -1427,16 +1427,16 @@ name_decl_pass(Ast_P4Program* p4program, Arena* name_storage_)
   root_scope->scope_level = 0;
   current_scope = root_scope;
 
-  declare_type_name(name_storage, current_scope, "bool", 0, 0);
-  declare_type_name(name_storage, current_scope, "int", 0, 0);
-  declare_type_name(name_storage, current_scope, "bit", 0, 0);
-  declare_type_name(name_storage, current_scope, "varbit", 0, 0);
-  declare_type_name(name_storage, current_scope, "string", 0, 0);
-  declare_type_name(name_storage, current_scope, "void", 0, 0);
-  declare_type_name(name_storage, current_scope, "error", 0, 0);
-  declare_type_name(name_storage, current_scope, "match_kind", 0, 0);
-  declare_var_name(name_storage, current_scope, "accept", 0, 0);
-  declare_var_name(name_storage, current_scope, "reject", 0, 0);
+  declare_name(name_storage, &current_scope->decls, "bool", NS_TYPE, 0, 0);
+  declare_name(name_storage, &current_scope->decls, "int", NS_TYPE, 0, 0);
+  declare_name(name_storage, &current_scope->decls, "bit", NS_TYPE, 0, 0);
+  declare_name(name_storage, &current_scope->decls, "varbit", NS_TYPE, 0, 0);
+  declare_name(name_storage, &current_scope->decls, "string", NS_TYPE, 0, 0);
+  declare_name(name_storage, &current_scope->decls, "void", NS_TYPE, 0, 0);
+  declare_name(name_storage, &current_scope->decls, "error", NS_TYPE, 0, 0);
+  declare_name(name_storage, &current_scope->decls, "match_kind", NS_TYPE, 0, 0);
+  declare_name(name_storage, &current_scope->decls, "accept", NS_VAR, 0, 0);
+  declare_name(name_storage, &current_scope->decls, "reject", NS_VAR, 0, 0);
 
   visit_p4program(p4program);
   current_scope = pop_scope(current_scope);
