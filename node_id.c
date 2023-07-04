@@ -4,6 +4,7 @@
 #include "foundation.h"
 #include "frontend.h"
 
+internal Arena* attr_storage;
 internal int node_id = 0;
 
 /** PROGRAM **/
@@ -76,13 +77,13 @@ internal void visit_derivedTypeDeclaration(Ast_DerivedTypeDeclaration* type_decl
 internal void visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl);
 internal void visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl);
 internal void visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl);
-internal void visit_structFieldList(Ast_StructFieldList* field_list);
+internal int visit_structFieldList(Ast_StructFieldList* field_list);
 internal void visit_structField(Ast_StructField* field);
 internal void visit_enumDeclaration(Ast_EnumDeclaration* enum_decl);
 internal void visit_errorDeclaration(Ast_ErrorDeclaration* error_decl);
 internal void visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl);
-internal void visit_identifierList(Ast_IdentifierList* ident_list);
-internal void visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list);
+internal int visit_identifierList(Ast_IdentifierList* ident_list);
+internal int visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list);
 internal void visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident);
 internal void visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl);
 
@@ -783,7 +784,8 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
   assert(header_decl->kind == AST_headerTypeDeclaration);
   header_decl->id = ++node_id;
   visit_name((Ast_Name*)header_decl->name);
-  visit_structFieldList((Ast_StructFieldList*)header_decl->fields);
+  header_decl->attr.field_count = 
+    visit_structFieldList((Ast_StructFieldList*)header_decl->fields);
 }
 
 internal void
@@ -792,7 +794,8 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
   assert(union_decl->kind == AST_headerUnionDeclaration);
   union_decl->id = ++node_id;
   visit_name((Ast_Name*)union_decl->name);
-  visit_structFieldList((Ast_StructFieldList*)union_decl->fields);
+  union_decl->attr.field_count = 
+    visit_structFieldList((Ast_StructFieldList*)union_decl->fields);
 }
 
 internal void
@@ -801,10 +804,11 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
   assert(struct_decl->kind == AST_structTypeDeclaration);
   struct_decl->id = ++node_id;
   visit_name((Ast_Name*)struct_decl->name);
-  visit_structFieldList((Ast_StructFieldList*)struct_decl->fields);
+  struct_decl->attr.field_count = 
+    visit_structFieldList((Ast_StructFieldList*)struct_decl->fields);
 }
 
-internal void
+internal int
 visit_structFieldList(Ast_StructFieldList* field_list)
 {
   assert(field_list->kind == AST_structFieldList);
@@ -813,6 +817,7 @@ visit_structFieldList(Ast_StructFieldList* field_list)
         li != 0; li = li->next) {
     visit_structField((Ast_StructField*)li->object);
   }
+  return field_list->members.item_count;
 }
 
 internal void
@@ -830,7 +835,8 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
   assert(enum_decl->kind == AST_enumDeclaration);
   enum_decl->id = ++node_id;
   visit_name((Ast_Name*)enum_decl->name);
-  visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields);
+  enum_decl->attr.field_count = 
+    visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields);
 }
 
 internal void
@@ -838,7 +844,8 @@ visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
 {
   assert(error_decl->kind == AST_errorDeclaration);
   error_decl->id = ++node_id;
-  visit_identifierList((Ast_IdentifierList*)error_decl->fields);
+  error_decl->attr.field_count = 
+    visit_identifierList((Ast_IdentifierList*)error_decl->fields);
 }
 
 internal void
@@ -846,10 +853,11 @@ visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
 {
   assert(match_decl->kind == AST_matchKindDeclaration);
   match_decl->id = ++node_id;
-  visit_identifierList((Ast_IdentifierList*)match_decl->fields);
+  match_decl->attr.field_count = 
+    visit_identifierList((Ast_IdentifierList*)match_decl->fields);
 }
 
-internal void
+internal int
 visit_identifierList(Ast_IdentifierList* ident_list)
 {
   assert(ident_list->kind == AST_identifierList);
@@ -858,9 +866,10 @@ visit_identifierList(Ast_IdentifierList* ident_list)
         li != 0; li = li->next) {
     visit_name((Ast_Name*)li->object);
   }
+  return ident_list->members.item_count;
 }
 
-internal void
+internal int
 visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
@@ -869,6 +878,7 @@ visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list)
         li != 0; li = li->next) {
     visit_specifiedIdentifier((Ast_SpecifiedIdentifier*)li->object);
   }
+  return ident_list->members.item_count;
 }
 
 internal void
@@ -1423,8 +1433,10 @@ visit_dontcare(Ast_Dontcare* dontcare)
 }
 
 int
-node_id_pass(Ast_P4Program* p4program)
+node_id_pass(Ast_P4Program* p4program, Arena* attr_storage_)
 {
+  attr_storage = attr_storage_;
   visit_p4program(p4program);
   return node_id;
 }
+

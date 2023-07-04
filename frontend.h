@@ -299,7 +299,6 @@ typedef struct Ast {
   uint32_t id;
   int line_no;
   int column_no;
-  void* attr;
 } Ast;
 
 /** PROGRAM **/
@@ -323,6 +322,10 @@ typedef struct Ast_Name {
   Ast;
   char* strname;
   bool is_prefixed;
+
+  struct {
+    Scope* scope;
+  } attr;
 } Ast_Name;
 
 typedef struct Ast_ParameterList {
@@ -613,18 +616,30 @@ typedef struct Ast_HeaderTypeDeclaration {
   Ast;
   Ast* name;
   Ast* fields;
+
+  struct {
+    int field_count;
+  } attr;
 } Ast_HeaderTypeDeclaration;
 
 typedef struct Ast_HeaderUnionDeclaration {
   Ast;
   Ast* name;
   Ast* fields;
+
+  struct {
+    int field_count;
+  } attr;
 } Ast_HeaderUnionDeclaration;
 
 typedef struct Ast_StructTypeDeclaration {
   Ast;
   Ast* name;
   Ast* fields;
+
+  struct {
+    int field_count;
+  } attr;
 } Ast_StructTypeDeclaration;
 
 typedef struct Ast_StructFieldList {
@@ -643,16 +658,29 @@ typedef struct Ast_EnumDeclaration {
   Ast* type_size;
   Ast* name;
   Ast* fields;
+
+  struct {
+    int field_count;
+    Hashmap fields;
+  } attr;
 } Ast_EnumDeclaration;
 
 typedef struct Ast_ErrorDeclaration {
   Ast;
   Ast* fields;
+
+  struct {
+    int field_count;
+  } attr;
 } Ast_ErrorDeclaration;
 
 typedef struct Ast_MatchKindDeclaration {
   Ast;
   Ast* fields;
+
+  struct {
+    int field_count;
+  } attr;
 } Ast_MatchKindDeclaration;
 
 typedef struct Ast_IdentifierList {
@@ -967,6 +995,7 @@ NamespaceEntry* scope_lookup_name(Scope* scope, char* name);
 NameDecl* declare_type_name(Arena* storage, Scope* scope, char* strname, int line_no, int column_no);
 NameDecl* declare_var_name(Arena* storage, Scope* scope, char* strname, int line_no, int column_no);
 NameDecl* declare_keyword(Arena* storage, Scope* scope, char* strname);
+NameDecl* declare_struct_field(Arena* storage, Hashmap* fields, char* strname, int line_no, int column_no);
 
 enum TypeEnum {
   TYPE_VOID = 1,

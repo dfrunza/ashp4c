@@ -73,6 +73,19 @@ declare_keyword(Arena* storage, Scope* scope, char* strname)
   return decl;
 }
 
+NameDecl*
+declare_struct_field(Arena* storage, Hashmap* fields, char* strname, int line_no, int column_no)
+{
+  NameDecl* decl = arena_push_struct(storage, NameDecl);
+  decl->strname = strname;
+  decl->line_no = line_no;
+  decl->column_no = column_no;
+  HashmapEntry* he = hashmap_get_entry_string(fields, strname);
+  assert(!he->object);
+  he->object = decl;
+  return decl;
+}
+
 NamespaceEntry*
 scope_lookup_name(Scope* scope, char* strname)
 {

@@ -84,8 +84,8 @@ internal void visit_enumDeclaration(Ast_EnumDeclaration* enum_decl);
 internal void visit_errorDeclaration(Ast_ErrorDeclaration* error_decl);
 internal void visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl);
 internal void visit_identifierList(Ast_IdentifierList* ident_list);
-internal void visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list);
-internal void visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident);
+internal void visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list, Hashmap* field_decls);
+internal void visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident, Hashmap* field_decls);
 internal void visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl);
 
 /** STATEMENTS **/
@@ -203,7 +203,7 @@ internal void
 visit_name(Ast_Name* name)
 {
   assert(name->kind == AST_name);
-  name->attr = current_scope;
+  name->attr.scope = current_scope;
 }
 
 internal void
@@ -223,7 +223,7 @@ visit_parameter(Ast_Parameter* param)
   visit_typeRef((Ast_TypeRef*)param->type);
   Ast_Name* name = (Ast_Name*)param->name;
   NameDecl* name_decl = declare_var_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)param;
   if (param->init_expr) {
     visit_expression((Ast_Expression*)param->init_expr);
@@ -236,7 +236,7 @@ visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* type_decl)
   assert(type_decl->kind == AST_packageTypeDeclaration);
   Ast_Name* name = (Ast_Name*)type_decl->name;
   NameDecl* name_decl = declare_type_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)type_decl;
   current_scope = push_scope(name_storage, current_scope);
   if (type_decl->type_params) {
@@ -254,7 +254,7 @@ visit_instantiation(Ast_Instantiation* inst)
   visit_argumentList((Ast_ArgumentList*)inst->args);
   Ast_Name* name = (Ast_Name*)inst->name;
   NameDecl* name_decl = declare_var_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)inst;
 }
 
@@ -281,7 +281,7 @@ visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* type_decl)
   assert(type_decl->kind == AST_parserTypeDeclaration);
   Ast_Name* name = (Ast_Name*)type_decl->name;
   NameDecl* name_decl = declare_type_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)type_decl;
   current_scope = push_scope(name_storage, current_scope);
   if (type_decl->type_params) {
@@ -330,7 +330,7 @@ visit_parserState(Ast_ParserState* state)
   assert(state->kind == AST_parserState);
   Ast_Name* name = (Ast_Name*)state->name;
   NameDecl* name_decl = declare_var_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)state;
   current_scope = push_scope(name_storage, current_scope);
   visit_parserStatements((Ast_ParserStatements*)state->stmt_list);
@@ -482,7 +482,7 @@ visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* type_decl)
   assert(type_decl->kind == AST_controlTypeDeclaration);
   Ast_Name* name = (Ast_Name*)type_decl->name;
   NameDecl* name_decl = declare_type_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)type_decl;
   current_scope = push_scope(name_storage, current_scope);
   if (type_decl->type_params) {
@@ -539,7 +539,7 @@ visit_externTypeDeclaration(Ast_ExternTypeDeclaration* type_decl)
   assert(type_decl->kind == AST_externTypeDeclaration);
   Ast_Name* name = (Ast_Name*)type_decl->name;
   NameDecl* name_decl = declare_type_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)name;
   current_scope = push_scope(name_storage, current_scope);
   if (type_decl->type_params) {
@@ -568,7 +568,7 @@ visit_functionPrototype(Ast_FunctionPrototype* func_proto)
   }
   Ast_Name* name = (Ast_Name*)func_proto->name;
   NameDecl* name_decl = declare_type_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)func_proto;
   current_scope = push_scope(name_storage, current_scope);
   if (func_proto->type_params) {
@@ -708,7 +708,7 @@ visit_typeParameterList(Ast_TypeParameterList* param_list)
       visit_name(name);
     } else {
       NameDecl* name_decl = declare_type_name(name_storage,
-          current_scope, name->strname, name->line_no, name->column_no);
+        current_scope, name->strname, name->line_no, name->column_no);
       name_decl->ast = (Ast*)name;
     }
   }
@@ -797,7 +797,7 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
   assert(header_decl->kind == AST_headerTypeDeclaration);
   Ast_Name* name = (Ast_Name*)header_decl->name;
   NameDecl* name_decl = declare_type_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)header_decl;
   visit_structFieldList((Ast_StructFieldList*)header_decl->fields);
 }
@@ -808,7 +808,7 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
   assert(union_decl->kind == AST_headerUnionDeclaration);
   Ast_Name* name = (Ast_Name*)union_decl->name;
   NameDecl* name_decl = declare_type_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)union_decl;
   visit_structFieldList((Ast_StructFieldList*)union_decl->fields);
 }
@@ -819,7 +819,7 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
   assert(struct_decl->kind == AST_structTypeDeclaration);
   Ast_Name* name = (Ast_Name*)struct_decl->name;
   NameDecl* name_decl = declare_type_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)struct_decl;
   visit_structFieldList((Ast_StructFieldList*)struct_decl->fields);
 }
@@ -847,9 +847,12 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
   assert(enum_decl->kind == AST_enumDeclaration);
   Ast_Name* name = (Ast_Name*)enum_decl->name;
   NameDecl* name_decl = declare_type_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)enum_decl;
-  visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields);
+  hashmap_create(&enum_decl->attr.fields, HASHMAP_KEY_STRING,
+    floor_log2(enum_decl->attr.field_count)+1, name_storage);
+  visit_specifiedIdentifierList(
+    (Ast_SpecifiedIdentifierList*)enum_decl->fields, &enum_decl->attr.fields);
 }
 
 internal void
@@ -857,7 +860,7 @@ visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
 {
   assert(error_decl->kind == AST_errorDeclaration);
   NameDecl* name_decl = declare_type_name(name_storage,
-      current_scope, "error", error_decl->line_no, error_decl->column_no);
+    current_scope, "error", error_decl->line_no, error_decl->column_no);
   name_decl->ast = (Ast*)error_decl;
   visit_identifierList((Ast_IdentifierList*)error_decl->fields);
 }
@@ -867,7 +870,7 @@ visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
 {
   assert(match_decl->kind == AST_matchKindDeclaration);
   NameDecl* name_decl = declare_type_name(name_storage,
-      current_scope, "match_kind", match_decl->line_no, match_decl->column_no);
+    current_scope, "match_kind", match_decl->line_no, match_decl->column_no);
   name_decl->ast = (Ast*)match_decl;
   visit_identifierList((Ast_IdentifierList*)match_decl->fields);
 }
@@ -883,19 +886,22 @@ visit_identifierList(Ast_IdentifierList* ident_list)
 }
 
 internal void
-visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list)
+visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list, Hashmap* field_decls)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
   for (ListItem* li = list_first_item(&ident_list->members);
         li != 0; li = li->next) {
-    visit_specifiedIdentifier((Ast_SpecifiedIdentifier*)li->object);
+    visit_specifiedIdentifier((Ast_SpecifiedIdentifier*)li->object, field_decls);
   }
 }
 
 internal void
-visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident)
+visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident, Hashmap* field_decls)
 {
   assert(ident->kind == AST_specifiedIdentifier);
+  Ast_Name* name = (Ast_Name*)ident->name;
+  declare_struct_field(
+    name_storage, field_decls, name->strname, name->line_no, name->column_no);
   if (ident->init_expr) {
     visit_expression((Ast_Expression*)ident->init_expr);
   }
@@ -912,7 +918,7 @@ visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl)
   } else assert(0);
   Ast_Name* name = (Ast_Name*)typedef_decl->name;
   NameDecl* name_decl = declare_type_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)typedef_decl;
 }
 
@@ -1084,7 +1090,7 @@ visit_tableDeclaration(Ast_TableDeclaration* table_decl)
   assert(table_decl->kind == AST_tableDeclaration);
   Ast_Name* name = (Ast_Name*)table_decl->name;
   NameDecl* name_decl = declare_var_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)table_decl;
   visit_tablePropertyList((Ast_TablePropertyList*)table_decl->prop_list);
 }
@@ -1204,7 +1210,7 @@ visit_actionDeclaration(Ast_ActionDeclaration* action_decl)
   assert(action_decl->kind == AST_actionDeclaration);
   Ast_Name* name = (Ast_Name*)action_decl->name;
   NameDecl* name_decl = declare_type_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)action_decl;
   current_scope = push_scope(name_storage, current_scope);
   visit_parameterList((Ast_ParameterList*)action_decl->params);
@@ -1221,7 +1227,7 @@ visit_variableDeclaration(Ast_VarDeclaration* var_decl)
   visit_typeRef((Ast_TypeRef*)var_decl->type);
   Ast_Name* name = (Ast_Name*)var_decl->name;
   NameDecl* name_decl = declare_var_name(name_storage,
-      current_scope, name->strname, name->line_no, name->column_no);
+    current_scope, name->strname, name->line_no, name->column_no);
   name_decl->ast = (Ast*)var_decl;
   if (var_decl->init_expr) {
     visit_expression((Ast_Expression*)var_decl->init_expr);
@@ -1412,10 +1418,10 @@ visit_dontcare(Ast_Dontcare* dontcare)
   assert(dontcare->kind == AST_dontcare);
 }
 
-Scope*
-name_decl_pass(Ast_P4Program* p4program, Arena* decl_storage_)
+void
+name_decl_pass(Ast_P4Program* p4program, Arena* name_storage_)
 {
-  name_storage = decl_storage_;
+  name_storage = name_storage_;
   root_scope = arena_push_struct(name_storage, Scope);
   hashmap_create(&root_scope->decls, HASHMAP_KEY_STRING, 3, name_storage);
   root_scope->scope_level = 0;
@@ -1435,5 +1441,4 @@ name_decl_pass(Ast_P4Program* p4program, Arena* decl_storage_)
   visit_p4program(p4program);
   current_scope = pop_scope(current_scope);
   assert(current_scope == 0);
-  return root_scope;
 }
