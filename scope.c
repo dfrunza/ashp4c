@@ -5,10 +5,8 @@
 #include "frontend.h"
 
 Scope*
-push_scope(Arena* storage, Scope* parent_scope)
+push_scope(Scope* scope, Scope* parent_scope)
 {
-  Scope* scope = arena_push_struct(storage, Scope);
-  hashmap_create(&scope->decls, HASHMAP_KEY_STRING, 3, storage);
   scope->scope_level = parent_scope->scope_level + 1;
   scope->parent_scope = parent_scope;
   return scope;
@@ -22,7 +20,7 @@ pop_scope(Scope* scope)
 }
 
 NameDecl*
-declare_name(Arena* storage, Hashmap* decls, char* strname, enum Namespace ns,
+declare_scope_name(Arena* storage, Hashmap* decls, char* strname, enum NameSpace ns,
   int line_no, int column_no)
 {
   NameDecl* decl = arena_push_struct(storage, NameDecl);
@@ -30,9 +28,8 @@ declare_name(Arena* storage, Hashmap* decls, char* strname, enum Namespace ns,
   decl->line_no = line_no;
   decl->column_no = column_no;
   HashmapEntry* he = hashmap_get_entry_string(decls, strname);
-  NamespaceEntry* ns_entry = he->object;
-  if (!ns_entry) { ns_entry = arena_push_struct(storage, NamespaceEntry); }
-  ns_entry->strname = strname;
+  NameSpaceEntry* ns_entry = he->object;
+  if (!ns_entry) { ns_entry = arena_push_struct(storage, NameSpaceEntry); }
   decl->next_in_scope = ns_entry->decls[ns];
   ns_entry->decls[ns] = decl;
   he->object = ns_entry;
@@ -52,14 +49,14 @@ declare_struct_field(Arena* storage, Hashmap* fields, char* strname, int line_no
   return decl;
 }
 
-NamespaceEntry*
+NameSpaceEntry*
 scope_lookup_name(Scope* scope, char* strname)
 {
-  NamespaceEntry* ns = 0;
+  NameSpaceEntry* ns = 0;
   while (scope) {
     HashmapEntry* he = hashmap_lookup_entry_string(&scope->decls, strname);
     if (he && he->object) {
-      ns = (NamespaceEntry*)he->object;
+      ns = (NameSpaceEntry*)he->object;
       if (ns->decls[NS_TYPE] || ns->decls[NS_VAR] || ns->decls[NS_KEYWORD]) {
         break;
       }
@@ -78,7 +75,7 @@ Debug_print_scope_decls(Scope* scope)
   printf("Names in scope 0x%x\n\n", scope);
   for (HashmapEntry* entry = hashmap_move_cursor(&entry_it);
        entry != 0; entry = hashmap_move_cursor(&entry_it)) {
-    NamespaceEntry* ns = entry->object;
+    NameSpaceEntry* ns = entry->object;
     if (ns->decls[NS_TYPE]) {
       NameDecl* decl = ns->decls[NS_TYPE];
       while (decl) {

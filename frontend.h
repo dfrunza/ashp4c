@@ -981,21 +981,20 @@ typedef struct NameDecl {
   struct NameDecl* next_in_scope;
 } NameDecl;
 
-typedef enum Namespace {
+typedef enum NameSpace {
   NS_TYPE = 0,
   NS_VAR,
   NS_KEYWORD,
-} Namespace;
+} NameSpace;
 
-typedef struct NamespaceEntry {
-  char* strname;
+typedef struct NameSpaceEntry {
   NameDecl* decls[3];
-} NamespaceEntry;
+} NameSpaceEntry;
 
-Scope* push_scope(Arena* storage, Scope* parent_scope);
+Scope* push_scope(Scope* scope, Scope* parent_scope);
 Scope* pop_scope(Scope* scope);
-NamespaceEntry* scope_lookup_name(Scope* scope, char* name);
-NameDecl* declare_name(Arena* storage, Hashmap* decls, char* strname, enum Namespace ns,
+NameSpaceEntry* scope_lookup_name(Scope* scope, char* name);
+NameDecl* declare_scope_name(Arena* storage, Hashmap* decls, char* strname, enum NameSpace ns,
             int line_no, int column_no);
 NameDecl* declare_struct_field(Arena* storage, Hashmap* fields, char* strname,
             int line_no, int column_no);
