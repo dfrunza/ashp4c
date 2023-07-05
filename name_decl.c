@@ -78,14 +78,14 @@ internal void visit_derivedTypeDeclaration(Ast_DerivedTypeDeclaration* type_decl
 internal void visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl);
 internal void visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl);
 internal void visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl);
-internal void visit_structFieldList(Ast_StructFieldList* field_list);
+internal void visit_structFieldList(Ast_StructFieldList* field_list, Hashmap* decl_table);
 internal void visit_structField(Ast_StructField* field);
 internal void visit_enumDeclaration(Ast_EnumDeclaration* enum_decl);
 internal void visit_errorDeclaration(Ast_ErrorDeclaration* error_decl);
 internal void visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl);
-internal void visit_identifierList(Ast_IdentifierList* ident_list);
-internal void visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list, Hashmap* field_decls);
-internal void visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident, Hashmap* field_decls);
+internal void visit_identifierList(Ast_IdentifierList* ident_list, Hashmap* decl_table);
+internal void visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list, Hashmap* decl_table);
+internal void visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident, Hashmap* decl_table);
 internal void visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl);
 
 /** STATEMENTS **/
@@ -835,7 +835,9 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
   namedecl->line_no = name->line_no;
   namedecl->column_no = name->column_no;
   declslot_push_decl(name_storage, &current_scope->decls, namedecl, NS_TYPE);
-  visit_structFieldList((Ast_StructFieldList*)header_decl->fields);
+  hashmap_create(&header_decl->attr.fields, HASHMAP_KEY_STRING,
+    ceil_log2(header_decl->attr.field_count+1), name_storage);
+  visit_structFieldList((Ast_StructFieldList*)header_decl->fields, &header_decl->attr.fields);
 }
 
 internal void
@@ -848,7 +850,9 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
   namedecl->line_no = name->line_no;
   namedecl->column_no = name->column_no;
   declslot_push_decl(name_storage, &current_scope->decls, namedecl, NS_TYPE);
-  visit_structFieldList((Ast_StructFieldList*)union_decl->fields);
+  hashmap_create(&union_decl->attr.fields, HASHMAP_KEY_STRING,
+    ceil_log2(union_decl->attr.field_count+1), name_storage);
+  visit_structFieldList((Ast_StructFieldList*)union_decl->fields, &union_decl->attr.fields);
 }
 
 internal void
@@ -861,11 +865,13 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
   namedecl->line_no = name->line_no;
   namedecl->column_no = name->column_no;
   declslot_push_decl(name_storage, &current_scope->decls, namedecl, NS_TYPE);
-  visit_structFieldList((Ast_StructFieldList*)struct_decl->fields);
+  hashmap_create(&struct_decl->attr.fields, HASHMAP_KEY_STRING,
+    ceil_log2(struct_decl->attr.field_count+1), name_storage);
+  visit_structFieldList((Ast_StructFieldList*)struct_decl->fields, &struct_decl->attr.fields);
 }
 
 internal void
-visit_structFieldList(Ast_StructFieldList* field_list)
+visit_structFieldList(Ast_StructFieldList* field_list, Hashmap* decl_table)
 {
   assert(field_list->kind == AST_structFieldList);
   for (ListItem* li = list_first_item(&field_list->members);
@@ -906,7 +912,9 @@ visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
   namedecl->line_no = error_decl->line_no;
   namedecl->column_no = error_decl->column_no;
   declslot_push_decl(name_storage, &current_scope->decls, namedecl, NS_TYPE);
-  visit_identifierList((Ast_IdentifierList*)error_decl->fields);
+  hashmap_create(&error_decl->attr.fields, HASHMAP_KEY_STRING,
+    ceil_log2(error_decl->attr.field_count+1), name_storage);
+  visit_identifierList((Ast_IdentifierList*)error_decl->fields, &error_decl->attr.fields);
 }
 
 internal void
@@ -918,31 +926,38 @@ visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
   namedecl->line_no = match_decl->line_no;
   namedecl->column_no = match_decl->column_no;
   declslot_push_decl(name_storage, &current_scope->decls, namedecl, NS_TYPE);
-  visit_identifierList((Ast_IdentifierList*)match_decl->fields);
+  hashmap_create(&match_decl->attr.fields, HASHMAP_KEY_STRING,
+    ceil_log2(match_decl->attr.field_count+1), name_storage);
+  visit_identifierList((Ast_IdentifierList*)match_decl->fields, &match_decl->attr.fields);
 }
 
 internal void
-visit_identifierList(Ast_IdentifierList* ident_list)
+visit_identifierList(Ast_IdentifierList* ident_list, Hashmap* decl_table)
 {
   assert(ident_list->kind == AST_identifierList);
   for (ListItem* li = list_first_item(&ident_list->members);
         li != 0; li = li->next) {
-    ; /* pass */
+    Ast_Name* name = (Ast_Name*)li->object;
+    NameDecl* namedecl = arena_push_struct(name_storage, NameDecl);
+    namedecl->strname = name->strname;
+    namedecl->line_no = name->line_no;
+    namedecl->column_no = name->column_no;
+    declslot_push_decl(name_storage, decl_table, namedecl, NS_VAR);
   }
 }
 
 internal void
-visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list, Hashmap* field_decls)
+visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list, Hashmap* decl_table)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
   for (ListItem* li = list_first_item(&ident_list->members);
         li != 0; li = li->next) {
-    visit_specifiedIdentifier((Ast_SpecifiedIdentifier*)li->object, field_decls);
+    visit_specifiedIdentifier((Ast_SpecifiedIdentifier*)li->object, decl_table);
   }
 }
 
 internal void
-visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident, Hashmap* field_decls)
+visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident, Hashmap* decl_table)
 {
   assert(ident->kind == AST_specifiedIdentifier);
   Ast_Name* name = (Ast_Name*)ident->name;
@@ -950,7 +965,7 @@ visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident, Hashmap* field_decls)
   namedecl->strname = name->strname;
   namedecl->line_no = name->line_no;
   namedecl->column_no = name->column_no;
-  declslot_push_decl(name_storage, field_decls, namedecl, NS_VAR);
+  declslot_push_decl(name_storage, decl_table, namedecl, NS_VAR);
   if (ident->init_expr) {
     visit_expression((Ast_Expression*)ident->init_expr);
   }

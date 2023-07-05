@@ -619,6 +619,7 @@ typedef struct Ast_HeaderTypeDeclaration {
 
   struct {
     int field_count;
+    Hashmap fields;
   } attr;
 } Ast_HeaderTypeDeclaration;
 
@@ -629,6 +630,7 @@ typedef struct Ast_HeaderUnionDeclaration {
 
   struct {
     int field_count;
+    Hashmap fields;
   } attr;
 } Ast_HeaderUnionDeclaration;
 
@@ -639,6 +641,7 @@ typedef struct Ast_StructTypeDeclaration {
 
   struct {
     int field_count;
+    Hashmap fields;
   } attr;
 } Ast_StructTypeDeclaration;
 
@@ -671,6 +674,7 @@ typedef struct Ast_ErrorDeclaration {
 
   struct {
     int field_count;
+    Hashmap fields;
   } attr;
 } Ast_ErrorDeclaration;
 
@@ -680,6 +684,7 @@ typedef struct Ast_MatchKindDeclaration {
 
   struct {
     int field_count;
+    Hashmap fields;
   } attr;
 } Ast_MatchKindDeclaration;
 
