@@ -3703,7 +3703,7 @@ parse_tokens(UnboundedArray* tokens_, Arena* storage_)
   tokens = tokens_;
   storage = storage_;
   root_scope = arena_push_struct(storage, Scope);
-  hashmap_create(&root_scope->decls, HASHMAP_KEY_STRING, 3, storage);
+  hashmap_create(&root_scope->decls, storage, HASHMAP_KEY_STRING, 3);
   root_scope->scope_level = 0;
   current_scope = root_scope;
 

@@ -104,7 +104,7 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 }
 
 void
-hashmap_create(Hashmap* hashmap, enum HashmapKeyType key_type, int capacity_log2, Arena* storage)
+hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int capacity_log2)
 {
   array_create(&hashmap->entries, sizeof(HashmapEntry*), storage);
   hashmap->key_type = key_type;
@@ -130,7 +130,7 @@ hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key)
 }
 
 HashmapEntry*
-hashmap_lookup_entry_uint32(Hashmap* map, uint32_t int_key)
+hashmap_lookup_entry_uint32k(Hashmap* map, uint32_t int_key)
 {
   assert(map->key_type == HASHMAP_KEY_UINT32);
   HashmapKey key = { .int_key = int_key };
@@ -140,7 +140,7 @@ hashmap_lookup_entry_uint32(Hashmap* map, uint32_t int_key)
 }
 
 HashmapEntry*
-hashmap_lookup_entry_string(Hashmap* map, char* str_key)
+hashmap_lookup_entry_stringk(Hashmap* map, char* str_key)
 {
   HashmapKey key = { .str_key = (uint8_t*)str_key };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, map->capacity_log2);
@@ -193,7 +193,7 @@ hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
 }
 
 HashmapEntry*
-hashmap_get_entry_uint32(Hashmap* map, uint32_t int_key)
+hashmap_get_entry_uint32k(Hashmap* map, uint32_t int_key)
 {
   assert(map->key_type == HASHMAP_KEY_UINT32);
   HashmapKey key = { .int_key = int_key };
@@ -203,7 +203,7 @@ hashmap_get_entry_uint32(Hashmap* map, uint32_t int_key)
 }
 
 HashmapEntry*
-hashmap_get_entry_string(Hashmap* map, char* str_key)
+hashmap_get_entry_stringk(Hashmap* map, char* str_key)
 {
   assert(map->key_type == HASHMAP_KEY_STRING);
   HashmapKey key = { .str_key = (uint8_t*)str_key };

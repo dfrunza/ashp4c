@@ -118,14 +118,14 @@ typedef struct HashmapCursor {
   HashmapEntry* entry;
 } HashmapCursor;
 
-void hashmap_create(Hashmap* hashmap, enum HashmapKeyType type, int capacity_log2, Arena* storage);
+void hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType type, int capacity_log2);
 void hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ HashmapKey* key, int capacity_log2);
 HashmapEntry* hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
-HashmapEntry* hashmap_get_entry_uint32(Hashmap* map, uint32_t int_key);
-HashmapEntry* hashmap_get_entry_string(Hashmap* map, char* str_key);
+HashmapEntry* hashmap_get_entry_uint32k(Hashmap* map, uint32_t int_key);
+HashmapEntry* hashmap_get_entry_stringk(Hashmap* map, char* str_key);
 HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key);
-HashmapEntry* hashmap_lookup_entry_uint32(Hashmap* map, uint32_t int_key);
-HashmapEntry* hashmap_lookup_entry_string(Hashmap* map, char* str_key);
+HashmapEntry* hashmap_lookup_entry_uint32k(Hashmap* map, uint32_t int_key);
+HashmapEntry* hashmap_lookup_entry_stringk(Hashmap* map, char* str_key);
 void hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap);
 HashmapEntry* hashmap_move_cursor(HashmapCursor* it);
 

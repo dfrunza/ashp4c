@@ -10,6 +10,7 @@
 #include "frontend.h"
 
 internal Arena* storage;
+internal Hashmap type_table = {};
 
 /** PROGRAM **/
 
@@ -19,7 +20,7 @@ internal void visit_declaration(Ast_Declaration* decl);
 internal void visit_name(Ast_Name* name);
 internal void visit_parameterList(Ast_ParameterList* params);
 internal void visit_parameter(Ast_Parameter* param);
-internal void visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* type_decl);
+internal void visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* package_decl);
 internal void visit_instantiation(Ast_Instantiation* inst);
 
 /** PARSER **/
@@ -227,14 +228,19 @@ visit_parameter(Ast_Parameter* param)
 }
 
 internal void
-visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* type_decl)
+visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* package_decl)
 {
-  assert(type_decl->kind == AST_packageTypeDeclaration);
-  visit_name((Ast_Name*)type_decl->name);
-  if (type_decl->type_params) {
-    visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
+  assert(package_decl->kind == AST_packageTypeDeclaration);
+  Ast_Name* name = (Ast_Name*)package_decl->name;
+  Type_Type* package_ty = arena_push_struct(storage, Type_Type);
+  package_ty->ctor = TYPE_TYPE;
+  package_ty->strname = name->strname;
+  HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, package_decl->id);
+  type_he->object = package_ty;
+  if (package_decl->type_params) {
+    visit_typeParameterList((Ast_TypeParameterList*)package_decl->type_params);
   }
-  visit_parameterList((Ast_ParameterList*)type_decl->params);
+  visit_parameterList((Ast_ParameterList*)package_decl->params);
 }
 
 internal void
@@ -749,7 +755,12 @@ internal void
 visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
-  visit_name((Ast_Name*)struct_decl->name);
+  Ast_Name* name = (Ast_Name*)struct_decl->name;
+  Type_Type* struct_ty = arena_push_struct(storage, Type_Type);
+  struct_ty->ctor = TYPE_TYPE;
+  struct_ty->strname = name->strname;
+  HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, struct_decl->id);
+  type_he->object = struct_ty;
   visit_structFieldList((Ast_StructFieldList*)struct_decl->fields);
 }
 

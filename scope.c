@@ -24,7 +24,7 @@ scope_lookup_name(Scope* scope, char* strname)
 {
   DeclSlot* decl_slot = 0;
   while (scope) {
-    HashmapEntry* he = hashmap_lookup_entry_string(&scope->decls, strname);
+    HashmapEntry* he = hashmap_lookup_entry_stringk(&scope->decls, strname);
     if (he && he->object) {
       decl_slot = (DeclSlot*)he->object;
       if (decl_slot->decls[NS_TYPE] || decl_slot->decls[NS_VAR] || decl_slot->decls[NS_KEYWORD]) {
@@ -39,7 +39,7 @@ scope_lookup_name(Scope* scope, char* strname)
 DeclSlot*
 declslot_push_decl(Arena* storage, Hashmap* name_table, NameDecl* decl, enum NameSpace ns)
 {
-  HashmapEntry* he = hashmap_get_entry_string(name_table, decl->strname);
+  HashmapEntry* he = hashmap_get_entry_stringk(name_table, decl->strname);
   DeclSlot* decl_slot = he->object;
   if (!decl_slot) {
     decl_slot = arena_push_struct(storage, DeclSlot);
