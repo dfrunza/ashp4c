@@ -974,6 +974,8 @@ typedef enum NameSpace {
   NS_VAR = 0,
   NS_TYPE,
   NS_KEYWORD,
+
+  NameSpace_COUNT,
 } NameSpace;
 
 typedef struct NameDecl {
@@ -987,17 +989,14 @@ typedef struct NameDecl {
   struct NameDecl* next_in_scope;
 } NameDecl;
 
-typedef struct NameSpaceEntry {
-  NameDecl* decls[3];
-} NameSpaceEntry;
+typedef struct NameDeclSlot {
+  NameDecl* decls[NameSpace_COUNT];
+} NameDeclSlot;
 
-Scope* push_scope(Scope* scope, Scope* parent_scope);
-Scope* pop_scope(Scope* scope);
-NameSpaceEntry* scope_lookup_name(Scope* scope, char* name);
-NameDecl* declare_scope_name(Arena* storage, Hashmap* decls, char* strname, enum NameSpace ns,
-            int line_no, int column_no);
-NameDecl* declare_struct_field(Arena* storage, Hashmap* fields, char* strname,
-            int line_no, int column_no);
+Scope* scope_push(Scope* scope, Scope* parent_scope);
+Scope* scope_pop(Scope* scope);
+NameDeclSlot* scope_lookup_name(Scope* scope, char* name);
+void declslot_push_decl(Arena* storage, Hashmap* table, NameDecl* decl, enum NameSpace ns);
 
 enum TypeEnum {
   TYPE_VOID = 1,
