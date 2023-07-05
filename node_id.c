@@ -4,7 +4,6 @@
 #include "foundation.h"
 #include "frontend.h"
 
-internal Arena* attr_storage;
 internal int node_id = 0;
 
 /** PROGRAM **/
@@ -1433,9 +1432,8 @@ visit_dontcare(Ast_Dontcare* dontcare)
 }
 
 int
-node_id_pass(Ast_P4Program* p4program, Arena* attr_storage_)
+node_id_pass(Ast_P4Program* p4program)
 {
-  attr_storage = attr_storage_;
   visit_p4program(p4program);
   return node_id;
 }
