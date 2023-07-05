@@ -993,14 +993,14 @@ typedef struct NameDecl {
   struct NameDecl* next_in_slot;
 } NameDecl;
 
-typedef struct NameDeclSlot {
+typedef struct DeclSlot {
   NameDecl* decls[NameSpace_COUNT];
-} NameDeclSlot;
+} DeclSlot;
 
 Scope* scope_push(Scope* scope, Scope* parent_scope);
 Scope* scope_pop(Scope* scope);
-NameDeclSlot* scope_lookup_name(Scope* scope, char* name);
-void declslot_push_decl(Arena* storage, Hashmap* decl_table, NameDecl* decl, enum NameSpace ns);
+DeclSlot* scope_lookup_name(Scope* scope, char* name);
+DeclSlot* declslot_push_decl(Arena* storage, Hashmap* name_table, NameDecl* decl, enum NameSpace ns);
 
 enum TypeEnum {
   TYPE_VOID = 1,

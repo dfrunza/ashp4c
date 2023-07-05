@@ -153,7 +153,7 @@ next_token()
     token = array_get(tokens, ++token_at);
   }
   if (token->klass == TK_IDENTIFIER) {
-    NameDeclSlot* decl_slot = scope_lookup_name(current_scope, token->lexeme);
+    DeclSlot* decl_slot = scope_lookup_name(current_scope, token->lexeme);
     if (decl_slot && decl_slot->decls[NS_KEYWORD]) {
       NameDecl* ndecl = decl_slot->decls[NS_KEYWORD];
       token->klass = ndecl->token_class;
