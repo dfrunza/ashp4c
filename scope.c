@@ -4,19 +4,6 @@
 #include "foundation.h"
 #include "frontend.h"
 
-void
-declslot_push_decl(Arena* storage, Hashmap* table, NameDecl* decl, enum NameSpace ns)
-{
-  HashmapEntry* he = hashmap_get_entry_string(table, decl->strname);
-  NameDeclSlot* decl_slot = he->object;
-  if (!decl_slot) {
-    decl_slot = arena_push_struct(storage, NameDeclSlot);
-    he->object = decl_slot;
-  }
-  decl->next_in_scope = decl_slot->decls[ns];
-  decl_slot->decls[ns] = decl;
-}
-
 Scope*
 scope_push(Scope* scope, Scope* parent_scope)
 {
@@ -50,7 +37,20 @@ scope_lookup_name(Scope* scope, char* strname)
 }
 
 void
-Debug_print_scope_decls(Scope* scope)
+declslot_push_decl(Arena* storage, Hashmap* decl_table, NameDecl* decl, enum NameSpace ns)
+{
+  HashmapEntry* he = hashmap_get_entry_string(decl_table, decl->strname);
+  NameDeclSlot* decl_slot = he->object;
+  if (!decl_slot) {
+    decl_slot = arena_push_struct(storage, NameDeclSlot);
+    he->object = decl_slot;
+  }
+  decl->next_in_slot = decl_slot->decls[ns];
+  decl_slot->decls[ns] = decl;
+}
+
+void
+Debug_print_namedecls(Scope* scope)
 {
   int count = 0;
   HashmapCursor entry_it = {};
@@ -63,30 +63,16 @@ Debug_print_scope_decls(Scope* scope)
       NameDecl* decl = decl_slot->decls[NS_TYPE];
       while (decl) {
         printf("%s  ...  at %d:%d\n", decl->strname, decl->line_no, decl->column_no);
-        decl = decl->next_in_scope;
+        decl = decl->next_in_slot;
         count += 1;
       }
     }
     if (decl_slot->decls[NS_VAR]) {
       NameDecl* decl = decl_slot->decls[NS_VAR];
       printf("%s  ...  at %d:%d\n", decl->strname, decl->line_no, decl->column_no);
+      decl = decl->next_in_slot;
       count += 1;
     }
-  }
-  printf("\nTotal: %d\n", count);
-}
-
-void
-Debug_print_field_decls(Hashmap* scope)
-{
-  int count = 0;
-  HashmapCursor entry_it = {};
-  hashmap_cursor_reset(&entry_it, scope);
-  printf("Names in scope 0x%x\n\n", scope);
-  for (HashmapEntry* entry = hashmap_move_cursor(&entry_it);
-       entry != 0; entry = hashmap_move_cursor(&entry_it)) {
-    NameDecl* decl = entry->object;
-    printf("%s  ...  at %d:%d\n", decl->strname, decl->line_no, decl->column_no);
   }
   printf("\nTotal: %d\n", count);
 }

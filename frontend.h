@@ -985,13 +985,12 @@ typedef enum NameSpace {
 
 typedef struct NameDecl {
   union {
-    Ast* ast;
     enum TokenClass token_class;
   };
   char* strname;
   int line_no;
   int column_no;
-  struct NameDecl* next_in_scope;
+  struct NameDecl* next_in_slot;
 } NameDecl;
 
 typedef struct NameDeclSlot {
@@ -1001,7 +1000,7 @@ typedef struct NameDeclSlot {
 Scope* scope_push(Scope* scope, Scope* parent_scope);
 Scope* scope_pop(Scope* scope);
 NameDeclSlot* scope_lookup_name(Scope* scope, char* name);
-void declslot_push_decl(Arena* storage, Hashmap* table, NameDecl* decl, enum NameSpace ns);
+void declslot_push_decl(Arena* storage, Hashmap* decl_table, NameDecl* decl, enum NameSpace ns);
 
 enum TypeEnum {
   TYPE_VOID = 1,
