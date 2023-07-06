@@ -5,7 +5,7 @@
 #include "foundation.h"
 
 void
-array_create(UnboundedArray* array, int elem_size, Arena* storage)
+array_create(UnboundedArray* array, Arena* storage, int elem_size)
 {
   memset(array->segment_table, 0, sizeof(array->segment_table));
   array->elem_size = elem_size;
@@ -14,7 +14,7 @@ array_create(UnboundedArray* array, int elem_size, Arena* storage)
   array->storage = storage;
 }
 
-internal void
+static void
 array_elem_at_i(UnboundedArray* array, int i, int* segment_index_, int* elem_offset_,
                 void** data_segment_, void** elem_slot_)
 {

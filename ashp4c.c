@@ -7,7 +7,7 @@
 #include "frontend.h"
 #include "ashp4c.h"
 
-internal Arena main_storage = {};
+static Arena main_storage = {};
 
 typedef struct CmdlineArg {
   char* name;
@@ -15,7 +15,7 @@ typedef struct CmdlineArg {
   struct CmdlineArg* next_arg;
 } CmdlineArg;
 
-internal void
+static void
 read_source(char** text_, int* text_size_, char* filename, Arena* text_storage)
 {
   FILE* f_stream = fopen(filename, "rb");
@@ -30,7 +30,7 @@ read_source(char** text_, int* text_size_, char* filename, Arena* text_storage)
   *text_size_ = text_size;
 }
 
-internal CmdlineArg*
+static CmdlineArg*
 find_unnamed_arg(CmdlineArg* args)
 {
   CmdlineArg* unnamed_arg = 0;
@@ -46,7 +46,7 @@ find_unnamed_arg(CmdlineArg* args)
 }
 
 #if 0
-internal CmdlineArg*
+static CmdlineArg*
 find_named_arg(char* name, CmdlineArg* args)
 {
   CmdlineArg* named_arg = 0;
@@ -62,7 +62,7 @@ find_named_arg(char* name, CmdlineArg* args)
 }
 #endif
 
-internal CmdlineArg*
+static CmdlineArg*
 parse_cmdline_args(int arg_count, char* args[])
 {
   CmdlineArg* arg_list = 0;

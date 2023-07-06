@@ -1,8 +1,5 @@
 #pragma once
 
-#define global static
-#define internal static
-#define external extern
 #define true 1u
 #define false 0u
 #define bool uint32_t
@@ -72,15 +69,15 @@ typedef struct UnboundedArray {
   Arena* storage;
 } UnboundedArray;
 
-void array_create(UnboundedArray* array, int elem_size, Arena* storage);
+void array_create(UnboundedArray* array, Arena* storage, int elem_size);
 void* array_get(UnboundedArray* array, int i);
 void* array_set(UnboundedArray* array, int i, void* elem);
 void* array_append(UnboundedArray* array, void* elem);
 
 enum HashmapKeyType {
   HASHMAP_KEY_STRING = 1,
-  HASHMAP_KEY_BIT,
   HASHMAP_KEY_UINT32,
+  HASHMAP_KEY_BIT,
 };
 
 typedef struct Hashmap {

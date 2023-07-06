@@ -4,144 +4,144 @@
 #include "foundation.h"
 #include "frontend.h"
 
-internal Arena *storage;
-internal UnboundedArray* tokens;
-internal int token_at = 0;
-internal Token* token = 0;
-internal int prev_token_at = 0;
-internal Token* prev_token = 0;
-internal Scope* current_scope;
+static Arena *storage;
+static UnboundedArray* tokens;
+static int token_at = 0;
+static Token* token = 0;
+static int prev_token_at = 0;
+static Token* prev_token = 0;
+static Scope* current_scope;
 
 /** PROGRAM **/
 
-internal Ast* parse_p4program();
-internal Ast* parse_declarationList();
-internal Ast* parse_declaration();
-internal Ast* parse_nonTypeName();
-internal Ast* parse_name();
-internal Ast* parse_parameterList();
-internal Ast* parse_parameter();
-internal enum Ast_ParamDirection parse_direction();
-internal Ast* parse_packageTypeDeclaration();
-internal Ast* parse_instantiation(Ast* type_ref);
-internal Ast* parse_optConstructorParameters();
+static Ast* parse_p4program();
+static Ast* parse_declarationList();
+static Ast* parse_declaration();
+static Ast* parse_nonTypeName();
+static Ast* parse_name();
+static Ast* parse_parameterList();
+static Ast* parse_parameter();
+static enum Ast_ParamDirection parse_direction();
+static Ast* parse_packageTypeDeclaration();
+static Ast* parse_instantiation(Ast* type_ref);
+static Ast* parse_optConstructorParameters();
 
 /** PARSER **/
 
-internal Ast* parse_parserDeclaration(Ast* parser_proto);
-internal Ast* parse_parserLocalElements();
-internal Ast* parse_parserLocalElement();
-internal Ast* parse_parserTypeDeclaration();
-internal Ast* parse_parserStates();
-internal Ast* parse_parserState();
-internal Ast* parse_parserStatements();
-internal Ast* parse_parserStatement();
-internal Ast* parse_parserBlockStatement();
-internal Ast* parse_transitionStatement();
-internal Ast* parse_stateExpression();
-internal Ast* parse_selectExpression();
-internal Ast* parse_selectCaseList();
-internal Ast* parse_selectCase();
-internal Ast* parse_keysetExpression();
-internal Ast* parse_tupleKeysetExpression();
-internal Ast* parse_simpleExpressionList();
-internal Ast* parse_simpleKeysetExpression();
+static Ast* parse_parserDeclaration(Ast* parser_proto);
+static Ast* parse_parserLocalElements();
+static Ast* parse_parserLocalElement();
+static Ast* parse_parserTypeDeclaration();
+static Ast* parse_parserStates();
+static Ast* parse_parserState();
+static Ast* parse_parserStatements();
+static Ast* parse_parserStatement();
+static Ast* parse_parserBlockStatement();
+static Ast* parse_transitionStatement();
+static Ast* parse_stateExpression();
+static Ast* parse_selectExpression();
+static Ast* parse_selectCaseList();
+static Ast* parse_selectCase();
+static Ast* parse_keysetExpression();
+static Ast* parse_tupleKeysetExpression();
+static Ast* parse_simpleExpressionList();
+static Ast* parse_simpleKeysetExpression();
 
 /** CONTROL **/
 
-internal Ast* parse_controlDeclaration(Ast* control_proto);
-internal Ast* parse_controlTypeDeclaration();
-internal Ast* parse_controlLocalDeclaration();
-internal Ast* parse_controlLocalDeclarations();
+static Ast* parse_controlDeclaration(Ast* control_proto);
+static Ast* parse_controlTypeDeclaration();
+static Ast* parse_controlLocalDeclaration();
+static Ast* parse_controlLocalDeclarations();
 
 /** EXTERN **/
 
-internal Ast* parse_externDeclaration();
-internal Ast* parse_methodPrototypes();
-internal Ast* parse_functionPrototype(Ast* return_type);
-internal Ast* parse_methodPrototype();
+static Ast* parse_externDeclaration();
+static Ast* parse_methodPrototypes();
+static Ast* parse_functionPrototype(Ast* return_type);
+static Ast* parse_methodPrototype();
 
 /** TYPES **/
 
-internal Ast* parse_typeRef();
-internal Ast* parse_namedType();
-internal Ast* parse_prefixedType();
-internal Ast* parse_tupleType();
-internal Ast* parse_headerStackType();
-internal Ast* parse_specializedType();
-internal Ast* parse_baseType();
-internal Ast* parse_integerTypeSize();
-internal Ast* parse_typeOrVoid();
-internal Ast* parse_optTypeParameters();
-internal Ast* parse_typeParameterList();
-internal Ast* parse_realTypeArg();
-internal Ast* parse_typeArg();
-internal Ast* parse_realTypeArgumentList();
-internal Ast* parse_typeArgumentList();
-internal Ast* parse_typeDeclaration();
-internal Ast* parse_derivedTypeDeclaration();
-internal Ast* parse_headerTypeDeclaration();
-internal Ast* parse_headerUnionDeclaration();
-internal Ast* parse_structTypeDeclaration();
-internal Ast* parse_structFieldList();
-internal Ast* parse_structField();
-internal Ast* parse_enumDeclaration();
-internal Ast* parse_errorDeclaration();
-internal Ast* parse_matchKindDeclaration();
-internal Ast* parse_identifierList();
-internal Ast* parse_specifiedIdentifierList();
-internal Ast* parse_specifiedIdentifier();
-internal Ast* parse_typedefDeclaration();
+static Ast* parse_typeRef();
+static Ast* parse_namedType();
+static Ast* parse_prefixedType();
+static Ast* parse_tupleType();
+static Ast* parse_headerStackType();
+static Ast* parse_specializedType();
+static Ast* parse_baseType();
+static Ast* parse_integerTypeSize();
+static Ast* parse_typeOrVoid();
+static Ast* parse_optTypeParameters();
+static Ast* parse_typeParameterList();
+static Ast* parse_realTypeArg();
+static Ast* parse_typeArg();
+static Ast* parse_realTypeArgumentList();
+static Ast* parse_typeArgumentList();
+static Ast* parse_typeDeclaration();
+static Ast* parse_derivedTypeDeclaration();
+static Ast* parse_headerTypeDeclaration();
+static Ast* parse_headerUnionDeclaration();
+static Ast* parse_structTypeDeclaration();
+static Ast* parse_structFieldList();
+static Ast* parse_structField();
+static Ast* parse_enumDeclaration();
+static Ast* parse_errorDeclaration();
+static Ast* parse_matchKindDeclaration();
+static Ast* parse_identifierList();
+static Ast* parse_specifiedIdentifierList();
+static Ast* parse_specifiedIdentifier();
+static Ast* parse_typedefDeclaration();
 
 /** STATEMENTS **/
 
-internal Ast* parse_assignmentOrMethodCallStatement();
-internal Ast* parse_returnStatement();
-internal Ast* parse_exitStatement();
-internal Ast* parse_conditionalStatement();
-internal Ast* parse_directApplication(Ast* type_name);
-internal Ast* parse_statement(Ast* type_name);
-internal Ast* parse_blockStatement();
-internal Ast* parse_statementOrDeclList();
-internal Ast* parse_switchStatement();
-internal Ast* parse_switchCases();
-internal Ast* parse_switchCase();
-internal Ast* parse_switchLabel();
-internal Ast* parse_statementOrDeclaration();
+static Ast* parse_assignmentOrMethodCallStatement();
+static Ast* parse_returnStatement();
+static Ast* parse_exitStatement();
+static Ast* parse_conditionalStatement();
+static Ast* parse_directApplication(Ast* type_name);
+static Ast* parse_statement(Ast* type_name);
+static Ast* parse_blockStatement();
+static Ast* parse_statementOrDeclList();
+static Ast* parse_switchStatement();
+static Ast* parse_switchCases();
+static Ast* parse_switchCase();
+static Ast* parse_switchLabel();
+static Ast* parse_statementOrDeclaration();
 
 /** TABLES **/
 
-internal Ast* parse_tableDeclaration();
-internal Ast* parse_tablePropertyList();
-internal Ast* parse_tableProperty();
-internal Ast* parse_keyElementList();
-internal Ast* parse_keyElement();
-internal Ast* parse_actionList();
-internal Ast* parse_actionRef();
-internal Ast* parse_entriesList();
-internal Ast* parse_entry();
-internal Ast* parse_actionDeclaration();
+static Ast* parse_tableDeclaration();
+static Ast* parse_tablePropertyList();
+static Ast* parse_tableProperty();
+static Ast* parse_keyElementList();
+static Ast* parse_keyElement();
+static Ast* parse_actionList();
+static Ast* parse_actionRef();
+static Ast* parse_entriesList();
+static Ast* parse_entry();
+static Ast* parse_actionDeclaration();
 
 /** VARIABLES **/
 
-internal Ast* parse_variableDeclaration(Ast* type_ref);
+static Ast* parse_variableDeclaration(Ast* type_ref);
 
 /** EXPRESSIONS **/
 
-internal Ast* parse_functionDeclaration(Ast* type_ref);
-internal Ast* parse_argumentList();
-internal Ast* parse_argument();
-internal Ast* parse_expressionList();
-internal Ast* parse_prefixedNonTypeName();
-internal Ast* parse_lvalue();
-internal Ast* parse_expression(int priority_threshold);
-internal Ast* parse_expressionPrimary();
-internal Ast* parse_indexExpression();
-internal Ast* parse_integer();
-internal Ast* parse_boolean();
-internal Ast* parse_string();
+static Ast* parse_functionDeclaration(Ast* type_ref);
+static Ast* parse_argumentList();
+static Ast* parse_argument();
+static Ast* parse_expressionList();
+static Ast* parse_prefixedNonTypeName();
+static Ast* parse_lvalue();
+static Ast* parse_expression(int priority_threshold);
+static Ast* parse_expressionPrimary();
+static Ast* parse_indexExpression();
+static Ast* parse_integer();
+static Ast* parse_boolean();
+static Ast* parse_string();
 
-internal Token*
+static Token*
 next_token()
 {
   assert (token_at < tokens->elem_count);
@@ -165,7 +165,7 @@ next_token()
   return token;
 }
 
-internal Token*
+static Token*
 peek_token()
 {
   prev_token = token;
@@ -176,7 +176,7 @@ peek_token()
   return peek_token;
 }
 
-internal bool
+static bool
 token_is_nonTypeName(Token* token)
 {
   bool result = token->klass == TK_IDENTIFIER || token->klass == TK_APPLY || token->klass == TK_KEY
@@ -184,31 +184,31 @@ token_is_nonTypeName(Token* token)
   return result;
 }
 
-internal bool
+static bool
 token_is_name(Token* token)
 {
   bool result = token_is_nonTypeName(token) || token->klass == TK_TYPE_IDENTIFIER;
   return result;
 }
 
-internal bool
+static bool
 token_is_typeName(Token* token)
 {
   return token->klass == TK_DOT || token->klass == TK_TYPE_IDENTIFIER;
 }
 
-internal bool
+static bool
 token_is_prefixedType(Token* token)
 {
   return token->klass == TK_DOT || token->klass == TK_TYPE_IDENTIFIER;
 }
 
-internal bool
+static bool
 token_is_prefixedNonTypeName(Token* token) {
   return token->klass == TK_DOT || token_is_nonTypeName(token);
 }
 
-internal bool
+static bool
 token_is_nonTableKwName(Token* token)
 {
   bool result = token->klass == TK_IDENTIFIER || token->klass == TK_TYPE_IDENTIFIER
@@ -216,7 +216,7 @@ token_is_nonTableKwName(Token* token)
   return result;
 }
 
-internal bool
+static bool
 token_is_baseType(Token* token)
 {
   bool result = token->klass == TK_BOOL || token->klass == TK_ERROR || token->klass == TK_INT
@@ -225,28 +225,28 @@ token_is_baseType(Token* token)
   return result;
 }
 
-internal bool
+static bool
 token_is_typeRef(Token* token)
 {
   bool result = token_is_baseType(token) || token_is_prefixedType(token) || token->klass == TK_TUPLE;
   return result;
 }
 
-internal bool
+static bool
 token_is_direction(Token* token)
 {
   bool result = token->klass == TK_IN || token->klass == TK_OUT || token->klass == TK_INOUT;
   return result;
 }
 
-internal bool
+static bool
 token_is_parameter(Token* token)
 {
   bool result = token_is_direction(token) || token_is_typeRef(token);
   return result;
 }
 
-internal bool
+static bool
 token_is_derivedTypeDeclaration(Token* token)
 {
   bool result = token->klass == TK_HEADER || token->klass == TK_HEADER_UNION || token->klass == TK_STRUCT
@@ -254,7 +254,7 @@ token_is_derivedTypeDeclaration(Token* token)
   return result;
 }
 
-internal bool
+static bool
 token_is_typeDeclaration(Token* token)
 {
   bool result = token_is_derivedTypeDeclaration(token) || token->klass == TK_TYPEDEF || token->klass == TK_TYPE
@@ -262,27 +262,27 @@ token_is_typeDeclaration(Token* token)
   return result;
 }
 
-internal bool
+static bool
 token_is_typeArg(Token* token)
 {
   bool result = token->klass == TK_DONTCARE || token_is_typeRef(token) || token_is_nonTypeName(token);
   return result;
 }
 
-internal bool
+static bool
 token_is_typeParameterList(Token* token)
 {
   return token_is_name(token);
 }
 
-internal bool
+static bool
 token_is_typeOrVoid(Token* token)
 {
   bool result = token_is_typeRef(token) || token->klass == TK_VOID || token->klass == TK_IDENTIFIER;
   return result;
 }
 
-internal bool
+static bool
 token_is_actionRef(Token* token)
 {
   bool result = token->klass == TK_DOT || token_is_nonTypeName(token)
@@ -290,7 +290,7 @@ token_is_actionRef(Token* token)
   return result;
 }
 
-internal bool
+static bool
 token_is_tableProperty(Token* token)
 {
   bool result = token->klass == TK_KEY || token->klass == TK_ACTIONS
@@ -299,14 +299,14 @@ token_is_tableProperty(Token* token)
   return result;
 }
 
-internal bool
+static bool
 token_is_switchLabel(Token* token)
 {
   bool result = token_is_name(token) || token->klass == TK_DEFAULT;
   return result;
 }
 
-internal bool
+static bool
 token_is_expressionPrimary(Token* token)
 {
   bool result = token->klass == TK_INTEGER_LITERAL || token->klass == TK_TRUE || token->klass == TK_FALSE
@@ -317,32 +317,32 @@ token_is_expressionPrimary(Token* token)
   return result;
 }
 
-internal bool
+static bool
 token_is_expression(Token* token)
 {
   return token_is_expressionPrimary(token);
 }
 
-internal bool
+static bool
 token_is_methodPrototype(Token* token)
 {
   return token_is_typeOrVoid(token) || token->klass == TK_TYPE_IDENTIFIER;
 }
 
-internal bool
+static bool
 token_is_structField(Token* token)
 {
   bool result = token_is_typeRef(token);
   return result;
 }
 
-internal bool
+static bool
 token_is_specifiedIdentifier(Token* token)
 {
   return token_is_name(token);
 }
 
-internal bool
+static bool
 token_is_declaration(Token* token)
 {
   bool result = token->klass == TK_CONST || token->klass == TK_EXTERN || token->klass == TK_ACTION
@@ -352,14 +352,14 @@ token_is_declaration(Token* token)
   return result;
 }
 
-internal bool
+static bool
 token_is_lvalue(Token* token)
 {
   bool result = token_is_nonTypeName(token) || (token->klass == TK_DOT);
   return result;
 }
 
-internal bool
+static bool
 token_is_assignmentOrMethodCallStatement(Token* token)
 {
   bool result = token_is_lvalue(token) || token->klass == TK_PARENTH_OPEN || token->klass == TK_ANGLE_OPEN
@@ -367,7 +367,7 @@ token_is_assignmentOrMethodCallStatement(Token* token)
   return result;
 }
 
-internal bool
+static bool
 token_is_statement(Token* token)
 {
   bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token) || token->klass == TK_IF
@@ -376,28 +376,28 @@ token_is_statement(Token* token)
   return result;
 }
 
-internal bool
+static bool
 token_is_statementOrDeclaration(Token* token)
 {
   bool result = token_is_typeRef(token) || token->klass == TK_CONST || token_is_statement(token);
   return result;
 }
 
-internal bool
+static bool
 token_is_argument(Token* token)
 {
   bool result = token_is_expression(token) || token_is_name(token) || token->klass == TK_DONTCARE;
   return result;
 }
 
-internal bool
+static bool
 token_is_parserLocalElement(Token* token)
 {
   bool result = token->klass == TK_CONST || token_is_typeRef(token);
   return result;
 }
 
-internal bool
+static bool
 token_is_parserStatement(Token* token)
 {
   bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token)
@@ -406,26 +406,26 @@ token_is_parserStatement(Token* token)
   return result;
 }
 
-internal bool
+static bool
 token_is_simpleKeysetExpression(Token* token) {
   bool result = token_is_expression(token) || token->klass == TK_DEFAULT || token->klass == TK_DONTCARE;
   return result;
 }
 
-internal bool
+static bool
 token_is_keysetExpression(Token* token)
 {
   bool result = token->klass == TK_TUPLE || token_is_simpleKeysetExpression(token);
   return result;
 }
 
-internal bool
+static bool
 token_is_selectCase(Token* token)
 {
   return token_is_keysetExpression(token);
 }
 
-internal bool
+static bool
 token_is_controlLocalDeclaration(Token* token)
 {
   bool result = token->klass == TK_CONST || token->klass == TK_ACTION
@@ -433,14 +433,14 @@ token_is_controlLocalDeclaration(Token* token)
   return result;
 }
 
-internal bool
+static bool
 token_is_realTypeArg(Token* token)
 {
   bool result = token->klass == TK_DONTCARE|| token_is_typeRef(token);
   return result;
 }
 
-internal bool
+static bool
 token_is_binaryOperator(Token* token)
 {
   bool result = token->klass == TK_STAR || token->klass == TK_SLASH
@@ -456,7 +456,7 @@ token_is_binaryOperator(Token* token)
   return result;
 }
 
-internal bool
+static bool
 token_is_exprOperator(Token* token)
 {
   bool result = token_is_binaryOperator(token) || token->klass == TK_DOT
@@ -465,7 +465,7 @@ token_is_exprOperator(Token* token)
   return result;
 }
 
-internal int
+static int
 operator_priority_of(Token* token)
 {
   if (token->klass == TK_DOUBLE_AMPERSAND || token->klass == TK_DOUBLE_PIPE) {
@@ -496,7 +496,7 @@ operator_priority_of(Token* token)
   return 0;
 }
 
-internal enum Ast_Operator
+static enum Ast_Operator
 token_to_binop(Token* token)
 {
   switch (token->klass) {
@@ -542,7 +542,7 @@ token_to_binop(Token* token)
 
 /** PROGRAM **/
 
-internal Ast*
+static Ast*
 parse_p4program()
 {
   Ast_P4Program* program = arena_malloc(storage, sizeof(*program));
@@ -560,7 +560,7 @@ parse_p4program()
   return (Ast*)program;
 }
 
-internal Ast*
+static Ast*
 parse_declarationList()
 {
   Ast_DeclarationList* decls = arena_malloc(storage, sizeof(*decls));
@@ -585,7 +585,7 @@ parse_declarationList()
   return (Ast*)decls;
 }
 
-internal Ast*
+static Ast*
 parse_declaration()
 {
   if (token_is_declaration(token)) {
@@ -648,7 +648,7 @@ parse_declaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_nonTypeName()
 {
   if (token_is_nonTypeName(token)) {
@@ -665,7 +665,7 @@ parse_nonTypeName()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_name()
 {
   if (token_is_name(token)) {
@@ -686,7 +686,7 @@ parse_name()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_parameterList()
 {
   Ast_ParameterList* params = arena_malloc(storage, sizeof(*params));
@@ -708,7 +708,7 @@ parse_parameterList()
   return (Ast*)params;
 }
 
-internal Ast*
+static Ast*
 parse_parameter()
 {
   if (token_is_parameter(token)) {
@@ -736,7 +736,7 @@ parse_parameter()
   return 0;
 }
 
-internal enum Ast_ParamDirection
+static enum Ast_ParamDirection
 parse_direction()
 {
   if (token_is_direction(token)) {
@@ -754,7 +754,7 @@ parse_direction()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_packageTypeDeclaration()
 {
   if (token->klass == TK_PACKAGE) {
@@ -790,7 +790,7 @@ parse_packageTypeDeclaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_instantiation(Ast* type_ref)
 {
   if (token_is_typeRef(token) || type_ref) {
@@ -825,7 +825,7 @@ parse_instantiation(Ast* type_ref)
 
 /** PARSER **/
 
-internal Ast*
+static Ast*
 parse_optConstructorParameters()
 {
   if (token->klass == TK_PARENTH_OPEN) {
@@ -845,7 +845,7 @@ parse_optConstructorParameters()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_parserDeclaration(Ast* parser_proto)
 {
   if (token->klass == TK_PARENTH_OPEN || token->klass == TK_BRACE_OPEN) {
@@ -875,7 +875,7 @@ parse_parserDeclaration(Ast* parser_proto)
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_parserLocalElements()
 {
   Ast_ParserLocalElements* elems = arena_malloc(storage, sizeof(*elems));
@@ -896,7 +896,7 @@ parse_parserLocalElements()
   return (Ast*)elems;
 }
 
-internal Ast*
+static Ast*
 parse_parserLocalElement()
 {
   if (token_is_parserLocalElement(token)) {
@@ -924,7 +924,7 @@ parse_parserLocalElement()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_parserTypeDeclaration()
 {
   if (token->klass == TK_PARSER) {
@@ -960,7 +960,7 @@ parse_parserTypeDeclaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_parserStates()
 {
   Ast_ParserStates* states = arena_malloc(storage, sizeof(*states));
@@ -981,7 +981,7 @@ parse_parserStates()
   return (Ast*)states;
 }
 
-internal Ast*
+static Ast*
 parse_parserState()
 {
   if (token->klass == TK_STATE) {
@@ -1008,7 +1008,7 @@ parse_parserState()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_parserStatements()
 {
   Ast_ParserStatements* stmts = arena_malloc(storage, sizeof(*stmts));
@@ -1029,7 +1029,7 @@ parse_parserStatements()
   return (Ast*)stmts;
 }
 
-internal Ast*
+static Ast*
 parse_parserStatement()
 {
   if (token_is_parserStatement(token)) {
@@ -1069,7 +1069,7 @@ parse_parserStatement()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_parserBlockStatement()
 {
   if (token->klass == TK_BRACE_OPEN) {
@@ -1090,7 +1090,7 @@ parse_parserBlockStatement()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_transitionStatement()
 {
   if (token->klass == TK_TRANSITION) {
@@ -1107,7 +1107,7 @@ parse_transitionStatement()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_stateExpression()
 {
   if (token_is_name(token) || token->klass == TK_SELECT) {
@@ -1132,7 +1132,7 @@ parse_stateExpression()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_selectExpression()
 {
   if (token->klass == TK_SELECT) {
@@ -1166,7 +1166,7 @@ parse_selectExpression()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_selectCaseList()
 {
   Ast_SelectCaseList* cases = arena_malloc(storage, sizeof(*cases));
@@ -1187,7 +1187,7 @@ parse_selectCaseList()
   return (Ast*)cases;
 }
 
-internal Ast*
+static Ast*
 parse_selectCase()
 {
   if (token_is_keysetExpression(token)) {
@@ -1215,7 +1215,7 @@ parse_selectCase()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_keysetExpression()
 {
   if (token->klass == TK_PARENTH_OPEN || token_is_simpleKeysetExpression(token)) {
@@ -1236,7 +1236,7 @@ parse_keysetExpression()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_tupleKeysetExpression()
 {
   if (token->klass == TK_PARENTH_OPEN) {
@@ -1257,7 +1257,7 @@ parse_tupleKeysetExpression()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_simpleExpressionList()
 {
   Ast_SimpleExpressionList* exprs = arena_malloc(storage, sizeof(*exprs));
@@ -1279,7 +1279,7 @@ parse_simpleExpressionList()
   return (Ast*)exprs;
 }
 
-internal Ast*
+static Ast*
 parse_simpleKeysetExpression()
 {
   if (token_is_simpleKeysetExpression(token)) {
@@ -1315,7 +1315,7 @@ parse_simpleKeysetExpression()
 
 /** CONTROL **/
 
-internal Ast*
+static Ast*
 parse_controlDeclaration(Ast* control_proto)
 {
   if (token->klass == TK_PARENTH_OPEN || token->klass == TK_BRACE_OPEN) {
@@ -1346,7 +1346,7 @@ parse_controlDeclaration(Ast* control_proto)
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_controlTypeDeclaration()
 {
   if (token->klass == TK_CONTROL) {
@@ -1382,7 +1382,7 @@ parse_controlTypeDeclaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_controlLocalDeclaration()
 {
   if (token_is_controlLocalDeclaration(token)) {
@@ -1416,7 +1416,7 @@ parse_controlLocalDeclaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_controlLocalDeclarations()
 {
   Ast_ControlLocalDeclarations* decls = arena_malloc(storage, sizeof(*decls));
@@ -1439,7 +1439,7 @@ parse_controlLocalDeclarations()
 
 /** EXTERN **/
 
-internal Ast*
+static Ast*
 parse_externDeclaration()
 {
   if (token->klass == TK_EXTERN) {
@@ -1497,7 +1497,7 @@ parse_externDeclaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_methodPrototypes()
 {
   Ast_MethodPrototypes* protos = arena_malloc(storage, sizeof(*protos));
@@ -1518,7 +1518,7 @@ parse_methodPrototypes()
   return (Ast*)protos;
 }
 
-internal Ast*
+static Ast*
 parse_functionPrototype(Ast* return_type)
 {
   if (token_is_typeOrVoid(token) || return_type) {
@@ -1567,7 +1567,7 @@ parse_functionPrototype(Ast* return_type)
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_methodPrototype()
 {
   if (token_is_methodPrototype(token)) {
@@ -1609,7 +1609,7 @@ parse_methodPrototype()
 
 /** TYPES **/
 
-internal Ast*
+static Ast*
 parse_typeRef()
 {
   if (token_is_typeRef(token)) {
@@ -1633,7 +1633,7 @@ parse_typeRef()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_namedType()
 {
   if (token_is_typeName(token)) {
@@ -1654,7 +1654,7 @@ parse_namedType()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_prefixedType()
 {
   bool is_prefixed = false;
@@ -1677,7 +1677,7 @@ parse_prefixedType()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_tupleType()
 {
   if (token->klass == TK_TUPLE) {
@@ -1702,7 +1702,7 @@ parse_tupleType()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_headerStackType()
 {
   if (token->klass == TK_BRACKET_OPEN) {
@@ -1726,7 +1726,7 @@ parse_headerStackType()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_specializedType()
 {
   if (token->klass == TK_ANGLE_OPEN) {
@@ -1747,7 +1747,7 @@ parse_specializedType()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_baseType()
 {
   if (token_is_baseType(token)) {
@@ -1850,7 +1850,7 @@ parse_baseType()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_integerTypeSize()
 {
   Ast_IntegerTypeSize* type_size = arena_malloc(storage, sizeof(*type_size));
@@ -1869,7 +1869,7 @@ parse_integerTypeSize()
   return (Ast*)type_size;
 }
 
-internal Ast*
+static Ast*
 parse_typeOrVoid()
 {
   if (token_is_typeOrVoid(token)) {
@@ -1893,7 +1893,7 @@ parse_typeOrVoid()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_optTypeParameters()
 {
   if (token->klass == TK_ANGLE_OPEN) {
@@ -1915,7 +1915,7 @@ parse_optTypeParameters()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_typeParameterList()
 {
   Ast_TypeParameterList* params = arena_malloc(storage, sizeof(*params));
@@ -1949,7 +1949,7 @@ parse_typeParameterList()
   return (Ast*)params;
 }
 
-internal Ast*
+static Ast*
 parse_realTypeArg()
 {
   if (token_is_realTypeArg(token)) {
@@ -1975,7 +1975,7 @@ parse_realTypeArg()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_typeArg()
 {
   if (token_is_typeArg(token)) {
@@ -2004,7 +2004,7 @@ parse_typeArg()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_realTypeArgumentList()
 {
   Ast_RealTypeArgumentList* args = arena_malloc(storage, sizeof(*args));
@@ -2026,7 +2026,7 @@ parse_realTypeArgumentList()
   return (Ast*)args;
 }
 
-internal Ast*
+static Ast*
 parse_typeArgumentList()
 {
   Ast_TypeArgumentList* args = arena_malloc(storage, sizeof(*args));
@@ -2048,7 +2048,7 @@ parse_typeArgumentList()
   return (Ast*)args;
 }
 
-internal Ast*
+static Ast*
 parse_typeDeclaration()
 {
   if (token_is_typeDeclaration(token)) {
@@ -2082,7 +2082,7 @@ parse_typeDeclaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_derivedTypeDeclaration()
 {
   if (token_is_derivedTypeDeclaration(token)) {
@@ -2109,7 +2109,7 @@ parse_derivedTypeDeclaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_headerTypeDeclaration()
 {
   if (token->klass == TK_HEADER) {
@@ -2144,7 +2144,7 @@ parse_headerTypeDeclaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_headerUnionDeclaration()
 {
   if (token->klass == TK_HEADER_UNION) {
@@ -2179,7 +2179,7 @@ parse_headerUnionDeclaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_structTypeDeclaration()
 {
   if (token->klass == TK_STRUCT) {
@@ -2214,7 +2214,7 @@ parse_structTypeDeclaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_structFieldList()
 {
   Ast_StructFieldList* fields = arena_malloc(storage, sizeof(*fields));
@@ -2235,7 +2235,7 @@ parse_structFieldList()
   return (Ast*)fields;
 }
 
-internal Ast*
+static Ast*
 parse_structField()
 {
   if (token_is_structField(token)) {
@@ -2259,7 +2259,7 @@ parse_structField()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_enumDeclaration()
 {
   if (token->klass == TK_ENUM) {
@@ -2312,7 +2312,7 @@ parse_enumDeclaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_errorDeclaration()
 {
   if (token->klass == TK_ERROR) {
@@ -2343,7 +2343,7 @@ parse_errorDeclaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_matchKindDeclaration()
 {
   if (token->klass == TK_MATCH_KIND) {
@@ -2371,7 +2371,7 @@ parse_matchKindDeclaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_identifierList()
 {
   Ast_IdentifierList* ids = arena_malloc(storage, sizeof(*ids));
@@ -2393,7 +2393,7 @@ parse_identifierList()
   return (Ast*)ids;
 }
 
-internal Ast*
+static Ast*
 parse_specifiedIdentifierList()
 {
   Ast_SpecifiedIdentifierList* ids = arena_malloc(storage, sizeof(*ids));
@@ -2415,7 +2415,7 @@ parse_specifiedIdentifierList()
   return (Ast*)ids;
 }
 
-internal Ast*
+static Ast*
 parse_specifiedIdentifier()
 {
   if (token_is_specifiedIdentifier(token)) {
@@ -2438,7 +2438,7 @@ parse_specifiedIdentifier()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_typedefDeclaration()
 {
   if (token->klass == TK_TYPEDEF || token->klass == TK_TYPE) {
@@ -2478,7 +2478,7 @@ parse_typedefDeclaration()
 
 /** STATEMENTS **/
 
-internal Ast*
+static Ast*
 parse_assignmentOrMethodCallStatement()
 {
   if (token_is_lvalue(token)) {
@@ -2529,7 +2529,7 @@ parse_assignmentOrMethodCallStatement()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_returnStatement()
 {
   if (token->klass == TK_RETURN) {
@@ -2551,7 +2551,7 @@ parse_returnStatement()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_exitStatement()
 {
   if (token->klass == TK_EXIT) {
@@ -2571,7 +2571,7 @@ parse_exitStatement()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_conditionalStatement()
 {
   if (token->klass == TK_IF) {
@@ -2610,7 +2610,7 @@ parse_conditionalStatement()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_directApplication(Ast* type_name)
 {
   if (token_is_typeName(token) || type_name) {
@@ -2647,7 +2647,7 @@ parse_directApplication(Ast* type_name)
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_statement(Ast* type_name)
 {
   if (token_is_statement(token)) {
@@ -2691,7 +2691,7 @@ parse_statement(Ast* type_name)
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_blockStatement()
 {
   if (token->klass == TK_BRACE_OPEN) {
@@ -2712,7 +2712,7 @@ parse_blockStatement()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_statementOrDeclList()
 {
   Ast_StatementOrDeclList* stmts = arena_malloc(storage, sizeof(*stmts));
@@ -2733,7 +2733,7 @@ parse_statementOrDeclList()
   return (Ast*)stmts;
 }
 
-internal Ast*
+static Ast*
 parse_switchStatement()
 {
   if (token->klass == TK_SWITCH) {
@@ -2767,7 +2767,7 @@ parse_switchStatement()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_switchCases()
 {
   Ast_SwitchCases* cases = arena_malloc(storage, sizeof(*cases));
@@ -2788,7 +2788,7 @@ parse_switchCases()
   return (Ast*)cases;
 }
 
-internal Ast*
+static Ast*
 parse_switchCase()
 {
   if (token_is_switchLabel(token)) {
@@ -2811,7 +2811,7 @@ parse_switchCase()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_switchLabel()
 {
   if (token_is_switchLabel(token)) {
@@ -2837,7 +2837,7 @@ parse_switchLabel()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_statementOrDeclaration()
 {
   if (token_is_statementOrDeclaration(token)) {
@@ -2872,7 +2872,7 @@ parse_statementOrDeclaration()
 
 /** TABLES **/ 
 
-internal Ast*
+static Ast*
 parse_tableDeclaration()
 {
   if (token->klass == TK_TABLE) {
@@ -2901,7 +2901,7 @@ parse_tableDeclaration()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_tablePropertyList()
 {
   Ast_TablePropertyList* props = arena_malloc(storage, sizeof(*props));
@@ -2922,7 +2922,7 @@ parse_tablePropertyList()
   return (Ast*)props;
 }
 
-internal Ast*
+static Ast*
 parse_tableProperty()
 {
   if (token_is_tableProperty(token)) {
@@ -3026,7 +3026,7 @@ parse_tableProperty()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_keyElementList()
 {
   Ast_KeyElementList* elems = arena_malloc(storage, sizeof(*elems));
@@ -3047,7 +3047,7 @@ parse_keyElementList()
   return (Ast*)elems;
 }
 
-internal Ast*
+static Ast*
 parse_keyElement()
 {
   if (token_is_expression(token)) {
@@ -3072,7 +3072,7 @@ parse_keyElement()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_actionList()
 {
   Ast_ActionList* actions = arena_malloc(storage, sizeof(*actions));
@@ -3101,7 +3101,7 @@ parse_actionList()
   return (Ast*)actions;
 }
 
-internal Ast*
+static Ast*
 parse_actionRef()
 {
   if (token_is_prefixedNonTypeName(token)) {
@@ -3130,7 +3130,7 @@ parse_actionRef()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_entriesList()
 {
   Ast_EntriesList* entries = arena_malloc(storage, sizeof(*entries));
@@ -3151,7 +3151,7 @@ parse_entriesList()
   return (Ast*)entries;
 }
 
-internal Ast*
+static Ast*
 parse_entry()
 {
   if (token_is_keysetExpression(token)) {
@@ -3176,7 +3176,7 @@ parse_entry()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_actionDeclaration()
 {
   if (token->klass == TK_ACTION) {
@@ -3211,7 +3211,7 @@ parse_actionDeclaration()
 
 /** VARIABLES **/
 
-internal Ast*
+static Ast*
 parse_variableDeclaration(Ast* type_ref)
 {
   bool is_const = false;
@@ -3247,7 +3247,7 @@ parse_variableDeclaration(Ast* type_ref)
 
 /** EXPRESSIONS **/
 
-internal Ast*
+static Ast*
 parse_functionDeclaration(Ast* type_ref)
 {
   if (token_is_typeOrVoid(token)) {
@@ -3267,7 +3267,7 @@ parse_functionDeclaration(Ast* type_ref)
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_argumentList()
 {
   Ast_ArgumentList* args = arena_malloc(storage, sizeof(*args));
@@ -3289,7 +3289,7 @@ parse_argumentList()
   return (Ast*)args;
 }
 
-internal Ast*
+static Ast*
 parse_argument()
 {
   if (token_is_argument(token)) {
@@ -3315,7 +3315,7 @@ parse_argument()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_expressionList()
 {
   Ast_ExpressionList* exprs = arena_malloc(storage, sizeof(*exprs));
@@ -3337,7 +3337,7 @@ parse_expressionList()
   return (Ast*)exprs;
 }
 
-internal Ast*
+static Ast*
 parse_prefixedNonTypeName()
 {
   if (token->klass == TK_DOT) {
@@ -3351,7 +3351,7 @@ parse_prefixedNonTypeName()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_lvalue()
 {
   if (token_is_lvalue(token)) {
@@ -3404,7 +3404,7 @@ parse_lvalue()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_expression(int priority_threshold)
 {
   if (token_is_expression(token)) {
@@ -3506,7 +3506,7 @@ parse_expression(int priority_threshold)
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_expressionPrimary()
 {
   if (token_is_expression(token)) {
@@ -3620,7 +3620,7 @@ parse_expressionPrimary()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_indexExpression()
 {
   if (token_is_expression(token)) {
@@ -3643,7 +3643,7 @@ parse_indexExpression()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_integer()
 {
   if (token->klass == TK_INTEGER_LITERAL) {
@@ -3662,7 +3662,7 @@ parse_integer()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_boolean()
 {
   if (token->klass == TK_TRUE || token->klass == TK_FALSE) {
@@ -3679,7 +3679,7 @@ parse_boolean()
   return 0;
 }
 
-internal Ast*
+static Ast*
 parse_string()
 {
   if (token->klass == TK_STRING_LITERAL) {

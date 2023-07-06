@@ -9,17 +9,17 @@ typedef struct Lexeme {
   char* end;
 } Lexeme;
 
-internal Arena* lexeme_storage;
-internal char* text;
-internal int text_size;
-internal Arena* token_storage;
-internal UnboundedArray tokens = {};
-internal int line_no;
-internal char* line_start;
-internal int state;
-internal Lexeme lexeme[2];
+static Arena* lexeme_storage;
+static char* text;
+static int text_size;
+static Arena* token_storage;
+static UnboundedArray tokens = {};
+static int line_no;
+static char* line_start;
+static int state;
+static Lexeme lexeme[2];
 
-internal char
+static char
 char_lookahead(int pos)
 {
   char* char_pos = lexeme->end + pos;
@@ -27,7 +27,7 @@ char_lookahead(int pos)
   return *char_pos;
 }
 
-internal char
+static char
 char_advance(int pos)
 {
   char* char_pos = lexeme->end + pos;
@@ -36,7 +36,7 @@ char_advance(int pos)
   return *char_pos;
 }
 
-internal char
+static char
 char_retract()
 {
   char result = *(--lexeme->end);
@@ -44,14 +44,14 @@ char_retract()
   return result;
 }
 
-internal void
+static void
 lexeme_advance()
 {
   lexeme->start = ++lexeme->end;
   assert (lexeme->start <= (text + text_size));
 }
 
-internal void
+static void
 lexeme_copy(char* dest, Lexeme* lexeme)
 {
   char* src = lexeme->start;
@@ -77,14 +77,14 @@ lexeme_copy(char* dest, Lexeme* lexeme)
   while (src <= lexeme->end);
 }
 
-internal bool
+static bool
 lexeme_len(Lexeme* lexeme)
 {
   int result = lexeme->end - lexeme->start + 1;
   return result;
 }
 
-internal char*
+static char*
 lexeme_to_cstring(Lexeme* lexeme)
 {
   int len = lexeme_len(lexeme);
@@ -94,7 +94,7 @@ lexeme_to_cstring(Lexeme* lexeme)
   return string;
 }
 
-internal int
+static int
 digit_to_integer(char c, int base)
 {
   int digit_value = 0;
@@ -112,7 +112,7 @@ digit_to_integer(char c, int base)
   return digit_value;
 }
 
-internal int
+static int
 parse_integer(char* str, int base)
 {
   int result = 0;
@@ -131,7 +131,7 @@ parse_integer(char* str, int base)
   return result;
 }
 
-internal void
+static void
 token_install_integer(Token* token, Lexeme* lexeme, int base)
 {
   char* string = lexeme_to_cstring(lexeme);
@@ -154,7 +154,7 @@ token_install_integer(Token* token, Lexeme* lexeme, int base)
   }
 }
 
-internal void
+static void
 next_token(Token* token)
 {
   memset(token, 0, sizeof(*token));
@@ -828,7 +828,7 @@ tokenize_text(char* text_, int text_size_, Arena* lexeme_storage_, Arena* token_
 
   Token token = {};
   token.klass = TK_START_OF_INPUT;
-  array_create(&tokens, sizeof(token), token_storage);
+  array_create(&tokens, token_storage, sizeof(token));
   array_append(&tokens, &token);
 
   next_token(&token);

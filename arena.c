@@ -9,13 +9,13 @@
 
 #define ZERO_MEMORY_ON_FREE  0
 
-internal int page_size = 0;
-internal int total_page_count = 0;
-internal void* page_memory_start = 0;
-internal Arena storage = {};
-internal PageBlock* first_block = 0;
-internal PageBlock* block_freelist_head = 0;
-internal PageBlock* recycled_block_structs = 0;
+static int page_size = 0;
+static int total_page_count = 0;
+static void* page_memory_start = 0;
+static Arena storage = {};
+static PageBlock* first_block = 0;
+static PageBlock* block_freelist_head = 0;
+static PageBlock* recycled_block_structs = 0;
 
 void
 reserve_page_memory(int memory_amount)
@@ -46,7 +46,7 @@ reserve_page_memory(int memory_amount)
   storage.memory_limit = first_block->memory_end;
 }
 
-internal PageBlock*
+static PageBlock*
 find_block_first_fit(int requested_memory_amount)
 {
   PageBlock* result = 0;
@@ -61,7 +61,7 @@ find_block_first_fit(int requested_memory_amount)
   return result;
 }
 
-internal void
+static void
 recycle_block_struct(PageBlock* block)
 {
   memset(block, 0, sizeof(*block));
@@ -69,7 +69,7 @@ recycle_block_struct(PageBlock* block)
   recycled_block_structs = block;
 }
 
-internal PageBlock*
+static PageBlock*
 block_insert_and_coalesce(PageBlock* block_list, PageBlock* new_block)
 {
   if (!block_list) {
@@ -140,7 +140,7 @@ block_insert_and_coalesce(PageBlock* block_list, PageBlock* new_block)
   return merged_list;
 }
 
-internal PageBlock*
+static PageBlock*
 get_new_block_struct()
 {
   PageBlock* block = recycled_block_structs;
@@ -153,7 +153,7 @@ get_new_block_struct()
   return block;
 }
 
-internal void
+static void
 arena_grow(Arena* arena, uint32_t size)
 {
   PageBlock* free_block = find_block_first_fit(size);

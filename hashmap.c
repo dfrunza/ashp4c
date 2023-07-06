@@ -2,11 +2,11 @@
 #include <stdint.h>
 #include "foundation.h"
 
-internal const uint32_t P = 257, Q = 4294967029;
-internal const uint32_t SIGMA = 2654435769;
-internal HashmapEntry* NULL_ENTRY = 0;
+static const uint32_t P = 257, Q = 4294967029;
+static const uint32_t SIGMA = 2654435769;
+static HashmapEntry* NULL_ENTRY = 0;
 
-internal uint32_t
+static uint32_t
 fold_string(uint8_t* string)
 {
   uint32_t K = 0;
@@ -16,7 +16,7 @@ fold_string(uint8_t* string)
   return K;
 }
 
-internal uint32_t
+static uint32_t
 fold_bytes(uint8_t* bytes, int length)
 {
   uint32_t K = 0;
@@ -26,7 +26,7 @@ fold_bytes(uint8_t* bytes, int length)
   return K;
 }
 
-internal uint32_t
+static uint32_t
 multiply_hash(uint32_t K, uint32_t m)
 {
   assert(m > 0 && m <= 32);
@@ -35,7 +35,7 @@ multiply_hash(uint32_t K, uint32_t m)
   return h;
 }
 
-internal uint32_t
+static uint32_t
 hash_string(uint8_t* string, uint32_t m)
 {
   assert(m > 0 && m <= 32);
@@ -44,7 +44,7 @@ hash_string(uint8_t* string, uint32_t m)
   return h;
 }
 
-internal uint32_t
+static uint32_t
 hash_bytes(uint8_t* bytes, int length, uint32_t m)
 {
   assert(m > 0 && m <= 32);
@@ -53,7 +53,7 @@ hash_bytes(uint8_t* bytes, int length, uint32_t m)
   return h;
 }
 
-internal uint32_t
+static uint32_t
 hash_uint32(uint32_t i, uint32_t m)
 {
   assert(m > 0 && m <= 32);
@@ -74,7 +74,7 @@ hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ HashmapKey* key, int c
   } else assert(0);
 }
 
-internal bool
+static bool
 key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 {
   if (key_type == HASHMAP_KEY_STRING) {
@@ -106,7 +106,7 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 void
 hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int capacity_log2)
 {
-  array_create(&hashmap->entries, sizeof(HashmapEntry*), storage);
+  array_create(&hashmap->entries, storage, sizeof(HashmapEntry*));
   hashmap->key_type = key_type;
   hashmap->capacity = (1 << capacity_log2) - 1;
   hashmap->entry_count = 0;
