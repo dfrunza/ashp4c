@@ -68,7 +68,7 @@ hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ HashmapKey* key, int c
   if (key_type == HASHMAP_KEY_STRING) {
     key->h = hash_string(key->str_key, capacity_log2);
   } else if (key_type == HASHMAP_KEY_BIT) {
-    assert (key->keylen > 0);
+    assert(key->keylen > 0);
     key->h = hash_bytes(key->bit_key, key->keylen, capacity_log2);
   } else if (key_type == HASHMAP_KEY_UINT32) {
     key->h = hash_uint32(key->int_key, capacity_log2);
@@ -81,7 +81,7 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
   if (key_type == HASHMAP_KEY_STRING) {
     return cstr_match((char*)key_A->str_key, (char*)key_B->str_key);
   } else if (key_type == HASHMAP_KEY_BIT) {
-    assert ((key_A->keylen > 0) && (key_B->keylen > 0));
+    assert((key_A->keylen > 0) && (key_B->keylen > 0));
     bool result = (key_A->keylen == key_B->keylen);
     if (!result) {
       return result;
@@ -163,7 +163,7 @@ hashmap_grow(Hashmap* hashmap, HashmapKey* key)
     last_entry = entry;
     entry_count += 1;
   }
-  assert (entry_count == hashmap->entry_count);
+  assert(entry_count == hashmap->entry_count);
   hashmap->capacity = (1 << ++hashmap->capacity_log2) - 1;
   for (int i = hashmap->entry_count; i < hashmap->capacity; i++) {
     array_append(&hashmap->entries, &NULL_ENTRY);

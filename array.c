@@ -32,7 +32,7 @@ array_elem_at_i(UnboundedArray* array, int i, int* segment_index_, int* elem_off
 void*
 array_get(UnboundedArray* array, int i)
 {
-  assert (i >= 0 && i < array->elem_count);
+  assert(i >= 0 && i < array->elem_count);
   int segment_index, elem_offset;
   void* data_segment, *elem_slot;
   array_elem_at_i(array, i, &segment_index, &elem_offset, &data_segment, &elem_slot);
@@ -42,7 +42,7 @@ array_get(UnboundedArray* array, int i)
 void*
 array_set(UnboundedArray* array, int i, void* elem)
 {
-  assert (i >= 0 && i < array->elem_count);
+  assert(i >= 0 && i < array->elem_count);
   int segment_index, elem_offset;
   void* data_segment, *elem_slot;
   array_elem_at_i(array, i, &segment_index, &elem_offset, &data_segment, &elem_slot);

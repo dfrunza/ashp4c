@@ -1499,7 +1499,7 @@ visit_match_kind(Ast* ast)
 static void
 visit_error(Ast* ast)
 {
-  assert (ast->kind == AST_ERROR);
+  assert(ast->kind == AST_ERROR);
   Ast_ErrorEnum* decl = (Ast_ErrorEnum*)ast;
   Ast_NodeList* id_list = &decl->id_list;
   ListItem* li = id_list->list.next;

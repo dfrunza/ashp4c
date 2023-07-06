@@ -108,7 +108,7 @@ main(int arg_count, char* args[])
 
   Ast_P4Program* p4program = parse_tokens(tokens, &main_storage);
   assert(p4program->kind == AST_p4program);
-  arena_delete(&text_storage);
+  arena_free(&text_storage);
 
   node_id_pass(p4program);
   name_decl_pass(p4program, &main_storage);
@@ -118,7 +118,7 @@ main(int arg_count, char* args[])
   Hashmap* potential_type = build_potential_type(p4program, root_scope, &main_storage);
   select_type(p4program, root_scope, potential_type, &main_storage); */
 
-  arena_delete(&main_storage);
+  arena_free(&main_storage);
   return 0;
 }
 

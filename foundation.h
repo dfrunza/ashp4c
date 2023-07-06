@@ -40,7 +40,7 @@ typedef struct Arena {
 
 void reserve_page_memory(int memory_amount);
 void* arena_malloc(Arena* arena, uint32_t size);
-void arena_delete(Arena* arena);
+void arena_free(Arena* arena);
 
 typedef struct ListItem {
   struct ListItem* next;

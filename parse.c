@@ -144,7 +144,7 @@ static Ast* parse_string();
 static Token*
 next_token()
 {
-  assert (token_at < tokens->elem_count);
+  assert(token_at < tokens->elem_count);
   prev_token = token;
   prev_token_at = token_at;
   token = array_get(tokens, ++token_at);

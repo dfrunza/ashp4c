@@ -48,7 +48,7 @@ static void
 lexeme_advance()
 {
   lexeme->start = ++lexeme->end;
-  assert (lexeme->start <= (text + text_size));
+  assert(lexeme->start <= (text + text_size));
 }
 
 static void

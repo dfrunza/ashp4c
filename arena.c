@@ -7,7 +7,8 @@
 #include <math.h> // ceil
 #include "foundation.h"
 
-#define ZERO_MEMORY_ON_FREE  0
+#define ZMEM_ON_FREE  false
+#define ZMEM_ON_ALLOC true
 
 static int page_size = 0;
 static int total_page_count = 0;
@@ -171,7 +172,7 @@ arena_grow(Arena* arena, uint32_t size)
     alloc_memory_begin = free_block->memory_begin;
     alloc_memory_end = free_block->memory_end;
     free_block->memory_begin = alloc_memory_end;
-  } else assert (0);
+  } else assert(0);
 
   if (mprotect(alloc_memory_begin, alloc_memory_end - alloc_memory_begin, PROT_READ|PROT_WRITE) != 0) {
     perror("mprotect");
@@ -189,23 +190,25 @@ arena_grow(Arena* arena, uint32_t size)
 void*
 arena_malloc(Arena* arena, uint32_t size)
 {
-  assert (size > 0);
+  assert(size > 0);
   uint8_t* user_memory = arena->memory_avail;
   if (user_memory + size >= (uint8_t*)arena->memory_limit) {
     arena_grow(arena, size);
     user_memory = arena->memory_avail;
   }
   arena->memory_avail = user_memory + size;
-  memset(user_memory, 0, size);
+  if (ZMEM_ON_ALLOC) {
+    memset(user_memory, 0, size);
+  }
   return user_memory;
 }
 
 void
-arena_delete(Arena* arena)
+arena_free(Arena* arena)
 {
   PageBlock* p = arena->owned_pages;
   while (p) {
-    if (ZERO_MEMORY_ON_FREE) {
+    if (ZMEM_ON_FREE) {
       memset(p->memory_begin, 0, p->memory_end - p->memory_begin);
     }
     if (mprotect(p->memory_begin, p->memory_end - p->memory_begin, PROT_NONE) != 0) {
