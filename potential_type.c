@@ -55,7 +55,7 @@ visit_unary_expr(Ast* ast)
   assert(ast->kind == AST_unaryExpression);
   Ast_UnaryExpression* expr = (Ast_UnaryExpression*)ast;
   visit_expression(expr->operand);
-  Type_FunctionCall* expr_ty = arena_push_struct(type_storage, Type_FunctionCall);
+  Type_FunctionCall* expr_ty = arena_malloc(type_storage, Type_FunctionCall);
   expr_ty->ctor = TYPE_FUNCTION_CALL;
   expr_ty->args_ty = (Type*)typeset_get(&potential_type, expr->operand->id);
   expr_ty->ast = (Ast*)expr;
@@ -97,7 +97,7 @@ visit_function_call(Ast* ast)
   Ast_FunctionCall* function_call = (Ast_FunctionCall*)ast;
   visit_expression(function_call->callee_expr);
   Ast_Expression* callee_expr = (Ast_Expression*)function_call->callee_expr;
-  Type_FunctionCall* fcall_ty = arena_push_struct(type_storage, Type_FunctionCall);
+  Type_FunctionCall* fcall_ty = arena_malloc(type_storage, Type_FunctionCall);
   fcall_ty->ctor = TYPE_FUNCTION_CALL;
   fcall_ty->ast = (Ast*)function_call;
   Type_TypeSet* ty_set = typeset_create(&potential_type, function_call->id);
@@ -121,7 +121,7 @@ visit_function_call(Ast* ast)
       while (li) {
         Ast* arg = li->object;
         visit_expression(arg);
-        Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
+        Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = args_ty;
         product_ty->rhs_ty = (Type*)typeset_get(&potential_type, arg->id);
@@ -145,7 +145,7 @@ visit_member_select(Ast* ast)
   assert(ast->kind == AST_memberSelector);
   Ast_MemberSelector* expr = (Ast_MemberSelector*)ast;
   visit_expression(expr->lhs_expr);
-  Type_FunctionCall* expr_ty = arena_push_struct(type_storage, Type_FunctionCall);
+  Type_FunctionCall* expr_ty = arena_malloc(type_storage, Type_FunctionCall);
   expr_ty->ctor = TYPE_FUNCTION_CALL;
   expr_ty->args_ty = (Type*)typeset_get(&potential_type, expr->lhs_expr->id);
   expr_ty->ast = (Ast*)expr;
@@ -172,7 +172,7 @@ visit_expression_list(Ast* ast)
       while (li) {
         Ast* item = li->object;
         visit_expression(item);
-        Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
+        Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = items_ty;
         product_ty->rhs_ty = (Type*)typeset_get(&potential_type, item->id);
@@ -305,7 +305,7 @@ visit_type_param(Ast* ast)
   Ast_Name* name = (Ast_Name*)ast;
   if (!name->scope) {
     /* Declaration of a type parameter. */
-    Type_TypeParam* param_ty = arena_push_struct(type_storage, Type_TypeParam);
+    Type_TypeParam* param_ty = arena_malloc(type_storage, Type_TypeParam);
     param_ty->ctor = TYPE_TYPEPARAM;
     param_ty->strname = name->strname;
     param_ty->ast = (Ast*)name;
@@ -336,7 +336,7 @@ visit_action_ref(Ast* ast)
 {
   assert(ast->kind == AST_actionRef);
   Ast_ActionRef* action = (Ast_ActionRef*)ast;
-  Type_FunctionCall* fcall_ty = arena_push_struct(type_storage, Type_FunctionCall);
+  Type_FunctionCall* fcall_ty = arena_malloc(type_storage, Type_FunctionCall);
   fcall_ty->ctor = TYPE_FUNCTION_CALL;
   fcall_ty->ast = (Ast*)action;
   Type_TypeSet* ty_set = typeset_create(&potential_type, action->id);
@@ -353,7 +353,7 @@ visit_action_ref(Ast* ast)
       while (li) {
         Ast* arg = li->object;
         visit_expression(arg);
-        Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
+        Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = args_ty;
         product_ty->rhs_ty = (Type*)typeset_get(&potential_type, arg->id);
@@ -551,7 +551,7 @@ visit_table(Ast* ast)
   assert(ast->kind == AST_tableDeclaration);
   Ast_TableDeclaration* table_decl = (Ast_TableDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)table_decl->name;
-  Type_TypeName* table_ty = arena_push_struct(type_storage, Type_TypeName);
+  Type_TypeName* table_ty = arena_malloc(type_storage, Type_TypeName);
   table_ty->ctor = TYPE_TYPENAME;
   table_ty->ast = (Ast*)table_decl;
   table_ty->strname = name->strname;
@@ -601,11 +601,11 @@ visit_assignment_stmt(Ast* ast)
   Ast_AssignmentStmt* stmt = (Ast_AssignmentStmt*)ast;
   visit_expression(stmt->lvalue);
   visit_expression(stmt->expr);
-  Type_Product* operands_ty = arena_push_struct(type_storage, Type_Product);
+  Type_Product* operands_ty = arena_malloc(type_storage, Type_Product);
   operands_ty->ctor = TYPE_PRODUCT;
   operands_ty->lhs_ty = (Type*)typeset_get(&potential_type, stmt->lvalue->id);
   operands_ty->rhs_ty = (Type*)typeset_get(&potential_type, stmt->expr->id);
-  Type_FunctionCall* assgn_ty = arena_push_struct(type_storage, Type_FunctionCall);
+  Type_FunctionCall* assgn_ty = arena_malloc(type_storage, Type_FunctionCall);
   assgn_ty->ctor = TYPE_FUNCTION_CALL;
   assgn_ty->args_ty = (Type*)operands_ty;
   assgn_ty->ast = (Ast*)stmt;
@@ -845,7 +845,7 @@ visit_name_type(Ast* ast)
   Ast_Name* name = (Ast_Name*)ast;
   if (!name->scope) {
     /* Declaration of a type parameter. */
-    Type_TypeParam* param_ty = arena_push_struct(type_storage, Type_TypeParam);
+    Type_TypeParam* param_ty = arena_malloc(type_storage, Type_TypeParam);
     param_ty->ctor = TYPE_TYPEPARAM;
     param_ty->strname = name->strname;
     param_ty->ast = (Ast*)name;
@@ -893,7 +893,7 @@ visit_tuple(Ast* ast)
       while (li) {
         Ast* arg = li->object;
         visit_type_ref(arg);
-        Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
+        Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = args_ty;
         product_ty->rhs_ty = (Type*)typeset_get(&potential_type, arg->id);
@@ -998,7 +998,7 @@ visit_control_proto(Ast* ast)
 {
   assert(ast->kind == AST_controlTypeDeclaration);
   Ast_ControlTypeDeclaration* proto = (Ast_ControlTypeDeclaration*)ast;
-  Type_Function* control_ty = arena_push_struct(type_storage, Type_Function);
+  Type_Function* control_ty = arena_malloc(type_storage, Type_Function);
   control_ty->ctor = TYPE_FUNCTION;
   control_ty->ast = (Ast*)proto;
   Type_TypeSet* ty_set = typeset_create(&potential_type, proto->id);
@@ -1022,7 +1022,7 @@ visit_control_proto(Ast* ast)
       while (li) {
         Ast* param = li->object;
         visit_param(param);
-        Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
+        Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = params_ty;
         product_ty->rhs_ty = (Type*)typeset_get(&potential_type, param->id);
@@ -1046,7 +1046,7 @@ visit_extern(Ast* ast)
   assert(ast->kind == AST_externDeclaration);
   Ast_ExternType* extern_decl = (Ast_ExternType*)ast;
   Ast_Name* name = (Ast_Name*)extern_decl->name;
-  Type_TypeName* extern_ty = arena_push_struct(type_storage, Type_TypeName);
+  Type_TypeName* extern_ty = arena_malloc(type_storage, Type_TypeName);
   extern_ty->ctor = TYPE_TYPENAME;
   extern_ty->ast = (Ast*)extern_decl;
   extern_ty->strname = name->strname;
@@ -1088,7 +1088,7 @@ visit_struct(Ast* ast)
       while (li) {
         Ast* field = li->object;
         visit_struct_field(field);
-        Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
+        Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = fields_ty;
         product_ty->rhs_ty = (Type*)typeset_get(&potential_type, field->id);
@@ -1120,7 +1120,7 @@ visit_header(Ast* ast)
       while (li) {
         Ast* field = li->object;
         visit_struct_field(field);
-        Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
+        Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = fields_ty;
         product_ty->rhs_ty = (Type*)typeset_get(&potential_type, field->id);
@@ -1152,7 +1152,7 @@ visit_header_union(Ast* ast)
       while (li) {
         Ast* field = li->object;
         visit_struct_field(field);
-        Type_Union* union_ty = arena_push_struct(type_storage, Type_Union);
+        Type_Union* union_ty = arena_malloc(type_storage, Type_Union);
         union_ty->ctor = TYPE_UNION;
         union_ty->lhs_ty = fields_ty;
         union_ty->rhs_ty = (Type*)typeset_get(&potential_type, field->id);
@@ -1172,7 +1172,7 @@ visit_package(Ast* ast)
   assert(ast->kind == AST_packageTypeDeclaration);
   Ast_PackageTypeDeclaration* package_decl = (Ast_PackageTypeDeclaration*)ast;
   Ast_Name* name = (Ast_Name*)package_decl->name;
-  Type_TypeName* package_ty = arena_push_struct(type_storage, Type_TypeName);
+  Type_TypeName* package_ty = arena_malloc(type_storage, Type_TypeName);
   package_ty->ctor = TYPE_TYPENAME;
   package_ty->ast = (Ast*)package_decl;
   package_ty->strname = name->strname;
@@ -1234,7 +1234,7 @@ visit_parser_proto(Ast* ast)
 {
   assert(ast->kind == AST_parserTypeDeclaration);
   Ast_ParserPrototype* proto = (Ast_ParserPrototype*)ast;
-  Type_Function* parser_ty = arena_push_struct(type_storage, Type_Function);
+  Type_Function* parser_ty = arena_malloc(type_storage, Type_Function);
   parser_ty->ctor = TYPE_FUNCTION;
   parser_ty->ast = (Ast*)proto;
   Type_TypeSet* ty_set = typeset_create(&potential_type, proto->id);
@@ -1258,7 +1258,7 @@ visit_parser_proto(Ast* ast)
       while (li) {
         Ast* param = li->object;
         visit_param(param);
-        Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
+        Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = params_ty;
         product_ty->rhs_ty = (Type*)typeset_get(&potential_type, param->id);
@@ -1282,7 +1282,7 @@ visit_instantiation(Ast* ast)
   assert(ast->kind == AST_instantiation);
   Ast_Instantiation* inst_decl = (Ast_Instantiation*)ast;
   visit_type_ref(inst_decl->type);
-  Type_FunctionCall* inst_ty = arena_push_struct(type_storage, Type_FunctionCall);
+  Type_FunctionCall* inst_ty = arena_malloc(type_storage, Type_FunctionCall);
   inst_ty->ctor = TYPE_FUNCTION_CALL;
   inst_ty->ast = (Ast*)inst_decl;
   Type_TypeSet* ty_set = typeset_create(&potential_type, inst_decl->id);
@@ -1299,7 +1299,7 @@ visit_instantiation(Ast* ast)
       while (li) {
         Ast* arg = li->object;
         visit_expression(arg);
-        Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
+        Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = args_ty;
         product_ty->rhs_ty = (Type*)typeset_get(&potential_type, arg->id);
@@ -1354,7 +1354,7 @@ visit_function_proto(Ast* ast)
 {
   assert(ast->kind == AST_functionPrototype);
   Ast_FunctionPrototype* proto = (Ast_FunctionPrototype*)ast;
-  Type_Function* function_ty = arena_push_struct(type_storage, Type_Function);
+  Type_Function* function_ty = arena_malloc(type_storage, Type_Function);
   function_ty->ctor = TYPE_FUNCTION;
   function_ty->ast = (Ast*)proto;
   Type_TypeSet* ty_set = typeset_create(&potential_type, proto->id);
@@ -1382,7 +1382,7 @@ visit_function_proto(Ast* ast)
       while (li) {
         Ast* param = li->object;
         visit_param(param);
-        Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
+        Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = params_ty;
         product_ty->rhs_ty = (Type*)typeset_get(&potential_type, param->id);
@@ -1418,7 +1418,7 @@ visit_enum(Ast* ast)
   assert(ast->kind == AST_enumDeclaration);
   Ast_Enum* enum_decl = (Ast_Enum*)ast;
   Ast_Name* name = (Ast_Name*)enum_decl->name;
-  Type_TypeName* enum_ty = arena_push_struct(type_storage, Type_TypeName);
+  Type_TypeName* enum_ty = arena_malloc(type_storage, Type_TypeName);
   enum_ty->ctor = TYPE_TYPENAME;
   enum_ty->strname = name->strname;
   enum_ty->ast = (Ast*)enum_decl;
@@ -1432,7 +1432,7 @@ visit_action(Ast* ast)
 {
   assert(ast->kind == AST_actionDeclaration);
   Ast_ActionDeclaration* action_decl = (Ast_ActionDeclaration*)ast;
-  Type_Function* function_ty = arena_push_struct(type_storage, Type_Function);
+  Type_Function* function_ty = arena_malloc(type_storage, Type_Function);
   function_ty->ctor = TYPE_FUNCTION;
   function_ty->ast = (Ast*)action_decl;
   Type_TypeSet* ty_set = typeset_create(&potential_type, action_decl->id);
@@ -1449,7 +1449,7 @@ visit_action(Ast* ast)
       while (li) {
         Ast* param = li->object;
         visit_param(param);
-        Type_Product* product_ty = arena_push_struct(type_storage, Type_Product);
+        Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
         product_ty->lhs_ty = params_ty;
         product_ty->rhs_ty = (Type*)typeset_get(&potential_type, param->id);
@@ -1576,7 +1576,7 @@ build_potential_type(Ast_P4Program* p4program, Scope* root_scope_, Arena* type_s
     Ast* void_decl = scope_lookup_name(root_scope, "void")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_type, void_decl->id);
     ty_set->ast = void_decl;
-    Type* void_ty = arena_push_struct(type_storage, Type);
+    Type* void_ty = arena_malloc(type_storage, Type);
     void_ty->ctor = TYPE_VOID;
     void_ty->ast = void_decl;
     typeset_add_type(ty_set, void_ty);
@@ -1585,7 +1585,7 @@ build_potential_type(Ast_P4Program* p4program, Scope* root_scope_, Arena* type_s
     Ast* bool_decl = scope_lookup_name(root_scope, "bool")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_type, bool_decl->id);
     ty_set->ast = bool_decl;
-    Type* bool_ty = arena_push_struct(type_storage, Type);
+    Type* bool_ty = arena_malloc(type_storage, Type);
     bool_ty->ctor = TYPE_BOOL;
     bool_ty->ast = bool_decl;
     typeset_add_type(ty_set, bool_ty);
@@ -1594,7 +1594,7 @@ build_potential_type(Ast_P4Program* p4program, Scope* root_scope_, Arena* type_s
     Ast* int_decl = scope_lookup_name(root_scope, "int")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_type, int_decl->id);
     ty_set->ast = int_decl;
-    Type* int_ty = arena_push_struct(type_storage, Type);
+    Type* int_ty = arena_malloc(type_storage, Type);
     int_ty->ctor = TYPE_INT;
     int_ty->ast = int_decl;
     typeset_add_type(ty_set, int_ty);
@@ -1603,7 +1603,7 @@ build_potential_type(Ast_P4Program* p4program, Scope* root_scope_, Arena* type_s
     Ast* bit_decl = scope_lookup_name(root_scope, "bit")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_type, bit_decl->id);
     ty_set->ast = bit_decl;
-    Type* bit_ty = arena_push_struct(type_storage, Type);
+    Type* bit_ty = arena_malloc(type_storage, Type);
     bit_ty->ctor = TYPE_BIT;
     bit_ty->ast = bit_decl;
     typeset_add_type(ty_set, bit_ty);
@@ -1612,7 +1612,7 @@ build_potential_type(Ast_P4Program* p4program, Scope* root_scope_, Arena* type_s
     Ast* varbit_decl = scope_lookup_name(root_scope, "varbit")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_type, varbit_decl->id);
     ty_set->ast = varbit_decl;
-    Type* varbit_ty = arena_push_struct(type_storage, Type);
+    Type* varbit_ty = arena_malloc(type_storage, Type);
     varbit_ty->ctor = TYPE_VARBIT;
     varbit_ty->ast = varbit_decl;
     typeset_add_type(ty_set, varbit_ty);
@@ -1621,7 +1621,7 @@ build_potential_type(Ast_P4Program* p4program, Scope* root_scope_, Arena* type_s
     Ast* string_decl = scope_lookup_name(root_scope, "string")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_type, string_decl->id);
     ty_set->ast = string_decl;
-    Type* string_ty = arena_push_struct(type_storage, Type);
+    Type* string_ty = arena_malloc(type_storage, Type);
     string_ty->ctor = TYPE_STRING;
     string_ty->ast = string_decl;
     typeset_add_type(ty_set, string_ty);
@@ -1630,7 +1630,7 @@ build_potential_type(Ast_P4Program* p4program, Scope* root_scope_, Arena* type_s
     Ast* error_decl = scope_lookup_name(root_scope, "error")->ns_type->ast;
     Type_TypeSet* ty_set = typeset_create(&potential_type, error_decl->id);
     ty_set->ast = error_decl;
-    Type* error_ty = arena_push_struct(type_storage, Type);
+    Type* error_ty = arena_malloc(type_storage, Type);
     error_ty->ctor = TYPE_ERROR;
     error_ty->ast = error_decl;
     typeset_add_type(ty_set, error_ty);

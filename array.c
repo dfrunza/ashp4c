@@ -60,7 +60,7 @@ array_append(UnboundedArray* array, void* elem)
       exit(1);
     }
     int segment_capacity = (1 << segment_index);
-    array->segment_table[segment_index] = arena_push(array->storage, segment_capacity * array->elem_size);
+    array->segment_table[segment_index] = arena_malloc(array->storage, segment_capacity * array->elem_size);
     array->capacity += segment_capacity;
   }
   array->elem_count += 1;

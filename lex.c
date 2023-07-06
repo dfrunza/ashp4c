@@ -88,7 +88,7 @@ internal char*
 lexeme_to_cstring(Lexeme* lexeme)
 {
   int len = lexeme_len(lexeme);
-  char* string = arena_push(lexeme_storage, (len + 1)*sizeof(char));   // +1 the NULL terminator
+  char* string = arena_malloc(lexeme_storage, (len + 1)*sizeof(char));   // +1 the NULL terminator
   lexeme_copy(string, lexeme);
   string[len] = '\0';
   return string;

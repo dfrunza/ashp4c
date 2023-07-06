@@ -7,7 +7,7 @@
 void
 tyset_add_type(Arena *type_storage, TypeSet* set, Type* type)
 {
-  ListItem* new_li = arena_push_struct(type_storage, ListItem);
+  ListItem* new_li = arena_malloc(type_storage, ListItem);
   new_li->object = type;
   list_append_item(&set->members, new_li, 1);
 }

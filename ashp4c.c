@@ -22,7 +22,7 @@ read_source(char** text_, int* text_size_, char* filename, Arena* text_storage)
   fseek(f_stream, 0, SEEK_END);
   int text_size = ftell(f_stream);
   fseek(f_stream, 0, SEEK_SET);
-  char* text = arena_push(text_storage, (text_size + 1)*sizeof(char));
+  char* text = arena_malloc(text_storage, (text_size + 1)*sizeof(char));
   fread(text, sizeof(char), text_size, f_stream);
   text[text_size] = '\0';
   fclose(f_stream);
@@ -74,7 +74,7 @@ parse_cmdline_args(int arg_count, char* args[])
   CmdlineArg* prev_arg = &sentinel_arg;
   int i = 1;
   while (i < arg_count) {
-    CmdlineArg* cmdline_arg = arena_push_struct(&main_storage, sizeof(*cmdline_arg));
+    CmdlineArg* cmdline_arg = arena_malloc(&main_storage, sizeof(*cmdline_arg));
     if (cstr_start_with(args[i], "--")) {
       char* raw_arg = args[i] + 2;  /* skip the `--` prefix */
       cmdline_arg->name = raw_arg;
@@ -92,7 +92,7 @@ parse_cmdline_args(int arg_count, char* args[])
 int
 main(int arg_count, char* args[])
 {
-  alloc_memory(500*KILOBYTE);
+  reserve_page_memory(250*KILOBYTE);
 
   CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
   CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);

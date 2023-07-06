@@ -41,16 +41,8 @@ typedef struct Arena {
   void* memory_limit;
 } Arena;
 
-void alloc_memory(int memory_amount);
-void* arena_push(Arena* arena, uint32_t size);
-void* arena_push_struct(Arena* arena, uint32_t size);
-#if 0
-#define arena_push_struct(ARENA, TYPE) ({ \
-  TYPE* o = arena_push(ARENA, sizeof(TYPE)); \
-  memset(o, 0, sizeof(TYPE)); \
-  o; \
-})
-#endif
+void reserve_page_memory(int memory_amount);
+void* arena_malloc(Arena* arena, uint32_t size);
 void arena_delete(Arena* arena);
 
 typedef struct ListItem {

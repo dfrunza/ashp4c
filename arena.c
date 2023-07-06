@@ -12,13 +12,13 @@
 internal int page_size = 0;
 internal int total_page_count = 0;
 internal void* page_memory_start = 0;
-internal Arena pageblock_storage = {};
+internal Arena storage = {};
 internal PageBlock* first_block = 0;
 internal PageBlock* block_freelist_head = 0;
 internal PageBlock* recycled_block_structs = 0;
 
 void
-alloc_memory(int memory_amount)
+reserve_page_memory(int memory_amount)
 {
   page_size = getpagesize();
   total_page_count = ceil(memory_amount / page_size);
@@ -41,9 +41,9 @@ alloc_memory(int memory_amount)
   block_freelist_head->memory_begin = first_block->memory_end;
   block_freelist_head->memory_end = block_freelist_head->memory_begin + ((total_page_count - 1) * page_size);
 
-  pageblock_storage.owned_pages = first_block;
-  pageblock_storage.memory_avail = first_block->memory_begin + sizeof(*first_block) + sizeof(*block_freelist_head);
-  pageblock_storage.memory_limit = first_block->memory_end;
+  storage.owned_pages = first_block;
+  storage.memory_avail = first_block->memory_begin + sizeof(*first_block) + sizeof(*block_freelist_head);
+  storage.memory_limit = first_block->memory_end;
 }
 
 internal PageBlock*
@@ -147,59 +147,57 @@ get_new_block_struct()
   if (block) {
     recycled_block_structs = block->next_block;
   } else {
-    block = arena_push(&pageblock_storage, sizeof(*block));
+    block = arena_malloc(&storage, sizeof(*block));
   }
   memset(block, 0, sizeof(*block));
   return block;
 }
 
-void*
-arena_push(Arena* arena, uint32_t size)
+internal void
+arena_grow(Arena* arena, uint32_t size)
 {
-  assert (size > 0);
-  uint8_t* client_memory = arena->memory_avail;
-  if (client_memory + size >= (uint8_t*)arena->memory_limit) {
-    PageBlock* free_block = find_block_first_fit(size);
-    if (!free_block) {
-      printf("\nOut of memory.\n");
-      exit(1);
-    }
-    uint8_t* alloc_memory_begin = 0, *alloc_memory_end = 0;
-    int size_in_page_multiples = (size + page_size - 1) & ~(page_size - 1);
-    if (size_in_page_multiples < (free_block->memory_end - free_block->memory_begin)) {
-      alloc_memory_begin = free_block->memory_begin;
-      alloc_memory_end = alloc_memory_begin + size_in_page_multiples;
-      free_block->memory_begin = alloc_memory_end;
-    } else if (size_in_page_multiples == (free_block->memory_end - free_block->memory_begin)) {
-      alloc_memory_begin = free_block->memory_begin;
-      alloc_memory_end = free_block->memory_end;
-      free_block->memory_begin = alloc_memory_end;
-    } else assert (0);
-
-    if (mprotect(alloc_memory_begin, alloc_memory_end - alloc_memory_begin, PROT_READ|PROT_WRITE) != 0) {
-      perror("mprotect");
-      exit(1);
-    }
-    arena->memory_avail = alloc_memory_begin;
-    arena->memory_limit = alloc_memory_end;
-
-    PageBlock* alloc_block = get_new_block_struct();
-    alloc_block->memory_begin = alloc_memory_begin;
-    alloc_block->memory_end = alloc_memory_end;
-    arena->owned_pages = block_insert_and_coalesce(arena->owned_pages, alloc_block);
-
-    client_memory = arena->memory_avail;
+  PageBlock* free_block = find_block_first_fit(size);
+  if (!free_block) {
+    printf("\nOut of memory.\n");
+    exit(1);
   }
-  arena->memory_avail = client_memory + size;
-  return client_memory;
+  uint8_t* alloc_memory_begin = 0, *alloc_memory_end = 0;
+  int size_in_page_multiples = (size + page_size - 1) & ~(page_size - 1);
+  if (size_in_page_multiples < (free_block->memory_end - free_block->memory_begin)) {
+    alloc_memory_begin = free_block->memory_begin;
+    alloc_memory_end = alloc_memory_begin + size_in_page_multiples;
+    free_block->memory_begin = alloc_memory_end;
+  } else if (size_in_page_multiples == (free_block->memory_end - free_block->memory_begin)) {
+    alloc_memory_begin = free_block->memory_begin;
+    alloc_memory_end = free_block->memory_end;
+    free_block->memory_begin = alloc_memory_end;
+  } else assert (0);
+
+  if (mprotect(alloc_memory_begin, alloc_memory_end - alloc_memory_begin, PROT_READ|PROT_WRITE) != 0) {
+    perror("mprotect");
+    exit(1);
+  }
+  arena->memory_avail = alloc_memory_begin;
+  arena->memory_limit = alloc_memory_end;
+
+  PageBlock* alloc_block = get_new_block_struct();
+  alloc_block->memory_begin = alloc_memory_begin;
+  alloc_block->memory_end = alloc_memory_end;
+  arena->owned_pages = block_insert_and_coalesce(arena->owned_pages, alloc_block);
 }
 
 void*
-arena_push_struct(Arena* arena, uint32_t size)
+arena_malloc(Arena* arena, uint32_t size)
 {
-  void* result = arena_push(arena, size);
-  memset(result, 0, size);
-  return result;
+  assert (size > 0);
+  uint8_t* user_memory = arena->memory_avail;
+  if (user_memory + size >= (uint8_t*)arena->memory_limit) {
+    arena_grow(arena, size);
+    user_memory = arena->memory_avail;
+  }
+  arena->memory_avail = user_memory + size;
+  memset(user_memory, 0, size);
+  return user_memory;
 }
 
 void

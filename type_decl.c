@@ -233,7 +233,7 @@ visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* package_decl)
 {
   assert(package_decl->kind == AST_packageTypeDeclaration);
   Ast_Name* name = (Ast_Name*)package_decl->name;
-  Type_Type* package_ty = arena_push_struct(storage, sizeof(*package_ty));
+  Type_Type* package_ty = arena_malloc(storage, sizeof(*package_ty));
   package_ty->ctor = TYPE_TYPE;
   package_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, package_decl->id);
@@ -272,7 +272,7 @@ visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* parser_decl)
 {
   assert(parser_decl->kind == AST_parserTypeDeclaration);
   Ast_Name* name = (Ast_Name*)parser_decl->name;
-  Type_Type* parser_ty = arena_push_struct(storage, sizeof(*parser_ty));
+  Type_Type* parser_ty = arena_malloc(storage, sizeof(*parser_ty));
   parser_ty->ctor = TYPE_TYPE;
   parser_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, parser_decl->id);
@@ -461,7 +461,7 @@ visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* control_decl)
 {
   assert(control_decl->kind == AST_controlTypeDeclaration);
   Ast_Name* name = (Ast_Name*)control_decl->name;
-  Type_Type* control_ty = arena_push_struct(storage, sizeof(*control_ty));
+  Type_Type* control_ty = arena_malloc(storage, sizeof(*control_ty));
   control_ty->ctor = TYPE_TYPE;
   control_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, control_decl->id);
@@ -515,7 +515,7 @@ visit_externTypeDeclaration(Ast_ExternTypeDeclaration* extern_decl)
 {
   assert(extern_decl->kind == AST_externTypeDeclaration);
   Ast_Name* name = (Ast_Name*)extern_decl->name;
-  Type_Type* extern_ty = arena_push_struct(storage, sizeof(*extern_ty));
+  Type_Type* extern_ty = arena_malloc(storage, sizeof(*extern_ty));
   extern_ty->ctor = TYPE_TYPE;
   extern_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, extern_decl->id);
@@ -544,7 +544,7 @@ visit_functionPrototype(Ast_FunctionPrototype* func_proto)
     visit_typeRef((Ast_TypeRef*)func_proto->return_type);
   }
   Ast_Name* name = (Ast_Name*)func_proto->name;
-  Type_Function* func_ty = arena_push_struct(storage, sizeof(*func_ty));
+  Type_Function* func_ty = arena_malloc(storage, sizeof(*func_ty));
   func_ty->ctor = TYPE_FUNCTION;
   func_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, func_proto->id);
@@ -599,7 +599,7 @@ visit_headerStackType(Ast_HeaderStackType* hdrstack_decl)
 {
   assert(hdrstack_decl->kind == AST_headerStackType);
   Ast_Name* name = (Ast_Name*)hdrstack_decl->name;
-  Type_Type* header_ty = arena_push_struct(storage, sizeof(*header_ty));
+  Type_Type* header_ty = arena_malloc(storage, sizeof(*header_ty));
   header_ty->ctor = TYPE_TYPE;
   header_ty->strname = name->strname;
   visit_expression((Ast_Expression*)hdrstack_decl->stack_expr);
@@ -767,7 +767,7 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
   Ast_Name* name = (Ast_Name*)header_decl->name;
-  Type_Type* header_ty = arena_push_struct(storage, sizeof(*header_ty));
+  Type_Type* header_ty = arena_malloc(storage, sizeof(*header_ty));
   header_ty->ctor = TYPE_TYPE;
   header_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, header_decl->id);
@@ -788,7 +788,7 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
   Ast_Name* name = (Ast_Name*)struct_decl->name;
-  Type_Type* struct_ty = arena_push_struct(storage, sizeof(*struct_ty));
+  Type_Type* struct_ty = arena_malloc(storage, sizeof(*struct_ty));
   struct_ty->ctor = TYPE_TYPE;
   struct_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, struct_decl->id);

@@ -42,7 +42,7 @@ declslot_push_decl(Arena* storage, Hashmap* name_table, NameDecl* decl, enum Nam
   HashmapEntry* he = hashmap_get_entry_stringk(name_table, decl->strname);
   DeclSlot* decl_slot = he->object;
   if (!decl_slot) {
-    decl_slot = arena_push_struct(storage, sizeof(*decl_slot));
+    decl_slot = arena_malloc(storage, sizeof(*decl_slot));
     he->object = decl_slot;
   }
   decl->next_in_slot = decl_slot->decls[ns];
