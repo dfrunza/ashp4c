@@ -1014,7 +1014,6 @@ enum TypeEnum {
   TYPE_TYPE,
   TYPE_TYPEDEF,
   TYPE_PRODUCT,
-  TYPE_UNION,
   TYPE_FUNCTION,
   TYPE_ARRAY,
 };
@@ -1045,11 +1044,6 @@ typedef struct Type_Product {
   Type;
   List members;
 } Type_Product;
-
-typedef struct Type_Union {
-  Type;
-  List members;
-} Type_Union;
 
 typedef struct Type_Function {
   Type;
