@@ -554,6 +554,7 @@ visit_functionPrototype(Ast_FunctionPrototype* func_proto)
   if (func_proto->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)func_proto->type_params);
   }
+  visit_parameterList((Ast_ParameterList*)func_proto->params);
 }
 
 /** TYPES **/

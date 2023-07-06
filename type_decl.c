@@ -18,7 +18,7 @@ internal void visit_p4program(Ast_P4Program* p4program);
 internal void visit_declarationList(Ast_DeclarationList* decl_list);
 internal void visit_declaration(Ast_Declaration* decl);
 internal void visit_name(Ast_Name* name);
-internal void visit_parameterList(Ast_ParameterList* params);
+internal Type* visit_parameterList(Ast_ParameterList* params);
 internal void visit_parameter(Ast_Parameter* param);
 internal void visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* package_decl);
 internal void visit_instantiation(Ast_Instantiation* inst);
@@ -76,7 +76,7 @@ internal void visit_typeParameterList(Ast_TypeParameterList* param_list);
 internal void visit_realTypeArg(Ast_RealTypeArg* type_arg);
 internal void visit_typeArg(Ast_TypeArg* type_arg);
 internal void visit_realTypeArgumentList(Ast_RealTypeArgumentList* arg_list);
-internal void visit_typeArgumentList(Ast_TypeArgumentList* arg_list);
+internal Type* visit_typeArgumentList(Ast_TypeArgumentList* arg_list);
 internal void visit_typeDeclaration(Ast_TypeDeclaration* type_decl);
 internal void visit_derivedTypeDeclaration(Ast_DerivedTypeDeclaration* type_decl);
 internal void visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl);
@@ -206,7 +206,7 @@ visit_name(Ast_Name* name)
   assert(name->kind == AST_name);
 }
 
-internal void
+internal Type*
 visit_parameterList(Ast_ParameterList* params)
 {
   assert(params->kind == AST_parameterList);
@@ -214,6 +214,7 @@ visit_parameterList(Ast_ParameterList* params)
         li != 0; li = li->next) {
     visit_parameter((Ast_Parameter*)li->object);
   }
+  return 0;
 }
 
 internal void
@@ -232,7 +233,7 @@ visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* package_decl)
 {
   assert(package_decl->kind == AST_packageTypeDeclaration);
   Ast_Name* name = (Ast_Name*)package_decl->name;
-  Type_Type* package_ty = arena_push_struct(storage, Type_Type);
+  Type_Type* package_ty = arena_push_struct(storage, sizeof(*package_ty));
   package_ty->ctor = TYPE_TYPE;
   package_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, package_decl->id);
@@ -267,14 +268,19 @@ visit_parserDeclaration(Ast_ParserDeclaration* parser_decl)
 }
 
 internal void
-visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* type_decl)
+visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* parser_decl)
 {
-  assert(type_decl->kind == AST_parserTypeDeclaration);
-  visit_name((Ast_Name*)type_decl->name);
-  if (type_decl->type_params) {
-    visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
+  assert(parser_decl->kind == AST_parserTypeDeclaration);
+  Ast_Name* name = (Ast_Name*)parser_decl->name;
+  Type_Type* parser_ty = arena_push_struct(storage, sizeof(*parser_ty));
+  parser_ty->ctor = TYPE_TYPE;
+  parser_ty->strname = name->strname;
+  HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, parser_decl->id);
+  type_he->object = parser_ty;
+  if (parser_decl->type_params) {
+    visit_typeParameterList((Ast_TypeParameterList*)parser_decl->type_params);
   }
-  visit_parameterList((Ast_ParameterList*)type_decl->params);
+  visit_parameterList((Ast_ParameterList*)parser_decl->params);
 }
 
 internal void
@@ -451,14 +457,19 @@ visit_controlDeclaration(Ast_ControlDeclaration* control_decl)
 }
 
 internal void
-visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* type_decl)
+visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* control_decl)
 {
-  assert(type_decl->kind == AST_controlTypeDeclaration);
-  visit_name((Ast_Name*)type_decl->name);
-  if (type_decl->type_params) {
-    visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
+  assert(control_decl->kind == AST_controlTypeDeclaration);
+  Ast_Name* name = (Ast_Name*)control_decl->name;
+  Type_Type* control_ty = arena_push_struct(storage, sizeof(*control_ty));
+  control_ty->ctor = TYPE_TYPE;
+  control_ty->strname = name->strname;
+  HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, control_decl->id);
+  type_he->object = control_ty;
+  if (control_decl->type_params) {
+    visit_typeParameterList((Ast_TypeParameterList*)control_decl->type_params);
   }
-  visit_parameterList((Ast_ParameterList*)type_decl->params);
+  visit_parameterList((Ast_ParameterList*)control_decl->params);
 }
 
 internal void
@@ -500,14 +511,19 @@ visit_externDeclaration(Ast_ExternDeclaration* extern_decl)
 }
 
 internal void
-visit_externTypeDeclaration(Ast_ExternTypeDeclaration* type_decl)
+visit_externTypeDeclaration(Ast_ExternTypeDeclaration* extern_decl)
 {
-  assert(type_decl->kind == AST_externTypeDeclaration);
-  visit_name((Ast_Name*)type_decl->name);
-  if (type_decl->type_params) {
-    visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
+  assert(extern_decl->kind == AST_externTypeDeclaration);
+  Ast_Name* name = (Ast_Name*)extern_decl->name;
+  Type_Type* extern_ty = arena_push_struct(storage, sizeof(*extern_ty));
+  extern_ty->ctor = TYPE_TYPE;
+  extern_ty->strname = name->strname;
+  HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, extern_decl->id);
+  type_he->object = extern_ty;
+  if (extern_decl->type_params) {
+    visit_typeParameterList((Ast_TypeParameterList*)extern_decl->type_params);
   }
-  visit_methodPrototypes((Ast_MethodPrototypes*)type_decl->method_protos);
+  visit_methodPrototypes((Ast_MethodPrototypes*)extern_decl->method_protos);
 }
 
 internal void
@@ -527,10 +543,16 @@ visit_functionPrototype(Ast_FunctionPrototype* func_proto)
   if (func_proto->return_type) {
     visit_typeRef((Ast_TypeRef*)func_proto->return_type);
   }
-  visit_name((Ast_Name*)func_proto->name);
+  Ast_Name* name = (Ast_Name*)func_proto->name;
+  Type_Function* func_ty = arena_push_struct(storage, sizeof(*func_ty));
+  func_ty->ctor = TYPE_FUNCTION;
+  func_ty->strname = name->strname;
+  HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, func_proto->id);
+  type_he->object = func_proto;
   if (func_proto->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)func_proto->type_params);
   }
+  func_ty->params_ty = visit_parameterList((Ast_ParameterList*)func_proto->params);
 }
 
 /** TYPES **/
@@ -565,26 +587,30 @@ visit_typeRef(Ast_TypeRef* type_ref)
 }
 
 internal void
-visit_tupleType(Ast_TupleType* type)
+visit_tupleType(Ast_TupleType* tuple_decl)
 {
-  assert(type->kind == AST_tupleType);
-  visit_typeArgumentList((Ast_TypeArgumentList*)type->type_args);
+  assert(tuple_decl->kind == AST_tupleType);
+  HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, tuple_decl->id);
+  type_he->object = visit_typeArgumentList((Ast_TypeArgumentList*)tuple_decl->type_args);
 }
 
 internal void
-visit_headerStackType(Ast_HeaderStackType* type_decl)
+visit_headerStackType(Ast_HeaderStackType* hdrstack_decl)
 {
-  assert(type_decl->kind == AST_headerStackType);
-  visit_name((Ast_Name*)type_decl->name);
-  visit_expression((Ast_Expression*)type_decl->stack_expr);
+  assert(hdrstack_decl->kind == AST_headerStackType);
+  Ast_Name* name = (Ast_Name*)hdrstack_decl->name;
+  Type_Type* header_ty = arena_push_struct(storage, sizeof(*header_ty));
+  header_ty->ctor = TYPE_TYPE;
+  header_ty->strname = name->strname;
+  visit_expression((Ast_Expression*)hdrstack_decl->stack_expr);
 }
 
 internal void
-visit_specializedType(Ast_SpecializedType* type_decl)
+visit_specializedType(Ast_SpecializedType* header_decl)
 {
-  assert(type_decl->kind == AST_specializedType);
-  visit_name((Ast_Name*)type_decl->name);
-  visit_typeArgumentList((Ast_TypeArgumentList*)type_decl->type_args);
+  assert(header_decl->kind == AST_specializedType);
+  visit_name((Ast_Name*)header_decl->name);
+  visit_typeArgumentList((Ast_TypeArgumentList*)header_decl->type_args);
 }
 
 internal void
@@ -693,7 +719,7 @@ visit_realTypeArgumentList(Ast_RealTypeArgumentList* arg_list)
   }
 }
 
-internal void
+internal Type*
 visit_typeArgumentList(Ast_TypeArgumentList* arg_list)
 {
   assert(arg_list->kind == AST_typeArgumentList);
@@ -701,6 +727,7 @@ visit_typeArgumentList(Ast_TypeArgumentList* arg_list)
         li != 0; li = li->next) {
     visit_typeArg((Ast_TypeArg*)li->object);
   }
+  return 0;
 }
 
 internal void
@@ -739,7 +766,12 @@ internal void
 visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
-  visit_name((Ast_Name*)header_decl->name);
+  Ast_Name* name = (Ast_Name*)header_decl->name;
+  Type_Type* header_ty = arena_push_struct(storage, sizeof(*header_ty));
+  header_ty->ctor = TYPE_TYPE;
+  header_ty->strname = name->strname;
+  HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, header_decl->id);
+  type_he->object = header_ty;
   visit_structFieldList((Ast_StructFieldList*)header_decl->fields);
 }
 
@@ -756,7 +788,7 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
   Ast_Name* name = (Ast_Name*)struct_decl->name;
-  Type_Type* struct_ty = arena_push_struct(storage, Type_Type);
+  Type_Type* struct_ty = arena_push_struct(storage, sizeof(*struct_ty));
   struct_ty->ctor = TYPE_TYPE;
   struct_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, struct_decl->id);

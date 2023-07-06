@@ -194,6 +194,14 @@ arena_push(Arena* arena, uint32_t size)
   return client_memory;
 }
 
+void*
+arena_push_struct(Arena* arena, uint32_t size)
+{
+  void* result = arena_push(arena, size);
+  memset(result, 0, size);
+  return result;
+}
+
 void
 arena_delete(Arena* arena)
 {
