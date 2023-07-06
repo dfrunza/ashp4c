@@ -294,9 +294,11 @@ typedef struct Scope {
   Hashmap decls;
 } Scope;
 
+typedef uint32_t AstId;
+
 typedef struct Ast {
   enum AstEnum kind;
-  uint32_t id;
+  AstId ast_id;
   int line_no;
   int column_no;
 } Ast;
@@ -985,11 +987,10 @@ typedef enum NameSpace {
 
 typedef struct NameDecl {
   union {
+    Ast ast;
     enum TokenClass token_class;
   };
   char* strname;
-  int line_no;
-  int column_no;
   struct NameDecl* next_in_slot;
 } NameDecl;
 
@@ -999,7 +1000,8 @@ typedef struct DeclSlot {
 
 Scope* scope_push(Scope* scope, Scope* parent_scope);
 Scope* scope_pop(Scope* scope);
-DeclSlot* scope_lookup_name(Scope* scope, char* name);
+DeclSlot* scope_lookup_any(Scope* scope, char* name);
+DeclSlot* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
 DeclSlot* declslot_push_decl(Arena* storage, Hashmap* name_table, NameDecl* decl, enum NameSpace ns);
 
 enum TypeEnum {

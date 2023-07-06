@@ -20,7 +20,7 @@ scope_pop(Scope* scope)
 }
 
 DeclSlot*
-scope_lookup_name(Scope* scope, char* strname)
+scope_lookup_any(Scope* scope, char* strname)
 {
   DeclSlot* decl_slot = 0;
   while (scope) {
@@ -28,6 +28,23 @@ scope_lookup_name(Scope* scope, char* strname)
     if (he && he->object) {
       decl_slot = (DeclSlot*)he->object;
       if (decl_slot->decls[NS_TYPE] || decl_slot->decls[NS_VAR] || decl_slot->decls[NS_KEYWORD]) {
+        break;
+      }
+    }
+    scope = scope->parent_scope;
+  }
+  return decl_slot;
+}
+
+DeclSlot*
+scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
+{
+  DeclSlot* decl_slot = 0;
+  while (scope) {
+    HashmapEntry* he = hashmap_lookup_entry_stringk(&scope->decls, strname);
+    if (he && he->object) {
+      decl_slot = (DeclSlot*)he->object;
+      if (decl_slot->decls[ns]) {
         break;
       }
     }
@@ -51,7 +68,7 @@ declslot_push_decl(Arena* storage, Hashmap* name_table, NameDecl* decl, enum Nam
 }
 
 void
-Debug_print_namedecls(Scope* scope)
+Debug_scope_decls(Scope* scope)
 {
   int count = 0;
   HashmapCursor entry_it = {};
@@ -63,14 +80,14 @@ Debug_print_namedecls(Scope* scope)
     if (decl_slot->decls[NS_TYPE]) {
       NameDecl* decl = decl_slot->decls[NS_TYPE];
       while (decl) {
-        printf("%s  ...  at %d:%d\n", decl->strname, decl->line_no, decl->column_no);
+        printf("%s  ...  at %d:%d\n", decl->strname, decl->ast.line_no, decl->ast.column_no);
         decl = decl->next_in_slot;
         count += 1;
       }
     }
     if (decl_slot->decls[NS_VAR]) {
       NameDecl* decl = decl_slot->decls[NS_VAR];
-      printf("%s  ...  at %d:%d\n", decl->strname, decl->line_no, decl->column_no);
+      printf("%s  ...  at %d:%d\n", decl->strname, decl->ast.line_no, decl->ast.column_no);
       decl = decl->next_in_slot;
       count += 1;
     }

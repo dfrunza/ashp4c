@@ -1,4 +1,5 @@
 #include <memory.h>  // memset
+#include <stdio.h>
 #include <stdint.h>
 #include "foundation.h"
 
@@ -148,6 +149,38 @@ hashmap_lookup_entry_stringk(Hashmap* map, char* str_key)
   return he;
 }
 
+static void
+hashmap_grow(Hashmap* hashmap, HashmapKey* key)
+{
+  HashmapCursor entry_it = {};
+  hashmap_cursor_reset(&entry_it, hashmap);
+  HashmapEntry* first_entry = hashmap_move_cursor(&entry_it);
+  HashmapEntry* last_entry = first_entry;
+  int entry_count = first_entry ? 1 : 0;
+  for (HashmapEntry* entry = hashmap_move_cursor(&entry_it);
+        entry != 0; entry = hashmap_move_cursor(&entry_it)) {
+    last_entry->next_entry = entry;
+    last_entry = entry;
+    entry_count += 1;
+  }
+  assert (entry_count == hashmap->entry_count);
+  hashmap->capacity = (1 << ++hashmap->capacity_log2) - 1;
+  for (int i = hashmap->entry_count; i < hashmap->capacity; i++) {
+    array_append(&hashmap->entries, &NULL_ENTRY);
+  }
+  for (int i = 0; i < hashmap->capacity; i++) {
+    array_set(&hashmap->entries, i, &NULL_ENTRY);
+  }
+  for (HashmapEntry* entry = first_entry; entry != 0; ) {
+    HashmapEntry* next_entry = entry->next_entry;
+    hashmap_hash_key(hashmap->key_type, &entry->key, hashmap->capacity_log2);
+    entry->next_entry = *(HashmapEntry**)array_get(&hashmap->entries, entry->key.h);
+    array_set(&hashmap->entries, entry->key.h, &entry);
+    entry = next_entry;
+  }
+  hashmap_hash_key(hashmap->key_type, key, hashmap->capacity_log2);
+}
+
 HashmapEntry*
 hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
 {
@@ -156,33 +189,7 @@ hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
     return entry;
   }
   if (hashmap->entry_count >= hashmap->capacity) {
-    HashmapCursor entry_it = {};
-    hashmap_cursor_reset(&entry_it, hashmap);
-    HashmapEntry* first_entry = hashmap_move_cursor(&entry_it);
-    HashmapEntry* last_entry = first_entry;
-    int entry_count = first_entry ? 1 : 0;
-    for (HashmapEntry* entry = hashmap_move_cursor(&entry_it);
-         entry != 0; entry = hashmap_move_cursor(&entry_it)) {
-      last_entry->next_entry = entry;
-      last_entry = entry;
-      entry_count += 1;
-    }
-    assert (entry_count == hashmap->entry_count);
-    hashmap->capacity = (1 << ++hashmap->capacity_log2) - 1;
-    for (int i = hashmap->entry_count; i < hashmap->capacity; i++) {
-      array_append(&hashmap->entries, &NULL_ENTRY);
-    }
-    for (int i = 0; i < hashmap->capacity; i++) {
-      array_set(&hashmap->entries, i, &NULL_ENTRY);
-    }
-    for (HashmapEntry* entry = first_entry; entry != 0; ) {
-      HashmapEntry* next_entry = entry->next_entry;
-      hashmap_hash_key(hashmap->key_type, &entry->key, hashmap->capacity_log2);
-      entry->next_entry = *(HashmapEntry**)array_get(&hashmap->entries, entry->key.h);
-      array_set(&hashmap->entries, entry->key.h, &entry);
-      entry = next_entry;
-    }
-    hashmap_hash_key(hashmap->key_type, key, hashmap->capacity_log2);
+    hashmap_grow(hashmap, key);
   }
   entry = arena_malloc(hashmap->entries.storage, sizeof(*entry));
   entry->key = *key;
@@ -243,3 +250,18 @@ hashmap_move_cursor(HashmapCursor* it)
   return next_entry;
 }
 
+void
+Debug_hashmap_occupancy(Hashmap* hashmap)
+{
+  for (int i = 0; i < hashmap->capacity; i++) {
+    HashmapEntry* entry = *(HashmapEntry**)array_get(&hashmap->entries, i);
+    int entry_count = 0;
+    if (entry) {
+      while (entry) {
+        entry_count += 1;
+        entry = entry->next_entry;
+      }
+    }
+    printf("[%d] -> %d\n", i, entry_count);
+  }
+}
