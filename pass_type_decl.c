@@ -1375,7 +1375,7 @@ visit_dontcare(Ast_Dontcare* dontcare)
 }
 
 void
-pass_named_type(Ast_P4Program* p4program, Arena* _storage)
+pass_type_decl(Ast_P4Program* p4program, Arena* _storage)
 {
   storage = _storage;
   hashmap_create(&type_table, storage, HASHMAP_KEY_UINT32, 6);

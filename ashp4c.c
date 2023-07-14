@@ -112,7 +112,7 @@ main(int arg_count, char* args[])
 
   pass_node_id(p4program);
   pass_name_decl(p4program, &main_storage);
-  pass_named_type(p4program, &main_storage);
+  pass_type_decl(p4program, &main_storage);
 
   /*
   Hashmap* potential_type = build_potential_type(p4program, root_scope, &main_storage);
