@@ -977,6 +977,15 @@ typedef struct Ast_Default {
   Ast;
 } Ast_Default;
 
+typedef struct NameDecl {
+  union {
+    Ast ast;
+    enum TokenClass token_class;
+  };
+  char* strname;
+  struct NameDecl* next_in_scope;
+} NameDecl;
+
 typedef enum NameSpace {
   NS_VAR = 0,
   NS_TYPE,
@@ -985,24 +994,15 @@ typedef enum NameSpace {
   NameSpace_COUNT,
 } NameSpace;
 
-typedef struct NameDecl {
-  union {
-    Ast ast;
-    enum TokenClass token_class;
-  };
-  char* strname;
-  struct NameDecl* next_in_slot;
-} NameDecl;
-
-typedef struct DeclSlot {
-  NameDecl* decls[NameSpace_COUNT];
-} DeclSlot;
+typedef struct ScopeEntry {
+  NameDecl* ns[NameSpace_COUNT];
+} ScopeEntry;
 
 Scope* scope_push(Scope* scope, Scope* parent_scope);
 Scope* scope_pop(Scope* scope);
-DeclSlot* scope_lookup_any(Scope* scope, char* name);
-DeclSlot* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
-DeclSlot* declslot_push_decl(Arena* storage, Hashmap* name_table, NameDecl* decl, enum NameSpace ns);
+ScopeEntry* scope_lookup_any(Scope* scope, char* name);
+ScopeEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
+ScopeEntry* scope_push_decl(Arena* storage, Hashmap* decl_table, NameDecl* decl, enum NameSpace ns);
 
 enum TypeEnum {
   TYPE_VOID = 1,

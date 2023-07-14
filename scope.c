@@ -19,52 +19,52 @@ scope_pop(Scope* scope)
   return parent_scope;
 }
 
-DeclSlot*
+ScopeEntry*
 scope_lookup_any(Scope* scope, char* strname)
 {
-  DeclSlot* decl_slot = 0;
+  ScopeEntry* ns_entry = 0;
   while (scope) {
     HashmapEntry* he = hashmap_lookup_entry_stringk(&scope->decls, strname);
     if (he && he->object) {
-      decl_slot = (DeclSlot*)he->object;
-      if (decl_slot->decls[NS_TYPE] || decl_slot->decls[NS_VAR] || decl_slot->decls[NS_KEYWORD]) {
+      ns_entry = (ScopeEntry*)he->object;
+      if (ns_entry->ns[NS_TYPE] || ns_entry->ns[NS_VAR] || ns_entry->ns[NS_KEYWORD]) {
         break;
       }
     }
     scope = scope->parent_scope;
   }
-  return decl_slot;
+  return ns_entry;
 }
 
-DeclSlot*
+ScopeEntry*
 scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 {
-  DeclSlot* decl_slot = 0;
+  ScopeEntry* ns_entry = 0;
   while (scope) {
     HashmapEntry* he = hashmap_lookup_entry_stringk(&scope->decls, strname);
     if (he && he->object) {
-      decl_slot = (DeclSlot*)he->object;
-      if (decl_slot->decls[ns]) {
+      ns_entry = (ScopeEntry*)he->object;
+      if (ns_entry->ns[ns]) {
         break;
       }
     }
     scope = scope->parent_scope;
   }
-  return decl_slot;
+  return ns_entry;
 }
 
-DeclSlot*
-declslot_push_decl(Arena* storage, Hashmap* name_table, NameDecl* decl, enum NameSpace ns)
+ScopeEntry*
+scope_push_decl(Arena* storage, Hashmap* decl_table, NameDecl* decl, enum NameSpace ns)
 {
-  HashmapEntry* he = hashmap_get_entry_stringk(name_table, decl->strname);
-  DeclSlot* decl_slot = he->object;
-  if (!decl_slot) {
-    decl_slot = arena_malloc(storage, sizeof(*decl_slot));
-    he->object = decl_slot;
+  HashmapEntry* he = hashmap_get_entry_stringk(decl_table, decl->strname);
+  ScopeEntry* ns_entry = he->object;
+  if (!ns_entry) {
+    ns_entry = arena_malloc(storage, sizeof(*ns_entry));
+    he->object = ns_entry;
   }
-  decl->next_in_slot = decl_slot->decls[ns];
-  decl_slot->decls[ns] = decl;
-  return decl_slot;
+  decl->next_in_scope = ns_entry->ns[ns];
+  ns_entry->ns[ns] = decl;
+  return ns_entry;
 }
 
 void
@@ -76,19 +76,19 @@ Debug_scope_decls(Scope* scope)
   printf("Names in scope 0x%x\n\n", scope);
   for (HashmapEntry* entry = hashmap_move_cursor(&entry_it);
        entry != 0; entry = hashmap_move_cursor(&entry_it)) {
-    DeclSlot* decl_slot = entry->object;
-    if (decl_slot->decls[NS_TYPE]) {
-      NameDecl* decl = decl_slot->decls[NS_TYPE];
+    ScopeEntry* ns_entry = entry->object;
+    if (ns_entry->ns[NS_TYPE]) {
+      NameDecl* decl = ns_entry->ns[NS_TYPE];
       while (decl) {
         printf("%s  ...  at %d:%d\n", decl->strname, decl->ast.line_no, decl->ast.column_no);
-        decl = decl->next_in_slot;
+        decl = decl->next_in_scope;
         count += 1;
       }
     }
-    if (decl_slot->decls[NS_VAR]) {
-      NameDecl* decl = decl_slot->decls[NS_VAR];
+    if (ns_entry->ns[NS_VAR]) {
+      NameDecl* decl = ns_entry->ns[NS_VAR];
       printf("%s  ...  at %d:%d\n", decl->strname, decl->ast.line_no, decl->ast.column_no);
-      decl = decl->next_in_slot;
+      decl = decl->next_in_scope;
       count += 1;
     }
   }

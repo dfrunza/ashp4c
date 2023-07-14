@@ -152,12 +152,12 @@ next_token()
     token = array_get(tokens, ++token_at);
   }
   if (token->klass == TK_IDENTIFIER) {
-    DeclSlot* decl_slot = scope_lookup_any(current_scope, token->lexeme);
-    if (decl_slot && decl_slot->decls[NS_KEYWORD]) {
-      NameDecl* ndecl = decl_slot->decls[NS_KEYWORD];
+    ScopeEntry* ns_entry = scope_lookup_any(current_scope, token->lexeme);
+    if (ns_entry && ns_entry->ns[NS_KEYWORD]) {
+      NameDecl* ndecl = ns_entry->ns[NS_KEYWORD];
       token->klass = ndecl->token_class;
       return token;
-    } else if (decl_slot && decl_slot->decls[NS_TYPE]) {
+    } else if (ns_entry && ns_entry->ns[NS_TYPE]) {
       token->klass = TK_TYPE_IDENTIFIER;
       return token;
     }
@@ -767,7 +767,7 @@ parse_packageTypeDeclaration()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      declslot_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
+      scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
       package_decl->name = (Ast*)name;
       package_decl->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
@@ -935,7 +935,7 @@ parse_parserTypeDeclaration()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      declslot_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
+      scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
       parser_proto->name = (Ast*)name;
       parser_proto->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
@@ -1355,7 +1355,7 @@ parse_controlTypeDeclaration()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      declslot_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
+      scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
       control_proto->name = (Ast*)name;
       control_proto->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
@@ -1469,7 +1469,7 @@ parse_externDeclaration()
       Ast_Name* name = (Ast_Name*)extern_type->name;
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      declslot_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
+      scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
       extern_type->type_params = parse_optTypeParameters();
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -1526,7 +1526,7 @@ parse_functionPrototype(Ast* return_type)
         Ast_Name* name = (Ast_Name*)return_type;
         NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
         namedecl->strname = name->strname;
-        declslot_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
+        scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
         Ast_TypeRef* type_ref = arena_malloc(storage, sizeof(*type_ref));
         type_ref->kind = AST_typeRef;
         type_ref->line_no = token->line_no;
@@ -1918,7 +1918,7 @@ parse_typeParameterList()
     Ast_Name* name = (Ast_Name*)parse_name();
     NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
     namedecl->strname = name->strname;
-    declslot_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
+    scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
     li->object = name;
     list_append_item(&params->members, li, 1);
     while (token->klass == TK_COMMA) {
@@ -1927,7 +1927,7 @@ parse_typeParameterList()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      declslot_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
+      scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
       li->object = name;
       list_append_item(&params->members, li, 1);
     }
@@ -2108,7 +2108,7 @@ parse_headerTypeDeclaration()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      declslot_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
+      scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
       header_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2141,7 +2141,7 @@ parse_headerUnionDeclaration()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      declslot_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
+      scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
       union_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2174,7 +2174,7 @@ parse_structTypeDeclaration()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      declslot_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
+      scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
       struct_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2267,7 +2267,7 @@ parse_enumDeclaration()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      declslot_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
+      scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
       enum_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2435,7 +2435,7 @@ parse_typedefDeclaration()
         Ast_Name* name = (Ast_Name*)parse_name();
         NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
         namedecl->strname = name->strname;
-        declslot_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
+        scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
         type_decl->name = (Ast*)name;
         if (token->klass == TK_SEMICOLON) {
           next_token();
@@ -3686,202 +3686,202 @@ parse_tokens(UnboundedArray* tokens_, Arena* storage_)
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "action";
   namedecl->token_class = TK_ACTION;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "actions";
   namedecl->token_class = TK_ACTIONS;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "entries";
   namedecl->token_class = TK_ENTRIES;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "enum";
   namedecl->token_class = TK_ENUM;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "in";
   namedecl->token_class = TK_IN;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "package";
   namedecl->token_class = TK_PACKAGE;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "select";
   namedecl->token_class = TK_SELECT;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "switch";
   namedecl->token_class = TK_SWITCH;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "tuple";
   namedecl->token_class = TK_TUPLE;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "control";
   namedecl->token_class = TK_CONTROL;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "error";
   namedecl->token_class = TK_ERROR;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "header";
   namedecl->token_class = TK_HEADER;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "inout";
   namedecl->token_class = TK_INOUT;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "parser";
   namedecl->token_class = TK_PARSER;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "state";
   namedecl->token_class = TK_STATE;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
   
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "table";
   namedecl->token_class = TK_TABLE;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "key";
   namedecl->token_class = TK_KEY;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "typedef";
   namedecl->token_class = TK_TYPEDEF;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "type";
   namedecl->token_class = TK_TYPE;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "default";
   namedecl->token_class = TK_DEFAULT;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "extern";
   namedecl->token_class = TK_EXTERN;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "header_union";
   namedecl->token_class = TK_HEADER_UNION;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "out";
   namedecl->token_class = TK_OUT;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "transition";
   namedecl->token_class = TK_TRANSITION;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "else";
   namedecl->token_class = TK_ELSE;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "exit";
   namedecl->token_class = TK_EXIT;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "if";
   namedecl->token_class = TK_IF;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "match_kind";
   namedecl->token_class = TK_MATCH_KIND;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "return";
   namedecl->token_class = TK_RETURN;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "struct";
   namedecl->token_class = TK_STRUCT;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "apply";
   namedecl->token_class = TK_APPLY;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "const";
   namedecl->token_class = TK_CONST;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "bool";
   namedecl->token_class = TK_BOOL;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "true";
   namedecl->token_class = TK_TRUE;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "false";
   namedecl->token_class = TK_FALSE;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "void";
   namedecl->token_class = TK_VOID;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "int";
   namedecl->token_class = TK_INT;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "bit";
   namedecl->token_class = TK_BIT;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "varbit";
   namedecl->token_class = TK_VARBIT;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   namedecl = arena_malloc(storage, sizeof(*namedecl));
   namedecl->strname = "string";
   namedecl->token_class = TK_STRING;
-  declslot_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
+  scope_push_decl(storage, &root_scope->decls, namedecl, NS_KEYWORD);
 
   token_at = 0;
   token = array_get(tokens, token_at);

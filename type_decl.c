@@ -590,23 +590,13 @@ static void
 visit_tupleType(Ast_TupleType* tuple_decl)
 {
   assert(tuple_decl->kind == AST_tupleType);
-  HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, tuple_decl->ast_id);
-  type_he->object = visit_typeArgumentList((Ast_TypeArgumentList*)tuple_decl->type_args);
+  visit_typeArgumentList((Ast_TypeArgumentList*)tuple_decl->type_args);
 }
 
 static void
 visit_headerStackType(Ast_HeaderStackType* hdrstack_decl)
 {
   assert(hdrstack_decl->kind == AST_headerStackType);
-  Ast_Name* name = (Ast_Name*)hdrstack_decl->name;
-  DeclSlot* decl_slot = scope_lookup_namespace(name->attr.scope, name->strname, NS_TYPE);
-  NameDecl* namedecl = decl_slot->decls[NS_TYPE];
-  HashmapEntry* reftype_he = hashmap_get_entry_uint32k(&type_table, namedecl->ast.ast_id);
-  Type_Array* hdrstack_ty = arena_malloc(storage, sizeof(*hdrstack_ty));
-  hdrstack_ty->ctor = TYPE_ARRAY;
-  hdrstack_ty->element_ty = reftype_he->object;
-  HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, hdrstack_decl->ast_id);
-  type_he->object = hdrstack_ty;
   visit_expression((Ast_Expression*)hdrstack_decl->stack_expr);
 }
 
