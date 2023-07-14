@@ -110,9 +110,9 @@ main(int arg_count, char* args[])
   assert(p4program->kind == AST_p4program);
   arena_free(&text_storage);
 
-  node_id_pass(p4program);
-  name_decl_pass(p4program, &main_storage);
-  type_decl_pass(p4program, &main_storage);
+  pass_node_id(p4program);
+  pass_name_decl(p4program, &main_storage);
+  pass_named_type(p4program, &main_storage);
 
   /*
   Hashmap* potential_type = build_potential_type(p4program, root_scope, &main_storage);

@@ -3673,10 +3673,10 @@ parse_string()
 }
 
 Ast_P4Program*
-parse_tokens(UnboundedArray* tokens_, Arena* storage_)
+parse_tokens(UnboundedArray* tokens_, Arena* _storage)
 {
   tokens = tokens_;
-  storage = storage_;
+  storage = _storage;
   Scope* root_scope = arena_malloc(storage, sizeof(*root_scope));
   hashmap_create(&root_scope->decls, storage, HASHMAP_KEY_STRING, 3);
   root_scope->scope_level = 0;
