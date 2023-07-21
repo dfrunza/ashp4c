@@ -7,7 +7,7 @@
 #include "foundation.h"
 
 void
-assert_(char* message, char* file, int line)
+_assert(char* message, char* file, int line)
 {
   printf("%s:%d: ", file, line);
   if(!message || message[0] == '\0') {
@@ -115,7 +115,7 @@ cstr_print_substr(char* begin_char, char* end_char)
 }
 
 void
-error_(char* file, int line, char* message, ...)
+_error(char* file, int line, char* message, ...)
 {
   printf("[ERROR] ");
   if (!message) {

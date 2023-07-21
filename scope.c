@@ -25,8 +25,8 @@ scope_lookup_any(Scope* scope, char* strname)
   ScopeEntry* ns_entry = 0;
   while (scope) {
     HashmapEntry* he = hashmap_lookup_entry_stringk(&scope->decls, strname);
-    if (he && he->object) {
-      ns_entry = (ScopeEntry*)he->object;
+    if (he && hashmap_entry_get(he, ScopeEntry*)) {
+      ns_entry = hashmap_entry_get(he, ScopeEntry*);
       if (ns_entry->ns[NS_TYPE] || ns_entry->ns[NS_VAR] || ns_entry->ns[NS_KEYWORD]) {
         break;
       }
@@ -42,8 +42,8 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
   ScopeEntry* ns_entry = 0;
   while (scope) {
     HashmapEntry* he = hashmap_lookup_entry_stringk(&scope->decls, strname);
-    if (he && he->object) {
-      ns_entry = (ScopeEntry*)he->object;
+    if (he && hashmap_entry_get(he, ScopeEntry*)) {
+      ns_entry = hashmap_entry_get(he, ScopeEntry*);
       if (ns_entry->ns[ns]) {
         break;
       }
@@ -57,10 +57,10 @@ ScopeEntry*
 scope_push_decl(Arena* storage, Hashmap* decl_table, NameDecl* decl, enum NameSpace ns)
 {
   HashmapEntry* he = hashmap_get_entry_stringk(decl_table, decl->strname);
-  ScopeEntry* ns_entry = he->object;
+  ScopeEntry* ns_entry = hashmap_entry_get(he, ScopeEntry*);
   if (!ns_entry) {
     ns_entry = arena_malloc(storage, sizeof(*ns_entry));
-    he->object = ns_entry;
+    hashmap_entry_set(he, ns_entry);
   }
   decl->next_in_scope = ns_entry->ns[ns];
   ns_entry->ns[ns] = decl;
@@ -74,9 +74,9 @@ Debug_scope_decls(Scope* scope)
   HashmapCursor entry_it = {};
   hashmap_cursor_reset(&entry_it, &scope->decls);
   printf("Names in scope 0x%x\n\n", scope);
-  for (HashmapEntry* entry = hashmap_move_cursor(&entry_it);
-       entry != 0; entry = hashmap_move_cursor(&entry_it)) {
-    ScopeEntry* ns_entry = entry->object;
+  for (HashmapEntry* he = hashmap_move_cursor(&entry_it);
+       he != 0; he = hashmap_move_cursor(&entry_it)) {
+    ScopeEntry* ns_entry = hashmap_entry_get(he, ScopeEntry*);
     if (ns_entry->ns[NS_TYPE]) {
       NameDecl* decl = ns_entry->ns[NS_TYPE];
       while (decl) {

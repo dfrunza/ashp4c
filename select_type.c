@@ -28,7 +28,7 @@ type_select(uint32_t ast_id, Type* type)
   HashmapKey key = { .i_key = ast_id };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, selected_type.capacity_log2);
   HashmapEntry* he = hashmap_get_entry(&selected_type, &key);
-  he->object = type;
+  hashmap_entry_set(he, type);
 }
 
 static void

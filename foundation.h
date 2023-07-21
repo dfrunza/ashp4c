@@ -6,24 +6,24 @@ typedef uint32_t bool;
 #define KILOBYTE 1024
 #define MEGABYTE 1024*KILOBYTE
 
-void assert_(char* message, char* file, int line);
+void    _assert(char* message, char* file, int line);
 #define assert(EXPR) \
-  do { if(!(EXPR)) assert_(#EXPR, __FILE__, __LINE__); } while(0)
-void error_(char* file, int line, char* message, ...);
-#define error(MSG, ...) error_(__FILE__, __LINE__, (MSG), ## __VA_ARGS__)
-bool cstr_is_letter(char c);
-bool cstr_is_digit(char c, int base);
-bool cstr_is_ascii_printable(char c);
-bool cstr_is_whitespace(char c);
-int cstr_len(char* str);
+  do { if(!(EXPR)) _assert(#EXPR, __FILE__, __LINE__); } while(0)
+void    _error(char* file, int line, char* message, ...);
+#define error(MSG, ...)  _error(__FILE__, __LINE__, (MSG), ## __VA_ARGS__)
+bool  cstr_is_letter(char c);
+bool  cstr_is_digit(char c, int base);
+bool  cstr_is_ascii_printable(char c);
+bool  cstr_is_whitespace(char c);
+int   cstr_len(char* str);
 char* cstr_copy(char* dest_str, char* src_str);
-void cstr_copy_substr(char* dest_str, char* begin_char, char* end_char);
-bool cstr_start_with(char* str, char* prefix);
-bool cstr_match(char* str_a, char* str_b);
-void cstr_print_substr(char* begin_char, char* end_char);
-bool bytes_match(uint8_t* bytes_a, int len_a, uint8_t* bytes_b, int len_b);
-int floor_log2(int x);
-int ceil_log2(int x);
+void  cstr_copy_substr(char* dest_str, char* begin_char, char* end_char);
+bool  cstr_start_with(char* str, char* prefix);
+bool  cstr_match(char* str_a, char* str_b);
+void  cstr_print_substr(char* begin_char, char* end_char);
+bool  bytes_match(uint8_t* bytes_a, int len_a, uint8_t* bytes_b, int len_b);
+int   floor_log2(int x);
+int   ceil_log2(int x);
 
 typedef struct PageBlock {
   struct PageBlock* next_block;
@@ -38,9 +38,9 @@ typedef struct Arena {
   void* memory_limit;
 } Arena;
 
-void reserve_page_memory(int memory_amount);
+void  reserve_page_memory(int memory_amount);
 void* arena_malloc(Arena* arena, uint32_t size);
-void arena_free(Arena* arena);
+void  arena_free(Arena* arena);
 
 typedef struct ListItem {
   struct ListItem* next;
@@ -54,11 +54,14 @@ typedef struct List {
   int item_count;
 } List;
 
-void list_reset(List* list);
+void      list_reset(List* list);
+ListItem* list_create_item(List*, void* object);
+#define   list_item_get(LI, TYPE)    ((TYPE)LI->object)
+#define   list_item_set(LI, OBJECT)  LI->object = OBJECT
 ListItem* list_first_item(List* list);
-void list_append_item(List* list, ListItem* item, int count);
+void      list_append_item(List* list, ListItem* item, int count);
 
-// Max 2,048 elements
+// Max 2^11=2,048 elements
 #define ARRAY_MAX_SEGMENT 11
 
 typedef struct UnboundedArray {
@@ -69,7 +72,7 @@ typedef struct UnboundedArray {
   Arena* storage;
 } UnboundedArray;
 
-void array_create(UnboundedArray* array, Arena* storage, int elem_size);
+void  array_create(UnboundedArray* array, Arena* storage, int elem_size);
 void* array_get(UnboundedArray* array, int i);
 void* array_set(UnboundedArray* array, int i, void* elem);
 void* array_append(UnboundedArray* array, void* elem);
@@ -100,8 +103,8 @@ typedef struct HashmapKey {
 
 typedef struct HashmapEntry {
   HashmapKey key;
-  void* object;
   struct HashmapEntry* next_entry;
+  void* object;
 } HashmapEntry;
 
 typedef struct HashmapCursor {
@@ -110,14 +113,16 @@ typedef struct HashmapCursor {
   HashmapEntry* entry;
 } HashmapCursor;
 
-void hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType type, int capacity_log2);
-void hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ HashmapKey* key, int capacity_log2);
+void          hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType type, int capacity_log2);
+#define       hashmap_entry_get(HE, TYPE)    ((TYPE)HE->object)
+#define       hashmap_entry_set(HE, OBJECT)  HE->object = OBJECT
+void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int capacity_log2);
 HashmapEntry* hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
 HashmapEntry* hashmap_get_entry_uint32k(Hashmap* map, uint32_t int_key);
 HashmapEntry* hashmap_get_entry_stringk(Hashmap* map, char* str_key);
 HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key);
 HashmapEntry* hashmap_lookup_entry_uint32k(Hashmap* map, uint32_t int_key);
 HashmapEntry* hashmap_lookup_entry_stringk(Hashmap* map, char* str_key);
-void hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap);
+void          hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap);
 HashmapEntry* hashmap_move_cursor(HashmapCursor* it);
 

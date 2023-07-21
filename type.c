@@ -7,9 +7,9 @@
 void
 tyset_add_type(Arena *type_storage, TypeSet* set, Type* type)
 {
-  ListItem* new_li = arena_malloc(type_storage, ListItem);
-  new_li->object = type;
-  list_append_item(&set->members, new_li, 1);
+  ListItem* li = arena_malloc(type_storage, ListItem);
+  list_item_set(li, type);
+  list_append_item(&set->members, li, 1);
 }
 
 void
@@ -18,7 +18,6 @@ tyset_import_set(Arena *type_storage, TypeSet* to_set, TypeSet* from_set)
   for (ListItem* li = from_set->members.sentinel.next;
        li != 0; li = li->next) {
     tyset_add_type(type_storage, to_set, li->object);
-    ;
   }
 }
 
@@ -28,7 +27,7 @@ tyset_contains_type(TypeSet* set, Type* target_type)
   bool found_it = false;
   for (ListItem* li = set->members.sentinel.next;
        li != 0; li = li->next) {
-    Type* type = li->object;
+    Type* type = list_item_get(li, Type*);
     if (type == target_type) {
       found_it = true;
       break;

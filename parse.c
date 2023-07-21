@@ -570,12 +570,12 @@ parse_declarationList()
   list_reset(&decls->members);
   if (token_is_declaration(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_declaration();
+    list_item_set(li, parse_declaration());
     list_append_item(&decls->members, li, 1);
     while (token_is_declaration(token) || token->klass == TK_SEMICOLON) {
       if (token_is_declaration(token)) {
         li = arena_malloc(storage, sizeof(*li));
-        li->object = parse_declaration();
+        list_item_set(li, parse_declaration());
         list_append_item(&decls->members, li, 1);
       } else if (token->klass == TK_SEMICOLON) {
         next_token(); /* empty declaration */
@@ -696,12 +696,12 @@ parse_parameterList()
   list_reset(&params->members);
   if (token_is_parameter(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_parameter();
+    list_item_set(li, parse_parameter());
     list_append_item(&params->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_parameter();
+      list_item_set(li, parse_parameter());
       list_append_item(&params->members, li, 1);
     }
   }
@@ -883,11 +883,11 @@ parse_parserLocalElements()
   list_reset(&elems->members);
   if (token_is_parserLocalElement(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_parserLocalElement();
+    list_item_set(li, parse_parserLocalElement());
     list_append_item(&elems->members, li, 1);
     while (token_is_parserLocalElement(token)) {
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_parserLocalElement();
+      list_item_set(li, parse_parserLocalElement());
       list_append_item(&elems->members, li, 1);
     }
   }
@@ -966,11 +966,11 @@ parse_parserStates()
   list_reset(&states->members);
   if (token->klass == TK_STATE) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_parserState();
+    list_item_set(li, parse_parserState());
     list_append_item(&states->members, li, 1);
     while (token->klass == TK_STATE) {
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_parserState();
+      list_item_set(li, parse_parserState());
       list_append_item(&states->members, li, 1);
     }
   }
@@ -1014,11 +1014,11 @@ parse_parserStatements()
   list_reset(&stmts->members);
   if (token_is_parserStatement(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_parserStatement();
+    list_item_set(li, parse_parserStatement());
     list_append_item(&stmts->members, li, 1);
     while (token_is_parserStatement(token)) {
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_parserStatement();
+      list_item_set(li, parse_parserStatement());
       list_append_item(&stmts->members, li, 1);
     }
   }
@@ -1172,11 +1172,11 @@ parse_selectCaseList()
   list_reset(&cases->members);
   if (token_is_selectCase(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_selectCase();
+    list_item_set(li, parse_selectCase());
     list_append_item(&cases->members, li, 1);
     while (token_is_selectCase(token)) {
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_selectCase();
+      list_item_set(li, parse_selectCase());
       list_append_item(&cases->members, li, 1);
     }
   }
@@ -1263,12 +1263,12 @@ parse_simpleExpressionList()
   list_reset(&exprs->members);
   if (token_is_expression(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_simpleKeysetExpression();
+    list_item_set(li, parse_simpleKeysetExpression());
     list_append_item(&exprs->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_simpleKeysetExpression();
+      list_item_set(li, parse_simpleKeysetExpression());
       list_append_item(&exprs->members, li, 1);
     }
   }
@@ -1420,11 +1420,11 @@ parse_controlLocalDeclarations()
   list_reset(&decls->members);
   if (token_is_controlLocalDeclaration(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_controlLocalDeclaration();
+    list_item_set(li, parse_controlLocalDeclaration());
     list_append_item(&decls->members, li, 1);
     while (token_is_controlLocalDeclaration(token)) {
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_controlLocalDeclaration();
+      list_item_set(li, parse_controlLocalDeclaration());
       list_append_item(&decls->members, li, 1);
     }
   }
@@ -1499,11 +1499,11 @@ parse_methodPrototypes()
   list_reset(&protos->members);
   if (token_is_methodPrototype(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_methodPrototype();
+    list_item_set(li, parse_methodPrototype());
     list_append_item(&protos->members, li, 1);
     while (token_is_methodPrototype(token)) {
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_methodPrototype();
+      list_item_set(li, parse_methodPrototype());
       list_append_item(&protos->members, li, 1);
     }
   }
@@ -1919,7 +1919,7 @@ parse_typeParameterList()
     NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
     namedecl->strname = name->strname;
     scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
-    li->object = name;
+    list_item_set(li, name);
     list_append_item(&params->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
@@ -1928,7 +1928,7 @@ parse_typeParameterList()
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
       scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
-      li->object = name;
+      list_item_set(li, name);
       list_append_item(&params->members, li, 1);
     }
   }
@@ -2000,12 +2000,12 @@ parse_realTypeArgumentList()
   list_reset(&args->members);
   if (token_is_realTypeArg(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_realTypeArg();
+    list_item_set(li, parse_realTypeArg());
     list_append_item(&args->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_realTypeArg();
+      list_item_set(li, parse_realTypeArg());
       list_append_item(&args->members, li, 1);
     }
   }
@@ -2022,12 +2022,12 @@ parse_typeArgumentList()
   list_reset(&args->members);
   if (token_is_typeArg(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_typeArg();
+    list_item_set(li, parse_typeArg());
     list_append_item(&args->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_typeArg();
+      list_item_set(li, parse_typeArg());
       list_append_item(&args->members, li, 1);
     }
   }
@@ -2204,11 +2204,11 @@ parse_structFieldList()
   list_reset(&fields->members);
   if (token_is_structField(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_structField();
+    list_item_set(li, parse_structField());
     list_append_item(&fields->members, li, 1);
     while (token_is_structField(token)) {
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_structField();
+      list_item_set(li, parse_structField());
       list_append_item(&fields->members, li, 1);
     }
   }
@@ -2359,12 +2359,12 @@ parse_identifierList()
   list_reset(&ids->members);
   if (token_is_name(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_name();
+    list_item_set(li, parse_name());
     list_append_item(&ids->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_name();
+      list_item_set(li, parse_name());
       list_append_item(&ids->members, li, 1);
     }
   }
@@ -2381,12 +2381,12 @@ parse_specifiedIdentifierList()
   list_reset(&ids->members);
   if (token_is_specifiedIdentifier(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_specifiedIdentifier();
+    list_item_set(li, parse_specifiedIdentifier());
     list_append_item(&ids->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_specifiedIdentifier();
+      list_item_set(li, parse_specifiedIdentifier());
       list_append_item(&ids->members, li, 1);
     }
   }
@@ -2698,11 +2698,11 @@ parse_statementOrDeclList()
   list_reset(&stmts->members);
   if (token_is_statementOrDeclaration(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_statementOrDeclaration();
+    list_item_set(li, parse_statementOrDeclaration());
     list_append_item(&stmts->members, li, 1);
     while (token_is_statementOrDeclaration(token)) {
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_statementOrDeclaration();
+      list_item_set(li, parse_statementOrDeclaration());
       list_append_item(&stmts->members, li, 1);
     }
   }
@@ -2753,11 +2753,11 @@ parse_switchCases()
   list_reset(&cases->members);
   if (token_is_switchLabel(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_switchCase();
+    list_item_set(li, parse_switchCase());
     list_append_item(&cases->members, li, 1);
     while (token_is_switchLabel(token)) {
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_switchCase();
+      list_item_set(li, parse_switchCase());
       list_append_item(&cases->members, li, 1);
     }
   }
@@ -2887,11 +2887,11 @@ parse_tablePropertyList()
   list_reset(&props->members);
   if (token_is_tableProperty(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*props));
-    li->object = parse_tableProperty();
+    list_item_set(li, parse_tableProperty());
     list_append_item(&props->members, li, 1);
     while (token_is_tableProperty(token)) {
       li = arena_malloc(storage, sizeof(*props));
-      li->object = parse_tableProperty();
+      list_item_set(li, parse_tableProperty());
       list_append_item(&props->members, li, 1);
     }
   }
@@ -3012,11 +3012,11 @@ parse_keyElementList()
   list_reset(&elems->members);
   if (token_is_expression(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_keyElement();
+    list_item_set(li, parse_keyElement());
     list_append_item(&elems->members, li, 1);
     while (token_is_expression(token)) {
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_keyElement();
+      list_item_set(li, parse_keyElement());
       list_append_item(&elems->members, li, 1);
     }
   }
@@ -3058,7 +3058,7 @@ parse_actionList()
   list_reset(&actions->members);
   if (token_is_actionRef(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_actionRef();
+    list_item_set(li, parse_actionRef());
     list_append_item(&actions->members, li, 1);
     if (token->klass == TK_SEMICOLON) {
       next_token();
@@ -3066,7 +3066,7 @@ parse_actionList()
                  token->line_no, token->column_no, token->lexeme);
     while (token_is_actionRef(token)) {
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_actionRef();
+      list_item_set(li, parse_actionRef());
       list_append_item(&actions->members, li, 1);
       if (token->klass == TK_SEMICOLON) {
         next_token();
@@ -3116,11 +3116,11 @@ parse_entriesList()
   list_reset(&entries->members);
   if (token_is_keysetExpression(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_entry();
+    list_item_set(li, parse_entry());
     list_append_item(&entries->members, li, 1);
     while (token_is_keysetExpression(token)) {
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_entry();
+      list_item_set(li, parse_entry());
       list_append_item(&entries->members, li, 1);
     }
   }
@@ -3253,12 +3253,12 @@ parse_argumentList()
   list_reset(&args->members);
   if (token_is_argument(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_argument();
+    list_item_set(li, parse_argument());
     list_append_item(&args->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_argument();
+      list_item_set(li, parse_argument());
       list_append_item(&args->members, li, 1);
     }
   }
@@ -3301,12 +3301,12 @@ parse_expressionList()
   list_reset(&exprs->members);
   if (token_is_expression(token)) {
     ListItem* li = arena_malloc(storage, sizeof(*li));
-    li->object = parse_expression(1);
+    list_item_set(li, parse_expression(1));
     list_append_item(&exprs->members, li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       li = arena_malloc(storage, sizeof(*li));
-      li->object = parse_expression(1);
+      list_item_set(li, parse_expression(1));
       list_append_item(&exprs->members, li, 1);
     }
   }

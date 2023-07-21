@@ -92,6 +92,7 @@ list_first_item(List* list)
 void
 list_append_item(List* list, ListItem* item, int count)
 {
+  assert(item->prev == 0);
   ListItem* tail = list->last_item;
   tail->next = item;
   item->prev = tail;

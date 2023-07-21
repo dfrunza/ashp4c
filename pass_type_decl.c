@@ -165,7 +165,7 @@ visit_declarationList(Ast_DeclarationList* decl_list)
   assert(decl_list->kind == AST_declarationList);
   for (ListItem* li = list_first_item(&decl_list->members);
         li != 0; li = li->next) {
-    visit_declaration((Ast_Declaration*)li->object);
+    visit_declaration(list_item_get(li, Ast_Declaration*));
   }
 }
 
@@ -212,7 +212,7 @@ visit_parameterList(Ast_ParameterList* params)
   assert(params->kind == AST_parameterList);
   for (ListItem* li = list_first_item(&params->members);
         li != 0; li = li->next) {
-    visit_parameter((Ast_Parameter*)li->object);
+    visit_parameter(list_item_get(li, Ast_Parameter*));
   }
   return 0;
 }
@@ -237,7 +237,7 @@ visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* package_decl)
   package_ty->ctor = TYPE_TYPE;
   package_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, package_decl->ast_id);
-  type_he->object = package_ty;
+  hashmap_entry_set(type_he, package_ty);
   if (package_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)package_decl->type_params);
   }
@@ -276,7 +276,7 @@ visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* parser_decl)
   parser_ty->ctor = TYPE_TYPE;
   parser_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, parser_decl->ast_id);
-  type_he->object = parser_ty;
+  hashmap_entry_set(type_he, parser_ty);
   if (parser_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)parser_decl->type_params);
   }
@@ -289,7 +289,7 @@ visit_parserLocalElements(Ast_ParserLocalElements* local_elements)
   assert(local_elements->kind == AST_parserLocalElements);
   for (ListItem* li = list_first_item(&local_elements->members);
         li != 0; li = li->next) {
-    visit_parserLocalElement((Ast_ParserLocalElement*)li->object);
+    visit_parserLocalElement(list_item_get(li, Ast_ParserLocalElement*));
   }
 }
 
@@ -310,7 +310,7 @@ visit_parserStates(Ast_ParserStates* states)
   assert(states->kind == AST_parserStates);
   for (ListItem* li = list_first_item(&states->members);
         li != 0; li = li->next) {
-    visit_parserState((Ast_ParserState*)li->object);
+    visit_parserState(list_item_get(li, Ast_ParserState*));
   }
 }
 
@@ -329,7 +329,7 @@ visit_parserStatements(Ast_ParserStatements* stmts)
   assert(stmts->kind == AST_parserStatements);
   for (ListItem* li = list_first_item(&stmts->members);
         li != 0; li = li->next) {
-    visit_parserStatement((Ast_ParserStatement*)li->object);
+    visit_parserStatement(list_item_get(li, Ast_ParserStatement*));
   }
 }
 
@@ -389,7 +389,7 @@ visit_selectCaseList(Ast_SelectCaseList* case_list)
   assert(case_list->kind == AST_selectCaseList);
   for (ListItem* li = list_first_item(&case_list->members);
         li != 0; li = li->next) {
-    visit_selectCase((Ast_SelectCase*)li->object);
+    visit_selectCase(list_item_get(li, Ast_SelectCase*));
   }
 }
 
@@ -438,7 +438,7 @@ visit_simpleExpressionList(Ast_SimpleExpressionList* expr_list)
   assert(expr_list->kind == AST_simpleExpressionList);
   for (ListItem* li = list_first_item(&expr_list->members);
         li != 0; li = li->next) {
-    visit_simpleKeysetExpression((Ast_SimpleKeysetExpression*)li->object);
+    visit_simpleKeysetExpression(list_item_get(li, Ast_SimpleKeysetExpression*));
   }
 }
 
@@ -465,7 +465,7 @@ visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* control_decl)
   control_ty->ctor = TYPE_TYPE;
   control_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, control_decl->ast_id);
-  type_he->object = control_ty;
+  hashmap_entry_set(type_he, control_ty);
   if (control_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)control_decl->type_params);
   }
@@ -478,7 +478,7 @@ visit_controlLocalDeclarations(Ast_ControlLocalDeclarations* local_decls)
   assert(local_decls->kind == AST_controlLocalDeclarations);
   for (ListItem* li = list_first_item(&local_decls->members);
         li != 0; li = li->next) {
-    visit_controlLocalDeclaration((Ast_ControlLocalDeclaration*)li->object);
+    visit_controlLocalDeclaration(list_item_get(li, Ast_ControlLocalDeclaration*));
   }
 }
 
@@ -519,7 +519,7 @@ visit_externTypeDeclaration(Ast_ExternTypeDeclaration* extern_decl)
   extern_ty->ctor = TYPE_TYPE;
   extern_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, extern_decl->ast_id);
-  type_he->object = extern_ty;
+  hashmap_entry_set(type_he, extern_ty);
   if (extern_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)extern_decl->type_params);
   }
@@ -532,7 +532,7 @@ visit_methodPrototypes(Ast_MethodPrototypes* protos)
   assert(protos->kind == AST_methodPrototypes);
   for (ListItem* li = list_first_item(&protos->members);
         li != 0; li = li->next) {
-    visit_functionPrototype((Ast_FunctionPrototype*)li->object);
+    visit_functionPrototype(list_item_get(li, Ast_FunctionPrototype*));
   }
 }
 
@@ -548,7 +548,7 @@ visit_functionPrototype(Ast_FunctionPrototype* func_proto)
   func_ty->ctor = TYPE_FUNCTION;
   func_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, func_proto->ast_id);
-  type_he->object = func_proto;
+  hashmap_entry_set(type_he, func_proto);
   if (func_proto->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)func_proto->type_params);
   }
@@ -676,7 +676,7 @@ visit_typeParameterList(Ast_TypeParameterList* param_list)
   assert(param_list->kind == AST_typeParameterList);
   for (ListItem* li = list_first_item(&param_list->members);
         li != 0; li = li->next) {
-    visit_name((Ast_Name*)li->object);
+    visit_name(list_item_get(li, Ast_Name*));
   }
 }
 
@@ -710,7 +710,7 @@ visit_realTypeArgumentList(Ast_RealTypeArgumentList* arg_list)
   assert(arg_list->kind == AST_realTypeArgumentList);
   for (ListItem* li = list_first_item(&arg_list->members);
         li != 0; li = li->next) {
-    visit_realTypeArg((Ast_RealTypeArg*)li->object);
+    visit_realTypeArg(list_item_get(li, Ast_RealTypeArg*));
   }
 }
 
@@ -720,7 +720,7 @@ visit_typeArgumentList(Ast_TypeArgumentList* arg_list)
   assert(arg_list->kind == AST_typeArgumentList);
   for (ListItem* li = list_first_item(&arg_list->members);
         li != 0; li = li->next) {
-    visit_typeArg((Ast_TypeArg*)li->object);
+    visit_typeArg(list_item_get(li, Ast_TypeArg*));
   }
   return 0;
 }
@@ -766,7 +766,7 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
   header_ty->ctor = TYPE_TYPE;
   header_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, header_decl->ast_id);
-  type_he->object = header_ty;
+  hashmap_entry_set(type_he, header_ty);
   visit_structFieldList((Ast_StructFieldList*)header_decl->fields);
 }
 
@@ -779,7 +779,7 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
   union_ty->ctor = TYPE_TYPE;
   union_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, union_decl->ast_id);
-  type_he->object = union_ty;
+  hashmap_entry_set(type_he, union_ty);
   visit_structFieldList((Ast_StructFieldList*)union_decl->fields);
 }
 
@@ -792,7 +792,7 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
   struct_ty->ctor = TYPE_TYPE;
   struct_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, struct_decl->ast_id);
-  type_he->object = struct_ty;
+  hashmap_entry_set(type_he, struct_ty);
   visit_structFieldList((Ast_StructFieldList*)struct_decl->fields);
 }
 
@@ -802,7 +802,7 @@ visit_structFieldList(Ast_StructFieldList* field_list)
   assert(field_list->kind == AST_structFieldList);
   for (ListItem* li = list_first_item(&field_list->members);
         li != 0; li = li->next) {
-    visit_structField((Ast_StructField*)li->object);
+    visit_structField(list_item_get(li, Ast_StructField*));
   }
 }
 
@@ -823,7 +823,7 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
   enum_ty->ctor = TYPE_TYPE;
   enum_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, enum_decl->ast_id);
-  type_he->object = enum_ty;
+  hashmap_entry_set(type_he, enum_ty);
   visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields);
 }
 
@@ -847,7 +847,7 @@ visit_identifierList(Ast_IdentifierList* ident_list)
   assert(ident_list->kind == AST_identifierList);
   for (ListItem* li = list_first_item(&ident_list->members);
         li != 0; li = li->next) {
-    visit_name((Ast_Name*)li->object);
+    visit_name(list_item_get(li, Ast_Name*));
   }
 }
 
@@ -857,7 +857,7 @@ visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list)
   assert(ident_list->kind == AST_specifiedIdentifierList);
   for (ListItem* li = list_first_item(&ident_list->members);
         li != 0; li = li->next) {
-    visit_specifiedIdentifier((Ast_SpecifiedIdentifier*)li->object);
+    visit_specifiedIdentifier(list_item_get(li, Ast_SpecifiedIdentifier*));
   }
 }
 
@@ -885,7 +885,7 @@ visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl)
   typedef_ty->ctor = TYPE_TYPE;
   typedef_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, typedef_decl->ast_id);
-  type_he->object = typedef_ty;
+  hashmap_entry_set(type_he, typedef_ty);
 }
 
 /** STATEMENTS **/
@@ -990,7 +990,7 @@ visit_statementOrDeclList(Ast_StatementOrDeclList* stmt_list)
   assert(stmt_list->kind == AST_statementOrDeclList);
   for (ListItem* li = list_first_item(&stmt_list->members);
         li != 0; li = li->next) {
-    visit_statementOrDeclaration((Ast_StatementOrDeclaration*)li->object);
+    visit_statementOrDeclaration(list_item_get(li, Ast_StatementOrDeclaration*));
   }
 }
 
@@ -1008,7 +1008,7 @@ visit_switchCases(Ast_SwitchCases* switch_cases)
   assert(switch_cases->kind == AST_switchCases);
   for (ListItem* li = list_first_item(&switch_cases->members);
         li != 0; li = li->next) {
-    visit_switchCase((Ast_SwitchCase*)li->object);
+    visit_switchCase(list_item_get(li, Ast_SwitchCase*));
   }
 }
 
@@ -1062,7 +1062,7 @@ visit_tablePropertyList(Ast_TablePropertyList* prop_list)
   assert(prop_list->kind == AST_tablePropertyList);
   for (ListItem* li = list_first_item(&prop_list->members);
         li != 0; li = li->next) {
-    visit_tableProperty((Ast_TableProperty*)li->object);
+    visit_tableProperty(list_item_get(li, Ast_TableProperty*));
   }
 }
 
@@ -1094,7 +1094,7 @@ visit_keyElementList(Ast_KeyElementList* element_list)
   assert(element_list->kind == AST_keyElementList);
   for (ListItem* li = list_first_item(&element_list->members);
         li != 0; li = li->next) {
-    visit_keyElement((Ast_KeyElement*)li->object);
+    visit_keyElement(list_item_get(li, Ast_KeyElement*));
   }
 }
 
@@ -1119,7 +1119,7 @@ visit_actionList(Ast_ActionList* action_list)
   assert(action_list->kind == AST_actionList);
   for (ListItem* li = list_first_item(&action_list->members);
         li != 0; li = li->next) {
-    visit_actionRef((Ast_ActionRef*)li->object);
+    visit_actionRef(list_item_get(li, Ast_ActionRef*));
   }
 }
 
@@ -1146,7 +1146,7 @@ visit_entriesList(Ast_EntriesList* entries_list)
   assert(entries_list->kind == AST_entriesList);
   for (ListItem* li = list_first_item(&entries_list->members);
         li != 0; li = li->next) {
-    visit_entry((Ast_Entry*)li->object);
+    visit_entry(list_item_get(li, Ast_Entry*));
   }
 }
 
@@ -1175,7 +1175,7 @@ visit_actionDeclaration(Ast_ActionDeclaration* action_decl)
   action_ty->ctor = TYPE_FUNCTION;
   action_ty->strname = name->strname;
   HashmapEntry* type_he = hashmap_get_entry_uint32k(&type_table, action_decl->ast_id);
-  type_he->object = action_decl;
+  hashmap_entry_set(type_he, action_decl);
   action_ty->params_ty = visit_parameterList((Ast_ParameterList*)action_decl->params);
   visit_blockStatement((Ast_BlockStatement*)action_decl->stmt);
 }
@@ -1209,7 +1209,7 @@ visit_argumentList(Ast_ArgumentList* arg_list)
   assert(arg_list->kind == AST_argumentList);
   for (ListItem* li = list_first_item(&arg_list->members);
         li != 0; li = li->next) {
-    visit_argument((Ast_Argument*)li->object);
+    visit_argument(list_item_get(li, Ast_Argument*));
   }
 }
 
@@ -1230,7 +1230,7 @@ visit_expressionList(Ast_ExpressionList* expr_list)
   assert(expr_list->kind == AST_expressionList);
   for (ListItem* li = list_first_item(&expr_list->members);
         li != 0; li = li->next) {
-    visit_expression((Ast_Expression*)li->object);
+    visit_expression(list_item_get(li, Ast_Expression*));
   }
 }
 
