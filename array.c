@@ -75,11 +75,20 @@ array_append(UnboundedArray* array, void* elem)
 }
 
 void
-list_reset(List* list)
+list_create(List* list, Arena* storage)
 {
   list->last_item = &list->sentinel;
   list->sentinel.next = list->sentinel.prev = 0;
   list->item_count = 0;
+  list->storage = storage;
+}
+
+ListItem*
+list_create_item(List* list, void* object)
+{
+  ListItem* li = arena_malloc(list->storage, sizeof(*li));
+  list_item_set(li, object);
+  return li;
 }
 
 ListItem*

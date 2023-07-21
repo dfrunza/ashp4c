@@ -52,9 +52,10 @@ typedef struct List {
   ListItem sentinel;
   ListItem* last_item;
   int item_count;
+  Arena* storage;
 } List;
 
-void      list_reset(List* list);
+void      list_create(List* list, Arena* storage);
 ListItem* list_create_item(List*, void* object);
 #define   list_item_get(LI, TYPE)    ((TYPE)LI->object)
 #define   list_item_set(LI, OBJECT)  LI->object = OBJECT
