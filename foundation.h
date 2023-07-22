@@ -58,22 +58,20 @@ typedef struct List {
 void      list_create(List* list, Arena* storage);
 ListItem* list_create_item(List*, void* datum);
 #define   list_item_get(LI, TYPE)    ((TYPE)LI->datum)
-#define   list_item_set(LI, OBJECT)  LI->datum = OBJECT
+#define   list_item_set(LI, DATUM)  LI->datum = DATUM
 ListItem* list_first_item(List* list);
 void      list_append_item(List* list, ListItem* item, int count);
 
-// Max 2^11=2,048 elements
-#define ARRAY_MAX_SEGMENT 11
-
 typedef struct UnboundedArray {
-  void* segment_table[ARRAY_MAX_SEGMENT];
+  void** segment_table;
+  int segment_length;
   int elem_size;
   int elem_count;
   int capacity;
   Arena* storage;
 } UnboundedArray;
 
-void  array_create(UnboundedArray* array, Arena* storage, int elem_size);
+void  array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_array_length);
 void* array_get(UnboundedArray* array, int i);
 void* array_set(UnboundedArray* array, int i, void* elem);
 void* array_append(UnboundedArray* array, void* elem);
@@ -116,7 +114,7 @@ typedef struct HashmapCursor {
 
 void          hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType type, int capacity_log2);
 #define       hashmap_entry_get(HE, TYPE)    ((TYPE)HE->datum)
-#define       hashmap_entry_set(HE, OBJECT)  HE->datum = OBJECT
+#define       hashmap_entry_set(HE, DATUM)  HE->datum = DATUM
 void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int capacity_log2);
 HashmapEntry* hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
 HashmapEntry* hashmap_get_entry_uint32k(Hashmap* map, uint32_t int_key);

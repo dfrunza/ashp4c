@@ -303,6 +303,11 @@ typedef struct Ast {
   int column_no;
 } Ast;
 
+typedef struct ListItem_Ast {
+  ListItem;
+  Ast* ast;
+} ListItem_Ast;
+
 /** PROGRAM **/
 
 typedef struct Ast_P4Program {

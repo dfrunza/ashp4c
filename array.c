@@ -5,9 +5,10 @@
 #include "foundation.h"
 
 void
-array_create(UnboundedArray* array, Arena* storage, int elem_size)
+array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_array_length)
 {
-  memset(array->segment_table, 0, sizeof(array->segment_table));
+  array->segment_length = ceil_log2(max_array_length);
+  array->segment_table = arena_malloc(storage, sizeof(void*) * array->segment_length);
   array->elem_size = elem_size;
   array->elem_count = 0;
   array->capacity = 0;
@@ -54,7 +55,7 @@ static void
 array_grow(UnboundedArray* array)
 {
   int segment_index = floor_log2(array->elem_count + 1);
-  if (segment_index >= ARRAY_MAX_SEGMENT) {
+  if (segment_index >= array->segment_length) {
     printf("\nMaximum array capacity has been reached.\n");
     exit(1);
   }
