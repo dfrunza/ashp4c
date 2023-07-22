@@ -190,7 +190,7 @@ arena_grow(Arena* arena, uint32_t size)
 void*
 arena_malloc(Arena* arena, uint32_t size)
 {
-  assert(size >= 0);
+  assert(size > 0);
   uint8_t* user_memory = arena->memory_avail;
   if (user_memory + size >= (uint8_t*)arena->memory_limit) {
     arena_grow(arena, size);

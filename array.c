@@ -4,6 +4,19 @@
 #include <stdlib.h>   // exit
 #include "foundation.h"
 
+static void
+array_extend(UnboundedArray* array, int elem_count)
+{
+  int segment_index = floor_log2(elem_count);
+  if (segment_index >= array->segment_length) {
+    printf("\nMaximum array capacity has been reached.\n");
+    exit(1);
+  }
+  int segment_capacity = (1 << segment_index);
+  array->segment_table[segment_index] = arena_malloc(array->storage, segment_capacity * array->elem_size);
+  array->capacity += segment_capacity;
+}
+
 void
 array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_array_length)
 {
@@ -13,6 +26,9 @@ array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_array
   array->elem_count = 0;
   array->capacity = 0;
   array->storage = storage;
+  for (int i = 0; i < 3; i++) {
+    array_extend(array, 1 << i);
+  }
 }
 
 static void
@@ -51,24 +67,11 @@ array_set(UnboundedArray* array, int i, void* elem)
   return elem_slot;
 }
 
-static void
-array_grow(UnboundedArray* array)
-{
-  int segment_index = floor_log2(array->elem_count + 1);
-  if (segment_index >= array->segment_length) {
-    printf("\nMaximum array capacity has been reached.\n");
-    exit(1);
-  }
-  int segment_capacity = (1 << segment_index);
-  array->segment_table[segment_index] = arena_malloc(array->storage, segment_capacity * array->elem_size);
-  array->capacity += segment_capacity;
-}
-
 void*
 array_append(UnboundedArray* array, void* elem)
 {
   if (array->elem_count >= array->capacity) {
-    array_grow(array);
+    array_extend(array, array->elem_count + 1);
   }
   array->elem_count += 1;
   void* result = array_set(array, array->elem_count - 1, elem);

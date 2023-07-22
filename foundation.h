@@ -85,8 +85,8 @@ enum HashmapKeyType {
 typedef struct Hashmap {
   UnboundedArray entries;
   enum HashmapKeyType key_type;
-  int capacity_log2;
   int capacity;
+  int capacity_log2;
   int entry_count;
 } Hashmap;
 
