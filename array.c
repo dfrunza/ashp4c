@@ -88,15 +88,15 @@ list_create(List* list, Arena* storage)
 }
 
 ListItem*
-list_create_item(List* list, void* datum)
+_list_create_item(List* list, int item_size)
 {
-  ListItem* li = arena_malloc(list->storage, sizeof(*li));
-  list_item_set(li, datum);
+  assert(item_size >= sizeof(ListItem));
+  ListItem* li = arena_malloc(list->storage, item_size);
   return li;
 }
 
 ListItem*
-list_first_item(List* list)
+_list_first_item(List* list)
 {
   ListItem* li = list->sentinel.next;
   return li;

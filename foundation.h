@@ -45,7 +45,6 @@ void  arena_free(Arena* arena);
 typedef struct ListItem {
   struct ListItem* next;
   struct ListItem* prev;
-  void* datum;
 } ListItem;
 
 typedef struct List {
@@ -56,10 +55,10 @@ typedef struct List {
 } List;
 
 void      list_create(List* list, Arena* storage);
-ListItem* list_create_item(List*, void* datum);
-#define   list_item_get(LI, TYPE)    ((TYPE)LI->datum)
-#define   list_item_set(LI, DATUM)  LI->datum = DATUM
-ListItem* list_first_item(List* list);
+ListItem* _list_create_item(List* list, int item_size);
+#define   list_create_item(LIST, TYPE)  (TYPE*)_list_create_item(LIST, sizeof(TYPE))
+ListItem* _list_first_item(List* list);
+#define   list_first_item(LIST, TYPE)  (TYPE*)_list_first_item(LIST)
 void      list_append_item(List* list, ListItem* item, int count);
 
 typedef struct UnboundedArray {

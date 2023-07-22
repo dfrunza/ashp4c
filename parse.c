@@ -569,12 +569,14 @@ parse_declarationList()
   decls->column_no = token->column_no;
   list_create(&decls->members, storage);
   if (token_is_declaration(token)) {
-    ListItem* li = list_create_item(&decls->members, parse_declaration());
-    list_append_item(&decls->members, li, 1);
+    ListItem_Ast* li = list_create_item(&decls->members, ListItem_Ast);
+    li->ast = parse_declaration();
+    list_append_item(&decls->members, (ListItem*)li, 1);
     while (token_is_declaration(token) || token->klass == TK_SEMICOLON) {
       if (token_is_declaration(token)) {
-        li = list_create_item(&decls->members, parse_declaration());
-        list_append_item(&decls->members, li, 1);
+        li = list_create_item(&decls->members, ListItem_Ast);
+        li->ast = parse_declaration();
+        list_append_item(&decls->members, (ListItem*)li, 1);
       } else if (token->klass == TK_SEMICOLON) {
         next_token(); /* empty declaration */
       }
@@ -693,12 +695,14 @@ parse_parameterList()
   params->column_no = token->column_no;
   list_create(&params->members, storage);
   if (token_is_parameter(token)) {
-    ListItem* li = list_create_item(&params->members, parse_parameter());
-    list_append_item(&params->members, li, 1);
+    ListItem_Ast* li = list_create_item(&params->members, ListItem_Ast);
+    li->ast = parse_parameter();
+    list_append_item(&params->members, (ListItem*)li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&params->members, parse_parameter());
-      list_append_item(&params->members, li, 1);
+      li = list_create_item(&params->members, ListItem_Ast);
+      li->ast = parse_parameter();
+      list_append_item(&params->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)params;
@@ -878,11 +882,13 @@ parse_parserLocalElements()
   elems->column_no = token->column_no;
   list_create(&elems->members, storage);
   if (token_is_parserLocalElement(token)) {
-    ListItem* li = list_create_item(&elems->members, parse_parserLocalElement());
-    list_append_item(&elems->members, li, 1);
+    ListItem_Ast* li = list_create_item(&elems->members, ListItem_Ast);
+    li->ast = parse_parserLocalElement();
+    list_append_item(&elems->members, (ListItem*)li, 1);
     while (token_is_parserLocalElement(token)) {
-      li = list_create_item(&elems->members, parse_parserLocalElement());
-      list_append_item(&elems->members, li, 1);
+      li = list_create_item(&elems->members, ListItem_Ast);
+      li->ast = parse_parserLocalElement();
+      list_append_item(&elems->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)elems;
@@ -959,11 +965,13 @@ parse_parserStates()
   states->column_no = token->column_no;
   list_create(&states->members, storage);
   if (token->klass == TK_STATE) {
-    ListItem* li = list_create_item(&states->members, parse_parserState());
-    list_append_item(&states->members, li, 1);
+    ListItem_Ast* li = list_create_item(&states->members, ListItem_Ast);
+    li->ast = parse_parserState();
+    list_append_item(&states->members, (ListItem*)li, 1);
     while (token->klass == TK_STATE) {
-      li = list_create_item(&states->members, parse_parserState());
-      list_append_item(&states->members, li, 1);
+      li = list_create_item(&states->members, ListItem_Ast);
+      li->ast = parse_parserState();
+      list_append_item(&states->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)states;
@@ -1005,11 +1013,13 @@ parse_parserStatements()
   stmts->column_no = token->column_no;
   list_create(&stmts->members, storage);
   if (token_is_parserStatement(token)) {
-    ListItem* li = list_create_item(&stmts->members, parse_parserStatement());
-    list_append_item(&stmts->members, li, 1);
+    ListItem_Ast* li = list_create_item(&stmts->members, ListItem_Ast);
+    li->ast = parse_parserStatement();
+    list_append_item(&stmts->members, (ListItem*)li, 1);
     while (token_is_parserStatement(token)) {
-      li = list_create_item(&stmts->members, parse_parserStatement());
-      list_append_item(&stmts->members, li, 1);
+      li = list_create_item(&stmts->members, ListItem_Ast);
+      li->ast = parse_parserStatement();
+      list_append_item(&stmts->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)stmts;
@@ -1161,11 +1171,13 @@ parse_selectCaseList()
   cases->column_no = token->column_no;
   list_create(&cases->members, storage);
   if (token_is_selectCase(token)) {
-    ListItem* li = list_create_item(&cases->members, parse_selectCase());
-    list_append_item(&cases->members, li, 1);
+    ListItem_Ast* li = list_create_item(&cases->members, ListItem_Ast);
+    li->ast = parse_selectCase();
+    list_append_item(&cases->members, (ListItem*)li, 1);
     while (token_is_selectCase(token)) {
-      li = list_create_item(&cases->members, parse_selectCase());
-      list_append_item(&cases->members, li, 1);
+      li = list_create_item(&cases->members, ListItem_Ast);
+      li->ast = parse_selectCase();
+      list_append_item(&cases->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)cases;
@@ -1250,12 +1262,14 @@ parse_simpleExpressionList()
   exprs->column_no = token->column_no;
   list_create(&exprs->members, storage);
   if (token_is_expression(token)) {
-    ListItem* li = list_create_item(&exprs->members, parse_simpleKeysetExpression());
-    list_append_item(&exprs->members, li, 1);
+    ListItem_Ast* li = list_create_item(&exprs->members, ListItem_Ast);
+    li->ast = parse_simpleKeysetExpression();
+    list_append_item(&exprs->members, (ListItem*)li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&exprs->members, parse_simpleKeysetExpression());
-      list_append_item(&exprs->members, li, 1);
+      li = list_create_item(&exprs->members, ListItem_Ast);
+      li->ast = parse_simpleKeysetExpression();
+      list_append_item(&exprs->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)exprs;
@@ -1405,11 +1419,13 @@ parse_controlLocalDeclarations()
   decls->column_no = token->column_no;
   list_create(&decls->members, storage);
   if (token_is_controlLocalDeclaration(token)) {
-    ListItem* li = list_create_item(&decls->members, parse_controlLocalDeclaration());
-    list_append_item(&decls->members, li, 1);
+    ListItem_Ast* li = list_create_item(&decls->members, ListItem_Ast);
+    li->ast = parse_controlLocalDeclaration();
+    list_append_item(&decls->members, (ListItem*)li, 1);
     while (token_is_controlLocalDeclaration(token)) {
-      li = list_create_item(&decls->members, parse_controlLocalDeclaration());
-      list_append_item(&decls->members, li, 1);
+      li = list_create_item(&decls->members, ListItem_Ast);
+      li->ast = parse_controlLocalDeclaration();
+      list_append_item(&decls->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)decls;
@@ -1482,11 +1498,13 @@ parse_methodPrototypes()
   protos->column_no = token->column_no;
   list_create(&protos->members, storage);
   if (token_is_methodPrototype(token)) {
-    ListItem* li = list_create_item(&protos->members, parse_methodPrototype());
-    list_append_item(&protos->members, li, 1);
+    ListItem_Ast* li = list_create_item(&protos->members, ListItem_Ast);
+    li->ast = parse_methodPrototype();
+    list_append_item(&protos->members, (ListItem*)li, 1);
     while (token_is_methodPrototype(token)) {
-      li = list_create_item(&protos->members, parse_methodPrototype());
-      list_append_item(&protos->members, li, 1);
+      li = list_create_item(&protos->members, ListItem_Ast);
+      li->ast = parse_methodPrototype();
+      list_append_item(&protos->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)protos;
@@ -1900,16 +1918,18 @@ parse_typeParameterList()
     NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
     namedecl->strname = name->strname;
     scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
-    ListItem* li = list_create_item(&params->members, name);
-    list_append_item(&params->members, li, 1);
+    ListItem_Ast* li = list_create_item(&params->members, ListItem_Ast);
+    li->ast = (Ast*)name;
+    list_append_item(&params->members, (ListItem*)li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
       scope_push_decl(storage, &current_scope->decls, namedecl, NS_TYPE);
-      li = list_create_item(&params->members, name);
-      list_append_item(&params->members, li, 1);
+      li = list_create_item(&params->members, ListItem_Ast);
+      li->ast = (Ast*)name;
+      list_append_item(&params->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)params;
@@ -1979,12 +1999,14 @@ parse_realTypeArgumentList()
   args->column_no = token->column_no;
   list_create(&args->members, storage);
   if (token_is_realTypeArg(token)) {
-    ListItem* li = list_create_item(&args->members, parse_realTypeArg());
-    list_append_item(&args->members, li, 1);
+    ListItem_Ast* li = list_create_item(&args->members, ListItem_Ast);
+    li->ast = parse_realTypeArg();
+    list_append_item(&args->members, (ListItem*)li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&args->members, parse_realTypeArg());
-      list_append_item(&args->members, li, 1);
+      li = list_create_item(&args->members, ListItem_Ast);
+      li->ast = parse_realTypeArg();
+      list_append_item(&args->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)args;
@@ -1999,12 +2021,14 @@ parse_typeArgumentList()
   args->column_no = token->column_no;
   list_create(&args->members, storage);
   if (token_is_typeArg(token)) {
-    ListItem* li = list_create_item(&args->members, parse_typeArg());
-    list_append_item(&args->members, li, 1);
+    ListItem_Ast* li = list_create_item(&args->members, ListItem_Ast);
+    li->ast = parse_typeArg();
+    list_append_item(&args->members, (ListItem*)li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&args->members, parse_typeArg());
-      list_append_item(&args->members, li, 1);
+      li = list_create_item(&args->members, ListItem_Ast);
+      li->ast = parse_typeArg();
+      list_append_item(&args->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)args;
@@ -2179,11 +2203,13 @@ parse_structFieldList()
   fields->column_no = token->column_no;
   list_create(&fields->members, storage);
   if (token_is_structField(token)) {
-    ListItem* li = list_create_item(&fields->members, parse_structField());
-    list_append_item(&fields->members, li, 1);
+    ListItem_Ast* li = list_create_item(&fields->members, ListItem_Ast);
+    li->ast = parse_structField();
+    list_append_item(&fields->members, (ListItem*)li, 1);
     while (token_is_structField(token)) {
-      li = list_create_item(&fields->members, parse_structField());
-      list_append_item(&fields->members, li, 1);
+      li = list_create_item(&fields->members, ListItem_Ast);
+      li->ast = parse_structField();
+      list_append_item(&fields->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)fields;
@@ -2332,12 +2358,14 @@ parse_identifierList()
   ids->column_no = token->column_no;
   list_create(&ids->members, storage);
   if (token_is_name(token)) {
-    ListItem* li = list_create_item(&ids->members, parse_name());
-    list_append_item(&ids->members, li, 1);
+    ListItem_Ast* li = list_create_item(&ids->members, ListItem_Ast);
+    li->ast = parse_name();
+    list_append_item(&ids->members, (ListItem*)li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&ids->members, parse_name());
-      list_append_item(&ids->members, li, 1);
+      li = list_create_item(&ids->members, ListItem_Ast);
+      li->ast = parse_name();
+      list_append_item(&ids->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)ids;
@@ -2352,12 +2380,14 @@ parse_specifiedIdentifierList()
   ids->column_no = token->column_no;
   list_create(&ids->members, storage);
   if (token_is_specifiedIdentifier(token)) {
-    ListItem* li = list_create_item(&ids->members, parse_specifiedIdentifier());
-    list_append_item(&ids->members, li, 1);
+    ListItem_Ast* li = list_create_item(&ids->members, ListItem_Ast);
+    li->ast = parse_specifiedIdentifier();
+    list_append_item(&ids->members, (ListItem*)li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&ids->members, parse_specifiedIdentifier());
-      list_append_item(&ids->members, li, 1);
+      li = list_create_item(&ids->members, ListItem_Ast);
+      li->ast = parse_specifiedIdentifier();
+      list_append_item(&ids->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)ids;
@@ -2667,11 +2697,13 @@ parse_statementOrDeclList()
   stmts->column_no = token->column_no;
   list_create(&stmts->members, storage);
   if (token_is_statementOrDeclaration(token)) {
-    ListItem* li = list_create_item(&stmts->members, parse_statementOrDeclaration());
-    list_append_item(&stmts->members, li, 1);
+    ListItem_Ast* li = list_create_item(&stmts->members, ListItem_Ast);
+    li->ast = parse_statementOrDeclaration();
+    list_append_item(&stmts->members, (ListItem*)li, 1);
     while (token_is_statementOrDeclaration(token)) {
-      li = list_create_item(&stmts->members, parse_statementOrDeclaration());
-      list_append_item(&stmts->members, li, 1);
+      li = list_create_item(&stmts->members, ListItem_Ast);
+      li->ast = parse_statementOrDeclaration();
+      list_append_item(&stmts->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)stmts;
@@ -2720,11 +2752,13 @@ parse_switchCases()
   cases->column_no = token->column_no;
   list_create(&cases->members, storage);
   if (token_is_switchLabel(token)) {
-    ListItem* li = list_create_item(&cases->members, parse_switchCase());
-    list_append_item(&cases->members, li, 1);
+    ListItem_Ast* li = list_create_item(&cases->members, ListItem_Ast);
+    li->ast = parse_switchCase();
+    list_append_item(&cases->members, (ListItem*)li, 1);
     while (token_is_switchLabel(token)) {
-      li = list_create_item(&cases->members, parse_switchCase());
-      list_append_item(&cases->members, li, 1);
+      li = list_create_item(&cases->members, ListItem_Ast);
+      li->ast = parse_switchCase();
+      list_append_item(&cases->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)cases;
@@ -2852,11 +2886,13 @@ parse_tablePropertyList()
   props->column_no = token->column_no;
   list_create(&props->members, storage);
   if (token_is_tableProperty(token)) {
-    ListItem* li = list_create_item(&props->members, parse_tableProperty());
-    list_append_item(&props->members, li, 1);
+    ListItem_Ast* li = list_create_item(&props->members, ListItem_Ast);
+    li->ast = parse_tableProperty();
+    list_append_item(&props->members, (ListItem*)li, 1);
     while (token_is_tableProperty(token)) {
-      li = list_create_item(&props->members, parse_tableProperty());
-      list_append_item(&props->members, li, 1);
+      li = list_create_item(&props->members, ListItem_Ast);
+      li->ast = parse_tableProperty();
+      list_append_item(&props->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)props;
@@ -2975,11 +3011,13 @@ parse_keyElementList()
   elems->column_no = token->column_no;
   list_create(&elems->members, storage);
   if (token_is_expression(token)) {
-    ListItem* li = list_create_item(&elems->members, parse_keyElement());
-    list_append_item(&elems->members, li, 1);
+    ListItem_Ast* li = list_create_item(&elems->members, ListItem_Ast);
+    li->ast = parse_keyElement();
+    list_append_item(&elems->members, (ListItem*)li, 1);
     while (token_is_expression(token)) {
-      li = list_create_item(&elems->members, parse_keyElement());
-      list_append_item(&elems->members, li, 1);
+      li = list_create_item(&elems->members, ListItem_Ast);
+      li->ast = parse_keyElement();
+      list_append_item(&elems->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)elems;
@@ -3019,15 +3057,17 @@ parse_actionList()
   actions->column_no = token->column_no;
   list_create(&actions->members, storage);
   if (token_is_actionRef(token)) {
-    ListItem* li = list_create_item(&actions->members, parse_actionRef());
-    list_append_item(&actions->members, li, 1);
+    ListItem_Ast* li = list_create_item(&actions->members, ListItem_Ast);
+    li->ast = parse_actionRef();
+    list_append_item(&actions->members, (ListItem*)li, 1);
     if (token->klass == TK_SEMICOLON) {
       next_token();
     } else error("At line %d, column %d: `;` was expected, got `%s`.",
                  token->line_no, token->column_no, token->lexeme);
     while (token_is_actionRef(token)) {
-      li = list_create_item(&actions->members, parse_actionRef());
-      list_append_item(&actions->members, li, 1);
+      li = list_create_item(&actions->members, ListItem_Ast);
+      li->ast = parse_actionRef();
+      list_append_item(&actions->members, (ListItem*)li, 1);
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -3075,11 +3115,13 @@ parse_entriesList()
   entries->column_no = token->column_no;
   list_create(&entries->members, storage);
   if (token_is_keysetExpression(token)) {
-    ListItem* li = list_create_item(&entries->members, parse_entry());
-    list_append_item(&entries->members, li, 1);
+    ListItem_Ast* li = list_create_item(&entries->members, ListItem_Ast);
+    li->ast = parse_entry();
+    list_append_item(&entries->members, (ListItem*)li, 1);
     while (token_is_keysetExpression(token)) {
-      li = list_create_item(&entries->members, parse_entry());
-      list_append_item(&entries->members, li, 1);
+      li = list_create_item(&entries->members, ListItem_Ast);
+      li->ast = parse_entry();
+      list_append_item(&entries->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)entries;
@@ -3210,12 +3252,14 @@ parse_argumentList()
   args->column_no = token->column_no;
   list_create(&args->members, storage);
   if (token_is_argument(token)) {
-    ListItem* li = list_create_item(&args->members, parse_argument());
-    list_append_item(&args->members, li, 1);
+    ListItem_Ast* li = list_create_item(&args->members, ListItem_Ast);
+    li->ast = parse_argument();
+    list_append_item(&args->members, (ListItem*)li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&args->members, parse_argument());
-      list_append_item(&args->members, li, 1);
+      li = list_create_item(&args->members, ListItem_Ast);
+      li->ast = parse_argument();
+      list_append_item(&args->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)args;
@@ -3256,12 +3300,14 @@ parse_expressionList()
   exprs->column_no = token->column_no;
   list_create(&exprs->members, storage);
   if (token_is_expression(token)) {
-    ListItem* li = list_create_item(&exprs->members, parse_expression(1));
-    list_append_item(&exprs->members, li, 1);
+    ListItem_Ast* li = list_create_item(&exprs->members, ListItem_Ast);
+    li->ast = parse_expression(1);
+    list_append_item(&exprs->members, (ListItem*)li, 1);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&exprs->members, parse_expression(1));
-      list_append_item(&exprs->members, li, 1);
+      li = list_create_item(&exprs->members, ListItem_Ast);
+      li->ast = parse_expression(1);
+      list_append_item(&exprs->members, (ListItem*)li, 1);
     }
   }
   return (Ast*)exprs;
