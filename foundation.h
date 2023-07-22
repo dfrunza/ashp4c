@@ -50,19 +50,23 @@ typedef struct ListItem {
 typedef struct List {
   ListItem sentinel;
   ListItem* last_item;
+  int item_size;
   int item_count;
   Arena* storage;
 } List;
 
-void      list_create(List* list, Arena* storage);
-ListItem* _list_create_item(List* list, int item_size);
-#define   list_create_item(LIST, TYPE)  (TYPE*)_list_create_item(LIST, sizeof(TYPE))
+void      _list_create(List* list, Arena* storage, int item_size);
+#define   list_create(LIST, STORAGE, TYPE)  _list_create(LIST, STORAGE, sizeof(TYPE))
+ListItem* _list_create_item(List* list);
+#define   list_create_item(LIST, TYPE)  (TYPE*)_list_create_item(LIST)
 ListItem* _list_first_item(List* list);
 #define   list_first_item(LIST, TYPE)  (TYPE*)_list_first_item(LIST)
 void      list_append_item(List* list, ListItem* item, int count);
 
+typedef void* ArrayElement;
+
 typedef struct UnboundedArray {
-  void** segment_table;
+  ArrayElement* segment_table;
   int segment_length;
   int elem_size;
   int elem_count;
@@ -70,10 +74,10 @@ typedef struct UnboundedArray {
   Arena* storage;
 } UnboundedArray;
 
-void  array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_array_length);
-void* array_get(UnboundedArray* array, int i);
-void* array_set(UnboundedArray* array, int i, void* elem);
-void* array_append(UnboundedArray* array, void* elem);
+void  array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capacity);
+ArrayElement array_get(UnboundedArray* array, int i);
+ArrayElement array_set(UnboundedArray* array, int i, ArrayElement elem);
+ArrayElement array_append(UnboundedArray* array, ArrayElement elem);
 
 enum HashmapKeyType {
   HASHMAP_KEY_STRING = 1,

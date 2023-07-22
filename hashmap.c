@@ -32,7 +32,7 @@ multiply_hash(uint32_t K, uint32_t m)
 {
   assert(m > 0 && m <= 32);
   uint64_t Ksigma = (uint64_t)K * (uint64_t)SIGMA;
-  uint32_t h = ((uint32_t)Ksigma) >> (32 - m);  // 0 <= h < 2^{m}
+  uint32_t h = ((uint32_t)Ksigma) >> (32 - m);  /* 0 <= h < 2^{m} */
   return h;
 }
 
@@ -41,7 +41,7 @@ hash_string(uint8_t* string, uint32_t m)
 {
   assert(m > 0 && m <= 32);
   uint32_t K = fold_string(string);
-  uint32_t h = multiply_hash(K, m) % ((1 << m) - 1);  // 0 <= h < 2^{m} - 1
+  uint32_t h = multiply_hash(K, m) % ((1 << m) - 1);  /* 0 <= h < 2^{m} - 1 */
   return h;
 }
 
@@ -50,7 +50,7 @@ hash_bytes(uint8_t* bytes, int length, uint32_t m)
 {
   assert(m > 0 && m <= 32);
   uint32_t K = fold_bytes(bytes, length);
-  uint32_t h = multiply_hash(K, m) % ((1 << m) - 1);  // 0 <= h < 2^{m} - 1
+  uint32_t h = multiply_hash(K, m) % ((1 << m) - 1);  /* 0 <= h < 2^{m} - 1 */
   return h;
 }
 
@@ -58,12 +58,12 @@ static uint32_t
 hash_uint32(uint32_t i, uint32_t m)
 {
   assert(m > 0 && m <= 32);
-  uint32_t h = multiply_hash(i, m) % ((1 << m) - 1);  // 0 <= h < 2^{m} - 1
+  uint32_t h = multiply_hash(i, m) % ((1 << m) - 1);  /* 0 <= h < 2^{m} - 1 */
   return h;
 }
 
 void
-hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ HashmapKey* key, int length_log2)
+hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int length_log2)
 {
   if (key_type == HASHMAP_KEY_STRING) {
     key->h = hash_string(key->str_key, length_log2);
@@ -108,7 +108,7 @@ void
 _hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int entry_size,
                 int capacity, int max_capacity)
 {
-  assert(capacity <= max_capacity);
+  assert(max_capacity > 0 && capacity <= max_capacity);
   assert(entry_size >= sizeof(HashmapEntry));
   hashmap->capacity_log2 = ceil_log2(capacity);
   hashmap->capacity = (1 << hashmap->capacity_log2) - 1;

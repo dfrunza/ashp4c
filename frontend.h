@@ -289,7 +289,7 @@ enum Ast_ParamDirection {
 };
 
 typedef struct Scope {
-  Hashmap decls;
+  Hashmap;
   int scope_level;
   struct Scope* parent_scope;
 } Scope;
@@ -626,7 +626,7 @@ typedef struct Ast_HeaderTypeDeclaration {
 
   struct {
     int field_count;
-    Hashmap fields;
+    Scope fields;
   } attr;
 } Ast_HeaderTypeDeclaration;
 
@@ -637,7 +637,7 @@ typedef struct Ast_HeaderUnionDeclaration {
 
   struct {
     int field_count;
-    Hashmap fields;
+    Scope fields;
   } attr;
 } Ast_HeaderUnionDeclaration;
 
@@ -648,7 +648,7 @@ typedef struct Ast_StructTypeDeclaration {
 
   struct {
     int field_count;
-    Hashmap fields;
+    Scope fields;
   } attr;
 } Ast_StructTypeDeclaration;
 
@@ -671,7 +671,7 @@ typedef struct Ast_EnumDeclaration {
 
   struct {
     int field_count;
-    Hashmap fields;
+    Scope fields;
   } attr;
 } Ast_EnumDeclaration;
 
@@ -681,7 +681,7 @@ typedef struct Ast_ErrorDeclaration {
 
   struct {
     int field_count;
-    Hashmap fields;
+    Scope fields;
   } attr;
 } Ast_ErrorDeclaration;
 
@@ -691,7 +691,7 @@ typedef struct Ast_MatchKindDeclaration {
 
   struct {
     int field_count;
-    Hashmap fields;
+    Scope fields;
   } attr;
 } Ast_MatchKindDeclaration;
 
@@ -1008,7 +1008,7 @@ Scope* scope_push(Scope* scope, Scope* parent_scope);
 Scope* scope_pop(Scope* scope);
 ScopeEntry* scope_lookup_any(Scope* scope, char* name);
 ScopeEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
-ScopeEntry* scope_push_decl(Arena* storage, Hashmap* decl_table, NameDecl* decl, enum NameSpace ns);
+ScopeEntry* scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns);
 
 enum TypeEnum {
   TYPE_VOID = 1,
