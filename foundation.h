@@ -112,7 +112,7 @@ typedef struct HashmapCursor {
   HashmapEntry* entry;
 } HashmapCursor;
 
-void          hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType type, int capacity_log2);
+void          hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType type, int capacity);
 #define       hashmap_entry_get(HE, TYPE)    ((TYPE)HE->datum)
 #define       hashmap_entry_set(HE, DATUM)  HE->datum = DATUM
 void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int capacity_log2);

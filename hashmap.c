@@ -105,16 +105,16 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 }
 
 void
-hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int capacity_log2)
+hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int capacity)
 {
+  hashmap->capacity_log2 = ceil_log2(capacity);
   hashmap->key_type = key_type;
-  hashmap->capacity = (1 << capacity_log2) - 1;
+  hashmap->capacity = (1 << hashmap->capacity_log2) - 1;
   hashmap->entry_count = 0;
   array_create(&hashmap->entries, storage, sizeof(HashmapEntry*), 2048);
   for (int i = 0; i < hashmap->capacity; i++) {
     array_append(&hashmap->entries, &NULL_ENTRY);
   }
-  hashmap->capacity_log2 = capacity_log2;
 }
 
 HashmapEntry*

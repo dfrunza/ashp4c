@@ -3632,7 +3632,7 @@ parse_tokens(UnboundedArray* tokens_, Arena* _storage)
   tokens = tokens_;
   storage = _storage;
   Scope* root_scope = arena_malloc(storage, sizeof(*root_scope));
-  hashmap_create(&root_scope->decls, storage, HASHMAP_KEY_STRING, 3);
+  hashmap_create(&root_scope->decls, storage, HASHMAP_KEY_STRING, 8);
   root_scope->scope_level = 0;
   current_scope = root_scope;
 
