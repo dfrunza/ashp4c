@@ -984,7 +984,7 @@ typedef struct Ast_Default {
 
 typedef struct NameDecl {
   union {
-    Ast ast;
+    Ast* ast;
     enum TokenClass token_class;
   };
   char* strname;

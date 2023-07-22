@@ -69,17 +69,19 @@ Debug_scope_decls(Scope* scope)
   printf("Names in scope 0x%x\n\n", scope);
   for (ScopeEntry* ns_entry = hashmap_move_cursor(&entry_it, ScopeEntry);
        ns_entry != 0; ns_entry = hashmap_move_cursor(&entry_it, ScopeEntry)) {
-    if (ns_entry->ns[NS_TYPE]) {
-      NameDecl* decl = ns_entry->ns[NS_TYPE];
-      while (decl) {
-        printf("%s  ...  at %d:%d\n", decl->strname, decl->ast.line_no, decl->ast.column_no);
-        decl = decl->next_in_scope;
-        count += 1;
-      }
+    NameDecl* decl;
+    Ast* ast;
+    decl = ns_entry->ns[NS_TYPE];
+    while (decl) {
+      ast = decl->ast;
+      printf("%s  ...  at %d:%d\n", decl->strname, ast->line_no, ast->column_no);
+      decl = decl->next_in_scope;
+      count += 1;
     }
-    if (ns_entry->ns[NS_VAR]) {
-      NameDecl* decl = ns_entry->ns[NS_VAR];
-      printf("%s  ...  at %d:%d\n", decl->strname, decl->ast.line_no, decl->ast.column_no);
+    decl = ns_entry->ns[NS_VAR];
+    while (decl) {
+      ast = decl->ast;
+      printf("%s  ...  at %d:%d\n", decl->strname, ast->line_no, ast->column_no);
       decl = decl->next_in_scope;
       count += 1;
     }
