@@ -45,7 +45,7 @@ void  arena_free(Arena* arena);
 typedef struct ListItem {
   struct ListItem* next;
   struct ListItem* prev;
-  void* object;
+  void* datum;
 } ListItem;
 
 typedef struct List {
@@ -56,9 +56,9 @@ typedef struct List {
 } List;
 
 void      list_create(List* list, Arena* storage);
-ListItem* list_create_item(List*, void* object);
-#define   list_item_get(LI, TYPE)    ((TYPE)LI->object)
-#define   list_item_set(LI, OBJECT)  LI->object = OBJECT
+ListItem* list_create_item(List*, void* datum);
+#define   list_item_get(LI, TYPE)    ((TYPE)LI->datum)
+#define   list_item_set(LI, OBJECT)  LI->datum = OBJECT
 ListItem* list_first_item(List* list);
 void      list_append_item(List* list, ListItem* item, int count);
 
@@ -105,7 +105,7 @@ typedef struct HashmapKey {
 typedef struct HashmapEntry {
   HashmapKey key;
   struct HashmapEntry* next_entry;
-  void* object;
+  void* datum;
 } HashmapEntry;
 
 typedef struct HashmapCursor {
@@ -115,8 +115,8 @@ typedef struct HashmapCursor {
 } HashmapCursor;
 
 void          hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType type, int capacity_log2);
-#define       hashmap_entry_get(HE, TYPE)    ((TYPE)HE->object)
-#define       hashmap_entry_set(HE, OBJECT)  HE->object = OBJECT
+#define       hashmap_entry_get(HE, TYPE)    ((TYPE)HE->datum)
+#define       hashmap_entry_set(HE, OBJECT)  HE->datum = OBJECT
 void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int capacity_log2);
 HashmapEntry* hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
 HashmapEntry* hashmap_get_entry_uint32k(Hashmap* map, uint32_t int_key);

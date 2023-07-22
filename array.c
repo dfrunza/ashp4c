@@ -84,10 +84,10 @@ list_create(List* list, Arena* storage)
 }
 
 ListItem*
-list_create_item(List* list, void* object)
+list_create_item(List* list, void* datum)
 {
   ListItem* li = arena_malloc(list->storage, sizeof(*li));
-  list_item_set(li, object);
+  list_item_set(li, datum);
   return li;
 }
 

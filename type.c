@@ -17,7 +17,7 @@ tyset_import_set(Arena *type_storage, TypeSet* to_set, TypeSet* from_set)
 {
   for (ListItem* li = from_set->members.sentinel.next;
        li != 0; li = li->next) {
-    tyset_add_type(type_storage, to_set, li->object);
+    tyset_add_type(type_storage, to_set, li->datum);
   }
 }
 

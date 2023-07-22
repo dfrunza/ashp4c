@@ -38,9 +38,9 @@ visit_binary_expr(Ast* ast)
     Ast* int_decl = ne->ns_type->ast;
     Type_TypeSet* int_ty = typeset_get(&potential_type, int_decl->id);
     assert(int_ty->member_count == 1);
-    if (typeset_contains_type(lhs_ty, (Type*)int_ty->members.next->object) && 
-        typeset_contains_type(rhs_ty, (Type*)int_ty->members.next->object)) {
-      typeset_add_type(ty_set, (Type*)int_ty->members.next->object);
+    if (typeset_contains_type(lhs_ty, (Type*)int_ty->members.next->datum) &&
+        typeset_contains_type(rhs_ty, (Type*)int_ty->members.next->datum)) {
+      typeset_add_type(ty_set, (Type*)int_ty->members.next->datum);
     }
   }
   if (ty_set->member_count == 0) {
@@ -106,20 +106,20 @@ visit_function_call(Ast* ast)
   Ast_NodeList* type_args = &callee_expr->type_args;
   ListItem* li = type_args->list.next;
   while (li) {
-    Ast* type_arg = li->object;
+    Ast* type_arg = li->datum;
     visit_type_ref(type_arg);
     li = li->next;
   }
   Ast_NodeList* args = &function_call->args;
   if (args->list.next) {
     ListItem* li = args->list.next;
-    Ast* arg = li->object;
+    Ast* arg = li->datum;
     visit_expression(arg);
     li = li->next;
     if (li) {
       Type* args_ty = (Type*)typeset_get(&potential_type, arg->id);
       while (li) {
-        Ast* arg = li->object;
+        Ast* arg = li->datum;
         visit_expression(arg);
         Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
@@ -164,13 +164,13 @@ visit_expression_list(Ast* ast)
   Ast_NodeList* expr_list = &expr->expr_list;
   if (expr_list->list.next) {
     ListItem* li = expr_list->list.next;
-    Ast* item = li->object;
+    Ast* item = li->datum;
     visit_expression(item);
     li = li->next;
     if (li) {
       Type* items_ty = (Type*)typeset_get(&potential_type, item->id);
       while (li) {
-        Ast* item = li->object;
+        Ast* item = li->datum;
         visit_expression(item);
         Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
@@ -325,7 +325,7 @@ visit_block_statement(Ast* ast)
   Ast_NodeList* stmt_list = &block_stmt->stmt_list;
   ListItem* li = stmt_list->list.next;
   while (li) {
-    Ast* decl = li->object;
+    Ast* decl = li->datum;
     visit_statement(decl);
     li = li->next;
   }
@@ -345,13 +345,13 @@ visit_action_ref(Ast* ast)
   Ast_NodeList* args = &action->args;
   if (args->list.next) {
     ListItem* li = args->list.next;
-    Ast* arg = li->object;
+    Ast* arg = li->datum;
     visit_expression(arg);
     li = li->next;
     if (li) {
       Type* args_ty = (Type*)typeset_get(&potential_type, arg->id);
       while (li) {
-        Ast* arg = li->object;
+        Ast* arg = li->datum;
         visit_expression(arg);
         Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
@@ -411,7 +411,7 @@ visit_tuple_keyset(Ast* ast)
   Ast_NodeList* expr_list = &keyset->expr_list;
   ListItem* li = expr_list->list.next;
   while (li) {
-    Ast* expr = li->object;
+    Ast* expr = li->datum;
     visit_keyset_expr(expr);
     li = li->next;
   }
@@ -444,7 +444,7 @@ visit_table_actions(Ast *ast)
   Ast_NodeList* action_list = &prop->action_list;
   ListItem* li = action_list->list.next;
   while (li) {
-    Ast* action = li->object;
+    Ast* action = li->datum;
     visit_action_ref(action);
     li = li->next;
   }
@@ -468,7 +468,7 @@ visit_table_key(Ast* ast)
   Ast_NodeList* keyelem_list = &prop->keyelem_list;
   ListItem* li = keyelem_list->list.next;
   while (li) {
-    Ast* keyelem = li->object;
+    Ast* keyelem = li->datum;
     visit_table_keyelem(keyelem);
     li = li->next;
   }
@@ -482,7 +482,7 @@ visit_table_entries(Ast* ast)
   Ast_NodeList* entries = &prop->entries;
   ListItem* li = entries->list.next;
   while (li) {
-    Ast* entry = li->object;
+    Ast* entry = li->datum;
     visit_table_entry(entry);
     li = li->next;
   }
@@ -561,7 +561,7 @@ visit_table(Ast* ast)
   Ast_NodeList* prop_list = &table_decl->prop_list;
   ListItem* li = prop_list->list.next;
   while (li) {
-    Ast* prop = li->object;
+    Ast* prop = li->datum;
     visit_table_property(prop);
     li = li->next;
   }
@@ -588,7 +588,7 @@ visit_switch_stmt(Ast* ast)
   Ast_NodeList* switch_cases = &stmt->switch_cases;
   ListItem* li = switch_cases->list.next;
   while (li) {
-    Ast* switch_case = li->object;
+    Ast* switch_case = li->datum;
     visit_switch_case(switch_case);
     li = li->next;
   }
@@ -699,14 +699,14 @@ visit_select_expr(Ast* ast)
   Ast_NodeList* expr_list = &trans_stmt->expr_list;
   li = expr_list->list.next;
   while (li) {
-    Ast* expr = li->object;
+    Ast* expr = li->datum;
     visit_expression(expr);
     li = li->next;
   }
   Ast_NodeList* case_list = &trans_stmt->case_list;
   li = case_list->list.next;
   while (li) {
-    Ast* select_case = li->object;
+    Ast* select_case = li->datum;
     visit_transition_select_case(select_case);
     li = li->next;
   }
@@ -731,7 +731,7 @@ visit_parser_state(Ast* ast)
   Ast_NodeList* stmt_list = &state_decl->stmt_list;
   ListItem* li = stmt_list->list.next;
   while (li) {
-    Ast* stmt = li->object;
+    Ast* stmt = li->datum;
     visit_statement(stmt);
     li = li->next;
   }
@@ -869,7 +869,7 @@ visit_specialized_type(Ast* ast)
   Ast_NodeList* type_args = &speclzd_type->type_args;
   ListItem* li = type_args->list.next;
   while (li) {
-    Ast* type_arg = li->object;
+    Ast* type_arg = li->datum;
     visit_type_ref(type_arg);
     li = li->next;
   }
@@ -885,13 +885,13 @@ visit_tuple(Ast* ast)
   Ast_NodeList* args = &tuple_decl->type_args;
   if (args->list.next) {
     ListItem* li = args->list.next;
-    Ast* arg = li->object;
+    Ast* arg = li->datum;
     visit_type_ref(arg);
     li = li->next;
     if (li) {
       Type* args_ty = (Type*)typeset_get(&potential_type, arg->id);
       while (li) {
-        Ast* arg = li->object;
+        Ast* arg = li->datum;
         visit_type_ref(arg);
         Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
@@ -977,14 +977,14 @@ visit_control(Ast* ast)
   Ast_NodeList* ctor_params = &control_decl->ctor_params;
   li = ctor_params->list.next;
   while (li) {
-    Ast* param = li->object;
+    Ast* param = li->datum;
     visit_param(param);
     li = li->next;
   }
   Ast_NodeList* local_decls = &control_decl->local_decls;
   li = local_decls->list.next;
   while (li) {
-    Ast* decl = li->object;
+    Ast* decl = li->datum;
     visit_statement(decl);
     li = li->next;
   }
@@ -1007,20 +1007,20 @@ visit_control_proto(Ast* ast)
   Ast_NodeList* type_params = &proto->type_params;
   ListItem* li = type_params->list.next;
   while (li) {
-    Ast* type_param = li->object;
+    Ast* type_param = li->datum;
     visit_type_param(type_param);
     li = li->next;
   }
   Ast_NodeList* params = &proto->params;
   if (params->list.next) {
     ListItem* li = params->list.next;
-    Ast* param = li->object;
+    Ast* param = li->datum;
     visit_param(param);
     li = li->next;
     if (li) {
       Type* params_ty = (Type*)typeset_get(&potential_type, param->id);
       while (li) {
-        Ast* param = li->object;
+        Ast* param = li->datum;
         visit_param(param);
         Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
@@ -1057,14 +1057,14 @@ visit_extern(Ast* ast)
   Ast_NodeList* type_params = &extern_decl->type_params;
   li = type_params->list.next;
   while (li) {
-    Ast* type_param = li->object;
+    Ast* type_param = li->datum;
     visit_type_param(type_param);
     li = li->next;
   }
   Ast_NodeList* method_protos = &extern_decl->method_protos;
   li = method_protos->list.next;
   while (li) {
-    Ast* proto = li->object;
+    Ast* proto = li->datum;
     visit_function_proto(proto);
     li = li->next;
   }
@@ -1080,13 +1080,13 @@ visit_struct(Ast* ast)
   Ast_NodeList* fields = &struct_decl->fields;
   if (fields->list.next) {
     ListItem* li = fields->list.next;
-    Ast* field = li->object;
+    Ast* field = li->datum;
     visit_struct_field(field);
     li = li->next;
     if (li) {
       Type* fields_ty = (Type*)typeset_get(&potential_type, field->id);
       while (li) {
-        Ast* field = li->object;
+        Ast* field = li->datum;
         visit_struct_field(field);
         Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
@@ -1112,13 +1112,13 @@ visit_header(Ast* ast)
   Ast_NodeList* fields = &header_decl->fields;
   if (fields->list.next) {
     ListItem* li = fields->list.next;
-    Ast* field = li->object;
+    Ast* field = li->datum;
     visit_struct_field(field);
     li = li->next;
     if (li) {
       Type* fields_ty = (Type*)typeset_get(&potential_type, field->id);
       while (li) {
-        Ast* field = li->object;
+        Ast* field = li->datum;
         visit_struct_field(field);
         Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
@@ -1144,13 +1144,13 @@ visit_header_union(Ast* ast)
   Ast_NodeList* fields = &union_decl->fields;
   if (fields->list.next) {
     ListItem* li = fields->list.next;
-    Ast* field = li->object;
+    Ast* field = li->datum;
     visit_struct_field(field);
     li = li->next;
     if (li) {
       Type* fields_ty = (Type*)typeset_get(&potential_type, field->id);
       while (li) {
-        Ast* field = li->object;
+        Ast* field = li->datum;
         visit_struct_field(field);
         Type_Union* union_ty = arena_malloc(type_storage, Type_Union);
         union_ty->ctor = TYPE_UNION;
@@ -1183,14 +1183,14 @@ visit_package(Ast* ast)
   Ast_NodeList* type_params = &package_decl->type_params;
   li = type_params->list.next;
   while (li) {
-    Ast* type_param = li->object;
+    Ast* type_param = li->datum;
     visit_type_param(type_param);
     li = li->next;
   }
   Ast_NodeList* params = &package_decl->params;
   li = params->list.next;
   while (li) {
-    Ast* param = li->object;
+    Ast* param = li->datum;
     visit_param(param);
     li = li->next;
   }
@@ -1209,21 +1209,21 @@ visit_parser(Ast* ast)
   Ast_NodeList* ctor_params = &parser_decl->ctor_params;
   li = ctor_params->list.next;
   while (li) {
-    Ast* param = li->object;
+    Ast* param = li->datum;
     visit_param(param);
     li = li->next;
   }
   Ast_NodeList* local_elements = &parser_decl->local_elements;
   li = local_elements->list.next;
   while (li) {
-    Ast* element = li->object;
+    Ast* element = li->datum;
     visit_local_parser_element(element);
     li = li->next;
   }
   Ast_NodeList* states = &parser_decl->states;
   li = states->list.next;
   while (li) {
-    Ast* state = li->object;
+    Ast* state = li->datum;
     visit_parser_state(state);
     li = li->next;
   }
@@ -1243,20 +1243,20 @@ visit_parser_proto(Ast* ast)
   Ast_NodeList* type_params = &proto->type_params;
   ListItem* li = type_params->list.next;
   while (li) {
-    Ast* type_param = li->object;
+    Ast* type_param = li->datum;
     visit_type_param(type_param);
     li = li->next;
   }
   Ast_NodeList* params = &proto->params;
   if (params->list.next) {
     ListItem* li = params->list.next;
-    Ast* param = li->object;
+    Ast* param = li->datum;
     visit_param(param);
     li = li->next;
     if (li) {
       Type* params_ty = (Type*)typeset_get(&potential_type, param->id);
       while (li) {
-        Ast* param = li->object;
+        Ast* param = li->datum;
         visit_param(param);
         Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
@@ -1291,13 +1291,13 @@ visit_instantiation(Ast* ast)
   Ast_NodeList* args = &inst_decl->args;
   if (args->list.next) {
     ListItem* li = args->list.next;
-    Ast* arg = li->object;
+    Ast* arg = li->datum;
     visit_expression(arg);
     li = li->next;
     if (li) {
       Type* args_ty = (Type*)typeset_get(&potential_type, arg->id);
       while (li) {
-        Ast* arg = li->object;
+        Ast* arg = li->datum;
         visit_expression(arg);
         Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
@@ -1342,7 +1342,7 @@ visit_function(Ast* ast)
     Ast_NodeList* stmt_list = &function_body->stmt_list;
     ListItem* li = stmt_list->list.next;
     while (li) {
-      Ast* stmt = li->object;
+      Ast* stmt = li->datum;
       visit_statement(stmt);
       li = li->next;
     }
@@ -1367,20 +1367,20 @@ visit_function_proto(Ast* ast)
   Ast_NodeList* type_params = &proto->type_params;
   ListItem* li = type_params->list.next;
   while (li) {
-    Ast* type_param = li->object;
+    Ast* type_param = li->datum;
     visit_type_param(type_param);
     li = li->next;
   }
   Ast_NodeList* params = &proto->params;
   if (params->list.next) {
     ListItem* li = params->list.next;
-    Ast* param = li->object;
+    Ast* param = li->datum;
     visit_param(param);
     li = li->next;
     if (li) {
       Type* params_ty = (Type*)typeset_get(&potential_type, param->id);
       while (li) {
-        Ast* param = li->object;
+        Ast* param = li->datum;
         visit_param(param);
         Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
@@ -1441,13 +1441,13 @@ visit_action(Ast* ast)
   Ast_NodeList* params = &action_decl->params;
   if (params->list.next) {
     ListItem* li = params->list.next;
-    Ast* param = li->object;
+    Ast* param = li->datum;
     visit_param(param);
     li = li->next;
     if (li) {
       Type* params_ty = (Type*)typeset_get(&potential_type, param->id);
       while (li) {
-        Ast* param = li->object;
+        Ast* param = li->datum;
         visit_param(param);
         Type_Product* product_ty = arena_malloc(type_storage, Type_Product);
         product_ty->ctor = TYPE_PRODUCT;
@@ -1470,7 +1470,7 @@ visit_action(Ast* ast)
     Ast_NodeList* stmt_list = &action_body->stmt_list;
     ListItem* li = stmt_list->list.next;
     while (li) {
-      Ast* stmt = li->object;
+      Ast* stmt = li->datum;
       visit_statement(stmt);
       li = li->next;
     }
@@ -1485,7 +1485,7 @@ visit_match_kind(Ast* ast)
   Ast_NodeList* id_list = &decl->id_list;
   ListItem* li = id_list->list.next;
   while (li) {
-    Ast* id = li->object;
+    Ast* id = li->datum;
     if (id->kind == AST_nonTypeName) {
       visit_enum_field(id);
     } else if (id->kind == AST_specifiedIdentifier) {
@@ -1504,7 +1504,7 @@ visit_error(Ast* ast)
   Ast_NodeList* id_list = &decl->id_list;
   ListItem* li = id_list->list.next;
   while (li) {
-    Ast* id = li->object;
+    Ast* id = li->datum;
     if (id->kind == AST_nonTypeName) {
       visit_enum_field(id);
     }
@@ -1522,7 +1522,7 @@ visit_p4program(Ast* ast)
   Ast_NodeList* decl_list = &program->decl_list;
   ListItem* li = decl_list->list.next;
   while (li) {
-    Ast* decl = li->object;
+    Ast* decl = li->datum;
     if (decl->kind == AST_controlDeclaration) {
       visit_control(decl);
     } else if (decl->kind == AST_controlTypeDeclaration) {
