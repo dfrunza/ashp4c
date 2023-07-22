@@ -107,7 +107,6 @@ typedef struct HashmapKey {
 typedef struct HashmapEntry {
   HashmapKey key;
   struct HashmapEntry* next_entry;
-  void* datum;
 } HashmapEntry;
 
 typedef struct HashmapCursor {

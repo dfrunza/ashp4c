@@ -466,7 +466,7 @@ token_is_exprOperator(Token* token)
 }
 
 static int
-operator_priority_of(Token* token)
+operator_priority(Token* token)
 {
   if (token->klass == TK_DOUBLE_AMPERSAND || token->klass == TK_DOUBLE_PIPE) {
     /* Logical AND, OR */
@@ -3457,7 +3457,7 @@ parse_expression(int priority_threshold)
         expr->column_no = token->column_no;
         expr->expr = (Ast*)assign_stmt;
       } else if (token_is_binaryOperator(token)){
-        int priority = operator_priority_of(token);
+        int priority = operator_priority(token);
         if (priority >= priority_threshold) {
           next_token();
           Ast_BinaryExpression* binary_expr = arena_malloc(storage, sizeof(*binary_expr));
