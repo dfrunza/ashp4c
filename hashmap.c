@@ -63,15 +63,15 @@ hash_uint32(uint32_t i, uint32_t m)
 }
 
 void
-hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ HashmapKey* key, int capacity_log2)
+hashmap_hash_key(enum HashmapKeyType key_type, /*in/out*/ HashmapKey* key, int length_log2)
 {
   if (key_type == HASHMAP_KEY_STRING) {
-    key->h = hash_string(key->str_key, capacity_log2);
+    key->h = hash_string(key->str_key, length_log2);
   } else if (key_type == HASHMAP_KEY_BIT) {
     assert(key->keylen > 0);
-    key->h = hash_bytes(key->bit_key, key->keylen, capacity_log2);
+    key->h = hash_bytes(key->bit_key, key->keylen, length_log2);
   } else if (key_type == HASHMAP_KEY_UINT32) {
-    key->h = hash_uint32(key->int_key, capacity_log2);
+    key->h = hash_uint32(key->int_key, length_log2);
   } else assert(0);
 }
 
@@ -105,20 +105,21 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 }
 
 void
-hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int capacity)
+hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type,
+               int capacity, int max_capacity)
 {
   hashmap->capacity_log2 = ceil_log2(capacity);
-  hashmap->key_type = key_type;
   hashmap->capacity = (1 << hashmap->capacity_log2) - 1;
+  hashmap->key_type = key_type;
   hashmap->entry_count = 0;
-  array_create(&hashmap->entries, storage, sizeof(HashmapEntry*), 2048);
+  array_create(&hashmap->entries, storage, sizeof(HashmapEntry*), max_capacity);
   for (int i = 0; i < hashmap->capacity; i++) {
     array_append(&hashmap->entries, &NULL_ENTRY);
   }
 }
 
 HashmapEntry*
-hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key)
+_hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key)
 {
   HashmapEntry* entry = *(HashmapEntry**)array_get(&hashmap->entries, key->h);
   while (entry) {
@@ -131,21 +132,21 @@ hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key)
 }
 
 HashmapEntry*
-hashmap_lookup_entry_uint32k(Hashmap* map, uint32_t int_key)
+_hashmap_lookup_entry_uint32k(Hashmap* map, uint32_t int_key)
 {
   assert(map->key_type == HASHMAP_KEY_UINT32);
   HashmapKey key = { .int_key = int_key };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
-  HashmapEntry* he = hashmap_lookup_entry(map, &key);
+  HashmapEntry* he = _hashmap_lookup_entry(map, &key);
   return he;
 }
 
 HashmapEntry*
-hashmap_lookup_entry_stringk(Hashmap* map, char* str_key)
+_hashmap_lookup_entry_stringk(Hashmap* map, char* str_key)
 {
   HashmapKey key = { .str_key = (uint8_t*)str_key };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, map->capacity_log2);
-  HashmapEntry* he = hashmap_lookup_entry(map, &key);
+  HashmapEntry* he = _hashmap_lookup_entry(map, &key);
   return he;
 }
 
@@ -154,11 +155,11 @@ hashmap_grow(Hashmap* hashmap, HashmapKey* key)
 {
   HashmapCursor entry_it = {};
   hashmap_cursor_reset(&entry_it, hashmap);
-  HashmapEntry* first_entry = hashmap_move_cursor(&entry_it);
+  HashmapEntry* first_entry = _hashmap_move_cursor(&entry_it);
   HashmapEntry* last_entry = first_entry;
   int entry_count = first_entry ? 1 : 0;
-  for (HashmapEntry* entry = hashmap_move_cursor(&entry_it);
-        entry != 0; entry = hashmap_move_cursor(&entry_it)) {
+  for (HashmapEntry* entry = _hashmap_move_cursor(&entry_it);
+        entry != 0; entry = _hashmap_move_cursor(&entry_it)) {
     last_entry->next_entry = entry;
     last_entry = entry;
     entry_count += 1;
@@ -182,16 +183,17 @@ hashmap_grow(Hashmap* hashmap, HashmapKey* key)
 }
 
 HashmapEntry*
-hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
+_hashmap_get_entry(Hashmap* hashmap, HashmapKey* key, int entry_size)
 {
-  HashmapEntry* entry = hashmap_lookup_entry(hashmap, key);
+  assert(entry_size >= sizeof(HashmapEntry));
+  HashmapEntry* entry = _hashmap_lookup_entry(hashmap, key);
   if (entry) {
     return entry;
   }
   if (hashmap->entry_count >= hashmap->capacity) {
     hashmap_grow(hashmap, key);
   }
-  entry = arena_malloc(hashmap->entries.storage, sizeof(*entry));
+  entry = arena_malloc(hashmap->entries.storage, entry_size);
   entry->key = *key;
   entry->next_entry = *(HashmapEntry**)array_get(&hashmap->entries, key->h);
   array_set(&hashmap->entries, key->h, &entry);
@@ -200,22 +202,22 @@ hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
 }
 
 HashmapEntry*
-hashmap_get_entry_uint32k(Hashmap* map, uint32_t int_key)
+_hashmap_get_entry_uint32k(Hashmap* map, uint32_t int_key, int entry_size)
 {
   assert(map->key_type == HASHMAP_KEY_UINT32);
   HashmapKey key = { .int_key = int_key };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
-  HashmapEntry* he = hashmap_get_entry(map, &key);
+  HashmapEntry* he = _hashmap_get_entry(map, &key, entry_size);
   return he;
 }
 
 HashmapEntry*
-hashmap_get_entry_stringk(Hashmap* map, char* str_key)
+_hashmap_get_entry_stringk(Hashmap* map, char* str_key, int entry_size)
 {
   assert(map->key_type == HASHMAP_KEY_STRING);
   HashmapKey key = { .str_key = (uint8_t*)str_key };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, map->capacity_log2);
-  HashmapEntry* he = hashmap_get_entry(map, &key);
+  HashmapEntry* he = _hashmap_get_entry(map, &key, entry_size);
   return he;
 }
 
@@ -228,7 +230,7 @@ hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap)
 }
 
 HashmapEntry*
-hashmap_move_cursor(HashmapCursor* it)
+_hashmap_move_cursor(HashmapCursor* it)
 {
   HashmapEntry* next_entry = 0;
   if (it->entry) {

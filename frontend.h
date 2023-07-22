@@ -289,9 +289,9 @@ enum Ast_ParamDirection {
 };
 
 typedef struct Scope {
+  Hashmap decls;
   int scope_level;
   struct Scope* parent_scope;
-  Hashmap decls;
 } Scope;
 
 typedef uint32_t AstId;
@@ -1000,6 +1000,7 @@ typedef enum NameSpace {
 } NameSpace;
 
 typedef struct ScopeEntry {
+  HashmapEntry;
   NameDecl* ns[NameSpace_COUNT];
 } ScopeEntry;
 
@@ -1061,6 +1062,11 @@ typedef struct Type_Array {
   Type* element_ty;
   int size;
 } Type_Array;
+
+typedef struct HashmapEntry_Type {
+  HashmapEntry;
+  Type* type;
+} HashmapEntry_Type;
 
 void tyset_add_type(Arena *type_storage, TypeSet* set, Type* type);
 void tyset_import_set(Arena *type_storage, TypeSet* to_set, TypeSet* from_set);

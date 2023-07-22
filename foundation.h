@@ -111,16 +111,21 @@ typedef struct HashmapCursor {
   HashmapEntry* entry;
 } HashmapCursor;
 
-void          hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType type, int capacity);
-#define       hashmap_entry_get(HE, TYPE)    ((TYPE)HE->datum)
-#define       hashmap_entry_set(HE, DATUM)  HE->datum = DATUM
-void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int capacity_log2);
-HashmapEntry* hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
-HashmapEntry* hashmap_get_entry_uint32k(Hashmap* map, uint32_t int_key);
-HashmapEntry* hashmap_get_entry_stringk(Hashmap* map, char* str_key);
-HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key);
-HashmapEntry* hashmap_lookup_entry_uint32k(Hashmap* map, uint32_t int_key);
-HashmapEntry* hashmap_lookup_entry_stringk(Hashmap* map, char* str_key);
+void          hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType type, int capacity, int max_capacity);
+void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int length_log2);
+HashmapEntry* _hashmap_get_entry(Hashmap* hashmap, HashmapKey* key, int entry_size);
+#define       hashmap_get_entry(HASHMAP, KEY, TYPE)  (TYPE*)_hashmap_get_entry(HASHMAP, KEY, sizeof())
+HashmapEntry* _hashmap_get_entry_uint32k(Hashmap* map, uint32_t int_key, int entry_size);
+#define       hashmap_get_entry_uint32k(HASHMAP, KEY, TYPE)  (TYPE*)_hashmap_get_entry_uint32k(HASHMAP, KEY, sizeof(TYPE))
+HashmapEntry* _hashmap_get_entry_stringk(Hashmap* map, char* str_key, int entry_size);
+#define       hashmap_get_entry_stringk(HASHMAP, KEY, TYPE)  (TYPE*)_hashmap_get_entry_stringk(HASHMAP, KEY, sizeof(TYPE))
+HashmapEntry* _hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key);
+#define       hashmap_lookup_entry(HASHMAP, KEY, TYPE)  (TYPE*)_hashmap_lookup_entry(HASHMAP, KEY)
+HashmapEntry* _hashmap_lookup_entry_uint32k(Hashmap* map, uint32_t int_key);
+#define       hashmap_lookup_entry_uint32k(HASHMAP, KEY, TYPE)  (TYPE*)_hashmap_lookup_entry_uint32k(HASHMAP, KEY)
+HashmapEntry* _hashmap_lookup_entry_stringk(Hashmap* map, char* str_key);
+#define       hashmap_lookup_entry_stringk(HASHMAP, KEY, TYPE)  (TYPE*)_hashmap_lookup_entry_stringk(HASHMAP, KEY)
 void          hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap);
-HashmapEntry* hashmap_move_cursor(HashmapCursor* it);
+HashmapEntry* _hashmap_move_cursor(HashmapCursor* it);
+#define       hashmap_move_cursor(CURSOR, TYPE)  (TYPE*)_hashmap_move_cursor(CURSOR)
 
