@@ -1008,7 +1008,7 @@ Scope* scope_push(Scope* scope, Scope* parent_scope);
 Scope* scope_pop(Scope* scope);
 ScopeEntry* scope_lookup_any(Scope* scope, char* name);
 ScopeEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
-ScopeEntry* scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns);
+ScopeEntry* scope_push_decl(Scope* scope, NameDecl* decl, enum NameSpace ns);
 
 enum TypeEnum {
   TYPE_VOID = 1,

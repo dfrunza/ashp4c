@@ -52,7 +52,7 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 }
 
 ScopeEntry*
-scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns)
+scope_push_decl(Scope* scope, NameDecl* decl, enum NameSpace ns)
 {
   ScopeEntry* ns_entry = hashmap_get_entry_stringk((Hashmap*)scope, decl->strname, ScopeEntry);
   decl->next_in_scope = ns_entry->ns[ns];
