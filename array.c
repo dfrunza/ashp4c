@@ -20,6 +20,7 @@ array_extend(UnboundedArray* array, int elem_count)
 void
 array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_array_length)
 {
+  assert(elem_size > 0);
   array->segment_length = ceil_log2(max_array_length);
   array->segment_table = arena_malloc(storage, sizeof(void*) * array->segment_length);
   array->elem_size = elem_size;

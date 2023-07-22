@@ -105,12 +105,15 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 }
 
 void
-hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type,
-               int capacity, int max_capacity)
+_hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int entry_size,
+                int capacity, int max_capacity)
 {
+  assert(capacity <= max_capacity);
+  assert(entry_size >= sizeof(HashmapEntry));
   hashmap->capacity_log2 = ceil_log2(capacity);
   hashmap->capacity = (1 << hashmap->capacity_log2) - 1;
   hashmap->key_type = key_type;
+  hashmap->entry_size = entry_size;
   hashmap->entry_count = 0;
   array_create(&hashmap->entries, storage, sizeof(HashmapEntry*), max_capacity);
   for (int i = 0; i < hashmap->capacity; i++) {
@@ -183,9 +186,8 @@ hashmap_grow(Hashmap* hashmap, HashmapKey* key)
 }
 
 HashmapEntry*
-_hashmap_get_entry(Hashmap* hashmap, HashmapKey* key, int entry_size)
+_hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
 {
-  assert(entry_size >= sizeof(HashmapEntry));
   HashmapEntry* entry = _hashmap_lookup_entry(hashmap, key);
   if (entry) {
     return entry;
@@ -193,7 +195,7 @@ _hashmap_get_entry(Hashmap* hashmap, HashmapKey* key, int entry_size)
   if (hashmap->entry_count >= hashmap->capacity) {
     hashmap_grow(hashmap, key);
   }
-  entry = arena_malloc(hashmap->entries.storage, entry_size);
+  entry = arena_malloc(hashmap->entries.storage, hashmap->entry_size);
   entry->key = *key;
   entry->next_entry = *(HashmapEntry**)array_get(&hashmap->entries, key->h);
   array_set(&hashmap->entries, key->h, &entry);
@@ -202,22 +204,22 @@ _hashmap_get_entry(Hashmap* hashmap, HashmapKey* key, int entry_size)
 }
 
 HashmapEntry*
-_hashmap_get_entry_uint32k(Hashmap* map, uint32_t int_key, int entry_size)
+_hashmap_get_entry_uint32k(Hashmap* map, uint32_t int_key)
 {
   assert(map->key_type == HASHMAP_KEY_UINT32);
   HashmapKey key = { .int_key = int_key };
   hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
-  HashmapEntry* he = _hashmap_get_entry(map, &key, entry_size);
+  HashmapEntry* he = _hashmap_get_entry(map, &key);
   return he;
 }
 
 HashmapEntry*
-_hashmap_get_entry_stringk(Hashmap* map, char* str_key, int entry_size)
+_hashmap_get_entry_stringk(Hashmap* map, char* str_key)
 {
   assert(map->key_type == HASHMAP_KEY_STRING);
   HashmapKey key = { .str_key = (uint8_t*)str_key };
   hashmap_hash_key(HASHMAP_KEY_STRING, &key, map->capacity_log2);
-  HashmapEntry* he = _hashmap_get_entry(map, &key, entry_size);
+  HashmapEntry* he = _hashmap_get_entry(map, &key);
   return he;
 }
 

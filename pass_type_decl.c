@@ -1378,7 +1378,7 @@ void
 pass_type_decl(Ast_P4Program* p4program, Arena* _storage)
 {
   storage = _storage;
-  hashmap_create(&type_table, storage, HASHMAP_KEY_UINT32, 64, 1024);
+  hashmap_create(&type_table, storage, HASHMAP_KEY_UINT32, HashmapEntry_Type, 64, 1024);
   visit_p4program(p4program);
 }
 
