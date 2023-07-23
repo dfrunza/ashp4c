@@ -1476,7 +1476,7 @@ pass_name_decl(Ast_P4Program* p4program, Arena* _storage)
 {
   storage = _storage;
   Scope* root_scope = arena_malloc(storage, sizeof(*root_scope));
-  hashmap_create((Hashmap*)root_scope, storage, HASHMAP_KEY_STRING, ScopeEntry, 8, 512);
+  hashmap_create((Hashmap*)root_scope, storage, HASHMAP_KEY_STRING, ScopeEntry, 8, 128);
   root_scope->scope_level = 0;
   current_scope = root_scope;
 

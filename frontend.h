@@ -983,12 +983,12 @@ typedef struct Ast_Default {
 } Ast_Default;
 
 typedef struct NameDecl {
+  char* strname;
+  struct NameDecl* next_in_scope;
   union {
     Ast* ast;
     enum TokenClass token_class;
   };
-  char* strname;
-  struct NameDecl* next_in_scope;
 } NameDecl;
 
 typedef enum NameSpace {
