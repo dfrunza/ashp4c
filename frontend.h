@@ -289,7 +289,7 @@ enum Ast_ParamDirection {
 };
 
 typedef struct Scope {
-  Hashmap;
+  Hashmap name_table;
   int scope_level;
   struct Scope* parent_scope;
 } Scope;
