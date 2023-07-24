@@ -116,6 +116,9 @@ _hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, 
   hashmap->entry_size = entry_size;
   hashmap->entry_count = 0;
   array_create(&hashmap->entries, storage, sizeof(HashmapEntry*), max_capacity);
+  for (int i = 3; i < hashmap->capacity_log2; i++) {
+    array_extend(&hashmap->entries);
+  }
   for (int i = 0; i < hashmap->capacity; i++) {
     array_append(&hashmap->entries, &NULL_ENTRY);
   }
