@@ -74,7 +74,7 @@ typedef struct UnboundedArray {
   Arena* storage;
 } UnboundedArray;
 
-void  array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capacity);
+void         array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capacity);
 ArrayElement array_get(UnboundedArray* array, int i);
 ArrayElement array_set(UnboundedArray* array, int i, ArrayElement elem);
 ArrayElement array_append(UnboundedArray* array, ArrayElement elem);
