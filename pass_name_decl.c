@@ -152,7 +152,7 @@ visit_p4program(Ast_P4Program* p4program)
 {
   assert(p4program->kind == AST_p4program);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 8, 512);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   current_scope = scope_push(scope, current_scope);
   visit_declarationList((Ast_DeclarationList*)p4program->decl_list);
   current_scope = scope_pop(current_scope);
@@ -242,7 +242,7 @@ visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* type_decl)
   namedecl->ast = (Ast*)type_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 8, 64);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 63);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
@@ -291,7 +291,7 @@ visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* type_decl)
   namedecl->ast = (Ast*)type_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 8, 64);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 63);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
@@ -343,7 +343,7 @@ visit_parserState(Ast_ParserState* state)
   namedecl->ast = (Ast*)state;
   scope_push_decl(current_scope, namedecl, NS_VAR);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 8, 256);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 255);
   current_scope = scope_push(scope, current_scope);
   visit_parserStatements((Ast_ParserStatements*)state->stmt_list);
   visit_transitionStatement((Ast_TransitionStatement*)state->transition_stmt);
@@ -372,7 +372,7 @@ visit_parserStatement(Ast_ParserStatement* stmt)
     visit_directApplication((Ast_DirectApplication*)stmt->stmt);
   } else if (stmt->stmt->kind == AST_parserBlockStatement) {
     Scope* scope = arena_malloc(storage, sizeof(*scope));
-    hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 8, 256);
+    hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 255);
     current_scope = scope_push(scope, current_scope);
     visit_parserBlockStatement((Ast_ParserBlockStatement*)stmt->stmt);
     current_scope = scope_pop(current_scope);
@@ -500,7 +500,7 @@ visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* type_decl)
   namedecl->ast = (Ast*)type_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 8, 64);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 63);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
@@ -560,7 +560,7 @@ visit_externTypeDeclaration(Ast_ExternTypeDeclaration* type_decl)
   namedecl->ast = (Ast*)type_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 8, 64);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 63);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
@@ -592,7 +592,7 @@ visit_functionPrototype(Ast_FunctionPrototype* func_proto)
   namedecl->ast = (Ast*)func_proto;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 8, 64);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 63);
   current_scope = scope_push(scope, current_scope);
   if (func_proto->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)func_proto->type_params);
@@ -827,7 +827,7 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
   int scope_capacity = header_decl->att.field_count+1;
   Scope* fields = &header_decl->att.fields;
   hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
-                 scope_capacity, scope_capacity < 8 ? 8 : scope_capacity);
+                 scope_capacity, scope_capacity < 7 ? 7 : scope_capacity);
   visit_structFieldList((Ast_StructFieldList*)header_decl->fields, &header_decl->att.fields);
 }
 
@@ -843,7 +843,7 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
   int scope_capacity = union_decl->att.field_count+1;
   Scope* fields = &union_decl->att.fields;
   hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
-                 scope_capacity, scope_capacity < 8 ? 8 : scope_capacity);
+                 scope_capacity, scope_capacity < 7 ? 7 : scope_capacity);
   visit_structFieldList((Ast_StructFieldList*)union_decl->fields, &union_decl->att.fields);
 }
 
@@ -859,7 +859,7 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
   int scope_capacity = struct_decl->att.field_count+1;
   Scope* fields = &struct_decl->att.fields;
   hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
-                 scope_capacity, scope_capacity < 8 ? 8 : scope_capacity);
+                 scope_capacity, scope_capacity < 7 ? 7 : scope_capacity);
   visit_structFieldList((Ast_StructFieldList*)struct_decl->fields, &struct_decl->att.fields);
 }
 
@@ -892,7 +892,7 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
   int scope_capacity = enum_decl->att.field_count+1;
   Scope* fields = &enum_decl->att.fields;
   hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
-                 scope_capacity, scope_capacity < 8 ? 8 : scope_capacity);
+                 scope_capacity, scope_capacity < 7 ? 7 : scope_capacity);
   visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields, &enum_decl->att.fields);
 }
 
@@ -907,7 +907,7 @@ visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
   int scope_capacity = error_decl->att.field_count+1;
   Scope* fields = &error_decl->att.fields;
   hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
-                 scope_capacity, scope_capacity < 8 ? 8 : scope_capacity);
+                 scope_capacity, scope_capacity < 7 ? 7 : scope_capacity);
   visit_identifierList((Ast_IdentifierList*)error_decl->fields, &error_decl->att.fields);
 }
 
@@ -922,7 +922,7 @@ visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
   int scope_capacity = match_decl->att.field_count+1;
   Scope* fields = &match_decl->att.fields;
   hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
-                 scope_capacity, scope_capacity < 8 ? 8 : scope_capacity);
+                 scope_capacity, scope_capacity < 7 ? 7 : scope_capacity);
   visit_identifierList((Ast_IdentifierList*)match_decl->fields, &match_decl->att.fields);
 }
 
@@ -1060,7 +1060,7 @@ visit_statement(Ast_Statement* stmt)
   } else if (stmt->stmt->kind == AST_emptyStatement) {
   } else if (stmt->stmt->kind == AST_blockStatement) {
     Scope* scope = arena_malloc(storage, sizeof(*scope));
-    hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 8, 512);
+    hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
     current_scope = scope_push(scope, current_scope);
     visit_blockStatement((Ast_BlockStatement*)stmt->stmt);
     current_scope = scope_pop(current_scope);
@@ -1275,7 +1275,7 @@ visit_actionDeclaration(Ast_ActionDeclaration* action_decl)
   namedecl->ast = (Ast*)action_decl;
   scope_push_decl(current_scope, namedecl, NS_VAR);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 8, 512);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   current_scope = scope_push(scope, current_scope);
   visit_parameterList((Ast_ParameterList*)action_decl->params);
   visit_blockStatement((Ast_BlockStatement*)action_decl->stmt);
@@ -1488,7 +1488,7 @@ pass_name_decl(Ast_P4Program* p4program, Arena* _storage)
 {
   storage = _storage;
   Scope* root_scope = arena_malloc(storage, sizeof(*root_scope));
-  hashmap_create(&root_scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 8, 128);
+  hashmap_create(&root_scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 127);
   root_scope->scope_level = 0;
   current_scope = root_scope;
 

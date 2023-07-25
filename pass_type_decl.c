@@ -1356,7 +1356,7 @@ void
 pass_type_decl(Ast_P4Program* p4program, Arena* _storage, Scope* root_scope)
 {
   storage = _storage;
-  hashmap_create(&type_table, storage, HASHMAP_KEY_UINT32, HashmapEntry_Type, 64, 256);
+  hashmap_create(&type_table, storage, HASHMAP_KEY_UINT32, HashmapEntry_Type, 63, 255);
 
   struct BuiltinType {
     char* strname;
