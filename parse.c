@@ -552,7 +552,11 @@ parse_p4program()
   while (token->klass == TK_SEMICOLON) {
     next_token(); /* empty declaration */
   }
+  Scope* scope = arena_malloc(storage, sizeof(*scope));
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 127, 511);
+  current_scope = scope_push(scope, current_scope);
   program->decl_list = parse_declarationList();
+  current_scope = scope_pop(current_scope);
   if (token->klass != TK_END_OF_INPUT) {
     error("At line %d, column %d: unexpected token `%s`.",
           token->line_no, token->column_no, token->lexeme);
@@ -3758,6 +3762,7 @@ parse_tokens(UnboundedArray* tokens_, Arena* _storage)
     name->strname = builtin_names[i].strname;
     NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
     namedecl->strname = name->strname;
+    namedecl->ast = (Ast*)name;
     scope_push_decl(root_scope, namedecl, builtin_names[i].ns);
   }
 
@@ -3765,9 +3770,7 @@ parse_tokens(UnboundedArray* tokens_, Arena* _storage)
   token = array_get(tokens, token_at);
   next_token();
   Ast_P4Program* p4program = (Ast_P4Program*)parse_p4program();
-  current_scope = scope_pop(current_scope);
-  assert(current_scope == 0);
+  assert(current_scope == root_scope);
   p4program->att.root_scope = root_scope;
-
   return p4program;
 }

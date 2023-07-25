@@ -136,3 +136,4 @@ void          hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap);
 HashmapEntry* _hashmap_move_cursor(HashmapCursor* it);
 #define       hashmap_move_cursor(CURSOR, TYPE)  ((TYPE*)_hashmap_move_cursor(CURSOR))
 void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int length_log2);
+
