@@ -152,7 +152,7 @@ visit_p4program(Ast_P4Program* p4program)
 {
   assert(p4program->kind == AST_p4program);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 127, 511);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   current_scope = scope_push(scope, current_scope);
   visit_declarationList((Ast_DeclarationList*)p4program->decl_list);
   current_scope = scope_pop(current_scope);
@@ -242,7 +242,7 @@ visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* type_decl)
   namedecl->ast = (Ast*)type_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 15, 63);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
@@ -291,7 +291,7 @@ visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* type_decl)
   namedecl->ast = (Ast*)type_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 15, 63);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
@@ -343,7 +343,7 @@ visit_parserState(Ast_ParserState* state)
   namedecl->ast = (Ast*)state;
   scope_push_decl(current_scope, namedecl, NS_VAR);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 31, 255);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   current_scope = scope_push(scope, current_scope);
   visit_parserStatements((Ast_ParserStatements*)state->stmt_list);
   visit_transitionStatement((Ast_TransitionStatement*)state->transition_stmt);
@@ -372,7 +372,7 @@ visit_parserStatement(Ast_ParserStatement* stmt)
     visit_directApplication((Ast_DirectApplication*)stmt->stmt);
   } else if (stmt->stmt->kind == AST_parserBlockStatement) {
     Scope* scope = arena_malloc(storage, sizeof(*scope));
-    hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 31, 255);
+    hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
     current_scope = scope_push(scope, current_scope);
     visit_parserBlockStatement((Ast_ParserBlockStatement*)stmt->stmt);
     current_scope = scope_pop(current_scope);
@@ -500,7 +500,7 @@ visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* type_decl)
   namedecl->ast = (Ast*)type_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 15, 63);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
@@ -560,7 +560,7 @@ visit_externTypeDeclaration(Ast_ExternTypeDeclaration* type_decl)
   namedecl->ast = (Ast*)type_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 15, 63);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
@@ -592,7 +592,7 @@ visit_functionPrototype(Ast_FunctionPrototype* func_proto)
   namedecl->ast = (Ast*)func_proto;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 15, 63);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   current_scope = scope_push(scope, current_scope);
   if (func_proto->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)func_proto->type_params);
@@ -1060,7 +1060,7 @@ visit_statement(Ast_Statement* stmt)
   } else if (stmt->stmt->kind == AST_emptyStatement) {
   } else if (stmt->stmt->kind == AST_blockStatement) {
     Scope* scope = arena_malloc(storage, sizeof(*scope));
-    hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 127, 511);
+    hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
     current_scope = scope_push(scope, current_scope);
     visit_blockStatement((Ast_BlockStatement*)stmt->stmt);
     current_scope = scope_pop(current_scope);
@@ -1275,7 +1275,7 @@ visit_actionDeclaration(Ast_ActionDeclaration* action_decl)
   namedecl->ast = (Ast*)action_decl;
   scope_push_decl(current_scope, namedecl, NS_VAR);
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 127, 511);
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   current_scope = scope_push(scope, current_scope);
   visit_parameterList((Ast_ParameterList*)action_decl->params);
   visit_blockStatement((Ast_BlockStatement*)action_decl->stmt);
