@@ -204,7 +204,7 @@ static void
 visit_name(Ast_Name* name)
 {
   assert(name->kind == AST_name);
-  name->attr.scope = current_scope;
+  name->att.scope = current_scope;
 }
 
 static void
@@ -824,11 +824,11 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
   namedecl->strname = name->strname;
   namedecl->ast = (Ast*)header_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  int scope_capacity = header_decl->attr.field_count+1;
-  Scope* fields = &header_decl->attr.fields;
+  int scope_capacity = header_decl->att.field_count+1;
+  Scope* fields = &header_decl->att.fields;
   hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
                  scope_capacity, scope_capacity < 8 ? 8 : scope_capacity);
-  visit_structFieldList((Ast_StructFieldList*)header_decl->fields, &header_decl->attr.fields);
+  visit_structFieldList((Ast_StructFieldList*)header_decl->fields, &header_decl->att.fields);
 }
 
 static void
@@ -840,11 +840,11 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
   namedecl->strname = name->strname;
   namedecl->ast = (Ast*)union_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  int scope_capacity = union_decl->attr.field_count+1;
-  Scope* fields = &union_decl->attr.fields;
+  int scope_capacity = union_decl->att.field_count+1;
+  Scope* fields = &union_decl->att.fields;
   hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
                  scope_capacity, scope_capacity < 8 ? 8 : scope_capacity);
-  visit_structFieldList((Ast_StructFieldList*)union_decl->fields, &union_decl->attr.fields);
+  visit_structFieldList((Ast_StructFieldList*)union_decl->fields, &union_decl->att.fields);
 }
 
 static void
@@ -856,11 +856,11 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
   namedecl->strname = name->strname;
   namedecl->ast = (Ast*)struct_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  int scope_capacity = struct_decl->attr.field_count+1;
-  Scope* fields = &struct_decl->attr.fields;
+  int scope_capacity = struct_decl->att.field_count+1;
+  Scope* fields = &struct_decl->att.fields;
   hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
                  scope_capacity, scope_capacity < 8 ? 8 : scope_capacity);
-  visit_structFieldList((Ast_StructFieldList*)struct_decl->fields, &struct_decl->attr.fields);
+  visit_structFieldList((Ast_StructFieldList*)struct_decl->fields, &struct_decl->att.fields);
 }
 
 static void
@@ -889,11 +889,11 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
   namedecl->strname = name->strname;
   namedecl->ast = (Ast*)enum_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  int scope_capacity = enum_decl->attr.field_count+1;
-  Scope* fields = &enum_decl->attr.fields;
+  int scope_capacity = enum_decl->att.field_count+1;
+  Scope* fields = &enum_decl->att.fields;
   hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
                  scope_capacity, scope_capacity < 8 ? 8 : scope_capacity);
-  visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields, &enum_decl->attr.fields);
+  visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields, &enum_decl->att.fields);
 }
 
 static void
@@ -904,11 +904,11 @@ visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
   namedecl->strname = "error";
   namedecl->ast = (Ast*)error_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  int scope_capacity = error_decl->attr.field_count+1;
-  Scope* fields = &error_decl->attr.fields;
+  int scope_capacity = error_decl->att.field_count+1;
+  Scope* fields = &error_decl->att.fields;
   hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
                  scope_capacity, scope_capacity < 8 ? 8 : scope_capacity);
-  visit_identifierList((Ast_IdentifierList*)error_decl->fields, &error_decl->attr.fields);
+  visit_identifierList((Ast_IdentifierList*)error_decl->fields, &error_decl->att.fields);
 }
 
 static void
@@ -919,11 +919,11 @@ visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
   namedecl->strname = "match_kind";
   namedecl->ast = (Ast*)match_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  int scope_capacity = match_decl->attr.field_count+1;
-  Scope* fields = &match_decl->attr.fields;
+  int scope_capacity = match_decl->att.field_count+1;
+  Scope* fields = &match_decl->att.fields;
   hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
                  scope_capacity, scope_capacity < 8 ? 8 : scope_capacity);
-  visit_identifierList((Ast_IdentifierList*)match_decl->fields, &match_decl->attr.fields);
+  visit_identifierList((Ast_IdentifierList*)match_decl->fields, &match_decl->att.fields);
 }
 
 static void
@@ -1483,7 +1483,7 @@ visit_dontcare(Ast_Dontcare* dontcare)
   assert(dontcare->kind == AST_dontcare);
 }
 
-void
+Scope*
 pass_name_decl(Ast_P4Program* p4program, Arena* _storage)
 {
   storage = _storage;
@@ -1492,48 +1492,8 @@ pass_name_decl(Ast_P4Program* p4program, Arena* _storage)
   root_scope->scope_level = 0;
   current_scope = root_scope;
 
-  NameDecl* namedecl;
-  namedecl = arena_malloc(storage, sizeof(*namedecl));
-  namedecl->strname = "bool";
-  scope_push_decl(current_scope, namedecl, NS_TYPE);
-
-  namedecl = arena_malloc(storage, sizeof(*namedecl));
-  namedecl->strname = "int";
-  scope_push_decl(current_scope, namedecl, NS_TYPE);
-
-  namedecl = arena_malloc(storage, sizeof(*namedecl));
-  namedecl->strname = "bit";
-  scope_push_decl(current_scope, namedecl, NS_TYPE);
-  
-  namedecl = arena_malloc(storage, sizeof(*namedecl));
-  namedecl->strname = "varbit";
-  scope_push_decl(current_scope, namedecl, NS_TYPE);
-
-  namedecl = arena_malloc(storage, sizeof(*namedecl));
-  namedecl->strname = "string";
-  scope_push_decl(current_scope, namedecl, NS_TYPE);
-
-  namedecl = arena_malloc(storage, sizeof(*namedecl));
-  namedecl->strname = "void";
-  scope_push_decl(current_scope, namedecl, NS_TYPE);
-
-  namedecl = arena_malloc(storage, sizeof(*namedecl));
-  namedecl->strname = "error";
-  scope_push_decl(current_scope, namedecl, NS_TYPE);
-
-  namedecl = arena_malloc(storage, sizeof(*namedecl));
-  namedecl->strname = "match_kind";
-  scope_push_decl(current_scope, namedecl, NS_TYPE);
-
-  namedecl = arena_malloc(storage, sizeof(*namedecl));
-  namedecl->strname = "accept";
-  scope_push_decl(current_scope, namedecl, NS_VAR);
-
-  namedecl = arena_malloc(storage, sizeof(*namedecl));
-  namedecl->strname = "reject";
-  scope_push_decl(current_scope, namedecl, NS_VAR);
-
   visit_p4program(p4program);
   current_scope = scope_pop(current_scope);
   assert(current_scope == 0);
+  return root_scope;
 }

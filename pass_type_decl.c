@@ -18,7 +18,7 @@ static void visit_p4program(Ast_P4Program* p4program);
 static void visit_declarationList(Ast_DeclarationList* decl_list);
 static void visit_declaration(Ast_Declaration* decl);
 static void visit_name(Ast_Name* name);
-static Type* visit_parameterList(Ast_ParameterList* params);
+static void visit_parameterList(Ast_ParameterList* params);
 static void visit_parameter(Ast_Parameter* param);
 static void visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* package_decl);
 static void visit_instantiation(Ast_Instantiation* inst);
@@ -76,7 +76,7 @@ static void visit_typeParameterList(Ast_TypeParameterList* param_list);
 static void visit_realTypeArg(Ast_RealTypeArg* type_arg);
 static void visit_typeArg(Ast_TypeArg* type_arg);
 static void visit_realTypeArgumentList(Ast_RealTypeArgumentList* arg_list);
-static Type* visit_typeArgumentList(Ast_TypeArgumentList* arg_list);
+static void visit_typeArgumentList(Ast_TypeArgumentList* arg_list);
 static void visit_typeDeclaration(Ast_TypeDeclaration* type_decl);
 static void visit_derivedTypeDeclaration(Ast_DerivedTypeDeclaration* type_decl);
 static void visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl);
@@ -206,7 +206,7 @@ visit_name(Ast_Name* name)
   assert(name->kind == AST_name);
 }
 
-static Type*
+static void
 visit_parameterList(Ast_ParameterList* params)
 {
   assert(params->kind == AST_parameterList);
@@ -214,7 +214,6 @@ visit_parameterList(Ast_ParameterList* params)
         li != 0; li = (ListItem_Ast*)li->next) {
     visit_parameter((Ast_Parameter*)li->ast);
   }
-  return 0;
 }
 
 static void
@@ -222,7 +221,6 @@ visit_parameter(Ast_Parameter* param)
 {
   assert(param->kind == AST_parameter);
   visit_typeRef((Ast_TypeRef*)param->type);
-  visit_name((Ast_Name*)param->name);
   if (param->init_expr) {
     visit_expression((Ast_Expression*)param->init_expr);
   }
@@ -233,8 +231,8 @@ visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* package_decl)
 {
   assert(package_decl->kind == AST_packageTypeDeclaration);
   Ast_Name* name = (Ast_Name*)package_decl->name;
-  Type_Type* package_ty = arena_malloc(storage, sizeof(*package_ty));
-  package_ty->ctor = TYPE_TYPE;
+  Type_Function* package_ty = arena_malloc(storage, sizeof(*package_ty));
+  package_ty->ctor = TYPE_FUNCTION;
   package_ty->strname = name->strname;
   HashmapEntry_Type* type_he = hashmap_get_entry_uint32k(&type_table, package_decl->ast_id, HashmapEntry_Type);
   type_he->type = (Type*)package_ty;
@@ -250,7 +248,6 @@ visit_instantiation(Ast_Instantiation* inst)
   assert(inst->kind == AST_instantiation);
   visit_typeRef((Ast_TypeRef*)inst->type_ref);
   visit_argumentList((Ast_ArgumentList*)inst->args);
-  visit_name((Ast_Name*)inst->name);
 }
 
 /** PARSER **/
@@ -272,8 +269,8 @@ visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* parser_decl)
 {
   assert(parser_decl->kind == AST_parserTypeDeclaration);
   Ast_Name* name = (Ast_Name*)parser_decl->name;
-  Type_Type* parser_ty = arena_malloc(storage, sizeof(*parser_ty));
-  parser_ty->ctor = TYPE_TYPE;
+  Type_Function* parser_ty = arena_malloc(storage, sizeof(*parser_ty));
+  parser_ty->ctor = TYPE_FUNCTION;
   parser_ty->strname = name->strname;
   HashmapEntry_Type* type_he = hashmap_get_entry_uint32k(&type_table, parser_decl->ast_id, HashmapEntry_Type);
   type_he->type = (Type*)parser_ty;
@@ -318,7 +315,6 @@ static void
 visit_parserState(Ast_ParserState* state)
 {
   assert(state->kind == AST_parserState);
-  visit_name((Ast_Name*)state->name);
   visit_parserStatements((Ast_ParserStatements*)state->stmt_list);
   visit_transitionStatement((Ast_TransitionStatement*)state->transition_stmt);
 }
@@ -369,7 +365,7 @@ visit_stateExpression(Ast_StateExpression* state_expr)
 {
   assert(state_expr->kind == AST_stateExpression);
   if (state_expr->expr->kind == AST_name) {
-    visit_name((Ast_Name*)state_expr->expr);
+    ; /* pass */
   } else if (state_expr->expr->kind == AST_selectExpression) {
     visit_selectExpression((Ast_SelectExpression*)state_expr->expr);
   } else assert(0);
@@ -398,7 +394,6 @@ visit_selectCase(Ast_SelectCase* select_case)
 {
   assert(select_case->kind == AST_selectCase);
   visit_keysetExpression((Ast_KeysetExpression*)select_case->keyset_expr);
-  visit_name((Ast_Name*)select_case->name);
 }
 
 static void
@@ -461,8 +456,8 @@ visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* control_decl)
 {
   assert(control_decl->kind == AST_controlTypeDeclaration);
   Ast_Name* name = (Ast_Name*)control_decl->name;
-  Type_Type* control_ty = arena_malloc(storage, sizeof(*control_ty));
-  control_ty->ctor = TYPE_TYPE;
+  Type_Function* control_ty = arena_malloc(storage, sizeof(*control_ty));
+  control_ty->ctor = TYPE_FUNCTION;
   control_ty->strname = name->strname;
   HashmapEntry_Type* type_he = hashmap_get_entry_uint32k(&type_table, control_decl->ast_id, HashmapEntry_Type);
   type_he->type = (Type*)control_ty;
@@ -515,8 +510,8 @@ visit_externTypeDeclaration(Ast_ExternTypeDeclaration* extern_decl)
 {
   assert(extern_decl->kind == AST_externTypeDeclaration);
   Ast_Name* name = (Ast_Name*)extern_decl->name;
-  Type_Type* extern_ty = arena_malloc(storage, sizeof(*extern_ty));
-  extern_ty->ctor = TYPE_TYPE;
+  Type_Function* extern_ty = arena_malloc(storage, sizeof(*extern_ty));
+  extern_ty->ctor = TYPE_FUNCTION;
   extern_ty->strname = name->strname;
   HashmapEntry_Type* type_he = hashmap_get_entry_uint32k(&type_table, extern_decl->ast_id, HashmapEntry_Type);
   type_he->type = (Type*)extern_ty;
@@ -552,7 +547,7 @@ visit_functionPrototype(Ast_FunctionPrototype* func_proto)
   if (func_proto->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)func_proto->type_params);
   }
-  func_ty->params_ty = visit_parameterList((Ast_ParameterList*)func_proto->params);
+  visit_parameterList((Ast_ParameterList*)func_proto->params);
 }
 
 /** TYPES **/
@@ -576,7 +571,7 @@ visit_typeRef(Ast_TypeRef* type_ref)
   } else if (type_ref->type->kind == AST_baseTypeError) {
     visit_baseTypeError((Ast_ErrorType*)type_ref->type);
   } else if (type_ref->type->kind == AST_name) {
-    visit_name((Ast_Name*)type_ref->type);
+    ; /* pass */
   } else if (type_ref->type->kind == AST_specializedType) {
     visit_specializedType((Ast_SpecializedType*)type_ref->type);
   } else if (type_ref->type->kind == AST_headerStackType) {
@@ -604,7 +599,6 @@ static void
 visit_specializedType(Ast_SpecializedType* header_decl)
 {
   assert(header_decl->kind == AST_specializedType);
-  visit_name((Ast_Name*)header_decl->name);
   visit_typeArgumentList((Ast_TypeArgumentList*)header_decl->type_args);
 }
 
@@ -612,14 +606,12 @@ static void
 visit_baseTypeBoolean(Ast_BooleanType* bool_type)
 {
   assert(bool_type->kind == AST_baseTypeBoolean);
-  visit_name((Ast_Name*)bool_type->name);
 }
 
 static void
 visit_baseTypeInteger(Ast_IntegerType* int_type)
 {
   assert(int_type->kind == AST_baseTypeInteger);
-  visit_name((Ast_Name*)int_type->name);
   if (int_type->size) {
     visit_integerTypeSize((Ast_IntegerTypeSize*)int_type->size);
   }
@@ -629,7 +621,6 @@ static void
 visit_baseTypeBit(Ast_BitType* bit_type)
 {
   assert(bit_type->kind == AST_baseTypeBit);
-  visit_name((Ast_Name*)bit_type->name);
   if (bit_type->size) {
     visit_integerTypeSize((Ast_IntegerTypeSize*)bit_type->size);
   }
@@ -639,7 +630,6 @@ static void
 visit_baseTypeVarbit(Ast_VarbitType* varbit_type)
 {
   assert(varbit_type->kind == AST_baseTypeVarbit);
-  visit_name((Ast_Name*)varbit_type->name);
   visit_integerTypeSize((Ast_IntegerTypeSize*)varbit_type->size);
 }
 
@@ -647,21 +637,18 @@ static void
 visit_baseTypeString(Ast_StringType* str_type)
 {
   assert(str_type->kind == AST_baseTypeString);
-  visit_name((Ast_Name*)str_type->name);
 }
 
 static void
 visit_baseTypeVoid(Ast_VoidType* void_type)
 {
   assert(void_type->kind == AST_baseTypeVoid);
-  visit_name((Ast_Name*)void_type->name);
 }
 
 static void
 visit_baseTypeError(Ast_ErrorType* error_type)
 {
   assert(error_type->kind == AST_baseTypeError);
-  visit_name((Ast_Name*)error_type->name);
 }
 
 static void
@@ -676,7 +663,7 @@ visit_typeParameterList(Ast_TypeParameterList* param_list)
   assert(param_list->kind == AST_typeParameterList);
   for (ListItem_Ast* li = list_first_item(&param_list->members, ListItem_Ast);
         li != 0; li = (ListItem_Ast*)li->next) {
-    visit_name((Ast_Name*)li->ast);
+    ; /* pass */
   }
 }
 
@@ -698,7 +685,7 @@ visit_typeArg(Ast_TypeArg* type_arg)
   if (type_arg->arg->kind == AST_typeRef) {
     visit_typeRef((Ast_TypeRef*)type_arg->arg);
   } else if (type_arg->arg->kind == AST_name) {
-    visit_name((Ast_Name*)type_arg->arg);
+    ; /* pass */
   } else if (type_arg->arg->kind == AST_dontcare) {
     visit_dontcare((Ast_Dontcare*)type_arg->arg);
   } else assert(0);
@@ -714,7 +701,7 @@ visit_realTypeArgumentList(Ast_RealTypeArgumentList* arg_list)
   }
 }
 
-static Type*
+static void
 visit_typeArgumentList(Ast_TypeArgumentList* arg_list)
 {
   assert(arg_list->kind == AST_typeArgumentList);
@@ -722,7 +709,6 @@ visit_typeArgumentList(Ast_TypeArgumentList* arg_list)
         li != 0; li = (ListItem_Ast*)li->next) {
     visit_typeArg((Ast_TypeArg*)li->ast);
   }
-  return 0;
 }
 
 static void
@@ -762,8 +748,8 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
   Ast_Name* name = (Ast_Name*)header_decl->name;
-  Type_Type* header_ty = arena_malloc(storage, sizeof(*header_ty));
-  header_ty->ctor = TYPE_TYPE;
+  Type_Product* header_ty = arena_malloc(storage, sizeof(*header_ty));
+  header_ty->ctor = TYPE_PRODUCT;
   header_ty->strname = name->strname;
   HashmapEntry_Type* type_he = hashmap_get_entry_uint32k(&type_table, header_decl->ast_id, HashmapEntry_Type);
   type_he->type = (Type*)header_ty;
@@ -775,8 +761,8 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
 {
   assert(union_decl->kind == AST_headerUnionDeclaration);
   Ast_Name* name = (Ast_Name*)union_decl->name;
-  Type_Type* union_ty = arena_malloc(storage, sizeof(*union_ty));
-  union_ty->ctor = TYPE_TYPE;
+  Type_Product* union_ty = arena_malloc(storage, sizeof(*union_ty));
+  union_ty->ctor = TYPE_PRODUCT;
   union_ty->strname = name->strname;
   HashmapEntry_Type* type_he = hashmap_get_entry_uint32k(&type_table, union_decl->ast_id, HashmapEntry_Type);
   type_he->type = (Type*)union_ty;
@@ -788,8 +774,8 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
   Ast_Name* name = (Ast_Name*)struct_decl->name;
-  Type_Type* struct_ty = arena_malloc(storage, sizeof(*struct_ty));
-  struct_ty->ctor = TYPE_TYPE;
+  Type_Product* struct_ty = arena_malloc(storage, sizeof(*struct_ty));
+  struct_ty->ctor = TYPE_PRODUCT;
   struct_ty->strname = name->strname;
   HashmapEntry_Type* type_he = hashmap_get_entry_uint32k(&type_table, struct_decl->ast_id, HashmapEntry_Type);
   type_he->type = (Type*)struct_ty;
@@ -811,7 +797,6 @@ visit_structField(Ast_StructField* field)
 {
   assert(field->kind == AST_structField);
   visit_typeRef((Ast_TypeRef*)field->type);
-  visit_name((Ast_Name*)field->name);
 }
 
 static void
@@ -819,8 +804,8 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
 {
   assert(enum_decl->kind == AST_enumDeclaration);
   Ast_Name* name = (Ast_Name*)enum_decl->name;
-  Type_Type* enum_ty = arena_malloc(storage, sizeof(*enum_ty));
-  enum_ty->ctor = TYPE_TYPE;
+  Type_Product* enum_ty = arena_malloc(storage, sizeof(*enum_ty));
+  enum_ty->ctor = TYPE_PRODUCT;
   enum_ty->strname = name->strname;
   HashmapEntry_Type* type_he = hashmap_get_entry_uint32k(&type_table, enum_decl->ast_id, HashmapEntry_Type);
   type_he->type = (Type*)enum_ty;
@@ -847,7 +832,7 @@ visit_identifierList(Ast_IdentifierList* ident_list)
   assert(ident_list->kind == AST_identifierList);
   for (ListItem_Ast* li = list_first_item(&ident_list->members, ListItem_Ast);
         li != 0; li = (ListItem_Ast*)li->next) {
-    visit_name((Ast_Name*)li->ast);
+    ; /* pass */
   }
 }
 
@@ -865,7 +850,6 @@ static void
 visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident)
 {
   assert(ident->kind == AST_specifiedIdentifier);
-  visit_name((Ast_Name*)ident->name);
   if (ident->init_expr) {
     visit_expression((Ast_Expression*)ident->init_expr);
   }
@@ -881,8 +865,8 @@ visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl)
     visit_derivedTypeDeclaration((Ast_DerivedTypeDeclaration*)typedef_decl->type_ref);
   } else assert(0);
   Ast_Name* name = (Ast_Name*)typedef_decl->name;
-  Type_Type* typedef_ty = arena_malloc(storage, sizeof(*typedef_ty));
-  typedef_ty->ctor = TYPE_TYPE;
+  Type_Typedef* typedef_ty = arena_malloc(storage, sizeof(*typedef_ty));
+  typedef_ty->ctor = TYPE_TYPEDEF;
   typedef_ty->strname = name->strname;
   HashmapEntry_Type* type_he = hashmap_get_entry_uint32k(&type_table, typedef_decl->ast_id, HashmapEntry_Type);
   type_he->type = (Type*)typedef_ty;
@@ -946,7 +930,7 @@ visit_directApplication(Ast_DirectApplication* applic_stmt)
 {
   assert(applic_stmt->kind == AST_directApplication);
   if (applic_stmt->name->kind == AST_name) {
-    visit_name((Ast_Name*)applic_stmt->name);
+    ; /* pass */
   } else if (applic_stmt->name->kind == AST_typeRef) {
     visit_typeRef((Ast_TypeRef*)applic_stmt->name);
   } else assert(0);
@@ -1027,7 +1011,7 @@ visit_switchLabel(Ast_SwitchLabel* label)
 {
   assert(label->kind == AST_switchLabel);
   if (label->label->kind == AST_name) {
-    visit_name((Ast_Name*)label->label);
+    ; /* pass */
   } else if (label->label->kind == AST_default) {
     visit_default((Ast_Default*)label->label);
   } else assert(0);
@@ -1052,7 +1036,6 @@ static void
 visit_tableDeclaration(Ast_TableDeclaration* table_decl)
 {
   assert(table_decl->kind == AST_tableDeclaration);
-  visit_name((Ast_Name*)table_decl->name);
   visit_tablePropertyList((Ast_TablePropertyList*)table_decl->prop_list);
 }
 
@@ -1103,7 +1086,6 @@ visit_keyElement(Ast_KeyElement* element)
 {
   assert(element->kind == AST_keyElement);
   visit_expression((Ast_Expression*)element->expr);
-  visit_name((Ast_Name*)element->match);
 }
 
 static void
@@ -1127,7 +1109,6 @@ static void
 visit_actionRef(Ast_ActionRef* action_ref)
 {
   assert(action_ref->kind == AST_actionRef);
-  visit_name((Ast_Name*)action_ref->name);
   if (action_ref->args) {
     visit_argumentList((Ast_ArgumentList*)action_ref->args);
   }
@@ -1162,7 +1143,6 @@ static void
 visit_simpleProperty(Ast_SimpleProperty* simple_prop)
 {
   assert(simple_prop->kind == AST_simpleProperty);
-  visit_name((Ast_Name*)simple_prop->name);
   visit_expression((Ast_Expression*)simple_prop->init_expr);
 }
 
@@ -1176,7 +1156,7 @@ visit_actionDeclaration(Ast_ActionDeclaration* action_decl)
   action_ty->strname = name->strname;
   HashmapEntry_Type* type_he = hashmap_get_entry_uint32k(&type_table, action_decl->ast_id, HashmapEntry_Type);
   type_he->type = (Type*)action_decl;
-  action_ty->params_ty = visit_parameterList((Ast_ParameterList*)action_decl->params);
+  visit_parameterList((Ast_ParameterList*)action_decl->params);
   visit_blockStatement((Ast_BlockStatement*)action_decl->stmt);
 }
 
@@ -1187,7 +1167,6 @@ visit_variableDeclaration(Ast_VarDeclaration* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
   visit_typeRef((Ast_TypeRef*)var_decl->type);
-  visit_name((Ast_Name*)var_decl->name);
   if (var_decl->init_expr) {
     visit_expression((Ast_Expression*)var_decl->init_expr);
   }
@@ -1239,7 +1218,7 @@ visit_lvalueExpression(Ast_LvalueExpression* lvalue_expr)
 {
   assert(lvalue_expr->kind == AST_lvalueExpression);
   if (lvalue_expr->expr->kind == AST_name) {
-    visit_name((Ast_Name*)lvalue_expr->expr);
+    ; /* pass */
   } else if (lvalue_expr->expr->kind == AST_memberSelector) {
     visit_memberSelector((Ast_MemberSelector*)lvalue_expr->expr);
   } else if (lvalue_expr->expr->kind == AST_arraySubscript) {
@@ -1260,7 +1239,7 @@ visit_expression(Ast_Expression* expr)
   } else if (expr->expr->kind == AST_stringLiteral) {
     visit_stringLiteral((Ast_StringLiteral*)expr->expr);
   } else if (expr->expr->kind == AST_name) {
-    visit_name((Ast_Name*)expr->expr);
+    ; /* pass */
   } else if (expr->expr->kind == AST_specializedType) {
     visit_specializedType((Ast_SpecializedType*)expr->expr);
   } else if (expr->expr->kind == AST_headerStackType) {
@@ -1319,7 +1298,6 @@ visit_memberSelector(Ast_MemberSelector* selector)
   } else if (selector->lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression((Ast_LvalueExpression*)selector->lhs_expr);
   } else assert(0);
-  visit_name((Ast_Name*)selector->name);
 }
 
 static void
@@ -1375,10 +1353,34 @@ visit_dontcare(Ast_Dontcare* dontcare)
 }
 
 void
-pass_type_decl(Ast_P4Program* p4program, Arena* _storage)
+pass_type_decl(Ast_P4Program* p4program, Arena* _storage, Scope* root_scope)
 {
   storage = _storage;
   hashmap_create(&type_table, storage, HASHMAP_KEY_UINT32, HashmapEntry_Type, 64, 256);
+
+  struct BuiltinType {
+    char* strname;
+    enum TypeEnum type;
+  };
+  struct BuiltinType basic_types[] = {
+    {"bool",   TYPE_BOOL},
+    {"int",    TYPE_INT},
+    {"bit",    TYPE_BIT},
+    {"varbit", TYPE_VARBIT},
+    {"void",   TYPE_VOID},
+    {"error",  TYPE_ERROR},
+    {"match_kind", TYPE_MATCH_KIND},
+  };
+  for (int i = 0; i < sizeof(basic_types)/sizeof(basic_types[0]); i++) {
+    Type_Basic* basic_ty = arena_malloc(storage, sizeof(*basic_ty));
+    basic_ty->ctor = basic_types[i].type;
+    /*
+    NameDecl* namedecl = scope_lookup_namespace(root_scope, basic_types[i].strname, NS_TYPE)->ns[NS_TYPE];
+    hashmap_get_entry_uint32k(
+      &type_table, namedecl->ast->ast_id, HashmapEntry_Type)->type = (Type*)basic_ty;
+      */
+  }
+
   visit_p4program(p4program);
 }
 

@@ -308,11 +308,20 @@ typedef struct ListItem_Ast {
   Ast* ast;
 } ListItem_Ast;
 
+typedef struct HashmapEntry_Ast {
+  HashmapEntry;
+  Ast* ast;
+} HashmapEntry_Ast;
+
 /** PROGRAM **/
 
 typedef struct Ast_P4Program {
   Ast;
   Ast* decl_list;
+  struct {
+    int node_id;
+    Scope* root_scope;
+  } att;
 } Ast_P4Program;
 
 typedef struct Ast_DeclarationList {
@@ -332,7 +341,7 @@ typedef struct Ast_Name {
 
   struct {
     Scope* scope;
-  } attr;
+  } att;
 } Ast_Name;
 
 typedef struct Ast_ParameterList {
@@ -627,7 +636,7 @@ typedef struct Ast_HeaderTypeDeclaration {
   struct {
     int field_count;
     Scope fields;
-  } attr;
+  } att;
 } Ast_HeaderTypeDeclaration;
 
 typedef struct Ast_HeaderUnionDeclaration {
@@ -638,7 +647,7 @@ typedef struct Ast_HeaderUnionDeclaration {
   struct {
     int field_count;
     Scope fields;
-  } attr;
+  } att;
 } Ast_HeaderUnionDeclaration;
 
 typedef struct Ast_StructTypeDeclaration {
@@ -649,7 +658,7 @@ typedef struct Ast_StructTypeDeclaration {
   struct {
     int field_count;
     Scope fields;
-  } attr;
+  } att;
 } Ast_StructTypeDeclaration;
 
 typedef struct Ast_StructFieldList {
@@ -672,7 +681,7 @@ typedef struct Ast_EnumDeclaration {
   struct {
     int field_count;
     Scope fields;
-  } attr;
+  } att;
 } Ast_EnumDeclaration;
 
 typedef struct Ast_ErrorDeclaration {
@@ -682,7 +691,7 @@ typedef struct Ast_ErrorDeclaration {
   struct {
     int field_count;
     Scope fields;
-  } attr;
+  } att;
 } Ast_ErrorDeclaration;
 
 typedef struct Ast_MatchKindDeclaration {
@@ -692,7 +701,7 @@ typedef struct Ast_MatchKindDeclaration {
   struct {
     int field_count;
     Scope fields;
-  } attr;
+  } att;
 } Ast_MatchKindDeclaration;
 
 typedef struct Ast_IdentifierList {
@@ -1011,16 +1020,20 @@ ScopeEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace n
 ScopeEntry* scope_push_decl(Scope* scope, NameDecl* decl, enum NameSpace ns);
 
 enum TypeEnum {
+
+  /* Basic */
   TYPE_VOID = 1,
   TYPE_BOOL,
   TYPE_INT,
   TYPE_BIT,
   TYPE_VARBIT,
   TYPE_STRING,
-  TYPE_TYPE,
-  TYPE_TYPEDEF,
-  TYPE_PRODUCT,
+  TYPE_ERROR,
+  TYPE_MATCH_KIND,
+
   TYPE_FUNCTION,
+  TYPE_PRODUCT,
+  TYPE_TYPEDEF,
   TYPE_ARRAY,
 };
 
@@ -1028,14 +1041,6 @@ typedef struct Type {
   enum TypeEnum ctor;
   char* strname;
 } Type;
-
-typedef struct TypeSet {
-  List members;
-} TypeSet;
-
-typedef struct Type_Type {
-  Type;
-} Type_Type;
 
 typedef struct Type_Basic {
   Type;
@@ -1063,12 +1068,13 @@ typedef struct Type_Array {
   int size;
 } Type_Array;
 
+typedef struct ListItem_Type {
+  ListItem;
+  Type* type;
+} ListItem_Type;
+
 typedef struct HashmapEntry_Type {
   HashmapEntry;
   Type* type;
 } HashmapEntry_Type;
-
-void tyset_add_type(Arena *type_storage, TypeSet* set, Type* type);
-void tyset_import_set(Arena *type_storage, TypeSet* to_set, TypeSet* from_set);
-bool tyset_contains_type(TypeSet* set, Type* target_type);
 

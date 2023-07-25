@@ -784,7 +784,7 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
   assert(header_decl->kind == AST_headerTypeDeclaration);
   header_decl->ast_id = ++node_id;
   visit_name((Ast_Name*)header_decl->name);
-  header_decl->attr.field_count = 
+  header_decl->att.field_count = 
     visit_structFieldList((Ast_StructFieldList*)header_decl->fields);
 }
 
@@ -794,7 +794,7 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
   assert(union_decl->kind == AST_headerUnionDeclaration);
   union_decl->ast_id = ++node_id;
   visit_name((Ast_Name*)union_decl->name);
-  union_decl->attr.field_count = 
+  union_decl->att.field_count = 
     visit_structFieldList((Ast_StructFieldList*)union_decl->fields);
 }
 
@@ -804,7 +804,7 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
   assert(struct_decl->kind == AST_structTypeDeclaration);
   struct_decl->ast_id = ++node_id;
   visit_name((Ast_Name*)struct_decl->name);
-  struct_decl->attr.field_count = 
+  struct_decl->att.field_count = 
     visit_structFieldList((Ast_StructFieldList*)struct_decl->fields);
 }
 
@@ -835,7 +835,7 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
   assert(enum_decl->kind == AST_enumDeclaration);
   enum_decl->ast_id = ++node_id;
   visit_name((Ast_Name*)enum_decl->name);
-  enum_decl->attr.field_count = 
+  enum_decl->att.field_count = 
     visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields);
 }
 
@@ -844,7 +844,7 @@ visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
 {
   assert(error_decl->kind == AST_errorDeclaration);
   error_decl->ast_id = ++node_id;
-  error_decl->attr.field_count = 
+  error_decl->att.field_count = 
     visit_identifierList((Ast_IdentifierList*)error_decl->fields);
 }
 
@@ -853,7 +853,7 @@ visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
 {
   assert(match_decl->kind == AST_matchKindDeclaration);
   match_decl->ast_id = ++node_id;
-  match_decl->attr.field_count = 
+  match_decl->att.field_count = 
     visit_identifierList((Ast_IdentifierList*)match_decl->fields);
 }
 
@@ -1436,6 +1436,7 @@ int
 pass_node_id(Ast_P4Program* p4program)
 {
   visit_p4program(p4program);
+  p4program->att.node_id = node_id;
   return node_id;
 }
 

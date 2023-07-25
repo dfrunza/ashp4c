@@ -111,8 +111,8 @@ main(int arg_count, char* args[])
   arena_free(&text_storage);
 
   pass_node_id(p4program);
-  pass_name_decl(p4program, &main_storage);
-  pass_type_decl(p4program, &main_storage);
+  Scope* root_scope = pass_name_decl(p4program, &main_storage);
+  pass_type_decl(p4program, &main_storage, root_scope);
 
   /*
   Hashmap* potential_type = build_potential_type(p4program, root_scope, &main_storage);
