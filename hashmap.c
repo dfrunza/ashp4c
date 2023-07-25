@@ -110,7 +110,7 @@ _hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, 
 {
   assert(max_capacity >= 7 && capacity <= max_capacity);
   assert(entry_size >= sizeof(HashmapEntry));
-  hashmap->capacity_log2 = ceil_log2(capacity);
+  hashmap->capacity_log2 = ceil_log2(capacity + 1);
   hashmap->capacity = (1 << hashmap->capacity_log2) - 1;
   hashmap->key_type = key_type;
   hashmap->entry_size = entry_size;

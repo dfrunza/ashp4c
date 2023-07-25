@@ -22,7 +22,7 @@ array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capac
 {
   assert(elem_size > 0);
   assert(max_capacity >= 7);
-  array->segment_length = ceil_log2(max_capacity);
+  array->segment_length = ceil_log2(max_capacity + 1);
   array->segment_table = arena_malloc(storage, sizeof(void*) * array->segment_length);
   array->elem_size = elem_size;
   array->elem_count = 0;
