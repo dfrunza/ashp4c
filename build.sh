@@ -1,8 +1,12 @@
 #!/bin/bash
 
-CC_FLAGS="-g -ggdb -std=gnu99 -fms-extensions -ffreestanding"
+CC_FLAGS=""
+CC_FLAGS="$CC_FLAGS -g -ggdb -std=c11 -fms-extensions -ffreestanding"
 CC_FLAGS="$CC_FLAGS -Winline -Wno-write-strings -Wno-unused-function -Wreturn-type -Wall"
-LD_FLAGS="--nostdlib --unresolved-symbols=report-all --static"
+CC_FLAGS="$CC_FLAGS -D_GNU_SOURCE"
+
+LD_FLAGS=""
+LD_FLAGS="$LD_FLAGS --nostdlib --unresolved-symbols=report-all --static"
 
 MUSL_INCLUDE=/usr/local/musl/include
 MUSL_LIB=/usr/local/musl/lib

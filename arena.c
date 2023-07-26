@@ -1,10 +1,10 @@
-#include <memory.h>  // memset
+#include <memory.h>  /* memset */
 #include <unistd.h>
 #include <sys/mman.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>   // exit
-#include <math.h> // ceil
+#include <stdlib.h>   /* exit */
+#include <math.h> /* ceil */
 #include "foundation.h"
 
 #define ZMEM_ON_FREE  true

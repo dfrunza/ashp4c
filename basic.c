@@ -1,9 +1,9 @@
-#include <memory.h>  // memset
+#include <memory.h>  /* memset */
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>   // exit
-#include <stdarg.h>   // va_list, va_start, va_end
-#include <math.h> // floor, log10
+#include <stdlib.h>   /* exit */
+#include <stdarg.h>   /* va_list, va_start, va_end */
+#include <math.h> /* floor, log10 */
 #include "foundation.h"
 
 void
