@@ -24,7 +24,7 @@ gcc $CC_FLAGS -I$MUSL_INC -I . -c $SRC/scope.c
 gcc $CC_FLAGS -I$MUSL_INC -I . -c $SRC/lex.c
 #gcc $CC_FLAGS -I$MUSL_INC -I . -c $SRC/type.c 
 gcc $CC_FLAGS -I$MUSL_INC -I . -c $SRC/parse.c
-gcc $CC_FLAGS -I$MUSL_INC -I . -c $SRC/pass_ast_id.c
+gcc $CC_FLAGS -I$MUSL_INC -I . -c $SRC/pass_dry.c
 gcc $CC_FLAGS -I$MUSL_INC -I . -c $SRC/pass_name_decl.c 
 gcc $CC_FLAGS -I$MUSL_INC -I . -c $SRC/pass_type_decl.c
 gcc $CC_FLAGS -I$MUSL_INC -I . -c $SRC/pass_potential_type.c 
@@ -33,7 +33,7 @@ gcc $CC_FLAGS -I$MUSL_INC -I . -c $SRC/ashp4c.c
 
 ld $LD_FLAGS -L$MUSL_LIB -o ashp4c $MUSL_LIB/crt1.o \
   basic.o arena.o array.o hashmap.o scope.o lex.o parse.o \
-  pass_ast_id.o pass_name_decl.o pass_type_decl.o pass_potential_type.o \
+  pass_dry.o pass_name_decl.o pass_type_decl.o pass_potential_type.o \
   ashp4c.o \
   -lc
 

@@ -111,7 +111,7 @@ main(int arg_count, char* args[])
   assert(p4program->kind == AST_p4program);
   arena_free(&text_storage);
 
-  pass_ast_id(p4program, root_scope);
+  pass_dry(p4program, root_scope);
   pass_name_decl(p4program, &main_storage, root_scope);
   Hashmap* type_table = pass_type_decl(p4program, &main_storage, root_scope);
   pass_potential_type(p4program, &main_storage, type_table);

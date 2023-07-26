@@ -11,6 +11,7 @@ static Token* token = 0;
 static int prev_token_at = 0;
 static Token* prev_token = 0;
 static Scope* current_scope;
+static int ast_id = 0;
 
 /** PROGRAM **/
 
@@ -547,6 +548,7 @@ parse_p4program()
 {
   Ast_P4Program* program = arena_malloc(storage, sizeof(*program));
   program->kind = AST_p4program;
+  program->ast_id = ++ast_id;
   program->line_no = token->line_no;
   program->column_no = token->column_no;
   while (token->klass == TK_SEMICOLON) {
@@ -569,6 +571,7 @@ parse_declarationList()
 {
   Ast_DeclarationList* decls = arena_malloc(storage, sizeof(*decls));
   decls->kind = AST_declarationList;
+  decls->ast_id = ++ast_id;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
   list_create(&decls->members, storage, ListItem_Ast);
@@ -595,6 +598,7 @@ parse_declaration()
   if (token_is_declaration(token)) {
     Ast_Declaration* decl = arena_malloc(storage, sizeof(*decl));
     decl->kind = AST_declaration;
+    decl->ast_id = ++ast_id;
     decl->line_no = token->line_no;
     decl->column_no = token->column_no;
     if (token->klass == TK_CONST) {
@@ -658,6 +662,7 @@ parse_nonTypeName()
   if (token_is_nonTypeName(token)) {
     Ast_Name* name = arena_malloc(storage, sizeof(*name));
     name->kind = AST_name;
+    name->ast_id = ++ast_id;
     name->line_no = token->line_no;
     name->column_no = token->column_no;
     name->strname = token->lexeme;
@@ -678,6 +683,7 @@ parse_name()
     } else if (token->klass == TK_TYPE_IDENTIFIER) {
       Ast_Name* type_name = arena_malloc(storage, sizeof(*type_name));
       type_name->kind = AST_name;
+      type_name->ast_id = ++ast_id;
       type_name->line_no = token->line_no;
       type_name->column_no = token->column_no;
       type_name->strname = token->lexeme;
@@ -695,6 +701,7 @@ parse_parameterList()
 {
   Ast_ParameterList* params = arena_malloc(storage, sizeof(*params));
   params->kind = AST_parameterList;
+  params->ast_id = ++ast_id;
   params->line_no = token->line_no;
   params->column_no = token->column_no;
   list_create(&params->members, storage, ListItem_Ast);
@@ -718,6 +725,7 @@ parse_parameter()
   if (token_is_parameter(token)) {
     Ast_Parameter* param = arena_malloc(storage, sizeof(*param));
     param->kind = AST_parameter;
+    param->ast_id = ++ast_id;
     param->line_no = token->line_no;
     param->column_no = token->column_no;
     param->direction = parse_direction();
@@ -765,6 +773,7 @@ parse_packageTypeDeclaration()
     next_token();
     Ast_PackageTypeDeclaration* package_decl = arena_malloc(storage, sizeof(*package_decl));
     package_decl->kind = AST_packageTypeDeclaration;
+    package_decl->ast_id = ++ast_id;
     package_decl->line_no = token->line_no;
     package_decl->column_no = token->column_no;
     if (token_is_name(token)) {
@@ -798,6 +807,7 @@ parse_instantiation(Ast* type_ref)
   if (token_is_typeRef(token) || type_ref) {
     Ast_Instantiation* inst_stmt = arena_malloc(storage, sizeof(*inst_stmt));
     inst_stmt->kind = AST_instantiation;
+    inst_stmt->ast_id = ++ast_id;
     inst_stmt->line_no = token->line_no;
     inst_stmt->column_no = token->column_no;
     inst_stmt->type_ref = type_ref ? type_ref : parse_typeRef();
@@ -853,6 +863,7 @@ parse_parserDeclaration(Ast* parser_proto)
   if (token->klass == TK_PARENTH_OPEN || token->klass == TK_BRACE_OPEN) {
     Ast_ParserDeclaration* parser_decl = arena_malloc(storage, sizeof(*parser_decl));
     parser_decl->kind = AST_parserDeclaration;
+    parser_decl->ast_id = ++ast_id;
     parser_decl->line_no = token->line_no;
     parser_decl->column_no = token->column_no;
     parser_decl->proto = parser_proto;
@@ -882,6 +893,7 @@ parse_parserLocalElements()
 {
   Ast_ParserLocalElements* elems = arena_malloc(storage, sizeof(*elems));
   elems->kind = AST_parserLocalElements;
+  elems->ast_id = ++ast_id;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
   list_create(&elems->members, storage, ListItem_Ast);
@@ -904,6 +916,7 @@ parse_parserLocalElement()
   if (token_is_parserLocalElement(token)) {
     Ast_ParserLocalElement* local_element = arena_malloc(storage, sizeof(*local_element));
     local_element->kind = AST_parserLocalElement;
+    local_element->ast_id = ++ast_id;
     local_element->line_no = token->line_no;
     local_element->column_no = token->column_no;
     if (token->klass == TK_CONST) {
@@ -933,6 +946,7 @@ parse_parserTypeDeclaration()
     next_token();
     Ast_ParserTypeDeclaration* parser_proto = arena_malloc(storage, sizeof(*parser_proto));
     parser_proto->kind = AST_parserTypeDeclaration;
+    parser_proto->ast_id = ++ast_id;
     parser_proto->line_no = token->line_no; 
     parser_proto->column_no = token->column_no;
     if (token_is_name(token)) {
@@ -965,6 +979,7 @@ parse_parserStates()
 {
   Ast_ParserStates* states = arena_malloc(storage, sizeof(*states));
   states->kind = AST_parserStates;
+  states->ast_id = ++ast_id;
   states->line_no = token->line_no;
   states->column_no = token->column_no;
   list_create(&states->members, storage, ListItem_Ast);
@@ -988,6 +1003,7 @@ parse_parserState()
     next_token();
     Ast_ParserState* state = arena_malloc(storage, sizeof(*state));
     state->kind = AST_parserState;
+    state->ast_id = ++ast_id;
     state->line_no = token->line_no;
     state->column_no = token->column_no;
     state->name = parse_name();
@@ -1013,6 +1029,7 @@ parse_parserStatements()
 {
   Ast_ParserStatements* stmts = arena_malloc(storage, sizeof(*stmts));
   stmts->kind = AST_parserStatements;
+  stmts->ast_id = ++ast_id;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
   list_create(&stmts->members, storage, ListItem_Ast);
@@ -1035,6 +1052,7 @@ parse_parserStatement()
   if (token_is_parserStatement(token)) {
     Ast_ParserStatement* parser_stmt = arena_malloc(storage, sizeof(*parser_stmt));
     parser_stmt->kind = AST_parserStatement;
+    parser_stmt->ast_id = ++ast_id;
     parser_stmt->line_no = token->line_no;
     parser_stmt->column_no = token->column_no;
     if (token_is_typeRef(token)) {
@@ -1058,6 +1076,7 @@ parse_parserStatement()
     } else if (token->klass == TK_SEMICOLON) {
       Ast* stmt = arena_malloc(storage, sizeof(*stmt));
       stmt->kind = AST_emptyStatement;
+      stmt->ast_id = ++ast_id;
       stmt->line_no = token->line_no;
       stmt->column_no = token->column_no;
       parser_stmt->stmt = stmt;
@@ -1076,6 +1095,7 @@ parse_parserBlockStatement()
     next_token();
     Ast_ParserBlockStatement* stmt = arena_malloc(storage, sizeof(*stmt));
     stmt->kind = AST_parserBlockStatement;
+    stmt->ast_id = ++ast_id;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
     stmt->stmt_list = parse_parserStatements();
@@ -1097,6 +1117,7 @@ parse_transitionStatement()
     next_token();
     Ast_TransitionStatement* transition = arena_malloc(storage, sizeof(*transition));
     transition->kind = AST_transitionStatement;
+    transition->ast_id = ++ast_id;
     transition->line_no = token->line_no;
     transition->column_no = token->column_no;
     transition->stmt = parse_stateExpression();
@@ -1113,6 +1134,7 @@ parse_stateExpression()
   if (token_is_name(token) || token->klass == TK_SELECT) {
     Ast_StateExpression* state_expr = arena_malloc(storage, sizeof(*state_expr));
     state_expr->kind = AST_stateExpression;
+    state_expr->ast_id = ++ast_id;
     state_expr->line_no = token->line_no;
     state_expr->column_no = token->column_no;
     if (token_is_name(token)) {
@@ -1139,6 +1161,7 @@ parse_selectExpression()
     next_token();
     Ast_SelectExpression* select_expr = arena_malloc(storage, sizeof(*select_expr));
     select_expr->kind = AST_selectExpression;
+    select_expr->ast_id = ++ast_id;
     select_expr->line_no = token->line_no;
     select_expr->column_no = token->column_no;
     if (token->klass == TK_PARENTH_OPEN) {
@@ -1171,6 +1194,7 @@ parse_selectCaseList()
 {
   Ast_SelectCaseList* cases = arena_malloc(storage, sizeof(*cases));
   cases->kind = AST_selectCaseList;
+  cases->ast_id = ++ast_id;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
   list_create(&cases->members, storage, ListItem_Ast);
@@ -1193,6 +1217,7 @@ parse_selectCase()
   if (token_is_keysetExpression(token)) {
     Ast_SelectCase* select_case = arena_malloc(storage, sizeof(*select_case));
     select_case->kind = AST_selectCase;
+    select_case->ast_id = ++ast_id;
     select_case->line_no = token->line_no;
     select_case->column_no = token->column_no;
     select_case->keyset_expr = parse_keysetExpression();
@@ -1221,6 +1246,7 @@ parse_keysetExpression()
   if (token->klass == TK_PARENTH_OPEN || token_is_simpleKeysetExpression(token)) {
     Ast_KeysetExpression* keyset_expr = arena_malloc(storage, sizeof(*keyset_expr));
     keyset_expr->kind = AST_keysetExpression;
+    keyset_expr->ast_id = ++ast_id;
     keyset_expr->line_no = token->line_no;
     keyset_expr->column_no = token->column_no;
     if (token->klass == TK_PARENTH_OPEN) {
@@ -1243,6 +1269,7 @@ parse_tupleKeysetExpression()
     next_token();
     Ast_TupleKeysetExpression* tuple_keyset = arena_malloc(storage, sizeof(*tuple_keyset));
     tuple_keyset->kind = AST_tupleKeysetExpression;
+    tuple_keyset->ast_id = ++ast_id;
     tuple_keyset->line_no = token->line_no;
     tuple_keyset->column_no = token->column_no;
     tuple_keyset->expr_list = parse_simpleExpressionList();
@@ -1262,6 +1289,7 @@ parse_simpleExpressionList()
 {
   Ast_SimpleExpressionList* exprs = arena_malloc(storage, sizeof(*exprs));
   exprs->kind = AST_simpleExpressionList;
+  exprs->ast_id = ++ast_id;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
   list_create(&exprs->members, storage, ListItem_Ast);
@@ -1285,6 +1313,7 @@ parse_simpleKeysetExpression()
   if (token_is_simpleKeysetExpression(token)) {
     Ast_SimpleKeysetExpression* simple_keyset = arena_malloc(storage, sizeof(*simple_keyset));
     simple_keyset->kind = AST_simpleKeysetExpression;
+    simple_keyset->ast_id = ++ast_id;
     simple_keyset->line_no = token->line_no;
     simple_keyset->column_no = token->column_no;
     if (token_is_expression(token)) {
@@ -1294,6 +1323,7 @@ parse_simpleKeysetExpression()
       next_token();
       Ast_Default* default_keyset = arena_malloc(storage, sizeof(*default_keyset));
       default_keyset->kind = AST_default;
+      default_keyset->ast_id = ++ast_id;
       default_keyset->line_no = token->line_no;
       default_keyset->column_no = token->column_no;
       simple_keyset->expr = (Ast*)default_keyset;
@@ -1302,6 +1332,7 @@ parse_simpleKeysetExpression()
       next_token();
       Ast_Dontcare* dontcare_keyset = arena_malloc(storage, sizeof(*dontcare_keyset));
       dontcare_keyset->kind = AST_dontcare;
+      dontcare_keyset->ast_id = ++ast_id;
       dontcare_keyset->line_no = token->line_no;
       dontcare_keyset->column_no = token->column_no;
       simple_keyset->expr = (Ast*)dontcare_keyset;
@@ -1321,6 +1352,7 @@ parse_controlDeclaration(Ast* control_proto)
   if (token->klass == TK_PARENTH_OPEN || token->klass == TK_BRACE_OPEN) {
     Ast_ControlDeclaration* control_decl = arena_malloc(storage, sizeof(*control_decl));
     control_decl->kind = AST_controlDeclaration;
+    control_decl->ast_id = ++ast_id;
     control_decl->line_no = token->line_no;
     control_decl->column_no = token->column_no;
     control_decl->proto = control_proto;
@@ -1353,6 +1385,7 @@ parse_controlTypeDeclaration()
     next_token();
     Ast_ControlTypeDeclaration* control_proto = arena_malloc(storage, sizeof(*control_proto));
     control_proto->kind = AST_controlTypeDeclaration;
+    control_proto->ast_id = ++ast_id;
     control_proto->line_no = token->line_no;
     control_proto->column_no = token->column_no;
     if (token_is_name(token)) {
@@ -1386,6 +1419,7 @@ parse_controlLocalDeclaration()
   if (token_is_controlLocalDeclaration(token)) {
     Ast_ControlLocalDeclaration* local_decl = arena_malloc(storage, sizeof(*local_decl));
     local_decl->kind = AST_controlLocalDeclaration;
+    local_decl->ast_id = ++ast_id;
     local_decl->line_no = token->line_no;
     local_decl->column_no = token->column_no;
     if (token->klass == TK_CONST) {
@@ -1419,6 +1453,7 @@ parse_controlLocalDeclarations()
 {
   Ast_ControlLocalDeclarations* decls = arena_malloc(storage, sizeof(*decls));
   decls->kind = AST_controlLocalDeclarations;
+  decls->ast_id = ++ast_id;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
   list_create(&decls->members, storage, ListItem_Ast);
@@ -1444,6 +1479,7 @@ parse_externDeclaration()
     next_token();
     Ast_ExternDeclaration* extern_decl = arena_malloc(storage, sizeof(*extern_decl));
     extern_decl->kind = AST_externDeclaration;
+    extern_decl->ast_id = ++ast_id;
     extern_decl->line_no = token->line_no;
     extern_decl->column_no = token->column_no;
 
@@ -1467,6 +1503,7 @@ parse_externDeclaration()
     } else {
       Ast_ExternTypeDeclaration* extern_type = arena_malloc(storage, sizeof(*extern_type));
       extern_type->kind = AST_externTypeDeclaration;
+      extern_type->ast_id = ++ast_id;
       extern_type->line_no = token->line_no;
       extern_type->column_no = token->column_no;
       extern_type->name = parse_nonTypeName();
@@ -1498,6 +1535,7 @@ parse_methodPrototypes()
 {
   Ast_MethodPrototypes* protos = arena_malloc(storage, sizeof(*protos));
   protos->kind = AST_methodPrototypes;
+  protos->ast_id = ++ast_id;
   protos->line_no = token->line_no;
   protos->column_no = token->column_no;
   list_create(&protos->members, storage, ListItem_Ast);
@@ -1520,6 +1558,7 @@ parse_functionPrototype(Ast* return_type)
   if (token_is_typeOrVoid(token) || return_type) {
     Ast_FunctionPrototype* func_proto = arena_malloc(storage, sizeof(*func_proto));
     func_proto->kind = AST_functionPrototype;
+    func_proto->ast_id = ++ast_id;
     func_proto->line_no = token->line_no;
     func_proto->column_no = token->column_no;
     if (return_type) {
@@ -1533,6 +1572,7 @@ parse_functionPrototype(Ast* return_type)
         scope_push_decl(current_scope, namedecl, NS_TYPE);
         Ast_TypeRef* type_ref = arena_malloc(storage, sizeof(*type_ref));
         type_ref->kind = AST_typeRef;
+        type_ref->ast_id = ++ast_id;
         type_ref->line_no = token->line_no;
         type_ref->column_no = token->column_no;
         type_ref->type = (Ast*)name;
@@ -1569,6 +1609,7 @@ parse_methodPrototype()
       /* Constructor */
       Ast_FunctionPrototype* func_proto = arena_malloc(storage, sizeof(*func_proto));
       func_proto->kind = AST_functionPrototype;
+      func_proto->ast_id = ++ast_id;
       func_proto->line_no = token->line_no;
       func_proto->column_no = token->column_no;
       func_proto->name = parse_name();
@@ -1609,6 +1650,7 @@ parse_typeRef()
   if (token_is_typeRef(token)) {
     Ast_TypeRef* type_ref = arena_malloc(storage, sizeof(*type_ref));
     type_ref->kind = AST_typeRef;
+    type_ref->ast_id = ++ast_id;
     type_ref->line_no = token->line_no;
     type_ref->column_no = token->column_no;
     if (token_is_baseType(token)) {
@@ -1659,6 +1701,7 @@ parse_prefixedType()
   if (token->klass == TK_TYPE_IDENTIFIER) {
     Ast_Name* type_name = arena_malloc(storage, sizeof(*type_name));
     type_name->kind = AST_name;
+    type_name->ast_id = ++ast_id;
     type_name->line_no = token->line_no;
     type_name->column_no = token->column_no;
     type_name->strname = token->lexeme;
@@ -1678,6 +1721,7 @@ parse_tupleType()
     next_token();
     Ast_TupleType* tuple = arena_malloc(storage, sizeof(*tuple));
     tuple->kind = AST_tupleType;
+    tuple->ast_id = ++ast_id;
     tuple->line_no = token->line_no;
     tuple->column_no = token->column_no;
     if (token->klass == TK_ANGLE_OPEN) {
@@ -1703,6 +1747,7 @@ parse_headerStackType()
     next_token();
     Ast_HeaderStackType* hdrstack = arena_malloc(storage, sizeof(*hdrstack));
     hdrstack->kind = AST_headerStackType;
+    hdrstack->ast_id = ++ast_id;
     hdrstack->line_no = token->line_no;
     hdrstack->column_no = token->column_no;
     if (token_is_expression(token)) {
@@ -1727,6 +1772,7 @@ parse_specializedType()
     next_token();
     Ast_SpecializedType* type = arena_malloc(storage, sizeof(*type));
     type->kind = AST_specializedType;
+    type->ast_id = ++ast_id;
     type->line_no = token->line_no;
     type->column_no = token->column_no;
     type->type_args = parse_typeArgumentList();
@@ -1747,11 +1793,13 @@ parse_baseType()
   if (token_is_baseType(token)) {
     Ast_Name* type_name = arena_malloc(storage, sizeof(*type_name));
     type_name->kind = AST_name;
+    type_name->ast_id = ++ast_id;
     type_name->line_no = token->line_no;
     type_name->column_no = token->column_no;
     if (token->klass == TK_BOOL) {
       Ast_BooleanType* bool_type = arena_malloc(storage, sizeof(*bool_type));
       bool_type->kind = AST_baseTypeBoolean;
+      bool_type->ast_id = ++ast_id;
       bool_type->line_no = token->line_no;
       bool_type->column_no = token->column_no;
       type_name->strname = token->lexeme;
@@ -1761,6 +1809,7 @@ parse_baseType()
     } else if (token->klass == TK_ERROR) {
       Ast_ErrorType* error_type = arena_malloc(storage, sizeof(*error_type));
       error_type->kind = AST_baseTypeError;
+      error_type->ast_id = ++ast_id;
       error_type->line_no = token->line_no;
       error_type->column_no = token->column_no;
       type_name->strname = token->lexeme;
@@ -1770,6 +1819,7 @@ parse_baseType()
     } else if (token->klass == TK_INT) {
       Ast_IntegerType* int_type = arena_malloc(storage, sizeof(*int_type));
       int_type->kind = AST_baseTypeInteger;
+      int_type->ast_id = ++ast_id;
       int_type->line_no = token->line_no;
       int_type->column_no = token->column_no;
       type_name->strname = token->lexeme;
@@ -1787,6 +1837,7 @@ parse_baseType()
     } else if (token->klass == TK_BIT) {
       Ast_BitType* bit_type = arena_malloc(storage, sizeof(*bit_type));
       bit_type->kind = AST_baseTypeBit;
+      bit_type->ast_id = ++ast_id;
       bit_type->line_no = token->line_no;
       bit_type->column_no = token->column_no;
       type_name->strname = token->lexeme;
@@ -1804,6 +1855,7 @@ parse_baseType()
     } else if (token->klass == TK_VARBIT) {
       Ast_VarbitType* varbit_type = arena_malloc(storage, sizeof(*varbit_type));
       varbit_type->kind = AST_baseTypeVarbit;
+      varbit_type->ast_id = ++ast_id;
       varbit_type->line_no = token->line_no;
       varbit_type->column_no = token->column_no;
       type_name->strname = token->lexeme;
@@ -1822,6 +1874,7 @@ parse_baseType()
     } else if (token->klass == TK_STRING) {
       Ast_StringType* string_type = arena_malloc(storage, sizeof(*string_type));
       string_type->kind = AST_baseTypeString;
+      string_type->ast_id = ++ast_id;
       string_type->line_no = token->line_no;
       string_type->column_no = token->column_no;
       type_name->strname = token->lexeme;
@@ -1831,6 +1884,7 @@ parse_baseType()
     } else if (token->klass == TK_VOID) {
       Ast_VoidType* void_type = arena_malloc(storage, sizeof(*void_type));
       void_type->kind = AST_baseTypeVoid;
+      void_type->ast_id = ++ast_id;
       void_type->line_no = token->line_no;
       void_type->column_no = token->column_no;
       type_name->strname = token->lexeme;
@@ -1849,6 +1903,7 @@ parse_integerTypeSize()
 {
   Ast_IntegerTypeSize* type_size = arena_malloc(storage, sizeof(*type_size));
   type_size->kind = AST_integerTypeSize;
+  type_size->ast_id = ++ast_id;
   type_size->line_no = token->line_no;
   type_size->column_no = token->column_no;
   if (token->klass == TK_INTEGER_LITERAL) {
@@ -1875,6 +1930,7 @@ parse_typeOrVoid()
     } else if (token->klass == TK_IDENTIFIER) {
       Ast_Name* name = arena_malloc(storage, sizeof(*name));
       name->kind = AST_name;
+      name->ast_id = ++ast_id;
       name->line_no = token->line_no;
       name->column_no = token->column_no;
       name->strname = token->lexeme;
@@ -1914,6 +1970,7 @@ parse_typeParameterList()
 {
   Ast_TypeParameterList* params = arena_malloc(storage, sizeof(*params));
   params->kind = AST_typeParameterList;
+  params->ast_id = ++ast_id;
   params->line_no = token->line_no;
   params->column_no = token->column_no;
   list_create(&params->members, storage, ListItem_Ast);
@@ -1945,12 +2002,14 @@ parse_realTypeArg()
   if (token_is_realTypeArg(token)) {
     Ast_RealTypeArg* type_arg = arena_malloc(storage, sizeof(*type_arg));
     type_arg->kind = AST_realTypeArg;
+    type_arg->ast_id = ++ast_id;
     type_arg->line_no = token->line_no;
     type_arg->column_no = token->column_no;
     if (token->klass == TK_DONTCARE) {
       next_token();
       Ast_Dontcare* dontcare_arg = arena_malloc(storage, sizeof(*dontcare_arg));
       dontcare_arg->kind = AST_dontcare;
+      dontcare_arg->ast_id = ++ast_id;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
       type_arg->arg = (Ast*)dontcare_arg;
@@ -1971,12 +2030,14 @@ parse_typeArg()
   if (token_is_typeArg(token)) {
     Ast_TypeArg* type_arg = arena_malloc(storage, sizeof(*type_arg));
     type_arg->kind = AST_typeArg;
+    type_arg->ast_id = ++ast_id;
     type_arg->line_no = token->line_no;
     type_arg->column_no = token->column_no;
     if (token->klass == TK_DONTCARE) {
       next_token();
       Ast_Dontcare* dontcare_arg = arena_malloc(storage, sizeof(*dontcare_arg));
       dontcare_arg->kind = AST_dontcare;
+      dontcare_arg->ast_id = ++ast_id;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
       type_arg->arg = (Ast*)dontcare_arg;
@@ -1999,6 +2060,7 @@ parse_realTypeArgumentList()
 {
   Ast_RealTypeArgumentList* args = arena_malloc(storage, sizeof(*args));
   args->kind = AST_realTypeArgumentList;
+  args->ast_id = ++ast_id;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
   list_create(&args->members, storage, ListItem_Ast);
@@ -2021,6 +2083,7 @@ parse_typeArgumentList()
 {
   Ast_TypeArgumentList* args = arena_malloc(storage, sizeof(*args));
   args->kind = AST_typeArgumentList;
+  args->ast_id = ++ast_id;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
   list_create(&args->members, storage, ListItem_Ast);
@@ -2044,6 +2107,7 @@ parse_typeDeclaration()
   if (token_is_typeDeclaration(token)) {
     Ast_TypeDeclaration* type_decl = arena_malloc(storage, sizeof(*type_decl));
     type_decl->kind = AST_typeDeclaration;
+    type_decl->ast_id = ++ast_id;
     type_decl->line_no = token->line_no;
     type_decl->column_no = token->column_no;
     if (token_is_derivedTypeDeclaration(token)) {
@@ -2078,6 +2142,7 @@ parse_derivedTypeDeclaration()
   if (token_is_derivedTypeDeclaration(token)) {
     Ast_DerivedTypeDeclaration* type_decl = arena_malloc(storage, sizeof(*type_decl));
     type_decl->kind = AST_derivedTypeDeclaration;
+    type_decl->ast_id = ++ast_id;
     type_decl->line_no = token->line_no;
     type_decl->column_no = token->column_no;
     if (token->klass == TK_HEADER) {
@@ -2106,6 +2171,7 @@ parse_headerTypeDeclaration()
     next_token();
     Ast_HeaderTypeDeclaration* header_decl = arena_malloc(storage, sizeof(*header_decl));
     header_decl->kind = AST_headerTypeDeclaration;
+    header_decl->ast_id = ++ast_id;
     header_decl->line_no = token->line_no;
     header_decl->column_no = token->column_no;
     if (token_is_name(token)) {
@@ -2139,6 +2205,7 @@ parse_headerUnionDeclaration()
     next_token();
     Ast_HeaderUnionDeclaration* union_decl = arena_malloc(storage, sizeof(*union_decl));
     union_decl->kind = AST_headerUnionDeclaration;
+    union_decl->ast_id = ++ast_id;
     union_decl->line_no = token->line_no;
     union_decl->column_no = token->column_no;
     if (token_is_name(token)) {
@@ -2172,6 +2239,7 @@ parse_structTypeDeclaration()
     next_token();
     Ast_StructTypeDeclaration* struct_decl = arena_malloc(storage, sizeof(*struct_decl));
     struct_decl->kind = AST_structTypeDeclaration;
+    struct_decl->ast_id = ++ast_id;
     struct_decl->line_no = token->line_no;
     struct_decl->column_no = token->column_no;
     if (token_is_name(token)) {
@@ -2203,6 +2271,7 @@ parse_structFieldList()
 {
   Ast_StructFieldList* fields = arena_malloc(storage, sizeof(*fields));
   fields->kind = AST_structFieldList;
+  fields->ast_id = ++ast_id;
   fields->line_no = token->line_no;
   fields->column_no = token->column_no;
   list_create(&fields->members, storage, ListItem_Ast);
@@ -2225,6 +2294,7 @@ parse_structField()
   if (token_is_structField(token)) {
     Ast_StructField* field = arena_malloc(storage, sizeof(*field));
     field->kind = AST_structField;
+    field->ast_id = ++ast_id;
     field->line_no = token->line_no;
     field->column_no = token->column_no;
     field->type = parse_typeRef();
@@ -2250,6 +2320,7 @@ parse_enumDeclaration()
     next_token();
     Ast_EnumDeclaration* enum_decl = arena_malloc(storage, sizeof(*enum_decl));
     enum_decl->kind = AST_enumDeclaration;
+    enum_decl->ast_id = ++ast_id;
     enum_decl->line_no = token->line_no;
     enum_decl->column_no = token->column_no;
     if (token->klass == TK_BIT) {
@@ -2301,6 +2372,7 @@ parse_errorDeclaration()
     next_token();
     Ast_ErrorDeclaration* error_decl = arena_malloc(storage, sizeof(*error_decl));
     error_decl->kind = AST_errorDeclaration;
+    error_decl->ast_id = ++ast_id;
     error_decl->line_no = token->line_no;
     error_decl->column_no = token->column_no;
     if (token->klass == TK_BRACE_OPEN) {
@@ -2332,6 +2404,7 @@ parse_matchKindDeclaration()
     next_token();
     Ast_MatchKindDeclaration* match_decl = arena_malloc(storage, sizeof(*match_decl));
     match_decl->kind = AST_matchKindDeclaration;
+    match_decl->ast_id = ++ast_id;
     match_decl->line_no = token->line_no;
     match_decl->column_no = token->column_no;
     if (token->klass == TK_BRACE_OPEN) {
@@ -2358,6 +2431,7 @@ parse_identifierList()
 {
   Ast_IdentifierList* ids = arena_malloc(storage, sizeof(*ids));
   ids->kind = AST_identifierList;
+  ids->ast_id = ++ast_id;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
   list_create(&ids->members, storage, ListItem_Ast);
@@ -2380,6 +2454,7 @@ parse_specifiedIdentifierList()
 {
   Ast_SpecifiedIdentifierList* ids = arena_malloc(storage, sizeof(*ids));
   ids->kind = AST_specifiedIdentifierList;
+  ids->ast_id = ++ast_id;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
   list_create(&ids->members, storage, ListItem_Ast);
@@ -2403,6 +2478,7 @@ parse_specifiedIdentifier()
   if (token_is_specifiedIdentifier(token)) {
     Ast_SpecifiedIdentifier* id = arena_malloc(storage, sizeof(*id));
     id->kind = AST_specifiedIdentifier;
+    id->ast_id = ++ast_id;
     id->line_no = token->line_no;
     id->column_no = token->column_no;
     id->name = parse_name();
@@ -2428,6 +2504,7 @@ parse_typedefDeclaration()
     if (token_is_typeRef(token) || token_is_derivedTypeDeclaration(token)) {
       Ast_TypedefDeclaration* type_decl = arena_malloc(storage, sizeof(*type_decl));
       type_decl->kind = AST_typedefDeclaration;
+      type_decl->ast_id = ++ast_id;
       type_decl->line_no = token->line_no;
       type_decl->column_no = token->column_no;
       if (token_is_typeRef(token)) {
@@ -2475,6 +2552,7 @@ parse_assignmentOrMethodCallStatement()
       next_token();
       Ast_FunctionCall* call_stmt = arena_malloc(storage, sizeof(*call_stmt));
       call_stmt->kind = AST_functionCall;
+      call_stmt->ast_id = ++ast_id;
       call_stmt->line_no = token->line_no;
       call_stmt->column_no = token->column_no;
       call_stmt->lhs_expr = (Ast*)lvalue;
@@ -2492,6 +2570,7 @@ parse_assignmentOrMethodCallStatement()
       next_token();
       Ast_AssignmentStatement* assign_stmt = arena_malloc(storage, sizeof(*assign_stmt));
       assign_stmt->kind = AST_assignmentStatement;
+      assign_stmt->ast_id = ++ast_id;
       assign_stmt->line_no = token->line_no;
       assign_stmt->column_no = token->column_no;
       assign_stmt->lhs_expr = (Ast*)lvalue;
@@ -2516,6 +2595,7 @@ parse_returnStatement()
     next_token();
     Ast_ReturnStatement* return_stmt = arena_malloc(storage, sizeof(*return_stmt));
     return_stmt->kind = AST_returnStatement;
+    return_stmt->ast_id = ++ast_id;
     return_stmt->line_no = token->line_no;
     return_stmt->column_no = token->column_no;
     if (token_is_expression(token))
@@ -2538,6 +2618,7 @@ parse_exitStatement()
     next_token();
     Ast_ExitStatement* exit_stmt = arena_malloc(storage, sizeof(*exit_stmt));
     exit_stmt->kind = AST_exitStatement;
+    exit_stmt->ast_id = ++ast_id;
     exit_stmt->line_no = token->line_no;
     exit_stmt->column_no = token->column_no;
     if (token->klass == TK_SEMICOLON) {
@@ -2558,6 +2639,7 @@ parse_conditionalStatement()
     next_token();
     Ast_ConditionalStatement* if_stmt = arena_malloc(storage, sizeof(*if_stmt));
     if_stmt->kind = AST_conditionalStatement;
+    if_stmt->ast_id = ++ast_id;
     if_stmt->line_no = token->line_no;
     if_stmt->column_no = token->column_no;
     if (token->klass == TK_PARENTH_OPEN) {
@@ -2596,6 +2678,7 @@ parse_directApplication(Ast* type_name)
   if (token_is_typeName(token) || type_name) {
     Ast_DirectApplication* apply_stmt = arena_malloc(storage, sizeof(*apply_stmt));
     apply_stmt->kind = AST_directApplication;
+    apply_stmt->ast_id = ++ast_id;
     apply_stmt->line_no = token->line_no;
     apply_stmt->column_no = token->column_no;
     apply_stmt->name = type_name ? type_name : parse_prefixedType();
@@ -2633,6 +2716,7 @@ parse_statement(Ast* type_name)
   if (token_is_statement(token)) {
     Ast_Statement* stmt = arena_malloc(storage, sizeof(*stmt));
     stmt->kind = AST_statement;
+    stmt->ast_id = ++ast_id;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
     if (token_is_typeName(token) || type_name) {
@@ -2648,6 +2732,7 @@ parse_statement(Ast* type_name)
       next_token();
       Ast* empty_stmt = arena_malloc(storage, sizeof(*empty_stmt));
       empty_stmt->kind = AST_emptyStatement;
+      empty_stmt->ast_id = ++ast_id;
       empty_stmt->line_no = token->line_no;
       empty_stmt->column_no = token->column_no;
       stmt->stmt = empty_stmt;
@@ -2678,6 +2763,7 @@ parse_blockStatement()
     next_token();
     Ast_BlockStatement* block_stmt = arena_malloc(storage, sizeof(*block_stmt));
     block_stmt->kind = AST_blockStatement;
+    block_stmt->ast_id = ++ast_id;
     block_stmt->line_no = token->line_no;
     block_stmt->column_no = token->column_no;
     block_stmt->stmt_list = parse_statementOrDeclList();
@@ -2697,6 +2783,7 @@ parse_statementOrDeclList()
 {
   Ast_StatementOrDeclList* stmts = arena_malloc(storage, sizeof(*stmts));
   stmts->kind = AST_statementOrDeclList;
+  stmts->ast_id = ++ast_id;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
   list_create(&stmts->members, storage, ListItem_Ast);
@@ -2720,6 +2807,7 @@ parse_switchStatement()
     next_token();
     Ast_SwitchStatement* stmt = arena_malloc(storage, sizeof(*stmt));
     stmt->kind = AST_switchStatement;
+    stmt->ast_id = ++ast_id;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
     if (token->klass == TK_PARENTH_OPEN) {
@@ -2752,6 +2840,7 @@ parse_switchCases()
 {
   Ast_SwitchCases* cases = arena_malloc(storage, sizeof(*cases));
   cases->kind = AST_switchCases;
+  cases->ast_id = ++ast_id;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
   list_create(&cases->members, storage, ListItem_Ast);
@@ -2774,6 +2863,7 @@ parse_switchCase()
   if (token_is_switchLabel(token)) {
     Ast_SwitchCase* switch_case = arena_malloc(storage, sizeof(*switch_case));
     switch_case->kind = AST_switchCase;
+    switch_case->ast_id = ++ast_id;
     switch_case->line_no = token->line_no;
     switch_case->column_no = token->column_no;
     switch_case->label = parse_switchLabel();
@@ -2797,6 +2887,7 @@ parse_switchLabel()
   if (token_is_switchLabel(token)) {
     Ast_SwitchLabel* switch_label = arena_malloc(storage, sizeof(*switch_label));
     switch_label->kind = AST_switchLabel;
+    switch_label->ast_id = ++ast_id;
     switch_label->line_no = token->line_no;
     switch_label->column_no = token->column_no;
     if (token_is_name(token)) {
@@ -2806,6 +2897,7 @@ parse_switchLabel()
       next_token();
       Ast_Default* default_label = arena_malloc(storage, sizeof(*default_label));
       default_label->kind = AST_default;
+      default_label->ast_id = ++ast_id;
       default_label->line_no = token->line_no;
       default_label->column_no = token->column_no;
       switch_label->label = (Ast*)default_label;
@@ -2823,6 +2915,7 @@ parse_statementOrDeclaration()
   if (token_is_statementOrDeclaration(token)) {
     Ast_StatementOrDeclaration* stmt = arena_malloc(storage, sizeof(*stmt));
     stmt->kind = AST_statementOrDeclaration;
+    stmt->ast_id = ++ast_id;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
     if (token_is_typeRef(token)) {
@@ -2859,6 +2952,7 @@ parse_tableDeclaration()
     next_token();
     Ast_TableDeclaration* table = arena_malloc(storage, sizeof(*table));
     table->kind = AST_tableDeclaration;
+    table->ast_id = ++ast_id;
     table->line_no = token->line_no;
     table->column_no = token->column_no;
     table->name = parse_name();
@@ -2886,6 +2980,7 @@ parse_tablePropertyList()
 {
   Ast_TablePropertyList* props = arena_malloc(storage, sizeof(*props));
   props->kind = AST_tablePropertyList;
+  props->ast_id = ++ast_id;
   props->line_no = token->line_no;
   props->column_no = token->column_no;
   list_create(&props->members, storage, ListItem_Ast);
@@ -2913,12 +3008,14 @@ parse_tableProperty()
     }
     Ast_TableProperty* table_prop = arena_malloc(storage, sizeof(*table_prop));
     table_prop->kind = AST_tableProperty;
+    table_prop->ast_id = ++ast_id;
     table_prop->line_no = token->line_no;
     table_prop->column_no = token->column_no;
     if (token->klass == TK_KEY) {
       next_token();
       Ast_KeyProperty* key_prop = arena_malloc(storage, sizeof(*key_prop));
       key_prop->kind = AST_keyProperty;
+      key_prop->ast_id = ++ast_id;
       key_prop->line_no = token->line_no;
       key_prop->column_no = token->column_no;
       if (token->klass == TK_EQUAL) {
@@ -2940,6 +3037,7 @@ parse_tableProperty()
       next_token();
       Ast_ActionsProperty* actions_prop = arena_malloc(storage, sizeof(*actions_prop));
       actions_prop->kind = AST_actionsProperty;
+      actions_prop->ast_id = ++ast_id;
       actions_prop->line_no = token->line_no;
       actions_prop->column_no = token->column_no;
       if (token->klass == TK_EQUAL) {
@@ -2961,6 +3059,7 @@ parse_tableProperty()
       next_token();
       Ast_EntriesProperty* entries_prop = arena_malloc(storage, sizeof(*entries_prop));
       entries_prop->kind = AST_entriesProperty;
+      entries_prop->ast_id = ++ast_id;
       entries_prop->line_no = token->line_no;
       entries_prop->column_no = token->column_no;
       if (token->klass == TK_EQUAL) {
@@ -2984,6 +3083,7 @@ parse_tableProperty()
     } else if (token_is_nonTableKwName(token)) {
       Ast_SimpleProperty* simple_prop = arena_malloc(storage, sizeof(*simple_prop));
       simple_prop->kind = AST_simpleProperty;
+      simple_prop->ast_id = ++ast_id;
       simple_prop->line_no = token->line_no;
       simple_prop->column_no = token->column_no;
       simple_prop->is_const = is_const;
@@ -3011,6 +3111,7 @@ parse_keyElementList()
 {
   Ast_KeyElementList* elems = arena_malloc(storage, sizeof(*elems));
   elems->kind = AST_keyElementList;
+  elems->ast_id = ++ast_id;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
   list_create(&elems->members, storage, ListItem_Ast);
@@ -3033,6 +3134,7 @@ parse_keyElement()
   if (token_is_expression(token)) {
     Ast_KeyElement* key_elem = arena_malloc(storage, sizeof(*key_elem));
     key_elem->kind = AST_keyElement;
+    key_elem->ast_id = ++ast_id;
     key_elem->line_no = token->line_no;
     key_elem->column_no = token->column_no;
     key_elem->expr = parse_expression(1);
@@ -3057,6 +3159,7 @@ parse_actionList()
 {
   Ast_ActionList* actions = arena_malloc(storage, sizeof(*actions));
   actions->kind = AST_actionList;
+  actions->ast_id = ++ast_id;
   actions->line_no = token->line_no;
   actions->column_no = token->column_no;
   list_create(&actions->members, storage, ListItem_Ast);
@@ -3087,6 +3190,7 @@ parse_actionRef()
   if (token_is_prefixedNonTypeName(token)) {
     Ast_ActionRef* action_ref = arena_malloc(storage, sizeof(*action_ref));
     action_ref->kind = AST_actionRef;
+    action_ref->ast_id = ++ast_id;
     action_ref->line_no = token->line_no;
     action_ref->column_no = token->column_no;
     action_ref->name = parse_prefixedNonTypeName();
@@ -3115,6 +3219,7 @@ parse_entriesList()
 {
   Ast_EntriesList* entries = arena_malloc(storage, sizeof(*entries));
   entries->kind = AST_entriesList;
+  entries->ast_id = ++ast_id;
   entries->line_no = token->line_no;
   entries->column_no = token->column_no;
   list_create(&entries->members, storage, ListItem_Ast);
@@ -3137,6 +3242,7 @@ parse_entry()
   if (token_is_keysetExpression(token)) {
     Ast_Entry* entry = arena_malloc(storage, sizeof(*entry));
     entry->kind = AST_entry;
+    entry->ast_id = ++ast_id;
     entry->line_no = token->line_no;
     entry->column_no = token->column_no;
     entry->keyset = parse_keysetExpression();
@@ -3163,6 +3269,7 @@ parse_actionDeclaration()
     next_token();
     Ast_ActionDeclaration* action_decl = arena_malloc(storage, sizeof(*action_decl));
     action_decl->kind = AST_actionDeclaration;
+    action_decl->ast_id = ++ast_id;
     action_decl->line_no = token->line_no;
     action_decl->column_no = token->column_no;
     if (token_is_name(token)) {
@@ -3202,6 +3309,7 @@ parse_variableDeclaration(Ast* type_ref)
   if (token_is_typeRef(token) || type_ref) {
     Ast_VarDeclaration* var_decl = arena_malloc(storage, sizeof(*var_decl));
     var_decl->kind = AST_variableDeclaration;
+    var_decl->ast_id = ++ast_id;
     var_decl->line_no = token->line_no;
     var_decl->column_no = token->column_no;
     var_decl->type = type_ref ? type_ref : parse_typeRef();
@@ -3233,6 +3341,7 @@ parse_functionDeclaration(Ast* type_ref)
   if (token_is_typeOrVoid(token)) {
     Ast_FunctionDeclaration* func_decl = arena_malloc(storage, sizeof(*func_decl));
     func_decl->kind = AST_functionDeclaration;
+    func_decl->ast_id = ++ast_id;
     func_decl->line_no = token->line_no;
     func_decl->column_no = token->column_no;
     func_decl->proto = parse_functionPrototype(type_ref);
@@ -3252,6 +3361,7 @@ parse_argumentList()
 {
   Ast_ArgumentList* args = arena_malloc(storage, sizeof(*args));
   args->kind = AST_argumentList;
+  args->ast_id = ++ast_id;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
   list_create(&args->members, storage, ListItem_Ast);
@@ -3275,6 +3385,7 @@ parse_argument()
   if (token_is_argument(token)) {
     Ast_Argument* arg = arena_malloc(storage, sizeof(*arg));
     arg->kind = AST_argument;
+    arg->ast_id = ++ast_id;
     arg->line_no = token->line_no;
     arg->column_no = token->column_no;
     if (token_is_expression(token)) {
@@ -3284,6 +3395,7 @@ parse_argument()
       next_token();
       Ast_Dontcare* dontcare_arg = arena_malloc(storage, sizeof(*dontcare_arg));
       dontcare_arg->kind = AST_dontcare;
+      dontcare_arg->ast_id = ++ast_id;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
       arg->arg = (Ast*)dontcare_arg;
@@ -3300,6 +3412,7 @@ parse_expressionList()
 {
   Ast_ExpressionList* exprs = arena_malloc(storage, sizeof(*exprs));
   exprs->kind = AST_expressionList;
+  exprs->ast_id = ++ast_id;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
   list_create(&exprs->members, storage, ListItem_Ast);
@@ -3337,6 +3450,7 @@ parse_lvalue()
   if (token_is_lvalue(token)) {
     Ast_LvalueExpression* lvalue = arena_malloc(storage, sizeof(*lvalue));
     lvalue->kind = AST_lvalueExpression;
+    lvalue->ast_id = ++ast_id;
     lvalue->line_no = token->line_no;
     lvalue->column_no = token->column_no;
     lvalue->expr = parse_prefixedNonTypeName();
@@ -3345,6 +3459,7 @@ parse_lvalue()
         next_token();
         Ast_MemberSelector* member_expr = arena_malloc(storage, sizeof(*member_expr));
         member_expr->kind = AST_memberSelector;
+        member_expr->ast_id = ++ast_id;
         member_expr->line_no = token->line_no;
         member_expr->column_no = token->column_no;
         member_expr->lhs_expr = (Ast*)lvalue;
@@ -3354,6 +3469,7 @@ parse_lvalue()
                      token->line_no, token->column_no, token->lexeme);
         lvalue = arena_malloc(storage, sizeof(*lvalue));
         lvalue->kind = AST_lvalueExpression;
+        lvalue->ast_id = ++ast_id;
         lvalue->line_no = token->line_no;
         lvalue->column_no = token->column_no;
         lvalue->expr = (Ast*)member_expr;
@@ -3362,6 +3478,7 @@ parse_lvalue()
         next_token();
         Ast_ArraySubscript* subscript_expr = arena_malloc(storage, sizeof(*subscript_expr));
         subscript_expr->kind = AST_arraySubscript;
+        subscript_expr->ast_id = ++ast_id;
         subscript_expr->line_no = token->line_no;
         subscript_expr->column_no = token->column_no;
         subscript_expr->lhs_expr = (Ast*)lvalue;
@@ -3372,6 +3489,7 @@ parse_lvalue()
                      token->line_no, token->column_no, token->lexeme);
         lvalue = arena_malloc(storage, sizeof(*lvalue));
         lvalue->kind = AST_lvalueExpression;
+        lvalue->ast_id = ++ast_id;
         lvalue->line_no = token->line_no;
         lvalue->column_no = token->column_no;
         lvalue->expr = (Ast*)subscript_expr;
@@ -3394,6 +3512,7 @@ parse_expression(int priority_threshold)
         next_token();
         Ast_MemberSelector* member_expr = arena_malloc(storage, sizeof(*member_expr));
         member_expr->kind = AST_memberSelector;
+        member_expr->ast_id = ++ast_id;
         member_expr->line_no = token->line_no;
         member_expr->column_no = token->column_no;
         member_expr->lhs_expr = (Ast*)expr;
@@ -3403,6 +3522,7 @@ parse_expression(int priority_threshold)
                      token->line_no, token->column_no, token->lexeme);
         expr = arena_malloc(storage, sizeof(*expr));
         expr->kind = AST_expression;
+        expr->ast_id = ++ast_id;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
         expr->expr = (Ast*)member_expr;
@@ -3410,6 +3530,7 @@ parse_expression(int priority_threshold)
         next_token();
         Ast_ArraySubscript* subscript_expr = arena_malloc(storage, sizeof(*subscript_expr));
         subscript_expr->kind = AST_arraySubscript;
+        subscript_expr->ast_id = ++ast_id;
         subscript_expr->line_no = token->line_no;
         subscript_expr->column_no = token->column_no;
         subscript_expr->lhs_expr = (Ast*)expr;
@@ -3420,6 +3541,7 @@ parse_expression(int priority_threshold)
                      token->line_no, token->column_no, token->lexeme);
         expr = arena_malloc(storage, sizeof(*expr));
         expr->kind = AST_expression;
+        expr->ast_id = ++ast_id;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
         expr->expr = (Ast*)subscript_expr;
@@ -3427,6 +3549,7 @@ parse_expression(int priority_threshold)
         next_token();
         Ast_FunctionCall* call_expr = arena_malloc(storage, sizeof(*call_expr));
         call_expr->kind = AST_functionCall;
+        call_expr->ast_id = ++ast_id;
         call_expr->line_no = token->line_no;
         call_expr->column_no = token->column_no;
         call_expr->lhs_expr = (Ast*)expr;
@@ -3437,6 +3560,7 @@ parse_expression(int priority_threshold)
                      token->line_no, token->column_no, token->lexeme);
         expr = arena_malloc(storage, sizeof(*expr));
         expr->kind = AST_expression;
+        expr->ast_id = ++ast_id;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
         expr->expr = (Ast*)call_expr;
@@ -3451,12 +3575,14 @@ parse_expression(int priority_threshold)
         next_token();
         Ast_AssignmentStatement* assign_stmt = arena_malloc(storage, sizeof(*assign_stmt));
         assign_stmt->kind = AST_assignmentStatement;
+        assign_stmt->ast_id = ++ast_id;
         assign_stmt->line_no = token->line_no;
         assign_stmt->column_no = token->column_no;
         assign_stmt->lhs_expr = (Ast*)expr;
         assign_stmt->rhs_expr = parse_expression(1);
         expr = arena_malloc(storage, sizeof(*expr));
         expr->kind = AST_expression;
+        expr->ast_id = ++ast_id;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
         expr->expr = (Ast*)assign_stmt;
@@ -3466,6 +3592,7 @@ parse_expression(int priority_threshold)
           next_token();
           Ast_BinaryExpression* binary_expr = arena_malloc(storage, sizeof(*binary_expr));
           binary_expr->kind = AST_binaryExpression;
+          binary_expr->ast_id = ++ast_id;
           binary_expr->line_no = token->line_no;
           binary_expr->column_no = token->column_no;
           binary_expr->left_operand = (Ast*)expr;
@@ -3473,6 +3600,7 @@ parse_expression(int priority_threshold)
           binary_expr->right_operand = parse_expression(priority + 1);
           expr = arena_malloc(storage, sizeof(*expr));
           expr->kind = AST_expression;
+          expr->ast_id = ++ast_id;
           expr->line_no = token->line_no;
           expr->column_no = token->column_no;
           expr->expr = (Ast*)binary_expr;
@@ -3492,6 +3620,7 @@ parse_expressionPrimary()
   if (token_is_expression(token)) {
     Ast_Expression* primary = arena_malloc(storage, sizeof(*primary));
     primary->kind = AST_expression;
+    primary->ast_id = ++ast_id;
     primary->line_no = token->line_no;
     primary->column_no = token->column_no;
     if (token->klass == TK_INTEGER_LITERAL) {
@@ -3530,6 +3659,7 @@ parse_expressionPrimary()
       if (token_is_typeRef(token)) {
         Ast_CastExpression* cast_expr = arena_malloc(storage, sizeof(*cast_expr));
         cast_expr->kind = AST_castExpression;
+        cast_expr->ast_id = ++ast_id;
         cast_expr->line_no = token->line_no;
         cast_expr->column_no = token->column_no;
         cast_expr->type = parse_typeRef();
@@ -3554,6 +3684,7 @@ parse_expressionPrimary()
       next_token();
       Ast_UnaryExpression* unary_expr = arena_malloc(storage, sizeof(*unary_expr));
       unary_expr->kind = AST_unaryExpression;
+      unary_expr->ast_id = ++ast_id;
       unary_expr->line_no = token->line_no;
       unary_expr->column_no = token->column_no;
       unary_expr->op = OP_NOT;
@@ -3564,6 +3695,7 @@ parse_expressionPrimary()
       next_token();
       Ast_UnaryExpression* unary_expr = arena_malloc(storage, sizeof(*unary_expr));
       unary_expr->kind = AST_unaryExpression;
+      unary_expr->ast_id = ++ast_id;
       unary_expr->line_no = token->line_no;
       unary_expr->column_no = token->column_no;
       unary_expr->op = OP_BITW_NOT;
@@ -3574,6 +3706,7 @@ parse_expressionPrimary()
       next_token();
       Ast_UnaryExpression* unary_expr = arena_malloc(storage, sizeof(*unary_expr));
       unary_expr->kind = AST_unaryExpression;
+      unary_expr->ast_id = ++ast_id;
       unary_expr->line_no = token->line_no;
       unary_expr->column_no = token->column_no;
       unary_expr->op = OP_NEG;
@@ -3587,6 +3720,7 @@ parse_expressionPrimary()
       next_token();
       Ast_Name* name = arena_malloc(storage, sizeof(*name));
       name->kind = AST_name;
+      name->ast_id = ++ast_id;
       name->line_no = token->line_no;
       name->column_no = token->column_no;
       name->strname = "error";
@@ -3606,6 +3740,7 @@ parse_indexExpression()
   if (token_is_expression(token)) {
     Ast_IndexExpression* index_expr = arena_malloc(storage, sizeof(*index_expr));
     index_expr->kind = AST_indexExpression;
+    index_expr->ast_id = ++ast_id;
     index_expr->line_no = token->line_no;
     index_expr->column_no = token->column_no;
     index_expr->start_index = parse_expression(1);
@@ -3629,6 +3764,7 @@ parse_integer()
   if (token->klass == TK_INTEGER_LITERAL) {
     Ast_IntegerLiteral* int_literal = arena_malloc(storage, sizeof(*int_literal));
     int_literal->kind = AST_integerLiteral;
+    int_literal->ast_id = ++ast_id;
     int_literal->line_no = token->line_no;
     int_literal->column_no = token->column_no;
     int_literal->is_signed = token->integer.is_signed;
@@ -3648,6 +3784,7 @@ parse_boolean()
   if (token->klass == TK_TRUE || token->klass == TK_FALSE) {
     Ast_BooleanLiteral* bool_literal = arena_malloc(storage, sizeof(*bool_literal));
     bool_literal->kind = AST_booleanLiteral;
+    bool_literal->ast_id = ++ast_id;
     bool_literal->line_no = token->line_no;
     bool_literal->column_no = token->column_no;
     bool_literal->value = (token->klass == TK_TRUE);
@@ -3665,6 +3802,7 @@ parse_string()
   if (token->klass == TK_STRING_LITERAL) {
     Ast_StringLiteral* string_literal = arena_malloc(storage, sizeof(*string_literal));
     string_literal->kind = AST_stringLiteral;
+    string_literal->ast_id = ++ast_id;
     string_literal->line_no = token->line_no;
     string_literal->column_no = token->column_no;
     string_literal->value = token->lexeme;
@@ -3760,6 +3898,7 @@ parse_tokens(UnboundedArray* _tokens, Arena* _storage, Scope** _root_scope)
   for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
     Ast_Name* name = arena_malloc(storage, sizeof(*name));
     name->kind = AST_name;
+    name->ast_id = ++ast_id;
     name->strname = builtin_names[i].strname;
     NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
     namedecl->strname = name->strname;
