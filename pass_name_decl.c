@@ -1484,10 +1484,9 @@ visit_dontcare(Ast_Dontcare* dontcare)
 }
 
 void
-pass_name_decl(Ast_P4Program* p4program, Arena* _storage)
+pass_name_decl(Ast_P4Program* p4program, Arena* _storage, Scope* root_scope)
 {
   storage = _storage;
-  Scope* root_scope = p4program->attr.root_scope;
   current_scope = root_scope;
   visit_p4program(p4program);
   assert(current_scope == root_scope);

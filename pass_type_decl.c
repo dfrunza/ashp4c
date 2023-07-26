@@ -1369,8 +1369,8 @@ visit_dontcare(Ast_Dontcare* dontcare)
   assert(dontcare->kind == AST_dontcare);
 }
 
-void
-pass_type_decl(Ast_P4Program* p4program, Arena* _storage)
+Hashmap*
+pass_type_decl(Ast_P4Program* p4program, Arena* _storage, Scope* root_scope)
 {
   storage = _storage;
   hashmap_create(&type_table, storage, HASHMAP_KEY_UINT32, HashmapEntry_Type, 7, 1023);
@@ -1388,7 +1388,6 @@ pass_type_decl(Ast_P4Program* p4program, Arena* _storage)
     {"error",  TYPE_ERROR},
     {"match_kind", TYPE_MATCH_KIND},
   };
-  Scope* root_scope = p4program->attr.root_scope;
   for (int i = 0; i < sizeof(basic_types)/sizeof(basic_types[0]); i++) {
     Type_Basic* basic_ty = arena_malloc(storage, sizeof(*basic_ty));
     basic_ty->ctor = basic_types[i].type;
@@ -1398,5 +1397,6 @@ pass_type_decl(Ast_P4Program* p4program, Arena* _storage)
   }
 
   visit_p4program(p4program);
+  return &type_table;
 }
 

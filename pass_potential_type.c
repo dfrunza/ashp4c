@@ -5,6 +5,7 @@
 #include "frontend.h"
 
 static Arena* storage;
+static Hashmap potential_type = {};
 
 /** PROGRAM **/
 
@@ -1325,5 +1326,6 @@ void
 pass_potential_type(Ast_P4Program* p4program, Arena* _storage)
 {
   storage = _storage;
+  hashmap_create(&potential_type, storage, HASHMAP_KEY_UINT32, HashmapEntry_Type, 7, 1023);
   visit_p4program(p4program);
 }

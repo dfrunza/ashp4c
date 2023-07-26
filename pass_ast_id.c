@@ -1432,11 +1432,10 @@ visit_dontcare(Ast_Dontcare* dontcare)
   dontcare->ast_id = ++ast_id;
 }
 
-int
-pass_node_id(Ast_P4Program* p4program)
+void
+pass_ast_id(Ast_P4Program* p4program, Scope* root_scope)
 {
   HashmapCursor entry_it = {};
-  Scope* root_scope = p4program->attr.root_scope;
   hashmap_cursor_reset(&entry_it, &root_scope->name_table);
   for (ScopeEntry* ns_entry = hashmap_move_cursor(&entry_it, ScopeEntry);
        ns_entry != 0; ns_entry = hashmap_move_cursor(&entry_it, ScopeEntry)) {
@@ -1451,7 +1450,5 @@ pass_node_id(Ast_P4Program* p4program)
     }
   }
   visit_p4program(p4program);
-  p4program->attr.ast_id = ast_id;
-  return ast_id;
 }
 

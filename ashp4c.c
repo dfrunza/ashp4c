@@ -106,14 +106,15 @@ main(int arg_count, char* args[])
   read_source(&text, &text_size, filename_arg->value, &text_storage);
   UnboundedArray* tokens = tokenize_text(text, text_size, &main_storage, &text_storage);
 
-  Ast_P4Program* p4program = parse_tokens(tokens, &main_storage);
+  Scope* root_scope;
+  Ast_P4Program* p4program = parse_tokens(tokens, &main_storage, &root_scope);
   assert(p4program->kind == AST_p4program);
   arena_free(&text_storage);
 
-  pass_node_id(p4program);
-  pass_name_decl(p4program, &main_storage);
-  pass_type_decl(p4program, &main_storage);
-  pass_potential_type(p4program, &main_storage);
+  pass_ast_id(p4program, root_scope);
+  pass_name_decl(p4program, &main_storage, root_scope);
+  Hashmap* type_table = pass_type_decl(p4program, &main_storage, root_scope);
+  pass_potential_type(p4program, &main_storage, type_table);
 
   /*
   select_type(p4program, root_scope, potential_type, &main_storage); */

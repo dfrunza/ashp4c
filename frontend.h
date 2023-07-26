@@ -320,10 +320,6 @@ typedef struct HashmapEntry_Ast {
 typedef struct Ast_P4Program {
   Ast;
   Ast* decl_list;
-  struct {
-    int ast_id;
-    Scope* root_scope;
-  } attr;
 } Ast_P4Program;
 
 typedef struct Ast_DeclarationList {
