@@ -3631,9 +3631,9 @@ parse_integer()
     int_literal->kind = AST_integerLiteral;
     int_literal->line_no = token->line_no;
     int_literal->column_no = token->column_no;
-    int_literal->is_signed = token->i.is_signed;
-    int_literal->width = token->i.width;
-    int_literal->value = token->i.value;
+    int_literal->is_signed = token->integer.is_signed;
+    int_literal->width = token->integer.width;
+    int_literal->value = token->integer.value;
     next_token();
     return (Ast*)int_literal;
   } else error("At line %d, column %d: integer was expected, got `%s`.",

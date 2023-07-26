@@ -1,6 +1,7 @@
 #pragma once
 
 enum TokenClass {
+
   /* Operators and syntactic structure */
   TK_SEMICOLON = 1,
   TK_IDENTIFIER,
@@ -101,7 +102,7 @@ typedef struct Token {
       bool is_signed;
       int width;
       int64_t value;
-    } i;  /* integer */
+    } integer;
     char* str;
   };
 } Token;
@@ -252,6 +253,7 @@ enum AstEnum {
 };
 
 enum Ast_Operator {
+
   /* Arithmetic */
   OP_ADD = 1,
   OP_SUB,
