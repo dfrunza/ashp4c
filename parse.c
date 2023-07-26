@@ -3677,9 +3677,9 @@ parse_string()
 }
 
 Ast_P4Program*
-parse_tokens(UnboundedArray* tokens_, Arena* _storage)
+parse_tokens(UnboundedArray* _tokens, Arena* _storage)
 {
-  tokens = tokens_;
+  tokens = _tokens;
   storage = _storage;
   Scope* root_scope = arena_malloc(storage, sizeof(*root_scope));
   hashmap_create(&root_scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 1023);
@@ -3771,6 +3771,6 @@ parse_tokens(UnboundedArray* tokens_, Arena* _storage)
   next_token();
   Ast_P4Program* p4program = (Ast_P4Program*)parse_p4program();
   assert(current_scope == root_scope);
-  p4program->att.root_scope = root_scope;
+  p4program->attr.root_scope = root_scope;
   return p4program;
 }

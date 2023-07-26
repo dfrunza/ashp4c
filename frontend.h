@@ -296,11 +296,11 @@ typedef struct Scope {
   struct Scope* parent_scope;
 } Scope;
 
-typedef uint32_t AstNodeId;
+typedef uint32_t AstId;
 
 typedef struct Ast {
   enum AstEnum kind;
-  AstNodeId node_id;
+  AstId ast_id;
   int line_no;
   int column_no;
 } Ast;
@@ -321,9 +321,9 @@ typedef struct Ast_P4Program {
   Ast;
   Ast* decl_list;
   struct {
-    int node_id;
+    int ast_id;
     Scope* root_scope;
-  } att;
+  } attr;
 } Ast_P4Program;
 
 typedef struct Ast_DeclarationList {
@@ -343,7 +343,7 @@ typedef struct Ast_Name {
 
   struct {
     Scope* scope;
-  } att;
+  } attr;
 } Ast_Name;
 
 typedef struct Ast_ParameterList {
@@ -638,7 +638,7 @@ typedef struct Ast_HeaderTypeDeclaration {
   struct {
     int field_count;
     Scope fields;
-  } att;
+  } attr;
 } Ast_HeaderTypeDeclaration;
 
 typedef struct Ast_HeaderUnionDeclaration {
@@ -649,7 +649,7 @@ typedef struct Ast_HeaderUnionDeclaration {
   struct {
     int field_count;
     Scope fields;
-  } att;
+  } attr;
 } Ast_HeaderUnionDeclaration;
 
 typedef struct Ast_StructTypeDeclaration {
@@ -660,7 +660,7 @@ typedef struct Ast_StructTypeDeclaration {
   struct {
     int field_count;
     Scope fields;
-  } att;
+  } attr;
 } Ast_StructTypeDeclaration;
 
 typedef struct Ast_StructFieldList {
@@ -683,7 +683,7 @@ typedef struct Ast_EnumDeclaration {
   struct {
     int field_count;
     Scope fields;
-  } att;
+  } attr;
 } Ast_EnumDeclaration;
 
 typedef struct Ast_ErrorDeclaration {
@@ -693,7 +693,7 @@ typedef struct Ast_ErrorDeclaration {
   struct {
     int field_count;
     Scope fields;
-  } att;
+  } attr;
 } Ast_ErrorDeclaration;
 
 typedef struct Ast_MatchKindDeclaration {
@@ -703,7 +703,7 @@ typedef struct Ast_MatchKindDeclaration {
   struct {
     int field_count;
     Scope fields;
-  } att;
+  } attr;
 } Ast_MatchKindDeclaration;
 
 typedef struct Ast_IdentifierList {
