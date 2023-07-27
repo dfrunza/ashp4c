@@ -153,8 +153,8 @@ next_token()
   if (token->klass == TK_IDENTIFIER) {
     ScopeEntry* ns_entry = scope_lookup_any(current_scope, token->lexeme);
     if (ns_entry && ns_entry->ns[NS_KEYWORD]) {
-      NameDecl* ndecl = ns_entry->ns[NS_KEYWORD];
-      token->klass = ndecl->token_class;
+      NameDecl* namedecl = ns_entry->ns[NS_KEYWORD];
+      token->klass = namedecl->token_class;
       return token;
     } else if (ns_entry && ns_entry->ns[NS_TYPE]) {
       token->klass = TK_TYPE_IDENTIFIER;

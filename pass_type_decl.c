@@ -1390,6 +1390,7 @@ pass_type_decl(Ast_P4Program* p4program, Arena* _storage, Scope* root_scope)
   for (int i = 0; i < sizeof(basic_types)/sizeof(basic_types[0]); i++) {
     Type_Basic* basic_ty = arena_malloc(storage, sizeof(*basic_ty));
     basic_ty->ctor = basic_types[i].type;
+    basic_ty->strname = basic_types[i].strname;
     NameDecl* namedecl = scope_lookup_namespace(root_scope, basic_types[i].strname, NS_TYPE)->ns[NS_TYPE];
     hashmap_get_entry_uint32k(
       &type_table, (uint64_t)namedecl->ast, HashmapEntry_Type)->type = (Type*)basic_ty;

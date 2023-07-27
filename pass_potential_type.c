@@ -4,6 +4,8 @@
 #include "frontend.h"
 
 static Arena* storage;
+static Scope* root_scope;
+static Hashmap* type_table;
 static Hashmap potential_type = {};
 
 /** PROGRAM **/
@@ -1292,6 +1294,8 @@ static void
 visit_integerLiteral(Ast_IntegerLiteral* int_literal)
 {
   assert(int_literal->kind == AST_integerLiteral);
+  NameDecl* namedecl = scope_lookup_namespace(root_scope, "int", NS_TYPE)->ns[NS_TYPE];
+  Type* type = hashmap_lookup_entry_uint32k(type_table, (uint64_t)namedecl->ast, HashmapEntry_Type)->type;
 }
 
 static void
@@ -1313,9 +1317,11 @@ visit_dontcare(Ast_Dontcare* dontcare)
 }
 
 void
-pass_potential_type(Ast_P4Program* p4program, Arena* _storage)
+pass_potential_type(Ast_P4Program* p4program, Arena* _storage, Scope* _root_scope, Hashmap* _type_table)
 {
   storage = _storage;
+  root_scope = _root_scope;
+  type_table = _type_table;
   hashmap_create(&potential_type, storage, HASHMAP_KEY_UINT32, HashmapEntry_Type, 7, 1023);
   visit_p4program(p4program);
 }
