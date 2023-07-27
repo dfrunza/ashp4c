@@ -1064,6 +1064,14 @@ typedef struct Type_Array {
   int size;
 } Type_Array;
 
+typedef union Type_Unresolved {
+  Type_Basic    _basic;
+  Type_Typedef  _typedef;
+  Type_Product  _product;
+  Type_Function _function;
+  Type_Array    _array;
+} Type_Unresolved;
+
 typedef struct ListItem_Type {
   ListItem;
   Type* type;

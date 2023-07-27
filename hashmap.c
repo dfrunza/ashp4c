@@ -186,23 +186,23 @@ _hashmap_lookup_entry_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
   va_list args;
   va_start(args, key_type);
   HashmapKey key = {};
-  HashmapEntry* he = 0;
+  HashmapEntry* entry = 0;
   if (key_type == HASHMAP_KEY_UINT32) {
     key = (HashmapKey){ .uint32_key = va_arg(args, uint32_t) };
     hashmap_hash_key(HASHMAP_KEY_UINT32, &key, hashmap->capacity_log2);
-    he = _hashmap_lookup_entry(hashmap, &key);
+    entry = _hashmap_lookup_entry(hashmap, &key);
   } else if (key_type == HASHMAP_KEY_STRING) {
     key = (HashmapKey){ .str_key = va_arg(args, char*) };
     hashmap_hash_key(HASHMAP_KEY_STRING, &key, hashmap->capacity_log2);
-    he = _hashmap_lookup_entry(hashmap, &key);
+    entry = _hashmap_lookup_entry(hashmap, &key);
   } else if (key_type == HASHMAP_KEY_BYTES) {
     key = (HashmapKey){ .bytes_key = va_arg(args, uint8_t*),
                         .keylen = va_arg(args, int) };
     hashmap_hash_key(HASHMAP_KEY_BYTES, &key, hashmap->capacity_log2);
-    he = _hashmap_lookup_entry(hashmap, &key);
+    entry = _hashmap_lookup_entry(hashmap, &key);
   } else assert(0);
   va_end(args);
-  return he;
+  return entry;
 }
 
 HashmapEntry*
@@ -229,23 +229,23 @@ _hashmap_get_entry_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
   va_list args;
   va_start(args, key_type);
   HashmapKey key = {};
-  HashmapEntry* he = 0;
+  HashmapEntry* entry = 0;
   if (key_type == HASHMAP_KEY_UINT32) {
     key = (HashmapKey){ .uint32_key = va_arg(args, uint32_t) };
     hashmap_hash_key(HASHMAP_KEY_UINT32, &key, hashmap->capacity_log2);
-    he = _hashmap_get_entry(hashmap, &key);
+    entry = _hashmap_get_entry(hashmap, &key);
   } else if (key_type == HASHMAP_KEY_STRING) {
     key = (HashmapKey){ .str_key = va_arg(args, char*) };
     hashmap_hash_key(HASHMAP_KEY_STRING, &key, hashmap->capacity_log2);
-    he = _hashmap_get_entry(hashmap, &key);
+    entry = _hashmap_get_entry(hashmap, &key);
   } else if (key_type == HASHMAP_KEY_BYTES) {
     key = (HashmapKey){ .bytes_key = va_arg(args, uint8_t*),
                         .keylen = va_arg(args, int) };
     hashmap_hash_key(HASHMAP_KEY_BYTES, &key, hashmap->capacity_log2);
-    he = _hashmap_get_entry(hashmap, &key);
+    entry = _hashmap_get_entry(hashmap, &key);
   } else assert(0);
   va_end(args);
-  return he;
+  return entry;
 }
 
 void
