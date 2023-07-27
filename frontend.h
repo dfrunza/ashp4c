@@ -629,7 +629,6 @@ typedef struct Ast_HeaderTypeDeclaration {
   Ast* fields;
 
   struct {
-    int field_count;
     Scope fields;
   } attr;
 } Ast_HeaderTypeDeclaration;
@@ -640,7 +639,6 @@ typedef struct Ast_HeaderUnionDeclaration {
   Ast* fields;
 
   struct {
-    int field_count;
     Scope fields;
   } attr;
 } Ast_HeaderUnionDeclaration;
@@ -651,7 +649,6 @@ typedef struct Ast_StructTypeDeclaration {
   Ast* fields;
 
   struct {
-    int field_count;
     Scope fields;
   } attr;
 } Ast_StructTypeDeclaration;
@@ -674,7 +671,6 @@ typedef struct Ast_EnumDeclaration {
   Ast* fields;
 
   struct {
-    int field_count;
     Scope fields;
   } attr;
 } Ast_EnumDeclaration;
@@ -684,7 +680,6 @@ typedef struct Ast_ErrorDeclaration {
   Ast* fields;
 
   struct {
-    int field_count;
     Scope fields;
   } attr;
 } Ast_ErrorDeclaration;
@@ -694,7 +689,6 @@ typedef struct Ast_MatchKindDeclaration {
   Ast* fields;
 
   struct {
-    int field_count;
     Scope fields;
   } attr;
 } Ast_MatchKindDeclaration;

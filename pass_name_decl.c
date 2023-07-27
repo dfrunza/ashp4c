@@ -824,10 +824,8 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
   namedecl->strname = name->strname;
   namedecl->ast = (Ast*)header_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  int scope_capacity = header_decl->attr.field_count+1;
   Scope* fields = &header_decl->attr.fields;
-  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
-                 scope_capacity, scope_capacity < 7 ? 7 : scope_capacity);
+  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   visit_structFieldList((Ast_StructFieldList*)header_decl->fields, &header_decl->attr.fields);
 }
 
@@ -840,10 +838,8 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
   namedecl->strname = name->strname;
   namedecl->ast = (Ast*)union_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  int scope_capacity = union_decl->attr.field_count+1;
   Scope* fields = &union_decl->attr.fields;
-  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
-                 scope_capacity, scope_capacity < 7 ? 7 : scope_capacity);
+  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   visit_structFieldList((Ast_StructFieldList*)union_decl->fields, &union_decl->attr.fields);
 }
 
@@ -856,10 +852,8 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
   namedecl->strname = name->strname;
   namedecl->ast = (Ast*)struct_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  int scope_capacity = struct_decl->attr.field_count+1;
   Scope* fields = &struct_decl->attr.fields;
-  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
-                 scope_capacity, scope_capacity < 7 ? 7 : scope_capacity);
+  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   visit_structFieldList((Ast_StructFieldList*)struct_decl->fields, &struct_decl->attr.fields);
 }
 
@@ -889,10 +883,8 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
   namedecl->strname = name->strname;
   namedecl->ast = (Ast*)enum_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  int scope_capacity = enum_decl->attr.field_count+1;
   Scope* fields = &enum_decl->attr.fields;
-  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
-                 scope_capacity, scope_capacity < 7 ? 7 : scope_capacity);
+  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields, &enum_decl->attr.fields);
 }
 
@@ -904,10 +896,8 @@ visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
   namedecl->strname = "error";
   namedecl->ast = (Ast*)error_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  int scope_capacity = error_decl->attr.field_count+1;
   Scope* fields = &error_decl->attr.fields;
-  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
-                 scope_capacity, scope_capacity < 7 ? 7 : scope_capacity);
+  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   visit_identifierList((Ast_IdentifierList*)error_decl->fields, &error_decl->attr.fields);
 }
 
@@ -919,10 +909,8 @@ visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
   namedecl->strname = "match_kind";
   namedecl->ast = (Ast*)match_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  int scope_capacity = match_decl->attr.field_count+1;
   Scope* fields = &match_decl->attr.fields;
-  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry,
-                 scope_capacity, scope_capacity < 7 ? 7 : scope_capacity);
+  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   visit_identifierList((Ast_IdentifierList*)match_decl->fields, &match_decl->attr.fields);
 }
 

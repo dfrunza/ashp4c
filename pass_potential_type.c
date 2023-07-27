@@ -77,13 +77,13 @@ static void visit_derivedTypeDeclaration(Ast_DerivedTypeDeclaration* type_decl);
 static void visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl);
 static void visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl);
 static void visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl);
-static int visit_structFieldList(Ast_StructFieldList* field_list);
+static void visit_structFieldList(Ast_StructFieldList* field_list);
 static void visit_structField(Ast_StructField* field);
 static void visit_enumDeclaration(Ast_EnumDeclaration* enum_decl);
 static void visit_errorDeclaration(Ast_ErrorDeclaration* error_decl);
 static void visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl);
-static int visit_identifierList(Ast_IdentifierList* ident_list);
-static int visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list);
+static void visit_identifierList(Ast_IdentifierList* ident_list);
+static void visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list);
 static void visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident);
 static void visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl);
 
@@ -731,8 +731,7 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
   visit_name((Ast_Name*)header_decl->name);
-  header_decl->attr.field_count =
-    visit_structFieldList((Ast_StructFieldList*)header_decl->fields);
+  visit_structFieldList((Ast_StructFieldList*)header_decl->fields);
 }
 
 static void
@@ -740,8 +739,7 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
 {
   assert(union_decl->kind == AST_headerUnionDeclaration);
   visit_name((Ast_Name*)union_decl->name);
-  union_decl->attr.field_count =
-    visit_structFieldList((Ast_StructFieldList*)union_decl->fields);
+  visit_structFieldList((Ast_StructFieldList*)union_decl->fields);
 }
 
 static void
@@ -749,11 +747,10 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
   visit_name((Ast_Name*)struct_decl->name);
-  struct_decl->attr.field_count =
-    visit_structFieldList((Ast_StructFieldList*)struct_decl->fields);
+  visit_structFieldList((Ast_StructFieldList*)struct_decl->fields);
 }
 
-static int
+static void
 visit_structFieldList(Ast_StructFieldList* field_list)
 {
   assert(field_list->kind == AST_structFieldList);
@@ -761,7 +758,6 @@ visit_structFieldList(Ast_StructFieldList* field_list)
         li != 0; li = (ListItem_Ast*)li->next) {
     visit_structField((Ast_StructField*)li->ast);
   }
-  return field_list->members.item_count;
 }
 
 static void
@@ -777,27 +773,24 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
 {
   assert(enum_decl->kind == AST_enumDeclaration);
   visit_name((Ast_Name*)enum_decl->name);
-  enum_decl->attr.field_count =
-    visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields);
+  visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields);
 }
 
 static void
 visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
 {
   assert(error_decl->kind == AST_errorDeclaration);
-  error_decl->attr.field_count =
-    visit_identifierList((Ast_IdentifierList*)error_decl->fields);
+  visit_identifierList((Ast_IdentifierList*)error_decl->fields);
 }
 
 static void
 visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
 {
   assert(match_decl->kind == AST_matchKindDeclaration);
-  match_decl->attr.field_count =
-    visit_identifierList((Ast_IdentifierList*)match_decl->fields);
+  visit_identifierList((Ast_IdentifierList*)match_decl->fields);
 }
 
-static int
+static void
 visit_identifierList(Ast_IdentifierList* ident_list)
 {
   assert(ident_list->kind == AST_identifierList);
@@ -805,10 +798,9 @@ visit_identifierList(Ast_IdentifierList* ident_list)
         li != 0; li = (ListItem_Ast*)li->next) {
     visit_name((Ast_Name*)li->ast);
   }
-  return ident_list->members.item_count;
 }
 
-static int
+static void
 visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
@@ -816,7 +808,6 @@ visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list)
         li != 0; li = (ListItem_Ast*)li->next) {
     visit_specifiedIdentifier((Ast_SpecifiedIdentifier*)li->ast);
   }
-  return ident_list->members.item_count;
 }
 
 static void
