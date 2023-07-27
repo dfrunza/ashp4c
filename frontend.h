@@ -296,11 +296,8 @@ typedef struct Scope {
   struct Scope* parent_scope;
 } Scope;
 
-typedef uint32_t AstId;
-
 typedef struct Ast {
   enum AstEnum kind;
-  AstId ast_id;
   int line_no;
   int column_no;
 } Ast;
