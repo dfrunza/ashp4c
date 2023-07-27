@@ -1295,7 +1295,8 @@ visit_integerLiteral(Ast_IntegerLiteral* int_literal)
 {
   assert(int_literal->kind == AST_integerLiteral);
   NameDecl* namedecl = scope_lookup_namespace(root_scope, "int", NS_TYPE)->ns[NS_TYPE];
-  Type* type = hashmap_lookup_entry_uint32k(type_table, (uint64_t)namedecl->ast, HashmapEntry_Type)->type;
+  Type* type = hashmap_lookup_entry(
+        type_table, HASHMAP_KEY_UINT32, (uint64_t)namedecl->ast, HashmapEntry_Type)->type;
 }
 
 static void

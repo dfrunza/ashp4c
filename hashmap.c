@@ -1,6 +1,7 @@
 #include <memory.h>  /* memset */
 #include <stdio.h>
 #include <stdint.h>
+#include <stdarg.h>  /* va_list, va_start, va_end */
 #include "foundation.h"
 
 static const uint32_t P = 257, Q = 4294967029;
@@ -180,32 +181,27 @@ _hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key)
 }
 
 HashmapEntry*
-_hashmap_lookup_entry_uint32k(Hashmap* map, uint32_t uint_key)
+_hashmap_lookup_entry_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
 {
-  assert(map->key_type == HASHMAP_KEY_UINT32);
-  HashmapKey key = { .uint32_key = uint_key };
-  hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
-  HashmapEntry* he = _hashmap_lookup_entry(map, &key);
-  return he;
-}
-
-HashmapEntry*
-_hashmap_lookup_entry_stringk(Hashmap* map, char* str_key)
-{
-  assert(map->key_type == HASHMAP_KEY_STRING);
-  HashmapKey key = { .str_key = str_key };
-  hashmap_hash_key(HASHMAP_KEY_STRING, &key, map->capacity_log2);
-  HashmapEntry* he = _hashmap_lookup_entry(map, &key);
-  return he;
-}
-
-HashmapEntry*
-_hashmap_lookup_entry_bytesk(Hashmap* map, uint8_t* bytes_key)
-{
-  assert(map->key_type == HASHMAP_KEY_BYTES);
-  HashmapKey key = { .bytes_key = bytes_key };
-  hashmap_hash_key(HASHMAP_KEY_BYTES, &key, map->capacity_log2);
-  HashmapEntry* he = _hashmap_lookup_entry(map, &key);
+  va_list args;
+  va_start(args, key_type);
+  HashmapKey key = {};
+  HashmapEntry* he = 0;
+  if (key_type == HASHMAP_KEY_UINT32) {
+    key = (HashmapKey){ .uint32_key = va_arg(args, uint32_t) };
+    hashmap_hash_key(HASHMAP_KEY_UINT32, &key, hashmap->capacity_log2);
+    he = _hashmap_lookup_entry(hashmap, &key);
+  } else if (key_type == HASHMAP_KEY_STRING) {
+    key = (HashmapKey){ .str_key = va_arg(args, char*) };
+    hashmap_hash_key(HASHMAP_KEY_STRING, &key, hashmap->capacity_log2);
+    he = _hashmap_lookup_entry(hashmap, &key);
+  } else if (key_type == HASHMAP_KEY_BYTES) {
+    key = (HashmapKey){ .bytes_key = va_arg(args, uint8_t*),
+                        .keylen = va_arg(args, int) };
+    hashmap_hash_key(HASHMAP_KEY_BYTES, &key, hashmap->capacity_log2);
+    he = _hashmap_lookup_entry(hashmap, &key);
+  } else assert(0);
+  va_end(args);
   return he;
 }
 
@@ -228,32 +224,27 @@ _hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
 }
 
 HashmapEntry*
-_hashmap_get_entry_uint32k(Hashmap* map, uint32_t uint_key)
+_hashmap_get_entry_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
 {
-  assert(map->key_type == HASHMAP_KEY_UINT32);
-  HashmapKey key = { .uint32_key = uint_key };
-  hashmap_hash_key(HASHMAP_KEY_UINT32, &key, map->capacity_log2);
-  HashmapEntry* he = _hashmap_get_entry(map, &key);
-  return he;
-}
-
-HashmapEntry*
-_hashmap_get_entry_stringk(Hashmap* map, char* str_key)
-{
-  assert(map->key_type == HASHMAP_KEY_STRING);
-  HashmapKey key = { .str_key = str_key };
-  hashmap_hash_key(HASHMAP_KEY_STRING, &key, map->capacity_log2);
-  HashmapEntry* he = _hashmap_get_entry(map, &key);
-  return he;
-}
-
-HashmapEntry*
-_hashmap_get_entry_bytesk(Hashmap* map, uint8_t* bytes_key)
-{
-  assert(map->key_type == HASHMAP_KEY_BYTES);
-  HashmapKey key = { .bytes_key = bytes_key };
-  hashmap_hash_key(HASHMAP_KEY_BYTES, &key, map->capacity_log2);
-  HashmapEntry* he = _hashmap_get_entry(map, &key);
+  va_list args;
+  va_start(args, key_type);
+  HashmapKey key = {};
+  HashmapEntry* he = 0;
+  if (key_type == HASHMAP_KEY_UINT32) {
+    key = (HashmapKey){ .uint32_key = va_arg(args, uint32_t) };
+    hashmap_hash_key(HASHMAP_KEY_UINT32, &key, hashmap->capacity_log2);
+    he = _hashmap_get_entry(hashmap, &key);
+  } else if (key_type == HASHMAP_KEY_STRING) {
+    key = (HashmapKey){ .str_key = va_arg(args, char*) };
+    hashmap_hash_key(HASHMAP_KEY_STRING, &key, hashmap->capacity_log2);
+    he = _hashmap_get_entry(hashmap, &key);
+  } else if (key_type == HASHMAP_KEY_BYTES) {
+    key = (HashmapKey){ .bytes_key = va_arg(args, uint8_t*),
+                        .keylen = va_arg(args, int) };
+    hashmap_hash_key(HASHMAP_KEY_BYTES, &key, hashmap->capacity_log2);
+    he = _hashmap_get_entry(hashmap, &key);
+  } else assert(0);
+  va_end(args);
   return he;
 }
 
