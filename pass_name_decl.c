@@ -1,4 +1,3 @@
-#include <memory.h>  /* memset */
 #include <stdint.h>
 #include <stdio.h>
 #include "foundation.h"
@@ -204,7 +203,8 @@ static void
 visit_name(Ast_Name* name)
 {
   assert(name->kind == AST_name);
-  name->attr.scope = current_scope;
+  /*
+  name->attr.scope = current_scope; */
 }
 
 static void
@@ -824,9 +824,9 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
   namedecl->strname = name->strname;
   namedecl->ast = (Ast*)header_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  Scope* fields = &header_decl->attr.fields;
-  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
-  visit_structFieldList((Ast_StructFieldList*)header_decl->fields, &header_decl->attr.fields);
+  Scope* scope = arena_malloc(storage, sizeof(*scope)); /* &header_decl->attr.fields; */
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
+  visit_structFieldList((Ast_StructFieldList*)header_decl->fields, scope);
 }
 
 static void
@@ -838,9 +838,9 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
   namedecl->strname = name->strname;
   namedecl->ast = (Ast*)union_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  Scope* fields = &union_decl->attr.fields;
-  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
-  visit_structFieldList((Ast_StructFieldList*)union_decl->fields, &union_decl->attr.fields);
+  Scope* scope = arena_malloc(storage, sizeof(*scope)); /* &union_decl->attr.fields; */
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
+  visit_structFieldList((Ast_StructFieldList*)union_decl->fields, scope);
 }
 
 static void
@@ -852,9 +852,9 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
   namedecl->strname = name->strname;
   namedecl->ast = (Ast*)struct_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  Scope* fields = &struct_decl->attr.fields;
-  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
-  visit_structFieldList((Ast_StructFieldList*)struct_decl->fields, &struct_decl->attr.fields);
+  Scope* scope = arena_malloc(storage, sizeof(*scope)); /* &struct_decl->attr.fields; */
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
+  visit_structFieldList((Ast_StructFieldList*)struct_decl->fields, scope);
 }
 
 static void
@@ -883,35 +883,27 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
   namedecl->strname = name->strname;
   namedecl->ast = (Ast*)enum_decl;
   scope_push_decl(current_scope, namedecl, NS_TYPE);
-  Scope* fields = &enum_decl->attr.fields;
-  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
-  visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields, &enum_decl->attr.fields);
+  Scope* scope = arena_malloc(storage, sizeof(*scope)); /* &enum_decl->attr.fields; */
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
+  visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields, scope);
 }
 
 static void
 visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
 {
   assert(error_decl->kind == AST_errorDeclaration);
-  NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
-  namedecl->strname = "error";
-  namedecl->ast = (Ast*)error_decl;
-  scope_push_decl(current_scope, namedecl, NS_TYPE);
-  Scope* fields = &error_decl->attr.fields;
-  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
-  visit_identifierList((Ast_IdentifierList*)error_decl->fields, &error_decl->attr.fields);
+  Scope* scope = arena_malloc(storage, sizeof(*scope)); /* &error_decl->attr.fields; */
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
+  visit_identifierList((Ast_IdentifierList*)error_decl->fields, scope);
 }
 
 static void
 visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
 {
   assert(match_decl->kind == AST_matchKindDeclaration);
-  NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
-  namedecl->strname = "match_kind";
-  namedecl->ast = (Ast*)match_decl;
-  scope_push_decl(current_scope, namedecl, NS_TYPE);
-  Scope* fields = &match_decl->attr.fields;
-  hashmap_create(&fields->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
-  visit_identifierList((Ast_IdentifierList*)match_decl->fields, &match_decl->attr.fields);
+  Scope* scope = arena_malloc(storage, sizeof(*scope)); /* &match_decl->attr.fields; */
+  hashmap_create(&scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
+  visit_identifierList((Ast_IdentifierList*)match_decl->fields, scope);
 }
 
 static void

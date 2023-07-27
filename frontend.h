@@ -334,9 +334,10 @@ typedef struct Ast_Name {
   char* strname;
   bool is_prefixed;
 
+  /*
   struct {
     Scope* scope;
-  } attr;
+  } attr; */
 } Ast_Name;
 
 typedef struct Ast_ParameterList {
@@ -628,9 +629,10 @@ typedef struct Ast_HeaderTypeDeclaration {
   Ast* name;
   Ast* fields;
 
+  /*
   struct {
     Scope fields;
-  } attr;
+  } attr; */
 } Ast_HeaderTypeDeclaration;
 
 typedef struct Ast_HeaderUnionDeclaration {
@@ -638,9 +640,10 @@ typedef struct Ast_HeaderUnionDeclaration {
   Ast* name;
   Ast* fields;
 
+  /*
   struct {
     Scope fields;
-  } attr;
+  } attr; */
 } Ast_HeaderUnionDeclaration;
 
 typedef struct Ast_StructTypeDeclaration {
@@ -648,9 +651,10 @@ typedef struct Ast_StructTypeDeclaration {
   Ast* name;
   Ast* fields;
 
+  /*
   struct {
     Scope fields;
-  } attr;
+  } attr; */
 } Ast_StructTypeDeclaration;
 
 typedef struct Ast_StructFieldList {
@@ -670,27 +674,30 @@ typedef struct Ast_EnumDeclaration {
   Ast* name;
   Ast* fields;
 
+  /*
   struct {
     Scope fields;
-  } attr;
+  } attr; */
 } Ast_EnumDeclaration;
 
 typedef struct Ast_ErrorDeclaration {
   Ast;
   Ast* fields;
 
+  /*
   struct {
     Scope fields;
-  } attr;
+  } attr; */
 } Ast_ErrorDeclaration;
 
 typedef struct Ast_MatchKindDeclaration {
   Ast;
   Ast* fields;
 
+  /*
   struct {
     Scope fields;
-  } attr;
+  } attr; */
 } Ast_MatchKindDeclaration;
 
 typedef struct Ast_IdentifierList {

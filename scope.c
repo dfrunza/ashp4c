@@ -1,4 +1,3 @@
-#include <memory.h>  /* memset */
 #include <stdio.h>
 #include <stdint.h>
 #include "foundation.h"
