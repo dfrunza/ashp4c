@@ -10,13 +10,13 @@ typedef struct Lexeme {
 } Lexeme;
 
 static Arena* lexeme_storage;
-static char* text;
-static int text_size;
+static char*  text;
+static int    text_size;
 static Arena* token_storage;
 static UnboundedArray tokens = {};
-static int line_no;
-static char* line_start;
-static int state;
+static int    line_no;
+static char*  line_start;
+static int    state;
 static Lexeme lexeme[2];
 
 static char

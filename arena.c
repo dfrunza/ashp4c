@@ -10,8 +10,8 @@
 #define ZMEM_ON_FREE  true
 #define ZMEM_ON_ALLOC true
 
-static int page_size = 0;
-static int total_page_count = 0;
+static int   page_size = 0;
+static int   total_page_count = 0;
 static void* page_memory_start = 0;
 static Arena storage = {};
 static PageBlock* first_block = 0;

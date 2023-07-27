@@ -112,9 +112,10 @@ main(int arg_count, char* args[])
   arena_free(&text_storage);
 
   pass_dry(p4program, root_scope);
-  pass_name_decl(p4program, &main_storage, root_scope);
+  Hashmap* attr_scope, *attr_field_scope;
+  pass_name_decl(p4program, &main_storage, root_scope, &attr_scope, &attr_field_scope);
   Hashmap* type_table = pass_type_decl(p4program, &main_storage, root_scope);
-  pass_potential_type(p4program, &main_storage, root_scope, type_table);
+  pass_potential_type(p4program, &main_storage, root_scope, attr_scope, type_table);
 
   /*
   select_type(p4program, root_scope, potential_type, &main_storage); */

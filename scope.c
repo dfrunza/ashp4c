@@ -42,11 +42,10 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
   while (scope) {
     ns_entry = hashmap_lookup_entry(
                 &scope->name_table, HASHMAP_KEY_STRING, strname, ScopeEntry);
-    if (ns_entry) {
-      if (ns_entry->ns[ns]) {
+    if (ns_entry && ns_entry->ns[ns]) {
         break;
-      }
     }
+    ns_entry = 0;
     scope = scope->parent_scope;
   }
   return ns_entry;

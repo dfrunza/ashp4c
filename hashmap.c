@@ -6,7 +6,7 @@
 
 static const uint32_t P = 257, Q = 4294967029;
 static const uint32_t SIGMA = 2654435769;
-static HashmapEntry* NULL_ENTRY = 0;
+static HashmapEntry*  NULL_ENTRY = 0;
 
 static uint32_t
 fold_string(char* string)

@@ -3,10 +3,11 @@
 #include "foundation.h"
 #include "frontend.h"
 
-static Arena* storage;
-static Scope* root_scope;
+static Arena*   storage;
+static Scope*   root_scope;
 static Hashmap* type_table;
-static Hashmap potential_type = {};
+static Hashmap* attr_scope;
+static Hashmap  potential_type = {};
 
 /** PROGRAM **/
 
@@ -200,9 +201,16 @@ static void
 visit_name(Ast_Name* name)
 {
   assert(name->kind == AST_name);
-  NameDecl* namedecl = scope_lookup_any(root_scope, name->strname);
-  Type* type = hashmap_lookup_entry(
-        type_table, HASHMAP_KEY_UINT32, (uint64_t)namedecl->ast, HashmapEntry_Type)->type;
+  Scope* scope = hashmap_lookup_entry(
+          attr_scope, HASHMAP_KEY_UINT32, (uint64_t)name, HashmapEntry_Scope)->scope;
+  ScopeEntry* ns_entry = scope_lookup_namespace(scope, name->strname, NS_VAR);
+  if (ns_entry) {
+    NameDecl* namedecl = ns_entry->ns[NS_VAR];
+    HashmapEntry_Type* type_he = hashmap_lookup_entry(
+          type_table, HASHMAP_KEY_UINT32, (uint64_t)namedecl->ast, HashmapEntry_Type);
+    Type* type = type_he->type;
+  } else error("At line %d, column %d: unknown name `%s`.",
+          name->line_no, name->column_no, name->strname);
 }
 
 static void
@@ -220,7 +228,7 @@ visit_parameter(Ast_Parameter* param)
 {
   assert(param->kind == AST_parameter);
   visit_typeRef((Ast_TypeRef*)param->type);
-  visit_name((Ast_Name*)param->name);
+  /* visit_name((Ast_Name*)param->name); */
   if (param->init_expr) {
     visit_expression((Ast_Expression*)param->init_expr);
   }
@@ -230,7 +238,7 @@ static void
 visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* type_decl)
 {
   assert(type_decl->kind == AST_packageTypeDeclaration);
-  visit_name((Ast_Name*)type_decl->name);
+  /* visit_name((Ast_Name*)type_decl->name); */
   if (type_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
   }
@@ -243,7 +251,7 @@ visit_instantiation(Ast_Instantiation* inst)
   assert(inst->kind == AST_instantiation);
   visit_typeRef((Ast_TypeRef*)inst->type_ref);
   visit_argumentList((Ast_ArgumentList*)inst->args);
-  visit_name((Ast_Name*)inst->name);
+  /* visit_name((Ast_Name*)inst->name); */
 }
 
 /** PARSER **/
@@ -264,7 +272,7 @@ static void
 visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* type_decl)
 {
   assert(type_decl->kind == AST_parserTypeDeclaration);
-  visit_name((Ast_Name*)type_decl->name);
+  /* visit_name((Ast_Name*)type_decl->name); */
   if (type_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
   }
@@ -306,7 +314,7 @@ static void
 visit_parserState(Ast_ParserState* state)
 {
   assert(state->kind == AST_parserState);
-  visit_name((Ast_Name*)state->name);
+  /* visit_name((Ast_Name*)state->name); */
   visit_parserStatements((Ast_ParserStatements*)state->stmt_list);
   visit_transitionStatement((Ast_TransitionStatement*)state->transition_stmt);
 }
@@ -357,7 +365,7 @@ visit_stateExpression(Ast_StateExpression* state_expr)
 {
   assert(state_expr->kind == AST_stateExpression);
   if (state_expr->expr->kind == AST_name) {
-    visit_name((Ast_Name*)state_expr->expr);
+    ; /* visit_name((Ast_Name*)state_expr->expr); */
   } else if (state_expr->expr->kind == AST_selectExpression) {
     visit_selectExpression((Ast_SelectExpression*)state_expr->expr);
   } else assert(0);
@@ -448,7 +456,7 @@ static void
 visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* type_decl)
 {
   assert(type_decl->kind == AST_controlTypeDeclaration);
-  visit_name((Ast_Name*)type_decl->name);
+  /* visit_name((Ast_Name*)type_decl->name); */
   if (type_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
   }
@@ -497,7 +505,7 @@ static void
 visit_externTypeDeclaration(Ast_ExternTypeDeclaration* type_decl)
 {
   assert(type_decl->kind == AST_externTypeDeclaration);
-  visit_name((Ast_Name*)type_decl->name);
+  /* visit_name((Ast_Name*)type_decl->name); */
   if (type_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)type_decl->type_params);
   }
@@ -521,7 +529,7 @@ visit_functionPrototype(Ast_FunctionPrototype* func_proto)
   if (func_proto->return_type) {
     visit_typeRef((Ast_TypeRef*)func_proto->return_type);
   }
-  visit_name((Ast_Name*)func_proto->name);
+  /* visit_name((Ast_Name*)func_proto->name); */
   if (func_proto->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)func_proto->type_params);
   }
@@ -549,7 +557,7 @@ visit_typeRef(Ast_TypeRef* type_ref)
   } else if (type_ref->type->kind == AST_baseTypeError) {
     visit_baseTypeError((Ast_ErrorType*)type_ref->type);
   } else if (type_ref->type->kind == AST_name) {
-    visit_name((Ast_Name*)type_ref->type);
+    ; /* visit_name((Ast_Name*)type_ref->type); */
   } else if (type_ref->type->kind == AST_specializedType) {
     visit_specializedType((Ast_SpecializedType*)type_ref->type);
   } else if (type_ref->type->kind == AST_headerStackType) {
@@ -570,7 +578,7 @@ static void
 visit_headerStackType(Ast_HeaderStackType* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
-  visit_name((Ast_Name*)type_decl->name);
+  /* visit_name((Ast_Name*)type_decl->name); */
   visit_expression((Ast_Expression*)type_decl->stack_expr);
 }
 
@@ -578,7 +586,7 @@ static void
 visit_specializedType(Ast_SpecializedType* type_decl)
 {
   assert(type_decl->kind == AST_specializedType);
-  visit_name((Ast_Name*)type_decl->name);
+  /* visit_name((Ast_Name*)type_decl->name); */
   visit_typeArgumentList((Ast_TypeArgumentList*)type_decl->type_args);
 }
 
@@ -586,14 +594,14 @@ static void
 visit_baseTypeBoolean(Ast_BooleanType* bool_type)
 {
   assert(bool_type->kind == AST_baseTypeBoolean);
-  visit_name((Ast_Name*)bool_type->name);
+  /* visit_name((Ast_Name*)bool_type->name); */
 }
 
 static void
 visit_baseTypeInteger(Ast_IntegerType* int_type)
 {
   assert(int_type->kind == AST_baseTypeInteger);
-  visit_name((Ast_Name*)int_type->name);
+  /* visit_name((Ast_Name*)int_type->name); */
   if (int_type->size) {
     visit_integerTypeSize((Ast_IntegerTypeSize*)int_type->size);
   }
@@ -603,7 +611,7 @@ static void
 visit_baseTypeBit(Ast_BitType* bit_type)
 {
   assert(bit_type->kind == AST_baseTypeBit);
-  visit_name((Ast_Name*)bit_type->name);
+  /* visit_name((Ast_Name*)bit_type->name); */
   if (bit_type->size) {
     visit_integerTypeSize((Ast_IntegerTypeSize*)bit_type->size);
   }
@@ -613,7 +621,7 @@ static void
 visit_baseTypeVarbit(Ast_VarbitType* varbit_type)
 {
   assert(varbit_type->kind == AST_baseTypeVarbit);
-  visit_name((Ast_Name*)varbit_type->name);
+  /* visit_name((Ast_Name*)varbit_type->name); */
   visit_integerTypeSize((Ast_IntegerTypeSize*)varbit_type->size);
 }
 
@@ -621,21 +629,21 @@ static void
 visit_baseTypeString(Ast_StringType* str_type)
 {
   assert(str_type->kind == AST_baseTypeString);
-  visit_name((Ast_Name*)str_type->name);
+  /* visit_name((Ast_Name*)str_type->name); */
 }
 
 static void
 visit_baseTypeVoid(Ast_VoidType* void_type)
 {
   assert(void_type->kind == AST_baseTypeVoid);
-  visit_name((Ast_Name*)void_type->name);
+  /* visit_name((Ast_Name*)void_type->name); */
 }
 
 static void
 visit_baseTypeError(Ast_ErrorType* error_type)
 {
   assert(error_type->kind == AST_baseTypeError);
-  visit_name((Ast_Name*)error_type->name);
+  /* visit_name((Ast_Name*)error_type->name); */
 }
 
 static void
@@ -650,7 +658,7 @@ visit_typeParameterList(Ast_TypeParameterList* param_list)
   assert(param_list->kind == AST_typeParameterList);
   for (ListItem_Ast* li = list_first_item(&param_list->members, ListItem_Ast);
         li != 0; li = (ListItem_Ast*)li->next) {
-    visit_name((Ast_Name*)li->ast);
+    ; /* visit_name((Ast_Name*)li->ast); */
   }
 }
 
@@ -672,7 +680,7 @@ visit_typeArg(Ast_TypeArg* type_arg)
   if (type_arg->arg->kind == AST_typeRef) {
     visit_typeRef((Ast_TypeRef*)type_arg->arg);
   } else if (type_arg->arg->kind == AST_name) {
-    visit_name((Ast_Name*)type_arg->arg);
+    /* visit_name((Ast_Name*)type_arg->arg); */
   } else if (type_arg->arg->kind == AST_dontcare) {
     visit_dontcare((Ast_Dontcare*)type_arg->arg);
   } else assert(0);
@@ -734,7 +742,7 @@ static void
 visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
-  visit_name((Ast_Name*)header_decl->name);
+  /* visit_name((Ast_Name*)header_decl->name); */
   visit_structFieldList((Ast_StructFieldList*)header_decl->fields);
 }
 
@@ -742,7 +750,7 @@ static void
 visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
 {
   assert(union_decl->kind == AST_headerUnionDeclaration);
-  visit_name((Ast_Name*)union_decl->name);
+  /* visit_name((Ast_Name*)union_decl->name); */
   visit_structFieldList((Ast_StructFieldList*)union_decl->fields);
 }
 
@@ -750,7 +758,7 @@ static void
 visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
-  visit_name((Ast_Name*)struct_decl->name);
+  /* visit_name((Ast_Name*)struct_decl->name); */
   visit_structFieldList((Ast_StructFieldList*)struct_decl->fields);
 }
 
@@ -769,14 +777,14 @@ visit_structField(Ast_StructField* field)
 {
   assert(field->kind == AST_structField);
   visit_typeRef((Ast_TypeRef*)field->type);
-  visit_name((Ast_Name*)field->name);
+  /* visit_name((Ast_Name*)field->name); */
 }
 
 static void
 visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
 {
   assert(enum_decl->kind == AST_enumDeclaration);
-  visit_name((Ast_Name*)enum_decl->name);
+  /* visit_name((Ast_Name*)enum_decl->name); */
   visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields);
 }
 
@@ -800,7 +808,7 @@ visit_identifierList(Ast_IdentifierList* ident_list)
   assert(ident_list->kind == AST_identifierList);
   for (ListItem_Ast* li = list_first_item(&ident_list->members, ListItem_Ast);
         li != 0; li = (ListItem_Ast*)li->next) {
-    visit_name((Ast_Name*)li->ast);
+    ; /* visit_name((Ast_Name*)li->ast); */
   }
 }
 
@@ -818,7 +826,7 @@ static void
 visit_specifiedIdentifier(Ast_SpecifiedIdentifier* ident)
 {
   assert(ident->kind == AST_specifiedIdentifier);
-  visit_name((Ast_Name*)ident->name);
+  /* visit_name((Ast_Name*)ident->name); */
   if (ident->init_expr) {
     visit_expression((Ast_Expression*)ident->init_expr);
   }
@@ -833,7 +841,7 @@ visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl)
   } else if (typedef_decl->type_ref->kind == AST_derivedTypeDeclaration) {
     visit_derivedTypeDeclaration((Ast_DerivedTypeDeclaration*)typedef_decl->type_ref);
   } else assert(0);
-  visit_name((Ast_Name*)typedef_decl->name);
+  /* visit_name((Ast_Name*)typedef_decl->name); */
 }
 
 /** STATEMENTS **/
@@ -1000,7 +1008,7 @@ static void
 visit_tableDeclaration(Ast_TableDeclaration* table_decl)
 {
   assert(table_decl->kind == AST_tableDeclaration);
-  visit_name((Ast_Name*)table_decl->name);
+  /* visit_name((Ast_Name*)table_decl->name); */
   visit_tablePropertyList((Ast_TablePropertyList*)table_decl->prop_list);
 }
 
@@ -1118,7 +1126,7 @@ static void
 visit_actionDeclaration(Ast_ActionDeclaration* action_decl)
 {
   assert(action_decl->kind == AST_actionDeclaration);
-  visit_name((Ast_Name*)action_decl->name);
+  /* visit_name((Ast_Name*)action_decl->name); */
   visit_parameterList((Ast_ParameterList*)action_decl->params);
   visit_blockStatement((Ast_BlockStatement*)action_decl->stmt);
 }
@@ -1130,7 +1138,7 @@ visit_variableDeclaration(Ast_VarDeclaration* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
   visit_typeRef((Ast_TypeRef*)var_decl->type);
-  visit_name((Ast_Name*)var_decl->name);
+  /* visit_name((Ast_Name*)var_decl->name); */
   if (var_decl->init_expr) {
     visit_expression((Ast_Expression*)var_decl->init_expr);
   }
@@ -1300,6 +1308,7 @@ visit_integerLiteral(Ast_IntegerLiteral* int_literal)
   NameDecl* namedecl = scope_lookup_namespace(root_scope, "int", NS_TYPE)->ns[NS_TYPE];
   Type* type = hashmap_lookup_entry(
         type_table, HASHMAP_KEY_UINT32, (uint64_t)namedecl->ast, HashmapEntry_Type)->type;
+  /* TODO */
 }
 
 static void
@@ -1321,10 +1330,12 @@ visit_dontcare(Ast_Dontcare* dontcare)
 }
 
 void
-pass_potential_type(Ast_P4Program* p4program, Arena* _storage, Scope* _root_scope, Hashmap* _type_table)
+pass_potential_type(Ast_P4Program* p4program, Arena* _storage, Scope* _root_scope,
+    Hashmap* _attr_scope, Hashmap* _type_table)
 {
   storage = _storage;
   root_scope = _root_scope;
+  attr_scope = _attr_scope;
   type_table = _type_table;
   hashmap_create(&potential_type, storage, HASHMAP_KEY_UINT32, HashmapEntry_Type, 7, 1023);
   visit_p4program(p4program);

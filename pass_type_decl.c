@@ -3,8 +3,8 @@
 #include "foundation.h"
 #include "frontend.h"
 
-static Arena* storage;
-static Hashmap type_table = {};
+static Arena*   storage;
+static Hashmap  type_table = {};
 
 /** PROGRAM **/
 

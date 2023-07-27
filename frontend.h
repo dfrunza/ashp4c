@@ -296,6 +296,11 @@ typedef struct Scope {
   struct Scope* parent_scope;
 } Scope;
 
+typedef struct HashmapEntry_Scope {
+  HashmapEntry;
+  Scope* scope;
+} HashmapEntry_Scope;
+
 typedef struct Ast {
   enum AstEnum kind;
   int line_no;
@@ -333,11 +338,6 @@ typedef struct Ast_Name {
   Ast;
   char* strname;
   bool is_prefixed;
-
-  /*
-  struct {
-    Scope* scope;
-  } attr; */
 } Ast_Name;
 
 typedef struct Ast_ParameterList {
@@ -628,33 +628,18 @@ typedef struct Ast_HeaderTypeDeclaration {
   Ast;
   Ast* name;
   Ast* fields;
-
-  /*
-  struct {
-    Scope fields;
-  } attr; */
 } Ast_HeaderTypeDeclaration;
 
 typedef struct Ast_HeaderUnionDeclaration {
   Ast;
   Ast* name;
   Ast* fields;
-
-  /*
-  struct {
-    Scope fields;
-  } attr; */
 } Ast_HeaderUnionDeclaration;
 
 typedef struct Ast_StructTypeDeclaration {
   Ast;
   Ast* name;
   Ast* fields;
-
-  /*
-  struct {
-    Scope fields;
-  } attr; */
 } Ast_StructTypeDeclaration;
 
 typedef struct Ast_StructFieldList {
@@ -673,31 +658,16 @@ typedef struct Ast_EnumDeclaration {
   Ast* type_size;
   Ast* name;
   Ast* fields;
-
-  /*
-  struct {
-    Scope fields;
-  } attr; */
 } Ast_EnumDeclaration;
 
 typedef struct Ast_ErrorDeclaration {
   Ast;
   Ast* fields;
-
-  /*
-  struct {
-    Scope fields;
-  } attr; */
 } Ast_ErrorDeclaration;
 
 typedef struct Ast_MatchKindDeclaration {
   Ast;
   Ast* fields;
-
-  /*
-  struct {
-    Scope fields;
-  } attr; */
 } Ast_MatchKindDeclaration;
 
 typedef struct Ast_IdentifierList {

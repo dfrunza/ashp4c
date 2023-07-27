@@ -3,11 +3,11 @@
 #include "foundation.h"
 #include "frontend.h"
 
-static Arena *storage;
+static Arena  *storage;
 static UnboundedArray* tokens;
-static int token_at = 0;
+static int    token_at = 0;
 static Token* token = 0;
-static int prev_token_at = 0;
+static int    prev_token_at = 0;
 static Token* prev_token = 0;
 static Scope* current_scope;
 
