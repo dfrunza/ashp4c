@@ -198,6 +198,11 @@ static void
 visit_name(Ast_Name* name)
 {
   assert(name->kind == AST_name);
+  Type_Unresolved* name_ty = arena_malloc(storage, sizeof(*name_ty));
+  name_ty->ctor = TYPE_UNRESOLVED;
+  HashmapEntry_Type* type_he = hashmap_get_entry(
+            &type_table, HASHMAP_KEY_UINT32, (uint64_t)name, HashmapEntry_Type);
+  type_he->type = (Type*)name_ty;
 }
 
 static void

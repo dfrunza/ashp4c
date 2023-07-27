@@ -1027,10 +1027,13 @@ enum TypeEnum {
   TYPE_ERROR,
   TYPE_MATCH_KIND,
 
+  /* Composite */
   TYPE_FUNCTION,
   TYPE_PRODUCT,
   TYPE_TYPEDEF,
   TYPE_ARRAY,
+
+  TYPE_UNRESOLVED,
 };
 
 typedef struct Type {
@@ -1065,6 +1068,7 @@ typedef struct Type_Array {
 } Type_Array;
 
 typedef union Type_Unresolved {
+  Type;
   Type_Basic    _basic;
   Type_Typedef  _typedef;
   Type_Product  _product;

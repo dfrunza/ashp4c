@@ -200,6 +200,9 @@ static void
 visit_name(Ast_Name* name)
 {
   assert(name->kind == AST_name);
+  NameDecl* namedecl = scope_lookup_any(root_scope, name->strname);
+  Type* type = hashmap_lookup_entry(
+        type_table, HASHMAP_KEY_UINT32, (uint64_t)namedecl->ast, HashmapEntry_Type)->type;
 }
 
 static void
