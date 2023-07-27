@@ -7,12 +7,9 @@ typedef uint32_t bool;
 #define MEGABYTE 1024*KILOBYTE
 
 void    _assert(char* message, char* file, int line);
-#define assert(EXPR) \
-  do { if(!(EXPR)) _assert(#EXPR, __FILE__, __LINE__); } while(0)
-
+#define  assert(EXPR)  do { if(!(EXPR)) _assert(#EXPR, __FILE__, __LINE__); } while(0)
 void    _error(char* file, int line, char* message, ...);
-#define error(MSG, ...)  _error(__FILE__, __LINE__, (MSG), ## __VA_ARGS__)
-
+#define  error(MSG, ...)  _error(__FILE__, __LINE__, (MSG), ## __VA_ARGS__)
 bool  cstr_is_letter(char c);
 bool  cstr_is_digit(char c, int base);
 bool  cstr_is_ascii_printable(char c);
@@ -58,15 +55,12 @@ typedef struct List {
 } List;
 
 void      _list_create(List* list, Arena* storage, int item_size);
-#define   list_create(LIST, STORAGE, TYPE)  _list_create(LIST, STORAGE, sizeof(TYPE))
-
+#define    list_create(LIST, STORAGE, TYPE)  _list_create(LIST, STORAGE, sizeof(TYPE))
 ListItem* _list_create_item(List* list);
-#define   list_create_item(LIST, TYPE)  ((TYPE*)_list_create_item(LIST))
-
+#define    list_create_item(LIST, TYPE)  ((TYPE*)_list_create_item(LIST))
 ListItem* _list_first_item(List* list);
-#define   list_first_item(LIST, TYPE)  ((TYPE*)_list_first_item(LIST))
-
-void      list_append_item(List* list, ListItem* item, int count);
+#define    list_first_item(LIST, TYPE)  ((TYPE*)_list_first_item(LIST))
+void       list_append_item(List* list, ListItem* item, int count);
 
 typedef void* ArrayElement;
 
@@ -88,8 +82,7 @@ ArrayElement array_append(UnboundedArray* array, ArrayElement elem);
 enum HashmapKeyType {
   HASHMAP_KEY_STRING = 1,
   HASHMAP_KEY_UINT32,
-  HASHMAP_KEY_UINT64,
-  HASHMAP_KEY_BIT,
+  HASHMAP_KEY_BYTES,
 };
 
 typedef struct Hashmap {
@@ -105,9 +98,8 @@ typedef struct HashmapKey {
   uint32_t h;
   union {
     char*    str_key;
-    uint8_t* bit_key;
+    uint8_t* bytes_key;
     uint32_t uint32_key;
-    uint64_t uint64_key;
   };
   int keylen;
 } HashmapKey;
@@ -125,37 +117,22 @@ typedef struct HashmapCursor {
 
 void          _hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int entry_size,
                               int capacity, int max_capacity);
-#define       hashmap_create(HASHMAP, STORAGE, KEY_TYPE, ENTRY_TYPE, CAPACITY, MAX_CAPACITY) \
-                _hashmap_create(HASHMAP, STORAGE, KEY_TYPE, sizeof(ENTRY_TYPE), CAPACITY, MAX_CAPACITY)
-
+#define        hashmap_create(HASHMAP, STORAGE, KEY_TYPE, ENTRY_TYPE, CAPACITY, MAX_CAPACITY) \
+  _hashmap_create(HASHMAP, STORAGE, KEY_TYPE, sizeof(ENTRY_TYPE), CAPACITY, MAX_CAPACITY)
 HashmapEntry* _hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
-#define       hashmap_get_entry(HASHMAP, KEY, TYPE)  ((TYPE*)_hashmap_get_entry(HASHMAP, KEY))
-
+#define        hashmap_get_entry(HASHMAP, KEY, TYPE)  ((TYPE*)_hashmap_get_entry(HASHMAP, KEY))
 HashmapEntry* _hashmap_get_entry_uint32k(Hashmap* map, uint32_t uint_key);
-#define       hashmap_get_entry_uint32k(HASHMAP, KEY, TYPE)  ((TYPE*)_hashmap_get_entry_uint32k(HASHMAP, KEY))
-
-HashmapEntry* _hashmap_get_entry_uint64k(Hashmap* map, uint64_t uint_key);
-#define       hashmap_get_entry_uint64k(HASHMAP, KEY, TYPE)  ((TYPE*)_hashmap_get_entry_uint64k(HASHMAP, KEY))
-
+#define        hashmap_get_entry_uint32k(HASHMAP, KEY, TYPE)  ((TYPE*)_hashmap_get_entry_uint32k(HASHMAP, KEY))
 HashmapEntry* _hashmap_get_entry_stringk(Hashmap* map, char* str_key);
-#define       hashmap_get_entry_stringk(HASHMAP, KEY, TYPE)  ((TYPE*)_hashmap_get_entry_stringk(HASHMAP, KEY))
-
+#define        hashmap_get_entry_stringk(HASHMAP, KEY, TYPE)  ((TYPE*)_hashmap_get_entry_stringk(HASHMAP, KEY))
 HashmapEntry* _hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key);
-#define       hashmap_lookup_entry(HASHMAP, KEY, TYPE)  ((TYPE*)_hashmap_lookup_entry(HASHMAP, KEY))
-
+#define        hashmap_lookup_entry(HASHMAP, KEY, TYPE)  ((TYPE*)_hashmap_lookup_entry(HASHMAP, KEY))
 HashmapEntry* _hashmap_lookup_entry_uint32k(Hashmap* map, uint32_t uint_key);
-#define       hashmap_lookup_entry_uint32k(HASHMAP, KEY, TYPE)  ((TYPE*)_hashmap_lookup_entry_uint32k(HASHMAP, KEY))
-
-HashmapEntry* _hashmap_lookup_entry_uint64k(Hashmap* map, uint64_t uint_key);
-#define       hashmap_lookup_entry_uint64k(HASHMAP, KEY, TYPE)  ((TYPE*)_hashmap_lookup_entry_uint64k(HASHMAP, KEY))
-
+#define        hashmap_lookup_entry_uint32k(HASHMAP, KEY, TYPE)  ((TYPE*)_hashmap_lookup_entry_uint32k(HASHMAP, KEY))
 HashmapEntry* _hashmap_lookup_entry_stringk(Hashmap* map, char* str_key);
-#define       hashmap_lookup_entry_stringk(HASHMAP, KEY, TYPE)  ((TYPE*)_hashmap_lookup_entry_stringk(HASHMAP, KEY))
-
-void          hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap);
-
+#define        hashmap_lookup_entry_stringk(HASHMAP, KEY, TYPE)  ((TYPE*)_hashmap_lookup_entry_stringk(HASHMAP, KEY))
+void           hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap);
 HashmapEntry* _hashmap_move_cursor(HashmapCursor* it);
-#define       hashmap_move_cursor(CURSOR, TYPE)  ((TYPE*)_hashmap_move_cursor(CURSOR))
-
-void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int length_log2);
+#define        hashmap_move_cursor(CURSOR, TYPE)  ((TYPE*)_hashmap_move_cursor(CURSOR))
+void           hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int length_log2);
 

@@ -27,6 +27,15 @@ fold_bytes(uint8_t* bytes, int length)
   return K;
 }
 
+static uint64_t
+fold_uint64(uint64_t i)
+{
+  uint32_t upper_half = (uint32_t)(i >> 32);
+  uint32_t lower_half = (uint32_t)(0x00000000ffffffffl & i);
+  uint32_t K = upper_half ^ lower_half;
+  return K;
+}
+
 static uint32_t
 multiply_hash(uint32_t K, uint32_t m)
 {
@@ -63,29 +72,16 @@ hash_uint32(uint32_t i, uint32_t m)
   return h;
 }
 
-static uint64_t
-hash_uint64(uint64_t i, uint32_t m)
-{
-  assert(m > 0 && m <= 32);
-  uint32_t upper_half = (uint32_t)(i >> 32);
-  uint32_t lower_half = (uint32_t)(0x00000000ffffffffl & i);
-  uint32_t h = upper_half ^ lower_half;
-  h = multiply_hash(h, m) % ((1 << m) - 1);  /* 0 <= h < 2^m - 1 */
-  return h;
-}
-
 void
 hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int length_log2)
 {
   if (key_type == HASHMAP_KEY_STRING) {
     key->h = hash_string(key->str_key, length_log2);
-  } else if (key_type == HASHMAP_KEY_BIT) {
+  } else if (key_type == HASHMAP_KEY_BYTES) {
     assert(key->keylen > 0);
-    key->h = hash_bytes(key->bit_key, key->keylen, length_log2);
+    key->h = hash_bytes(key->bytes_key, key->keylen, length_log2);
   } else if (key_type == HASHMAP_KEY_UINT32) {
     key->h = hash_uint32(key->uint32_key, length_log2);
-  } else if (key_type == HASHMAP_KEY_UINT64) {
-    key->h = hash_uint64(key->uint64_key, length_log2);
   } else assert(0);
 }
 
@@ -94,14 +90,14 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 {
   if (key_type == HASHMAP_KEY_STRING) {
     return cstr_match((char*)key_A->str_key, (char*)key_B->str_key);
-  } else if (key_type == HASHMAP_KEY_BIT) {
+  } else if (key_type == HASHMAP_KEY_BYTES) {
     assert((key_A->keylen > 0) && (key_B->keylen > 0));
     bool result = (key_A->keylen == key_B->keylen);
     if (!result) {
       return result;
     }
-    uint8_t *p_a = key_A->bit_key,
-            *p_b = key_B->bit_key;
+    uint8_t *p_a = key_A->bytes_key,
+            *p_b = key_B->bytes_key;
     int at_i = 0;
     while (*p_a == *p_b) {
       p_a++;
@@ -114,10 +110,7 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
     return result;
   } else if (key_type == HASHMAP_KEY_UINT32) {
     return key_A->uint32_key == key_B->uint32_key;
-  } else if (key_type == HASHMAP_KEY_UINT64) {
-    return key_A->uint64_key == key_B->uint64_key;
-  }
-  else assert(0);
+  } else assert(0);
   return false;
 }
 
@@ -197,16 +190,6 @@ _hashmap_lookup_entry_uint32k(Hashmap* map, uint32_t uint_key)
 }
 
 HashmapEntry*
-_hashmap_lookup_entry_uint64k(Hashmap* map, uint64_t uint_key)
-{
-  assert(map->key_type == HASHMAP_KEY_UINT64);
-  HashmapKey key = { .uint32_key = uint_key };
-  hashmap_hash_key(HASHMAP_KEY_UINT64, &key, map->capacity_log2);
-  HashmapEntry* he = _hashmap_lookup_entry(map, &key);
-  return he;
-}
-
-HashmapEntry*
 _hashmap_lookup_entry_stringk(Hashmap* map, char* str_key)
 {
   assert(map->key_type == HASHMAP_KEY_STRING);
@@ -217,11 +200,11 @@ _hashmap_lookup_entry_stringk(Hashmap* map, char* str_key)
 }
 
 HashmapEntry*
-_hashmap_lookup_entry_bitk(Hashmap* map, uint8_t* bit_key)
+_hashmap_lookup_entry_bytesk(Hashmap* map, uint8_t* bytes_key)
 {
-  assert(map->key_type == HASHMAP_KEY_BIT);
-  HashmapKey key = { .bit_key = bit_key };
-  hashmap_hash_key(HASHMAP_KEY_BIT, &key, map->capacity_log2);
+  assert(map->key_type == HASHMAP_KEY_BYTES);
+  HashmapKey key = { .bytes_key = bytes_key };
+  hashmap_hash_key(HASHMAP_KEY_BYTES, &key, map->capacity_log2);
   HashmapEntry* he = _hashmap_lookup_entry(map, &key);
   return he;
 }
@@ -255,16 +238,6 @@ _hashmap_get_entry_uint32k(Hashmap* map, uint32_t uint_key)
 }
 
 HashmapEntry*
-_hashmap_get_entry_uint64k(Hashmap* map, uint64_t uint_key)
-{
-  assert(map->key_type == HASHMAP_KEY_UINT64);
-  HashmapKey key = { .uint64_key = uint_key };
-  hashmap_hash_key(HASHMAP_KEY_UINT64, &key, map->capacity_log2);
-  HashmapEntry* he = _hashmap_get_entry(map, &key);
-  return he;
-}
-
-HashmapEntry*
 _hashmap_get_entry_stringk(Hashmap* map, char* str_key)
 {
   assert(map->key_type == HASHMAP_KEY_STRING);
@@ -275,11 +248,11 @@ _hashmap_get_entry_stringk(Hashmap* map, char* str_key)
 }
 
 HashmapEntry*
-_hashmap_get_entry_bitk(Hashmap* map, uint8_t* bit_key)
+_hashmap_get_entry_bytesk(Hashmap* map, uint8_t* bytes_key)
 {
-  assert(map->key_type == HASHMAP_KEY_BIT);
-  HashmapKey key = { .bit_key = bit_key };
-  hashmap_hash_key(HASHMAP_KEY_BIT, &key, map->capacity_log2);
+  assert(map->key_type == HASHMAP_KEY_BYTES);
+  HashmapKey key = { .bytes_key = bytes_key };
+  hashmap_hash_key(HASHMAP_KEY_BYTES, &key, map->capacity_log2);
   HashmapEntry* he = _hashmap_get_entry(map, &key);
   return he;
 }
