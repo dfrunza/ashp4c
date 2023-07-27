@@ -89,7 +89,7 @@ static bool
 key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 {
   if (key_type == HASHMAP_KEY_STRING) {
-    return cstr_match((char*)key_A->str_key, (char*)key_B->str_key);
+    return cstr_match(key_A->str_key, key_B->str_key);
   } else if (key_type == HASHMAP_KEY_BYTES) {
     assert((key_A->keylen > 0) && (key_B->keylen > 0));
     bool result = (key_A->keylen == key_B->keylen);
