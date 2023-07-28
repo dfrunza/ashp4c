@@ -1056,3 +1056,10 @@ typedef struct HashmapEntry_Type {
   Type* type;
 } HashmapEntry_Type;
 
+/*************************************/
+
+typedef struct Pass_NameDecl {
+  Hashmap scope_map;
+  Hashmap field_scope_map;
+} Pass_NameDecl;
+

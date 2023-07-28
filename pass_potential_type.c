@@ -6,7 +6,7 @@
 static Arena*   storage;
 static Scope*   root_scope;
 static Hashmap* type_table;
-static Hashmap* attr_scope;
+static Hashmap* scopes;
 static Hashmap  potential_type = {};
 
 /** PROGRAM **/
@@ -202,7 +202,7 @@ visit_name(Ast_Name* name)
 {
   assert(name->kind == AST_name);
   Scope* scope = hashmap_lookup_entry(
-          attr_scope, HASHMAP_KEY_UINT32, (uint64_t)name, HashmapEntry_Scope)->scope;
+          scopes, HASHMAP_KEY_UINT32, (uint64_t)name, HashmapEntry_Scope)->scope;
   ScopeEntry* ns_entry = scope_lookup_namespace(scope, name->strname, NS_VAR);
   if (ns_entry) {
     NameDecl* namedecl = ns_entry->ns[NS_VAR];
@@ -1331,11 +1331,11 @@ visit_dontcare(Ast_Dontcare* dontcare)
 
 void
 pass_potential_type(Ast_P4Program* p4program, Arena* _storage, Scope* _root_scope,
-    Hashmap* _attr_scope, Hashmap* _type_table)
+    Hashmap* _scopes, Hashmap* _type_table)
 {
   storage = _storage;
   root_scope = _root_scope;
-  attr_scope = _attr_scope;
+  scopes = _scopes;
   type_table = _type_table;
   hashmap_create(&potential_type, storage, HASHMAP_KEY_UINT32, HashmapEntry_Type, 7, 1023);
   visit_p4program(p4program);
