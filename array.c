@@ -35,12 +35,12 @@ array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capac
 
 static void
 array_elem_at_i(UnboundedArray* array, int i, int* _segment_index, int* _elem_offset,
-                ArrayElement* _data_segment, ArrayElement* _elem_slot)
+                ArrayElement** _data_segment, ArrayElement** _elem_slot)
 {
   int segment_index = floor_log2(i + 1);
   int elem_offset = i - ((1 << segment_index) - 1);
-  ArrayElement data_segment = array->segment_table[segment_index];
-  ArrayElement elem_slot = data_segment + elem_offset * array->elem_size;
+  ArrayElement* data_segment = array->segment_table[segment_index];
+  ArrayElement* elem_slot = data_segment + elem_offset * array->elem_size;
 
   *_segment_index = segment_index;
   *_elem_offset = elem_offset;
@@ -48,35 +48,35 @@ array_elem_at_i(UnboundedArray* array, int i, int* _segment_index, int* _elem_of
   *_elem_slot = elem_slot;
 }
 
-ArrayElement
+ArrayElement*
 array_get(UnboundedArray* array, int i)
 {
   assert(i >= 0 && i < array->elem_count);
   int segment_index, elem_offset;
-  ArrayElement data_segment, elem_slot;
+  ArrayElement* data_segment, *elem_slot;
   array_elem_at_i(array, i, &segment_index, &elem_offset, &data_segment, &elem_slot);
   return elem_slot;
 }
 
-ArrayElement
-array_set(UnboundedArray* array, int i, ArrayElement elem)
+ArrayElement*
+array_set(UnboundedArray* array, int i, ArrayElement* elem)
 {
   assert(i >= 0 && i < array->elem_count);
   int segment_index, elem_offset;
-  ArrayElement data_segment, elem_slot;
+  ArrayElement* data_segment, *elem_slot;
   array_elem_at_i(array, i, &segment_index, &elem_offset, &data_segment, &elem_slot);
   memcpy(elem_slot, elem, array->elem_size);
   return elem_slot;
 }
 
-ArrayElement
-array_append(UnboundedArray* array, ArrayElement elem)
+ArrayElement*
+array_append(UnboundedArray* array, ArrayElement* elem)
 {
   if (array->elem_count >= array->capacity) {
     array_extend(array);
   }
   array->elem_count += 1;
-  ArrayElement result = array_set(array, array->elem_count - 1, elem);
+  ArrayElement* result = array_set(array, array->elem_count - 1, elem);
   return result;
 }
 

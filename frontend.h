@@ -3,7 +3,7 @@
 enum TokenClass {
 
   /* Operators and syntactic structure */
-  TK_SEMICOLON = 1,
+  TK_SEMICOLON = 0,
   TK_IDENTIFIER,
   TK_TYPE_IDENTIFIER,
   TK_INTEGER_LITERAL,
@@ -111,7 +111,7 @@ enum AstEnum {
 
   /** PROGRAM **/
 
-  AST_p4program = 1,
+  AST_p4program = 0,
   AST_declarationList,
   AST_declaration,
   AST_name,
@@ -255,7 +255,7 @@ enum AstEnum {
 enum Ast_Operator {
 
   /* Arithmetic */
-  OP_ADD = 1,
+  OP_ADD = 0,
   OP_SUB,
   OP_MUL,
   OP_DIV,
@@ -285,21 +285,10 @@ enum Ast_Operator {
 };
 
 enum Ast_ParamDirection {
-  PARAMDIR_IN = 1,
+  PARAMDIR_IN = 0,
   PARAMDIR_OUT,
   PARAMDIR_INOUT,
 };
-
-typedef struct Scope {
-  Hashmap name_table;
-  int scope_level;
-  struct Scope* parent_scope;
-} Scope;
-
-typedef struct HashmapEntry_Scope {
-  HashmapEntry;
-  Scope* scope;
-} HashmapEntry_Scope;
 
 typedef struct Ast {
   enum AstEnum kind;
@@ -957,6 +946,22 @@ typedef struct Ast_Default {
   Ast;
 } Ast_Default;
 
+typedef struct Scope {
+  Hashmap name_table;
+  int scope_level;
+  struct Scope* parent_scope;
+} Scope;
+
+typedef struct HashmapEntry_Scope {
+  HashmapEntry;
+  Scope* scope;
+} HashmapEntry_Scope;
+
+typedef struct ParsedProgram {
+  Ast_P4Program* ast;
+  Scope root_scope;
+} ParsedProgram;
+
 typedef struct NameDecl {
   char* strname;
   struct NameDecl* next_in_scope;
@@ -966,13 +971,13 @@ typedef struct NameDecl {
   };
 } NameDecl;
 
-typedef enum NameSpace {
+enum NameSpace {
   NS_VAR = 0,
   NS_TYPE,
   NS_KEYWORD,
 
   NameSpace_COUNT,
-} NameSpace;
+};
 
 typedef struct ScopeEntry {
   HashmapEntry;
@@ -985,10 +990,15 @@ ScopeEntry* scope_lookup_any(Scope* scope, char* name);
 ScopeEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
 ScopeEntry* scope_push_decl(Scope* scope, NameDecl* decl, enum NameSpace ns);
 
+typedef struct Pass_NameDecl {
+  Hashmap scope_map;
+  Hashmap field_map;
+} Pass_NameDecl;
+
 enum TypeEnum {
 
   /* Basic */
-  TYPE_VOID = 1,
+  TYPE_VOID = 0,
   TYPE_BOOL,
   TYPE_INT,
   TYPE_BIT,
@@ -1003,6 +1013,7 @@ enum TypeEnum {
   TYPE_TYPEDEF,
   TYPE_ARRAY,
 
+  /* Special */
   TYPE_UNRESOLVED,
 };
 
@@ -1039,6 +1050,8 @@ typedef struct Type_Array {
 
 typedef union Type_Unresolved {
   Type;
+
+  /* Placeholders */
   Type_Basic    _basic;
   Type_Typedef  _typedef;
   Type_Product  _product;
@@ -1056,10 +1069,11 @@ typedef struct HashmapEntry_Type {
   Type* type;
 } HashmapEntry_Type;
 
-/*************************************/
+typedef struct Pass_TypeDecl {
+  Hashmap type_table;
+} Pass_TypeDecl;
 
-typedef struct Pass_NameDecl {
-  Hashmap scope_map;
-  Hashmap field_scope_map;
-} Pass_NameDecl;
+typedef struct Pass_PotentialType {
+  Hashmap potential_type;
+} Pass_PotentialType;
 

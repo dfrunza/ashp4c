@@ -10,6 +10,7 @@ static Token* token = 0;
 static int    prev_token_at = 0;
 static Token* prev_token = 0;
 static Scope* current_scope;
+static ParsedProgram* program;
 
 /** PROGRAM **/
 
@@ -3675,13 +3676,13 @@ parse_string()
   return 0;
 }
 
-Ast_P4Program*
-parse_tokens(UnboundedArray* _tokens, Arena* _storage, Scope** _root_scope)
+ParsedProgram*
+parse_program(UnboundedArray* _tokens, Arena* _storage)
 {
   tokens = _tokens;
   storage = _storage;
-  Scope* root_scope = arena_malloc(storage, sizeof(*root_scope));
-  *_root_scope = root_scope;
+  program = arena_malloc(storage, sizeof(*program));
+  Scope* root_scope = &program->root_scope;
   hashmap_create(&root_scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 1023);
   root_scope->scope_level = 0;
   current_scope = root_scope;
@@ -3769,7 +3770,7 @@ parse_tokens(UnboundedArray* _tokens, Arena* _storage, Scope** _root_scope)
   token_at = 0;
   token = array_get(tokens, token_at);
   next_token();
-  Ast_P4Program* p4program = (Ast_P4Program*)parse_p4program();
+  program->ast = (Ast_P4Program*)parse_p4program();
   assert(current_scope == root_scope);
-  return p4program;
+  return program;
 }

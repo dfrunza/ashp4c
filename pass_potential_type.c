@@ -6,8 +6,9 @@
 static Arena*   storage;
 static Scope*   root_scope;
 static Hashmap* type_table;
-static Hashmap* scopes;
-static Hashmap  potential_type = {};
+static Hashmap* scope_map;
+static Hashmap* potential_type;
+static Pass_PotentialType* pass_result;
 
 /** PROGRAM **/
 
@@ -202,13 +203,13 @@ visit_name(Ast_Name* name)
 {
   assert(name->kind == AST_name);
   Scope* scope = hashmap_lookup_entry(
-          scopes, HASHMAP_KEY_UINT32, (uint64_t)name, HashmapEntry_Scope)->scope;
+          scope_map, HASHMAP_KEY_UINT32, (uint64_t)name, HashmapEntry_Scope)->scope;
   ScopeEntry* ns_entry = scope_lookup_namespace(scope, name->strname, NS_VAR);
   if (ns_entry) {
     NameDecl* namedecl = ns_entry->ns[NS_VAR];
     HashmapEntry_Type* type_he = hashmap_lookup_entry(
           type_table, HASHMAP_KEY_UINT32, (uint64_t)namedecl->ast, HashmapEntry_Type);
-    Type* type = type_he->type;
+    /*Type* type = type_he->type;*/
   } else error("At line %d, column %d: unknown name `%s`.",
           name->line_no, name->column_no, name->strname);
 }
@@ -1329,14 +1330,16 @@ visit_dontcare(Ast_Dontcare* dontcare)
   assert(dontcare->kind == AST_dontcare);
 }
 
-void
-pass_potential_type(Ast_P4Program* p4program, Arena* _storage, Scope* _root_scope,
-    Hashmap* _scopes, Hashmap* _type_table)
+Pass_PotentialType*
+pass_potential_type(ParsedProgram* p4program, Arena* _storage, Pass_NameDecl* namedecl, Pass_TypeDecl* typedecl)
 {
   storage = _storage;
-  root_scope = _root_scope;
-  scopes = _scopes;
-  type_table = _type_table;
-  hashmap_create(&potential_type, storage, HASHMAP_KEY_UINT32, HashmapEntry_Type, 7, 1023);
-  visit_p4program(p4program);
+  pass_result = arena_malloc(storage, sizeof(*pass_result));
+  root_scope = &p4program->root_scope;
+  scope_map = &namedecl->scope_map;
+  type_table = &typedecl->type_table;
+  potential_type = &pass_result->potential_type;
+  hashmap_create(potential_type, storage, HASHMAP_KEY_UINT32, HashmapEntry_Type, 7, 1023);
+  visit_p4program(p4program->ast);
+  return pass_result;
 }

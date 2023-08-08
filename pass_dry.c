@@ -1310,8 +1310,8 @@ visit_dontcare(Ast_Dontcare* dontcare)
 }
 
 void
-pass_dry(Ast_P4Program* p4program, Scope* root_scope)
+pass_dry(ParsedProgram* p4program)
 {
-  visit_p4program(p4program);
+  visit_p4program(p4program->ast);
 }
 

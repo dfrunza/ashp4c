@@ -106,15 +106,13 @@ main(int arg_count, char* args[])
   read_source(&text, &text_size, filename_arg->value, &text_storage);
   UnboundedArray* tokens = tokenize_text(text, text_size, &main_storage, &text_storage);
 
-  Scope* root_scope;
-  Ast_P4Program* p4program = parse_tokens(tokens, &main_storage, &root_scope);
-  assert(p4program->kind == AST_p4program);
+  ParsedProgram* p4program = parse_program(tokens, &main_storage);
   arena_free(&text_storage);
 
-  pass_dry(p4program, root_scope);
-  Pass_NameDecl* namedecl_result = pass_name_decl(p4program, &main_storage, root_scope);
-  Hashmap* type_table = pass_type_decl(p4program, &main_storage, root_scope);
-  pass_potential_type(p4program, &main_storage, root_scope, &namedecl_result->scope_map, type_table);
+  pass_dry(p4program); /* sanity check */
+  Pass_NameDecl* namedecl = pass_name_decl(p4program, &main_storage);
+  Pass_TypeDecl* typedecl = pass_type_decl(p4program, &main_storage, namedecl);
+  pass_potential_type(p4program, &main_storage, namedecl, typedecl);
 
   /*
   select_type(p4program, root_scope, potential_type, &main_storage); */

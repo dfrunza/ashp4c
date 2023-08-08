@@ -62,10 +62,10 @@ ListItem* _list_first_item(List* list);
 #define    list_first_item(LIST, ITEM_TYPE)  ((ITEM_TYPE*)_list_first_item(LIST))
 void       list_append_item(List* list, ListItem* item, int count);
 
-typedef void* ArrayElement;
+typedef void ArrayElement;
 
 typedef struct UnboundedArray {
-  ArrayElement* segment_table;
+  ArrayElement** segment_table;
   int segment_length;
   int elem_size;
   int elem_count;
@@ -75,12 +75,12 @@ typedef struct UnboundedArray {
 
 void         array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capacity);
 void         array_extend(UnboundedArray* array);
-ArrayElement array_get(UnboundedArray* array, int i);
-ArrayElement array_set(UnboundedArray* array, int i, ArrayElement elem);
-ArrayElement array_append(UnboundedArray* array, ArrayElement elem);
+ArrayElement* array_get(UnboundedArray* array, int i);
+ArrayElement* array_set(UnboundedArray* array, int i, ArrayElement* elem);
+ArrayElement* array_append(UnboundedArray* array, ArrayElement* elem);
 
 enum HashmapKeyType {
-  HASHMAP_KEY_STRING = 1,
+  HASHMAP_KEY_STRING = 0,
   HASHMAP_KEY_UINT32,
   HASHMAP_KEY_BYTES,
 };
