@@ -598,19 +598,21 @@ visit_tupleType(Ast_TupleType* tuple_decl)
 }
 
 static void
-visit_headerStackType(Ast_HeaderStackType* hdrstack_decl)
+visit_headerStackType(Ast_HeaderStackType* type_decl)
 {
-  assert(hdrstack_decl->kind == AST_headerStackType);
-  visit_name((Ast_Name*)hdrstack_decl->name);
-  visit_expression((Ast_Expression*)hdrstack_decl->stack_expr);
+  assert(type_decl->kind == AST_headerStackType);
+  visit_name((Ast_Name*)type_decl->name);
+  visit_typeRef((Ast_TypeRef*)type_decl->type);
+  visit_expression((Ast_Expression*)type_decl->stack_expr);
 }
 
 static void
-visit_specializedType(Ast_SpecializedType* header_decl)
+visit_specializedType(Ast_SpecializedType* type_decl)
 {
-  assert(header_decl->kind == AST_specializedType);
-  visit_name((Ast_Name*)header_decl->name);
-  visit_typeArgumentList((Ast_TypeArgumentList*)header_decl->type_args);
+  assert(type_decl->kind == AST_specializedType);
+  visit_name((Ast_Name*)type_decl->name);
+  visit_typeRef((Ast_TypeRef*)type_decl->type);
+  visit_typeArgumentList((Ast_TypeArgumentList*)type_decl->type_args);
 }
 
 static void

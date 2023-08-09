@@ -110,13 +110,10 @@ main(int arg_count, char* args[])
   ParsedProgram* p4program = parse_program(lex_result, &main_storage);
   arena_free(&text_storage);
 
-  pass_dry(p4program); /* sanity check */
+  pass_dry(p4program); /* sanity test */
   PassResult_NameDecl* namedecl_result = pass_name_decl(p4program, &main_storage);
   PassResult_TypeDecl* typedecl_result = pass_type_decl(p4program, &main_storage, namedecl_result);
   pass_potential_type(p4program, &main_storage, namedecl_result, typedecl_result);
-
-  /*
-  select_type(p4program, root_scope, potential_type, &main_storage); */
 
   arena_free(&main_storage);
   return 0;

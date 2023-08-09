@@ -11,6 +11,7 @@ static int    prev_token_at = 0;
 static Token* prev_token = 0;
 static Scope* current_scope;
 static ParsedProgram parse_result = {};
+static const int MAXLEN_SYNTHTYPE = 16;  /* type@9999:9999 */
 
 /** PROGRAM **/
 
@@ -67,8 +68,8 @@ static Ast* parse_typeRef();
 static Ast* parse_namedType();
 static Ast* parse_prefixedType();
 static Ast* parse_tupleType();
-static Ast* parse_headerStackType();
-static Ast* parse_specializedType();
+static Ast* parse_headerStackType(Ast* named_type);
+static Ast* parse_specializedType(Ast* named_type);
 static Ast* parse_baseType();
 static Ast* parse_integerTypeSize();
 static Ast* parse_typeOrVoid();
@@ -1633,12 +1634,10 @@ parse_namedType()
   if (token_is_typeName(token)) {
     Ast* named_type = parse_prefixedType();
     if (token->klass == TK_ANGLE_OPEN) {
-      Ast_SpecializedType* specd_type = (Ast_SpecializedType*)parse_specializedType();
-      specd_type->name = named_type;
+      Ast_SpecializedType* specd_type = (Ast_SpecializedType*)parse_specializedType(named_type);
       return (Ast*)specd_type;
     } else if (token->klass == TK_BRACKET_OPEN) {
-      Ast_HeaderStackType* stack_type = (Ast_HeaderStackType*)parse_headerStackType();
-      stack_type->name = named_type;
+      Ast_HeaderStackType* stack_type = (Ast_HeaderStackType*)parse_headerStackType(named_type);
       return (Ast*)stack_type;
     }
     return (Ast*)named_type;
@@ -1697,23 +1696,37 @@ parse_tupleType()
 }
 
 static Ast*
-parse_headerStackType()
+parse_headerStackType(Ast* named_type)
 {
   if (token->klass == TK_BRACKET_OPEN) {
     next_token();
-    Ast_HeaderStackType* hdrstack = arena_malloc(storage, sizeof(*hdrstack));
-    hdrstack->kind = AST_headerStackType;
-    hdrstack->line_no = token->line_no;
-    hdrstack->column_no = token->column_no;
+    Ast_Name* name = arena_malloc(storage, sizeof(*name));
+    name->kind = AST_name;
+    name->line_no = named_type->line_no;
+    name->column_no = named_type->column_no;
+    char* lexeme = arena_malloc(storage, MAXLEN_SYNTHTYPE);
+    int lexeme_len = sprintf(lexeme, "type@%d:%d", name->line_no, name->column_no);
+    assert(lexeme_len <= MAXLEN_SYNTHTYPE);
+    Ast_TypeRef* type_ref = arena_malloc(storage, sizeof(*type_ref));
+    type_ref->kind = AST_typeRef;
+    type_ref->line_no = named_type->line_no;
+    type_ref->column_no = named_type->column_no;
+    type_ref->type = named_type;
+    Ast_HeaderStackType* type = arena_malloc(storage, sizeof(*type));
+    type->kind = AST_headerStackType;
+    type->line_no = token->line_no;
+    type->column_no = token->column_no;
+    type->name = (Ast*)name;
+    type->type = (Ast*)type_ref;
     if (token_is_expression(token)) {
-      hdrstack->stack_expr = parse_expression(1);
+      type->stack_expr = parse_expression(1);
       if (token->klass == TK_BRACKET_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `]` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
     } else error("At line %d, column %d: expression expected, got `%s`.",
                  token->line_no, token->column_no, token->lexeme);
-    return (Ast*)hdrstack;
+    return (Ast*)type;
   } else error("At line %d, column %d: `[` was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
   assert(0);
@@ -1721,15 +1734,29 @@ parse_headerStackType()
 }
 
 static Ast*
-parse_specializedType()
+parse_specializedType(Ast* named_type)
 {
   if (token->klass == TK_ANGLE_OPEN) {
     next_token();
+    Ast_Name* name = arena_malloc(storage, sizeof(*name));
+    name->kind = AST_name;
+    name->line_no = named_type->line_no;
+    name->column_no = named_type->column_no;
+    char* lexeme = arena_malloc(storage, MAXLEN_SYNTHTYPE);
+    int lexeme_len = sprintf(lexeme, "type@%d:%d", name->line_no, name->column_no);
+    assert(lexeme_len <= MAXLEN_SYNTHTYPE);
+    Ast_TypeRef* type_ref = arena_malloc(storage, sizeof(*type_ref));
+    type_ref->kind = AST_typeRef;
+    type_ref->line_no = named_type->line_no;
+    type_ref->column_no = named_type->column_no;
+    type_ref->type = named_type;
     Ast_SpecializedType* type = arena_malloc(storage, sizeof(*type));
     type->kind = AST_specializedType;
     type->line_no = token->line_no;
     type->column_no = token->column_no;
     type->type_args = parse_typeArgumentList();
+    type->name = (Ast*)name;
+    type->type = (Ast*)type_ref;
     if (token->klass == TK_ANGLE_CLOSE) {
       next_token();
     } else error("At line %d, column %d: `>` was expected, got `%s`.",

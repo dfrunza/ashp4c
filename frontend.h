@@ -536,12 +536,14 @@ typedef struct Ast_TupleType {
 typedef struct Ast_HeaderStackType {
   Ast;
   Ast* name;
+  Ast* type;
   Ast* stack_expr;
 } Ast_HeaderStackType;
 
 typedef struct Ast_SpecializedType {
   Ast;
   Ast* name;
+  Ast* type;
   Ast* type_args;
 } Ast_SpecializedType;
 

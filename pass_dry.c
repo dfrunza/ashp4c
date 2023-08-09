@@ -563,6 +563,7 @@ visit_headerStackType(Ast_HeaderStackType* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
   visit_name((Ast_Name*)type_decl->name);
+  visit_typeRef((Ast_TypeRef*)type_decl->type);
   visit_expression((Ast_Expression*)type_decl->stack_expr);
 }
 
@@ -571,6 +572,7 @@ visit_specializedType(Ast_SpecializedType* type_decl)
 {
   assert(type_decl->kind == AST_specializedType);
   visit_name((Ast_Name*)type_decl->name);
+  visit_typeRef((Ast_TypeRef*)type_decl->type);
   visit_typeArgumentList((Ast_TypeArgumentList*)type_decl->type_args);
 }
 
