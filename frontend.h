@@ -530,6 +530,7 @@ typedef struct Ast_TypeRef {
 
 typedef struct Ast_TupleType {
   Ast;
+  Ast* name;
   Ast* type_args;
 } Ast_TupleType;
 

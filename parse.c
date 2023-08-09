@@ -1675,10 +1675,18 @@ parse_tupleType()
 {
   if (token->klass == TK_TUPLE) {
     next_token();
+    Ast_Name* name = arena_malloc(storage, sizeof(*name));
+    name->kind = AST_name;
+    name->line_no = token->line_no;
+    name->column_no = token->column_no;
+    char* lexeme = arena_malloc(storage, MAXLEN_SYNTHTYPE);
+    int lexeme_len = sprintf(lexeme, "type@%d:%d", name->line_no, name->column_no);
+    assert(lexeme_len <= MAXLEN_SYNTHTYPE);
     Ast_TupleType* tuple = arena_malloc(storage, sizeof(*tuple));
     tuple->kind = AST_tupleType;
     tuple->line_no = token->line_no;
     tuple->column_no = token->column_no;
+    tuple->name = (Ast*)name;
     if (token->klass == TK_ANGLE_OPEN) {
       next_token();
       tuple->type_args = parse_typeArgumentList();

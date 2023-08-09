@@ -105,9 +105,9 @@ main(int arg_count, char* args[])
   }
   Arena text_storage = {};
   SourceText* source_text = read_source_text(filename_arg->value, &text_storage);
-  TokenizedSource* lex_result = tokenize_text(source_text, &main_storage);
+  TokenizedSource* tokenized_source = tokenize_source_text(source_text, &main_storage);
 
-  ParsedProgram* p4program = parse_program(lex_result, &main_storage);
+  ParsedProgram* p4program = parse_program(tokenized_source, &main_storage);
   arena_free(&text_storage);
 
   pass_dry(p4program); /* sanity test */

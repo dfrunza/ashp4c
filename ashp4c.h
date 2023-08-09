@@ -1,7 +1,7 @@
 #pragma once
 
 SourceText*         read_source_text(char* filename, Arena* storage);
-TokenizedSource*    tokenize_text(SourceText* source_text, Arena* storage);
+TokenizedSource*    tokenize_source_text(SourceText* source_text, Arena* storage);
 ParsedProgram*      parse_program(TokenizedSource* lex_result, Arena* storage);
 void                pass_dry(ParsedProgram* p4program);
 PassResult_NameDecl*      pass_name_decl(ParsedProgram* p4program, Arena* storage);

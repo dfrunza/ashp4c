@@ -591,10 +591,11 @@ visit_typeRef(Ast_TypeRef* type_ref)
 }
 
 static void
-visit_tupleType(Ast_TupleType* tuple_decl)
+visit_tupleType(Ast_TupleType* type_decl)
 {
-  assert(tuple_decl->kind == AST_tupleType);
-  visit_typeArgumentList((Ast_TypeArgumentList*)tuple_decl->type_args);
+  assert(type_decl->kind == AST_tupleType);
+  visit_name((Ast_Name*)type_decl->name);
+  visit_typeArgumentList((Ast_TypeArgumentList*)type_decl->type_args);
 }
 
 static void

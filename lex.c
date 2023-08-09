@@ -12,11 +12,11 @@ typedef struct Lexeme {
 static Arena* storage;
 static char*  text;
 static int    text_size;
-static UnboundedArray* tokens;
 static int    line_no;
 static char*  line_start;
 static int    state;
 static Lexeme lexeme[2];
+static UnboundedArray* tokens;
 static TokenizedSource lex_result = {};
 
 static char
@@ -815,7 +815,7 @@ next_token(Token* token)
 }
 
 TokenizedSource*
-tokenize_text(SourceText* source_text, Arena* _storage)
+tokenize_source_text(SourceText* source_text, Arena* _storage)
 {
   storage = _storage;
   text = source_text->text;
