@@ -17,13 +17,13 @@ typedef struct CmdlineArg {
 } CmdlineArg;
 
 SourceText*
-read_source_text(char* filename, Arena* text_storage)
+read_source_text(char* filename, Arena* storage)
 {
   FILE* f_stream = fopen(filename, "rb");
   fseek(f_stream, 0, SEEK_END);
   int text_size = ftell(f_stream);
   fseek(f_stream, 0, SEEK_SET);
-  char* text = arena_malloc(text_storage, (text_size + 1)*sizeof(char));
+  char* text = arena_malloc(storage, (text_size + 1)*sizeof(char));
   fread(text, sizeof(char), text_size, f_stream);
   text[text_size] = '\0';
   fclose(f_stream);
@@ -105,7 +105,7 @@ main(int arg_count, char* args[])
   }
   Arena text_storage = {};
   SourceText* source_text = read_source_text(filename_arg->value, &text_storage);
-  TokenizedSource* lex_result = tokenize_text(source_text, &main_storage, &text_storage);
+  TokenizedSource* lex_result = tokenize_text(source_text, &main_storage);
 
   ParsedProgram* p4program = parse_program(lex_result, &main_storage);
   arena_free(&text_storage);

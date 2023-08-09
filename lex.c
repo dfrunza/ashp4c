@@ -9,10 +9,9 @@ typedef struct Lexeme {
   char* end;
 } Lexeme;
 
-static Arena* lexeme_storage;
+static Arena* storage;
 static char*  text;
 static int    text_size;
-static Arena* token_storage;
 static UnboundedArray* tokens;
 static int    line_no;
 static char*  line_start;
@@ -89,7 +88,7 @@ static char*
 lexeme_to_cstring(Lexeme* lexeme)
 {
   int len = lexeme_len(lexeme);
-  char* string = arena_malloc(lexeme_storage, (len + 1)*sizeof(char));   // +1 the NULL terminator
+  char* string = arena_malloc(storage, (len + 1)*sizeof(char));   // +1 the NULL terminator
   lexeme_copy(string, lexeme);
   string[len] = '\0';
   return string;
@@ -816,12 +815,11 @@ next_token(Token* token)
 }
 
 TokenizedSource*
-tokenize_text(SourceText* source_text, Arena* lexeme_storage_, Arena* token_storage_)
+tokenize_text(SourceText* source_text, Arena* _storage)
 {
+  storage = _storage;
   text = source_text->text;
   text_size = source_text->text_size;
-  lexeme_storage = lexeme_storage_;
-  token_storage = token_storage_;
 
   lexeme->start = lexeme->end = text;
   line_start = text;
@@ -830,7 +828,7 @@ tokenize_text(SourceText* source_text, Arena* lexeme_storage_, Arena* token_stor
   Token token = {};
   token.klass = TK_START_OF_INPUT;
   tokens = &lex_result.tokens;
-  array_create(tokens, token_storage, sizeof(token), 2047);
+  array_create(tokens, storage, sizeof(token), 2047);
   array_append(tokens, &token);
 
   next_token(&token);

@@ -1,9 +1,9 @@
 #pragma once
 
 typedef struct SourceText {
-  char* text;
-  int   text_size;
-  char* filename;
+  char*  text;
+  int    text_size;
+  char*  filename;
 } SourceText;
 
 enum TokenClass {
