@@ -62,10 +62,8 @@ ListItem* _list_first_item(List* list);
 #define    list_first_item(LIST, ITEM_TYPE)  ((ITEM_TYPE*)_list_first_item(LIST))
 void       list_append_item(List* list, ListItem* item, int count);
 
-typedef void ArrayElement;
-
 typedef struct UnboundedArray {
-  ArrayElement** segment_table;
+  void** segment_table;
   int segment_length;
   int elem_size;
   int elem_count;
@@ -73,11 +71,11 @@ typedef struct UnboundedArray {
   Arena* storage;
 } UnboundedArray;
 
-void         array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capacity);
-void         array_extend(UnboundedArray* array);
-ArrayElement* array_get(UnboundedArray* array, int i);
-ArrayElement* array_set(UnboundedArray* array, int i, ArrayElement* elem);
-ArrayElement* array_append(UnboundedArray* array, ArrayElement* elem);
+void  array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capacity);
+void  array_extend(UnboundedArray* array);
+void* array_get(UnboundedArray* array, int i);
+void* array_set(UnboundedArray* array, int i, void* elem);
+void* array_append(UnboundedArray* array, void* elem);
 
 enum HashmapKeyType {
   HASHMAP_KEY_STRING = 0,
@@ -107,6 +105,7 @@ typedef struct HashmapKey {
 typedef struct HashmapEntry {
   HashmapKey key;
   struct HashmapEntry* next_entry;
+  void* value[];
 } HashmapEntry;
 
 typedef struct HashmapCursor {
@@ -115,18 +114,21 @@ typedef struct HashmapCursor {
   HashmapEntry* entry;
 } HashmapCursor;
 
-void          _hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int entry_size,
+void          _hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int payload_size,
                               int capacity, int max_capacity);
 #define        hashmap_create(HASHMAP, STORAGE, KEY_TYPE, ENTRY_TYPE, CAPACITY, MAX_CAPACITY) \
-  _hashmap_create(HASHMAP, STORAGE, KEY_TYPE, sizeof(ENTRY_TYPE), CAPACITY, MAX_CAPACITY)
+                  _hashmap_create(HASHMAP, STORAGE, KEY_TYPE, sizeof(ENTRY_TYPE), CAPACITY, MAX_CAPACITY)
 HashmapEntry* _hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key);
-HashmapEntry* _hashmap_lookup_entry_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
-#define        hashmap_lookup_entry(HASHMAP, KEY_TYPE, KEY, ENTRY_TYPE) \
-  ((ENTRY_TYPE*)_hashmap_lookup_entry_va(HASHMAP, KEY_TYPE, KEY))
+void*         _hashmap_lookup_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
+#define        hashmap_lookup(HASHMAP, KEY_TYPE, KEY, ENTRY_TYPE) \
+                  ((ENTRY_TYPE)_hashmap_lookup_va(HASHMAP, KEY_TYPE, KEY))
 HashmapEntry* _hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
-HashmapEntry* _hashmap_get_entry_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
-#define        hashmap_get_entry(HASHMAP, KEY_TYPE, KEY, ENTRY_TYPE) \
-  ((ENTRY_TYPE*)_hashmap_get_entry_va(HASHMAP, KEY_TYPE, KEY))
+void*         _hashmap_get_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
+#define        hashmap_get(HASHMAP, KEY_TYPE, KEY, ENTRY_TYPE) \
+                  ((ENTRY_TYPE)_hashmap_get_va(HASHMAP, KEY_TYPE, KEY))
+void*         _hashmap_set_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
+#define        hashmap_set(HASHMAP, KEY_TYPE, KEY, ENTRY_TYPE, VALUE) \
+                  ((ENTRY_TYPE)_hashmap_set_va(HASHMAP, KEY_TYPE, KEY, VALUE))
 void           hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap);
 HashmapEntry* _hashmap_move_cursor(HashmapCursor* it);
 #define        hashmap_move_cursor(CURSOR, ENTRY_TYPE)  ((ENTRY_TYPE*)_hashmap_move_cursor(CURSOR))

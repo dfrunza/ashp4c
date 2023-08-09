@@ -202,14 +202,11 @@ static void
 visit_name(Ast_Name* name)
 {
   assert(name->kind == AST_name);
-  Scope* scope = hashmap_lookup_entry(
-          scope_map, HASHMAP_KEY_UINT32, (uint64_t)name, HashmapEntry_Scope)->scope;
+  Scope* scope = hashmap_lookup(scope_map, HASHMAP_KEY_UINT32, (uint64_t)name, Scope*);
   ScopeEntry* ns_entry = scope_lookup_namespace(scope, name->strname, NS_VAR);
   if (ns_entry) {
     NameDecl* namedecl = ns_entry->ns[NS_VAR];
-    HashmapEntry_Type* type_he = hashmap_lookup_entry(
-          type_table, HASHMAP_KEY_UINT32, (uint64_t)namedecl->ast, HashmapEntry_Type);
-    /*Type* type = type_he->type;*/
+    Type* type = hashmap_lookup(type_table, HASHMAP_KEY_UINT32, (uint64_t)namedecl->ast, Type*);
   } else error("At line %d, column %d: unknown name `%s`.",
           name->line_no, name->column_no, name->strname);
 }
@@ -1310,8 +1307,7 @@ visit_integerLiteral(Ast_IntegerLiteral* int_literal)
 {
   assert(int_literal->kind == AST_integerLiteral);
   NameDecl* namedecl = scope_lookup_namespace(root_scope, "int", NS_TYPE)->ns[NS_TYPE];
-  Type* type = hashmap_lookup_entry(
-        type_table, HASHMAP_KEY_UINT32, (uint64_t)namedecl->ast, HashmapEntry_Type)->type;
+  Type* type = hashmap_lookup(type_table, HASHMAP_KEY_UINT32, (uint64_t)namedecl->ast, Type*);
   /* TODO */
 }
 
@@ -1342,7 +1338,7 @@ pass_potential_type(ParsedProgram* p4program, Arena* _storage,
   scope_map = &namedecl_result->scope_map;
   type_table = &typedecl_result->type_table;
   potential_type = &pass_result.potential_type;
-  hashmap_create(potential_type, storage, HASHMAP_KEY_UINT32, HashmapEntry_Type, 7, 1023);
+  hashmap_create(potential_type, storage, HASHMAP_KEY_UINT32, Type*, 7, 1023);
   visit_p4program(p4program->ast);
   return &pass_result;
 }

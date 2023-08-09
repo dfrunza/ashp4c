@@ -206,9 +206,7 @@ static void
 visit_name(Ast_Name* name)
 {
   assert(name->kind == AST_name);
-  HashmapEntry_Scope* scope_he = hashmap_get_entry(
-        scope_map, HASHMAP_KEY_UINT32, (uint64_t)name, HashmapEntry_Scope);
-  scope_he->scope = current_scope;
+  hashmap_set(scope_map, HASHMAP_KEY_UINT32, (uint64_t)name, Scope*, current_scope);
 }
 
 static void
@@ -834,9 +832,7 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
   Scope* field_scope = arena_malloc(storage, sizeof(*field_scope));
   hashmap_create(&field_scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   visit_structFieldList((Ast_StructFieldList*)header_decl->fields, field_scope);
-  HashmapEntry_Scope* fields_he = hashmap_get_entry(
-          field_map, HASHMAP_KEY_UINT32, (uint64_t)header_decl, HashmapEntry_Scope);
-  fields_he->scope = field_scope;
+  hashmap_set(field_map, HASHMAP_KEY_UINT32, (uint64_t)header_decl, Scope*, field_scope);
 }
 
 static void
@@ -851,9 +847,7 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
   Scope* field_scope = arena_malloc(storage, sizeof(*field_scope));
   hashmap_create(&field_scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   visit_structFieldList((Ast_StructFieldList*)union_decl->fields, field_scope);
-  HashmapEntry_Scope* fields_he = hashmap_get_entry(
-          field_map, HASHMAP_KEY_UINT32, (uint64_t)union_decl, HashmapEntry_Scope);
-  fields_he->scope = field_scope;
+  hashmap_set(field_map, HASHMAP_KEY_UINT32, (uint64_t)union_decl, Scope*, field_scope);
 }
 
 static void
@@ -868,9 +862,7 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
   Scope* field_scope = arena_malloc(storage, sizeof(*field_scope));
   hashmap_create(&field_scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   visit_structFieldList((Ast_StructFieldList*)struct_decl->fields, field_scope);
-  HashmapEntry_Scope* fields_he = hashmap_get_entry(
-          field_map, HASHMAP_KEY_UINT32, (uint64_t)struct_decl, HashmapEntry_Scope);
-  fields_he->scope = field_scope;
+  hashmap_set(field_map, HASHMAP_KEY_UINT32, (uint64_t)struct_decl, Scope*, field_scope);
 }
 
 static void
@@ -907,9 +899,7 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
   Scope* field_scope = arena_malloc(storage, sizeof(*field_scope));
   hashmap_create(&field_scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields, field_scope);
-  HashmapEntry_Scope* fields_he = hashmap_get_entry(
-          field_map, HASHMAP_KEY_UINT32, (uint64_t)enum_decl, HashmapEntry_Scope);
-  fields_he->scope = field_scope;
+  hashmap_set(field_map, HASHMAP_KEY_UINT32, (uint64_t)enum_decl, Scope*, field_scope);
 }
 
 static void
@@ -919,9 +909,7 @@ visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
   Scope* field_scope = arena_malloc(storage, sizeof(*field_scope));
   hashmap_create(&field_scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   visit_identifierList((Ast_IdentifierList*)error_decl->fields, field_scope);
-  HashmapEntry_Scope* fields_he = hashmap_get_entry(
-          field_map, HASHMAP_KEY_UINT32, (uint64_t)error_decl, HashmapEntry_Scope);
-  fields_he->scope = field_scope;
+  hashmap_set(field_map, HASHMAP_KEY_UINT32, (uint64_t)error_decl, Scope*, field_scope);
 }
 
 static void
@@ -931,9 +919,7 @@ visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
   Scope* field_scope = arena_malloc(storage, sizeof(*field_scope));
   hashmap_create(&field_scope->name_table, storage, HASHMAP_KEY_STRING, ScopeEntry, 7, 511);
   visit_identifierList((Ast_IdentifierList*)match_decl->fields, field_scope);
-  HashmapEntry_Scope* fields_he = hashmap_get_entry(
-          field_map, HASHMAP_KEY_UINT32, (uint64_t)match_decl, HashmapEntry_Scope);
-  fields_he->scope = field_scope;
+  hashmap_set(field_map, HASHMAP_KEY_UINT32, (uint64_t)match_decl, Scope*, field_scope);
 }
 
 static void
@@ -1499,9 +1485,9 @@ pass_name_decl(ParsedProgram* p4program, Arena* _storage)
 {
   storage = _storage;
   scope_map = &pass_result.scope_map;
-  hashmap_create(scope_map, storage, HASHMAP_KEY_UINT32, ScopeEntry, 7, 1023);
+  hashmap_create(scope_map, storage, HASHMAP_KEY_UINT32, Scope*, 7, 1023);
   field_map = &pass_result.field_map;
-  hashmap_create(field_map, storage, HASHMAP_KEY_UINT32, ScopeEntry, 7, 1023);
+  hashmap_create(field_map, storage, HASHMAP_KEY_UINT32, Scope*, 7, 1023);
   current_scope = &p4program->root_scope;
   visit_p4program(p4program->ast);
   assert(current_scope == &p4program->root_scope);

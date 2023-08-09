@@ -23,8 +23,7 @@ scope_lookup_any(Scope* scope, char* strname)
 {
   ScopeEntry* ns_entry = 0;
   while (scope) {
-    ns_entry = hashmap_lookup_entry(
-                &scope->name_table, HASHMAP_KEY_STRING, strname, ScopeEntry);
+    ns_entry = hashmap_lookup(&scope->name_table, HASHMAP_KEY_STRING, strname, ScopeEntry*);
     if (ns_entry) {
       if (ns_entry->ns[NS_TYPE] || ns_entry->ns[NS_VAR] || ns_entry->ns[NS_KEYWORD]) {
         break;
@@ -40,8 +39,7 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 {
   ScopeEntry* ns_entry = 0;
   while (scope) {
-    ns_entry = hashmap_lookup_entry(
-                &scope->name_table, HASHMAP_KEY_STRING, strname, ScopeEntry);
+    ns_entry = hashmap_lookup(&scope->name_table, HASHMAP_KEY_STRING, strname, ScopeEntry*);
     if (ns_entry && ns_entry->ns[ns]) {
         break;
     }
@@ -54,8 +52,7 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 ScopeEntry*
 scope_push_decl(Scope* scope, NameDecl* decl, enum NameSpace ns)
 {
-  ScopeEntry* ns_entry = hashmap_get_entry(
-                  &scope->name_table, HASHMAP_KEY_STRING, decl->strname, ScopeEntry);
+  ScopeEntry* ns_entry = hashmap_get(&scope->name_table, HASHMAP_KEY_STRING, decl->strname, ScopeEntry*);
   decl->next_in_scope = ns_entry->ns[ns];
   ns_entry->ns[ns] = decl;
   return ns_entry;

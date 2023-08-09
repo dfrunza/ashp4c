@@ -311,10 +311,11 @@ typedef struct ListItem_Ast {
   Ast* ast;
 } ListItem_Ast;
 
+/*
 typedef struct HashmapEntry_Ast {
   HashmapEntry;
   Ast* ast;
-} HashmapEntry_Ast;
+} HashmapEntry_Ast; */
 
 /** PROGRAM **/
 
@@ -965,10 +966,11 @@ typedef struct Scope {
   struct Scope* parent_scope;
 } Scope;
 
+/*
 typedef struct HashmapEntry_Scope {
   HashmapEntry;
   Scope* scope;
-} HashmapEntry_Scope;
+} HashmapEntry_Scope; */
 
 typedef struct ParsedProgram {
   Ast_P4Program* ast;
@@ -993,7 +995,6 @@ enum NameSpace {
 };
 
 typedef struct ScopeEntry {
-  HashmapEntry;
   NameDecl* ns[NameSpace_COUNT];
 } ScopeEntry;
 
@@ -1077,10 +1078,11 @@ typedef struct ListItem_Type {
   Type* type;
 } ListItem_Type;
 
+/*
 typedef struct HashmapEntry_Type {
   HashmapEntry;
   Type* type;
-} HashmapEntry_Type;
+} HashmapEntry_Type; */
 
 typedef struct PassResult_TypeDecl {
   Hashmap type_table;
