@@ -7,7 +7,7 @@ static Arena*   storage;
 static Scope*   current_scope;
 static Hashmap* scope_map;
 static Hashmap* field_map;
-static Pass_NameDecl* pass_result;
+static PassResult_NameDecl pass_result = {};
 
 /** PROGRAM **/
 
@@ -1491,17 +1491,16 @@ visit_dontcare(Ast_Dontcare* dontcare)
   assert(dontcare->kind == AST_dontcare);
 }
 
-Pass_NameDecl*
+PassResult_NameDecl*
 pass_name_decl(ParsedProgram* p4program, Arena* _storage)
 {
   storage = _storage;
-  pass_result = arena_malloc(storage, sizeof(*pass_result));
-  scope_map = &pass_result->scope_map;
+  scope_map = &pass_result.scope_map;
   hashmap_create(scope_map, storage, HASHMAP_KEY_UINT32, ScopeEntry, 7, 1023);
-  field_map = &pass_result->field_map;
+  field_map = &pass_result.field_map;
   hashmap_create(field_map, storage, HASHMAP_KEY_UINT32, ScopeEntry, 7, 1023);
   current_scope = &p4program->root_scope;
   visit_p4program(p4program->ast);
   assert(current_scope == &p4program->root_scope);
-  return pass_result;
+  return &pass_result;
 }

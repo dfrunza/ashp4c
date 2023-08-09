@@ -13,11 +13,12 @@ static Arena* lexeme_storage;
 static char*  text;
 static int    text_size;
 static Arena* token_storage;
-static UnboundedArray tokens = {};
+static UnboundedArray* tokens;
 static int    line_no;
 static char*  line_start;
 static int    state;
 static Lexeme lexeme[2];
+static TokenizedSource lex_result = {};
 
 static char
 char_lookahead(int pos)
@@ -403,7 +404,7 @@ next_token(Token* token)
 
       case 113:
       {
-        Token* prev_token = array_get(&tokens, tokens.elem_count - 1);
+        Token* prev_token = array_get(tokens, tokens->elem_count - 1);
         if (prev_token->klass == TK_PARENTH_OPEN) {
           token->klass = TK_UNARY_MINUS;
         } else {
@@ -814,11 +815,11 @@ next_token(Token* token)
   token->line_no = line_no;
 }
 
-UnboundedArray*
-tokenize_text(char* text_, int text_size_, Arena* lexeme_storage_, Arena* token_storage_)
+TokenizedSource*
+tokenize_text(SourceText* source_text, Arena* lexeme_storage_, Arena* token_storage_)
 {
-  text = text_;
-  text_size = text_size_;
+  text = source_text->text;
+  text_size = source_text->text_size;
   lexeme_storage = lexeme_storage_;
   token_storage = token_storage_;
 
@@ -828,11 +829,12 @@ tokenize_text(char* text_, int text_size_, Arena* lexeme_storage_, Arena* token_
 
   Token token = {};
   token.klass = TK_START_OF_INPUT;
-  array_create(&tokens, token_storage, sizeof(token), 2047);
-  array_append(&tokens, &token);
+  tokens = &lex_result.tokens;
+  array_create(tokens, token_storage, sizeof(token), 2047);
+  array_append(tokens, &token);
 
   next_token(&token);
-  array_append(&tokens, &token);
+  array_append(tokens, &token);
   while (token.klass != TK_END_OF_INPUT) {
     if (token.klass == TK_UNKNOWN) {
       error("At line %d, column %d: unknown token.", token.line_no, token.column_no);
@@ -840,8 +842,8 @@ tokenize_text(char* text_, int text_size_, Arena* lexeme_storage_, Arena* token_
       error("At line %d, column %d: lexical error.", token.line_no, token.column_no);
     }
     next_token(&token);
-    array_append(&tokens, &token);
+    array_append(tokens, &token);
   }
-  return &tokens;
+  return &lex_result;
 }
 

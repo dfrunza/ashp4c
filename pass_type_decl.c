@@ -5,7 +5,7 @@
 
 static Arena*   storage;
 static Hashmap* type_table;
-static Pass_TypeDecl* pass_result;
+static PassResult_TypeDecl pass_result = {};
 
 /** PROGRAM **/
 
@@ -1385,13 +1385,12 @@ visit_dontcare(Ast_Dontcare* dontcare)
   assert(dontcare->kind == AST_dontcare);
 }
 
-Pass_TypeDecl*
+PassResult_TypeDecl*
 pass_type_decl(ParsedProgram* p4program, Arena* _storage)
 {
   storage = _storage;
-  pass_result = arena_malloc(storage, sizeof(*pass_result));
-  type_table = &pass_result->type_table;
-  hashmap_create(&pass_result->type_table, storage, HASHMAP_KEY_UINT32, HashmapEntry_Type, 7, 1023);
+  type_table = &pass_result.type_table;
+  hashmap_create(&pass_result.type_table, storage, HASHMAP_KEY_UINT32, HashmapEntry_Type, 7, 1023);
   Scope* root_scope = &p4program->root_scope;
 
   struct BuiltinType {
@@ -1418,6 +1417,6 @@ pass_type_decl(ParsedProgram* p4program, Arena* _storage)
   }
 
   visit_p4program(p4program->ast);
-  return pass_result;
+  return &pass_result;
 }
 

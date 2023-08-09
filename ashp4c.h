@@ -1,9 +1,11 @@
 #pragma once
 
-UnboundedArray*     tokenize_text(char* text, int text_size, Arena* lexeme_storage, Arena* tokens_storage);
-ParsedProgram*      parse_program(UnboundedArray* tokens, Arena* storage);
+SourceText*         read_source_text(char* filename, Arena* text_storage);
+TokenizedSource*    tokenize_text(SourceText* source_text, Arena* lexeme_storage, Arena* tokens_storage);
+ParsedProgram*      parse_program(TokenizedSource* lex_result, Arena* storage);
 void                pass_dry(ParsedProgram* p4program);
-Pass_NameDecl*      pass_name_decl(ParsedProgram* p4program, Arena* storage);
-Pass_TypeDecl*      pass_type_decl(ParsedProgram* p4program, Arena* storage, Pass_NameDecl* namedecl);
-Pass_PotentialType* pass_potential_type(ParsedProgram* p4program, Arena* storage, Pass_NameDecl* namedecl, Pass_TypeDecl* typedecl);
+PassResult_NameDecl*      pass_name_decl(ParsedProgram* p4program, Arena* storage);
+PassResult_TypeDecl*      pass_type_decl(ParsedProgram* p4program, Arena* storage, PassResult_NameDecl* namedecl_result);
+PassResult_PotentialType* pass_potential_type(ParsedProgram* p4program, Arena* storage,
+                              PassResult_NameDecl* namedecl, PassResult_TypeDecl* typedecl);
 

@@ -1,5 +1,11 @@
 #pragma once
 
+typedef struct SourceText {
+  char* text;
+  int   text_size;
+  char* filename;
+} SourceText;
+
 enum TokenClass {
 
   /* Operators and syntactic structure */
@@ -106,6 +112,10 @@ typedef struct Token {
     char* str;
   };
 } Token;
+
+typedef struct TokenizedSource {
+  UnboundedArray tokens;
+} TokenizedSource;
 
 enum AstEnum {
 
@@ -990,10 +1000,10 @@ ScopeEntry* scope_lookup_any(Scope* scope, char* name);
 ScopeEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
 ScopeEntry* scope_push_decl(Scope* scope, NameDecl* decl, enum NameSpace ns);
 
-typedef struct Pass_NameDecl {
+typedef struct PassResult_NameDecl {
   Hashmap scope_map;
   Hashmap field_map;
-} Pass_NameDecl;
+} PassResult_NameDecl;
 
 enum TypeEnum {
 
@@ -1069,11 +1079,11 @@ typedef struct HashmapEntry_Type {
   Type* type;
 } HashmapEntry_Type;
 
-typedef struct Pass_TypeDecl {
+typedef struct PassResult_TypeDecl {
   Hashmap type_table;
-} Pass_TypeDecl;
+} PassResult_TypeDecl;
 
-typedef struct Pass_PotentialType {
+typedef struct PassResult_PotentialType {
   Hashmap potential_type;
-} Pass_PotentialType;
+} PassResult_PotentialType;
 

@@ -8,6 +8,7 @@
 #include "ashp4c.h"
 
 static Arena main_storage = {};
+static SourceText source_text = {};
 
 typedef struct CmdlineArg {
   char* name;
@@ -15,8 +16,8 @@ typedef struct CmdlineArg {
   struct CmdlineArg* next_arg;
 } CmdlineArg;
 
-static void
-read_source(char** text_, int* text_size_, char* filename, Arena* text_storage)
+SourceText*
+read_source_text(char* filename, Arena* text_storage)
 {
   FILE* f_stream = fopen(filename, "rb");
   fseek(f_stream, 0, SEEK_END);
@@ -26,8 +27,10 @@ read_source(char** text_, int* text_size_, char* filename, Arena* text_storage)
   fread(text, sizeof(char), text_size, f_stream);
   text[text_size] = '\0';
   fclose(f_stream);
-  *text_ = text;
-  *text_size_ = text_size;
+  source_text.text = text;
+  source_text.text_size = text_size;
+  source_text.filename = filename;
+  return &source_text;
 }
 
 static CmdlineArg*
@@ -101,18 +104,16 @@ main(int arg_count, char* args[])
     exit(1);
   }
   Arena text_storage = {};
-  char* text = 0;
-  int text_size = 0;
-  read_source(&text, &text_size, filename_arg->value, &text_storage);
-  UnboundedArray* tokens = tokenize_text(text, text_size, &main_storage, &text_storage);
+  SourceText* source_text = read_source_text(filename_arg->value, &text_storage);
+  TokenizedSource* lex_result = tokenize_text(source_text, &main_storage, &text_storage);
 
-  ParsedProgram* p4program = parse_program(tokens, &main_storage);
+  ParsedProgram* p4program = parse_program(lex_result, &main_storage);
   arena_free(&text_storage);
 
   pass_dry(p4program); /* sanity check */
-  Pass_NameDecl* namedecl = pass_name_decl(p4program, &main_storage);
-  Pass_TypeDecl* typedecl = pass_type_decl(p4program, &main_storage, namedecl);
-  pass_potential_type(p4program, &main_storage, namedecl, typedecl);
+  PassResult_NameDecl* namedecl_result = pass_name_decl(p4program, &main_storage);
+  PassResult_TypeDecl* typedecl_result = pass_type_decl(p4program, &main_storage, namedecl_result);
+  pass_potential_type(p4program, &main_storage, namedecl_result, typedecl_result);
 
   /*
   select_type(p4program, root_scope, potential_type, &main_storage); */
