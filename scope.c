@@ -14,8 +14,7 @@ scope_push(Scope* scope, Scope* parent_scope)
 Scope*
 scope_pop(Scope* scope)
 {
-  Scope* parent_scope = scope->parent_scope;
-  return parent_scope;
+  return scope->parent_scope;
 }
 
 NameEntry*
