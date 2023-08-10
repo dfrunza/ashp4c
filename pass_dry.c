@@ -154,9 +154,9 @@ static void
 visit_declarationList(Ast_DeclarationList* decl_list)
 {
   assert(decl_list->kind == AST_declarationList);
-  for (ListItem_Ast* li = list_first_item(&decl_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_declaration((Ast_Declaration*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&decl_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&decl_list->members)) {
+    visit_declaration((Ast_Declaration*)ast);
   }
 }
 
@@ -201,9 +201,9 @@ static void
 visit_parameterList(Ast_ParameterList* params)
 {
   assert(params->kind == AST_parameterList);
-  for (ListItem_Ast* li = list_first_item(&params->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_parameter((Ast_Parameter*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&params->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&params->members)) {
+    visit_parameter((Ast_Parameter*)ast);
   }
 }
 
@@ -267,9 +267,9 @@ static void
 visit_parserLocalElements(Ast_ParserLocalElements* local_elements)
 {
   assert(local_elements->kind == AST_parserLocalElements);
-  for (ListItem_Ast* li = list_first_item(&local_elements->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_parserLocalElement((Ast_ParserLocalElement*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&local_elements->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&local_elements->members)) {
+    visit_parserLocalElement((Ast_ParserLocalElement*)ast);
   }
 }
 
@@ -288,9 +288,9 @@ static void
 visit_parserStates(Ast_ParserStates* states)
 {
   assert(states->kind == AST_parserStates);
-  for (ListItem_Ast* li = list_first_item(&states->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_parserState((Ast_ParserState*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&states->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&states->members)) {
+    visit_parserState((Ast_ParserState*)ast);
   }
 }
 
@@ -307,9 +307,9 @@ static void
 visit_parserStatements(Ast_ParserStatements* stmts)
 {
   assert(stmts->kind == AST_parserStatements);
-  for (ListItem_Ast* li = list_first_item(&stmts->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_parserStatement((Ast_ParserStatement*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&stmts->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&stmts->members)) {
+    visit_parserStatement((Ast_ParserStatement*)ast);
   }
 }
 
@@ -367,9 +367,9 @@ static void
 visit_selectCaseList(Ast_SelectCaseList* case_list)
 {
   assert(case_list->kind == AST_selectCaseList);
-  for (ListItem_Ast* li = list_first_item(&case_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_selectCase((Ast_SelectCase*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&case_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&case_list->members)) {
+    visit_selectCase((Ast_SelectCase*)ast);
   }
 }
 
@@ -416,9 +416,9 @@ static void
 visit_simpleExpressionList(Ast_SimpleExpressionList* expr_list)
 {
   assert(expr_list->kind == AST_simpleExpressionList);
-  for (ListItem_Ast* li = list_first_item(&expr_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_simpleKeysetExpression((Ast_SimpleKeysetExpression*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&expr_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&expr_list->members)) {
+    visit_simpleKeysetExpression((Ast_SimpleKeysetExpression*)ast);
   }
 }
 
@@ -451,9 +451,9 @@ static void
 visit_controlLocalDeclarations(Ast_ControlLocalDeclarations* local_decls)
 {
   assert(local_decls->kind == AST_controlLocalDeclarations);
-  for (ListItem_Ast* li = list_first_item(&local_decls->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_controlLocalDeclaration((Ast_ControlLocalDeclaration*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&local_decls->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&local_decls->members)) {
+    visit_controlLocalDeclaration((Ast_ControlLocalDeclaration*)ast);
   }
 }
 
@@ -500,9 +500,9 @@ static void
 visit_methodPrototypes(Ast_MethodPrototypes* protos)
 {
   assert(protos->kind == AST_methodPrototypes);
-  for (ListItem_Ast* li = list_first_item(&protos->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_functionPrototype((Ast_FunctionPrototype*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&protos->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&protos->members)) {
+    visit_functionPrototype((Ast_FunctionPrototype*)ast);
   }
 }
 
@@ -643,9 +643,9 @@ static void
 visit_typeParameterList(Ast_TypeParameterList* param_list)
 {
   assert(param_list->kind == AST_typeParameterList);
-  for (ListItem_Ast* li = list_first_item(&param_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_name((Ast_Name*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&param_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&param_list->members)) {
+    visit_name((Ast_Name*)ast);
   }
 }
 
@@ -677,9 +677,9 @@ static void
 visit_realTypeArgumentList(Ast_RealTypeArgumentList* arg_list)
 {
   assert(arg_list->kind == AST_realTypeArgumentList);
-  for (ListItem_Ast* li = list_first_item(&arg_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_realTypeArg((Ast_RealTypeArg*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&arg_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&arg_list->members)) {
+    visit_realTypeArg((Ast_RealTypeArg*)ast);
   }
 }
 
@@ -687,9 +687,9 @@ static void
 visit_typeArgumentList(Ast_TypeArgumentList* arg_list)
 {
   assert(arg_list->kind == AST_typeArgumentList);
-  for (ListItem_Ast* li = list_first_item(&arg_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_typeArg((Ast_TypeArg*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&arg_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&arg_list->members)) {
+    visit_typeArg((Ast_TypeArg*)ast);
   }
 }
 
@@ -753,9 +753,9 @@ static void
 visit_structFieldList(Ast_StructFieldList* field_list)
 {
   assert(field_list->kind == AST_structFieldList);
-  for (ListItem_Ast* li = list_first_item(&field_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_structField((Ast_StructField*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&field_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&field_list->members)) {
+    visit_structField((Ast_StructField*)ast);
   }
 }
 
@@ -793,9 +793,9 @@ static void
 visit_identifierList(Ast_IdentifierList* ident_list)
 {
   assert(ident_list->kind == AST_identifierList);
-  for (ListItem_Ast* li = list_first_item(&ident_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_name((Ast_Name*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&ident_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&ident_list->members)) {
+    visit_name((Ast_Name*)ast);
   }
 }
 
@@ -803,9 +803,9 @@ static void
 visit_specifiedIdentifierList(Ast_SpecifiedIdentifierList* ident_list)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
-  for (ListItem_Ast* li = list_first_item(&ident_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_specifiedIdentifier((Ast_SpecifiedIdentifier*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&ident_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&ident_list->members)) {
+    visit_specifiedIdentifier((Ast_SpecifiedIdentifier*)ast);
   }
 }
 
@@ -931,9 +931,9 @@ static void
 visit_statementOrDeclList(Ast_StatementOrDeclList* stmt_list)
 {
   assert(stmt_list->kind == AST_statementOrDeclList);
-  for (ListItem_Ast* li = list_first_item(&stmt_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_statementOrDeclaration((Ast_StatementOrDeclaration*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&stmt_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&stmt_list->members)) {
+    visit_statementOrDeclaration((Ast_StatementOrDeclaration*)ast);
   }
 }
 
@@ -949,9 +949,9 @@ static void
 visit_switchCases(Ast_SwitchCases* switch_cases)
 {
   assert(switch_cases->kind == AST_switchCases);
-  for (ListItem_Ast* li = list_first_item(&switch_cases->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_switchCase((Ast_SwitchCase*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&switch_cases->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&switch_cases->members)) {
+    visit_switchCase((Ast_SwitchCase*)ast);
   }
 }
 
@@ -1003,9 +1003,9 @@ static void
 visit_tablePropertyList(Ast_TablePropertyList* prop_list)
 {
   assert(prop_list->kind == AST_tablePropertyList);
-  for (ListItem_Ast* li = list_first_item(&prop_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_tableProperty((Ast_TableProperty*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&prop_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&prop_list->members)) {
+    visit_tableProperty((Ast_TableProperty*)ast);
   }
 }
 
@@ -1035,9 +1035,9 @@ static void
 visit_keyElementList(Ast_KeyElementList* element_list)
 {
   assert(element_list->kind == AST_keyElementList);
-  for (ListItem_Ast* li = list_first_item(&element_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_keyElement((Ast_KeyElement*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&element_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&element_list->members)) {
+    visit_keyElement((Ast_KeyElement*)ast);
   }
 }
 
@@ -1060,9 +1060,9 @@ static void
 visit_actionList(Ast_ActionList* action_list)
 {
   assert(action_list->kind == AST_actionList);
-  for (ListItem_Ast* li = list_first_item(&action_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_actionRef((Ast_ActionRef*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&action_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&action_list->members)) {
+    visit_actionRef((Ast_ActionRef*)ast);
   }
 }
 
@@ -1087,9 +1087,9 @@ static void
 visit_entriesList(Ast_EntriesList* entries_list)
 {
   assert(entries_list->kind == AST_entriesList);
-  for (ListItem_Ast* li = list_first_item(&entries_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_entry((Ast_Entry*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&entries_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&entries_list->members)) {
+    visit_entry((Ast_Entry*)ast);
   }
 }
 
@@ -1145,9 +1145,9 @@ static void
 visit_argumentList(Ast_ArgumentList* arg_list)
 {
   assert(arg_list->kind == AST_argumentList);
-  for (ListItem_Ast* li = list_first_item(&arg_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_argument((Ast_Argument*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&arg_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&arg_list->members)) {
+    visit_argument((Ast_Argument*)ast);
   }
 }
 
@@ -1166,9 +1166,9 @@ static void
 visit_expressionList(Ast_ExpressionList* expr_list)
 {
   assert(expr_list->kind == AST_expressionList);
-  for (ListItem_Ast* li = list_first_item(&expr_list->members, ListItem_Ast);
-        li != 0; li = (ListItem_Ast*)li->next) {
-    visit_expression((Ast_Expression*)li->ast);
+  for (Ast* ast = *(Ast**)list_cursor_begin(&expr_list->members);
+       ast != 0; ast = *(Ast**)list_cursor_next(&expr_list->members)) {
+    visit_expression((Ast_Expression*)ast);
   }
 }
 

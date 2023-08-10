@@ -572,16 +572,14 @@ parse_declarationList()
   decls->kind = AST_declarationList;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
-  list_create(&decls->members, storage, ListItem_Ast);
+  list_create(&decls->members, storage, sizeof(Ast*));
   if (token_is_declaration(token)) {
-    ListItem_Ast* li = list_create_item(&decls->members, ListItem_Ast);
-    li->ast = parse_declaration();
-    list_append_item(&decls->members, (ListItem*)li, 1);
+    Ast* ast = parse_declaration();
+    list_append(&decls->members, &ast);
     while (token_is_declaration(token) || token->klass == TK_SEMICOLON) {
       if (token_is_declaration(token)) {
-        li = list_create_item(&decls->members, ListItem_Ast);
-        li->ast = parse_declaration();
-        list_append_item(&decls->members, (ListItem*)li, 1);
+        Ast* ast = parse_declaration();
+        list_append(&decls->members, &ast);
       } else if (token->klass == TK_SEMICOLON) {
         next_token(); /* empty declaration */
       }
@@ -698,16 +696,14 @@ parse_parameterList()
   params->kind = AST_parameterList;
   params->line_no = token->line_no;
   params->column_no = token->column_no;
-  list_create(&params->members, storage, ListItem_Ast);
+  list_create(&params->members, storage, sizeof(Ast*));
   if (token_is_parameter(token)) {
-    ListItem_Ast* li = list_create_item(&params->members, ListItem_Ast);
-    li->ast = parse_parameter();
-    list_append_item(&params->members, (ListItem*)li, 1);
+    Ast* ast = parse_parameter();
+    list_append(&params->members, &ast);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&params->members, ListItem_Ast);
-      li->ast = parse_parameter();
-      list_append_item(&params->members, (ListItem*)li, 1);
+      Ast* ast = parse_parameter();
+      list_append(&params->members, &ast);
     }
   }
   return (Ast*)params;
@@ -885,15 +881,13 @@ parse_parserLocalElements()
   elems->kind = AST_parserLocalElements;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
-  list_create(&elems->members, storage, ListItem_Ast);
+  list_create(&elems->members, storage, sizeof(Ast*));
   if (token_is_parserLocalElement(token)) {
-    ListItem_Ast* li = list_create_item(&elems->members, ListItem_Ast);
-    li->ast = parse_parserLocalElement();
-    list_append_item(&elems->members, (ListItem*)li, 1);
+    Ast* ast = parse_parserLocalElement();
+    list_append(&elems->members, &ast);
     while (token_is_parserLocalElement(token)) {
-      li = list_create_item(&elems->members, ListItem_Ast);
-      li->ast = parse_parserLocalElement();
-      list_append_item(&elems->members, (ListItem*)li, 1);
+      Ast* ast = parse_parserLocalElement();
+      list_append(&elems->members, &ast);
     }
   }
   return (Ast*)elems;
@@ -968,15 +962,13 @@ parse_parserStates()
   states->kind = AST_parserStates;
   states->line_no = token->line_no;
   states->column_no = token->column_no;
-  list_create(&states->members, storage, ListItem_Ast);
+  list_create(&states->members, storage, sizeof(Ast*));
   if (token->klass == TK_STATE) {
-    ListItem_Ast* li = list_create_item(&states->members, ListItem_Ast);
-    li->ast = parse_parserState();
-    list_append_item(&states->members, (ListItem*)li, 1);
+    Ast* ast = parse_parserState();
+    list_append(&states->members, &ast);
     while (token->klass == TK_STATE) {
-      li = list_create_item(&states->members, ListItem_Ast);
-      li->ast = parse_parserState();
-      list_append_item(&states->members, (ListItem*)li, 1);
+      Ast* ast = parse_parserState();
+      list_append(&states->members, &ast);
     }
   }
   return (Ast*)states;
@@ -1016,15 +1008,13 @@ parse_parserStatements()
   stmts->kind = AST_parserStatements;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
-  list_create(&stmts->members, storage, ListItem_Ast);
+  list_create(&stmts->members, storage, sizeof(Ast*));
   if (token_is_parserStatement(token)) {
-    ListItem_Ast* li = list_create_item(&stmts->members, ListItem_Ast);
-    li->ast = parse_parserStatement();
-    list_append_item(&stmts->members, (ListItem*)li, 1);
+    Ast* ast = parse_parserStatement();
+    list_append(&stmts->members, &ast);
     while (token_is_parserStatement(token)) {
-      li = list_create_item(&stmts->members, ListItem_Ast);
-      li->ast = parse_parserStatement();
-      list_append_item(&stmts->members, (ListItem*)li, 1);
+      Ast* ast = parse_parserStatement();
+      list_append(&stmts->members, &ast);
     }
   }
   return (Ast*)stmts;
@@ -1174,15 +1164,13 @@ parse_selectCaseList()
   cases->kind = AST_selectCaseList;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
-  list_create(&cases->members, storage, ListItem_Ast);
+  list_create(&cases->members, storage, sizeof(Ast*));
   if (token_is_selectCase(token)) {
-    ListItem_Ast* li = list_create_item(&cases->members, ListItem_Ast);
-    li->ast = parse_selectCase();
-    list_append_item(&cases->members, (ListItem*)li, 1);
+    Ast* ast = parse_selectCase();
+    list_append(&cases->members, &ast);
     while (token_is_selectCase(token)) {
-      li = list_create_item(&cases->members, ListItem_Ast);
-      li->ast = parse_selectCase();
-      list_append_item(&cases->members, (ListItem*)li, 1);
+      Ast* ast = parse_selectCase();
+      list_append(&cases->members, &ast);
     }
   }
   return (Ast*)cases;
@@ -1265,16 +1253,14 @@ parse_simpleExpressionList()
   exprs->kind = AST_simpleExpressionList;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
-  list_create(&exprs->members, storage, ListItem_Ast);
+  list_create(&exprs->members, storage, sizeof(Ast*));
   if (token_is_expression(token)) {
-    ListItem_Ast* li = list_create_item(&exprs->members, ListItem_Ast);
-    li->ast = parse_simpleKeysetExpression();
-    list_append_item(&exprs->members, (ListItem*)li, 1);
+    Ast* ast = parse_simpleKeysetExpression();
+    list_append(&exprs->members, &ast);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&exprs->members, ListItem_Ast);
-      li->ast = parse_simpleKeysetExpression();
-      list_append_item(&exprs->members, (ListItem*)li, 1);
+      Ast* ast = parse_simpleKeysetExpression();
+      list_append(&exprs->members, &ast);
     }
   }
   return (Ast*)exprs;
@@ -1422,15 +1408,13 @@ parse_controlLocalDeclarations()
   decls->kind = AST_controlLocalDeclarations;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
-  list_create(&decls->members, storage, ListItem_Ast);
+  list_create(&decls->members, storage, sizeof(Ast*));
   if (token_is_controlLocalDeclaration(token)) {
-    ListItem_Ast* li = list_create_item(&decls->members, ListItem_Ast);
-    li->ast = parse_controlLocalDeclaration();
-    list_append_item(&decls->members, (ListItem*)li, 1);
+    Ast* ast = parse_controlLocalDeclaration();
+    list_append(&decls->members, &ast);
     while (token_is_controlLocalDeclaration(token)) {
-      li = list_create_item(&decls->members, ListItem_Ast);
-      li->ast = parse_controlLocalDeclaration();
-      list_append_item(&decls->members, (ListItem*)li, 1);
+      Ast* ast = parse_controlLocalDeclaration();
+      list_append(&decls->members, &ast);
     }
   }
   return (Ast*)decls;
@@ -1501,15 +1485,13 @@ parse_methodPrototypes()
   protos->kind = AST_methodPrototypes;
   protos->line_no = token->line_no;
   protos->column_no = token->column_no;
-  list_create(&protos->members, storage, ListItem_Ast);
+  list_create(&protos->members, storage, sizeof(Ast*));
   if (token_is_methodPrototype(token)) {
-    ListItem_Ast* li = list_create_item(&protos->members, ListItem_Ast);
-    li->ast = parse_methodPrototype();
-    list_append_item(&protos->members, (ListItem*)li, 1);
+    Ast* ast = parse_methodPrototype();
+    list_append(&protos->members, &ast);
     while (token_is_methodPrototype(token)) {
-      li = list_create_item(&protos->members, ListItem_Ast);
-      li->ast = parse_methodPrototype();
-      list_append_item(&protos->members, (ListItem*)li, 1);
+      Ast* ast = parse_methodPrototype();
+      list_append(&protos->members, &ast);
     }
   }
   return (Ast*)protos;
@@ -1951,24 +1933,20 @@ parse_typeParameterList()
   params->kind = AST_typeParameterList;
   params->line_no = token->line_no;
   params->column_no = token->column_no;
-  list_create(&params->members, storage, ListItem_Ast);
+  list_create(&params->members, storage, sizeof(Ast*));
   if (token_is_typeParameterList(token)) {
     Ast_Name* name = (Ast_Name*)parse_name();
     NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
     namedecl->strname = name->strname;
     scope_push_decl(current_scope, namedecl, NS_TYPE);
-    ListItem_Ast* li = list_create_item(&params->members, ListItem_Ast);
-    li->ast = (Ast*)name;
-    list_append_item(&params->members, (ListItem*)li, 1);
+    list_append(&params->members, &name);
     while (token->klass == TK_COMMA) {
       next_token();
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
       scope_push_decl(current_scope, namedecl, NS_TYPE);
-      li = list_create_item(&params->members, ListItem_Ast);
-      li->ast = (Ast*)name;
-      list_append_item(&params->members, (ListItem*)li, 1);
+      list_append(&params->members, &name);
     }
   }
   return (Ast*)params;
@@ -2036,16 +2014,14 @@ parse_realTypeArgumentList()
   args->kind = AST_realTypeArgumentList;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
-  list_create(&args->members, storage, ListItem_Ast);
+  list_create(&args->members, storage, sizeof(Ast*));
   if (token_is_realTypeArg(token)) {
-    ListItem_Ast* li = list_create_item(&args->members, ListItem_Ast);
-    li->ast = parse_realTypeArg();
-    list_append_item(&args->members, (ListItem*)li, 1);
+    Ast* ast = parse_realTypeArg();
+    list_append(&args->members, &ast);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&args->members, ListItem_Ast);
-      li->ast = parse_realTypeArg();
-      list_append_item(&args->members, (ListItem*)li, 1);
+      Ast* ast = parse_realTypeArg();
+      list_append(&args->members, &ast);
     }
   }
   return (Ast*)args;
@@ -2058,16 +2034,14 @@ parse_typeArgumentList()
   args->kind = AST_typeArgumentList;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
-  list_create(&args->members, storage, ListItem_Ast);
+  list_create(&args->members, storage, sizeof(Ast*));
   if (token_is_typeArg(token)) {
-    ListItem_Ast* li = list_create_item(&args->members, ListItem_Ast);
-    li->ast = parse_typeArg();
-    list_append_item(&args->members, (ListItem*)li, 1);
+    Ast* ast = parse_typeArg();
+    list_append(&args->members, &ast);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&args->members, ListItem_Ast);
-      li->ast = parse_typeArg();
-      list_append_item(&args->members, (ListItem*)li, 1);
+      Ast* ast = parse_typeArg();
+      list_append(&args->members, &ast);
     }
   }
   return (Ast*)args;
@@ -2240,15 +2214,13 @@ parse_structFieldList()
   fields->kind = AST_structFieldList;
   fields->line_no = token->line_no;
   fields->column_no = token->column_no;
-  list_create(&fields->members, storage, ListItem_Ast);
+  list_create(&fields->members, storage, sizeof(Ast*));
   if (token_is_structField(token)) {
-    ListItem_Ast* li = list_create_item(&fields->members, ListItem_Ast);
-    li->ast = parse_structField();
-    list_append_item(&fields->members, (ListItem*)li, 1);
+    Ast* ast = parse_structField();
+    list_append(&fields->members, &ast);
     while (token_is_structField(token)) {
-      li = list_create_item(&fields->members, ListItem_Ast);
-      li->ast = parse_structField();
-      list_append_item(&fields->members, (ListItem*)li, 1);
+      Ast* ast = parse_structField();
+      list_append(&fields->members, &ast);
     }
   }
   return (Ast*)fields;
@@ -2395,16 +2367,14 @@ parse_identifierList()
   ids->kind = AST_identifierList;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
-  list_create(&ids->members, storage, ListItem_Ast);
+  list_create(&ids->members, storage, sizeof(Ast*));
   if (token_is_name(token)) {
-    ListItem_Ast* li = list_create_item(&ids->members, ListItem_Ast);
-    li->ast = parse_name();
-    list_append_item(&ids->members, (ListItem*)li, 1);
+    Ast* ast = parse_name();
+    list_append(&ids->members, &ast);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&ids->members, ListItem_Ast);
-      li->ast = parse_name();
-      list_append_item(&ids->members, (ListItem*)li, 1);
+      Ast* ast = parse_name();
+      list_append(&ids->members, &ast);
     }
   }
   return (Ast*)ids;
@@ -2417,16 +2387,14 @@ parse_specifiedIdentifierList()
   ids->kind = AST_specifiedIdentifierList;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
-  list_create(&ids->members, storage, ListItem_Ast);
+  list_create(&ids->members, storage, sizeof(Ast*));
   if (token_is_specifiedIdentifier(token)) {
-    ListItem_Ast* li = list_create_item(&ids->members, ListItem_Ast);
-    li->ast = parse_specifiedIdentifier();
-    list_append_item(&ids->members, (ListItem*)li, 1);
+    Ast* ast = parse_specifiedIdentifier();
+    list_append(&ids->members, &ast);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&ids->members, ListItem_Ast);
-      li->ast = parse_specifiedIdentifier();
-      list_append_item(&ids->members, (ListItem*)li, 1);
+      Ast* ast = parse_specifiedIdentifier();
+      list_append(&ids->members, &ast);
     }
   }
   return (Ast*)ids;
@@ -2734,15 +2702,13 @@ parse_statementOrDeclList()
   stmts->kind = AST_statementOrDeclList;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
-  list_create(&stmts->members, storage, ListItem_Ast);
+  list_create(&stmts->members, storage, sizeof(Ast*));
   if (token_is_statementOrDeclaration(token)) {
-    ListItem_Ast* li = list_create_item(&stmts->members, ListItem_Ast);
-    li->ast = parse_statementOrDeclaration();
-    list_append_item(&stmts->members, (ListItem*)li, 1);
+    Ast* ast = parse_statementOrDeclaration();
+    list_append(&stmts->members, &ast);
     while (token_is_statementOrDeclaration(token)) {
-      li = list_create_item(&stmts->members, ListItem_Ast);
-      li->ast = parse_statementOrDeclaration();
-      list_append_item(&stmts->members, (ListItem*)li, 1);
+      Ast* ast = parse_statementOrDeclaration();
+      list_append(&stmts->members, &ast);
     }
   }
   return (Ast*)stmts;
@@ -2789,15 +2755,13 @@ parse_switchCases()
   cases->kind = AST_switchCases;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
-  list_create(&cases->members, storage, ListItem_Ast);
+  list_create(&cases->members, storage, sizeof(Ast*));
   if (token_is_switchLabel(token)) {
-    ListItem_Ast* li = list_create_item(&cases->members, ListItem_Ast);
-    li->ast = parse_switchCase();
-    list_append_item(&cases->members, (ListItem*)li, 1);
+    Ast* ast = parse_switchCase();
+    list_append(&cases->members, &ast);
     while (token_is_switchLabel(token)) {
-      li = list_create_item(&cases->members, ListItem_Ast);
-      li->ast = parse_switchCase();
-      list_append_item(&cases->members, (ListItem*)li, 1);
+      Ast* ast = parse_switchCase();
+      list_append(&cases->members, &ast);
     }
   }
   return (Ast*)cases;
@@ -2923,15 +2887,13 @@ parse_tablePropertyList()
   props->kind = AST_tablePropertyList;
   props->line_no = token->line_no;
   props->column_no = token->column_no;
-  list_create(&props->members, storage, ListItem_Ast);
+  list_create(&props->members, storage, sizeof(Ast*));
   if (token_is_tableProperty(token)) {
-    ListItem_Ast* li = list_create_item(&props->members, ListItem_Ast);
-    li->ast = parse_tableProperty();
-    list_append_item(&props->members, (ListItem*)li, 1);
+    Ast* ast = parse_tableProperty();
+    list_append(&props->members, &ast);
     while (token_is_tableProperty(token)) {
-      li = list_create_item(&props->members, ListItem_Ast);
-      li->ast = parse_tableProperty();
-      list_append_item(&props->members, (ListItem*)li, 1);
+      Ast* ast = parse_tableProperty();
+      list_append(&props->members, &ast);
     }
   }
   return (Ast*)props;
@@ -3048,15 +3010,13 @@ parse_keyElementList()
   elems->kind = AST_keyElementList;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
-  list_create(&elems->members, storage, ListItem_Ast);
+  list_create(&elems->members, storage, sizeof(Ast*));
   if (token_is_expression(token)) {
-    ListItem_Ast* li = list_create_item(&elems->members, ListItem_Ast);
-    li->ast = parse_keyElement();
-    list_append_item(&elems->members, (ListItem*)li, 1);
+    Ast* ast = parse_keyElement();
+    list_append(&elems->members, &ast);
     while (token_is_expression(token)) {
-      li = list_create_item(&elems->members, ListItem_Ast);
-      li->ast = parse_keyElement();
-      list_append_item(&elems->members, (ListItem*)li, 1);
+      Ast* ast = parse_keyElement();
+      list_append(&elems->members, &ast);
     }
   }
   return (Ast*)elems;
@@ -3094,19 +3054,17 @@ parse_actionList()
   actions->kind = AST_actionList;
   actions->line_no = token->line_no;
   actions->column_no = token->column_no;
-  list_create(&actions->members, storage, ListItem_Ast);
+  list_create(&actions->members, storage, sizeof(Ast*));
   if (token_is_actionRef(token)) {
-    ListItem_Ast* li = list_create_item(&actions->members, ListItem_Ast);
-    li->ast = parse_actionRef();
-    list_append_item(&actions->members, (ListItem*)li, 1);
+    Ast* ast = parse_actionRef();
+    list_append(&actions->members, &ast);
     if (token->klass == TK_SEMICOLON) {
       next_token();
     } else error("At line %d, column %d: `;` was expected, got `%s`.",
                  token->line_no, token->column_no, token->lexeme);
     while (token_is_actionRef(token)) {
-      li = list_create_item(&actions->members, ListItem_Ast);
-      li->ast = parse_actionRef();
-      list_append_item(&actions->members, (ListItem*)li, 1);
+      Ast* ast = parse_actionRef();
+      list_append(&actions->members, &ast);
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -3152,15 +3110,13 @@ parse_entriesList()
   entries->kind = AST_entriesList;
   entries->line_no = token->line_no;
   entries->column_no = token->column_no;
-  list_create(&entries->members, storage, ListItem_Ast);
+  list_create(&entries->members, storage, sizeof(Ast*));
   if (token_is_keysetExpression(token)) {
-    ListItem_Ast* li = list_create_item(&entries->members, ListItem_Ast);
-    li->ast = parse_entry();
-    list_append_item(&entries->members, (ListItem*)li, 1);
+    Ast* ast = parse_entry();
+    list_append(&entries->members, &ast);
     while (token_is_keysetExpression(token)) {
-      li = list_create_item(&entries->members, ListItem_Ast);
-      li->ast = parse_entry();
-      list_append_item(&entries->members, (ListItem*)li, 1);
+      Ast* ast = parse_entry();
+      list_append(&entries->members, &ast);
     }
   }
   return (Ast*)entries;
@@ -3289,16 +3245,14 @@ parse_argumentList()
   args->kind = AST_argumentList;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
-  list_create(&args->members, storage, ListItem_Ast);
+  list_create(&args->members, storage, sizeof(Ast*));
   if (token_is_argument(token)) {
-    ListItem_Ast* li = list_create_item(&args->members, ListItem_Ast);
-    li->ast = parse_argument();
-    list_append_item(&args->members, (ListItem*)li, 1);
+    Ast* ast = parse_argument();
+    list_append(&args->members, &ast);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&args->members, ListItem_Ast);
-      li->ast = parse_argument();
-      list_append_item(&args->members, (ListItem*)li, 1);
+      Ast* ast = parse_argument();
+      list_append(&args->members, &ast);
     }
   }
   return (Ast*)args;
@@ -3337,16 +3291,14 @@ parse_expressionList()
   exprs->kind = AST_expressionList;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
-  list_create(&exprs->members, storage, ListItem_Ast);
+  list_create(&exprs->members, storage, sizeof(Ast*));
   if (token_is_expression(token)) {
-    ListItem_Ast* li = list_create_item(&exprs->members, ListItem_Ast);
-    li->ast = parse_expression(1);
-    list_append_item(&exprs->members, (ListItem*)li, 1);
+    Ast* ast = parse_expression(1);
+    list_append(&exprs->members, &ast);
     while (token->klass == TK_COMMA) {
       next_token();
-      li = list_create_item(&exprs->members, ListItem_Ast);
-      li->ast = parse_expression(1);
-      list_append_item(&exprs->members, (ListItem*)li, 1);
+      Ast* ast = parse_expression(1);
+      list_append(&exprs->members, &ast);
     }
   }
   return (Ast*)exprs;

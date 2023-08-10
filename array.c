@@ -81,9 +81,9 @@ array_append(UnboundedArray* array, void* elem)
 }
 
 void
-_list_create(List* list, Arena* storage, int item_size)
+list_create(List* list, Arena* storage, int item_size)
 {
-  assert(item_size >= sizeof(ListItem));
+  assert(item_size >= sizeof(void*));
   list->last_item = &list->sentinel;
   list->sentinel.next = list->sentinel.prev = 0;
   list->item_size = item_size;
@@ -91,18 +91,30 @@ _list_create(List* list, Arena* storage, int item_size)
   list->storage = storage;
 }
 
-ListItem*
-_list_create_item(List* list)
-{
-  ListItem* li = arena_malloc(list->storage, list->item_size);
-  return li;
-}
-
-ListItem*
-_list_first_item(List* list)
+void*
+list_cursor_begin(List* list)
 {
   ListItem* li = list->sentinel.next;
-  return li;
+  list->cursor.item = li;
+  return li ? &li->elem : 0;
+}
+
+void*
+list_cursor_next(List* list)
+{
+  ListItem* li = list->cursor.item;
+  li = li->next;
+  list->cursor.item = li;
+  return li ? &li->elem : 0;
+}
+
+void*
+list_cursor_prev(List* list)
+{
+  ListItem* li = list->cursor.item;
+  li = li->prev;
+  list->cursor.item = li;
+  return li ? &li->elem : 0;
 }
 
 void
@@ -114,4 +126,13 @@ list_append_item(List* list, ListItem* item, int count)
   item->prev = tail;
   list->last_item = item;
   list->item_count += count;
+}
+
+void*
+list_append(List* list, void* elem)
+{
+  ListItem* li = arena_malloc(list->storage, list->item_size);
+  memcpy(li->elem, elem, list->item_size);
+  list_append_item(list, li, 1);
+  return &li->elem;
 }

@@ -310,11 +310,6 @@ typedef struct Ast {
   int column_no;
 } Ast;
 
-typedef struct ListItem_Ast {
-  ListItem;
-  Ast* ast;
-} ListItem_Ast;
-
 /** PROGRAM **/
 
 typedef struct Ast_P4Program {
@@ -1066,11 +1061,6 @@ typedef union Type_Unresolved {
   Type_Function _function;
   Type_Array    _array;
 } Type_Unresolved;
-
-typedef struct ListItem_Type {
-  ListItem;
-  Type* type;
-} ListItem_Type;
 
 typedef struct PassResult_TypeDecl {
   Hashmap type_table;
