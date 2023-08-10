@@ -138,13 +138,13 @@ hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, i
 static void
 hashmap_grow(Hashmap* hashmap, HashmapKey* key)
 {
-  HashmapCursor entry_it = {};
-  hashmap_cursor_reset(&entry_it, hashmap);
-  HashmapEntry* first_entry = hashmap_cursor_next_entry(&entry_it);
+  HashmapCursor it = {};
+  hashmap_cursor_reset(&it, hashmap);
+  HashmapEntry* first_entry = hashmap_cursor_next_entry(&it);
   HashmapEntry* last_entry = first_entry;
   int entry_count = first_entry ? 1 : 0;
-  for (HashmapEntry* entry = hashmap_cursor_next_entry(&entry_it);
-        entry != 0; entry = hashmap_cursor_next_entry(&entry_it)) {
+  for (HashmapEntry* entry = hashmap_cursor_next_entry(&it);
+        entry != 0; entry = hashmap_cursor_next_entry(&it)) {
     last_entry->next_entry = entry;
     last_entry = entry;
     entry_count += 1;
