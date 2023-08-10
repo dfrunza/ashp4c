@@ -61,11 +61,10 @@ void
 Debug_scope_decls(Scope* scope)
 {
   int count = 0;
-  HashmapCursor it = {};
-  hashmap_cursor_begin(&it, &scope->name_table);
+  hashmap_cursor_begin(&scope->name_table);
   printf("Names in scope 0x%x\n\n", scope);
-  for (NameEntry* ns_entry = hashmap_cursor_next(&it);
-       ns_entry != 0; ns_entry = hashmap_cursor_next(&it)) {
+  for (NameEntry* ns_entry = hashmap_cursor_next(&scope->name_table);
+       ns_entry != 0; ns_entry = hashmap_cursor_next(&scope->name_table)) {
     for (int i = 1; i < NameSpace_COUNT; i++) {
       NameDecl* decl;
       decl = ns_entry->ns[i];
