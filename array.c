@@ -94,27 +94,27 @@ list_create(List* list, Arena* storage, int item_size)
 void*
 list_cursor_begin(List* list)
 {
-  ListItem* li = list->sentinel.next;
-  list->cursor.item = li;
-  return li ? &li->elem : 0;
+  ListItem* item = list->sentinel.next;
+  list->cursor.item = item;
+  return item ? &item->elem : 0;
 }
 
 void*
 list_cursor_next(List* list)
 {
-  ListItem* li = list->cursor.item;
-  li = li->next;
-  list->cursor.item = li;
-  return li ? &li->elem : 0;
+  ListItem* item = list->cursor.item;
+  item = item->next;
+  list->cursor.item = item;
+  return item ? &item->elem : 0;
 }
 
 void*
 list_cursor_prev(List* list)
 {
-  ListItem* li = list->cursor.item;
-  li = li->prev;
-  list->cursor.item = li;
-  return li ? &li->elem : 0;
+  ListItem* item = list->cursor.item;
+  item = item->prev;
+  list->cursor.item = item;
+  return item ? &item->elem : 0;
 }
 
 void
@@ -131,8 +131,8 @@ list_append_item(List* list, ListItem* item, int count)
 void*
 list_append(List* list, void* elem)
 {
-  ListItem* li = arena_malloc(list->storage, list->item_size);
-  memcpy(li->elem, elem, list->item_size);
-  list_append_item(list, li, 1);
-  return &li->elem;
+  ListItem* item = arena_malloc(list->storage, sizeof(ListItem) + list->item_size);
+  memcpy(item->elem, elem, list->item_size);
+  list_append_item(list, item, 1);
+  return &item->elem;
 }

@@ -275,24 +275,24 @@ hashmap_cursor_begin(Hashmap* hashmap)
 HashmapEntry*
 hashmap_cursor_next_entry(Hashmap* hashmap)
 {
-  HashmapEntry* next_entry = 0;
+  HashmapEntry* entry = 0;
   if (hashmap->cursor.entry) {
-    next_entry = hashmap->cursor.entry->next_entry;
-    if (next_entry) {
-      hashmap->cursor.entry = next_entry;
+    entry = hashmap->cursor.entry->next_entry;
+    if (entry) {
+      hashmap->cursor.entry = entry;
       return hashmap->cursor.entry;
     }
   }
   hashmap->cursor.i++;
   while (hashmap->cursor.i < hashmap->entries.elem_count) {
-    next_entry = *(HashmapEntry**)array_get(&hashmap->entries, hashmap->cursor.i);
-    if (next_entry) {
-      hashmap->cursor.entry = next_entry;
+    entry = *(HashmapEntry**)array_get(&hashmap->entries, hashmap->cursor.i);
+    if (entry) {
+      hashmap->cursor.entry = entry;
       break;
     }
     hashmap->cursor.i++;
   }
-  return next_entry;
+  return entry;
 }
 
 void*
