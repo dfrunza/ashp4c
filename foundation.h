@@ -78,7 +78,8 @@ void* array_set(UnboundedArray* array, int i, void* elem);
 void* array_append(UnboundedArray* array, void* elem);
 
 enum HashmapKeyType {
-  HASHMAP_KEY_STRING = 0,
+  HASHMAP_KEY_NONE = 0,
+  HASHMAP_KEY_STRING,
   HASHMAP_KEY_UINT32,
   HASHMAP_KEY_BYTES,
 };

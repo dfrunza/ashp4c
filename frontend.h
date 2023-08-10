@@ -7,9 +7,10 @@ typedef struct SourceText {
 } SourceText;
 
 enum TokenClass {
+  TK_NONE = 0,
 
   /* Operators and syntactic structure */
-  TK_SEMICOLON = 0,
+  TK_SEMICOLON,
   TK_IDENTIFIER,
   TK_TYPE_IDENTIFIER,
   TK_INTEGER_LITERAL,
@@ -118,10 +119,11 @@ typedef struct TokenizedSource {
 } TokenizedSource;
 
 enum AstEnum {
+  AST_none = 0,
 
   /** PROGRAM **/
 
-  AST_p4program = 0,
+  AST_p4program,
   AST_declarationList,
   AST_declaration,
   AST_name,
@@ -263,9 +265,10 @@ enum AstEnum {
 };
 
 enum Ast_Operator {
+  OP_NONE = 0,
 
   /* Arithmetic */
-  OP_ADD = 0,
+  OP_ADD,
   OP_SUB,
   OP_MUL,
   OP_DIV,
@@ -295,7 +298,8 @@ enum Ast_Operator {
 };
 
 enum Ast_ParamDirection {
-  PARAMDIR_IN = 0,
+  PARAMDIR_NONE = 0,
+  PARAMDIR_IN,
   PARAMDIR_OUT,
   PARAMDIR_INOUT,
 };
@@ -987,7 +991,8 @@ typedef struct NameDecl {
 } NameDecl;
 
 enum NameSpace {
-  NS_VAR = 0,
+  NS_NONE = 0,
+  NS_VAR,
   NS_TYPE,
   NS_KEYWORD,
 
@@ -1010,9 +1015,10 @@ typedef struct PassResult_NameDecl {
 } PassResult_NameDecl;
 
 enum TypeEnum {
+  TYPE_NONE = 0,
 
   /* Basic */
-  TYPE_VOID = 0,
+  TYPE_VOID,
   TYPE_BOOL,
   TYPE_INT,
   TYPE_BIT,
