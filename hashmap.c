@@ -116,8 +116,8 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 }
 
 void
-_hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int entry_size,
-                int capacity, int max_capacity)
+hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int entry_size,
+               int capacity, int max_capacity)
 {
   assert(max_capacity >= 7 && capacity <= max_capacity);
   assert(entry_size >= sizeof(void*));
@@ -140,11 +140,11 @@ hashmap_grow(Hashmap* hashmap, HashmapKey* key)
 {
   HashmapCursor entry_it = {};
   hashmap_cursor_reset(&entry_it, hashmap);
-  HashmapEntry* first_entry = _hashmap_move_cursor(&entry_it);
+  HashmapEntry* first_entry = hashmap_cursor_next_entry(&entry_it);
   HashmapEntry* last_entry = first_entry;
   int entry_count = first_entry ? 1 : 0;
-  for (HashmapEntry* entry = _hashmap_move_cursor(&entry_it);
-        entry != 0; entry = _hashmap_move_cursor(&entry_it)) {
+  for (HashmapEntry* entry = hashmap_cursor_next_entry(&entry_it);
+        entry != 0; entry = hashmap_cursor_next_entry(&entry_it)) {
     last_entry->next_entry = entry;
     last_entry = entry;
     entry_count += 1;
@@ -168,7 +168,7 @@ hashmap_grow(Hashmap* hashmap, HashmapKey* key)
 }
 
 HashmapEntry*
-_hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key)
+hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key)
 {
   HashmapEntry* entry = *(HashmapEntry**)array_get(&hashmap->entries, key->h);
   while (entry) {
@@ -181,7 +181,7 @@ _hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key)
 }
 
 void*
-_hashmap_lookup_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
+hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
 {
   va_list args;
   va_start(args, key_type);
@@ -197,15 +197,15 @@ _hashmap_lookup_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
                         .keylen = va_arg(args, int) };
     hashmap_hash_key(HASHMAP_KEY_BYTES, &key, hashmap->capacity_log2);
   } else assert(0);
-  HashmapEntry* entry = _hashmap_lookup_entry(hashmap, &key);
+  HashmapEntry* entry = hashmap_lookup_entry(hashmap, &key);
   va_end(args);
   return entry ? &entry->value : 0;
 }
 
 HashmapEntry*
-_hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
+hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
 {
-  HashmapEntry* entry = _hashmap_lookup_entry(hashmap, key);
+  HashmapEntry* entry = hashmap_lookup_entry(hashmap, key);
   if (entry) {
     return entry;
   }
@@ -221,7 +221,7 @@ _hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
 }
 
 void*
-_hashmap_get_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
+hashmap_get(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
 {
   va_list args;
   va_start(args, key_type);
@@ -237,13 +237,13 @@ _hashmap_get_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
                         .keylen = va_arg(args, int) };
     hashmap_hash_key(HASHMAP_KEY_BYTES, &key, hashmap->capacity_log2);
   } else assert(0);
-  HashmapEntry* entry = _hashmap_get_entry(hashmap, &key);
+  HashmapEntry* entry = hashmap_get_entry(hashmap, &key);
   va_end(args);
   return &entry->value;
 }
 
 void*
-_hashmap_set_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
+hashmap_set(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
 {
   va_list args;
   va_start(args, key_type);
@@ -259,7 +259,7 @@ _hashmap_set_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
                         .keylen = va_arg(args, int) };
     hashmap_hash_key(HASHMAP_KEY_BYTES, &key, hashmap->capacity_log2);
   } else assert(0);
-  HashmapEntry* entry = _hashmap_get_entry(hashmap, &key);
+  HashmapEntry* entry = hashmap_get_entry(hashmap, &key);
   void* value = va_arg(args, void*);
   memcpy(entry->value, value, hashmap->entry_size);
   va_end(args);
@@ -275,7 +275,7 @@ hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap)
 }
 
 HashmapEntry*
-_hashmap_move_cursor(HashmapCursor* it)
+hashmap_cursor_next_entry(HashmapCursor* it)
 {
   HashmapEntry* next_entry = 0;
   if (it->entry) {
@@ -295,6 +295,13 @@ _hashmap_move_cursor(HashmapCursor* it)
     it->i++;
   }
   return next_entry;
+}
+
+void*
+hashmap_cursor_next(HashmapCursor* it)
+{
+  HashmapEntry* entry = hashmap_cursor_next_entry(it);
+  return entry ? &entry->value : 0;
 }
 
 void

@@ -115,23 +115,15 @@ typedef struct HashmapCursor {
   HashmapEntry* entry;
 } HashmapCursor;
 
-void          _hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int payload_size,
-                              int capacity, int max_capacity);
-#define        hashmap_create(HASHMAP, STORAGE, KEY_TYPE, ENTRY_TYPE, CAPACITY, MAX_CAPACITY) \
-                  _hashmap_create(HASHMAP, STORAGE, KEY_TYPE, sizeof(ENTRY_TYPE), CAPACITY, MAX_CAPACITY)
-HashmapEntry* _hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key);
-void*         _hashmap_lookup_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
-#define        hashmap_lookup(HASHMAP, KEY_TYPE, KEY, ENTRY_TYPE) \
-                  ((ENTRY_TYPE)_hashmap_lookup_va(HASHMAP, KEY_TYPE, KEY))
-HashmapEntry* _hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
-void*         _hashmap_get_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
-#define        hashmap_get(HASHMAP, KEY_TYPE, KEY, ENTRY_TYPE) \
-                  ((ENTRY_TYPE)_hashmap_get_va(HASHMAP, KEY_TYPE, KEY))
-void*         _hashmap_set_va(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
-#define        hashmap_set(HASHMAP, KEY_TYPE, KEY, ENTRY_TYPE, VALUE) \
-                  ((ENTRY_TYPE)_hashmap_set_va(HASHMAP, KEY_TYPE, KEY, VALUE))
-void           hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap);
-HashmapEntry* _hashmap_move_cursor(HashmapCursor* it);
-#define        hashmap_move_cursor(CURSOR, ENTRY_TYPE)  ((ENTRY_TYPE*)_hashmap_move_cursor(CURSOR))
 void           hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int length_log2);
+void           hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int entry_size,
+                              int capacity, int max_capacity);
+HashmapEntry*  hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key);
+void*          hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
+HashmapEntry*  hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
+void*          hashmap_get(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
+void*          hashmap_set(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
+void           hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap);
+HashmapEntry*  hashmap_cursor_next_entry(HashmapCursor* it);
+void*          hashmap_cursor_next(HashmapCursor* it);
 
