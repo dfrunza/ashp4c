@@ -18,10 +18,10 @@ scope_pop(Scope* scope)
   return parent_scope;
 }
 
-ScopeEntry*
+NameEntry*
 scope_lookup_any(Scope* scope, char* strname)
 {
-  ScopeEntry* ns_entry = 0;
+  NameEntry* ns_entry = 0;
   while (scope) {
     ns_entry = hashmap_lookup(&scope->name_table, HASHMAP_KEY_STRING, strname);
     if (ns_entry) {
@@ -34,10 +34,10 @@ scope_lookup_any(Scope* scope, char* strname)
   return ns_entry;
 }
 
-ScopeEntry*
+NameEntry*
 scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 {
-  ScopeEntry* ns_entry = 0;
+  NameEntry* ns_entry = 0;
   while (scope) {
     ns_entry = hashmap_lookup(&scope->name_table, HASHMAP_KEY_STRING, strname);
     if (ns_entry && ns_entry->ns[ns]) {
@@ -49,10 +49,10 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
   return ns_entry;
 }
 
-ScopeEntry*
+NameEntry*
 scope_push_decl(Scope* scope, NameDecl* decl, enum NameSpace ns)
 {
-  ScopeEntry* ns_entry = hashmap_get(&scope->name_table, HASHMAP_KEY_STRING, decl->strname);
+  NameEntry* ns_entry = hashmap_get(&scope->name_table, HASHMAP_KEY_STRING, decl->strname);
   decl->next_in_scope = ns_entry->ns[ns];
   ns_entry->ns[ns] = decl;
   return ns_entry;
@@ -65,7 +65,7 @@ Debug_scope_decls(Scope* scope)
   HashmapCursor it = {};
   hashmap_cursor_reset(&it, &scope->name_table);
   printf("Names in scope 0x%x\n\n", scope);
-  for (ScopeEntry* ns_entry = hashmap_cursor_next(&it);
+  for (NameEntry* ns_entry = hashmap_cursor_next(&it);
        ns_entry != 0; ns_entry = hashmap_cursor_next(&it)) {
     for (int i = 1; i < NameSpace_COUNT; i++) {
       NameDecl* decl;

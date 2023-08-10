@@ -203,7 +203,7 @@ visit_name(Ast_Name* name)
 {
   assert(name->kind == AST_name);
   Scope** scope = hashmap_lookup(scope_map, HASHMAP_KEY_UINT32, (uint64_t)name);
-  ScopeEntry* ns_entry = scope_lookup_namespace(*scope, name->strname, NS_VAR);
+  NameEntry* ns_entry = scope_lookup_namespace(*scope, name->strname, NS_VAR);
   if (ns_entry) {
     NameDecl* namedecl = ns_entry->ns[NS_VAR];
     Type** type = hashmap_lookup(type_table, HASHMAP_KEY_UINT32, (uint64_t)namedecl->ast);

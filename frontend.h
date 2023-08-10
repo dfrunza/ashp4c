@@ -987,15 +987,15 @@ enum NameSpace {
   NameSpace_COUNT,
 };
 
-typedef struct ScopeEntry {
+typedef struct NameEntry {
   NameDecl* ns[NameSpace_COUNT];
-} ScopeEntry;
+} NameEntry;
 
 Scope*      scope_push(Scope* scope, Scope* parent_scope);
 Scope*      scope_pop(Scope* scope);
-ScopeEntry* scope_lookup_any(Scope* scope, char* name);
-ScopeEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
-ScopeEntry* scope_push_decl(Scope* scope, NameDecl* decl, enum NameSpace ns);
+NameEntry*  scope_lookup_any(Scope* scope, char* name);
+NameEntry*  scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
+NameEntry*  scope_push_decl(Scope* scope, NameDecl* decl, enum NameSpace ns);
 
 typedef struct PassResult_NameDecl {
   Hashmap scope_map;
