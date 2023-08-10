@@ -139,12 +139,12 @@ static void
 hashmap_grow(Hashmap* hashmap, HashmapKey* key)
 {
   HashmapCursor it = {};
-  hashmap_cursor_reset(&it, hashmap);
+  hashmap_cursor_begin(&it, hashmap);
   HashmapEntry* first_entry = hashmap_cursor_next_entry(&it);
   HashmapEntry* last_entry = first_entry;
   int entry_count = first_entry ? 1 : 0;
   for (HashmapEntry* entry = hashmap_cursor_next_entry(&it);
-        entry != 0; entry = hashmap_cursor_next_entry(&it)) {
+       entry != 0; entry = hashmap_cursor_next_entry(&it)) {
     last_entry->next_entry = entry;
     last_entry = entry;
     entry_count += 1;
@@ -267,7 +267,7 @@ hashmap_set(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
 }
 
 void
-hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap)
+hashmap_cursor_begin(HashmapCursor* it, Hashmap* hashmap)
 {
   it->hashmap = hashmap;
   it->i = -1;

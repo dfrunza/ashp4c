@@ -62,7 +62,7 @@ Debug_scope_decls(Scope* scope)
 {
   int count = 0;
   HashmapCursor it = {};
-  hashmap_cursor_reset(&it, &scope->name_table);
+  hashmap_cursor_begin(&it, &scope->name_table);
   printf("Names in scope 0x%x\n\n", scope);
   for (NameEntry* ns_entry = hashmap_cursor_next(&it);
        ns_entry != 0; ns_entry = hashmap_cursor_next(&it)) {

@@ -123,7 +123,7 @@ void*          hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ..
 HashmapEntry*  hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
 void*          hashmap_get(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
 void*          hashmap_set(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
-void           hashmap_cursor_reset(HashmapCursor* it, Hashmap* hashmap);
+void           hashmap_cursor_begin(HashmapCursor* it, Hashmap* hashmap);
 HashmapEntry*  hashmap_cursor_next_entry(HashmapCursor* it);
 void*          hashmap_cursor_next(HashmapCursor* it);
 
