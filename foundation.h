@@ -85,6 +85,7 @@ enum HashmapKeyType {
   HASHMAP_KEY_NONE = 0,
   HASHMAP_KEY_STRING,
   HASHMAP_KEY_UINT32,
+  HASHMAP_KEY_UINT64,
   HASHMAP_KEY_BYTES,
 };
 
@@ -93,7 +94,8 @@ typedef struct HashmapKey {
   union {
     char*    str_key;
     uint8_t* bytes_key;
-    uint32_t uint32_key;
+    uint32_t u32_key;
+    uint64_t u64_key;
   };
   int keylen;
 } HashmapKey;

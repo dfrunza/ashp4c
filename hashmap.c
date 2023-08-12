@@ -73,6 +73,15 @@ hash_uint32(uint32_t i, uint32_t m)
   return h;
 }
 
+static uint64_t
+hash_uint64(uint64_t i, uint32_t m)
+{
+  assert(m > 0 && m <= 32);
+  uint32_t h = fold_uint64(i);
+  h = multiply_hash(h, m) % ((1 << m) - 1);  /* 0 <= h < 2^m - 1 */
+  return h;
+}
+
 void
 hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int length_log2)
 {
@@ -82,7 +91,9 @@ hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int
     assert(key->keylen > 0);
     key->h = hash_bytes(key->bytes_key, key->keylen, length_log2);
   } else if (key_type == HASHMAP_KEY_UINT32) {
-    key->h = hash_uint32(key->uint32_key, length_log2);
+    key->h = hash_uint32(key->u32_key, length_log2);
+  } else if (key_type == HASHMAP_KEY_UINT64) {
+    key->h = hash_uint64(key->u64_key, length_log2);
   } else assert(0);
 }
 
@@ -110,7 +121,9 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
     result = (at_i == key_A->keylen);
     return result;
   } else if (key_type == HASHMAP_KEY_UINT32) {
-    return key_A->uint32_key == key_B->uint32_key;
+    return key_A->u32_key == key_B->u32_key;
+  } else if (key_type == HASHMAP_KEY_UINT64) {
+    return key_A->u64_key == key_B->u64_key;
   } else assert(0);
   return false;
 }
@@ -185,16 +198,19 @@ hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
   va_list args;
   va_start(args, key_type);
   HashmapKey key = {};
-  if (key_type == HASHMAP_KEY_UINT32) {
-    key = (HashmapKey){ .uint32_key = va_arg(args, uint32_t) };
-    hashmap_hash_key(HASHMAP_KEY_UINT32, &key, hashmap->capacity_log2);
-  } else if (key_type == HASHMAP_KEY_STRING) {
+  if (key_type == HASHMAP_KEY_STRING) {
     key = (HashmapKey){ .str_key = va_arg(args, char*) };
     hashmap_hash_key(HASHMAP_KEY_STRING, &key, hashmap->capacity_log2);
   } else if (key_type == HASHMAP_KEY_BYTES) {
     key = (HashmapKey){ .bytes_key = va_arg(args, uint8_t*),
                         .keylen = va_arg(args, int) };
     hashmap_hash_key(HASHMAP_KEY_BYTES, &key, hashmap->capacity_log2);
+  } else if (key_type == HASHMAP_KEY_UINT32) {
+    key = (HashmapKey){ .u32_key = va_arg(args, uint32_t) };
+    hashmap_hash_key(HASHMAP_KEY_UINT32, &key, hashmap->capacity_log2);
+  } else if (key_type == HASHMAP_KEY_UINT64) {
+    key = (HashmapKey){ .u64_key = va_arg(args, uint64_t) };
+    hashmap_hash_key(HASHMAP_KEY_UINT64, &key, hashmap->capacity_log2);
   } else assert(0);
   HashmapEntry* entry = hashmap_lookup_entry(hashmap, &key);
   va_end(args);
@@ -225,16 +241,19 @@ hashmap_get(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
   va_list args;
   va_start(args, key_type);
   HashmapKey key = {};
-  if (key_type == HASHMAP_KEY_UINT32) {
-    key = (HashmapKey){ .uint32_key = va_arg(args, uint32_t) };
-    hashmap_hash_key(HASHMAP_KEY_UINT32, &key, hashmap->capacity_log2);
-  } else if (key_type == HASHMAP_KEY_STRING) {
+  if (key_type == HASHMAP_KEY_STRING) {
     key = (HashmapKey){ .str_key = va_arg(args, char*) };
     hashmap_hash_key(HASHMAP_KEY_STRING, &key, hashmap->capacity_log2);
   } else if (key_type == HASHMAP_KEY_BYTES) {
     key = (HashmapKey){ .bytes_key = va_arg(args, uint8_t*),
                         .keylen = va_arg(args, int) };
     hashmap_hash_key(HASHMAP_KEY_BYTES, &key, hashmap->capacity_log2);
+  } else if (key_type == HASHMAP_KEY_UINT32) {
+    key = (HashmapKey){ .u32_key = va_arg(args, uint32_t) };
+    hashmap_hash_key(HASHMAP_KEY_UINT32, &key, hashmap->capacity_log2);
+  } else if (key_type == HASHMAP_KEY_UINT64) {
+    key = (HashmapKey){ .u64_key = va_arg(args, uint64_t) };
+    hashmap_hash_key(HASHMAP_KEY_UINT64, &key, hashmap->capacity_log2);
   } else assert(0);
   HashmapEntry* entry = hashmap_get_entry(hashmap, &key);
   va_end(args);
@@ -247,16 +266,19 @@ hashmap_set(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
   va_list args;
   va_start(args, key_type);
   HashmapKey key = {};
-  if (key_type == HASHMAP_KEY_UINT32) {
-    key = (HashmapKey){ .uint32_key = va_arg(args, uint32_t) };
-    hashmap_hash_key(HASHMAP_KEY_UINT32, &key, hashmap->capacity_log2);
-  } else if (key_type == HASHMAP_KEY_STRING) {
+  if (key_type == HASHMAP_KEY_STRING) {
     key = (HashmapKey){ .str_key = va_arg(args, char*) };
     hashmap_hash_key(HASHMAP_KEY_STRING, &key, hashmap->capacity_log2);
   } else if (key_type == HASHMAP_KEY_BYTES) {
     key = (HashmapKey){ .bytes_key = va_arg(args, uint8_t*),
                         .keylen = va_arg(args, int) };
     hashmap_hash_key(HASHMAP_KEY_BYTES, &key, hashmap->capacity_log2);
+  } else if (key_type == HASHMAP_KEY_UINT32) {
+    key = (HashmapKey){ .u32_key = va_arg(args, uint32_t) };
+    hashmap_hash_key(HASHMAP_KEY_UINT32, &key, hashmap->capacity_log2);
+  } else if (key_type == HASHMAP_KEY_UINT64) {
+    key = (HashmapKey){ .u64_key = va_arg(args, uint64_t) };
+    hashmap_hash_key(HASHMAP_KEY_UINT64, &key, hashmap->capacity_log2);
   } else assert(0);
   HashmapEntry* entry = hashmap_get_entry(hashmap, &key);
   void* value = va_arg(args, void*);
