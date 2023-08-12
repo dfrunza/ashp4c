@@ -1015,6 +1015,7 @@ enum TypeEnum {
   TYPE_PRODUCT,
   TYPE_TYPEDEF,
   TYPE_ARRAY,
+  TYPE_GENERIC,
 
   /* Special */
   TYPE_UNRESOLVED,
@@ -1051,6 +1052,10 @@ typedef struct Type_Array {
   int size;
 } Type_Array;
 
+typedef struct Type_Generic {
+  Type;
+} Type_Generic;
+
 typedef union Type_Unresolved {
   Type;
 
@@ -1060,6 +1065,7 @@ typedef union Type_Unresolved {
   Type_Product  _product;
   Type_Function _function;
   Type_Array    _array;
+  Type_Generic  _generic;
 } Type_Unresolved;
 
 typedef struct PassResult_TypeDecl {

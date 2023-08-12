@@ -524,7 +524,7 @@ visit_methodPrototypes(Ast_MethodPrototypes* protos)
 {
   assert(protos->kind == AST_methodPrototypes);
   for (Ast** p = list_cursor_begin(&protos->members);
-       p != 0; p = list_cursor_begin(&protos->members)) {
+       p != 0; p = list_cursor_next(&protos->members)) {
     visit_functionPrototype((Ast_FunctionPrototype*)(*p));
   }
 }
@@ -582,7 +582,11 @@ static void
 visit_tupleType(Ast_TupleType* type_decl)
 {
   assert(type_decl->kind == AST_tupleType);
-  visit_name((Ast_Name*)type_decl->name);
+  Ast_Name* name = (Ast_Name*)type_decl->name;
+  Type_Product* tuple_ty = arena_malloc(storage, sizeof(*tuple_ty));
+  tuple_ty->ctor = TYPE_PRODUCT;
+  tuple_ty->strname = name->strname;
+  hashmap_set(type_table, HASHMAP_KEY_UINT32, (uint64_t)type_decl, &tuple_ty);
   visit_typeArgumentList((Ast_TypeArgumentList*)type_decl->type_args);
 }
 
@@ -590,7 +594,11 @@ static void
 visit_headerStackType(Ast_HeaderStackType* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
-  visit_name((Ast_Name*)type_decl->name);
+  Ast_Name* name = (Ast_Name*)type_decl->name;
+  Type_Array* stack_ty = arena_malloc(storage, sizeof(*stack_ty));
+  stack_ty->ctor = TYPE_ARRAY;
+  stack_ty->strname = name->strname;
+  hashmap_set(type_table, HASHMAP_KEY_UINT32, (uint64_t)type_decl, &stack_ty);
   visit_typeRef((Ast_TypeRef*)type_decl->type);
   visit_expression((Ast_Expression*)type_decl->stack_expr);
 }
@@ -599,7 +607,11 @@ static void
 visit_specializedType(Ast_SpecializedType* type_decl)
 {
   assert(type_decl->kind == AST_specializedType);
-  visit_name((Ast_Name*)type_decl->name);
+  Ast_Name* name = (Ast_Name*)type_decl->name;
+  Type_Generic* speclzd_ty = arena_malloc(storage, sizeof(*speclzd_ty));
+  speclzd_ty->ctor = TYPE_GENERIC;
+  speclzd_ty->strname = name->strname;
+  hashmap_set(type_table, HASHMAP_KEY_UINT32, (uint64_t)type_decl, &speclzd_ty);
   visit_typeRef((Ast_TypeRef*)type_decl->type);
   visit_typeArgumentList((Ast_TypeArgumentList*)type_decl->type_args);
 }
@@ -671,7 +683,7 @@ visit_typeParameterList(Ast_TypeParameterList* param_list)
 {
   assert(param_list->kind == AST_typeParameterList);
   for (Ast** p = list_cursor_begin(&param_list->members);
-       p != 0; p = list_cursor_begin(&param_list->members)) {
+       p != 0; p = list_cursor_next(&param_list->members)) {
     visit_name((Ast_Name*)(*p));
   }
 }
@@ -705,7 +717,7 @@ visit_realTypeArgumentList(Ast_RealTypeArgumentList* arg_list)
 {
   assert(arg_list->kind == AST_realTypeArgumentList);
   for (Ast** p = list_cursor_begin(&arg_list->members);
-       p != 0; p = list_cursor_begin(&arg_list->members)) {
+       p != 0; p = list_cursor_next(&arg_list->members)) {
     visit_realTypeArg((Ast_RealTypeArg*)(*p));
   }
 }
@@ -715,7 +727,7 @@ visit_typeArgumentList(Ast_TypeArgumentList* arg_list)
 {
   assert(arg_list->kind == AST_typeArgumentList);
   for (Ast** p = list_cursor_begin(&arg_list->members);
-       p != 0; p = list_cursor_begin(&arg_list->members)) {
+       p != 0; p = list_cursor_next(&arg_list->members)) {
     visit_typeArg((Ast_TypeArg*)(*p));
   }
 }

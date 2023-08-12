@@ -38,8 +38,6 @@ static linkage is to avoid such dependencies.
 
 You should compile your program against uClibc or musl libc instead.
 
-(This has been true for at least 15 years.)
-
 
 == Address-space Randomization ==
 =================================

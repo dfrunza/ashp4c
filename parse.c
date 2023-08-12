@@ -1661,8 +1661,8 @@ parse_tupleType()
     name->kind = AST_name;
     name->line_no = token->line_no;
     name->column_no = token->column_no;
-    char* lexeme = arena_malloc(storage, MAXLEN_SYNTHTYPE);
-    int lexeme_len = sprintf(lexeme, "type@%d:%d", name->line_no, name->column_no);
+    name->strname = arena_malloc(storage, MAXLEN_SYNTHTYPE);
+    int lexeme_len = sprintf(name->strname, "type@%d:%d", name->line_no, name->column_no);
     assert(lexeme_len <= MAXLEN_SYNTHTYPE);
     Ast_TupleType* tuple = arena_malloc(storage, sizeof(*tuple));
     tuple->kind = AST_tupleType;
@@ -1694,8 +1694,8 @@ parse_headerStackType(Ast* named_type)
     name->kind = AST_name;
     name->line_no = named_type->line_no;
     name->column_no = named_type->column_no;
-    char* lexeme = arena_malloc(storage, MAXLEN_SYNTHTYPE);
-    int lexeme_len = sprintf(lexeme, "type@%d:%d", name->line_no, name->column_no);
+    name->strname = arena_malloc(storage, MAXLEN_SYNTHTYPE);
+    int lexeme_len = sprintf(name->strname, "type@%d:%d", name->line_no, name->column_no);
     assert(lexeme_len <= MAXLEN_SYNTHTYPE);
     Ast_TypeRef* type_ref = arena_malloc(storage, sizeof(*type_ref));
     type_ref->kind = AST_typeRef;
@@ -1732,8 +1732,8 @@ parse_specializedType(Ast* named_type)
     name->kind = AST_name;
     name->line_no = named_type->line_no;
     name->column_no = named_type->column_no;
-    char* lexeme = arena_malloc(storage, MAXLEN_SYNTHTYPE);
-    int lexeme_len = sprintf(lexeme, "type@%d:%d", name->line_no, name->column_no);
+    name->strname = arena_malloc(storage, MAXLEN_SYNTHTYPE);
+    int lexeme_len = sprintf(name->strname, "type@%d:%d", name->line_no, name->column_no);
     assert(lexeme_len <= MAXLEN_SYNTHTYPE);
     Ast_TypeRef* type_ref = arena_malloc(storage, sizeof(*type_ref));
     type_ref->kind = AST_typeRef;

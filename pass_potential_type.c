@@ -364,7 +364,7 @@ visit_stateExpression(Ast_StateExpression* state_expr)
 {
   assert(state_expr->kind == AST_stateExpression);
   if (state_expr->expr->kind == AST_name) {
-    ; /* visit_name((Ast_Name*)state_expr->expr); */
+    /* visit_name((Ast_Name*)state_expr->expr); */
   } else if (state_expr->expr->kind == AST_selectExpression) {
     visit_selectExpression((Ast_SelectExpression*)state_expr->expr);
   } else assert(0);
@@ -393,7 +393,7 @@ visit_selectCase(Ast_SelectCase* select_case)
 {
   assert(select_case->kind == AST_selectCase);
   visit_keysetExpression((Ast_KeysetExpression*)select_case->keyset_expr);
-  visit_name((Ast_Name*)select_case->name);
+  /* visit_name((Ast_Name*)select_case->name); */
 }
 
 static void
@@ -556,7 +556,7 @@ visit_typeRef(Ast_TypeRef* type_ref)
   } else if (type_ref->type->kind == AST_baseTypeError) {
     visit_baseTypeError((Ast_ErrorType*)type_ref->type);
   } else if (type_ref->type->kind == AST_name) {
-    ; /* visit_name((Ast_Name*)type_ref->type); */
+    /* visit_name((Ast_Name*)type_ref->type); */
   } else if (type_ref->type->kind == AST_specializedType) {
     visit_specializedType((Ast_SpecializedType*)type_ref->type);
   } else if (type_ref->type->kind == AST_headerStackType) {
@@ -570,7 +570,7 @@ static void
 visit_tupleType(Ast_TupleType* type_decl)
 {
   assert(type_decl->kind == AST_tupleType);
-  visit_name((Ast_Name*)type_decl->name);
+  /* visit_name((Ast_Name*)type_decl->name); */
   visit_typeArgumentList((Ast_TypeArgumentList*)type_decl->type_args);
 }
 
@@ -660,7 +660,7 @@ visit_typeParameterList(Ast_TypeParameterList* param_list)
   assert(param_list->kind == AST_typeParameterList);
   for (Ast** p = list_cursor_begin(&param_list->members);
        p != 0; p = list_cursor_next(&param_list->members)) {
-    ; /* visit_name((Ast_Name*)ast); */
+    /* visit_name((Ast_Name*)ast); */
   }
 }
 
@@ -810,7 +810,7 @@ visit_identifierList(Ast_IdentifierList* ident_list)
   assert(ident_list->kind == AST_identifierList);
   for (Ast** p = list_cursor_begin(&ident_list->members);
        p != 0; p = list_cursor_next(&ident_list->members)) {
-    ; /* visit_name((Ast_Name*)ast); */
+    /* visit_name((Ast_Name*)ast); */
   }
 }
 
@@ -904,7 +904,7 @@ visit_directApplication(Ast_DirectApplication* applic_stmt)
 {
   assert(applic_stmt->kind == AST_directApplication);
   if (applic_stmt->name->kind == AST_name) {
-    visit_name((Ast_Name*)applic_stmt->name);
+    /* visit_name((Ast_Name*)applic_stmt->name); */
   } else if (applic_stmt->name->kind == AST_typeRef) {
     visit_typeRef((Ast_TypeRef*)applic_stmt->name);
   } else assert(0);
@@ -985,7 +985,7 @@ visit_switchLabel(Ast_SwitchLabel* label)
 {
   assert(label->kind == AST_switchLabel);
   if (label->label->kind == AST_name) {
-    visit_name((Ast_Name*)label->label);
+    /* visit_name((Ast_Name*)label->label); */
   } else if (label->label->kind == AST_default) {
     visit_default((Ast_Default*)label->label);
   } else assert(0);
@@ -1061,7 +1061,7 @@ visit_keyElement(Ast_KeyElement* element)
 {
   assert(element->kind == AST_keyElement);
   visit_expression((Ast_Expression*)element->expr);
-  visit_name((Ast_Name*)element->match);
+  /* visit_name((Ast_Name*)element->match); */
 }
 
 static void
@@ -1085,7 +1085,7 @@ static void
 visit_actionRef(Ast_ActionRef* action_ref)
 {
   assert(action_ref->kind == AST_actionRef);
-  visit_name((Ast_Name*)action_ref->name);
+  /* visit_name((Ast_Name*)action_ref->name); */
   if (action_ref->args) {
     visit_argumentList((Ast_ArgumentList*)action_ref->args);
   }
@@ -1120,7 +1120,7 @@ static void
 visit_simpleProperty(Ast_SimpleProperty* simple_prop)
 {
   assert(simple_prop->kind == AST_simpleProperty);
-  visit_name((Ast_Name*)simple_prop->name);
+  /* visit_name((Ast_Name*)simple_prop->name); */
   visit_expression((Ast_Expression*)simple_prop->init_expr);
 }
 
@@ -1192,7 +1192,7 @@ visit_lvalueExpression(Ast_LvalueExpression* lvalue_expr)
 {
   assert(lvalue_expr->kind == AST_lvalueExpression);
   if (lvalue_expr->expr->kind == AST_name) {
-    visit_name((Ast_Name*)lvalue_expr->expr);
+    /* visit_name((Ast_Name*)lvalue_expr->expr); */
   } else if (lvalue_expr->expr->kind == AST_memberSelector) {
     visit_memberSelector((Ast_MemberSelector*)lvalue_expr->expr);
   } else if (lvalue_expr->expr->kind == AST_arraySubscript) {
@@ -1213,7 +1213,7 @@ visit_expression(Ast_Expression* expr)
   } else if (expr->expr->kind == AST_stringLiteral) {
     visit_stringLiteral((Ast_StringLiteral*)expr->expr);
   } else if (expr->expr->kind == AST_name) {
-    visit_name((Ast_Name*)expr->expr);
+    /* visit_name((Ast_Name*)expr->expr); */
   } else if (expr->expr->kind == AST_specializedType) {
     visit_specializedType((Ast_SpecializedType*)expr->expr);
   } else if (expr->expr->kind == AST_headerStackType) {
@@ -1272,7 +1272,7 @@ visit_memberSelector(Ast_MemberSelector* selector)
   } else if (selector->lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression((Ast_LvalueExpression*)selector->lhs_expr);
   } else assert(0);
-  visit_name((Ast_Name*)selector->name);
+  /* visit_name((Ast_Name*)selector->name); */
 }
 
 static void
