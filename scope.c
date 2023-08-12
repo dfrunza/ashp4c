@@ -70,7 +70,7 @@ Debug_scope_decls(Scope* scope)
       decl = ns_entry->ns[i];
       while (decl) {
         if (i == NS_KEYWORD) {
-          printf("%s  ...  at 0:0, ns[%d]\n", decl->strname, i);
+          printf("%s, ns[%d]\n", decl->strname, i);
         } else {
           Ast* ast = decl->ast;
           printf("%s  ...  at %d:%d, ns[%d]\n", decl->strname, ast->line_no, ast->column_no, i);

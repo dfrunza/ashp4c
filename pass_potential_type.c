@@ -206,7 +206,7 @@ visit_name(Ast_Name* name)
   NameEntry* ns_entry = scope_lookup_namespace(*scope, name->strname, NS_VAR);
   if (ns_entry) {
     NameDecl* namedecl = ns_entry->ns[NS_VAR];
-    Type** type = hashmap_lookup(type_table, HASHMAP_KEY_UINT64, (uint64_t)namedecl->ast);
+    Type** type = hashmap_lookup(type_table, HASHMAP_KEY_STRING, namedecl->strname);
     type = 0;
   } else error("At line %d, column %d: unknown name `%s`.",
           name->line_no, name->column_no, name->strname);
@@ -1308,8 +1308,8 @@ visit_integerLiteral(Ast_IntegerLiteral* int_literal)
 {
   assert(int_literal->kind == AST_integerLiteral);
   NameDecl* namedecl = scope_lookup_namespace(root_scope, "int", NS_TYPE)->ns[NS_TYPE];
-  Type** type = hashmap_lookup(type_table, HASHMAP_KEY_UINT64, (uint64_t)namedecl->ast);
-  /* TODO */
+  Type** type = hashmap_lookup(type_table, HASHMAP_KEY_STRING, namedecl->strname);
+  type = 0;
 }
 
 static void

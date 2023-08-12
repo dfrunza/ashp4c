@@ -195,6 +195,7 @@ hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key)
 void*
 hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
 {
+  assert(hashmap->key_type == key_type);
   va_list args;
   va_start(args, key_type);
   HashmapKey key = {};
@@ -238,6 +239,7 @@ hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
 void*
 hashmap_get(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
 {
+  assert(hashmap->key_type == key_type);
   va_list args;
   va_start(args, key_type);
   HashmapKey key = {};
@@ -263,6 +265,7 @@ hashmap_get(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
 void*
 hashmap_set(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
 {
+  assert(hashmap->key_type == key_type);
   va_list args;
   va_start(args, key_type);
   HashmapKey key = {};

@@ -84,9 +84,9 @@ void* array_append(UnboundedArray* array, void* elem);
 enum HashmapKeyType {
   HASHMAP_KEY_NONE = 0,
   HASHMAP_KEY_STRING,
+  HASHMAP_KEY_BYTES,
   HASHMAP_KEY_UINT32,
   HASHMAP_KEY_UINT64,
-  HASHMAP_KEY_BYTES,
 };
 
 typedef struct HashmapKey {
