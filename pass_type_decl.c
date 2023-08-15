@@ -184,6 +184,21 @@ name_of_type(Ast* type)
   } else if (type->kind == AST_tupleType) {
     Ast_TupleType* tuple_type = (Ast_TupleType*)type;
     return (Ast_Name*)tuple_type->name;
+  } else if (type->kind == AST_derivedTypeDeclaration) {
+    Ast_DerivedTypeDeclaration* derived_type = (Ast_DerivedTypeDeclaration*)type;
+    return name_of_type(derived_type->decl);
+  } else if (type->kind == AST_structTypeDeclaration) {
+    Ast_StructTypeDeclaration* struct_type = (Ast_StructTypeDeclaration*)type;
+    return (Ast_Name*)struct_type->name;
+  } else if (type->kind == AST_headerTypeDeclaration) {
+    Ast_HeaderTypeDeclaration* header_type = (Ast_HeaderTypeDeclaration*)type;
+    return (Ast_Name*)header_type->name;
+  } else if (type->kind == AST_headerUnionDeclaration) {
+    Ast_HeaderUnionDeclaration* union_type = (Ast_HeaderUnionDeclaration*)type;
+    return (Ast_Name*)union_type->name;
+  } else if (type->kind == AST_enumDeclaration) {
+    Ast_EnumDeclaration* enum_type = (Ast_EnumDeclaration*)type;
+    return (Ast_Name*)enum_type->name;
   } else assert(0);
   return 0;
 }
@@ -283,7 +298,15 @@ visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* package_decl)
   if (package_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)package_decl->type_params);
   }
-  visit_parameterList((Ast_ParameterList*)package_decl->params);
+  Ast_ParameterList* params = (Ast_ParameterList*)package_decl->params;
+  visit_parameterList(params);
+  list_create(&package_ty->params_ty, storage, sizeof(Type*));
+  for (Ast** p = list_cursor_begin(&params->members);
+       p != 0; p = list_cursor_next(&params->members)) {
+    Ast_Parameter* param = (Ast_Parameter*)(*p);
+    list_append(&package_ty->params_ty, *(Type**)hashmap_lookup(
+          type_table, HASHMAP_KEY_STRING, name_of_type(param->type)->strname));
+  }
 }
 
 static void
@@ -321,7 +344,15 @@ visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* parser_decl)
   if (parser_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)parser_decl->type_params);
   }
-  visit_parameterList((Ast_ParameterList*)parser_decl->params);
+  Ast_ParameterList* params = (Ast_ParameterList*)parser_decl->params;
+  visit_parameterList(params);
+  list_create(&parser_ty->params_ty, storage, sizeof(Type*));
+  for (Ast** p = list_cursor_begin(&params->members);
+       p != 0; p = list_cursor_next(&params->members)) {
+    Ast_Parameter* param = (Ast_Parameter*)(*p);
+    list_append(&parser_ty->params_ty, *(Type**)hashmap_lookup(
+          type_table, HASHMAP_KEY_STRING, name_of_type(param->type)->strname));
+  }
 }
 
 static void
@@ -509,7 +540,15 @@ visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* control_decl)
   if (control_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)control_decl->type_params);
   }
-  visit_parameterList((Ast_ParameterList*)control_decl->params);
+  Ast_ParameterList* params = (Ast_ParameterList*)control_decl->params;
+  visit_parameterList(params);
+  list_create(&control_ty->params_ty, storage, sizeof(Type*));
+  for (Ast** p = list_cursor_begin(&params->members);
+       p != 0; p = list_cursor_next(&params->members)) {
+    Ast_Parameter* param = (Ast_Parameter*)(*p);
+    list_append(&control_ty->params_ty, *(Type**)hashmap_lookup(
+          type_table, HASHMAP_KEY_STRING, name_of_type(param->type)->strname));
+  }
 }
 
 static void
@@ -556,12 +595,13 @@ visit_externTypeDeclaration(Ast_ExternTypeDeclaration* extern_decl)
   assert(extern_decl->kind == AST_externTypeDeclaration);
   Ast_Name* name = (Ast_Name*)extern_decl->name;
   Type_Structure* extern_ty = arena_malloc(storage, sizeof(*extern_ty));
-  extern_ty->ctor = TYPE_PRODUCT;
+  extern_ty->ctor = TYPE_STRUCTURE;
   extern_ty->strname = name->strname;
   hashmap_set(type_table, HASHMAP_KEY_STRING, name->strname, &extern_ty);
   if (extern_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)extern_decl->type_params);
   }
+  list_create(&extern_ty->members_ty, storage, sizeof(Type*));
   visit_methodPrototypes((Ast_MethodPrototypes*)extern_decl->method_protos);
 }
 
@@ -641,7 +681,7 @@ visit_tupleType(Ast_TupleType* type_decl)
   assert(type_decl->kind == AST_tupleType);
   Ast_Name* name = (Ast_Name*)type_decl->name;
   Type_Structure* tuple_ty = arena_malloc(storage, sizeof(*tuple_ty));
-  tuple_ty->ctor = TYPE_PRODUCT;
+  tuple_ty->ctor = TYPE_STRUCTURE;
   tuple_ty->strname = name->strname;
   hashmap_set(type_table, HASHMAP_KEY_STRING, name->strname, &tuple_ty);
   visit_typeArgumentList((Ast_TypeArgumentList*)type_decl->type_args);
@@ -827,7 +867,7 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
   assert(header_decl->kind == AST_headerTypeDeclaration);
   Ast_Name* name = (Ast_Name*)header_decl->name;
   Type_Structure* header_ty = arena_malloc(storage, sizeof(*header_ty));
-  header_ty->ctor = TYPE_PRODUCT;
+  header_ty->ctor = TYPE_STRUCTURE;
   header_ty->strname = name->strname;
   hashmap_set(type_table, HASHMAP_KEY_STRING, name->strname, &header_ty);
   visit_structFieldList((Ast_StructFieldList*)header_decl->fields);
@@ -839,7 +879,7 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
   assert(union_decl->kind == AST_headerUnionDeclaration);
   Ast_Name* name = (Ast_Name*)union_decl->name;
   Type_Structure* union_ty = arena_malloc(storage, sizeof(*union_ty));
-  union_ty->ctor = TYPE_PRODUCT;
+  union_ty->ctor = TYPE_STRUCTURE;
   union_ty->strname = name->strname;
   hashmap_set(type_table, HASHMAP_KEY_STRING, name->strname, &union_ty);
   visit_structFieldList((Ast_StructFieldList*)union_decl->fields);
@@ -851,7 +891,7 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
   assert(struct_decl->kind == AST_structTypeDeclaration);
   Ast_Name* name = (Ast_Name*)struct_decl->name;
   Type_Structure* struct_ty = arena_malloc(storage, sizeof(*struct_ty));
-  struct_ty->ctor = TYPE_PRODUCT;
+  struct_ty->ctor = TYPE_STRUCTURE;
   struct_ty->strname = name->strname;
   hashmap_set(type_table, HASHMAP_KEY_STRING, name->strname, &struct_ty);
   visit_structFieldList((Ast_StructFieldList*)struct_decl->fields);
@@ -945,6 +985,8 @@ visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl)
   typedef_ty->ctor = TYPE_TYPEDEF;
   typedef_ty->strname = name->strname;
   hashmap_set(type_table, HASHMAP_KEY_STRING, name->strname, &typedef_ty);
+  typedef_ty->referred_ty = *(Type**)hashmap_lookup(
+          type_table, HASHMAP_KEY_STRING, name_of_type(typedef_decl->type_ref)->strname);
 }
 
 /** STATEMENTS **/
@@ -1234,7 +1276,15 @@ visit_actionDeclaration(Ast_ActionDeclaration* action_decl)
   action_ty->ctor = TYPE_FUNCTION;
   action_ty->strname = name->strname;
   hashmap_set(type_table, HASHMAP_KEY_STRING, name->strname, &action_decl);
-  visit_parameterList((Ast_ParameterList*)action_decl->params);
+  Ast_ParameterList* params = (Ast_ParameterList*)action_decl->params;
+  visit_parameterList(params);
+  list_create(&action_ty->params_ty, storage, sizeof(Type*));
+  for (Ast** p = list_cursor_begin(&params->members);
+       p != 0; p = list_cursor_next(&params->members)) {
+    Ast_Parameter* param = (Ast_Parameter*)(*p);
+    list_append(&action_ty->params_ty, *(Type**)hashmap_lookup(
+          type_table, HASHMAP_KEY_STRING, name_of_type(param->type)->strname));
+  }
   visit_blockStatement((Ast_BlockStatement*)action_decl->stmt);
 }
 
