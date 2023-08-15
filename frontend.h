@@ -1011,6 +1011,7 @@ enum TypeEnum {
   TYPE_MATCH_KIND,
 
   /* Composite */
+  TYPE_TYPEVAR,
   TYPE_FUNCTION,
   TYPE_PRODUCT,
   TYPE_TYPEDEF,
@@ -1030,19 +1031,23 @@ typedef struct Type_Basic {
   Type;
 } Type_Basic;
 
+typedef struct Type_TypeVar {
+  Type;
+} Type_TypeVar;
+
 typedef struct Type_Typedef {
   Type;
-  Type* ref_ty;
+  Type* referred_ty;
 } Type_Typedef;
 
-typedef struct Type_Product {
+typedef struct Type_Structure {
   Type;
-  List members;
-} Type_Product;
+  List members_ty;
+} Type_Structure;
 
 typedef struct Type_Function {
   Type;
-  Type* params_ty;
+  List  params_ty;
   Type* return_ty;
 } Type_Function;
 
@@ -1060,12 +1065,13 @@ typedef union Type_Unresolved {
   Type;
 
   /* Placeholders */
-  Type_Basic    _basic;
-  Type_Typedef  _typedef;
-  Type_Product  _product;
-  Type_Function _function;
-  Type_Array    _array;
-  Type_Generic  _generic;
+  Type_Basic     _basic;
+  Type_TypeVar   _typevar;
+  Type_Typedef   _typedef;
+  Type_Structure _structure;
+  Type_Function  _function;
+  Type_Array     _array;
+  Type_Generic   _generic;
 } Type_Unresolved;
 
 typedef struct PassResult_TypeDecl {
