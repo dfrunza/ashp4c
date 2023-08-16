@@ -91,30 +91,10 @@ list_create(List* list, Arena* storage, int item_size)
   list->storage = storage;
 }
 
-void*
-list_cursor_begin(List* list)
+ListItem*
+list_first_item(List* list)
 {
-  ListItem* item = list->sentinel.next;
-  list->cursor.item = item;
-  return item ? &item->elem : 0;
-}
-
-void*
-list_cursor_next(List* list)
-{
-  ListItem* item = list->cursor.item;
-  item = item->next;
-  list->cursor.item = item;
-  return item ? &item->elem : 0;
-}
-
-void*
-list_cursor_prev(List* list)
-{
-  ListItem* item = list->cursor.item;
-  item = item->prev;
-  list->cursor.item = item;
-  return item ? &item->elem : 0;
+  return list->sentinel.next;
 }
 
 void

@@ -53,16 +53,10 @@ typedef struct List {
   int item_size;
   int item_count;
   Arena* storage;
-
-  struct {
-    ListItem* item;
-  } cursor;
 } List;
 
 void  list_create(List* list, Arena* storage, int item_size);
-void* list_cursor_begin(List* list);
-void* list_cursor_next(List* list);
-void* list_cursor_prev(List* list);
+ListItem* list_first_item(List* list);
 void  list_append_item(List* list, ListItem* item, int count);
 void* list_append(List* list, void* elem);
 
