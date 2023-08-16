@@ -947,6 +947,7 @@ typedef struct Ast_StringLiteral {
 
 typedef struct Ast_Dontcare {
   Ast;
+  Ast* name;
 } Ast_Dontcare;
 
 typedef struct Ast_Default {
@@ -1013,7 +1014,8 @@ enum TypeEnum {
   /* Composite */
   TYPE_TYPEVAR,
   TYPE_FUNCTION,
-  TYPE_STRUCTURE,
+  TYPE_PRODUCT,
+  TYPE_UNION,
   TYPE_TYPEDEF,
   TYPE_ARRAY,
   TYPE_GENERIC,
@@ -1040,10 +1042,15 @@ typedef struct Type_Typedef {
   Type* referred_ty;
 } Type_Typedef;
 
-typedef struct Type_Structure {
+typedef struct Type_Product {
   Type;
   List members_ty;
-} Type_Structure;
+} Type_Product;
+
+typedef struct Type_Union {
+  Type;
+  List members_ty;
+} Type_Union;
 
 typedef struct Type_Function {
   Type;
@@ -1054,11 +1061,12 @@ typedef struct Type_Function {
 typedef struct Type_Array {
   Type;
   Type* element_ty;
-  int size;
 } Type_Array;
 
 typedef struct Type_Generic {
   Type;
+  Type* referred_ty;
+  List  args_ty;
 } Type_Generic;
 
 typedef union Type_Unresolved {
@@ -1068,7 +1076,8 @@ typedef union Type_Unresolved {
   Type_Basic     _basic;
   Type_TypeVar   _typevar;
   Type_Typedef   _typedef;
-  Type_Structure _structure;
+  Type_Product   _product;
+  Type_Union     _union;
   Type_Function  _function;
   Type_Array     _array;
   Type_Generic   _generic;

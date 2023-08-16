@@ -1291,6 +1291,12 @@ parse_simpleKeysetExpression()
       dontcare_keyset->kind = AST_dontcare;
       dontcare_keyset->line_no = token->line_no;
       dontcare_keyset->column_no = token->column_no;
+      Ast_Name* name = arena_malloc(storage, sizeof(*name));
+      name->kind = AST_name;
+      name->line_no = dontcare_keyset->line_no;
+      name->column_no = dontcare_keyset->column_no;
+      name->strname = "_";
+      dontcare_keyset->name = (Ast*)name;
       simple_keyset->expr = (Ast*)dontcare_keyset;
       return (Ast*)simple_keyset;
     }
@@ -1966,6 +1972,12 @@ parse_realTypeArg()
       dontcare_arg->kind = AST_dontcare;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
+      Ast_Name* name = arena_malloc(storage, sizeof(*name));
+      name->kind = AST_name;
+      name->line_no = dontcare_arg->line_no;
+      name->column_no = dontcare_arg->column_no;
+      name->strname = "_";
+      dontcare_arg->name = (Ast*)name;
       type_arg->arg = (Ast*)dontcare_arg;
       return (Ast*)type_arg;
     } else if (token_is_typeRef(token)) {
@@ -1992,6 +2004,12 @@ parse_typeArg()
       dontcare_arg->kind = AST_dontcare;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
+      Ast_Name* name = arena_malloc(storage, sizeof(*name));
+      name->kind = AST_name;
+      name->line_no = dontcare_arg->line_no;
+      name->column_no = dontcare_arg->column_no;
+      name->strname = "_";
+      dontcare_arg->name = (Ast*)name;
       type_arg->arg = (Ast*)dontcare_arg;
       return (Ast*)type_arg;
     } else if (token_is_typeRef(token)) {
@@ -3275,6 +3293,12 @@ parse_argument()
       dontcare_arg->kind = AST_dontcare;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
+      Ast_Name* name = arena_malloc(storage, sizeof(*name));
+      name->kind = AST_name;
+      name->line_no = dontcare_arg->line_no;
+      name->column_no = dontcare_arg->column_no;
+      name->strname = "_";
+      dontcare_arg->name = (Ast*)name;
       arg->arg = (Ast*)dontcare_arg;
       return (Ast*)arg;
     } else assert(0);
