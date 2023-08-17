@@ -766,7 +766,7 @@ parse_packageTypeDeclaration()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      scope_push_decl(current_scope, namedecl, NS_TYPE);
+      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
       package_decl->name = (Ast*)name;
       package_decl->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
@@ -931,7 +931,7 @@ parse_parserTypeDeclaration()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      scope_push_decl(current_scope, namedecl, NS_TYPE);
+      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
       parser_proto->name = (Ast*)name;
       parser_proto->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
@@ -1345,7 +1345,7 @@ parse_controlTypeDeclaration()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      scope_push_decl(current_scope, namedecl, NS_TYPE);
+      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
       control_proto->name = (Ast*)name;
       control_proto->type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
@@ -1456,7 +1456,7 @@ parse_externDeclaration()
       Ast_Name* name = (Ast_Name*)extern_type->name;
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      scope_push_decl(current_scope, namedecl, NS_TYPE);
+      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
       extern_type->type_params = parse_optTypeParameters();
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -1510,7 +1510,7 @@ parse_functionPrototype(Ast* return_type)
         Ast_Name* name = (Ast_Name*)return_type;
         NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
         namedecl->strname = name->strname;
-        scope_push_decl(current_scope, namedecl, NS_TYPE);
+        scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
         Ast_TypeRef* type_ref = arena_malloc(storage, sizeof(*type_ref));
         type_ref->kind = AST_typeRef;
         type_ref->line_no = token->line_no;
@@ -1934,14 +1934,14 @@ parse_typeParameterList()
     Ast_Name* name = (Ast_Name*)parse_name();
     NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
     namedecl->strname = name->strname;
-    scope_push_decl(current_scope, namedecl, NS_TYPE);
+    scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
     params->first_child = (Ast*)name;
     while (token->klass == TK_COMMA) {
       next_token();
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      scope_push_decl(current_scope, namedecl, NS_TYPE);
+      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
       name->right_sibling = (Ast*)name;
       name = (Ast_Name*)name->right_sibling;
     }
@@ -2128,7 +2128,7 @@ parse_headerTypeDeclaration()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      scope_push_decl(current_scope, namedecl, NS_TYPE);
+      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
       header_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2161,7 +2161,7 @@ parse_headerUnionDeclaration()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      scope_push_decl(current_scope, namedecl, NS_TYPE);
+      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
       union_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2194,7 +2194,7 @@ parse_structTypeDeclaration()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      scope_push_decl(current_scope, namedecl, NS_TYPE);
+      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
       struct_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2284,7 +2284,7 @@ parse_enumDeclaration()
       Ast_Name* name = (Ast_Name*)parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
       namedecl->strname = name->strname;
-      scope_push_decl(current_scope, namedecl, NS_TYPE);
+      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
       enum_decl->name = (Ast*)name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2446,7 +2446,7 @@ parse_typedefDeclaration()
         Ast_Name* name = (Ast_Name*)parse_name();
         NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
         namedecl->strname = name->strname;
-        scope_push_decl(current_scope, namedecl, NS_TYPE);
+        scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
         type_decl->name = (Ast*)name;
         if (token->klass == TK_SEMICOLON) {
           next_token();
@@ -3726,7 +3726,7 @@ parse_program(TokenizedSource* lex_result, Arena* _storage)
     NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
     namedecl->strname = keywords[i].strname;
     namedecl->token_class = keywords[i].token_class;
-    scope_push_decl(current_scope, namedecl, NS_KEYWORD);
+    scope_push_decl(current_scope, storage, namedecl, NS_KEYWORD);
   }
 
   struct BuiltinName {
@@ -3752,7 +3752,7 @@ parse_program(TokenizedSource* lex_result, Arena* _storage)
     NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
     namedecl->strname = name->strname;
     namedecl->ast = (Ast*)name;
-    scope_push_decl(root_scope, namedecl, builtin_names[i].ns);
+    scope_push_decl(root_scope, storage, namedecl, builtin_names[i].ns);
   }
 
   token_at = 0;

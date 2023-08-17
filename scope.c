@@ -49,9 +49,9 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 }
 
 NameEntry*
-scope_push_decl(Scope* scope, NameDecl* decl, enum NameSpace ns)
+scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns)
 {
-  NameEntry* ns_entry = hashmap_get(&scope->name_table, HASHMAP_KEY_STRING, decl->strname);
+  NameEntry* ns_entry = hashmap_get(&scope->name_table, storage, HASHMAP_KEY_STRING, decl->strname);
   decl->next_in_scope = ns_entry->ns[ns];
   ns_entry->ns[ns] = decl;
   return ns_entry;

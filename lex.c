@@ -829,10 +829,10 @@ tokenize_source_text(SourceText* source_text, Arena* _storage)
   token.klass = TK_START_OF_INPUT;
   tokens = &lex_result.tokens;
   array_create(tokens, storage, sizeof(token), 2047);
-  array_append(tokens, &token);
+  array_append(tokens, storage, &token);
 
   next_token(&token);
-  array_append(tokens, &token);
+  array_append(tokens, storage, &token);
   while (token.klass != TK_END_OF_INPUT) {
     if (token.klass == TK_UNKNOWN) {
       error("At line %d, column %d: unknown token.", token.line_no, token.column_no);
@@ -840,7 +840,7 @@ tokenize_source_text(SourceText* source_text, Arena* _storage)
       error("At line %d, column %d: lexical error.", token.line_no, token.column_no);
     }
     next_token(&token);
-    array_append(tokens, &token);
+    array_append(tokens, storage, &token);
   }
   return &lex_result;
 }

@@ -5,7 +5,7 @@
 #include "foundation.h"
 
 void
-array_extend(UnboundedArray* array)
+array_extend(UnboundedArray* array, Arena* storage)
 {
   int segment_index = floor_log2(array->capacity + 1);
   if (segment_index >= array->segment_length) {
@@ -13,7 +13,7 @@ array_extend(UnboundedArray* array)
     exit(1);
   }
   int segment_capacity = (1 << segment_index);
-  array->segment_table[segment_index] = arena_malloc(array->storage, segment_capacity * array->elem_size);
+  array->segment_table[segment_index] = arena_malloc(storage, segment_capacity * array->elem_size);
   array->capacity += segment_capacity;
 }
 
@@ -27,9 +27,8 @@ array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capac
   array->elem_size = elem_size;
   array->elem_count = 0;
   array->capacity = 0;
-  array->storage = storage;
   for (int i = 0; i < 3; i++) {
-    array_extend(array);
+    array_extend(array, storage);
   }
 }
 
@@ -70,10 +69,10 @@ array_set(UnboundedArray* array, int i, void* elem)
 }
 
 void*
-array_append(UnboundedArray* array, void* elem)
+array_append(UnboundedArray* array, Arena* storage, void* elem)
 {
   if (array->elem_count >= array->capacity) {
-    array_extend(array);
+    array_extend(array, storage);
   }
   array->elem_count += 1;
   void* result = array_set(array, array->elem_count - 1, elem);

@@ -992,7 +992,7 @@ Scope*      scope_push(Scope* scope, Scope* parent_scope);
 Scope*      scope_pop(Scope* scope);
 NameEntry*  scope_lookup_any(Scope* scope, char* name);
 NameEntry*  scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
-NameEntry*  scope_push_decl(Scope* scope, NameDecl* decl, enum NameSpace ns);
+NameEntry*  scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns);
 
 typedef struct PassResult_NameDecl {
   Hashmap scope_map;

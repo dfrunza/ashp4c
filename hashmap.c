@@ -141,15 +141,15 @@ hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, i
   hashmap->entry_count = 0;
   array_create(&hashmap->entries, storage, sizeof(HashmapEntry*), max_capacity);
   for (int i = 3; i < hashmap->capacity_log2; i++) {
-    array_extend(&hashmap->entries);
+    array_extend(&hashmap->entries, storage);
   }
   for (int i = 0; i < hashmap->capacity; i++) {
-    array_append(&hashmap->entries, &NULL_ENTRY);
+    array_append(&hashmap->entries, storage, &NULL_ENTRY);
   }
 }
 
 static void
-hashmap_grow(Hashmap* hashmap, HashmapKey* key)
+hashmap_grow(Hashmap* hashmap, Arena* storage, HashmapKey* key)
 {
   hashmap_cursor_begin(hashmap);
   HashmapEntry* first_entry = hashmap_cursor_next_entry(hashmap);
@@ -164,7 +164,7 @@ hashmap_grow(Hashmap* hashmap, HashmapKey* key)
   assert(entry_count == hashmap->entry_count);
   hashmap->capacity = (1 << ++hashmap->capacity_log2) - 1;
   for (int i = hashmap->entry_count; i < hashmap->capacity; i++) {
-    array_append(&hashmap->entries, &NULL_ENTRY);
+    array_append(&hashmap->entries, storage, &NULL_ENTRY);
   }
   for (int i = 0; i < hashmap->capacity; i++) {
     array_set(&hashmap->entries, i, &NULL_ENTRY);
@@ -219,16 +219,16 @@ hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
 }
 
 HashmapEntry*
-hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
+hashmap_get_entry(Hashmap* hashmap, Arena* storage, HashmapKey* key)
 {
   HashmapEntry* entry = hashmap_lookup_entry(hashmap, key);
   if (entry) {
     return entry;
   }
   if (hashmap->entry_count >= hashmap->capacity) {
-    hashmap_grow(hashmap, key);
+    hashmap_grow(hashmap, storage, key);
   }
-  entry = arena_malloc(hashmap->entries.storage, sizeof(HashmapEntry) + hashmap->entry_size);
+  entry = arena_malloc(storage, sizeof(HashmapEntry) + hashmap->entry_size);
   entry->key = *key;
   entry->next_entry = *(HashmapEntry**)array_get(&hashmap->entries, key->h);
   array_set(&hashmap->entries, key->h, &entry);
@@ -237,7 +237,7 @@ hashmap_get_entry(Hashmap* hashmap, HashmapKey* key)
 }
 
 void*
-hashmap_get(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
+hashmap_get(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...)
 {
   assert(hashmap->key_type == key_type);
   va_list args;
@@ -257,13 +257,13 @@ hashmap_get(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
     key = (HashmapKey){ .u64_key = va_arg(args, uint64_t) };
     hashmap_hash_key(HASHMAP_KEY_UINT64, &key, hashmap->capacity_log2);
   } else assert(0);
-  HashmapEntry* entry = hashmap_get_entry(hashmap, &key);
+  HashmapEntry* entry = hashmap_get_entry(hashmap, storage, &key);
   va_end(args);
   return &entry->value;
 }
 
 void*
-hashmap_set(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
+hashmap_set(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...)
 {
   assert(hashmap->key_type == key_type);
   va_list args;
@@ -283,7 +283,7 @@ hashmap_set(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
     key = (HashmapKey){ .u64_key = va_arg(args, uint64_t) };
     hashmap_hash_key(HASHMAP_KEY_UINT64, &key, hashmap->capacity_log2);
   } else assert(0);
-  HashmapEntry* entry = hashmap_get_entry(hashmap, &key);
+  HashmapEntry* entry = hashmap_get_entry(hashmap, storage, &key);
   void* value = va_arg(args, void*);
   memcpy(entry->value, value, hashmap->entry_size);
   va_end(args);

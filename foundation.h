@@ -61,14 +61,13 @@ typedef struct UnboundedArray {
   int elem_size;
   int elem_count;
   int capacity;
-  Arena* storage;
 } UnboundedArray;
 
 void  array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capacity);
-void  array_extend(UnboundedArray* array);
+void  array_extend(UnboundedArray* array, Arena* storage);
 void* array_get(UnboundedArray* array, int i);
 void* array_set(UnboundedArray* array, int i, void* elem);
-void* array_append(UnboundedArray* array, void* elem);
+void* array_append(UnboundedArray* array, Arena* storage, void* elem);
 
 enum HashmapKeyType {
   HASHMAP_KEY_NONE = 0,
@@ -114,9 +113,9 @@ void          hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyTy
                              int capacity, int max_capacity);
 HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key);
 void*         hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
-HashmapEntry* hashmap_get_entry(Hashmap* hashmap, HashmapKey* key);
-void*         hashmap_get(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
-void*         hashmap_set(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
+HashmapEntry* hashmap_get_entry(Hashmap* hashmap, Arena* storage, HashmapKey* key);
+void*         hashmap_get(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...);
+void*         hashmap_set(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...);
 void          hashmap_cursor_begin(Hashmap* hashmap);
 HashmapEntry* hashmap_cursor_next_entry(Hashmap* hashmap);
 void*         hashmap_cursor_next(Hashmap* hashmap);
