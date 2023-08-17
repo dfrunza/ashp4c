@@ -44,21 +44,16 @@ void  arena_free(Arena* arena);
 typedef struct ListItem {
   struct ListItem* next;
   struct ListItem* prev;
-  void* elem[];
 } ListItem;
 
 typedef struct List {
   ListItem sentinel;
   ListItem* last_item;
-  int item_size;
-  int item_count;
-  Arena* storage;
 } List;
 
-void  list_create(List* list, Arena* storage, int item_size);
+void      list_create(List* list);
 ListItem* list_first_item(List* list);
-void  list_append_item(List* list, ListItem* item, int count);
-void* list_append(List* list, void* elem);
+void      list_append_item(List* list, ListItem* item);
 
 typedef struct UnboundedArray {
   void** segment_table;

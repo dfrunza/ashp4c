@@ -308,6 +308,7 @@ typedef struct Ast {
   enum AstEnum kind;
   int line_no;
   int column_no;
+  struct Ast* right_sibling;
 } Ast;
 
 /** PROGRAM **/
@@ -319,7 +320,7 @@ typedef struct Ast_P4Program {
 
 typedef struct Ast_DeclarationList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_DeclarationList;
 
 typedef struct Ast_Declaration {
@@ -335,7 +336,7 @@ typedef struct Ast_Name {
 
 typedef struct Ast_ParameterList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_ParameterList;
 
 typedef struct Ast_Parameter {
@@ -372,7 +373,7 @@ typedef struct Ast_ParserDeclaration {
 
 typedef struct Ast_ParserLocalElements {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_ParserLocalElements;
 
 typedef struct Ast_ParserTypeDeclaration {
@@ -384,7 +385,7 @@ typedef struct Ast_ParserTypeDeclaration {
 
 typedef struct Ast_ParserStates {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_ParserStates;
 
 typedef struct Ast_ParserLocalElement {
@@ -401,7 +402,7 @@ typedef struct Ast_ParserState {
 
 typedef struct Ast_ParserStatements {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_ParserStatements;
 
 typedef struct Ast_ParserStatement {
@@ -432,7 +433,7 @@ typedef struct Ast_SelectExpression {
 
 typedef struct Ast_SelectCaseList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_SelectCaseList;
 
 typedef struct Ast_SelectCase {
@@ -458,7 +459,7 @@ typedef struct Ast_SimpleKeysetExpression {
 
 typedef struct Ast_SimpleExpressionList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_SimpleExpressionList;
 
 /** CONTROL **/
@@ -485,7 +486,7 @@ typedef struct Ast_ControlLocalDeclaration {
 
 typedef struct Ast_ControlLocalDeclarations {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_ControlLocalDeclarations;
 
 /** EXTERN **/
@@ -497,7 +498,7 @@ typedef struct Ast_ExternDeclaration {
 
 typedef struct Ast_MethodPrototypes {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_MethodPrototypes;
 
 typedef struct Ast_ExternTypeDeclaration {
@@ -587,7 +588,7 @@ typedef struct Ast_IntegerTypeSize {
 
 typedef struct Ast_TypeParameterList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_TypeParameterList;
 
 typedef struct Ast_RealTypeArg {
@@ -602,12 +603,12 @@ typedef struct Ast_TypeArg {
 
 typedef struct Ast_RealTypeArgumentList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_RealTypeArgumentList;
 
 typedef struct Ast_TypeArgumentList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_TypeArgumentList;
 
 typedef struct Ast_TypeDeclaration {
@@ -640,7 +641,7 @@ typedef struct Ast_StructTypeDeclaration {
 
 typedef struct Ast_StructFieldList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_StructFieldList;
 
 typedef struct Ast_StructField {
@@ -668,12 +669,12 @@ typedef struct Ast_MatchKindDeclaration {
 
 typedef struct Ast_IdentifierList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_IdentifierList;
 
 typedef struct Ast_SpecifiedIdentifierList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_SpecifiedIdentifierList;
 
 typedef struct Ast_SpecifiedIdentifier {
@@ -736,7 +737,7 @@ typedef struct Ast_BlockStatement {
 
 typedef struct Ast_StatementOrDeclList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_StatementOrDeclList;
 
 typedef struct Ast_SwitchStatement {
@@ -747,7 +748,7 @@ typedef struct Ast_SwitchStatement {
 
 typedef struct Ast_SwitchCases {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_SwitchCases;
 
 typedef struct Ast_SwitchCase {
@@ -776,7 +777,7 @@ typedef struct Ast_TableDeclaration {
 
 typedef struct Ast_TablePropertyList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_TablePropertyList;
 
 typedef struct Ast_TableProperty {
@@ -791,7 +792,7 @@ typedef struct Ast_KeyProperty {
 
 typedef struct Ast_KeyElementList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_KeyElementList;
 
 typedef struct Ast_KeyElement {
@@ -807,7 +808,7 @@ typedef struct Ast_ActionsProperty {
 
 typedef struct Ast_ActionList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_ActionList;
 
 typedef struct Ast_ActionRef {
@@ -823,7 +824,7 @@ typedef struct Ast_EntriesProperty {
 
 typedef struct Ast_EntriesList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_EntriesList;
 
 typedef struct Ast_Entry {
@@ -866,7 +867,7 @@ typedef struct Ast_FunctionDeclaration {
 
 typedef struct Ast_ArgumentList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_ArgumentList;
 
 typedef struct Ast_Argument {
@@ -876,7 +877,7 @@ typedef struct Ast_Argument {
 
 typedef struct Ast_ExpressionList {
   Ast;
-  List members;
+  struct Ast* first_child;
 } Ast_ExpressionList;
 
 typedef struct Ast_LvalueExpression {

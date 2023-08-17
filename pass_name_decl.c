@@ -164,9 +164,9 @@ static void
 visit_declarationList(Ast_DeclarationList* decl_list)
 {
   assert(decl_list->kind == AST_declarationList);
-  for (ListItem* p = list_first_item(&decl_list->members);
-       p != 0; p = p->next) {
-    visit_declaration(*(p->elem));
+  for (Ast* ast = decl_list->first_child;
+       ast != 0; ast = ast->right_sibling) {
+    visit_declaration((Ast_Declaration*)ast);
   }
 }
 
