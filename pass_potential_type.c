@@ -1339,7 +1339,7 @@ pass_potential_type(ParsedProgram* p4program, Arena* _storage,
   scope_map = &namedecl_result->scope_map;
   type_table = &typedecl_result->type_table;
   potential_type = &pass_result.potential_type;
-  hashmap_create(potential_type, storage, HASHMAP_KEY_UINT64, sizeof(Type*), 7, 1023);
+  hashmap_create(potential_type, storage, HASHMAP_KEY_UINT64, sizeof(Type*), 15, 1023);
   visit_p4program(p4program->ast);
   return &pass_result;
 }

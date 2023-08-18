@@ -1045,17 +1045,19 @@ typedef struct Type_Typedef {
 
 typedef struct Type_Product {
   Type;
-  List members_ty;
+  Type* lhs_ty;
+  Type* rhs_ty;
 } Type_Product;
 
 typedef struct Type_Union {
   Type;
-  List members_ty;
+  Type* lhs_ty;
+  Type* rhs_ty;
 } Type_Union;
 
 typedef struct Type_Function {
   Type;
-  List  params_ty;
+  Type* params_ty;
   Type* return_ty;
 } Type_Function;
 

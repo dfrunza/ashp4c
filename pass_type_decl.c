@@ -303,12 +303,15 @@ visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* package_decl)
   Ast_ParameterList* params = (Ast_ParameterList*)package_decl->params;
   visit_parameterList(params);
   /* list_create(&package_ty->params_ty); */
-  for (Ast* ast = params->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  if (params->first_child) {
+    Ast* ast = params->first_child;
     Ast_Parameter* param = (Ast_Parameter*)ast;
-    /*
-    list_append(&package_ty->params_ty, *(Type**)hashmap_lookup(
-          type_table, HASHMAP_KEY_STRING, name_of_type(param->type)->strname)); */
+    for (ast = ast->right_sibling; ast != 0; ast = ast->right_sibling) {
+      param = (Ast_Parameter*)ast;
+      /*
+      list_append(&package_ty->params_ty, *(Type**)hashmap_lookup(
+            type_table, HASHMAP_KEY_STRING, name_of_type(param->type)->strname)); */
+    }
   }
 }
 
@@ -1529,7 +1532,7 @@ pass_type_decl(ParsedProgram* p4program, Arena* _storage)
 {
   storage = _storage;
   type_table = &pass_result.type_table;
-  hashmap_create(&pass_result.type_table, storage, HASHMAP_KEY_STRING, sizeof(Type*), 7, 1023);
+  hashmap_create(&pass_result.type_table, storage, HASHMAP_KEY_STRING, sizeof(Type*), 15, 1023);
 
   struct BuiltinType {
     char* strname;

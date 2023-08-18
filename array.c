@@ -8,7 +8,7 @@ void
 array_extend(UnboundedArray* array, Arena* storage)
 {
   int segment_index = floor_log2(array->capacity + 1);
-  if (segment_index >= array->segment_length) {
+  if (segment_index >= array->segment_count) {
     printf("\nMaximum array capacity has been reached.\n");
     exit(1);
   }
@@ -21,15 +21,17 @@ void
 array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capacity)
 {
   assert(elem_size > 0);
-  assert(max_capacity >= 7);
-  array->segment_length = ceil_log2(max_capacity + 1);
-  array->segment_table = arena_malloc(storage, sizeof(void*) * array->segment_length);
+  assert(max_capacity >= 15);
+  array->segment_count = ceil_log2(max_capacity + 1);
   array->elem_size = elem_size;
   array->elem_count = 0;
-  array->capacity = 0;
-  for (int i = 0; i < 3; i++) {
-    array_extend(array, storage);
-  }
+  array->capacity = 15;
+
+  array->segment_table = arena_malloc(storage, sizeof(void*) * array->segment_count);
+  array->segment_table[0] = arena_malloc(storage, 16 * array->elem_size);
+  array->segment_table[1] = array->segment_table[0] + 1 * array->elem_size;
+  array->segment_table[2] = array->segment_table[0] + 3 * array->elem_size;
+  array->segment_table[3] = array->segment_table[0] + 7 * array->elem_size;
 }
 
 static void

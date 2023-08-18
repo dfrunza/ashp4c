@@ -57,7 +57,7 @@ void      list_append_item(List* list, ListItem* item);
 
 typedef struct UnboundedArray {
   void** segment_table;
-  int segment_length;
+  int segment_count;
   int elem_size;
   int elem_count;
   int capacity;
