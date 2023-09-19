@@ -979,11 +979,11 @@ typedef struct NameEntry {
   NameDecl* ns[NameSpace_COUNT];
 } NameEntry;
 
-Scope*      scope_push(Scope* scope, Scope* parent_scope);
-Scope*      scope_pop(Scope* scope);
-NameEntry*  scope_lookup_any(Scope* scope, char* name);
-NameEntry*  scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
-NameEntry*  scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns);
+Scope*     scope_push(Scope* scope, Scope* parent_scope);
+Scope*     scope_pop(Scope* scope);
+NameEntry* scope_lookup_any(Scope* scope, char* name);
+NameEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
+NameEntry* scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns);
 
 enum TypeEnum {
   TYPE_NONE = 0,

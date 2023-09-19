@@ -1330,8 +1330,8 @@ visit_dontcare(Ast_Dontcare* dontcare)
 }
 
 Hashmap*
-potential_type(Ast_P4Program* ast, Scope* _root_scope, Arena* _storage,
-    Hashmap* _scope_map, Hashmap* _type_table)
+potential_type(Ast_P4Program* ast, Scope* _root_scope, 
+    Hashmap* _scope_map, Hashmap* _type_table, Arena* _storage)
 {
   storage = _storage;
   root_scope = _root_scope;

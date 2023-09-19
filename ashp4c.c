@@ -108,14 +108,14 @@ main(int arg_count, char* args[])
   UnboundedArray* tokens = tokenize_source_text(source_text, &main_storage);
 
   Scope* root_scope;
-  Ast_P4Program* ast = parse_program(tokens, &main_storage, &root_scope);
+  Ast_P4Program* ast = parse_program(tokens, &root_scope, &main_storage);
   arena_free(&text_storage);
 
   drypass(ast); /* sanity check */
   Hashmap* scope_map, *field_map;
   name_decl(ast, root_scope, &scope_map, &field_map, &main_storage);
   Hashmap* type_table = type_decl(ast, &main_storage);
-  potential_type(ast, root_scope, &main_storage, scope_map, type_table);
+  potential_type(ast, root_scope, scope_map, type_table, &main_storage);
 
   arena_free(&main_storage);
   return 0;

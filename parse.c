@@ -3666,7 +3666,7 @@ parse_string()
 }
 
 Ast_P4Program*
-parse_program(UnboundedArray* _tokens, Arena* _storage, Scope** _root_scope)
+parse_program(UnboundedArray* _tokens, Scope** _root_scope, Arena* _storage)
 {
   tokens = _tokens;
   storage = _storage;
