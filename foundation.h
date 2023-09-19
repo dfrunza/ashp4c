@@ -115,7 +115,7 @@ HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key);
 void*         hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
 HashmapEntry* hashmap_get_entry(Hashmap* hashmap, Arena* storage, HashmapKey* key);
 void*         hashmap_get(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...);
-void*         hashmap_set(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...);
+void          hashmap_set(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...);
 void          hashmap_cursor_begin(HashmapCursor* cursor);
 HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap);
 void*         hashmap_cursor_next(HashmapCursor* cursor, Hashmap* hashmap);
