@@ -114,10 +114,6 @@ typedef struct Token {
   };
 } Token;
 
-typedef struct TokenizedSource {
-  UnboundedArray tokens;
-} TokenizedSource;
-
 enum AstEnum {
   AST_none = 0,
 
@@ -960,11 +956,6 @@ typedef struct Scope {
   int scope_level;
   struct Scope* parent_scope;
 } Scope;
-
-typedef struct ParsedProgram {
-  Ast_P4Program* ast;
-  Scope root_scope;
-} ParsedProgram;
 
 typedef struct NameDecl {
   char* strname;

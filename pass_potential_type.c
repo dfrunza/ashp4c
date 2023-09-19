@@ -1331,15 +1331,15 @@ visit_dontcare(Ast_Dontcare* dontcare)
 }
 
 PassResult_PotentialType*
-pass_potential_type(ParsedProgram* p4program, Arena* _storage,
-                    PassResult_NameDecl* namedecl_result, PassResult_TypeDecl* typedecl_result)
+pass_potential_type(Ast_P4Program* ast, Scope* _root_scope, Arena* _storage,
+    PassResult_NameDecl* namedecl_result, PassResult_TypeDecl* typedecl_result)
 {
   storage = _storage;
-  root_scope = &p4program->root_scope;
+  root_scope = _root_scope;
   scope_map = &namedecl_result->scope_map;
   type_table = &typedecl_result->type_table;
   potential_type = &pass_result.potential_type;
   hashmap_create(potential_type, storage, HASHMAP_KEY_UINT64, sizeof(Type*), 15, 1023);
-  visit_p4program(p4program->ast);
+  visit_p4program(ast);
   return &pass_result;
 }

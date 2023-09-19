@@ -10,7 +10,7 @@ static Token* token = 0;
 static int    prev_token_at = 0;
 static Token* prev_token = 0;
 static Scope* current_scope;
-static ParsedProgram parse_result = {};
+static Scope  root_scope = {};
 static const int MAXLEN_ANONTYPE = 16;  /* type@9999:9999 */
 
 /** PROGRAM **/
@@ -3665,15 +3665,14 @@ parse_string()
   return 0;
 }
 
-ParsedProgram*
-parse_program(TokenizedSource* lex_result, Arena* _storage)
+Ast_P4Program*
+parse_program(UnboundedArray* _tokens, Arena* _storage, Scope** _root_scope)
 {
-  tokens = &lex_result->tokens;
+  tokens = _tokens;
   storage = _storage;
-  Scope* root_scope = &parse_result.root_scope;
-  hashmap_create(&root_scope->name_table, storage, HASHMAP_KEY_STRING, sizeof(NameEntry), 15, 1023);
-  root_scope->scope_level = 0;
-  current_scope = root_scope;
+  hashmap_create(&root_scope.name_table, storage, HASHMAP_KEY_STRING, sizeof(NameEntry), 15, 1023);
+  root_scope.scope_level = 0;
+  current_scope = &root_scope;
 
   struct Keyword {
     char* strname;
@@ -3752,13 +3751,14 @@ parse_program(TokenizedSource* lex_result, Arena* _storage)
     NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));
     namedecl->strname = name->strname;
     namedecl->ast = (Ast*)name;
-    scope_push_decl(root_scope, storage, namedecl, builtin_names[i].ns);
+    scope_push_decl(&root_scope, storage, namedecl, builtin_names[i].ns);
   }
 
   token_at = 0;
   token = array_get(tokens, token_at);
   next_token();
-  parse_result.ast = (Ast_P4Program*)parse_p4program();
-  assert(current_scope == root_scope);
-  return &parse_result;
+  Ast_P4Program* ast = (Ast_P4Program*)parse_p4program();
+  assert(current_scope == &root_scope);
+  *_root_scope = &root_scope;
+  return ast;
 }

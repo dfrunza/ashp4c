@@ -16,8 +16,7 @@ static int    line_no;
 static char*  line_start;
 static int    state;
 static Lexeme lexeme[2];
-static UnboundedArray* tokens;
-static TokenizedSource lex_result = {};
+static UnboundedArray tokens = {};
 
 static char
 char_lookahead(int pos)
@@ -403,7 +402,7 @@ next_token(Token* token)
 
       case 113:
       {
-        Token* prev_token = array_get(tokens, tokens->elem_count - 1);
+        Token* prev_token = array_get(&tokens, tokens.elem_count - 1);
         if (prev_token->klass == TK_PARENTH_OPEN) {
           token->klass = TK_UNARY_MINUS;
         } else {
@@ -814,7 +813,7 @@ next_token(Token* token)
   token->line_no = line_no;
 }
 
-TokenizedSource*
+UnboundedArray*
 tokenize_source_text(SourceText* source_text, Arena* _storage)
 {
   storage = _storage;
@@ -827,12 +826,11 @@ tokenize_source_text(SourceText* source_text, Arena* _storage)
 
   Token token = {};
   token.klass = TK_START_OF_INPUT;
-  tokens = &lex_result.tokens;
-  array_create(tokens, storage, sizeof(token), 2047);
-  array_append(tokens, storage, &token);
+  array_create(&tokens, storage, sizeof(token), 2047);
+  array_append(&tokens, storage, &token);
 
   next_token(&token);
-  array_append(tokens, storage, &token);
+  array_append(&tokens, storage, &token);
   while (token.klass != TK_END_OF_INPUT) {
     if (token.klass == TK_UNKNOWN) {
       error("At line %d, column %d: unknown token.", token.line_no, token.column_no);
@@ -840,8 +838,8 @@ tokenize_source_text(SourceText* source_text, Arena* _storage)
       error("At line %d, column %d: lexical error.", token.line_no, token.column_no);
     }
     next_token(&token);
-    array_append(tokens, storage, &token);
+    array_append(&tokens, storage, &token);
   }
-  return &lex_result;
+  return &tokens;
 }
 

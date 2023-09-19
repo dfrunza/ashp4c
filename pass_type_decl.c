@@ -1528,7 +1528,7 @@ visit_dontcare(Ast_Dontcare* dontcare)
 }
 
 PassResult_TypeDecl*
-pass_type_decl(ParsedProgram* p4program, Arena* _storage)
+pass_type_decl(Ast_P4Program* ast, Arena* _storage, PassResult_NameDecl* namedecl_result)
 {
   storage = _storage;
   type_table = &pass_result.type_table;
@@ -1560,7 +1560,7 @@ pass_type_decl(ParsedProgram* p4program, Arena* _storage)
   dontcare_ty->strname = "_";
   hashmap_set(type_table, storage, HASHMAP_KEY_STRING, dontcare_ty->strname, &dontcare_ty);
 
-  visit_p4program(p4program->ast);
+  visit_p4program(ast);
   return &pass_result;
 }
 

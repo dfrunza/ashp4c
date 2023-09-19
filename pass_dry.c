@@ -1313,8 +1313,8 @@ visit_dontcare(Ast_Dontcare* dontcare)
 }
 
 void
-pass_dry(ParsedProgram* p4program)
+pass_dry(Ast_P4Program* ast)
 {
-  visit_p4program(p4program->ast);
+  visit_p4program(ast);
 }
 

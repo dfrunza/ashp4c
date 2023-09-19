@@ -1499,15 +1499,15 @@ visit_dontcare(Ast_Dontcare* dontcare)
 }
 
 PassResult_NameDecl*
-pass_name_decl(ParsedProgram* p4program, Arena* _storage)
+pass_name_decl(Ast_P4Program* ast, Scope* root_scope, Arena* _storage)
 {
   storage = _storage;
   scope_map = &pass_result.scope_map;
   hashmap_create(scope_map, storage, HASHMAP_KEY_UINT64, sizeof(Scope*), 15, 1023);
   field_map = &pass_result.field_map;
   hashmap_create(field_map, storage, HASHMAP_KEY_UINT64, sizeof(Scope*), 15, 1023);
-  current_scope = &p4program->root_scope;
-  visit_p4program(p4program->ast);
-  assert(current_scope == &p4program->root_scope);
+  current_scope = root_scope;
+  visit_p4program(ast);
+  assert(current_scope == root_scope);
   return &pass_result;
 }
