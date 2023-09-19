@@ -95,7 +95,7 @@ parse_cmdline_args(int arg_count, char* args[])
 int
 main(int arg_count, char* args[])
 {
-  reserve_page_memory(500*KILOBYTE);
+  reserve_page_memory(250*KILOBYTE);
 
   CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
   CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
@@ -111,11 +111,11 @@ main(int arg_count, char* args[])
   Ast_P4Program* ast = parse_program(tokens, &main_storage, &root_scope);
   arena_free(&text_storage);
 
-  pass_dry(ast); /* sanity test */
+  drypass(ast); /* sanity check */
   Hashmap* scope_map, *field_map;
-  pass_name_decl(ast, root_scope, &scope_map, &field_map, &main_storage);
-  Hashmap* type_table = pass_type_decl(ast, &main_storage);
-  pass_potential_type(ast, root_scope, &main_storage, scope_map, type_table);
+  name_decl(ast, root_scope, &scope_map, &field_map, &main_storage);
+  Hashmap* type_table = type_decl(ast, &main_storage);
+  potential_type(ast, root_scope, &main_storage, scope_map, type_table);
 
   arena_free(&main_storage);
   return 0;

@@ -22,18 +22,16 @@ gcc $CC_FLAGS -I$INC -I . -c $SRC/array.c
 gcc $CC_FLAGS -I$INC -I . -c $SRC/hashmap.c
 gcc $CC_FLAGS -I$INC -I . -c $SRC/scope.c
 gcc $CC_FLAGS -I$INC -I . -c $SRC/lex.c
-#gcc $CC_FLAGS -I$INC -I . -c $SRC/type.c 
 gcc $CC_FLAGS -I$INC -I . -c $SRC/parse.c
-gcc $CC_FLAGS -I$INC -I . -c $SRC/pass_dry.c
-gcc $CC_FLAGS -I$INC -I . -c $SRC/pass_name_decl.c 
-gcc $CC_FLAGS -I$INC -I . -c $SRC/pass_type_decl.c
-gcc $CC_FLAGS -I$INC -I . -c $SRC/pass_potential_type.c 
-#gcc $CC_FLAGS -I$MUSL_IN -I . -c $SRC/pass_select_type.c 
+gcc $CC_FLAGS -I$INC -I . -c $SRC/drypass.c
+gcc $CC_FLAGS -I$INC -I . -c $SRC/name_decl.c 
+gcc $CC_FLAGS -I$INC -I . -c $SRC/type_decl.c
+gcc $CC_FLAGS -I$INC -I . -c $SRC/potential_type.c 
 gcc $CC_FLAGS -I$INC -I . -c $SRC/ashp4c.c
 
 ld $LD_FLAGS -L$LIB -o ashp4c $LIB/crt1.o \
   basic.o arena.o array.o hashmap.o scope.o lex.o parse.o \
-  pass_dry.o pass_name_decl.o pass_type_decl.o pass_potential_type.o \
+  drypass.o name_decl.o type_decl.o potential_type.o \
   ashp4c.o \
   -lc
 
