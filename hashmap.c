@@ -148,12 +148,13 @@ hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, i
 static void
 hashmap_grow(Hashmap* hashmap, Arena* storage, HashmapKey* key)
 {
-  hashmap_cursor_begin(hashmap);
-  HashmapEntry* first_entry = hashmap_cursor_next_entry(hashmap);
+  HashmapCursor it = {};
+  hashmap_cursor_begin(&it);
+  HashmapEntry* first_entry = hashmap_cursor_next_entry(&it, hashmap);
   HashmapEntry* last_entry = first_entry;
   int entry_count = first_entry ? 1 : 0;
-  for (HashmapEntry* entry = hashmap_cursor_next_entry(hashmap);
-       entry != 0; entry = hashmap_cursor_next_entry(hashmap)) {
+  for (HashmapEntry* entry = hashmap_cursor_next_entry(&it, hashmap);
+       entry != 0; entry = hashmap_cursor_next_entry(&it, hashmap)) {
     last_entry->next_entry = entry;
     last_entry = entry;
     entry_count += 1;
@@ -288,39 +289,39 @@ hashmap_set(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...)
 }
 
 void
-hashmap_cursor_begin(Hashmap* hashmap)
+hashmap_cursor_begin(HashmapCursor* cursor)
 {
-  hashmap->cursor.i = -1;
-  hashmap->cursor.entry = 0;
+  cursor->i = -1;
+  cursor->entry = 0;
 }
 
 HashmapEntry*
-hashmap_cursor_next_entry(Hashmap* hashmap)
+hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap)
 {
   HashmapEntry* entry = 0;
-  if (hashmap->cursor.entry) {
-    entry = hashmap->cursor.entry->next_entry;
+  if (cursor->entry) {
+    entry = cursor->entry->next_entry;
     if (entry) {
-      hashmap->cursor.entry = entry;
-      return hashmap->cursor.entry;
+      cursor->entry = entry;
+      return cursor->entry;
     }
   }
-  hashmap->cursor.i++;
-  while (hashmap->cursor.i < hashmap->entries.elem_count) {
-    entry = *(HashmapEntry**)array_get(&hashmap->entries, hashmap->cursor.i);
+  cursor->i++;
+  while (cursor->i < hashmap->entries.elem_count) {
+    entry = *(HashmapEntry**)array_get(&hashmap->entries, cursor->i);
     if (entry) {
-      hashmap->cursor.entry = entry;
+      cursor->entry = entry;
       break;
     }
-    hashmap->cursor.i++;
+    cursor->i++;
   }
   return entry;
 }
 
 void*
-hashmap_cursor_next(Hashmap* hashmap)
+hashmap_cursor_next(HashmapCursor* cursor, Hashmap* hashmap)
 {
-  HashmapEntry* entry = hashmap_cursor_next_entry(hashmap);
+  HashmapEntry* entry = hashmap_cursor_next_entry(cursor, hashmap);
   return entry ? &entry->value : 0;
 }
 

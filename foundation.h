@@ -101,22 +101,22 @@ typedef struct Hashmap {
   int capacity_log2;
   int entry_size;
   int entry_count;
-
-  struct {
-    int i;
-    HashmapEntry* entry;
-  } cursor;
 } Hashmap;
+
+typedef struct HashmapCursor {
+  int i;
+  HashmapEntry* entry;
+} HashmapCursor;
 
 void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int length_log2);
 void          hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int entry_size,
-                             int capacity, int max_capacity);
+                  int capacity, int max_capacity);
 HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key);
 void*         hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
 HashmapEntry* hashmap_get_entry(Hashmap* hashmap, Arena* storage, HashmapKey* key);
 void*         hashmap_get(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...);
 void*         hashmap_set(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...);
-void          hashmap_cursor_begin(Hashmap* hashmap);
-HashmapEntry* hashmap_cursor_next_entry(Hashmap* hashmap);
-void*         hashmap_cursor_next(Hashmap* hashmap);
+void          hashmap_cursor_begin(HashmapCursor* cursor);
+HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap);
+void*         hashmap_cursor_next(HashmapCursor* cursor, Hashmap* hashmap);
 
