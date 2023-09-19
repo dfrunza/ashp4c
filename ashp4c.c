@@ -112,9 +112,10 @@ main(int arg_count, char* args[])
   arena_free(&text_storage);
 
   pass_dry(ast); /* sanity test */
-  PassResult_NameDecl* namedecl_result = pass_name_decl(ast, root_scope, &main_storage);
-  PassResult_TypeDecl* typedecl_result = pass_type_decl(ast, &main_storage, namedecl_result);
-  pass_potential_type(ast, root_scope, &main_storage, namedecl_result, typedecl_result);
+  Hashmap* scope_map, *field_map;
+  pass_name_decl(ast, root_scope, &scope_map, &field_map, &main_storage);
+  Hashmap* type_table = pass_type_decl(ast, &main_storage);
+  pass_potential_type(ast, root_scope, &main_storage, scope_map, type_table);
 
   arena_free(&main_storage);
   return 0;

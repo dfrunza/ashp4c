@@ -985,11 +985,6 @@ NameEntry*  scope_lookup_any(Scope* scope, char* name);
 NameEntry*  scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
 NameEntry*  scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns);
 
-typedef struct PassResult_NameDecl {
-  Hashmap scope_map;
-  Hashmap field_map;
-} PassResult_NameDecl;
-
 enum TypeEnum {
   TYPE_NONE = 0,
 
@@ -1076,12 +1071,4 @@ typedef union Type_Unresolved {
   Type_Array     _array;
   Type_Generic   _generic;
 } Type_Unresolved;
-
-typedef struct PassResult_TypeDecl {
-  Hashmap type_table;
-} PassResult_TypeDecl;
-
-typedef struct PassResult_PotentialType {
-  Hashmap potential_type;
-} PassResult_PotentialType;
 

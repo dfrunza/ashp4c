@@ -7,8 +7,7 @@ static Arena*   storage;
 static Scope*   root_scope;
 static Hashmap* type_table;
 static Hashmap* scope_map;
-static Hashmap* potential_type;
-static PassResult_PotentialType pass_result = {};
+static Hashmap  potential_type = {};
 
 /** PROGRAM **/
 
@@ -1330,16 +1329,15 @@ visit_dontcare(Ast_Dontcare* dontcare)
   assert(dontcare->kind == AST_dontcare);
 }
 
-PassResult_PotentialType*
+Hashmap*
 pass_potential_type(Ast_P4Program* ast, Scope* _root_scope, Arena* _storage,
-    PassResult_NameDecl* namedecl_result, PassResult_TypeDecl* typedecl_result)
+    Hashmap* _scope_map, Hashmap* _type_table)
 {
   storage = _storage;
   root_scope = _root_scope;
-  scope_map = &namedecl_result->scope_map;
-  type_table = &typedecl_result->type_table;
-  potential_type = &pass_result.potential_type;
-  hashmap_create(potential_type, storage, HASHMAP_KEY_UINT64, sizeof(Type*), 15, 1023);
+  scope_map = _scope_map;
+  type_table = _type_table;
+  hashmap_create(&potential_type, storage, HASHMAP_KEY_UINT64, sizeof(Type*), 15, 1023);
   visit_p4program(ast);
-  return &pass_result;
+  return &potential_type;
 }
