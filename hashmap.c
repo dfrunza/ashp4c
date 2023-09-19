@@ -129,15 +129,15 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 }
 
 void
-hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int entry_size,
+hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int value_size,
                int capacity, int max_capacity)
 {
   assert(max_capacity >= 7 && capacity <= max_capacity);
-  assert(entry_size >= sizeof(void*));
+  assert(value_size >= sizeof(void*));
   hashmap->capacity_log2 = ceil_log2(capacity + 1);
   hashmap->capacity = (1 << hashmap->capacity_log2) - 1;
   hashmap->key_type = key_type;
-  hashmap->entry_size = entry_size;
+  hashmap->value_size = value_size;
   hashmap->entry_count = 0;
   array_create(&hashmap->entries, storage, sizeof(HashmapEntry*), max_capacity);
   for (int i = 0; i < hashmap->capacity; i++) {
@@ -226,7 +226,7 @@ hashmap_get_entry(Hashmap* hashmap, Arena* storage, HashmapKey* key)
   if (hashmap->entry_count >= hashmap->capacity) {
     hashmap_grow(hashmap, storage, key);
   }
-  entry = arena_malloc(storage, sizeof(HashmapEntry) + hashmap->entry_size);
+  entry = arena_malloc(storage, sizeof(HashmapEntry) + hashmap->value_size);
   entry->key = *key;
   entry->next_entry = *(HashmapEntry**)array_get(&hashmap->entries, key->h);
   array_set(&hashmap->entries, key->h, &entry);
@@ -283,7 +283,7 @@ hashmap_set(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...)
   } else assert(0);
   HashmapEntry* entry = hashmap_get_entry(hashmap, storage, &key);
   void* value = va_arg(args, void*);
-  memcpy(entry->value, value, hashmap->entry_size);
+  memcpy(entry->value, value, hashmap->value_size);
   va_end(args);
   return &entry->value;
 }

@@ -99,7 +99,7 @@ typedef struct Hashmap {
   enum HashmapKeyType key_type;
   int capacity;
   int capacity_log2;
-  int entry_size;
+  int value_size;
   int entry_count;
 } Hashmap;
 

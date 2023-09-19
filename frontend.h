@@ -1062,13 +1062,15 @@ typedef union Type_Unresolved {
   Type;
 
   /* Placeholders */
-  Type_Basic     _basic;
-  Type_TypeVar   _typevar;
-  Type_Typedef   _typedef;
-  Type_Product   _product;
-  Type_Union     _union;
-  Type_Function  _function;
-  Type_Array     _array;
-  Type_Generic   _generic;
+  union {
+    Type_Basic     _basic;
+    Type_TypeVar   _typevar;
+    Type_Typedef   _typedef;
+    Type_Product   _product;
+    Type_Union     _union;
+    Type_Function  _function;
+    Type_Array     _array;
+    Type_Generic   _generic;
+  };
 } Type_Unresolved;
 
