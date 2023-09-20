@@ -10,7 +10,7 @@ array_extend(UnboundedArray* array, Arena* storage, int elem_size)
   assert(elem_size > 0);
   int segment_index = floor_log2(array->capacity + 1);
   if (segment_index >= array->segment_count) {
-    printf("\nMaximum array capacity has been reached.\n");
+    printf("\nMaximum capacity has been reached.\n");
     exit(1);
   }
   int segment_capacity = (1 << segment_index);
@@ -81,28 +81,5 @@ array_append(UnboundedArray* array, Arena* storage, void* elem, int elem_size)
   array->elem_count += 1;
   void* result = array_set(array, array->elem_count - 1, elem, elem_size);
   return result;
-}
-
-void
-list_create(List* list)
-{
-  list->last_item = &list->sentinel;
-  list->sentinel.next = list->sentinel.prev = 0;
-}
-
-ListItem*
-list_first_item(List* list)
-{
-  return list->sentinel.next;
-}
-
-void
-list_append_item(List* list, ListItem* item)
-{
-  assert(item->prev == 0);
-  ListItem* tail = list->last_item;
-  tail->next = item;
-  item->prev = tail;
-  list->last_item = item;
 }
 

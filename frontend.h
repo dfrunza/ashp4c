@@ -1055,7 +1055,7 @@ typedef struct Type_Array {
 typedef struct Type_Generic {
   Type;
   Type* referred_ty;
-  List  args_ty;
+  Type* args_ty;
 } Type_Generic;
 
 typedef union Type_Unresolved {

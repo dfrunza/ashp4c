@@ -41,21 +41,6 @@ void  reserve_page_memory(int memory_amount);
 void* arena_malloc(Arena* arena, uint32_t size);
 void  arena_free(Arena* arena);
 
-typedef struct ListItem {
-  struct ListItem* next;
-  struct ListItem* prev;
-  void* value[];
-} ListItem;
-
-typedef struct List {
-  ListItem sentinel;
-  ListItem* last_item;
-} List;
-
-void      list_create(List* list);
-ListItem* list_first_item(List* list);
-void      list_append_item(List* list, ListItem* item);
-
 typedef struct UnboundedArray {
   void** segment_table;
   int segment_count;
