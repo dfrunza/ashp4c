@@ -22,7 +22,8 @@ scope_lookup_any(Scope* scope, char* strname)
 {
   NameEntry* name_entry = 0;
   while (scope) {
-    if (hashmap_lookup(&scope->name_table, (void**)&name_entry, HASHMAP_KEY_STRING, strname)) {
+    name_entry = hashmap_lookup(&scope->name_table, HASHMAP_KEY_STRING, strname);
+    if (name_entry) {
       if (name_entry->ns[NS_TYPE] || name_entry->ns[NS_VAR] || name_entry->ns[NS_KEYWORD]) {
         break;
       }
@@ -38,7 +39,8 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 {
   NameEntry* name_entry = 0;
   while (name_entry) {
-    if (hashmap_lookup(&scope->name_table, (void**)&name_entry, HASHMAP_KEY_STRING, strname)) {
+    name_entry = hashmap_lookup(&scope->name_table, HASHMAP_KEY_STRING, strname);
+    if (name_entry) {
       if (name_entry->ns[ns]) {
           break;
       }
@@ -65,8 +67,8 @@ Debug_scope_decls(Scope* scope)
   HashmapCursor it = {};
   hashmap_cursor_begin(&it);
   printf("Names in scope 0x%x\n\n", scope);
-  NameEntry* name_entry = 0;
-  while (hashmap_cursor_next(&it, &scope->name_table, (void**)&name_entry)) {
+  NameEntry* name_entry = hashmap_cursor_next(&it, &scope->name_table);
+  while (name_entry) {
     for (int i = 1; i < NameSpace_COUNT; i++) {
       NameDecl* decl;
       decl = name_entry->ns[i];
@@ -81,6 +83,7 @@ Debug_scope_decls(Scope* scope)
         count += 1;
       }
     }
+    name_entry = hashmap_cursor_next(&it, &scope->name_table);
   }
   printf("\nTotal: %d\n", count);
 }
