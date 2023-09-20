@@ -3,8 +3,8 @@
 #include "foundation.h"
 #include "frontend.h"
 
-static Arena*   storage;
-static Hashmap  type_table = {};
+static Arena*  storage;
+static Hashmap type_table = {};
 
 /** PROGRAM **/
 
@@ -141,8 +141,8 @@ static void visit_indexExpression(Ast_IndexExpression* index_expr);
 static void visit_booleanLiteral(Ast_BooleanLiteral* bool_literal);
 static void visit_integerLiteral(Ast_IntegerLiteral* int_literal);
 static void visit_stringLiteral(Ast_StringLiteral* str_literal);
-static void visit_default(Ast_Default* default_);
-static void visit_dontcare(Ast_Dontcare* dontcare_);
+static void visit_default(Ast_Default* _default);
+static void visit_dontcare(Ast_Dontcare* _dontcare);
 
 static Ast_Name*
 name_of_type(Ast* type)
@@ -1515,9 +1515,9 @@ visit_stringLiteral(Ast_StringLiteral* str_literal)
 }
 
 static void
-visit_default(Ast_Default* default_)
+visit_default(Ast_Default* _default)
 {
-  assert(default_->kind == AST_default);
+  assert(_default->kind == AST_default);
 }
 
 static void

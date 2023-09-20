@@ -7,7 +7,7 @@ static Arena*   storage;
 static Scope*   root_scope;
 static Hashmap* type_table;
 static Hashmap* scope_map;
-static Hashmap  potential_type_table = {};
+static Hashmap  potential_type_map = {};
 
 /** PROGRAM **/
 
@@ -144,8 +144,8 @@ static void visit_indexExpression(Ast_IndexExpression* index_expr);
 static void visit_booleanLiteral(Ast_BooleanLiteral* bool_literal);
 static void visit_integerLiteral(Ast_IntegerLiteral* int_literal);
 static void visit_stringLiteral(Ast_StringLiteral* str_literal);
-static void visit_default(Ast_Default* default_);
-static void visit_dontcare(Ast_Dontcare* dontcare_);
+static void visit_default(Ast_Default* _default);
+static void visit_dontcare(Ast_Dontcare* _dontcare);
 
 /** PROGRAM **/
 
@@ -1321,9 +1321,9 @@ visit_stringLiteral(Ast_StringLiteral* str_literal)
 }
 
 static void
-visit_default(Ast_Default* default_)
+visit_default(Ast_Default* _default)
 {
-  assert(default_->kind == AST_default);
+  assert(_default->kind == AST_default);
 }
 
 static void
@@ -1340,7 +1340,7 @@ potential_type(Ast_P4Program* ast, Scope* _root_scope,
   root_scope = _root_scope;
   scope_map = _scope_map;
   type_table = _type_table;
-  hashmap_create(&potential_type_table, storage, 15, 1023);
+  hashmap_create(&potential_type_map, storage, 15, 1023);
   visit_p4program(ast);
-  return &potential_type_table;
+  return &potential_type_map;
 }
