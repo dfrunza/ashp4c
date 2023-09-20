@@ -1569,7 +1569,7 @@ build_potential_type(Ast_P4Program* p4program, Scope* root_scope_, Arena* type_s
 {
   root_scope = root_scope_;
   type_storage = type_storage_;
-  hashmap_create(&potential_type, HASHMAP_KEY_UINT32, 64, type_storage);
+  hashmap_create(&potential_type, HKEY_UINT32, 64, type_storage);
   typeset_init(type_storage);
 
   {

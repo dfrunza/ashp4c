@@ -26,7 +26,7 @@ void
 type_select(uint32_t ast_id, Type* type)
 {
   HashmapKey key = { .i_key = ast_id };
-  hashmap_hash_key(HASHMAP_KEY_UINT32, &key, selected_type.capacity_log2);
+  hashmap_hash_key(HKEY_UINT32, &key, selected_type.capacity_log2);
   HashmapEntry* he = hashmap_get_entry(&selected_type, &key);
   hashmap_entry_set(he, type);
 }
@@ -1217,7 +1217,7 @@ select_type(Ast_P4Program* p4program, Scope* root_scope_, Hashmap* potential_typ
   root_scope = root_scope_;
   potential_type = potential_type_;
   type_storage = type_storage_;
-  hashmap_create(&selected_type, HASHMAP_KEY_UINT32, 64, type_storage);
+  hashmap_create(&selected_type, HKEY_UINT32, 64, type_storage);
 
   visit_p4program((Ast*)p4program);
   return &selected_type;

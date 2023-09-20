@@ -70,11 +70,11 @@ void* array_set(UnboundedArray* array, int i, void* elem);
 void* array_append(UnboundedArray* array, Arena* storage, void* elem);
 
 enum HashmapKeyType {
-  HASHMAP_KEY_NONE = 0,
-  HASHMAP_KEY_STRING,
-  HASHMAP_KEY_BYTES,
-  HASHMAP_KEY_UINT32,
-  HASHMAP_KEY_UINT64,
+  HKEY_NONE = 0,
+  HKEY_STRING,
+  HKEY_BYTES,
+  HKEY_UINT32,
+  HKEY_UINT64,
 };
 
 typedef struct HashmapKey {

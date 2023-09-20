@@ -22,7 +22,7 @@ scope_lookup_any(Scope* scope, char* strname)
 {
   NameEntry* name_entry = 0;
   while (scope) {
-    name_entry = hashmap_lookup(&scope->name_table, HASHMAP_KEY_STRING, strname);
+    name_entry = hashmap_lookup(&scope->name_table, HKEY_STRING, strname);
     if (name_entry) {
       if (name_entry->ns[NS_TYPE] || name_entry->ns[NS_VAR] || name_entry->ns[NS_KEYWORD]) {
         break;
@@ -38,8 +38,8 @@ NameEntry*
 scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 {
   NameEntry* name_entry = 0;
-  while (name_entry) {
-    name_entry = hashmap_lookup(&scope->name_table, HASHMAP_KEY_STRING, strname);
+  while (scope) {
+    name_entry = hashmap_lookup(&scope->name_table, HKEY_STRING, strname);
     if (name_entry) {
       if (name_entry->ns[ns]) {
           break;
@@ -54,7 +54,7 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 NameEntry*
 scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns)
 {
-  NameEntry* name_entry = hashmap_get(&scope->name_table, storage, HASHMAP_KEY_STRING, decl->strname);
+  NameEntry* name_entry = hashmap_get(&scope->name_table, storage, HKEY_STRING, decl->strname);
   decl->next_in_scope = name_entry->ns[ns];
   name_entry->ns[ns] = decl;
   return name_entry;
