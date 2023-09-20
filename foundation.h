@@ -58,16 +58,15 @@ void      list_append_item(List* list, ListItem* item);
 typedef struct UnboundedArray {
   void** segment_table;
   int segment_count;
-  int elem_size;
   int elem_count;
   int capacity;
 } UnboundedArray;
 
 void  array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capacity);
-void  array_extend(UnboundedArray* array, Arena* storage);
-void* array_get(UnboundedArray* array, int i);
-void* array_set(UnboundedArray* array, int i, void* elem);
-void* array_append(UnboundedArray* array, Arena* storage, void* elem);
+void  array_extend(UnboundedArray* array, Arena* storage, int elem_size);
+void* array_get(UnboundedArray* array, int i, int elem_size);
+void* array_set(UnboundedArray* array, int i, void* elem, int elem_size);
+void* array_append(UnboundedArray* array, Arena* storage, void* elem, int elem_size);
 
 enum HashmapKeyType {
   HKEY_NONE = 0,

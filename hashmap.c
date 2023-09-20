@@ -143,7 +143,7 @@ hashmap_create(Hashmap* hashmap, Arena* storage, int capacity, int max_capacity)
   array_create(&hashmap->entries, storage, sizeof(HashmapEntry*), max_capacity);
   int actual_capacity = hashmap_capacity(hashmap);
   for (int i = 0; i < actual_capacity; i++) {
-    array_append(&hashmap->entries, storage, &NULL_ENTRY);
+    array_append(&hashmap->entries, storage, &NULL_ENTRY, sizeof(NULL_ENTRY));
   }
 }
 
@@ -165,16 +165,16 @@ hashmap_grow(Hashmap* hashmap, Arena* storage, HashmapKey* key, enum HashmapKeyT
   hashmap->capacity_log2 += 1;
   int capacity = hashmap_capacity(hashmap);
   for (int i = hashmap->entry_count; i < capacity; i++) {
-    array_append(&hashmap->entries, storage, &NULL_ENTRY);
+    array_append(&hashmap->entries, storage, &NULL_ENTRY, sizeof(NULL_ENTRY));
   }
   for (int i = 0; i < capacity; i++) {
-    array_set(&hashmap->entries, i, &NULL_ENTRY);
+    array_set(&hashmap->entries, i, &NULL_ENTRY, sizeof(NULL_ENTRY));
   }
   for (HashmapEntry* entry = first_entry; entry != 0; ) {
     HashmapEntry* next_entry = entry->next_entry;
     hashmap_hash_key(key_type, &entry->key, hashmap->capacity_log2);
-    entry->next_entry = *(HashmapEntry**)array_get(&hashmap->entries, entry->key.h);
-    array_set(&hashmap->entries, entry->key.h, &entry);
+    entry->next_entry = *(HashmapEntry**)array_get(&hashmap->entries, entry->key.h, sizeof(HashmapEntry*));
+    array_set(&hashmap->entries, entry->key.h, &entry, sizeof(HashmapEntry*));
     entry = next_entry;
   }
   hashmap_hash_key(key_type, key, hashmap->capacity_log2);
@@ -183,7 +183,7 @@ hashmap_grow(Hashmap* hashmap, Arena* storage, HashmapKey* key, enum HashmapKeyT
 HashmapEntry*
 hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key, enum HashmapKeyType key_type)
 {
-  HashmapEntry* entry = *(HashmapEntry**)array_get(&hashmap->entries, key->h);
+  HashmapEntry* entry = *(HashmapEntry**)array_get(&hashmap->entries, key->h, sizeof(HashmapEntry*));
   while (entry) {
     if (key_equal(key_type, &entry->key, key)) {
       break;
@@ -222,6 +222,7 @@ HashmapEntry*
 hashmap_get_entry(Hashmap* hashmap, Arena* storage, int value_size,
         HashmapKey* key, enum HashmapKeyType key_type)
 {
+  assert(value_size > 0);
   HashmapEntry* entry = hashmap_lookup_entry(hashmap, key, key_type);
   if (entry) {
     return entry;
@@ -231,8 +232,8 @@ hashmap_get_entry(Hashmap* hashmap, Arena* storage, int value_size,
   }
   entry = arena_malloc(storage, sizeof(HashmapEntry) + value_size);
   entry->key = *key;
-  entry->next_entry = *(HashmapEntry**)array_get(&hashmap->entries, key->h);
-  array_set(&hashmap->entries, key->h, &entry);
+  entry->next_entry = *(HashmapEntry**)array_get(&hashmap->entries, key->h, sizeof(HashmapEntry*));
+  array_set(&hashmap->entries, key->h, &entry, sizeof(HashmapEntry*));
   hashmap->entry_count += 1;
   return entry;
 }
@@ -240,6 +241,7 @@ hashmap_get_entry(Hashmap* hashmap, Arena* storage, int value_size,
 void*
 hashmap_get(Hashmap* hashmap, Arena* storage, int value_size, enum HashmapKeyType key_type, ...)
 {
+  assert(value_size > 0);
   va_list args;
   va_start(args, key_type);
   HashmapKey key = {};
@@ -265,6 +267,7 @@ hashmap_get(Hashmap* hashmap, Arena* storage, int value_size, enum HashmapKeyTyp
 void
 hashmap_set(Hashmap* hashmap, Arena* storage, void* value, int value_size, enum HashmapKeyType key_type, ...)
 {
+  assert(value_size > 0);
   va_list args;
   va_start(args, key_type);
   HashmapKey key = {};
@@ -307,7 +310,7 @@ hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap)
   }
   cursor->i++;
   while (cursor->i < hashmap->entries.elem_count) {
-    entry = *(HashmapEntry**)array_get(&hashmap->entries, cursor->i);
+    entry = *(HashmapEntry**)array_get(&hashmap->entries, cursor->i, sizeof(HashmapEntry*));
     if (entry) {
       cursor->entry = entry;
       break;
@@ -329,7 +332,7 @@ Debug_hashmap_occupancy(Hashmap* hashmap)
 {
   int capacity = hashmap_capacity(hashmap);
   for (int i = 0; i < capacity; i++) {
-    HashmapEntry* entry = *(HashmapEntry**)array_get(&hashmap->entries, i);
+    HashmapEntry* entry = *(HashmapEntry**)array_get(&hashmap->entries, i, sizeof(HashmapEntry*));
     int entry_count = 0;
     if (entry) {
       while (entry) {

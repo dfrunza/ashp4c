@@ -148,9 +148,9 @@ next_token()
   assert(token_at < tokens->elem_count);
   prev_token = token;
   prev_token_at = token_at;
-  token = array_get(tokens, ++token_at);
+  token = array_get(tokens, ++token_at, sizeof(Token));
   while (token->klass == TK_COMMENT) {
-    token = array_get(tokens, ++token_at);
+    token = array_get(tokens, ++token_at, sizeof(Token));
   }
   if (token->klass == TK_IDENTIFIER) {
     NameEntry* name_entry = scope_lookup_any(current_scope, token->lexeme);
@@ -3757,7 +3757,7 @@ parse_program(UnboundedArray* _tokens, Scope** _root_scope, Arena* _storage)
   }
 
   token_at = 0;
-  token = array_get(tokens, token_at);
+  token = array_get(tokens, token_at, sizeof(Token));
   next_token();
   Ast_P4Program* ast = (Ast_P4Program*)parse_p4program();
   assert(current_scope == &root_scope);
