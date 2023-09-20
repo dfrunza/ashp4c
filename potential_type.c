@@ -1340,7 +1340,7 @@ potential_type(Ast_P4Program* ast, Scope* _root_scope,
   root_scope = _root_scope;
   scope_map = _scope_map;
   type_table = _type_table;
-  hashmap_create(&potential_type_table, storage, HKEY_UINT64, sizeof(Type*), 15, 1023);
+  hashmap_create(&potential_type_table, storage, 15, 1023);
   visit_p4program(ast);
   return &potential_type_table;
 }

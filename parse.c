@@ -556,7 +556,7 @@ parse_p4program()
     next_token(); /* empty declaration */
   }
   Scope* scope = arena_malloc(storage, sizeof(*scope));
-  hashmap_create(&scope->name_table, storage, HKEY_STRING, sizeof(NameEntry), 15, 1023);
+  hashmap_create(&scope->name_table, storage, 15, 1023);
   current_scope = scope_push(scope, current_scope);
   program->decl_list = parse_declarationList();
   current_scope = scope_pop(current_scope);
@@ -3672,7 +3672,7 @@ parse_program(UnboundedArray* _tokens, Scope** _root_scope, Arena* _storage)
 {
   tokens = _tokens;
   storage = _storage;
-  hashmap_create(&root_scope.name_table, storage, HKEY_STRING, sizeof(NameEntry), 15, 1023);
+  hashmap_create(&root_scope.name_table, storage, 15, 1023);
   root_scope.scope_level = 0;
   current_scope = &root_scope;
 
