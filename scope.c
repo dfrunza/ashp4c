@@ -18,13 +18,13 @@ scope_pop(Scope* scope)
 }
 
 bool
-scope_lookup_any(Scope* scope, char* strname, NameEntry* ns_entry)
+scope_lookup_any(Scope* scope, char* strname, NameEntry* name_entry)
 {
   bool found = false;
   while (scope) {
-    found = hashmap_lookup(&scope->name_table, ns_entry, HASHMAP_KEY_STRING, strname);
+    found = hashmap_lookup(&scope->name_table, name_entry, HASHMAP_KEY_STRING, strname);
     if (found) {
-      if (ns_entry->ns[NS_TYPE] || ns_entry->ns[NS_VAR] || ns_entry->ns[NS_KEYWORD]) {
+      if (name_entry->ns[NS_TYPE] || name_entry->ns[NS_VAR] || name_entry->ns[NS_KEYWORD]) {
         break;
       }
     }
@@ -34,12 +34,12 @@ scope_lookup_any(Scope* scope, char* strname, NameEntry* ns_entry)
 }
 
 bool
-scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns, NameEntry* ns_entry)
+scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns, NameEntry* name_entry)
 {
   bool found = false;
   while (scope) {
-    found = hashmap_lookup(&scope->name_table, ns_entry, HASHMAP_KEY_STRING, strname);
-    if (found && ns_entry->ns[ns]) {
+    found = hashmap_lookup(&scope->name_table, name_entry, HASHMAP_KEY_STRING, strname);
+    if (found && name_entry->ns[ns]) {
         break;
     }
     scope = scope->parent_scope;
@@ -50,10 +50,10 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns, NameEntry
 NameEntry*
 scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns)
 {
-  NameEntry* ns_entry = hashmap_get(&scope->name_table, storage, HASHMAP_KEY_STRING, decl->strname);
-  decl->next_in_scope = ns_entry->ns[ns];
-  ns_entry->ns[ns] = decl;
-  return ns_entry;
+  NameEntry* name_entry = hashmap_get(&scope->name_table, storage, HASHMAP_KEY_STRING, decl->strname);
+  decl->next_in_scope = name_entry->ns[ns];
+  name_entry->ns[ns] = decl;
+  return name_entry;
 }
 
 void
@@ -63,11 +63,11 @@ Debug_scope_decls(Scope* scope)
   HashmapCursor it = {};
   hashmap_cursor_begin(&it);
   printf("Names in scope 0x%x\n\n", scope);
-  for (NameEntry* ns_entry = hashmap_cursor_next(&it, &scope->name_table);
-       ns_entry != 0; ns_entry = hashmap_cursor_next(&it, &scope->name_table)) {
+  for (NameEntry* name_entry = hashmap_cursor_next(&it, &scope->name_table);
+       name_entry != 0; name_entry = hashmap_cursor_next(&it, &scope->name_table)) {
     for (int i = 1; i < NameSpace_COUNT; i++) {
       NameDecl* decl;
-      decl = ns_entry->ns[i];
+      decl = name_entry->ns[i];
       while (decl) {
         if (i == NS_KEYWORD) {
           printf("%s, ns[%d]\n", decl->strname, i);

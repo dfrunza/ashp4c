@@ -981,8 +981,8 @@ typedef struct NameEntry {
 
 Scope*     scope_push(Scope* scope, Scope* parent_scope);
 Scope*     scope_pop(Scope* scope);
-bool       scope_lookup_any(Scope* scope, char* name, NameEntry* ns_entry);
-bool       scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns, NameEntry* ns_entry);
+bool       scope_lookup_any(Scope* scope, char* name, NameEntry* name_entry);
+bool       scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns, NameEntry* name_entry);
 NameEntry* scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns);
 
 enum TypeEnum {
