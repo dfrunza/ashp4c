@@ -96,7 +96,6 @@ typedef struct HashmapEntry {
 
 typedef struct Hashmap {
   UnboundedArray entries;
-  int capacity;
   int capacity_log2;
   int value_size;
   int entry_count;
@@ -107,6 +106,7 @@ typedef struct HashmapCursor {
   HashmapEntry* entry;
 } HashmapCursor;
 
+int           hashmap_capacity(Hashmap* hashmap);
 void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int length_log2);
 void          hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, int value_size,
                   int capacity, int max_capacity);

@@ -82,6 +82,12 @@ hash_uint64(uint64_t i, uint32_t m)
   return h;
 }
 
+int
+hashmap_capacity(Hashmap* hashmap)
+{
+  return (1 << hashmap->capacity_log2) - 1;
+}
+
 void
 hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int length_log2)
 {
@@ -135,12 +141,11 @@ hashmap_create(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, i
   assert(max_capacity >= 7 && capacity <= max_capacity);
   assert(value_size >= sizeof(void*));
   hashmap->capacity_log2 = ceil_log2(capacity + 1);
-  hashmap->capacity = (1 << hashmap->capacity_log2) - 1;
-  /*hashmap->key_type = key_type;*/
   hashmap->value_size = value_size;
   hashmap->entry_count = 0;
   array_create(&hashmap->entries, storage, sizeof(HashmapEntry*), max_capacity);
-  for (int i = 0; i < hashmap->capacity; i++) {
+  int actual_capacity = hashmap_capacity(hashmap);
+  for (int i = 0; i < actual_capacity; i++) {
     array_append(&hashmap->entries, storage, &NULL_ENTRY);
   }
 }
@@ -160,11 +165,12 @@ hashmap_grow(Hashmap* hashmap, Arena* storage, HashmapKey* key, enum HashmapKeyT
     entry_count += 1;
   }
   assert(entry_count == hashmap->entry_count);
-  hashmap->capacity = (1 << ++hashmap->capacity_log2) - 1;
-  for (int i = hashmap->entry_count; i < hashmap->capacity; i++) {
+  hashmap->capacity_log2 += 1;
+  int capacity = hashmap_capacity(hashmap);
+  for (int i = hashmap->entry_count; i < capacity; i++) {
     array_append(&hashmap->entries, storage, &NULL_ENTRY);
   }
-  for (int i = 0; i < hashmap->capacity; i++) {
+  for (int i = 0; i < capacity; i++) {
     array_set(&hashmap->entries, i, &NULL_ENTRY);
   }
   for (HashmapEntry* entry = first_entry; entry != 0; ) {
@@ -222,7 +228,7 @@ hashmap_get_entry(Hashmap* hashmap, Arena* storage, HashmapKey* key, enum Hashma
   if (entry) {
     return entry;
   }
-  if (hashmap->entry_count >= hashmap->capacity) {
+  if (hashmap->entry_count >= hashmap_capacity(hashmap)) {
     hashmap_grow(hashmap, storage, key, key_type);
   }
   entry = arena_malloc(storage, sizeof(HashmapEntry) + hashmap->value_size);
@@ -323,7 +329,8 @@ hashmap_cursor_next(HashmapCursor* cursor, Hashmap* hashmap)
 void
 Debug_hashmap_occupancy(Hashmap* hashmap)
 {
-  for (int i = 0; i < hashmap->capacity; i++) {
+  int capacity = hashmap_capacity(hashmap);
+  for (int i = 0; i < capacity; i++) {
     HashmapEntry* entry = *(HashmapEntry**)array_get(&hashmap->entries, i);
     int entry_count = 0;
     if (entry) {
