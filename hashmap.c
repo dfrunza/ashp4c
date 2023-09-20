@@ -93,9 +93,6 @@ hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int
 {
   if (key_type == HKEY_STRING) {
     key->h = hash_string(key->str_key, length_log2);
-  } else if (key_type == HKEY_BYTES) {
-    assert(key->keylen > 0);
-    key->h = hash_bytes(key->bytes_key, key->keylen, length_log2);
   } else if (key_type == HKEY_UINT32) {
     key->h = hash_uint32(key->u32_key, length_log2);
   } else if (key_type == HKEY_UINT64) {
@@ -108,24 +105,6 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 {
   if (key_type == HKEY_STRING) {
     return cstr_match(key_A->str_key, key_B->str_key);
-  } else if (key_type == HKEY_BYTES) {
-    assert((key_A->keylen > 0) && (key_B->keylen > 0));
-    bool result = (key_A->keylen == key_B->keylen);
-    if (!result) {
-      return result;
-    }
-    uint8_t *p_a = key_A->bytes_key,
-            *p_b = key_B->bytes_key;
-    int at_i = 0;
-    while (*p_a == *p_b) {
-      p_a++;
-      p_b++;
-      if (++at_i == key_A->keylen) {
-        break;
-      }
-    }
-    result = (at_i == key_A->keylen);
-    return result;
   } else if (key_type == HKEY_UINT32) {
     return key_A->u32_key == key_B->u32_key;
   } else if (key_type == HKEY_UINT64) {
@@ -202,10 +181,6 @@ hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
   if (key_type == HKEY_STRING) {
     key = (HashmapKey){ .str_key = va_arg(args, char*) };
     hashmap_hash_key(HKEY_STRING, &key, hashmap->capacity_log2);
-  } else if (key_type == HKEY_BYTES) {
-    key = (HashmapKey){ .bytes_key = va_arg(args, uint8_t*),
-                        .keylen = va_arg(args, int) };
-    hashmap_hash_key(HKEY_BYTES, &key, hashmap->capacity_log2);
   } else if (key_type == HKEY_UINT32) {
     key = (HashmapKey){ .u32_key = va_arg(args, uint32_t) };
     hashmap_hash_key(HKEY_UINT32, &key, hashmap->capacity_log2);
@@ -248,10 +223,6 @@ hashmap_get(Hashmap* hashmap, Arena* storage, int value_size, enum HashmapKeyTyp
   if (key_type == HKEY_STRING) {
     key = (HashmapKey){ .str_key = va_arg(args, char*) };
     hashmap_hash_key(HKEY_STRING, &key, hashmap->capacity_log2);
-  } else if (key_type == HKEY_BYTES) {
-    key = (HashmapKey){ .bytes_key = va_arg(args, uint8_t*),
-                        .keylen = va_arg(args, int) };
-    hashmap_hash_key(HKEY_BYTES, &key, hashmap->capacity_log2);
   } else if (key_type == HKEY_UINT32) {
     key = (HashmapKey){ .u32_key = va_arg(args, uint32_t) };
     hashmap_hash_key(HKEY_UINT32, &key, hashmap->capacity_log2);
@@ -274,10 +245,6 @@ hashmap_set(Hashmap* hashmap, Arena* storage, void* value, int value_size, enum 
   if (key_type == HKEY_STRING) {
     key = (HashmapKey){ .str_key = va_arg(args, char*) };
     hashmap_hash_key(HKEY_STRING, &key, hashmap->capacity_log2);
-  } else if (key_type == HKEY_BYTES) {
-    key = (HashmapKey){ .bytes_key = va_arg(args, uint8_t*),
-                        .keylen = va_arg(args, int) };
-    hashmap_hash_key(HKEY_BYTES, &key, hashmap->capacity_log2);
   } else if (key_type == HKEY_UINT32) {
     key = (HashmapKey){ .u32_key = va_arg(args, uint32_t) };
     hashmap_hash_key(HKEY_UINT32, &key, hashmap->capacity_log2);

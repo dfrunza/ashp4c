@@ -44,6 +44,7 @@ void  arena_free(Arena* arena);
 typedef struct ListItem {
   struct ListItem* next;
   struct ListItem* prev;
+  void* value[];
 } ListItem;
 
 typedef struct List {
@@ -71,7 +72,6 @@ void* array_append(UnboundedArray* array, Arena* storage, void* elem, int elem_s
 enum HashmapKeyType {
   HKEY_NONE = 0,
   HKEY_STRING,
-  HKEY_BYTES,
   HKEY_UINT32,
   HKEY_UINT64,
 };
@@ -80,11 +80,9 @@ typedef struct HashmapKey {
   uint32_t h;
   union {
     char*    str_key;
-    uint8_t* bytes_key;
     uint32_t u32_key;
     uint64_t u64_key;
   };
-  int keylen;
 } HashmapKey;
 
 typedef struct HashmapEntry {
