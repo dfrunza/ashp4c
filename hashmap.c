@@ -190,8 +190,8 @@ hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key)
   return entry;
 }
 
-void*
-hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
+bool
+hashmap_lookup(Hashmap* hashmap, void** value, enum HashmapKeyType key_type, ...)
 {
   assert(hashmap->key_type == key_type);
   va_list args;
@@ -213,7 +213,10 @@ hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
   } else assert(0);
   va_end(args);
   HashmapEntry* entry = hashmap_lookup_entry(hashmap, &key);
-  return entry ? &entry->value : 0;
+  if (entry && value) {
+    *value = entry->value;
+  }
+  return entry != 0;
 }
 
 HashmapEntry*
@@ -257,7 +260,7 @@ hashmap_get(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...)
   } else assert(0);
   va_end(args);
   HashmapEntry* entry = hashmap_get_entry(hashmap, storage, &key);
-  return &entry->value;
+  return entry->value;
 }
 
 void
@@ -317,11 +320,14 @@ hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap)
   return entry;
 }
 
-void*
-hashmap_cursor_next(HashmapCursor* cursor, Hashmap* hashmap)
+bool
+hashmap_cursor_next(HashmapCursor* cursor, Hashmap* hashmap, void** value)
 {
   HashmapEntry* entry = hashmap_cursor_next_entry(cursor, hashmap);
-  return entry ? &entry->value : 0;
+  if (entry && value) {
+    *value = &entry->value;
+  }
+  return entry != 0;
 }
 
 void

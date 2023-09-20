@@ -259,7 +259,7 @@ static void
 visit_name(Ast_Name* name)
 {
   assert(name->kind == AST_name);
-  if (hashmap_lookup(&type_table, HASHMAP_KEY_STRING, name->strname) == 0) {
+  if (!hashmap_lookup(&type_table, 0, HASHMAP_KEY_STRING, name->strname)) {
     Type_TypeVar* name_ty = arena_malloc(storage, sizeof(*name_ty));
     name_ty->ctor = TYPE_TYPEVAR;
     name_ty->strname = name->strname;
@@ -632,8 +632,10 @@ visit_functionPrototype(Ast_FunctionPrototype* func_proto)
   if (func_proto->return_type) {
     Ast_TypeRef* type_ref = (Ast_TypeRef*)func_proto->return_type;
     visit_typeRef(type_ref);
-    func_ty->return_ty = *(Type**)hashmap_lookup(&type_table, HASHMAP_KEY_STRING,
+    Type** pt = 0;
+    hashmap_lookup(&type_table, (void**)&pt, HASHMAP_KEY_STRING,
         name_of_type(type_ref->type)->strname);
+    func_ty->return_ty = *pt;
   }
   if (func_proto->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)func_proto->type_params);
@@ -713,8 +715,10 @@ visit_headerStackType(Ast_HeaderStackType* type_decl)
   hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &stack_ty);
   Ast_TypeRef* type = (Ast_TypeRef*)type_decl->type;
   visit_typeRef(type);
-  stack_ty->element_ty = *(Type**)hashmap_lookup(&type_table, HASHMAP_KEY_STRING,
+  Type** pt = 0;
+  hashmap_lookup(&type_table, (void**)&pt, HASHMAP_KEY_STRING,
       name_of_type((Ast*)type)->strname);
+  stack_ty->element_ty = *pt;
   visit_expression((Ast_Expression*)type_decl->stack_expr);
 }
 
@@ -729,8 +733,10 @@ visit_specializedType(Ast_SpecializedType* type_decl)
   hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &speclzd_ty);
   Ast_TypeRef* type = (Ast_TypeRef*)type_decl->type;
   visit_typeRef(type);
-  speclzd_ty->referred_ty = *(Type**)hashmap_lookup(&type_table, HASHMAP_KEY_STRING,
+  Type** pt = 0;
+  hashmap_lookup(&type_table, (void**)&pt, HASHMAP_KEY_STRING,
       name_of_type((Ast*)type)->strname);
+  speclzd_ty->referred_ty = *pt;
   Ast_TypeArgumentList* type_args = (Ast_TypeArgumentList*)type_decl->type_args;
   visit_typeArgumentList(type_args);
   /* list_create(&speclzd_ty->args_ty, storage, sizeof(Type*)); */
@@ -1034,8 +1040,10 @@ visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl)
   typedef_ty->ctor = TYPE_TYPEDEF;
   typedef_ty->strname = name->strname;
   hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &typedef_ty);
-  typedef_ty->referred_ty = *(Type**)hashmap_lookup(&type_table, HASHMAP_KEY_STRING,
+  Type** pt = 0;
+  hashmap_lookup(&type_table, (void**)&pt, HASHMAP_KEY_STRING,
       name_of_type(typedef_decl->type_ref)->strname);
+  typedef_ty->referred_ty = *pt;
 }
 
 /** STATEMENTS **/
