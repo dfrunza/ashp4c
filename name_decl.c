@@ -741,8 +741,8 @@ visit_typeParameterList(Ast_TypeParameterList* param_list)
   for (Ast* ast = param_list->first_child;
        ast != 0; ast = ast->right_sibling) {
     Ast_Name* name = (Ast_Name*)ast;
-    NameEntry* ns = scope_lookup_any(current_scope, name->strname);
-    if (ns && ns->ns[NS_TYPE]) {
+    NameEntry ns_entry = {};
+    if (scope_lookup_any(current_scope, name->strname, &ns_entry) && ns_entry.ns[NS_TYPE]) {
       visit_name(name);
     } else {
       NameDecl* namedecl = arena_malloc(storage, sizeof(*namedecl));

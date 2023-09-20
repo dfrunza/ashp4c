@@ -17,35 +17,34 @@ scope_pop(Scope* scope)
   return scope->parent_scope;
 }
 
-NameEntry*
-scope_lookup_any(Scope* scope, char* strname)
+bool
+scope_lookup_any(Scope* scope, char* strname, NameEntry* ns_entry)
 {
-  NameEntry* ns_entry = 0;
+  bool found = false;
   while (scope) {
-    ns_entry = hashmap_lookup(&scope->name_table, HASHMAP_KEY_STRING, strname);
-    if (ns_entry) {
+    found = hashmap_lookup(&scope->name_table, ns_entry, HASHMAP_KEY_STRING, strname);
+    if (found) {
       if (ns_entry->ns[NS_TYPE] || ns_entry->ns[NS_VAR] || ns_entry->ns[NS_KEYWORD]) {
         break;
       }
     }
     scope = scope->parent_scope;
   }
-  return ns_entry;
+  return found;
 }
 
-NameEntry*
-scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
+bool
+scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns, NameEntry* ns_entry)
 {
-  NameEntry* ns_entry = 0;
+  bool found = false;
   while (scope) {
-    ns_entry = hashmap_lookup(&scope->name_table, HASHMAP_KEY_STRING, strname);
-    if (ns_entry && ns_entry->ns[ns]) {
+    found = hashmap_lookup(&scope->name_table, ns_entry, HASHMAP_KEY_STRING, strname);
+    if (found && ns_entry->ns[ns]) {
         break;
     }
-    ns_entry = 0;
     scope = scope->parent_scope;
   }
-  return ns_entry;
+  return found;
 }
 
 NameEntry*

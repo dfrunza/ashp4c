@@ -190,8 +190,8 @@ hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key)
   return entry;
 }
 
-void*
-hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
+bool
+hashmap_lookup(Hashmap* hashmap, void* value, enum HashmapKeyType key_type, ...)
 {
   assert(hashmap->key_type == key_type);
   va_list args;
@@ -211,9 +211,12 @@ hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
     key = (HashmapKey){ .u64_key = va_arg(args, uint64_t) };
     hashmap_hash_key(HASHMAP_KEY_UINT64, &key, hashmap->capacity_log2);
   } else assert(0);
-  HashmapEntry* entry = hashmap_lookup_entry(hashmap, &key);
   va_end(args);
-  return entry ? &entry->value : 0;
+  HashmapEntry* entry = hashmap_lookup_entry(hashmap, &key);
+  if (entry && value) {
+    memcpy(value, entry->value, hashmap->value_size);
+  }
+  return entry != 0;
 }
 
 HashmapEntry*
