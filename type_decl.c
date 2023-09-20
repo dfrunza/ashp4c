@@ -142,7 +142,7 @@ static void visit_booleanLiteral(Ast_BooleanLiteral* bool_literal);
 static void visit_integerLiteral(Ast_IntegerLiteral* int_literal);
 static void visit_stringLiteral(Ast_StringLiteral* str_literal);
 static void visit_default(Ast_Default* _default);
-static void visit_dontcare(Ast_Dontcare* _dontcare);
+static void visit_dontcare(Ast_Dontcare* dontcare);
 
 static Ast_Name*
 name_of_type(Ast* type)
