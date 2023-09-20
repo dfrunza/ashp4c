@@ -263,7 +263,7 @@ visit_name(Ast_Name* name)
     Type_TypeVar* name_ty = arena_malloc(storage, sizeof(*name_ty));
     name_ty->ctor = TYPE_TYPEVAR;
     name_ty->strname = name->strname;
-    hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &name_ty);
+    hashmap_set(&type_table, storage, &name_ty, HASHMAP_KEY_STRING, name->strname);
   }
 }
 
@@ -295,7 +295,7 @@ visit_packageTypeDeclaration(Ast_PackageTypeDeclaration* package_decl)
   Type_Function* package_ty = arena_malloc(storage, sizeof(*package_ty));
   package_ty->ctor = TYPE_FUNCTION;
   package_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &package_ty);
+  hashmap_set(&type_table, storage, &package_ty, HASHMAP_KEY_STRING, name->strname);
   if (package_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)package_decl->type_params);
   }
@@ -344,7 +344,7 @@ visit_parserTypeDeclaration(Ast_ParserTypeDeclaration* parser_decl)
   Type_Function* parser_ty = arena_malloc(storage, sizeof(*parser_ty));
   parser_ty->ctor = TYPE_FUNCTION;
   parser_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &parser_ty);
+  hashmap_set(&type_table, storage, &parser_ty, HASHMAP_KEY_STRING, name->strname);
   if (parser_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)parser_decl->type_params);
   }
@@ -539,7 +539,7 @@ visit_controlTypeDeclaration(Ast_ControlTypeDeclaration* control_decl)
   Type_Function* control_ty = arena_malloc(storage, sizeof(*control_ty));
   control_ty->ctor = TYPE_FUNCTION;
   control_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &control_ty);
+  hashmap_set(&type_table, storage, &control_ty, HASHMAP_KEY_STRING, name->strname);
   if (control_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)control_decl->type_params);
   }
@@ -601,7 +601,7 @@ visit_externTypeDeclaration(Ast_ExternTypeDeclaration* extern_decl)
   Type_Product* extern_ty = arena_malloc(storage, sizeof(*extern_ty));
   extern_ty->ctor = TYPE_PRODUCT;
   extern_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &extern_ty);
+  hashmap_set(&type_table, storage, &extern_ty, HASHMAP_KEY_STRING, name->strname);
   if (extern_decl->type_params) {
     visit_typeParameterList((Ast_TypeParameterList*)extern_decl->type_params);
   }
@@ -628,7 +628,7 @@ visit_functionPrototype(Ast_FunctionPrototype* func_proto)
   Type_Function* func_ty = arena_malloc(storage, sizeof(*func_ty));
   func_ty->ctor = TYPE_FUNCTION;
   func_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &func_proto);
+  hashmap_set(&type_table, storage, &func_proto, HASHMAP_KEY_STRING, name->strname);
   if (func_proto->return_type) {
     Ast_TypeRef* type_ref = (Ast_TypeRef*)func_proto->return_type;
     visit_typeRef(type_ref);
@@ -689,7 +689,7 @@ visit_tupleType(Ast_TupleType* type_decl)
   Type_Product* tuple_ty = arena_malloc(storage, sizeof(*tuple_ty));
   tuple_ty->ctor = TYPE_PRODUCT;
   tuple_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &tuple_ty);
+  hashmap_set(&type_table, storage, &tuple_ty, HASHMAP_KEY_STRING, name->strname);
   Ast_TypeArgumentList* type_args = (Ast_TypeArgumentList*)type_decl->type_args;
   visit_typeArgumentList(type_args);
   /* list_create(&tuple_ty->members_ty, storage, sizeof(Type*)); */
@@ -710,7 +710,7 @@ visit_headerStackType(Ast_HeaderStackType* type_decl)
   Type_Array* stack_ty = arena_malloc(storage, sizeof(*stack_ty));
   stack_ty->ctor = TYPE_ARRAY;
   stack_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &stack_ty);
+  hashmap_set(&type_table, storage, &stack_ty, HASHMAP_KEY_STRING, name->strname);
   Ast_TypeRef* type = (Ast_TypeRef*)type_decl->type;
   visit_typeRef(type);
   stack_ty->element_ty = *(Type**)hashmap_lookup(&type_table, HASHMAP_KEY_STRING,
@@ -726,7 +726,7 @@ visit_specializedType(Ast_SpecializedType* type_decl)
   Type_Generic* speclzd_ty = arena_malloc(storage, sizeof(*speclzd_ty));
   speclzd_ty->ctor = TYPE_GENERIC;
   speclzd_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &speclzd_ty);
+  hashmap_set(&type_table, storage, &speclzd_ty, HASHMAP_KEY_STRING, name->strname);
   Ast_TypeRef* type = (Ast_TypeRef*)type_decl->type;
   visit_typeRef(type);
   speclzd_ty->referred_ty = *(Type**)hashmap_lookup(&type_table, HASHMAP_KEY_STRING,
@@ -892,7 +892,7 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
   Type_Product* header_ty = arena_malloc(storage, sizeof(*header_ty));
   header_ty->ctor = TYPE_PRODUCT;
   header_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &header_ty);
+  hashmap_set(&type_table, storage, &header_ty, HASHMAP_KEY_STRING, name->strname);
   Ast_StructFieldList* fields = (Ast_StructFieldList*)header_decl->fields;
   visit_structFieldList(fields);
   /* list_create(&header_ty->members_ty, storage, sizeof(Type*)); */
@@ -913,7 +913,7 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
   Type_Union* union_ty = arena_malloc(storage, sizeof(*union_ty));
   union_ty->ctor = TYPE_UNION;
   union_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &union_ty);
+  hashmap_set(&type_table, storage, &union_ty, HASHMAP_KEY_STRING, name->strname);
   Ast_StructFieldList* fields = (Ast_StructFieldList*)union_decl->fields;
   visit_structFieldList(fields);
   /* list_create(&union_ty->members_ty, storage, sizeof(Type*)); */
@@ -934,7 +934,7 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
   Type_Product* struct_ty = arena_malloc(storage, sizeof(*struct_ty));
   struct_ty->ctor = TYPE_PRODUCT;
   struct_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &struct_ty);
+  hashmap_set(&type_table, storage, &struct_ty, HASHMAP_KEY_STRING, name->strname);
   Ast_StructFieldList* fields = (Ast_StructFieldList*)struct_decl->fields;
   visit_structFieldList(fields);
   /*
@@ -973,7 +973,7 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
   Type_Basic* enum_ty = arena_malloc(storage, sizeof(*enum_ty));
   enum_ty->ctor = TYPE_INT;
   enum_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &enum_ty);
+  hashmap_set(&type_table, storage, &enum_ty, HASHMAP_KEY_STRING, name->strname);
   visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields);
 }
 
@@ -1033,7 +1033,7 @@ visit_typedefDeclaration(Ast_TypedefDeclaration* typedef_decl)
   Type_Typedef* typedef_ty = arena_malloc(storage, sizeof(*typedef_ty));
   typedef_ty->ctor = TYPE_TYPEDEF;
   typedef_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &typedef_ty);
+  hashmap_set(&type_table, storage, &typedef_ty, HASHMAP_KEY_STRING, name->strname);
   typedef_ty->referred_ty = *(Type**)hashmap_lookup(&type_table, HASHMAP_KEY_STRING,
       name_of_type(typedef_decl->type_ref)->strname);
 }
@@ -1320,7 +1320,7 @@ visit_actionDeclaration(Ast_ActionDeclaration* action_decl)
   Type_Function* action_ty = arena_malloc(storage, sizeof(*action_ty));
   action_ty->ctor = TYPE_FUNCTION;
   action_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, name->strname, &action_decl);
+  hashmap_set(&type_table, storage, &action_decl, HASHMAP_KEY_STRING, name->strname);
   Ast_ParameterList* params = (Ast_ParameterList*)action_decl->params;
   visit_parameterList(params);
   /* list_create(&action_ty->params_ty, storage, sizeof(Type*)); */
@@ -1550,13 +1550,13 @@ type_decl(Ast_P4Program* ast, Arena* _storage)
     Type_Basic* basic_ty = arena_malloc(storage, sizeof(*basic_ty));
     basic_ty->ctor = basic_types[i].type;
     basic_ty->strname = basic_types[i].strname;
-    hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, basic_ty->strname, &basic_ty);
+    hashmap_set(&type_table, storage, &basic_ty, HASHMAP_KEY_STRING, basic_ty->strname);
   }
 
   Type_TypeVar* dontcare_ty = arena_malloc(storage, sizeof(*dontcare_ty));
   dontcare_ty->ctor = TYPE_TYPEVAR;
   dontcare_ty->strname = "_";
-  hashmap_set(&type_table, storage, HASHMAP_KEY_STRING, dontcare_ty->strname, &dontcare_ty);
+  hashmap_set(&type_table, storage, &dontcare_ty, HASHMAP_KEY_STRING, dontcare_ty->strname);
 
   visit_p4program(ast);
   return &type_table;

@@ -261,7 +261,7 @@ hashmap_get(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...)
 }
 
 void
-hashmap_set(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...)
+hashmap_set(Hashmap* hashmap, Arena* storage, void* value, enum HashmapKeyType key_type, ...)
 {
   assert(hashmap->key_type == key_type);
   va_list args;
@@ -281,7 +281,6 @@ hashmap_set(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type, ...)
     key = (HashmapKey){ .u64_key = va_arg(args, uint64_t) };
     hashmap_hash_key(HASHMAP_KEY_UINT64, &key, hashmap->capacity_log2);
   } else assert(0);
-  void* value = va_arg(args, void*);
   va_end(args);
   HashmapEntry* entry = hashmap_get_entry(hashmap, storage, &key);
   memcpy(entry->value, value, hashmap->value_size);

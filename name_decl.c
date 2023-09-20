@@ -205,7 +205,7 @@ static void
 visit_name(Ast_Name* name)
 {
   assert(name->kind == AST_name);
-  hashmap_set(&scope_map, storage, HASHMAP_KEY_UINT64, (uint64_t)name, &current_scope);
+  hashmap_set(&scope_map, storage, &current_scope, HASHMAP_KEY_UINT64, (uint64_t)name);
 }
 
 static void
@@ -841,7 +841,7 @@ visit_headerTypeDeclaration(Ast_HeaderTypeDeclaration* header_decl)
   scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
   Scope* field_scope = arena_malloc(storage, sizeof(*field_scope));
   hashmap_create(&field_scope->name_table, storage, HASHMAP_KEY_STRING, sizeof(NameEntry), 15, 511);
-  hashmap_set(&field_map, storage, HASHMAP_KEY_UINT64, (uint64_t)header_decl, &field_scope);
+  hashmap_set(&field_map, storage, &field_scope, HASHMAP_KEY_UINT64, (uint64_t)header_decl);
   visit_structFieldList((Ast_StructFieldList*)header_decl->fields, field_scope);
 }
 
@@ -856,7 +856,7 @@ visit_headerUnionDeclaration(Ast_HeaderUnionDeclaration* union_decl)
   scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
   Scope* field_scope = arena_malloc(storage, sizeof(*field_scope));
   hashmap_create(&field_scope->name_table, storage, HASHMAP_KEY_STRING, sizeof(NameEntry), 15, 511);
-  hashmap_set(&field_map, storage, HASHMAP_KEY_UINT64, (uint64_t)union_decl, &field_scope);
+  hashmap_set(&field_map, storage, &field_scope, HASHMAP_KEY_UINT64, (uint64_t)union_decl);
   visit_structFieldList((Ast_StructFieldList*)union_decl->fields, field_scope);
 }
 
@@ -871,7 +871,7 @@ visit_structTypeDeclaration(Ast_StructTypeDeclaration* struct_decl)
   scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
   Scope* field_scope = arena_malloc(storage, sizeof(*field_scope));
   hashmap_create(&field_scope->name_table, storage, HASHMAP_KEY_STRING, sizeof(NameEntry), 15, 511);
-  hashmap_set(&field_map, storage, HASHMAP_KEY_UINT64, (uint64_t)struct_decl, &field_scope);
+  hashmap_set(&field_map, storage, &field_scope, HASHMAP_KEY_UINT64, (uint64_t)struct_decl);
   visit_structFieldList((Ast_StructFieldList*)struct_decl->fields, field_scope);
 }
 
@@ -908,7 +908,7 @@ visit_enumDeclaration(Ast_EnumDeclaration* enum_decl)
   scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
   Scope* field_scope = arena_malloc(storage, sizeof(*field_scope));
   hashmap_create(&field_scope->name_table, storage, HASHMAP_KEY_STRING, sizeof(NameEntry), 7, 511);
-  hashmap_set(&field_map, storage, HASHMAP_KEY_UINT64, (uint64_t)enum_decl, &field_scope);
+  hashmap_set(&field_map, storage, &field_scope, HASHMAP_KEY_UINT64, (uint64_t)enum_decl);
   visit_specifiedIdentifierList((Ast_SpecifiedIdentifierList*)enum_decl->fields, field_scope);
 }
 
@@ -918,7 +918,7 @@ visit_errorDeclaration(Ast_ErrorDeclaration* error_decl)
   assert(error_decl->kind == AST_errorDeclaration);
   Scope* field_scope = arena_malloc(storage, sizeof(*field_scope));
   hashmap_create(&field_scope->name_table, storage, HASHMAP_KEY_STRING, sizeof(NameEntry), 15, 511);
-  hashmap_set(&field_map, storage, HASHMAP_KEY_UINT64, (uint64_t)error_decl, &field_scope);
+  hashmap_set(&field_map, storage, &field_scope, HASHMAP_KEY_UINT64, (uint64_t)error_decl);
   visit_identifierList((Ast_IdentifierList*)error_decl->fields, field_scope);
 }
 
@@ -928,7 +928,7 @@ visit_matchKindDeclaration(Ast_MatchKindDeclaration* match_decl)
   assert(match_decl->kind == AST_matchKindDeclaration);
   Scope* field_scope = arena_malloc(storage, sizeof(*field_scope));
   hashmap_create(&field_scope->name_table, storage, HASHMAP_KEY_STRING, sizeof(NameEntry), 15, 511);
-  hashmap_set(&field_map, storage, HASHMAP_KEY_UINT64, (uint64_t)match_decl, &field_scope);
+  hashmap_set(&field_map, storage, &field_scope, HASHMAP_KEY_UINT64, (uint64_t)match_decl);
   visit_identifierList((Ast_IdentifierList*)match_decl->fields, field_scope);
 }
 
@@ -1161,7 +1161,7 @@ visit_tableDeclaration(Ast_TableDeclaration* table_decl)
   scope_push_decl(current_scope, storage, namedecl, NS_VAR);
   Scope* prop_scope = arena_malloc(storage, sizeof(*prop_scope));
   hashmap_create(&prop_scope->name_table, storage, HASHMAP_KEY_STRING, sizeof(NameEntry), 15, 511);
-  hashmap_set(&field_map, storage, HASHMAP_KEY_UINT64, (uint64_t)table_decl, &prop_scope);
+  hashmap_set(&field_map, storage, &prop_scope, HASHMAP_KEY_UINT64, (uint64_t)table_decl);
   visit_tablePropertyList((Ast_TablePropertyList*)table_decl->prop_list, prop_scope);
 }
 
