@@ -153,14 +153,13 @@ next_token()
     token = array_get(tokens, ++token_at);
   }
   if (token->klass == TK_IDENTIFIER) {
-    NameEntry name_entry = {};
-    if (scope_lookup_any(current_scope, token->lexeme, &name_entry)) {
-      if (name_entry.ns[NS_KEYWORD]) {
-        NameDecl* namedecl = name_entry.ns[NS_KEYWORD];
+    NameEntry* name_entry = scope_lookup_any(current_scope, token->lexeme);
+    if (name_entry) {
+      if (name_entry->ns[NS_KEYWORD]) {
+        NameDecl* namedecl = name_entry->ns[NS_KEYWORD];
         token->klass = namedecl->token_class;
         return token;
-      }
-      else if (name_entry.ns[NS_TYPE]) {
+      } else if (name_entry->ns[NS_TYPE]) {
         token->klass = TK_TYPE_IDENTIFIER;
         return token;
       }

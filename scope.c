@@ -17,34 +17,38 @@ scope_pop(Scope* scope)
   return scope->parent_scope;
 }
 
-bool
-scope_lookup_any(Scope* scope, char* strname, NameEntry* name_entry)
+NameEntry*
+scope_lookup_any(Scope* scope, char* strname)
 {
-  bool found = false;
+  NameEntry* name_entry = 0;
   while (scope) {
-    found = hashmap_lookup(&scope->name_table, name_entry, HASHMAP_KEY_STRING, strname);
-    if (found) {
+    name_entry = hashmap_lookup(&scope->name_table, HASHMAP_KEY_STRING, strname);
+    if (name_entry) {
       if (name_entry->ns[NS_TYPE] || name_entry->ns[NS_VAR] || name_entry->ns[NS_KEYWORD]) {
         break;
       }
     }
+    name_entry = 0;
     scope = scope->parent_scope;
   }
-  return found;
+  return name_entry;
 }
 
-bool
-scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns, NameEntry* name_entry)
+NameEntry*
+scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 {
-  bool found = false;
-  while (scope) {
-    found = hashmap_lookup(&scope->name_table, name_entry, HASHMAP_KEY_STRING, strname);
-    if (found && name_entry->ns[ns]) {
-        break;
+  NameEntry* name_entry = 0;
+  while (name_entry) {
+    name_entry = hashmap_lookup(&scope->name_table, HASHMAP_KEY_STRING, strname);
+    if (name_entry) {
+      if (name_entry->ns[ns]) {
+          break;
+      }
     }
+    name_entry = 0;
     scope = scope->parent_scope;
   }
-  return found;
+  return name_entry;
 }
 
 NameEntry*
