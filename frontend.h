@@ -504,34 +504,34 @@ typedef struct Ast {
 
     struct {
       struct Ast* name;
-    } booleanType;
+    } baseTypeBoolean;
 
     struct {
       struct Ast* name;
       struct Ast* size;
-    } integerType;
+    } baseTypeInteger;
 
     struct {
       struct Ast* name;
       struct Ast* size;
-    } bitType;
+    } baseTypeBit;
 
     struct {
       struct Ast* name;
       struct Ast* size;
-    } varbitType;
+    } baseTypeVarbit;
 
     struct {
       struct Ast* name;
-    } stringType;
+    } baseTypeString;
 
     struct {
       struct Ast* name;
-    } voidType;
+    } baseTypeVoid;
 
     struct {
       struct Ast* name;
-    } errorType;
+    } baseTypeError;
 
     struct {
       struct Ast* size;
@@ -758,7 +758,7 @@ typedef struct Ast {
       struct Ast* type;
       struct Ast* init_expr;
       bool is_const;
-    } varDeclaration;
+    } variableDeclaration;
 
     /** EXPRESSIONS **/
 

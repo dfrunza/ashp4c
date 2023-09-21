@@ -1311,14 +1311,14 @@ parse_controlDeclaration(Ast* control_proto)
     control_decl->kind = AST_controlDeclaration;
     control_decl->line_no = token->line_no;
     control_decl->column_no = token->column_no;
-    control_decl->proto = control_proto;
-    control_decl->ctor_params = parse_optConstructorParameters();
+    control_decl->controlDeclaration.proto = control_proto;
+    control_decl->controlDeclaration.ctor_params = parse_optConstructorParameters();
     if (token->klass == TK_BRACE_OPEN) {
       next_token();
-      control_decl->local_decls = parse_controlLocalDeclarations();
+      control_decl->controlDeclaration.local_decls = parse_controlLocalDeclarations();
       if (token->klass == TK_APPLY) {
         next_token();
-        control_decl->apply_stmt = parse_blockStatement();
+        control_decl->controlDeclaration.apply_stmt = parse_blockStatement();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -1346,13 +1346,13 @@ parse_controlTypeDeclaration()
     if (token_is_name(token)) {
       Ast* name = parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->strname;
+      namedecl->strname = name->name.strname;
       scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
-      control_proto->name = name;
-      control_proto->type_params = parse_optTypeParameters();
+      control_proto->controlTypeDeclaration.name = name;
+      control_proto->controlTypeDeclaration.type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        control_proto->params = parse_parameterList();
+        control_proto->controlTypeDeclaration.params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -1377,21 +1377,21 @@ parse_controlLocalDeclaration()
     local_decl->line_no = token->line_no;
     local_decl->column_no = token->column_no;
     if (token->klass == TK_CONST) {
-      local_decl->decl = parse_variableDeclaration(0);
+      local_decl->controlLocalDeclaration.decl = parse_variableDeclaration(0);
       return local_decl;
     } else if (token->klass == TK_ACTION) {
-      local_decl->decl = parse_actionDeclaration();
+      local_decl->controlLocalDeclaration.decl = parse_actionDeclaration();
       return local_decl;
     } else if (token->klass == TK_TABLE) {
-      local_decl->decl = parse_tableDeclaration();
+      local_decl->controlLocalDeclaration.decl = parse_tableDeclaration();
       return local_decl;
     } else if (token_is_typeRef(token)) {
       Ast* type_ref = parse_typeRef();
       if (token->klass == TK_PARENTH_OPEN) {
-        local_decl->decl = parse_instantiation(type_ref);
+        local_decl->controlLocalDeclaration.decl = parse_instantiation(type_ref);
         return local_decl;
       } else if (token_is_name(token)) {
-        local_decl->decl = parse_variableDeclaration(type_ref);
+        local_decl->controlLocalDeclaration.decl = parse_variableDeclaration(type_ref);
         return local_decl;
       } else error("At line %d, column %d: unexpected token `%s`.",
                   token->line_no, token->column_no, token->lexeme);
@@ -1411,7 +1411,7 @@ parse_controlLocalDeclarations()
   decls->column_no = token->column_no;
   if (token_is_controlLocalDeclaration(token)) {
     Ast* ast = parse_controlLocalDeclaration();
-    decls->first_child = ast;
+    decls->controlLocalDeclarations.first_child = ast;
     while (token_is_controlLocalDeclaration(token)) {
       ast->right_sibling = parse_controlLocalDeclaration();
       ast = ast->right_sibling;
@@ -1443,7 +1443,7 @@ parse_externDeclaration()
                  token->line_no, token->column_no, token->lexeme);
 
     if (is_function_type) {
-      extern_decl->decl = parse_functionPrototype(0);
+      extern_decl->externDeclaration.decl = parse_functionPrototype(0);
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -1454,22 +1454,22 @@ parse_externDeclaration()
       extern_type->kind = AST_externTypeDeclaration;
       extern_type->line_no = token->line_no;
       extern_type->column_no = token->column_no;
-      extern_type->name = parse_nonTypeName();
-      Ast* name = extern_type->name;
+      extern_type->externTypeDeclaration.name = parse_nonTypeName();
+      Ast* name = extern_type->externTypeDeclaration.name;
       NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->strname;
+      namedecl->strname = name->name.strname;
       scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
-      extern_type->type_params = parse_optTypeParameters();
+      extern_type->externTypeDeclaration.type_params = parse_optTypeParameters();
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        extern_type->method_protos = parse_methodPrototypes();
+        extern_type->externTypeDeclaration.method_protos = parse_methodPrototypes();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `}` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
       } else error("At line %d, column %d: `{` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
-      extern_decl->decl = extern_type;
+      extern_decl->externDeclaration.decl = extern_type;
       return extern_decl;
     }
   } else error("At line %d, column %d: `extern` was expected, got `%s`.",
@@ -1487,7 +1487,7 @@ parse_methodPrototypes()
   protos->column_no = token->column_no;
   if (token_is_methodPrototype(token)) {
     Ast* ast = parse_methodPrototype();
-    protos->first_child = ast;
+    protos->methodPrototypes.first_child = ast;
     while (token_is_methodPrototype(token)) {
       ast->right_sibling = parse_methodPrototype();
       ast = ast->right_sibling;
@@ -1505,29 +1505,29 @@ parse_functionPrototype(Ast* return_type)
     func_proto->line_no = token->line_no;
     func_proto->column_no = token->column_no;
     if (return_type) {
-      func_proto->return_type = return_type;
+      func_proto->functionPrototype.return_type = return_type;
     } else {
       Ast* return_type = parse_typeOrVoid();
       if (return_type->kind == AST_name) {
         Ast* name = return_type;
         NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-        namedecl->strname = name->strname;
+        namedecl->strname = name->name.strname;
         scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
         Ast* type_ref = arena_malloc(storage, sizeof(Ast));
         type_ref->kind = AST_typeRef;
         type_ref->line_no = token->line_no;
         type_ref->column_no = token->column_no;
-        type_ref->type = name;
+        type_ref->typeRef.type = name;
         return_type = type_ref;
       }
-      func_proto->return_type = return_type;
+      func_proto->functionPrototype.return_type = return_type;
     }
     if (token_is_name(token)) {
-      func_proto->name = parse_name();
-      func_proto->type_params = parse_optTypeParameters();
+      func_proto->functionPrototype.name = parse_name();
+      func_proto->functionPrototype.type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        func_proto->params = parse_parameterList();
+        func_proto->functionPrototype.params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -1553,10 +1553,10 @@ parse_methodPrototype()
       func_proto->kind = AST_functionPrototype;
       func_proto->line_no = token->line_no;
       func_proto->column_no = token->column_no;
-      func_proto->name = parse_name();
+      func_proto->functionPrototype.name = parse_name();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        func_proto->params = parse_parameterList();
+        func_proto->functionPrototype.params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -1594,13 +1594,13 @@ parse_typeRef()
     type_ref->line_no = token->line_no;
     type_ref->column_no = token->column_no;
     if (token_is_baseType(token)) {
-      type_ref->type = parse_baseType();
+      type_ref->typeRef.type = parse_baseType();
       return type_ref;
     } else if (token_is_typeName(token)) {
-      type_ref->type = parse_namedType();
+      type_ref->typeRef.type = parse_namedType();
       return type_ref;
     } else if (token->klass == TK_TUPLE) {
-      type_ref->type = parse_tupleType();
+      type_ref->typeRef.type = parse_tupleType();
       return type_ref;
     } else assert(0);
   } else error("At line %d, column %d: type was expected, got `%s`.",
@@ -1641,8 +1641,8 @@ parse_prefixedType()
     type_name->kind = AST_name;
     type_name->line_no = token->line_no;
     type_name->column_no = token->column_no;
-    type_name->strname = token->lexeme;
-    type_name->is_prefixed = is_prefixed;
+    type_name->name.strname = token->lexeme;
+    type_name->name.is_prefixed = is_prefixed;
     next_token();
     return type_name;
   } else error("At line %d, column %d: type was expected, got `%s`.",
@@ -1660,17 +1660,17 @@ parse_tupleType()
     name->kind = AST_name;
     name->line_no = token->line_no;
     name->column_no = token->column_no;
-    name->strname = arena_malloc(storage, MAXLEN_ANONTYPE);
-    int lexeme_len = sprintf(name->strname, "type@%d:%d", name->line_no, name->column_no);
+    name->name.strname = arena_malloc(storage, MAXLEN_ANONTYPE);
+    int lexeme_len = sprintf(name->name.strname, "type@%d:%d", name->line_no, name->column_no);
     assert(lexeme_len <= MAXLEN_ANONTYPE);
     Ast* tuple = arena_malloc(storage, sizeof(Ast));
     tuple->kind = AST_tupleType;
     tuple->line_no = token->line_no;
     tuple->column_no = token->column_no;
-    tuple->name = name;
+    tuple->tupleType.name = name;
     if (token->klass == TK_ANGLE_OPEN) {
       next_token();
-      tuple->type_args = parse_typeArgumentList();
+      tuple->tupleType.type_args = parse_typeArgumentList();
       if (token->klass == TK_ANGLE_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -1693,22 +1693,22 @@ parse_headerStackType(Ast* named_type)
     name->kind = AST_name;
     name->line_no = named_type->line_no;
     name->column_no = named_type->column_no;
-    name->strname = arena_malloc(storage, MAXLEN_ANONTYPE);
-    int lexeme_len = sprintf(name->strname, "type@%d:%d", name->line_no, name->column_no);
+    name->name.strname = arena_malloc(storage, MAXLEN_ANONTYPE);
+    int lexeme_len = sprintf(name->name.strname, "type@%d:%d", name->line_no, name->column_no);
     assert(lexeme_len <= MAXLEN_ANONTYPE);
     Ast* type_ref = arena_malloc(storage, sizeof(Ast));
     type_ref->kind = AST_typeRef;
     type_ref->line_no = named_type->line_no;
     type_ref->column_no = named_type->column_no;
-    type_ref->type = named_type;
+    type_ref->typeRef.type = named_type;
     Ast* type = arena_malloc(storage, sizeof(Ast));
     type->kind = AST_headerStackType;
     type->line_no = token->line_no;
     type->column_no = token->column_no;
-    type->name = name;
-    type->type = type_ref;
+    type->headerStackType.name = name;
+    type->headerStackType.type = type_ref;
     if (token_is_expression(token)) {
-      type->stack_expr = parse_expression(1);
+      type->headerStackType.stack_expr = parse_expression(1);
       if (token->klass == TK_BRACKET_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `]` was expected, got `%s`.",
@@ -1731,21 +1731,21 @@ parse_specializedType(Ast* named_type)
     name->kind = AST_name;
     name->line_no = named_type->line_no;
     name->column_no = named_type->column_no;
-    name->strname = arena_malloc(storage, MAXLEN_ANONTYPE);
-    int lexeme_len = sprintf(name->strname, "type@%d:%d", name->line_no, name->column_no);
+    name->name.strname = arena_malloc(storage, MAXLEN_ANONTYPE);
+    int lexeme_len = sprintf(name->name.strname, "type@%d:%d", name->line_no, name->column_no);
     assert(lexeme_len <= MAXLEN_ANONTYPE);
     Ast* type_ref = arena_malloc(storage, sizeof(Ast));
     type_ref->kind = AST_typeRef;
     type_ref->line_no = named_type->line_no;
     type_ref->column_no = named_type->column_no;
-    type_ref->type = named_type;
+    type_ref->typeRef.type = named_type;
     Ast* type = arena_malloc(storage, sizeof(Ast));
     type->kind = AST_specializedType;
     type->line_no = token->line_no;
     type->column_no = token->column_no;
-    type->type_args = parse_typeArgumentList();
-    type->name = name;
-    type->type = type_ref;
+    type->specializedType.type_args = parse_typeArgumentList();
+    type->specializedType.name = name;
+    type->specializedType.type = type_ref;
     if (token->klass == TK_ANGLE_CLOSE) {
       next_token();
     } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -1770,30 +1770,21 @@ parse_baseType()
       bool_type->kind = AST_baseTypeBoolean;
       bool_type->line_no = token->line_no;
       bool_type->column_no = token->column_no;
-      type_name->strname = token->lexeme;
-      bool_type->name = type_name;
+      type_name->name.strname = token->lexeme;
+      bool_type->baseTypeBoolean.name = type_name;
       next_token();
       return bool_type;
-    } else if (token->klass == TK_ERROR) {
-      Ast* error_type = arena_malloc(storage, sizeof(Ast));
-      error_type->kind = AST_baseTypeError;
-      error_type->line_no = token->line_no;
-      error_type->column_no = token->column_no;
-      type_name->strname = token->lexeme;
-      error_type->name = type_name;
-      next_token();
-      return error_type;
     } else if (token->klass == TK_INT) {
       Ast* int_type = arena_malloc(storage, sizeof(Ast));
       int_type->kind = AST_baseTypeInteger;
       int_type->line_no = token->line_no;
       int_type->column_no = token->column_no;
-      type_name->strname = token->lexeme;
-      int_type->name = type_name;
+      type_name->name.strname = token->lexeme;
+      int_type->baseTypeInteger.name = type_name;
       next_token();
       if (token->klass == TK_ANGLE_OPEN) {
         next_token();
-        int_type->size = parse_integerTypeSize();
+        int_type->baseTypeInteger.size = parse_integerTypeSize();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -1805,12 +1796,12 @@ parse_baseType()
       bit_type->kind = AST_baseTypeBit;
       bit_type->line_no = token->line_no;
       bit_type->column_no = token->column_no;
-      type_name->strname = token->lexeme;
-      bit_type->name = type_name;
+      type_name->name.strname = token->lexeme;
+      bit_type->baseTypeBit.name = type_name;
       next_token();
       if (token->klass == TK_ANGLE_OPEN) {
         next_token();
-        bit_type->size = parse_integerTypeSize();
+        bit_type->baseTypeBit.size = parse_integerTypeSize();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -1822,12 +1813,12 @@ parse_baseType()
       varbit_type->kind = AST_baseTypeVarbit;
       varbit_type->line_no = token->line_no;
       varbit_type->column_no = token->column_no;
-      type_name->strname = token->lexeme;
-      varbit_type->name = type_name;
+      type_name->name.strname = token->lexeme;
+      varbit_type->baseTypeVarbit.name = type_name;
       next_token();
       if (token->klass == TK_ANGLE_OPEN) {
         next_token();
-        varbit_type->size = parse_integerTypeSize();
+        varbit_type->baseTypeVarbit.size = parse_integerTypeSize();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -1840,8 +1831,8 @@ parse_baseType()
       string_type->kind = AST_baseTypeString;
       string_type->line_no = token->line_no;
       string_type->column_no = token->column_no;
-      type_name->strname = token->lexeme;
-      string_type->name = type_name;
+      type_name->name.strname = token->lexeme;
+      string_type->baseTypeString.name = type_name;
       next_token();
       return string_type;
     } else if (token->klass == TK_VOID) {
@@ -1849,10 +1840,19 @@ parse_baseType()
       void_type->kind = AST_baseTypeVoid;
       void_type->line_no = token->line_no;
       void_type->column_no = token->column_no;
-      type_name->strname = token->lexeme;
-      void_type->name = type_name;
+      type_name->name.strname = token->lexeme;
+      void_type->baseTypeVoid.name = type_name;
       next_token();
       return void_type;
+    } else if (token->klass == TK_ERROR) {
+      Ast* error_type = arena_malloc(storage, sizeof(Ast));
+      error_type->kind = AST_baseTypeError;
+      error_type->line_no = token->line_no;
+      error_type->column_no = token->column_no;
+      type_name->name.strname = token->lexeme;
+      error_type->baseTypeError.name = type_name;
+      next_token();
+      return error_type;
     } else assert(0);
   } else error("At line %d, column %d: base type was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -1868,7 +1868,7 @@ parse_integerTypeSize()
   type_size->line_no = token->line_no;
   type_size->column_no = token->column_no;
   if (token->klass == TK_INTEGER_LITERAL) {
-    type_size->size = parse_integer();
+    type_size->integerTypeSize.size = parse_integer();
   } else if (token->klass == TK_PARENTH_OPEN) {
     /* TODO
     type_size->size = parse_expression(1); */
@@ -1893,7 +1893,7 @@ parse_typeOrVoid()
       name->kind = AST_name;
       name->line_no = token->line_no;
       name->column_no = token->column_no;
-      name->strname = token->lexeme;
+      name->name.strname = token->lexeme;
       next_token();
       return name;
     } else assert(0);
@@ -1935,14 +1935,14 @@ parse_typeParameterList()
   if (token_is_typeParameterList(token)) {
     Ast* name = parse_name();
     NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-    namedecl->strname = name->strname;
+    namedecl->strname = name->name.strname;
     scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
-    params->first_child = name;
+    params->typeParameterList.first_child = name;
     while (token->klass == TK_COMMA) {
       next_token();
       Ast* name = parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->strname;
+      namedecl->strname = name->name.strname;
       scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
       name->right_sibling = name;
       name = name->right_sibling;
@@ -1969,12 +1969,12 @@ parse_realTypeArg()
       name->kind = AST_name;
       name->line_no = dontcare_arg->line_no;
       name->column_no = dontcare_arg->column_no;
-      name->strname = "_";
-      dontcare_arg->name = name;
-      type_arg->arg = dontcare_arg;
+      name->name.strname = "_";
+      dontcare_arg->dontcare.name = name;
+      type_arg->realTypeArg.arg = dontcare_arg;
       return type_arg;
     } else if (token_is_typeRef(token)) {
-      type_arg->arg = parse_typeRef();
+      type_arg->realTypeArg.arg = parse_typeRef();
       return type_arg;
     } else assert(0);
   } else error("At line %d, column %d: type argument was expected, got `%s`.",
@@ -2001,15 +2001,15 @@ parse_typeArg()
       name->kind = AST_name;
       name->line_no = dontcare_arg->line_no;
       name->column_no = dontcare_arg->column_no;
-      name->strname = "_";
-      dontcare_arg->name = name;
-      type_arg->arg = dontcare_arg;
+      name->name.strname = "_";
+      dontcare_arg->dontcare.name = name;
+      type_arg->typeArg.arg = dontcare_arg;
       return type_arg;
     } else if (token_is_typeRef(token)) {
-      type_arg->arg = parse_typeRef();
+      type_arg->typeArg.arg = parse_typeRef();
       return type_arg;
     } else if (token_is_nonTypeName(token)) {
-      type_arg->arg = parse_nonTypeName();
+      type_arg->typeArg.arg = parse_nonTypeName();
       return type_arg;
     } else assert(0);
   } else error("At line %d, column %d: type argument was expected, got `%s`.",
@@ -2027,7 +2027,7 @@ parse_realTypeArgumentList()
   args->column_no = token->column_no;
   if (token_is_realTypeArg(token)) {
     Ast* ast = parse_realTypeArg();
-    args->first_child = ast;
+    args->realTypeArgumentList.first_child = ast;
     while (token->klass == TK_COMMA) {
       next_token();
       ast->right_sibling = parse_realTypeArg();
@@ -2046,7 +2046,7 @@ parse_typeArgumentList()
   args->column_no = token->column_no;
   if (token_is_typeArg(token)) {
     Ast* ast = parse_typeArg();
-    args->first_child = ast;
+    args->typeArgumentList.first_child = ast;
     while (token->klass == TK_COMMA) {
       next_token();
       ast->right_sibling = parse_typeArg();
@@ -2065,19 +2065,19 @@ parse_typeDeclaration()
     type_decl->line_no = token->line_no;
     type_decl->column_no = token->column_no;
     if (token_is_derivedTypeDeclaration(token)) {
-      type_decl->decl = parse_derivedTypeDeclaration();
+      type_decl->typeDeclaration.decl = parse_derivedTypeDeclaration();
       return type_decl;
     } else if (token->klass == TK_TYPEDEF || token->klass == TK_TYPE) {
-      type_decl->decl = parse_typedefDeclaration();
+      type_decl->typeDeclaration.decl = parse_typedefDeclaration();
       return type_decl;
     } else if (token->klass == TK_PARSER) {
-      type_decl->decl = parse_parserTypeDeclaration();
+      type_decl->typeDeclaration.decl = parse_parserTypeDeclaration();
       return type_decl;
     } else if (token->klass == TK_CONTROL) {
-      type_decl->decl = parse_controlTypeDeclaration();
+      type_decl->typeDeclaration.decl = parse_controlTypeDeclaration();
       return type_decl;
     } else if (token->klass == TK_PACKAGE) {
-      type_decl->decl = parse_packageTypeDeclaration();
+      type_decl->typeDeclaration.decl = parse_packageTypeDeclaration();
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` expected, got `%s`.",
@@ -2099,16 +2099,16 @@ parse_derivedTypeDeclaration()
     type_decl->line_no = token->line_no;
     type_decl->column_no = token->column_no;
     if (token->klass == TK_HEADER) {
-      type_decl->decl = parse_headerTypeDeclaration();
+      type_decl->derivedTypeDeclaration.decl = parse_headerTypeDeclaration();
       return type_decl;
     } else if (token->klass == TK_HEADER_UNION) {
-      type_decl->decl = parse_headerUnionDeclaration();
+      type_decl->derivedTypeDeclaration.decl = parse_headerUnionDeclaration();
       return type_decl;
     } else if (token->klass == TK_STRUCT) {
-      type_decl->decl = parse_structTypeDeclaration();
+      type_decl->derivedTypeDeclaration.decl = parse_structTypeDeclaration();
       return type_decl;
     } else if (token->klass == TK_ENUM) {
-      type_decl->decl = parse_enumDeclaration();
+      type_decl->derivedTypeDeclaration.decl = parse_enumDeclaration();
       return type_decl;
     } else assert(0);
   } else error("At line %d, column %d: structure declaration was expected, got `%s`.",
@@ -2129,12 +2129,12 @@ parse_headerTypeDeclaration()
     if (token_is_name(token)) {
       Ast* name = parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->strname;
+      namedecl->strname = name->name.strname;
       scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
-      header_decl->name = name;
+      header_decl->headerTypeDeclaration.name = name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        header_decl->fields = parse_structFieldList();
+        header_decl->headerTypeDeclaration.fields = parse_structFieldList();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token(token);
         } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2162,12 +2162,12 @@ parse_headerUnionDeclaration()
     if (token_is_name(token)) {
       Ast* name = parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->strname;
+      namedecl->strname = name->name.strname;
       scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
-      union_decl->name = name;
+      union_decl->headerUnionDeclaration.name = name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        union_decl->fields = parse_structFieldList();
+        union_decl->headerUnionDeclaration.fields = parse_structFieldList();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2195,12 +2195,12 @@ parse_structTypeDeclaration()
     if (token_is_name(token)) {
       Ast* name = parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->strname;
+      namedecl->strname = name->name.strname;
       scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
-      struct_decl->name = name;
+      struct_decl->structTypeDeclaration.name = name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
-        struct_decl->fields = parse_structFieldList();
+        struct_decl->structTypeDeclaration.fields = parse_structFieldList();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2225,7 +2225,7 @@ parse_structFieldList()
   fields->column_no = token->column_no;
   if (token_is_structField(token)) {
     Ast* ast = parse_structField();
-    fields->first_child = ast;
+    fields->structFieldList.first_child = ast;
     while (token_is_structField(token)) {
       ast->right_sibling = parse_structField();
       ast = ast->right_sibling;
@@ -2242,9 +2242,9 @@ parse_structField()
     field->kind = AST_structField;
     field->line_no = token->line_no;
     field->column_no = token->column_no;
-    field->type = parse_typeRef();
+    field->structField.type = parse_typeRef();
     if (token_is_name(token)) {
-      field->name = parse_name();
+      field->structField.name = parse_name();
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -2272,7 +2272,7 @@ parse_enumDeclaration()
       if (token->klass == TK_ANGLE_OPEN) {
         next_token();
         if (token->klass == TK_INTEGER_LITERAL) {
-          enum_decl->type_size = parse_integer();
+          enum_decl->enumDeclaration.type_size = parse_integer();
           if (token->klass == TK_ANGLE_CLOSE) {
             next_token();
           } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -2285,13 +2285,13 @@ parse_enumDeclaration()
     if (token_is_name(token)) {
       Ast* name = parse_name();
       NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->strname;
+      namedecl->strname = name->name.strname;
       scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
-      enum_decl->name = name;
+      enum_decl->enumDeclaration.name = name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
         if (token_is_specifiedIdentifier(token)) {
-          enum_decl->fields = parse_specifiedIdentifierList();
+          enum_decl->enumDeclaration.fields = parse_specifiedIdentifierList();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2322,7 +2322,7 @@ parse_errorDeclaration()
       next_token();
       if (token_is_name(token)) {
         if (token_is_name(token)) {
-          error_decl->fields = parse_identifierList();
+          error_decl->errorDeclaration.fields = parse_identifierList();
         } else error("At line %d, column %d: name was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
         if (token->klass == TK_BRACE_CLOSE) {
@@ -2352,7 +2352,7 @@ parse_matchKindDeclaration()
     if (token->klass == TK_BRACE_OPEN) {
       next_token();
       if (token_is_name(token)) {
-        match_decl->fields = parse_identifierList();
+        match_decl->matchKindDeclaration.fields = parse_identifierList();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2377,7 +2377,7 @@ parse_identifierList()
   ids->column_no = token->column_no;
   if (token_is_name(token)) {
     Ast* ast = parse_name();
-    ids->first_child = ast;
+    ids->identifierList.first_child = ast;
     while (token->klass == TK_COMMA) {
       next_token();
       ast->right_sibling = parse_name();
@@ -2396,7 +2396,7 @@ parse_specifiedIdentifierList()
   ids->column_no = token->column_no;
   if (token_is_specifiedIdentifier(token)) {
     Ast* ast = parse_specifiedIdentifier();
-    ids->first_child = ast;
+    ids->specifiedIdentifierList.first_child = ast;
     while (token->klass == TK_COMMA) {
       next_token();
       ast->right_sibling = parse_specifiedIdentifier();
@@ -2414,11 +2414,11 @@ parse_specifiedIdentifier()
     id->kind = AST_specifiedIdentifier;
     id->line_no = token->line_no;
     id->column_no = token->column_no;
-    id->name = parse_name();
+    id->specifiedIdentifier.name = parse_name();
     if (token->klass == TK_EQUAL) {
       next_token();
       if (token_is_expression(token)) {
-        id->init_expr = parse_expression(1);
+        id->specifiedIdentifier.init_expr = parse_expression(1);
       } else error("At line %d, column %d: expression was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
     }
@@ -2440,16 +2440,16 @@ parse_typedefDeclaration()
       type_decl->line_no = token->line_no;
       type_decl->column_no = token->column_no;
       if (token_is_typeRef(token)) {
-        type_decl->type_ref = parse_typeRef();
+        type_decl->typedefDeclaration.type_ref = parse_typeRef();
       } else if (token_is_derivedTypeDeclaration(token)) {
-        type_decl->type_ref = parse_derivedTypeDeclaration();
+        type_decl->typedefDeclaration.type_ref = parse_derivedTypeDeclaration();
       } else assert(0);
       if (token_is_name(token)) {
         Ast* name = parse_name();
         NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-        namedecl->strname = name->strname;
+        namedecl->strname = name->name.strname;
         scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
-        type_decl->name = name;
+        type_decl->typedefDeclaration.name = name;
         if (token->klass == TK_SEMICOLON) {
           next_token();
         } else error("At line %d, column %d: `;` expected, got `%s`.",
@@ -2474,7 +2474,7 @@ parse_assignmentOrMethodCallStatement()
     Ast* lvalue = parse_lvalue();
     if (token->klass == TK_ANGLE_OPEN) {
       next_token();
-      lvalue->type_args = parse_typeArgumentList();
+      lvalue->lvalueExpression.type_args = parse_typeArgumentList();
       if (token->klass == TK_ANGLE_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -2486,8 +2486,8 @@ parse_assignmentOrMethodCallStatement()
       call_stmt->kind = AST_functionCall;
       call_stmt->line_no = token->line_no;
       call_stmt->column_no = token->column_no;
-      call_stmt->lhs_expr = lvalue;
-      call_stmt->args = parse_argumentList();
+      call_stmt->functionCall.lhs_expr = lvalue;
+      call_stmt->functionCall.args = parse_argumentList();
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -2503,8 +2503,8 @@ parse_assignmentOrMethodCallStatement()
       assign_stmt->kind = AST_assignmentStatement;
       assign_stmt->line_no = token->line_no;
       assign_stmt->column_no = token->column_no;
-      assign_stmt->lhs_expr = lvalue;
-      assign_stmt->rhs_expr = parse_expression(1);
+      assign_stmt->assignmentStatement.lhs_expr = lvalue;
+      assign_stmt->assignmentStatement.rhs_expr = parse_expression(1);
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` expected, got `%s`.",
@@ -2528,7 +2528,7 @@ parse_returnStatement()
     return_stmt->line_no = token->line_no;
     return_stmt->column_no = token->column_no;
     if (token_is_expression(token))
-      return_stmt->expr = parse_expression(1);
+      return_stmt->returnStatement.expr = parse_expression(1);
     if (token->klass == TK_SEMICOLON) {
       next_token();
     } else error("At line %d, column %d: `;` expected, got `%s`.",
@@ -2572,15 +2572,15 @@ parse_conditionalStatement()
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
       if (token_is_expression(token)) {
-        if_stmt->cond_expr = parse_expression(1);
+        if_stmt->conditionalStatement.cond_expr = parse_expression(1);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
           if (token_is_statement(token)) {
-            if_stmt->stmt = parse_statement(0);
+            if_stmt->conditionalStatement.stmt = parse_statement(0);
             if (token->klass == TK_ELSE) {
               next_token();
               if (token_is_statement(token)) {
-                if_stmt->else_stmt = parse_statement(0);
+                if_stmt->conditionalStatement.else_stmt = parse_statement(0);
               } else error("At line %d, column %d: statement was expected, got `%s`.",
                            token->line_no, token->column_no, token->lexeme);
             }
@@ -2607,14 +2607,14 @@ parse_directApplication(Ast* type_name)
     apply_stmt->kind = AST_directApplication;
     apply_stmt->line_no = token->line_no;
     apply_stmt->column_no = token->column_no;
-    apply_stmt->name = type_name ? type_name : parse_prefixedType();
+    apply_stmt->directApplication.name = type_name ? type_name : parse_prefixedType();
     if (token->klass == TK_DOT) {
       next_token();
       if (token->klass == TK_APPLY) {
         next_token();
         if (token->klass == TK_PARENTH_OPEN) {
           next_token();
-          apply_stmt->args = parse_argumentList();
+          apply_stmt->directApplication.args = parse_argumentList();
           if (token->klass == TK_PARENTH_CLOSE) {
             next_token();
             if (token->klass == TK_SEMICOLON) {
@@ -2645,13 +2645,13 @@ parse_statement(Ast* type_name)
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
     if (token_is_typeName(token) || type_name) {
-      stmt->stmt = parse_directApplication(type_name);
+      stmt->statement.stmt = parse_directApplication(type_name);
       return stmt;
     } else if (token_is_assignmentOrMethodCallStatement(token)) {
-      stmt->stmt = parse_assignmentOrMethodCallStatement();
+      stmt->statement.stmt = parse_assignmentOrMethodCallStatement();
       return stmt;
     } else if (token->klass == TK_IF) {
-      stmt->stmt = parse_conditionalStatement();
+      stmt->statement.stmt = parse_conditionalStatement();
       return stmt;
     } else if (token->klass == TK_SEMICOLON) {
       next_token();
@@ -2659,19 +2659,19 @@ parse_statement(Ast* type_name)
       empty_stmt->kind = AST_emptyStatement;
       empty_stmt->line_no = token->line_no;
       empty_stmt->column_no = token->column_no;
-      stmt->stmt = empty_stmt;
+      stmt->statement.stmt = empty_stmt;
       return stmt;
     } else if (token->klass == TK_BRACE_OPEN) {
-      stmt->stmt = parse_blockStatement();
+      stmt->statement.stmt = parse_blockStatement();
       return stmt;
     } else if (token->klass == TK_EXIT) {
-      stmt->stmt = parse_exitStatement();
+      stmt->statement.stmt = parse_exitStatement();
       return stmt;
     } else if (token->klass == TK_RETURN) {
-      stmt->stmt = parse_returnStatement();
+      stmt->statement.stmt = parse_returnStatement();
       return stmt;
     } else if (token->klass == TK_SWITCH) {
-      stmt->stmt = parse_switchStatement();
+      stmt->statement.stmt = parse_switchStatement();
       return stmt;
     }
   } else error("At line %d, column %d: statement was expected, got `%s`.",
@@ -2689,7 +2689,7 @@ parse_blockStatement()
     block_stmt->kind = AST_blockStatement;
     block_stmt->line_no = token->line_no;
     block_stmt->column_no = token->column_no;
-    block_stmt->stmt_list = parse_statementOrDeclList();
+    block_stmt->blockStatement.stmt_list = parse_statementOrDeclList();
     if (token->klass == TK_BRACE_CLOSE) {
       next_token();
     } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2710,7 +2710,7 @@ parse_statementOrDeclList()
   stmts->column_no = token->column_no;
   if (token_is_statementOrDeclaration(token)) {
     Ast* ast = parse_statementOrDeclaration();
-    stmts->first_child = ast;
+    stmts->statementOrDeclList.first_child = ast;
     while (token_is_statementOrDeclaration(token)) {
       ast->right_sibling = parse_statementOrDeclaration();
       ast = ast->right_sibling;
@@ -2730,12 +2730,12 @@ parse_switchStatement()
     stmt->column_no = token->column_no;
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
-      stmt->expr = parse_expression(1);
+      stmt->switchStatement.expr = parse_expression(1);
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
-          stmt->switch_cases = parse_switchCases();
+          stmt->switchStatement.switch_cases = parse_switchCases();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2762,7 +2762,7 @@ parse_switchCases()
   cases->column_no = token->column_no;
   if (token_is_switchLabel(token)) {
     Ast* ast = parse_switchCase();
-    cases->first_child = ast;
+    cases->switchCases.first_child = ast;
     while (token_is_switchLabel(token)) {
       ast->right_sibling = parse_switchCase();
       ast = ast->right_sibling;
@@ -2779,11 +2779,11 @@ parse_switchCase()
     switch_case->kind = AST_switchCase;
     switch_case->line_no = token->line_no;
     switch_case->column_no = token->column_no;
-    switch_case->label = parse_switchLabel();
+    switch_case->switchCase.label = parse_switchLabel();
     if (token->klass == TK_COLON) {
       next_token();
       if (token->klass == TK_BRACE_OPEN) {
-        switch_case->stmt = parse_blockStatement();
+        switch_case->switchCase.stmt = parse_blockStatement();
       }
     } else error("At line %d, column %d: `:` was expected, got `%s`.",
                  token->line_no, token->column_no, token->lexeme);
@@ -2803,7 +2803,7 @@ parse_switchLabel()
     switch_label->line_no = token->line_no;
     switch_label->column_no = token->column_no;
     if (token_is_name(token)) {
-      switch_label->label = parse_name();
+      switch_label->switchLabel.label = parse_name();
       return switch_label;
     } else if (token->klass == TK_DEFAULT) {
       next_token();
@@ -2811,7 +2811,7 @@ parse_switchLabel()
       default_label->kind = AST_default;
       default_label->line_no = token->line_no;
       default_label->column_no = token->column_no;
-      switch_label->label = default_label;
+      switch_label->switchLabel.label = default_label;
       return switch_label;
     } else assert(0);
   } else error("At line %d, column %d: switch label was expected, got `%s`.",
@@ -2831,20 +2831,20 @@ parse_statementOrDeclaration()
     if (token_is_typeRef(token)) {
       Ast* type_ref = parse_typeRef();
       if (token->klass == TK_PARENTH_OPEN) {
-        stmt->stmt = parse_instantiation(type_ref);
+        stmt->statementOrDeclaration.stmt = parse_instantiation(type_ref);
         return stmt;
       } else if (token_is_name(token)) {
-        stmt->stmt = parse_variableDeclaration(type_ref);
+        stmt->statementOrDeclaration.stmt = parse_variableDeclaration(type_ref);
         return stmt;
       } else {
-        stmt->stmt = parse_statement(type_ref);
+        stmt->statementOrDeclaration.stmt = parse_statement(type_ref);
         return stmt;
       }
     } else if (token_is_statement(token)) {
-      stmt->stmt = parse_statement(0);
+      stmt->statementOrDeclaration.stmt = parse_statement(0);
       return stmt;
     } else if (token->klass == TK_CONST) {
-      stmt->stmt = parse_variableDeclaration(0);
+      stmt->statementOrDeclaration.stmt = parse_variableDeclaration(0);
       return stmt;
     } else assert(0);
     assert(0);
@@ -2864,11 +2864,11 @@ parse_tableDeclaration()
     table->kind = AST_tableDeclaration;
     table->line_no = token->line_no;
     table->column_no = token->column_no;
-    table->name = parse_name();
+    table->tableDeclaration.name = parse_name();
     if (token->klass == TK_BRACE_OPEN) {
       next_token();
       if (token_is_tableProperty(token)) {
-        table->prop_list = parse_tablePropertyList();
+        table->tableDeclaration.prop_list = parse_tablePropertyList();
       } else error("At line %d, column %d: table property was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
       if (token->klass == TK_BRACE_CLOSE) {
@@ -2893,7 +2893,7 @@ parse_tablePropertyList()
   props->column_no = token->column_no;
   if (token_is_tableProperty(token)) {
     Ast* ast = parse_tableProperty();
-    props->first_child = ast;
+    props->tablePropertyList.first_child = ast;
     while (token_is_tableProperty(token)) {
       ast->right_sibling = parse_tableProperty();
       ast = ast->right_sibling;
@@ -2925,7 +2925,7 @@ parse_tableProperty()
         next_token();
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
-          key_prop->keyelem_list = parse_keyElementList();
+          key_prop->keyProperty.keyelem_list = parse_keyElementList();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2934,7 +2934,7 @@ parse_tableProperty()
                      token->line_no, token->column_no, token->lexeme);
       } else error("At line %d, column %d: `=` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
-      table_prop->prop = key_prop;
+      table_prop->tableProperty.prop = key_prop;
       return table_prop;
     } else if (token->klass == TK_ACTIONS) {
       next_token();
@@ -2946,7 +2946,7 @@ parse_tableProperty()
         next_token();
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
-          actions_prop->action_list = parse_actionList();
+          actions_prop->actionsProperty.action_list = parse_actionList();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
           } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -2955,7 +2955,7 @@ parse_tableProperty()
                      token->line_no, token->column_no, token->lexeme);
       } else error("At line %d, column %d: `=` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
-      table_prop->prop = actions_prop;
+      table_prop->tableProperty.prop = actions_prop;
       return table_prop;
     } else if (token->klass == TK_ENTRIES) {
       next_token();
@@ -2968,7 +2968,7 @@ parse_tableProperty()
         if (token->klass == TK_BRACE_OPEN) {
           next_token();
           if (token_is_keysetExpression(token)) {
-            entries_prop->entries_list = parse_entriesList();
+            entries_prop->entriesProperty.entries_list = parse_entriesList();
           } else error("At line %d, column %d: keyset expression was expected, got `%s`.",
                        token->line_no, token->column_no, token->lexeme);
           if (token->klass == TK_BRACE_CLOSE) {
@@ -2979,25 +2979,25 @@ parse_tableProperty()
                      token->line_no, token->column_no, token->lexeme);
       } else error("At line %d, column %d: `=` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
-      table_prop->prop = entries_prop;
+      table_prop->tableProperty.prop = entries_prop;
       return table_prop;
     } else if (token_is_nonTableKwName(token)) {
       Ast* simple_prop = arena_malloc(storage, sizeof(Ast));
       simple_prop->kind = AST_simpleProperty;
       simple_prop->line_no = token->line_no;
       simple_prop->column_no = token->column_no;
-      simple_prop->is_const = is_const;
-      simple_prop->name = parse_name();
+      simple_prop->simpleProperty.is_const = is_const;
+      simple_prop->simpleProperty.name = parse_name();
       if (token->klass == TK_EQUAL) {
         next_token();
-        simple_prop->init_expr = parse_expression(1);
+        simple_prop->simpleProperty.init_expr = parse_expression(1);
         if (token->klass == TK_SEMICOLON) {
           next_token();
         } else error("At line %d, column %d: `;` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
       } else error("At line %d, column %d: `=` was expected, got `%s`.",
                    token->line_no, token->column_no, token->lexeme);
-      table_prop->prop = simple_prop;
+      table_prop->tableProperty.prop = simple_prop;
       return table_prop;
     } else assert(0);
   } else error("At line %d, column %d: table property was expected, got `%s`.",
@@ -3015,7 +3015,7 @@ parse_keyElementList()
   elems->column_no = token->column_no;
   if (token_is_expression(token)) {
     Ast* ast = parse_keyElement();
-    elems->first_child = ast;
+    elems->keyElementList.first_child = ast;
     while (token_is_expression(token)) {
       ast->right_sibling = parse_keyElement();
       ast = ast->right_sibling;
@@ -3032,10 +3032,10 @@ parse_keyElement()
     key_elem->kind = AST_keyElement;
     key_elem->line_no = token->line_no;
     key_elem->column_no = token->column_no;
-    key_elem->expr = parse_expression(1);
+    key_elem->keyElement.expr = parse_expression(1);
     if (token->klass == TK_COLON) {
       next_token();
-      key_elem->match = parse_name();
+      key_elem->keyElement.match = parse_name();
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -3058,7 +3058,7 @@ parse_actionList()
   actions->column_no = token->column_no;
   if (token_is_actionRef(token)) {
     Ast* ast = parse_actionRef();
-    actions->first_child = ast;
+    actions->actionList.first_child = ast;
     if (token->klass == TK_SEMICOLON) {
       next_token();
     } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -3083,11 +3083,11 @@ parse_actionRef()
     action_ref->kind = AST_actionRef;
     action_ref->line_no = token->line_no;
     action_ref->column_no = token->column_no;
-    action_ref->name = parse_prefixedNonTypeName();
+    action_ref->actionRef.name = parse_prefixedNonTypeName();
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
       if (token_is_argument(token)) {
-        action_ref->args = parse_argumentList();
+        action_ref->actionRef.args = parse_argumentList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -3113,7 +3113,7 @@ parse_entriesList()
   entries->column_no = token->column_no;
   if (token_is_keysetExpression(token)) {
     Ast* ast = parse_entry();
-    entries->first_child = ast;
+    entries->entriesList.first_child = ast;
     while (token_is_keysetExpression(token)) {
       ast->right_sibling = parse_entry();
       ast = ast->right_sibling;
@@ -3130,10 +3130,10 @@ parse_entry()
     entry->kind = AST_entry;
     entry->line_no = token->line_no;
     entry->column_no = token->column_no;
-    entry->keyset = parse_keysetExpression();
+    entry->entry.keyset = parse_keysetExpression();
     if (token->klass == TK_COLON) {
       next_token();
-      entry->action = parse_actionRef();
+      entry->entry.action = parse_actionRef();
       if (token->klass == TK_SEMICOLON) {
         next_token();
       } else error("At line %d, column %d: `;` was expected, got `%s`.",
@@ -3157,14 +3157,14 @@ parse_actionDeclaration()
     action_decl->line_no = token->line_no;
     action_decl->column_no = token->column_no;
     if (token_is_name(token)) {
-      action_decl->name = parse_name();
+      action_decl->actionDeclaration.name = parse_name();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
-        action_decl->params = parse_parameterList();
+        action_decl->actionDeclaration.params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
           if (token->klass == TK_BRACE_OPEN) {
-            action_decl->stmt = parse_blockStatement();
+            action_decl->actionDeclaration.stmt = parse_blockStatement();
           } else error("At line %d, column %d: `{` was expected, got `%s`.",
                        token->line_no, token->column_no, token->lexeme);
         } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -3195,12 +3195,12 @@ parse_variableDeclaration(Ast* type_ref)
     var_decl->kind = AST_variableDeclaration;
     var_decl->line_no = token->line_no;
     var_decl->column_no = token->column_no;
-    var_decl->type = type_ref ? type_ref : parse_typeRef();
+    var_decl->variableDeclaration.type = type_ref ? type_ref : parse_typeRef();
     if (token_is_name(token)) {
-      var_decl->name = parse_name();
+      var_decl->variableDeclaration.name = parse_name();
       if (token->klass == TK_EQUAL) {
         next_token();
-        var_decl->init_expr = parse_expression(1);
+        var_decl->variableDeclaration.init_expr = parse_expression(1);
       }
       if (token->klass == TK_SEMICOLON) {
         next_token();
@@ -3208,7 +3208,7 @@ parse_variableDeclaration(Ast* type_ref)
                    token->line_no, token->column_no, token->lexeme);
     } else error("At line %d, column %d: name was expected, got `%s`.",
                  token->line_no, token->column_no, token->lexeme);
-    var_decl->is_const = is_const;
+    var_decl->variableDeclaration.is_const = is_const;
     return var_decl;
   } else error("At line %d, column %d: type was expected, got `%s`.",
                token->line_no, token->column_no, token->lexeme);
@@ -3226,9 +3226,9 @@ parse_functionDeclaration(Ast* type_ref)
     func_decl->kind = AST_functionDeclaration;
     func_decl->line_no = token->line_no;
     func_decl->column_no = token->column_no;
-    func_decl->proto = parse_functionPrototype(type_ref);
+    func_decl->functionDeclaration.proto = parse_functionPrototype(type_ref);
     if (token->klass == TK_BRACE_OPEN) {
-      func_decl->stmt = parse_blockStatement();
+      func_decl->functionDeclaration.stmt = parse_blockStatement();
     } else error("At line %d, column %d: `{` was expected, got `%s`.",
                  token->line_no, token->column_no, token->lexeme);
     return func_decl;
@@ -3247,7 +3247,7 @@ parse_argumentList()
   args->column_no = token->column_no;
   if (token_is_argument(token)) {
     Ast* ast = parse_argument();
-    args->first_child = ast;
+    args->argumentList.first_child = ast;
     while (token->klass == TK_COMMA) {
       next_token();
       ast->right_sibling = parse_argument();
@@ -3266,7 +3266,7 @@ parse_argument()
     arg->line_no = token->line_no;
     arg->column_no = token->column_no;
     if (token_is_expression(token)) {
-      arg->arg = parse_expression(1);
+      arg->argument.arg = parse_expression(1);
       return arg;
     } else if (token->klass == TK_DONTCARE) {
       next_token();
@@ -3278,9 +3278,9 @@ parse_argument()
       name->kind = AST_name;
       name->line_no = dontcare_arg->line_no;
       name->column_no = dontcare_arg->column_no;
-      name->strname = "_";
-      dontcare_arg->name = name;
-      arg->arg = dontcare_arg;
+      name->name.strname = "_";
+      dontcare_arg->dontcare.name = name;
+      arg->argument.arg = dontcare_arg;
       return arg;
     } else assert(0);
   } else error("At line %d, column %d: an argument was expected, got `%s`.",
@@ -3298,7 +3298,7 @@ parse_expressionList()
   exprs->column_no = token->column_no;
   if (token_is_expression(token)) {
     Ast* ast = parse_expression(1);
-    exprs->first_child = ast;
+    exprs->expressionList.first_child = ast;
     while (token->klass == TK_COMMA) {
       next_token();
       ast->right_sibling = parse_expression(1);
@@ -3330,7 +3330,7 @@ parse_lvalue()
     lvalue->kind = AST_lvalueExpression;
     lvalue->line_no = token->line_no;
     lvalue->column_no = token->column_no;
-    lvalue->expr = parse_prefixedNonTypeName();
+    lvalue->lvalueExpression.expr = parse_prefixedNonTypeName();
     while(token->klass == TK_DOT || token->klass == TK_BRACKET_OPEN) {
       if (token->klass == TK_DOT) {
         next_token();
@@ -3338,16 +3338,16 @@ parse_lvalue()
         member_expr->kind = AST_memberSelector;
         member_expr->line_no = token->line_no;
         member_expr->column_no = token->column_no;
-        member_expr->lhs_expr = lvalue;
+        member_expr->memberSelector.lhs_expr = lvalue;
         if (token_is_name(token)) {
-          member_expr->name = parse_name();
+          member_expr->memberSelector.name = parse_name();
         } else error("At line %d, column %d: name was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
         lvalue = arena_malloc(storage, sizeof(Ast));
         lvalue->kind = AST_lvalueExpression;
         lvalue->line_no = token->line_no;
         lvalue->column_no = token->column_no;
-        lvalue->expr = member_expr;
+        lvalue->lvalueExpression.expr = member_expr;
       }
       else if (token->klass == TK_BRACKET_OPEN) {
         next_token();
@@ -3355,8 +3355,8 @@ parse_lvalue()
         subscript_expr->kind = AST_arraySubscript;
         subscript_expr->line_no = token->line_no;
         subscript_expr->column_no = token->column_no;
-        subscript_expr->lhs_expr = lvalue;
-        subscript_expr->index_expr = parse_indexExpression();
+        subscript_expr->arraySubscript.lhs_expr = lvalue;
+        subscript_expr->arraySubscript.index_expr = parse_indexExpression();
         if (token->klass == TK_BRACKET_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `]` was expected, got `%s`.",
@@ -3365,7 +3365,7 @@ parse_lvalue()
         lvalue->kind = AST_lvalueExpression;
         lvalue->line_no = token->line_no;
         lvalue->column_no = token->column_no;
-        lvalue->expr = subscript_expr;
+        lvalue->lvalueExpression.expr = subscript_expr;
       }
     }
     return lvalue;
@@ -3387,24 +3387,24 @@ parse_expression(int priority_threshold)
         member_expr->kind = AST_memberSelector;
         member_expr->line_no = token->line_no;
         member_expr->column_no = token->column_no;
-        member_expr->lhs_expr = expr;
+        member_expr->memberSelector.lhs_expr = expr;
         if (token_is_nonTypeName(token)) {
-          member_expr->name = parse_nonTypeName();
+          member_expr->memberSelector.name = parse_nonTypeName();
         } else error("At line %d, column %d: non-type name was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
         expr = arena_malloc(storage, sizeof(Ast));
         expr->kind = AST_expression;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
-        expr->expr = member_expr;
+        expr->expression.expr = member_expr;
       } else if (token->klass == TK_BRACKET_OPEN) {
         next_token();
         Ast* subscript_expr = arena_malloc(storage, sizeof(Ast));
         subscript_expr->kind = AST_arraySubscript;
         subscript_expr->line_no = token->line_no;
         subscript_expr->column_no = token->column_no;
-        subscript_expr->lhs_expr = expr;
-        subscript_expr->index_expr = parse_indexExpression();
+        subscript_expr->arraySubscript.lhs_expr = expr;
+        subscript_expr->arraySubscript.index_expr = parse_indexExpression();
         if (token->klass == TK_BRACKET_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `]` was expected, got `%s`.",
@@ -3413,15 +3413,15 @@ parse_expression(int priority_threshold)
         expr->kind = AST_expression;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
-        expr->expr = subscript_expr;
+        expr->expression.expr = subscript_expr;
       } else if (token->klass == TK_PARENTH_OPEN) {
         next_token();
         Ast* call_expr = arena_malloc(storage, sizeof(Ast));
         call_expr->kind = AST_functionCall;
         call_expr->line_no = token->line_no;
         call_expr->column_no = token->column_no;
-        call_expr->lhs_expr = expr;
-        call_expr->args = parse_argumentList();
+        call_expr->functionCall.lhs_expr = expr;
+        call_expr->functionCall.args = parse_argumentList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -3430,10 +3430,10 @@ parse_expression(int priority_threshold)
         expr->kind = AST_expression;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
-        expr->expr = call_expr;
+        expr->expression.expr = call_expr;
       } else if (token->klass == TK_ANGLE_OPEN && token_is_realTypeArg(peek_token())) {
         next_token();
-        expr->type_args = parse_realTypeArgumentList();
+        expr->expression.type_args = parse_realTypeArgumentList();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `>` was expected, got `%s`.",
@@ -3444,13 +3444,13 @@ parse_expression(int priority_threshold)
         assign_stmt->kind = AST_assignmentStatement;
         assign_stmt->line_no = token->line_no;
         assign_stmt->column_no = token->column_no;
-        assign_stmt->lhs_expr = expr;
-        assign_stmt->rhs_expr = parse_expression(1);
+        assign_stmt->assignmentStatement.lhs_expr = expr;
+        assign_stmt->assignmentStatement.rhs_expr = parse_expression(1);
         expr = arena_malloc(storage, sizeof(Ast));
         expr->kind = AST_expression;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
-        expr->expr = assign_stmt;
+        expr->expression.expr = assign_stmt;
       } else if (token_is_binaryOperator(token)){
         int priority = operator_priority(token);
         if (priority >= priority_threshold) {
@@ -3459,14 +3459,14 @@ parse_expression(int priority_threshold)
           binary_expr->kind = AST_binaryExpression;
           binary_expr->line_no = token->line_no;
           binary_expr->column_no = token->column_no;
-          binary_expr->left_operand = expr;
-          binary_expr->op = token_to_binop(token);
-          binary_expr->right_operand = parse_expression(priority + 1);
+          binary_expr->binaryExpression.left_operand = expr;
+          binary_expr->binaryExpression.op = token_to_binop(token);
+          binary_expr->binaryExpression.right_operand = parse_expression(priority + 1);
           expr = arena_malloc(storage, sizeof(Ast));
           expr->kind = AST_expression;
           expr->line_no = token->line_no;
           expr->column_no = token->column_no;
-          expr->expr = binary_expr;
+          expr->expression.expr = binary_expr;
         } else break;
       } else assert(0);
     }
@@ -3486,31 +3486,31 @@ parse_expressionPrimary()
     primary->line_no = token->line_no;
     primary->column_no = token->column_no;
     if (token->klass == TK_INTEGER_LITERAL) {
-      primary->expr = parse_integer();
+      primary->expression.expr = parse_integer();
       return primary;
     } else if (token->klass == TK_TRUE || token->klass == TK_FALSE) {
-      primary->expr = parse_boolean();
+      primary->expression.expr = parse_boolean();
       return primary;
     } else if (token->klass == TK_STRING_LITERAL) {
-      primary->expr = parse_string();
+      primary->expression.expr = parse_string();
       return primary;
     } else if (token->klass == TK_DOT) {
       next_token();
       if (token->klass == TK_IDENTIFIER) {
-        primary->expr = parse_nonTypeName();
+        primary->expression.expr = parse_nonTypeName();
         return primary;
       } else if (token->klass == TK_TYPE_IDENTIFIER) {
-        primary->expr = parse_namedType();
+        primary->expression.expr = parse_namedType();
         return primary;
       } else error("At line %d, column %d: unexpected token `%s`.",
                    token->line_no, token->column_no, token->lexeme);
       assert(0);
     } else if (token_is_nonTypeName(token)) {
-      primary->expr = parse_nonTypeName();
+      primary->expression.expr = parse_nonTypeName();
       return primary;
     } else if (token->klass == TK_BRACE_OPEN) {
       next_token();
-      primary->expr = parse_expressionList();
+      primary->expression.expr = parse_expressionList();
       if (token->klass == TK_BRACE_CLOSE) {
         next_token();
       } else error("At line %d, column %d: `}` was expected, got `%s`.",
@@ -3523,16 +3523,16 @@ parse_expressionPrimary()
         cast_expr->kind = AST_castExpression;
         cast_expr->line_no = token->line_no;
         cast_expr->column_no = token->column_no;
-        cast_expr->type = parse_typeRef();
+        cast_expr->castExpression.type = parse_typeRef();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
-          cast_expr->expr = parse_expression(1);
+          cast_expr->castExpression.expr = parse_expression(1);
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
-        primary->expr = cast_expr;
+        primary->castExpression.expr = cast_expr;
         return primary;
       } else if (token_is_expression(token)) {
-        primary->expr = parse_expression(1);
+        primary->castExpression.expr = parse_expression(1);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
@@ -3547,9 +3547,9 @@ parse_expressionPrimary()
       unary_expr->kind = AST_unaryExpression;
       unary_expr->line_no = token->line_no;
       unary_expr->column_no = token->column_no;
-      unary_expr->op = OP_NOT;
-      unary_expr->operand = parse_expression(1);
-      primary->expr = unary_expr;
+      unary_expr->unaryExpression.op = OP_NOT;
+      unary_expr->unaryExpression.operand = parse_expression(1);
+      primary->expression.expr = unary_expr;
       return primary;
     } else if (token->klass == TK_TILDA) {
       next_token();
@@ -3557,9 +3557,9 @@ parse_expressionPrimary()
       unary_expr->kind = AST_unaryExpression;
       unary_expr->line_no = token->line_no;
       unary_expr->column_no = token->column_no;
-      unary_expr->op = OP_BITW_NOT;
-      unary_expr->operand = parse_expression(1);
-      primary->expr = unary_expr;
+      unary_expr->unaryExpression.op = OP_BITW_NOT;
+      unary_expr->unaryExpression.operand = parse_expression(1);
+      primary->expression.expr = unary_expr;
       return primary;
     } else if (token->klass == TK_UNARY_MINUS) {
       next_token();
@@ -3567,12 +3567,12 @@ parse_expressionPrimary()
       unary_expr->kind = AST_unaryExpression;
       unary_expr->line_no = token->line_no;
       unary_expr->column_no = token->column_no;
-      unary_expr->op = OP_NEG;
-      unary_expr->operand = parse_expression(1);
-      primary->expr = unary_expr;
+      unary_expr->unaryExpression.op = OP_NEG;
+      unary_expr->unaryExpression.operand = parse_expression(1);
+      primary->expression.expr = unary_expr;
       return primary;
     } else if (token_is_typeName(token)) {
-      primary->expr = parse_namedType();
+      primary->expression.expr = parse_namedType();
       return primary;
     } else if (token->klass == TK_ERROR) {
       next_token();
@@ -3580,8 +3580,8 @@ parse_expressionPrimary()
       name->kind = AST_name;
       name->line_no = token->line_no;
       name->column_no = token->column_no;
-      name->strname = "error";
-      primary->expr = name;
+      name->name.strname = "error";
+      primary->expression.expr = name;
       return primary;
     } else assert(0);
     assert(0);
@@ -3599,11 +3599,11 @@ parse_indexExpression()
     index_expr->kind = AST_indexExpression;
     index_expr->line_no = token->line_no;
     index_expr->column_no = token->column_no;
-    index_expr->start_index = parse_expression(1);
+    index_expr->indexExpression.start_index = parse_expression(1);
     if (token->klass == TK_COLON) {
       next_token();
       if (token_is_expression(token)) {
-        index_expr->end_index = parse_expression(1);
+        index_expr->indexExpression.end_index = parse_expression(1);
       } else error("At line %d, column %d: expression was expected, got `%s`.",
                   token->line_no, token->column_no, token->lexeme);
     }
@@ -3622,9 +3622,9 @@ parse_integer()
     int_literal->kind = AST_integerLiteral;
     int_literal->line_no = token->line_no;
     int_literal->column_no = token->column_no;
-    int_literal->is_signed = token->integer.is_signed;
-    int_literal->width = token->integer.width;
-    int_literal->value = token->integer.value;
+    int_literal->integerLiteral.is_signed = token->integer.is_signed;
+    int_literal->integerLiteral.width = token->integer.width;
+    int_literal->integerLiteral.value = token->integer.value;
     next_token();
     return int_literal;
   } else error("At line %d, column %d: integer was expected, got `%s`.",
@@ -3641,7 +3641,7 @@ parse_boolean()
     bool_literal->kind = AST_booleanLiteral;
     bool_literal->line_no = token->line_no;
     bool_literal->column_no = token->column_no;
-    bool_literal->value = (token->klass == TK_TRUE);
+    bool_literal->booleanLiteral.value = (token->klass == TK_TRUE);
     next_token();
     return bool_literal;
   } else error("At line %d, column %d: boolean was expected, got `%s`.",
@@ -3658,7 +3658,7 @@ parse_string()
     string_literal->kind = AST_stringLiteral;
     string_literal->line_no = token->line_no;
     string_literal->column_no = token->column_no;
-    string_literal->value = token->lexeme;
+    string_literal->stringLiteral.value = token->lexeme;
     next_token();
     return string_literal;
   } else error("At line %d, column %d: string was expected, got `%s`.",
@@ -3749,9 +3749,9 @@ parse_program(UnboundedArray* _tokens, Scope** _root_scope, Arena* _storage)
   for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
     Ast* name = arena_malloc(storage, sizeof(Ast));
     name->kind = AST_name;
-    name->strname = builtin_names[i].strname;
+    name->name.strname = builtin_names[i].strname;
     NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-    namedecl->strname = name->strname;
+    namedecl->strname = name->name.strname;
     namedecl->ast = name;
     scope_push_decl(&root_scope, storage, namedecl, builtin_names[i].ns);
   }
