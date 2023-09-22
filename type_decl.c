@@ -149,58 +149,58 @@ name_of_type(Ast* type)
 {
   if (type->kind == AST_typeRef) {
     Ast* type_ref = type;
-    return name_of_type(type_ref->type);
+    return name_of_type(type_ref->typeRef.type);
   } else if (type->kind == AST_baseTypeBoolean) {
     Ast* bool_type = type;
-    return bool_type->name;
+    return bool_type->baseTypeBoolean.name;
   } else if (type->kind == AST_baseTypeInteger) {
     Ast* integer_type = type;
-    return integer_type->name;
+    return integer_type->baseTypeInteger.name;
   } else if (type->kind == AST_baseTypeBit) {
     Ast* bit_type = type;
-    return bit_type->name;
+    return bit_type->baseTypeBit.name;
   } else if (type->kind == AST_baseTypeVarbit) {
     Ast* varbit_type = type;
-    return varbit_type->name;
+    return varbit_type->baseTypeVarbit.name;
   } else if (type->kind == AST_baseTypeString) {
     Ast* string_type = type;
-    return string_type->name;
+    return string_type->baseTypeString.name;
   } else if (type->kind == AST_baseTypeVoid) {
     Ast* void_type = type;
-    return void_type->name;
+    return void_type->baseTypeVoid.name;
   } else if (type->kind == AST_baseTypeError) {
     Ast* error_type = type;
-    return error_type->name;
+    return error_type->baseTypeError.name;
   } else if (type->kind == AST_name) {
     Ast* name = type;
     return name;
   } else if (type->kind == AST_specializedType) {
     Ast* speclzd_type = type;
-    return speclzd_type->name;
+    return speclzd_type->specializedType.name;
   } else if (type->kind == AST_headerStackType) {
     Ast* stack_type = type;
-    return stack_type->name;
+    return stack_type->headerStackType.name;
   } else if (type->kind == AST_tupleType) {
     Ast* tuple_type = type;
-    return tuple_type->name;
+    return tuple_type->tupleType.name;
   } else if (type->kind == AST_derivedTypeDeclaration) {
     Ast* derived_type = type;
-    return name_of_type(derived_type->decl);
+    return name_of_type(derived_type->derivedTypeDeclaration.decl);
   } else if (type->kind == AST_structTypeDeclaration) {
     Ast* struct_type = type;
-    return struct_type->name;
+    return struct_type->structTypeDeclaration.name;
   } else if (type->kind == AST_headerTypeDeclaration) {
     Ast* header_type = type;
-    return header_type->name;
+    return header_type->headerTypeDeclaration.name;
   } else if (type->kind == AST_headerUnionDeclaration) {
     Ast* union_type = type;
-    return union_type->name;
+    return union_type->headerUnionDeclaration.name;
   } else if (type->kind == AST_enumDeclaration) {
     Ast* enum_type = type;
-    return enum_type->name;
+    return enum_type->enumDeclaration.name;
   } else if (type->kind == AST_dontcare) {
     Ast* dontcare_type = type;
-    return dontcare_type->name;
+    return dontcare_type->dontcare.name;
   } else assert(0);
   return 0;
 }
@@ -211,14 +211,14 @@ static void
 visit_p4program(Ast* p4program)
 {
   assert(p4program->kind == AST_p4program);
-  visit_declarationList(p4program->decl_list);
+  visit_declarationList(p4program->p4program.decl_list);
 }
 
 static void
 visit_declarationList(Ast* decl_list)
 {
   assert(decl_list->kind == AST_declarationList);
-  for (Ast* ast = decl_list->first_child;
+  for (Ast* ast = decl_list->declarationList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_declaration(ast);
   }
@@ -228,30 +228,30 @@ static void
 visit_declaration(Ast* decl)
 {
   assert(decl->kind == AST_declaration);
-  if (decl->decl->kind == AST_variableDeclaration) {
-    visit_variableDeclaration(decl->decl);
-  } else if (decl->decl->kind == AST_externDeclaration) {
-    visit_externDeclaration(decl->decl);
-  } else if (decl->decl->kind == AST_actionDeclaration) {
-    visit_actionDeclaration(decl->decl);
-  } else if (decl->decl->kind == AST_functionDeclaration) {
-    visit_functionDeclaration(decl->decl);
-  } else if (decl->decl->kind == AST_parserDeclaration) {
-    visit_parserDeclaration(decl->decl);
-  } else if (decl->decl->kind == AST_parserTypeDeclaration) {
-    visit_parserTypeDeclaration(decl->decl);
-  } else if (decl->decl->kind == AST_controlDeclaration) {
-    visit_controlDeclaration(decl->decl);
-  } else if (decl->decl->kind == AST_controlTypeDeclaration) {
-    visit_controlTypeDeclaration(decl->decl);
-  } else if (decl->decl->kind == AST_typeDeclaration) {
-    visit_typeDeclaration(decl->decl);
-  } else if (decl->decl->kind == AST_errorDeclaration) {
-    visit_errorDeclaration(decl->decl);
-  } else if (decl->decl->kind == AST_matchKindDeclaration) {
-    visit_matchKindDeclaration(decl->decl);
-  } else if (decl->decl->kind == AST_instantiation) {
-    visit_instantiation(decl->decl);
+  if (decl->declaration.decl->kind == AST_variableDeclaration) {
+    visit_variableDeclaration(decl->declaration.decl);
+  } else if (decl->declaration.decl->kind == AST_externDeclaration) {
+    visit_externDeclaration(decl->declaration.decl);
+  } else if (decl->declaration.decl->kind == AST_actionDeclaration) {
+    visit_actionDeclaration(decl->declaration.decl);
+  } else if (decl->declaration.decl->kind == AST_functionDeclaration) {
+    visit_functionDeclaration(decl->declaration.decl);
+  } else if (decl->declaration.decl->kind == AST_parserDeclaration) {
+    visit_parserDeclaration(decl->declaration.decl);
+  } else if (decl->declaration.decl->kind == AST_parserTypeDeclaration) {
+    visit_parserTypeDeclaration(decl->declaration.decl);
+  } else if (decl->declaration.decl->kind == AST_controlDeclaration) {
+    visit_controlDeclaration(decl->declaration.decl);
+  } else if (decl->declaration.decl->kind == AST_controlTypeDeclaration) {
+    visit_controlTypeDeclaration(decl->declaration.decl);
+  } else if (decl->declaration.decl->kind == AST_typeDeclaration) {
+    visit_typeDeclaration(decl->declaration.decl);
+  } else if (decl->declaration.decl->kind == AST_errorDeclaration) {
+    visit_errorDeclaration(decl->declaration.decl);
+  } else if (decl->declaration.decl->kind == AST_matchKindDeclaration) {
+    visit_matchKindDeclaration(decl->declaration.decl);
+  } else if (decl->declaration.decl->kind == AST_instantiation) {
+    visit_instantiation(decl->declaration.decl);
   } else assert(0);
 }
 
@@ -259,11 +259,11 @@ static void
 visit_name(Ast* name)
 {
   assert(name->kind == AST_name);
-  if (!hashmap_lookup(&type_table, HKEY_STRING, name->strname)) {
+  if (!hashmap_lookup(&type_table, HKEY_STRING, name->name.strname)) {
     Type_TypeVar* name_ty = arena_malloc(storage, sizeof(*name_ty));
     name_ty->ctor = TYPE_TYPEVAR;
-    name_ty->strname = name->strname;
-    hashmap_set(&type_table, storage, &name_ty, sizeof(name_ty), HKEY_STRING, name->strname);
+    name_ty->strname = name->name.strname;
+    hashmap_set(&type_table, storage, &name_ty, sizeof(name_ty), HKEY_STRING, name->name.strname);
   }
 }
 
@@ -271,7 +271,7 @@ static void
 visit_parameterList(Ast* params)
 {
   assert(params->kind == AST_parameterList);
-  for (Ast* ast = params->first_child;
+  for (Ast* ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parameter(ast);
   }
@@ -281,9 +281,9 @@ static void
 visit_parameter(Ast* param)
 {
   assert(param->kind == AST_parameter);
-  visit_typeRef(param->type);
-  if (param->init_expr) {
-    visit_expression(param->init_expr);
+  visit_typeRef(param->parameter.type);
+  if (param->parameter.init_expr) {
+    visit_expression(param->parameter.init_expr);
   }
 }
 
@@ -291,23 +291,22 @@ static void
 visit_packageTypeDeclaration(Ast* package_decl)
 {
   assert(package_decl->kind == AST_packageTypeDeclaration);
-  Ast* name = package_decl->name;
+  Ast* name = package_decl->packageTypeDeclaration.name;
   Type_Function* package_ty = arena_malloc(storage, sizeof(*package_ty));
   package_ty->ctor = TYPE_FUNCTION;
-  package_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, &package_ty, sizeof(package_ty), HKEY_STRING, name->strname);
-  if (package_decl->type_params) {
-    visit_typeParameterList(package_decl->type_params);
+  package_ty->strname = name->name.strname;
+  hashmap_set(&type_table, storage, &package_ty, sizeof(package_ty), HKEY_STRING, name->name.strname);
+  if (package_decl->packageTypeDeclaration.type_params) {
+    visit_typeParameterList(package_decl->packageTypeDeclaration.type_params);
   }
-  Ast* params = package_decl->params;
+  Ast* params = package_decl->packageTypeDeclaration.params;
   visit_parameterList(params);
   /* list_create(&package_ty->params_ty); */
-  if (params->first_child) {
-    Ast* ast = params->first_child;
-    Ast* param = ast;
+  if (params->parameterList.first_child) {
+    Ast* ast = params->parameterList.first_child;
     for (ast = ast->right_sibling; ast != 0; ast = ast->right_sibling) {
-      param = ast;
       /*
+      Ast* param = ast;
       list_append(&package_ty->params_ty, *(Type**)hashmap_lookup(
             &type_table, HKEY_STRING, name_of_type(param->type)->strname)); */
     }
@@ -318,8 +317,8 @@ static void
 visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
-  visit_typeRef(inst->type_ref);
-  visit_argumentList(inst->args);
+  visit_typeRef(inst->instantiation.type_ref);
+  visit_argumentList(inst->instantiation.args);
 }
 
 /** PARSER **/
@@ -328,33 +327,33 @@ static void
 visit_parserDeclaration(Ast* parser_decl)
 {
   assert(parser_decl->kind == AST_parserDeclaration);
-  visit_typeDeclaration(parser_decl->proto);
-  if (parser_decl->ctor_params) {
-    visit_parameterList(parser_decl->ctor_params);
+  visit_typeDeclaration(parser_decl->parserDeclaration.proto);
+  if (parser_decl->parserDeclaration.ctor_params) {
+    visit_parameterList(parser_decl->parserDeclaration.ctor_params);
   }
-  visit_parserLocalElements(parser_decl->local_elements);
-  visit_parserStates(parser_decl->states);
+  visit_parserLocalElements(parser_decl->parserDeclaration.local_elements);
+  visit_parserStates(parser_decl->parserDeclaration.states);
 }
 
 static void
 visit_parserTypeDeclaration(Ast* parser_decl)
 {
   assert(parser_decl->kind == AST_parserTypeDeclaration);
-  Ast* name = parser_decl->name;
+  Ast* name = parser_decl->parserTypeDeclaration.name;
   Type_Function* parser_ty = arena_malloc(storage, sizeof(*parser_ty));
   parser_ty->ctor = TYPE_FUNCTION;
-  parser_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, &parser_ty, sizeof(parser_ty), HKEY_STRING, name->strname);
-  if (parser_decl->type_params) {
-    visit_typeParameterList(parser_decl->type_params);
+  parser_ty->strname = name->name.strname;
+  hashmap_set(&type_table, storage, &parser_ty, sizeof(parser_ty), HKEY_STRING, name->name.strname);
+  if (parser_decl->parserTypeDeclaration.type_params) {
+    visit_typeParameterList(parser_decl->parserTypeDeclaration.type_params);
   }
-  Ast* params = parser_decl->params;
+  Ast* params = parser_decl->parserTypeDeclaration.params;
   visit_parameterList(params);
   /* list_create(&parser_ty->params_ty, storage, sizeof(Type*)); */
-  for (Ast* ast = params->first_child;
+  for (Ast* ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    Ast* param = ast;
     /*
+    Ast* param = ast;
     list_append(&parser_ty->params_ty, *(Type**)hashmap_lookup(
           &type_table, HKEY_STRING, name_of_type(param->type)->strname)); */
   }
@@ -364,7 +363,7 @@ static void
 visit_parserLocalElements(Ast* local_elements)
 {
   assert(local_elements->kind == AST_parserLocalElements);
-  for (Ast* ast = local_elements->first_child;
+  for (Ast* ast = local_elements->parserLocalElements.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parserLocalElement(ast);
   }
@@ -374,10 +373,10 @@ static void
 visit_parserLocalElement(Ast* local_element)
 {
   assert(local_element->kind == AST_parserLocalElement);
-  if (local_element->element->kind == AST_variableDeclaration) {
-    visit_variableDeclaration(local_element->element);
-  } else if (local_element->element->kind == AST_instantiation) {
-    visit_instantiation(local_element->element);
+  if (local_element->parserLocalElement.element->kind == AST_variableDeclaration) {
+    visit_variableDeclaration(local_element->parserLocalElement.element);
+  } else if (local_element->parserLocalElement.element->kind == AST_instantiation) {
+    visit_instantiation(local_element->parserLocalElement.element);
   } else assert(0);
 }
 
@@ -385,7 +384,7 @@ static void
 visit_parserStates(Ast* states)
 {
   assert(states->kind == AST_parserStates);
-  for (Ast* ast = states->first_child;
+  for (Ast* ast = states->parserStates.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parserState(ast);
   }
@@ -395,15 +394,15 @@ static void
 visit_parserState(Ast* state)
 {
   assert(state->kind == AST_parserState);
-  visit_parserStatements(state->stmt_list);
-  visit_transitionStatement(state->transition_stmt);
+  visit_parserStatements(state->parserState.stmt_list);
+  visit_transitionStatement(state->parserState.transition_stmt);
 }
 
 static void
 visit_parserStatements(Ast* stmts)
 {
   assert(stmts->kind == AST_parserStatements);
-  for (Ast* ast = stmts->first_child;
+  for (Ast* ast = stmts->parserStatements.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parserStatement(ast);
   }
@@ -413,16 +412,16 @@ static void
 visit_parserStatement(Ast* stmt)
 {
   assert(stmt->kind == AST_parserStatement);
-  if (stmt->stmt->kind == AST_assignmentStatement) {
-    visit_assignmentStatement(stmt->stmt);
-  } else if (stmt->stmt->kind == AST_functionCall) {
-    visit_functionCall(stmt->stmt);
-  } else if (stmt->stmt->kind == AST_directApplication) {
-    visit_directApplication(stmt->stmt);
-  } else if (stmt->stmt->kind == AST_parserBlockStatement) {
-    visit_parserBlockStatement(stmt->stmt);
-  } else if (stmt->stmt->kind == AST_variableDeclaration) {
-    visit_variableDeclaration(stmt->stmt);
+  if (stmt->parserStatement.stmt->kind == AST_assignmentStatement) {
+    visit_assignmentStatement(stmt->parserStatement.stmt);
+  } else if (stmt->parserStatement.stmt->kind == AST_functionCall) {
+    visit_functionCall(stmt->parserStatement.stmt);
+  } else if (stmt->parserStatement.stmt->kind == AST_directApplication) {
+    visit_directApplication(stmt->parserStatement.stmt);
+  } else if (stmt->parserStatement.stmt->kind == AST_parserBlockStatement) {
+    visit_parserBlockStatement(stmt->parserStatement.stmt);
+  } else if (stmt->parserStatement.stmt->kind == AST_variableDeclaration) {
+    visit_variableDeclaration(stmt->parserStatement.stmt);
   } else assert(0);
 }
 
@@ -430,24 +429,24 @@ static void
 visit_parserBlockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AST_parserBlockStatement);
-  visit_parserStatements(block_stmt->stmt_list);
+  visit_parserStatements(block_stmt->parserBlockStatement.stmt_list);
 }
 
 static void
 visit_transitionStatement(Ast* transition_stmt)
 {
   assert(transition_stmt->kind == AST_transitionStatement);
-  visit_stateExpression(transition_stmt->stmt);
+  visit_stateExpression(transition_stmt->transitionStatement.stmt);
 }
 
 static void
 visit_stateExpression(Ast* state_expr)
 {
   assert(state_expr->kind == AST_stateExpression);
-  if (state_expr->expr->kind == AST_name) {
+  if (state_expr->stateExpression.expr->kind == AST_name) {
     ;
-  } else if (state_expr->expr->kind == AST_selectExpression) {
-    visit_selectExpression(state_expr->expr);
+  } else if (state_expr->stateExpression.expr->kind == AST_selectExpression) {
+    visit_selectExpression(state_expr->stateExpression.expr);
   } else assert(0);
 }
 
@@ -455,15 +454,15 @@ static void
 visit_selectExpression(Ast* select_expr)
 {
   assert(select_expr->kind == AST_selectExpression);
-  visit_expressionList(select_expr->expr_list);
-  visit_selectCaseList(select_expr->case_list);
+  visit_expressionList(select_expr->selectExpression.expr_list);
+  visit_selectCaseList(select_expr->selectExpression.case_list);
 }
 
 static void
 visit_selectCaseList(Ast* case_list)
 {
   assert(case_list->kind == AST_selectCaseList);
-  for (Ast* ast = case_list->first_child;
+  for (Ast* ast = case_list->selectCaseList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_selectCase(ast);
   }
@@ -473,17 +472,17 @@ static void
 visit_selectCase(Ast* select_case)
 {
   assert(select_case->kind == AST_selectCase);
-  visit_keysetExpression(select_case->keyset_expr);
+  visit_keysetExpression(select_case->selectCase.keyset_expr);
 }
 
 static void
 visit_keysetExpression(Ast* keyset_expr)
 {
   assert(keyset_expr->kind == AST_keysetExpression);
-  if (keyset_expr->expr->kind == AST_tupleKeysetExpression) {
-    visit_tupleKeysetExpression(keyset_expr->expr);
-  } else if (keyset_expr->expr->kind == AST_simpleKeysetExpression) {
-    visit_simpleKeysetExpression(keyset_expr->expr);
+  if (keyset_expr->keysetExpression.expr->kind == AST_tupleKeysetExpression) {
+    visit_tupleKeysetExpression(keyset_expr->keysetExpression.expr);
+  } else if (keyset_expr->keysetExpression.expr->kind == AST_simpleKeysetExpression) {
+    visit_simpleKeysetExpression(keyset_expr->keysetExpression.expr);
   } else assert(0);
 }
 
@@ -491,19 +490,19 @@ static void
 visit_tupleKeysetExpression(Ast* tuple_expr)
 {
   assert(tuple_expr->kind == AST_tupleKeysetExpression);
-  visit_simpleExpressionList(tuple_expr->expr_list);
+  visit_simpleExpressionList(tuple_expr->tupleKeysetExpression.expr_list);
 }
 
 static void
 visit_simpleKeysetExpression(Ast* simple_expr)
 {
   assert(simple_expr->kind == AST_simpleKeysetExpression);
-  if (simple_expr->expr->kind == AST_expression) {
-    visit_expression(simple_expr->expr);
-  } else if (simple_expr->expr->kind == AST_default) {
-    visit_default(simple_expr->expr);
-  } else if (simple_expr->expr->kind == AST_dontcare) {
-    visit_dontcare(simple_expr->expr);
+  if (simple_expr->simpleKeysetExpression.expr->kind == AST_expression) {
+    visit_expression(simple_expr->simpleKeysetExpression.expr);
+  } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_default) {
+    visit_default(simple_expr->simpleKeysetExpression.expr);
+  } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_dontcare) {
+    visit_dontcare(simple_expr->simpleKeysetExpression.expr);
   } else assert(0);
 }
 
@@ -511,7 +510,7 @@ static void
 visit_simpleExpressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AST_simpleExpressionList);
-  for (Ast* ast = expr_list->first_child;
+  for (Ast* ast = expr_list->simpleExpressionList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_simpleKeysetExpression(ast);
   }
@@ -523,33 +522,33 @@ static void
 visit_controlDeclaration(Ast* control_decl)
 {
   assert(control_decl->kind == AST_controlDeclaration);
-  visit_typeDeclaration(control_decl->proto);
-  if (control_decl->ctor_params) {
-    visit_parameterList(control_decl->ctor_params);
+  visit_typeDeclaration(control_decl->controlDeclaration.proto);
+  if (control_decl->controlDeclaration.ctor_params) {
+    visit_parameterList(control_decl->controlDeclaration.ctor_params);
   }
-  visit_controlLocalDeclarations(control_decl->local_decls);
-  visit_blockStatement(control_decl->apply_stmt);
+  visit_controlLocalDeclarations(control_decl->controlDeclaration.local_decls);
+  visit_blockStatement(control_decl->controlDeclaration.apply_stmt);
 }
 
 static void
 visit_controlTypeDeclaration(Ast* control_decl)
 {
   assert(control_decl->kind == AST_controlTypeDeclaration);
-  Ast* name = control_decl->name;
+  Ast* name = control_decl->controlTypeDeclaration.name;
   Type_Function* control_ty = arena_malloc(storage, sizeof(*control_ty));
   control_ty->ctor = TYPE_FUNCTION;
-  control_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, &control_ty, sizeof(control_ty), HKEY_STRING, name->strname);
-  if (control_decl->type_params) {
-    visit_typeParameterList(control_decl->type_params);
+  control_ty->strname = name->name.strname;
+  hashmap_set(&type_table, storage, &control_ty, sizeof(control_ty), HKEY_STRING, name->name.strname);
+  if (control_decl->controlTypeDeclaration.type_params) {
+    visit_typeParameterList(control_decl->controlTypeDeclaration.type_params);
   }
-  Ast* params = control_decl->params;
+  Ast* params = control_decl->controlTypeDeclaration.params;
   visit_parameterList(params);
   /* list_create(&control_ty->params_ty, storage, sizeof(Type*)); */
-  for (Ast* ast = params->first_child;
+  for (Ast* ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    Ast* param = ast;
     /*
+    Ast* param = ast;
     list_append(&control_ty->params_ty, *(Type**)hashmap_lookup(
           &type_table, HKEY_STRING, name_of_type(param->type)->strname)); */
   }
@@ -559,7 +558,7 @@ static void
 visit_controlLocalDeclarations(Ast* local_decls)
 {
   assert(local_decls->kind == AST_controlLocalDeclarations);
-  for (Ast* ast = local_decls->first_child;
+  for (Ast* ast = local_decls->controlLocalDeclarations.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_controlLocalDeclaration(ast);
   }
@@ -569,14 +568,14 @@ static void
 visit_controlLocalDeclaration(Ast* local_decl)
 {
   assert(local_decl->kind == AST_controlLocalDeclaration);
-  if (local_decl->decl->kind == AST_variableDeclaration) {
-    visit_variableDeclaration(local_decl->decl);
-  } else if (local_decl->decl->kind == AST_actionDeclaration) {
-    visit_actionDeclaration(local_decl->decl);
-  } else if (local_decl->decl->kind == AST_tableDeclaration) {
-    visit_tableDeclaration(local_decl->decl);
-  } else if (local_decl->decl->kind == AST_instantiation) {
-    visit_instantiation(local_decl->decl);
+  if (local_decl->controlLocalDeclaration.decl->kind == AST_variableDeclaration) {
+    visit_variableDeclaration(local_decl->controlLocalDeclaration.decl);
+  } else if (local_decl->controlLocalDeclaration.decl->kind == AST_actionDeclaration) {
+    visit_actionDeclaration(local_decl->controlLocalDeclaration.decl);
+  } else if (local_decl->controlLocalDeclaration.decl->kind == AST_tableDeclaration) {
+    visit_tableDeclaration(local_decl->controlLocalDeclaration.decl);
+  } else if (local_decl->controlLocalDeclaration.decl->kind == AST_instantiation) {
+    visit_instantiation(local_decl->controlLocalDeclaration.decl);
   } else assert(0);
 }
 
@@ -586,10 +585,10 @@ static void
 visit_externDeclaration(Ast* extern_decl)
 {
   assert(extern_decl->kind == AST_externDeclaration);
-  if (extern_decl->decl->kind == AST_externTypeDeclaration) {
-    visit_externTypeDeclaration(extern_decl->decl);
-  } else if (extern_decl->decl->kind == AST_functionPrototype) {
-    visit_functionPrototype(extern_decl->decl);
+  if (extern_decl->externDeclaration.decl->kind == AST_externTypeDeclaration) {
+    visit_externTypeDeclaration(extern_decl->externDeclaration.decl);
+  } else if (extern_decl->externDeclaration.decl->kind == AST_functionPrototype) {
+    visit_functionPrototype(extern_decl->externDeclaration.decl);
   } else assert(0);
 }
 
@@ -597,24 +596,24 @@ static void
 visit_externTypeDeclaration(Ast* extern_decl)
 {
   assert(extern_decl->kind == AST_externTypeDeclaration);
-  Ast* name = extern_decl->name;
+  Ast* name = extern_decl->externTypeDeclaration.name;
   Type_Product* extern_ty = arena_malloc(storage, sizeof(*extern_ty));
   extern_ty->ctor = TYPE_PRODUCT;
-  extern_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, &extern_ty, sizeof(extern_ty), HKEY_STRING, name->strname);
-  if (extern_decl->type_params) {
-    visit_typeParameterList(extern_decl->type_params);
+  extern_ty->strname = name->name.strname;
+  hashmap_set(&type_table, storage, &extern_ty, sizeof(extern_ty), HKEY_STRING, name->name.strname);
+  if (extern_decl->externTypeDeclaration.type_params) {
+    visit_typeParameterList(extern_decl->externTypeDeclaration.type_params);
   }
   /*
   list_create(&extern_ty->members_ty, storage, sizeof(Type*)); */
-  visit_methodPrototypes(extern_decl->method_protos);
+  visit_methodPrototypes(extern_decl->externTypeDeclaration.method_protos);
 }
 
 static void
 visit_methodPrototypes(Ast* protos)
 {
   assert(protos->kind == AST_methodPrototypes);
-  for (Ast* ast = protos->first_child;
+  for (Ast* ast = protos->methodPrototypes.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_functionPrototype(ast);
   }
@@ -624,27 +623,27 @@ static void
 visit_functionPrototype(Ast* func_proto)
 {
   assert(func_proto->kind == AST_functionPrototype);
-  Ast* name = func_proto->name;
+  Ast* name = func_proto->functionPrototype.name;
   Type_Function* func_ty = arena_malloc(storage, sizeof(*func_ty));
   func_ty->ctor = TYPE_FUNCTION;
-  func_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, &func_proto, sizeof(func_proto), HKEY_STRING, name->strname);
-  if (func_proto->return_type) {
-    Ast* type_ref = func_proto->return_type;
+  func_ty->strname = name->name.strname;
+  hashmap_set(&type_table, storage, &func_proto, sizeof(func_proto), HKEY_STRING, name->name.strname);
+  if (func_proto->functionPrototype.return_type) {
+    Ast* type_ref = func_proto->functionPrototype.return_type;
     visit_typeRef(type_ref);
     func_ty->return_ty = *(Type**)hashmap_lookup(&type_table, HKEY_STRING,
-        name_of_type(type_ref->type)->strname);
+        name_of_type(type_ref->typeRef.type)->name.strname);
   }
-  if (func_proto->type_params) {
-    visit_typeParameterList(func_proto->type_params);
+  if (func_proto->functionPrototype.type_params) {
+    visit_typeParameterList(func_proto->functionPrototype.type_params);
   }
-  Ast* params = func_proto->params;
+  Ast* params = func_proto->functionPrototype.params;
   visit_parameterList(params);
   /* list_create(&func_ty->params_ty, storage, sizeof(Type*)); */
-  for (Ast* ast = params->first_child;
+  for (Ast* ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    Ast* param = ast;
     /*
+    Ast* param = ast;
     list_append(&func_ty->params_ty, *(Type**)hashmap_lookup(
           &type_table, HKEY_STRING, name_of_type(param->type)->strname)); */
   }
@@ -656,28 +655,28 @@ static void
 visit_typeRef(Ast* type_ref)
 {
   assert(type_ref->kind == AST_typeRef);
-  if (type_ref->type->kind == AST_baseTypeBoolean) {
-    visit_baseTypeBoolean(type_ref->type);
-  } else if (type_ref->type->kind == AST_baseTypeInteger) {
-    visit_baseTypeInteger(type_ref->type);
-  } else if (type_ref->type->kind == AST_baseTypeBit) {
-    visit_baseTypeBit(type_ref->type);
-  } else if (type_ref->type->kind == AST_baseTypeVarbit) {
-    visit_baseTypeVarbit(type_ref->type);
-  } else if (type_ref->type->kind == AST_baseTypeString) {
-    visit_baseTypeString(type_ref->type);
-  } else if (type_ref->type->kind == AST_baseTypeVoid) {
-    visit_baseTypeVoid(type_ref->type);
-  } else if (type_ref->type->kind == AST_baseTypeError) {
-    visit_baseTypeError(type_ref->type);
-  } else if (type_ref->type->kind == AST_name) {
-    visit_name(type_ref->type);
-  } else if (type_ref->type->kind == AST_specializedType) {
-    visit_specializedType(type_ref->type);
-  } else if (type_ref->type->kind == AST_headerStackType) {
-    visit_headerStackType(type_ref->type);
-  } else if (type_ref->type->kind == AST_tupleType) {
-    visit_tupleType(type_ref->type);
+  if (type_ref->typeRef.type->kind == AST_baseTypeBoolean) {
+    visit_baseTypeBoolean(type_ref->typeRef.type);
+  } else if (type_ref->typeRef.type->kind == AST_baseTypeInteger) {
+    visit_baseTypeInteger(type_ref->typeRef.type);
+  } else if (type_ref->typeRef.type->kind == AST_baseTypeBit) {
+    visit_baseTypeBit(type_ref->typeRef.type);
+  } else if (type_ref->typeRef.type->kind == AST_baseTypeVarbit) {
+    visit_baseTypeVarbit(type_ref->typeRef.type);
+  } else if (type_ref->typeRef.type->kind == AST_baseTypeString) {
+    visit_baseTypeString(type_ref->typeRef.type);
+  } else if (type_ref->typeRef.type->kind == AST_baseTypeVoid) {
+    visit_baseTypeVoid(type_ref->typeRef.type);
+  } else if (type_ref->typeRef.type->kind == AST_baseTypeError) {
+    visit_baseTypeError(type_ref->typeRef.type);
+  } else if (type_ref->typeRef.type->kind == AST_name) {
+    visit_name(type_ref->typeRef.type);
+  } else if (type_ref->typeRef.type->kind == AST_specializedType) {
+    visit_specializedType(type_ref->typeRef.type);
+  } else if (type_ref->typeRef.type->kind == AST_headerStackType) {
+    visit_headerStackType(type_ref->typeRef.type);
+  } else if (type_ref->typeRef.type->kind == AST_tupleType) {
+    visit_tupleType(type_ref->typeRef.type);
   } else assert(0);
 }
 
@@ -685,18 +684,18 @@ static void
 visit_tupleType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_tupleType);
-  Ast* name = type_decl->name;
+  Ast* name = type_decl->tupleType.name;
   Type_Product* tuple_ty = arena_malloc(storage, sizeof(*tuple_ty));
   tuple_ty->ctor = TYPE_PRODUCT;
-  tuple_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, &tuple_ty, sizeof(tuple_ty), HKEY_STRING, name->strname);
-  Ast* type_args = type_decl->type_args;
+  tuple_ty->strname = name->name.strname;
+  hashmap_set(&type_table, storage, &tuple_ty, sizeof(tuple_ty), HKEY_STRING, name->name.strname);
+  Ast* type_args = type_decl->tupleType.type_args;
   visit_typeArgumentList(type_args);
   /* list_create(&tuple_ty->members_ty, storage, sizeof(Type*)); */
-  for (Ast* ast = type_args->first_child;
+  for (Ast* ast = type_args->typeArgumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    Ast* type_arg = ast;
     /*
+    Ast* type_arg = ast;
     list_append(&tuple_ty->members_ty, *(Type**)hashmap_lookup(
           &type_table, HKEY_STRING, name_of_type(type_arg->arg)->strname)); */
   }
@@ -706,38 +705,38 @@ static void
 visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
-  Ast* name = type_decl->name;
+  Ast* name = type_decl->headerStackType.name;
   Type_Array* stack_ty = arena_malloc(storage, sizeof(*stack_ty));
   stack_ty->ctor = TYPE_ARRAY;
-  stack_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, &stack_ty, sizeof(stack_ty), HKEY_STRING, name->strname);
-  Ast* type = type_decl->type;
+  stack_ty->strname = name->name.strname;
+  hashmap_set(&type_table, storage, &stack_ty, sizeof(stack_ty), HKEY_STRING, name->name.strname);
+  Ast* type = type_decl->headerStackType.type;
   visit_typeRef(type);
   stack_ty->element_ty = *(Type**)hashmap_lookup(&type_table, HKEY_STRING,
-      name_of_type(type)->strname);
-  visit_expression(type_decl->stack_expr);
+      name_of_type(type)->name.strname);
+  visit_expression(type_decl->headerStackType.stack_expr);
 }
 
 static void
 visit_specializedType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_specializedType);
-  Ast* name = type_decl->name;
+  Ast* name = type_decl->specializedType.name;
   Type_Generic* speclzd_ty = arena_malloc(storage, sizeof(*speclzd_ty));
   speclzd_ty->ctor = TYPE_GENERIC;
-  speclzd_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, &speclzd_ty, sizeof(speclzd_ty), HKEY_STRING, name->strname);
-  Ast* type = type_decl->type;
+  speclzd_ty->strname = name->name.strname;
+  hashmap_set(&type_table, storage, &speclzd_ty, sizeof(speclzd_ty), HKEY_STRING, name->name.strname);
+  Ast* type = type_decl->specializedType.type;
   visit_typeRef(type);
   speclzd_ty->referred_ty = *(Type**)hashmap_lookup(&type_table, HKEY_STRING,
-      name_of_type(type)->strname);
-  Ast* type_args = type_decl->type_args;
+      name_of_type(type)->name.strname);
+  Ast* type_args = type_decl->specializedType.type_args;
   visit_typeArgumentList(type_args);
   /* list_create(&speclzd_ty->args_ty, storage, sizeof(Type*)); */
-  for (Ast* ast = type_args->first_child;
+  for (Ast* ast = type_args->typeArgumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    Ast* type_arg = ast;
     /*
+    Ast* type_arg = ast;
     list_append(&speclzd_ty->args_ty, *(Type**)hashmap_lookup(
           &type_table, HKEY_STRING, name_of_type(type_arg->arg)->strname)); */
   }
@@ -753,8 +752,8 @@ static void
 visit_baseTypeInteger(Ast* int_type)
 {
   assert(int_type->kind == AST_baseTypeInteger);
-  if (int_type->size) {
-    visit_integerTypeSize(int_type->size);
+  if (int_type->baseTypeInteger.size) {
+    visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
 }
 
@@ -762,8 +761,8 @@ static void
 visit_baseTypeBit(Ast* bit_type)
 {
   assert(bit_type->kind == AST_baseTypeBit);
-  if (bit_type->size) {
-    visit_integerTypeSize(bit_type->size);
+  if (bit_type->baseTypeBit.size) {
+    visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
 }
 
@@ -771,7 +770,7 @@ static void
 visit_baseTypeVarbit(Ast* varbit_type)
 {
   assert(varbit_type->kind == AST_baseTypeVarbit);
-  visit_integerTypeSize(varbit_type->size);
+  visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
 }
 
 static void
@@ -802,7 +801,7 @@ static void
 visit_typeParameterList(Ast* param_list)
 {
   assert(param_list->kind == AST_typeParameterList);
-  for (Ast* ast = param_list->first_child;
+  for (Ast* ast = param_list->typeParameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_name(ast);
   }
@@ -812,10 +811,10 @@ static void
 visit_realTypeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AST_realTypeArg);
-  if (type_arg->arg->kind == AST_typeRef) {
-    visit_typeRef(type_arg->arg);
-  } else if (type_arg->arg->kind == AST_dontcare) {
-    visit_dontcare(type_arg->arg);
+  if (type_arg->realTypeArg.arg->kind == AST_typeRef) {
+    visit_typeRef(type_arg->realTypeArg.arg);
+  } else if (type_arg->realTypeArg.arg->kind == AST_dontcare) {
+    visit_dontcare(type_arg->realTypeArg.arg);
   } else assert(0);
 }
 
@@ -823,12 +822,12 @@ static void
 visit_typeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AST_typeArg);
-  if (type_arg->arg->kind == AST_typeRef) {
-    visit_typeRef(type_arg->arg);
-  } else if (type_arg->arg->kind == AST_name) {
+  if (type_arg->typeArg.arg->kind == AST_typeRef) {
+    visit_typeRef(type_arg->typeArg.arg);
+  } else if (type_arg->typeArg.arg->kind == AST_name) {
     ;
-  } else if (type_arg->arg->kind == AST_dontcare) {
-    visit_dontcare(type_arg->arg);
+  } else if (type_arg->typeArg.arg->kind == AST_dontcare) {
+    visit_dontcare(type_arg->typeArg.arg);
   } else assert(0);
 }
 
@@ -836,7 +835,7 @@ static void
 visit_realTypeArgumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AST_realTypeArgumentList);
-  for (Ast* ast = arg_list->first_child;
+  for (Ast* ast = arg_list->realTypeArgumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_realTypeArg(ast);
   }
@@ -846,7 +845,7 @@ static void
 visit_typeArgumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AST_typeArgumentList);
-  for (Ast* ast = arg_list->first_child;
+  for (Ast* ast = arg_list->typeArgumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_typeArg(ast);
   }
@@ -856,16 +855,16 @@ static void
 visit_typeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_typeDeclaration);
-  if (type_decl->decl->kind == AST_derivedTypeDeclaration) {
-    visit_derivedTypeDeclaration(type_decl->decl);
-  } else if (type_decl->decl->kind == AST_typedefDeclaration) {
-    visit_typedefDeclaration(type_decl->decl);
-  } else if (type_decl->decl->kind == AST_parserTypeDeclaration) {
-    visit_parserTypeDeclaration(type_decl->decl);
-  } else if (type_decl->decl->kind == AST_controlTypeDeclaration) {
-    visit_controlTypeDeclaration(type_decl->decl);
-  } else if (type_decl->decl->kind == AST_packageTypeDeclaration) {
-    visit_packageTypeDeclaration(type_decl->decl);
+  if (type_decl->typeDeclaration.decl->kind == AST_derivedTypeDeclaration) {
+    visit_derivedTypeDeclaration(type_decl->typeDeclaration.decl);
+  } else if (type_decl->typeDeclaration.decl->kind == AST_typedefDeclaration) {
+    visit_typedefDeclaration(type_decl->typeDeclaration.decl);
+  } else if (type_decl->typeDeclaration.decl->kind == AST_parserTypeDeclaration) {
+    visit_parserTypeDeclaration(type_decl->typeDeclaration.decl);
+  } else if (type_decl->typeDeclaration.decl->kind == AST_controlTypeDeclaration) {
+    visit_controlTypeDeclaration(type_decl->typeDeclaration.decl);
+  } else if (type_decl->typeDeclaration.decl->kind == AST_packageTypeDeclaration) {
+    visit_packageTypeDeclaration(type_decl->typeDeclaration.decl);
   } else assert(0);
 }
 
@@ -873,14 +872,14 @@ static void
 visit_derivedTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_derivedTypeDeclaration);
-  if (type_decl->decl->kind == AST_headerTypeDeclaration) {
-    visit_headerTypeDeclaration(type_decl->decl);
-  } else if (type_decl->decl->kind == AST_headerUnionDeclaration) {
-    visit_headerUnionDeclaration(type_decl->decl);
-  } else if (type_decl->decl->kind == AST_structTypeDeclaration) {
-    visit_structTypeDeclaration(type_decl->decl);
-  } else if (type_decl->decl->kind == AST_enumDeclaration) {
-    visit_enumDeclaration(type_decl->decl);
+  if (type_decl->derivedTypeDeclaration.decl->kind == AST_headerTypeDeclaration) {
+    visit_headerTypeDeclaration(type_decl->derivedTypeDeclaration.decl);
+  } else if (type_decl->derivedTypeDeclaration.decl->kind == AST_headerUnionDeclaration) {
+    visit_headerUnionDeclaration(type_decl->derivedTypeDeclaration.decl);
+  } else if (type_decl->derivedTypeDeclaration.decl->kind == AST_structTypeDeclaration) {
+    visit_structTypeDeclaration(type_decl->derivedTypeDeclaration.decl);
+  } else if (type_decl->derivedTypeDeclaration.decl->kind == AST_enumDeclaration) {
+    visit_enumDeclaration(type_decl->derivedTypeDeclaration.decl);
   } else assert(0);
 }
 
@@ -888,18 +887,18 @@ static void
 visit_headerTypeDeclaration(Ast* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
-  Ast* name = header_decl->name;
+  Ast* name = header_decl->headerTypeDeclaration.name;
   Type_Product* header_ty = arena_malloc(storage, sizeof(*header_ty));
   header_ty->ctor = TYPE_PRODUCT;
-  header_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, &header_ty, sizeof(header_ty), HKEY_STRING, name->strname);
-  Ast* fields = header_decl->fields;
+  header_ty->strname = name->name.strname;
+  hashmap_set(&type_table, storage, &header_ty, sizeof(header_ty), HKEY_STRING, name->name.strname);
+  Ast* fields = header_decl->headerTypeDeclaration.fields;
   visit_structFieldList(fields);
   /* list_create(&header_ty->members_ty, storage, sizeof(Type*)); */
-  for (Ast* ast = fields->first_child;
+  for (Ast* ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    Ast* field = ast;
     /*
+    Ast* field = ast;
     list_append(&header_ty->members_ty, *(Type**)hashmap_lookup(
           &type_table, HKEY_STRING, name_of_type(field->type)->strname)); */
   }
@@ -909,18 +908,18 @@ static void
 visit_headerUnionDeclaration(Ast* union_decl)
 {
   assert(union_decl->kind == AST_headerUnionDeclaration);
-  Ast* name = union_decl->name;
+  Ast* name = union_decl->headerUnionDeclaration.name;
   Type_Union* union_ty = arena_malloc(storage, sizeof(*union_ty));
   union_ty->ctor = TYPE_UNION;
-  union_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, &union_ty, sizeof(union_ty), HKEY_STRING, name->strname);
-  Ast* fields = union_decl->fields;
+  union_ty->strname = name->name.strname;
+  hashmap_set(&type_table, storage, &union_ty, sizeof(union_ty), HKEY_STRING, name->name.strname);
+  Ast* fields = union_decl->headerUnionDeclaration.fields;
   visit_structFieldList(fields);
   /* list_create(&union_ty->members_ty, storage, sizeof(Type*)); */
-  for (Ast* ast = fields->first_child;
+  for (Ast* ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    Ast* field = ast;
     /*
+    Ast* field = ast;
     list_append(&union_ty->members_ty, *(Type**)hashmap_lookup(
           &type_table, HKEY_STRING, name_of_type(field->type)->strname)); */
   }
@@ -930,19 +929,19 @@ static void
 visit_structTypeDeclaration(Ast* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
-  Ast* name = struct_decl->name;
+  Ast* name = struct_decl->structTypeDeclaration.name;
   Type_Product* struct_ty = arena_malloc(storage, sizeof(*struct_ty));
   struct_ty->ctor = TYPE_PRODUCT;
-  struct_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, &struct_ty, sizeof(struct_ty), HKEY_STRING, name->strname);
-  Ast* fields = struct_decl->fields;
+  struct_ty->strname = name->name.strname;
+  hashmap_set(&type_table, storage, &struct_ty, sizeof(struct_ty), HKEY_STRING, name->name.strname);
+  Ast* fields = struct_decl->structTypeDeclaration.fields;
   visit_structFieldList(fields);
   /*
   list_create(&struct_ty->members_ty, storage, sizeof(Type*)); */
-  for (Ast* ast = fields->first_child;
+  for (Ast* ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    Ast* field = ast;
     /*
+    Ast* field = ast;
     list_append(&struct_ty->members_ty, *(Type**)hashmap_lookup(
           &type_table, HKEY_STRING, name_of_type(field->type)->strname)); */
   }
@@ -952,7 +951,7 @@ static void
 visit_structFieldList(Ast* field_list)
 {
   assert(field_list->kind == AST_structFieldList);
-  for (Ast* ast = field_list->first_child;
+  for (Ast* ast = field_list->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_structField(ast);
   }
@@ -962,40 +961,40 @@ static void
 visit_structField(Ast* field)
 {
   assert(field->kind == AST_structField);
-  visit_typeRef(field->type);
+  visit_typeRef(field->structField.type);
 }
 
 static void
 visit_enumDeclaration(Ast* enum_decl)
 {
   assert(enum_decl->kind == AST_enumDeclaration);
-  Ast* name = enum_decl->name;
+  Ast* name = enum_decl->enumDeclaration.name;
   Type_Basic* enum_ty = arena_malloc(storage, sizeof(*enum_ty));
   enum_ty->ctor = TYPE_INT;
-  enum_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, &enum_ty, sizeof(enum_ty), HKEY_STRING, name->strname);
-  visit_specifiedIdentifierList(enum_decl->fields);
+  enum_ty->strname = name->name.strname;
+  hashmap_set(&type_table, storage, &enum_ty, sizeof(enum_ty), HKEY_STRING, name->name.strname);
+  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
 }
 
 static void
 visit_errorDeclaration(Ast* error_decl)
 {
   assert(error_decl->kind == AST_errorDeclaration);
-  visit_identifierList(error_decl->fields);
+  visit_identifierList(error_decl->errorDeclaration.fields);
 }
 
 static void
 visit_matchKindDeclaration(Ast* match_decl)
 {
   assert(match_decl->kind == AST_matchKindDeclaration);
-  visit_identifierList(match_decl->fields);
+  visit_identifierList(match_decl->matchKindDeclaration.fields);
 }
 
 static void
 visit_identifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AST_identifierList);
-  for (Ast* ast = ident_list->first_child;
+  for (Ast* ast = ident_list->identifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
     ;
   }
@@ -1005,7 +1004,7 @@ static void
 visit_specifiedIdentifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
-  for (Ast* ast = ident_list->first_child;
+  for (Ast* ast = ident_list->specifiedIdentifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_specifiedIdentifier(ast);
   }
@@ -1015,8 +1014,8 @@ static void
 visit_specifiedIdentifier(Ast* ident)
 {
   assert(ident->kind == AST_specifiedIdentifier);
-  if (ident->init_expr) {
-    visit_expression(ident->init_expr);
+  if (ident->specifiedIdentifier.init_expr) {
+    visit_expression(ident->specifiedIdentifier.init_expr);
   }
 }
 
@@ -1024,18 +1023,18 @@ static void
 visit_typedefDeclaration(Ast* typedef_decl)
 {
   assert(typedef_decl->kind == AST_typedefDeclaration);
-  if (typedef_decl->type_ref->kind == AST_typeRef) {
-    visit_typeRef(typedef_decl->type_ref);
-  } else if (typedef_decl->type_ref->kind == AST_derivedTypeDeclaration) {
-    visit_derivedTypeDeclaration(typedef_decl->type_ref);
+  if (typedef_decl->typedefDeclaration.type_ref->kind == AST_typeRef) {
+    visit_typeRef(typedef_decl->typedefDeclaration.type_ref);
+  } else if (typedef_decl->typedefDeclaration.type_ref->kind == AST_derivedTypeDeclaration) {
+    visit_derivedTypeDeclaration(typedef_decl->typedefDeclaration.type_ref);
   } else assert(0);
-  Ast* name = typedef_decl->name;
+  Ast* name = typedef_decl->typedefDeclaration.name;
   Type_Typedef* typedef_ty = arena_malloc(storage, sizeof(*typedef_ty));
   typedef_ty->ctor = TYPE_TYPEDEF;
-  typedef_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, &typedef_ty, sizeof(typedef_ty), HKEY_STRING, name->strname);
+  typedef_ty->strname = name->name.strname;
+  hashmap_set(&type_table, storage, &typedef_ty, sizeof(typedef_ty), HKEY_STRING, name->name.strname);
   typedef_ty->referred_ty = *(Type**)hashmap_lookup(&type_table, HKEY_STRING,
-      name_of_type(typedef_decl->type_ref)->strname);
+      name_of_type(typedef_decl->typedefDeclaration.type_ref)->name.strname);
 }
 
 /** STATEMENTS **/
@@ -1044,33 +1043,33 @@ static void
 visit_assignmentStatement(Ast* assign_stmt)
 {
   assert(assign_stmt->kind == AST_assignmentStatement);
-  if (assign_stmt->lhs_expr->kind == AST_expression) {
-    visit_expression(assign_stmt->lhs_expr);
-  } else if (assign_stmt->lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(assign_stmt->lhs_expr);
+  if (assign_stmt->assignmentStatement.lhs_expr->kind == AST_expression) {
+    visit_expression(assign_stmt->assignmentStatement.lhs_expr);
+  } else if (assign_stmt->assignmentStatement.lhs_expr->kind == AST_lvalueExpression) {
+    visit_lvalueExpression(assign_stmt->assignmentStatement.lhs_expr);
   } else assert(0);
-  visit_expression(assign_stmt->rhs_expr);
+  visit_expression(assign_stmt->assignmentStatement.rhs_expr);
 }
 
 static void
 visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
-  Ast* lhs_expr = func_call->lhs_expr;
+  Ast* lhs_expr = func_call->functionCall.lhs_expr;
   if (lhs_expr->kind == AST_expression) {
     visit_expression(lhs_expr);
   } else if (lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression(lhs_expr);
   } else assert(0);
-  visit_argumentList(func_call->args);
+  visit_argumentList(func_call->functionCall.args);
 }
 
 static void
 visit_returnStatement(Ast* return_stmt)
 {
   assert(return_stmt->kind == AST_returnStatement);
-  if (return_stmt->expr) {
-    visit_expression(return_stmt->expr);
+  if (return_stmt->returnStatement.expr) {
+    visit_expression(return_stmt->returnStatement.expr);
   }
 }
 
@@ -1084,10 +1083,10 @@ static void
 visit_conditionalStatement(Ast* cond_stmt)
 {
   assert(cond_stmt->kind == AST_conditionalStatement);
-  visit_expression(cond_stmt->cond_expr);
-  visit_statement(cond_stmt->stmt);
-  if (cond_stmt->else_stmt) {
-    visit_statement(cond_stmt->else_stmt);
+  visit_expression(cond_stmt->conditionalStatement.cond_expr);
+  visit_statement(cond_stmt->conditionalStatement.stmt);
+  if (cond_stmt->conditionalStatement.else_stmt) {
+    visit_statement(cond_stmt->conditionalStatement.else_stmt);
   }
 }
 
@@ -1095,35 +1094,36 @@ static void
 visit_directApplication(Ast* applic_stmt)
 {
   assert(applic_stmt->kind == AST_directApplication);
-  if (applic_stmt->name->kind == AST_name) {
+  if (applic_stmt->directApplication.name->kind == AST_name) {
     ;
-  } else if (applic_stmt->name->kind == AST_typeRef) {
-    visit_typeRef(applic_stmt->name);
+  } else if (applic_stmt->directApplication.name->kind == AST_typeRef) {
+    visit_typeRef(applic_stmt->directApplication.name);
   } else assert(0);
-  visit_argumentList(applic_stmt->args);
+  visit_argumentList(applic_stmt->directApplication.args);
 }
 
 static void
 visit_statement(Ast* stmt)
 {
   assert(stmt->kind == AST_statement);
-  if (stmt->stmt->kind == AST_assignmentStatement) {
-    visit_assignmentStatement(stmt->stmt);
-  } else if (stmt->stmt->kind == AST_functionCall) {
-    visit_functionCall(stmt->stmt);
-  } else if (stmt->stmt->kind == AST_directApplication) {
-    visit_directApplication(stmt->stmt);
-  } else if (stmt->stmt->kind == AST_conditionalStatement) {
-    visit_conditionalStatement(stmt->stmt);
-  } else if (stmt->stmt->kind == AST_emptyStatement) {
-  } else if (stmt->stmt->kind == AST_blockStatement) {
-    visit_blockStatement(stmt->stmt);
-  } else if (stmt->stmt->kind == AST_exitStatement) {
-    visit_exitStatement(stmt->stmt);
-  } else if (stmt->stmt->kind == AST_returnStatement) {
-    visit_returnStatement(stmt->stmt);
-  } else if (stmt->stmt->kind == AST_switchStatement) {
-    visit_switchStatement(stmt->stmt);
+  if (stmt->statement.stmt->kind == AST_assignmentStatement) {
+    visit_assignmentStatement(stmt->statement.stmt);
+  } else if (stmt->statement.stmt->kind == AST_functionCall) {
+    visit_functionCall(stmt->statement.stmt);
+  } else if (stmt->statement.stmt->kind == AST_directApplication) {
+    visit_directApplication(stmt->statement.stmt);
+  } else if (stmt->statement.stmt->kind == AST_conditionalStatement) {
+    visit_conditionalStatement(stmt->statement.stmt);
+  } else if (stmt->statement.stmt->kind == AST_emptyStatement) {
+    ;
+  } else if (stmt->statement.stmt->kind == AST_blockStatement) {
+    visit_blockStatement(stmt->statement.stmt);
+  } else if (stmt->statement.stmt->kind == AST_exitStatement) {
+    visit_exitStatement(stmt->statement.stmt);
+  } else if (stmt->statement.stmt->kind == AST_returnStatement) {
+    visit_returnStatement(stmt->statement.stmt);
+  } else if (stmt->statement.stmt->kind == AST_switchStatement) {
+    visit_switchStatement(stmt->statement.stmt);
   } else assert(0);
 }
 
@@ -1131,14 +1131,14 @@ static void
 visit_blockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AST_blockStatement);
-  visit_statementOrDeclList(block_stmt->stmt_list);
+  visit_statementOrDeclList(block_stmt->blockStatement.stmt_list);
 }
 
 static void
 visit_statementOrDeclList(Ast* stmt_list)
 {
   assert(stmt_list->kind == AST_statementOrDeclList);
-  for (Ast* ast = stmt_list->first_child;
+  for (Ast* ast = stmt_list->statementOrDeclList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_statementOrDeclaration(ast);
   }
@@ -1148,15 +1148,15 @@ static void
 visit_switchStatement(Ast* switch_stmt)
 {
   assert(switch_stmt->kind == AST_switchStatement);
-  visit_expression(switch_stmt->expr);
-  visit_switchCases(switch_stmt->switch_cases);
+  visit_expression(switch_stmt->switchStatement.expr);
+  visit_switchCases(switch_stmt->switchStatement.switch_cases);
 }
 
 static void
 visit_switchCases(Ast* switch_cases)
 {
   assert(switch_cases->kind == AST_switchCases);
-  for (Ast* ast = switch_cases->first_child;
+  for (Ast* ast = switch_cases->switchCases.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_switchCase(ast);
   }
@@ -1166,9 +1166,9 @@ static void
 visit_switchCase(Ast* switch_case)
 {
   assert(switch_case->kind == AST_switchCase);
-  visit_switchLabel(switch_case->label);
-  if (switch_case->stmt) {
-    visit_blockStatement(switch_case->stmt);
+  visit_switchLabel(switch_case->switchCase.label);
+  if (switch_case->switchCase.stmt) {
+    visit_blockStatement(switch_case->switchCase.stmt);
   }
 }
 
@@ -1176,10 +1176,10 @@ static void
 visit_switchLabel(Ast* label)
 {
   assert(label->kind == AST_switchLabel);
-  if (label->label->kind == AST_name) {
+  if (label->switchLabel.label->kind == AST_name) {
     ;
-  } else if (label->label->kind == AST_default) {
-    visit_default(label->label);
+  } else if (label->switchLabel.label->kind == AST_default) {
+    visit_default(label->switchLabel.label);
   } else assert(0);
 }
 
@@ -1187,12 +1187,12 @@ static void
 visit_statementOrDeclaration(Ast* stmt)
 {
   assert(stmt->kind == AST_statementOrDeclaration);
-  if (stmt->stmt->kind == AST_variableDeclaration) {
-    visit_variableDeclaration(stmt->stmt);
-  } else if (stmt->stmt->kind == AST_statement) {
-    visit_statement(stmt->stmt);
-  } else if (stmt->stmt->kind == AST_instantiation) {
-    visit_instantiation(stmt->stmt);
+  if (stmt->statementOrDeclaration.stmt->kind == AST_variableDeclaration) {
+    visit_variableDeclaration(stmt->statementOrDeclaration.stmt);
+  } else if (stmt->statementOrDeclaration.stmt->kind == AST_statement) {
+    visit_statement(stmt->statementOrDeclaration.stmt);
+  } else if (stmt->statementOrDeclaration.stmt->kind == AST_instantiation) {
+    visit_instantiation(stmt->statementOrDeclaration.stmt);
   } else assert(0);
 }
 
@@ -1202,14 +1202,14 @@ static void
 visit_tableDeclaration(Ast* table_decl)
 {
   assert(table_decl->kind == AST_tableDeclaration);
-  visit_tablePropertyList(table_decl->prop_list);
+  visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
 }
 
 static void
 visit_tablePropertyList(Ast* prop_list)
 {
   assert(prop_list->kind == AST_tablePropertyList);
-  for (Ast* ast = prop_list->first_child;
+  for (Ast* ast = prop_list->tablePropertyList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_tableProperty(ast);
   }
@@ -1219,14 +1219,14 @@ static void
 visit_tableProperty(Ast* table_prop)
 {
   assert(table_prop->kind == AST_tableProperty);
-  if (table_prop->prop->kind == AST_keyProperty) {
-    visit_keyProperty(table_prop->prop);
-  } else if (table_prop->prop->kind == AST_actionsProperty) {
-    visit_actionsProperty(table_prop->prop);
-  } else if (table_prop->prop->kind == AST_entriesProperty) {
-    visit_entriesProperty(table_prop->prop);
-  } else if (table_prop->prop->kind == AST_simpleProperty) {
-    visit_simpleProperty(table_prop->prop);
+  if (table_prop->tableProperty.prop->kind == AST_keyProperty) {
+    visit_keyProperty(table_prop->tableProperty.prop);
+  } else if (table_prop->tableProperty.prop->kind == AST_actionsProperty) {
+    visit_actionsProperty(table_prop->tableProperty.prop);
+  } else if (table_prop->tableProperty.prop->kind == AST_entriesProperty) {
+    visit_entriesProperty(table_prop->tableProperty.prop);
+  } else if (table_prop->tableProperty.prop->kind == AST_simpleProperty) {
+    visit_simpleProperty(table_prop->tableProperty.prop);
   } else assert(0);
 }
 
@@ -1234,14 +1234,14 @@ static void
 visit_keyProperty(Ast* key_prop)
 {
   assert(key_prop->kind == AST_keyProperty);
-  visit_keyElementList(key_prop->keyelem_list);
+  visit_keyElementList(key_prop->keyProperty.keyelem_list);
 }
 
 static void
 visit_keyElementList(Ast* element_list)
 {
   assert(element_list->kind == AST_keyElementList);
-  for (Ast* ast = element_list->first_child;
+  for (Ast* ast = element_list->keyElementList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_keyElement(ast);
   }
@@ -1251,21 +1251,21 @@ static void
 visit_keyElement(Ast* element)
 {
   assert(element->kind == AST_keyElement);
-  visit_expression(element->expr);
+  visit_expression(element->keyElement.expr);
 }
 
 static void
 visit_actionsProperty(Ast* actions_prop)
 {
   assert(actions_prop->kind == AST_actionsProperty);
-  visit_actionList(actions_prop->action_list);
+  visit_actionList(actions_prop->actionsProperty.action_list);
 }
 
 static void
 visit_actionList(Ast* action_list)
 {
   assert(action_list->kind == AST_actionList);
-  for (Ast* ast = action_list->first_child;
+  for (Ast* ast = action_list->actionList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_actionRef(ast);
   }
@@ -1275,8 +1275,8 @@ static void
 visit_actionRef(Ast* action_ref)
 {
   assert(action_ref->kind == AST_actionRef);
-  if (action_ref->args) {
-    visit_argumentList(action_ref->args);
+  if (action_ref->actionRef.args) {
+    visit_argumentList(action_ref->actionRef.args);
   }
 }
 
@@ -1284,14 +1284,14 @@ static void
 visit_entriesProperty(Ast* entries_prop)
 {
   assert(entries_prop->kind == AST_entriesProperty);
-  visit_entriesList(entries_prop->entries_list);
+  visit_entriesList(entries_prop->entriesProperty.entries_list);
 }
 
 static void
 visit_entriesList(Ast* entries_list)
 {
   assert(entries_list->kind == AST_entriesList);
-  for (Ast* ast = entries_list->first_child;
+  for (Ast* ast = entries_list->entriesList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_entry(ast);
   }
@@ -1301,37 +1301,37 @@ static void
 visit_entry(Ast* entry)
 {
   assert(entry->kind == AST_entry);
-  visit_keysetExpression(entry->keyset);
-  visit_actionRef(entry->action);
+  visit_keysetExpression(entry->entry.keyset);
+  visit_actionRef(entry->entry.action);
 }
 
 static void
 visit_simpleProperty(Ast* simple_prop)
 {
   assert(simple_prop->kind == AST_simpleProperty);
-  visit_expression(simple_prop->init_expr);
+  visit_expression(simple_prop->simpleProperty.init_expr);
 }
 
 static void
 visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AST_actionDeclaration);
-  Ast* name = action_decl->name;
+  Ast* name = action_decl->actionDeclaration.name;
   Type_Function* action_ty = arena_malloc(storage, sizeof(*action_ty));
   action_ty->ctor = TYPE_FUNCTION;
-  action_ty->strname = name->strname;
-  hashmap_set(&type_table, storage, &action_decl, sizeof(action_decl), HKEY_STRING, name->strname);
-  Ast* params = action_decl->params;
+  action_ty->strname = name->name.strname;
+  hashmap_set(&type_table, storage, &action_decl, sizeof(action_decl), HKEY_STRING, name->name.strname);
+  Ast* params = action_decl->actionDeclaration.params;
   visit_parameterList(params);
   /* list_create(&action_ty->params_ty, storage, sizeof(Type*)); */
-  for (Ast* ast = params->first_child;
+  for (Ast* ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    Ast* param = ast;
     /*
+    Ast* param = ast;
     list_append(&action_ty->params_ty, *(Type**)hashmap_lookup(
           &type_table, HKEY_STRING, name_of_type(param->type)->strname)); */
   }
-  visit_blockStatement(action_decl->stmt);
+  visit_blockStatement(action_decl->actionDeclaration.stmt);
 }
 
 /** VARIABLES **/
@@ -1340,9 +1340,9 @@ static void
 visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
-  visit_typeRef(var_decl->type);
-  if (var_decl->init_expr) {
-    visit_expression(var_decl->init_expr);
+  visit_typeRef(var_decl->variableDeclaration.type);
+  if (var_decl->variableDeclaration.init_expr) {
+    visit_expression(var_decl->variableDeclaration.init_expr);
   }
 }
 
@@ -1352,15 +1352,15 @@ static void
 visit_functionDeclaration(Ast* func_decl)
 {
   assert(func_decl->kind == AST_functionDeclaration);
-  visit_functionPrototype(func_decl->proto);
-  visit_blockStatement(func_decl->stmt);
+  visit_functionPrototype(func_decl->functionDeclaration.proto);
+  visit_blockStatement(func_decl->functionDeclaration.stmt);
 }
 
 static void
 visit_argumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AST_argumentList);
-  for (Ast* ast = arg_list->first_child;
+  for (Ast* ast = arg_list->argumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_argument(ast);
   }
@@ -1370,10 +1370,10 @@ static void
 visit_argument(Ast* arg)
 {
   assert(arg->kind == AST_argument);
-  if (arg->arg->kind == AST_expression) {
-    visit_expression(arg->arg);
-  } else if (arg->arg->kind == AST_dontcare) {
-    visit_dontcare(arg->arg);
+  if (arg->argument.arg->kind == AST_expression) {
+    visit_expression(arg->argument.arg);
+  } else if (arg->argument.arg->kind == AST_dontcare) {
+    visit_dontcare(arg->argument.arg);
   } else assert(0);
 }
 
@@ -1381,7 +1381,7 @@ static void
 visit_expressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AST_expressionList);
-  for (Ast* ast = expr_list->first_child;
+  for (Ast* ast = expr_list->expressionList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_expression(ast);
   }
@@ -1391,12 +1391,12 @@ static void
 visit_lvalueExpression(Ast* lvalue_expr)
 {
   assert(lvalue_expr->kind == AST_lvalueExpression);
-  if (lvalue_expr->expr->kind == AST_name) {
+  if (lvalue_expr->lvalueExpression.expr->kind == AST_name) {
     ;
-  } else if (lvalue_expr->expr->kind == AST_memberSelector) {
-    visit_memberSelector(lvalue_expr->expr);
-  } else if (lvalue_expr->expr->kind == AST_arraySubscript) {
-    visit_arraySubscript(lvalue_expr->expr);
+  } else if (lvalue_expr->lvalueExpression.expr->kind == AST_memberSelector) {
+    visit_memberSelector(lvalue_expr->lvalueExpression.expr);
+  } else if (lvalue_expr->lvalueExpression.expr->kind == AST_arraySubscript) {
+    visit_arraySubscript(lvalue_expr->lvalueExpression.expr);
   } else assert(0);
 }
 
@@ -1404,39 +1404,39 @@ static void
 visit_expression(Ast* expr)
 {
   assert(expr->kind == AST_expression);
-  if (expr->expr->kind == AST_expression) {
-    visit_expression(expr->expr);
-  } else if (expr->expr->kind == AST_booleanLiteral) {
-    visit_booleanLiteral(expr->expr);
-  } else if (expr->expr->kind == AST_integerLiteral) {
-    visit_integerLiteral(expr->expr);
-  } else if (expr->expr->kind == AST_stringLiteral) {
-    visit_stringLiteral(expr->expr);
-  } else if (expr->expr->kind == AST_name) {
+  if (expr->expression.expr->kind == AST_expression) {
+    visit_expression(expr->expression.expr);
+  } else if (expr->expression.expr->kind == AST_booleanLiteral) {
+    visit_booleanLiteral(expr->expression.expr);
+  } else if (expr->expression.expr->kind == AST_integerLiteral) {
+    visit_integerLiteral(expr->expression.expr);
+  } else if (expr->expression.expr->kind == AST_stringLiteral) {
+    visit_stringLiteral(expr->expression.expr);
+  } else if (expr->expression.expr->kind == AST_name) {
     ;
-  } else if (expr->expr->kind == AST_specializedType) {
-    visit_specializedType(expr->expr);
-  } else if (expr->expr->kind == AST_headerStackType) {
-    visit_headerStackType(expr->expr);
-  } else if (expr->expr->kind == AST_expressionList) {
-    visit_expressionList(expr->expr);
-  } else if (expr->expr->kind == AST_castExpression) {
-    visit_castExpression(expr->expr);
-  } else if (expr->expr->kind == AST_unaryExpression) {
-    visit_unaryExpression(expr->expr);
-  } else if (expr->expr->kind == AST_binaryExpression) {
-    visit_binaryExpression(expr->expr);
-  } else if (expr->expr->kind == AST_memberSelector) {
-    visit_memberSelector(expr->expr);
-  } else if (expr->expr->kind == AST_arraySubscript) {
-    visit_arraySubscript(expr->expr);
-  } else if (expr->expr->kind == AST_functionCall) {
-    visit_functionCall(expr->expr);
-  } else if (expr->expr->kind == AST_assignmentStatement) {
-    visit_assignmentStatement(expr->expr);
+  } else if (expr->expression.expr->kind == AST_specializedType) {
+    visit_specializedType(expr->expression.expr);
+  } else if (expr->expression.expr->kind == AST_headerStackType) {
+    visit_headerStackType(expr->expression.expr);
+  } else if (expr->expression.expr->kind == AST_expressionList) {
+    visit_expressionList(expr->expression.expr);
+  } else if (expr->expression.expr->kind == AST_castExpression) {
+    visit_castExpression(expr->expression.expr);
+  } else if (expr->expression.expr->kind == AST_unaryExpression) {
+    visit_unaryExpression(expr->expression.expr);
+  } else if (expr->expression.expr->kind == AST_binaryExpression) {
+    visit_binaryExpression(expr->expression.expr);
+  } else if (expr->expression.expr->kind == AST_memberSelector) {
+    visit_memberSelector(expr->expression.expr);
+  } else if (expr->expression.expr->kind == AST_arraySubscript) {
+    visit_arraySubscript(expr->expression.expr);
+  } else if (expr->expression.expr->kind == AST_functionCall) {
+    visit_functionCall(expr->expression.expr);
+  } else if (expr->expression.expr->kind == AST_assignmentStatement) {
+    visit_assignmentStatement(expr->expression.expr);
   } else assert(0);
-  if (expr->type_args) {
-    visit_realTypeArgumentList(expr->type_args);
+  if (expr->expression.type_args) {
+    visit_realTypeArgumentList(expr->expression.type_args);
   }
 }
 
@@ -1444,33 +1444,33 @@ static void
 visit_castExpression(Ast* cast_expr)
 {
   assert(cast_expr->kind == AST_castExpression);
-  visit_typeRef(cast_expr->type);
-  visit_expression(cast_expr->expr);
+  visit_typeRef(cast_expr->castExpression.type);
+  visit_expression(cast_expr->castExpression.expr);
 }
 
 static void
 visit_unaryExpression(Ast* unary_expr)
 {
   assert(unary_expr->kind == AST_unaryExpression);
-  visit_expression(unary_expr->operand);
+  visit_expression(unary_expr->unaryExpression.operand);
 }
 
 static void
 visit_binaryExpression(Ast* binary_expr)
 {
   assert(binary_expr->kind == AST_binaryExpression);
-  visit_expression(binary_expr->left_operand);
-  visit_expression(binary_expr->right_operand);
+  visit_expression(binary_expr->binaryExpression.left_operand);
+  visit_expression(binary_expr->binaryExpression.right_operand);
 }
 
 static void
 visit_memberSelector(Ast* selector)
 {
   assert(selector->kind == AST_memberSelector);
-  if (selector->lhs_expr->kind == AST_expression) {
-    visit_expression(selector->lhs_expr);
-  } else if (selector->lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(selector->lhs_expr);
+  if (selector->memberSelector.lhs_expr->kind == AST_expression) {
+    visit_expression(selector->memberSelector.lhs_expr);
+  } else if (selector->memberSelector.lhs_expr->kind == AST_lvalueExpression) {
+    visit_lvalueExpression(selector->memberSelector.lhs_expr);
   } else assert(0);
 }
 
@@ -1478,21 +1478,21 @@ static void
 visit_arraySubscript(Ast* subscript)
 {
   assert(subscript->kind == AST_arraySubscript);
-  if (subscript->lhs_expr->kind == AST_expression) {
-    visit_expression(subscript->lhs_expr);
-  } else if (subscript->lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(subscript->lhs_expr);
+  if (subscript->arraySubscript.lhs_expr->kind == AST_expression) {
+    visit_expression(subscript->arraySubscript.lhs_expr);
+  } else if (subscript->arraySubscript.lhs_expr->kind == AST_lvalueExpression) {
+    visit_lvalueExpression(subscript->arraySubscript.lhs_expr);
   } else assert(0);
-  visit_indexExpression(subscript->index_expr);
+  visit_indexExpression(subscript->arraySubscript.index_expr);
 }
 
 static void
 visit_indexExpression(Ast* index_expr)
 {
   assert(index_expr->kind == AST_indexExpression);
-  visit_expression(index_expr->start_index);
-  if (index_expr->end_index) {
-    visit_expression(index_expr->end_index);
+  visit_expression(index_expr->indexExpression.start_index);
+  if (index_expr->indexExpression.end_index) {
+    visit_expression(index_expr->indexExpression.end_index);
   }
 }
 
