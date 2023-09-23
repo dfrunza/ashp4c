@@ -301,7 +301,7 @@ visit_packageTypeDeclaration(Ast* package_decl)
   }
   Ast* params = package_decl->packageTypeDeclaration.params;
   visit_parameterList(params);
-  /* list_create(&package_ty->params_ty); */
+  /* list_init(&package_ty->params_ty); */
   if (params->parameterList.first_child) {
     Ast* ast = params->parameterList.first_child;
     for (ast = ast->right_sibling; ast != 0; ast = ast->right_sibling) {
@@ -349,7 +349,7 @@ visit_parserTypeDeclaration(Ast* parser_decl)
   }
   Ast* params = parser_decl->parserTypeDeclaration.params;
   visit_parameterList(params);
-  /* list_create(&parser_ty->params_ty, storage, sizeof(Type*)); */
+  /* list_init(&parser_ty->params_ty, storage, sizeof(Type*)); */
   for (Ast* ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     /*
@@ -544,7 +544,7 @@ visit_controlTypeDeclaration(Ast* control_decl)
   }
   Ast* params = control_decl->controlTypeDeclaration.params;
   visit_parameterList(params);
-  /* list_create(&control_ty->params_ty, storage, sizeof(Type*)); */
+  /* list_init(&control_ty->params_ty, storage, sizeof(Type*)); */
   for (Ast* ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     /*
@@ -605,7 +605,7 @@ visit_externTypeDeclaration(Ast* extern_decl)
     visit_typeParameterList(extern_decl->externTypeDeclaration.type_params);
   }
   /*
-  list_create(&extern_ty->members_ty, storage, sizeof(Type*)); */
+  list_init(&extern_ty->members_ty, storage, sizeof(Type*)); */
   visit_methodPrototypes(extern_decl->externTypeDeclaration.method_protos);
 }
 
@@ -639,7 +639,7 @@ visit_functionPrototype(Ast* func_proto)
   }
   Ast* params = func_proto->functionPrototype.params;
   visit_parameterList(params);
-  /* list_create(&func_ty->params_ty, storage, sizeof(Type*)); */
+  /* list_init(&func_ty->params_ty, storage, sizeof(Type*)); */
   for (Ast* ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     /*
@@ -691,7 +691,7 @@ visit_tupleType(Ast* type_decl)
   hashmap_set(&type_table, storage, &tuple_ty, sizeof(tuple_ty), HKEY_STRING, name->name.strname);
   Ast* type_args = type_decl->tupleType.type_args;
   visit_typeArgumentList(type_args);
-  /* list_create(&tuple_ty->members_ty, storage, sizeof(Type*)); */
+  /* list_init(&tuple_ty->members_ty, storage, sizeof(Type*)); */
   for (Ast* ast = type_args->typeArgumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     /*
@@ -732,7 +732,7 @@ visit_specializedType(Ast* type_decl)
       name_of_type(type)->name.strname);
   Ast* type_args = type_decl->specializedType.type_args;
   visit_typeArgumentList(type_args);
-  /* list_create(&speclzd_ty->args_ty, storage, sizeof(Type*)); */
+  /* list_init(&speclzd_ty->args_ty, storage, sizeof(Type*)); */
   for (Ast* ast = type_args->typeArgumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     /*
@@ -894,7 +894,7 @@ visit_headerTypeDeclaration(Ast* header_decl)
   hashmap_set(&type_table, storage, &header_ty, sizeof(header_ty), HKEY_STRING, name->name.strname);
   Ast* fields = header_decl->headerTypeDeclaration.fields;
   visit_structFieldList(fields);
-  /* list_create(&header_ty->members_ty, storage, sizeof(Type*)); */
+  /* list_init(&header_ty->members_ty, storage, sizeof(Type*)); */
   for (Ast* ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     /*
@@ -915,7 +915,7 @@ visit_headerUnionDeclaration(Ast* union_decl)
   hashmap_set(&type_table, storage, &union_ty, sizeof(union_ty), HKEY_STRING, name->name.strname);
   Ast* fields = union_decl->headerUnionDeclaration.fields;
   visit_structFieldList(fields);
-  /* list_create(&union_ty->members_ty, storage, sizeof(Type*)); */
+  /* list_init(&union_ty->members_ty, storage, sizeof(Type*)); */
   for (Ast* ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     /*
@@ -937,7 +937,7 @@ visit_structTypeDeclaration(Ast* struct_decl)
   Ast* fields = struct_decl->structTypeDeclaration.fields;
   visit_structFieldList(fields);
   /*
-  list_create(&struct_ty->members_ty, storage, sizeof(Type*)); */
+  list_init(&struct_ty->members_ty, storage, sizeof(Type*)); */
   for (Ast* ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     /*
@@ -1323,7 +1323,7 @@ visit_actionDeclaration(Ast* action_decl)
   hashmap_set(&type_table, storage, &action_decl, sizeof(action_decl), HKEY_STRING, name->name.strname);
   Ast* params = action_decl->actionDeclaration.params;
   visit_parameterList(params);
-  /* list_create(&action_ty->params_ty, storage, sizeof(Type*)); */
+  /* list_init(&action_ty->params_ty, storage, sizeof(Type*)); */
   for (Ast* ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     /*
@@ -1530,7 +1530,7 @@ Hashmap*
 type_decl(Ast* ast, Arena* _storage)
 {
   storage = _storage;
-  hashmap_create(&type_table, storage, 15, 1023);
+  hashmap_init(&type_table, storage, 15, 1023);
 
   struct BuiltinType {
     char* strname;

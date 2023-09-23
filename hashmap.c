@@ -108,12 +108,12 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 }
 
 void
-hashmap_create(Hashmap* hashmap, Arena* storage, int capacity, int max_capacity)
+hashmap_init(Hashmap* hashmap, Arena* storage, int capacity, int max_capacity)
 {
   assert(max_capacity >= 7 && capacity <= max_capacity);
   hashmap->capacity_log2 = ceil_log2(capacity + 1);
   hashmap->entry_count = 0;
-  array_create(&hashmap->entries, storage, sizeof(HashmapEntry*), max_capacity);
+  array_init(&hashmap->entries, storage, sizeof(HashmapEntry*), max_capacity);
   for (int i = 0; i < (1 << hashmap->capacity_log2) - 1; i++) {
     array_append(&hashmap->entries, storage, &NULL_ENTRY, sizeof(NULL_ENTRY));
   }

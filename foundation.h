@@ -42,13 +42,13 @@ void* arena_malloc(Arena* arena, uint32_t size);
 void  arena_free(Arena* arena);
 
 typedef struct UnboundedArray {
-  void** segment_table;
   int segment_count;
   int elem_count;
   int capacity;
+  void** segment_table;
 } UnboundedArray;
 
-void  array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capacity);
+void  array_init(UnboundedArray* array, Arena* storage, int elem_size, int max_capacity);
 void  array_extend(UnboundedArray* array, Arena* storage, int elem_size);
 void* array_get(UnboundedArray* array, int i, int elem_size);
 void* array_set(UnboundedArray* array, int i, void* elem, int elem_size);
@@ -88,7 +88,7 @@ typedef struct HashmapCursor {
 } HashmapCursor;
 
 void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int length_log2);
-void          hashmap_create(Hashmap* hashmap, Arena* storage, int capacity, int max_capacity);
+void          hashmap_init(Hashmap* hashmap, Arena* storage, int capacity, int max_capacity);
 HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key, enum HashmapKeyType key_type);
 void*         hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
 HashmapEntry* hashmap_get_entry(Hashmap* hashmap, Arena* storage, int value_size,

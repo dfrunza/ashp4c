@@ -19,7 +19,7 @@ array_extend(UnboundedArray* array, Arena* storage, int elem_size)
 }
 
 void
-array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capacity)
+array_init(UnboundedArray* array, Arena* storage, int elem_size, int max_capacity)
 {
   assert(elem_size > 0);
   assert(max_capacity >= 15);
@@ -42,7 +42,6 @@ array_elem_at_i(UnboundedArray* array, int i, int elem_size,
   int elem_offset = i - ((1 << segment_index) - 1);
   void* data_segment = array->segment_table[segment_index];
   void* elem_slot = data_segment + elem_offset * elem_size;
-
   *_segment_index = segment_index;
   *_elem_offset = elem_offset;
   *_data_segment = data_segment;

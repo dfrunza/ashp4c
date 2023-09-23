@@ -826,7 +826,7 @@ tokenize_source_text(SourceText* source_text, Arena* _storage)
 
   Token token = {};
   token.klass = TK_START_OF_INPUT;
-  array_create(&tokens, storage, sizeof(Token), 2047);
+  array_init(&tokens, storage, sizeof(Token), 2047);
   array_append(&tokens, storage, &token, sizeof(Token));
 
   next_token(&token);
