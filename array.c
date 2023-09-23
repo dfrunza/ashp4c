@@ -26,7 +26,6 @@ array_create(UnboundedArray* array, Arena* storage, int elem_size, int max_capac
   array->segment_count = ceil_log2(max_capacity + 1);
   array->elem_count = 0;
   array->capacity = 15;
-
   array->segment_table = arena_malloc(storage, sizeof(void*) * array->segment_count);
   array->segment_table[0] = arena_malloc(storage, 16 * elem_size);
   array->segment_table[1] = array->segment_table[0] + 1 * elem_size;

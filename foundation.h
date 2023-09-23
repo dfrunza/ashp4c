@@ -87,7 +87,6 @@ typedef struct HashmapCursor {
   HashmapEntry* entry;
 } HashmapCursor;
 
-int           hashmap_capacity(Hashmap* hashmap);
 void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int length_log2);
 void          hashmap_create(Hashmap* hashmap, Arena* storage, int capacity, int max_capacity);
 HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key, enum HashmapKeyType key_type);
