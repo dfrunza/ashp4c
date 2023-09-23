@@ -3529,10 +3529,10 @@ parse_expressionPrimary()
           cast_expr->castExpression.expr = parse_expression(1);
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
-        primary->castExpression.expr = cast_expr;
+        primary->expression.expr = cast_expr;
         return primary;
       } else if (token_is_expression(token)) {
-        primary->castExpression.expr = parse_expression(1);
+        primary->expression.expr = parse_expression(1);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
         } else error("At line %d, column %d: `)` was expected, got `%s`.",

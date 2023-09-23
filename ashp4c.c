@@ -108,7 +108,7 @@ main(int arg_count, char* args[])
   UnboundedArray* tokens = tokenize_source_text(source_text, &main_storage);
 
   Scope* root_scope;
-  Ast_P4Program* ast = parse_program(tokens, &root_scope, &main_storage);
+  Ast* ast = parse_program(tokens, &root_scope, &main_storage);
   arena_free(&text_storage);
 
   drypass(ast); /* sanity check */
