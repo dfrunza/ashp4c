@@ -10,39 +10,15 @@ static const uint32_t P = 257, Q = 4294967029;
 static const uint32_t SIGMA = 2654435769;
 
 static uint32_t
-fold_string(char* string)
+hash_string(char* string, uint32_t m)
 {
+  assert(m > 0 && m <= 32);
   uint32_t K = 0;
   for (uint8_t* s = (uint8_t*)string; (*s); s++) {
     K = (P * K + (*s)) % Q;
   }
-  return K;
-}
-
-static uint64_t
-fold_uint64(uint64_t i)
-{
-  uint32_t upper_half = (uint32_t)(i >> 32);
-  uint32_t lower_half = (uint32_t)(0x00000000ffffffffl & i);
-  uint32_t K = upper_half ^ lower_half;
-  return K;
-}
-
-static uint32_t
-multiply_hash(uint32_t K, uint32_t m)
-{
-  assert(m > 0 && m <= 32);
   uint64_t KxSigma = (uint64_t)K * (uint64_t)SIGMA;
   uint32_t h = ((uint32_t)KxSigma) >> (32 - m);  /* 0 <= h < 2^m */
-  return h;
-}
-
-static uint32_t
-hash_string(char* string, uint32_t m)
-{
-  assert(m > 0 && m <= 32);
-  uint32_t h = fold_string(string);
-  h = multiply_hash(h, m);
   return h;
 }
 
@@ -50,8 +26,9 @@ static uint32_t
 hash_uint32(uint32_t i, uint32_t m)
 {
   assert(m > 0 && m <= 32);
-  uint32_t h = i;
-  h = multiply_hash(h, m);
+  uint32_t K = i;
+  uint64_t KxSigma = (uint64_t)K * (uint64_t)SIGMA;
+  uint32_t h = ((uint32_t)KxSigma) >> (32 - m);  /* 0 <= h < 2^m */
   return h;
 }
 
@@ -59,8 +36,11 @@ static uint64_t
 hash_uint64(uint64_t i, uint32_t m)
 {
   assert(m > 0 && m <= 32);
-  uint32_t h = fold_uint64(i);
-  h = multiply_hash(h, m);
+  uint32_t upper_half = (uint32_t)(i >> 32);
+  uint32_t lower_half = (uint32_t)(0x00000000ffffffffl & i);
+  uint32_t K = upper_half ^ lower_half;
+  uint64_t KxSigma = (uint64_t)K * (uint64_t)SIGMA;
+  uint32_t h = ((uint32_t)KxSigma) >> (32 - m);  /* 0 <= h < 2^m */
   return h;
 }
 
