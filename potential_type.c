@@ -7,7 +7,7 @@ static Arena*   storage;
 static Scope*   root_scope;
 static Hashmap* type_table;
 static Hashmap* scope_map;
-static Hashmap  potential_type_map = {};
+static Hashmap* potential_types;
 
 /** PROGRAM **/
 
@@ -1334,14 +1334,14 @@ visit_dontcare(Ast* dontcare)
 }
 
 Hashmap*
-potential_type(Ast* ast, Scope* _root_scope, 
+pass_potential_types(Ast* ast, Scope* _root_scope, 
     Hashmap* _scope_map, Hashmap* _type_table, Arena* _storage)
 {
   storage = _storage;
   root_scope = _root_scope;
   scope_map = _scope_map;
   type_table = _type_table;
-  hashmap_init(&potential_type_map, storage, 16, 1008);
+  potential_types = hashmap_create(storage, 16, 1008);
   visit_p4program(ast);
-  return &potential_type_map;
+  return potential_types;
 }

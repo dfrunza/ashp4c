@@ -113,9 +113,9 @@ main(int arg_count, char* args[])
 
   drypass(ast); /* sanity check */
   Hashmap* scope_map, *field_map;
-  name_decl(ast, root_scope, &scope_map, &field_map, &main_storage);
-  Hashmap* type_table = type_decl(ast, &main_storage);
-  potential_type(ast, root_scope, scope_map, type_table, &main_storage);
+  pass_name_decl(ast, root_scope, &scope_map, &field_map, &main_storage);
+  Hashmap* type_table = pass_type_decl(ast, &main_storage);
+  pass_potential_types(ast, root_scope, scope_map, type_table, &main_storage);
 
   arena_free(&main_storage);
   return 0;
