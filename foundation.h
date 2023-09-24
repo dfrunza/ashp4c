@@ -79,7 +79,7 @@ typedef struct HashmapEntry {
 
 typedef struct Hashmap {
   int entry_count;
-  int capacity_log2;
+  int capacity;
   int segment_count;
   HashmapEntry*** segment_table;
 } Hashmap;
@@ -89,7 +89,7 @@ typedef struct HashmapCursor {
   HashmapEntry* entry;
 } HashmapCursor;
 
-void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int length_log2);
+void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int m, int capacity);
 void          hashmap_init(Hashmap* hashmap, Arena* storage, int capacity, int max_capacity);
 HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key, enum HashmapKeyType key_type);
 void*         hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...);

@@ -1530,7 +1530,7 @@ Hashmap*
 type_decl(Ast* ast, Arena* _storage)
 {
   storage = _storage;
-  hashmap_init(&type_table, storage, 15, 1023);
+  hashmap_init(&type_table, storage, 16, 1008);
 
   struct BuiltinType {
     char* strname;
