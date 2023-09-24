@@ -1,12 +1,12 @@
 #include <memory.h>  /* memset */
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>   /* exit */
 #include <stdarg.h>  /* va_list, va_start, va_end */
 #include "foundation.h"
 
 static const uint32_t P = 257, Q = 4294967029;
 static const uint32_t SIGMA = 2654435769;
-static HashmapEntry*  NULL_ENTRY = 0;
 
 static uint32_t
 fold_string(char* string)
@@ -110,12 +110,17 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 void
 hashmap_init(Hashmap* hashmap, Arena* storage, int capacity, int max_capacity)
 {
-  assert(max_capacity >= 7 && capacity <= max_capacity);
-  hashmap->capacity_log2 = ceil_log2(capacity + 1);
+  assert(capacity >= 15);
+  assert(max_capacity >= capacity);
   hashmap->entry_count = 0;
-  array_init(&hashmap->entries, storage, sizeof(HashmapEntry*), max_capacity);
-  for (int i = 0; i < (1 << hashmap->capacity_log2) - 1; i++) {
-    array_append(&hashmap->entries, storage, &NULL_ENTRY, sizeof(NULL_ENTRY));
+  hashmap->capacity_log2 = ceil_log2(capacity + 1);
+  hashmap->segment_count = ceil_log2(max_capacity + 1);
+  hashmap->segment_table = arena_malloc(storage, sizeof(HashmapEntry**) * hashmap->segment_count);
+  for (int i = 0; i < hashmap->capacity_log2; i++) {
+    hashmap->segment_table[i] = arena_malloc(storage, sizeof(HashmapEntry*) * (1 << i));
+    for (int j = 0; j < (1 << i); j ++) {
+      hashmap->segment_table[i][j] = 0;
+    }
   }
 }
 
@@ -134,18 +139,24 @@ hashmap_grow(Hashmap* hashmap, Arena* storage, HashmapKey* key, enum HashmapKeyT
     entry_count += 1;
   }
   assert(entry_count == hashmap->entry_count);
-  hashmap->capacity_log2 += 1;
-  for (int i = hashmap->entry_count; i < (1 << hashmap->capacity_log2) - 1; i++) {
-    array_append(&hashmap->entries, storage, &NULL_ENTRY, sizeof(NULL_ENTRY));
+  if (hashmap->capacity_log2 >= hashmap->segment_count) {
+    printf("\nMaximum capacity has been reached.\n");
+    exit(1);
   }
-  for (int i = 0; i < (1 << hashmap->capacity_log2) - 1; i++) {
-    array_set(&hashmap->entries, i, &NULL_ENTRY, sizeof(NULL_ENTRY));
+  hashmap->segment_table[hashmap->capacity_log2] = arena_malloc(storage, sizeof(HashmapEntry*) * (1 << hashmap->capacity_log2));
+  hashmap->capacity_log2 += 1;
+  for (int i = 0; i < hashmap->capacity_log2; i++) {
+    for (int j = 0; j < (1 << i); j ++) {
+      hashmap->segment_table[i][j] = 0;
+    }
   }
   for (HashmapEntry* entry = first_entry; entry != 0; ) {
     HashmapEntry* next_entry = entry->next_entry;
     hashmap_hash_key(key_type, &entry->key, hashmap->capacity_log2);
-    entry->next_entry = *(HashmapEntry**)array_get(&hashmap->entries, entry->key.h, sizeof(HashmapEntry*));
-    array_set(&hashmap->entries, entry->key.h, &entry, sizeof(HashmapEntry*));
+    void* elem_slot;
+    array_elem_at_i((void**)hashmap->segment_table, entry->key.h, &elem_slot, sizeof(HashmapEntry*));
+    entry->next_entry = *(HashmapEntry**)elem_slot;
+    *(HashmapEntry**)elem_slot = entry;
     entry = next_entry;
   }
   hashmap_hash_key(key_type, key, hashmap->capacity_log2);
@@ -154,7 +165,9 @@ hashmap_grow(Hashmap* hashmap, Arena* storage, HashmapKey* key, enum HashmapKeyT
 HashmapEntry*
 hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key, enum HashmapKeyType key_type)
 {
-  HashmapEntry* entry = *(HashmapEntry**)array_get(&hashmap->entries, key->h, sizeof(HashmapEntry*));
+  void* elem_slot;
+  array_elem_at_i((void**)hashmap->segment_table, key->h, &elem_slot, sizeof(HashmapEntry*));
+  HashmapEntry* entry = *(HashmapEntry**)elem_slot;
   while (entry) {
     if (key_equal(key_type, &entry->key, key)) {
       break;
@@ -199,8 +212,10 @@ hashmap_get_entry(Hashmap* hashmap, Arena* storage, int value_size,
   }
   entry = arena_malloc(storage, sizeof(HashmapEntry) + value_size);
   entry->key = *key;
-  entry->next_entry = *(HashmapEntry**)array_get(&hashmap->entries, key->h, sizeof(HashmapEntry*));
-  array_set(&hashmap->entries, key->h, &entry, sizeof(HashmapEntry*));
+  void* elem_slot;
+  array_elem_at_i((void**)hashmap->segment_table, key->h, &elem_slot, sizeof(HashmapEntry*));
+  entry->next_entry = *(HashmapEntry**)elem_slot;
+  *(HashmapEntry**)elem_slot = entry;
   hashmap->entry_count += 1;
   return entry;
 }
@@ -268,8 +283,10 @@ hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap)
     }
   }
   cursor->i++;
-  while (cursor->i < hashmap->entries.elem_count) {
-    entry = *(HashmapEntry**)array_get(&hashmap->entries, cursor->i, sizeof(HashmapEntry*));
+  while (cursor->i < (1 << hashmap->capacity_log2) - 1) {
+    void* elem_slot;
+    array_elem_at_i((void**)hashmap->segment_table, cursor->i, &elem_slot, sizeof(HashmapEntry*));
+    entry = *(HashmapEntry**)elem_slot;
     if (entry) {
       cursor->entry = entry;
       break;
@@ -290,7 +307,9 @@ void
 Debug_hashmap_occupancy(Hashmap* hashmap)
 {
   for (int i = 0; i < (1 << hashmap->capacity_log2) - 1; i++) {
-    HashmapEntry* entry = *(HashmapEntry**)array_get(&hashmap->entries, i, sizeof(HashmapEntry*));
+    void* elem_slot;
+    array_elem_at_i((void**)hashmap->segment_table, i, &elem_slot, sizeof(HashmapEntry*));
+    HashmapEntry* entry = *(HashmapEntry**)elem_slot;
     int entry_count = 0;
     if (entry) {
       while (entry) {

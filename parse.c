@@ -3682,7 +3682,6 @@ parse_program(UnboundedArray* _tokens, Scope** _root_scope, Arena* _storage)
   };
   struct Keyword keywords[] = {
     {"action",  TK_ACTION},
-    {"action",  TK_ACTION},
     {"actions", TK_ACTIONS},
     {"entries", TK_ENTRIES},
     {"enum",    TK_ENUM},

@@ -42,9 +42,9 @@ void* arena_malloc(Arena* arena, uint32_t size);
 void  arena_free(Arena* arena);
 
 typedef struct UnboundedArray {
-  int segment_count;
   int elem_count;
   int capacity;
+  int segment_count;
   void** segment_table;
 } UnboundedArray;
 
@@ -53,6 +53,7 @@ void  array_extend(UnboundedArray* array, Arena* storage, int elem_size);
 void* array_get(UnboundedArray* array, int i, int elem_size);
 void* array_set(UnboundedArray* array, int i, void* elem, int elem_size);
 void* array_append(UnboundedArray* array, Arena* storage, void* elem, int elem_size);
+void  array_elem_at_i(void* segment_table[], int i, void** elem_slot, int elem_size);
 
 enum HashmapKeyType {
   HKEY_NONE = 0,
@@ -77,9 +78,10 @@ typedef struct HashmapEntry {
 } HashmapEntry;
 
 typedef struct Hashmap {
-  UnboundedArray entries;
-  int capacity_log2;
   int entry_count;
+  int capacity_log2;
+  int segment_count;
+  HashmapEntry*** segment_table;
 } Hashmap;
 
 typedef struct HashmapCursor {
