@@ -70,30 +70,25 @@ key_equal(enum HashmapKeyType key_type, HashmapKey* key_A, HashmapKey* key_B)
 }
 
 Hashmap*
-hashmap_create(Arena* storage, int capacity, int max_capacity)
+hashmap_create(Arena* storage, int max_capacity)
 {
-  assert(capacity >= 16 && max_capacity >= capacity);
+  assert(max_capacity >= 16);
   int segment_count = ceil_log2(max_capacity/16 + 1);
   Hashmap* hashmap = arena_malloc(storage, sizeof(Hashmap) + sizeof(HashmapEntry**) * segment_count);
-  hashmap_init(hashmap, storage, capacity, segment_count);
+  hashmap_init(hashmap, storage, segment_count);
   return hashmap;
 }
 
 void
-hashmap_init(Hashmap* hashmap, Arena* storage, int capacity, int segment_count)
+hashmap_init(Hashmap* hashmap, Arena* storage, int segment_count)
 {
-  assert(capacity >= 16);
   assert(segment_count >= 1);
   hashmap->entry_count = 0;
-  hashmap->capacity = capacity;
+  hashmap->capacity = 16;
   hashmap->segment_count = segment_count;
-  int last_segment = floor_log2(capacity/16);
-  for (int i = 0; i <= last_segment; i++) {
-    int segment_capacity = 16 * (1 << i);
-    hashmap->segment_table[i] = arena_malloc(storage, sizeof(HashmapEntry*) * segment_capacity);
-    for (int j = 0; j < segment_capacity; j ++) {
-      hashmap->segment_table[i][j] = 0;
-    }
+  hashmap->segment_table[0] = arena_malloc(storage, sizeof(HashmapEntry*) * 16);
+  for (int j = 0; j < 16; j ++) {
+    hashmap->segment_table[0][j] = 0;
   }
 }
 

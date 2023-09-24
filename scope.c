@@ -4,12 +4,12 @@
 #include "frontend.h"
 
 Scope*
-scope_create(Arena* storage, int capacity, int max_capacity)
+scope_create(Arena* storage, int max_capacity)
 {
-  assert(capacity >= 16 && max_capacity >= capacity);
+  assert(max_capacity >= 16);
   int segment_count = ceil_log2(max_capacity/16 + 1);
   Scope* scope = arena_malloc(storage, sizeof(Scope) + sizeof(HashmapEntry**) * segment_count);
-  hashmap_init(&scope->name_table, storage, capacity, segment_count);
+  hashmap_init(&scope->name_table, storage, segment_count);
   return scope;
 }
 

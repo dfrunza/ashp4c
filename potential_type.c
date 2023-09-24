@@ -1341,7 +1341,7 @@ pass_potential_types(Ast* ast, Scope* _root_scope,
   root_scope = _root_scope;
   scope_map = _scope_map;
   type_table = _type_table;
-  potential_types = hashmap_create(storage, 16, 1008);
+  potential_types = hashmap_create(storage, 1008);
   visit_p4program(ast);
   return potential_types;
 }

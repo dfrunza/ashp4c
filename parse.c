@@ -555,7 +555,7 @@ parse_p4program()
   while (token->klass == TK_SEMICOLON) {
     next_token(); /* empty declaration */
   }
-  Scope* scope = scope_create(storage, 16, 1008);
+  Scope* scope = scope_create(storage, 1008);
   current_scope = scope_push(scope, current_scope);
   program->p4program.decl_list = parse_declarationList();
   current_scope = scope_pop(current_scope);
@@ -3671,7 +3671,7 @@ parse_program(UnboundedArray* _tokens, Scope** _root_scope, Arena* _storage)
 {
   tokens = _tokens;
   storage = _storage;
-  root_scope = scope_create(storage, 16, 1008);
+  root_scope = scope_create(storage, 1008);
   current_scope = root_scope;
 
   struct Keyword {
