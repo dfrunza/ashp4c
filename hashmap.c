@@ -1,7 +1,7 @@
 #include <memory.h>  /* memset */
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>   /* exit */
+#include <stdlib.h>  /* exit */
 #include <stdarg.h>  /* va_list, va_start, va_end */
 #include <math.h>  /* floor, ceil, log10 */
 #include "foundation.h"
@@ -44,7 +44,7 @@ hash_uint64(uint64_t i, uint32_t m)
   return h;
 }
 
-void
+static void
 hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int m, int capacity)
 {
   if (key_type == HKEY_STRING) {

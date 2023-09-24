@@ -41,14 +41,29 @@ void  reserve_page_memory(int memory_amount);
 void* arena_malloc(Arena* arena, uint32_t size);
 void  arena_free(Arena* arena);
 
+/*
+ * n |  Capacity
+ * 0 => 16
+ * 1 => 48
+ * 2 => 112
+ * 3 => 240
+ * 4 => 496
+ * 5 => 1008
+ * 6 => 2032
+ * 7 => 4080
+ * 8 => 8176
+ * ...
+ * n => 2^(4+n+1) - 16
+ */
+
 typedef struct UnboundedArray {
   int elem_count;
   int capacity;
   int segment_count;
-  void** segment_table;
+  void* segment_table[];
 } UnboundedArray;
 
-void  array_init(UnboundedArray* array, Arena* storage, int elem_size, int max_capacity);
+UnboundedArray* array_create(Arena* storage, int elem_size, int max_capacity);
 void  array_extend(UnboundedArray* array, Arena* storage, int elem_size);
 void* array_get(UnboundedArray* array, int i, int elem_size);
 void* array_set(UnboundedArray* array, int i, void* elem, int elem_size);
@@ -89,7 +104,6 @@ typedef struct HashmapCursor {
   HashmapEntry* entry;
 } HashmapCursor;
 
-void          hashmap_hash_key(enum HashmapKeyType key_type, /* in/out */ HashmapKey* key, int m, int capacity);
 void          hashmap_init(Hashmap* hashmap, Arena* storage, int capacity, int max_capacity);
 HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key, enum HashmapKeyType key_type);
 void*         hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
