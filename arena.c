@@ -33,17 +33,17 @@ reserve_page_memory(int memory_amount)
     exit(1);
   }
   first_block = page_memory_start;
-  memset(first_block, 0, sizeof(*first_block));
+  memset(first_block, 0, sizeof(PageBlock));
   first_block->memory_begin = (uint8_t*)page_memory_start;
   first_block->memory_end = first_block->memory_begin + (1 * page_size);
 
   block_freelist_head = first_block + 1;
-  memset(block_freelist_head, 0, sizeof(*block_freelist_head));
+  memset(block_freelist_head, 0, sizeof(PageBlock));
   block_freelist_head->memory_begin = first_block->memory_end;
   block_freelist_head->memory_end = block_freelist_head->memory_begin + ((total_page_count - 1) * page_size);
 
   storage.owned_pages = first_block;
-  storage.memory_avail = first_block->memory_begin + sizeof(*first_block) + sizeof(*block_freelist_head);
+  storage.memory_avail = first_block->memory_begin + 2*sizeof(PageBlock);
   storage.memory_limit = first_block->memory_end;
 }
 
@@ -65,7 +65,7 @@ find_block_first_fit(int requested_memory_amount)
 static void
 recycle_block_struct(PageBlock* block)
 {
-  memset(block, 0, sizeof(*block));
+  memset(block, 0, sizeof(PageBlock));
   block->next_block = recycled_block_structs;
   recycled_block_structs = block;
 }
@@ -148,9 +148,9 @@ get_new_block_struct()
   if (block) {
     recycled_block_structs = block->next_block;
   } else {
-    block = arena_malloc(&storage, sizeof(*block));
+    block = arena_malloc(&storage, sizeof(PageBlock));
   }
-  memset(block, 0, sizeof(*block));
+  memset(block, 0, sizeof(PageBlock));
   return block;
 }
 
@@ -219,6 +219,6 @@ arena_free(Arena* arena)
     block_freelist_head = block_insert_and_coalesce(block_freelist_head, p);
     p = next_block;
   }
-  memset(arena, 0, sizeof(*arena));
+  memset(arena, 0, sizeof(Arena));
 }
 

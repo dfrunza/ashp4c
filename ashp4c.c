@@ -77,7 +77,7 @@ parse_cmdline_args(int arg_count, char* args[])
   CmdlineArg* prev_arg = &sentinel_arg;
   int i = 1;
   while (i < arg_count) {
-    CmdlineArg* cmdline_arg = arena_malloc(&main_storage, sizeof(*cmdline_arg));
+    CmdlineArg* cmdline_arg = arena_malloc(&main_storage, sizeof(CmdlineArg));
     if (cstr_start_with(args[i], "--")) {
       char* raw_arg = args[i] + 2;  /* skip the `--` prefix */
       cmdline_arg->name = raw_arg;

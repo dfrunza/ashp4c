@@ -156,7 +156,7 @@ token_install_integer(Token* token, Lexeme* lexeme, int base)
 static void
 next_token(Token* token)
 {
-  memset(token, 0, sizeof(*token));
+  memset(token, 0, sizeof(Token));
   state = 1;
   while (state) {
     char c = char_lookahead(0);
