@@ -2,12 +2,13 @@
 #include <stdint.h>
 #include "foundation.h"
 #include "frontend.h"
+#include <math.h>  /* floor, ceil, log2 */
 
 Scope*
 scope_create(Arena* storage, int max_capacity)
 {
   assert(max_capacity >= 16);
-  int segment_count = ceil_log2(max_capacity/16 + 1);
+  int segment_count = ceil(log2(max_capacity/16 + 1));
   Scope* scope = arena_malloc(storage, sizeof(Scope) + sizeof(HashmapEntry**) * segment_count);
   hashmap_init(&scope->name_table, storage, segment_count);
   return scope;

@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>  /* exit */
 #include <stdarg.h>  /* va_list, va_start, va_end */
-#include <math.h>  /* floor, ceil, log10 */
+#include <math.h>  /* floor, ceil, log2 */
 #include "foundation.h"
 
 static const uint32_t P = 257, Q = 4294967029;
@@ -73,7 +73,7 @@ Hashmap*
 hashmap_create(Arena* storage, int max_capacity)
 {
   assert(max_capacity >= 16);
-  int segment_count = ceil_log2(max_capacity/16 + 1);
+  int segment_count = ceil(log2(max_capacity/16 + 1));
   Hashmap* hashmap = arena_malloc(storage, sizeof(Hashmap) + sizeof(HashmapEntry**) * segment_count);
   hashmap_init(hashmap, storage, segment_count);
   return hashmap;
@@ -96,7 +96,7 @@ hashmap_init(Hashmap* hashmap, Arena* storage, int segment_count)
 static void
 hashmap_grow(Hashmap* hashmap, Arena* storage, HashmapKey* key, enum HashmapKeyType key_type)
 {
-  int last_segment = floor_log2(hashmap->capacity/16 + 1);
+  int last_segment = floor(log2(hashmap->capacity/16 + 1));
   if (last_segment >= hashmap->entries.segment_count) {
     printf("\nMaximum capacity has been reached.\n");
     exit(1);
@@ -151,7 +151,7 @@ hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key, enum HashmapKeyType key_
 void*
 hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
 {
-  int last_segment = floor_log2(hashmap->capacity/16);
+  int last_segment = floor(log2(hashmap->capacity/16));
   va_list args;
   va_start(args, key_type);
   HashmapKey key = {};
@@ -195,7 +195,7 @@ void*
 hashmap_get(Hashmap* hashmap, Arena* storage, int value_size, enum HashmapKeyType key_type, ...)
 {
   assert(value_size > 0);
-  int last_segment = floor_log2(hashmap->capacity/16);
+  int last_segment = floor(log2(hashmap->capacity/16));
   va_list args;
   va_start(args, key_type);
   HashmapKey key = {};
@@ -218,7 +218,7 @@ void
 hashmap_set(Hashmap* hashmap, Arena* storage, void* value, int value_size, enum HashmapKeyType key_type, ...)
 {
   assert(value_size > 0);
-  int last_segment = floor_log2(hashmap->capacity/16);
+  int last_segment = floor(log2(hashmap->capacity/16));
   va_list args;
   va_start(args, key_type);
   HashmapKey key = {};

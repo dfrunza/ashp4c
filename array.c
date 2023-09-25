@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>   /* exit */
+#include <math.h>  /* floor, ceil, log2 */
 #include "foundation.h"
 
 void
@@ -9,7 +10,7 @@ array_extend(UnboundedArray* array, Arena* storage, int elem_size)
 {
   assert(elem_size > 0);
   assert(array->elem_count >= array->capacity);
-  int last_segment = floor_log2(array->capacity/16 + 1);
+  int last_segment = floor(log2(array->capacity/16 + 1));
   if (last_segment >= array->data.segment_count) {
     printf("\nMaximum capacity has been reached.\n");
     exit(1);
@@ -24,7 +25,7 @@ array_create(Arena* storage, int elem_size, int max_capacity)
 {
   assert(elem_size > 0);
   assert(max_capacity >= 16);
-  int segment_count = ceil_log2(max_capacity/16 + 1);
+  int segment_count = ceil(log2(max_capacity/16 + 1));
   UnboundedArray* array = arena_malloc(storage, sizeof(UnboundedArray) + sizeof(void*) * segment_count);
   array_init(array, storage, elem_size, segment_count);
   return array;
@@ -45,7 +46,7 @@ void*
 array_elem_at_i(SegmentTable* data, int i, int elem_size)
 {
   assert(elem_size > 0);
-  int segment_index = floor_log2(i/16 + 1);
+  int segment_index = floor(log2(i/16 + 1));
   int elem_offset = i - 16 * ((1 << segment_index) - 1);
   void* elem_slot = data->segments[segment_index] + elem_offset * elem_size;
   return elem_slot;
