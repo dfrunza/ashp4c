@@ -82,13 +82,10 @@ enum HashmapKeyType {
   HKEY_UINT64,
 };
 
-typedef struct HashmapKey {
-  uint32_t h;
-  union {
-    char*    str_key;
-    uint32_t u32_key;
-    uint64_t u64_key;
-  };
+typedef union HashmapKey {
+  char*    str_key;
+  uint32_t u32_key;
+  uint64_t u64_key;
 } HashmapKey;
 
 typedef struct HashmapEntry {
@@ -110,7 +107,7 @@ typedef struct HashmapCursor {
 
 Hashmap*      hashmap_create(Arena* storage, int max_capacity);
 void          hashmap_init(Hashmap* hashmap, Arena* storage, int segment_count);
-HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key, enum HashmapKeyType key_type);
+HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, int h, HashmapKey* key, enum HashmapKeyType key_type);
 void*         hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
 HashmapEntry* hashmap_get_entry(Hashmap* hashmap, Arena* storage, int value_size,
                   HashmapKey* key, enum HashmapKeyType key_type);

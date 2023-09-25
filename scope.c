@@ -34,10 +34,8 @@ scope_lookup_any(Scope* scope, char* strname)
   NameEntry* name_entry = 0;
   while (scope) {
     name_entry = hashmap_lookup(&scope->name_table, HKEY_STRING, strname);
-    if (name_entry) {
-      if (name_entry->ns[NS_TYPE] || name_entry->ns[NS_VAR] || name_entry->ns[NS_KEYWORD]) {
-        break;
-      }
+    if (name_entry && (name_entry->ns[NS_TYPE] || name_entry->ns[NS_VAR] || name_entry->ns[NS_KEYWORD])) {
+      break;
     }
     name_entry = 0;
     scope = scope->parent_scope;
@@ -51,10 +49,8 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
   NameEntry* name_entry = 0;
   while (scope) {
     name_entry = hashmap_lookup(&scope->name_table, HKEY_STRING, strname);
-    if (name_entry) {
-      if (name_entry->ns[ns]) {
-          break;
-      }
+    if (name_entry && name_entry->ns[ns]) {
+      break;
     }
     name_entry = 0;
     scope = scope->parent_scope;
