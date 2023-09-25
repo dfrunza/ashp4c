@@ -839,7 +839,7 @@ typedef struct Ast {
     } dontcare;
 
     struct {
-    } _default;
+    } default_;
   };
 } Ast;
 

@@ -144,7 +144,7 @@ static void visit_indexExpression(Ast* index_expr);
 static void visit_booleanLiteral(Ast* bool_literal);
 static void visit_integerLiteral(Ast* int_literal);
 static void visit_stringLiteral(Ast* str_literal);
-static void visit_default(Ast* _default);
+static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 /** PROGRAM **/
@@ -1322,9 +1322,9 @@ visit_stringLiteral(Ast* str_literal)
 }
 
 static void
-visit_default(Ast* _default)
+visit_default(Ast* default_)
 {
-  assert(_default->kind == AST_default);
+  assert(default_->kind == AST_default);
 }
 
 static void
