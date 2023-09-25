@@ -1483,14 +1483,14 @@ visit_dontcare(Ast* dontcare)
 
 void
 pass_name_decl(Ast* ast, Scope* root_scope,
-      Hashmap** _scope_map, Hashmap** _field_map, Arena* _storage)
+      Hashmap** scope_map_, Hashmap** field_map_, Arena* storage_)
 {
-  storage = _storage;
+  storage = storage_;
   scope_map = hashmap_create(storage, 1008);
   field_map = hashmap_create(storage, 1008);
   current_scope = root_scope;
   visit_p4program(ast);
   assert(current_scope == root_scope);
-  *_scope_map = scope_map;
-  *_field_map = field_map;
+  *scope_map_ = scope_map;
+  *field_map_ = field_map;
 }

@@ -1334,13 +1334,13 @@ visit_dontcare(Ast* dontcare)
 }
 
 Hashmap*
-pass_potential_types(Ast* ast, Scope* _root_scope, 
-    Hashmap* _scope_map, Hashmap* _type_table, Arena* _storage)
+pass_potential_types(Ast* ast, Scope* root_scope_,
+    Hashmap* scope_map_, Hashmap* type_table_, Arena* storage_)
 {
-  storage = _storage;
-  root_scope = _root_scope;
-  scope_map = _scope_map;
-  type_table = _type_table;
+  storage = storage_;
+  root_scope = root_scope_;
+  scope_map = scope_map_;
+  type_table = type_table_;
   potential_types = hashmap_create(storage, 1008);
   visit_p4program(ast);
   return potential_types;

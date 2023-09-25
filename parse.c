@@ -3667,10 +3667,10 @@ parse_string()
 }
 
 Ast*
-parse_program(UnboundedArray* _tokens, Scope** _root_scope, Arena* _storage)
+parse_program(UnboundedArray* tokens_, Scope** root_scope_, Arena* storage_)
 {
-  tokens = _tokens;
-  storage = _storage;
+  tokens = tokens_;
+  storage = storage_;
   root_scope = scope_create(storage, 1008);
   current_scope = root_scope;
 
@@ -3758,6 +3758,6 @@ parse_program(UnboundedArray* _tokens, Scope** _root_scope, Arena* _storage)
   next_token();
   Ast* ast = parse_p4program();
   assert(current_scope == root_scope);
-  *_root_scope = root_scope;
+  *root_scope_ = root_scope;
   return ast;
 }

@@ -1527,9 +1527,9 @@ visit_dontcare(Ast* dontcare)
 }
 
 Hashmap*
-pass_type_decl(Ast* ast, Arena* _storage)
+pass_type_decl(Ast* ast, Arena* storage_)
 {
-  storage = _storage;
+  storage = storage_;
   type_table = hashmap_create(storage, 1008);
 
   struct BuiltinType {

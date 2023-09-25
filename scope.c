@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <math.h>  /* floor, ceil, log2 */
 #include "foundation.h"
 #include "frontend.h"
-#include <math.h>  /* floor, ceil, log2 */
 
 Scope*
 scope_create(Arena* storage, int max_capacity)

@@ -814,9 +814,9 @@ next_token(Token* token)
 }
 
 UnboundedArray*
-tokenize_source_text(SourceText* source_text, Arena* _storage)
+tokenize_source_text(SourceText* source_text, Arena* storage_)
 {
-  storage = _storage;
+  storage = storage_;
   text = source_text->text;
   text_size = source_text->text_size;
 
