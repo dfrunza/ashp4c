@@ -43,24 +43,28 @@ void  arena_free(Arena* arena);
 
 /*
  * n |  Capacity
- * 0 => 16
- * 1 => 48
- * 2 => 112
- * 3 => 240
- * 4 => 496
- * 5 => 1008
- * 6 => 2032
- * 7 => 4080
- * 8 => 8176
+ * 1 => 16
+ * 2 => 48
+ * 3 => 112
+ * 4 => 240
+ * 5 => 496
+ * 6 => 1008
+ * 7 => 2032
+ * 8 => 4080
+ * 9 => 8176
  * ...
- * n => 2^(4+n+1) - 16
+ * n => (2^n - 1)*16
  */
+
+typedef struct SegmentTable {
+  int segment_count;
+  void* segments[];
+} SegmentTable;
 
 typedef struct UnboundedArray {
   int elem_count;
   int capacity;
-  int segment_count;
-  void* segment_table[];
+  SegmentTable data;
 } UnboundedArray;
 
 UnboundedArray* array_create(Arena* storage, int elem_size, int max_capacity);
@@ -69,7 +73,7 @@ void  array_extend(UnboundedArray* array, Arena* storage, int elem_size);
 void* array_get(UnboundedArray* array, int i, int elem_size);
 void* array_set(UnboundedArray* array, int i, void* elem, int elem_size);
 void* array_append(UnboundedArray* array, Arena* storage, void* elem, int elem_size);
-void  array_elem_at_i(void* segment_table[], int i, void** elem_slot, int elem_size);
+void  array_elem_at_i(SegmentTable* data, int i, void** elem_slot, int elem_size);
 
 enum HashmapKeyType {
   HKEY_NONE = 0,
@@ -96,8 +100,7 @@ typedef struct HashmapEntry {
 typedef struct Hashmap {
   int entry_count;
   int capacity;
-  int segment_count;
-  HashmapEntry** segment_table[];
+  SegmentTable entries;
 } Hashmap;
 
 typedef struct HashmapCursor {
