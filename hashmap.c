@@ -126,10 +126,9 @@ hashmap_grow(Hashmap* hashmap, Arena* storage, HashmapKey* key, enum HashmapKeyT
   for (HashmapEntry* entry = first_entry; entry != 0; ) {
     HashmapEntry* next_entry = entry->next_entry;
     hashmap_hash_key(key_type, &entry->key, 4 + (last_segment + 1), hashmap->capacity);
-    void* elem_slot;
-    array_elem_at_i(&hashmap->entries, entry->key.h, &elem_slot, sizeof(HashmapEntry*));
-    entry->next_entry = *(HashmapEntry**)elem_slot;
-    *(HashmapEntry**)elem_slot = entry;
+    HashmapEntry** entry_slot = array_elem_at_i(&hashmap->entries, entry->key.h, sizeof(HashmapEntry*));
+    entry->next_entry = *entry_slot;
+    *entry_slot = entry;
     entry = next_entry;
   }
   hashmap_hash_key(key_type, key, 4 + (last_segment + 1), hashmap->capacity);
@@ -138,9 +137,8 @@ hashmap_grow(Hashmap* hashmap, Arena* storage, HashmapKey* key, enum HashmapKeyT
 HashmapEntry*
 hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key, enum HashmapKeyType key_type)
 {
-  void* elem_slot;
-  array_elem_at_i(&hashmap->entries, key->h, &elem_slot, sizeof(HashmapEntry*));
-  HashmapEntry* entry = *(HashmapEntry**)elem_slot;
+  HashmapEntry** entry_slot = array_elem_at_i(&hashmap->entries, key->h, sizeof(HashmapEntry*));
+  HashmapEntry* entry = *entry_slot;
   while (entry) {
     if (key_equal(key_type, &entry->key, key)) {
       break;
@@ -186,10 +184,9 @@ hashmap_get_entry(Hashmap* hashmap, Arena* storage, int value_size,
   }
   entry = arena_malloc(storage, sizeof(HashmapEntry) + value_size);
   entry->key = *key;
-  void* elem_slot;
-  array_elem_at_i(&hashmap->entries, key->h, &elem_slot, sizeof(HashmapEntry*));
-  entry->next_entry = *(HashmapEntry**)elem_slot;
-  *(HashmapEntry**)elem_slot = entry;
+  HashmapEntry** elem_slot = array_elem_at_i(&hashmap->entries, key->h, sizeof(HashmapEntry*));
+  entry->next_entry = *elem_slot;
+  *elem_slot = entry;
   hashmap->entry_count += 1;
   return entry;
 }
@@ -260,9 +257,8 @@ hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap)
   }
   cursor->i++;
   while (cursor->i < hashmap->capacity) {
-    void* elem_slot;
-    array_elem_at_i(&hashmap->entries, cursor->i, &elem_slot, sizeof(HashmapEntry*));
-    entry = *(HashmapEntry**)elem_slot;
+    HashmapEntry** entry_slot = array_elem_at_i(&hashmap->entries, cursor->i, sizeof(HashmapEntry*));
+    entry = *entry_slot;
     if (entry) {
       cursor->entry = entry;
       break;
@@ -283,9 +279,8 @@ void
 Debug_hashmap_occupancy(Hashmap* hashmap)
 {
   for (int i = 0; i < hashmap->capacity; i++) {
-    void* elem_slot;
-    array_elem_at_i(&hashmap->entries, i, &elem_slot, sizeof(HashmapEntry*));
-    HashmapEntry* entry = *(HashmapEntry**)elem_slot;
+    HashmapEntry** entry_slot = array_elem_at_i(&hashmap->entries, i, sizeof(HashmapEntry*));
+    HashmapEntry* entry = *entry_slot;
     int entry_count = 0;
     if (entry) {
       while (entry) {

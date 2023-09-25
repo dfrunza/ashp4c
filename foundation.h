@@ -73,7 +73,7 @@ void  array_extend(UnboundedArray* array, Arena* storage, int elem_size);
 void* array_get(UnboundedArray* array, int i, int elem_size);
 void* array_set(UnboundedArray* array, int i, void* elem, int elem_size);
 void* array_append(UnboundedArray* array, Arena* storage, void* elem, int elem_size);
-void  array_elem_at_i(SegmentTable* data, int i, void** elem_slot, int elem_size);
+void* array_elem_at_i(SegmentTable* data, int i, int elem_size);
 
 enum HashmapKeyType {
   HKEY_NONE = 0,
