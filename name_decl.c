@@ -152,7 +152,7 @@ static void
 visit_p4program(Ast* p4program)
 {
   assert(p4program->kind == AST_p4program);
-  Scope* scope = scope_create(storage, 496);
+  Scope* scope = scope_create(storage, 240);
   current_scope = scope_push(scope, current_scope);
   visit_declarationList(p4program->p4program.decl_list);
   current_scope = scope_pop(current_scope);
@@ -241,7 +241,7 @@ visit_packageTypeDeclaration(Ast* type_decl)
   namedecl->strname = name->name.strname;
   namedecl->ast = type_decl;
   scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
-  Scope* scope = scope_create(storage, 496);
+  Scope* scope = scope_create(storage, 48);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->packageTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->packageTypeDeclaration.type_params);
@@ -289,7 +289,7 @@ visit_parserTypeDeclaration(Ast* type_decl)
   namedecl->strname = name->name.strname;
   namedecl->ast = type_decl;
   scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
-  Scope* scope = scope_create(storage, 496);
+  Scope* scope = scope_create(storage, 48);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->parserTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->parserTypeDeclaration.type_params);
@@ -340,7 +340,7 @@ visit_parserState(Ast* state)
   namedecl->strname = name->name.strname;
   namedecl->ast = state;
   scope_push_decl(current_scope, storage, namedecl, NS_VAR);
-  Scope* scope = scope_create(storage, 496);
+  Scope* scope = scope_create(storage, 240);
   current_scope = scope_push(scope, current_scope);
   visit_parserStatements(state->parserState.stmt_list);
   visit_transitionStatement(state->parserState.transition_stmt);
@@ -368,7 +368,7 @@ visit_parserStatement(Ast* stmt)
   } else if (stmt->parserStatement.stmt->kind == AST_directApplication) {
     visit_directApplication(stmt->parserStatement.stmt);
   } else if (stmt->parserStatement.stmt->kind == AST_parserBlockStatement) {
-    Scope* scope = scope_create(storage, 496);
+    Scope* scope = scope_create(storage, 240);
     current_scope = scope_push(scope, current_scope);
     visit_parserBlockStatement(stmt->parserStatement.stmt);
     current_scope = scope_pop(current_scope);
@@ -495,7 +495,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
   namedecl->strname = name->name.strname;
   namedecl->ast = type_decl;
   scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
-  Scope* scope = scope_create(storage, 496);
+  Scope* scope = scope_create(storage, 48);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->controlTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->controlTypeDeclaration.type_params);
@@ -554,7 +554,7 @@ visit_externTypeDeclaration(Ast* type_decl)
   namedecl->strname = name->name.strname;
   namedecl->ast = type_decl;
   scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
-  Scope* scope = scope_create(storage, 496);
+  Scope* scope = scope_create(storage, 48);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->externTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->externTypeDeclaration.type_params);
@@ -585,7 +585,7 @@ visit_functionPrototype(Ast* func_proto)
   namedecl->strname = name->name.strname;
   namedecl->ast = func_proto;
   scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
-  Scope* scope = scope_create(storage, 496);
+  Scope* scope = scope_create(storage, 48);
   current_scope = scope_push(scope, current_scope);
   if (func_proto->functionPrototype.type_params) {
     visit_typeParameterList(func_proto->functionPrototype.type_params);
@@ -1052,7 +1052,7 @@ visit_statement(Ast* stmt)
   } else if (stmt->statement.stmt->kind == AST_emptyStatement) {
     ;
   } else if (stmt->statement.stmt->kind == AST_blockStatement) {
-    Scope* scope = scope_create(storage, 496);
+    Scope* scope = scope_create(storage, 240);
     current_scope = scope_push(scope, current_scope);
     visit_blockStatement(stmt->statement.stmt);
     current_scope = scope_pop(current_scope);
@@ -1273,7 +1273,7 @@ visit_actionDeclaration(Ast* action_decl)
   namedecl->strname = name->name.strname;
   namedecl->ast = action_decl;
   scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
-  Scope* scope = scope_create(storage, 496);
+  Scope* scope = scope_create(storage, 48);
   current_scope = scope_push(scope, current_scope);
   visit_parameterList(action_decl->actionDeclaration.params);
   visit_blockStatement(action_decl->actionDeclaration.stmt);
