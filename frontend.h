@@ -907,63 +907,41 @@ enum TypeEnum {
 typedef struct Type {
   enum TypeEnum ctor;
   char* strname;
-} Type;
 
-typedef struct Type_Basic {
-  Type;
-} Type_Basic;
-
-typedef struct Type_TypeVar {
-  Type;
-} Type_TypeVar;
-
-typedef struct Type_Typedef {
-  Type;
-  Type* referred_ty;
-} Type_Typedef;
-
-typedef struct Type_Product {
-  Type;
-  Type* lhs_ty;
-  Type* rhs_ty;
-} Type_Product;
-
-typedef struct Type_Union {
-  Type;
-  Type* lhs_ty;
-  Type* rhs_ty;
-} Type_Union;
-
-typedef struct Type_Function {
-  Type;
-  Type* params_ty;
-  Type* return_ty;
-} Type_Function;
-
-typedef struct Type_Array {
-  Type;
-  Type* element_ty;
-} Type_Array;
-
-typedef struct Type_Generic {
-  Type;
-  Type* referred_ty;
-  Type* args_ty;
-} Type_Generic;
-
-typedef union Type_Unresolved {
-  Type;
-
-  /* Placeholders */
   union {
-    Type_Basic     _basic;
-    Type_TypeVar   _typevar;
-    Type_Typedef   _typedef;
-    Type_Product   _product;
-    Type_Union     _union;
-    Type_Function  _function;
-    Type_Array     _array;
-    Type_Generic   _generic;
+    struct {
+    } basic;
+
+    struct {
+    } typevar;
+
+    struct {
+      struct Type* referred_ty;
+    } typedef_;
+
+    struct {
+      struct Type* lhs_ty;
+      struct Type* rhs_ty;
+    } product;
+
+    struct {
+      struct Type* lhs_ty;
+      struct Type* rhs_ty;
+    } union_;
+
+    struct {
+      struct Type* params_ty;
+      struct Type* return_ty;
+    } function;
+
+    struct {
+      struct Type* element_ty;
+    } array;
+
+    struct {
+      struct Type* referred_ty;
+      struct Type* args_ty;
+    } generic;
   };
-} Type_Unresolved;
+} Type;
 
