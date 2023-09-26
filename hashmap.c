@@ -136,8 +136,10 @@ hashmap_grow(Hashmap* hashmap, Arena* storage, HashmapKey* key, enum HashmapKeyT
 }
 
 HashmapEntry*
-hashmap_lookup_entry(Hashmap* hashmap, int h, HashmapKey* key, enum HashmapKeyType key_type)
+hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key, enum HashmapKeyType key_type)
 {
+  int last_segment = floor(log2(hashmap->capacity/16));
+  int h = hashmap_hash_key(key_type, key, 4 + (last_segment + 1), hashmap->capacity);
   HashmapEntry** entry_slot = array_elem_at_i(&hashmap->entries, h, sizeof(HashmapEntry*));
   HashmapEntry* entry = *entry_slot;
   while (entry) {
@@ -163,9 +165,7 @@ hashmap_lookup(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
     key = (HashmapKey){ .u64_key = va_arg(args, uint64_t) };
   } else assert(0);
   va_end(args);
-  int last_segment = floor(log2(hashmap->capacity/16));
-  int h = hashmap_hash_key(key_type, &key, 4 + (last_segment + 1), hashmap->capacity);
-  HashmapEntry* entry = hashmap_lookup_entry(hashmap, h, &key, key_type);
+  HashmapEntry* entry = hashmap_lookup_entry(hashmap, &key, key_type);
   return entry ? entry->value : 0;
 }
 
@@ -176,7 +176,14 @@ hashmap_get_entry(Hashmap* hashmap, Arena* storage, int value_size,
   assert(value_size > 0);
   int last_segment = floor(log2(hashmap->capacity/16));
   int h = hashmap_hash_key(key_type, key, 4 + (last_segment + 1), hashmap->capacity);
-  HashmapEntry* entry = hashmap_lookup_entry(hashmap, h, key, key_type);
+  HashmapEntry** entry_slot = array_elem_at_i(&hashmap->entries, h, sizeof(HashmapEntry*));
+  HashmapEntry* entry = *entry_slot;
+  while (entry) {
+    if (key_equal(key_type, &entry->key, key)) {
+      break;
+    }
+    entry = entry->next_entry;
+  }
   if (entry) {
     return entry;
   }
@@ -187,9 +194,9 @@ hashmap_get_entry(Hashmap* hashmap, Arena* storage, int value_size,
   }
   entry = arena_malloc(storage, sizeof(HashmapEntry) + value_size);
   entry->key = *key;
-  HashmapEntry** elem_slot = array_elem_at_i(&hashmap->entries, h, sizeof(HashmapEntry*));
-  entry->next_entry = *elem_slot;
-  *elem_slot = entry;
+  entry_slot = array_elem_at_i(&hashmap->entries, h, sizeof(HashmapEntry*));
+  entry->next_entry = *entry_slot;
+  *entry_slot = entry;
   hashmap->entry_count += 1;
   return entry;
 }
