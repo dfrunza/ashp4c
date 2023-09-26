@@ -543,6 +543,105 @@ token_to_binop(Token* token)
   }
 }
 
+Ast*
+parse_program(UnboundedArray* tokens_, Scope** root_scope_, Arena* storage_)
+{
+  struct Keyword {
+    char* strname;
+    enum TokenClass token_class;
+  };
+  struct BuiltinName {
+    char* strname;
+    enum NameSpace ns;
+  };
+
+  struct Keyword keywords[] = {
+    {"action",  TK_ACTION},
+    {"actions", TK_ACTIONS},
+    {"entries", TK_ENTRIES},
+    {"enum",    TK_ENUM},
+    {"in",      TK_IN},
+    {"package", TK_PACKAGE},
+    {"select",  TK_SELECT},
+    {"switch",  TK_SWITCH},
+    {"tuple",   TK_TUPLE},
+    {"control", TK_CONTROL},
+    {"error",   TK_ERROR},
+    {"header",  TK_HEADER},
+    {"inout",   TK_INOUT},
+    {"parser",  TK_PARSER},
+    {"state",   TK_STATE},
+    {"table",   TK_TABLE},
+    {"key",     TK_KEY},
+    {"typedef", TK_TYPEDEF},
+    {"type",    TK_TYPE},
+    {"default", TK_DEFAULT},
+    {"extern",  TK_EXTERN},
+    {"header_union", TK_HEADER_UNION},
+    {"out",     TK_OUT},
+    {"transition", TK_TRANSITION},
+    {"else",    TK_ELSE},
+    {"exit",    TK_EXIT},
+    {"if",      TK_IF},
+    {"match_kind", TK_MATCH_KIND},
+    {"return",  TK_RETURN},
+    {"struct",  TK_STRUCT},
+    {"apply",   TK_APPLY},
+    {"const",   TK_CONST},
+    {"bool",    TK_BOOL},
+    {"true",    TK_TRUE},
+    {"false",   TK_FALSE},
+    {"void",    TK_VOID},
+    {"int",     TK_INT},
+    {"bit",     TK_BIT},
+    {"varbit",  TK_VARBIT},
+    {"string",  TK_STRING},
+  };
+  struct BuiltinName builtin_names[] = {
+    {"bool",   NS_TYPE},
+    {"int",    NS_TYPE},
+    {"bit",    NS_TYPE},
+    {"varbit", NS_TYPE},
+    {"string", NS_TYPE},
+    {"void",   NS_TYPE},
+    {"error",  NS_TYPE},
+    {"match_kind", NS_TYPE},
+    {"accept", NS_VAR},
+    {"reject", NS_VAR},
+  };
+  NameDecl* namedecl;
+  Ast* name, *program;
+
+  tokens = tokens_;
+  storage = storage_;
+  root_scope = scope_create(storage, 1008);
+  current_scope = root_scope;
+
+  for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
+    namedecl = arena_malloc(storage, sizeof(NameDecl));
+    namedecl->strname = keywords[i].strname;
+    namedecl->token_class = keywords[i].token_class;
+    scope_push_decl(current_scope, storage, namedecl, NS_KEYWORD);
+  }
+  for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
+    name = arena_malloc(storage, sizeof(Ast));
+    name->kind = AST_name;
+    name->name.strname = builtin_names[i].strname;
+    namedecl = arena_malloc(storage, sizeof(NameDecl));
+    namedecl->strname = name->name.strname;
+    namedecl->ast = name;
+    scope_push_decl(root_scope, storage, namedecl, builtin_names[i].ns);
+  }
+
+  token_at = 0;
+  token = array_get(tokens, token_at, sizeof(Token));
+  next_token();
+  program = parse_p4program();
+  assert(current_scope == root_scope);
+  *root_scope_ = root_scope;
+  return program;
+}
+
 /** PROGRAM **/
 
 static Ast*
@@ -3664,100 +3763,4 @@ parse_string()
                token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
-}
-
-Ast*
-parse_program(UnboundedArray* tokens_, Scope** root_scope_, Arena* storage_)
-{
-  tokens = tokens_;
-  storage = storage_;
-  root_scope = scope_create(storage, 1008);
-  current_scope = root_scope;
-
-  struct Keyword {
-    char* strname;
-    enum TokenClass token_class;
-  };
-  struct Keyword keywords[] = {
-    {"action",  TK_ACTION},
-    {"actions", TK_ACTIONS},
-    {"entries", TK_ENTRIES},
-    {"enum",    TK_ENUM},
-    {"in",      TK_IN},
-    {"package", TK_PACKAGE},
-    {"select",  TK_SELECT},
-    {"switch",  TK_SWITCH},
-    {"tuple",   TK_TUPLE},
-    {"control", TK_CONTROL},
-    {"error",   TK_ERROR},
-    {"header",  TK_HEADER},
-    {"inout",   TK_INOUT},
-    {"parser",  TK_PARSER},
-    {"state",   TK_STATE},
-    {"table",   TK_TABLE},
-    {"key",     TK_KEY},
-    {"typedef", TK_TYPEDEF},
-    {"type",    TK_TYPE},
-    {"default", TK_DEFAULT},
-    {"extern",  TK_EXTERN},
-    {"header_union", TK_HEADER_UNION},
-    {"out",     TK_OUT},
-    {"transition", TK_TRANSITION},
-    {"else",    TK_ELSE},
-    {"exit",    TK_EXIT},
-    {"if",      TK_IF},
-    {"match_kind", TK_MATCH_KIND},
-    {"return",  TK_RETURN},
-    {"struct",  TK_STRUCT},
-    {"apply",   TK_APPLY},
-    {"const",   TK_CONST},
-    {"bool",    TK_BOOL},
-    {"true",    TK_TRUE},
-    {"false",   TK_FALSE},
-    {"void",    TK_VOID},
-    {"int",     TK_INT},
-    {"bit",     TK_BIT},
-    {"varbit",  TK_VARBIT},
-    {"string",  TK_STRING},
-  };
-  for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
-    NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-    namedecl->strname = keywords[i].strname;
-    namedecl->token_class = keywords[i].token_class;
-    scope_push_decl(current_scope, storage, namedecl, NS_KEYWORD);
-  }
-
-  struct BuiltinName {
-    char* strname;
-    enum NameSpace ns;
-  };
-  struct BuiltinName builtin_names[] = {
-    {"bool",   NS_TYPE},
-    {"int",    NS_TYPE},
-    {"bit",    NS_TYPE},
-    {"varbit", NS_TYPE},
-    {"string", NS_TYPE},
-    {"void",   NS_TYPE},
-    {"error",  NS_TYPE},
-    {"match_kind", NS_TYPE},
-    {"accept", NS_VAR},
-    {"reject", NS_VAR},
-  };
-  for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
-    Ast* name = arena_malloc(storage, sizeof(Ast));
-    name->kind = AST_name;
-    name->name.strname = builtin_names[i].strname;
-    NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-    namedecl->strname = name->name.strname;
-    namedecl->ast = name;
-    scope_push_decl(root_scope, storage, namedecl, builtin_names[i].ns);
-  }
-
-  token_at = 0;
-  token = array_get(tokens, token_at, sizeof(Token));
-  next_token();
-  Ast* ast = parse_p4program();
-  assert(current_scope == root_scope);
-  *root_scope_ = root_scope;
-  return ast;
 }

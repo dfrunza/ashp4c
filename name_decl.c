@@ -146,6 +146,20 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
+void
+pass_name_decl(Ast* ast, Scope* root_scope,
+      Hashmap** scope_map_, Hashmap** field_map_, Arena* storage_)
+{
+  storage = storage_;
+  scope_map = hashmap_create(storage, 1008);
+  field_map = hashmap_create(storage, 1008);
+  current_scope = root_scope;
+  visit_p4program(ast);
+  assert(current_scope == root_scope);
+  *scope_map_ = scope_map;
+  *field_map_ = field_map;
+}
+
 /** PROGRAM **/
 
 static void
@@ -1487,18 +1501,4 @@ static void
 visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AST_dontcare);
-}
-
-void
-pass_name_decl(Ast* ast, Scope* root_scope,
-      Hashmap** scope_map_, Hashmap** field_map_, Arena* storage_)
-{
-  storage = storage_;
-  scope_map = hashmap_create(storage, 1008);
-  field_map = hashmap_create(storage, 1008);
-  current_scope = root_scope;
-  visit_p4program(ast);
-  assert(current_scope == root_scope);
-  *scope_map_ = scope_map;
-  *field_map_ = field_map;
 }

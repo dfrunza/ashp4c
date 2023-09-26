@@ -8,8 +8,11 @@ Scope*
 scope_create(Arena* storage, int max_capacity)
 {
   assert(max_capacity >= 16);
-  int segment_count = ceil(log2(max_capacity/16 + 1));
-  Scope* scope = arena_malloc(storage, sizeof(Scope) + sizeof(HashmapEntry**) * segment_count);
+  int segment_count;
+  Scope* scope;
+
+  segment_count = ceil(log2(max_capacity/16 + 1));
+  scope = arena_malloc(storage, sizeof(Scope) + sizeof(HashmapEntry**) * segment_count);
   hashmap_init(&scope->name_table, storage, segment_count);
   return scope;
 }
@@ -32,8 +35,10 @@ NameEntry*
 scope_lookup_any(Scope* scope, char* strname)
 {
   NameEntry* name_entry = 0;
+  HashmapEntry* he;
+
   while (scope) {
-    HashmapEntry* he = hashmap_lookup_entry(&scope->name_table, HKEY_STRING, strname);
+    he = hashmap_lookup_entry(&scope->name_table, HKEY_STRING, strname);
     if (he) {
       name_entry = (NameEntry*)he->value;
       if (name_entry->ns[NS_TYPE] || name_entry->ns[NS_VAR] || name_entry->ns[NS_KEYWORD]) {
@@ -50,8 +55,10 @@ NameEntry*
 scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 {
   NameEntry* name_entry = 0;
+  HashmapEntry* he;
+
   while (scope) {
-    HashmapEntry* he = hashmap_lookup_entry(&scope->name_table, HKEY_STRING, strname);
+    he = hashmap_lookup_entry(&scope->name_table, HKEY_STRING, strname);
     if (he) {
       name_entry = (NameEntry*)he->value;
       if (name_entry->ns[ns]) {
@@ -67,9 +74,12 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 NameEntry*
 scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns)
 {
-  HashmapEntry* he = hashmap_get_entry(&scope->name_table, storage, sizeof(NameEntry),
+  HashmapEntry* he;
+  NameEntry* name_entry;
+
+  he = hashmap_get_entry(&scope->name_table, storage, sizeof(NameEntry),
       HKEY_STRING, decl->strname);
-  NameEntry* name_entry = (NameEntry*)he->value;
+  name_entry = (NameEntry*)he->value;
   decl->next_in_scope = name_entry->ns[ns];
   name_entry->ns[ns] = decl;
   return name_entry;
@@ -80,13 +90,17 @@ Debug_scope_decls(Scope* scope)
 {
   int count = 0;
   HashmapCursor it = {};
+  HashmapEntry* he;
+  NameEntry* name_entry;
+  NameDecl* decl;
+
   hashmap_cursor_begin(&it);
   printf("Names in scope 0x%x\n\n", scope);
-  HashmapEntry* he = hashmap_cursor_next_entry(&it, &scope->name_table);
+  he = hashmap_cursor_next_entry(&it, &scope->name_table);
   while (he) {
-    NameEntry* name_entry = (NameEntry*)he->value;
+    name_entry = (NameEntry*)he->value;
     for (int i = 1; i < NameSpace_COUNT; i++) {
-      NameDecl* decl = name_entry->ns[i];
+      decl = name_entry->ns[i];
       while (decl) {
         if (i == NS_KEYWORD) {
           printf("%s, ns[%d]\n", decl->strname, i);

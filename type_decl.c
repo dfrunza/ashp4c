@@ -145,64 +145,113 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 static Ast*
-name_of_type(Ast* type)
+name_of_type(Ast* ast)
 {
-  if (type->kind == AST_typeRef) {
-    Ast* type_ref = type;
-    return name_of_type(type_ref->typeRef.type);
-  } else if (type->kind == AST_baseTypeBoolean) {
-    Ast* bool_type = type;
-    return bool_type->baseTypeBoolean.name;
-  } else if (type->kind == AST_baseTypeInteger) {
-    Ast* integer_type = type;
-    return integer_type->baseTypeInteger.name;
-  } else if (type->kind == AST_baseTypeBit) {
-    Ast* bit_type = type;
-    return bit_type->baseTypeBit.name;
-  } else if (type->kind == AST_baseTypeVarbit) {
-    Ast* varbit_type = type;
-    return varbit_type->baseTypeVarbit.name;
-  } else if (type->kind == AST_baseTypeString) {
-    Ast* string_type = type;
-    return string_type->baseTypeString.name;
-  } else if (type->kind == AST_baseTypeVoid) {
-    Ast* void_type = type;
-    return void_type->baseTypeVoid.name;
-  } else if (type->kind == AST_baseTypeError) {
-    Ast* error_type = type;
-    return error_type->baseTypeError.name;
-  } else if (type->kind == AST_name) {
-    Ast* name = type;
-    return name;
-  } else if (type->kind == AST_specializedType) {
-    Ast* speclzd_type = type;
-    return speclzd_type->specializedType.name;
-  } else if (type->kind == AST_headerStackType) {
-    Ast* stack_type = type;
-    return stack_type->headerStackType.name;
-  } else if (type->kind == AST_tupleType) {
-    Ast* tuple_type = type;
-    return tuple_type->tupleType.name;
-  } else if (type->kind == AST_derivedTypeDeclaration) {
-    Ast* derived_type = type;
-    return name_of_type(derived_type->derivedTypeDeclaration.decl);
-  } else if (type->kind == AST_structTypeDeclaration) {
-    Ast* struct_type = type;
-    return struct_type->structTypeDeclaration.name;
-  } else if (type->kind == AST_headerTypeDeclaration) {
-    Ast* header_type = type;
-    return header_type->headerTypeDeclaration.name;
-  } else if (type->kind == AST_headerUnionDeclaration) {
-    Ast* union_type = type;
-    return union_type->headerUnionDeclaration.name;
-  } else if (type->kind == AST_enumDeclaration) {
-    Ast* enum_type = type;
-    return enum_type->enumDeclaration.name;
-  } else if (type->kind == AST_dontcare) {
-    Ast* dontcare_type = type;
-    return dontcare_type->dontcare.name;
+  if (ast->kind == AST_parameter) {
+    return name_of_type(ast->parameter.type);
+  } else if (ast->kind == AST_packageTypeDeclaration) {
+    return ast->packageTypeDeclaration.name;
+  } else if (ast->kind == AST_parserTypeDeclaration) {
+    return ast->parserTypeDeclaration.name;
+  } else if (ast->kind == AST_controlTypeDeclaration) {
+    return ast->controlTypeDeclaration.name;
+  } else if (ast->kind == AST_externTypeDeclaration) {
+    return ast->externTypeDeclaration.name;
+  } else if (ast->kind == AST_functionPrototype) {
+    return ast->functionPrototype.name;
+  } else if (ast->kind == AST_tupleType) {
+    return ast->tupleType.name;
+  } else if (ast->kind == AST_headerStackType) {
+    return ast->headerStackType.name;
+  } else if (ast->kind == AST_specializedType) {
+    return ast->specializedType.name;
+  } else if (ast->kind == AST_baseTypeBoolean) {
+    return ast->baseTypeBoolean.name;
+  } else if (ast->kind == AST_baseTypeInteger) {
+    return ast->baseTypeInteger.name;
+  } else if (ast->kind == AST_baseTypeBit) {
+    return ast->baseTypeBit.name;
+  } else if (ast->kind == AST_baseTypeVarbit) {
+    return ast->baseTypeVarbit.name;
+  } else if (ast->kind == AST_baseTypeString) {
+    return ast->baseTypeString.name;
+  } else if (ast->kind == AST_baseTypeVoid) {
+    return ast->baseTypeVoid.name;
+  } else if (ast->kind == AST_baseTypeError) {
+    return ast->baseTypeError.name;
+  } else if (ast->kind == AST_headerTypeDeclaration) {
+    return ast->headerTypeDeclaration.name;
+  } else if (ast->kind == AST_headerUnionDeclaration) {
+    return ast->headerUnionDeclaration.name;
+  } else if (ast->kind == AST_structTypeDeclaration) {
+    return ast->structTypeDeclaration.name;
+  } else if (ast->kind == AST_enumDeclaration) {
+    return ast->enumDeclaration.name;
+  } else if (ast->kind == AST_typedefDeclaration) {
+    return ast->typedefDeclaration.name;
+  } else if (ast->kind == AST_dontcare) {
+    return ast->dontcare.name;
+  } else if (ast->kind == AST_name) {
+    return ast;
+  } else if (ast->kind == AST_typeRef) {
+    return name_of_type(ast->typeRef.type);
+  } else if (ast->kind == AST_derivedTypeDeclaration) {
+    return name_of_type(ast->derivedTypeDeclaration.decl);
   } else assert(0);
   return 0;
+}
+
+Type*
+link_product_types(Ast* lhs_ast, Ast* rhs_ast)
+{
+  HashmapEntry* he;
+  Type* result;
+
+  he = hashmap_lookup_entry(type_table, HKEY_STRING, name_of_type(lhs_ast)->name.strname);
+  result = *(Type**)he->value;
+  return result;
+}
+
+Hashmap*
+pass_type_decl(Ast* ast, Arena* storage_)
+{
+  struct BuiltinType {
+    char* strname;
+    enum TypeEnum type;
+  };
+
+  struct BuiltinType basic_types[] = {
+    {"void",   TYPE_VOID},
+    {"bool",   TYPE_BOOL},
+    {"int",    TYPE_INT},
+    {"bit",    TYPE_BIT},
+    {"varbit", TYPE_VARBIT},
+    {"string", TYPE_STRING},
+    {"error",  TYPE_ERROR},
+    {"match_kind", TYPE_MATCH_KIND},
+  };
+  Type* dontcare_ty, *basic_ty;
+  HashmapEntry* he;
+
+  storage = storage_;
+  type_table = hashmap_create(storage, 1008);
+
+  for (int i = 0; i < sizeof(basic_types)/sizeof(basic_types[0]); i++) {
+    basic_ty = arena_malloc(storage, sizeof(Type));
+    basic_ty->ctor = basic_types[i].type;
+    basic_ty->strname = basic_types[i].strname;
+    he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, basic_ty->strname);
+    *he->value = basic_ty;
+  }
+
+  dontcare_ty = arena_malloc(storage, sizeof(Type));
+  dontcare_ty->ctor = TYPE_TYPEVAR;
+  dontcare_ty->strname = "_";
+  he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, dontcare_ty->strname);
+  *he->value = dontcare_ty;
+
+  visit_p4program(ast);
+  return type_table;
 }
 
 /** PROGRAM **/
@@ -303,15 +352,17 @@ visit_packageTypeDeclaration(Ast* package_decl)
   }
   Ast* params = package_decl->packageTypeDeclaration.params;
   visit_parameterList(params);
-  /* list_init(&package_ty->params_ty); */
   if (params->parameterList.first_child) {
-    Ast* ast = params->parameterList.first_child;
-    for (ast = ast->right_sibling; ast != 0; ast = ast->right_sibling) {
+    Ast* first_child = params->parameterList.first_child;
+    link_product_types(first_child, first_child->right_sibling);
+#if 0
+    for (Ast* ast = first_child->right_sibling; ast != 0; ast = ast->right_sibling) {
       /*
       Ast* param = ast;
       list_append(&package_ty->params_ty, *(Type**)hashmap_lookup(
             type_table, HKEY_STRING, name_of_type(param->type)->strname)); */
     }
+#endif
   }
 }
 
@@ -639,7 +690,7 @@ visit_functionPrototype(Ast* func_proto)
     visit_typeRef(type_ref);
     HashmapEntry* he = hashmap_lookup_entry(type_table, HKEY_STRING,
           name_of_type(type_ref->typeRef.type)->name.strname);
-    func_ty->function.return_ty = *(Type**)he->value;
+    func_ty->function.return_ = *(Type**)he->value;
   }
   if (func_proto->functionPrototype.type_params) {
     visit_typeParameterList(func_proto->functionPrototype.type_params);
@@ -723,7 +774,7 @@ visit_headerStackType(Ast* type_decl)
   Ast* type = type_decl->headerStackType.type;
   visit_typeRef(type);
   he = hashmap_lookup_entry(type_table, HKEY_STRING, name_of_type(type)->name.strname);
-  stack_ty->array.element_ty = *(Type**)he->value;
+  stack_ty->array.element = *(Type**)he->value;
   visit_expression(type_decl->headerStackType.stack_expr);
 }
 
@@ -741,7 +792,7 @@ visit_specializedType(Ast* type_decl)
   Ast* type = type_decl->specializedType.type;
   visit_typeRef(type);
   he = hashmap_lookup_entry(type_table, HKEY_STRING, name_of_type(type)->name.strname);
-  speclzd_ty->generic.referred_ty = *(Type**)he->value;
+  speclzd_ty->generic.referred = *(Type**)he->value;
   Ast* type_args = type_decl->specializedType.type_args;
   visit_typeArgumentList(type_args);
   /* list_init(&speclzd_ty->args_ty, storage, sizeof(Type*)); */
@@ -1053,7 +1104,7 @@ visit_typedefDeclaration(Ast* typedef_decl)
   *he->value = typedef_ty;
   he = hashmap_lookup_entry(type_table, HKEY_STRING,
         name_of_type(typedef_decl->typedefDeclaration.type_ref)->name.strname);
-  typedef_ty->typedef_.referred_ty = *(Type**)he->value;
+  typedef_ty->typedef_.referred = *(Type**)he->value;
 }
 
 /** STATEMENTS **/
@@ -1544,43 +1595,5 @@ static void
 visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AST_dontcare);
-}
-
-Hashmap*
-pass_type_decl(Ast* ast, Arena* storage_)
-{
-  storage = storage_;
-  type_table = hashmap_create(storage, 1008);
-
-  struct BuiltinType {
-    char* strname;
-    enum TypeEnum type;
-  };
-  struct BuiltinType basic_types[] = {
-    {"void",   TYPE_VOID},
-    {"bool",   TYPE_BOOL},
-    {"int",    TYPE_INT},
-    {"bit",    TYPE_BIT},
-    {"varbit", TYPE_VARBIT},
-    {"string", TYPE_STRING},
-    {"error",  TYPE_ERROR},
-    {"match_kind", TYPE_MATCH_KIND},
-  };
-  for (int i = 0; i < sizeof(basic_types)/sizeof(basic_types[0]); i++) {
-    Type* basic_ty = arena_malloc(storage, sizeof(Type));
-    basic_ty->ctor = basic_types[i].type;
-    basic_ty->strname = basic_types[i].strname;
-    HashmapEntry* he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, basic_ty->strname);
-    *he->value = basic_ty;
-  }
-
-  Type* dontcare_ty = arena_malloc(storage, sizeof(Type));
-  dontcare_ty->ctor = TYPE_TYPEVAR;
-  dontcare_ty->strname = "_";
-  HashmapEntry* he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, dontcare_ty->strname);
-  *he->value = dontcare_ty;
-
-  visit_p4program(ast);
-  return type_table;
 }
 

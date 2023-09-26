@@ -900,7 +900,6 @@ enum TypeEnum {
   TYPE_ARRAY,
   TYPE_GENERIC,
 
-  /* Special */
   TYPE_UNRESOLVED,
 };
 
@@ -916,31 +915,31 @@ typedef struct Type {
     } typevar;
 
     struct {
-      struct Type* referred_ty;
+      struct Type* referred;
     } typedef_;
 
     struct {
-      struct Type* lhs_ty;
-      struct Type* rhs_ty;
+      struct Type* lhs;
+      struct Type* rhs;
     } product;
 
     struct {
-      struct Type* lhs_ty;
-      struct Type* rhs_ty;
+      struct Type* lhs;
+      struct Type* rhs;
     } union_;
 
     struct {
-      struct Type* params_ty;
-      struct Type* return_ty;
+      struct Type* params;
+      struct Type* return_;
     } function;
 
     struct {
-      struct Type* element_ty;
+      struct Type* element;
     } array;
 
     struct {
-      struct Type* referred_ty;
-      struct Type* args_ty;
+      struct Type* referred;
+      struct Type* args;
     } generic;
   };
 } Type;

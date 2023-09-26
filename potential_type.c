@@ -147,6 +147,19 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
+Hashmap*
+pass_potential_types(Ast* ast, Scope* root_scope_,
+    Hashmap* scope_map_, Hashmap* type_table_, Arena* storage_)
+{
+  storage = storage_;
+  root_scope = root_scope_;
+  scope_map = scope_map_;
+  type_table = type_table_;
+  potential_types = hashmap_create(storage, 1008);
+  visit_p4program(ast);
+  return potential_types;
+}
+
 /** PROGRAM **/
 
 static void
@@ -1333,15 +1346,3 @@ visit_dontcare(Ast* dontcare)
   assert(dontcare->kind == AST_dontcare);
 }
 
-Hashmap*
-pass_potential_types(Ast* ast, Scope* root_scope_,
-    Hashmap* scope_map_, Hashmap* type_table_, Arena* storage_)
-{
-  storage = storage_;
-  root_scope = root_scope_;
-  scope_map = scope_map_;
-  type_table = type_table_;
-  potential_types = hashmap_create(storage, 1008);
-  visit_p4program(ast);
-  return potential_types;
-}
