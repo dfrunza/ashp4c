@@ -165,8 +165,7 @@ hashmap_lookup_entry(Hashmap* hashmap, enum HashmapKeyType key_type, ...)
   HashmapKey key = {};
   int last_segment;
   int h;
-  HashmapEntry** entry_slot;
-  HashmapEntry* entry;
+  HashmapEntry** entry_slot, *entry;
 
   va_start(args, key_type);
   if (key_type == HKEY_STRING) {
@@ -198,8 +197,7 @@ hashmap_get_entry(Hashmap* hashmap, Arena* storage, int value_size, enum Hashmap
   HashmapKey key = {};
   int last_segment;
   int h;
-  HashmapEntry** entry_slot;
-  HashmapEntry* entry;
+  HashmapEntry** entry_slot, *entry;
 
   va_start(args, key_type);
   if (key_type == HKEY_STRING) {

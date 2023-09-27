@@ -207,14 +207,17 @@ name_of_type(Ast* ast)
 }
 
 static Type*
-link_product_types(Ast* lhs_ast, Ast* rhs_ast)
+link_product_types(Ast* lhs_ast)
 {
+  Ast* rhs_ast;
   HashmapEntry* he;
   Type* result, *lhs_ty;
   int lexeme_len;
 
+  if (!lhs_ast) return 0;
   he = hashmap_lookup_entry(type_table, HKEY_STRING, name_of_type(lhs_ast)->name.strname);
   result = *(Type**)he->value;
+  rhs_ast = lhs_ast->right_sibling;
   if (rhs_ast) {
     lhs_ty = result;
     result = arena_malloc(storage, sizeof(Type));
@@ -223,7 +226,7 @@ link_product_types(Ast* lhs_ast, Ast* rhs_ast)
     lexeme_len = sprintf(result->strname, "ty#%d", ++anontype_id);
     assert(lexeme_len < MAXLEN_ANONTYPE);
     result->product.lhs = lhs_ty;
-    result->product.rhs = link_product_types(rhs_ast, rhs_ast->right_sibling);
+    result->product.rhs = link_product_types(rhs_ast);
   }
   return result;
 }
@@ -366,10 +369,9 @@ static void
 visit_packageTypeDeclaration(Ast* package_decl)
 {
   assert(package_decl->kind == AST_packageTypeDeclaration);
-  Ast* name;
+  Ast* name, *params;
   Type* package_ty;
   HashmapEntry* he;
-  Ast* params, *first_child;
 
   name = package_decl->packageTypeDeclaration.name;
   package_ty = arena_malloc(storage, sizeof(Type));
@@ -382,10 +384,7 @@ visit_packageTypeDeclaration(Ast* package_decl)
   }
   params = package_decl->packageTypeDeclaration.params;
   visit_parameterList(params);
-  if (params->parameterList.first_child) {
-    first_child = params->parameterList.first_child;
-    package_ty->function.params = link_product_types(first_child, first_child->right_sibling);
-  }
+  package_ty->function.params = link_product_types(params->parameterList.first_child);
 }
 
 static void
@@ -414,10 +413,9 @@ static void
 visit_parserTypeDeclaration(Ast* parser_decl)
 {
   assert(parser_decl->kind == AST_parserTypeDeclaration);
-  Ast* name;
+  Ast* name, *params;
   Type* parser_ty;
   HashmapEntry* he;
-  Ast* params, *first_child;
 
   name = parser_decl->parserTypeDeclaration.name;
   parser_ty = arena_malloc(storage, sizeof(Type));
@@ -430,10 +428,7 @@ visit_parserTypeDeclaration(Ast* parser_decl)
   }
   params = parser_decl->parserTypeDeclaration.params;
   visit_parameterList(params);
-  if (params->parameterList.first_child) {
-    first_child = params->parameterList.first_child;
-    parser_ty->function.params = link_product_types(first_child, first_child->right_sibling);
-  }
+  parser_ty->function.params = link_product_types(params->parameterList.first_child);
 }
 
 static void
@@ -621,10 +616,9 @@ static void
 visit_controlTypeDeclaration(Ast* control_decl)
 {
   assert(control_decl->kind == AST_controlTypeDeclaration);
-  Ast* name;
+  Ast* name, *params;
   Type* control_ty;
   HashmapEntry* he;
-  Ast* params, *first_child;
 
   name = control_decl->controlTypeDeclaration.name;
   control_ty = arena_malloc(storage, sizeof(Type));
@@ -637,10 +631,7 @@ visit_controlTypeDeclaration(Ast* control_decl)
   }
   params = control_decl->controlTypeDeclaration.params;
   visit_parameterList(params);
-  if (params->parameterList.first_child) {
-    first_child = params->parameterList.first_child;
-    control_ty->function.params = link_product_types(first_child, first_child->right_sibling);
-  }
+  control_ty->function.params = link_product_types(params->parameterList.first_child);
 }
 
 static void
@@ -719,10 +710,9 @@ static void
 visit_functionPrototype(Ast* func_proto)
 {
   assert(func_proto->kind == AST_functionPrototype);
-  Ast* name, *type_ref;
+  Ast* name, *type_ref, *params;
   Type* func_ty;
   HashmapEntry* he;
-  Ast* params, *first_child;
 
   name = func_proto->functionPrototype.name;
   func_ty = arena_malloc(storage, sizeof(Type));
@@ -742,10 +732,7 @@ visit_functionPrototype(Ast* func_proto)
   }
   params = func_proto->functionPrototype.params;
   visit_parameterList(params);
-  if (params->parameterList.first_child) {
-    first_child = params->parameterList.first_child;
-    func_ty->function.params = link_product_types(first_child, first_child->right_sibling);
-  }
+  func_ty->function.params = link_product_types(params->parameterList.first_child);
 }
 
 /** TYPES **/
@@ -783,10 +770,9 @@ static void
 visit_tupleType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_tupleType);
-  Ast* name;
+  Ast* name, *type_args;
   Type* tuple_ty;
   HashmapEntry* he;
-  Ast* type_args, *first_child;
 
   name = type_decl->tupleType.name;
   tuple_ty = arena_malloc(storage, sizeof(Type));
@@ -796,10 +782,7 @@ visit_tupleType(Ast* type_decl)
   *he->value = tuple_ty;
   type_args = type_decl->tupleType.type_args;
   visit_typeArgumentList(type_args);
-  if (type_args->typeArgumentList.first_child) {
-    first_child = type_args->typeArgumentList.first_child;
-    tuple_ty->tuple.args = link_product_types(first_child, first_child->right_sibling);
-  }
+  tuple_ty->tuple.args = link_product_types(type_args->typeArgumentList.first_child);
 }
 
 static void
@@ -807,8 +790,8 @@ visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
   Ast* name, *type;
-  HashmapEntry* he;
   Type* stack_ty;
+  HashmapEntry* he;
 
   name = type_decl->headerStackType.name;
   stack_ty = arena_malloc(storage, sizeof(Type));
@@ -828,9 +811,8 @@ visit_specializedType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_specializedType);
   HashmapEntry* he;
-  Ast* name, *type;
+  Ast* name, *type, *type_args;
   Type* speclzd_ty;
-  Ast* type_args, *first_child;
 
   name = type_decl->specializedType.name;
   speclzd_ty = arena_malloc(storage, sizeof(Type));
@@ -844,10 +826,7 @@ visit_specializedType(Ast* type_decl)
   speclzd_ty->generic.referred = *(Type**)he->value;
   type_args = type_decl->specializedType.type_args;
   visit_typeArgumentList(type_args);
-  if (type_args->typeArgumentList.first_child) {
-    first_child = type_args->typeArgumentList.first_child;
-    speclzd_ty->generic.args = link_product_types(first_child, first_child->right_sibling);
-  }
+  speclzd_ty->generic.args = link_product_types(type_args->typeArgumentList.first_child);
 }
 
 static void
@@ -1001,10 +980,9 @@ static void
 visit_headerTypeDeclaration(Ast* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
-  Ast* name;
+  Ast* name, *fields;
   Type* header_ty;
   HashmapEntry* he;
-  Ast* fields, *first_child;
 
   name = header_decl->headerTypeDeclaration.name;
   header_ty = arena_malloc(storage, sizeof(Type));
@@ -1014,20 +992,16 @@ visit_headerTypeDeclaration(Ast* header_decl)
   *he->value = header_ty;
   fields = header_decl->headerTypeDeclaration.fields;
   visit_structFieldList(fields);
-  if (fields->structFieldList.first_child) {
-    first_child = fields->structFieldList.first_child;
-    header_ty->struct_.fields = link_product_types(first_child, first_child->right_sibling);
-  }
+  header_ty->struct_.fields = link_product_types(fields->structFieldList.first_child);
 }
 
 static void
 visit_headerUnionDeclaration(Ast* union_decl)
 {
   assert(union_decl->kind == AST_headerUnionDeclaration);
-  Ast* name;
+  Ast* name, *fields;
   Type* union_ty;
   HashmapEntry* he;
-  Ast* fields, *first_child;
 
   name = union_decl->headerUnionDeclaration.name;
   union_ty = arena_malloc(storage, sizeof(Type));
@@ -1037,20 +1011,16 @@ visit_headerUnionDeclaration(Ast* union_decl)
   *he->value = union_ty;
   fields = union_decl->headerUnionDeclaration.fields;
   visit_structFieldList(fields);
-  if (fields->structFieldList.first_child) {
-    first_child = fields->structFieldList.first_child;
-    union_ty->union_.fields = link_product_types(first_child, first_child->right_sibling);
-  }
+  union_ty->union_.fields = link_product_types(fields->structFieldList.first_child);
 }
 
 static void
 visit_structTypeDeclaration(Ast* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
-  Ast* name;
+  Ast* name, *fields;
   Type* struct_ty;
   HashmapEntry* he;
-  Ast* fields, *first_child;
 
   name = struct_decl->structTypeDeclaration.name;
   struct_ty = arena_malloc(storage, sizeof(Type));
@@ -1060,10 +1030,7 @@ visit_structTypeDeclaration(Ast* struct_decl)
   *he->value = struct_ty;
   fields = struct_decl->structTypeDeclaration.fields;
   visit_structFieldList(fields);
-  if (fields->structFieldList.first_child) {
-    first_child = fields->structFieldList.first_child;
-    struct_ty->struct_.fields = link_product_types(first_child, first_child->right_sibling);
-  }
+  struct_ty->struct_.fields = link_product_types(fields->structFieldList.first_child);
 }
 
 static void
@@ -1466,10 +1433,9 @@ static void
 visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AST_actionDeclaration);
-  Ast* name;
+  Ast* name, *params;
   Type* action_ty;
   HashmapEntry* he;
-  Ast* params, *first_child;
 
   name = action_decl->actionDeclaration.name;
   action_ty = arena_malloc(storage, sizeof(Type));
@@ -1479,10 +1445,7 @@ visit_actionDeclaration(Ast* action_decl)
   *he->value = action_decl;
   params = action_decl->actionDeclaration.params;
   visit_parameterList(params);
-  if (params->parameterList.first_child) {
-    first_child = params->parameterList.first_child;
-    action_ty->function.params = link_product_types(first_child, first_child->right_sibling);
-  }
+  action_ty->function.params = link_product_types(params->parameterList.first_child);
   visit_blockStatement(action_decl->actionDeclaration.stmt);
 }
 
