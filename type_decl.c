@@ -159,13 +159,18 @@ name_of_type(Ast* ast)
     return ast->externTypeDeclaration.name;
   } else if (ast->kind == AST_functionPrototype) {
     return ast->functionPrototype.name;
-  } else if (ast->kind == AST_tupleType) {
+  }
+  /*
+  else if (ast->kind == AST_tupleType) {
     return ast->tupleType.name;
-  } else if (ast->kind == AST_headerStackType) {
+  }
+  else if (ast->kind == AST_headerStackType) {
     return ast->headerStackType.name;
   } else if (ast->kind == AST_specializedType) {
     return ast->specializedType.name;
-  } else if (ast->kind == AST_baseTypeBoolean) {
+  }
+  */
+  else if (ast->kind == AST_baseTypeBoolean) {
     return ast->baseTypeBoolean.name;
   } else if (ast->kind == AST_baseTypeInteger) {
     return ast->baseTypeInteger.name;
@@ -201,7 +206,8 @@ name_of_type(Ast* ast)
     return name_of_type(ast->typeRef.type);
   } else if (ast->kind == AST_derivedTypeDeclaration) {
     return name_of_type(ast->derivedTypeDeclaration.decl);
-  } else assert(0);
+  }
+  else assert(0);
   return 0;
 }
 
@@ -762,39 +768,14 @@ static void
 visit_tupleType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_tupleType);
-  Ast* name, *type_args;
-  Type* tuple_ty;
-  HashmapEntry* he;
-
-  name = type_decl->tupleType.name;
-  tuple_ty = arena_malloc(storage, sizeof(Type));
-  tuple_ty->ctor = TYPE_TUPLE;
-  tuple_ty->strname = name->name.strname;
-  he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
-  *he->value = tuple_ty;
-  type_args = type_decl->tupleType.type_args;
-  visit_typeArgumentList(type_args);
-  tuple_ty->tuple.args = link_product_types(type_args->typeArgumentList.first_child);
+  visit_typeArgumentList(type_decl->tupleType.type_args);
 }
 
 static void
 visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
-  Ast* name, *type;
-  Type* stack_ty;
-  HashmapEntry* he;
-
-  name = type_decl->headerStackType.name;
-  stack_ty = arena_malloc(storage, sizeof(Type));
-  stack_ty->ctor = TYPE_HEADER_STACK;
-  stack_ty->strname = name->name.strname;
-  he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
-  *he->value = stack_ty;
-  type = type_decl->headerStackType.type;
-  visit_typeRef(type);
-  he = hashmap_lookup_entry(type_table, HKEY_STRING, name_of_type(type)->name.strname);
-  stack_ty->header_stack.element = *(Type**)he->value;
+  visit_typeRef(type_decl->headerStackType.type);
   visit_expression(type_decl->headerStackType.stack_expr);
 }
 
@@ -802,23 +783,8 @@ static void
 visit_specializedType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_specializedType);
-  HashmapEntry* he;
-  Ast* name, *type, *type_args;
-  Type* speclzd_ty;
-
-  name = type_decl->specializedType.name;
-  speclzd_ty = arena_malloc(storage, sizeof(Type));
-  speclzd_ty->ctor = TYPE_GENERIC;
-  speclzd_ty->strname = name->name.strname;
-  he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
-  *he->value = speclzd_ty;
-  type = type_decl->specializedType.type;
-  visit_typeRef(type);
-  he = hashmap_lookup_entry(type_table, HKEY_STRING, name_of_type(type)->name.strname);
-  speclzd_ty->generic.referred = *(Type**)he->value;
-  type_args = type_decl->specializedType.type_args;
-  visit_typeArgumentList(type_args);
-  speclzd_ty->generic.args = link_product_types(type_args->typeArgumentList.first_child);
+  visit_typeRef(type_decl->specializedType.type);
+  visit_typeArgumentList(type_decl->specializedType.type_args);
 }
 
 static void

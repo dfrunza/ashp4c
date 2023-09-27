@@ -700,14 +700,6 @@ static void
 visit_tupleType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_tupleType);
-  Ast* name;
-  NameDecl* name_decl;
-
-  name = type_decl->tupleType.name;
-  name_decl = arena_malloc(storage, sizeof(NameDecl));
-  name_decl->strname = name->name.strname;
-  name_decl->ast = type_decl;
-  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   visit_typeArgumentList(type_decl->tupleType.type_args);
 }
 
@@ -715,14 +707,6 @@ static void
 visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
-  Ast* name;
-  NameDecl* name_decl;
-
-  name = type_decl->headerStackType.name;
-  name_decl = arena_malloc(storage, sizeof(NameDecl));
-  name_decl->strname = name->name.strname;
-  name_decl->ast = type_decl;
-  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   visit_typeRef(type_decl->headerStackType.type);
   visit_expression(type_decl->headerStackType.stack_expr);
 }
@@ -731,13 +715,6 @@ static void
 visit_specializedType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_specializedType);
-  Ast* name;
-  NameDecl* name_decl;
-
-  name = type_decl->specializedType.name;
-  name_decl = arena_malloc(storage, sizeof(NameDecl));
-  name_decl->strname = name->name.strname;
-  name_decl->ast = type_decl;
   visit_typeRef(type_decl->specializedType.type);
   visit_typeArgumentList(type_decl->specializedType.type_args);
 }

@@ -486,18 +486,18 @@ typedef struct Ast {
     } typeRef;
 
     struct {
-      struct Ast* name;
+      /* struct Ast* name; */
       struct Ast* type_args;
     } tupleType;
 
     struct {
-      struct Ast* name;
+      /* struct Ast* name; */
       struct Ast* type;
       struct Ast* stack_expr;
     } headerStackType;
 
     struct {
-      struct Ast* name;
+      /* struct Ast* name; */
       struct Ast* type;
       struct Ast* type_args;
     } specializedType;

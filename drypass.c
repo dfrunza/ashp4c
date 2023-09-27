@@ -573,7 +573,7 @@ static void
 visit_tupleType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_tupleType);
-  visit_name(type_decl->tupleType.name);
+  /* visit_name(type_decl->tupleType.name); */
   visit_typeArgumentList(type_decl->tupleType.type_args);
 }
 
@@ -581,7 +581,7 @@ static void
 visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
-  visit_name(type_decl->headerStackType.name);
+  /* visit_name(type_decl->headerStackType.name); */
   visit_typeRef(type_decl->headerStackType.type);
   visit_expression(type_decl->headerStackType.stack_expr);
 }
@@ -590,7 +590,7 @@ static void
 visit_specializedType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_specializedType);
-  visit_name(type_decl->specializedType.name);
+  /* visit_name(type_decl->specializedType.name); */
   visit_typeRef(type_decl->specializedType.type);
   visit_typeArgumentList(type_decl->specializedType.type_args);
 }

@@ -9,7 +9,6 @@ static int    token_at = 0, prev_token_at = 0;
 static Token* token = 0, *prev_token = 0;
 static Scope* current_scope;
 static Scope* root_scope;
-static int    anontype_id = 0;
 
 /** PROGRAM **/
 
@@ -641,7 +640,6 @@ parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_, int
   program = parse_p4program();
   assert(current_scope == root_scope);
   *root_scope_ = root_scope;
-  *anontype_id_ = &anontype_id;
   return program;
 }
 
@@ -1843,23 +1841,14 @@ parse_prefixedType()
 static Ast*
 parse_tupleType()
 {
-  Ast* name;
   Ast* tuple;
 
   if (token->klass == TK_TUPLE) {
     next_token();
-    name = arena_malloc(storage, sizeof(Ast));
-    name->kind = AST_name;
-    name->line_no = token->line_no;
-    name->column_no = token->column_no;
-    name->name.strname = arena_malloc(storage, MAXLEN_ANONTYPE);
-    int lexeme_len = sprintf(name->name.strname, "ty#%d", ++anontype_id);
-    assert(lexeme_len < MAXLEN_ANONTYPE);
     tuple = arena_malloc(storage, sizeof(Ast));
     tuple->kind = AST_tupleType;
     tuple->line_no = token->line_no;
     tuple->column_no = token->column_no;
-    tuple->tupleType.name = name;
     if (token->klass == TK_ANGLE_OPEN) {
       next_token();
       tuple->tupleType.type_args = parse_typeArgumentList();
@@ -1879,17 +1868,10 @@ parse_tupleType()
 static Ast*
 parse_headerStackType(Ast* named_type)
 {
-  Ast* name, *type_ref, *type;
+  Ast* type_ref, *type;
 
   if (token->klass == TK_BRACKET_OPEN) {
     next_token();
-    name = arena_malloc(storage, sizeof(Ast));
-    name->kind = AST_name;
-    name->line_no = named_type->line_no;
-    name->column_no = named_type->column_no;
-    name->name.strname = arena_malloc(storage, MAXLEN_ANONTYPE);
-    int lexeme_len = sprintf(name->name.strname, "ty#%d", ++anontype_id);
-    assert(lexeme_len < MAXLEN_ANONTYPE);
     type_ref = arena_malloc(storage, sizeof(Ast));
     type_ref->kind = AST_typeRef;
     type_ref->line_no = named_type->line_no;
@@ -1899,7 +1881,6 @@ parse_headerStackType(Ast* named_type)
     type->kind = AST_headerStackType;
     type->line_no = token->line_no;
     type->column_no = token->column_no;
-    type->headerStackType.name = name;
     type->headerStackType.type = type_ref;
     if (token_is_expression(token)) {
       type->headerStackType.stack_expr = parse_expression(1);
@@ -1919,19 +1900,10 @@ parse_headerStackType(Ast* named_type)
 static Ast*
 parse_specializedType(Ast* named_type)
 {
-  Ast* name;
-  Ast* type_ref;
-  Ast* type;
+  Ast* type_ref, *type;
 
   if (token->klass == TK_ANGLE_OPEN) {
     next_token();
-    name = arena_malloc(storage, sizeof(Ast));
-    name->kind = AST_name;
-    name->line_no = named_type->line_no;
-    name->column_no = named_type->column_no;
-    name->name.strname = arena_malloc(storage, MAXLEN_ANONTYPE);
-    int lexeme_len = sprintf(name->name.strname, "ty#%d", ++anontype_id);
-    assert(lexeme_len < MAXLEN_ANONTYPE);
     type_ref = arena_malloc(storage, sizeof(Ast));
     type_ref->kind = AST_typeRef;
     type_ref->line_no = named_type->line_no;
@@ -1942,7 +1914,6 @@ parse_specializedType(Ast* named_type)
     type->line_no = token->line_no;
     type->column_no = token->column_no;
     type->specializedType.type_args = parse_typeArgumentList();
-    type->specializedType.name = name;
     type->specializedType.type = type_ref;
     if (token->klass == TK_ANGLE_CLOSE) {
       next_token();
