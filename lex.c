@@ -21,7 +21,9 @@ static UnboundedArray* tokens;
 static char
 char_lookahead(int pos)
 {
-  char* char_pos = lexeme->end + pos;
+  char* char_pos;
+
+  char_pos = lexeme->end + pos;
   assert(char_pos >= 0 && char_pos <= (text + text_size));
   return *char_pos;
 }
@@ -29,7 +31,9 @@ char_lookahead(int pos)
 static char
 char_advance(int pos)
 {
-  char* char_pos = lexeme->end + pos;
+  char* char_pos;
+
+  char_pos = lexeme->end + pos;
   assert(char_pos >= 0 && char_pos <= (text + text_size));
   lexeme->end = char_pos;
   return *char_pos;
@@ -38,7 +42,9 @@ char_advance(int pos)
 static char
 char_retract()
 {
-  char result = *(--lexeme->end);
+  char result;
+
+  result = *(--lexeme->end);
   assert(lexeme->end >= 0);
   return result;
 }
@@ -53,7 +59,9 @@ lexeme_advance()
 static void
 lexeme_copy(char* dest, Lexeme* lexeme)
 {
-  char* src = lexeme->start;
+  char* src;
+
+  src = lexeme->start;
   do {
     if (*src == '\\') {
       src++;
@@ -79,15 +87,20 @@ lexeme_copy(char* dest, Lexeme* lexeme)
 static bool
 lexeme_len(Lexeme* lexeme)
 {
-  int result = lexeme->end - lexeme->start + 1;
+  int result;
+
+  result = lexeme->end - lexeme->start + 1;
   return result;
 }
 
 static char*
 lexeme_to_cstring(Lexeme* lexeme)
 {
-  int len = lexeme_len(lexeme);
-  char* string = arena_malloc(storage, (len + 1)*sizeof(char));   // +1 the NULL terminator
+  int len;
+  char* string;
+
+  len = lexeme_len(lexeme);
+  string = arena_malloc(storage, (len + 1)*sizeof(char));   // +1 the NULL terminator
   lexeme_copy(string, lexeme);
   string[len] = '\0';
   return string;
@@ -97,6 +110,7 @@ static int
 digit_to_integer(char c, int base)
 {
   int digit_value = 0;
+
   if (base == 10 || base == 8 || base == 2) {
     digit_value = (int)(c - '0');
   } else if (base == 16) {
@@ -115,7 +129,9 @@ static int
 parse_integer(char* str, int base)
 {
   int result = 0;
-  char c = *str++;
+  char c;
+
+  c = *str++;
   assert(cstr_is_digit(c, base) || c == '_');
   if (c != '_') {
     result = digit_to_integer(c, base);
@@ -133,7 +149,9 @@ parse_integer(char* str, int base)
 static void
 token_install_integer(Token* token, Lexeme* lexeme, int base)
 {
-  char* string = lexeme_to_cstring(lexeme);
+  char* string;
+
+  string = lexeme_to_cstring(lexeme);
   if (cstr_is_digit(*string, base) || *string == '_') {
     token->integer.value = parse_integer(string, base);
   } else {
@@ -156,10 +174,13 @@ token_install_integer(Token* token, Lexeme* lexeme, int base)
 static void
 next_token(Token* token)
 {
+  char c, cc;
+  Token* prev_token;
+
   memset(token, 0, sizeof(Token));
   state = 1;
   while (state) {
-    char c = char_lookahead(0);
+    c = char_lookahead(0);
     switch (state) {
       default: assert(0);
 
@@ -168,7 +189,7 @@ next_token(Token* token)
         if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
           lexeme_advance();
           if (c == '\n' || c == '\r') {
-            char cc = char_lookahead(0);
+            cc = char_lookahead(0);
             if (c + cc == '\n' + '\r') {
               lexeme_advance();
             }
@@ -306,7 +327,7 @@ next_token(Token* token)
 
       case 103:
       {
-        char cc = char_lookahead(1);
+        cc = char_lookahead(1);
         if (cstr_is_letter(cc) || cstr_is_digit(cc, 10) || cc == '_') {
           state = 500;
         } else {
@@ -402,7 +423,7 @@ next_token(Token* token)
 
       case 113:
       {
-        Token* prev_token = array_get(tokens, tokens->elem_count - 1, sizeof(Token));
+        prev_token = array_get(tokens, tokens->elem_count - 1, sizeof(Token));
         if (prev_token->klass == TK_PARENTH_OPEN) {
           token->klass = TK_UNARY_MINUS;
         } else {
@@ -816,6 +837,8 @@ next_token(Token* token)
 UnboundedArray*
 tokenize_source_text(SourceText* source_text, Arena* storage_)
 {
+  Token token = {};
+
   storage = storage_;
   text = source_text->text;
   text_size = source_text->text_size;
@@ -824,7 +847,6 @@ tokenize_source_text(SourceText* source_text, Arena* storage_)
   line_start = text;
   line_no = 1;
 
-  Token token = {};
   token.klass = TK_START_OF_INPUT;
   tokens = array_create(storage, sizeof(Token), 2047);
   array_append(tokens, storage, &token, sizeof(Token));
