@@ -245,14 +245,14 @@ visit_parameter(Ast* param)
 {
   assert(param->kind == AST_parameter);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
 
   visit_typeRef(param->parameter.type);
   name = param->parameter.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = param;
-  scope_push_decl(current_scope, storage, namedecl, NS_VAR);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = param;
+  scope_push_decl(current_scope, storage, name_decl, NS_VAR);
   if (param->parameter.init_expr) {
     visit_expression(param->parameter.init_expr);
   }
@@ -263,14 +263,14 @@ visit_packageTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_packageTypeDeclaration);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
   Scope* scope;
 
   name = type_decl->packageTypeDeclaration.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = type_decl;
-  scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = type_decl;
+  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   scope = scope_create(storage, 48);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->packageTypeDeclaration.type_params) {
@@ -285,15 +285,15 @@ visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
 
   visit_typeRef(inst->instantiation.type_ref);
   visit_argumentList(inst->instantiation.args);
   name = inst->instantiation.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = inst;
-  scope_push_decl(current_scope, storage, namedecl, NS_VAR);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = inst;
+  scope_push_decl(current_scope, storage, name_decl, NS_VAR);
 }
 
 /** PARSER **/
@@ -320,14 +320,14 @@ visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_parserTypeDeclaration);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
   Scope* scope, *parser_scope;
 
   name = type_decl->parserTypeDeclaration.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = type_decl;
-  scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = type_decl;
+  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   scope = scope_create(storage, 48);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->parserTypeDeclaration.type_params) {
@@ -379,14 +379,14 @@ visit_parserState(Ast* state)
 {
   assert(state->kind == AST_parserState);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
   Scope* scope;
 
   name = state->parserState.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = state;
-  scope_push_decl(current_scope, storage, namedecl, NS_VAR);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = state;
+  scope_push_decl(current_scope, storage, name_decl, NS_VAR);
   scope = scope_create(storage, 240);
   current_scope = scope_push(scope, current_scope);
   visit_parserStatements(state->parserState.stmt_list);
@@ -544,14 +544,14 @@ visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_controlTypeDeclaration);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
   Scope* scope, *control_scope;
 
   name = type_decl->controlTypeDeclaration.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = type_decl;
-  scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = type_decl;
+  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   scope = scope_create(storage, 48);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->controlTypeDeclaration.type_params) {
@@ -609,14 +609,14 @@ visit_externTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_externTypeDeclaration);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
   Scope* scope;
 
   name = type_decl->externTypeDeclaration.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = type_decl;
-  scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = type_decl;
+  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   scope = scope_create(storage, 48);
   current_scope = scope_push(scope, current_scope);
   if (type_decl->externTypeDeclaration.type_params) {
@@ -646,14 +646,14 @@ visit_functionPrototype(Ast* func_proto)
     visit_typeRef(func_proto->functionPrototype.return_type);
   }
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
   Scope* scope, *func_scope;
 
   name = func_proto->functionPrototype.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = func_proto;
-  scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = func_proto;
+  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   scope = scope_create(storage, 48);
   current_scope = scope_push(scope, current_scope);
   if (func_proto->functionPrototype.type_params) {
@@ -701,13 +701,13 @@ visit_tupleType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_tupleType);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
 
   name = type_decl->tupleType.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = type_decl;
-  scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = type_decl;
+  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   visit_typeArgumentList(type_decl->tupleType.type_args);
 }
 
@@ -716,13 +716,13 @@ visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
 
   name = type_decl->headerStackType.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = type_decl;
-  scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = type_decl;
+  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   visit_typeRef(type_decl->headerStackType.type);
   visit_expression(type_decl->headerStackType.stack_expr);
 }
@@ -732,12 +732,12 @@ visit_specializedType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_specializedType);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
 
   name = type_decl->specializedType.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = type_decl;
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = type_decl;
   visit_typeRef(type_decl->specializedType.type);
   visit_typeArgumentList(type_decl->specializedType.type_args);
 }
@@ -810,7 +810,7 @@ visit_typeParameterList(Ast* param_list)
   assert(param_list->kind == AST_typeParameterList);
   Ast* ast;
   NameEntry* name_entry;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
 
   for (ast = param_list->typeParameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -818,10 +818,10 @@ visit_typeParameterList(Ast* param_list)
     if (name_entry && name_entry->ns[NS_TYPE]) {
       visit_name(ast);
     } else {
-      namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = ast->name.strname;
-      namedecl->ast = param_list;
-      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+      name_decl = arena_malloc(storage, sizeof(NameDecl));
+      name_decl->strname = ast->name.strname;
+      name_decl->ast = param_list;
+      scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
     }
   }
 }
@@ -912,15 +912,15 @@ visit_headerTypeDeclaration(Ast* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
   Scope* field_scope;
   HashmapEntry* he;
 
   name = header_decl->headerTypeDeclaration.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = header_decl;
-  scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = header_decl;
+  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   field_scope = scope_create(storage, 112);
   he = hashmap_get_entry(field_map, storage, sizeof(Scope*), HKEY_UINT64, (uint64_t)header_decl);
   *he->value = field_scope;
@@ -932,15 +932,15 @@ visit_headerUnionDeclaration(Ast* union_decl)
 {
   assert(union_decl->kind == AST_headerUnionDeclaration);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
   Scope* field_scope;
   HashmapEntry* he;
 
   name = union_decl->headerUnionDeclaration.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = union_decl;
-  scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = union_decl;
+  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   field_scope = scope_create(storage, 112);
   he = hashmap_get_entry(field_map, storage, sizeof(Scope*), HKEY_UINT64, (uint64_t)union_decl);
   *he->value = field_scope;
@@ -952,15 +952,15 @@ visit_structTypeDeclaration(Ast* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
   Scope* field_scope;
   HashmapEntry* he;
 
   name = struct_decl->structTypeDeclaration.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = struct_decl;
-  scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = struct_decl;
+  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   field_scope = scope_create(storage, 112);
   he = hashmap_get_entry(field_map, storage, sizeof(Scope*), HKEY_UINT64, (uint64_t)struct_decl);
   *he->value = field_scope;
@@ -984,14 +984,14 @@ visit_structField(Ast* field, Scope* field_scope)
 {
   assert(field->kind == AST_structField);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
 
   visit_typeRef(field->structField.type);
   name = field->structField.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = field;
-  scope_push_decl(field_scope, storage, namedecl, NS_VAR);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = field;
+  scope_push_decl(field_scope, storage, name_decl, NS_VAR);
 }
 
 static void
@@ -999,15 +999,15 @@ visit_enumDeclaration(Ast* enum_decl)
 {
   assert(enum_decl->kind == AST_enumDeclaration);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
   Scope* field_scope;
   HashmapEntry* he;
 
   name = enum_decl->enumDeclaration.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = enum_decl;
-  scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = enum_decl;
+  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   field_scope = scope_create(storage, 112);
   he = hashmap_get_entry(field_map, storage, sizeof(Scope*), HKEY_UINT64, (uint64_t)enum_decl);
   *he->value = field_scope;
@@ -1045,14 +1045,14 @@ visit_identifierList(Ast* ident_list, Scope* field_scope)
 {
   assert(ident_list->kind == AST_identifierList);
   Ast* ast;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
 
   for (ast = ident_list->identifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    namedecl = arena_malloc(storage, sizeof(NameDecl));
-    namedecl->strname = ast->name.strname;
-    namedecl->ast = ident_list;
-    scope_push_decl(field_scope, storage, namedecl, NS_VAR);
+    name_decl = arena_malloc(storage, sizeof(NameDecl));
+    name_decl->strname = ast->name.strname;
+    name_decl->ast = ident_list;
+    scope_push_decl(field_scope, storage, name_decl, NS_VAR);
   }
 }
 
@@ -1073,13 +1073,13 @@ visit_specifiedIdentifier(Ast* ident, Scope* field_scope)
 {
   assert(ident->kind == AST_specifiedIdentifier);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
 
   name = ident->specifiedIdentifier.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = ident;
-  scope_push_decl(field_scope, storage, namedecl, NS_VAR);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = ident;
+  scope_push_decl(field_scope, storage, name_decl, NS_VAR);
   if (ident->specifiedIdentifier.init_expr) {
     visit_expression(ident->specifiedIdentifier.init_expr);
   }
@@ -1090,7 +1090,7 @@ visit_typedefDeclaration(Ast* typedef_decl)
 {
   assert(typedef_decl->kind == AST_typedefDeclaration);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
 
   if (typedef_decl->typedefDeclaration.type_ref->kind == AST_typeRef) {
     visit_typeRef(typedef_decl->typedefDeclaration.type_ref);
@@ -1098,10 +1098,10 @@ visit_typedefDeclaration(Ast* typedef_decl)
     visit_derivedTypeDeclaration(typedef_decl->typedefDeclaration.type_ref);
   } else assert(0);
   name = typedef_decl->typedefDeclaration.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = typedef_decl;
-  scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = typedef_decl;
+  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
 }
 
 /** STATEMENTS **/
@@ -1279,15 +1279,15 @@ visit_tableDeclaration(Ast* table_decl)
 {
   assert(table_decl->kind == AST_tableDeclaration);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
   Scope* prop_scope;
   HashmapEntry* he;
 
   name = table_decl->tableDeclaration.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = table_decl;
-  scope_push_decl(current_scope, storage, namedecl, NS_VAR);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = table_decl;
+  scope_push_decl(current_scope, storage, name_decl, NS_VAR);
   prop_scope = scope_create(storage, 112);
   he = hashmap_get_entry(field_map, storage, sizeof(Scope*), HKEY_UINT64, (uint64_t)table_decl);
   *he->value = prop_scope;
@@ -1409,13 +1409,13 @@ visit_simpleProperty(Ast* simple_prop, Scope* prop_scope)
 {
   assert(simple_prop->kind == AST_simpleProperty);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
 
   name = simple_prop->simpleProperty.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = simple_prop;
-  scope_push_decl(prop_scope, storage, namedecl, NS_VAR);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = simple_prop;
+  scope_push_decl(prop_scope, storage, name_decl, NS_VAR);
   visit_expression(simple_prop->simpleProperty.init_expr);
 }
 
@@ -1424,14 +1424,14 @@ visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AST_actionDeclaration);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
   Scope* scope;
 
   name = action_decl->actionDeclaration.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = action_decl;
-  scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = action_decl;
+  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   scope = scope_create(storage, 48);
   current_scope = scope_push(scope, current_scope);
   visit_parameterList(action_decl->actionDeclaration.params);
@@ -1447,13 +1447,13 @@ visit_variableDeclaration(Ast* var_decl)
   assert(var_decl->kind == AST_variableDeclaration);
   visit_typeRef(var_decl->variableDeclaration.type);
   Ast* name;
-  NameDecl* namedecl;
+  NameDecl* name_decl;
 
   name = var_decl->variableDeclaration.name;
-  namedecl = arena_malloc(storage, sizeof(NameDecl));
-  namedecl->strname = name->name.strname;
-  namedecl->ast = var_decl;
-  scope_push_decl(current_scope, storage, namedecl, NS_VAR);
+  name_decl = arena_malloc(storage, sizeof(NameDecl));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = var_decl;
+  scope_push_decl(current_scope, storage, name_decl, NS_VAR);
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);
   }

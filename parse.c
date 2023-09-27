@@ -154,8 +154,8 @@ next_token()
     NameEntry* name_entry = scope_lookup_any(current_scope, token->lexeme);
     if (name_entry) {
       if (name_entry->ns[NS_KEYWORD]) {
-        NameDecl* namedecl = name_entry->ns[NS_KEYWORD];
-        token->klass = namedecl->token_class;
+        NameDecl* name_decl = name_entry->ns[NS_KEYWORD];
+        token->klass = name_decl->token_class;
         return token;
       } else if (name_entry->ns[NS_TYPE]) {
         token->klass = TK_TYPE_IDENTIFIER;
@@ -607,7 +607,7 @@ parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_, int
     {"accept", NS_VAR},
     {"reject", NS_VAR},
   };
-  NameDecl* namedecl;
+  NameDecl* name_decl;
   Ast* name, *program;
 
   tokens = tokens_;
@@ -616,19 +616,19 @@ parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_, int
   current_scope = root_scope;
 
   for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
-    namedecl = arena_malloc(storage, sizeof(NameDecl));
-    namedecl->strname = keywords[i].strname;
-    namedecl->token_class = keywords[i].token_class;
-    scope_push_decl(current_scope, storage, namedecl, NS_KEYWORD);
+    name_decl = arena_malloc(storage, sizeof(NameDecl));
+    name_decl->strname = keywords[i].strname;
+    name_decl->token_class = keywords[i].token_class;
+    scope_push_decl(current_scope, storage, name_decl, NS_KEYWORD);
   }
   for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
     name = arena_malloc(storage, sizeof(Ast));
     name->kind = AST_name;
     name->name.strname = builtin_names[i].strname;
-    namedecl = arena_malloc(storage, sizeof(NameDecl));
-    namedecl->strname = name->name.strname;
-    namedecl->ast = name;
-    scope_push_decl(root_scope, storage, namedecl, builtin_names[i].ns);
+    name_decl = arena_malloc(storage, sizeof(NameDecl));
+    name_decl->strname = name->name.strname;
+    name_decl->ast = name;
+    scope_push_decl(root_scope, storage, name_decl, builtin_names[i].ns);
   }
   token_at = 0;
   token = array_get(tokens, token_at, sizeof(Token));
@@ -862,9 +862,9 @@ parse_packageTypeDeclaration()
     package_decl->column_no = token->column_no;
     if (token_is_name(token)) {
       Ast* name = parse_name();
-      NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+      NameDecl* name_decl = arena_malloc(storage, sizeof(NameDecl));
+      name_decl->strname = name->name.strname;
+      scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
       package_decl->packageTypeDeclaration.name = name;
       package_decl->packageTypeDeclaration.type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
@@ -1027,9 +1027,9 @@ parse_parserTypeDeclaration()
     parser_proto->column_no = token->column_no;
     if (token_is_name(token)) {
       Ast* name = parse_name();
-      NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+      NameDecl* name_decl = arena_malloc(storage, sizeof(NameDecl));
+      name_decl->strname = name->name.strname;
+      scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
       parser_proto->parserTypeDeclaration.name = name;
       parser_proto->parserTypeDeclaration.type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
@@ -1441,9 +1441,9 @@ parse_controlTypeDeclaration()
     control_proto->column_no = token->column_no;
     if (token_is_name(token)) {
       Ast* name = parse_name();
-      NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+      NameDecl* name_decl = arena_malloc(storage, sizeof(NameDecl));
+      name_decl->strname = name->name.strname;
+      scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
       control_proto->controlTypeDeclaration.name = name;
       control_proto->controlTypeDeclaration.type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
@@ -1552,9 +1552,9 @@ parse_externDeclaration()
       extern_type->column_no = token->column_no;
       extern_type->externTypeDeclaration.name = parse_nonTypeName();
       Ast* name = extern_type->externTypeDeclaration.name;
-      NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+      NameDecl* name_decl = arena_malloc(storage, sizeof(NameDecl));
+      name_decl->strname = name->name.strname;
+      scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
       extern_type->externTypeDeclaration.type_params = parse_optTypeParameters();
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -1606,9 +1606,9 @@ parse_functionPrototype(Ast* return_type)
       Ast* return_type = parse_typeOrVoid();
       if (return_type->kind == AST_name) {
         Ast* name = return_type;
-        NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-        namedecl->strname = name->name.strname;
-        scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+        NameDecl* name_decl = arena_malloc(storage, sizeof(NameDecl));
+        name_decl->strname = name->name.strname;
+        scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
         Ast* type_ref = arena_malloc(storage, sizeof(Ast));
         type_ref->kind = AST_typeRef;
         type_ref->line_no = token->line_no;
@@ -2030,16 +2030,16 @@ parse_typeParameterList()
   params->column_no = token->column_no;
   if (token_is_typeParameterList(token)) {
     Ast* name = parse_name();
-    NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-    namedecl->strname = name->name.strname;
-    scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+    NameDecl* name_decl = arena_malloc(storage, sizeof(NameDecl));
+    name_decl->strname = name->name.strname;
+    scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
     params->typeParameterList.first_child = name;
     while (token->klass == TK_COMMA) {
       next_token();
       Ast* name = parse_name();
-      NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+      NameDecl* name_decl = arena_malloc(storage, sizeof(NameDecl));
+      name_decl->strname = name->name.strname;
+      scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
       name->right_sibling = name;
       name = name->right_sibling;
     }
@@ -2224,9 +2224,9 @@ parse_headerTypeDeclaration()
     header_decl->column_no = token->column_no;
     if (token_is_name(token)) {
       Ast* name = parse_name();
-      NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+      NameDecl* name_decl = arena_malloc(storage, sizeof(NameDecl));
+      name_decl->strname = name->name.strname;
+      scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
       header_decl->headerTypeDeclaration.name = name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2257,9 +2257,9 @@ parse_headerUnionDeclaration()
     union_decl->column_no = token->column_no;
     if (token_is_name(token)) {
       Ast* name = parse_name();
-      NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+      NameDecl* name_decl = arena_malloc(storage, sizeof(NameDecl));
+      name_decl->strname = name->name.strname;
+      scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
       union_decl->headerUnionDeclaration.name = name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2290,9 +2290,9 @@ parse_structTypeDeclaration()
     struct_decl->column_no = token->column_no;
     if (token_is_name(token)) {
       Ast* name = parse_name();
-      NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+      NameDecl* name_decl = arena_malloc(storage, sizeof(NameDecl));
+      name_decl->strname = name->name.strname;
+      scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
       struct_decl->structTypeDeclaration.name = name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2380,9 +2380,9 @@ parse_enumDeclaration()
     }
     if (token_is_name(token)) {
       Ast* name = parse_name();
-      NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-      namedecl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+      NameDecl* name_decl = arena_malloc(storage, sizeof(NameDecl));
+      name_decl->strname = name->name.strname;
+      scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
       enum_decl->enumDeclaration.name = name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2542,9 +2542,9 @@ parse_typedefDeclaration()
       } else assert(0);
       if (token_is_name(token)) {
         Ast* name = parse_name();
-        NameDecl* namedecl = arena_malloc(storage, sizeof(NameDecl));
-        namedecl->strname = name->name.strname;
-        scope_push_decl(current_scope, storage, namedecl, NS_TYPE);
+        NameDecl* name_decl = arena_malloc(storage, sizeof(NameDecl));
+        name_decl->strname = name->name.strname;
+        scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
         type_decl->typedefDeclaration.name = name;
         if (token->klass == TK_SEMICOLON) {
           next_token();
