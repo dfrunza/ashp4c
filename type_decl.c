@@ -723,8 +723,7 @@ visit_functionPrototype(Ast* func_proto)
   if (func_proto->functionPrototype.return_type) {
     type_ref = func_proto->functionPrototype.return_type;
     visit_typeRef(type_ref);
-    he = hashmap_lookup_entry(type_table, HKEY_STRING,
-          name_of_type(type_ref->typeRef.type)->name.strname);
+    he = hashmap_lookup_entry(type_table, HKEY_STRING, name_of_type(type_ref)->name.strname);
     func_ty->function.return_ = *(Type**)he->value;
   }
   if (func_proto->functionPrototype.type_params) {
@@ -1121,7 +1120,7 @@ visit_typedefDeclaration(Ast* typedef_decl)
 {
   assert(typedef_decl->kind == AST_typedefDeclaration);
   HashmapEntry* he;
-  Ast* name;
+  Ast* name, *type_ref;
   Type* typedef_ty;
 
   if (typedef_decl->typedefDeclaration.type_ref->kind == AST_typeRef) {
@@ -1135,8 +1134,8 @@ visit_typedefDeclaration(Ast* typedef_decl)
   typedef_ty->strname = name->name.strname;
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
   *he->value = typedef_ty;
-  he = hashmap_lookup_entry(type_table, HKEY_STRING,
-        name_of_type(typedef_decl->typedefDeclaration.type_ref)->name.strname);
+  type_ref = typedef_decl->typedefDeclaration.type_ref;
+  he = hashmap_lookup_entry(type_table, HKEY_STRING, name_of_type(type_ref)->name.strname);
   typedef_ty->typedef_.referred = *(Type**)he->value;
 }
 
