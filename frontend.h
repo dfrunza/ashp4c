@@ -883,7 +883,6 @@ NameEntry* scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum Na
 enum TypeEnum {
   TYPE_NONE = 0,
 
-  /* Basic */
   TYPE_VOID,
   TYPE_BOOL,
   TYPE_INT,
@@ -892,15 +891,13 @@ enum TypeEnum {
   TYPE_STRING,
   TYPE_ERROR,
   TYPE_MATCH_KIND,
-
-  /* Composite */
   TYPE_TYPEVAR,
-  TYPE_FUNCTION,
+  TYPE_TYPEDEF,
   TYPE_TUPLE,
+  TYPE_EXTERN,
+  TYPE_FUNCTION,
   TYPE_PRODUCT,
   TYPE_STRUCT,
-  TYPE_UNION,
-  TYPE_TYPEDEF,
   TYPE_ARRAY,
   TYPE_GENERIC,
 
@@ -927,6 +924,9 @@ typedef struct Type {
     } tuple;
 
     struct {
+    } extern_;
+
+    struct {
       struct Type* lhs;
       struct Type* rhs;
     } product;
@@ -934,10 +934,6 @@ typedef struct Type {
     struct {
       struct Type* fields;
     } struct_;
-
-    struct {
-      struct Type* fields;
-    } union_;
 
     struct {
       struct Type* params;

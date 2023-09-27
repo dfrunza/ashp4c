@@ -684,7 +684,7 @@ visit_externTypeDeclaration(Ast* extern_decl)
 
   name = extern_decl->externTypeDeclaration.name;
   extern_ty = arena_malloc(storage, sizeof(Type));
-  extern_ty->ctor = TYPE_PRODUCT;
+  extern_ty->ctor = TYPE_EXTERN;
   extern_ty->strname = name->name.strname;
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
   *he->value = extern_ty;
@@ -775,7 +775,7 @@ visit_tupleType(Ast* type_decl)
 
   name = type_decl->tupleType.name;
   tuple_ty = arena_malloc(storage, sizeof(Type));
-  tuple_ty->ctor = TYPE_PRODUCT;
+  tuple_ty->ctor = TYPE_TUPLE;
   tuple_ty->strname = name->name.strname;
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
   *he->value = tuple_ty;
@@ -1004,13 +1004,13 @@ visit_headerUnionDeclaration(Ast* union_decl)
 
   name = union_decl->headerUnionDeclaration.name;
   union_ty = arena_malloc(storage, sizeof(Type));
-  union_ty->ctor = TYPE_UNION;
+  union_ty->ctor = TYPE_STRUCT;
   union_ty->strname = name->name.strname;
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
   *he->value = union_ty;
   fields = union_decl->headerUnionDeclaration.fields;
   visit_structFieldList(fields);
-  union_ty->union_.fields = link_product_types(fields->structFieldList.first_child);
+  union_ty->struct_.fields = link_product_types(fields->structFieldList.first_child);
 }
 
 static void
