@@ -1,12 +1,12 @@
 #pragma once
 
-SourceText*     read_source_text(char* filename, Arena* storage);
+SourceText      read_source_text(char* filename, Arena* storage);
 UnboundedArray* tokenize_source_text(SourceText* source_text, Arena* storage);
-Ast*            parse_program(UnboundedArray* tokens, Scope** root_scope, Arena* storage);
+Ast*            parse_program(UnboundedArray* tokens, Arena* storage, Scope** root_scope, int** anontype_id);
 void            drypass(Ast* ast);
 void            pass_name_decl(Ast* ast, Scope* root_scope,
                   Hashmap** scope_map, Hashmap** field_map, Arena* storage);
-Hashmap*        pass_type_decl(Ast* ast, Arena* storage);
+Hashmap*        pass_type_decl(Ast* ast, Arena* storage, int* anontype_id);
 Hashmap*        pass_potential_types(Ast* ast, Scope* root_scope, 
                   Hashmap* scope_map, Hashmap* type_table, Arena* storage);
 

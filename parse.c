@@ -5,13 +5,11 @@
 
 static Arena  *storage;
 static UnboundedArray* tokens;
-static int    token_at = 0;
-static Token* token = 0;
-static int    prev_token_at = 0;
-static Token* prev_token = 0;
+static int    token_at = 0, prev_token_at = 0;
+static Token* token = 0, *prev_token = 0;
 static Scope* current_scope;
 static Scope* root_scope;
-static const int MAXLEN_ANONTYPE = 16;  /* type@9999:9999 */
+static int    anontype_id = 0;
 
 /** PROGRAM **/
 
@@ -544,7 +542,7 @@ token_to_binop(Token* token)
 }
 
 Ast*
-parse_program(UnboundedArray* tokens_, Scope** root_scope_, Arena* storage_)
+parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_, int** anontype_id_)
 {
   struct Keyword {
     char* strname;
@@ -632,13 +630,13 @@ parse_program(UnboundedArray* tokens_, Scope** root_scope_, Arena* storage_)
     namedecl->ast = name;
     scope_push_decl(root_scope, storage, namedecl, builtin_names[i].ns);
   }
-
   token_at = 0;
   token = array_get(tokens, token_at, sizeof(Token));
   next_token();
   program = parse_p4program();
   assert(current_scope == root_scope);
   *root_scope_ = root_scope;
+  *anontype_id_ = &anontype_id;
   return program;
 }
 
@@ -1759,8 +1757,8 @@ parse_tupleType()
     name->line_no = token->line_no;
     name->column_no = token->column_no;
     name->name.strname = arena_malloc(storage, MAXLEN_ANONTYPE);
-    int lexeme_len = sprintf(name->name.strname, "type@%d:%d", name->line_no, name->column_no);
-    assert(lexeme_len <= MAXLEN_ANONTYPE);
+    int lexeme_len = sprintf(name->name.strname, "ty#%d", ++anontype_id);
+    assert(lexeme_len < MAXLEN_ANONTYPE);
     Ast* tuple = arena_malloc(storage, sizeof(Ast));
     tuple->kind = AST_tupleType;
     tuple->line_no = token->line_no;
@@ -1792,8 +1790,8 @@ parse_headerStackType(Ast* named_type)
     name->line_no = named_type->line_no;
     name->column_no = named_type->column_no;
     name->name.strname = arena_malloc(storage, MAXLEN_ANONTYPE);
-    int lexeme_len = sprintf(name->name.strname, "type@%d:%d", name->line_no, name->column_no);
-    assert(lexeme_len <= MAXLEN_ANONTYPE);
+    int lexeme_len = sprintf(name->name.strname, "ty#%d", ++anontype_id);
+    assert(lexeme_len < MAXLEN_ANONTYPE);
     Ast* type_ref = arena_malloc(storage, sizeof(Ast));
     type_ref->kind = AST_typeRef;
     type_ref->line_no = named_type->line_no;
@@ -1830,8 +1828,8 @@ parse_specializedType(Ast* named_type)
     name->line_no = named_type->line_no;
     name->column_no = named_type->column_no;
     name->name.strname = arena_malloc(storage, MAXLEN_ANONTYPE);
-    int lexeme_len = sprintf(name->name.strname, "type@%d:%d", name->line_no, name->column_no);
-    assert(lexeme_len <= MAXLEN_ANONTYPE);
+    int lexeme_len = sprintf(name->name.strname, "ty#%d", ++anontype_id);
+    assert(lexeme_len < MAXLEN_ANONTYPE);
     Ast* type_ref = arena_malloc(storage, sizeof(Ast));
     type_ref->kind = AST_typeRef;
     type_ref->line_no = named_type->line_no;

@@ -7,37 +7,40 @@
 #include "frontend.h"
 #include "ashp4c.h"
 
-static Arena main_storage = {};
-static SourceText source_text = {};
-
 typedef struct CmdlineArg {
   char* name;
   char* value;
   struct CmdlineArg* next_arg;
 } CmdlineArg;
 
-SourceText*
+SourceText
 read_source_text(char* filename, Arena* storage)
 {
-  FILE* f_stream = fopen(filename, "rb");
+  SourceText source_text = {};
+  FILE* f_stream;
+  char* text;
+
+  f_stream = fopen(filename, "rb");
   fseek(f_stream, 0, SEEK_END);
   int text_size = ftell(f_stream);
   fseek(f_stream, 0, SEEK_SET);
-  char* text = arena_malloc(storage, (text_size + 1)*sizeof(char));
+  text = arena_malloc(storage, (text_size + 1)*sizeof(char));
   fread(text, sizeof(char), text_size, f_stream);
   text[text_size] = '\0';
   fclose(f_stream);
   source_text.text = text;
   source_text.text_size = text_size;
   source_text.filename = filename;
-  return &source_text;
+  return source_text;
 }
 
 static CmdlineArg*
 find_unnamed_arg(CmdlineArg* args)
 {
   CmdlineArg* unnamed_arg = 0;
-  CmdlineArg* arg = args;
+  CmdlineArg* arg;
+  
+  arg = args;
   while (arg) {
     if (!arg->name) {
       unnamed_arg = arg;
@@ -66,20 +69,22 @@ find_named_arg(char* name, CmdlineArg* args)
 #endif
 
 static CmdlineArg*
-parse_cmdline_args(int arg_count, char* args[])
+parse_cmdline_args(int arg_count, char* args[], Arena* storage)
 {
   CmdlineArg* arg_list = 0;
+  CmdlineArg *prev_arg, *cmdline_arg;
+  CmdlineArg sentinel_arg = {};
+  char* raw_arg;
+
   if (arg_count <= 1) {
     return arg_list;
   }
-  
-  CmdlineArg sentinel_arg = {};
-  CmdlineArg* prev_arg = &sentinel_arg;
+  prev_arg = &sentinel_arg;
   int i = 1;
   while (i < arg_count) {
-    CmdlineArg* cmdline_arg = arena_malloc(&main_storage, sizeof(CmdlineArg));
+    cmdline_arg = arena_malloc(storage, sizeof(CmdlineArg));
     if (cstr_start_with(args[i], "--")) {
-      char* raw_arg = args[i] + 2;  /* skip the `--` prefix */
+      raw_arg = args[i] + 2;  /* skip the `--` prefix */
       cmdline_arg->name = raw_arg;
     } else {
       cmdline_arg->value = args[i];
@@ -95,27 +100,34 @@ parse_cmdline_args(int arg_count, char* args[])
 int
 main(int arg_count, char* args[])
 {
+  CmdlineArg* cmdline_args, *filename_arg;
+  SourceText source_text;
+  Arena text_storage = {}, main_storage = {};
+  UnboundedArray* tokens;
+  Scope* root_scope;
+  int* anontype_id;
+  Ast* program;
+  Hashmap* scope_map, *field_map;
+  Hashmap* type_table;
+
   reserve_page_memory(250*KILOBYTE);
 
-  CmdlineArg* cmdline_args = parse_cmdline_args(arg_count, args);
-  CmdlineArg* filename_arg = find_unnamed_arg(cmdline_args);
+  cmdline_args = parse_cmdline_args(arg_count, args, &main_storage);
+  filename_arg = find_unnamed_arg(cmdline_args);
   if (!filename_arg) {
     printf("<filename> is required.\n");
     exit(1);
   }
-  Arena text_storage = {};
-  SourceText* source_text = read_source_text(filename_arg->value, &text_storage);
-  UnboundedArray* tokens = tokenize_source_text(source_text, &main_storage);
 
-  Scope* root_scope;
-  Ast* ast = parse_program(tokens, &root_scope, &main_storage);
+  source_text = read_source_text(filename_arg->value, &text_storage);
+  tokens = tokenize_source_text(&source_text, &main_storage);
+  program = parse_program(tokens, &main_storage, &root_scope, &anontype_id);
   arena_free(&text_storage);
 
-  drypass(ast); /* sanity check */
-  Hashmap* scope_map, *field_map;
-  pass_name_decl(ast, root_scope, &scope_map, &field_map, &main_storage);
-  Hashmap* type_table = pass_type_decl(ast, &main_storage);
-  pass_potential_types(ast, root_scope, scope_map, type_table, &main_storage);
+  drypass(program); /* sanity check */
+  pass_name_decl(program, root_scope, &scope_map, &field_map, &main_storage);
+  type_table = pass_type_decl(program, &main_storage, anontype_id);
+  pass_potential_types(program, root_scope, scope_map, type_table, &main_storage);
 
   arena_free(&main_storage);
   return 0;

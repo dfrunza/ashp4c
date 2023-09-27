@@ -5,6 +5,7 @@
 
 static Arena*   storage;
 static Hashmap* type_table;
+static int      anontype_id;
 
 /** PROGRAM **/
 
@@ -206,6 +207,7 @@ link_product_types(Ast* lhs_ast, Ast* rhs_ast)
 {
   HashmapEntry* he;
   Type* result, *lhs_ty;
+  int lexeme_len;
 
   he = hashmap_lookup_entry(type_table, HKEY_STRING, name_of_type(lhs_ast)->name.strname);
   result = *(Type**)he->value;
@@ -213,6 +215,9 @@ link_product_types(Ast* lhs_ast, Ast* rhs_ast)
     lhs_ty = result;
     result = arena_malloc(storage, sizeof(Type));
     result->ctor = TYPE_PRODUCT;
+    result->strname = arena_malloc(storage, MAXLEN_ANONTYPE);
+    lexeme_len = sprintf(result->strname, "ty#%d", ++anontype_id);
+    assert(lexeme_len < MAXLEN_ANONTYPE);
     result->product.lhs = lhs_ty;
     result->product.rhs = link_product_types(rhs_ast, rhs_ast->right_sibling);
   }
@@ -220,7 +225,7 @@ link_product_types(Ast* lhs_ast, Ast* rhs_ast)
 }
 
 Hashmap*
-pass_type_decl(Ast* ast, Arena* storage_)
+pass_type_decl(Ast* ast, Arena* storage_, int* anontype_id_)
 {
   struct BuiltinType {
     char* strname;
@@ -241,6 +246,7 @@ pass_type_decl(Ast* ast, Arena* storage_)
   HashmapEntry* he;
 
   storage = storage_;
+  anontype_id = *anontype_id_;
   type_table = hashmap_create(storage, 1008);
 
   for (int i = 0; i < sizeof(basic_types)/sizeof(basic_types[0]); i++) {
@@ -258,6 +264,7 @@ pass_type_decl(Ast* ast, Arena* storage_)
   *he->value = dontcare_ty;
 
   visit_p4program(ast);
+  *anontype_id_ = anontype_id;
   return type_table;
 }
 
