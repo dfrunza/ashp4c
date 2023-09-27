@@ -891,14 +891,21 @@ enum TypeEnum {
   TYPE_STRING,
   TYPE_ERROR,
   TYPE_MATCH_KIND,
+  TYPE_ENUM,
   TYPE_TYPEVAR,
   TYPE_TYPEDEF,
   TYPE_TUPLE,
   TYPE_EXTERN,
   TYPE_FUNCTION,
+  TYPE_ACTION,
+  TYPE_PARSER,
+  TYPE_CONTROL,
+  TYPE_PACKAGE,
   TYPE_PRODUCT,
   TYPE_STRUCT,
-  TYPE_ARRAY,
+  TYPE_HEADER,
+  TYPE_HEADER_UNION,
+  TYPE_HEADER_STACK,
   TYPE_GENERIC,
 
   TYPE_UNRESOLVED,
@@ -910,10 +917,7 @@ typedef struct Type {
 
   union {
     struct {
-    } basic;
-
-    struct {
-    } typevar;
+    } basic, typevar, extern_, enum_;
 
     struct {
       struct Type* referred;
@@ -924,25 +928,23 @@ typedef struct Type {
     } tuple;
 
     struct {
-    } extern_;
-
-    struct {
       struct Type* lhs;
       struct Type* rhs;
     } product;
 
     struct {
       struct Type* fields;
-    } struct_;
+    } struct_, header, header_union;
 
     struct {
       struct Type* params;
       struct Type* return_;
-    } function;
+    } function, action,
+      parser, control, package;
 
     struct {
       struct Type* element;
-    } array;
+    } header_stack;
 
     struct {
       struct Type* referred;

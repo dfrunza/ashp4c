@@ -375,7 +375,7 @@ visit_packageTypeDeclaration(Ast* package_decl)
 
   name = package_decl->packageTypeDeclaration.name;
   package_ty = arena_malloc(storage, sizeof(Type));
-  package_ty->ctor = TYPE_FUNCTION;
+  package_ty->ctor = TYPE_PACKAGE;
   package_ty->strname = name->name.strname;
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
   *he->value = package_ty;
@@ -384,7 +384,7 @@ visit_packageTypeDeclaration(Ast* package_decl)
   }
   params = package_decl->packageTypeDeclaration.params;
   visit_parameterList(params);
-  package_ty->function.params = link_product_types(params->parameterList.first_child);
+  package_ty->package.params = link_product_types(params->parameterList.first_child);
 }
 
 static void
@@ -419,7 +419,7 @@ visit_parserTypeDeclaration(Ast* parser_decl)
 
   name = parser_decl->parserTypeDeclaration.name;
   parser_ty = arena_malloc(storage, sizeof(Type));
-  parser_ty->ctor = TYPE_FUNCTION;
+  parser_ty->ctor = TYPE_PARSER;
   parser_ty->strname = name->name.strname;
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
   *he->value = parser_ty;
@@ -428,7 +428,7 @@ visit_parserTypeDeclaration(Ast* parser_decl)
   }
   params = parser_decl->parserTypeDeclaration.params;
   visit_parameterList(params);
-  parser_ty->function.params = link_product_types(params->parameterList.first_child);
+  parser_ty->parser.params = link_product_types(params->parameterList.first_child);
 }
 
 static void
@@ -622,7 +622,7 @@ visit_controlTypeDeclaration(Ast* control_decl)
 
   name = control_decl->controlTypeDeclaration.name;
   control_ty = arena_malloc(storage, sizeof(Type));
-  control_ty->ctor = TYPE_FUNCTION;
+  control_ty->ctor = TYPE_CONTROL;
   control_ty->strname = name->name.strname;
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
   *he->value = control_ty;
@@ -631,7 +631,7 @@ visit_controlTypeDeclaration(Ast* control_decl)
   }
   params = control_decl->controlTypeDeclaration.params;
   visit_parameterList(params);
-  control_ty->function.params = link_product_types(params->parameterList.first_child);
+  control_ty->control.params = link_product_types(params->parameterList.first_child);
 }
 
 static void
@@ -794,14 +794,14 @@ visit_headerStackType(Ast* type_decl)
 
   name = type_decl->headerStackType.name;
   stack_ty = arena_malloc(storage, sizeof(Type));
-  stack_ty->ctor = TYPE_ARRAY;
+  stack_ty->ctor = TYPE_HEADER_STACK;
   stack_ty->strname = name->name.strname;
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
   *he->value = stack_ty;
   type = type_decl->headerStackType.type;
   visit_typeRef(type);
   he = hashmap_lookup_entry(type_table, HKEY_STRING, name_of_type(type)->name.strname);
-  stack_ty->array.element = *(Type**)he->value;
+  stack_ty->header_stack.element = *(Type**)he->value;
   visit_expression(type_decl->headerStackType.stack_expr);
 }
 
@@ -985,13 +985,13 @@ visit_headerTypeDeclaration(Ast* header_decl)
 
   name = header_decl->headerTypeDeclaration.name;
   header_ty = arena_malloc(storage, sizeof(Type));
-  header_ty->ctor = TYPE_STRUCT;
+  header_ty->ctor = TYPE_HEADER;
   header_ty->strname = name->name.strname;
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
   *he->value = header_ty;
   fields = header_decl->headerTypeDeclaration.fields;
   visit_structFieldList(fields);
-  header_ty->struct_.fields = link_product_types(fields->structFieldList.first_child);
+  header_ty->header.fields = link_product_types(fields->structFieldList.first_child);
 }
 
 static void
@@ -1004,13 +1004,13 @@ visit_headerUnionDeclaration(Ast* union_decl)
 
   name = union_decl->headerUnionDeclaration.name;
   union_ty = arena_malloc(storage, sizeof(Type));
-  union_ty->ctor = TYPE_STRUCT;
+  union_ty->ctor = TYPE_HEADER_UNION;
   union_ty->strname = name->name.strname;
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
   *he->value = union_ty;
   fields = union_decl->headerUnionDeclaration.fields;
   visit_structFieldList(fields);
-  union_ty->struct_.fields = link_product_types(fields->structFieldList.first_child);
+  union_ty->header_union.fields = link_product_types(fields->structFieldList.first_child);
 }
 
 static void
@@ -1061,7 +1061,7 @@ visit_enumDeclaration(Ast* enum_decl)
 
   name = enum_decl->enumDeclaration.name;
   enum_ty = arena_malloc(storage, sizeof(Type));
-  enum_ty->ctor = TYPE_INT;
+  enum_ty->ctor = TYPE_ENUM;
   enum_ty->strname = name->name.strname;
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
   *he->value = enum_ty;
@@ -1438,13 +1438,13 @@ visit_actionDeclaration(Ast* action_decl)
 
   name = action_decl->actionDeclaration.name;
   action_ty = arena_malloc(storage, sizeof(Type));
-  action_ty->ctor = TYPE_FUNCTION;
+  action_ty->ctor = TYPE_ACTION;
   action_ty->strname = name->name.strname;
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
   *he->value = action_decl;
   params = action_decl->actionDeclaration.params;
   visit_parameterList(params);
-  action_ty->function.params = link_product_types(params->parameterList.first_child);
+  action_ty->action.params = link_product_types(params->parameterList.first_child);
   visit_blockStatement(action_decl->actionDeclaration.stmt);
 }
 
