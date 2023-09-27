@@ -201,14 +201,21 @@ name_of_type(Ast* ast)
   return 0;
 }
 
-Type*
+static Type*
 link_product_types(Ast* lhs_ast, Ast* rhs_ast)
 {
   HashmapEntry* he;
-  Type* result;
+  Type* result, *lhs_ty;
 
   he = hashmap_lookup_entry(type_table, HKEY_STRING, name_of_type(lhs_ast)->name.strname);
   result = *(Type**)he->value;
+  if (rhs_ast) {
+    lhs_ty = result;
+    result = arena_malloc(storage, sizeof(Type));
+    result->ctor = TYPE_PRODUCT;
+    result->product.lhs = lhs_ty;
+    result->product.rhs = link_product_types(rhs_ast, rhs_ast->right_sibling);
+  }
   return result;
 }
 
@@ -354,15 +361,7 @@ visit_packageTypeDeclaration(Ast* package_decl)
   visit_parameterList(params);
   if (params->parameterList.first_child) {
     Ast* first_child = params->parameterList.first_child;
-    link_product_types(first_child, first_child->right_sibling);
-#if 0
-    for (Ast* ast = first_child->right_sibling; ast != 0; ast = ast->right_sibling) {
-      /*
-      Ast* param = ast;
-      list_append(&package_ty->params_ty, *(Type**)hashmap_lookup(
-            type_table, HKEY_STRING, name_of_type(param->type)->strname)); */
-    }
-#endif
+    package_ty->function.params = link_product_types(first_child, first_child->right_sibling);
   }
 }
 
