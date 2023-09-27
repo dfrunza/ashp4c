@@ -126,7 +126,7 @@ main(int arg_count, char* args[])
 
   drypass(program); /* sanity check */
   pass_name_decl(program, root_scope, &scope_map, &field_map, &main_storage);
-  type_table = pass_type_decl(program, &main_storage, anontype_id);
+  type_table = pass_type_decl(program, &main_storage);
   pass_potential_types(program, root_scope, scope_map, type_table, &main_storage);
 
   arena_free(&main_storage);
