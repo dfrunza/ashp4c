@@ -896,7 +896,9 @@ enum TypeEnum {
   /* Composite */
   TYPE_TYPEVAR,
   TYPE_FUNCTION,
+  TYPE_TUPLE,
   TYPE_PRODUCT,
+  TYPE_STRUCT,
   TYPE_UNION,
   TYPE_TYPEDEF,
   TYPE_ARRAY,
@@ -921,13 +923,20 @@ typedef struct Type {
     } typedef_;
 
     struct {
+      struct Type* args;
+    } tuple;
+
+    struct {
       struct Type* lhs;
       struct Type* rhs;
     } product;
 
     struct {
-      struct Type* lhs;
-      struct Type* rhs;
+      struct Type* fields;
+    } struct_;
+
+    struct {
+      struct Type* fields;
     } union_;
 
     struct {
