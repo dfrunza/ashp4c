@@ -546,7 +546,7 @@ token_to_binop(Token* token)
 }
 
 Ast*
-parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_, int** anontype_id_)
+parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_)
 {
   struct Keyword {
     char* strname;
@@ -946,7 +946,7 @@ parse_instantiation(Ast* type_ref)
 static Ast*
 parse_optConstructorParameters()
 {
-    Ast* params;
+   Ast* params;
 
   if (token->klass == TK_PARENTH_OPEN) {
     next_token();
@@ -1156,8 +1156,7 @@ parse_parserStatements()
 static Ast*
 parse_parserStatement()
 {
-  Ast* parser_stmt;
-  Ast* type_ref;
+  Ast* parser_stmt, *type_ref;
 
   if (token_is_parserStatement(token)) {
     parser_stmt = arena_malloc(storage, sizeof(Ast));
@@ -1795,16 +1794,16 @@ parse_typeRef()
 static Ast*
 parse_namedType()
 {
-  Ast* named_type, *speclzd_type, *stack_type;
+  Ast* named_type;
 
   if (token_is_typeName(token)) {
     named_type = parse_prefixedType();
     if (token->klass == TK_ANGLE_OPEN) {
-      speclzd_type = parse_specializedType(named_type);
-      return speclzd_type;
+      named_type = parse_specializedType(named_type);
+      return named_type;
     } else if (token->klass == TK_BRACKET_OPEN) {
-      stack_type = parse_headerStackType(named_type);
-      return stack_type;
+      named_type = parse_headerStackType(named_type);
+      return named_type;
     }
     return named_type;
   } else error("At line %d, column %d: type was expected, got `%s`.",
@@ -2055,8 +2054,7 @@ parse_integerTypeSize()
 static Ast*
 parse_typeOrVoid()
 {
-  Ast* type;
-  Ast* name;
+  Ast* type, *name;
 
   if (token_is_typeOrVoid(token)) {
     if (token_is_typeRef(token)) {
@@ -2135,8 +2133,7 @@ parse_typeParameterList()
 static Ast*
 parse_realTypeArg()
 {
-  Ast* type_arg;
-  Ast* dontcare_arg;
+  Ast* type_arg, *dontcare_arg;
   Ast* name;
 
   if (token_is_realTypeArg(token)) {
@@ -2171,8 +2168,7 @@ parse_realTypeArg()
 static Ast*
 parse_typeArg()
 {
-  Ast* type_arg;
-  Ast* dontcare_arg;
+  Ast* type_arg, *dontcare_arg;
   Ast* name;
 
   if (token_is_typeArg(token)) {
@@ -2611,8 +2607,7 @@ parse_identifierList()
 static Ast*
 parse_specifiedIdentifierList()
 {
-  Ast* ids;
-  Ast* ast;
+  Ast* ids, *ast;
 
   ids = arena_malloc(storage, sizeof(Ast));
   ids->kind = AST_specifiedIdentifierList;
@@ -3049,8 +3044,7 @@ parse_switchCase()
 static Ast*
 parse_switchLabel()
 {
-  Ast* switch_label;
-  Ast* default_label;
+  Ast* switch_label, *default_label;
 
   if (token_is_switchLabel(token)) {
     switch_label = arena_malloc(storage, sizeof(Ast));

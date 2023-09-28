@@ -105,7 +105,6 @@ main(int arg_count, char* args[])
   Arena text_storage = {}, main_storage = {};
   UnboundedArray* tokens;
   Scope* root_scope;
-  int* anontype_id;
   Ast* program;
   Hashmap* scope_map, *field_map;
   Hashmap* type_table;
@@ -121,7 +120,7 @@ main(int arg_count, char* args[])
 
   source_text = read_source_text(filename_arg->value, &text_storage);
   tokens = tokenize_source_text(&source_text, &main_storage);
-  program = parse_program(tokens, &main_storage, &root_scope, &anontype_id);
+  program = parse_program(tokens, &main_storage, &root_scope);
   arena_free(&text_storage);
 
   drypass(program); /* sanity check */
