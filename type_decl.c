@@ -145,11 +145,56 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 static Ast*
+name_of_typeRef(Ast* ast)
+{
+  Ast* type = ast->typeRef.type;
+  if (type->kind == AST_baseTypeBoolean) {
+    return type->baseTypeBoolean.name;
+  } else if (type->kind == AST_baseTypeInteger) {
+    return type->baseTypeInteger.name;
+  } else if (type->kind == AST_baseTypeBit) {
+    return type->baseTypeBit.name;
+  } else if (type->kind == AST_baseTypeVarbit) {
+    return type->baseTypeVarbit.name;
+  } else if (type->kind == AST_baseTypeString) {
+    return type->baseTypeString.name;
+  } else if (type->kind == AST_baseTypeVoid) {
+    return type->baseTypeVoid.name;
+  } else if (type->kind == AST_baseTypeError) {
+    return type->baseTypeError.name;
+  } else if (type->kind == AST_name) {
+    return type;
+  }
+  /*
+  else if (type->kind == AST_specializedType) {
+    return type->specializedType.name;
+  } else if (type->kind == AST_headerStackType) {
+    return type->headerStackType.name;
+  } else if (type->kind == AST_tupleType) {
+    return type->tupleType.name;
+  }*/
+  else assert(0);
+  return 0;
+}
+
+static Ast*
+name_of_typeArg(Ast* ast)
+{
+  Ast* arg = ast->typeArg.arg;
+  if (arg->kind == AST_typeRef) {
+    name_of_typeRef(arg);
+  } else if (arg->kind == AST_name) {
+    return arg;
+  } else if (arg->kind == AST_dontcare) {
+    return arg->dontcare.name;
+  } else assert(0);
+  return 0;
+}
+
+static Ast*
 name_of_type(Ast* ast)
 {
-  if (ast->kind == AST_parameter) {
-    return name_of_type(ast->parameter.type);
-  } else if (ast->kind == AST_packageTypeDeclaration) {
+  if (ast->kind == AST_packageTypeDeclaration) {
     return ast->packageTypeDeclaration.name;
   } else if (ast->kind == AST_parserTypeDeclaration) {
     return ast->parserTypeDeclaration.name;
@@ -159,31 +204,6 @@ name_of_type(Ast* ast)
     return ast->externTypeDeclaration.name;
   } else if (ast->kind == AST_functionPrototype) {
     return ast->functionPrototype.name;
-  }
-  /*
-  else if (ast->kind == AST_tupleType) {
-    return ast->tupleType.name;
-  }
-  else if (ast->kind == AST_headerStackType) {
-    return ast->headerStackType.name;
-  } else if (ast->kind == AST_specializedType) {
-    return ast->specializedType.name;
-  }
-  */
-  else if (ast->kind == AST_baseTypeBoolean) {
-    return ast->baseTypeBoolean.name;
-  } else if (ast->kind == AST_baseTypeInteger) {
-    return ast->baseTypeInteger.name;
-  } else if (ast->kind == AST_baseTypeBit) {
-    return ast->baseTypeBit.name;
-  } else if (ast->kind == AST_baseTypeVarbit) {
-    return ast->baseTypeVarbit.name;
-  } else if (ast->kind == AST_baseTypeString) {
-    return ast->baseTypeString.name;
-  } else if (ast->kind == AST_baseTypeVoid) {
-    return ast->baseTypeVoid.name;
-  } else if (ast->kind == AST_baseTypeError) {
-    return ast->baseTypeError.name;
   } else if (ast->kind == AST_typeArg) {
     return name_of_type(ast->typeArg.arg);
   } else if (ast->kind == AST_headerTypeDeclaration) {
@@ -192,16 +212,12 @@ name_of_type(Ast* ast)
     return ast->headerUnionDeclaration.name;
   } else if (ast->kind == AST_structTypeDeclaration) {
     return ast->structTypeDeclaration.name;
-  } else if (ast->kind == AST_structField) {
-    return name_of_type(ast->structField.type);
   } else if (ast->kind == AST_enumDeclaration) {
     return ast->enumDeclaration.name;
   } else if (ast->kind == AST_typedefDeclaration) {
     return ast->typedefDeclaration.name;
   } else if (ast->kind == AST_dontcare) {
     return ast->dontcare.name;
-  } else if (ast->kind == AST_name) {
-    return ast;
   } else if (ast->kind == AST_typeRef) {
     return name_of_type(ast->typeRef.type);
   } else if (ast->kind == AST_derivedTypeDeclaration) {
