@@ -486,18 +486,15 @@ typedef struct Ast {
     } typeRef;
 
     struct {
-      /* struct Ast* name; */
       struct Ast* type_args;
     } tupleType;
 
     struct {
-      /* struct Ast* name; */
       struct Ast* type;
       struct Ast* stack_expr;
     } headerStackType;
 
     struct {
-      /* struct Ast* name; */
       struct Ast* type;
       struct Ast* type_args;
     } specializedType;
@@ -877,8 +874,6 @@ Scope*     scope_pop(Scope* scope);
 NameEntry* scope_lookup_any(Scope* scope, char* name);
 NameEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
 NameEntry* scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns);
-
-#define MAXLEN_ANONTYPE  8  /* ty#9999\0 */
 
 enum TypeEnum {
   TYPE_NONE = 0,

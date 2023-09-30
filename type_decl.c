@@ -144,88 +144,6 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
-static Ast*
-name_of_typeRef(Ast* ast)
-{
-  Ast* type = ast->typeRef.type;
-  if (type->kind == AST_baseTypeBoolean) {
-    return type->baseTypeBoolean.name;
-  } else if (type->kind == AST_baseTypeInteger) {
-    return type->baseTypeInteger.name;
-  } else if (type->kind == AST_baseTypeBit) {
-    return type->baseTypeBit.name;
-  } else if (type->kind == AST_baseTypeVarbit) {
-    return type->baseTypeVarbit.name;
-  } else if (type->kind == AST_baseTypeString) {
-    return type->baseTypeString.name;
-  } else if (type->kind == AST_baseTypeVoid) {
-    return type->baseTypeVoid.name;
-  } else if (type->kind == AST_baseTypeError) {
-    return type->baseTypeError.name;
-  } else if (type->kind == AST_name) {
-    return type;
-  }
-  /*
-  else if (type->kind == AST_specializedType) {
-    return type->specializedType.name;
-  } else if (type->kind == AST_headerStackType) {
-    return type->headerStackType.name;
-  } else if (type->kind == AST_tupleType) {
-    return type->tupleType.name;
-  }*/
-  else assert(0);
-  return 0;
-}
-
-static Ast*
-name_of_typeArg(Ast* ast)
-{
-  Ast* arg = ast->typeArg.arg;
-  if (arg->kind == AST_typeRef) {
-    name_of_typeRef(arg);
-  } else if (arg->kind == AST_name) {
-    return arg;
-  } else if (arg->kind == AST_dontcare) {
-    return arg->dontcare.name;
-  } else assert(0);
-  return 0;
-}
-
-static Ast*
-name_of_type(Ast* ast)
-{
-  if (ast->kind == AST_packageTypeDeclaration) {
-    return ast->packageTypeDeclaration.name;
-  } else if (ast->kind == AST_parserTypeDeclaration) {
-    return ast->parserTypeDeclaration.name;
-  } else if (ast->kind == AST_controlTypeDeclaration) {
-    return ast->controlTypeDeclaration.name;
-  } else if (ast->kind == AST_externTypeDeclaration) {
-    return ast->externTypeDeclaration.name;
-  } else if (ast->kind == AST_functionPrototype) {
-    return ast->functionPrototype.name;
-  } else if (ast->kind == AST_typeArg) {
-    return name_of_type(ast->typeArg.arg);
-  } else if (ast->kind == AST_headerTypeDeclaration) {
-    return ast->headerTypeDeclaration.name;
-  } else if (ast->kind == AST_headerUnionDeclaration) {
-    return ast->headerUnionDeclaration.name;
-  } else if (ast->kind == AST_structTypeDeclaration) {
-    return ast->structTypeDeclaration.name;
-  } else if (ast->kind == AST_enumDeclaration) {
-    return ast->enumDeclaration.name;
-  } else if (ast->kind == AST_typedefDeclaration) {
-    return ast->typedefDeclaration.name;
-  } else if (ast->kind == AST_dontcare) {
-    return ast->dontcare.name;
-  } else if (ast->kind == AST_typeRef) {
-    return name_of_type(ast->typeRef.type);
-  } else if (ast->kind == AST_derivedTypeDeclaration) {
-    return name_of_type(ast->derivedTypeDeclaration.decl);
-  }
-  else assert(0);
-  return 0;
-}
 
 static Type*
 link_product_types(Ast* lhs_ast)
@@ -235,8 +153,10 @@ link_product_types(Ast* lhs_ast)
   Type* result, *lhs_ty;
 
   if (!lhs_ast) return 0;
-  he = hashmap_lookup_entry(type_table, HKEY_STRING, name_of_type(lhs_ast)->name.strname);
-  result = *(Type**)he->value;
+  /*
+  he = hashmap_lookup_entry(type_table, HKEY_STRING, nameof_type(lhs_ast)->name.strname);
+  result = *(Type**)he->value;*/
+  result = 0;
   rhs_ast = lhs_ast->right_sibling;
   if (rhs_ast) {
     lhs_ty = result;
@@ -738,8 +658,9 @@ visit_functionPrototype(Ast* func_proto)
   if (func_proto->functionPrototype.return_type) {
     type_ref = func_proto->functionPrototype.return_type;
     visit_typeRef(type_ref);
-    he = hashmap_lookup_entry(type_table, HKEY_STRING, name_of_type(type_ref)->name.strname);
-    func_ty->function.return_ = *(Type**)he->value;
+    /*
+    he = hashmap_lookup_entry(type_table, HKEY_STRING, nameof_type(type_ref)->name.strname);
+    func_ty->function.return_ = *(Type**)he->value; */
   }
   if (func_proto->functionPrototype.type_params) {
     visit_typeParameterList(func_proto->functionPrototype.type_params);
@@ -1110,8 +1031,9 @@ visit_typedefDeclaration(Ast* typedef_decl)
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
   *he->value = typedef_ty;
   type_ref = typedef_decl->typedefDeclaration.type_ref;
-  he = hashmap_lookup_entry(type_table, HKEY_STRING, name_of_type(type_ref)->name.strname);
-  typedef_ty->typedef_.referred = *(Type**)he->value;
+  /*
+  he = hashmap_lookup_entry(type_table, HKEY_STRING, nameof_type(type_ref)->name.strname);
+  typedef_ty->typedef_.referred = *(Type**)he->value;*/
 }
 
 /** STATEMENTS **/
