@@ -4,7 +4,7 @@
 #include "frontend.h"
 
 static Arena*   storage;
-static Hashmap* type_table;
+static UnboundedArray* type_table;
 
 /** PROGRAM **/
 
@@ -168,7 +168,7 @@ link_product_types(Ast* lhs_ast)
   return result;
 }
 
-Hashmap*
+UnboundedArray*
 pass_type_decl(Ast* ast, Arena* storage_)
 {
   struct BuiltinType {
@@ -190,6 +190,7 @@ pass_type_decl(Ast* ast, Arena* storage_)
   HashmapEntry* he;
 
   storage = storage_;
+  /*
   type_table = hashmap_create(storage, 1008);
 
   for (int i = 0; i < sizeof(basic_types)/sizeof(basic_types[0]); i++) {
@@ -204,7 +205,7 @@ pass_type_decl(Ast* ast, Arena* storage_)
   dontcare_ty->ctor = TYPE_TYPEVAR;
   dontcare_ty->strname = "_";
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, dontcare_ty->strname);
-  *he->value = dontcare_ty;
+  *he->value = dontcare_ty; */
 
   visit_p4program(ast);
   return type_table;
@@ -269,13 +270,14 @@ visit_name(Ast* name)
   Type* name_ty;
   HashmapEntry* he;
 
+  /*
   if (!hashmap_lookup_entry(type_table, HKEY_STRING, name->name.strname)) {
     name_ty = arena_malloc(storage, sizeof(Type));
     name_ty->ctor = TYPE_TYPEVAR;
     name_ty->strname = name->name.strname;
     he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
     *he->value = name_ty;
-  }
+  }*/
 }
 
 static void
@@ -312,8 +314,9 @@ visit_packageTypeDeclaration(Ast* package_decl)
   package_ty = arena_malloc(storage, sizeof(Type));
   package_ty->ctor = TYPE_PACKAGE;
   package_ty->strname = name->name.strname;
+  /*
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
-  *he->value = package_ty;
+  *he->value = package_ty;*/
   if (package_decl->packageTypeDeclaration.type_params) {
     visit_typeParameterList(package_decl->packageTypeDeclaration.type_params);
   }
@@ -356,8 +359,9 @@ visit_parserTypeDeclaration(Ast* parser_decl)
   parser_ty = arena_malloc(storage, sizeof(Type));
   parser_ty->ctor = TYPE_PARSER;
   parser_ty->strname = name->name.strname;
+  /*
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
-  *he->value = parser_ty;
+  *he->value = parser_ty;*/
   if (parser_decl->parserTypeDeclaration.type_params) {
     visit_typeParameterList(parser_decl->parserTypeDeclaration.type_params);
   }
@@ -559,8 +563,9 @@ visit_controlTypeDeclaration(Ast* control_decl)
   control_ty = arena_malloc(storage, sizeof(Type));
   control_ty->ctor = TYPE_CONTROL;
   control_ty->strname = name->name.strname;
+  /*
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
-  *he->value = control_ty;
+  *he->value = control_ty;*/
   if (control_decl->controlTypeDeclaration.type_params) {
     visit_typeParameterList(control_decl->controlTypeDeclaration.type_params);
   }
@@ -621,8 +626,9 @@ visit_externTypeDeclaration(Ast* extern_decl)
   extern_ty = arena_malloc(storage, sizeof(Type));
   extern_ty->ctor = TYPE_EXTERN;
   extern_ty->strname = name->name.strname;
+  /*
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
-  *he->value = extern_ty;
+  *he->value = extern_ty;*/
   if (extern_decl->externTypeDeclaration.type_params) {
     visit_typeParameterList(extern_decl->externTypeDeclaration.type_params);
   }
@@ -653,8 +659,9 @@ visit_functionPrototype(Ast* func_proto)
   func_ty = arena_malloc(storage, sizeof(Type));
   func_ty->ctor = TYPE_FUNCTION;
   func_ty->strname = name->name.strname;
+  /*
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
-  *he->value = func_proto;
+  *he->value = func_proto;*/
   if (func_proto->functionPrototype.return_type) {
     type_ref = func_proto->functionPrototype.return_type;
     visit_typeRef(type_ref);
@@ -883,8 +890,9 @@ visit_headerTypeDeclaration(Ast* header_decl)
   header_ty = arena_malloc(storage, sizeof(Type));
   header_ty->ctor = TYPE_HEADER;
   header_ty->strname = name->name.strname;
+  /*
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
-  *he->value = header_ty;
+  *he->value = header_ty;*/
   fields = header_decl->headerTypeDeclaration.fields;
   visit_structFieldList(fields);
   header_ty->header.fields = link_product_types(fields->structFieldList.first_child);
@@ -902,8 +910,9 @@ visit_headerUnionDeclaration(Ast* union_decl)
   union_ty = arena_malloc(storage, sizeof(Type));
   union_ty->ctor = TYPE_HEADER_UNION;
   union_ty->strname = name->name.strname;
+  /*
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
-  *he->value = union_ty;
+  *he->value = union_ty;*/
   fields = union_decl->headerUnionDeclaration.fields;
   visit_structFieldList(fields);
   union_ty->header_union.fields = link_product_types(fields->structFieldList.first_child);
@@ -921,8 +930,9 @@ visit_structTypeDeclaration(Ast* struct_decl)
   struct_ty = arena_malloc(storage, sizeof(Type));
   struct_ty->ctor = TYPE_STRUCT;
   struct_ty->strname = name->name.strname;
+  /*
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
-  *he->value = struct_ty;
+  *he->value = struct_ty;*/
   fields = struct_decl->structTypeDeclaration.fields;
   visit_structFieldList(fields);
   struct_ty->struct_.fields = link_product_types(fields->structFieldList.first_child);
@@ -959,8 +969,9 @@ visit_enumDeclaration(Ast* enum_decl)
   enum_ty = arena_malloc(storage, sizeof(Type));
   enum_ty->ctor = TYPE_ENUM;
   enum_ty->strname = name->name.strname;
+  /*
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
-  *he->value = enum_ty;
+  *he->value = enum_ty;*/
   visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
 }
 
@@ -1028,8 +1039,9 @@ visit_typedefDeclaration(Ast* typedef_decl)
   typedef_ty = arena_malloc(storage, sizeof(Type));
   typedef_ty->ctor = TYPE_TYPEDEF;
   typedef_ty->strname = name->name.strname;
+  /*
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
-  *he->value = typedef_ty;
+  *he->value = typedef_ty;*/
   type_ref = typedef_decl->typedefDeclaration.type_ref;
   /*
   he = hashmap_lookup_entry(type_table, HKEY_STRING, nameof_type(type_ref)->name.strname);
@@ -1337,8 +1349,9 @@ visit_actionDeclaration(Ast* action_decl)
   action_ty = arena_malloc(storage, sizeof(Type));
   action_ty->ctor = TYPE_ACTION;
   action_ty->strname = name->name.strname;
+  /*
   he = hashmap_get_entry(type_table, storage, sizeof(Type*), HKEY_STRING, name->name.strname);
-  *he->value = action_decl;
+  *he->value = action_decl;*/
   params = action_decl->actionDeclaration.params;
   visit_parameterList(params);
   action_ty->action.params = link_product_types(params->parameterList.first_child);

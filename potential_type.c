@@ -5,7 +5,6 @@
 
 static Arena*   storage;
 static Scope*   root_scope;
-static Hashmap* type_table;
 static Hashmap* scope_map;
 static Hashmap* potential_types;
 
@@ -148,13 +147,11 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 Hashmap*
-pass_potential_types(Ast* ast, Scope* root_scope_,
-    Hashmap* scope_map_, Hashmap* type_table_, Arena* storage_)
+pass_potential_types(Ast* ast, Scope* root_scope_, Hashmap* scope_map_, Arena* storage_)
 {
   storage = storage_;
   root_scope = root_scope_;
   scope_map = scope_map_;
-  type_table = type_table_;
   potential_types = hashmap_create(storage, 1008);
   visit_p4program(ast);
   return potential_types;
@@ -225,8 +222,9 @@ visit_name(Ast* name)
   name_entry = scope_lookup_namespace(scope, name->name.strname, NS_VAR);
   if (name_entry) {
     name_decl = name_entry->ns[NS_VAR];
+    /*
     he = hashmap_lookup_entry(type_table, HKEY_STRING, name_decl->strname);
-    if (he) { ; }
+    if (he) { ; }*/
   } else error("At line %d, column %d: unknown name `%s`.",
                name->line_no, name->column_no, name->name.strname);
 }
@@ -1380,8 +1378,9 @@ visit_integerLiteral(Ast* int_literal)
   name_entry = scope_lookup_namespace(root_scope, "int", NS_TYPE);
   if (name_entry) {
     name_decl = name_entry->ns[NS_TYPE];
+    /*
     he = hashmap_lookup_entry(type_table, HKEY_STRING, name_decl->strname);
-    if (he) { ; }
+    if (he) { ; }*/
   }
 }
 
