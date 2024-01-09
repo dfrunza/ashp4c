@@ -50,7 +50,7 @@ void  arena_free(Arena* arena);
  * 8 => 4080
  * 9 => 8176
  * ...
- * C => (2^n - 1)*16
+ * C = (2^n - 1)*16
  */
 
 typedef struct SegmentTable {
@@ -78,10 +78,13 @@ enum HashmapKeyType {
   HKEY_UINT64,
 };
 
-typedef union HashmapKey {
-  char*    str_key;
-  uint32_t u32_key;
-  uint64_t u64_key;
+typedef struct HashmapKey {
+  union {
+    char*    str_key;
+    uint32_t u32_key;
+    uint64_t u64_key;
+  };
+  uint32_t h;
 } HashmapKey;
 
 typedef struct HashmapEntry {
@@ -103,8 +106,11 @@ typedef struct HashmapCursor {
 
 Hashmap*      hashmap_create(Arena* storage, int max_capacity);
 void          hashmap_init(Hashmap* hashmap, Arena* storage, int segment_count);
-HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, enum HashmapKeyType key_type, ...);
+HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key, enum HashmapKeyType key_type, ...);
+void          hashmap_insert_entry(Hashmap* hashmap, Arena* storage, HashmapKey* key, enum HashmapKeyType key_type, HashmapEntry* entry);
+#if 0
 HashmapEntry* hashmap_get_entry(Hashmap* hashmap, Arena* storage, int value_size, enum HashmapKeyType key_type, ...);
+#endif
 void          hashmap_cursor_begin(HashmapCursor* cursor);
 HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap);
 

@@ -35,10 +35,11 @@ NameEntry*
 scope_lookup_any(Scope* scope, char* strname)
 {
   NameEntry* name_entry = 0;
+  HashmapKey hkey;
   HashmapEntry* he;
 
   while (scope) {
-    he = hashmap_lookup_entry(&scope->name_table, HKEY_STRING, strname);
+    he = hashmap_lookup_entry(&scope->name_table, &hkey, HKEY_STRING, strname);
     if (he) {
       name_entry = (NameEntry*)he->value;
       if (name_entry->ns[NS_TYPE] || name_entry->ns[NS_VAR] || name_entry->ns[NS_KEYWORD]) {
@@ -55,10 +56,11 @@ NameEntry*
 scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 {
   NameEntry* name_entry = 0;
+  HashmapKey hkey;
   HashmapEntry* he;
 
   while (scope) {
-    he = hashmap_lookup_entry(&scope->name_table, HKEY_STRING, strname);
+    he = hashmap_lookup_entry(&scope->name_table, &hkey, HKEY_STRING, strname);
     if (he) {
       name_entry = (NameEntry*)he->value;
       if (name_entry->ns[ns]) {
@@ -74,11 +76,15 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 NameEntry*
 scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns)
 {
+  HashmapKey hkey;
   HashmapEntry* he;
   NameEntry* name_entry;
 
-  he = hashmap_get_entry(&scope->name_table, storage, sizeof(NameEntry),
-      HKEY_STRING, decl->strname);
+  he = hashmap_lookup_entry(&scope->name_table, &hkey, HKEY_STRING, decl->strname);
+  if (!he) {
+    he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(NameEntry));
+    hashmap_insert_entry(&scope->name_table, storage, &hkey, HKEY_STRING, he);
+  }
   name_entry = (NameEntry*)he->value;
   decl->next_in_scope = name_entry->ns[ns];
   name_entry->ns[ns] = decl;

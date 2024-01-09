@@ -222,9 +222,14 @@ static void
 visit_name(Ast* name)
 {
   assert(name->kind == AST_name);
+  HashmapKey hkey;
   HashmapEntry* he;
 
-  he = hashmap_get_entry(scope_map, storage, sizeof(Scope*), HKEY_UINT64, (uint64_t)name);
+  he = hashmap_lookup_entry(scope_map, &hkey, HKEY_UINT64, (uint64_t)name);
+  if (!he) {
+    he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
+    hashmap_insert_entry(scope_map, storage, &hkey, HKEY_UINT64, he);
+  }
   *he->value = current_scope;
 }
 
@@ -891,6 +896,7 @@ visit_headerTypeDeclaration(Ast* header_decl)
   Ast* name;
   NameDecl* name_decl;
   Scope* field_scope;
+  HashmapKey hkey;
   HashmapEntry* he;
 
   name = header_decl->headerTypeDeclaration.name;
@@ -899,7 +905,11 @@ visit_headerTypeDeclaration(Ast* header_decl)
   name_decl->ast = header_decl;
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   field_scope = scope_create(storage, 112);
-  he = hashmap_get_entry(field_map, storage, sizeof(Scope*), HKEY_UINT64, (uint64_t)header_decl);
+  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64, (uint64_t)header_decl);
+  if (!he) {
+    he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
+    hashmap_insert_entry(field_map, storage, &hkey, HKEY_UINT64, he);
+  }
   *he->value = field_scope;
   visit_structFieldList(header_decl->headerTypeDeclaration.fields, field_scope);
 }
@@ -911,6 +921,7 @@ visit_headerUnionDeclaration(Ast* union_decl)
   Ast* name;
   NameDecl* name_decl;
   Scope* field_scope;
+  HashmapKey hkey;
   HashmapEntry* he;
 
   name = union_decl->headerUnionDeclaration.name;
@@ -919,7 +930,11 @@ visit_headerUnionDeclaration(Ast* union_decl)
   name_decl->ast = union_decl;
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   field_scope = scope_create(storage, 112);
-  he = hashmap_get_entry(field_map, storage, sizeof(Scope*), HKEY_UINT64, (uint64_t)union_decl);
+  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64, (uint64_t)union_decl);
+  if (!he) {
+    he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
+    hashmap_insert_entry(field_map, storage, &hkey, HKEY_UINT64, he);
+  }
   *he->value = field_scope;
   visit_structFieldList(union_decl->headerUnionDeclaration.fields, field_scope);
 }
@@ -931,6 +946,7 @@ visit_structTypeDeclaration(Ast* struct_decl)
   Ast* name;
   NameDecl* name_decl;
   Scope* field_scope;
+  HashmapKey hkey;
   HashmapEntry* he;
 
   name = struct_decl->structTypeDeclaration.name;
@@ -939,7 +955,11 @@ visit_structTypeDeclaration(Ast* struct_decl)
   name_decl->ast = struct_decl;
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   field_scope = scope_create(storage, 112);
-  he = hashmap_get_entry(field_map, storage, sizeof(Scope*), HKEY_UINT64, (uint64_t)struct_decl);
+  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64, (uint64_t)struct_decl);
+  if (!he) {
+    he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
+    hashmap_insert_entry(field_map, storage, &hkey, HKEY_UINT64, he);
+  }
   *he->value = field_scope;
   visit_structFieldList(struct_decl->structTypeDeclaration.fields, field_scope);
 }
@@ -978,6 +998,7 @@ visit_enumDeclaration(Ast* enum_decl)
   Ast* name;
   NameDecl* name_decl;
   Scope* field_scope;
+  HashmapKey hkey;
   HashmapEntry* he;
 
   name = enum_decl->enumDeclaration.name;
@@ -986,7 +1007,11 @@ visit_enumDeclaration(Ast* enum_decl)
   name_decl->ast = enum_decl;
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   field_scope = scope_create(storage, 112);
-  he = hashmap_get_entry(field_map, storage, sizeof(Scope*), HKEY_UINT64, (uint64_t)enum_decl);
+  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64, (uint64_t)enum_decl);
+  if (!he) {
+    he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
+    hashmap_insert_entry(field_map, storage, &hkey, HKEY_UINT64, he);
+  }
   *he->value = field_scope;
   visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields, field_scope);
 }
@@ -996,10 +1021,15 @@ visit_errorDeclaration(Ast* error_decl)
 {
   assert(error_decl->kind == AST_errorDeclaration);
   Scope* field_scope;
+  HashmapKey hkey;
   HashmapEntry* he;
 
   field_scope = scope_create(storage, 112);
-  he = hashmap_get_entry(field_map, storage, sizeof(Scope*), HKEY_UINT64, (uint64_t)error_decl);
+  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64, (uint64_t)error_decl);
+  if (!he) {
+    he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
+    hashmap_insert_entry(field_map, storage, &hkey, HKEY_UINT64, he);
+  }
   *he->value = field_scope;
   visit_identifierList(error_decl->errorDeclaration.fields, field_scope);
 }
@@ -1009,10 +1039,15 @@ visit_matchKindDeclaration(Ast* match_decl)
 {
   assert(match_decl->kind == AST_matchKindDeclaration);
   Scope* field_scope;
+  HashmapKey hkey;
   HashmapEntry* he;
 
   field_scope = scope_create(storage, 112);
-  he = hashmap_get_entry(field_map, storage, sizeof(Scope*), HKEY_UINT64, (uint64_t)match_decl);
+  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64, (uint64_t)match_decl);
+  if (!he) {
+    he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
+    hashmap_insert_entry(field_map, storage, &hkey, HKEY_UINT64, he);
+  }
   *he->value = field_scope;
   visit_identifierList(match_decl->matchKindDeclaration.fields, field_scope);
 }
@@ -1258,6 +1293,7 @@ visit_tableDeclaration(Ast* table_decl)
   Ast* name;
   NameDecl* name_decl;
   Scope* prop_scope;
+  HashmapKey hkey;
   HashmapEntry* he;
 
   name = table_decl->tableDeclaration.name;
@@ -1266,7 +1302,11 @@ visit_tableDeclaration(Ast* table_decl)
   name_decl->ast = table_decl;
   scope_push_decl(current_scope, storage, name_decl, NS_VAR);
   prop_scope = scope_create(storage, 112);
-  he = hashmap_get_entry(field_map, storage, sizeof(Scope*), HKEY_UINT64, (uint64_t)table_decl);
+  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64, (uint64_t)table_decl);
+  if (!he) {
+    he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
+    hashmap_insert_entry(field_map, storage, &hkey, HKEY_UINT64, he);
+  }
   *he->value = prop_scope;
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list, prop_scope);
 }
