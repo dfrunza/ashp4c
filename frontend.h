@@ -9,7 +9,7 @@ typedef struct SourceText {
 enum TokenClass {
   TK_NONE = 0,
 
-  /* Operators and syntactic structure */
+  /* Operators and syntactic elements */
   TK_SEMICOLON,
   TK_IDENTIFIER,
   TK_TYPE_IDENTIFIER,

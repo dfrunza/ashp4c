@@ -50,7 +50,7 @@ void  arena_free(Arena* arena);
  * 8 => 4080
  * 9 => 8176
  * ...
- * n => (2^n - 1)*16
+ * C => (2^n - 1)*16
  */
 
 typedef struct SegmentTable {
@@ -64,13 +64,12 @@ typedef struct UnboundedArray {
   SegmentTable data;
 } UnboundedArray;
 
+void* segment_locate_elem(SegmentTable* data, int i, int elem_size);
 UnboundedArray* array_create(Arena* storage, int elem_size, int max_capacity);
 void  array_init(UnboundedArray* array, Arena* storage, int elem_size, int segment_count);
 void  array_extend(UnboundedArray* array, Arena* storage, int elem_size);
-void* array_get(UnboundedArray* array, int i, int elem_size);
-void* array_set(UnboundedArray* array, int i, void* elem, int elem_size);
-void* array_append(UnboundedArray* array, Arena* storage, void* elem, int elem_size);
-void* array_elem_at_i(SegmentTable* data, int i, int elem_size);
+void* array_get_elem(UnboundedArray* array, int i, int elem_size);
+void* array_append_elem(UnboundedArray* array, Arena* storage, int elem_size);
 
 enum HashmapKeyType {
   HKEY_NONE = 0,

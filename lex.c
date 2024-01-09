@@ -423,7 +423,7 @@ next_token(Token* token)
 
       case 113:
       {
-        prev_token = array_get(tokens, tokens->elem_count - 1, sizeof(Token));
+        prev_token = array_get_elem(tokens, tokens->elem_count - 1, sizeof(Token));
         if (prev_token->klass == TK_PARENTH_OPEN) {
           token->klass = TK_UNARY_MINUS;
         } else {
@@ -849,10 +849,10 @@ tokenize_source_text(SourceText* source_text, Arena* storage_)
 
   token.klass = TK_START_OF_INPUT;
   tokens = array_create(storage, sizeof(Token), 2047);
-  array_append(tokens, storage, &token, sizeof(Token));
+  *(Token*)array_append_elem(tokens, storage, sizeof(Token)) = token;
 
   next_token(&token);
-  array_append(tokens, storage, &token, sizeof(Token));
+  *(Token*)array_append_elem(tokens, storage, sizeof(Token)) = token;
   while (token.klass != TK_END_OF_INPUT) {
     if (token.klass == TK_UNKNOWN) {
       error("At line %d, column %d: unknown token.", token.line_no, token.column_no);
@@ -860,7 +860,7 @@ tokenize_source_text(SourceText* source_text, Arena* storage_)
       error("At line %d, column %d: lexical error.", token.line_no, token.column_no);
     }
     next_token(&token);
-    array_append(tokens, storage, &token, sizeof(Token));
+    *(Token*)array_append_elem(tokens, storage, sizeof(Token)) = token;
   }
   return tokens;
 }

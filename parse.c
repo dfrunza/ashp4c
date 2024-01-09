@@ -148,9 +148,9 @@ next_token()
 
   prev_token = token;
   prev_token_at = token_at;
-  token = array_get(tokens, ++token_at, sizeof(Token));
+  token = array_get_elem(tokens, ++token_at, sizeof(Token));
   while (token->klass == TK_COMMENT) {
-    token = array_get(tokens, ++token_at, sizeof(Token));
+    token = array_get_elem(tokens, ++token_at, sizeof(Token));
   }
   if (token->klass == TK_IDENTIFIER) {
     name_entry = scope_lookup_any(current_scope, token->lexeme);
@@ -635,7 +635,7 @@ parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_)
     scope_push_decl(root_scope, storage, name_decl, builtin_names[i].ns);
   }
   token_at = 0;
-  token = array_get(tokens, token_at, sizeof(Token));
+  token = array_get_elem(tokens, token_at, sizeof(Token));
   next_token();
   program = parse_p4program();
   assert(current_scope == root_scope);

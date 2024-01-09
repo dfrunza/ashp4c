@@ -15,7 +15,7 @@ array_extend(UnboundedArray* array, Arena* storage, int elem_size)
 
   last_segment = floor(log2(array->capacity/16 + 1));
   if (last_segment >= array->data.segment_count) {
-    printf("\nMaximum capacity has been reached.\n");
+    printf("\nMaximum array capacity has been reached.\n");
     exit(1);
   }
   segment_capacity = 16 * (1 << last_segment);
@@ -49,7 +49,7 @@ array_init(UnboundedArray* array, Arena* storage, int elem_size, int segment_cou
 }
 
 void*
-array_elem_at_i(SegmentTable* data, int i, int elem_size)
+segment_locate_elem(SegmentTable* data, int i, int elem_size)
 {
   assert(elem_size > 0);
   int segment_index, elem_offset;
@@ -62,30 +62,18 @@ array_elem_at_i(SegmentTable* data, int i, int elem_size)
 }
 
 void*
-array_get(UnboundedArray* array, int i, int elem_size)
+array_get_elem(UnboundedArray* array, int i, int elem_size)
 {
   assert(elem_size > 0);
   assert(i >= 0 && i < array->elem_count);
   void* elem_slot;
 
-  elem_slot = array_elem_at_i(&array->data, i, elem_size);
+  elem_slot = segment_locate_elem(&array->data, i, elem_size);
   return elem_slot;
 }
 
 void*
-array_set(UnboundedArray* array, int i, void* elem, int elem_size)
-{
-  assert(elem_size > 0);
-  assert(i >= 0 && i < array->elem_count);
-  void* elem_slot;
-
-  elem_slot = array_elem_at_i(&array->data, i, elem_size);
-  memcpy(elem_slot, elem, elem_size);
-  return elem_slot;
-}
-
-void*
-array_append(UnboundedArray* array, Arena* storage, void* elem, int elem_size)
+array_append_elem(UnboundedArray* array, Arena* storage, int elem_size)
 {
   assert(elem_size > 0);
   void* elem_slot;
@@ -93,8 +81,7 @@ array_append(UnboundedArray* array, Arena* storage, void* elem, int elem_size)
   if (array->elem_count >= array->capacity) {
     array_extend(array, storage, elem_size);
   }
-  elem_slot = array_elem_at_i(&array->data, array->elem_count, elem_size);
-  memcpy(elem_slot, elem, elem_size);
+  elem_slot = segment_locate_elem(&array->data, array->elem_count, elem_size);
   array->elem_count += 1;
   return elem_slot;
 }
