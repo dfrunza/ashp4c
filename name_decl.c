@@ -225,7 +225,8 @@ visit_name(Ast* name)
   HashmapKey hkey;
   HashmapEntry* he;
 
-  he = hashmap_lookup_entry(scope_map, &hkey, HKEY_UINT64, (uint64_t)name);
+  hkey.u64_key = (uint64_t)name;
+  he = hashmap_lookup_entry(scope_map, &hkey, HKEY_UINT64);
   if (!he) {
     he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
     hashmap_insert_entry(scope_map, storage, &hkey, HKEY_UINT64, he);
@@ -905,7 +906,8 @@ visit_headerTypeDeclaration(Ast* header_decl)
   name_decl->ast = header_decl;
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   field_scope = scope_create(storage, 112);
-  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64, (uint64_t)header_decl);
+  hkey.u64_key = (uint64_t)header_decl;
+  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64);
   if (!he) {
     he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
     hashmap_insert_entry(field_map, storage, &hkey, HKEY_UINT64, he);
@@ -930,7 +932,8 @@ visit_headerUnionDeclaration(Ast* union_decl)
   name_decl->ast = union_decl;
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   field_scope = scope_create(storage, 112);
-  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64, (uint64_t)union_decl);
+  hkey.u64_key = (uint64_t)union_decl;
+  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64);
   if (!he) {
     he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
     hashmap_insert_entry(field_map, storage, &hkey, HKEY_UINT64, he);
@@ -955,7 +958,8 @@ visit_structTypeDeclaration(Ast* struct_decl)
   name_decl->ast = struct_decl;
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   field_scope = scope_create(storage, 112);
-  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64, (uint64_t)struct_decl);
+  hkey.u64_key = (uint64_t)struct_decl;
+  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64);
   if (!he) {
     he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
     hashmap_insert_entry(field_map, storage, &hkey, HKEY_UINT64, he);
@@ -1007,7 +1011,8 @@ visit_enumDeclaration(Ast* enum_decl)
   name_decl->ast = enum_decl;
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
   field_scope = scope_create(storage, 112);
-  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64, (uint64_t)enum_decl);
+  hkey.u64_key = (uint64_t)enum_decl;
+  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64);
   if (!he) {
     he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
     hashmap_insert_entry(field_map, storage, &hkey, HKEY_UINT64, he);
@@ -1025,7 +1030,8 @@ visit_errorDeclaration(Ast* error_decl)
   HashmapEntry* he;
 
   field_scope = scope_create(storage, 112);
-  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64, (uint64_t)error_decl);
+  hkey.u64_key = (uint64_t)error_decl;
+  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64);
   if (!he) {
     he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
     hashmap_insert_entry(field_map, storage, &hkey, HKEY_UINT64, he);
@@ -1043,7 +1049,8 @@ visit_matchKindDeclaration(Ast* match_decl)
   HashmapEntry* he;
 
   field_scope = scope_create(storage, 112);
-  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64, (uint64_t)match_decl);
+  hkey.u64_key = (uint64_t)match_decl;
+  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64);
   if (!he) {
     he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
     hashmap_insert_entry(field_map, storage, &hkey, HKEY_UINT64, he);
@@ -1302,7 +1309,8 @@ visit_tableDeclaration(Ast* table_decl)
   name_decl->ast = table_decl;
   scope_push_decl(current_scope, storage, name_decl, NS_VAR);
   prop_scope = scope_create(storage, 112);
-  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64, (uint64_t)table_decl);
+  hkey.u64_key = (uint64_t)table_decl;
+  he = hashmap_lookup_entry(field_map, &hkey, HKEY_UINT64);
   if (!he) {
     he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
     hashmap_insert_entry(field_map, storage, &hkey, HKEY_UINT64, he);
