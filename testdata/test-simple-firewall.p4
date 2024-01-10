@@ -93,7 +93,7 @@ extern bit<16> csum_replace4(in bit<16> csum,
  * M must be a struct.
  *
  * H must be a struct where every one of its members is of type
- * header, header stack, or header_union.
+ * header, header_stack, or header_union.
  */
 
 parser parse<H, M>(packet_in packet, out H headers, inout M meta, inout standard_metadata std);

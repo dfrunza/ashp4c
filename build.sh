@@ -20,7 +20,7 @@ gcc $CC_FLAGS -I$INC -c $SRC/basic.c
 gcc $CC_FLAGS -I$INC -c $SRC/arena.c
 gcc $CC_FLAGS -I$INC -c $SRC/array.c
 gcc $CC_FLAGS -I$INC -c $SRC/hashmap.c
-gcc $CC_FLAGS -I$INC -c $SRC/scope.c
+gcc $CC_FLAGS -I$INC -c $SRC/scoping.c
 gcc $CC_FLAGS -I$INC -c $SRC/lex.c
 gcc $CC_FLAGS -I$INC -c $SRC/parse.c
 gcc $CC_FLAGS -I$INC -c $SRC/drypass.c
@@ -30,7 +30,7 @@ gcc $CC_FLAGS -I$INC -c $SRC/type_decl.c
 gcc $CC_FLAGS -I$INC -c $SRC/ashp4c.c
 
 ld $LD_FLAGS -L$LIB -o ashp4c $LIB/crt1.o \
-  basic.o arena.o array.o hashmap.o scope.o lex.o parse.o \
+  basic.o arena.o array.o hashmap.o scoping.o lex.o parse.o \
   drypass.o open_scope.o type_decl.o \
   ashp4c.o \
   -lc

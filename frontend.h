@@ -836,6 +836,67 @@ typedef struct Ast {
   };
 } Ast;
 
+enum TypeEnum {
+  TYPE_NONE = 0,
+
+  TYPE_VOID,
+  TYPE_BOOL,
+  TYPE_INT,
+  TYPE_BIT,
+  TYPE_VARBIT,
+  TYPE_STRING,
+  TYPE_ENUM,
+  TYPE_TYPEVAR,
+  TYPE_TYPEDEF,
+  TYPE_TYPEREF,
+  TYPE_FUNCTION,
+  TYPE_PRODUCT,
+  TYPE_STRUCT,
+  TYPE_ARRAY,
+  TYPE_GENERIC,
+
+  TYPE_UNRESOLVED,
+};
+
+typedef struct Type {
+  enum TypeEnum ctor;
+  char* strname;
+
+  union {
+    struct {
+    } basic, typevar, enum_, typeref;
+
+    struct {
+      struct Type* referred;
+    } typedef_;
+
+    struct {
+      struct Type* lhs;
+      struct Type* rhs;
+    } product;
+
+    struct {
+      struct Type* fields;
+    } struct_;
+
+    struct {
+      struct Type* type_params;
+      struct Type* params;
+      struct Type* return_;
+    } function;
+
+    struct {
+      struct Type* element;
+      int size;
+    } array;
+
+    struct {
+      struct Type* referred;
+      struct Type* args;
+    } generic;
+  };
+} Type;
+
 typedef struct Scope {
   int scope_level;
   struct Scope* parent_scope;
@@ -849,6 +910,7 @@ typedef struct NameDecl {
     Ast* ast;
     enum TokenClass token_class;
   };
+  Type* type;
 } NameDecl;
 
 enum NameSpace {
@@ -870,77 +932,4 @@ Scope*     scope_pop(Scope* scope);
 NameEntry* scope_lookup_any(Scope* scope, char* name);
 NameEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
 NameEntry* scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns);
-
-enum TypeEnum {
-  TYPE_NONE = 0,
-
-  TYPE_VOID,
-  TYPE_BOOL,
-  TYPE_INT,
-  TYPE_BIT,
-  TYPE_VARBIT,
-  TYPE_STRING,
-  TYPE_ERROR,
-  TYPE_MATCH_KIND,
-  TYPE_ENUM,
-  TYPE_TYPEVAR,
-  TYPE_TYPEDEF,
-  TYPE_TUPLE,
-  TYPE_EXTERN,
-  TYPE_FUNCTION,
-  TYPE_ACTION,
-  TYPE_PARSER,
-  TYPE_CONTROL,
-  TYPE_PACKAGE,
-  TYPE_PRODUCT,
-  TYPE_STRUCT,
-  TYPE_HEADER,
-  TYPE_HEADER_UNION,
-  TYPE_HEADER_STACK,
-  TYPE_GENERIC,
-
-  TYPE_UNRESOLVED,
-};
-
-typedef struct Type {
-  enum TypeEnum ctor;
-  char* strname;
-
-  union {
-    struct {
-    } basic, typevar, extern_, enum_;
-
-    struct {
-      struct Type* referred;
-    } typedef_;
-
-    struct {
-      struct Type* args;
-    } tuple;
-
-    struct {
-      struct Type* lhs;
-      struct Type* rhs;
-    } product;
-
-    struct {
-      struct Type* fields;
-    } struct_, header, header_union;
-
-    struct {
-      struct Type* params;
-      struct Type* return_;
-    } function, action,
-      parser, control, package;
-
-    struct {
-      struct Type* element;
-    } header_stack;
-
-    struct {
-      struct Type* referred;
-      struct Type* args;
-    } generic;
-  };
-} Type;
 

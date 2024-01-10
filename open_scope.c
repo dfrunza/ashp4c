@@ -177,8 +177,6 @@ visit_p4program(Ast* p4program)
 {
   assert(p4program->kind == AST_p4program);
   Scope* scope;
-  HashmapKey hkey;
-  HashmapEntry* he;
 
   scope = scope_create(storage, 240);
   current_scope = scope_push(scope, current_scope);

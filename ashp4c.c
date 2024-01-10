@@ -107,7 +107,6 @@ main(int arg_count, char* args[])
   Scope* root_scope;
   Ast* program;
   Hashmap* opened_scopes;
-  UnboundedArray* type_table;
 
   reserve_page_memory(250*KILOBYTE);
 
@@ -125,9 +124,7 @@ main(int arg_count, char* args[])
 
   drypass(program); /* sanity check */
   pass_open_scope(program, root_scope, &opened_scopes, &main_storage);
-  type_table = pass_type_decl(program, &main_storage);
-  /*
-  pass_potential_types(program, root_scope, &opened_scopes, &main_storage); */
+  pass_type_decl(program, root_scope, opened_scopes, &main_storage);
 
   arena_free(&main_storage);
   return 0;

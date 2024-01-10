@@ -552,6 +552,7 @@ parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_)
     char* strname;
     enum TokenClass token_class;
   };
+
   struct BuiltinName {
     char* strname;
     enum NameSpace ns;
@@ -599,6 +600,7 @@ parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_)
     {"varbit",  TK_VARBIT},
     {"string",  TK_STRING},
   };
+
   struct BuiltinName builtin_names[] = {
     {"bool",   NS_TYPE},
     {"int",    NS_TYPE},
@@ -611,6 +613,7 @@ parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_)
     {"accept", NS_VAR},
     {"reject", NS_VAR},
   };
+
   NameDecl* name_decl;
   Ast* name, *program;
 
