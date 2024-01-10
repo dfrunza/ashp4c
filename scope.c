@@ -123,6 +123,6 @@ Debug_scope_decls(Scope* scope)
     }
     he = hashmap_cursor_next_entry(&it, &scope->name_table);
   }
-  printf("\nTotal: %d\n", count);
+  printf("\nTotal names: %d\n", count);
 }
 

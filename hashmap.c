@@ -236,17 +236,31 @@ Debug_hashmap_occupancy(Hashmap* hashmap)
 {
   HashmapEntry** entry_slot;
   HashmapEntry* entry;
+  int empty_buckets = 0;
+  int total_entry_count = 0,
+      entry_count = 0,
+      max_bucket_length = 0;
 
   for (int i = 0; i < hashmap->capacity; i++) {
     entry_slot = segment_locate_elem(&hashmap->entries, i, sizeof(HashmapEntry*));
     entry = *entry_slot;
-    int entry_count = 0;
+    entry_count = 0;
     if (entry) {
       while (entry) {
         entry_count += 1;
         entry = entry->next_entry;
       }
+      if (entry_count > max_bucket_length) {
+        max_bucket_length = entry_count;
+      }
+    } else {
+      empty_buckets += 1;
     }
+    total_entry_count += entry_count;
     printf("[%d] -> %d\n", i, entry_count);
   }
+  printf(
+  "Entry count: %d\n" \
+  "Empty buckets: %d\n" \
+  "Max. bucket length: %d\n", total_entry_count, empty_buckets, max_bucket_length);
 }

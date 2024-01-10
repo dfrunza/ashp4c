@@ -141,6 +141,12 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
+void
+drypass(Ast* ast)
+{
+  visit_p4program(ast);
+}
+
 /** PROGRAM **/
 
 static void
@@ -1359,11 +1365,5 @@ static void
 visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AST_dontcare);
-}
-
-void
-drypass(Ast* ast)
-{
-  visit_p4program(ast);
 }
 

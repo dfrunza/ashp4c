@@ -24,14 +24,14 @@ gcc $CC_FLAGS -I$INC -c $SRC/scope.c
 gcc $CC_FLAGS -I$INC -c $SRC/lex.c
 gcc $CC_FLAGS -I$INC -c $SRC/parse.c
 gcc $CC_FLAGS -I$INC -c $SRC/drypass.c
-gcc $CC_FLAGS -I$INC -c $SRC/name_decl.c 
+gcc $CC_FLAGS -I$INC -c $SRC/open_scope.c 
+#gcc $CC_FLAGS -I$INC -c $SRC/name_decl.c 
 gcc $CC_FLAGS -I$INC -c $SRC/type_decl.c
-gcc $CC_FLAGS -I$INC -c $SRC/potential_type.c 
 gcc $CC_FLAGS -I$INC -c $SRC/ashp4c.c
 
 ld $LD_FLAGS -L$LIB -o ashp4c $LIB/crt1.o \
   basic.o arena.o array.o hashmap.o scope.o lex.o parse.o \
-  drypass.o name_decl.o type_decl.o potential_type.o \
+  drypass.o open_scope.o type_decl.o \
   ashp4c.o \
   -lc
 

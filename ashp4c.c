@@ -106,7 +106,7 @@ main(int arg_count, char* args[])
   UnboundedArray* tokens;
   Scope* root_scope;
   Ast* program;
-  Hashmap* scope_map, *field_map;
+  Hashmap* opened_scopes;
   UnboundedArray* type_table;
 
   reserve_page_memory(250*KILOBYTE);
@@ -124,9 +124,10 @@ main(int arg_count, char* args[])
   arena_free(&text_storage);
 
   drypass(program); /* sanity check */
-  pass_name_decl(program, root_scope, &scope_map, &field_map, &main_storage);
+  pass_open_scope(program, root_scope, &opened_scopes, &main_storage);
   type_table = pass_type_decl(program, &main_storage);
-  pass_potential_types(program, root_scope, scope_map, &main_storage);
+  /*
+  pass_potential_types(program, root_scope, &opened_scopes, &main_storage); */
 
   arena_free(&main_storage);
   return 0;
