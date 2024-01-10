@@ -117,9 +117,9 @@ hashmap_grow(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type)
   HashmapCursor it = {};
   HashmapEntry* first_entry, *last_entry;
   HashmapEntry* entry, *next_entry;
+  HashmapEntry** segment, **entry_slot;
   int entry_count;
   int segment_capacity; 
-  HashmapEntry** segment, **entry_slot;
   HashmapKey* key;
 
   last_segment = floor(log2(hashmap->capacity/16 + 1));
@@ -171,6 +171,7 @@ hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key /*in/out*/, enum HashmapK
   entry = *entry_slot;
   while (entry) {
     if (key_equal(key_type, &entry->key, key)) {
+      assert (key->h == entry->key.h);
       break;
     }
     entry = entry->next_entry;

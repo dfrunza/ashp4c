@@ -832,11 +832,7 @@ typedef struct Ast {
     } stringLiteral;
 
     struct {
-      struct Ast* name;
-    } dontcare;
-
-    struct {
-    } default_;
+    } default_, dontcare;
   };
 } Ast;
 

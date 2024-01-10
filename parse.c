@@ -914,8 +914,6 @@ parse_instantiation(Ast* type_ref)
   if (token_is_typeRef(token) || type_ref) {
     inst_stmt = arena_malloc(storage, sizeof(Ast));
     inst_stmt->kind = AST_instantiation;
-    inst_stmt->line_no = token->line_no;
-    inst_stmt->column_no = token->column_no;
     inst_stmt->instantiation.type_ref = type_ref ? type_ref : parse_typeRef();
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
@@ -923,6 +921,8 @@ parse_instantiation(Ast* type_ref)
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
         if (token_is_name(token)) {
+          inst_stmt->line_no = token->line_no;
+          inst_stmt->column_no = token->column_no;
           inst_stmt->instantiation.name = parse_name();
           if (token->klass == TK_SEMICOLON) {
             next_token();
@@ -1421,7 +1421,6 @@ static Ast*
 parse_simpleKeysetExpression()
 {
   Ast* simple_keyset, *default_keyset, *dontcare_keyset;
-  Ast* name;
 
   if (token_is_simpleKeysetExpression(token)) {
     simple_keyset = arena_malloc(storage, sizeof(Ast));
@@ -1445,12 +1444,6 @@ parse_simpleKeysetExpression()
       dontcare_keyset->kind = AST_dontcare;
       dontcare_keyset->line_no = token->line_no;
       dontcare_keyset->column_no = token->column_no;
-      name = arena_malloc(storage, sizeof(Ast));
-      name->kind = AST_name;
-      name->line_no = dontcare_keyset->line_no;
-      name->column_no = dontcare_keyset->column_no;
-      name->name.strname = "_";
-      dontcare_keyset->dontcare.name = name;
       simple_keyset->simpleKeysetExpression.expr = dontcare_keyset;
       return simple_keyset;
     }
@@ -1680,8 +1673,6 @@ parse_functionPrototype(Ast* return_type)
   if (token_is_typeOrVoid(token) || return_type) {
     func_proto = arena_malloc(storage, sizeof(Ast));
     func_proto->kind = AST_functionPrototype;
-    func_proto->line_no = token->line_no;
-    func_proto->column_no = token->column_no;
     if (return_type) {
       func_proto->functionPrototype.return_type = return_type;
     } else {
@@ -1701,6 +1692,8 @@ parse_functionPrototype(Ast* return_type)
       func_proto->functionPrototype.return_type = return_type;
     }
     if (token_is_name(token)) {
+      func_proto->line_no = token->line_no;
+      func_proto->column_no = token->column_no;
       func_proto->functionPrototype.name = parse_name();
       func_proto->functionPrototype.type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
@@ -2134,7 +2127,6 @@ static Ast*
 parse_realTypeArg()
 {
   Ast* type_arg, *dontcare_arg;
-  Ast* name;
 
   if (token_is_realTypeArg(token)) {
     type_arg = arena_malloc(storage, sizeof(Ast));
@@ -2147,12 +2139,6 @@ parse_realTypeArg()
       dontcare_arg->kind = AST_dontcare;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
-      name = arena_malloc(storage, sizeof(Ast));
-      name->kind = AST_name;
-      name->line_no = dontcare_arg->line_no;
-      name->column_no = dontcare_arg->column_no;
-      name->name.strname = "_";
-      dontcare_arg->dontcare.name = name;
       type_arg->realTypeArg.arg = dontcare_arg;
       return type_arg;
     } else if (token_is_typeRef(token)) {
@@ -2169,7 +2155,6 @@ static Ast*
 parse_typeArg()
 {
   Ast* type_arg, *dontcare_arg;
-  Ast* name;
 
   if (token_is_typeArg(token)) {
     type_arg = arena_malloc(storage, sizeof(Ast));
@@ -2182,12 +2167,6 @@ parse_typeArg()
       dontcare_arg->kind = AST_dontcare;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
-      name = arena_malloc(storage, sizeof(Ast));
-      name->kind = AST_name;
-      name->line_no = dontcare_arg->line_no;
-      name->column_no = dontcare_arg->column_no;
-      name->name.strname = "_";
-      dontcare_arg->dontcare.name = name;
       type_arg->typeArg.arg = dontcare_arg;
       return type_arg;
     } else if (token_is_typeRef(token)) {
@@ -2662,14 +2641,14 @@ parse_typedefDeclaration()
     if (token_is_typeRef(token) || token_is_derivedTypeDeclaration(token)) {
       type_decl = arena_malloc(storage, sizeof(Ast));
       type_decl->kind = AST_typedefDeclaration;
-      type_decl->line_no = token->line_no;
-      type_decl->column_no = token->column_no;
       if (token_is_typeRef(token)) {
         type_decl->typedefDeclaration.type_ref = parse_typeRef();
       } else if (token_is_derivedTypeDeclaration(token)) {
         type_decl->typedefDeclaration.type_ref = parse_derivedTypeDeclaration();
       } else assert(0);
       if (token_is_name(token)) {
+        type_decl->line_no = token->line_no;
+        type_decl->column_no = token->column_no;
         name = parse_name();
         name_decl = arena_malloc(storage, sizeof(NameDecl));
         name_decl->strname = name->name.strname;
@@ -3466,10 +3445,10 @@ parse_variableDeclaration(Ast* type_ref)
   if (token_is_typeRef(token) || type_ref) {
     var_decl = arena_malloc(storage, sizeof(Ast));
     var_decl->kind = AST_variableDeclaration;
-    var_decl->line_no = token->line_no;
-    var_decl->column_no = token->column_no;
     var_decl->variableDeclaration.type = type_ref ? type_ref : parse_typeRef();
     if (token_is_name(token)) {
+      var_decl->line_no = token->line_no;
+      var_decl->column_no = token->column_no;
       var_decl->variableDeclaration.name = parse_name();
       if (token->klass == TK_EQUAL) {
         next_token();
@@ -3538,7 +3517,6 @@ static Ast*
 parse_argument()
 {
   Ast* arg, *dontcare_arg;
-  Ast* name;
 
   if (token_is_argument(token)) {
     arg = arena_malloc(storage, sizeof(Ast));
@@ -3554,12 +3532,6 @@ parse_argument()
       dontcare_arg->kind = AST_dontcare;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
-      name = arena_malloc(storage, sizeof(Ast));
-      name->kind = AST_name;
-      name->line_no = dontcare_arg->line_no;
-      name->column_no = dontcare_arg->column_no;
-      name->name.strname = "_";
-      dontcare_arg->dontcare.name = name;
       arg->argument.arg = dontcare_arg;
       return arg;
     } else assert(0);
