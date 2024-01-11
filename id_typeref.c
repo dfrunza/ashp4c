@@ -3,6 +3,11 @@
 #include "foundation.h"
 #include "frontend.h"
 
+
+static Arena* storage;
+static const int MAXLEN_TYPEID = 16;
+static int typeref_id = 0;
+
 /** PROGRAM **/
 
 static void visit_p4program(Ast* p4program);
@@ -142,8 +147,9 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 void
-drypass(Ast* ast)
+pass_id_typeref(Ast* ast, Arena* storage_)
 {
+  storage = storage_;
   visit_p4program(ast);
 }
 
@@ -550,29 +556,28 @@ static void
 visit_typeRef(Ast* type_ref)
 {
   assert(type_ref->kind == AST_typeRef);
-  if (type_ref->typeRef.type->kind == AST_baseTypeBoolean) {
-    visit_baseTypeBoolean(type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_baseTypeInteger) {
-    visit_baseTypeInteger(type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_baseTypeBit) {
-    visit_baseTypeBit(type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_baseTypeVarbit) {
-    visit_baseTypeVarbit(type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_baseTypeString) {
-    visit_baseTypeString(type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_baseTypeVoid) {
-    visit_baseTypeVoid(type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_baseTypeError) {
-    visit_baseTypeError(type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_name) {
-    visit_name(type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_specializedType) {
-    visit_specializedType(type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_headerStackType) {
-    visit_headerStackType(type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_tupleType) {
-    visit_tupleType(type_ref->typeRef.type);
-  } else assert(0);
+  Ast* name;
+  Ast* type_decl, *refd_type;
+
+  refd_type = type_ref->typeRef.type;
+  if (refd_type->kind != AST_name) {
+    name = arena_malloc(storage, sizeof(Ast));
+    name->kind = AST_name;
+    name->line_no = type_ref->line_no;
+    name->column_no = type_ref->column_no;
+    name->name.strname = arena_malloc(storage, MAXLEN_TYPEID);
+    int lexeme_len = sprintf(name->name.strname, "$type%d", ++typeref_id);
+    assert(lexeme_len < MAXLEN_TYPEID);
+
+    type_ref->typeRef.type = name;
+
+    type_decl = arena_malloc(storage, sizeof(Ast));
+    type_decl->kind = AST_typedefDeclaration;
+    type_decl->line_no = type_ref->line_no;
+    type_decl->column_no = type_ref->column_no;
+    type_decl->typedefDeclaration.type_ref = refd_type;
+    type_decl->typedefDeclaration.name = name;
+  }
 }
 
 static void
@@ -1363,4 +1368,3 @@ visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AST_dontcare);
 }
-

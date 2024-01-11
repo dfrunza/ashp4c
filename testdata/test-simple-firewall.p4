@@ -196,8 +196,8 @@ parser prs(packet_in p, out Headers_t headers, inout metadata meta, inout standa
 
 control pipe(inout Headers_t headers, inout metadata meta, inout standard_metadata std_meta) {
 
-    Register<bit<32>, bit<32> >(65536) conn_state;
-    Register<bit<32>, bit<32> >(65536) conn_srv_addr;
+    Register< bit<32>, bit<32> >(65536) conn_state;
+    Register< bit<32>, bit<32> >(65536) conn_srv_addr;
 
     action update_conn_state(bit<32> s) {
         conn_state.write(meta.conn_id, s);

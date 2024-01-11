@@ -270,18 +270,43 @@ static void
 visit_packageTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_packageTypeDeclaration);
-  Ast* package_name;
-  Type* package_ty;
+  Ast* ast, *idref, *params;
+  Ast* name;
+  Type* package_ty, *idref_ty, *params_ty;
 
   visit_name(type_decl->packageTypeDeclaration.name);
   if (type_decl->packageTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->packageTypeDeclaration.type_params);
   }
   visit_parameterList(type_decl->packageTypeDeclaration.params);
-  package_name = type_decl->packageTypeDeclaration.name;
+
+  name = type_decl->packageTypeDeclaration.name;
   package_ty = array_append_elem(type_table, storage, sizeof(Type));
   package_ty->ctor = TYPE_FUNCTION;
-  package_ty->strname = package_name->name.strname;
+  package_ty->strname = name->name.strname;
+
+  params = type_decl->packageTypeDeclaration.params;
+  ast = params->parameterList.first_child;
+  if (ast) {
+    if (ast->right_sibling) {
+      for (; ast != 0; ast = ast->right_sibling) {
+        idref = ast->parameter.type->typeRef.type;
+        assert(idref->kind == AST_name);
+        idref_ty = array_append_elem(type_table, storage, sizeof(Type));
+        idref_ty->ctor = TYPE_IDREF;
+        idref_ty->strname = idref->name.strname;
+        idref_ty->idref.scope = 0;
+      }
+    } else {
+      idref = ast->parameter.type->typeRef.type;
+      assert(idref->kind == AST_name);
+      params_ty = array_append_elem(type_table, storage, sizeof(Type));
+      params_ty->ctor = TYPE_IDREF;
+      params_ty->strname = idref->name.strname;
+      params_ty->idref.scope = 0;
+      package_ty->function.params = params_ty;
+    }
+  }
 }
 
 static void

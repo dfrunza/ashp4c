@@ -122,7 +122,8 @@ main(int arg_count, char* args[])
   program = parse_program(tokens, &main_storage, &root_scope);
   arena_free(&text_storage);
 
-  drypass(program); /* sanity check */
+  drypass(program);
+  pass_id_typeref(program, &main_storage);
   pass_open_scope(program, root_scope, &opened_scopes, &main_storage);
   pass_type_decl(program, root_scope, opened_scopes, &main_storage);
 

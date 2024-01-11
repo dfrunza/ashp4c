@@ -848,12 +848,11 @@ enum TypeEnum {
   TYPE_ENUM,
   TYPE_TYPEVAR,
   TYPE_TYPEDEF,
-  TYPE_TYPEREF,
+  TYPE_IDREF,
   TYPE_FUNCTION,
   TYPE_PRODUCT,
   TYPE_STRUCT,
   TYPE_ARRAY,
-  TYPE_GENERIC,
 
   TYPE_UNRESOLVED,
 };
@@ -864,7 +863,7 @@ typedef struct Type {
 
   union {
     struct {
-    } basic, typevar, enum_, typeref;
+    } basic, typevar, enum_;
 
     struct {
       struct Type* referred;
@@ -880,7 +879,6 @@ typedef struct Type {
     } struct_;
 
     struct {
-      struct Type* type_params;
       struct Type* params;
       struct Type* return_;
     } function;
@@ -891,9 +889,8 @@ typedef struct Type {
     } array;
 
     struct {
-      struct Type* referred;
-      struct Type* args;
-    } generic;
+      struct Scope* scope;
+    } idref;
   };
 } Type;
 
