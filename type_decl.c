@@ -289,13 +289,42 @@ visit_packageTypeDeclaration(Ast* type_decl)
   ast = params->parameterList.first_child;
   if (ast) {
     if (ast->right_sibling) {
-      for (; ast != 0; ast = ast->right_sibling) {
+      params_ty = array_append_elem(type_table, storage, sizeof(Type));
+      params_ty->ctor = TYPE_PRODUCT;
+
+      idref = ast->parameter.type->typeRef.type;
+      assert(idref->kind == AST_name);
+      idref_ty = array_append_elem(type_table, storage, sizeof(Type));
+      idref_ty->ctor = TYPE_IDREF;
+      idref_ty->strname = idref->name.strname;
+      idref_ty->idref.scope = 0;
+      params_ty->product.lhs = idref_ty;
+
+      ast = ast->right_sibling;
+      idref = ast->parameter.type->typeRef.type;
+      assert(idref->kind == AST_name);
+      idref_ty = array_append_elem(type_table, storage, sizeof(Type));
+      idref_ty->ctor = TYPE_IDREF;
+      idref_ty->strname = idref->name.strname;
+      idref_ty->idref.scope = 0;
+      params_ty->product.rhs = idref_ty;
+
+      package_ty->function.params = params_ty;
+      for (ast = ast->right_sibling;
+           ast != 0; ast = ast->right_sibling) {
+        params_ty = array_append_elem(type_table, storage, sizeof(Type));
+        params_ty->ctor = TYPE_PRODUCT;
+
         idref = ast->parameter.type->typeRef.type;
         assert(idref->kind == AST_name);
         idref_ty = array_append_elem(type_table, storage, sizeof(Type));
         idref_ty->ctor = TYPE_IDREF;
         idref_ty->strname = idref->name.strname;
         idref_ty->idref.scope = 0;
+
+        params_ty->product.rhs = idref_ty;
+        params_ty->product.lhs = package_ty->function.params;
+        package_ty->function.params = params_ty;
       }
     } else {
       idref = ast->parameter.type->typeRef.type;
