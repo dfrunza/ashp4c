@@ -3,8 +3,8 @@
 #include "foundation.h"
 #include "frontend.h"
 
-static Arena*   storage;
-static Hashmap* opened_scopes;
+static Arena*          storage;
+static Hashmap*        opened_scopes;
 static UnboundedArray* type_table;
 
 /** PROGRAM **/
@@ -145,6 +145,39 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
+Type*
+create_product_type(UnboundedArray* type_table, int i, int j, Arena* storage)
+{
+  assert(j >= i);
+  Type* product_ty, *ty;
+
+  if (i == j) {
+    return 0;
+  } else if ((j - i) == 1) {
+    return array_get_elem(type_table, i, sizeof(Type));
+  } else if ((j - i) == 2) {
+    product_ty = array_append_elem(type_table, storage, sizeof(Type));
+    product_ty->ctor = TYPE_PRODUCT;
+    product_ty->product.lhs = array_get_elem(type_table, i, sizeof(Type));
+    product_ty->product.rhs = array_get_elem(type_table, j, sizeof(Type));
+    return product_ty;
+  } else {
+    product_ty = array_append_elem(type_table, storage, sizeof(Type));
+    product_ty->ctor = TYPE_PRODUCT;
+    product_ty->product.lhs = array_get_elem(type_table, i, sizeof(Type));
+    product_ty->product.rhs = array_get_elem(type_table, i+1, sizeof(Type));
+    for (int k = i+2; k < j; k++) {
+      ty = array_append_elem(type_table, storage, sizeof(Type));
+      ty->ctor = TYPE_PRODUCT;
+      ty->product.lhs = product_ty;
+      ty->product.rhs = array_get_elem(type_table, k, sizeof(Type));
+      product_ty = ty;
+    }
+    return product_ty;
+  }
+  assert(0);
+}
+
 UnboundedArray*
 pass_type_decl(Ast* ast, Scope* root_scope, Hashmap* opened_scopes_, Arena* storage_)
 {
@@ -272,7 +305,8 @@ visit_packageTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AST_packageTypeDeclaration);
   Ast* ast, *idref, *params;
   Ast* name;
-  Type* package_ty, *idref_ty, *params_ty;
+  Type* package_ty, *idref_ty;
+  int i;
 
   visit_name(type_decl->packageTypeDeclaration.name);
   if (type_decl->packageTypeDeclaration.type_params) {
@@ -285,57 +319,18 @@ visit_packageTypeDeclaration(Ast* type_decl)
   package_ty->ctor = TYPE_FUNCTION;
   package_ty->strname = name->name.strname;
 
+  i = type_table->elem_count;
   params = type_decl->packageTypeDeclaration.params;
-  ast = params->parameterList.first_child;
-  if (ast) {
-    if (ast->right_sibling) {
-      params_ty = array_append_elem(type_table, storage, sizeof(Type));
-      params_ty->ctor = TYPE_PRODUCT;
-
-      idref = ast->parameter.type->typeRef.type;
-      assert(idref->kind == AST_name);
-      idref_ty = array_append_elem(type_table, storage, sizeof(Type));
-      idref_ty->ctor = TYPE_IDREF;
-      idref_ty->strname = idref->name.strname;
-      idref_ty->idref.scope = 0;
-      params_ty->product.lhs = idref_ty;
-
-      ast = ast->right_sibling;
-      idref = ast->parameter.type->typeRef.type;
-      assert(idref->kind == AST_name);
-      idref_ty = array_append_elem(type_table, storage, sizeof(Type));
-      idref_ty->ctor = TYPE_IDREF;
-      idref_ty->strname = idref->name.strname;
-      idref_ty->idref.scope = 0;
-      params_ty->product.rhs = idref_ty;
-
-      package_ty->function.params = params_ty;
-      for (ast = ast->right_sibling;
-           ast != 0; ast = ast->right_sibling) {
-        params_ty = array_append_elem(type_table, storage, sizeof(Type));
-        params_ty->ctor = TYPE_PRODUCT;
-
-        idref = ast->parameter.type->typeRef.type;
-        assert(idref->kind == AST_name);
-        idref_ty = array_append_elem(type_table, storage, sizeof(Type));
-        idref_ty->ctor = TYPE_IDREF;
-        idref_ty->strname = idref->name.strname;
-        idref_ty->idref.scope = 0;
-
-        params_ty->product.rhs = idref_ty;
-        params_ty->product.lhs = package_ty->function.params;
-        package_ty->function.params = params_ty;
-      }
-    } else {
-      idref = ast->parameter.type->typeRef.type;
-      assert(idref->kind == AST_name);
-      params_ty = array_append_elem(type_table, storage, sizeof(Type));
-      params_ty->ctor = TYPE_IDREF;
-      params_ty->strname = idref->name.strname;
-      params_ty->idref.scope = 0;
-      package_ty->function.params = params_ty;
-    }
+  for (ast = params->parameterList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    idref = ast->parameter.type->typeRef.type;
+    assert(idref->kind == AST_name);
+    idref_ty = array_append_elem(type_table, storage, sizeof(Type));
+    idref_ty->ctor = TYPE_IDREF;
+    idref_ty->strname = idref->name.strname;
+    idref_ty->idref.scope = 0;
   }
+  package_ty->function.params = create_product_type(type_table, i, type_table->elem_count, storage);
 }
 
 static void

@@ -4,9 +4,9 @@
 #include "frontend.h"
 
 
-static Arena* storage;
 static const int MAXLEN_TYPEID = 16;
-static int typeref_id = 0;
+static Arena* storage;
+static int    typeref_id = 0;
 
 /** PROGRAM **/
 
