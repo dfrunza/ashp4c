@@ -154,20 +154,20 @@ insert_opened_scope_entry(Ast* ast, Scope* scope)
   hkey.u64_key = (uint64_t)ast;
   if (!hashmap_lookup_entry(opened_scopes, &hkey, HKEY_UINT64)) {
     he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
-    *he->value = scope;
     hashmap_insert_entry(opened_scopes, storage, &hkey, HKEY_UINT64, he);
+    *(Scope**)he->value = scope;
   } else assert(0);
 }
 
-void
-pass_open_scope(Ast* ast, Scope* root_scope, Hashmap** opened_scopes_, Arena* storage_)
+Hashmap*
+pass_open_scope(Ast* ast, Scope* root_scope, Arena* storage_)
 {
   storage = storage_;
   opened_scopes = hashmap_create(storage, 1008);
   current_scope = root_scope;
   visit_p4program(ast);
   assert(current_scope == root_scope);
-  *opened_scopes_ = opened_scopes;
+  return opened_scopes;
 }
 
 /** PROGRAM **/
@@ -1363,9 +1363,9 @@ visit_expression(Ast* expr)
   } else if (expr->expression.expr->kind == AST_name) {
     visit_name(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_specializedType) {
-    visit_specializedType(expr->expression.expr);
+    assert(0);
   } else if (expr->expression.expr->kind == AST_headerStackType) {
-    visit_headerStackType(expr->expression.expr);
+    assert(0);
   } else if (expr->expression.expr->kind == AST_expressionList) {
     visit_expressionList(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_castExpression) {

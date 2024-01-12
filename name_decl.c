@@ -1562,9 +1562,9 @@ visit_expression(Ast* expr)
   } else if (expr->expression.expr->kind == AST_name) {
     visit_name(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_specializedType) {
-    visit_specializedType(expr->expression.expr);
+    assert(0);
   } else if (expr->expression.expr->kind == AST_headerStackType) {
-    visit_headerStackType(expr->expression.expr);
+    assert(0);
   } else if (expr->expression.expr->kind == AST_expressionList) {
     visit_expressionList(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_castExpression) {

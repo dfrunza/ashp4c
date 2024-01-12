@@ -859,11 +859,12 @@ enum TypeEnum {
 
 typedef struct Type {
   enum TypeEnum ctor;
-  char* strname;
+  /*char* strname;*/
 
   union {
     struct {
-    } basic, typevar, enum_;
+      int size;
+    } basic;
 
     struct {
       struct Type* referred;
@@ -889,7 +890,7 @@ typedef struct Type {
     } array;
 
     struct {
-      struct Scope* scope;
+      struct Ast* ref;
     } idref;
   };
 } Type;

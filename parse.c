@@ -3762,7 +3762,7 @@ parse_expressionPrimary()
         primary->expression.expr = parse_nonTypeName();
         return primary;
       } else if (token->klass == TK_TYPE_IDENTIFIER) {
-        primary->expression.expr = parse_namedType();
+        primary->expression.expr = parse_prefixedType();
         return primary;
       } else error("At line %d, column %d: unexpected token `%s`.",
                    token->line_no, token->column_no, token->lexeme);
@@ -3834,7 +3834,7 @@ parse_expressionPrimary()
       primary->expression.expr = expr;
       return primary;
     } else if (token_is_typeName(token)) {
-      primary->expression.expr = parse_namedType();
+      primary->expression.expr = parse_prefixedType();
       return primary;
     } else if (token->klass == TK_ERROR) {
       next_token();
