@@ -1839,11 +1839,11 @@ parse_tupleType()
   Ast* tuple;
 
   if (token->klass == TK_TUPLE) {
-    next_token();
     tuple = arena_malloc(storage, sizeof(Ast));
     tuple->kind = AST_tupleType;
     tuple->line_no = token->line_no;
     tuple->column_no = token->column_no;
+    next_token();
     if (token->klass == TK_ANGLE_OPEN) {
       next_token();
       tuple->tupleType.type_args = parse_typeArgumentList();
@@ -1874,8 +1874,8 @@ parse_headerStackType(Ast* named_type)
     type_ref->typeRef.type = named_type;
     type = arena_malloc(storage, sizeof(Ast));
     type->kind = AST_headerStackType;
-    type->line_no = token->line_no;
-    type->column_no = token->column_no;
+    type->line_no = named_type->line_no;
+    type->column_no = named_type->column_no;
     type->headerStackType.type = type_ref;
     if (token_is_expression(token)) {
       type->headerStackType.stack_expr = parse_expression(1);
@@ -1906,8 +1906,8 @@ parse_specializedType(Ast* named_type)
     type_ref->typeRef.type = named_type;
     type = arena_malloc(storage, sizeof(Ast));
     type->kind = AST_specializedType;
-    type->line_no = token->line_no;
-    type->column_no = token->column_no;
+    type->line_no = named_type->line_no;
+    type->column_no = named_type->column_no;
     type->specializedType.type_args = parse_typeArgumentList();
     type->specializedType.type = type_ref;
     if (token->klass == TK_ANGLE_CLOSE) {
