@@ -10,6 +10,7 @@ enum TokenClass {
   TK_NONE = 0,
 
   /* Operators and syntactic elements */
+
   TK_SEMICOLON,
   TK_IDENTIFIER,
   TK_TYPE_IDENTIFIER,
@@ -50,6 +51,7 @@ enum TokenClass {
   TK_COMMENT,
 
   /* Keywords */
+
   TK_ACTION,
   TK_ACTIONS,
   TK_ENUM,
@@ -92,6 +94,7 @@ enum TokenClass {
   TK_CONST,
 
   /* Control */
+
   TK_UNKNOWN,
   TK_START_OF_INPUT,
   TK_END_OF_INPUT,
@@ -264,6 +267,7 @@ enum Ast_Operator {
   OP_NONE = 0,
 
   /* Arithmetic */
+
   OP_ADD,
   OP_SUB,
   OP_MUL,
@@ -271,11 +275,13 @@ enum Ast_Operator {
   OP_NEG,
 
   /* Logical */
+
   OP_AND,
   OP_OR,
   OP_NOT,
 
   /* Relational */
+
   OP_EQ,
   OP_NEQ,
   OP_LESS,
@@ -284,6 +290,7 @@ enum Ast_Operator {
   OP_GREAT_EQ,
 
   /* Bitwise */
+
   OP_BITW_AND,
   OP_BITW_OR,
   OP_BITW_XOR,
@@ -846,7 +853,6 @@ enum TypeEnum {
   TYPE_VARBIT,
   TYPE_STRING,
   TYPE_ENUM,
-  TYPE_TYPEVAR,
   TYPE_TYPEDEF,
   TYPE_FUNCTION,
   TYPE_PRODUCT,
@@ -854,12 +860,12 @@ enum TypeEnum {
   TYPE_ARRAY,
   TYPE_SPECIALIZED,
   TYPE_IDREF,
-
-  TYPE_UNRESOLVED,
+  TYPE_NAMEREF,
 };
 
 typedef struct Type {
   enum TypeEnum ctor;
+  char* strname;
 
   union {
     struct {
@@ -877,7 +883,7 @@ typedef struct Type {
 
     struct {
       struct Type* fields;
-    } struct_;
+    } struct_, enum_;
 
     struct {
       struct Type* params;
@@ -897,6 +903,11 @@ typedef struct Type {
     struct {
       struct Ast* ref;
     } idref;
+
+    struct {
+      char* strname;
+      struct Scope* scope;
+    } nameref;
   };
 } Type;
 
