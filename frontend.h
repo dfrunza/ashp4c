@@ -848,18 +848,18 @@ enum TypeEnum {
   TYPE_ENUM,
   TYPE_TYPEVAR,
   TYPE_TYPEDEF,
-  TYPE_IDREF,
   TYPE_FUNCTION,
   TYPE_PRODUCT,
   TYPE_STRUCT,
   TYPE_ARRAY,
+  TYPE_SPECIALIZED,
+  TYPE_IDREF,
 
   TYPE_UNRESOLVED,
 };
 
 typedef struct Type {
   enum TypeEnum ctor;
-  /*char* strname;*/
 
   union {
     struct {
@@ -867,7 +867,7 @@ typedef struct Type {
     } basic;
 
     struct {
-      struct Type* referred;
+      struct Type* ref;
     } typedef_;
 
     struct {
@@ -888,6 +888,11 @@ typedef struct Type {
       struct Type* element;
       int size;
     } array;
+
+    struct {
+      struct Type* ref;
+      struct Type* args;
+    } specialized;
 
     struct {
       struct Ast* ref;

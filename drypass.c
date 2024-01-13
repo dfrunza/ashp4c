@@ -1251,10 +1251,6 @@ visit_expression(Ast* expr)
     visit_stringLiteral(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_name) {
     visit_name(expr->expression.expr);
-  } else if (expr->expression.expr->kind == AST_specializedType) {
-    assert(0);
-  } else if (expr->expression.expr->kind == AST_headerStackType) {
-    assert(0);
   } else if (expr->expression.expr->kind == AST_expressionList) {
     visit_expressionList(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_castExpression) {
