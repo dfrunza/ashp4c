@@ -619,7 +619,7 @@ parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_)
 
   tokens = tokens_;
   storage = storage_;
-  root_scope = scope_create(storage, 1008);
+  root_scope = scope_create(storage, 496);
   current_scope = root_scope;
 
   for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
@@ -2100,7 +2100,7 @@ parse_optTypeParameters()
 static Ast*
 parse_typeParameterList()
 {
-  Ast* params, *name;
+  Ast* params, *name, *ast;
   NameDecl* name_decl;
 
   params = arena_malloc(storage, sizeof(Ast));
@@ -2112,15 +2112,16 @@ parse_typeParameterList()
     name_decl = arena_malloc(storage, sizeof(NameDecl));
     name_decl->strname = name->name.strname;
     scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
-    params->typeParameterList.first_child = name;
+    ast = name;
+    params->typeParameterList.first_child = ast;
     while (token->klass == TK_COMMA) {
       next_token();
       name = parse_name();
       NameDecl* name_decl = arena_malloc(storage, sizeof(NameDecl));
       name_decl->strname = name->name.strname;
       scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
-      name->right_sibling = name;
-      name = name->right_sibling;
+      ast->right_sibling = name;
+      ast = ast->right_sibling;
     }
   }
   return params;
