@@ -538,7 +538,14 @@ static void
 visit_parserBlockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AST_parserBlockStatement);
+  Scope* prev_scope;
+
+  prev_scope = enclosing_scope;
+  enclosing_scope = lookup_opened_scope(opened_scopes, block_stmt);
+
   visit_parserStatements(block_stmt->parserBlockStatement.stmt_list);
+
+  enclosing_scope = prev_scope;
 }
 
 static void
@@ -1291,7 +1298,7 @@ visit_typedefDeclaration(Ast* typedef_decl)
 {
   assert(typedef_decl->kind == AST_typedefDeclaration);
   Ast* name;
-  Type* typedef_ty;
+  Type* typedef_ty, *ty;
 
   if (typedef_decl->typedefDeclaration.type_ref->kind == AST_typeRef) {
     visit_typeRef(typedef_decl->typedefDeclaration.type_ref);
@@ -1304,8 +1311,12 @@ visit_typedefDeclaration(Ast* typedef_decl)
   typedef_ty->ctor = TYPE_TYPEDEF;
   typedef_ty->strname = name->name.strname;
 
-  lookup_type_table(type_table, typedef_decl->typedefDeclaration.type_ref);
   insert_type_table_entry(type_table, typedef_decl, typedef_ty);
+
+  ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
+  ty->ctor = TYPE_IDREF;
+  ty->idref.ref = typedef_decl->typedefDeclaration.type_ref;
+  typedef_ty->typedef_.ref = ty;
 }
 
 /** STATEMENTS **/

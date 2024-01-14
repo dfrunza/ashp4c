@@ -405,7 +405,6 @@ static void
 visit_parserStatement(Ast* stmt)
 {
   assert(stmt->kind == AST_parserStatement);
-  Scope* scope, *prev_scope;
 
   if (stmt->parserStatement.stmt->kind == AST_assignmentStatement) {
     visit_assignmentStatement(stmt->parserStatement.stmt);
@@ -414,12 +413,7 @@ visit_parserStatement(Ast* stmt)
   } else if (stmt->parserStatement.stmt->kind == AST_directApplication) {
     visit_directApplication(stmt->parserStatement.stmt);
   } else if (stmt->parserStatement.stmt->kind == AST_parserBlockStatement) {
-    scope = scope_create(storage, 240);
-    prev_scope = current_scope;
-    current_scope = scope_push(scope, current_scope);
-    insert_opened_scope_entry(opened_scopes, stmt, current_scope);
     visit_parserBlockStatement(stmt->parserStatement.stmt);
-    current_scope = prev_scope;
   } else if (stmt->parserStatement.stmt->kind == AST_variableDeclaration) {
     visit_variableDeclaration(stmt->parserStatement.stmt);
   } else assert(0);
@@ -429,7 +423,16 @@ static void
 visit_parserBlockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AST_parserBlockStatement);
+  Scope* scope, *prev_scope;
+
+  scope = scope_create(storage, 240);
+  prev_scope = current_scope;
+  current_scope = scope_push(scope, current_scope);
+  insert_opened_scope_entry(opened_scopes, block_stmt, current_scope);
+
   visit_parserStatements(block_stmt->parserBlockStatement.stmt_list);
+
+  current_scope = prev_scope;
 }
 
 static void

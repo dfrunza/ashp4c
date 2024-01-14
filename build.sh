@@ -26,7 +26,6 @@ gcc $CC_FLAGS -I$INC -c $SRC/parse.c
 gcc $CC_FLAGS -I$INC -c $SRC/drypass.c
 gcc $CC_FLAGS -I$INC -c $SRC/open_scope.c 
 gcc $CC_FLAGS -I$INC -c $SRC/symtable.c 
-#gcc $CC_FLAGS -I$INC -c $SRC/name_decl.c 
 gcc $CC_FLAGS -I$INC -c $SRC/type_table.c
 gcc $CC_FLAGS -I$INC -c $SRC/cyclic_type.c 
 gcc $CC_FLAGS -I$INC -c $SRC/ashp4c.c

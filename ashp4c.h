@@ -6,9 +6,6 @@ Ast*            parse_program(UnboundedArray* tokens, Arena* storage, Scope** ro
 void            drypass(Ast* ast);
 Hashmap*        build_open_scope(Ast* p4program, Scope* root_scope, Arena* storage);
 void            build_symtable(Ast* p4program, Scope* root_scope, Hashmap* opened_scopes, Arena* storage);
-/*
-void            build_name_decl(Ast* ast, Scope* root_scope,
-                    Hashmap** scope_map, Hashmap** field_map, Arena* storage); */
 Hashmap*        build_type_table(Ast* p4program, Scope* root_scope, UnboundedArray** type_array,
                     Hashmap* opened_scopes, Arena* storage);
 void            resolve_type_idref(Hashmap* type_table, UnboundedArray* type_array);

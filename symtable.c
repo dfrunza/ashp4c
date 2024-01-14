@@ -416,6 +416,7 @@ static void
 visit_parserStatement(Ast* stmt)
 {
   assert(stmt->kind == AST_parserStatement);
+
   if (stmt->parserStatement.stmt->kind == AST_assignmentStatement) {
     visit_assignmentStatement(stmt->parserStatement.stmt);
   } else if (stmt->parserStatement.stmt->kind == AST_functionCall) {
@@ -433,7 +434,14 @@ static void
 visit_parserBlockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AST_parserBlockStatement);
+  Scope* prev_scope;
+
+  prev_scope = current_scope;
+  current_scope = lookup_opened_scope(opened_scopes, block_stmt);
+
   visit_parserStatements(block_stmt->parserBlockStatement.stmt_list);
+
+  current_scope = prev_scope;
 }
 
 static void
