@@ -610,6 +610,7 @@ parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_)
     {"void",   NS_TYPE},
     {"error",  NS_TYPE},
     {"match_kind", NS_TYPE},
+    {"_",      NS_TYPE},
     {"accept", NS_VAR},
     {"reject", NS_VAR},
   };

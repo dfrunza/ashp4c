@@ -852,6 +852,7 @@ enum TypeEnum {
   TYPE_BIT,
   TYPE_VARBIT,
   TYPE_STRING,
+  TYPE_DONTCARE,
   TYPE_ENUM,
   TYPE_TYPEDEF,
   TYPE_TYPEVAR,
@@ -863,6 +864,7 @@ enum TypeEnum {
   TYPE_SPECIALIZED,
   TYPE_IDREF,
   TYPE_NAMEREF,
+  TYPE_PROXY,
 };
 
 typedef struct Type {
@@ -914,6 +916,10 @@ typedef struct Type {
       char* strname;
       struct Scope* scope;
     } nameref;
+
+    struct {
+      struct Type* type;
+    } proxy;
   };
 } Type;
 

@@ -7,8 +7,9 @@ void            drypass(Ast* ast);
 Hashmap*        pass_open_scope(Ast* ast, Scope* root_scope, Arena* storage);
 /*
 void            pass_name_decl(Ast* ast, Scope* root_scope,
-                  Hashmap** scope_map, Hashmap** field_map, Arena* storage); */
-void            resolve_idref_type(Hashmap* type_table);
-Hashmap*        pass_type_decl(Ast* ast, Scope* root_scope, Hashmap* opened_scopes, Arena* storage);
+                    Hashmap** scope_map, Hashmap** field_map, Arena* storage); */
+void            resolve_idref_type(Hashmap* type_table, UnboundedArray* type_array);
+Hashmap*        pass_type_decl(Ast* ast, Scope* root_scope, UnboundedArray** type_array,
+                    Hashmap* opened_scopes, Arena* storage);
 Hashmap*        pass_potential_types(Ast* ast, Scope* root_scope, Hashmap* scope_map, Arena* storage);
 

@@ -7,6 +7,7 @@ static Arena*   storage;
 static Scope*   root_scope;
 static Hashmap* opened_scopes;
 static Hashmap* type_table;
+static UnboundedArray* type_array;
 
 /** PROGRAM **/
 
@@ -147,29 +148,29 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 Type*
-create_product_type(Type* member_ty, int n, Arena* storage)
+create_product_type(int i, int j, Arena* storage)
 {
   Type* product_ty, *ty;
 
-  if (n == 0) {
+  if (j == i) {
     return 0;
-  } else if (n == 1) {
-    return member_ty;
-  } else if (n == 2) {
-    product_ty = arena_malloc(storage, sizeof(Type));
+  } else if ((j - i) == 1) {
+    return (Type*)array_get_elem(type_array, i, sizeof(Type));
+  } else if ((j - i) == 2) {
+    product_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
     product_ty->ctor = TYPE_PRODUCT;
-    product_ty->product.rhs = member_ty;
-    product_ty->product.lhs = member_ty-1;
+    product_ty->product.rhs = (Type*)array_get_elem(type_array, i+1, sizeof(Type));
+    product_ty->product.lhs = (Type*)array_get_elem(type_array, i, sizeof(Type));
     return product_ty;
-  } else if (n > 2) {
-    product_ty = arena_malloc(storage, sizeof(Type));
+  } else if ((j - i) > 2) {
+    product_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
     product_ty->ctor = TYPE_PRODUCT;
-    product_ty->product.rhs = member_ty;
-    product_ty->product.lhs = member_ty-1;
-    for (int i = 2; i < n; i++) {
-      ty = arena_malloc(storage, sizeof(Type));
+    product_ty->product.rhs = (Type*)array_get_elem(type_array, j-1, sizeof(Type));
+    product_ty->product.lhs = (Type*)array_get_elem(type_array, j-2, sizeof(Type));
+    for (int k = j-3; k >= i; k--) {
+      ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
       ty->ctor = TYPE_PRODUCT;
-      ty->product.lhs = member_ty-i;
+      ty->product.lhs = (Type*)array_get_elem(type_array, k, sizeof(Type));
       ty->product.rhs = product_ty;
       product_ty = ty;
     }
@@ -179,7 +180,8 @@ create_product_type(Type* member_ty, int n, Arena* storage)
 }
 
 Hashmap*
-pass_type_decl(Ast* ast, Scope* root_scope_, Hashmap* opened_scopes_, Arena* storage_)
+pass_type_decl(Ast* ast, Scope* root_scope_, UnboundedArray** type_array_,
+        Hashmap* opened_scopes_, Arena* storage_)
 {
   struct BuiltinType {
     char* strname;
@@ -195,6 +197,7 @@ pass_type_decl(Ast* ast, Scope* root_scope_, Hashmap* opened_scopes_, Arena* sto
     {"string", TYPE_STRING},
     {"error",  TYPE_ENUM},
     {"match_kind", TYPE_ENUM},
+    {"_",      TYPE_DONTCARE},
   };
 
   Type* builtin_ty;
@@ -205,10 +208,12 @@ pass_type_decl(Ast* ast, Scope* root_scope_, Hashmap* opened_scopes_, Arena* sto
   storage = storage_;
   root_scope = root_scope_;
   opened_scopes = opened_scopes_;
-  type_table = hashmap_create(storage, 496);
+  type_table = hashmap_create(storage, 1008);
+  type_array = array_create(storage, sizeof(Type), 1008);
+
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_decl = scope_lookup_namespace(root_scope, builtin_types[i].strname, NS_TYPE)->ns[NS_TYPE];
-    builtin_ty = arena_malloc(storage, sizeof(Type));
+    builtin_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
     builtin_ty->ctor = builtin_types[i].type;
     builtin_ty->strname = builtin_types[i].strname;
     name_decl->type = builtin_ty;
@@ -221,6 +226,8 @@ pass_type_decl(Ast* ast, Scope* root_scope_, Hashmap* opened_scopes_, Arena* sto
     *(Type**)he->value = builtin_ty;
   }
   visit_p4program(ast);
+
+  *type_array_ = type_array;
   return type_table;
 }
 
@@ -284,7 +291,7 @@ visit_name(Ast* name)
   HashmapKey hkey;
   HashmapEntry* he;
 
-  name_ty = arena_malloc(storage, sizeof(Type));
+  name_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
   name_ty->ctor = TYPE_NAMEREF;
   name_ty->nameref.strname = name->name.strname;
   name_ty->nameref.scope = 0; /*FIXME*/
@@ -324,10 +331,10 @@ visit_packageTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_packageTypeDeclaration);
   Ast* ast, *name, *params;
-  Type* package_ty, *idref_ty;
+  Type* package_ty, *ty;
   HashmapKey hkey;
   HashmapEntry* he;
-  int n;
+  int i;
 
   if (type_decl->packageTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->packageTypeDeclaration.type_params);
@@ -335,7 +342,7 @@ visit_packageTypeDeclaration(Ast* type_decl)
   visit_parameterList(type_decl->packageTypeDeclaration.params);
 
   name = type_decl->packageTypeDeclaration.name;
-  package_ty = arena_malloc(storage, sizeof(Type));
+  package_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
   package_ty->ctor = TYPE_FUNCTION;
   package_ty->strname = name->name.strname;
 
@@ -346,16 +353,15 @@ visit_packageTypeDeclaration(Ast* type_decl)
   hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
   *(Type**)he->value = package_ty;
 
-  n = 0;
+  i = type_array->elem_count;
   params = type_decl->packageTypeDeclaration.params;
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    idref_ty = arena_malloc(storage, sizeof(Type));
-    idref_ty->ctor = TYPE_IDREF;
-    idref_ty->idref.ref = ast->parameter.type;
-    n += 1;
+    ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_IDREF;
+    ty->idref.ref = ast->parameter.type;
   }
-  package_ty->function.params = create_product_type(idref_ty, n, storage);
+  package_ty->function.params = create_product_type(i, type_array->elem_count, storage);
 }
 
 static void
@@ -385,10 +391,10 @@ visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_parserTypeDeclaration);
   Ast* ast, *name, *params;
-  Type* parser_ty, *idref_ty;
+  Type* parser_ty, *ty;
   HashmapKey hkey;
   HashmapEntry* he;
-  int n;
+  int i;
 
   if (type_decl->parserTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->parserTypeDeclaration.type_params);
@@ -396,7 +402,7 @@ visit_parserTypeDeclaration(Ast* type_decl)
   visit_parameterList(type_decl->parserTypeDeclaration.params);
 
   name = type_decl->parserTypeDeclaration.name;
-  parser_ty = arena_malloc(storage, sizeof(Type));
+  parser_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
   parser_ty->ctor = TYPE_FUNCTION;
   parser_ty->strname = name->name.strname;
 
@@ -407,16 +413,15 @@ visit_parserTypeDeclaration(Ast* type_decl)
   hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
   *(Type**)he->value = parser_ty;
 
-  n = 0;
+  i = type_array->elem_count;
   params = type_decl->parserTypeDeclaration.params;
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    idref_ty = arena_malloc(storage, sizeof(Type));
-    idref_ty->ctor = TYPE_IDREF;
-    idref_ty->idref.ref = ast->parameter.type;
-    n += 1;
+    ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_IDREF;
+    ty->idref.ref = ast->parameter.type;
   }
-  parser_ty->function.params = create_product_type(idref_ty, n, storage);
+  parser_ty->function.params = create_product_type(i, type_array->elem_count, storage);
 }
 
 static void
@@ -570,7 +575,7 @@ visit_simpleKeysetExpression(Ast* simple_expr)
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_default) {
     visit_default(simple_expr->simpleKeysetExpression.expr);
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_dontcare) {
-    visit_dontcare(simple_expr->simpleKeysetExpression.expr);
+    ;
   } else assert(0);
 }
 
@@ -605,10 +610,10 @@ visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_controlTypeDeclaration);
   Ast* ast, *name, *params;
-  Type* control_ty, *idref_ty;
+  Type* control_ty, *ty;
   HashmapKey hkey;
   HashmapEntry* he;
-  int n;
+  int i;
 
   if (type_decl->controlTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->controlTypeDeclaration.type_params);
@@ -616,7 +621,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
   visit_parameterList(type_decl->controlTypeDeclaration.params);
 
   name = type_decl->controlTypeDeclaration.name;
-  control_ty = arena_malloc(storage, sizeof(Type));
+  control_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
   control_ty->ctor = TYPE_FUNCTION;
   control_ty->strname = name->name.strname;
 
@@ -627,16 +632,15 @@ visit_controlTypeDeclaration(Ast* type_decl)
   hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
   *(Type**)he->value = control_ty;
 
-  n = 0;
+  i = type_array->elem_count;
   params = type_decl->packageTypeDeclaration.params;
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    idref_ty = arena_malloc(storage, sizeof(Type));
-    idref_ty->ctor = TYPE_IDREF;
-    idref_ty->idref.ref = ast->parameter.type;
-    n += 1;
+    ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_IDREF;
+    ty->idref.ref = ast->parameter.type;
   }
-  control_ty->function.params = create_product_type(idref_ty, n, storage);
+  control_ty->function.params = create_product_type(i, type_array->elem_count, storage);
 }
 
 static void
@@ -684,10 +688,10 @@ visit_externTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_externTypeDeclaration);
   Ast* ast, *name, *methods;
-  Type* extern_ty, *idref_ty;
+  Type* extern_ty, *ty;
   HashmapKey hkey;
   HashmapEntry* he;
-  int n;
+  int i;
 
   if (type_decl->externTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->externTypeDeclaration.type_params);
@@ -695,7 +699,7 @@ visit_externTypeDeclaration(Ast* type_decl)
   visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos);
 
   name = type_decl->externTypeDeclaration.name;
-  extern_ty = arena_malloc(storage, sizeof(Type));
+  extern_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
   extern_ty->ctor = TYPE_CLASS;
   extern_ty->strname = name->name.strname;
 
@@ -706,16 +710,15 @@ visit_externTypeDeclaration(Ast* type_decl)
   hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
   *(Type**)he->value = extern_ty;
 
-  n = 0;
+  i = type_array->elem_count;
   methods = type_decl->externTypeDeclaration.method_protos;
   for (ast = methods->methodPrototypes.first_child;
        ast != 0; ast = ast->right_sibling) {
-    idref_ty = arena_malloc(storage, sizeof(Type));
-    idref_ty->ctor = TYPE_IDREF;
-    idref_ty->idref.ref = ast;
-    n += 1;
+    ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_IDREF;
+    ty->idref.ref = ast;
   }
-  extern_ty->klass.methods = create_product_type(idref_ty, n, storage);
+  extern_ty->klass.methods = create_product_type(i, type_array->elem_count, storage);
 }
 
 static void
@@ -734,11 +737,11 @@ static void
 visit_functionPrototype(Ast* func_proto)
 {
   assert(func_proto->kind == AST_functionPrototype);
-  Ast* ast, *name, *params;
-  Type* func_ty, *idref_ty;
+  Ast* ast, *name, *params, *return_type;
+  Type* func_ty, *ty;
   HashmapKey hkey;
   HashmapEntry* he;
-  int n;
+  int i;
     
   if (func_proto->functionPrototype.return_type) {
     visit_typeRef(func_proto->functionPrototype.return_type);
@@ -749,7 +752,7 @@ visit_functionPrototype(Ast* func_proto)
   visit_parameterList(func_proto->functionPrototype.params);
 
   name = func_proto->functionPrototype.name;
-  func_ty = arena_malloc(storage, sizeof(Type));
+  func_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
   func_ty->ctor = TYPE_FUNCTION;
   func_ty->strname = name->name.strname;
 
@@ -760,16 +763,23 @@ visit_functionPrototype(Ast* func_proto)
   hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
   *(Type**)he->value = func_ty;
 
-  n = 0;
+  i = type_array->elem_count;
   params = func_proto->functionPrototype.params;
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    idref_ty = arena_malloc(storage, sizeof(Type));
-    idref_ty->ctor = TYPE_IDREF;
-    idref_ty->idref.ref = ast->parameter.type;
-    n += 1;
+    ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_IDREF;
+    ty->idref.ref = ast->parameter.type;
   }
-  func_ty->function.params = create_product_type(idref_ty, n, storage);
+  func_ty->function.params = create_product_type(i, type_array->elem_count, storage);
+
+  return_type = func_proto->functionPrototype.return_type;
+  if (return_type) {
+    ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_IDREF;
+    ty->idref.ref = return_type;
+    func_ty->function.return_ = ty;
+  }
 }
 
 /** TYPES **/
@@ -822,23 +832,22 @@ visit_tupleType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_tupleType);
   Ast* ast, *args;
-  Type* tuple_ty, *idref_ty;
+  Type* tuple_ty, *ty;
   HashmapKey hkey;
   HashmapEntry* he;
-  int n;
+  int i;
 
   visit_typeArgumentList(type_decl->tupleType.type_args);
 
-  n = 0;
+  i = type_array->elem_count;
   args = type_decl->tupleType.type_args;
   for (ast = args->typeArgumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    idref_ty = arena_malloc(storage, sizeof(Type));
-    idref_ty->ctor = TYPE_IDREF;
-    idref_ty->idref.ref = ast;
-    n += 1;
+    ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_IDREF;
+    ty->idref.ref = ast;
   }
-  tuple_ty = create_product_type(idref_ty, n, storage);
+  tuple_ty = create_product_type(i, type_array->elem_count, storage);
 
   hkey.u64_key = (uint64_t)type_decl;
   he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
@@ -852,14 +861,14 @@ static void
 visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
-  Type* header_stack_ty, *idref_ty;
+  Type* header_stack_ty, *ty;
   HashmapKey hkey;
   HashmapEntry* he;
 
   visit_typeRef(type_decl->headerStackType.type);
   visit_expression(type_decl->headerStackType.stack_expr);
 
-  header_stack_ty = arena_malloc(storage, sizeof(Type));
+  header_stack_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
   header_stack_ty->ctor = TYPE_ARRAY;
 
   hkey.u64_key = (uint64_t)type_decl;
@@ -869,24 +878,24 @@ visit_headerStackType(Ast* type_decl)
   hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
   *(Type**)he->value = header_stack_ty;
 
-  idref_ty = arena_malloc(storage, sizeof(Type));
-  idref_ty->ctor = TYPE_IDREF;
-  idref_ty->idref.ref = type_decl->headerStackType.type;
-  header_stack_ty->array.element = idref_ty;
+  ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
+  ty->ctor = TYPE_IDREF;
+  ty->idref.ref = type_decl->headerStackType.type;
+  header_stack_ty->array.element = ty;
 }
 
 static void
 visit_specializedType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_specializedType);
-  Type* specd_ty, *idref_ty;
+  Type* specd_ty, *ty;
   HashmapKey hkey;
   HashmapEntry* he;
 
   visit_typeRef(type_decl->specializedType.type);
   visit_typeArgumentList(type_decl->specializedType.type_args);
 
-  specd_ty = arena_malloc(storage, sizeof(Type));
+  specd_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
   specd_ty->ctor = TYPE_SPECIALIZED;
 
   hkey.u64_key = (uint64_t)type_decl;
@@ -896,24 +905,21 @@ visit_specializedType(Ast* type_decl)
   hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
   *(Type**)he->value = specd_ty;
 
-  idref_ty = arena_malloc(storage, sizeof(Type));
-  idref_ty->ctor = TYPE_IDREF;
-  idref_ty->idref.ref = type_decl->specializedType.type;
-  specd_ty->specialized.ref = idref_ty;
+  ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
+  ty->ctor = TYPE_IDREF;
+  ty->idref.ref = type_decl->specializedType.type;
+  specd_ty->specialized.ref = ty;
 }
 
 static void
 visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AST_baseTypeBoolean);
-  Ast* name;
   NameDecl* name_decl;
   HashmapKey hkey;
   HashmapEntry* he;
 
-  name = bool_type->baseTypeBoolean.name;
-  name_decl = scope_lookup_namespace(root_scope, name->name.strname, NS_TYPE)->ns[NS_TYPE];
-
+  name_decl = scope_lookup_namespace(root_scope, "bool", NS_TYPE)->ns[NS_TYPE];
   hkey.u64_key = (uint64_t)bool_type;
   he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
   assert(!he);
@@ -926,7 +932,6 @@ static void
 visit_baseTypeInteger(Ast* int_type)
 {
   assert(int_type->kind == AST_baseTypeInteger);
-  Ast* name;
   NameDecl* name_decl;
   HashmapKey hkey;
   HashmapEntry* he;
@@ -935,9 +940,7 @@ visit_baseTypeInteger(Ast* int_type)
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
 
-  name = int_type->baseTypeInteger.name;
-  name_decl = scope_lookup_namespace(root_scope, name->name.strname, NS_TYPE)->ns[NS_TYPE];
-
+  name_decl = scope_lookup_namespace(root_scope, "int", NS_TYPE)->ns[NS_TYPE];
   hkey.u64_key = (uint64_t)int_type;
   he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
   assert(!he);
@@ -950,7 +953,6 @@ static void
 visit_baseTypeBit(Ast* bit_type)
 {
   assert(bit_type->kind == AST_baseTypeBit);
-  Ast* name;
   NameDecl* name_decl;
   HashmapKey hkey;
   HashmapEntry* he;
@@ -959,9 +961,7 @@ visit_baseTypeBit(Ast* bit_type)
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
 
-  name = bit_type->baseTypeBit.name;
-  name_decl = scope_lookup_namespace(root_scope, name->name.strname, NS_TYPE)->ns[NS_TYPE];
-
+  name_decl = scope_lookup_namespace(root_scope, "bit", NS_TYPE)->ns[NS_TYPE];
   hkey.u64_key = (uint64_t)bit_type;
   he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
   assert(!he);
@@ -974,16 +974,13 @@ static void
 visit_baseTypeVarbit(Ast* varbit_type)
 {
   assert(varbit_type->kind == AST_baseTypeVarbit);
-  Ast* name;
   NameDecl* name_decl;
   HashmapKey hkey;
   HashmapEntry* he;
 
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
 
-  name = varbit_type->baseTypeVarbit.name;
-  name_decl = scope_lookup_namespace(root_scope, name->name.strname, NS_TYPE)->ns[NS_TYPE];
-
+  name_decl = scope_lookup_namespace(root_scope, "varbit", NS_TYPE)->ns[NS_TYPE];
   hkey.u64_key = (uint64_t)varbit_type;
   he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
   assert(!he);
@@ -996,14 +993,11 @@ static void
 visit_baseTypeString(Ast* str_type)
 {
   assert(str_type->kind == AST_baseTypeString);
-  Ast* name;
   NameDecl* name_decl;
   HashmapKey hkey;
   HashmapEntry* he;
 
-  name = str_type->baseTypeString.name;
-  name_decl = scope_lookup_namespace(root_scope, name->name.strname, NS_TYPE)->ns[NS_TYPE];
-
+  name_decl = scope_lookup_namespace(root_scope, "string", NS_TYPE)->ns[NS_TYPE];
   hkey.u64_key = (uint64_t)str_type;
   he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
   assert(!he);
@@ -1016,14 +1010,11 @@ static void
 visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AST_baseTypeVoid);
-  Ast* name;
   NameDecl* name_decl;
   HashmapKey hkey;
   HashmapEntry* he;
 
-  name = void_type->baseTypeVoid.name;
-  name_decl = scope_lookup_namespace(root_scope, name->name.strname, NS_TYPE)->ns[NS_TYPE];
-
+  name_decl = scope_lookup_namespace(root_scope, "void", NS_TYPE)->ns[NS_TYPE];
   hkey.u64_key = (uint64_t)void_type;
   he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
   assert(!he);
@@ -1036,14 +1027,11 @@ static void
 visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AST_baseTypeError);
-  Ast* name;
   NameDecl* name_decl;
   HashmapKey hkey;
   HashmapEntry* he;
 
-  name = error_type->baseTypeError.name;
-  name_decl = scope_lookup_namespace(root_scope, name->name.strname, NS_TYPE)->ns[NS_TYPE];
-
+  name_decl = scope_lookup_namespace(root_scope, "error", NS_TYPE)->ns[NS_TYPE];
   hkey.u64_key = (uint64_t)error_type;
   he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
   assert(!he);
@@ -1070,7 +1058,7 @@ visit_typeParameterList(Ast* param_list)
   for (ast = param_list->typeParameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     name = ast;
-    param_ty = arena_malloc(storage, sizeof(Type));
+    param_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
     param_ty->ctor = TYPE_TYPEVAR;
     param_ty->strname = name->name.strname;
 
@@ -1098,13 +1086,27 @@ static void
 visit_typeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AST_typeArg);
+  Type* arg_ty;
+  HashmapKey hkey;
+  HashmapEntry* he;
+
   if (type_arg->typeArg.arg->kind == AST_typeRef) {
     visit_typeRef(type_arg->typeArg.arg);
   } else if (type_arg->typeArg.arg->kind == AST_name) {
-    ;
+    visit_name(type_arg->typeArg.arg);
   } else if (type_arg->typeArg.arg->kind == AST_dontcare) {
     visit_dontcare(type_arg->typeArg.arg);
   } else assert(0);
+
+  hkey.u64_key = (uint64_t)type_arg->typeArg.arg;
+  arg_ty = *(Type**)hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64)->value;
+
+  hkey.u64_key = (uint64_t)type_arg;
+  he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
+  assert(!he);
+  he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Type*));
+  hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
+  *(Type**)he->value = arg_ty;
 }
 
 static void
@@ -1182,15 +1184,15 @@ visit_headerTypeDeclaration(Ast* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
   Ast* ast, *name, *fields;
-  Type* header_ty, *idref_ty;
+  Type* header_ty, *ty;
   HashmapKey hkey;
   HashmapEntry* he;
-  int n;
+  int i;
 
   visit_structFieldList(header_decl->headerTypeDeclaration.fields);
 
   name = header_decl->headerTypeDeclaration.name;
-  header_ty = arena_malloc(storage, sizeof(Type));
+  header_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
   header_ty->ctor = TYPE_STRUCT;
   header_ty->strname = name->name.strname;
 
@@ -1201,16 +1203,15 @@ visit_headerTypeDeclaration(Ast* header_decl)
   hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
   *(Type**)he->value = header_ty;
 
-  n = 0;
+  i = type_array->elem_count;
   fields = header_decl->headerTypeDeclaration.fields;
   for (ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    idref_ty = arena_malloc(storage, sizeof(Type));
-    idref_ty->ctor = TYPE_IDREF;
-    idref_ty->idref.ref = ast->structField.type;
-    n += 1;
+    ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_IDREF;
+    ty->idref.ref = ast->structField.type;
   }
-  header_ty->struct_.fields = create_product_type(idref_ty, n, storage);
+  header_ty->struct_.fields = create_product_type(i, type_array->elem_count, storage);
 }
 
 static void
@@ -1218,15 +1219,15 @@ visit_headerUnionDeclaration(Ast* union_decl)
 {
   assert(union_decl->kind == AST_headerUnionDeclaration);
   Ast* ast, *name, *fields;
-  Type* union_ty, *idref_ty;
+  Type* union_ty, *ty;
   HashmapKey hkey;
   HashmapEntry* he;
-  int n;
+  int i;
 
   visit_structFieldList(union_decl->headerUnionDeclaration.fields);
 
   name = union_decl->headerUnionDeclaration.name;
-  union_ty = arena_malloc(storage, sizeof(Type));
+  union_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
   union_ty->ctor = TYPE_STRUCT;
   union_ty->strname = name->name.strname;
 
@@ -1237,16 +1238,15 @@ visit_headerUnionDeclaration(Ast* union_decl)
   hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
   *(Type**)he->value = union_ty;
 
-  n = 0;
+  i = type_array->elem_count;
   fields = union_decl->headerUnionDeclaration.fields;
   for (ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    idref_ty = arena_malloc(storage, sizeof(Type));
-    idref_ty->ctor = TYPE_IDREF;
-    idref_ty->idref.ref = ast->structField.type;
-    n += 1;
+    ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_IDREF;
+    ty->idref.ref = ast->structField.type;
   }
-  union_ty->struct_.fields = create_product_type(idref_ty, n, storage);
+  union_ty->struct_.fields = create_product_type(i, type_array->elem_count, storage);
 }
 
 static void
@@ -1254,15 +1254,15 @@ visit_structTypeDeclaration(Ast* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
   Ast* ast, *name, *fields;
-  Type* struct_ty, *idref_ty;
+  Type* struct_ty, *ty;
   HashmapKey hkey;
   HashmapEntry* he;
-  int n;
+  int i;
 
   visit_structFieldList(struct_decl->structTypeDeclaration.fields);
 
   name = struct_decl->structTypeDeclaration.name;
-  struct_ty = arena_malloc(storage, sizeof(Type));
+  struct_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
   struct_ty->ctor = TYPE_STRUCT;
   struct_ty->strname = name->name.strname;
 
@@ -1273,16 +1273,15 @@ visit_structTypeDeclaration(Ast* struct_decl)
   hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
   *(Type**)he->value = struct_ty;
 
-  n = 0;
+  i = type_array->elem_count;
   fields = struct_decl->headerTypeDeclaration.fields;
   for (ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    idref_ty = arena_malloc(storage, sizeof(Type));
-    idref_ty->ctor = TYPE_IDREF;
-    idref_ty->idref.ref = ast->structField.type;
-    n += 1;
+    ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_IDREF;
+    ty->idref.ref = ast->structField.type;
   }
-  struct_ty->struct_.fields = create_product_type(idref_ty, n, storage);
+  struct_ty->struct_.fields = create_product_type(i, type_array->elem_count, storage);
 }
 
 static void
@@ -1316,7 +1315,7 @@ visit_enumDeclaration(Ast* enum_decl)
   visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
 
   name = enum_decl->enumDeclaration.name;
-  enum_ty = arena_malloc(storage, sizeof(Type));
+  enum_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
   enum_ty->ctor = TYPE_ENUM;
   enum_ty->strname = name->name.strname;
 
@@ -1391,7 +1390,7 @@ visit_typedefDeclaration(Ast* typedef_decl)
   } else assert(0);
 
   name = typedef_decl->typedefDeclaration.name;
-  typedef_ty = arena_malloc(storage, sizeof(Type));
+  typedef_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
   typedef_ty->ctor = TYPE_TYPEDEF;
   typedef_ty->strname = name->name.strname;
 
@@ -1700,16 +1699,16 @@ visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AST_actionDeclaration);
   Ast* ast, *name, *params;
-  Type* action_ty, *idref_ty;
+  Type* action_ty, *ty;
   HashmapKey hkey;
   HashmapEntry* he;
-  int n;
+  int i;
 
   visit_parameterList(action_decl->actionDeclaration.params);
   visit_blockStatement(action_decl->actionDeclaration.stmt);
 
   name = action_decl->actionDeclaration.name;
-  action_ty = arena_malloc(storage, sizeof(Type));
+  action_ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
   action_ty->ctor = TYPE_FUNCTION;
   action_ty->strname = name->name.strname;
 
@@ -1720,16 +1719,15 @@ visit_actionDeclaration(Ast* action_decl)
   hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
   *(Type**)he->value = action_ty;
 
-  n = 0;
+  i = type_array->elem_count;
   params = action_decl->actionDeclaration.params;
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    idref_ty = arena_malloc(storage, sizeof(Type));
-    idref_ty->ctor = TYPE_IDREF;
-    idref_ty->idref.ref = ast->parameter.type;
-    n += 1;
+    ty = (Type*)array_append_elem(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_IDREF;
+    ty->idref.ref = ast->parameter.type;
   }
-  action_ty->function.params = create_product_type(idref_ty, n, storage);
+  action_ty->function.params = create_product_type(i, type_array->elem_count, storage);
 }
 
 /** VARIABLES **/
@@ -1773,7 +1771,7 @@ visit_argument(Ast* arg)
   if (arg->argument.arg->kind == AST_expression) {
     visit_expression(arg->argument.arg);
   } else if (arg->argument.arg->kind == AST_dontcare) {
-    visit_dontcare(arg->argument.arg);
+    ;
   } else assert(0);
 }
 
@@ -1922,5 +1920,16 @@ static void
 visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AST_dontcare);
+  NameDecl* name_decl;
+  HashmapKey hkey;
+  HashmapEntry* he;
+
+  name_decl = scope_lookup_namespace(root_scope, "_", NS_TYPE)->ns[NS_TYPE];
+  hkey.u64_key = (uint64_t)dontcare;
+  he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
+  assert(!he);
+  he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Type*));
+  hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
+  *(Type**)he->value = name_decl->type;
 }
 
