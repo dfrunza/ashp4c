@@ -1390,6 +1390,8 @@ static void
 visit_statement(Ast* stmt)
 {
   assert(stmt->kind == AST_statement);
+  Scope* prev_scope;
+
   if (stmt->statement.stmt->kind == AST_assignmentStatement) {
     visit_assignmentStatement(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AST_functionCall) {
@@ -1401,7 +1403,10 @@ visit_statement(Ast* stmt)
   } else if (stmt->statement.stmt->kind == AST_emptyStatement) {
     ;
   } else if (stmt->statement.stmt->kind == AST_blockStatement) {
+    prev_scope = enclosing_scope;
+    enclosing_scope = lookup_opened_scope(opened_scopes, stmt);
     visit_blockStatement(stmt->statement.stmt);
+    enclosing_scope = prev_scope;
   } else if (stmt->statement.stmt->kind == AST_exitStatement) {
     visit_exitStatement(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AST_returnStatement) {
