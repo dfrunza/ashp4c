@@ -864,7 +864,7 @@ enum TypeEnum {
   TYPE_SPECIALIZED,
   TYPE_IDREF,
   TYPE_NAMEREF,
-  TYPE_PROXY,
+  TYPE_TYPE,
 };
 
 typedef struct Type {
@@ -919,7 +919,7 @@ typedef struct Type {
 
     struct {
       struct Type* type;
-    } proxy;
+    } type;
   };
 } Type;
 
