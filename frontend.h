@@ -856,6 +856,7 @@ enum TypeEnum {
   TYPE_TYPEDEF,
   TYPE_TYPEVAR,
   TYPE_FUNCTION,
+  TYPE_CLASS,
   TYPE_PRODUCT,
   TYPE_STRUCT,
   TYPE_ARRAY,
@@ -890,6 +891,10 @@ typedef struct Type {
       struct Type* params;
       struct Type* return_;
     } function;
+
+    struct {
+      struct Type* methods;
+    } klass;
 
     struct {
       struct Type* element;

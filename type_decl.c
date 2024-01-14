@@ -314,7 +314,6 @@ visit_parameter(Ast* param)
 {
   assert(param->kind == AST_parameter);
   visit_typeRef(param->parameter.type);
-  /*visit_name(param->parameter.name);*/
   if (param->parameter.init_expr) {
     visit_expression(param->parameter.init_expr);
   }
@@ -365,7 +364,6 @@ visit_instantiation(Ast* inst)
   assert(inst->kind == AST_instantiation);
   visit_typeRef(inst->instantiation.type_ref);
   visit_argumentList(inst->instantiation.args);
-  /*visit_name(inst->instantiation.name);*/
 }
 
 /** PARSER **/
@@ -386,11 +384,39 @@ static void
 visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_parserTypeDeclaration);
-  /*visit_name(type_decl->parserTypeDeclaration.name);*/
+  Ast* ast, *name, *params;
+  Type* parser_ty, *idref_ty;
+  HashmapKey hkey;
+  HashmapEntry* he;
+  int n;
+
   if (type_decl->parserTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->parserTypeDeclaration.type_params);
   }
   visit_parameterList(type_decl->parserTypeDeclaration.params);
+
+  name = type_decl->parserTypeDeclaration.name;
+  parser_ty = arena_malloc(storage, sizeof(Type));
+  parser_ty->ctor = TYPE_FUNCTION;
+  parser_ty->strname = name->name.strname;
+
+  hkey.u64_key = (uint64_t)type_decl;
+  he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
+  assert(!he);
+  he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Type*));
+  hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
+  *(Type**)he->value = parser_ty;
+
+  n = 0;
+  params = type_decl->parserTypeDeclaration.params;
+  for (ast = params->parameterList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    idref_ty = arena_malloc(storage, sizeof(Type));
+    idref_ty->ctor = TYPE_IDREF;
+    idref_ty->idref.ref = ast->parameter.type;
+    n += 1;
+  }
+  parser_ty->function.params = create_product_type(idref_ty, n, storage);
 }
 
 static void
@@ -432,7 +458,6 @@ static void
 visit_parserState(Ast* state)
 {
   assert(state->kind == AST_parserState);
-  /*visit_name(state->parserState.name);*/
   visit_parserStatements(state->parserState.stmt_list);
   visit_transitionStatement(state->parserState.transition_stmt);
 }
@@ -485,7 +510,7 @@ visit_stateExpression(Ast* state_expr)
 {
   assert(state_expr->kind == AST_stateExpression);
   if (state_expr->stateExpression.expr->kind == AST_name) {
-    /*visit_name(state_expr->stateExpression.expr);*/
+    ;
   } else if (state_expr->stateExpression.expr->kind == AST_selectExpression) {
     visit_selectExpression(state_expr->stateExpression.expr);
   } else assert(0);
@@ -516,7 +541,6 @@ visit_selectCase(Ast* select_case)
 {
   assert(select_case->kind == AST_selectCase);
   visit_keysetExpression(select_case->selectCase.keyset_expr);
-  /*visit_name(select_case->selectCase.name);*/
 }
 
 static void
@@ -580,11 +604,39 @@ static void
 visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_controlTypeDeclaration);
-  /*visit_name(type_decl->controlTypeDeclaration.name);*/
+  Ast* ast, *name, *params;
+  Type* control_ty, *idref_ty;
+  HashmapKey hkey;
+  HashmapEntry* he;
+  int n;
+
   if (type_decl->controlTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->controlTypeDeclaration.type_params);
   }
   visit_parameterList(type_decl->controlTypeDeclaration.params);
+
+  name = type_decl->controlTypeDeclaration.name;
+  control_ty = arena_malloc(storage, sizeof(Type));
+  control_ty->ctor = TYPE_FUNCTION;
+  control_ty->strname = name->name.strname;
+
+  hkey.u64_key = (uint64_t)type_decl;
+  he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
+  assert(!he);
+  he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Type*));
+  hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
+  *(Type**)he->value = control_ty;
+
+  n = 0;
+  params = type_decl->packageTypeDeclaration.params;
+  for (ast = params->parameterList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    idref_ty = arena_malloc(storage, sizeof(Type));
+    idref_ty->ctor = TYPE_IDREF;
+    idref_ty->idref.ref = ast->parameter.type;
+    n += 1;
+  }
+  control_ty->function.params = create_product_type(idref_ty, n, storage);
 }
 
 static void
@@ -631,11 +683,39 @@ static void
 visit_externTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_externTypeDeclaration);
-  /*visit_name(type_decl->externTypeDeclaration.name);*/
+  Ast* ast, *name, *methods;
+  Type* extern_ty, *idref_ty;
+  HashmapKey hkey;
+  HashmapEntry* he;
+  int n;
+
   if (type_decl->externTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->externTypeDeclaration.type_params);
   }
   visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos);
+
+  name = type_decl->externTypeDeclaration.name;
+  extern_ty = arena_malloc(storage, sizeof(Type));
+  extern_ty->ctor = TYPE_CLASS;
+  extern_ty->strname = name->name.strname;
+
+  hkey.u64_key = (uint64_t)type_decl;
+  he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
+  assert(!he);
+  he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Type*));
+  hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
+  *(Type**)he->value = extern_ty;
+
+  n = 0;
+  methods = type_decl->externTypeDeclaration.method_protos;
+  for (ast = methods->methodPrototypes.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    idref_ty = arena_malloc(storage, sizeof(Type));
+    idref_ty->ctor = TYPE_IDREF;
+    idref_ty->idref.ref = ast;
+    n += 1;
+  }
+  extern_ty->klass.methods = create_product_type(idref_ty, n, storage);
 }
 
 static void
@@ -654,14 +734,42 @@ static void
 visit_functionPrototype(Ast* func_proto)
 {
   assert(func_proto->kind == AST_functionPrototype);
+  Ast* ast, *name, *params;
+  Type* func_ty, *idref_ty;
+  HashmapKey hkey;
+  HashmapEntry* he;
+  int n;
+    
   if (func_proto->functionPrototype.return_type) {
     visit_typeRef(func_proto->functionPrototype.return_type);
   }
-  /*visit_name(func_proto->functionPrototype.name);*/
   if (func_proto->functionPrototype.type_params) {
     visit_typeParameterList(func_proto->functionPrototype.type_params);
   }
   visit_parameterList(func_proto->functionPrototype.params);
+
+  name = func_proto->functionPrototype.name;
+  func_ty = arena_malloc(storage, sizeof(Type));
+  func_ty->ctor = TYPE_FUNCTION;
+  func_ty->strname = name->name.strname;
+
+  hkey.u64_key = (uint64_t)func_proto;
+  he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
+  assert(!he);
+  he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Type*));
+  hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
+  *(Type**)he->value = func_ty;
+
+  n = 0;
+  params = func_proto->functionPrototype.params;
+  for (ast = params->parameterList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    idref_ty = arena_malloc(storage, sizeof(Type));
+    idref_ty->ctor = TYPE_IDREF;
+    idref_ty->idref.ref = ast->parameter.type;
+    n += 1;
+  }
+  func_ty->function.params = create_product_type(idref_ty, n, storage);
 }
 
 /** TYPES **/
@@ -689,7 +797,7 @@ visit_typeRef(Ast* type_ref)
   } else if (type_ref->typeRef.type->kind == AST_baseTypeError) {
     visit_baseTypeError(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_name) {
-    visit_name(type_ref->typeRef.type);
+    ;
   } else if (type_ref->typeRef.type->kind == AST_specializedType) {
     visit_specializedType(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_headerStackType) {
@@ -961,7 +1069,6 @@ visit_typeParameterList(Ast* param_list)
 
   for (ast = param_list->typeParameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    /*visit_name(ast);*/
     name = ast;
     param_ty = arena_malloc(storage, sizeof(Type));
     param_ty->ctor = TYPE_TYPEVAR;
@@ -994,7 +1101,7 @@ visit_typeArg(Ast* type_arg)
   if (type_arg->typeArg.arg->kind == AST_typeRef) {
     visit_typeRef(type_arg->typeArg.arg);
   } else if (type_arg->typeArg.arg->kind == AST_name) {
-    /*visit_name(type_arg->typeArg.arg);*/
+    ;
   } else if (type_arg->typeArg.arg->kind == AST_dontcare) {
     visit_dontcare(type_arg->typeArg.arg);
   } else assert(0);
@@ -1181,7 +1288,6 @@ visit_structField(Ast* field)
 {
   assert(field->kind == AST_structField);
   visit_typeRef(field->structField.type);
-  /*visit_name(field->structField.name);*/
 }
 
 static void
@@ -1230,7 +1336,7 @@ visit_identifierList(Ast* ident_list)
 
   for (ast = ident_list->identifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    /*visit_name(ast);*/
+    ;
   }
 }
 
@@ -1250,7 +1356,6 @@ static void
 visit_specifiedIdentifier(Ast* ident)
 {
   assert(ident->kind == AST_specifiedIdentifier);
-  /*visit_name(ident->specifiedIdentifier.name);*/
   if (ident->specifiedIdentifier.init_expr) {
     visit_expression(ident->specifiedIdentifier.init_expr);
   }
@@ -1347,7 +1452,7 @@ visit_directApplication(Ast* applic_stmt)
 {
   assert(applic_stmt->kind == AST_directApplication);
   if (applic_stmt->directApplication.name->kind == AST_name) {
-    /*visit_name(applic_stmt->directApplication.name);*/
+    ;
   } else if (applic_stmt->directApplication.name->kind == AST_typeRef) {
     visit_typeRef(applic_stmt->directApplication.name);
   } else assert(0);
@@ -1433,7 +1538,7 @@ visit_switchLabel(Ast* label)
 {
   assert(label->kind == AST_switchLabel);
   if (label->switchLabel.label->kind == AST_name) {
-    /*visit_name(label->switchLabel.label);*/
+    ;
   } else if (label->switchLabel.label->kind == AST_default) {
     visit_default(label->switchLabel.label);
   } else assert(0);
@@ -1458,7 +1563,6 @@ static void
 visit_tableDeclaration(Ast* table_decl)
 {
   assert(table_decl->kind == AST_tableDeclaration);
-  /*visit_name(table_decl->tableDeclaration.name);*/
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
 }
 
@@ -1513,7 +1617,6 @@ visit_keyElement(Ast* element)
 {
   assert(element->kind == AST_keyElement);
   visit_expression(element->keyElement.expr);
-  /*visit_name(element->keyElement.match);*/
 }
 
 static void
@@ -1539,7 +1642,6 @@ static void
 visit_actionRef(Ast* action_ref)
 {
   assert(action_ref->kind == AST_actionRef);
-  /*visit_name(action_ref->actionRef.name);*/
   if (action_ref->actionRef.args) {
     visit_argumentList(action_ref->actionRef.args);
   }
@@ -1576,7 +1678,6 @@ static void
 visit_simpleProperty(Ast* simple_prop)
 {
   assert(simple_prop->kind == AST_simpleProperty);
-  /*visit_name(simple_prop->simpleProperty.name);*/
   visit_expression(simple_prop->simpleProperty.init_expr);
 }
 
@@ -1584,9 +1685,37 @@ static void
 visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AST_actionDeclaration);
-  /*visit_name(action_decl->actionDeclaration.name);*/
+  Ast* ast, *name, *params;
+  Type* action_ty, *idref_ty;
+  HashmapKey hkey;
+  HashmapEntry* he;
+  int n;
+
   visit_parameterList(action_decl->actionDeclaration.params);
   visit_blockStatement(action_decl->actionDeclaration.stmt);
+
+  name = action_decl->actionDeclaration.name;
+  action_ty = arena_malloc(storage, sizeof(Type));
+  action_ty->ctor = TYPE_FUNCTION;
+  action_ty->strname = name->name.strname;
+
+  hkey.u64_key = (uint64_t)action_decl;
+  he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
+  assert(!he);
+  he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Type*));
+  hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
+  *(Type**)he->value = action_ty;
+
+  n = 0;
+  params = action_decl->actionDeclaration.params;
+  for (ast = params->parameterList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    idref_ty = arena_malloc(storage, sizeof(Type));
+    idref_ty->ctor = TYPE_IDREF;
+    idref_ty->idref.ref = ast->parameter.type;
+    n += 1;
+  }
+  action_ty->function.params = create_product_type(idref_ty, n, storage);
 }
 
 /** VARIABLES **/
@@ -1596,7 +1725,6 @@ visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
   visit_typeRef(var_decl->variableDeclaration.type);
-  /*visit_name(var_decl->variableDeclaration.name);*/
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);
   }
@@ -1652,7 +1780,7 @@ visit_lvalueExpression(Ast* lvalue_expr)
 {
   assert(lvalue_expr->kind == AST_lvalueExpression);
   if (lvalue_expr->lvalueExpression.expr->kind == AST_name) {
-    /*visit_name(lvalue_expr->lvalueExpression.expr);*/
+    ;
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_memberSelector) {
     visit_memberSelector(lvalue_expr->lvalueExpression.expr);
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_arraySubscript) {
@@ -1673,7 +1801,7 @@ visit_expression(Ast* expr)
   } else if (expr->expression.expr->kind == AST_stringLiteral) {
     visit_stringLiteral(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_name) {
-    /*visit_name(expr->expression.expr);*/
+    ;
   } else if (expr->expression.expr->kind == AST_expressionList) {
     visit_expressionList(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_castExpression) {
@@ -1728,7 +1856,6 @@ visit_memberSelector(Ast* selector)
   } else if (selector->memberSelector.lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression(selector->memberSelector.lhs_expr);
   } else assert(0);
-  /*visit_name(selector->memberSelector.name);*/
 }
 
 static void
