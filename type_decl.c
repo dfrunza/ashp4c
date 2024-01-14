@@ -778,7 +778,7 @@ static void
 visit_typeRef(Ast* type_ref)
 {
   assert(type_ref->kind == AST_typeRef);
-  Type* type_ref_ty;
+  Type* ref_ty;
   HashmapKey hkey;
   HashmapEntry* he;
 
@@ -797,7 +797,7 @@ visit_typeRef(Ast* type_ref)
   } else if (type_ref->typeRef.type->kind == AST_baseTypeError) {
     visit_baseTypeError(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_name) {
-    ;
+    visit_name(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_specializedType) {
     visit_specializedType(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_headerStackType) {
@@ -807,14 +807,14 @@ visit_typeRef(Ast* type_ref)
   } else assert(0);
 
   hkey.u64_key = (uint64_t)type_ref->typeRef.type;
-  type_ref_ty = *(Type**)hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64)->value;
+  ref_ty = *(Type**)hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64)->value;
 
   hkey.u64_key = (uint64_t)type_ref;
   he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
   assert(!he);
   he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Type*));
   hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
-  *(Type**)he->value = type_ref_ty;
+  *(Type**)he->value = ref_ty;
 }
 
 static void
@@ -1152,6 +1152,10 @@ static void
 visit_derivedTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_derivedTypeDeclaration);
+  Type* decl_ty;
+  HashmapKey hkey;
+  HashmapEntry* he;
+
   if (type_decl->derivedTypeDeclaration.decl->kind == AST_headerTypeDeclaration) {
     visit_headerTypeDeclaration(type_decl->derivedTypeDeclaration.decl);
   } else if (type_decl->derivedTypeDeclaration.decl->kind == AST_headerUnionDeclaration) {
@@ -1161,6 +1165,16 @@ visit_derivedTypeDeclaration(Ast* type_decl)
   } else if (type_decl->derivedTypeDeclaration.decl->kind == AST_enumDeclaration) {
     visit_enumDeclaration(type_decl->derivedTypeDeclaration.decl);
   } else assert(0);
+
+  hkey.u64_key = (uint64_t)type_decl->derivedTypeDeclaration.decl;
+  decl_ty = *(Type**)hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64)->value;
+
+  hkey.u64_key = (uint64_t)type_decl;
+  he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
+  assert(!he);
+  he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Type*));
+  hashmap_insert_entry(type_table, storage, &hkey, HKEY_UINT64, he);
+  *(Type**)he->value = decl_ty;
 }
 
 static void
@@ -1306,7 +1320,7 @@ visit_enumDeclaration(Ast* enum_decl)
   enum_ty->ctor = TYPE_ENUM;
   enum_ty->strname = name->name.strname;
 
-  hkey.u64_key = (uint64_t)enum_ty;
+  hkey.u64_key = (uint64_t)enum_decl;
   he = hashmap_lookup_entry(type_table, &hkey, HKEY_UINT64);
   assert(!he);
   he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Type*));
