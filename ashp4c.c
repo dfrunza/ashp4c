@@ -124,9 +124,12 @@ main(int arg_count, char* args[])
   arena_free(&text_storage);
 
   drypass(program);
-  opened_scopes = pass_open_scope(program, root_scope, &main_storage);
-  type_table = pass_type_decl(program, root_scope, &type_array, opened_scopes, &main_storage);
-  resolve_idref_type(type_table, type_array);
+  opened_scopes = build_open_scope(program, root_scope, &main_storage);
+  build_symtable(program, root_scope, opened_scopes, &main_storage);
+  type_table = build_type_table(program, root_scope, &type_array, opened_scopes, &main_storage);
+  resolve_type_idref(type_table, type_array);
+  resolve_type_nameref(type_table, type_array);
+  detect_type_cycle(type_array);
 
   arena_free(&main_storage);
   return 0;

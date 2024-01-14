@@ -25,14 +25,15 @@ gcc $CC_FLAGS -I$INC -c $SRC/lex.c
 gcc $CC_FLAGS -I$INC -c $SRC/parse.c
 gcc $CC_FLAGS -I$INC -c $SRC/drypass.c
 gcc $CC_FLAGS -I$INC -c $SRC/open_scope.c 
+gcc $CC_FLAGS -I$INC -c $SRC/symtable.c 
 #gcc $CC_FLAGS -I$INC -c $SRC/name_decl.c 
-gcc $CC_FLAGS -I$INC -c $SRC/type_decl.c
-gcc $CC_FLAGS -I$INC -c $SRC/idref_type.c 
+gcc $CC_FLAGS -I$INC -c $SRC/type_table.c
+gcc $CC_FLAGS -I$INC -c $SRC/cyclic_type.c 
 gcc $CC_FLAGS -I$INC -c $SRC/ashp4c.c
 
 ld $LD_FLAGS -L$LIB -o ashp4c $LIB/crt1.o \
   basic.o arena.o array.o hashmap.o scoping.o lex.o parse.o \
-  drypass.o open_scope.o type_decl.o idref_type.o \
+  drypass.o open_scope.o symtable.o type_table.o cyclic_type.o \
   ashp4c.o \
   -lc
 

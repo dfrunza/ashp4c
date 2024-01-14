@@ -857,10 +857,11 @@ enum TypeEnum {
   TYPE_TYPEDEF,
   TYPE_TYPEVAR,
   TYPE_FUNCTION,
-  TYPE_CLASS,
+  TYPE_EXTERN,
   TYPE_PRODUCT,
   TYPE_STRUCT,
   TYPE_ARRAY,
+  TYPE_TABLE,
   TYPE_SPECIALIZED,
   TYPE_IDREF,
   TYPE_NAMEREF,
@@ -896,7 +897,7 @@ typedef struct Type {
 
     struct {
       struct Type* methods;
-    } klass;
+    } extern_;
 
     struct {
       struct Type* element;
@@ -913,7 +914,7 @@ typedef struct Type {
     } idref;
 
     struct {
-      char* strname;
+      Ast* name;
       struct Scope* scope;
     } nameref;
 
@@ -922,6 +923,9 @@ typedef struct Type {
     } type;
   };
 } Type;
+
+void  insert_type_table_entry(Hashmap* table, Ast* ast, Type* type);
+Type* lookup_type_table(Hashmap* table, Ast* ast);
 
 typedef struct Scope {
   int scope_level;
@@ -958,4 +962,6 @@ Scope*     scope_pop(Scope* scope);
 NameEntry* scope_lookup_any(Scope* scope, char* name);
 NameEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
 NameEntry* scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns);
+void       insert_opened_scope_entry(Hashmap* table, Ast* ast, Scope* scope);
+Scope*     lookup_opened_scope(Hashmap* table, Ast* ast);
 
