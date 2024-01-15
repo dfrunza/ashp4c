@@ -3782,7 +3782,15 @@ parse_expressionPrimary()
       return primary;
     } else if (token->klass == TK_PARENTH_OPEN) {
       next_token();
-      if (token_is_typeRef(token)) {
+      if (token_is_prefixedType(token) && peek_token()->klass == TK_DOT) {
+        /* (<prefixedType>.<name>) */
+        primary->expression.expr = parse_expression(1);
+        if (token->klass == TK_PARENTH_CLOSE) {
+          next_token();
+        } else error("At line %d, column %d: `)` was expected, got `%s`.",
+                     token->line_no, token->column_no, token->lexeme);
+        return primary;
+      } else if (token_is_typeRef(token)) {
         expr = arena_malloc(storage, sizeof(Ast));
         expr->kind = AST_castExpression;
         expr->line_no = token->line_no;

@@ -587,10 +587,10 @@ next_token(Token* token)
           c = char_advance(1);
           if (c == '\n' || c == '\r') {
             char cc = char_lookahead(1);
-            if (c + cc == '\n' + '\r')
+            if (c + cc == '\n' + '\r') {
               c = char_advance(1);
+            }
             line_no += 1;
-            line_start = lexeme->start;
           }
         } while (c != '*');
 
@@ -598,8 +598,8 @@ next_token(Token* token)
           char_advance(1);
           token->klass = TK_COMMENT;
           token->lexeme = lexeme_to_cstring(lexeme);
-          token->column_no = lexeme->start - line_start + 1;
           lexeme_advance();
+          line_start = lexeme->start;
           state = 0;
         } else {
           state = 310;
@@ -611,12 +611,12 @@ next_token(Token* token)
         do {
           c = char_advance(1);
         } while (c != '\n' && c != '\r');
+
         line_no += 1;
-        line_start = lexeme->start;
         token->klass = TK_COMMENT;
         token->lexeme = lexeme_to_cstring(lexeme);
-        token->column_no = lexeme->start - line_start + 1;
         lexeme_advance();
+        line_start = lexeme->start;
         state = 0;
       } break;
 

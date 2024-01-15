@@ -34,6 +34,7 @@ resolve_type_nameref(Hashmap* type_table, UnboundedArray* type_array)
       name_entry = scope_lookup_namespace(ty->nameref.scope, name->name.strname, NS_TYPE);
       if (name_entry && name_entry->ns[NS_TYPE]) {
         name_decl = name_entry->ns[NS_TYPE];
+        assert(!name_decl->next_in_scope);
         ref_ty = lookup_type_table(type_table, name_decl->ast);
         assert(ref_ty);
         name_decl->type = ref_ty;
