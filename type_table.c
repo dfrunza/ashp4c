@@ -215,19 +215,16 @@ actual_type(Type* type)
 void
 Debug_print_type_table(Set* table)
 {
-  UnboundedArray* elements;
-  SetMember* m;
   Ast* ast;
-  Type* ty;
+  Type* type;
+  int i;
 
-  elements = array_create(storage, sizeof(SetMember*), 1008);
-  set_members_to_array(type_table, elements, storage);
-  for (int i = 0; i < elements->elem_count; i++) {
-    m = *(SetMember**)array_get_element(elements, i, sizeof(SetMember*));
+  void visit_type(SetMember* m)
+  {
     ast = (Ast*)m->key;
-    ty = (Type*)m->value;
-    if (ty->strname) {
-      printf("[%d] %s ... %d:%d\n", i, ty->strname, ast->line_no, ast->column_no);
+    type = (Type*)m->value;
+    if (type->strname) {
+      printf("[%d] %s ... %d:%d\n", i, type->strname, ast->line_no, ast->column_no);
     } else {
       if (ast) {
         printf("[%d] ? ... %d:%d\n", i, ast->line_no, ast->column_no);
@@ -235,7 +232,11 @@ Debug_print_type_table(Set* table)
         printf("[%d] ?\n", i);
       }
     }
+    i += 1;
   }
+
+  i = 0;
+  set_enumerate_members(type_table, visit_type);
 }
 
 Set*

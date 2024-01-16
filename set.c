@@ -99,3 +99,23 @@ set_members_to_array(Set* set, UnboundedArray* array, Arena* storage)
   }
   traverse_and_collect(set->root, array, storage);
 }
+
+static void
+traverse_and_enumerate(SetMember* member, void (*visitor)(SetMember*))
+{
+  if (member) {
+    visitor(member);
+    traverse_and_enumerate(member->left_branch, visitor);
+    traverse_and_enumerate(member->right_branch, visitor);
+  }
+}
+
+void
+set_enumerate_members(Set* set, void (*visitor)(SetMember*))
+{
+  if (!set->root) {
+    return;
+  }
+  traverse_and_enumerate(set->root, visitor);
+}
+
