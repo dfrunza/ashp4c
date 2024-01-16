@@ -208,6 +208,18 @@ lookup_type_table(Hashmap* table, Ast* ast)
   return type;
 }
 
+Type*
+actual_type(Type* type)
+{
+  if (type->ctor == TYPE_TYPE) {
+    return type->type.type;
+  } else {
+    return type;
+  }
+  assert(0);
+  return 0;
+}
+
 Hashmap*
 build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array_,
         Hashmap* opened_scopes_, Arena* storage_)
@@ -244,7 +256,6 @@ build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array
     builtin_ty->ctor = builtin_types[i].type;
     builtin_ty->strname = builtin_types[i].strname;
     name_decl->type = builtin_ty;
-
     insert_type_table_entry(type_table, name_decl->ast, builtin_ty);
   }
 

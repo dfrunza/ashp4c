@@ -1,8 +1,7 @@
-#include <memory.h>  /* memset */
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>  /* exit */
-#include <stdarg.h>  /* va_list, va_start, va_end */
+#include <memory.h>  /* memset */
 #include <math.h>  /* floor, ceil, log2 */
 #include "foundation.h"
 
@@ -98,16 +97,12 @@ void
 hashmap_init(Hashmap* hashmap, Arena* storage, int segment_count)
 {
   assert(segment_count >= 1);
-  HashmapEntry** segment;
 
   hashmap->entry_count = 0;
   hashmap->capacity = 16;
   hashmap->entries.segment_count = segment_count;
   hashmap->entries.segments[0] = arena_malloc(storage, sizeof(HashmapEntry*) * 16);
-  for (int j = 0; j < 16; j ++) {
-    segment = hashmap->entries.segments[0];
-    segment[j] = 0;
-  }
+  memset(hashmap->entries.segments[0], 0, sizeof(HashmapEntry*) * 16);
 }
 
 static void

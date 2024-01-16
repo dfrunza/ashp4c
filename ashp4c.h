@@ -8,8 +8,7 @@ Hashmap*        build_open_scope(Ast* p4program, Scope* root_scope, Arena* stora
 void            build_symtable(Ast* p4program, Scope* root_scope, Hashmap* opened_scopes, Arena* storage);
 Hashmap*        build_type_table(Ast* p4program, Scope* root_scope, UnboundedArray** type_array,
                     Hashmap* opened_scopes, Arena* storage);
-void            resolve_type_idref(Hashmap* type_table, UnboundedArray* type_array);
-void            resolve_type_nameref(Hashmap* type_table, UnboundedArray* type_array);
+void            resolve_type_xref(Hashmap* type_table, UnboundedArray* type_array);
 void            detect_type_cycle(UnboundedArray* type_array);
 Hashmap*        build_potential_types(Ast* ast, Scope* root_scope, Hashmap* scope_map, Arena* storage);
 

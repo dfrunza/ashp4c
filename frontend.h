@@ -926,6 +926,7 @@ typedef struct Type {
 
 void  insert_type_table_entry(Hashmap* table, Ast* ast, Type* type);
 Type* lookup_type_table(Hashmap* table, Ast* ast);
+Type* actual_type(Type* type);
 
 typedef struct Scope {
   int scope_level;

@@ -34,6 +34,7 @@ match_kind {
 }
 
 typedef bit<9> BParamType;
+
 struct TArg1 {
     bit<9> field1;
     bool drop;

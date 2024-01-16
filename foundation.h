@@ -111,3 +111,20 @@ void          hashmap_insert_entry(Hashmap* hashmap, Arena* storage, HashmapKey*
 void          hashmap_cursor_begin(HashmapCursor* cursor);
 HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap);
 
+typedef struct SetMember {
+  uint64_t key;
+  struct SetMember* left_branch;
+  struct SetMember* right_branch;
+} SetMember;
+
+typedef struct Set {
+  int entry_count;
+  int capacity;
+  SegmentTable entries;
+} Set;
+
+Set* set_create(Arena* storage, int max_capacity);
+void set_init(Set* set, Arena* storage, int segment_count);
+bool set_contains_member(Set* set, uint64_t member);
+void set_add_member(Set* set, uint64_t member);
+
