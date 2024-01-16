@@ -129,24 +129,24 @@ main(int arg_count, char* args[])
   type_table = build_type_table(program, root_scope, &type_array, opened_scopes, &main_storage);
   resolve_type_xref(type_table, type_array);
 
-  Set* set;
+  Set set = {};
   Type* type;
-  int N;
-  N = 16;
+  int N = 16;
+  bool contained;
+
   if (type_array->elem_count < N) {
     N = type_array->elem_count;
   }
-  set = set_create(&text_storage, 16);
   for (int i = 0; i < N; i++) {
     type = (Type*)array_get_elem(type_array, i, sizeof(Type));
-    set_add_member(set, (uint64_t)type);
+    set_add_member(&set, &main_storage, (uint64_t)type);
   }
   /*
-  set_contains_member(set, 2);
-  set_contains_member(set, (uint64_t)array_get_elem(type_array, 4, sizeof(Type)));
-  set_contains_member(set, (uint64_t)array_get_elem(type_array, 0, sizeof(Type)));
-  set_contains_member(set, (uint64_t)array_get_elem(type_array, 15, sizeof(Type)));
-  set_contains_member(set, (uint64_t)array_get_elem(type_array, 17, sizeof(Type)));
+  contained = set_contains_member(&set, 2);
+  contained = set_contains_member(&set, (uint64_t)array_get_elem(type_array, 4, sizeof(Type)));
+  contained = set_contains_member(&set, (uint64_t)array_get_elem(type_array, 0, sizeof(Type)));
+  contained = set_contains_member(&set, (uint64_t)array_get_elem(type_array, 15, sizeof(Type)));
+  contained = set_contains_member(&set, (uint64_t)array_get_elem(type_array, 17, sizeof(Type)));
   */
 
   arena_free(&main_storage);

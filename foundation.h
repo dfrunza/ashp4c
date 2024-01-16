@@ -118,13 +118,9 @@ typedef struct SetMember {
 } SetMember;
 
 typedef struct Set {
-  int entry_count;
-  int capacity;
-  SegmentTable entries;
+  SetMember* root;
 } Set;
 
-Set* set_create(Arena* storage, int max_capacity);
-void set_init(Set* set, Arena* storage, int segment_count);
 bool set_contains_member(Set* set, uint64_t member);
-void set_add_member(Set* set, uint64_t member);
+void set_add_member(Set* set, Arena* storage, uint64_t member);
 
