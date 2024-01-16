@@ -154,9 +154,7 @@ insert_opened_scope_entry(Hashmap* table, Ast* ast, Scope* scope)
   hkey.u64_key = (uint64_t)ast;
   he = hashmap_lookup_entry(table, &hkey, HKEY_UINT64);
   assert(!he);
-  he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Scope*));
-  hashmap_insert_entry(table, storage, &hkey, HKEY_UINT64, he);
-  *(Scope**)he->value = scope;
+  hashmap_insert_entry(table, storage, &hkey, HKEY_UINT64, (uint64_t)scope);
 }
 
 Scope*
@@ -169,7 +167,7 @@ lookup_opened_scope(Hashmap* table, Ast* ast)
   hkey.u64_key = (uint64_t)ast;
   he = hashmap_lookup_entry(table, &hkey, HKEY_UINT64);
   if (he) {
-    scope = *(Scope**)he->value;
+    scope = (Scope*)he->value;
   }
   return scope;
 }

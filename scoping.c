@@ -84,11 +84,12 @@ scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns)
 
   hkey.str_key = decl->strname;
   he = hashmap_lookup_entry(&scope->name_table, &hkey, HKEY_STRING);
-  if (!he) {
-    he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(NameEntry));
-    hashmap_insert_entry(&scope->name_table, storage, &hkey, HKEY_STRING, he);
+  if (he) {
+    name_entry = (NameEntry*)he->value;
+  } else {
+    name_entry = arena_malloc(storage, sizeof(NameEntry));
+    hashmap_insert_entry(&scope->name_table, storage, &hkey, HKEY_STRING, (uint64_t)name_entry);
   }
-  name_entry = (NameEntry*)he->value;
   decl->next_in_scope = name_entry->ns[ns];
   name_entry->ns[ns] = decl;
   return name_entry;

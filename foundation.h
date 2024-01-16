@@ -74,23 +74,24 @@ void* array_append_elem(UnboundedArray* array, Arena* storage, int elem_size);
 enum HashmapKeyType {
   HKEY_NONE = 0,
   HKEY_STRING,
-  HKEY_UINT32,
   HKEY_UINT64,
 };
 
 typedef struct HashmapKey {
   union {
     char*    str_key;
-    uint32_t u32_key;
     uint64_t u64_key;
   };
   uint32_t h;
 } HashmapKey;
 
 typedef struct HashmapEntry {
-  HashmapKey key;
+  union {
+    char*    str_key;
+    uint64_t u64_key;
+  };
+  uint64_t value;
   struct HashmapEntry* next_entry;
-  void* value[];
 } HashmapEntry;
 
 typedef struct Hashmap {
@@ -107,7 +108,7 @@ typedef struct HashmapCursor {
 Hashmap*      hashmap_create(Arena* storage, int max_capacity);
 void          hashmap_init(Hashmap* hashmap, Arena* storage, int segment_count);
 HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key, enum HashmapKeyType key_type);
-void          hashmap_insert_entry(Hashmap* hashmap, Arena* storage, HashmapKey* key, enum HashmapKeyType key_type, HashmapEntry* entry);
+void          hashmap_insert_entry(Hashmap* hashmap, Arena* storage, HashmapKey* key, enum HashmapKeyType key_type, uint64_t value);
 void          hashmap_cursor_begin(HashmapCursor* cursor);
 HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap);
 

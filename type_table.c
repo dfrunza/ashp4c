@@ -188,9 +188,7 @@ insert_type_table_entry(Hashmap* table, Ast* ast, Type* type)
   hkey.u64_key = (uint64_t)ast;
   he = hashmap_lookup_entry(table, &hkey, HKEY_UINT64);
   assert(!he);
-  he = arena_malloc(storage, sizeof(HashmapEntry) + sizeof(Type*));
-  hashmap_insert_entry(table, storage, &hkey, HKEY_UINT64, he);
-  *(Type**)he->value = type;
+  hashmap_insert_entry(table, storage, &hkey, HKEY_UINT64, (uint64_t)type);
 }
 
 Type*
@@ -203,7 +201,7 @@ lookup_type_table(Hashmap* table, Ast* ast)
   hkey.u64_key = (uint64_t)ast;
   he = hashmap_lookup_entry(table, &hkey, HKEY_UINT64);
   if (he) {
-    type = *(Type**)he->value;
+    type = (Type*)he->value;
   }
   return type;
 }
