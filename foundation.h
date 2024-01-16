@@ -71,11 +71,6 @@ void  array_extend(UnboundedArray* array, Arena* storage, int elem_size);
 void* array_get_elem(UnboundedArray* array, int i, int elem_size);
 void* array_append_elem(UnboundedArray* array, Arena* storage, int elem_size);
 
-typedef struct HashmapKey {
-  char*    key;
-  uint32_t h;
-} HashmapKey;
-
 typedef struct HashmapEntry {
   char*    key;
   uint64_t value;
@@ -95,8 +90,9 @@ typedef struct HashmapCursor {
 
 Hashmap*      hashmap_create(Arena* storage, int max_capacity);
 void          hashmap_init(Hashmap* hashmap, Arena* storage, int segment_count);
-HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key);
-void          hashmap_insert_entry(Hashmap* hashmap, Arena* storage, HashmapKey* key, uint64_t value);
+HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, char* key);
+HashmapEntry* hashmap_insert_entry(Hashmap* hashmap, Arena* storage, char* key, uint64_t value);
+HashmapEntry* hashmap_insert_or_lookup_entry(Hashmap* hashmap, Arena* storage, char* key, uint64_t value);
 void          hashmap_cursor_begin(HashmapCursor* cursor);
 HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap);
 
@@ -111,6 +107,7 @@ typedef struct Set {
   SetMember* root;
 } Set;
 
-SetMember* set_get_member(Set* set, uint64_t key);
+SetMember* set_lookup_member(Set* set, uint64_t key);
 SetMember* set_add_member(Set* set, Arena* storage, uint64_t key, uint64_t value);
+SetMember* set_add_or_lookup_member(Set* set, Arena* storage, uint64_t key, uint64_t value);
 

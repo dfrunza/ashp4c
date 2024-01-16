@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>  /* exit */
-#include <math.h>  /* floor, ceil, log2 */
 #include "foundation.h"
 
 static SetMember*
@@ -21,7 +19,7 @@ search_member(SetMember* member, uint64_t key)
 }
 
 SetMember*
-set_get_member(Set* set, uint64_t key)
+set_lookup_member(Set* set, uint64_t key)
 {
   return search_member(set->root, key);
 }
@@ -52,5 +50,33 @@ SetMember*
 set_add_member(Set* set, Arena* storage, uint64_t key, uint64_t value)
 {
   return insert_member(set, storage, &set->root, set->root, key, value);
+}
+
+static SetMember*
+search_or_insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, uint64_t key, uint64_t value)
+{
+  if (!member) {
+    member = arena_malloc(storage, sizeof(SetMember));
+    *branch = member;
+    member->key = key;
+    member->value = value;
+    member->left_branch = 0;
+    member->right_branch = 0;
+    return member;
+  } else if (member->key == key) {
+    return member;
+  } else if (key < member->key) {
+    return insert_member(set, storage, &member->left_branch, member->left_branch, key, value);
+  } else {
+    return insert_member(set, storage, &member->right_branch, member->right_branch, key, value);
+  }
+  assert(0);
+  return 0;
+}
+
+SetMember*
+set_add_or_lookup_member(Set* set, Arena* storage, uint64_t key, uint64_t value)
+{
+  return search_or_insert_member(set, storage, &set->root, set->root, key, value);
 }
 

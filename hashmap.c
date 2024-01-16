@@ -24,10 +24,11 @@ hash_string(char* string, uint32_t m)
 }
 
 static uint32_t
-hashmap_hash_key(HashmapKey* key, int m, int capacity)
+hashmap_hash_key(char* key, int m, int capacity)
 {
-  key->h = hash_string(key->key, m) % capacity;
-  return key->h;
+  uint32_t h;
+  h = hash_string(key, m) % capacity;
+  return h;
 }
 
 Hashmap*
@@ -65,7 +66,7 @@ hashmap_grow(Hashmap* hashmap, Arena* storage)
   HashmapEntry** segment, **entry_slot;
   int entry_count;
   int segment_capacity; 
-  HashmapKey key;
+  uint32_t h;
 
   last_segment = floor(log2(hashmap->capacity/16 + 1));
   if (last_segment >= hashmap->entries.segment_count) {
@@ -95,9 +96,8 @@ hashmap_grow(Hashmap* hashmap, Arena* storage)
   }
   for (entry = first_entry; entry != 0; ) {
     next_entry = entry->next_entry;
-    key.key = entry->key;
-    hashmap_hash_key(&key, 4 + (last_segment + 1), hashmap->capacity);
-    entry_slot = segment_locate_elem(&hashmap->entries, key.h, sizeof(HashmapEntry*));
+    h = hashmap_hash_key(entry->key, 4 + (last_segment + 1), hashmap->capacity);
+    entry_slot = segment_locate_elem(&hashmap->entries, h, sizeof(HashmapEntry*));
     entry->next_entry = *entry_slot;
     *entry_slot = entry;
     entry = next_entry;
@@ -105,17 +105,18 @@ hashmap_grow(Hashmap* hashmap, Arena* storage)
 }
 
 HashmapEntry*
-hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key /*in/out*/)
+hashmap_lookup_entry(Hashmap* hashmap, char* key)
 {
   int last_segment;
   HashmapEntry** entry_slot, *entry;
+  uint32_t h;
 
   last_segment = floor(log2(hashmap->capacity/16));
-  hashmap_hash_key(key, 4 + (last_segment + 1), hashmap->capacity);
-  entry_slot = segment_locate_elem(&hashmap->entries, key->h, sizeof(HashmapEntry*));
+  h = hashmap_hash_key(key, 4 + (last_segment + 1), hashmap->capacity);
+  entry_slot = segment_locate_elem(&hashmap->entries, h, sizeof(HashmapEntry*));
   entry = *entry_slot;
   while (entry) {
-    if (cstr_match(entry->key, key->key)) {
+    if (cstr_match(entry->key, key)) {
       break;
     }
     entry = entry->next_entry;
@@ -123,24 +124,76 @@ hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key /*in/out*/)
   return entry;
 }
 
-void
-hashmap_insert_entry(Hashmap* hashmap, Arena* storage, HashmapKey* key, uint64_t value)
+HashmapEntry*
+hashmap_insert_entry(Hashmap* hashmap, Arena* storage, char* key, uint64_t value)
 {
   int last_segment;
   HashmapEntry* entry, **entry_slot;
+  uint32_t h;
+
+  last_segment = floor(log2(hashmap->capacity/16));
+  h = hashmap_hash_key(key, 4 + (last_segment + 1), hashmap->capacity);
+  entry_slot = segment_locate_elem(&hashmap->entries, h, sizeof(HashmapEntry*));
+  entry = *entry_slot;
+  while (entry) {
+    if (cstr_match(entry->key, key)) {
+      break;
+    }
+    entry = entry->next_entry;
+  }
+  if (entry) {
+    return 0;
+  }
 
   if (hashmap->entry_count >= hashmap->capacity) {
     hashmap_grow(hashmap, storage);
     last_segment = floor(log2(hashmap->capacity/16));
-    hashmap_hash_key(key, 4 + (last_segment + 1), hashmap->capacity);
+    h = hashmap_hash_key(key, 4 + (last_segment + 1), hashmap->capacity);
   }
-  entry_slot = segment_locate_elem(&hashmap->entries, key->h, sizeof(HashmapEntry*));
+  entry_slot = segment_locate_elem(&hashmap->entries, h, sizeof(HashmapEntry*));
   entry = arena_malloc(storage, sizeof(HashmapEntry));
-  entry->key = key->key;
+  entry->key = key;
   entry->value = value;
   entry->next_entry = *entry_slot;
   *entry_slot = entry;
   hashmap->entry_count += 1;
+  return entry;
+}
+
+HashmapEntry*
+hashmap_insert_or_lookup_entry(Hashmap* hashmap, Arena* storage, char* key, uint64_t value)
+{
+  int last_segment;
+  HashmapEntry** entry_slot, *entry;
+  uint32_t h;
+
+  last_segment = floor(log2(hashmap->capacity/16));
+  h = hashmap_hash_key(key, 4 + (last_segment + 1), hashmap->capacity);
+  entry_slot = segment_locate_elem(&hashmap->entries, h, sizeof(HashmapEntry*));
+  entry = *entry_slot;
+  while (entry) {
+    if (cstr_match(entry->key, key)) {
+      break;
+    }
+    entry = entry->next_entry;
+  }
+  if (entry) {
+    return entry;
+  }
+
+  if (hashmap->entry_count >= hashmap->capacity) {
+    hashmap_grow(hashmap, storage);
+    last_segment = floor(log2(hashmap->capacity/16));
+    h = hashmap_hash_key(key, 4 + (last_segment + 1), hashmap->capacity);
+  }
+  entry_slot = segment_locate_elem(&hashmap->entries, h, sizeof(HashmapEntry*));
+  entry = arena_malloc(storage, sizeof(HashmapEntry));
+  entry->key = key;
+  entry->value = value;
+  entry->next_entry = *entry_slot;
+  *entry_slot = entry;
+  hashmap->entry_count += 1;
+  return entry;
 }
 
 void

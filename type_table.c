@@ -193,7 +193,7 @@ lookup_type_table(Set* table, Ast* ast)
 {
   SetMember* m;
 
-  m = set_get_member(table, (uint64_t)ast);
+  m = set_lookup_member(table, (uint64_t)ast);
   if (m) {
     return (Type*)m->value;
   }
