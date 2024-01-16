@@ -23,42 +23,11 @@ hash_string(char* string, uint32_t m)
   return h;
 }
 
-static uint64_t
-hash_uint64(uint64_t i, uint32_t m)
-{
-  assert(m > 0 && m <= 32);
-  uint32_t upper_half, lower_half;
-  uint32_t K, h;
-  uint64_t KxSigma;
-
-  upper_half = (uint32_t)(i >> 32);
-  lower_half = (uint32_t)(0x00000000ffffffffl & i);
-  K = upper_half ^ lower_half;
-  KxSigma = (uint64_t)K * (uint64_t)SIGMA;
-  h = ((uint32_t)KxSigma) >> (32 - m);  /* 0 <= h < 2^m */
-  return h;
-}
-
 static uint32_t
-hashmap_hash_key(HashmapKey* key, enum HashmapKeyType key_type, int m, int capacity)
+hashmap_hash_key(HashmapKey* key, int m, int capacity)
 {
-  if (key_type == HKEY_STRING) {
-    key->h = hash_string(key->str_key, m) % capacity;
-  } else if (key_type == HKEY_UINT64) {
-    key->h = hash_uint64(key->u64_key, m) % capacity;
-  } else assert(0);
+  key->h = hash_string(key->key, m) % capacity;
   return key->h;
-}
-
-static bool
-key_equal(HashmapEntry* entry, HashmapKey* key, enum HashmapKeyType key_type)
-{
-  if (key_type == HKEY_STRING) {
-    return cstr_match(entry->str_key, key->str_key);
-  } else if (key_type == HKEY_UINT64) {
-    return entry->u64_key == key->u64_key;
-  } else assert(0);
-  return false;
 }
 
 Hashmap*
@@ -87,7 +56,7 @@ hashmap_init(Hashmap* hashmap, Arena* storage, int segment_count)
 }
 
 static void
-hashmap_grow(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type)
+hashmap_grow(Hashmap* hashmap, Arena* storage)
 {
   int last_segment;
   HashmapCursor it = {};
@@ -126,8 +95,8 @@ hashmap_grow(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type)
   }
   for (entry = first_entry; entry != 0; ) {
     next_entry = entry->next_entry;
-    key.u64_key = entry->u64_key;
-    hashmap_hash_key(&key, key_type, 4 + (last_segment + 1), hashmap->capacity);
+    key.key = entry->key;
+    hashmap_hash_key(&key, 4 + (last_segment + 1), hashmap->capacity);
     entry_slot = segment_locate_elem(&hashmap->entries, key.h, sizeof(HashmapEntry*));
     entry->next_entry = *entry_slot;
     *entry_slot = entry;
@@ -136,17 +105,17 @@ hashmap_grow(Hashmap* hashmap, Arena* storage, enum HashmapKeyType key_type)
 }
 
 HashmapEntry*
-hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key /*in/out*/, enum HashmapKeyType key_type)
+hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key /*in/out*/)
 {
   int last_segment;
   HashmapEntry** entry_slot, *entry;
 
   last_segment = floor(log2(hashmap->capacity/16));
-  hashmap_hash_key(key, key_type, 4 + (last_segment + 1), hashmap->capacity);
+  hashmap_hash_key(key, 4 + (last_segment + 1), hashmap->capacity);
   entry_slot = segment_locate_elem(&hashmap->entries, key->h, sizeof(HashmapEntry*));
   entry = *entry_slot;
   while (entry) {
-    if (key_equal(entry, key, key_type)) {
+    if (cstr_match(entry->key, key->key)) {
       break;
     }
     entry = entry->next_entry;
@@ -155,19 +124,19 @@ hashmap_lookup_entry(Hashmap* hashmap, HashmapKey* key /*in/out*/, enum HashmapK
 }
 
 void
-hashmap_insert_entry(Hashmap* hashmap, Arena* storage, HashmapKey* key, enum HashmapKeyType key_type, uint64_t value)
+hashmap_insert_entry(Hashmap* hashmap, Arena* storage, HashmapKey* key, uint64_t value)
 {
   int last_segment;
   HashmapEntry* entry, **entry_slot;
 
   if (hashmap->entry_count >= hashmap->capacity) {
-    hashmap_grow(hashmap, storage, key_type);
+    hashmap_grow(hashmap, storage);
     last_segment = floor(log2(hashmap->capacity/16));
-    hashmap_hash_key(key, key_type, 4 + (last_segment + 1), hashmap->capacity);
+    hashmap_hash_key(key, 4 + (last_segment + 1), hashmap->capacity);
   }
   entry_slot = segment_locate_elem(&hashmap->entries, key->h, sizeof(HashmapEntry*));
   entry = arena_malloc(storage, sizeof(HashmapEntry));
-  entry->u64_key = key->u64_key;
+  entry->key = key->key;
   entry->value = value;
   entry->next_entry = *entry_slot;
   *entry_slot = entry;
