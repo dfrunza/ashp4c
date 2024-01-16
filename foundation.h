@@ -108,16 +108,7 @@ typedef struct Set {
   SetMember* root;
 } Set;
 
-
-typedef struct SetCursor {
-  UnboundedArray* stack;
-  SetMember* root;
-  SetMember* member;
-} SetCursor;
-
 SetMember* set_lookup_member(Set* set, uint64_t key);
 SetMember* set_add_member(Set* set, Arena* storage, uint64_t key, uint64_t value);
 SetMember* set_add_or_lookup_member(Set* set, Arena* storage, uint64_t key, uint64_t value);
-void       set_cursor_begin(SetCursor* cursor, Set* set, UnboundedArray* stack, Arena* storage);
-SetMember* set_cursor_next_member(SetCursor* cursor);
 
