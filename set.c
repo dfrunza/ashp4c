@@ -4,47 +4,51 @@
 #include <math.h>  /* floor, ceil, log2 */
 #include "foundation.h"
 
-static bool
+static SetMember*
 search_member(SetMember* member, uint64_t key)
 {
   if (!member) {
-    return false;
+    return 0;
   } else if (member->key == key){
-    return true;
+    return member;
   } else if (key < member->key) {
     return search_member(member->left_branch, key);
   } else {
     return search_member(member->right_branch, key);
   }
   assert(0);
-  return false;
+  return 0;
 }
 
-bool
-set_contains_member(Set* set, uint64_t key)
+SetMember*
+set_get_member(Set* set, uint64_t key)
 {
   return search_member(set->root, key);
 }
 
-static void
-insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, uint64_t key)
+static SetMember*
+insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, uint64_t key, uint64_t value)
 {
   if (!member) {
     member = arena_malloc(storage, sizeof(SetMember));
     *branch = member;
     member->key = key;
+    member->value = value;
     member->left_branch = 0;
     member->right_branch = 0;
+    return member;
   } else if (key < member->key) {
-    insert_member(set, storage, &member->left_branch, member->left_branch, key);
+    return insert_member(set, storage, &member->left_branch, member->left_branch, key, value);
   } else {
-    insert_member(set, storage, &member->right_branch, member->right_branch, key);
+    return insert_member(set, storage, &member->right_branch, member->right_branch, key, value);
   }
+  assert(0);
+  return 0;
 }
 
-void
-set_add_member(Set* set, Arena* storage, uint64_t key)
+SetMember*
+set_add_member(Set* set, Arena* storage, uint64_t key, uint64_t value)
 {
-  insert_member(set, storage, &set->root, set->root, key);
+  return insert_member(set, storage, &set->root, set->root, key, value);
 }
 

@@ -114,6 +114,7 @@ HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap)
 
 typedef struct SetMember {
   uint64_t key;
+  uint64_t value;
   struct SetMember* left_branch;
   struct SetMember* right_branch;
 } SetMember;
@@ -122,6 +123,6 @@ typedef struct Set {
   SetMember* root;
 } Set;
 
-bool set_contains_member(Set* set, uint64_t member);
-void set_add_member(Set* set, Arena* storage, uint64_t member);
+SetMember* set_get_member(Set* set, uint64_t key);
+SetMember* set_add_member(Set* set, Arena* storage, uint64_t key, uint64_t value);
 

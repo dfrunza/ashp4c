@@ -132,22 +132,17 @@ main(int arg_count, char* args[])
   Set set = {};
   Type* type;
   int N = 16;
-  bool contained;
+  SetMember* m;
 
   if (type_array->elem_count < N) {
     N = type_array->elem_count;
   }
   for (int i = 0; i < N; i++) {
     type = (Type*)array_get_elem(type_array, i, sizeof(Type));
-    set_add_member(&set, &main_storage, (uint64_t)type);
+    set_add_member(&set, &main_storage, (uint64_t)type, 0);
   }
-  /*
-  contained = set_contains_member(&set, 2);
-  contained = set_contains_member(&set, (uint64_t)array_get_elem(type_array, 4, sizeof(Type)));
-  contained = set_contains_member(&set, (uint64_t)array_get_elem(type_array, 0, sizeof(Type)));
-  contained = set_contains_member(&set, (uint64_t)array_get_elem(type_array, 15, sizeof(Type)));
-  contained = set_contains_member(&set, (uint64_t)array_get_elem(type_array, 17, sizeof(Type)));
-  */
+  m = set_get_member(&set, (uint64_t)array_get_elem(type_array, 4, sizeof(Type)));
+  m = set_get_member(&set, (uint64_t)array_get_elem(type_array, 17, sizeof(Type)));
 
   arena_free(&main_storage);
   return 0;
