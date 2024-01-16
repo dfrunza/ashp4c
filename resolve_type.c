@@ -4,7 +4,7 @@
 #include "frontend.h"
 
 static void
-resolve_TYPE_IDREF(Hashmap* type_table, UnboundedArray* type_array)
+resolve_TYPE_IDREF(Set* type_table, UnboundedArray* type_array)
 {
   Type* ref_ty, *ty;
 
@@ -20,7 +20,7 @@ resolve_TYPE_IDREF(Hashmap* type_table, UnboundedArray* type_array)
 }
 
 static void
-resolve_TYPE_NAMEREF(Hashmap* type_table, UnboundedArray* type_array)
+resolve_TYPE_NAMEREF(Set* type_table, UnboundedArray* type_array)
 {
   Ast* name;
   Type* ref_ty, *ty;
@@ -66,7 +66,7 @@ resolve_TYPE_TYPE(UnboundedArray* type_array)
 }
 
 void
-resolve_type_xref(Hashmap* type_table, UnboundedArray* type_array)
+resolve_type_xref(Set* type_table, UnboundedArray* type_array)
 {
   resolve_TYPE_IDREF(type_table, type_array);
   resolve_TYPE_NAMEREF(type_table, type_array);

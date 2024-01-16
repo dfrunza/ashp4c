@@ -5,7 +5,7 @@
 
 static Arena*   storage;
 static Scope*   current_scope;
-static Hashmap* opened_scopes;
+static Set*     opened_scopes;
 
 /** PROGRAM **/
 
@@ -146,37 +146,32 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 void
-insert_opened_scope_entry(Hashmap* table, Ast* ast, Scope* scope)
+insert_opened_scope_entry(Set* table, Ast* ast, Scope* scope)
 {
-  HashmapKey hkey;
-  HashmapEntry* he;
+  SetMember* m;
 
-  hkey.u64_key = (uint64_t)ast;
-  he = hashmap_lookup_entry(table, &hkey, HKEY_UINT64);
-  assert(!he);
-  hashmap_insert_entry(table, storage, &hkey, HKEY_UINT64, (uint64_t)scope);
+  m = set_add_member(table, storage, (uint64_t)ast, (uint64_t)scope);
+  assert(m);
 }
 
 Scope*
-lookup_opened_scope(Hashmap* table, Ast* ast)
+lookup_opened_scope(Set* table, Ast* ast)
 {
-  HashmapKey hkey;
-  HashmapEntry* he;
-  Scope* scope = 0;
+  SetMember* m;
 
-  hkey.u64_key = (uint64_t)ast;
-  he = hashmap_lookup_entry(table, &hkey, HKEY_UINT64);
-  if (he) {
-    scope = (Scope*)he->value;
+  m = set_get_member(table, (uint64_t)ast);
+  if (m) {
+    return (Scope*)m->value;
   }
-  return scope;
+  return 0;
 }
 
-Hashmap*
+Set*
 build_open_scope(Ast* p4program, Scope* root_scope, Arena* storage_)
 {
   storage = storage_;
-  opened_scopes = hashmap_create(storage, 1008);
+  opened_scopes = arena_malloc(storage, sizeof(Set));
+  *opened_scopes = (Set){};
   current_scope = root_scope;
   visit_p4program(p4program);
   assert(current_scope == root_scope);

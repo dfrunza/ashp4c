@@ -5,7 +5,7 @@
 
 static Arena*   storage;
 static Scope*   current_scope;
-static Hashmap* opened_scopes;
+static Set*     opened_scopes;
 
 /** PROGRAM **/
 
@@ -146,7 +146,7 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 void
-build_symtable(Ast* p4program, Scope* root_scope, Hashmap* opened_scopes_, Arena* storage_)
+build_symtable(Ast* p4program, Scope* root_scope, Set* opened_scopes_, Arena* storage_)
 {
   opened_scopes = opened_scopes_;
   storage = storage_;

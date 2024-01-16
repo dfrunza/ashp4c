@@ -5,8 +5,8 @@
 
 static Arena*   storage;
 static Scope*   root_scope, *enclosing_scope;
-static Hashmap* opened_scopes;
-static Hashmap* type_table;
+static Set*     opened_scopes;
+static Set*     type_table;
 static UnboundedArray* type_array;
 
 /** PROGRAM **/
@@ -180,30 +180,24 @@ create_product_type(int i, int j, Arena* storage)
 }
 
 void
-insert_type_table_entry(Hashmap* table, Ast* ast, Type* type)
+insert_type_table_entry(Set* table, Ast* ast, Type* type)
 {
-  HashmapKey hkey;
-  HashmapEntry* he;
+  SetMember* m;
 
-  hkey.u64_key = (uint64_t)ast;
-  he = hashmap_lookup_entry(table, &hkey, HKEY_UINT64);
-  assert(!he);
-  hashmap_insert_entry(table, storage, &hkey, HKEY_UINT64, (uint64_t)type);
+  m = set_add_member(table, storage, (uint64_t)ast, (uint64_t)type);
+  assert(m);
 }
 
 Type*
-lookup_type_table(Hashmap* table, Ast* ast)
+lookup_type_table(Set* table, Ast* ast)
 {
-  HashmapKey hkey;
-  HashmapEntry* he;
-  Type* type = 0;
-  
-  hkey.u64_key = (uint64_t)ast;
-  he = hashmap_lookup_entry(table, &hkey, HKEY_UINT64);
-  if (he) {
-    type = (Type*)he->value;
+  SetMember* m;
+
+  m = set_get_member(table, (uint64_t)ast);
+  if (m) {
+    return (Type*)m->value;
   }
-  return type;
+  return 0;
 }
 
 Type*
@@ -218,9 +212,9 @@ actual_type(Type* type)
   return 0;
 }
 
-Hashmap*
+Set*
 build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array_,
-        Hashmap* opened_scopes_, Arena* storage_)
+        Set* opened_scopes_, Arena* storage_)
 {
   struct BuiltinType {
     char* strname;
@@ -245,7 +239,8 @@ build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array
   storage = storage_;
   root_scope = root_scope_;
   opened_scopes = opened_scopes_;
-  type_table = hashmap_create(storage, 1008);
+  type_table = arena_malloc(storage, sizeof(Set));
+  *type_table = (Set){};
   type_array = array_create(storage, sizeof(Type), 1008);
 
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {

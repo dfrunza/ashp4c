@@ -9,7 +9,7 @@ search_member(SetMember* member, uint64_t key)
 {
   if (!member) {
     return 0;
-  } else if (member->key == key){
+  } else if (member->key == key) {
     return member;
   } else if (key < member->key) {
     return search_member(member->left_branch, key);
@@ -37,6 +37,8 @@ insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, u
     member->left_branch = 0;
     member->right_branch = 0;
     return member;
+  } else if (member->key == key) {
+    return 0;
   } else if (key < member->key) {
     return insert_member(set, storage, &member->left_branch, member->left_branch, key, value);
   } else {
