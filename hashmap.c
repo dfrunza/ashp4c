@@ -73,12 +73,12 @@ hashmap_grow(Hashmap* hashmap, Arena* storage)
     printf("\nMaximum hashmap capacity has been reached.\n");
     exit(1);
   }
-  hashmap_cursor_begin(&it);
-  first_entry = hashmap_cursor_next_entry(&it, hashmap);
+  hashmap_cursor_begin(&it, hashmap);
+  first_entry = hashmap_cursor_next_entry(&it);
   last_entry = first_entry;
   entry_count = first_entry ? 1 : 0;
-  for (entry = hashmap_cursor_next_entry(&it, hashmap);
-       entry != 0; entry = hashmap_cursor_next_entry(&it, hashmap)) {
+  for (entry = hashmap_cursor_next_entry(&it);
+       entry != 0; entry = hashmap_cursor_next_entry(&it)) {
     last_entry->next_entry = entry;
     last_entry = entry;
     entry_count += 1;
@@ -97,7 +97,7 @@ hashmap_grow(Hashmap* hashmap, Arena* storage)
   for (entry = first_entry; entry != 0; ) {
     next_entry = entry->next_entry;
     h = hashmap_hash_key(entry->key, 4 + (last_segment + 1), hashmap->capacity);
-    entry_slot = segment_locate_elem(&hashmap->entries, h, sizeof(HashmapEntry*));
+    entry_slot = segment_locate_cell(&hashmap->entries, h, sizeof(HashmapEntry*));
     entry->next_entry = *entry_slot;
     *entry_slot = entry;
     entry = next_entry;
@@ -113,7 +113,7 @@ hashmap_lookup_entry(Hashmap* hashmap, char* key)
 
   last_segment = floor(log2(hashmap->capacity/16));
   h = hashmap_hash_key(key, 4 + (last_segment + 1), hashmap->capacity);
-  entry_slot = segment_locate_elem(&hashmap->entries, h, sizeof(HashmapEntry*));
+  entry_slot = segment_locate_cell(&hashmap->entries, h, sizeof(HashmapEntry*));
   entry = *entry_slot;
   while (entry) {
     if (cstr_match(entry->key, key)) {
@@ -133,7 +133,7 @@ hashmap_insert_entry(Hashmap* hashmap, Arena* storage, char* key, uint64_t value
 
   last_segment = floor(log2(hashmap->capacity/16));
   h = hashmap_hash_key(key, 4 + (last_segment + 1), hashmap->capacity);
-  entry_slot = segment_locate_elem(&hashmap->entries, h, sizeof(HashmapEntry*));
+  entry_slot = segment_locate_cell(&hashmap->entries, h, sizeof(HashmapEntry*));
   entry = *entry_slot;
   while (entry) {
     if (cstr_match(entry->key, key)) {
@@ -150,7 +150,7 @@ hashmap_insert_entry(Hashmap* hashmap, Arena* storage, char* key, uint64_t value
     last_segment = floor(log2(hashmap->capacity/16));
     h = hashmap_hash_key(key, 4 + (last_segment + 1), hashmap->capacity);
   }
-  entry_slot = segment_locate_elem(&hashmap->entries, h, sizeof(HashmapEntry*));
+  entry_slot = segment_locate_cell(&hashmap->entries, h, sizeof(HashmapEntry*));
   entry = arena_malloc(storage, sizeof(HashmapEntry));
   entry->key = key;
   entry->value = value;
@@ -169,7 +169,7 @@ hashmap_insert_or_lookup_entry(Hashmap* hashmap, Arena* storage, char* key, uint
 
   last_segment = floor(log2(hashmap->capacity/16));
   h = hashmap_hash_key(key, 4 + (last_segment + 1), hashmap->capacity);
-  entry_slot = segment_locate_elem(&hashmap->entries, h, sizeof(HashmapEntry*));
+  entry_slot = segment_locate_cell(&hashmap->entries, h, sizeof(HashmapEntry*));
   entry = *entry_slot;
   while (entry) {
     if (cstr_match(entry->key, key)) {
@@ -186,7 +186,7 @@ hashmap_insert_or_lookup_entry(Hashmap* hashmap, Arena* storage, char* key, uint
     last_segment = floor(log2(hashmap->capacity/16));
     h = hashmap_hash_key(key, 4 + (last_segment + 1), hashmap->capacity);
   }
-  entry_slot = segment_locate_elem(&hashmap->entries, h, sizeof(HashmapEntry*));
+  entry_slot = segment_locate_cell(&hashmap->entries, h, sizeof(HashmapEntry*));
   entry = arena_malloc(storage, sizeof(HashmapEntry));
   entry->key = key;
   entry->value = value;
@@ -197,18 +197,21 @@ hashmap_insert_or_lookup_entry(Hashmap* hashmap, Arena* storage, char* key, uint
 }
 
 void
-hashmap_cursor_begin(HashmapCursor* cursor)
+hashmap_cursor_begin(HashmapCursor* cursor, Hashmap* hashmap)
 {
+  cursor->hashmap = hashmap;
   cursor->i = -1;
   cursor->entry = 0;
 }
 
 HashmapEntry*
-hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap)
+hashmap_cursor_next_entry(HashmapCursor* cursor)
 {
+  Hashmap* hashmap;
   HashmapEntry* entry = 0;
   HashmapEntry** entry_slot;
 
+  hashmap = cursor->hashmap;
   entry = cursor->entry;
   if (entry) {
     entry = entry->next_entry;
@@ -219,7 +222,7 @@ hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap)
   }
   cursor->i++;
   while (cursor->i < hashmap->capacity) {
-    entry_slot = segment_locate_elem(&hashmap->entries, cursor->i, sizeof(HashmapEntry*));
+    entry_slot = segment_locate_cell(&hashmap->entries, cursor->i, sizeof(HashmapEntry*));
     entry = *entry_slot;
     if (entry) {
       cursor->entry = entry;
@@ -241,7 +244,7 @@ Debug_hashmap_occupancy(Hashmap* hashmap)
       max_bucket_length = 0;
 
   for (int i = 0; i < hashmap->capacity; i++) {
-    entry_slot = segment_locate_elem(&hashmap->entries, i, sizeof(HashmapEntry*));
+    entry_slot = segment_locate_cell(&hashmap->entries, i, sizeof(HashmapEntry*));
     entry = *entry_slot;
     entry_count = 0;
     if (entry) {

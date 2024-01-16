@@ -49,7 +49,7 @@ array_init(UnboundedArray* array, Arena* storage, int elem_size, int segment_cou
 }
 
 void*
-segment_locate_elem(SegmentTable* data, int i, int elem_size)
+segment_locate_cell(SegmentTable* data, int i, int elem_size)
 {
   assert(elem_size > 0);
   int segment_index, elem_offset;
@@ -62,18 +62,18 @@ segment_locate_elem(SegmentTable* data, int i, int elem_size)
 }
 
 void*
-array_get_elem(UnboundedArray* array, int i, int elem_size)
+array_get_element(UnboundedArray* array, int i, int elem_size)
 {
   assert(elem_size > 0);
   assert(i >= 0 && i < array->elem_count);
   void* elem_slot;
 
-  elem_slot = segment_locate_elem(&array->data, i, elem_size);
+  elem_slot = segment_locate_cell(&array->data, i, elem_size);
   return elem_slot;
 }
 
 void*
-array_append_elem(UnboundedArray* array, Arena* storage, int elem_size)
+array_append_element(UnboundedArray* array, Arena* storage, int elem_size)
 {
   assert(elem_size > 0);
   void* elem_slot;
@@ -81,7 +81,7 @@ array_append_elem(UnboundedArray* array, Arena* storage, int elem_size)
   if (array->elem_count >= array->capacity) {
     array_extend(array, storage, elem_size);
   }
-  elem_slot = segment_locate_elem(&array->data, array->elem_count, elem_size);
+  elem_slot = segment_locate_cell(&array->data, array->elem_count, elem_size);
   array->elem_count += 1;
   return elem_slot;
 }

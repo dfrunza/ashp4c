@@ -64,12 +64,12 @@ typedef struct UnboundedArray {
   SegmentTable data;
 } UnboundedArray;
 
-void* segment_locate_elem(SegmentTable* data, int i, int elem_size);
+void* segment_locate_cell(SegmentTable* data, int i, int elem_size);
 UnboundedArray* array_create(Arena* storage, int elem_size, int max_capacity);
 void  array_init(UnboundedArray* array, Arena* storage, int elem_size, int segment_count);
 void  array_extend(UnboundedArray* array, Arena* storage, int elem_size);
-void* array_get_elem(UnboundedArray* array, int i, int elem_size);
-void* array_append_elem(UnboundedArray* array, Arena* storage, int elem_size);
+void* array_get_element(UnboundedArray* array, int i, int elem_size);
+void* array_append_element(UnboundedArray* array, Arena* storage, int elem_size);
 
 typedef struct HashmapEntry {
   char*    key;
@@ -84,6 +84,7 @@ typedef struct Hashmap {
 } Hashmap;
 
 typedef struct HashmapCursor {
+  Hashmap* hashmap;
   int i;
   HashmapEntry* entry;
 } HashmapCursor;
@@ -93,8 +94,8 @@ void          hashmap_init(Hashmap* hashmap, Arena* storage, int segment_count);
 HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, char* key);
 HashmapEntry* hashmap_insert_entry(Hashmap* hashmap, Arena* storage, char* key, uint64_t value);
 HashmapEntry* hashmap_insert_or_lookup_entry(Hashmap* hashmap, Arena* storage, char* key, uint64_t value);
-void          hashmap_cursor_begin(HashmapCursor* cursor);
-HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor, Hashmap* hashmap);
+void          hashmap_cursor_begin(HashmapCursor* cursor, Hashmap* hashmap);
+HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor);
 
 typedef struct SetMember {
   uint64_t key;
@@ -107,7 +108,16 @@ typedef struct Set {
   SetMember* root;
 } Set;
 
+
+typedef struct SetCursor {
+  UnboundedArray* stack;
+  SetMember* root;
+  SetMember* member;
+} SetCursor;
+
 SetMember* set_lookup_member(Set* set, uint64_t key);
 SetMember* set_add_member(Set* set, Arena* storage, uint64_t key, uint64_t value);
 SetMember* set_add_or_lookup_member(Set* set, Arena* storage, uint64_t key, uint64_t value);
+void       set_cursor_begin(SetCursor* cursor, Set* set, UnboundedArray* stack, Arena* storage);
+SetMember* set_cursor_next_member(SetCursor* cursor);
 

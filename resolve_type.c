@@ -9,7 +9,7 @@ resolve_TYPE_IDREF(Set* type_table, UnboundedArray* type_array)
   Type* ref_ty, *ty;
 
   for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_elem(type_array, i, sizeof(Type));
+    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
     if (ty->ctor == TYPE_IDREF) {
       ref_ty = lookup_type_table(type_table, ty->idref.ref);
       assert(ref_ty);
@@ -28,7 +28,7 @@ resolve_TYPE_NAMEREF(Set* type_table, UnboundedArray* type_array)
   NameDecl* name_decl;
 
   for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_elem(type_array, i, sizeof(Type));
+    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
     if (ty->ctor == TYPE_NAMEREF) {
       name = ty->nameref.name;
       name_entry = scope_lookup_namespace(ty->nameref.scope, name->name.strname, NS_TYPE);
@@ -54,7 +54,7 @@ resolve_TYPE_TYPE(UnboundedArray* type_array)
   Type* ref_ty, *ty;
 
   for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_elem(type_array, i, sizeof(Type));
+    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
     if (ty->ctor == TYPE_TYPE) {
       ref_ty = ty->type.type;
       while (ref_ty->ctor == TYPE_TYPE) {
@@ -76,7 +76,7 @@ resolve_type_xref(Set* type_table, UnboundedArray* type_array)
   /* Test */
   Type* ty;
   for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_elem(type_array, i, sizeof(Type));
+    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
     if (ty->ctor == TYPE_TYPE) {
       ty = ty->type.type;
       assert(ty->ctor != TYPE_TYPE);

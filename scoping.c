@@ -96,9 +96,9 @@ Debug_scope_decls(Scope* scope)
   NameEntry* name_entry;
   NameDecl* decl;
 
-  hashmap_cursor_begin(&it);
+  hashmap_cursor_begin(&it, &scope->name_table);
   printf("Names in scope 0x%x\n\n", scope);
-  e = hashmap_cursor_next_entry(&it, &scope->name_table);
+  e = hashmap_cursor_next_entry(&it);
   while (e) {
     name_entry = (NameEntry*)e->value;
     for (int i = 1; i < NameSpace_COUNT; i++) {
@@ -114,7 +114,7 @@ Debug_scope_decls(Scope* scope)
         count += 1;
       }
     }
-    e = hashmap_cursor_next_entry(&it, &scope->name_table);
+    e = hashmap_cursor_next_entry(&it);
   }
   printf("\nTotal names: %d\n", count);
 }

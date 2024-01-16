@@ -80,3 +80,26 @@ set_add_or_lookup_member(Set* set, Arena* storage, uint64_t key, uint64_t value)
   return search_or_insert_member(set, storage, &set->root, set->root, key, value);
 }
 
+void
+set_cursor_begin(SetCursor* cursor, Set* set, UnboundedArray* stack, Arena* storage)
+{
+  cursor->stack = stack;
+  cursor->root = set->root;
+  cursor->member = set->root;
+  *(SetMember**)array_append_element(stack, storage, sizeof(SetMember*)) = set->root;
+}
+
+SetMember*
+set_cursor_next_member(SetCursor* cursor)
+{
+  UnboundedArray* stack;
+  SetMember* member, *root, *m;
+
+  member = cursor->member;
+  if (member) {
+    if (member == cursor->root) {
+
+    }
+  }
+  return member;
+}
