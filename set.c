@@ -80,3 +80,22 @@ set_add_or_lookup_member(Set* set, Arena* storage, uint64_t key, uint64_t value)
   return search_or_insert_member(set, storage, &set->root, set->root, key, value);
 }
 
+static void
+traverse_and_collect(SetMember* member, UnboundedArray* array, Arena* storage)
+{
+  if (member) {
+    *(SetMember**)array_append_element(array, storage, sizeof(SetMember*)) = member;
+    traverse_and_collect(member->left_branch, array, storage);
+    traverse_and_collect(member->right_branch, array, storage);
+  }
+}
+
+void
+set_members_to_array(Set* set, UnboundedArray* array, Arena* storage)
+{
+  array->elem_count = 0;
+  if (!set->root) {
+    return;
+  }
+  traverse_and_collect(set->root, array, storage);
+}

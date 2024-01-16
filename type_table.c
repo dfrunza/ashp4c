@@ -212,6 +212,32 @@ actual_type(Type* type)
   return 0;
 }
 
+void
+Debug_print_type_table(Set* table)
+{
+  UnboundedArray* elements;
+  SetMember* m;
+  Ast* ast;
+  Type* ty;
+
+  elements = array_create(storage, sizeof(SetMember*), 1008);
+  set_members_to_array(type_table, elements, storage);
+  for (int i = 0; i < elements->elem_count; i++) {
+    m = *(SetMember**)array_get_element(elements, i, sizeof(SetMember*));
+    ast = (Ast*)m->key;
+    ty = (Type*)m->value;
+    if (ty->strname) {
+      printf("[%d] %s ... %d:%d\n", i, ty->strname, ast->line_no, ast->column_no);
+    } else {
+      if (ast) {
+        printf("[%d] ? ... %d:%d\n", i, ast->line_no, ast->column_no);
+      } else {
+        printf("[%d] ?\n", i);
+      }
+    }
+  }
+}
+
 Set*
 build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array_,
         Set* opened_scopes_, Arena* storage_)
