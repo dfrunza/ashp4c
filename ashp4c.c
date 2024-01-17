@@ -106,7 +106,8 @@ main(int arg_count, char* args[])
   UnboundedArray* tokens;
   Scope* root_scope;
   Ast* program;
-  Set* opened_scopes, *type_table;
+  Set* opened_scopes, *enclosing_scopes;
+  Set* type_table;
   UnboundedArray* type_array;
 
   reserve_page_memory(500*KILOBYTE);
@@ -125,10 +126,10 @@ main(int arg_count, char* args[])
 
   drypass(program);
   opened_scopes = build_open_scope(program, root_scope, &main_storage);
-  build_symtable(program, root_scope, opened_scopes, &main_storage);
-  type_table = build_type_table(program, root_scope, &type_array, opened_scopes, &main_storage);
+  enclosing_scopes = build_symtable(program, root_scope, opened_scopes, &main_storage);
+  type_table = build_type_table(program, root_scope, &type_array, opened_scopes, enclosing_scopes, &main_storage);
   resolve_type_xref(type_table, type_array);
-  build_potential_types(program, type_table, &main_storage);
+  build_potential_types(program, enclosing_scopes, type_table, &main_storage);
 
   arena_free(&main_storage);
   return 0;

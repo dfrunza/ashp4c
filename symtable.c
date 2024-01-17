@@ -6,6 +6,7 @@
 static Arena*   storage;
 static Scope*   current_scope;
 static Set*     opened_scopes;
+static Set*     enclosing_scopes;
 
 /** PROGRAM **/
 
@@ -145,14 +146,38 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
-void
+static void
+insert_enclosing_scope_entry(Set* table, Ast* ast, Scope* scope)
+{
+  SetMember* m;
+
+  m = set_add_member(table, storage, (uint64_t)ast, (uint64_t)scope);
+  assert(m);
+}
+
+Scope*
+lookup_enclosing_scope(Set* table, Ast* ast)
+{
+  SetMember* m;
+
+  m = set_lookup_member(table, (uint64_t)ast);
+  if (m) {
+    return (Scope*)m->value;
+  }
+  return 0;
+}
+
+Set*
 build_symtable(Ast* p4program, Scope* root_scope, Set* opened_scopes_, Arena* storage_)
 {
   opened_scopes = opened_scopes_;
   storage = storage_;
   current_scope = root_scope;
+  enclosing_scopes = arena_malloc(storage, sizeof(Set));
+  *enclosing_scopes = (Set){};
   visit_p4program(p4program);
   assert(current_scope == root_scope);
+  return enclosing_scopes;
 }
 
 /** PROGRAM **/
@@ -165,9 +190,7 @@ visit_p4program(Ast* p4program)
 
   prev_scope = current_scope;
   current_scope = lookup_opened_scope(opened_scopes, p4program);
-
   visit_declarationList(p4program->p4program.decl_list);
-
   current_scope = prev_scope;
 }
 
@@ -218,6 +241,7 @@ static void
 visit_name(Ast* name)
 {
   assert(name->kind == AST_name);
+  insert_enclosing_scope_entry(enclosing_scopes, name, current_scope);
 }
 
 static void
@@ -456,7 +480,7 @@ visit_stateExpression(Ast* state_expr)
 {
   assert(state_expr->kind == AST_stateExpression);
   if (state_expr->stateExpression.expr->kind == AST_name) {
-    ;
+    visit_name(state_expr->stateExpression.expr);
   } else if (state_expr->stateExpression.expr->kind == AST_selectExpression) {
     visit_selectExpression(state_expr->stateExpression.expr);
   } else assert(0);
@@ -487,6 +511,7 @@ visit_selectCase(Ast* select_case)
 {
   assert(select_case->kind == AST_selectCase);
   visit_keysetExpression(select_case->selectCase.keyset_expr);
+  visit_name(select_case->selectCase.name);
 }
 
 static void
@@ -664,10 +689,6 @@ visit_functionPrototype(Ast* func_proto)
   NameDecl* name_decl;
   Scope* prev_scope;
 
-  if (func_proto->functionPrototype.return_type) {
-    visit_typeRef(func_proto->functionPrototype.return_type);
-  }
-
   name = func_proto->functionPrototype.name;
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
@@ -676,6 +697,10 @@ visit_functionPrototype(Ast* func_proto)
 
   prev_scope = current_scope;
   current_scope = lookup_opened_scope(opened_scopes, func_proto);
+
+  if (func_proto->functionPrototype.return_type) {
+    visit_typeRef(func_proto->functionPrototype.return_type);
+  }
 
   if (func_proto->functionPrototype.type_params) {
     visit_typeParameterList(func_proto->functionPrototype.type_params);
@@ -706,7 +731,7 @@ visit_typeRef(Ast* type_ref)
   } else if (type_ref->typeRef.type->kind == AST_baseTypeError) {
     visit_baseTypeError(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_name) {
-    ;
+    visit_name(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_specializedType) {
     visit_specializedType(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_headerStackType) {
@@ -798,19 +823,20 @@ static void
 visit_typeParameterList(Ast* param_list)
 {
   assert(param_list->kind == AST_typeParameterList);
-  Ast* ast;
+  Ast* ast, *name;
   NameEntry* name_entry;
   NameDecl* name_decl;
 
   for (ast = param_list->typeParameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    name_entry = scope_lookup_any(current_scope, ast->name.strname);
+    name = ast;
+    name_entry = scope_lookup_any(current_scope, name->name.strname);
     if (name_entry && name_entry->ns[NS_TYPE]) {
-      ;
+      visit_name(name);
     } else {
       name_decl = arena_malloc(storage, sizeof(NameDecl));
-      name_decl->strname = ast->name.strname;
-      name_decl->ast = ast;
+      name_decl->strname = name->name.strname;
+      name_decl->ast = name;
       scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
     }
   }
@@ -834,7 +860,7 @@ visit_typeArg(Ast* type_arg)
   if (type_arg->typeArg.arg->kind == AST_typeRef) {
     visit_typeRef(type_arg->typeArg.arg);
   } else if (type_arg->typeArg.arg->kind == AST_name) {
-    ;
+    visit_name(type_arg->typeArg.arg);
   } else if (type_arg->typeArg.arg->kind == AST_dontcare) {
     visit_dontcare(type_arg->typeArg.arg);
   } else assert(0);
@@ -1160,7 +1186,7 @@ visit_directApplication(Ast* applic_stmt)
 {
   assert(applic_stmt->kind == AST_directApplication);
   if (applic_stmt->directApplication.name->kind == AST_name) {
-    ;
+    visit_name(applic_stmt->directApplication.name);
   } else if (applic_stmt->directApplication.name->kind == AST_typeRef) {
     visit_typeRef(applic_stmt->directApplication.name);
   } else assert(0);
@@ -1251,7 +1277,7 @@ visit_switchLabel(Ast* label)
 {
   assert(label->kind == AST_switchLabel);
   if (label->switchLabel.label->kind == AST_name) {
-    ;
+    visit_name(label->switchLabel.label);
   } else if (label->switchLabel.label->kind == AST_default) {
     visit_default(label->switchLabel.label);
   } else assert(0);
@@ -1345,6 +1371,7 @@ visit_keyElement(Ast* element)
 {
   assert(element->kind == AST_keyElement);
   visit_expression(element->keyElement.expr);
+  visit_name(element->keyElement.match);
 }
 
 static void
@@ -1370,6 +1397,7 @@ static void
 visit_actionRef(Ast* action_ref)
 {
   assert(action_ref->kind == AST_actionRef);
+  visit_name(action_ref->actionRef.name);
   if (action_ref->actionRef.args) {
     visit_argumentList(action_ref->actionRef.args);
   }
@@ -1521,7 +1549,7 @@ visit_lvalueExpression(Ast* lvalue_expr)
 {
   assert(lvalue_expr->kind == AST_lvalueExpression);
   if (lvalue_expr->lvalueExpression.expr->kind == AST_name) {
-    ;
+    visit_name(lvalue_expr->lvalueExpression.expr);
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_memberSelector) {
     visit_memberSelector(lvalue_expr->lvalueExpression.expr);
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_arraySubscript) {
@@ -1542,7 +1570,7 @@ visit_expression(Ast* expr)
   } else if (expr->expression.expr->kind == AST_stringLiteral) {
     visit_stringLiteral(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_name) {
-    ;
+    visit_name(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_expressionList) {
     visit_expressionList(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_castExpression) {
@@ -1597,6 +1625,7 @@ visit_memberSelector(Ast* selector)
   } else if (selector->memberSelector.lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression(selector->memberSelector.lhs_expr);
   } else assert(0);
+  visit_name(selector->memberSelector.name);
 }
 
 static void

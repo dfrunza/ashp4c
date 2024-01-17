@@ -965,4 +965,5 @@ NameEntry* scope_lookup_any(Scope* scope, char* name);
 NameEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
 NameEntry* scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns);
 Scope*     lookup_opened_scope(Set* table, Ast* ast);
+Scope*     lookup_enclosing_scope(Set* table, Ast* ast);
 

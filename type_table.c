@@ -4,8 +4,8 @@
 #include "frontend.h"
 
 static Arena*   storage;
-static Scope*   root_scope, *enclosing_scope;
-static Set*     opened_scopes;
+static Scope*   root_scope;
+static Set*     opened_scopes, *enclosing_scopes;
 static Set*     type_table;
 static UnboundedArray* type_array;
 
@@ -241,7 +241,7 @@ Debug_print_type_table(Set* table)
 
 Set*
 build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array_,
-        Set* opened_scopes_, Arena* storage_)
+        Set* opened_scopes_, Set* enclosing_scopes_, Arena* storage_)
 {
   struct BuiltinType {
     char* strname;
@@ -266,6 +266,7 @@ build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array
   storage = storage_;
   root_scope = root_scope_;
   opened_scopes = opened_scopes_;
+  enclosing_scopes = enclosing_scopes_;
   type_table = arena_malloc(storage, sizeof(Set));
   *type_table = (Set){};
   type_array = array_create(storage, sizeof(Type), 1008);
@@ -279,9 +280,7 @@ build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array
     insert_type_table_entry(type_table, name_decl->ast, builtin_ty);
   }
 
-  enclosing_scope = root_scope;
   visit_p4program(p4program);
-  assert(enclosing_scope == root_scope);
 
   *type_array_ = type_array;
   return type_table;
@@ -293,14 +292,7 @@ static void
 visit_p4program(Ast* p4program)
 {
   assert(p4program->kind == AST_p4program);
-  Scope* prev_scope;
-
-  prev_scope = enclosing_scope;
-  enclosing_scope = lookup_opened_scope(opened_scopes, p4program);
-
   visit_declarationList(p4program->p4program.decl_list);
-
-  enclosing_scope = prev_scope;
 }
 
 static void
@@ -356,7 +348,7 @@ visit_name(Ast* name)
   name_ty->ctor = TYPE_NAMEREF;
   name_ty->strname = name->name.strname;
   name_ty->nameref.name = name;
-  name_ty->nameref.scope = enclosing_scope;
+  name_ty->nameref.scope = lookup_enclosing_scope(enclosing_scopes, name);
 
   insert_type_table_entry(type_table, name, name_ty);
 }
@@ -390,10 +382,6 @@ visit_packageTypeDeclaration(Ast* type_decl)
   Ast* ast, *name, *params;
   Type* package_ty, *ty;
   int i;
-  Scope* prev_scope;
-
-  prev_scope = enclosing_scope;
-  enclosing_scope = lookup_opened_scope(opened_scopes, type_decl);
 
   if (type_decl->packageTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->packageTypeDeclaration.type_params);
@@ -416,8 +404,6 @@ visit_packageTypeDeclaration(Ast* type_decl)
     ty->idref.ref = ast->parameter.type;
   }
   package_ty->function.params = create_product_type(i, type_array->elem_count, storage);
-
-  enclosing_scope = prev_scope;
 }
 
 static void
@@ -434,10 +420,6 @@ static void
 visit_parserDeclaration(Ast* parser_decl)
 {
   assert(parser_decl->kind == AST_parserDeclaration);
-  Scope* prev_scope;
-
-  prev_scope = enclosing_scope;
-  enclosing_scope = lookup_opened_scope(opened_scopes, parser_decl);
 
   visit_typeDeclaration(parser_decl->parserDeclaration.proto);
   if (parser_decl->parserDeclaration.ctor_params) {
@@ -445,8 +427,6 @@ visit_parserDeclaration(Ast* parser_decl)
   }
   visit_parserLocalElements(parser_decl->parserDeclaration.local_elements);
   visit_parserStates(parser_decl->parserDeclaration.states);
-
-  enclosing_scope = prev_scope;
 }
 
 static void
@@ -456,10 +436,6 @@ visit_parserTypeDeclaration(Ast* type_decl)
   Ast* ast, *name, *params;
   Type* parser_ty, *ty;
   int i;
-  Scope* prev_scope;
-
-  prev_scope = enclosing_scope;
-  enclosing_scope = lookup_opened_scope(opened_scopes, type_decl);
 
   if (type_decl->parserTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->parserTypeDeclaration.type_params);
@@ -482,8 +458,6 @@ visit_parserTypeDeclaration(Ast* type_decl)
     ty->idref.ref = ast->parameter.type;
   }
   parser_ty->function.params = create_product_type(i, type_array->elem_count, storage);
-
-  enclosing_scope = prev_scope;
 }
 
 static void
@@ -525,15 +499,9 @@ static void
 visit_parserState(Ast* state)
 {
   assert(state->kind == AST_parserState);
-  Scope* prev_scope;
-
-  prev_scope = enclosing_scope;
-  enclosing_scope = lookup_opened_scope(opened_scopes, state);
 
   visit_parserStatements(state->parserState.stmt_list);
   visit_transitionStatement(state->parserState.transition_stmt);
-
-  enclosing_scope = prev_scope;
 }
 
 static void
@@ -569,14 +537,7 @@ static void
 visit_parserBlockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AST_parserBlockStatement);
-  Scope* prev_scope;
-
-  prev_scope = enclosing_scope;
-  enclosing_scope = lookup_opened_scope(opened_scopes, block_stmt);
-
   visit_parserStatements(block_stmt->parserBlockStatement.stmt_list);
-
-  enclosing_scope = prev_scope;
 }
 
 static void
@@ -673,20 +634,13 @@ static void
 visit_controlDeclaration(Ast* control_decl)
 {
   assert(control_decl->kind == AST_controlDeclaration);
-  Scope* prev_scope;
 
   visit_typeDeclaration(control_decl->controlDeclaration.proto);
-
-  prev_scope = enclosing_scope;
-  enclosing_scope = lookup_opened_scope(opened_scopes, control_decl);
-
   if (control_decl->controlDeclaration.ctor_params) {
     visit_parameterList(control_decl->controlDeclaration.ctor_params);
   }
   visit_controlLocalDeclarations(control_decl->controlDeclaration.local_decls);
   visit_blockStatement(control_decl->controlDeclaration.apply_stmt);
-
-  enclosing_scope = prev_scope;
 }
 
 static void
@@ -696,10 +650,6 @@ visit_controlTypeDeclaration(Ast* type_decl)
   Ast* ast, *name, *params;
   Type* control_ty, *ty;
   int i;
-  Scope* prev_scope;
-
-  prev_scope = enclosing_scope;
-  enclosing_scope = lookup_opened_scope(opened_scopes, type_decl);
 
   if (type_decl->controlTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->controlTypeDeclaration.type_params);
@@ -722,8 +672,6 @@ visit_controlTypeDeclaration(Ast* type_decl)
     ty->idref.ref = ast->parameter.type;
   }
   control_ty->function.params = create_product_type(i, type_array->elem_count, storage);
-
-  enclosing_scope = prev_scope;
 }
 
 static void
@@ -773,10 +721,6 @@ visit_externTypeDeclaration(Ast* type_decl)
   Ast* ast, *name, *methods;
   Type* extern_ty, *ty;
   int i;
-  Scope* prev_scope;
-
-  prev_scope = enclosing_scope;
-  enclosing_scope = lookup_opened_scope(opened_scopes, type_decl);
 
   if (type_decl->externTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->externTypeDeclaration.type_params);
@@ -799,8 +743,6 @@ visit_externTypeDeclaration(Ast* type_decl)
     ty->idref.ref = ast;
   }
   extern_ty->extern_.methods = create_product_type(i, type_array->elem_count, storage);
-
-  enclosing_scope = prev_scope;
 }
 
 static void
@@ -822,10 +764,6 @@ visit_functionPrototype(Ast* func_proto)
   Ast* ast, *name, *params, *return_type;
   Type* func_ty, *ty;
   int i;
-  Scope* prev_scope;
-
-  prev_scope = enclosing_scope;
-  enclosing_scope = lookup_opened_scope(opened_scopes, func_proto);
 
   if (func_proto->functionPrototype.return_type) {
     visit_typeRef(func_proto->functionPrototype.return_type);
@@ -860,8 +798,6 @@ visit_functionPrototype(Ast* func_proto)
     ty->idref.ref = return_type;
     func_ty->function.return_ = ty;
   }
-
-  enclosing_scope = prev_scope;
 }
 
 /** TYPES **/
@@ -1421,8 +1357,6 @@ static void
 visit_statement(Ast* stmt)
 {
   assert(stmt->kind == AST_statement);
-  Scope* prev_scope;
-
   if (stmt->statement.stmt->kind == AST_assignmentStatement) {
     visit_assignmentStatement(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AST_functionCall) {
@@ -1434,10 +1368,7 @@ visit_statement(Ast* stmt)
   } else if (stmt->statement.stmt->kind == AST_emptyStatement) {
     ;
   } else if (stmt->statement.stmt->kind == AST_blockStatement) {
-    prev_scope = enclosing_scope;
-    enclosing_scope = lookup_opened_scope(opened_scopes, stmt);
     visit_blockStatement(stmt->statement.stmt);
-    enclosing_scope = prev_scope;
   } else if (stmt->statement.stmt->kind == AST_exitStatement) {
     visit_exitStatement(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AST_returnStatement) {
@@ -1661,10 +1592,6 @@ visit_actionDeclaration(Ast* action_decl)
   Ast* ast, *name, *params;
   Type* action_ty, *ty;
   int i;
-  Scope* prev_scope;
-
-  prev_scope = enclosing_scope;
-  enclosing_scope = lookup_opened_scope(opened_scopes, action_decl);
 
   visit_parameterList(action_decl->actionDeclaration.params);
   visit_blockStatement(action_decl->actionDeclaration.stmt);
@@ -1685,8 +1612,6 @@ visit_actionDeclaration(Ast* action_decl)
     ty->idref.ref = ast->parameter.type;
   }
   action_ty->function.params = create_product_type(i, type_array->elem_count, storage);
-
-  enclosing_scope = prev_scope;
 }
 
 /** VARIABLES **/
@@ -1707,15 +1632,8 @@ static void
 visit_functionDeclaration(Ast* func_decl)
 {
   assert(func_decl->kind == AST_functionDeclaration);
-  Scope* prev_scope;
-
-  prev_scope = enclosing_scope;
-  enclosing_scope = lookup_opened_scope(opened_scopes, func_decl);
-
   visit_functionPrototype(func_decl->functionDeclaration.proto);
   visit_blockStatement(func_decl->functionDeclaration.stmt);
-
-  enclosing_scope = prev_scope;
 }
 
 static void

@@ -4,8 +4,8 @@
 #include "frontend.h"
 
 static Arena*   storage;
-static Set*     type_table;
-static Set*     potential_types;
+static Set*     enclosing_scopes;
+static Set*     type_table, *potential_types;
 
 /** PROGRAM **/
 
@@ -149,10 +149,13 @@ Set*
 get_or_create_potential_types(Set* table, Ast* ast)
 {
   SetMember* m;
+  Set* tau;
 
   m = set_add_or_lookup_member(table, storage, (uint64_t)ast, 0);
   if (m->value == 0) {
-    m->value = (uint64_t)arena_malloc(storage, sizeof(Set));
+    tau = arena_malloc(storage, sizeof(Set));
+    *tau = (Set){};
+    m->value = (uint64_t)tau;
   }
   return (Set*)m->value;
 }
@@ -170,8 +173,9 @@ lookup_potential_types(Set* table, Ast* ast)
 }
 
 Set*
-build_potential_types(Ast* p4program, Set* type_table_, Arena* storage_)
+build_potential_types(Ast* p4program, Set* enclosing_scopes_, Set* type_table_, Arena* storage_)
 {
+  enclosing_scopes = enclosing_scopes_;
   type_table = type_table_;
   storage = storage_;
   potential_types = arena_malloc(storage, sizeof(Set));
@@ -235,6 +239,13 @@ static void
 visit_name(Ast* name)
 {
   assert(name->kind == AST_name);
+  Scope* scope;
+  NameEntry* name_entry;
+  
+  scope = lookup_enclosing_scope(enclosing_scopes, name);
+  if (scope) {
+    name_entry = scope_lookup_any(scope, name->name.strname);
+  }
 }
 
 static void
