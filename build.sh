@@ -29,11 +29,12 @@ gcc $CC_FLAGS -I$INC -c $SRC/open_scope.c
 gcc $CC_FLAGS -I$INC -c $SRC/symtable.c 
 gcc $CC_FLAGS -I$INC -c $SRC/type_table.c
 gcc $CC_FLAGS -I$INC -c $SRC/resolve_type.c 
+gcc $CC_FLAGS -I$INC -c $SRC/potential_type.c 
 gcc $CC_FLAGS -I$INC -c $SRC/ashp4c.c
 
 ld $LD_FLAGS -L$LIB -o ashp4c $LIB/crt1.o \
   basic.o arena.o array.o hashmap.o set.o scoping.o lex.o parse.o \
-  drypass.o open_scope.o symtable.o type_table.o resolve_type.o \
+  drypass.o open_scope.o symtable.o type_table.o resolve_type.o potential_type.o \
   ashp4c.o \
   -lc
 

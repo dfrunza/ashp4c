@@ -128,6 +128,7 @@ main(int arg_count, char* args[])
   build_symtable(program, root_scope, opened_scopes, &main_storage);
   type_table = build_type_table(program, root_scope, &type_array, opened_scopes, &main_storage);
   resolve_type_xref(type_table, type_array);
+  build_potential_types(program, type_table, &main_storage);
 
   arena_free(&main_storage);
   return 0;

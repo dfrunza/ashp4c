@@ -924,9 +924,10 @@ typedef struct Type {
   };
 } Type;
 
-void  insert_type_table_entry(Set* table, Ast* ast, Type* type);
 Type* lookup_type_table(Set* table, Ast* ast);
 Type* actual_type(Type* type);
+Set*  get_or_create_potential_types(Set* table, Ast* ast);
+Set*  lookup_potential_types(Set* table, Ast* ast);
 
 typedef struct Scope {
   int scope_level;
@@ -963,6 +964,5 @@ Scope*     scope_pop(Scope* scope);
 NameEntry* scope_lookup_any(Scope* scope, char* name);
 NameEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
 NameEntry* scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns);
-void       insert_opened_scope_entry(Set* table, Ast* ast, Scope* scope);
 Scope*     lookup_opened_scope(Set* table, Ast* ast);
 

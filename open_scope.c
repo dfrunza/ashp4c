@@ -145,7 +145,7 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
-void
+static void
 insert_opened_scope_entry(Set* table, Ast* ast, Scope* scope)
 {
   SetMember* m;
