@@ -1,3 +1,15 @@
+/// Built-in action that does nothing.
+action NoAction() {}
+
+match_kind {
+    /// Match bits exactly.
+    exact,
+    /// Ternary match, using a mask.
+    ternary,
+    /// Longest-prefix match.
+    lpm
+}
+
 const int UBPF_MODEL_VERSION = 20200515;
 
 const bit<32> __ubpf_model_version = 20200515;

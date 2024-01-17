@@ -75,7 +75,7 @@ search_or_insert_member(Set* set, Arena* storage, SetMember** branch, SetMember*
 }
 
 SetMember*
-set_add_or_lookup_member(Set* set, Arena* storage, uint64_t key, uint64_t value)
+set_lookup_or_add_member(Set* set, Arena* storage, uint64_t key, uint64_t value)
 {
   return search_or_insert_member(set, storage, &set->root, set->root, key, value);
 }

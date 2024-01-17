@@ -1,6 +1,7 @@
 /// #include <v1model.p4>
 match_kind {
-    range,
+    /// Match bits exactly.
+    exact,
     // Either an exact match, or a wildcard (matching any value).
     optional,
     // Used for implementing dynamic_action_selection

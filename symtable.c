@@ -4,7 +4,7 @@
 #include "frontend.h"
 
 static Arena*   storage;
-static Scope*   current_scope;
+static Scope*   root_scope, *current_scope;
 static Set*     opened_scopes;
 static Set*     enclosing_scopes;
 
@@ -168,10 +168,12 @@ lookup_enclosing_scope(Set* table, Ast* ast)
 }
 
 Set*
-build_symtable(Ast* p4program, Scope* root_scope, Set* opened_scopes_, Arena* storage_)
+build_symtable(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, Arena* storage_)
 {
+  root_scope = root_scope_;
   opened_scopes = opened_scopes_;
   storage = storage_;
+
   current_scope = root_scope;
   enclosing_scopes = arena_malloc(storage, sizeof(Set));
   *enclosing_scopes = (Set){};
@@ -190,7 +192,9 @@ visit_p4program(Ast* p4program)
 
   prev_scope = current_scope;
   current_scope = lookup_opened_scope(opened_scopes, p4program);
+
   visit_declarationList(p4program->p4program.decl_list);
+
   current_scope = prev_scope;
 }
 
@@ -1053,7 +1057,7 @@ visit_matchKindDeclaration(Ast* match_decl)
   Scope* prev_scope;
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, match_decl);
+  current_scope = root_scope;
 
   visit_identifierList(match_decl->matchKindDeclaration.fields);
 
@@ -1370,8 +1374,16 @@ static void
 visit_keyElement(Ast* element)
 {
   assert(element->kind == AST_keyElement);
+  Scope* prev_scope;
+
   visit_expression(element->keyElement.expr);
+
+  prev_scope = current_scope;
+  current_scope = root_scope;
+
   visit_name(element->keyElement.match);
+
+  current_scope = prev_scope;
 }
 
 static void

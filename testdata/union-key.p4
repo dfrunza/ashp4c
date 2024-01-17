@@ -1,3 +1,6 @@
+match_kind {
+    exact
+}
 
 header H1 {
     bit<32> x;

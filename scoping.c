@@ -77,7 +77,7 @@ scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns)
   HashmapEntry* e;
   NameEntry* name_entry;
 
-  e = hashmap_insert_or_lookup_entry(&scope->name_table, storage, decl->strname, 0);
+  e = hashmap_lookup_or_insert_entry(&scope->name_table, storage, decl->strname, 0);
   if (e->value == 0) {
     e->value = (uint64_t)arena_malloc(storage, sizeof(NameEntry));
   }
