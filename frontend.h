@@ -843,6 +843,8 @@ typedef struct Ast {
   };
 } Ast;
 
+int ast_list_to_array(Ast* first_node, UnboundedArray* array, Arena* storage);
+
 enum TypeEnum {
   TYPE_NONE = 0,
 
@@ -927,6 +929,7 @@ typedef struct Type {
   };
 } Type;
 
+int   product_type_to_array(Type* type, UnboundedArray* array, Arena* storage);
 Type* actual_type(Type* type);
 char* Debug_TypeEnum_to_string(enum TypeEnum type);
 

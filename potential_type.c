@@ -6,6 +6,7 @@
 static Arena*    storage;
 static Set*      enclosing_scopes;
 static Set*      type_table, *potential_types;
+static UnboundedArray* set_buffer, *ast_buffer, *type_buffer;
 
 /** PROGRAM **/
 
@@ -174,6 +175,9 @@ build_potential_types(Ast* p4program, Set* enclosing_scopes_, Set* type_table_, 
   storage = storage_;
   potential_types = arena_malloc(storage, sizeof(Set));
   *potential_types = (Set){};
+  set_buffer = array_create(storage, sizeof(SetMember*), 16);
+  ast_buffer = array_create(storage, sizeof(Ast*), 16);
+  type_buffer = array_create(storage, sizeof(Type*), 16);
   visit_p4program(p4program);
   return potential_types;
 }
@@ -912,17 +916,13 @@ static void
 visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
-  Ast* lhs_expr;
-  Set* P, *S;
-  Type* type;
-
-  void apply_function(SetMember* m)
-  {
-    type = (Type*)m->key;
-    if (type->ctor == TYPE_FUNCTION) {
-      set_add_or_lookup_member(P, storage, type, 0);
-    }
-  }
+  Ast* lhs_expr, *arg;
+  Set* P, *S, *A;
+  SetMember* m;
+  Type* func_ty, *param_ty;
+  UnboundedArray *S_members = set_buffer,
+                 *args = ast_buffer,
+                 *params_ty = type_buffer;
 
   lhs_expr = func_call->functionCall.lhs_expr;
   if (lhs_expr->kind == AST_expression) {
@@ -934,8 +934,29 @@ visit_functionCall(Ast* func_call)
 
   P = set_open_inner_set(potential_types, storage, func_call);
   S = set_lookup_value(potential_types, func_call->functionCall.lhs_expr, 0);
-  if (S) {
-    set_enumerate_members(S, apply_function);
+  if (!S) {
+    return; /* FIXME */
+  }
+  set_members_to_array(S, S_members, storage);
+  for (int i = 0; i < S_members->elem_count; i++) {
+    m = *(SetMember**)array_get_element(S_members, i, sizeof(SetMember*));
+    func_ty = m->key;
+    if (func_ty->ctor == TYPE_FUNCTION) {
+      product_type_to_array(func_ty->function.params, params_ty, storage);
+      ast_list_to_array((func_call->functionCall.args)->argumentList.first_child, args, storage);
+      if (params_ty->elem_count == args->elem_count) {
+        for (int j = 0; j < params_ty->elem_count; j++) {
+          arg = *(Ast**)array_get_element(args, i, sizeof(Ast*));
+          assert(arg->kind == AST_argument);
+          param_ty = *(Type**)array_get_element(params_ty, i, sizeof(Type*));
+          param_ty = actual_type(param_ty);
+          A = set_lookup_value(potential_types, arg, 0);
+          if (set_lookup_member(A, param_ty)) {
+            set_add_or_lookup_member(P, storage, func_ty->function.return_, 0);
+          }
+        }
+      }
+    }
   }
 }
 
@@ -1246,11 +1267,19 @@ static void
 visit_argument(Ast* arg)
 {
   assert(arg->kind == AST_argument);
+  Set* P, *S;
+
   if (arg->argument.arg->kind == AST_expression) {
     visit_expression(arg->argument.arg);
   } else if (arg->argument.arg->kind == AST_dontcare) {
     visit_dontcare(arg->argument.arg);
   } else assert(0);
+
+  P = set_open_inner_set(potential_types, storage, arg);
+  S = set_lookup_value(potential_types, arg->argument.arg, 0);
+  if (S) {
+    P->root = S->root;
+  } /* else FIXME */
 }
 
 static void
@@ -1283,13 +1312,15 @@ visit_lvalueExpression(Ast* lvalue_expr)
   S = set_lookup_value(potential_types, lvalue_expr->lvalueExpression.expr, 0);
   if (S) {
     P->root = S->root;
-  }
+  } /* else FIXME */
 }
 
 static void
 visit_expression(Ast* expr)
 {
   assert(expr->kind == AST_expression);
+  Set* P, *S;
+
   if (expr->expression.expr->kind == AST_expression) {
     visit_expression(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_booleanLiteral) {
@@ -1320,6 +1351,12 @@ visit_expression(Ast* expr)
   if (expr->expression.type_args) {
     visit_realTypeArgumentList(expr->expression.type_args);
   }
+
+  P = set_open_inner_set(potential_types, storage, expr);
+  S = set_lookup_value(potential_types, expr->expression.expr, 0);
+  if (S) {
+    P->root = S->root;
+  } /* else FIXME */
 }
 
 static void

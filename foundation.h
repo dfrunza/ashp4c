@@ -113,6 +113,6 @@ SetMember* set_add_member(Set* set, Arena* storage, void* key, void* value);
 SetMember* set_add_or_lookup_member(Set* set, Arena* storage, void* key, void* value);
 Set*       set_open_inner_set(Set* set, Arena* storage, void* key);
 void*      set_lookup_value(Set* set, void* key, void* default_);
-void       set_members_to_array(Set* set, UnboundedArray* array, Arena* storage);
+int        set_members_to_array(Set* set, UnboundedArray* array, Arena* storage);
 void       set_enumerate_members(Set* set, void (*visitor)(SetMember*));
 

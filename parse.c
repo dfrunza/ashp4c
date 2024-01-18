@@ -545,6 +545,18 @@ token_to_binop(Token* token)
   }
 }
 
+int
+ast_list_to_array(Ast* first_node, UnboundedArray* array, Arena* storage)
+{
+  Ast* ast;
+
+  array->elem_count = 0;
+  for (ast = first_node; ast != 0; ast = ast->right_sibling) {
+    *(Ast**)array_append_element(array, storage, sizeof(Ast*)) = ast;
+  }
+  return array->elem_count;
+}
+
 Ast*
 parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_)
 {

@@ -117,14 +117,15 @@ traverse_and_collect(SetMember* member, UnboundedArray* array, Arena* storage)
   }
 }
 
-void
+int
 set_members_to_array(Set* set, UnboundedArray* array, Arena* storage)
 {
   array->elem_count = 0;
   if (!set->root) {
-    return;
+    return array->elem_count;
   }
   traverse_and_collect(set->root, array, storage);
+  return array->elem_count;
 }
 
 static void

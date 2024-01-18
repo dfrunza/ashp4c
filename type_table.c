@@ -191,6 +191,31 @@ actual_type(Type* type)
   return 0;
 }
 
+int
+product_type_to_array(Type* type, UnboundedArray* array, Arena* storage)
+{
+  void
+  traverse_and_collect(Type* type, UnboundedArray* array, Arena* storage)
+  {
+    if (!type) {
+      return;
+    }
+    if (type->ctor == TYPE_PRODUCT) {
+      traverse_and_collect(type->product.lhs, array, storage);
+      traverse_and_collect(type->product.rhs, array, storage);
+    } else {
+      *(Type**)array_append_element(array, storage, sizeof(Type*)) = actual_type(type);
+    }
+  }
+
+  array->elem_count = 0;
+  if (!type) {
+    return array->elem_count;
+  }
+  traverse_and_collect(type, array, storage);
+  return array->elem_count;
+}
+
 char*
 Debug_TypeEnum_to_string(enum TypeEnum t)
 {
