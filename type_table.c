@@ -870,7 +870,7 @@ visit_functionPrototype(Ast* func_proto)
     ty->ctor = TYPE_IDREF;
     ty->idref.ref = return_type;
     func_ty->function.return_ = ty;
-  }
+  } /* else FIXME */
 }
 
 /** TYPES **/
@@ -1692,6 +1692,7 @@ static void
 visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AST_actionDeclaration);
+  NameDecl* name_decl;
   Ast* ast, *name, *params;
   Type* action_ty, *ty;
   int i;
@@ -1706,6 +1707,9 @@ visit_actionDeclaration(Ast* action_decl)
   action_ty->strname = name->name.strname;
   m = set_add_member(type_table, storage, action_decl, action_ty);
   assert(m);
+
+  name_decl = scope_lookup_namespace(root_scope, "void", NS_TYPE)->ns[NS_TYPE];
+  action_ty->function.return_ = name_decl->type;
 
   i = type_array->elem_count;
   params = action_decl->actionDeclaration.params;

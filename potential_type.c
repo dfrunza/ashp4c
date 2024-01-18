@@ -4,6 +4,7 @@
 #include "frontend.h"
 
 static Arena*    storage;
+static Scope*    root_scope;
 static Set*      enclosing_scopes;
 static Set*      type_table, *potential_types;
 static UnboundedArray* set_buffer, *ast_buffer, *type_buffer;
@@ -168,8 +169,10 @@ Debug_print_potential_types(Set* table)
 }
 
 Set*
-build_potential_types(Ast* p4program, Set* enclosing_scopes_, Set* type_table_, Arena* storage_)
+build_potential_types(Ast* p4program, Scope* root_scope_,
+        Set* enclosing_scopes_, Set* type_table_, Arena* storage_)
 {
+  root_scope = root_scope_;
   enclosing_scopes = enclosing_scopes_;
   type_table = type_table_;
   storage = storage_;
@@ -946,13 +949,13 @@ visit_functionCall(Ast* func_call)
       ast_list_to_array((func_call->functionCall.args)->argumentList.first_child, args, storage);
       if (params_ty->elem_count == args->elem_count) {
         for (int j = 0; j < params_ty->elem_count; j++) {
-          arg = *(Ast**)array_get_element(args, i, sizeof(Ast*));
+          arg = *(Ast**)array_get_element(args, j, sizeof(Ast*));
           assert(arg->kind == AST_argument);
-          param_ty = *(Type**)array_get_element(params_ty, i, sizeof(Type*));
+          param_ty = *(Type**)array_get_element(params_ty, j, sizeof(Type*));
           param_ty = actual_type(param_ty);
           A = set_lookup_value(potential_types, arg, 0);
           if (set_lookup_member(A, param_ty)) {
-            set_add_or_lookup_member(P, storage, func_ty->function.return_, 0);
+            set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
           }
         }
       }
@@ -1419,18 +1422,36 @@ static void
 visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AST_booleanLiteral);
+  NameDecl* name_decl;
+  Set* P;
+
+  name_decl = scope_lookup_namespace(root_scope, "bool", NS_TYPE)->ns[NS_TYPE];
+  P = set_open_inner_set(potential_types, storage, bool_literal);
+  set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
 
 static void
 visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AST_integerLiteral);
+  NameDecl* name_decl;
+  Set* P;
+
+  name_decl = scope_lookup_namespace(root_scope, "int", NS_TYPE)->ns[NS_TYPE];
+  P = set_open_inner_set(potential_types, storage, int_literal);
+  set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
 
 static void
 visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AST_stringLiteral);
+  NameDecl* name_decl;
+  Set* P;
+
+  name_decl = scope_lookup_namespace(root_scope, "string", NS_TYPE)->ns[NS_TYPE];
+  P = set_open_inner_set(potential_types, storage, str_literal);
+  set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
 
 static void
