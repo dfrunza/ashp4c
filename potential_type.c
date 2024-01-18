@@ -6,7 +6,6 @@
 static Arena*    storage;
 static Set*      enclosing_scopes;
 static Set*      type_table, *potential_types;
-static Set*      type_proper;
 
 /** PROGRAM **/
 
@@ -146,23 +145,6 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
-#if 0
-Set*
-get_or_create_potential_types(Set* table, Ast* ast)
-{
-  SetMember* m;
-  Set* tau;
-
-  m = set_add_or_lookup_member(table, storage, (uint64_t)ast, 0);
-  if (m->value == 0) {
-    tau = arena_malloc(storage, sizeof(Set));
-    *tau = (Set){};
-    m->value = (uint64_t)tau;
-  }
-  return (Set*)m->value;
-}
-#endif
-
 void
 Debug_print_potential_types(Set* table)
 {
@@ -192,8 +174,6 @@ build_potential_types(Ast* p4program, Set* enclosing_scopes_, Set* type_table_, 
   storage = storage_;
   potential_types = arena_malloc(storage, sizeof(Set));
   *potential_types = (Set){};
-  type_proper = arena_malloc(storage, sizeof(Set));
-  *type_proper = (Set){};
   visit_p4program(p4program);
   return potential_types;
 }
@@ -265,7 +245,7 @@ visit_name(Ast* name)
   if (!name_entry) {
     return; /* TODO: Named args */
   }
-  P = set_open_inner_set(type_proper, storage, (uint64_t)name);
+  P = set_open_inner_set(potential_types, storage, (uint64_t)name);
   name_decl[0] = name_entry->ns[NS_VAR];
   name_decl[1] = name_entry->ns[NS_TYPE];
   for (int i = 0; i < 2; i++) {
@@ -933,6 +913,16 @@ visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
   Ast* lhs_expr;
+  Set* P, *S;
+  Type* type;
+
+  void apply_function(SetMember* m)
+  {
+    type = (Type*)m->key;
+    if (type->ctor == TYPE_FUNCTION) {
+      set_add_or_lookup_member(P, storage, (uint64_t)type, 0);
+    }
+  }
 
   lhs_expr = func_call->functionCall.lhs_expr;
   if (lhs_expr->kind == AST_expression) {
@@ -941,6 +931,12 @@ visit_functionCall(Ast* func_call)
     visit_lvalueExpression(lhs_expr);
   } else assert(0);
   visit_argumentList(func_call->functionCall.args);
+
+  P = set_open_inner_set(potential_types, storage, (uint64_t)func_call);
+  S = (Set*)set_lookup_value(potential_types, (uint64_t)func_call->functionCall.lhs_expr, 0);
+  if (S) {
+    set_enumerate_members(S, apply_function);
+  }
 }
 
 static void
@@ -1283,8 +1279,8 @@ visit_lvalueExpression(Ast* lvalue_expr)
     visit_arraySubscript(lvalue_expr->lvalueExpression.expr);
   } else assert(0);
   
-  P = set_open_inner_set(type_proper, storage, (uint64_t)lvalue_expr);
-  S = (Set*)set_lookup_value(type_proper, (uint64_t)lvalue_expr->lvalueExpression.expr, 0);
+  P = set_open_inner_set(potential_types, storage, (uint64_t)lvalue_expr);
+  S = (Set*)set_lookup_value(potential_types, (uint64_t)lvalue_expr->lvalueExpression.expr, 0);
   if (S) {
     P->root = S->root;
   }
