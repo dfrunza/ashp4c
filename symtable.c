@@ -146,27 +146,6 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
-static void
-insert_enclosing_scope_entry(Set* table, Ast* ast, Scope* scope)
-{
-  SetMember* m;
-
-  m = set_add_member(table, storage, ast, scope);
-  assert(m);
-}
-
-Scope*
-lookup_enclosing_scope(Set* table, Ast* ast)
-{
-  SetMember* m;
-
-  m = set_lookup_member(table, ast);
-  if (m) {
-    return m->value;
-  }
-  return 0;
-}
-
 Set*
 build_symtable(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, Arena* storage_)
 {
@@ -191,7 +170,7 @@ visit_p4program(Ast* p4program)
   Scope* prev_scope;
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, p4program);
+  current_scope = set_lookup_value(opened_scopes, p4program, 0);
 
   visit_declarationList(p4program->p4program.decl_list);
 
@@ -244,8 +223,10 @@ visit_declaration(Ast* decl)
 static void
 visit_name(Ast* name)
 {
+  SetMember* m;
   assert(name->kind == AST_name);
-  insert_enclosing_scope_entry(enclosing_scopes, name, current_scope);
+  m = set_add_member(enclosing_scopes, storage, name, current_scope);
+  assert(m);
 }
 
 static void
@@ -296,7 +277,7 @@ visit_packageTypeDeclaration(Ast* type_decl)
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, type_decl);
+  current_scope = set_lookup_value(opened_scopes, type_decl, 0);
 
   if (type_decl->packageTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->packageTypeDeclaration.type_params);
@@ -334,7 +315,7 @@ visit_parserDeclaration(Ast* parser_decl)
   visit_typeDeclaration(parser_decl->parserDeclaration.proto);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, parser_decl);
+  current_scope = set_lookup_value(opened_scopes, parser_decl, 0);
 
   if (parser_decl->parserDeclaration.ctor_params) {
     visit_parameterList(parser_decl->parserDeclaration.ctor_params);
@@ -360,7 +341,7 @@ visit_parserTypeDeclaration(Ast* type_decl)
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, type_decl);
+  current_scope = set_lookup_value(opened_scopes, type_decl, 0);
 
   if (type_decl->parserTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->parserTypeDeclaration.type_params);
@@ -420,7 +401,7 @@ visit_parserState(Ast* state)
   scope_push_decl(current_scope, storage, name_decl, NS_VAR);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, state);
+  current_scope = set_lookup_value(opened_scopes, state, 0);
 
   visit_parserStatements(state->parserState.stmt_list);
   visit_transitionStatement(state->parserState.transition_stmt);
@@ -465,7 +446,7 @@ visit_parserBlockStatement(Ast* block_stmt)
   Scope* prev_scope;
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, block_stmt);
+  current_scope = set_lookup_value(opened_scopes, block_stmt, 0);
 
   visit_parserStatements(block_stmt->parserBlockStatement.stmt_list);
 
@@ -572,7 +553,7 @@ visit_controlDeclaration(Ast* control_decl)
   visit_typeDeclaration(control_decl->controlDeclaration.proto);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, control_decl);
+  current_scope = set_lookup_value(opened_scopes, control_decl, 0);
 
   if (control_decl->controlDeclaration.ctor_params) {
     visit_parameterList(control_decl->controlDeclaration.ctor_params);
@@ -598,7 +579,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, type_decl);
+  current_scope = set_lookup_value(opened_scopes, type_decl, 0);
 
   if (type_decl->controlTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->controlTypeDeclaration.type_params);
@@ -663,7 +644,7 @@ visit_externTypeDeclaration(Ast* type_decl)
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, type_decl);
+  current_scope = set_lookup_value(opened_scopes, type_decl, 0);
 
   if (type_decl->externTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->externTypeDeclaration.type_params);
@@ -700,7 +681,7 @@ visit_functionPrototype(Ast* func_proto)
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, func_proto);
+  current_scope = set_lookup_value(opened_scopes, func_proto, 0);
 
   if (func_proto->functionPrototype.return_type) {
     visit_typeRef(func_proto->functionPrototype.return_type);
@@ -941,7 +922,7 @@ visit_headerTypeDeclaration(Ast* header_decl)
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, header_decl);
+  current_scope = set_lookup_value(opened_scopes, header_decl, 0);
 
   visit_structFieldList(header_decl->headerTypeDeclaration.fields);
 
@@ -963,7 +944,7 @@ visit_headerUnionDeclaration(Ast* union_decl)
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, union_decl);
+  current_scope = set_lookup_value(opened_scopes, union_decl, 0);
 
   visit_structFieldList(union_decl->headerUnionDeclaration.fields);
 
@@ -985,7 +966,7 @@ visit_structTypeDeclaration(Ast* struct_decl)
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, struct_decl);
+  current_scope = set_lookup_value(opened_scopes, struct_decl, 0);
 
   visit_structFieldList(struct_decl->structTypeDeclaration.fields);
 
@@ -1043,7 +1024,7 @@ visit_errorDeclaration(Ast* error_decl)
   Scope* prev_scope;
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, error_decl);
+  current_scope = set_lookup_value(opened_scopes, error_decl, 0);
 
   visit_identifierList(error_decl->errorDeclaration.fields);
 
@@ -1215,8 +1196,10 @@ visit_statement(Ast* stmt)
     ;
   } else if (stmt->statement.stmt->kind == AST_blockStatement) {
     prev_scope = current_scope;
-    current_scope = lookup_opened_scope(opened_scopes, stmt);
+    current_scope = set_lookup_value(opened_scopes, stmt, 0);
+
     visit_blockStatement(stmt->statement.stmt);
+
     current_scope = prev_scope;
   } else if (stmt->statement.stmt->kind == AST_exitStatement) {
     visit_exitStatement(stmt->statement.stmt);
@@ -1317,7 +1300,7 @@ visit_tableDeclaration(Ast* table_decl)
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, table_decl);
+  current_scope = set_lookup_value(opened_scopes, table_decl, 0);
 
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
 
@@ -1473,7 +1456,7 @@ visit_actionDeclaration(Ast* action_decl)
   scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, action_decl);
+  current_scope = set_lookup_value(opened_scopes, action_decl, 0);
 
   visit_parameterList(action_decl->actionDeclaration.params);
   visit_blockStatement(action_decl->actionDeclaration.stmt);
@@ -1514,7 +1497,7 @@ visit_functionDeclaration(Ast* func_decl)
   visit_functionPrototype(func_decl->functionDeclaration.proto);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, func_decl);
+  current_scope = set_lookup_value(opened_scopes, func_decl, 0);
 
   visit_blockStatement(func_decl->functionDeclaration.stmt);
 

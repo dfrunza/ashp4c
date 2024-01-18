@@ -145,27 +145,6 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
-static void
-insert_opened_scope_entry(Set* table, Ast* ast, Scope* scope)
-{
-  SetMember* m;
-
-  m = set_add_member(table, storage, ast, scope);
-  assert(m);
-}
-
-Scope*
-lookup_opened_scope(Set* table, Ast* ast)
-{
-  SetMember* m;
-
-  m = set_lookup_member(table, ast);
-  if (m) {
-    return m->value;
-  }
-  return 0;
-}
-
 Set*
 build_open_scope(Ast* p4program, Scope* root_scope, Arena* storage_)
 {
@@ -185,12 +164,14 @@ visit_p4program(Ast* p4program)
 {
   assert(p4program->kind == AST_p4program);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 240);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, p4program, current_scope);
+  m = set_add_member(opened_scopes, storage, p4program, current_scope);
+  assert(m);
   visit_declarationList(p4program->p4program.decl_list);
 
   current_scope = prev_scope;
@@ -213,6 +194,7 @@ visit_declaration(Ast* decl)
 {
   assert(decl->kind == AST_declaration);
   Scope* scope;
+  SetMember* m;
 
   if (decl->declaration.decl->kind == AST_variableDeclaration) {
     visit_variableDeclaration(decl->declaration.decl);
@@ -240,8 +222,9 @@ visit_declaration(Ast* decl)
     visit_instantiation(decl->declaration.decl);
   } else assert(0);
 
-  scope = lookup_opened_scope(opened_scopes, decl->declaration.decl);
-  insert_opened_scope_entry(opened_scopes, decl, scope);
+  scope = set_lookup_value(opened_scopes, decl->declaration.decl, 0);
+  m = set_add_member(opened_scopes, storage, decl, scope);
+  assert(m);
 }
 
 static void
@@ -277,12 +260,14 @@ visit_packageTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_packageTypeDeclaration);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 48);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, type_decl, current_scope);
+  m = set_add_member(opened_scopes, storage, type_decl, current_scope);
+  assert(m);
   if (type_decl->packageTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->packageTypeDeclaration.type_params);
   }
@@ -306,13 +291,15 @@ visit_parserDeclaration(Ast* parser_decl)
 {
   assert(parser_decl->kind == AST_parserDeclaration);
   Scope* prev_scope;
+  SetMember* m;
 
   visit_typeDeclaration(parser_decl->parserDeclaration.proto);
 
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, parser_decl->parserDeclaration.proto);
+  current_scope = set_lookup_value(opened_scopes, parser_decl->parserDeclaration.proto, 0);
 
-  insert_opened_scope_entry(opened_scopes, parser_decl, current_scope);
+  m = set_add_member(opened_scopes, storage, parser_decl, current_scope);
+  assert(m);
   if (parser_decl->parserDeclaration.ctor_params) {
     visit_parameterList(parser_decl->parserDeclaration.ctor_params);
   }
@@ -327,12 +314,14 @@ visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_parserTypeDeclaration);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 48);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, type_decl, current_scope);
+  m = set_add_member(opened_scopes, storage, type_decl, current_scope);
+  assert(m);
   if (type_decl->parserTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->parserTypeDeclaration.type_params);
   }
@@ -381,12 +370,14 @@ visit_parserState(Ast* state)
 {
   assert(state->kind == AST_parserState);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 240);
   prev_scope = current_scope;
 
   current_scope = scope_push(scope, current_scope);
-  insert_opened_scope_entry(opened_scopes, state, current_scope);
+  m = set_add_member(opened_scopes, storage, state, current_scope);
+  assert(m);
   visit_parserStatements(state->parserState.stmt_list);
   visit_transitionStatement(state->parserState.transition_stmt);
 
@@ -428,12 +419,14 @@ visit_parserBlockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AST_parserBlockStatement);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 240);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, block_stmt, current_scope);
+  m = set_add_member(opened_scopes, storage, block_stmt, current_scope);
+  assert(m);
 
   visit_parserStatements(block_stmt->parserBlockStatement.stmt_list);
 
@@ -535,12 +528,14 @@ visit_controlDeclaration(Ast* control_decl)
 {
   assert(control_decl->kind == AST_controlDeclaration);
   Scope* prev_scope;
+  SetMember* m;
 
   visit_typeDeclaration(control_decl->controlDeclaration.proto);
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, control_decl->controlDeclaration.proto);
+  current_scope = set_lookup_value(opened_scopes, control_decl->controlDeclaration.proto, 0);
 
-  insert_opened_scope_entry(opened_scopes, control_decl, current_scope);
+  m = set_add_member(opened_scopes, storage, control_decl, current_scope);
+  assert(m);
   if (control_decl->controlDeclaration.ctor_params) {
     visit_parameterList(control_decl->controlDeclaration.ctor_params);
   }
@@ -555,12 +550,14 @@ visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_controlTypeDeclaration);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 48);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, type_decl, scope);
+  m = set_add_member(opened_scopes, storage, type_decl, scope);
+  assert(m);
   if (type_decl->controlTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->controlTypeDeclaration.type_params);
   }
@@ -603,6 +600,7 @@ visit_externDeclaration(Ast* extern_decl)
 {
   assert(extern_decl->kind == AST_externDeclaration);
   Scope* scope;
+  SetMember* m;
 
   if (extern_decl->externDeclaration.decl->kind == AST_externTypeDeclaration) {
     visit_externTypeDeclaration(extern_decl->externDeclaration.decl);
@@ -610,8 +608,9 @@ visit_externDeclaration(Ast* extern_decl)
     visit_functionPrototype(extern_decl->externDeclaration.decl);
   } else assert(0);
 
-  scope = lookup_opened_scope(opened_scopes, extern_decl->externDeclaration.decl);
-  insert_opened_scope_entry(opened_scopes, extern_decl, scope);
+  scope = set_lookup_value(opened_scopes, extern_decl->externDeclaration.decl, 0);
+  m = set_add_member(opened_scopes, storage, extern_decl, scope);
+  assert(m);
 }
 
 static void
@@ -619,12 +618,14 @@ visit_externTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_externTypeDeclaration);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 48);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, type_decl, current_scope);
+  m = set_add_member(opened_scopes, storage, type_decl, current_scope);
+  assert(m);
   if (type_decl->externTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->externTypeDeclaration.type_params);
   }
@@ -650,6 +651,7 @@ visit_functionPrototype(Ast* func_proto)
 {
   assert(func_proto->kind == AST_functionPrototype);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   if (func_proto->functionPrototype.return_type) {
     visit_typeRef(func_proto->functionPrototype.return_type);
@@ -659,7 +661,8 @@ visit_functionPrototype(Ast* func_proto)
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, func_proto, current_scope);
+  m = set_add_member(opened_scopes, storage, func_proto, current_scope);
+  assert(m);
   if (func_proto->functionPrototype.type_params) {
     visit_typeParameterList(func_proto->functionPrototype.type_params);
   }
@@ -842,6 +845,7 @@ visit_typeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_typeDeclaration);
   Scope* scope;
+  SetMember* m;
 
   if (type_decl->typeDeclaration.decl->kind == AST_derivedTypeDeclaration) {
     visit_derivedTypeDeclaration(type_decl->typeDeclaration.decl);
@@ -855,8 +859,9 @@ visit_typeDeclaration(Ast* type_decl)
     visit_packageTypeDeclaration(type_decl->typeDeclaration.decl);
   } else assert(0);
 
-  scope = lookup_opened_scope(opened_scopes, type_decl->typeDeclaration.decl);
-  insert_opened_scope_entry(opened_scopes, type_decl, scope);
+  scope = set_lookup_value(opened_scopes, type_decl->typeDeclaration.decl, 0);
+  m = set_add_member(opened_scopes, storage, type_decl, scope);
+  assert(m);
 }
 
 static void
@@ -864,6 +869,7 @@ visit_derivedTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_derivedTypeDeclaration);
   Scope* scope;
+  SetMember* m;
 
   if (type_decl->derivedTypeDeclaration.decl->kind == AST_headerTypeDeclaration) {
     visit_headerTypeDeclaration(type_decl->derivedTypeDeclaration.decl);
@@ -875,8 +881,9 @@ visit_derivedTypeDeclaration(Ast* type_decl)
     visit_enumDeclaration(type_decl->derivedTypeDeclaration.decl);
   } else assert(0);
 
-  scope = lookup_opened_scope(opened_scopes, type_decl->derivedTypeDeclaration.decl);
-  insert_opened_scope_entry(opened_scopes, type_decl, scope);
+  scope = set_lookup_value(opened_scopes, type_decl->derivedTypeDeclaration.decl, 0);
+  m = set_add_member(opened_scopes, storage, type_decl, scope);
+  assert(m);
 }
 
 static void
@@ -884,12 +891,14 @@ visit_headerTypeDeclaration(Ast* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 112);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, header_decl, scope);
+  m = set_add_member(opened_scopes, storage, header_decl, scope);
+  assert(m);
   visit_structFieldList(header_decl->headerTypeDeclaration.fields);
 
   current_scope = prev_scope;
@@ -900,12 +909,14 @@ visit_headerUnionDeclaration(Ast* union_decl)
 {
   assert(union_decl->kind == AST_headerUnionDeclaration);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 112);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, union_decl, scope);
+  m = set_add_member(opened_scopes, storage, union_decl, scope);
+  assert(m);
   visit_structFieldList(union_decl->headerUnionDeclaration.fields);
 
   current_scope = prev_scope;
@@ -916,12 +927,14 @@ visit_structTypeDeclaration(Ast* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 112);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, struct_decl, scope);
+  m = set_add_member(opened_scopes, storage, struct_decl, scope);
+  assert(m);
   visit_structFieldList(struct_decl->structTypeDeclaration.fields);
 
   current_scope = prev_scope;
@@ -951,12 +964,14 @@ visit_enumDeclaration(Ast* enum_decl)
 {
   assert(enum_decl->kind == AST_enumDeclaration);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 112);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, enum_decl, scope);
+  m = set_add_member(opened_scopes, storage, enum_decl, scope);
+  assert(m);
   visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
 
   current_scope = prev_scope;
@@ -967,12 +982,14 @@ visit_errorDeclaration(Ast* error_decl)
 {
   assert(error_decl->kind == AST_errorDeclaration);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 112);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, error_decl, scope);
+  m = set_add_member(opened_scopes, storage, error_decl, scope);
+  assert(m);
   visit_identifierList(error_decl->errorDeclaration.fields);
 
   current_scope = prev_scope;
@@ -983,12 +1000,14 @@ visit_matchKindDeclaration(Ast* match_decl)
 {
   assert(match_decl->kind == AST_matchKindDeclaration);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 112);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, match_decl, scope);
+  m = set_add_member(opened_scopes, storage, match_decl, scope);
+  assert(m);
   visit_identifierList(match_decl->matchKindDeclaration.fields);
 
   current_scope = prev_scope;
@@ -1110,6 +1129,7 @@ visit_statement(Ast* stmt)
 {
   assert(stmt->kind == AST_statement);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   if (stmt->statement.stmt->kind == AST_assignmentStatement) {
     visit_assignmentStatement(stmt->statement.stmt);
@@ -1126,7 +1146,8 @@ visit_statement(Ast* stmt)
     prev_scope = current_scope;
     current_scope = scope_push(scope, current_scope);
 
-    insert_opened_scope_entry(opened_scopes, stmt, current_scope);
+    m = set_add_member(opened_scopes, storage, stmt, current_scope);
+    assert(m);
     visit_blockStatement(stmt->statement.stmt);
 
     current_scope = prev_scope;
@@ -1219,12 +1240,14 @@ visit_tableDeclaration(Ast* table_decl)
 {
   assert(table_decl->kind == AST_tableDeclaration);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 112);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, table_decl, scope);
+  m = set_add_member(opened_scopes, storage, table_decl, scope);
+  assert(m);
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
 
   current_scope = prev_scope;
@@ -1350,12 +1373,14 @@ visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AST_actionDeclaration);
   Scope* scope, *prev_scope;
+  SetMember* m;
 
   scope = scope_create(storage, 48);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
-  insert_opened_scope_entry(opened_scopes, action_decl, current_scope);
+  m = set_add_member(opened_scopes, storage, action_decl, current_scope);
+  assert(m);
   visit_parameterList(action_decl->actionDeclaration.params);
   visit_blockStatement(action_decl->actionDeclaration.stmt);
 
@@ -1381,12 +1406,14 @@ visit_functionDeclaration(Ast* func_decl)
 {
   assert(func_decl->kind == AST_functionDeclaration);
   Scope* prev_scope;
+  SetMember* m;
 
   visit_functionPrototype(func_decl->functionDeclaration.proto);
   prev_scope = current_scope;
-  current_scope = lookup_opened_scope(opened_scopes, func_decl->functionDeclaration.proto);
+  current_scope = set_lookup_value(opened_scopes, func_decl->functionDeclaration.proto, 0);
 
-  insert_opened_scope_entry(opened_scopes, func_decl, current_scope);
+  m = set_add_member(opened_scopes, storage, func_decl, current_scope);
+  assert(m);
   visit_blockStatement(func_decl->functionDeclaration.stmt);
 
   current_scope = prev_scope;

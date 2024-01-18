@@ -362,7 +362,7 @@ visit_name(Ast* name)
   name_ty->ctor = TYPE_NAMEREF;
   name_ty->strname = name->name.strname;
   name_ty->nameref.name = name;
-  name_ty->nameref.scope = lookup_enclosing_scope(enclosing_scopes, name);
+  name_ty->nameref.scope = set_lookup_value(enclosing_scopes, name, 0);
   m = set_add_member(type_table, storage, name, name_ty);
   assert(m);
 }

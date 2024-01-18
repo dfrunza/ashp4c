@@ -240,7 +240,7 @@ visit_name(Ast* name)
   Set* P;
   Type* type;
 
-  scope = lookup_enclosing_scope(enclosing_scopes, name);
+  scope = set_lookup_value(enclosing_scopes, name, 0);
   name_entry = scope_lookup_any(scope, name->name.strname);
   if (!name_entry) {
     return; /* TODO: Named args */
