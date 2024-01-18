@@ -110,7 +110,9 @@ typedef struct Set {
 
 SetMember* set_lookup_member(Set* set, uint64_t key);
 SetMember* set_add_member(Set* set, Arena* storage, uint64_t key, uint64_t value);
-SetMember* set_lookup_or_add_member(Set* set, Arena* storage, uint64_t key, uint64_t value);
+SetMember* set_add_or_lookup_member(Set* set, Arena* storage, uint64_t key, uint64_t value);
+Set*       set_open_inner_set(Set* set, Arena* storage, uint64_t key);
+uint64_t   set_lookup_value(Set* set, uint64_t key, uint64_t default_);
 void       set_members_to_array(Set* set, UnboundedArray* array, Arena* storage);
 void       set_enumerate_members(Set* set, void (*visitor)(SetMember*));
 

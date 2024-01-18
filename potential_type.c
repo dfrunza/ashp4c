@@ -3,9 +3,10 @@
 #include "foundation.h"
 #include "frontend.h"
 
-static Arena*   storage;
-static Set*     enclosing_scopes;
-static Set*     type_table, *potential_types;
+static Arena*    storage;
+static Set*      enclosing_scopes;
+static Set*      type_table, *potential_types;
+static Set*      type_proper;
 
 /** PROGRAM **/
 
@@ -145,13 +146,14 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
+#if 0
 Set*
 get_or_create_potential_types(Set* table, Ast* ast)
 {
   SetMember* m;
   Set* tau;
 
-  m = set_lookup_or_add_member(table, storage, (uint64_t)ast, 0);
+  m = set_add_or_lookup_member(table, storage, (uint64_t)ast, 0);
   if (m->value == 0) {
     tau = arena_malloc(storage, sizeof(Set));
     *tau = (Set){};
@@ -159,18 +161,7 @@ get_or_create_potential_types(Set* table, Ast* ast)
   }
   return (Set*)m->value;
 }
-
-Set*
-lookup_potential_types(Set* table, Ast* ast)
-{
-  SetMember* m;
-
-  m = set_lookup_member(table, (uint64_t)ast);
-  if (m) {
-    return (Set*)m->value;
-  }
-  return 0;
-}
+#endif
 
 void
 Debug_print_potential_types(Set* table)
@@ -201,6 +192,8 @@ build_potential_types(Ast* p4program, Set* enclosing_scopes_, Set* type_table_, 
   storage = storage_;
   potential_types = arena_malloc(storage, sizeof(Set));
   *potential_types = (Set){};
+  type_proper = arena_malloc(storage, sizeof(Set));
+  *type_proper = (Set){};
   visit_p4program(p4program);
   return potential_types;
 }
@@ -261,32 +254,30 @@ static void
 visit_name(Ast* name)
 {
   assert(name->kind == AST_name);
-  Scope* scope;
   NameEntry* name_entry;
   NameDecl* name_decl[2];
-  Ast* decl;
+  Scope* scope;
+  Set* P;
   Type* type;
-  Set* tau;
   
-  tau = get_or_create_potential_types(potential_types, name);
   scope = lookup_enclosing_scope(enclosing_scopes, name);
   name_entry = scope_lookup_any(scope, name->name.strname);
   if (!name_entry) {
     return; /* TODO: Named args */
   }
+  P = set_open_inner_set(type_proper, storage, (uint64_t)name);
   name_decl[0] = name_entry->ns[NS_VAR];
   name_decl[1] = name_entry->ns[NS_TYPE];
   for (int i = 0; i < 2; i++) {
     while (name_decl[i]) {
-      decl = name_decl[i]->ast;
-      type = lookup_type_table(type_table, decl);
+      type = (Type*)set_lookup_value(type_table, (uint64_t)name_decl[i]->ast, 0);
+      name_decl[i] = name_decl[i]->next_in_scope;
       if (type) {
         type = actual_type(type);
-        set_lookup_or_add_member(tau, storage, (uint64_t)type, 0);
+        set_add_or_lookup_member(P, storage, (uint64_t)type, 0);
         printf("%s (%d:%d) -> %s\n", name->name.strname, name->line_no, name->column_no,
                Debug_TypeEnum_to_string(type->ctor));
       }
-      name_decl[i] = name_decl[i]->next_in_scope;
     }
   }
 }
@@ -1282,6 +1273,8 @@ static void
 visit_lvalueExpression(Ast* lvalue_expr)
 {
   assert(lvalue_expr->kind == AST_lvalueExpression);
+  Set* P, *S;
+
   if (lvalue_expr->lvalueExpression.expr->kind == AST_name) {
     visit_name(lvalue_expr->lvalueExpression.expr);
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_memberSelector) {
@@ -1289,6 +1282,12 @@ visit_lvalueExpression(Ast* lvalue_expr)
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_arraySubscript) {
     visit_arraySubscript(lvalue_expr->lvalueExpression.expr);
   } else assert(0);
+  
+  P = set_open_inner_set(type_proper, storage, (uint64_t)lvalue_expr);
+  S = (Set*)set_lookup_value(type_proper, (uint64_t)lvalue_expr->lvalueExpression.expr, 0);
+  if (S) {
+    P->root = S->root;
+  }
 }
 
 static void

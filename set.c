@@ -24,6 +24,18 @@ set_lookup_member(Set* set, uint64_t key)
   return search_member(set->root, key);
 }
 
+uint64_t
+set_lookup_value(Set* set, uint64_t key, uint64_t default_)
+{
+  SetMember* m;
+
+  m = set_lookup_member(set, key);
+  if (m) {
+    return m->value;
+  }
+  return default_;
+}
+
 static SetMember*
 insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, uint64_t key, uint64_t value)
 {
@@ -75,9 +87,24 @@ search_or_insert_member(Set* set, Arena* storage, SetMember** branch, SetMember*
 }
 
 SetMember*
-set_lookup_or_add_member(Set* set, Arena* storage, uint64_t key, uint64_t value)
+set_add_or_lookup_member(Set* set, Arena* storage, uint64_t key, uint64_t value)
 {
   return search_or_insert_member(set, storage, &set->root, set->root, key, value);
+}
+
+Set*
+set_open_inner_set(Set* set, Arena* storage, uint64_t key)
+{
+  SetMember* m;
+  Set* s;
+
+  m = set_add_or_lookup_member(set, storage, key, 0);
+  if (m->value == 0) {
+    s = arena_malloc(storage, sizeof(Set));
+    *s = (Set){};
+    m->value = (uint64_t)s;
+  }
+  return (Set*)m->value;
 }
 
 static void

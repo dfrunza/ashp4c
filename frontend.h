@@ -927,10 +927,7 @@ typedef struct Type {
   };
 } Type;
 
-Type* lookup_type_table(Set* table, Ast* ast);
 Type* actual_type(Type* type);
-Set*  get_or_create_potential_types(Set* table, Ast* ast);
-Set*  lookup_potential_types(Set* table, Ast* ast);
 char* Debug_TypeEnum_to_string(enum TypeEnum type);
 
 typedef struct Scope {

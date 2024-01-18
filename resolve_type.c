@@ -11,7 +11,7 @@ resolve_TYPE_IDREF(Set* type_table, UnboundedArray* type_array)
   for (int i = 0; i < type_array->elem_count; i++) {
     ty = (Type*)array_get_element(type_array, i, sizeof(Type));
     if (ty->ctor == TYPE_IDREF) {
-      ref_ty = lookup_type_table(type_table, ty->idref.ref);
+      ref_ty = (Type*)set_lookup_value(type_table, (uint64_t)ty->idref.ref, 0);
       assert(ref_ty);
       ty->ctor = TYPE_TYPE;
       ty->type.type = ref_ty;
@@ -35,7 +35,7 @@ resolve_TYPE_NAMEREF(Set* type_table, UnboundedArray* type_array)
       if (name_entry && name_entry->ns[NS_TYPE]) {
         name_decl = name_entry->ns[NS_TYPE];
         if (!name_decl->next_in_scope) {
-          ref_ty = lookup_type_table(type_table, name_decl->ast);
+          ref_ty = (Type*)set_lookup_value(type_table, (uint64_t)name_decl->ast, 0);
           assert(ref_ty);
           name_decl->type = ref_ty;
           ty->ctor = TYPE_TYPE;
