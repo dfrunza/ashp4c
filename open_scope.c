@@ -150,7 +150,7 @@ insert_opened_scope_entry(Set* table, Ast* ast, Scope* scope)
 {
   SetMember* m;
 
-  m = set_add_member(table, storage, (uint64_t)ast, (uint64_t)scope);
+  m = set_add_member(table, storage, ast, scope);
   assert(m);
 }
 
@@ -159,9 +159,9 @@ lookup_opened_scope(Set* table, Ast* ast)
 {
   SetMember* m;
 
-  m = set_lookup_member(table, (uint64_t)ast);
+  m = set_lookup_member(table, ast);
   if (m) {
-    return (Scope*)m->value;
+    return m->value;
   }
   return 0;
 }

@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# -std=gnu99 enables the GCC extension 'Referring to a Type with typeof'
+
 CC_FLAGS=""
-CC_FLAGS="$CC_FLAGS -g -ggdb -std=c99 -fms-extensions -ffreestanding"
+CC_FLAGS="$CC_FLAGS -g -ggdb -std=gnu99 -fms-extensions -ffreestanding"
 CC_FLAGS="$CC_FLAGS -Winline -Wno-write-strings -Wno-unused-function -Wreturn-type -Wall"
 CC_FLAGS="$CC_FLAGS -D_GNU_SOURCE"
 

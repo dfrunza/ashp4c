@@ -239,21 +239,21 @@ visit_name(Ast* name)
   Scope* scope;
   Set* P;
   Type* type;
-  
+
   scope = lookup_enclosing_scope(enclosing_scopes, name);
   name_entry = scope_lookup_any(scope, name->name.strname);
   if (!name_entry) {
     return; /* TODO: Named args */
   }
-  P = set_open_inner_set(potential_types, storage, (uint64_t)name);
+  P = set_open_inner_set(potential_types, storage, name);
   name_decl[0] = name_entry->ns[NS_VAR];
   name_decl[1] = name_entry->ns[NS_TYPE];
   for (int i = 0; i < 2; i++) {
     while (name_decl[i]) {
-      type = (Type*)set_lookup_value(type_table, (uint64_t)name_decl[i]->ast, 0);
+      type = set_lookup_value(type_table, name_decl[i]->ast, 0);
       if (type) {
         type = actual_type(type);
-        set_add_or_lookup_member(P, storage, (uint64_t)type, 0);
+        set_add_or_lookup_member(P, storage, type, 0);
         printf("%s (%d:%d) -> %s\n", name->name.strname, name->line_no, name->column_no,
                Debug_TypeEnum_to_string(type->ctor));
       }
@@ -920,7 +920,7 @@ visit_functionCall(Ast* func_call)
   {
     type = (Type*)m->key;
     if (type->ctor == TYPE_FUNCTION) {
-      set_add_or_lookup_member(P, storage, (uint64_t)type, 0);
+      set_add_or_lookup_member(P, storage, type, 0);
     }
   }
 
@@ -932,8 +932,8 @@ visit_functionCall(Ast* func_call)
   } else assert(0);
   visit_argumentList(func_call->functionCall.args);
 
-  P = set_open_inner_set(potential_types, storage, (uint64_t)func_call);
-  S = (Set*)set_lookup_value(potential_types, (uint64_t)func_call->functionCall.lhs_expr, 0);
+  P = set_open_inner_set(potential_types, storage, func_call);
+  S = set_lookup_value(potential_types, func_call->functionCall.lhs_expr, 0);
   if (S) {
     set_enumerate_members(S, apply_function);
   }
@@ -1279,8 +1279,8 @@ visit_lvalueExpression(Ast* lvalue_expr)
     visit_arraySubscript(lvalue_expr->lvalueExpression.expr);
   } else assert(0);
   
-  P = set_open_inner_set(potential_types, storage, (uint64_t)lvalue_expr);
-  S = (Set*)set_lookup_value(potential_types, (uint64_t)lvalue_expr->lvalueExpression.expr, 0);
+  P = set_open_inner_set(potential_types, storage, lvalue_expr);
+  S = set_lookup_value(potential_types, lvalue_expr->lvalueExpression.expr, 0);
   if (S) {
     P->root = S->root;
   }

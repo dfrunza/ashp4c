@@ -3,7 +3,7 @@
 #include "foundation.h"
 
 static SetMember*
-search_member(SetMember* member, uint64_t key)
+search_member(SetMember* member, void* key)
 {
   if (!member) {
     return 0;
@@ -19,13 +19,13 @@ search_member(SetMember* member, uint64_t key)
 }
 
 SetMember*
-set_lookup_member(Set* set, uint64_t key)
+set_lookup_member(Set* set, void* key)
 {
   return search_member(set->root, key);
 }
 
-uint64_t
-set_lookup_value(Set* set, uint64_t key, uint64_t default_)
+void*
+set_lookup_value(Set* set, void* key, void* default_)
 {
   SetMember* m;
 
@@ -37,7 +37,7 @@ set_lookup_value(Set* set, uint64_t key, uint64_t default_)
 }
 
 static SetMember*
-insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, uint64_t key, uint64_t value)
+insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, void* key, void* value)
 {
   if (!member) {
     member = arena_malloc(storage, sizeof(SetMember));
@@ -59,13 +59,13 @@ insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, u
 }
 
 SetMember*
-set_add_member(Set* set, Arena* storage, uint64_t key, uint64_t value)
+set_add_member(Set* set, Arena* storage, void* key, void* value)
 {
   return insert_member(set, storage, &set->root, set->root, key, value);
 }
 
 static SetMember*
-search_or_insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, uint64_t key, uint64_t value)
+search_or_insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, void* key, void* value)
 {
   if (!member) {
     member = arena_malloc(storage, sizeof(SetMember));
@@ -87,13 +87,13 @@ search_or_insert_member(Set* set, Arena* storage, SetMember** branch, SetMember*
 }
 
 SetMember*
-set_add_or_lookup_member(Set* set, Arena* storage, uint64_t key, uint64_t value)
+set_add_or_lookup_member(Set* set, Arena* storage, void* key, void* value)
 {
   return search_or_insert_member(set, storage, &set->root, set->root, key, value);
 }
 
 Set*
-set_open_inner_set(Set* set, Arena* storage, uint64_t key)
+set_open_inner_set(Set* set, Arena* storage, void* key)
 {
   SetMember* m;
   Set* s;
@@ -102,7 +102,7 @@ set_open_inner_set(Set* set, Arena* storage, uint64_t key)
   if (m->value == 0) {
     s = arena_malloc(storage, sizeof(Set));
     *s = (Set){};
-    m->value = (uint64_t)s;
+    m->value = s;
   }
   return (Set*)m->value;
 }

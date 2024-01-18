@@ -125,7 +125,7 @@ hashmap_lookup_entry(Hashmap* hashmap, char* key)
 }
 
 HashmapEntry*
-hashmap_insert_entry(Hashmap* hashmap, Arena* storage, char* key, uint64_t value)
+hashmap_insert_entry(Hashmap* hashmap, Arena* storage, char* key, void* value)
 {
   int last_segment;
   HashmapEntry* entry, **entry_slot;
@@ -161,7 +161,7 @@ hashmap_insert_entry(Hashmap* hashmap, Arena* storage, char* key, uint64_t value
 }
 
 HashmapEntry*
-hashmap_lookup_or_insert_entry(Hashmap* hashmap, Arena* storage, char* key, uint64_t value)
+hashmap_lookup_or_insert_entry(Hashmap* hashmap, Arena* storage, char* key, void* value)
 {
   int last_segment;
   HashmapEntry** entry_slot, *entry;
