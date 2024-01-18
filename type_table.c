@@ -212,6 +212,35 @@ actual_type(Type* type)
   return 0;
 }
 
+char*
+Debug_TypeEnum_to_string(enum TypeEnum t)
+{
+  switch(t) {
+    case TYPE_NONE: return "TYPE_NONE";
+    case TYPE_BOOL: return "TYPE_BOOL";
+    case TYPE_INT: return "TYPE_INT";
+    case TYPE_BIT: return "TYPE_BIT";
+    case TYPE_VARBIT: return "TYPE_VARBIT";
+    case TYPE_STRING: return "TYPE_STRING";
+    case TYPE_DONTCARE: return "TYPE_DONTCARE";
+    case TYPE_ENUM: return "TYPE_ENUM";
+    case TYPE_TYPEDEF: return "TYPE_TYPEDEF";
+    case TYPE_TYPEVAR: return "TYPE_TYPEVAR";
+    case TYPE_FUNCTION: return "TYPE_FUNCTION";
+    case TYPE_EXTERN: return "TYPE_EXTERN";
+    case TYPE_PRODUCT: return "TYPE_PRODUCT";
+    case TYPE_STRUCT: return "TYPE_STRUCT";
+    case TYPE_ARRAY: return "TYPE_ARRAY";
+    case TYPE_TABLE: return "TYPE_TABLE";
+    case TYPE_SPECIALIZED: return "TYPE_SPECIALIZED";
+    case TYPE_IDREF: return "TYPE_IDREF";
+    case TYPE_NAMEREF: return "TYPE_NAMEREF";
+    case TYPE_TYPE: return "TYPE_TYPE";
+    default: return "?";
+  }
+  return "?";
+}
+
 void
 Debug_print_type_table(Set* table)
 {
@@ -227,16 +256,16 @@ Debug_print_type_table(Set* table)
       printf("[%d] %s ... %d:%d\n", i, type->strname, ast->line_no, ast->column_no);
     } else {
       if (ast) {
-        printf("[%d] ? ... %d:%d\n", i, ast->line_no, ast->column_no);
+        printf("[%d] %s ... %d:%d\n", i, Debug_TypeEnum_to_string(type->ctor), ast->line_no, ast->column_no);
       } else {
-        printf("[%d] ?\n", i);
+        printf("[%d] %s\n", Debug_TypeEnum_to_string(type->ctor), i);
       }
     }
     i += 1;
   }
 
   i = 0;
-  set_enumerate_members(type_table, visit_type);
+  set_enumerate_members(table, visit_type);
 }
 
 Set*
@@ -369,10 +398,15 @@ static void
 visit_parameter(Ast* param)
 {
   assert(param->kind == AST_parameter);
+  Type* param_ty;
+
   visit_typeRef(param->parameter.type);
   if (param->parameter.init_expr) {
     visit_expression(param->parameter.init_expr);
   }
+
+  param_ty = lookup_type_table(type_table, param->parameter.type);
+  insert_type_table_entry(type_table, param, param_ty);
 }
 
 static void
@@ -410,8 +444,13 @@ static void
 visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
-  visit_typeRef(inst->instantiation.type_ref);
+  Type* inst_ty;
+
+  visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
+
+  inst_ty = lookup_type_table(type_table, inst->instantiation.type);
+  insert_type_table_entry(type_table, inst, inst_ty);
 }
 
 /** PARSER **/
@@ -1620,10 +1659,15 @@ static void
 visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
+  Type* decl_ty;
+
   visit_typeRef(var_decl->variableDeclaration.type);
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);
   }
+
+  decl_ty = lookup_type_table(type_table, var_decl->variableDeclaration.type);
+  insert_type_table_entry(type_table, var_decl, decl_ty);
 }
 
 /** EXPRESSIONS **/

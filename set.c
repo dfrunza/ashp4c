@@ -66,9 +66,9 @@ search_or_insert_member(Set* set, Arena* storage, SetMember** branch, SetMember*
   } else if (member->key == key) {
     return member;
   } else if (key < member->key) {
-    return insert_member(set, storage, &member->left_branch, member->left_branch, key, value);
+    return search_or_insert_member(set, storage, &member->left_branch, member->left_branch, key, value);
   } else {
-    return insert_member(set, storage, &member->right_branch, member->right_branch, key, value);
+    return search_or_insert_member(set, storage, &member->right_branch, member->right_branch, key, value);
   }
   assert(0);
   return 0;

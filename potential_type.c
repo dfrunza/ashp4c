@@ -172,6 +172,27 @@ lookup_potential_types(Set* table, Ast* ast)
   return 0;
 }
 
+void
+Debug_print_potential_types(Set* table)
+{
+  Type* type;
+  int i;
+
+  void visit_type(SetMember* m)
+  {
+    type = (Type*)m->key;
+    if (type->strname) {
+      printf("[%d] %s\n", i, type->strname);
+    } else {
+      printf("[%d] %s\n", i, Debug_TypeEnum_to_string(type->ctor));
+    }
+    i += 1;
+  }
+
+  i = 0;
+  set_enumerate_members(table, visit_type);
+}
+
 Set*
 build_potential_types(Ast* p4program, Set* enclosing_scopes_, Set* type_table_, Arena* storage_)
 {
@@ -242,24 +263,37 @@ visit_name(Ast* name)
   Scope* scope;
   NameEntry* name_entry;
   NameDecl* name_decl;
-  Ast* ast;
+  Ast* decl;
+  Type* type = 0;
+  Set* tau;
   
   scope = lookup_enclosing_scope(enclosing_scopes, name);
   name_entry = scope_lookup_any(scope, name->name.strname);
-  if (name_entry) {
-    name_decl = 0;
-    if (name_entry->ns[NS_VAR]) {
-      name_decl = name_entry->ns[NS_VAR];
-    } else if (name_entry->ns[NS_TYPE]) {
-      name_decl = name_entry->ns[NS_TYPE];
+  if (!name_entry) {
+    return;
+  }
+  name_decl = 0;
+  if (name_entry->ns[NS_VAR]) {
+    name_decl = name_entry->ns[NS_VAR];
+  } else if (name_entry->ns[NS_TYPE]) {
+    name_decl = name_entry->ns[NS_TYPE];
+  }
+  if (!name_decl) {
+    return; /* NS_KEYWORD */
+  }
+  tau = get_or_create_potential_types(potential_types, name);
+  while (name_decl) {
+    decl = name_decl->ast;
+    type = lookup_type_table(type_table, decl);
+    if (type) {
+      type = actual_type(type);
+      set_lookup_or_add_member(tau, storage, (uint64_t)type, 0);
+      printf("%s (%d:%d) -> %s\n", name->name.strname, name->line_no, name->column_no,
+              Debug_TypeEnum_to_string(type->ctor));
+    } else {
+      printf("%s (%d:%d) -> ?\n", name->name.strname, name->line_no, name->column_no);
     }
-    if (name_decl) {
-      ast = name_decl->ast;
-      printf("%s (%d:%d) -> (%d:%d)\n", name->name.strname,
-            name->line_no, name->column_no, ast->line_no, ast->column_no);
-    }
-  } else {
-    printf("%s (%d:%d) -> ?\n", name->name.strname, name->line_no, name->column_no);
+    name_decl = name_decl->next_in_scope;
   }
 }
 
@@ -279,7 +313,6 @@ static void
 visit_parameter(Ast* param)
 {
   assert(param->kind == AST_parameter);
-  visit_typeRef(param->parameter.type);
   if (param->parameter.init_expr) {
     visit_expression(param->parameter.init_expr);
   }
@@ -299,7 +332,7 @@ static void
 visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
-  visit_typeRef(inst->instantiation.type_ref);
+  visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
 }
 
@@ -586,7 +619,7 @@ visit_functionPrototype(Ast* func_proto)
 {
   assert(func_proto->kind == AST_functionPrototype);
   if (func_proto->functionPrototype.return_type) {
-    visit_typeRef(func_proto->functionPrototype.return_type);
+    ;
   }
   if (func_proto->functionPrototype.type_params) {
     visit_typeParameterList(func_proto->functionPrototype.type_params);
@@ -615,7 +648,7 @@ visit_typeRef(Ast* type_ref)
   } else if (type_ref->typeRef.type->kind == AST_baseTypeError) {
     visit_baseTypeError(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_name) {
-    ;
+    visit_name(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_specializedType) {
     visit_specializedType(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_headerStackType) {
@@ -636,7 +669,6 @@ static void
 visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
-  visit_typeRef(type_decl->headerStackType.type);
   visit_expression(type_decl->headerStackType.stack_expr);
 }
 
@@ -644,7 +676,6 @@ static void
 visit_specializedType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_specializedType);
-  visit_typeRef(type_decl->specializedType.type);
   visit_typeArgumentList(type_decl->specializedType.type_args);
 }
 
@@ -720,7 +751,7 @@ visit_realTypeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AST_realTypeArg);
   if (type_arg->realTypeArg.arg->kind == AST_typeRef) {
-    visit_typeRef(type_arg->realTypeArg.arg);
+    ;
   } else if (type_arg->realTypeArg.arg->kind == AST_dontcare) {
     visit_dontcare(type_arg->realTypeArg.arg);
   } else assert(0);
@@ -731,9 +762,9 @@ visit_typeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AST_typeArg);
   if (type_arg->typeArg.arg->kind == AST_typeRef) {
-    visit_typeRef(type_arg->typeArg.arg);
-  } else if (type_arg->typeArg.arg->kind == AST_name) {
     ;
+  } else if (type_arg->typeArg.arg->kind == AST_name) {
+    visit_name(type_arg->typeArg.arg);
   } else if (type_arg->typeArg.arg->kind == AST_dontcare) {
     visit_dontcare(type_arg->typeArg.arg);
   } else assert(0);
@@ -832,7 +863,6 @@ static void
 visit_structField(Ast* field)
 {
   assert(field->kind == AST_structField);
-  visit_typeRef(field->structField.type);
 }
 
 static void
@@ -894,7 +924,6 @@ visit_typedefDeclaration(Ast* typedef_decl)
 {
   assert(typedef_decl->kind == AST_typedefDeclaration);
   if (typedef_decl->typedefDeclaration.type_ref->kind == AST_typeRef) {
-    visit_typeRef(typedef_decl->typedefDeclaration.type_ref);
   } else if (typedef_decl->typedefDeclaration.type_ref->kind == AST_derivedTypeDeclaration) {
     visit_derivedTypeDeclaration(typedef_decl->typedefDeclaration.type_ref);
   } else assert(0);
@@ -1205,18 +1234,9 @@ static void
 visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
-  Set* tau;
-  Type* var_ty;
-
-  visit_typeRef(var_decl->variableDeclaration.type);
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);
   }
-
-  tau = get_or_create_potential_types(potential_types, var_decl);
-  var_ty = lookup_type_table(type_table, var_decl->variableDeclaration.type);
-  assert(var_ty);
-  set_lookup_or_add_member(tau, storage, (uint64_t)var_ty, 0);
 }
 
 /** EXPRESSIONS **/

@@ -295,7 +295,7 @@ static void
 visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
-  visit_typeRef(inst->instantiation.type_ref);
+  visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
 }
 

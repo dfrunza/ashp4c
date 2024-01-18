@@ -313,7 +313,7 @@ visit_instantiation(Ast* inst)
   Ast* name;
   NameDecl* name_decl;
 
-  visit_typeRef(inst->instantiation.type_ref);
+  visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
 
   name = inst->instantiation.name;

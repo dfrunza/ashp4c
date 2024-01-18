@@ -918,7 +918,7 @@ parse_instantiation(Ast* type_ref)
   if (token_is_typeRef(token) || type_ref) {
     inst_stmt = arena_malloc(storage, sizeof(Ast));
     inst_stmt->kind = AST_instantiation;
-    inst_stmt->instantiation.type_ref = type_ref ? type_ref : parse_typeRef();
+    inst_stmt->instantiation.type = type_ref ? type_ref : parse_typeRef();
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
       inst_stmt->instantiation.args = parse_argumentList();
