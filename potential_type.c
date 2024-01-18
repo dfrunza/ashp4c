@@ -200,6 +200,7 @@ build_potential_types(Ast* p4program, Set* enclosing_scopes_, Set* type_table_, 
   type_table = type_table_;
   storage = storage_;
   potential_types = arena_malloc(storage, sizeof(Set));
+  *potential_types = (Set){};
   visit_p4program(p4program);
   return potential_types;
 }
@@ -262,38 +263,33 @@ visit_name(Ast* name)
   assert(name->kind == AST_name);
   Scope* scope;
   NameEntry* name_entry;
-  NameDecl* name_decl;
+  NameDecl* name_decl[2];
   Ast* decl;
-  Type* type = 0;
+  Type* type;
   Set* tau;
   
+  tau = get_or_create_potential_types(potential_types, name);
   scope = lookup_enclosing_scope(enclosing_scopes, name);
   name_entry = scope_lookup_any(scope, name->name.strname);
   if (!name_entry) {
-    return;
+    return; /* TODO: Named args */
   }
-  name_decl = 0;
-  if (name_entry->ns[NS_VAR]) {
-    name_decl = name_entry->ns[NS_VAR];
-  } else if (name_entry->ns[NS_TYPE]) {
-    name_decl = name_entry->ns[NS_TYPE];
-  }
-  if (!name_decl) {
-    return; /* NS_KEYWORD */
-  }
-  tau = get_or_create_potential_types(potential_types, name);
-  while (name_decl) {
-    decl = name_decl->ast;
-    type = lookup_type_table(type_table, decl);
-    if (type) {
-      type = actual_type(type);
-      set_lookup_or_add_member(tau, storage, (uint64_t)type, 0);
-      printf("%s (%d:%d) -> %s\n", name->name.strname, name->line_no, name->column_no,
-              Debug_TypeEnum_to_string(type->ctor));
-    } else {
-      printf("%s (%d:%d) -> ?\n", name->name.strname, name->line_no, name->column_no);
+  name_decl[0] = name_entry->ns[NS_VAR];
+  name_decl[1] = name_entry->ns[NS_TYPE];
+  for (int i = 0; i < 2; i++) {
+    while (name_decl[i]) {
+      decl = name_decl[i]->ast;
+      type = lookup_type_table(type_table, decl);
+      if (type) {
+        type = actual_type(type);
+        set_lookup_or_add_member(tau, storage, (uint64_t)type, 0);
+        printf("%s (%d:%d) -> %s\n", name->name.strname, name->line_no, name->column_no,
+                Debug_TypeEnum_to_string(type->ctor));
+      } else {
+        printf("%s (%d:%d) -> ?\n", name->name.strname, name->line_no, name->column_no);
+      }
+      name_decl[i] = name_decl[i]->next_in_scope;
     }
-    name_decl = name_decl->next_in_scope;
   }
 }
 
