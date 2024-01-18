@@ -228,10 +228,13 @@ Debug_TypeEnum_to_string(enum TypeEnum t)
     case TYPE_TYPEVAR: return "TYPE_TYPEVAR";
     case TYPE_FUNCTION: return "TYPE_FUNCTION";
     case TYPE_EXTERN: return "TYPE_EXTERN";
+    case TYPE_TABLE: return "TYPE_TABLE";
+    case TYPE_CONTROL: return "TYPE_CONTROL";
+    case TYPE_PARSER: return "TYPE_PARSER";
+    case TYPE_PACKAGE: return "TYPE_PACKAGE";
     case TYPE_PRODUCT: return "TYPE_PRODUCT";
     case TYPE_STRUCT: return "TYPE_STRUCT";
     case TYPE_ARRAY: return "TYPE_ARRAY";
-    case TYPE_TABLE: return "TYPE_TABLE";
     case TYPE_SPECIALIZED: return "TYPE_SPECIALIZED";
     case TYPE_IDREF: return "TYPE_IDREF";
     case TYPE_NAMEREF: return "TYPE_NAMEREF";
@@ -378,7 +381,6 @@ visit_name(Ast* name)
   name_ty->strname = name->name.strname;
   name_ty->nameref.name = name;
   name_ty->nameref.scope = lookup_enclosing_scope(enclosing_scopes, name);
-
   insert_type_table_entry(type_table, name, name_ty);
 }
 
@@ -414,7 +416,7 @@ visit_packageTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_packageTypeDeclaration);
   Ast* ast, *name, *params;
-  Type* package_ty, *ty;
+  Type* package_ty, *return_ty, *ty;
   int i;
 
   if (type_decl->packageTypeDeclaration.type_params) {
@@ -423,10 +425,14 @@ visit_packageTypeDeclaration(Ast* type_decl)
   visit_parameterList(type_decl->packageTypeDeclaration.params);
 
   name = type_decl->packageTypeDeclaration.name;
+  return_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+  return_ty->ctor = TYPE_PACKAGE;
+  return_ty->strname = name->name.strname;
+
   package_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   package_ty->ctor = TYPE_FUNCTION;
   package_ty->strname = name->name.strname;
-
+  package_ty->function.return_ = return_ty;
   insert_type_table_entry(type_table, type_decl, package_ty);
 
   i = type_array->elem_count;
@@ -473,7 +479,7 @@ visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_parserTypeDeclaration);
   Ast* ast, *name, *params;
-  Type* parser_ty, *ty;
+  Type* parser_ty, *return_ty, *ty;
   int i;
 
   if (type_decl->parserTypeDeclaration.type_params) {
@@ -482,10 +488,14 @@ visit_parserTypeDeclaration(Ast* type_decl)
   visit_parameterList(type_decl->parserTypeDeclaration.params);
 
   name = type_decl->parserTypeDeclaration.name;
+  return_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+  return_ty->ctor = TYPE_PARSER;
+  return_ty->strname = name->name.strname;
+
   parser_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   parser_ty->ctor = TYPE_FUNCTION;
   parser_ty->strname = name->name.strname;
-
+  parser_ty->function.return_ = return_ty;
   insert_type_table_entry(type_table, type_decl, parser_ty);
 
   i = type_array->elem_count;
@@ -687,7 +697,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_controlTypeDeclaration);
   Ast* ast, *name, *params;
-  Type* control_ty, *ty;
+  Type* control_ty, *return_ty, *ty;
   int i;
 
   if (type_decl->controlTypeDeclaration.type_params) {
@@ -696,10 +706,14 @@ visit_controlTypeDeclaration(Ast* type_decl)
   visit_parameterList(type_decl->controlTypeDeclaration.params);
 
   name = type_decl->controlTypeDeclaration.name;
+  return_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+  return_ty->ctor = TYPE_CONTROL;
+  return_ty->strname = name->name.strname;
+
   control_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   control_ty->ctor = TYPE_FUNCTION;
   control_ty->strname = name->name.strname;
-
+  control_ty->function.return_ = return_ty;
   insert_type_table_entry(type_table, type_decl, control_ty);
 
   i = type_array->elem_count;
@@ -770,7 +784,6 @@ visit_externTypeDeclaration(Ast* type_decl)
   extern_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   extern_ty->ctor = TYPE_EXTERN;
   extern_ty->strname = name->name.strname;
-
   insert_type_table_entry(type_table, type_decl, extern_ty);
 
   i = type_array->elem_count;
@@ -817,7 +830,6 @@ visit_functionPrototype(Ast* func_proto)
   func_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   func_ty->ctor = TYPE_FUNCTION;
   func_ty->strname = name->name.strname;
-
   insert_type_table_entry(type_table, func_proto, func_ty);
 
   i = type_array->elem_count;
@@ -894,7 +906,6 @@ visit_tupleType(Ast* type_decl)
     ty->idref.ref = ast;
   }
   tuple_ty = create_product_type(i, type_array->elem_count, storage);
-
   insert_type_table_entry(type_table, type_decl, tuple_ty);
 }
 
@@ -909,7 +920,6 @@ visit_headerStackType(Ast* type_decl)
 
   stack_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   stack_ty->ctor = TYPE_ARRAY;
-
   insert_type_table_entry(type_table, type_decl, stack_ty);
 
   ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
@@ -929,7 +939,6 @@ visit_specializedType(Ast* type_decl)
 
   specd_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   specd_ty->ctor = TYPE_SPECIALIZED;
-
   insert_type_table_entry(type_table, type_decl, specd_ty);
 
   ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
@@ -1037,7 +1046,6 @@ visit_typeParameterList(Ast* param_list)
     param_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
     param_ty->ctor = TYPE_TYPEVAR;
     param_ty->strname = name->name.strname;
-
     insert_type_table_entry(type_table, name, param_ty);
   }
 }
@@ -1146,7 +1154,6 @@ visit_headerTypeDeclaration(Ast* header_decl)
   header_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   header_ty->ctor = TYPE_STRUCT;
   header_ty->strname = name->name.strname;
-
   insert_type_table_entry(type_table, header_decl, header_ty);
 
   i = type_array->elem_count;
@@ -1174,7 +1181,6 @@ visit_headerUnionDeclaration(Ast* union_decl)
   union_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   union_ty->ctor = TYPE_STRUCT;
   union_ty->strname = name->name.strname;
-
   insert_type_table_entry(type_table, union_decl, union_ty);
 
   i = type_array->elem_count;
@@ -1202,7 +1208,6 @@ visit_structTypeDeclaration(Ast* struct_decl)
   struct_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   struct_ty->ctor = TYPE_STRUCT;
   struct_ty->strname = name->name.strname;
-
   insert_type_table_entry(type_table, struct_decl, struct_ty);
 
   i = type_array->elem_count;
@@ -1248,7 +1253,6 @@ visit_enumDeclaration(Ast* enum_decl)
   enum_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   enum_ty->ctor = TYPE_ENUM;
   enum_ty->strname = name->name.strname;
-
   insert_type_table_entry(type_table, enum_decl, enum_ty);
 }
 
@@ -1316,7 +1320,6 @@ visit_typedefDeclaration(Ast* typedef_decl)
   typedef_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   typedef_ty->ctor = TYPE_TYPEDEF;
   typedef_ty->strname = name->name.strname;
-
   insert_type_table_entry(type_table, typedef_decl, typedef_ty);
 
   ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
@@ -1505,7 +1508,6 @@ visit_tableDeclaration(Ast* table_decl)
   table_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   table_ty->ctor = TYPE_TABLE;
   table_ty->strname = name->name.strname;
-
   insert_type_table_entry(type_table, table_decl, table_ty);
 }
 
@@ -1639,7 +1641,6 @@ visit_actionDeclaration(Ast* action_decl)
   action_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   action_ty->ctor = TYPE_FUNCTION;
   action_ty->strname = name->name.strname;
-
   insert_type_table_entry(type_table, action_decl, action_ty);
 
   i = type_array->elem_count;

@@ -283,6 +283,8 @@ visit_name(Ast* name)
       if (type) {
         type = actual_type(type);
         set_lookup_or_add_member(tau, storage, (uint64_t)type, 0);
+        printf("%s (%d:%d) -> %s\n", name->name.strname, name->line_no, name->column_no,
+               Debug_TypeEnum_to_string(type->ctor));
       }
       name_decl[i] = name_decl[i]->next_in_scope;
     }
