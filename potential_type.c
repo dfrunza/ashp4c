@@ -271,13 +271,13 @@ visit_name(Ast* name)
   for (int i = 0; i < 2; i++) {
     while (name_decl[i]) {
       type = (Type*)set_lookup_value(type_table, (uint64_t)name_decl[i]->ast, 0);
-      name_decl[i] = name_decl[i]->next_in_scope;
       if (type) {
         type = actual_type(type);
         set_add_or_lookup_member(P, storage, (uint64_t)type, 0);
         printf("%s (%d:%d) -> %s\n", name->name.strname, name->line_no, name->column_no,
                Debug_TypeEnum_to_string(type->ctor));
       }
+      name_decl[i] = name_decl[i]->next_in_scope;
     }
   }
 }
