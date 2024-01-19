@@ -148,16 +148,44 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 static void
-apply_function(UnboundedArray* S_members, Ast* args, Set* P)
+apply_function(Set* P, Set* S, Ast* args)
 {
-  UnboundedArray *params_list = type_buffer,
+  UnboundedArray *S_members = set_buffer,
+                 *params_list = type_buffer,
+                 *method_list = type_buffer,
                  *args_list = ast_buffer;
   Ast* arg;
-  Type* func_ty, *param_ty;
+  Type* func_ty, *param_ty, *method_ty;
   Set* A;
   SetMember* m;
   int i, j;
 
+  set_members_to_array(S, S_members, storage);
+  S->root = 0;
+  for (i = 0; i < S_members->elem_count; i++) {
+    m = *(SetMember**)array_get_element(S_members, i, sizeof(SetMember*));
+    func_ty = m->key;
+    if (func_ty->ctor == TYPE_FUNCTION) {
+      set_add_or_lookup_member(S, storage, func_ty, 0);
+    } else if (func_ty->ctor == TYPE_PACKAGE) {
+      set_add_or_lookup_member(S, storage, actual_type(func_ty->package.ctor), 0);
+    } else if (func_ty->ctor == TYPE_PARSER) {
+      set_add_or_lookup_member(S, storage, actual_type(func_ty->parser.ctor), 0);
+    } else if (func_ty->ctor == TYPE_CONTROL) {
+      set_add_or_lookup_member(S, storage, actual_type(func_ty->control.ctor), 0);
+    } else if (func_ty->ctor == TYPE_EXTERN) {
+      product_type_to_array(func_ty->extern_.methods, method_list, storage);
+      for (j = 0; j < method_list->elem_count; j++) {
+        method_ty = *(Type**)array_get_element(method_list, j, sizeof(Type*));
+        method_ty = actual_type(method_ty);
+        if (cstr_match(func_ty->strname, method_ty->strname)) {
+          set_add_or_lookup_member(S, storage, method_ty, 0);
+        }
+      }
+    } else assert(0);
+  }
+
+  set_members_to_array(S, S_members, storage);
   for (i = 0; i < S_members->elem_count; i++) {
     m = *(SetMember**)array_get_element(S_members, i, sizeof(SetMember*));
     func_ty = m->key;
@@ -339,36 +367,8 @@ visit_packageTypeDeclaration(Ast* type_decl)
 static void
 visit_instantiation(Ast* inst)
 {
-  void
-  type_of_constructors(Ast* decl, Set* S, Arena* storage)
-  {
-    Ast* ast, *protos;
-    Ast* name, *ctor_name;
-    Type* ty;
-
-    if (decl->kind == AST_packageTypeDeclaration || decl->kind == AST_parserTypeDeclaration ||
-        decl->kind == AST_controlTypeDeclaration) {
-      ty = actual_type(set_lookup_value(type_table, decl, 0));
-      set_add_or_lookup_member(S, storage, ty, 0);
-    } else if (decl->kind == AST_externTypeDeclaration) {
-      name = decl->externTypeDeclaration.name;
-      protos = decl->externTypeDeclaration.method_protos;
-      for (ast = protos->methodPrototypes.first_child;
-           ast != 0; ast = ast->right_sibling) {
-        ctor_name = ast->functionPrototype.name;
-        if (cstr_match(ctor_name->name.strname, name->name.strname)) {
-          ty = actual_type(set_lookup_value(type_table, ast, 0));
-          set_add_or_lookup_member(S, storage, ty, 0);
-        }
-      }
-    }
-  }
-
   assert(inst->kind == AST_instantiation);
-  Type* func_ty;
   Set* P, *S;
-  SetMember* m;
-  UnboundedArray *S_members = set_buffer;
 
   visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
@@ -378,17 +378,7 @@ visit_instantiation(Ast* inst)
   if (!S) {
     return; /* FIXME */
   }
-
-  set_members_to_array(S, S_members, storage);
-  S->root = 0;
-  for (int i = 0; i < S_members->elem_count; i++) {
-    m = *(SetMember**)array_get_element(S_members, i, sizeof(SetMember*));
-    func_ty = m->key;
-    type_of_constructors(func_ty->ast, S, storage);
-  }
-
-  set_members_to_array(S, S_members, storage);
-  apply_function(S_members, inst->instantiation.args, P);
+  apply_function(P, S, inst->instantiation.args);
 }
 
 /** PARSER **/
@@ -1057,7 +1047,6 @@ visit_functionCall(Ast* func_call)
   assert(func_call->kind == AST_functionCall);
   Ast* lhs_expr;
   Set* P, *S;
-  UnboundedArray *S_members = set_buffer;
 
   lhs_expr = func_call->functionCall.lhs_expr;
   if (lhs_expr->kind == AST_expression) {
@@ -1072,9 +1061,7 @@ visit_functionCall(Ast* func_call)
   if (!S) {
     return; /* FIXME */
   }
-
-  set_members_to_array(S, S_members, storage);
-  apply_function(S_members, func_call->functionCall.args, P);
+  apply_function(P, S, func_call->functionCall.args);
 }
 
 static void

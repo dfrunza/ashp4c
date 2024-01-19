@@ -876,7 +876,6 @@ enum TypeEnum {
 typedef struct Type {
   enum TypeEnum ctor;
   char* strname;
-  struct Ast* ast;
 
   union {
     struct {
@@ -904,6 +903,10 @@ typedef struct Type {
     struct {
       struct Type* methods;
     } extern_;
+
+    struct {
+      struct Type* ctor;
+    } package, parser, control;
 
     struct {
       struct Type* element;
