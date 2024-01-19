@@ -52,8 +52,8 @@ static void visit_controlLocalDeclaration(Ast* local_decl);
 
 static void visit_externDeclaration(Ast* extern_decl);
 static void visit_externTypeDeclaration(Ast* type_decl);
-static void visit_methodPrototypes(Ast* protos);
-static void visit_functionPrototype(Ast* func_proto);
+static void visit_methodPrototypes(Ast* protos, Ast* extern_decl, Ast* extern_name);
+static void visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name);
 
 /** TYPES **/
 
@@ -781,7 +781,7 @@ visit_externDeclaration(Ast* extern_decl)
   if (extern_decl->externDeclaration.decl->kind == AST_externTypeDeclaration) {
     visit_externTypeDeclaration(extern_decl->externDeclaration.decl);
   } else if (extern_decl->externDeclaration.decl->kind == AST_functionPrototype) {
-    visit_functionPrototype(extern_decl->externDeclaration.decl);
+    visit_functionPrototype(extern_decl->externDeclaration.decl, 0, 0);
   } else assert(0);
 }
 
@@ -797,7 +797,8 @@ visit_externTypeDeclaration(Ast* type_decl)
   if (type_decl->externTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->externTypeDeclaration.type_params);
   }
-  visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos);
+  visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos,
+          type_decl, type_decl->externTypeDeclaration.name);
 
   name = type_decl->externTypeDeclaration.name;
   extern_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
@@ -818,19 +819,19 @@ visit_externTypeDeclaration(Ast* type_decl)
 }
 
 static void
-visit_methodPrototypes(Ast* protos)
+visit_methodPrototypes(Ast* protos, Ast* extern_decl, Ast* extern_name)
 {
   assert(protos->kind == AST_methodPrototypes);
   Ast* ast;
 
   for (ast = protos->methodPrototypes.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_functionPrototype(ast);
+    visit_functionPrototype(ast, extern_decl, extern_name);
   }
 }
 
 static void
-visit_functionPrototype(Ast* func_proto)
+visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
 {
   assert(func_proto->kind == AST_functionPrototype);
   Ast* ast, *name, *params, *return_type;
@@ -870,7 +871,12 @@ visit_functionPrototype(Ast* func_proto)
     ty->ctor = TYPE_IDREF;
     ty->idref.ref = return_type;
     func_ty->function.return_ = ty;
-  } /* else FIXME */
+  } else if (cstr_match(name->name.strname, extern_name->name.strname)) {
+    ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_IDREF;
+    ty->idref.ref = extern_decl;
+    func_ty->function.return_ = ty;
+  } else assert(0);
 }
 
 /** TYPES **/
@@ -1747,7 +1753,7 @@ static void
 visit_functionDeclaration(Ast* func_decl)
 {
   assert(func_decl->kind == AST_functionDeclaration);
-  visit_functionPrototype(func_decl->functionDeclaration.proto);
+  visit_functionPrototype(func_decl->functionDeclaration.proto, 0, 0);
   visit_blockStatement(func_decl->functionDeclaration.stmt);
 }
 

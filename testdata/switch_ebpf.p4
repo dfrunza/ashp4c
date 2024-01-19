@@ -55,8 +55,6 @@ match_kind {
     lpm
 }
 
-
-
 extern CounterArray {
     CounterArray(bit<32> max_index, bool sparse);
     void increment(in bit<32> index);
