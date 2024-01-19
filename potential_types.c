@@ -3,7 +3,7 @@
 #include "foundation.h"
 #include "frontend.h"
 
-static Arena*    storage;
+static Arena*    storage, *tmp_storage;
 static Scope*    root_scope;
 static Set*      enclosing_scopes;
 static Set*      type_table, *potential_types;
@@ -203,7 +203,7 @@ apply_function(Set* P, Set* S, Ast* args)
           /*
            * For all 'a' in A, is 'param_ty' type-equivalent to 'a'?
            * If yes - then add 'function.return_' type to 'P'.
-           * Else - don't. */
+           * Else - break the for loop. */
         }
         if (j == param_list->elem_count) {
           set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
@@ -235,13 +235,14 @@ Debug_print_potential_types(Set* table)
 }
 
 Set*
-build_potential_types(Ast* p4program, Scope* root_scope_,
-        Set* enclosing_scopes_, Set* type_table_, Arena* storage_)
+build_potential_types(Ast* p4program, Scope* root_scope_, Set* enclosing_scopes_,
+          Set* type_table_, Arena* storage_, Arena* tmp_storage_)
 {
   root_scope = root_scope_;
   enclosing_scopes = enclosing_scopes_;
   type_table = type_table_;
   storage = storage_;
+  tmp_storage = tmp_storage_;
   potential_types = arena_malloc(storage, sizeof(Set));
   *potential_types = (Set){};
   set_buffer = array_create(storage, sizeof(SetMember*), 16);

@@ -97,42 +97,63 @@ parse_cmdline_args(int arg_count, char* args[], Arena* storage)
   return arg_list;
 }
 
-int
-main(int arg_count, char* args[])
+static Ast*
+syntax_analysis(CmdlineArg* filename, Scope** root_scope, Arena* storage, Arena* tmp_storage)
 {
-  CmdlineArg* cmdline_args, *filename_arg;
   SourceText source_text;
-  Arena text_storage = {}, main_storage = {};
   UnboundedArray* tokens;
-  Scope* root_scope;
   Ast* program;
+
+  source_text = read_source_text(filename->value, tmp_storage);
+  tokens = tokenize_source_text(&source_text, storage);
+  program = parse_program(tokens, storage, root_scope);
+  return program;
+}
+
+static void
+semantic_analysis(Ast* program, Scope* root_scope, Arena* storage, Arena* tmp_storage)
+{
   Set* opened_scopes, *enclosing_scopes;
   Set* type_table, *potential_types;
   UnboundedArray* type_array;
 
+  drypass(program);
+
+  opened_scopes = build_open_scope(program, root_scope, storage);
+  enclosing_scopes = build_symtable(program, root_scope, opened_scopes, storage);
+  type_table = build_type_table(program, root_scope, &type_array,
+          opened_scopes, enclosing_scopes, storage);
+  resolve_type_xref(type_table, type_array);
+
+  potential_types = build_potential_types(program, root_scope, enclosing_scopes,
+          type_table, storage, tmp_storage);
+  do_narrow_types(program, type_table, potential_types, storage);
+}
+
+int
+main(int arg_count, char* args[])
+{
+  CmdlineArg* cmdline, *filename;
+  Arena storage = {}, tmp_storage = {};
+  Ast* program;
+  Scope* root_scope;
+
   reserve_page_memory(500*KILOBYTE);
 
-  cmdline_args = parse_cmdline_args(arg_count, args, &main_storage);
-  filename_arg = find_unnamed_arg(cmdline_args);
-  if (!filename_arg) {
+  cmdline = parse_cmdline_args(arg_count, args, &storage);
+  filename = find_unnamed_arg(cmdline);
+  if (!filename) {
     printf("<filename> is required.\n");
     exit(1);
   }
 
-  source_text = read_source_text(filename_arg->value, &text_storage);
-  tokens = tokenize_source_text(&source_text, &main_storage);
-  program = parse_program(tokens, &main_storage, &root_scope);
-  arena_free(&text_storage);
+  program = syntax_analysis(filename, &root_scope, &storage, &tmp_storage);
+  arena_free(&tmp_storage);
 
-  drypass(program);
-  opened_scopes = build_open_scope(program, root_scope, &main_storage);
-  enclosing_scopes = build_symtable(program, root_scope, opened_scopes, &main_storage);
-  type_table = build_type_table(program, root_scope, &type_array, opened_scopes, enclosing_scopes, &main_storage);
-  resolve_type_xref(type_table, type_array);
-  potential_types = build_potential_types(program, root_scope, enclosing_scopes, type_table, &main_storage);
-  do_narrow_types(program, type_table, potential_types, &main_storage);
+  semantic_analysis(program, root_scope, &storage, &tmp_storage);
+  arena_free(&tmp_storage);
 
-  arena_free(&main_storage);
+  arena_free(&storage);
   return 0;
 }
 

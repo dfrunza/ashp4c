@@ -2,6 +2,14 @@
 #include <stdint.h>
 #include "foundation.h"
 
+enum CursorPosition {
+  UP = 0,
+  DOWN_LEFT,
+  DOWN_RIGHT,
+
+  CursorPosition_COUNT
+};
+
 static SetMember*
 search_member(SetMember* member, void* key)
 {
@@ -147,3 +155,39 @@ set_enumerate_members(Set* set, void (*visitor)(SetMember*))
   traverse_and_enumerate(set->root, visitor);
 }
 
+void
+set_cursor_begin(SetCursor* cursor, Set* set)
+{
+  cursor->root = set->root;
+  cursor->member = set->root;
+  cursor->direction = DOWN_LEFT;
+}
+
+SetMember*
+set_cursor_next_member(SetCursor* cursor)
+{
+  SetMember* member;
+
+  member = cursor->member;
+  if (!member) {
+    if (cursor->direction == DOWN_LEFT || cursor->direction == DOWN_RIGHT) {
+      cursor->direction = UP;
+      return set_cursor_next_member(cursor);
+    } else if (cursor->direction == UP) {
+      if (member) {
+        cursor->member = member->root;
+        return set_cursor_next_member(cursor);
+      } else {
+        return 0;
+      }
+    }
+  }
+  if (cursor->direction == DOWN_LEFT) {
+    cursor->member = member->left_branch;
+  } else if (cursor->direction == DOWN_RIGHT) {
+    cursor->member = member->right_branch;
+  } else if (cursor->direction == UP) {
+    cursor->member = member->root;
+  } else assert(0);
+  return member;
+}
