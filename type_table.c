@@ -312,7 +312,8 @@ build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array
     name_decl = scope_lookup_namespace(root_scope, builtin_types[i].strname, NS_TYPE)->ns[NS_TYPE];
     builtin_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
     builtin_ty->ctor = builtin_types[i].type;
-    builtin_ty->strname = builtin_types[i].strname;
+    builtin_ty->ast = name_decl->ast;
+    builtin_ty->strname = name_decl->strname;
     name_decl->type = builtin_ty;
     m = set_add_member(type_table, storage, name_decl->ast, builtin_ty);
     assert(m);
@@ -385,6 +386,7 @@ visit_name(Ast* name)
 
   name_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   name_ty->ctor = TYPE_NAMEREF;
+  name_ty->ast = name;
   name_ty->strname = name->name.strname;
   name_ty->nameref.name = name;
   name_ty->nameref.scope = set_lookup_value(enclosing_scopes, name, 0);
@@ -442,6 +444,7 @@ visit_packageTypeDeclaration(Ast* type_decl)
 
   package_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   package_ty->ctor = TYPE_FUNCTION;
+  package_ty->ast = type_decl;
   package_ty->strname = name->name.strname;
   package_ty->function.return_ = return_ty;
   m = set_add_member(type_table, storage, type_decl, package_ty);
@@ -509,6 +512,7 @@ visit_parserTypeDeclaration(Ast* type_decl)
 
   parser_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   parser_ty->ctor = TYPE_FUNCTION;
+  parser_ty->ast = type_decl;
   parser_ty->strname = name->name.strname;
   parser_ty->function.return_ = return_ty;
   m = set_add_member(type_table, storage, type_decl, parser_ty);
@@ -729,6 +733,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
 
   control_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   control_ty->ctor = TYPE_FUNCTION;
+  control_ty->ast = type_decl;
   control_ty->strname = name->name.strname;
   control_ty->function.return_ = return_ty;
   m = set_add_member(type_table, storage, type_decl, control_ty);
@@ -803,6 +808,7 @@ visit_externTypeDeclaration(Ast* type_decl)
   name = type_decl->externTypeDeclaration.name;
   extern_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   extern_ty->ctor = TYPE_EXTERN;
+  extern_ty->ast = type_decl;
   extern_ty->strname = name->name.strname;
   m = set_add_member(type_table, storage, type_decl, extern_ty);
   assert(m);
@@ -851,6 +857,7 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
   name = func_proto->functionPrototype.name;
   func_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   func_ty->ctor = TYPE_FUNCTION;
+  func_ty->ast = func_proto;
   func_ty->strname = name->name.strname;
   m = set_add_member(type_table, storage, func_proto, func_ty);
   assert(m);
@@ -953,6 +960,7 @@ visit_headerStackType(Ast* type_decl)
 
   stack_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   stack_ty->ctor = TYPE_ARRAY;
+  stack_ty->ast = type_decl;
   m = set_add_member(type_table, storage, type_decl, stack_ty);
   assert(m);
 
@@ -974,6 +982,7 @@ visit_specializedType(Ast* type_decl)
 
   specd_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   specd_ty->ctor = TYPE_SPECIALIZED;
+  specd_ty->ast = type_decl;
   m = set_add_member(type_table, storage, type_decl, specd_ty);
   assert(m);
 
@@ -1096,6 +1105,7 @@ visit_typeParameterList(Ast* param_list)
     name = ast;
     param_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
     param_ty->ctor = TYPE_TYPEVAR;
+    param_ty->ast = name;
     param_ty->strname = name->name.strname;
     m = set_add_member(type_table, storage, name, param_ty);
     assert(m);
@@ -1210,6 +1220,7 @@ visit_headerTypeDeclaration(Ast* header_decl)
   name = header_decl->headerTypeDeclaration.name;
   header_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   header_ty->ctor = TYPE_STRUCT;
+  header_ty->ast = header_decl;
   header_ty->strname = name->name.strname;
   m = set_add_member(type_table, storage, header_decl, header_ty);
   assert(m);
@@ -1239,6 +1250,7 @@ visit_headerUnionDeclaration(Ast* union_decl)
   name = union_decl->headerUnionDeclaration.name;
   union_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   union_ty->ctor = TYPE_STRUCT;
+  union_ty->ast = union_decl;
   union_ty->strname = name->name.strname;
   m = set_add_member(type_table, storage, union_decl, union_ty);
   assert(m);
@@ -1268,6 +1280,7 @@ visit_structTypeDeclaration(Ast* struct_decl)
   name = struct_decl->structTypeDeclaration.name;
   struct_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   struct_ty->ctor = TYPE_STRUCT;
+  struct_ty->ast = struct_decl;
   struct_ty->strname = name->name.strname;
   m = set_add_member(type_table, storage, struct_decl, struct_ty);
   assert(m);
@@ -1315,6 +1328,7 @@ visit_enumDeclaration(Ast* enum_decl)
   name = enum_decl->enumDeclaration.name;
   enum_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   enum_ty->ctor = TYPE_ENUM;
+  enum_ty->ast = enum_decl;
   enum_ty->strname = name->name.strname;
   m = set_add_member(type_table, storage, enum_decl, enum_ty);
   assert(m);
@@ -1384,6 +1398,7 @@ visit_typedefDeclaration(Ast* typedef_decl)
   name = typedef_decl->typedefDeclaration.name;
   typedef_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   typedef_ty->ctor = TYPE_TYPEDEF;
+  typedef_ty->ast = typedef_decl;
   typedef_ty->strname = name->name.strname;
   m = set_add_member(type_table, storage, typedef_decl, typedef_ty);
   assert(m);
@@ -1574,6 +1589,7 @@ visit_tableDeclaration(Ast* table_decl)
   name = table_decl->tableDeclaration.name;
   table_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   table_ty->ctor = TYPE_TABLE;
+  table_ty->ast = table_decl;
   table_ty->strname = name->name.strname;
   m = set_add_member(type_table, storage, table_decl, table_ty);
   assert(m);
@@ -1710,6 +1726,7 @@ visit_actionDeclaration(Ast* action_decl)
   name = action_decl->actionDeclaration.name;
   action_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   action_ty->ctor = TYPE_FUNCTION;
+  action_ty->ast = action_decl;
   action_ty->strname = name->name.strname;
   m = set_add_member(type_table, storage, action_decl, action_ty);
   assert(m);
