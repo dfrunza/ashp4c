@@ -147,6 +147,42 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
+static void
+apply_function(UnboundedArray* S_members, Ast* args, Set* P)
+{
+  UnboundedArray *params_list = type_buffer,
+                 *args_list = ast_buffer;
+  Ast* arg;
+  Type* func_ty, *param_ty;
+  Set* A;
+  SetMember* m;
+  int i, j;
+
+  for (i = 0; i < S_members->elem_count; i++) {
+    m = *(SetMember**)array_get_element(S_members, i, sizeof(SetMember*));
+    func_ty = m->key;
+    if (func_ty->ctor == TYPE_FUNCTION) {
+      product_type_to_array(func_ty->function.params, params_list, storage);
+      ast_list_to_array(args->argumentList.first_child, args_list, storage);
+      if (params_list->elem_count == args_list->elem_count) {
+        for (j = 0; j < params_list->elem_count; j++) {
+          arg = *(Ast**)array_get_element(args_list, j, sizeof(Ast*));
+          assert(arg->kind == AST_argument);
+          param_ty = *(Type**)array_get_element(params_list, j, sizeof(Type*));
+          param_ty = actual_type(param_ty);
+          A = set_lookup_value(potential_types, arg, 0);
+          if (!set_lookup_member(A, param_ty)) {
+            break;
+          }
+        }
+        if (j == params_list->elem_count) {
+          set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
+        }
+      }
+    }
+  }
+}
+
 void
 Debug_print_potential_types(Set* table)
 {
@@ -304,7 +340,7 @@ static void
 visit_instantiation(Ast* inst)
 {
   void
-  type_of_constructors(Ast* decl, Set* P, Arena* storage)
+  type_of_constructors(Ast* decl, Set* S, Arena* storage)
   {
     Ast* ast, *protos;
     Ast* name, *ctor_name;
@@ -313,7 +349,7 @@ visit_instantiation(Ast* inst)
     if (decl->kind == AST_packageTypeDeclaration || decl->kind == AST_parserTypeDeclaration ||
         decl->kind == AST_controlTypeDeclaration) {
       ty = actual_type(set_lookup_value(type_table, decl, 0));
-      set_add_or_lookup_member(P, storage, ty, 0);
+      set_add_or_lookup_member(S, storage, ty, 0);
     } else if (decl->kind == AST_externTypeDeclaration) {
       name = decl->externTypeDeclaration.name;
       protos = decl->externTypeDeclaration.method_protos;
@@ -322,21 +358,17 @@ visit_instantiation(Ast* inst)
         ctor_name = ast->functionPrototype.name;
         if (cstr_match(ctor_name->name.strname, name->name.strname)) {
           ty = actual_type(set_lookup_value(type_table, ast, 0));
-          set_add_or_lookup_member(P, storage, ty, 0);
+          set_add_or_lookup_member(S, storage, ty, 0);
         }
       }
     }
   }
 
   assert(inst->kind == AST_instantiation);
-  Ast* arg;
-  Set* P, *S, *A;
+  Type* func_ty;
+  Set* P, *S;
   SetMember* m;
-  Type* func_ty, *param_ty;
-  int i, j;
-  UnboundedArray *S_members = set_buffer,
-                 *args = ast_buffer,
-                 *params_ty = type_buffer;
+  UnboundedArray *S_members = set_buffer;
 
   visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
@@ -349,36 +381,14 @@ visit_instantiation(Ast* inst)
 
   set_members_to_array(S, S_members, storage);
   S->root = 0;
-  for (i = 0; i < S_members->elem_count; i++) {
+  for (int i = 0; i < S_members->elem_count; i++) {
     m = *(SetMember**)array_get_element(S_members, i, sizeof(SetMember*));
     func_ty = m->key;
     type_of_constructors(func_ty->ast, S, storage);
   }
 
   set_members_to_array(S, S_members, storage);
-  for (i = 0; i < S_members->elem_count; i++) {
-    m = *(SetMember**)array_get_element(S_members, i, sizeof(SetMember*));
-    func_ty = m->key;
-    if (func_ty->ctor == TYPE_FUNCTION) {
-      product_type_to_array(func_ty->function.params, params_ty, storage);
-      ast_list_to_array((inst->instantiation.args)->argumentList.first_child, args, storage);
-      if (params_ty->elem_count == args->elem_count) {
-        for (j = 0; j < params_ty->elem_count; j++) {
-          arg = *(Ast**)array_get_element(args, j, sizeof(Ast*));
-          assert(arg->kind == AST_argument);
-          param_ty = *(Type**)array_get_element(params_ty, j, sizeof(Type*));
-          param_ty = actual_type(param_ty);
-          A = set_lookup_value(potential_types, arg, 0);
-          if (!set_lookup_member(A, param_ty)) {
-            break;
-          }
-        }
-        if (j == params_ty->elem_count) {
-          set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
-        }
-      }
-    }
-  }
+  apply_function(S_members, inst->instantiation.args, P);
 }
 
 /** PARSER **/
@@ -1045,14 +1055,9 @@ static void
 visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
-  Ast* lhs_expr, *arg;
-  Set* P, *S, *A;
-  SetMember* m;
-  Type* func_ty, *param_ty;
-  int i, j;
-  UnboundedArray *S_members = set_buffer,
-                 *args = ast_buffer,
-                 *params_ty = type_buffer;
+  Ast* lhs_expr;
+  Set* P, *S;
+  UnboundedArray *S_members = set_buffer;
 
   lhs_expr = func_call->functionCall.lhs_expr;
   if (lhs_expr->kind == AST_expression) {
@@ -1069,29 +1074,7 @@ visit_functionCall(Ast* func_call)
   }
 
   set_members_to_array(S, S_members, storage);
-  for (i = 0; i < S_members->elem_count; i++) {
-    m = *(SetMember**)array_get_element(S_members, i, sizeof(SetMember*));
-    func_ty = m->key;
-    if (func_ty->ctor == TYPE_FUNCTION) {
-      product_type_to_array(func_ty->function.params, params_ty, storage);
-      ast_list_to_array((func_call->functionCall.args)->argumentList.first_child, args, storage);
-      if (params_ty->elem_count == args->elem_count) {
-        for (j = 0; j < params_ty->elem_count; j++) {
-          arg = *(Ast**)array_get_element(args, j, sizeof(Ast*));
-          assert(arg->kind == AST_argument);
-          param_ty = *(Type**)array_get_element(params_ty, j, sizeof(Type*));
-          param_ty = actual_type(param_ty);
-          A = set_lookup_value(potential_types, arg, 0);
-          if (!set_lookup_member(A, param_ty)) {
-            break;
-          }
-        }
-        if (j == params_ty->elem_count) {
-          set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
-        }
-      }
-    }
-  }
+  apply_function(S_members, func_call->functionCall.args, P);
 }
 
 static void
