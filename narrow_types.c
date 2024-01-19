@@ -4,10 +4,7 @@
 #include "frontend.h"
 
 static Arena*    storage;
-static Scope*    root_scope;
-static Set*      enclosing_scopes;
 static Set*      type_table, *potential_types;
-static UnboundedArray* set_buffer, *ast_buffer, *type_buffer;
 
 /** PROGRAM **/
 
@@ -17,7 +14,7 @@ static void visit_declaration(Ast* decl);
 static void visit_name(Ast* name);
 static void visit_parameterList(Ast* params);
 static void visit_parameter(Ast* param);
-static void visit_packageTypeDeclaration(Ast* package_decl);
+static void visit_packageTypeDeclaration(Ast* type_decl);
 static void visit_instantiation(Ast* inst);
 
 /** PARSER **/
@@ -147,106 +144,13 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
-static void
-apply_function(Set* P, Set* S, Ast* args)
-{
-  UnboundedArray *S_members = set_buffer,
-                 *params_list = type_buffer,
-                 *method_list = type_buffer,
-                 *args_list = ast_buffer;
-  Ast* arg;
-  Type* func_ty, *param_ty, *method_ty;
-  Set* A;
-  SetMember* m;
-  int i, j;
-
-  set_members_to_array(S, S_members, storage);
-  S->root = 0;
-  for (i = 0; i < S_members->elem_count; i++) {
-    m = *(SetMember**)array_get_element(S_members, i, sizeof(SetMember*));
-    func_ty = m->key;
-    if (func_ty->ctor == TYPE_FUNCTION) {
-      set_add_or_lookup_member(S, storage, func_ty, 0);
-    } else if (func_ty->ctor == TYPE_PACKAGE) {
-      set_add_or_lookup_member(S, storage, actual_type(func_ty->package.ctor), 0);
-    } else if (func_ty->ctor == TYPE_PARSER) {
-      set_add_or_lookup_member(S, storage, actual_type(func_ty->parser.ctor), 0);
-    } else if (func_ty->ctor == TYPE_CONTROL) {
-      set_add_or_lookup_member(S, storage, actual_type(func_ty->control.ctor), 0);
-    } else if (func_ty->ctor == TYPE_EXTERN) {
-      product_type_to_array(func_ty->extern_.methods, method_list, storage);
-      for (j = 0; j < method_list->elem_count; j++) {
-        method_ty = *(Type**)array_get_element(method_list, j, sizeof(Type*));
-        method_ty = actual_type(method_ty);
-        if (cstr_match(func_ty->strname, method_ty->strname)) {
-          set_add_or_lookup_member(S, storage, method_ty, 0);
-        }
-      }
-    } else assert(0);
-  }
-
-  set_members_to_array(S, S_members, storage);
-  for (i = 0; i < S_members->elem_count; i++) {
-    m = *(SetMember**)array_get_element(S_members, i, sizeof(SetMember*));
-    func_ty = m->key;
-    if (func_ty->ctor == TYPE_FUNCTION) {
-      product_type_to_array(func_ty->function.params, params_list, storage);
-      ast_list_to_array(args->argumentList.first_child, args_list, storage);
-      if (params_list->elem_count == args_list->elem_count) {
-        for (j = 0; j < params_list->elem_count; j++) {
-          arg = *(Ast**)array_get_element(args_list, j, sizeof(Ast*));
-          assert(arg->kind == AST_argument);
-          param_ty = *(Type**)array_get_element(params_list, j, sizeof(Type*));
-          param_ty = actual_type(param_ty);
-          A = set_lookup_value(potential_types, arg, 0);
-          if (!set_lookup_member(A, param_ty)) {
-            break;
-          }
-        }
-        if (j == params_list->elem_count) {
-          set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
-        }
-      }
-    } else assert(0);
-  }
-}
-
 void
-Debug_print_potential_types(Set* table)
+do_narrow_types(Ast* ast, Set* type_table_, Set* potential_types_, Arena* storage_)
 {
-  Type* type;
-  int i;
-
-  void visit_type(SetMember* m)
-  {
-    type = (Type*)m->key;
-    if (type->strname) {
-      printf("[%d] %s\n", i, type->strname);
-    } else {
-      printf("[%d] %s\n", i, Debug_TypeEnum_to_string(type->ctor));
-    }
-    i += 1;
-  }
-
-  i = 0;
-  set_enumerate_members(table, visit_type);
-}
-
-Set*
-build_potential_types(Ast* p4program, Scope* root_scope_,
-        Set* enclosing_scopes_, Set* type_table_, Arena* storage_)
-{
-  root_scope = root_scope_;
-  enclosing_scopes = enclosing_scopes_;
-  type_table = type_table_;
   storage = storage_;
-  potential_types = arena_malloc(storage, sizeof(Set));
-  *potential_types = (Set){};
-  set_buffer = array_create(storage, sizeof(SetMember*), 16);
-  ast_buffer = array_create(storage, sizeof(Ast*), 16);
-  type_buffer = array_create(storage, sizeof(Type*), 16);
-  visit_p4program(p4program);
-  return potential_types;
+  type_table = type_table_;
+  potential_types = potential_types_;
+  visit_p4program(ast);
 }
 
 /** PROGRAM **/
@@ -305,32 +209,6 @@ static void
 visit_name(Ast* name)
 {
   assert(name->kind == AST_name);
-  NameEntry* name_entry;
-  NameDecl* name_decl[2];
-  Scope* scope;
-  Set* P;
-  Type* type;
-
-  scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_entry = scope_lookup_any(scope, name->name.strname);
-  if (!name_entry) {
-    return; /* TODO: Named args */
-  }
-  P = set_open_inner_set(potential_types, storage, name);
-  name_decl[0] = name_entry->ns[NS_VAR];
-  name_decl[1] = name_entry->ns[NS_TYPE];
-  for (int i = 0; i < 2; i++) {
-    while (name_decl[i]) {
-      type = set_lookup_value(type_table, name_decl[i]->ast, 0);
-      if (type) {
-        type = actual_type(type);
-        set_add_or_lookup_member(P, storage, type, 0);
-        printf("%s (%d:%d) -> %s\n", name->name.strname, name->line_no, name->column_no,
-               Debug_TypeEnum_to_string(type->ctor));
-      }
-      name_decl[i] = name_decl[i]->next_in_scope;
-    }
-  }
 }
 
 static void
@@ -349,6 +227,8 @@ static void
 visit_parameter(Ast* param)
 {
   assert(param->kind == AST_parameter);
+  visit_typeRef(param->parameter.type);
+  visit_name(param->parameter.name);
   if (param->parameter.init_expr) {
     visit_expression(param->parameter.init_expr);
   }
@@ -358,6 +238,7 @@ static void
 visit_packageTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_packageTypeDeclaration);
+  visit_name(type_decl->packageTypeDeclaration.name);
   if (type_decl->packageTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->packageTypeDeclaration.type_params);
   }
@@ -368,17 +249,9 @@ static void
 visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
-  Set* P, *S;
-
   visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
-
-  P = set_open_inner_set(potential_types, storage, inst);
-  S = set_lookup_value(potential_types, inst->instantiation.type, 0);
-  if (!S) {
-    return; /* FIXME */
-  }
-  apply_function(P, S, inst->instantiation.args);
+  visit_name(inst->instantiation.name);
 }
 
 /** PARSER **/
@@ -399,6 +272,7 @@ static void
 visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_parserTypeDeclaration);
+  visit_name(type_decl->parserTypeDeclaration.name);
   if (type_decl->parserTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->parserTypeDeclaration.type_params);
   }
@@ -444,6 +318,7 @@ static void
 visit_parserState(Ast* state)
 {
   assert(state->kind == AST_parserState);
+  visit_name(state->parserState.name);
   visit_parserStatements(state->parserState.stmt_list);
   visit_transitionStatement(state->parserState.transition_stmt);
 }
@@ -591,6 +466,7 @@ static void
 visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_controlTypeDeclaration);
+  visit_name(type_decl->controlTypeDeclaration.name);
   if (type_decl->controlTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->controlTypeDeclaration.type_params);
   }
@@ -641,6 +517,7 @@ static void
 visit_externTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_externTypeDeclaration);
+  visit_name(type_decl->externTypeDeclaration.name);
   if (type_decl->externTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->externTypeDeclaration.type_params);
   }
@@ -664,8 +541,9 @@ visit_functionPrototype(Ast* func_proto)
 {
   assert(func_proto->kind == AST_functionPrototype);
   if (func_proto->functionPrototype.return_type) {
-    ;
+    visit_typeRef(func_proto->functionPrototype.return_type);
   }
+  visit_name(func_proto->functionPrototype.name);
   if (func_proto->functionPrototype.type_params) {
     visit_typeParameterList(func_proto->functionPrototype.type_params);
   }
@@ -678,8 +556,6 @@ static void
 visit_typeRef(Ast* type_ref)
 {
   assert(type_ref->kind == AST_typeRef);
-  Set* P, *S;
-
   if (type_ref->typeRef.type->kind == AST_baseTypeBoolean) {
     visit_baseTypeBoolean(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_baseTypeInteger) {
@@ -703,12 +579,6 @@ visit_typeRef(Ast* type_ref)
   } else if (type_ref->typeRef.type->kind == AST_tupleType) {
     visit_tupleType(type_ref->typeRef.type);
   } else assert(0);
-
-  P = set_open_inner_set(potential_types, storage, type_ref);
-  S = set_lookup_value(potential_types, type_ref->typeRef.type, 0);
-  if (S) {
-    P->root = S->root;
-  } /* else FIXME */
 }
 
 static void
@@ -722,6 +592,7 @@ static void
 visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
+  visit_typeRef(type_decl->headerStackType.type);
   visit_expression(type_decl->headerStackType.stack_expr);
 }
 
@@ -729,6 +600,7 @@ static void
 visit_specializedType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_specializedType);
+  visit_typeRef(type_decl->specializedType.type);
   visit_typeArgumentList(type_decl->specializedType.type_args);
 }
 
@@ -736,94 +608,56 @@ static void
 visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AST_baseTypeBoolean);
-  NameDecl* name_decl;
-  Set* P;
-
-  name_decl = scope_lookup_namespace(root_scope, "bool", NS_TYPE)->ns[NS_TYPE];
-  P = set_open_inner_set(potential_types, storage, bool_type);
-  set_add_or_lookup_member(P, storage, name_decl->type, 0);
+  visit_name(bool_type->baseTypeBoolean.name);
 }
 
 static void
 visit_baseTypeInteger(Ast* int_type)
 {
   assert(int_type->kind == AST_baseTypeInteger);
-  NameDecl* name_decl;
-  Set* P;
-
+  visit_name(int_type->baseTypeInteger.name);
   if (int_type->baseTypeInteger.size) {
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
-
-  name_decl = scope_lookup_namespace(root_scope, "int", NS_TYPE)->ns[NS_TYPE];
-  P = set_open_inner_set(potential_types, storage, int_type);
-  set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
 
 static void
 visit_baseTypeBit(Ast* bit_type)
 {
   assert(bit_type->kind == AST_baseTypeBit);
-  NameDecl* name_decl;
-  Set* P;
-
+  visit_name(bit_type->baseTypeBit.name);
   if (bit_type->baseTypeBit.size) {
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
-
-  name_decl = scope_lookup_namespace(root_scope, "bit", NS_TYPE)->ns[NS_TYPE];
-  P = set_open_inner_set(potential_types, storage, bit_type);
-  set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
 
 static void
 visit_baseTypeVarbit(Ast* varbit_type)
 {
   assert(varbit_type->kind == AST_baseTypeVarbit);
-  NameDecl* name_decl;
-  Set* P;
-
+  visit_name(varbit_type->baseTypeVarbit.name);
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
-
-  name_decl = scope_lookup_namespace(root_scope, "varbit", NS_TYPE)->ns[NS_TYPE];
-  P = set_open_inner_set(potential_types, storage, varbit_type);
-  set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
 
 static void
 visit_baseTypeString(Ast* str_type)
 {
   assert(str_type->kind == AST_baseTypeString);
-  NameDecl* name_decl;
-  Set* P;
-
-  name_decl = scope_lookup_namespace(root_scope, "string", NS_TYPE)->ns[NS_TYPE];
-  P = set_open_inner_set(potential_types, storage, str_type);
-  set_add_or_lookup_member(P, storage, name_decl->type, 0);
+  visit_name(str_type->baseTypeString.name);
 }
 
 static void
 visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AST_baseTypeVoid);
-  NameDecl* name_decl;
-  Set* P;
-
-  name_decl = scope_lookup_namespace(root_scope, "void", NS_TYPE)->ns[NS_TYPE];
-  P = set_open_inner_set(potential_types, storage, void_type);
-  set_add_or_lookup_member(P, storage, name_decl->type, 0);
+  visit_name(void_type->baseTypeVoid.name);
 }
 
 static void
 visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AST_baseTypeError);
-  NameDecl* name_decl;
-  Set* P;
-
-  name_decl = scope_lookup_namespace(root_scope, "error", NS_TYPE)->ns[NS_TYPE];
-  P = set_open_inner_set(potential_types, storage, error_type);
-  set_add_or_lookup_member(P, storage, name_decl->type, 0);
+  visit_name(error_type->baseTypeError.name);
 }
 
 static void
@@ -840,7 +674,7 @@ visit_typeParameterList(Ast* param_list)
 
   for (ast = param_list->typeParameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    ;
+    visit_name(ast);
   }
 }
 
@@ -849,7 +683,7 @@ visit_realTypeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AST_realTypeArg);
   if (type_arg->realTypeArg.arg->kind == AST_typeRef) {
-    ;
+    visit_typeRef(type_arg->realTypeArg.arg);
   } else if (type_arg->realTypeArg.arg->kind == AST_dontcare) {
     visit_dontcare(type_arg->realTypeArg.arg);
   } else assert(0);
@@ -860,7 +694,7 @@ visit_typeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AST_typeArg);
   if (type_arg->typeArg.arg->kind == AST_typeRef) {
-    ;
+    visit_typeRef(type_arg->typeArg.arg);
   } else if (type_arg->typeArg.arg->kind == AST_name) {
     visit_name(type_arg->typeArg.arg);
   } else if (type_arg->typeArg.arg->kind == AST_dontcare) {
@@ -928,6 +762,7 @@ static void
 visit_headerTypeDeclaration(Ast* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
+  visit_name(header_decl->headerTypeDeclaration.name);
   visit_structFieldList(header_decl->headerTypeDeclaration.fields);
 }
 
@@ -935,6 +770,7 @@ static void
 visit_headerUnionDeclaration(Ast* union_decl)
 {
   assert(union_decl->kind == AST_headerUnionDeclaration);
+  visit_name(union_decl->headerUnionDeclaration.name);
   visit_structFieldList(union_decl->headerUnionDeclaration.fields);
 }
 
@@ -942,6 +778,7 @@ static void
 visit_structTypeDeclaration(Ast* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
+  visit_name(struct_decl->structTypeDeclaration.name);
   visit_structFieldList(struct_decl->structTypeDeclaration.fields);
 }
 
@@ -961,12 +798,15 @@ static void
 visit_structField(Ast* field)
 {
   assert(field->kind == AST_structField);
+  visit_typeRef(field->structField.type);
+  visit_name(field->structField.name);
 }
 
 static void
 visit_enumDeclaration(Ast* enum_decl)
 {
   assert(enum_decl->kind == AST_enumDeclaration);
+  visit_name(enum_decl->enumDeclaration.name);
   visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
 }
 
@@ -992,7 +832,7 @@ visit_identifierList(Ast* ident_list)
 
   for (ast = ident_list->identifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    ;
+    visit_name(ast);
   }
 }
 
@@ -1012,6 +852,7 @@ static void
 visit_specifiedIdentifier(Ast* ident)
 {
   assert(ident->kind == AST_specifiedIdentifier);
+  visit_name(ident->specifiedIdentifier.name);
   if (ident->specifiedIdentifier.init_expr) {
     visit_expression(ident->specifiedIdentifier.init_expr);
   }
@@ -1022,9 +863,11 @@ visit_typedefDeclaration(Ast* typedef_decl)
 {
   assert(typedef_decl->kind == AST_typedefDeclaration);
   if (typedef_decl->typedefDeclaration.type_ref->kind == AST_typeRef) {
+    visit_typeRef(typedef_decl->typedefDeclaration.type_ref);
   } else if (typedef_decl->typedefDeclaration.type_ref->kind == AST_derivedTypeDeclaration) {
     visit_derivedTypeDeclaration(typedef_decl->typedefDeclaration.type_ref);
   } else assert(0);
+  visit_name(typedef_decl->typedefDeclaration.name);
 }
 
 /** STATEMENTS **/
@@ -1046,7 +889,6 @@ visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
   Ast* lhs_expr;
-  Set* P, *S;
 
   lhs_expr = func_call->functionCall.lhs_expr;
   if (lhs_expr->kind == AST_expression) {
@@ -1055,13 +897,6 @@ visit_functionCall(Ast* func_call)
     visit_lvalueExpression(lhs_expr);
   } else assert(0);
   visit_argumentList(func_call->functionCall.args);
-
-  P = set_open_inner_set(potential_types, storage, func_call);
-  S = set_lookup_value(potential_types, func_call->functionCall.lhs_expr, 0);
-  if (!S) {
-    return; /* FIXME */
-  }
-  apply_function(P, S, func_call->functionCall.args);
 }
 
 static void
@@ -1206,6 +1041,7 @@ static void
 visit_tableDeclaration(Ast* table_decl)
 {
   assert(table_decl->kind == AST_tableDeclaration);
+  visit_name(table_decl->tableDeclaration.name);
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
 }
 
@@ -1323,6 +1159,7 @@ static void
 visit_simpleProperty(Ast* simple_prop)
 {
   assert(simple_prop->kind == AST_simpleProperty);
+  visit_name(simple_prop->simpleProperty.name);
   visit_expression(simple_prop->simpleProperty.init_expr);
 }
 
@@ -1330,6 +1167,7 @@ static void
 visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AST_actionDeclaration);
+  visit_name(action_decl->actionDeclaration.name);
   visit_parameterList(action_decl->actionDeclaration.params);
   visit_blockStatement(action_decl->actionDeclaration.stmt);
 }
@@ -1340,6 +1178,8 @@ static void
 visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
+  visit_typeRef(var_decl->variableDeclaration.type);
+  visit_name(var_decl->variableDeclaration.name);
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);
   }
@@ -1371,19 +1211,11 @@ static void
 visit_argument(Ast* arg)
 {
   assert(arg->kind == AST_argument);
-  Set* P, *S;
-
   if (arg->argument.arg->kind == AST_expression) {
     visit_expression(arg->argument.arg);
   } else if (arg->argument.arg->kind == AST_dontcare) {
     visit_dontcare(arg->argument.arg);
   } else assert(0);
-
-  P = set_open_inner_set(potential_types, storage, arg);
-  S = set_lookup_value(potential_types, arg->argument.arg, 0);
-  if (S) {
-    P->root = S->root;
-  } /* else FIXME */
 }
 
 static void
@@ -1402,8 +1234,6 @@ static void
 visit_lvalueExpression(Ast* lvalue_expr)
 {
   assert(lvalue_expr->kind == AST_lvalueExpression);
-  Set* P, *S;
-
   if (lvalue_expr->lvalueExpression.expr->kind == AST_name) {
     visit_name(lvalue_expr->lvalueExpression.expr);
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_memberSelector) {
@@ -1411,20 +1241,12 @@ visit_lvalueExpression(Ast* lvalue_expr)
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_arraySubscript) {
     visit_arraySubscript(lvalue_expr->lvalueExpression.expr);
   } else assert(0);
-  
-  P = set_open_inner_set(potential_types, storage, lvalue_expr);
-  S = set_lookup_value(potential_types, lvalue_expr->lvalueExpression.expr, 0);
-  if (S) {
-    P->root = S->root;
-  } /* else FIXME */
 }
 
 static void
 visit_expression(Ast* expr)
 {
   assert(expr->kind == AST_expression);
-  Set* P, *S;
-
   if (expr->expression.expr->kind == AST_expression) {
     visit_expression(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_booleanLiteral) {
@@ -1455,12 +1277,6 @@ visit_expression(Ast* expr)
   if (expr->expression.type_args) {
     visit_realTypeArgumentList(expr->expression.type_args);
   }
-
-  P = set_open_inner_set(potential_types, storage, expr);
-  S = set_lookup_value(potential_types, expr->expression.expr, 0);
-  if (S) {
-    P->root = S->root;
-  } /* else FIXME */
 }
 
 static void
@@ -1495,6 +1311,7 @@ visit_memberSelector(Ast* selector)
   } else if (selector->memberSelector.lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression(selector->memberSelector.lhs_expr);
   } else assert(0);
+  visit_name(selector->memberSelector.name);
 }
 
 static void
@@ -1523,36 +1340,18 @@ static void
 visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AST_booleanLiteral);
-  NameDecl* name_decl;
-  Set* P;
-
-  name_decl = scope_lookup_namespace(root_scope, "bool", NS_TYPE)->ns[NS_TYPE];
-  P = set_open_inner_set(potential_types, storage, bool_literal);
-  set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
 
 static void
 visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AST_integerLiteral);
-  NameDecl* name_decl;
-  Set* P;
-
-  name_decl = scope_lookup_namespace(root_scope, "int", NS_TYPE)->ns[NS_TYPE];
-  P = set_open_inner_set(potential_types, storage, int_literal);
-  set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
 
 static void
 visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AST_stringLiteral);
-  NameDecl* name_decl;
-  Set* P;
-
-  name_decl = scope_lookup_namespace(root_scope, "string", NS_TYPE)->ns[NS_TYPE];
-  P = set_open_inner_set(potential_types, storage, str_literal);
-  set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
 
 static void

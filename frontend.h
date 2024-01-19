@@ -858,16 +858,17 @@ enum TypeEnum {
   TYPE_ENUM,
   TYPE_TYPEDEF,
   TYPE_TYPEVAR,
+  TYPE_PRODUCT,
   TYPE_FUNCTION,
   TYPE_EXTERN,
-  TYPE_CONTROL,
-  TYPE_PARSER,
   TYPE_PACKAGE,
+  TYPE_PARSER,
+  TYPE_CONTROL,
   TYPE_TABLE,
-  TYPE_PRODUCT,
   TYPE_STRUCT,
   TYPE_ARRAY,
   TYPE_SPECIALIZED,
+
   TYPE_IDREF,
   TYPE_NAMEREF,
   TYPE_TYPE,
@@ -935,6 +936,7 @@ typedef struct Type {
 
 int   product_type_to_array(Type* type, UnboundedArray* array, Arena* storage);
 Type* actual_type(Type* type);
+bool  type_equiv(Type* u, Type* v);
 char* Debug_TypeEnum_to_string(enum TypeEnum type);
 
 typedef struct Scope {

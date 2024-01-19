@@ -107,7 +107,7 @@ main(int arg_count, char* args[])
   Scope* root_scope;
   Ast* program;
   Set* opened_scopes, *enclosing_scopes;
-  Set* type_table;
+  Set* type_table, *potential_types;
   UnboundedArray* type_array;
 
   reserve_page_memory(500*KILOBYTE);
@@ -129,7 +129,8 @@ main(int arg_count, char* args[])
   enclosing_scopes = build_symtable(program, root_scope, opened_scopes, &main_storage);
   type_table = build_type_table(program, root_scope, &type_array, opened_scopes, enclosing_scopes, &main_storage);
   resolve_type_xref(type_table, type_array);
-  build_potential_types(program, root_scope, enclosing_scopes, type_table, &main_storage);
+  potential_types = build_potential_types(program, root_scope, enclosing_scopes, type_table, &main_storage);
+  do_narrow_types(program, type_table, potential_types, &main_storage);
 
   arena_free(&main_storage);
   return 0;

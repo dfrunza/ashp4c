@@ -11,4 +11,5 @@ Set* build_type_table(Ast* p4program, Scope* root_scope, UnboundedArray** type_a
 void resolve_type_xref(Set* type_table, UnboundedArray* type_array);
 Set* build_potential_types(Ast* ast, Scope* root_scope, Set* enclosing_scopes,
         Set* type_table, Arena* storage);
+void do_narrow_types(Ast* ast, Set* type_table, Set* potential_types, Arena* storage);
 
