@@ -207,7 +207,7 @@ apply_function(Set* P, Set* S, Ast* args)
           set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
         }
       }
-    }
+    } else assert(0);
   }
 }
 
