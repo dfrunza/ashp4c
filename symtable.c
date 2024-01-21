@@ -152,11 +152,12 @@ build_symtable(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, Arena* s
   root_scope = root_scope_;
   opened_scopes = opened_scopes_;
   storage = storage_;
-
   current_scope = root_scope;
   enclosing_scopes = arena_malloc(storage, sizeof(Set));
   *enclosing_scopes = (Set){};
+
   visit_p4program(p4program);
+
   assert(current_scope == root_scope);
   return enclosing_scopes;
 }

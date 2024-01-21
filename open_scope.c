@@ -152,7 +152,9 @@ build_open_scope(Ast* p4program, Scope* root_scope, Arena* storage_)
   opened_scopes = arena_malloc(storage, sizeof(Set));
   *opened_scopes = (Set){};
   current_scope = root_scope;
+
   visit_p4program(p4program);
+
   assert(current_scope == root_scope);
   return opened_scopes;
 }

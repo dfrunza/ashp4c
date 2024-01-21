@@ -261,9 +261,9 @@ Debug_print_potential_types(Set* table)
   {
     type = (Type*)m->key;
     if (type->strname) {
-      printf("[%d] %s\n", i, type->strname);
+      printf("[%d] 0x%x %s\n", i, (uint64_t)m, type->strname);
     } else {
-      printf("[%d] %s\n", i, Debug_TypeEnum_to_string(type->ctor));
+      printf("[%d] 0x%x %s\n", i, (uint64_t)m, Debug_TypeEnum_to_string(type->ctor));
     }
     i += 1;
   }
@@ -274,7 +274,7 @@ Debug_print_potential_types(Set* table)
 
 Set*
 build_potential_types(Ast* p4program, Scope* root_scope_, Set* enclosing_scopes_,
-          Set* type_table_, Arena* storage_, Arena* tmp_storage_)
+          Set* type_table_, Arena* storage_)
 {
   root_scope = root_scope_;
   enclosing_scopes = enclosing_scopes_;
@@ -282,7 +282,9 @@ build_potential_types(Ast* p4program, Scope* root_scope_, Set* enclosing_scopes_
   storage = storage_;
   potential_types = arena_malloc(storage, sizeof(Set));
   *potential_types = (Set){};
+
   visit_p4program(p4program);
+
   return potential_types;
 }
 

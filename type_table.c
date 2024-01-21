@@ -3,11 +3,11 @@
 #include "foundation.h"
 #include "frontend.h"
 
-typedef struct TypeEquivPair
+typedef struct TypePair
 {
   Type* left;
   Type* right;
-} TypeEquivPair;
+} TypePair;
 
 static Arena*   storage;
 static Scope*   root_scope;
@@ -215,8 +215,7 @@ product_type_cursor_next_type(ProductTypeCursor* cursor)
 int
 product_type_to_array(Type* type, UnboundedArray* array, Arena* storage)
 {
-  void
-  traverse_and_collect(Type* type, UnboundedArray* array, Arena* storage)
+  void traverse_and_collect(Type* type, UnboundedArray* array, Arena* storage)
   {
     if (!type) {
       return;
@@ -255,7 +254,7 @@ actual_type(Type* type)
 static bool
 structural_type_equiv(Type* left, Type* right)
 {
-  TypeEquivPair* type_pair;
+  TypePair* type_pair;
   int i;
 
   if (left == 0 && right == 0) {
@@ -267,14 +266,14 @@ structural_type_equiv(Type* left, Type* right)
   left = actual_type(left);
   right = actual_type(right);
   for (i = 0; i < type_equiv_pairs->elem_count; i++) {
-    type_pair = (TypeEquivPair*)array_get_element(type_equiv_pairs, i, sizeof(TypeEquivPair));
+    type_pair = (TypePair*)array_get_element(type_equiv_pairs, i, sizeof(TypePair));
     if ((left == type_pair->left || left == type_pair->right) &&
         (right == type_pair->left || right == type_pair->right)) {
       return true;
     }
   }
 
-  type_pair = (TypeEquivPair*)array_append_element(type_equiv_pairs, storage, sizeof(TypeEquivPair));
+  type_pair = (TypePair*)array_append_element(type_equiv_pairs, storage, sizeof(TypePair));
   type_pair->left = left;
   type_pair->right = right;
 
@@ -464,7 +463,7 @@ build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array
   type_table = arena_malloc(storage, sizeof(Set));
   *type_table = (Set){};
   type_array = array_create(storage, sizeof(Type), 1008);
-  type_equiv_pairs = array_create(storage, sizeof(TypeEquivPair), 48);
+  type_equiv_pairs = array_create(storage, sizeof(TypePair), 48);
 
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_decl = scope_lookup_namespace(root_scope, builtin_types[i].strname, NS_TYPE)->ns[NS_TYPE];
