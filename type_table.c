@@ -417,12 +417,12 @@ Debug_print_type_table(Set* table)
     ast = (Ast*)m->key;
     type = (Type*)m->value;
     if (type->strname) {
-      printf("[%d] %s ... %d:%d\n", i, type->strname, ast->line_no, ast->column_no);
+      printf("[%d] 0x%x %s ... %d:%d\n", i, (uint64_t)m, type->strname, ast->line_no, ast->column_no);
     } else {
       if (ast) {
-        printf("[%d] %s ... %d:%d\n", i, Debug_TypeEnum_to_string(type->ctor), ast->line_no, ast->column_no);
+        printf("[%d] 0x%x %s ... %d:%d\n", i, (uint64_t)m, Debug_TypeEnum_to_string(type->ctor), ast->line_no, ast->column_no);
       } else {
-        printf("[%d] %s\n", Debug_TypeEnum_to_string(type->ctor), i);
+        printf("[%d] 0x%x %s\n", i, (uint64_t)m, Debug_TypeEnum_to_string(type->ctor));
       }
     }
     i += 1;

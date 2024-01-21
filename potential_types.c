@@ -151,21 +151,20 @@ validate_param_and_arg_type(Type* param_ty, Ast* arg)
 {
   Type* arg_ty;
   Set* A;
-  SetCursor ci;
-  SetMember* m;
+  bool valid = true;
+
+  void visit_member_A(SetMember* m)
+  {
+    arg_ty = actual_type(m->key);
+    valid = valid && type_equiv(param_ty, arg_ty);
+  }
 
   if (!arg) {
     return false;
   }
   A = set_lookup_value(potential_types, arg, 0);
-  set_cursor_begin(&ci, A);
-  for (m = set_cursor_next_member(&ci); m != 0; m = set_cursor_next_member(&ci)) {
-    arg_ty = actual_type(m->key);
-    if (type_equiv(param_ty, arg_ty)) {
-      return true;
-    }
-  }
-  return false;
+  set_enumerate_members(A, visit_member_A);
+  return valid;
 }
 
 static void
@@ -175,16 +174,10 @@ apply_function(Set* P, Set* S, Ast* args)
   Type* func_ty, *method_ty;
   Type* param_ty; 
   Set* S_new;
-  SetMember* m;
-  SetCursor ci;
   ProductTypeCursor cp;
 
-  /* NOTE: The members of 'S' will become unused memory. */
-
-  S_new = arena_malloc(storage, sizeof(Set));
-  *S_new = (Set){};
-  set_cursor_begin(&ci, S);
-  for (m = set_cursor_next_member(&ci); m !=0; m = set_cursor_next_member(&ci)) {
+  void visit_member_S(SetMember* m)
+  {
     func_ty = actual_type(m->key);
     if (func_ty->ctor == TYPE_FUNCTION) {
       set_add_or_lookup_member(S_new, storage, func_ty, 0);
@@ -217,8 +210,8 @@ apply_function(Set* P, Set* S, Ast* args)
     } else assert(0);
   }
 
-  set_cursor_begin(&ci, S_new);
-  for (m = set_cursor_next_member(&ci); m != 0; m = set_cursor_next_member(&ci)) {
+  void visit_member_S_new(SetMember* m)
+  {
     func_ty = actual_type(m->key);
     if (func_ty->ctor == TYPE_FUNCTION) {
       param_ty = actual_type(func_ty->function.params);
@@ -249,6 +242,13 @@ apply_function(Set* P, Set* S, Ast* args)
       }
     } else assert(0);
   }
+
+  /* NOTE: The members of 'S' become unused memory. */
+
+  S_new = arena_malloc(storage, sizeof(Set));
+  *S_new = (Set){};
+  set_enumerate_members(S, visit_member_S);
+  set_enumerate_members(S_new, visit_member_S_new);
 }
 
 void

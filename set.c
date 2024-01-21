@@ -45,22 +45,23 @@ set_lookup_value(Set* set, void* key, void* default_)
 }
 
 static SetMember*
-insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, void* key, void* value)
+insert_member(SetMember* root, Arena* storage, SetMember** branch, SetMember* member, void* key, void* value)
 {
   if (!member) {
     member = arena_malloc(storage, sizeof(SetMember));
     *branch = member;
     member->key = key;
     member->value = value;
+    member->root = root;
     member->left_branch = 0;
     member->right_branch = 0;
     return member;
   } else if (member->key == key) {
     return 0;
   } else if (key < member->key) {
-    return insert_member(set, storage, &member->left_branch, member->left_branch, key, value);
+    return insert_member(member, storage, &member->left_branch, member->left_branch, key, value);
   } else {
-    return insert_member(set, storage, &member->right_branch, member->right_branch, key, value);
+    return insert_member(member, storage, &member->right_branch, member->right_branch, key, value);
   }
   assert(0);
   return 0;
@@ -69,26 +70,27 @@ insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, v
 SetMember*
 set_add_member(Set* set, Arena* storage, void* key, void* value)
 {
-  return insert_member(set, storage, &set->root, set->root, key, value);
+  return insert_member(set->root, storage, &set->root, set->root, key, value);
 }
 
 static SetMember*
-search_or_insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, void* key, void* value)
+search_or_insert_member(SetMember* root, Arena* storage, SetMember** branch, SetMember* member, void* key, void* value)
 {
   if (!member) {
     member = arena_malloc(storage, sizeof(SetMember));
     *branch = member;
     member->key = key;
     member->value = value;
+    member->root = root;
     member->left_branch = 0;
     member->right_branch = 0;
     return member;
   } else if (member->key == key) {
     return member;
   } else if (key < member->key) {
-    return search_or_insert_member(set, storage, &member->left_branch, member->left_branch, key, value);
+    return search_or_insert_member(member, storage, &member->left_branch, member->left_branch, key, value);
   } else {
-    return search_or_insert_member(set, storage, &member->right_branch, member->right_branch, key, value);
+    return search_or_insert_member(member, storage, &member->right_branch, member->right_branch, key, value);
   }
   assert(0);
   return 0;
@@ -97,7 +99,7 @@ search_or_insert_member(Set* set, Arena* storage, SetMember** branch, SetMember*
 SetMember*
 set_add_or_lookup_member(Set* set, Arena* storage, void* key, void* value)
 {
-  return search_or_insert_member(set, storage, &set->root, set->root, key, value);
+  return search_or_insert_member(set->root, storage, &set->root, set->root, key, value);
 }
 
 Set*
@@ -155,68 +157,3 @@ set_enumerate_members(Set* set, void (*visitor)(SetMember*))
   traverse_and_enumerate(set->root, visitor);
 }
 
-int
-set_clone(Set* src_set, Set* dst_set, Arena* storage)
-{
-  SetCursor it;
-  SetMember* m;
-  int n = 0;
-
-  set_cursor_begin(&it, src_set);
-  for (m = set_cursor_next_member(&it); m != 0; m = set_cursor_next_member(&it))
-  {
-    set_add_member(dst_set, storage, m->key, m->value);
-    n += 1;
-  }
-  return n;
-}
-
-void
-set_cursor_begin(SetCursor* cursor, Set* set)
-{
-  cursor->root = set->root;
-  cursor->member = set->root;
-  cursor->direction = CURSOR_LEFT;
-}
-
-SetMember*
-set_cursor_next_member(SetCursor* cursor)
-{
-  SetMember* member, *root;
-
-  /* PRE-ORDER TRAVERSAL */
-
-  if (!cursor->root) {
-    return 0;
-  }
-  member = cursor->member;
-  if (!member) {
-    if (cursor->direction == CURSOR_LEFT) {
-      cursor->direction = CURSOR_RIGHT;
-      cursor->member = cursor->root->right_branch;
-      return set_cursor_next_member(cursor);
-    } else if (cursor->direction == CURSOR_RIGHT) {
-      cursor->direction = CURSOR_UP;
-      return set_cursor_next_member(cursor);
-    } else if (cursor->direction == CURSOR_UP) {
-      cursor->direction = CURSOR_RIGHT;
-      root = cursor->root->root;
-      cursor->root = root;
-      if (root) {
-        cursor->member = root->right_branch;
-        return set_cursor_next_member(cursor);
-      }
-      return 0;
-    } else assert(0);
-  }
-  if (cursor->direction == CURSOR_LEFT) {
-    cursor->root = cursor->member;
-    cursor->member = member->left_branch;
-  } else if (cursor->direction == CURSOR_RIGHT) {
-    cursor->root = cursor->member;
-    cursor->member = member->right_branch;
-  } else if (cursor->direction == CURSOR_UP) {
-    cursor->member = member->root;
-  } else assert(0);
-  return member;
-}

@@ -122,7 +122,4 @@ Set*       set_open_inner_set(Set* set, Arena* storage, void* key);
 void*      set_lookup_value(Set* set, void* key, void* default_);
 int        set_members_to_array(Set* set, UnboundedArray* array, Arena* storage);
 void       set_enumerate_members(Set* set, void (*visitor)(SetMember*));
-int        set_clone(Set* src_set, Set* dst_set, Arena* dst_storage);
-void       set_cursor_begin(SetCursor* cursor, Set* set);
-SetMember* set_cursor_next_member(SetCursor* cursor);
 
