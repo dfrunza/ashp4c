@@ -934,9 +934,15 @@ typedef struct Type {
   };
 } Type;
 
-int   product_type_to_array(Type* type, UnboundedArray* array, Arena* storage);
+typedef struct ProductTypeCursor {
+  Type* type;
+} ProductTypeCursor;
+
 Type* actual_type(Type* type);
 bool  type_equiv(Type* u, Type* v);
+int   product_type_to_array(Type* type, UnboundedArray* array, Arena* storage);
+void  product_type_cursor_begin(ProductTypeCursor* cursor, Type* type);
+Type* product_type_cursor_next_type(ProductTypeCursor* cursor);
 char* Debug_TypeEnum_to_string(enum TypeEnum type);
 
 typedef struct Scope {

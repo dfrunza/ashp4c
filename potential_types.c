@@ -3,11 +3,10 @@
 #include "foundation.h"
 #include "frontend.h"
 
-static Arena*    storage, *tmp_storage;
+static Arena*    storage;
 static Scope*    root_scope;
 static Set*      enclosing_scopes;
 static Set*      type_table, *potential_types;
-static UnboundedArray* set_buffer, *ast_buffer, *type_buffer;
 
 /** PROGRAM **/
 
@@ -150,64 +149,81 @@ static void visit_dontcare(Ast* dontcare);
 static void
 apply_function(Set* P, Set* S, Ast* args)
 {
-  UnboundedArray *S_members = set_buffer,
-                 *param_list = type_buffer,
-                 *method_list = type_buffer,
-                 *arg_list = ast_buffer;
   Ast* arg;
-  Type* func_ty, *param_ty, *method_ty;
-  Set* A;
-  SetMember* m;
-  int i, j;
+  Type* func_ty, *method_ty;
+  Type* param_ty, *arg_ty; 
+  Set* A, *S_new;
+  SetMember* m, *o;
+  SetCursor ci, cj;
+  ProductTypeCursor cp;
 
-  set_members_to_array(S, S_members, storage);
-  S->root = 0;
-  for (i = 0; i < S_members->elem_count; i++) {
-    m = *(SetMember**)array_get_element(S_members, i, sizeof(SetMember*));
-    func_ty = m->key;
+  /* NOTE: The members of 'S' will become unused memory. */
+
+  S_new = arena_malloc(storage, sizeof(Set));
+  *S_new = (Set){};
+  set_cursor_begin(&ci, S);
+  for (m = set_cursor_next_member(&ci); m !=0; m = set_cursor_next_member(&ci)) {
+    func_ty = actual_type(m->key);
     if (func_ty->ctor == TYPE_FUNCTION) {
-      set_add_or_lookup_member(S, storage, func_ty, 0);
+      set_add_or_lookup_member(S_new, storage, func_ty, 0);
     } else if (func_ty->ctor == TYPE_PACKAGE) {
-      set_add_or_lookup_member(S, storage, actual_type(func_ty->package.ctor), 0);
+      set_add_or_lookup_member(S_new, storage, actual_type(func_ty->package.ctor), 0);
     } else if (func_ty->ctor == TYPE_PARSER) {
-      set_add_or_lookup_member(S, storage, actual_type(func_ty->parser.ctor), 0);
+      set_add_or_lookup_member(S_new, storage, actual_type(func_ty->parser.ctor), 0);
     } else if (func_ty->ctor == TYPE_CONTROL) {
-      set_add_or_lookup_member(S, storage, actual_type(func_ty->control.ctor), 0);
+      set_add_or_lookup_member(S_new, storage, actual_type(func_ty->control.ctor), 0);
     } else if (func_ty->ctor == TYPE_EXTERN) {
-      product_type_to_array(func_ty->extern_.methods, method_list, storage);
-      for (j = 0; j < method_list->elem_count; j++) {
-        method_ty = *(Type**)array_get_element(method_list, j, sizeof(Type*));
-        method_ty = actual_type(method_ty);
-        if (cstr_match(func_ty->strname, method_ty->strname)) {
-          set_add_or_lookup_member(S, storage, method_ty, 0);
+      method_ty = actual_type(func_ty->extern_.methods);
+      if (method_ty) {
+        if (method_ty->ctor == TYPE_PRODUCT) {
+          product_type_cursor_begin(&cp, func_ty->extern_.methods);
+          for (method_ty = product_type_cursor_next_type(&cp);
+              method_ty != 0; method_ty = product_type_cursor_next_type(&cp)) {
+            method_ty = actual_type(method_ty);
+            assert(method_ty->ctor == TYPE_FUNCTION);
+            if (cstr_match(func_ty->strname, method_ty->strname)) {
+              set_add_or_lookup_member(S_new, storage, method_ty, 0);
+            }
+          }
+        } else {
+          assert(method_ty->ctor == TYPE_FUNCTION);
+          if (cstr_match(func_ty->strname, method_ty->strname)) {
+            set_add_or_lookup_member(S_new, storage, method_ty, 0);
+          }
         }
       }
     } else assert(0);
   }
 
-  set_members_to_array(S, S_members, storage);
-  for (i = 0; i < S_members->elem_count; i++) {
-    m = *(SetMember**)array_get_element(S_members, i, sizeof(SetMember*));
-    func_ty = m->key;
+  set_cursor_begin(&ci, S_new);
+  for (m = set_cursor_next_member(&ci); m != 0; m = set_cursor_next_member(&ci)) {
+    func_ty = actual_type(m->key);
     if (func_ty->ctor == TYPE_FUNCTION) {
-      product_type_to_array(func_ty->function.params, param_list, storage);
-      ast_list_to_array(args->argumentList.first_child, arg_list, storage);
-      if (param_list->elem_count == arg_list->elem_count) {
-        for (j = 0; j < param_list->elem_count; j++) {
-          arg = *(Ast**)array_get_element(arg_list, j, sizeof(Ast*));
-          assert(arg->kind == AST_argument);
-          param_ty = *(Type**)array_get_element(param_list, j, sizeof(Type*));
-          param_ty = actual_type(param_ty);
+      param_ty = actual_type(func_ty->function.params);
+      arg = args->argumentList.first_child;
+      if (param_ty && arg) {
+        if (param_ty->ctor == TYPE_PRODUCT) {
+          product_type_cursor_begin(&cp, func_ty->function.params);
+          for (param_ty = product_type_cursor_next_type(&cp);
+              param_ty != 0; param_ty = product_type_cursor_next_type(&cp)) {
+            if (arg) {
+              arg = arg->right_sibling;
+            }
+          }
+        } else {
           A = set_lookup_value(potential_types, arg, 0);
-          assert(0);
-          /*
-           * For all 'a' in A, is 'param_ty' type-equivalent to 'a'?
-           * If yes - then add 'function.return_' type to 'P'.
-           * Else - break the for loop. */
+          set_cursor_begin(&cj, A);
+          for (o = set_cursor_next_member(&cj); o != 0; o = set_cursor_next_member(&cj)) {
+            arg_ty = actual_type(o->key);
+            if (type_equiv(param_ty, arg_ty)) {
+              set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
+            }
+          }
         }
-        if (j == param_list->elem_count) {
-          set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
-        }
+      } else if (param_ty || arg) {
+        ;
+      } else { /* param == 0 and arg == 0 */
+        set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
       }
     } else assert(0);
   }
@@ -242,12 +258,8 @@ build_potential_types(Ast* p4program, Scope* root_scope_, Set* enclosing_scopes_
   enclosing_scopes = enclosing_scopes_;
   type_table = type_table_;
   storage = storage_;
-  tmp_storage = tmp_storage_;
   potential_types = arena_malloc(storage, sizeof(Set));
   *potential_types = (Set){};
-  set_buffer = array_create(storage, sizeof(SetMember*), 16);
-  ast_buffer = array_create(storage, sizeof(Ast*), 16);
-  type_buffer = array_create(storage, sizeof(Type*), 16);
   visit_p4program(p4program);
   return potential_types;
 }
@@ -324,9 +336,8 @@ visit_name(Ast* name)
   name_decl[1] = name_entry->ns[NS_TYPE];
   for (int i = 0; i < 2; i++) {
     while (name_decl[i]) {
-      type = set_lookup_value(type_table, name_decl[i]->ast, 0);
+      type = actual_type(set_lookup_value(type_table, name_decl[i]->ast, 0));
       if (type) {
-        type = actual_type(type);
         set_add_or_lookup_member(P, storage, type, 0);
         printf("%s (%d:%d) -> %s\n", name->name.strname, name->line_no, name->column_no,
                Debug_TypeEnum_to_string(type->ctor));

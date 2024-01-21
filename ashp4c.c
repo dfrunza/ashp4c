@@ -21,6 +21,9 @@ read_source_text(char* filename, Arena* storage)
   char* text;
 
   f_stream = fopen(filename, "rb");
+  if (!f_stream) {
+    error("Could not open file '%s'\n", filename);
+  }
   fseek(f_stream, 0, SEEK_END);
   int text_size = ftell(f_stream);
   fseek(f_stream, 0, SEEK_SET);
@@ -98,7 +101,7 @@ parse_cmdline_args(int arg_count, char* args[], Arena* storage)
 }
 
 static Ast*
-syntax_analysis(CmdlineArg* filename, Scope** root_scope, Arena* storage, Arena* tmp_storage)
+syntactic_analysis(CmdlineArg* filename, Scope** root_scope, Arena* storage, Arena* tmp_storage)
 {
   SourceText source_text;
   UnboundedArray* tokens;
@@ -111,7 +114,7 @@ syntax_analysis(CmdlineArg* filename, Scope** root_scope, Arena* storage, Arena*
 }
 
 static void
-semantic_analysis(Ast* program, Scope* root_scope, Arena* storage, Arena* tmp_storage)
+semantic_analysis(Ast* program, Scope* root_scope, Arena* storage)
 {
   Set* opened_scopes, *enclosing_scopes;
   Set* type_table, *potential_types;
@@ -126,7 +129,7 @@ semantic_analysis(Ast* program, Scope* root_scope, Arena* storage, Arena* tmp_st
   resolve_type_xref(type_table, type_array);
 
   potential_types = build_potential_types(program, root_scope, enclosing_scopes,
-          type_table, storage, tmp_storage);
+          type_table, storage);
   do_narrow_types(program, type_table, potential_types, storage);
 }
 
@@ -147,11 +150,10 @@ main(int arg_count, char* args[])
     exit(1);
   }
 
-  program = syntax_analysis(filename, &root_scope, &storage, &tmp_storage);
+  program = syntactic_analysis(filename, &root_scope, &storage, &tmp_storage);
   arena_free(&tmp_storage);
 
-  semantic_analysis(program, root_scope, &storage, &tmp_storage);
-  arena_free(&tmp_storage);
+  semantic_analysis(program, root_scope, &storage);
 
   arena_free(&storage);
   return 0;

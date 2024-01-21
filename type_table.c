@@ -3,11 +3,18 @@
 #include "foundation.h"
 #include "frontend.h"
 
+typedef struct TypeEquivPair
+{
+  Type* left;
+  Type* right;
+} TypeEquivPair;
+
 static Arena*   storage;
 static Scope*   root_scope;
 static Set*     opened_scopes, *enclosing_scopes;
 static Set*     type_table;
 static UnboundedArray* type_array;
+static UnboundedArray* type_equiv_pairs;
 
 /** PROGRAM **/
 
@@ -179,84 +186,30 @@ create_product_type(int i, int j, Arena* storage)
   return 0;
 }
 
-Type*
-actual_type(Type* type)
+void
+product_type_cursor_begin(ProductTypeCursor* cursor, Type* type)
 {
-  if (type->ctor == TYPE_TYPE) {
-    return type->type.type;
-  } else {
-    return type;
-  }
-  assert(0);
-  return 0;
+  assert(type->ctor == TYPE_PRODUCT);
+  cursor->type = type;
 }
 
-bool
-type_equiv(Type* u, Type* v)
+Type*
+product_type_cursor_next_type(ProductTypeCursor* cursor)
 {
-  Type *p = 0, *q = 0;
+  Type* type;
 
-  if ((u == p || u == q) && (v == p || v == q)) {
-    return true;
+  type = cursor->type;
+  if (!type) {
+    return 0;
   }
-
-  p = u; q = v;
-
-  if (u->ctor != v->ctor) {
-    return false;
+  if (type->ctor == TYPE_PRODUCT) {
+    cursor->type = type->product.rhs;
+    type = type->product.lhs;
+    assert(type->ctor != TYPE_PRODUCT);
+    return type;
   }
-  if (u->ctor == TYPE_VOID || u->ctor == TYPE_BOOL || u->ctor == TYPE_INT ||
-      u->ctor == TYPE_BIT || u->ctor == TYPE_VARBIT || u->ctor == TYPE_STRING ||
-      u->ctor == TYPE_DONTCARE) {
-    return true;
-  }
-  if (u->ctor == TYPE_ENUM) {
-    return cstr_match(u->strname, v->strname);
-  }
-  if (u->ctor == TYPE_TYPEVAR) {
-    return true; /* TODO */
-  }
-  if (u->ctor == TYPE_PRODUCT) {
-    if (!type_equiv(u->product.lhs, v->product.rhs)) {
-      return false;
-    }
-    if (!type_equiv(u->product.lhs, v->product.rhs)) {
-      return false;
-    }
-    return true;
-  }
-  if (u->ctor == TYPE_FUNCTION) {
-    if (!type_equiv(u->function.return_, v->function.return_)) {
-      return false;
-    }
-    if (!type_equiv(u->function.params, v->function.params)) {
-      return false;
-    }
-    return true;
-  }
-  if (u->ctor == TYPE_EXTERN || u->ctor == TYPE_TABLE) {
-    return cstr_match(u->strname, v->strname);
-  }
-  if (u->ctor == TYPE_PACKAGE) {
-    return type_equiv(u->package.ctor, v->package.ctor);
-  }
-  if (u->ctor == TYPE_PARSER) {
-    return type_equiv(u->parser.ctor, v->parser.ctor);
-  }
-  if (u->ctor == TYPE_CONTROL) {
-    return type_equiv(u->control.ctor, v->control.ctor);
-  }
-  if (u->ctor == TYPE_STRUCT) {
-    return type_equiv(u->struct_.fields, v->struct_.fields);
-  }
-  if (u->ctor == TYPE_ARRAY) {
-    return type_equiv(u->array.element, v->array.element);
-  }
-  if (u->ctor == TYPE_SPECIALIZED) {
-    return type_equiv(u->specialized.ref, v->specialized.ref);
-  }
-  assert(0);
-  return false;
+  cursor->type = 0;
+  return type;
 }
 
 int
@@ -282,6 +235,108 @@ product_type_to_array(Type* type, UnboundedArray* array, Arena* storage)
   }
   traverse_and_collect(type, array, storage);
   return array->elem_count;
+}
+
+Type*
+actual_type(Type* type)
+{
+  if (!type) {
+    return 0;
+  }
+  if (type->ctor == TYPE_TYPE) {
+    return type->type.type;
+  } else {
+    return type;
+  }
+  assert(0);
+  return 0;
+}
+
+static bool
+structural_type_equiv(Type* left, Type* right)
+{
+  TypeEquivPair* type_pair;
+  int i;
+
+  if (left == 0 && right == 0) {
+    return true;
+  } else if (left == 0 || right == 0) {
+    return false;
+  }
+
+  for (i = 0; i < type_equiv_pairs->elem_count; i++) {
+    type_pair = (TypeEquivPair*)array_get_element(type_equiv_pairs, i, sizeof(TypeEquivPair));
+    if ((left == type_pair->left || left == type_pair->right) &&
+        (right == type_pair->left || right == type_pair->right)) {
+      return true;
+    }
+  }
+  type_pair = (TypeEquivPair*)array_append_element(type_equiv_pairs, storage, sizeof(TypeEquivPair));
+  type_pair->left = left;
+  type_pair->right = right;
+
+  if (left->ctor != right->ctor) {
+    return false;
+  }
+  if (left->ctor == TYPE_VOID || left->ctor == TYPE_BOOL || left->ctor == TYPE_INT ||
+      left->ctor == TYPE_BIT || left->ctor == TYPE_VARBIT || left->ctor == TYPE_STRING ||
+      left->ctor == TYPE_DONTCARE) {
+    return true;
+  }
+  if (left->ctor == TYPE_ENUM) {
+    return cstr_match(left->strname, right->strname);
+  }
+  if (left->ctor == TYPE_TYPEVAR) {
+    return true; /* TODO */
+  }
+  if (left->ctor == TYPE_PRODUCT) {
+    if (!structural_type_equiv(left->product.lhs, right->product.rhs)) {
+      return false;
+    }
+    if (!structural_type_equiv(left->product.lhs, right->product.rhs)) {
+      return false;
+    }
+    return true;
+  }
+  if (left->ctor == TYPE_FUNCTION) {
+    if (!structural_type_equiv(left->function.return_, right->function.return_)) {
+      return false;
+    }
+    if (!structural_type_equiv(left->function.params, right->function.params)) {
+      return false;
+    }
+    return true;
+  }
+  if (left->ctor == TYPE_EXTERN || left->ctor == TYPE_TABLE) {
+    return cstr_match(left->strname, right->strname);
+  }
+  if (left->ctor == TYPE_PACKAGE) {
+    return structural_type_equiv(left->package.ctor, right->package.ctor);
+  }
+  if (left->ctor == TYPE_PARSER) {
+    return structural_type_equiv(left->parser.ctor, right->parser.ctor);
+  }
+  if (left->ctor == TYPE_CONTROL) {
+    return structural_type_equiv(left->control.ctor, right->control.ctor);
+  }
+  if (left->ctor == TYPE_STRUCT) {
+    return structural_type_equiv(left->struct_.fields, right->struct_.fields);
+  }
+  if (left->ctor == TYPE_ARRAY) {
+    return structural_type_equiv(left->array.element, right->array.element);
+  }
+  if (left->ctor == TYPE_SPECIALIZED) {
+    return structural_type_equiv(left->specialized.ref, right->specialized.ref);
+  }
+  assert(0);
+  return false;
+}
+
+bool
+type_equiv(Type* left, Type* right)
+{
+  type_equiv_pairs->elem_count = 0;
+  return structural_type_equiv(left, right);
 }
 
 char*
@@ -375,6 +430,7 @@ build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array
   type_table = arena_malloc(storage, sizeof(Set));
   *type_table = (Set){};
   type_array = array_create(storage, sizeof(Type), 1008);
+  type_equiv_pairs = array_create(storage, sizeof(TypeEquivPair), 48);
 
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_decl = scope_lookup_namespace(root_scope, builtin_types[i].strname, NS_TYPE)->ns[NS_TYPE];

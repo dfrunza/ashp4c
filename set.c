@@ -3,9 +3,9 @@
 #include "foundation.h"
 
 enum CursorPosition {
-  UP = 0,
-  DOWN_LEFT,
-  DOWN_RIGHT,
+  CURSOR_UP = 0,
+  CURSOR_LEFT,
+  CURSOR_RIGHT,
 
   CursorPosition_COUNT
 };
@@ -155,38 +155,67 @@ set_enumerate_members(Set* set, void (*visitor)(SetMember*))
   traverse_and_enumerate(set->root, visitor);
 }
 
+int
+set_clone(Set* src_set, Set* dst_set, Arena* storage)
+{
+  SetCursor it;
+  SetMember* m;
+  int n = 0;
+
+  set_cursor_begin(&it, src_set);
+  for (m = set_cursor_next_member(&it); m != 0; m = set_cursor_next_member(&it))
+  {
+    set_add_member(dst_set, storage, m->key, m->value);
+    n += 1;
+  }
+  return n;
+}
+
 void
 set_cursor_begin(SetCursor* cursor, Set* set)
 {
   cursor->root = set->root;
   cursor->member = set->root;
-  cursor->direction = DOWN_LEFT;
+  cursor->direction = CURSOR_LEFT;
 }
 
 SetMember*
 set_cursor_next_member(SetCursor* cursor)
 {
-  SetMember* member;
+  SetMember* member, *root;
 
+  /* PRE-ORDER TRAVERSAL */
+
+  if (!cursor->root) {
+    return 0;
+  }
   member = cursor->member;
   if (!member) {
-    if (cursor->direction == DOWN_LEFT || cursor->direction == DOWN_RIGHT) {
-      cursor->direction = UP;
+    if (cursor->direction == CURSOR_LEFT) {
+      cursor->direction = CURSOR_RIGHT;
+      cursor->member = cursor->root->right_branch;
       return set_cursor_next_member(cursor);
-    } else if (cursor->direction == UP) {
-      if (member) {
-        cursor->member = member->root;
+    } else if (cursor->direction == CURSOR_RIGHT) {
+      cursor->direction = CURSOR_UP;
+      return set_cursor_next_member(cursor);
+    } else if (cursor->direction == CURSOR_UP) {
+      cursor->direction = CURSOR_RIGHT;
+      root = cursor->root->root;
+      cursor->root = root;
+      if (root) {
+        cursor->member = root->right_branch;
         return set_cursor_next_member(cursor);
-      } else {
-        return 0;
       }
-    }
+      return 0;
+    } else assert(0);
   }
-  if (cursor->direction == DOWN_LEFT) {
+  if (cursor->direction == CURSOR_LEFT) {
+    cursor->root = cursor->member;
     cursor->member = member->left_branch;
-  } else if (cursor->direction == DOWN_RIGHT) {
+  } else if (cursor->direction == CURSOR_RIGHT) {
+    cursor->root = cursor->member;
     cursor->member = member->right_branch;
-  } else if (cursor->direction == UP) {
+  } else if (cursor->direction == CURSOR_UP) {
     cursor->member = member->root;
   } else assert(0);
   return member;
