@@ -907,7 +907,12 @@ typedef struct Type {
 
     struct {
       struct Type* ctor;
-    } package, parser, control;
+    } package;
+
+    struct {
+      struct Type* ctor;
+      struct Type* params;
+    } parser, control;
 
     struct {
       struct Type* element;

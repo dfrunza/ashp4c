@@ -264,6 +264,8 @@ structural_type_equiv(Type* left, Type* right)
     return false;
   }
 
+  left = actual_type(left);
+  right = actual_type(right);
   for (i = 0; i < type_equiv_pairs->elem_count; i++) {
     type_pair = (TypeEquivPair*)array_get_element(type_equiv_pairs, i, sizeof(TypeEquivPair));
     if ((left == type_pair->left || left == type_pair->right) &&
@@ -271,9 +273,6 @@ structural_type_equiv(Type* left, Type* right)
       return true;
     }
   }
-  type_pair = (TypeEquivPair*)array_append_element(type_equiv_pairs, storage, sizeof(TypeEquivPair));
-  type_pair->left = left;
-  type_pair->right = right;
 
   if (left->ctor != right->ctor) {
     return false;
@@ -287,8 +286,16 @@ structural_type_equiv(Type* left, Type* right)
     return cstr_match(left->strname, right->strname);
   }
   if (left->ctor == TYPE_TYPEVAR) {
-    return true; /* TODO */
+    return cstr_match(left->strname, right->strname);
   }
+  if (left->ctor == TYPE_EXTERN || left->ctor == TYPE_TABLE) {
+    return cstr_match(left->strname, right->strname);
+  }
+
+  type_pair = (TypeEquivPair*)array_append_element(type_equiv_pairs, storage, sizeof(TypeEquivPair));
+  type_pair->left = left;
+  type_pair->right = right;
+
   if (left->ctor == TYPE_PRODUCT) {
     if (!structural_type_equiv(left->product.lhs, right->product.rhs)) {
       return false;
@@ -307,17 +314,14 @@ structural_type_equiv(Type* left, Type* right)
     }
     return true;
   }
-  if (left->ctor == TYPE_EXTERN || left->ctor == TYPE_TABLE) {
-    return cstr_match(left->strname, right->strname);
-  }
   if (left->ctor == TYPE_PACKAGE) {
     return structural_type_equiv(left->package.ctor, right->package.ctor);
   }
   if (left->ctor == TYPE_PARSER) {
-    return structural_type_equiv(left->parser.ctor, right->parser.ctor);
+    return structural_type_equiv(left->parser.params, right->parser.params);
   }
   if (left->ctor == TYPE_CONTROL) {
-    return structural_type_equiv(left->control.ctor, right->control.ctor);
+    return structural_type_equiv(left->control.params, right->control.params);
   }
   if (left->ctor == TYPE_STRUCT) {
     return structural_type_equiv(left->struct_.fields, right->struct_.fields);
@@ -327,6 +331,9 @@ structural_type_equiv(Type* left, Type* right)
   }
   if (left->ctor == TYPE_SPECIALIZED) {
     return structural_type_equiv(left->specialized.ref, right->specialized.ref);
+  }
+  if (left->ctor == TYPE_TYPEDEF) {
+    return structural_type_equiv(left->typedef_.ref, right->typedef_.ref);
   }
   assert(0);
   return false;
@@ -604,6 +611,9 @@ static void
 visit_parserDeclaration(Ast* parser_decl)
 {
   assert(parser_decl->kind == AST_parserDeclaration);
+  Ast* ctor_params, *ast;
+  Type* parser_ty, *ctor_ty, *ty;
+  int i;
 
   visit_typeDeclaration(parser_decl->parserDeclaration.proto);
   if (parser_decl->parserDeclaration.ctor_params) {
@@ -611,6 +621,20 @@ visit_parserDeclaration(Ast* parser_decl)
   }
   visit_parserLocalElements(parser_decl->parserDeclaration.local_elements);
   visit_parserStates(parser_decl->parserDeclaration.states);
+
+  ctor_params = parser_decl->parserDeclaration.ctor_params;
+  if (ctor_params) {
+    parser_ty = set_lookup_value(type_table, parser_decl->parserDeclaration.proto, 0);
+    ctor_ty = parser_ty->parser.ctor;
+    i = type_array->elem_count;
+    for (ast = ctor_params->parameterList.first_child;
+         ast != 0; ast = ast->right_sibling) {
+      ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+      ty->ctor = TYPE_IDREF;
+      ty->idref.ref = ast->parameter.type;
+    }
+    ctor_ty->function.params = create_product_type(i, type_array->elem_count, storage);
+  }
 }
 
 static void
@@ -634,12 +658,6 @@ visit_parserTypeDeclaration(Ast* type_decl)
   m = set_add_member(type_table, storage, type_decl, parser_ty);
   assert(m);
 
-  ctor_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-  ctor_ty->ctor = TYPE_FUNCTION;
-  ctor_ty->strname = name->name.strname;
-  ctor_ty->function.return_ = parser_ty;
-  parser_ty->parser.ctor = ctor_ty;
-
   i = type_array->elem_count;
   params = type_decl->parserTypeDeclaration.params;
   for (ast = params->parameterList.first_child;
@@ -648,7 +666,13 @@ visit_parserTypeDeclaration(Ast* type_decl)
     ty->ctor = TYPE_IDREF;
     ty->idref.ref = ast->parameter.type;
   }
-  ctor_ty->function.params = create_product_type(i, type_array->elem_count, storage);
+  parser_ty->parser.params = create_product_type(i, type_array->elem_count, storage);
+
+  ctor_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+  ctor_ty->ctor = TYPE_FUNCTION;
+  ctor_ty->strname = name->name.strname;
+  ctor_ty->function.return_ = parser_ty;
+  parser_ty->parser.ctor = ctor_ty;
 }
 
 static void
@@ -825,6 +849,9 @@ static void
 visit_controlDeclaration(Ast* control_decl)
 {
   assert(control_decl->kind == AST_controlDeclaration);
+  Ast* ctor_params, *ast;
+  Type* control_ty, *ctor_ty, *ty;
+  int i;
 
   visit_typeDeclaration(control_decl->controlDeclaration.proto);
   if (control_decl->controlDeclaration.ctor_params) {
@@ -832,6 +859,20 @@ visit_controlDeclaration(Ast* control_decl)
   }
   visit_controlLocalDeclarations(control_decl->controlDeclaration.local_decls);
   visit_blockStatement(control_decl->controlDeclaration.apply_stmt);
+
+  ctor_params = control_decl->controlDeclaration.ctor_params;
+  if (ctor_params) {
+    control_ty = set_lookup_value(type_table, control_decl->controlDeclaration.proto, 0);
+    ctor_ty = control_ty->control.ctor;
+    i = type_array->elem_count;
+    for (ast = ctor_params->parameterList.first_child;
+         ast != 0; ast = ast->right_sibling) {
+      ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+      ty->ctor = TYPE_IDREF;
+      ty->idref.ref = ast->parameter.type;
+    }
+    ctor_ty->function.params = create_product_type(i, type_array->elem_count, storage);
+  }
 }
 
 static void
@@ -855,12 +896,6 @@ visit_controlTypeDeclaration(Ast* type_decl)
   m = set_add_member(type_table, storage, type_decl, control_ty);
   assert(m);
 
-  ctor_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-  ctor_ty->ctor = TYPE_FUNCTION;
-  ctor_ty->strname = name->name.strname;
-  ctor_ty->function.return_ = control_ty;
-  control_ty->control.ctor = ctor_ty;
-
   i = type_array->elem_count;
   params = type_decl->packageTypeDeclaration.params;
   for (ast = params->parameterList.first_child;
@@ -869,7 +904,13 @@ visit_controlTypeDeclaration(Ast* type_decl)
     ty->ctor = TYPE_IDREF;
     ty->idref.ref = ast->parameter.type;
   }
-  ctor_ty->function.params = create_product_type(i, type_array->elem_count, storage);
+  control_ty->control.params = create_product_type(i, type_array->elem_count, storage);
+
+  ctor_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+  ctor_ty->ctor = TYPE_FUNCTION;
+  ctor_ty->strname = name->name.strname;
+  ctor_ty->function.return_ = control_ty;
+  control_ty->control.ctor = ctor_ty;
 }
 
 static void
@@ -1288,6 +1329,9 @@ static void
 visit_typeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_typeDeclaration);
+  Type* decl_ty;
+  SetMember* m;
+
   if (type_decl->typeDeclaration.decl->kind == AST_derivedTypeDeclaration) {
     visit_derivedTypeDeclaration(type_decl->typeDeclaration.decl);
   } else if (type_decl->typeDeclaration.decl->kind == AST_typedefDeclaration) {
@@ -1299,6 +1343,10 @@ visit_typeDeclaration(Ast* type_decl)
   } else if (type_decl->typeDeclaration.decl->kind == AST_packageTypeDeclaration) {
     visit_packageTypeDeclaration(type_decl->typeDeclaration.decl);
   } else assert(0);
+
+  decl_ty = set_lookup_value(type_table, type_decl->typeDeclaration.decl, 0);
+  m = set_add_member(type_table, storage, type_decl, decl_ty);
+  assert(m);
 }
 
 static void
