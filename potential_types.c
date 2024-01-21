@@ -146,15 +146,37 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
+static bool
+validate_param_and_arg_type(Type* param_ty, Ast* arg)
+{
+  Type* arg_ty;
+  Set* A;
+  SetCursor ci;
+  SetMember* m;
+
+  if (!arg) {
+    return false;
+  }
+  A = set_lookup_value(potential_types, arg, 0);
+  set_cursor_begin(&ci, A);
+  for (m = set_cursor_next_member(&ci); m != 0; m = set_cursor_next_member(&ci)) {
+    arg_ty = actual_type(m->key);
+    if (type_equiv(param_ty, arg_ty)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static void
 apply_function(Set* P, Set* S, Ast* args)
 {
   Ast* arg;
   Type* func_ty, *method_ty;
-  Type* param_ty, *arg_ty; 
-  Set* A, *S_new;
-  SetMember* m, *o;
-  SetCursor ci, cj;
+  Type* param_ty; 
+  Set* S_new;
+  SetMember* m;
+  SetCursor ci;
   ProductTypeCursor cp;
 
   /* NOTE: The members of 'S' will become unused memory. */
@@ -206,23 +228,23 @@ apply_function(Set* P, Set* S, Ast* args)
           product_type_cursor_begin(&cp, func_ty->function.params);
           for (param_ty = product_type_cursor_next_type(&cp);
               param_ty != 0; param_ty = product_type_cursor_next_type(&cp)) {
-            if (arg) {
-              arg = arg->right_sibling;
+            param_ty = actual_type(param_ty);
+            if (!validate_param_and_arg_type(param_ty, arg)) {
+              break;
             }
+            arg = arg->right_sibling;
+          }
+          if (param_ty == 0 && arg == 0) {
+            set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
           }
         } else {
-          A = set_lookup_value(potential_types, arg, 0);
-          set_cursor_begin(&cj, A);
-          for (o = set_cursor_next_member(&cj); o != 0; o = set_cursor_next_member(&cj)) {
-            arg_ty = actual_type(o->key);
-            if (type_equiv(param_ty, arg_ty)) {
-              set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
-            }
+          if (validate_param_and_arg_type(param_ty, arg)) {
+            set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
           }
         }
       } else if (param_ty || arg) {
         ;
-      } else { /* param == 0 and arg == 0 */
+      } else { /* param == 0 && arg == 0 */
         set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
       }
     } else assert(0);

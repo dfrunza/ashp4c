@@ -274,67 +274,94 @@ structural_type_equiv(Type* left, Type* right)
     }
   }
 
-  if (left->ctor != right->ctor) {
-    return false;
-  }
-  if (left->ctor == TYPE_VOID || left->ctor == TYPE_BOOL || left->ctor == TYPE_INT ||
-      left->ctor == TYPE_BIT || left->ctor == TYPE_VARBIT || left->ctor == TYPE_STRING ||
-      left->ctor == TYPE_DONTCARE) {
-    return true;
-  }
-  if (left->ctor == TYPE_ENUM) {
-    return cstr_match(left->strname, right->strname);
-  }
-  if (left->ctor == TYPE_TYPEVAR) {
-    return cstr_match(left->strname, right->strname);
-  }
-  if (left->ctor == TYPE_EXTERN || left->ctor == TYPE_TABLE) {
-    return cstr_match(left->strname, right->strname);
-  }
-
   type_pair = (TypeEquivPair*)array_append_element(type_equiv_pairs, storage, sizeof(TypeEquivPair));
   type_pair->left = left;
   type_pair->right = right;
 
-  if (left->ctor == TYPE_PRODUCT) {
-    if (!structural_type_equiv(left->product.lhs, right->product.rhs)) {
-      return false;
+  if (left->ctor == TYPE_VOID || left->ctor == TYPE_BOOL || left->ctor == TYPE_INT ||
+      left->ctor == TYPE_BIT || left->ctor == TYPE_VARBIT || left->ctor == TYPE_STRING ||
+      left->ctor == TYPE_DONTCARE) {
+    if (right->ctor == left->ctor) {
+      return true;
     }
-    if (!structural_type_equiv(left->product.lhs, right->product.rhs)) {
-      return false;
+    goto deref_right;
+  } else if (left->ctor == TYPE_ENUM) {
+    if (right->ctor == left->ctor) {
+      return cstr_match(left->strname, right->strname);
     }
-    return true;
-  }
-  if (left->ctor == TYPE_FUNCTION) {
-    if (!structural_type_equiv(left->function.return_, right->function.return_)) {
-      return false;
+    goto deref_right;
+  } else if (left->ctor == TYPE_TYPEVAR) {
+    if (right->ctor == left->ctor) {
+      return cstr_match(left->strname, right->strname);
     }
-    if (!structural_type_equiv(left->function.params, right->function.params)) {
-      return false;
+    goto deref_right;
+  } else if (left->ctor == TYPE_EXTERN || left->ctor == TYPE_TABLE) {
+    if (right->ctor == left->ctor) {
+      return cstr_match(left->strname, right->strname);
     }
-    return true;
+    goto deref_right;
+  } else if (left->ctor == TYPE_PRODUCT) {
+    if (right->ctor == left->ctor) {
+      if (!structural_type_equiv(left->product.lhs, right->product.lhs)) {
+        return false;
+      }
+      if (!structural_type_equiv(left->product.rhs, right->product.rhs)) {
+        return false;
+      }
+      return true;
+    }
+    goto deref_right;
+  } else if (left->ctor == TYPE_FUNCTION) {
+    if (right->ctor == left->ctor) {
+      if (!structural_type_equiv(left->function.return_, right->function.return_)) {
+        return false;
+      }
+      if (!structural_type_equiv(left->function.params, right->function.params)) {
+        return false;
+      }
+      return true;
+    }
+    goto deref_right;
+  } else if (left->ctor == TYPE_PACKAGE) {
+    if (right->ctor == left->ctor) {
+      return structural_type_equiv(left->package.ctor, right->package.ctor);
+    }
+    goto deref_right;
+  } else if (left->ctor == TYPE_PARSER) {
+    if (right->ctor == left->ctor) {
+      return structural_type_equiv(left->parser.params, right->parser.params);
+    }
+    goto deref_right;
+  } else if (left->ctor == TYPE_CONTROL) {
+    if (right->ctor == left->ctor) {
+      return structural_type_equiv(left->control.params, right->control.params);
+    }
+    goto deref_right;
+  } else if (left->ctor == TYPE_STRUCT) {
+    if (right->ctor == left->ctor) {
+      return structural_type_equiv(left->struct_.fields, right->struct_.fields);
+    }
+    goto deref_right;
+  } else if (left->ctor == TYPE_ARRAY) {
+    if (right->ctor == left->ctor) {
+      return structural_type_equiv(left->array.element, right->array.element);
+    }
+    goto deref_right;
+  } else if (left->ctor == TYPE_SPECIALIZED) {
+    return structural_type_equiv(left->specialized.ref, right);
+  } else if (left->ctor == TYPE_TYPEDEF) {
+    return structural_type_equiv(left->typedef_.ref, right);
+  } else assert(0);
+
+deref_right:
+  if (right->ctor == TYPE_SPECIALIZED) {
+    return structural_type_equiv(left, right->specialized.ref);
+  } else if (right->ctor == TYPE_TYPEDEF) {
+    return structural_type_equiv(left, right->typedef_.ref);
+  } else {
+    return false;
   }
-  if (left->ctor == TYPE_PACKAGE) {
-    return structural_type_equiv(left->package.ctor, right->package.ctor);
-  }
-  if (left->ctor == TYPE_PARSER) {
-    return structural_type_equiv(left->parser.params, right->parser.params);
-  }
-  if (left->ctor == TYPE_CONTROL) {
-    return structural_type_equiv(left->control.params, right->control.params);
-  }
-  if (left->ctor == TYPE_STRUCT) {
-    return structural_type_equiv(left->struct_.fields, right->struct_.fields);
-  }
-  if (left->ctor == TYPE_ARRAY) {
-    return structural_type_equiv(left->array.element, right->array.element);
-  }
-  if (left->ctor == TYPE_SPECIALIZED) {
-    return structural_type_equiv(left->specialized.ref, right->specialized.ref);
-  }
-  if (left->ctor == TYPE_TYPEDEF) {
-    return structural_type_equiv(left->typedef_.ref, right->typedef_.ref);
-  }
+
   assert(0);
   return false;
 }
