@@ -1,8 +1,6 @@
-#include <memory.h>  /* memset */
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>   /* exit */
-#include <stdarg.h>   /* va_list, va_start, va_end */
 #include "foundation.h"
 #include "frontend.h"
 #include "ashp4c.h"
