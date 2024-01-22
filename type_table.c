@@ -353,6 +353,7 @@ Debug_TypeEnum_to_string(enum TypeEnum type)
 {
   switch(type) {
     case TYPE_NONE: return "TYPE_NONE";
+    case TYPE_VOID: return "TYPE_VOID";
     case TYPE_BOOL: return "TYPE_BOOL";
     case TYPE_INT: return "TYPE_INT";
     case TYPE_BIT: return "TYPE_BIT";

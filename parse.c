@@ -549,6 +549,7 @@ char*
 Debug_AstEnum_to_string(enum AstEnum ast)
 {
   switch (ast) {
+    case AST_none: return "AST_none";
 
     /** PROGRAM **/
 

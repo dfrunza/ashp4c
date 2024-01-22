@@ -247,6 +247,25 @@ apply_function(Set* P, Set* S, Ast* args)
   }
 }
 
+void
+Debug_print_potential_types(Set* table)
+{
+  SetMember* m;
+  Type* type;
+  int i;
+
+  i = 0;
+  for (m = table->first; m != 0; m = m->next) {
+    type = (Type*)m->key;
+    if (type->strname) {
+      printf("  [%d] 0x%x %s %s\n", i, m, Debug_TypeEnum_to_string(type->ctor), type->strname);
+    } else {
+      printf("  [%d] 0x%x %s\n", i, m, Debug_TypeEnum_to_string(type->ctor));
+    }
+    i += 1;
+  }
+}
+
 Set*
 build_potential_types(Ast* p4program, Scope* root_scope_, Set* enclosing_scopes_,
           Set* type_table_, Arena* storage_)
