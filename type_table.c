@@ -349,9 +349,9 @@ type_equiv(Type* left, Type* right)
 }
 
 char*
-Debug_TypeEnum_to_string(enum TypeEnum t)
+Debug_TypeEnum_to_string(enum TypeEnum type)
 {
-  switch(t) {
+  switch(type) {
     case TYPE_NONE: return "TYPE_NONE";
     case TYPE_BOOL: return "TYPE_BOOL";
     case TYPE_INT: return "TYPE_INT";
@@ -375,9 +375,11 @@ Debug_TypeEnum_to_string(enum TypeEnum t)
     case TYPE_IDREF: return "TYPE_IDREF";
     case TYPE_NAMEREF: return "TYPE_NAMEREF";
     case TYPE_TYPE: return "TYPE_TYPE";
+
     default: return "?";
   }
-  return "?";
+  assert(0);
+  return 0;
 }
 
 void

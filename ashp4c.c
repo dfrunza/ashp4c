@@ -128,6 +128,7 @@ semantic_analysis(Ast* program, Scope* root_scope, Arena* storage)
 
   potential_types = build_potential_types(program, root_scope, enclosing_scopes,
           type_table, storage);
+  Debug_potential_types(program, potential_types);
   do_narrow_types(program, type_table, potential_types, storage);
 }
 

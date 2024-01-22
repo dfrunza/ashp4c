@@ -545,16 +545,149 @@ token_to_binop(Token* token)
   }
 }
 
-int
-ast_list_to_array(Ast* first_node, UnboundedArray* array, Arena* storage)
+char*
+Debug_AstEnum_to_string(enum AstEnum ast)
 {
-  Ast* ast;
+  switch (ast) {
 
-  array->elem_count = 0;
-  for (ast = first_node; ast != 0; ast = ast->right_sibling) {
-    *(Ast**)array_append_element(array, storage, sizeof(Ast*)) = ast;
+    /** PROGRAM **/
+
+    case AST_p4program: return "AST_p4program";
+    case AST_declarationList: return "AST_declarationList";
+    case AST_declaration: return "AST_declaration";
+    case AST_name: return "AST_name";
+    case AST_parameterList: return "AST_parameterList";
+    case AST_parameter: return "AST_parameter";
+    case AST_paramDirection: return "AST_paramDirection";
+    case AST_packageTypeDeclaration: return "AST_packageTypeDeclaration";
+    case AST_instantiation: return "AST_instantiation";
+
+    /** PARSER **/
+
+    case AST_parserDeclaration: return "AST_parserDeclaration";
+    case AST_parserTypeDeclaration: return "AST_parserTypeDeclaration";
+    case AST_parserLocalElements: return "AST_parserLocalElements";
+    case AST_parserLocalElement: return "AST_parserLocalElement";
+    case AST_parserStates: return "AST_parserStates";
+    case AST_parserState: return "AST_parserState";
+    case AST_parserStatements: return "AST_parserStatements";
+    case AST_parserStatement: return "AST_parserStatement";
+    case AST_parserBlockStatement: return "AST_parserBlockStatement";
+    case AST_transitionStatement: return "AST_transitionStatement";
+    case AST_stateExpression: return "AST_stateExpression";
+    case AST_selectExpression: return "AST_selectExpression";
+    case AST_selectCaseList: return "AST_selectCaseList";
+    case AST_selectCase: return "AST_selectCase";
+    case AST_keysetExpression: return "AST_keysetExpression";
+    case AST_tupleKeysetExpression: return "AST_tupleKeysetExpression";
+    case AST_simpleKeysetExpression: return "AST_simpleKeysetExpression";
+    case AST_simpleExpressionList: return "AST_simpleExpressionList";
+
+    /** CONTROL **/
+
+    case AST_controlDeclaration: return "AST_controlDeclaration";
+    case AST_controlTypeDeclaration: return "AST_controlTypeDeclaration";
+    case AST_controlLocalDeclarations: return "AST_controlLocalDeclarations";
+    case AST_controlLocalDeclaration: return "AST_controlLocalDeclaration";
+
+    /** TYPES **/
+
+    case AST_typeRef: return "AST_typeRef";
+    case AST_namedType: return "AST_namedType";
+    case AST_tupleType: return "AST_tupleType";
+    case AST_headerStackType: return "AST_headerStackType";
+    case AST_specializedType: return "AST_specializedType";
+    case AST_baseTypeBoolean: return "AST_baseTypeBoolean";
+    case AST_baseTypeInteger: return "AST_baseTypeInteger";
+    case AST_baseTypeBit: return "AST_baseTypeBit";
+    case AST_baseTypeVarbit: return "AST_baseTypeVarbit";
+    case AST_baseTypeString: return "AST_baseTypeString";
+    case AST_baseTypeVoid: return "AST_baseTypeVoid";
+    case AST_baseTypeError: return "AST_baseTypeError";
+    case AST_integerTypeSize: return "AST_integerTypeSize";
+    case AST_typeParameterList: return "AST_typeParameterList";
+    case AST_realTypeArg: return "AST_realTypeArg";
+    case AST_typeArg: return "AST_typeArg";
+    case AST_realTypeArgumentList: return "AST_realTypeArgumentList";
+    case AST_typeArgumentList: return "AST_typeArgumentList";
+    case AST_typeDeclaration: return "AST_typeDeclaration";
+    case AST_derivedTypeDeclaration: return "AST_derivedTypeDeclaration";
+    case AST_headerTypeDeclaration: return "AST_headerTypeDeclaration";
+    case AST_headerUnionDeclaration: return "AST_headerUnionDeclaration";
+    case AST_structTypeDeclaration: return "AST_structTypeDeclaration";
+    case AST_structFieldList: return "AST_structFieldList";
+    case AST_structField: return "AST_structField";
+    case AST_enumDeclaration: return "AST_enumDeclaration";
+    case AST_errorDeclaration: return "AST_errorDeclaration";
+    case AST_matchKindDeclaration: return "AST_matchKindDeclaration";
+    case AST_identifierList: return "AST_identifierList";
+    case AST_specifiedIdentifierList: return "AST_specifiedIdentifierList";
+    case AST_specifiedIdentifier: return "AST_specifiedIdentifier";
+    case AST_typedefDeclaration: return "AST_typedefDeclaration";
+
+    /** STATEMENTS **/
+
+    case AST_assignmentStatement: return "AST_assignmentStatement";
+    case AST_emptyStatement: return "AST_emptyStatement";
+    case AST_returnStatement: return "AST_returnStatement";
+    case AST_exitStatement: return "AST_exitStatement";
+    case AST_conditionalStatement: return "AST_conditionalStatement";
+    case AST_directApplication: return "AST_directApplication";
+    case AST_statement: return "AST_statement";
+    case AST_blockStatement: return "AST_blockStatement";
+    case AST_statementOrDeclaration: return "AST_statementOrDeclaration";
+    case AST_statementOrDeclList: return "AST_statementOrDeclList";
+    case AST_switchStatement: return "AST_switchStatement";
+    case AST_switchCases: return "AST_switchCases";
+    case AST_switchCase: return "AST_switchCase";
+    case AST_switchLabel: return "AST_switchLabel";
+
+    /** TABLES **/
+
+    case AST_tableDeclaration: return "AST_tableDeclaration";
+    case AST_tablePropertyList: return "AST_tablePropertyList";
+    case AST_tableProperty: return "AST_tableProperty";
+    case AST_keyProperty: return "AST_keyProperty";
+    case AST_keyElementList: return "AST_keyElementList";
+    case AST_keyElement: return "AST_keyElement";
+    case AST_actionsProperty: return "AST_actionsProperty";
+    case AST_actionList: return "AST_actionList";
+    case AST_actionRef: return "AST_actionRef";
+    case AST_entriesProperty: return "AST_entriesProperty";
+    case AST_entriesList: return "AST_entriesList";
+    case AST_entry: return "AST_entry";
+    case AST_simpleProperty: return "AST_simpleProperty";
+    case AST_actionDeclaration: return "AST_actionDeclaration";
+
+    /** VARIABLES **/
+
+    case AST_variableDeclaration: return "AST_variableDeclaration";
+    case AST_constantDeclaration: return "AST_constantDeclaration";
+
+    /** EXPRESSIONS **/
+
+    case AST_functionDeclaration: return "AST_functionDeclaration";
+    case AST_argumentList: return "AST_argumentList";
+    case AST_argument: return "AST_argument";
+    case AST_expressionList: return "AST_expressionList";
+    case AST_expression: return "AST_expression";
+    case AST_lvalueExpression: return "AST_lvalueExpression";
+    case AST_binaryExpression: return "AST_binaryExpression";
+    case AST_unaryExpression: return "AST_unaryExpression";
+    case AST_functionCall: return "AST_functionCall";
+    case AST_memberSelector: return "";
+    case AST_castExpression: return "AST_castExpression";
+    case AST_arraySubscript: return "AST_arraySubscript";
+    case AST_indexExpression: return "AST_indexExpression";
+    case AST_integerLiteral: return "AST_integerLiteral";
+    case AST_stringLiteral: return "AST_stringLiteral";
+    case AST_dontcare: return "AST_dontcare";
+    case AST_default: return "AST_default";
+
+    default: return "?";
   }
-  return array->elem_count;
+  assert(0);
+  return 0;
 }
 
 Ast*
