@@ -98,17 +98,15 @@ void          hashmap_cursor_begin(HashmapCursor* cursor, Hashmap* hashmap);
 HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor);
 
 typedef struct SetMember {
-  void* key;
-  void* value;
   struct SetMember* root;
   struct SetMember* left_branch;
   struct SetMember* right_branch;
+  void* key;
+  void* value;
 } SetMember;
 
 typedef struct SetCursor {
-  SetMember* root;
   SetMember* member;
-  int direction;
 } SetCursor;
 
 typedef struct Set {
