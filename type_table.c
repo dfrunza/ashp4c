@@ -163,53 +163,22 @@ create_product_type(int i, int j, Arena* storage)
     return 0;
   } else if ((j - i) == 1) {
     return (Type*)array_get_element(type_array, i, sizeof(Type));
-  } else if ((j - i) == 2) {
+  } else if ((j - i) >= 2) {
     product_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
     product_ty->ctor = TYPE_PRODUCT;
-    product_ty->product.rhs = (Type*)array_get_element(type_array, i+1, sizeof(Type));
-    product_ty->product.lhs = (Type*)array_get_element(type_array, i, sizeof(Type));
-    return product_ty;
-  } else if ((j - i) > 2) {
-    product_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    product_ty->ctor = TYPE_PRODUCT;
-    product_ty->product.rhs = (Type*)array_get_element(type_array, j-1, sizeof(Type));
-    product_ty->product.lhs = (Type*)array_get_element(type_array, j-2, sizeof(Type));
-    for (int k = j-3; k >= i; k--) {
+    product_ty->product.type = (Type*)array_get_element(type_array, j-1, sizeof(Type));
+    product_ty->product.next = 0;
+
+    for (int k = j-2; k >= i; k--) {
       ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
       ty->ctor = TYPE_PRODUCT;
-      ty->product.lhs = (Type*)array_get_element(type_array, k, sizeof(Type));
-      ty->product.rhs = product_ty;
+      ty->product.type = (Type*)array_get_element(type_array, k, sizeof(Type));
+      ty->product.next = product_ty;
       product_ty = ty;
     }
     return product_ty;
   } else assert(0);
   return 0;
-}
-
-void
-product_type_cursor_begin(ProductTypeCursor* cursor, Type* type)
-{
-  assert(type->ctor == TYPE_PRODUCT);
-  cursor->type = type;
-}
-
-Type*
-product_type_cursor_next_type(ProductTypeCursor* cursor)
-{
-  Type* type;
-
-  type = cursor->type;
-  if (!type) {
-    return 0;
-  }
-  if (type->ctor == TYPE_PRODUCT) {
-    cursor->type = type->product.rhs;
-    type = type->product.lhs;
-    assert(type->ctor != TYPE_PRODUCT);
-    return type;
-  }
-  cursor->type = 0;
-  return type;
 }
 
 Type*
@@ -277,10 +246,10 @@ structural_type_equiv(Type* left, Type* right)
     goto deref_right;
   } else if (left->ctor == TYPE_PRODUCT) {
     if (right->ctor == left->ctor) {
-      if (!structural_type_equiv(left->product.lhs, right->product.lhs)) {
+      if (!structural_type_equiv(left->product.type, right->product.type)) {
         return false;
       }
-      if (!structural_type_equiv(left->product.rhs, right->product.rhs)) {
+      if (!structural_type_equiv(left->product.next, right->product.next)) {
         return false;
       }
       return true;

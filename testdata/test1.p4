@@ -10,7 +10,7 @@ control c(out int b) {
     }
 }
 
-control ctr(out bit<16> b);
+control ctr(out int b);
 package top(ctr _c);
 
 top(c()) main;

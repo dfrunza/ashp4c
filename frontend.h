@@ -888,8 +888,8 @@ typedef struct Type {
     } typedef_;
 
     struct {
-      struct Type* lhs;
-      struct Type* rhs;
+      struct Type* type;
+      struct Type* next;
     } product;
 
     struct {
@@ -939,14 +939,8 @@ typedef struct Type {
   };
 } Type;
 
-typedef struct ProductTypeCursor {
-  Type* type;
-} ProductTypeCursor;
-
 Type* actual_type(Type* type);
 bool  type_equiv(Type* u, Type* v);
-void  product_type_cursor_begin(ProductTypeCursor* cursor, Type* type);
-Type* product_type_cursor_next_type(ProductTypeCursor* cursor);
 char* Debug_TypeEnum_to_string(enum TypeEnum type);
 void  Debug_print_potential_types(Set* table);
 

@@ -171,12 +171,11 @@ apply_function(Set* P, Set* S, Ast* args)
 {
   Ast* arg;
   Type* func_ty, *method_ty;
-  Type* param_ty; 
+  Type* param_ty, *ty; 
   Set* S_new;
   SetMember* m;
-  ProductTypeCursor cp;
 
-  /* NOTE: The members of 'S' become unused memory. */
+  /* NOTE: The members of 'S_new' become unused memory. */
 
   S_new = arena_malloc(storage, sizeof(Set));
   *S_new = (Set){};
@@ -195,10 +194,8 @@ apply_function(Set* P, Set* S, Ast* args)
       method_ty = actual_type(func_ty->extern_.methods);
       if (method_ty) {
         if (method_ty->ctor == TYPE_PRODUCT) {
-          product_type_cursor_begin(&cp, func_ty->extern_.methods);
-          for (method_ty = product_type_cursor_next_type(&cp);
-              method_ty != 0; method_ty = product_type_cursor_next_type(&cp)) {
-            method_ty = actual_type(method_ty);
+          for (ty = method_ty; ty != 0; ty = ty->product.next) {
+            method_ty = actual_type(ty->product.type);
             assert(method_ty->ctor == TYPE_FUNCTION);
             if (cstr_match(func_ty->strname, method_ty->strname)) {
               set_add_or_lookup_member(S_new, storage, method_ty, 0);
@@ -221,16 +218,14 @@ apply_function(Set* P, Set* S, Ast* args)
       arg = args->argumentList.first_child;
       if (param_ty && arg) {
         if (param_ty->ctor == TYPE_PRODUCT) {
-          product_type_cursor_begin(&cp, func_ty->function.params);
-          for (param_ty = product_type_cursor_next_type(&cp);
-              param_ty != 0; param_ty = product_type_cursor_next_type(&cp)) {
-            param_ty = actual_type(param_ty);
+          for (ty = param_ty; ty != 0; ty = ty->product.next) {
+            param_ty = actual_type(ty->product.type);
             if (!validate_param_and_arg_type(param_ty, arg)) {
               break;
             }
             arg = arg->right_sibling;
           }
-          if (param_ty == 0 && arg == 0) {
+          if (ty == 0 && arg == 0) {
             set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
           }
         } else {
