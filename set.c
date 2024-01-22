@@ -37,7 +37,7 @@ set_lookup_value(Set* set, void* key, void* default_)
 }
 
 static SetMember*
-insert_member(Arena* storage, SetMember** branch, SetMember* member, void* key, void* value)
+insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, void* key, void* value)
 {
   if (!member) {
     member = arena_malloc(storage, sizeof(SetMember));
@@ -46,13 +46,15 @@ insert_member(Arena* storage, SetMember** branch, SetMember* member, void* key, 
     member->value = value;
     member->left_branch = 0;
     member->right_branch = 0;
+    member->next = set->first;
+    set->first = member;
     return member;
   } else if (member->key == key) {
     return 0;
   } else if (key < member->key) {
-    return insert_member(storage, &member->left_branch, member->left_branch, key, value);
+    return insert_member(set, storage, &member->left_branch, member->left_branch, key, value);
   } else {
-    return insert_member(storage, &member->right_branch, member->right_branch, key, value);
+    return insert_member(set, storage, &member->right_branch, member->right_branch, key, value);
   }
   assert(0);
   return 0;
@@ -61,11 +63,11 @@ insert_member(Arena* storage, SetMember** branch, SetMember* member, void* key, 
 SetMember*
 set_add_member(Set* set, Arena* storage, void* key, void* value)
 {
-  return insert_member(storage, &set->root, set->root, key, value);
+  return insert_member(set, storage, &set->root, set->root, key, value);
 }
 
 static SetMember*
-search_or_insert_member(Arena* storage, SetMember** branch, SetMember* member, void* key, void* value)
+search_or_insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, void* key, void* value)
 {
   if (!member) {
     member = arena_malloc(storage, sizeof(SetMember));
@@ -74,13 +76,15 @@ search_or_insert_member(Arena* storage, SetMember** branch, SetMember* member, v
     member->value = value;
     member->left_branch = 0;
     member->right_branch = 0;
+    member->next = set->first;
+    set->first = member;
     return member;
   } else if (member->key == key) {
     return member;
   } else if (key < member->key) {
-    return search_or_insert_member(storage, &member->left_branch, member->left_branch, key, value);
+    return search_or_insert_member(set, storage, &member->left_branch, member->left_branch, key, value);
   } else {
-    return search_or_insert_member(storage, &member->right_branch, member->right_branch, key, value);
+    return search_or_insert_member(set, storage, &member->right_branch, member->right_branch, key, value);
   }
   assert(0);
   return 0;
@@ -89,7 +93,7 @@ search_or_insert_member(Arena* storage, SetMember** branch, SetMember* member, v
 SetMember*
 set_add_or_lookup_member(Set* set, Arena* storage, void* key, void* value)
 {
-  return search_or_insert_member(storage, &set->root, set->root, key, value);
+  return search_or_insert_member(set, storage, &set->root, set->root, key, value);
 }
 
 Set*

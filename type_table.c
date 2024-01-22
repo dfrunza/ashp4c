@@ -212,30 +212,6 @@ product_type_cursor_next_type(ProductTypeCursor* cursor)
   return type;
 }
 
-int
-product_type_to_array(Type* type, UnboundedArray* array, Arena* storage)
-{
-  void traverse_and_collect(Type* type, UnboundedArray* array, Arena* storage)
-  {
-    if (!type) {
-      return;
-    }
-    if (type->ctor == TYPE_PRODUCT) {
-      traverse_and_collect(type->product.lhs, array, storage);
-      traverse_and_collect(type->product.rhs, array, storage);
-    } else {
-      *(Type**)array_append_element(array, storage, sizeof(Type*)) = actual_type(type);
-    }
-  }
-
-  array->elem_count = 0;
-  if (!type) {
-    return array->elem_count;
-  }
-  traverse_and_collect(type, array, storage);
-  return array->elem_count;
-}
-
 Type*
 actual_type(Type* type)
 {
@@ -408,27 +384,25 @@ void
 Debug_print_type_table(Set* table)
 {
   Ast* ast;
+  SetMember* m;
   Type* type;
   int i;
 
-  void visit_type(SetMember* m)
-  {
+  i = 0;
+  for (m = table->first; m != 0; m = m->next) {
     ast = (Ast*)m->key;
     type = (Type*)m->value;
     if (type->strname) {
-      printf("[%d] 0x%x %s ... %d:%d\n", i, (uint64_t)m, type->strname, ast->line_no, ast->column_no);
+      printf("[%d] 0x%x %s ... %d:%d\n", i, m, type->strname, ast->line_no, ast->column_no);
     } else {
       if (ast) {
-        printf("[%d] 0x%x %s ... %d:%d\n", i, (uint64_t)m, Debug_TypeEnum_to_string(type->ctor), ast->line_no, ast->column_no);
+        printf("[%d] 0x%x %s ... %d:%d\n", i, m, Debug_TypeEnum_to_string(type->ctor), ast->line_no, ast->column_no);
       } else {
-        printf("[%d] 0x%x %s\n", i, (uint64_t)m, Debug_TypeEnum_to_string(type->ctor));
+        printf("[%d] 0x%x %s\n", i, m, Debug_TypeEnum_to_string(type->ctor));
       }
     }
     i += 1;
   }
-
-  i = 0;
-  set_enumerate_members(table, visit_type);
 }
 
 Set*

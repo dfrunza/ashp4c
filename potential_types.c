@@ -151,20 +151,19 @@ validate_param_and_arg_type(Type* param_ty, Ast* arg)
 {
   Type* arg_ty;
   Set* A;
-  bool valid = true;
-
-  void visit_member_A(SetMember* m)
-  {
-    arg_ty = actual_type(m->key);
-    valid = valid && type_equiv(param_ty, arg_ty);
-  }
+  SetMember* m;
 
   if (!arg) {
     return false;
   }
   A = set_lookup_value(potential_types, arg, 0);
-  set_enumerate_members(A, visit_member_A);
-  return valid;
+  for (m = A->first; m != 0; m = m->next) {
+    arg_ty = actual_type(m->key);
+    if (type_equiv(param_ty, arg_ty)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 static void
@@ -174,10 +173,15 @@ apply_function(Set* P, Set* S, Ast* args)
   Type* func_ty, *method_ty;
   Type* param_ty; 
   Set* S_new;
+  SetMember* m;
   ProductTypeCursor cp;
 
-  void visit_member_S(SetMember* m)
-  {
+  /* NOTE: The members of 'S' become unused memory. */
+
+  S_new = arena_malloc(storage, sizeof(Set));
+  *S_new = (Set){};
+
+  for (m = S->first; m != 0; m = m->next) {
     func_ty = actual_type(m->key);
     if (func_ty->ctor == TYPE_FUNCTION) {
       set_add_or_lookup_member(S_new, storage, func_ty, 0);
@@ -210,8 +214,7 @@ apply_function(Set* P, Set* S, Ast* args)
     } else assert(0);
   }
 
-  void visit_member_S_new(SetMember* m)
-  {
+  for (m = S_new->first; m != 0; m = m->next) {
     func_ty = actual_type(m->key);
     if (func_ty->ctor == TYPE_FUNCTION) {
       param_ty = actual_type(func_ty->function.params);
@@ -242,34 +245,25 @@ apply_function(Set* P, Set* S, Ast* args)
       }
     } else assert(0);
   }
-
-  /* NOTE: The members of 'S' become unused memory. */
-
-  S_new = arena_malloc(storage, sizeof(Set));
-  *S_new = (Set){};
-  set_enumerate_members(S, visit_member_S);
-  set_enumerate_members(S_new, visit_member_S_new);
 }
 
 void
 Debug_print_potential_types(Set* table)
 {
+  SetMember* m;
   Type* type;
   int i;
 
-  void visit_type(SetMember* m)
-  {
+  i = 0;
+  for (m = table->first; m != 0; m = m->next) {
     type = (Type*)m->key;
     if (type->strname) {
-      printf("[%d] 0x%x %s\n", i, (uint64_t)m, type->strname);
+      printf("[%d] 0x%x %s\n", i, m, type->strname);
     } else {
-      printf("[%d] 0x%x %s\n", i, (uint64_t)m, Debug_TypeEnum_to_string(type->ctor));
+      printf("[%d] 0x%x %s\n", i, m, Debug_TypeEnum_to_string(type->ctor));
     }
     i += 1;
   }
-
-  i = 0;
-  set_enumerate_members(table, visit_type);
 }
 
 Set*
@@ -745,7 +739,7 @@ visit_typeRef(Ast* type_ref)
   P = set_open_inner_set(potential_types, storage, type_ref);
   S = set_lookup_value(potential_types, type_ref->typeRef.type, 0);
   if (S) {
-    P->root = S->root;
+    *P = *S;
   } /* else FIXME */
 }
 
@@ -1420,7 +1414,7 @@ visit_argument(Ast* arg)
   P = set_open_inner_set(potential_types, storage, arg);
   S = set_lookup_value(potential_types, arg->argument.arg, 0);
   if (S) {
-    P->root = S->root;
+    *P = *S;
   } /* else FIXME */
 }
 
@@ -1453,7 +1447,7 @@ visit_lvalueExpression(Ast* lvalue_expr)
   P = set_open_inner_set(potential_types, storage, lvalue_expr);
   S = set_lookup_value(potential_types, lvalue_expr->lvalueExpression.expr, 0);
   if (S) {
-    P->root = S->root;
+    *P = *S;
   } /* else FIXME */
 }
 
@@ -1497,7 +1491,7 @@ visit_expression(Ast* expr)
   P = set_open_inner_set(potential_types, storage, expr);
   S = set_lookup_value(potential_types, expr->expression.expr, 0);
   if (S) {
-    P->root = S->root;
+    *P = *S;
   } /* else FIXME */
 }
 
