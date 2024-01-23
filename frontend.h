@@ -867,7 +867,6 @@ enum TypeEnum {
   TYPE_ARRAY,
   TYPE_SPECIALIZED,
 
-  TYPE_IDREF,
   TYPE_NAMEREF,
   TYPE_TYPE,
 };
@@ -921,10 +920,6 @@ typedef struct Type {
       struct Type* ref;
       struct Type* args;
     } specialized;
-
-    struct {
-      struct Ast* ref;
-    } idref;
 
     struct {
       Ast* name;

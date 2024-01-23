@@ -345,7 +345,6 @@ Debug_TypeEnum_to_string(enum TypeEnum type)
     case TYPE_STRUCT: return "TYPE_STRUCT";
     case TYPE_ARRAY: return "TYPE_ARRAY";
     case TYPE_SPECIALIZED: return "TYPE_SPECIALIZED";
-    case TYPE_IDREF: return "TYPE_IDREF";
     case TYPE_NAMEREF: return "TYPE_NAMEREF";
     case TYPE_TYPE: return "TYPE_TYPE";
 
@@ -360,20 +359,20 @@ Debug_print_type_table(Set* table)
 {
   Ast* ast;
   SetMember* m;
-  Type* type;
+  Type* ty;
   int i;
 
   i = 0;
   for (m = table->first; m != 0; m = m->next) {
     ast = (Ast*)m->key;
-    type = (Type*)m->value;
-    if (type->strname) {
-      printf("[%d] 0x%x %s ... %d:%d\n", i, m, type->strname, ast->line_no, ast->column_no);
+    ty = (Type*)m->value;
+    if (ty->strname) {
+      printf("[%d] 0x%x %s ... %d:%d\n", i, ty, ty->strname, ast->line_no, ast->column_no);
     } else {
       if (ast) {
-        printf("[%d] 0x%x %s ... %d:%d\n", i, m, Debug_TypeEnum_to_string(type->ctor), ast->line_no, ast->column_no);
+        printf("[%d] 0x%x %s ... %d:%d\n", i, ty, Debug_TypeEnum_to_string(ty->ctor), ast->line_no, ast->column_no);
       } else {
-        printf("[%d] 0x%x %s\n", i, m, Debug_TypeEnum_to_string(type->ctor));
+        printf("[%d] 0x%x %s\n", i, ty, Debug_TypeEnum_to_string(ty->ctor));
       }
     }
     i += 1;
@@ -561,8 +560,8 @@ visit_packageTypeDeclaration(Ast* type_decl)
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_IDREF;
-    ty->idref.ref = ast->parameter.type;
+    ty->ctor = TYPE_TYPE;
+    ty->type.type = set_lookup_value(type_table, ast->parameter.type, 0); /*ast->parameter.type;*/
   }
   ctor_ty->function.params = create_product_type(i, type_array->elem_count, storage);
 }
@@ -607,8 +606,8 @@ visit_parserDeclaration(Ast* parser_decl)
     for (ast = ctor_params->parameterList.first_child;
          ast != 0; ast = ast->right_sibling) {
       ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-      ty->ctor = TYPE_IDREF;
-      ty->idref.ref = ast->parameter.type;
+      ty->ctor = TYPE_TYPE;
+      ty->type.type = set_lookup_value(type_table, ast->parameter.type, 0);
     }
     ctor_ty->function.params = create_product_type(i, type_array->elem_count, storage);
   }
@@ -640,8 +639,8 @@ visit_parserTypeDeclaration(Ast* type_decl)
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_IDREF;
-    ty->idref.ref = ast->parameter.type;
+    ty->ctor = TYPE_TYPE;
+    ty->type.type = set_lookup_value(type_table, ast->parameter.type, 0);
   }
   parser_ty->parser.params = create_product_type(i, type_array->elem_count, storage);
 
@@ -845,8 +844,8 @@ visit_controlDeclaration(Ast* control_decl)
     for (ast = ctor_params->parameterList.first_child;
          ast != 0; ast = ast->right_sibling) {
       ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-      ty->ctor = TYPE_IDREF;
-      ty->idref.ref = ast->parameter.type;
+      ty->ctor = TYPE_TYPE;
+      ty->type.type = set_lookup_value(type_table, ast->parameter.type, 0);
     }
     ctor_ty->function.params = create_product_type(i, type_array->elem_count, storage);
   }
@@ -878,8 +877,8 @@ visit_controlTypeDeclaration(Ast* type_decl)
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_IDREF;
-    ty->idref.ref = ast->parameter.type;
+    ty->ctor = TYPE_TYPE;
+    ty->type.type = set_lookup_value(type_table, ast->parameter.type, 0);
   }
   control_ty->control.params = create_product_type(i, type_array->elem_count, storage);
 
@@ -957,8 +956,8 @@ visit_externTypeDeclaration(Ast* type_decl)
   for (ast = methods->methodPrototypes.first_child;
        ast != 0; ast = ast->right_sibling) {
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_IDREF;
-    ty->idref.ref = ast;
+    ty->ctor = TYPE_TYPE;
+    ty->type.type = set_lookup_value(type_table, ast, 0);
   }
   extern_ty->extern_.methods = create_product_type(i, type_array->elem_count, storage);
 }
@@ -1005,21 +1004,21 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_IDREF;
-    ty->idref.ref = ast->parameter.type;
+    ty->ctor = TYPE_TYPE;
+    ty->type.type = set_lookup_value(type_table, ast->parameter.type, 0);
   }
   func_ty->function.params = create_product_type(i, type_array->elem_count, storage);
 
   return_type = func_proto->functionPrototype.return_type;
   if (return_type) {
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_IDREF;
-    ty->idref.ref = return_type;
+    ty->ctor = TYPE_TYPE;
+    ty->type.type = set_lookup_value(type_table, return_type, 0);
     func_ty->function.return_ = ty;
   } else if (cstr_match(name->name.strname, extern_name->name.strname)) {
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_IDREF;
-    ty->idref.ref = extern_decl;
+    ty->ctor = TYPE_TYPE;
+    ty->type.type = set_lookup_value(type_table, extern_decl, 0);
     func_ty->function.return_ = ty;
   } else assert(0);
 }
@@ -1078,8 +1077,8 @@ visit_tupleType(Ast* type_decl)
   for (ast = args->typeArgumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_IDREF;
-    ty->idref.ref = ast;
+    ty->ctor = TYPE_TYPE;
+    ty->type.type = set_lookup_value(type_table, ast, 0);
   }
   tuple_ty = create_product_type(i, type_array->elem_count, storage);
   m = set_add_member(type_table, storage, type_decl, tuple_ty);
@@ -1102,8 +1101,8 @@ visit_headerStackType(Ast* type_decl)
   assert(m);
 
   ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-  ty->ctor = TYPE_IDREF;
-  ty->idref.ref = type_decl->headerStackType.type;
+  ty->ctor = TYPE_TYPE;
+  ty->type.type = set_lookup_value(type_table, type_decl->headerStackType.type, 0);
   stack_ty->array.element = ty;
 }
 
@@ -1123,8 +1122,8 @@ visit_specializedType(Ast* type_decl)
   assert(m);
 
   ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-  ty->ctor = TYPE_IDREF;
-  ty->idref.ref = type_decl->specializedType.type;
+  ty->ctor = TYPE_TYPE;
+  ty->type.type = set_lookup_value(type_table, type_decl->specializedType.type, 0);
   specd_ty->specialized.ref = ty;
 }
 
@@ -1371,8 +1370,8 @@ visit_headerTypeDeclaration(Ast* header_decl)
   for (ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_IDREF;
-    ty->idref.ref = ast->structField.type;
+    ty->ctor = TYPE_TYPE;
+    ty->type.type = set_lookup_value(type_table, ast->structField.type, 0);
   }
   header_ty->struct_.fields = create_product_type(i, type_array->elem_count, storage);
 }
@@ -1400,8 +1399,8 @@ visit_headerUnionDeclaration(Ast* union_decl)
   for (ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_IDREF;
-    ty->idref.ref = ast->structField.type;
+    ty->ctor = TYPE_TYPE;
+    ty->type.type = set_lookup_value(type_table, ast->structField.type, 0);
   }
   union_ty->struct_.fields = create_product_type(i, type_array->elem_count, storage);
 }
@@ -1429,8 +1428,8 @@ visit_structTypeDeclaration(Ast* struct_decl)
   for (ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_IDREF;
-    ty->idref.ref = ast->structField.type;
+    ty->ctor = TYPE_TYPE;
+    ty->type.type = set_lookup_value(type_table, ast->structField.type, 0);
   }
   struct_ty->struct_.fields = create_product_type(i, type_array->elem_count, storage);
 }
@@ -1541,8 +1540,8 @@ visit_typedefDeclaration(Ast* typedef_decl)
   assert(m);
 
   ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-  ty->ctor = TYPE_IDREF;
-  ty->idref.ref = typedef_decl->typedefDeclaration.type_ref;
+  ty->ctor = TYPE_TYPE;
+  ty->type.type = set_lookup_value(type_table, typedef_decl->typedefDeclaration.type_ref, 0);
   typedef_ty->typedef_.ref = ty;
 }
 
@@ -1874,8 +1873,8 @@ visit_actionDeclaration(Ast* action_decl)
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_IDREF;
-    ty->idref.ref = ast->parameter.type;
+    ty->ctor = TYPE_TYPE;
+    ty->type.type = set_lookup_value(type_table, ast->parameter.type, 0);
   }
   action_ty->function.params = create_product_type(i, type_array->elem_count, storage);
 }

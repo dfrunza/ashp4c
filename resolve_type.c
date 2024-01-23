@@ -4,22 +4,6 @@
 #include "frontend.h"
 
 static void
-resolve_TYPE_IDREF(Set* type_table, UnboundedArray* type_array)
-{
-  Type* ref_ty, *ty;
-
-  for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
-    if (ty->ctor == TYPE_IDREF) {
-      ref_ty = set_lookup_value(type_table, ty->idref.ref, 0);
-      assert(ref_ty);
-      ty->ctor = TYPE_TYPE;
-      ty->type.type = ref_ty;
-    }
-  }
-}
-
-static void
 resolve_TYPE_NAMEREF(Set* type_table, UnboundedArray* type_array)
 {
   Ast* name;
@@ -66,22 +50,28 @@ resolve_TYPE_TYPE(UnboundedArray* type_array)
 }
 
 void
-resolve_type_xref(Set* type_table, UnboundedArray* type_array)
+Debug_print_type_array(UnboundedArray* type_array)
 {
-  resolve_TYPE_IDREF(type_table, type_array);
-  resolve_TYPE_NAMEREF(type_table, type_array);
-  resolve_TYPE_TYPE(type_array);
-
-#if 0
-  /* Test */
   Type* ty;
-  for (int i = 0; i < type_array->elem_count; i++) {
+  int i;
+
+  for (i = 0; i < type_array->elem_count; i++) {
     ty = (Type*)array_get_element(type_array, i, sizeof(Type));
-    if (ty->ctor == TYPE_TYPE) {
-      ty = ty->type.type;
-      assert(ty->ctor != TYPE_TYPE);
+    ty = actual_type(ty);
+
+    if (ty->strname) {
+      printf("[%d] 0x%x %s %s\n", i, ty, ty->strname, Debug_TypeEnum_to_string(ty->ctor));
+    } else {
+      printf("[%d] 0x%x %s\n", i, ty, Debug_TypeEnum_to_string(ty->ctor));
     }
   }
-#endif
+}
+
+void
+resolve_type_xref(Set* type_table, UnboundedArray* type_array)
+{
+  resolve_TYPE_NAMEREF(type_table, type_array);
+  resolve_TYPE_TYPE(type_array);
+  Debug_print_type_array(type_array);
 }
 

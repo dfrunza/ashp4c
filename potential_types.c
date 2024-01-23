@@ -246,16 +246,16 @@ void
 Debug_print_potential_types(Set* table)
 {
   SetMember* m;
-  Type* type;
+  Type* ty;
   int i;
 
   i = 0;
   for (m = table->first; m != 0; m = m->next) {
-    type = (Type*)m->key;
-    if (type->strname) {
-      printf("  [%d] 0x%x %s %s\n", i, m, Debug_TypeEnum_to_string(type->ctor), type->strname);
+    ty = (Type*)m->key;
+    if (ty->strname) {
+      printf("  [%d] 0x%x %s %s\n", i, ty, Debug_TypeEnum_to_string(ty->ctor), ty->strname);
     } else {
-      printf("  [%d] 0x%x %s\n", i, m, Debug_TypeEnum_to_string(type->ctor));
+      printf("  [%d] 0x%x %s\n", i, ty, Debug_TypeEnum_to_string(ty->ctor));
     }
     i += 1;
   }
@@ -400,7 +400,7 @@ visit_instantiation(Ast* inst)
 
   P = set_open_inner_set(potential_types, storage, inst);
   S = set_lookup_value(potential_types, inst->instantiation.type, 0);
-  if (!S) {
+  if (S) {
     apply_function(P, S, inst->instantiation.args);
   } /* else FIXME */
 }
@@ -1082,7 +1082,7 @@ visit_functionCall(Ast* func_call)
 
   P = set_open_inner_set(potential_types, storage, func_call);
   S = set_lookup_value(potential_types, func_call->functionCall.lhs_expr, 0);
-  if (!S) {
+  if (S) {
     apply_function(P, S, func_call->functionCall.args);
   } /* else FIXME */
 }
