@@ -337,7 +337,7 @@ visit_name(Ast* name)
   NameDecl* name_decl[2];
   Scope* scope;
   Set* P;
-  Type* type;
+  Type* name_ty;
 
   scope = set_lookup_value(enclosing_scopes, name, 0);
   name_entry = scope_lookup_any(scope, name->name.strname);
@@ -349,9 +349,9 @@ visit_name(Ast* name)
   name_decl[1] = name_entry->ns[NS_TYPE];
   for (int i = 0; i < 2; i++) {
     while (name_decl[i]) {
-      type = actual_type(set_lookup_value(type_table, name_decl[i]->ast, 0));
-      if (type) {
-        set_add_or_lookup_member(P, storage, type, 0);
+      name_ty = actual_type(name_decl[i]->type);
+      if (name_ty) {
+        set_add_or_lookup_member(P, storage, name_ty, 0);
       }
       name_decl[i] = name_decl[i]->next_in_scope;
     }
@@ -401,9 +401,8 @@ visit_instantiation(Ast* inst)
   P = set_open_inner_set(potential_types, storage, inst);
   S = set_lookup_value(potential_types, inst->instantiation.type, 0);
   if (!S) {
-    return; /* FIXME */
-  }
-  apply_function(P, S, inst->instantiation.args);
+    apply_function(P, S, inst->instantiation.args);
+  } /* else FIXME */
 }
 
 /** PARSER **/
@@ -720,7 +719,7 @@ visit_typeRef(Ast* type_ref)
   } else if (type_ref->typeRef.type->kind == AST_baseTypeError) {
     visit_baseTypeError(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_name) {
-    visit_name(type_ref->typeRef.type);
+    /*visit_name(type_ref->typeRef.type);*/
   } else if (type_ref->typeRef.type->kind == AST_specializedType) {
     visit_specializedType(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_headerStackType) {
@@ -887,7 +886,7 @@ visit_typeArg(Ast* type_arg)
   if (type_arg->typeArg.arg->kind == AST_typeRef) {
     ;
   } else if (type_arg->typeArg.arg->kind == AST_name) {
-    visit_name(type_arg->typeArg.arg);
+    /*visit_name(type_arg->typeArg.arg);*/
   } else if (type_arg->typeArg.arg->kind == AST_dontcare) {
     visit_dontcare(type_arg->typeArg.arg);
   } else assert(0);
@@ -1084,9 +1083,8 @@ visit_functionCall(Ast* func_call)
   P = set_open_inner_set(potential_types, storage, func_call);
   S = set_lookup_value(potential_types, func_call->functionCall.lhs_expr, 0);
   if (!S) {
-    return; /* FIXME */
-  }
-  apply_function(P, S, func_call->functionCall.args);
+    apply_function(P, S, func_call->functionCall.args);
+  } /* else FIXME */
 }
 
 static void

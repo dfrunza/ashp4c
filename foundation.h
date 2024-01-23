@@ -1,5 +1,3 @@
-#pragma once
-
 typedef uint32_t bool;
 #define true 1u
 #define false 0u

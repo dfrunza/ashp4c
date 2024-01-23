@@ -1,5 +1,3 @@
-#pragma once
-
 typedef struct SourceText {
   char*  text;
   int    text_size;

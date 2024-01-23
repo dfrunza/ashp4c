@@ -45,6 +45,8 @@ ld $LD_FLAGS -L$LIB -o ashp4c $LIB/crt1.o \
 if [ $? -ne 0 ]; then
   exit 1
 fi
-
 popd
+
+ln -sf build/ashp4c
+
 exit 0

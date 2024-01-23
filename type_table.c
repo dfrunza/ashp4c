@@ -189,11 +189,8 @@ actual_type(Type* type)
   }
   if (type->ctor == TYPE_TYPE) {
     return type->type.type;
-  } else {
-    return type;
   }
-  assert(0);
-  return 0;
+  return type;
 }
 
 static bool
@@ -223,12 +220,13 @@ structural_type_equiv(Type* left, Type* right)
   type_pair->right = right;
 
   if (left->ctor == TYPE_VOID || left->ctor == TYPE_BOOL || left->ctor == TYPE_INT ||
-      left->ctor == TYPE_BIT || left->ctor == TYPE_VARBIT || left->ctor == TYPE_STRING ||
-      left->ctor == TYPE_DONTCARE) {
+      left->ctor == TYPE_BIT || left->ctor == TYPE_VARBIT || left->ctor == TYPE_STRING) {
     if (right->ctor == left->ctor) {
       return true;
     }
     goto deref_right;
+  } else if (left->ctor == TYPE_DONTCARE) {
+    return true;
   } else if (left->ctor == TYPE_ENUM) {
     if (right->ctor == left->ctor) {
       return cstr_match(left->strname, right->strname);
@@ -239,7 +237,12 @@ structural_type_equiv(Type* left, Type* right)
       return cstr_match(left->strname, right->strname);
     }
     goto deref_right;
-  } else if (left->ctor == TYPE_EXTERN || left->ctor == TYPE_TABLE) {
+  } else if (left->ctor == TYPE_EXTERN) {
+    if (right->ctor == left->ctor) {
+      return cstr_match(left->strname, right->strname);
+    }
+    goto deref_right;
+  } else if (left->ctor == TYPE_TABLE) {
     if (right->ctor == left->ctor) {
       return cstr_match(left->strname, right->strname);
     }
@@ -511,17 +514,19 @@ static void
 visit_parameter(Ast* param)
 {
   assert(param->kind == AST_parameter);
-  Type* param_ty;
-  SetMember* m;
+  Ast* name;
+  NameDecl* name_decl;
+  Scope* scope;
 
   visit_typeRef(param->parameter.type);
   if (param->parameter.init_expr) {
     visit_expression(param->parameter.init_expr);
   }
 
-  param_ty = set_lookup_value(type_table, param->parameter.type, 0);
-  m = set_add_member(type_table, storage, param, param_ty);
-  assert(m);
+  name = param->parameter.name;
+  scope = set_lookup_value(enclosing_scopes, name, 0);
+  name_decl = scope_lookup_namespace(scope, name->name.strname, NS_VAR)->ns[NS_VAR];
+  name_decl->type = set_lookup_value(type_table, param->parameter.type, 0);
 }
 
 static void
@@ -1881,17 +1886,19 @@ static void
 visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
-  Type* decl_ty;
-  SetMember* m;
+  Ast* name;
+  NameDecl* name_decl;
+  Scope* scope;
 
   visit_typeRef(var_decl->variableDeclaration.type);
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);
   }
 
-  decl_ty = set_lookup_value(type_table, var_decl->variableDeclaration.type, 0);
-  m = set_add_member(type_table, storage, var_decl, decl_ty);
-  assert(m);
+  name = var_decl->variableDeclaration.name;
+  scope = set_lookup_value(enclosing_scopes, name, 0);
+  name_decl = scope_lookup_namespace(scope, name->name.strname, NS_VAR)->ns[NS_VAR];
+  name_decl->type = set_lookup_value(type_table, var_decl->variableDeclaration.type, 0);
 }
 
 /** EXPRESSIONS **/

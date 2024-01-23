@@ -1,5 +1,3 @@
-#pragma once
-
 SourceText      read_source_text(char* filename, Arena* storage);
 UnboundedArray* tokenize_source_text(SourceText* source_text, Arena* storage);
 Ast* parse_program(UnboundedArray* tokens, Arena* storage, Scope** root_scope);

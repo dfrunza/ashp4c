@@ -3,8 +3,8 @@
 #include "foundation.h"
 #include "frontend.h"
 
-static Arena*    storage;
-static Set*      type_table, *potential_types;
+static Arena* storage;
+static Set*   type_table, *potential_types;
 
 /** PROGRAM **/
 
@@ -911,7 +911,7 @@ visit_functionCall(Ast* func_call, Type* expected_ty)
   for (m = P->first; m != 0; m = m->next) {
     ty = (Type*)m->key;
     if (type_equiv(expected_ty, ty)) {
-      int x = 0;
+      printf("");
     }
   }
   visit_argumentList(func_call->functionCall.args);

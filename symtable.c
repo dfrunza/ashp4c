@@ -250,8 +250,8 @@ visit_parameter(Ast* param)
   NameDecl* name_decl;
 
   visit_typeRef(param->parameter.type);
+  visit_name(param->parameter.name);
 
-  name = param->parameter.name;
   name = param->parameter.name;
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
@@ -1475,6 +1475,7 @@ visit_variableDeclaration(Ast* var_decl)
   NameDecl* name_decl;
 
   visit_typeRef(var_decl->variableDeclaration.type);
+  visit_name(var_decl->variableDeclaration.name);
 
   name = var_decl->variableDeclaration.name;
   name_decl = arena_malloc(storage, sizeof(NameDecl));
