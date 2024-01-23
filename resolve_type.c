@@ -9,7 +9,7 @@ resolve_TYPE_NAMEREF(Set* type_table, UnboundedArray* type_array)
   Ast* name;
   Type* ref_ty, *ty;
   NameEntry* name_entry;
-  NameDecl* name_decl;
+  NameDeclaration* name_decl;
 
   for (int i = 0; i < type_array->elem_count; i++) {
     ty = (Type*)array_get_element(type_array, i, sizeof(Type));

@@ -401,7 +401,7 @@ build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array
   };
 
   Type* builtin_ty;
-  NameDecl* name_decl;
+  NameDeclaration* name_decl;
   SetMember* m;
 
   storage = storage_;
@@ -514,7 +514,7 @@ visit_parameter(Ast* param)
 {
   assert(param->kind == AST_parameter);
   Ast* name;
-  NameDecl* name_decl;
+  NameDeclaration* name_decl;
   Scope* scope;
 
   visit_typeRef(param->parameter.type);
@@ -1132,7 +1132,7 @@ static void
 visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AST_baseTypeBoolean);
-  NameDecl* name_decl;
+  NameDeclaration* name_decl;
   SetMember* m;
 
   name_decl = scope_lookup_namespace(root_scope, "bool", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
@@ -1144,7 +1144,7 @@ static void
 visit_baseTypeInteger(Ast* int_type)
 {
   assert(int_type->kind == AST_baseTypeInteger);
-  NameDecl* name_decl;
+  NameDeclaration* name_decl;
   SetMember* m;
 
   if (int_type->baseTypeInteger.size) {
@@ -1160,7 +1160,7 @@ static void
 visit_baseTypeBit(Ast* bit_type)
 {
   assert(bit_type->kind == AST_baseTypeBit);
-  NameDecl* name_decl;
+  NameDeclaration* name_decl;
   SetMember* m;
 
   if (bit_type->baseTypeBit.size) {
@@ -1176,7 +1176,7 @@ static void
 visit_baseTypeVarbit(Ast* varbit_type)
 {
   assert(varbit_type->kind == AST_baseTypeVarbit);
-  NameDecl* name_decl;
+  NameDeclaration* name_decl;
   SetMember* m;
 
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
@@ -1190,7 +1190,7 @@ static void
 visit_baseTypeString(Ast* str_type)
 {
   assert(str_type->kind == AST_baseTypeString);
-  NameDecl* name_decl;
+  NameDeclaration* name_decl;
   SetMember* m;
 
   name_decl = scope_lookup_namespace(root_scope, "string", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
@@ -1202,7 +1202,7 @@ static void
 visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AST_baseTypeVoid);
-  NameDecl* name_decl;
+  NameDeclaration* name_decl;
   SetMember* m;
 
   name_decl = scope_lookup_namespace(root_scope, "void", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
@@ -1214,7 +1214,7 @@ static void
 visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AST_baseTypeError);
-  NameDecl* name_decl;
+  NameDeclaration* name_decl;
   SetMember* m;
 
   name_decl = scope_lookup_namespace(root_scope, "error", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
@@ -1850,7 +1850,7 @@ static void
 visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AST_actionDeclaration);
-  NameDecl* name_decl;
+  NameDeclaration* name_decl;
   Ast* ast, *name, *params;
   Type* action_ty, *ty;
   int i;
@@ -1887,7 +1887,7 @@ visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
   Ast* name;
-  NameDecl* name_decl;
+  NameDeclaration* name_decl;
   Scope* scope;
 
   visit_typeRef(var_decl->variableDeclaration.type);
@@ -2079,7 +2079,7 @@ static void
 visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AST_dontcare);
-  NameDecl* name_decl;
+  NameDeclaration* name_decl;
   SetMember* m;
 
   name_decl = scope_lookup_namespace(root_scope, "_", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];

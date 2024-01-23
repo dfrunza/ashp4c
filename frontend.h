@@ -866,7 +866,6 @@ enum TypeEnum {
   TYPE_STRUCT,
   TYPE_ARRAY,
   TYPE_SPECIALIZED,
-
   TYPE_NAMEREF,
   TYPE_TYPE,
 };
@@ -943,15 +942,15 @@ typedef struct Scope {
   Hashmap name_table;
 } Scope;
 
-typedef struct NameDecl {
+typedef struct NameDeclaration {
   char* strname;
-  struct NameDecl* next_in_scope;
+  struct NameDeclaration* next_in_scope;
   union {
     Ast* ast;
     enum TokenClass token_class;
   };
   Type* type;
-} NameDecl;
+} NameDeclaration;
 
 enum NameSpace {
   NAMESPACE_NONE = 0,
@@ -963,7 +962,7 @@ enum NameSpace {
 };
 
 typedef struct NameEntry {
-  NameDecl* ns[NameSpace_COUNT];
+  NameDeclaration* ns[NameSpace_COUNT];
 } NameEntry;
 
 Scope*     scope_create(Arena* storage, int max_capacity);
@@ -971,5 +970,5 @@ Scope*     scope_push(Scope* scope, Scope* parent_scope);
 Scope*     scope_pop(Scope* scope);
 NameEntry* scope_lookup_any(Scope* scope, char* name);
 NameEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
-NameEntry* scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns);
+NameEntry* scope_push_decl(Scope* scope, Arena* storage, NameDeclaration* decl, enum NameSpace ns);
 

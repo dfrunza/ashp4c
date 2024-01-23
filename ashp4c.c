@@ -115,7 +115,7 @@ static void
 semantic_analysis(Ast* program, Scope* root_scope, Arena* storage)
 {
   Set* opened_scopes, *enclosing_scopes;
-  Set* type_table, *potential_types;
+  Set* type_table;
   UnboundedArray* type_array;
 
   drypass(program);
@@ -126,9 +126,8 @@ semantic_analysis(Ast* program, Scope* root_scope, Arena* storage)
           opened_scopes, enclosing_scopes, storage);
   resolve_type_xref(type_table, type_array);
 
-  potential_types = build_potential_types(program, root_scope, enclosing_scopes,
-          type_table, storage);
-  do_narrow_types(program, type_table, potential_types, storage);
+  build_potential_types(program, root_scope, enclosing_scopes, type_table, storage);
+  /*do_narrow_types(program, type_table, potential_types, storage);*/
 }
 
 int

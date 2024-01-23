@@ -72,7 +72,7 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 }
 
 NameEntry*
-scope_push_decl(Scope* scope, Arena* storage, NameDecl* decl, enum NameSpace ns)
+scope_push_decl(Scope* scope, Arena* storage, NameDeclaration* decl, enum NameSpace ns)
 {
   HashmapEntry* e;
   NameEntry* name_entry;
@@ -94,7 +94,7 @@ Debug_scope_decls(Scope* scope)
   HashmapCursor it = {};
   HashmapEntry* e;
   NameEntry* name_entry;
-  NameDecl* decl;
+  NameDeclaration* decl;
 
   hashmap_cursor_begin(&it, &scope->name_table);
   printf("Names in scope 0x%x\n\n", scope);
