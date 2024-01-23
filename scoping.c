@@ -41,7 +41,7 @@ scope_lookup_any(Scope* scope, char* strname)
     e = hashmap_lookup_entry(&scope->name_table, strname);
     if (e) {
       name_entry = (NameEntry*)e->value;
-      if (name_entry->ns[NS_TYPE] || name_entry->ns[NS_VAR] || name_entry->ns[NS_KEYWORD]) {
+      if (name_entry->ns[NAMESPACE_TYPE] || name_entry->ns[NAMESPACE_VAR] || name_entry->ns[NAMESPACE_KEYWORD]) {
         break;
       }
     }
@@ -104,7 +104,7 @@ Debug_scope_decls(Scope* scope)
     for (int i = 1; i < NameSpace_COUNT; i++) {
       decl = name_entry->ns[i];
       while (decl) {
-        if (i == NS_KEYWORD) {
+        if (i == NAMESPACE_KEYWORD) {
           printf("%s, ns[%d]\n", decl->strname, i);
         } else {
           Ast* ast = decl->ast;

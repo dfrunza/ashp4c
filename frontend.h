@@ -954,10 +954,10 @@ typedef struct NameDecl {
 } NameDecl;
 
 enum NameSpace {
-  NS_NONE = 0,
-  NS_VAR,
-  NS_TYPE,
-  NS_KEYWORD,
+  NAMESPACE_NONE = 0,
+  NAMESPACE_VAR,
+  NAMESPACE_TYPE,
+  NAMESPACE_KEYWORD,
 
   NameSpace_COUNT,
 };

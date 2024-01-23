@@ -414,7 +414,7 @@ build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array
   type_equiv_pairs = array_create(storage, sizeof(TypePair), 48);
 
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
-    name_decl = scope_lookup_namespace(root_scope, builtin_types[i].strname, NS_TYPE)->ns[NS_TYPE];
+    name_decl = scope_lookup_namespace(root_scope, builtin_types[i].strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
     builtin_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
     builtin_ty->ctor = builtin_types[i].type;
     builtin_ty->strname = name_decl->strname;
@@ -524,7 +524,7 @@ visit_parameter(Ast* param)
 
   name = param->parameter.name;
   scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_decl = scope_lookup_namespace(scope, name->name.strname, NS_VAR)->ns[NS_VAR];
+  name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR)->ns[NAMESPACE_VAR];
   name_decl->type = set_lookup_value(type_table, param->parameter.type, 0);
 }
 
@@ -1135,7 +1135,7 @@ visit_baseTypeBoolean(Ast* bool_type)
   NameDecl* name_decl;
   SetMember* m;
 
-  name_decl = scope_lookup_namespace(root_scope, "bool", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "bool", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   m = set_add_member(type_table, storage, bool_type, name_decl->type);
   assert(m);
 }
@@ -1151,7 +1151,7 @@ visit_baseTypeInteger(Ast* int_type)
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
 
-  name_decl = scope_lookup_namespace(root_scope, "int", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "int", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   m = set_add_member(type_table, storage, int_type, name_decl->type);
   assert(m);
 }
@@ -1167,7 +1167,7 @@ visit_baseTypeBit(Ast* bit_type)
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
 
-  name_decl = scope_lookup_namespace(root_scope, "bit", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "bit", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   m = set_add_member(type_table, storage, bit_type, name_decl->type);
   assert(m);
 }
@@ -1181,7 +1181,7 @@ visit_baseTypeVarbit(Ast* varbit_type)
 
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
 
-  name_decl = scope_lookup_namespace(root_scope, "varbit", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "varbit", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   m = set_add_member(type_table, storage, varbit_type, name_decl->type);
   assert(m);
 }
@@ -1193,7 +1193,7 @@ visit_baseTypeString(Ast* str_type)
   NameDecl* name_decl;
   SetMember* m;
 
-  name_decl = scope_lookup_namespace(root_scope, "string", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "string", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   m = set_add_member(type_table, storage, str_type, name_decl->type);
   assert(m);
 }
@@ -1205,7 +1205,7 @@ visit_baseTypeVoid(Ast* void_type)
   NameDecl* name_decl;
   SetMember* m;
 
-  name_decl = scope_lookup_namespace(root_scope, "void", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "void", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   m = set_add_member(type_table, storage, void_type, name_decl->type);
   assert(m);
 }
@@ -1217,7 +1217,7 @@ visit_baseTypeError(Ast* error_type)
   NameDecl* name_decl;
   SetMember* m;
 
-  name_decl = scope_lookup_namespace(root_scope, "error", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "error", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   m = set_add_member(type_table, storage, error_type, name_decl->type);
   assert(m);
 }
@@ -1866,7 +1866,7 @@ visit_actionDeclaration(Ast* action_decl)
   m = set_add_member(type_table, storage, action_decl, action_ty);
   assert(m);
 
-  name_decl = scope_lookup_namespace(root_scope, "void", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "void", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   action_ty->function.return_ = name_decl->type;
 
   i = type_array->elem_count;
@@ -1897,7 +1897,7 @@ visit_variableDeclaration(Ast* var_decl)
 
   name = var_decl->variableDeclaration.name;
   scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_decl = scope_lookup_namespace(scope, name->name.strname, NS_VAR)->ns[NS_VAR];
+  name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR)->ns[NAMESPACE_VAR];
   name_decl->type = set_lookup_value(type_table, var_decl->variableDeclaration.type, 0);
 }
 
@@ -2082,7 +2082,7 @@ visit_dontcare(Ast* dontcare)
   NameDecl* name_decl;
   SetMember* m;
 
-  name_decl = scope_lookup_namespace(root_scope, "_", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "_", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   m = set_add_member(type_table, storage, dontcare, name_decl->type);
   assert(m);
 }

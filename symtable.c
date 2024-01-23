@@ -256,7 +256,7 @@ visit_parameter(Ast* param)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = param;
-  scope_push_decl(current_scope, storage, name_decl, NS_VAR);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_VAR);
 
   if (param->parameter.init_expr) {
     visit_expression(param->parameter.init_expr);
@@ -275,7 +275,7 @@ visit_packageTypeDeclaration(Ast* type_decl)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = type_decl;
-  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
 
   prev_scope = current_scope;
   current_scope = set_lookup_value(opened_scopes, type_decl, 0);
@@ -302,7 +302,7 @@ visit_instantiation(Ast* inst)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = inst;
-  scope_push_decl(current_scope, storage, name_decl, NS_VAR);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_VAR);
 }
 
 /** PARSER **/
@@ -339,7 +339,7 @@ visit_parserTypeDeclaration(Ast* type_decl)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = type_decl;
-  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
 
   prev_scope = current_scope;
   current_scope = set_lookup_value(opened_scopes, type_decl, 0);
@@ -399,7 +399,7 @@ visit_parserState(Ast* state)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = state;
-  scope_push_decl(current_scope, storage, name_decl, NS_VAR);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_VAR);
 
   prev_scope = current_scope;
   current_scope = set_lookup_value(opened_scopes, state, 0);
@@ -577,7 +577,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = type_decl;
-  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
 
   prev_scope = current_scope;
   current_scope = set_lookup_value(opened_scopes, type_decl, 0);
@@ -642,7 +642,7 @@ visit_externTypeDeclaration(Ast* type_decl)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = type_decl;
-  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
 
   prev_scope = current_scope;
   current_scope = set_lookup_value(opened_scopes, type_decl, 0);
@@ -679,7 +679,7 @@ visit_functionPrototype(Ast* func_proto)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = func_proto;
-  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
 
   prev_scope = current_scope;
   current_scope = set_lookup_value(opened_scopes, func_proto, 0);
@@ -817,13 +817,13 @@ visit_typeParameterList(Ast* param_list)
        ast != 0; ast = ast->right_sibling) {
     name = ast;
     name_entry = scope_lookup_any(current_scope, name->name.strname);
-    if (name_entry && name_entry->ns[NS_TYPE]) {
+    if (name_entry && name_entry->ns[NAMESPACE_TYPE]) {
       visit_name(name);
     } else {
       name_decl = arena_malloc(storage, sizeof(NameDecl));
       name_decl->strname = name->name.strname;
       name_decl->ast = name;
-      scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
+      scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
     }
   }
 }
@@ -920,7 +920,7 @@ visit_headerTypeDeclaration(Ast* header_decl)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = header_decl;
-  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
 
   prev_scope = current_scope;
   current_scope = set_lookup_value(opened_scopes, header_decl, 0);
@@ -942,7 +942,7 @@ visit_headerUnionDeclaration(Ast* union_decl)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = union_decl;
-  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
 
   prev_scope = current_scope;
   current_scope = set_lookup_value(opened_scopes, union_decl, 0);
@@ -964,7 +964,7 @@ visit_structTypeDeclaration(Ast* struct_decl)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = struct_decl;
-  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
 
   prev_scope = current_scope;
   current_scope = set_lookup_value(opened_scopes, struct_decl, 0);
@@ -999,7 +999,7 @@ visit_structField(Ast* field)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = field;
-  scope_push_decl(current_scope, storage, name_decl, NS_VAR);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_VAR);
 }
 
 static void
@@ -1013,7 +1013,7 @@ visit_enumDeclaration(Ast* enum_decl)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = enum_decl;
-  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
 
   visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
 }
@@ -1058,7 +1058,7 @@ visit_identifierList(Ast* ident_list)
     name_decl = arena_malloc(storage, sizeof(NameDecl));
     name_decl->strname = ast->name.strname;
     name_decl->ast = ast;
-    scope_push_decl(current_scope, storage, name_decl, NS_VAR);
+    scope_push_decl(current_scope, storage, name_decl, NAMESPACE_VAR);
   }
 }
 
@@ -1085,7 +1085,7 @@ visit_specifiedIdentifier(Ast* ident)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = ident;
-  scope_push_decl(current_scope, storage, name_decl, NS_VAR);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_VAR);
 
   if (ident->specifiedIdentifier.init_expr) {
     visit_expression(ident->specifiedIdentifier.init_expr);
@@ -1109,7 +1109,7 @@ visit_typedefDeclaration(Ast* typedef_decl)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = typedef_decl;
-  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
 }
 
 /** STATEMENTS **/
@@ -1298,7 +1298,7 @@ visit_tableDeclaration(Ast* table_decl)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = table_decl;
-  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
 
   prev_scope = current_scope;
   current_scope = set_lookup_value(opened_scopes, table_decl, 0);
@@ -1437,7 +1437,7 @@ visit_simpleProperty(Ast* simple_prop)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = simple_prop;
-  scope_push_decl(current_scope, storage, name_decl, NS_VAR);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_VAR);
 
   visit_expression(simple_prop->simpleProperty.init_expr);
 }
@@ -1454,7 +1454,7 @@ visit_actionDeclaration(Ast* action_decl)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = action_decl;
-  scope_push_decl(current_scope, storage, name_decl, NS_TYPE);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
 
   prev_scope = current_scope;
   current_scope = set_lookup_value(opened_scopes, action_decl, 0);
@@ -1481,7 +1481,7 @@ visit_variableDeclaration(Ast* var_decl)
   name_decl = arena_malloc(storage, sizeof(NameDecl));
   name_decl->strname = name->name.strname;
   name_decl->ast = var_decl;
-  scope_push_decl(current_scope, storage, name_decl, NS_VAR);
+  scope_push_decl(current_scope, storage, name_decl, NAMESPACE_VAR);
 
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);

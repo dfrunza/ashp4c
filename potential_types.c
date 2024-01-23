@@ -345,8 +345,8 @@ visit_name(Ast* name)
     return; /* TODO: Named args */
   }
   P = set_open_inner_set(potential_types, storage, name);
-  name_decl[0] = name_entry->ns[NS_VAR];
-  name_decl[1] = name_entry->ns[NS_TYPE];
+  name_decl[0] = name_entry->ns[NAMESPACE_VAR];
+  name_decl[1] = name_entry->ns[NAMESPACE_TYPE];
   for (int i = 0; i < 2; i++) {
     while (name_decl[i]) {
       name_ty = actual_type(name_decl[i]->type);
@@ -763,7 +763,7 @@ visit_baseTypeBoolean(Ast* bool_type)
   NameDecl* name_decl;
   Set* P;
 
-  name_decl = scope_lookup_namespace(root_scope, "bool", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "bool", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   P = set_open_inner_set(potential_types, storage, bool_type);
   set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
@@ -779,7 +779,7 @@ visit_baseTypeInteger(Ast* int_type)
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
 
-  name_decl = scope_lookup_namespace(root_scope, "int", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "int", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   P = set_open_inner_set(potential_types, storage, int_type);
   set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
@@ -795,7 +795,7 @@ visit_baseTypeBit(Ast* bit_type)
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
 
-  name_decl = scope_lookup_namespace(root_scope, "bit", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "bit", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   P = set_open_inner_set(potential_types, storage, bit_type);
   set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
@@ -809,7 +809,7 @@ visit_baseTypeVarbit(Ast* varbit_type)
 
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
 
-  name_decl = scope_lookup_namespace(root_scope, "varbit", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "varbit", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   P = set_open_inner_set(potential_types, storage, varbit_type);
   set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
@@ -821,7 +821,7 @@ visit_baseTypeString(Ast* str_type)
   NameDecl* name_decl;
   Set* P;
 
-  name_decl = scope_lookup_namespace(root_scope, "string", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "string", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   P = set_open_inner_set(potential_types, storage, str_type);
   set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
@@ -833,7 +833,7 @@ visit_baseTypeVoid(Ast* void_type)
   NameDecl* name_decl;
   Set* P;
 
-  name_decl = scope_lookup_namespace(root_scope, "void", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "void", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   P = set_open_inner_set(potential_types, storage, void_type);
   set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
@@ -845,7 +845,7 @@ visit_baseTypeError(Ast* error_type)
   NameDecl* name_decl;
   Set* P;
 
-  name_decl = scope_lookup_namespace(root_scope, "error", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "error", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   P = set_open_inner_set(potential_types, storage, error_type);
   set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
@@ -1549,7 +1549,7 @@ visit_booleanLiteral(Ast* bool_literal)
   NameDecl* name_decl;
   Set* P;
 
-  name_decl = scope_lookup_namespace(root_scope, "bool", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "bool", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   P = set_open_inner_set(potential_types, storage, bool_literal);
   set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
@@ -1561,7 +1561,7 @@ visit_integerLiteral(Ast* int_literal)
   NameDecl* name_decl;
   Set* P;
 
-  name_decl = scope_lookup_namespace(root_scope, "int", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "int", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   P = set_open_inner_set(potential_types, storage, int_literal);
   set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
@@ -1573,7 +1573,7 @@ visit_stringLiteral(Ast* str_literal)
   NameDecl* name_decl;
   Set* P;
 
-  name_decl = scope_lookup_namespace(root_scope, "string", NS_TYPE)->ns[NS_TYPE];
+  name_decl = scope_lookup_namespace(root_scope, "string", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   P = set_open_inner_set(potential_types, storage, str_literal);
   set_add_or_lookup_member(P, storage, name_decl->type, 0);
 }
