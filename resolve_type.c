@@ -72,6 +72,9 @@ resolve_type_xref(Set* type_table, UnboundedArray* type_array)
 {
   resolve_TYPE_NAMEREF(type_table, type_array);
   resolve_TYPE_TYPE(type_array);
+
+  printf("\nTYPE ARRAY\n"
+           "----------\n");
   Debug_print_type_array(type_array);
 }
 

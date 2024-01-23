@@ -941,8 +941,6 @@ visit_externTypeDeclaration(Ast* type_decl)
   if (type_decl->externTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->externTypeDeclaration.type_params);
   }
-  visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos,
-          type_decl, type_decl->externTypeDeclaration.name);
 
   name = type_decl->externTypeDeclaration.name;
   extern_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
@@ -950,6 +948,9 @@ visit_externTypeDeclaration(Ast* type_decl)
   extern_ty->strname = name->name.strname;
   m = set_add_member(type_table, storage, type_decl, extern_ty);
   assert(m);
+
+  visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos,
+          type_decl, type_decl->externTypeDeclaration.name);
 
   i = type_array->elem_count;
   methods = type_decl->externTypeDeclaration.method_protos;
