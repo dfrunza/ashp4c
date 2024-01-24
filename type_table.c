@@ -533,6 +533,8 @@ visit_packageTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_packageTypeDeclaration);
   Ast* ast, *name, *params;
+  Scope* scope;
+  NameDeclaration* name_decl;
   Type* package_ty, *ctor_ty, *ty;
   int i;
   SetMember* m;
@@ -555,13 +557,20 @@ visit_packageTypeDeclaration(Ast* type_decl)
   ctor_ty->function.return_ = package_ty;
   package_ty->package.ctor = ctor_ty;
 
+  name_decl = arena_malloc(storage, sizeof(NameDeclaration));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = type_decl;
+  name_decl->type = ctor_ty;
+  scope = set_lookup_value(enclosing_scopes, name, 0);
+  scope_push_decl(scope, storage, name_decl, NAMESPACE_CTOR);
+
   i = type_array->elem_count;
   params = type_decl->packageTypeDeclaration.params;
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
     ty->ctor = TYPE_TYPE;
-    ty->type.type = set_lookup_value(type_table, ast->parameter.type, 0); /*ast->parameter.type;*/
+    ty->type.type = set_lookup_value(type_table, ast->parameter.type, 0);
   }
   ctor_ty->function.params = create_product_type(i, type_array->elem_count, storage);
 }
@@ -618,6 +627,8 @@ visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_parserTypeDeclaration);
   Ast* ast, *name, *params;
+  Scope* scope;
+  NameDeclaration* name_decl;
   Type* parser_ty, *ctor_ty, *ty;
   int i;
   SetMember* m;
@@ -649,6 +660,13 @@ visit_parserTypeDeclaration(Ast* type_decl)
   ctor_ty->strname = name->name.strname;
   ctor_ty->function.return_ = parser_ty;
   parser_ty->parser.ctor = ctor_ty;
+
+  name_decl = arena_malloc(storage, sizeof(NameDeclaration));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = type_decl;
+  name_decl->type = ctor_ty;
+  scope = set_lookup_value(enclosing_scopes, name, 0);
+  scope_push_decl(scope, storage, name_decl, NAMESPACE_CTOR);
 }
 
 static void
@@ -856,6 +874,8 @@ visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_controlTypeDeclaration);
   Ast* ast, *name, *params;
+  Scope* scope;
+  NameDeclaration* name_decl;
   Type* control_ty, *ctor_ty, *ty;
   int i;
   SetMember* m;
@@ -887,6 +907,13 @@ visit_controlTypeDeclaration(Ast* type_decl)
   ctor_ty->strname = name->name.strname;
   ctor_ty->function.return_ = control_ty;
   control_ty->control.ctor = ctor_ty;
+
+  name_decl = arena_malloc(storage, sizeof(NameDeclaration));
+  name_decl->strname = name->name.strname;
+  name_decl->ast = type_decl;
+  name_decl->type = ctor_ty;
+  scope = set_lookup_value(enclosing_scopes, name, 0);
+  scope_push_decl(scope, storage, name_decl, NAMESPACE_CTOR);
 }
 
 static void
@@ -980,6 +1007,9 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
 {
   assert(func_proto->kind == AST_functionPrototype);
   Ast* ast, *name, *params, *return_type;
+  Scope* scope;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
   Type* func_ty, *ty;
   int i;
   SetMember* m;
@@ -999,6 +1029,11 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
   func_ty->strname = name->name.strname;
   m = set_add_member(type_table, storage, func_proto, func_ty);
   assert(m);
+
+  scope = set_lookup_value(enclosing_scopes, name, 0);
+  name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE);
+  name_decl = name_entry->ns[NAMESPACE_TYPE];
+  name_decl->type = func_ty;
 
   i = type_array->elem_count;
   params = func_proto->functionPrototype.params;
@@ -1564,13 +1599,10 @@ static void
 visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
-  Ast* lhs_expr;
-
-  lhs_expr = func_call->functionCall.lhs_expr;
-  if (lhs_expr->kind == AST_expression) {
-    visit_expression(lhs_expr);
-  } else if (lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(lhs_expr);
+  if (func_call->functionCall.lhs_expr->kind == AST_expression) {
+    visit_expression(func_call->functionCall.lhs_expr);
+  } else if (func_call->functionCall.lhs_expr->kind == AST_lvalueExpression) {
+    visit_lvalueExpression(func_call->functionCall.lhs_expr);
   } else assert(0);
   visit_argumentList(func_call->functionCall.args);
 }

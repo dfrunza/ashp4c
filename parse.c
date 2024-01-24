@@ -154,15 +154,13 @@ next_token()
   }
   if (token->klass == TK_IDENTIFIER) {
     name_entry = scope_lookup_any(current_scope, token->lexeme);
-    if (name_entry) {
-      if (name_entry->ns[NAMESPACE_KEYWORD]) {
-        name_decl = name_entry->ns[NAMESPACE_KEYWORD];
-        token->klass = name_decl->token_class;
-        return token;
-      } else if (name_entry->ns[NAMESPACE_TYPE]) {
-        token->klass = TK_TYPE_IDENTIFIER;
-        return token;
-      }
+    if (name_entry->ns[NAMESPACE_KEYWORD]) {
+      name_decl = name_entry->ns[NAMESPACE_KEYWORD];
+      token->klass = name_decl->token_class;
+      return token;
+    } else if (name_entry->ns[NAMESPACE_TYPE]) {
+      token->klass = TK_TYPE_IDENTIFIER;
+      return token;
     }
   }
   return token;

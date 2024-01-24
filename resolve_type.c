@@ -16,7 +16,7 @@ resolve_TYPE_NAMEREF(Set* type_table, UnboundedArray* type_array)
     if (ty->ctor == TYPE_NAMEREF) {
       name = ty->nameref.name;
       name_entry = scope_lookup_namespace(ty->nameref.scope, name->name.strname, NAMESPACE_TYPE);
-      if (name_entry && name_entry->ns[NAMESPACE_TYPE]) {
+      if (name_entry->ns[NAMESPACE_TYPE]) {
         name_decl = name_entry->ns[NAMESPACE_TYPE];
         if (!name_decl->next_in_scope) {
           ref_ty = set_lookup_value(type_table, name_decl->ast, 0);

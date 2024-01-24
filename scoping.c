@@ -4,6 +4,8 @@
 #include "foundation.h"
 #include "frontend.h"
 
+static NameEntry entry_none = {};
+
 Scope*
 scope_create(Arena* storage, int max_capacity)
 {
@@ -48,7 +50,10 @@ scope_lookup_any(Scope* scope, char* strname)
     name_entry = 0;
     scope = scope->parent_scope;
   }
-  return name_entry;
+  if (name_entry) {
+    return name_entry;
+  }
+  return &entry_none;
 }
 
 NameEntry*
@@ -68,14 +73,17 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
     name_entry = 0;
     scope = scope->parent_scope;
   }
-  return name_entry;
+  if (name_entry) {
+    return name_entry;
+  }
+  return &entry_none;
 }
 
 NameEntry*
 scope_push_decl(Scope* scope, Arena* storage, NameDeclaration* decl, enum NameSpace ns)
 {
-  HashmapEntry* e;
   NameEntry* name_entry;
+  HashmapEntry* e;
 
   e = hashmap_lookup_or_insert_entry(&scope->name_table, storage, decl->strname, 0);
   if (e->value == 0) {
@@ -90,11 +98,11 @@ scope_push_decl(Scope* scope, Arena* storage, NameDeclaration* decl, enum NameSp
 void
 Debug_scope_decls(Scope* scope)
 {
+  NameEntry* name_entry;
+  NameDeclaration* decl;
   int count = 0;
   HashmapCursor it = {};
   HashmapEntry* e;
-  NameEntry* name_entry;
-  NameDeclaration* decl;
 
   hashmap_cursor_begin(&it, &scope->name_table);
   printf("Names in scope 0x%x\n\n", scope);

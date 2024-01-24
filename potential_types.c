@@ -8,6 +8,7 @@ static Scope* root_scope;
 static Set*   enclosing_scopes;
 static Set*   type_table, *potential_types;
 static Set*   decl_table;
+static UnboundedArray* nmdecl_buf;
 
 /** PROGRAM **/
 
@@ -147,6 +148,7 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
+#if 0
 static bool
 validate_param_and_arg_type(Type* param_ty, Ast* arg)
 {
@@ -166,7 +168,34 @@ validate_param_and_arg_type(Type* param_ty, Ast* arg)
   }
   return false;
 }
+#endif
 
+static NameDeclaration*
+select_function(Ast* name, NameDeclaration* name_decl, Ast* args)
+{
+  Type* func_ty;
+  Scope* scope;
+  NameEntry* name_entry;
+  NameDeclaration* ctor_decl, *nd;
+
+  scope = set_lookup_value(enclosing_scopes, name, 0);
+  nmdecl_buf->elem_count = 0;
+  for (nd = name_decl; nd != 0; nd = nd->next_in_scope) {
+    func_ty = actual_type(nd->type);
+    if (func_ty->ctor == TYPE_FUNCTION) {
+      *(NameDeclaration**)array_append_element(nmdecl_buf, storage, sizeof(NameDeclaration*)) = nd;
+    } else if (func_ty->ctor == TYPE_PACKAGE || func_ty->ctor == TYPE_PARSER || func_ty->ctor == TYPE_CONTROL) {
+      name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_CTOR);
+      ctor_decl = name_entry->ns[NAMESPACE_CTOR];
+      *(NameDeclaration**)array_append_element(nmdecl_buf, storage, sizeof(NameDeclaration*)) = nd;
+    } else if (func_ty->ctor == TYPE_EXTERN) {
+      assert(0); /* TODO */
+    }
+  }
+  return name_decl;
+}
+
+#if 0
 static void
 apply_function(Set* P, Set* S, Ast* args)
 {
@@ -242,6 +271,7 @@ apply_function(Set* P, Set* S, Ast* args)
     } else assert(0);
   }
 }
+#endif
 
 void
 Debug_print_potential_types(Set* table)
@@ -274,6 +304,7 @@ build_potential_types(Ast* p4program, Scope* root_scope_, Set* enclosing_scopes_
   *potential_types = (Set){};
   decl_table = arena_malloc(storage, sizeof(Set));
   *decl_table = (Set){};
+  nmdecl_buf = array_create(storage, sizeof(NameDeclaration*), 48);
 
   visit_p4program(p4program);
 
@@ -336,13 +367,6 @@ static void
 visit_name(Ast* name)
 {
   assert(name->kind == AST_name);
-#if 0
-  NameEntry* name_entry;
-  Scope* scope;
-
-  scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_entry = scope_lookup_any(scope, name->name.strname);
-#endif
 }
 
 static void
@@ -693,8 +717,6 @@ static void
 visit_typeRef(Ast* type_ref)
 {
   assert(type_ref->kind == AST_typeRef);
-  Type* ty;
-
   if (type_ref->typeRef.type->kind == AST_baseTypeBoolean) {
     visit_baseTypeBoolean(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_baseTypeInteger) {
@@ -718,9 +740,6 @@ visit_typeRef(Ast* type_ref)
   } else if (type_ref->typeRef.type->kind == AST_tupleType) {
     visit_tupleType(type_ref->typeRef.type);
   } else assert(0);
-
-  ty = (Type*)set_lookup_value(potential_types, type_ref->typeRef.type, 0);
-  set_add_member(potential_types, storage, type_ref, ty);
 }
 
 static void
@@ -1043,15 +1062,33 @@ static void
 visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
-  Ast* lhs_expr;
+  Ast* lhs_expr, *name;
+  Scope* scope;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
 
-  lhs_expr = func_call->functionCall.lhs_expr;
-  if (lhs_expr->kind == AST_expression) {
-    visit_expression(lhs_expr);
-  } else if (lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(lhs_expr);
-  } else assert(0);
   visit_argumentList(func_call->functionCall.args);
+  if (func_call->functionCall.lhs_expr->kind == AST_expression) {
+    lhs_expr = func_call->functionCall.lhs_expr;
+    name = lhs_expr->expression.expr;
+    if (name->kind == AST_name) {
+      scope = set_lookup_value(enclosing_scopes, name, 0);
+      name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE);
+      name_decl = select_function(name, name_entry->ns[NAMESPACE_TYPE], func_call->functionCall.args);
+    } else {
+      visit_expression(func_call->functionCall.lhs_expr);
+    }
+  } else if (func_call->functionCall.lhs_expr->kind == AST_lvalueExpression) {
+    lhs_expr = func_call->functionCall.lhs_expr;
+    name = lhs_expr->expression.expr;
+    if (name->kind == AST_name) {
+      scope = set_lookup_value(enclosing_scopes, name, 0);
+      name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE);
+    } else {
+      visit_lvalueExpression(func_call->functionCall.lhs_expr);
+    }
+  } else assert(0);
+  printf("0x%x", name_decl);
 }
 
 static void
@@ -1396,8 +1433,18 @@ static void
 visit_lvalueExpression(Ast* lvalue_expr)
 {
   assert(lvalue_expr->kind == AST_lvalueExpression);
+  Ast* name;
+  Scope* scope;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
+
   if (lvalue_expr->lvalueExpression.expr->kind == AST_name) {
-    visit_name(lvalue_expr->lvalueExpression.expr);
+    name = lvalue_expr->lvalueExpression.expr;
+    scope = set_lookup_value(enclosing_scopes, name, 0);
+    name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR);
+    name_decl = name_entry->ns[NAMESPACE_VAR];
+    set_add_member(decl_table, storage, name, name_decl);
+    set_add_member(potential_types, storage, lvalue_expr, actual_type(name_decl->type));
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_memberSelector) {
     visit_memberSelector(lvalue_expr->lvalueExpression.expr);
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_arraySubscript) {
@@ -1409,8 +1456,6 @@ static void
 visit_expression(Ast* expr)
 {
   assert(expr->kind == AST_expression);
-  Type* ty;
-
   if (expr->expression.expr->kind == AST_expression) {
     return visit_expression(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_booleanLiteral) {
@@ -1420,7 +1465,7 @@ visit_expression(Ast* expr)
   } else if (expr->expression.expr->kind == AST_stringLiteral) {
     visit_stringLiteral(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_name) {
-    visit_name(expr->expression.expr);
+    ;
   } else if (expr->expression.expr->kind == AST_expressionList) {
     visit_expressionList(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_castExpression) {
@@ -1438,9 +1483,6 @@ visit_expression(Ast* expr)
   } else if (expr->expression.expr->kind == AST_assignmentStatement) {
     visit_assignmentStatement(expr->expression.expr);
   } else assert(0);
-
-  ty = (Type*)set_lookup_value(potential_types, expr->expression.expr, 0);
-  set_add_member(potential_types, storage, expr, ty);
 
   if (expr->expression.type_args) {
     visit_realTypeArgumentList(expr->expression.type_args);

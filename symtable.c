@@ -271,6 +271,7 @@ visit_packageTypeDeclaration(Ast* type_decl)
   NameDeclaration* name_decl;
   Scope* prev_scope;
 
+  visit_name(type_decl->packageTypeDeclaration.name);
   name = type_decl->packageTypeDeclaration.name;
   name_decl = arena_malloc(storage, sizeof(NameDeclaration));
   name_decl->strname = name->name.strname;
@@ -335,6 +336,7 @@ visit_parserTypeDeclaration(Ast* type_decl)
   NameDeclaration* name_decl;
   Scope* prev_scope;
 
+  visit_name(type_decl->parserTypeDeclaration.name);
   name = type_decl->parserTypeDeclaration.name;
   name_decl = arena_malloc(storage, sizeof(NameDeclaration));
   name_decl->strname = name->name.strname;
@@ -573,6 +575,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
   NameDeclaration* name_decl;
   Scope* prev_scope;
 
+  visit_name(type_decl->controlTypeDeclaration.name);
   name = type_decl->controlTypeDeclaration.name;
   name_decl = arena_malloc(storage, sizeof(NameDeclaration));
   name_decl->strname = name->name.strname;
@@ -675,6 +678,7 @@ visit_functionPrototype(Ast* func_proto)
   NameDeclaration* name_decl;
   Scope* prev_scope;
 
+  visit_name(func_proto->functionPrototype.name);
   name = func_proto->functionPrototype.name;
   name_decl = arena_malloc(storage, sizeof(NameDeclaration));
   name_decl->strname = name->name.strname;
@@ -817,7 +821,7 @@ visit_typeParameterList(Ast* param_list)
        ast != 0; ast = ast->right_sibling) {
     name = ast;
     name_entry = scope_lookup_any(current_scope, name->name.strname);
-    if (name_entry && name_entry->ns[NAMESPACE_TYPE]) {
+    if (name_entry->ns[NAMESPACE_TYPE]) {
       visit_name(name);
     } else {
       name_decl = arena_malloc(storage, sizeof(NameDeclaration));
@@ -1130,13 +1134,10 @@ static void
 visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
-  Ast* lhs_expr;
-
-  lhs_expr = func_call->functionCall.lhs_expr;
-  if (lhs_expr->kind == AST_expression) {
-    visit_expression(lhs_expr);
-  } else if (lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(lhs_expr);
+  if (func_call->functionCall.lhs_expr->kind == AST_expression) {
+    visit_expression(func_call->functionCall.lhs_expr);
+  } else if (func_call->functionCall.lhs_expr->kind == AST_lvalueExpression) {
+    visit_lvalueExpression(func_call->functionCall.lhs_expr);
   } else assert(0);
   visit_argumentList(func_call->functionCall.args);
 }

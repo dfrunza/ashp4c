@@ -882,13 +882,10 @@ static void
 visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
-  Ast* lhs_expr;
-
-  lhs_expr = func_call->functionCall.lhs_expr;
-  if (lhs_expr->kind == AST_expression) {
-    visit_expression(lhs_expr);
-  } else if (lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(lhs_expr);
+  if (func_call->functionCall.lhs_expr->kind == AST_expression) {
+    visit_expression(func_call->functionCall.lhs_expr);
+  } else if (func_call->functionCall.lhs_expr->kind == AST_lvalueExpression) {
+    visit_lvalueExpression(func_call->functionCall.lhs_expr);
   } else assert(0);
   visit_argumentList(func_call->functionCall.args);
 }
