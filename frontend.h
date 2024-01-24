@@ -945,18 +945,20 @@ typedef struct Scope {
 typedef struct NameDeclaration {
   char* strname;
   struct NameDeclaration* next_in_scope;
+  
   union {
     Ast* ast;
     enum TokenClass token_class;
   };
+
   Type* type;
+  Type* ctor_type;
 } NameDeclaration;
 
 enum NameSpace {
   NAMESPACE_NONE = 0,
   NAMESPACE_VAR,
   NAMESPACE_TYPE,
-  NAMESPACE_CTOR,
   NAMESPACE_KEYWORD,
 
   NameSpace_COUNT,

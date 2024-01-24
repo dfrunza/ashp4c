@@ -557,12 +557,10 @@ visit_packageTypeDeclaration(Ast* type_decl)
   ctor_ty->function.return_ = package_ty;
   package_ty->package.ctor = ctor_ty;
 
-  name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-  name_decl->strname = name->name.strname;
-  name_decl->ast = type_decl;
-  name_decl->type = ctor_ty;
   scope = set_lookup_value(enclosing_scopes, name, 0);
-  scope_push_decl(scope, storage, name_decl, NAMESPACE_CTOR);
+  name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl->type = package_ty;
+  name_decl->ctor_type = ctor_ty;
 
   i = type_array->elem_count;
   params = type_decl->packageTypeDeclaration.params;
@@ -661,12 +659,10 @@ visit_parserTypeDeclaration(Ast* type_decl)
   ctor_ty->function.return_ = parser_ty;
   parser_ty->parser.ctor = ctor_ty;
 
-  name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-  name_decl->strname = name->name.strname;
-  name_decl->ast = type_decl;
-  name_decl->type = ctor_ty;
   scope = set_lookup_value(enclosing_scopes, name, 0);
-  scope_push_decl(scope, storage, name_decl, NAMESPACE_CTOR);
+  name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl->type = parser_ty;
+  name_decl->ctor_type = ctor_ty;
 }
 
 static void
@@ -908,12 +904,10 @@ visit_controlTypeDeclaration(Ast* type_decl)
   ctor_ty->function.return_ = control_ty;
   control_ty->control.ctor = ctor_ty;
 
-  name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-  name_decl->strname = name->name.strname;
-  name_decl->ast = type_decl;
-  name_decl->type = ctor_ty;
   scope = set_lookup_value(enclosing_scopes, name, 0);
-  scope_push_decl(scope, storage, name_decl, NAMESPACE_CTOR);
+  name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl->type = control_ty;
+  name_decl->ctor_type = ctor_ty;
 }
 
 static void
@@ -1008,7 +1002,6 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
   assert(func_proto->kind == AST_functionPrototype);
   Ast* ast, *name, *params, *return_type;
   Scope* scope;
-  NameEntry* name_entry;
   NameDeclaration* name_decl;
   Type* func_ty, *ty;
   int i;
@@ -1031,8 +1024,7 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
   assert(m);
 
   scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE);
-  name_decl = name_entry->ns[NAMESPACE_TYPE];
+  name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   name_decl->type = func_ty;
 
   i = type_array->elem_count;

@@ -173,23 +173,43 @@ validate_param_and_arg_type(Type* param_ty, Ast* arg)
 static NameDeclaration*
 select_function(Ast* name, NameDeclaration* name_decl, Ast* args)
 {
-  Type* func_ty;
+  Ast* arg;
+  Type* func_ty, *ty;
+  Type* param_ty, *arg_ty;
   Scope* scope;
   NameEntry* name_entry;
   NameDeclaration* ctor_decl, *nd;
+  bool identified = false;
 
   scope = set_lookup_value(enclosing_scopes, name, 0);
-  nmdecl_buf->elem_count = 0;
   for (nd = name_decl; nd != 0; nd = nd->next_in_scope) {
+    if (identified) {
+      error("FIXME");
+    }
     func_ty = actual_type(nd->type);
-    if (func_ty->ctor == TYPE_FUNCTION) {
-      *(NameDeclaration**)array_append_element(nmdecl_buf, storage, sizeof(NameDeclaration*)) = nd;
-    } else if (func_ty->ctor == TYPE_PACKAGE || func_ty->ctor == TYPE_PARSER || func_ty->ctor == TYPE_CONTROL) {
-      name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_CTOR);
-      ctor_decl = name_entry->ns[NAMESPACE_CTOR];
-      *(NameDeclaration**)array_append_element(nmdecl_buf, storage, sizeof(NameDeclaration*)) = nd;
-    } else if (func_ty->ctor == TYPE_EXTERN) {
-      assert(0); /* TODO */
+    if (func_ty->ctor == TYPE_PACKAGE || func_ty->ctor == TYPE_PARSER ||
+        func_ty->ctor == TYPE_CONTROL) {
+      func_ty = actual_type(nd->ctor_type);
+    }
+    assert(func_ty->ctor == TYPE_FUNCTION);
+    param_ty = actual_type(func_ty->function.params);
+    arg = args->argumentList.first_child;
+    if (param_ty && arg) {
+      for (ty = param_ty; ty != 0; ty = ty->product.next) {
+        param_ty = actual_type(ty->product.type);
+        arg_ty = set_lookup_value(potential_types, arg, 0);
+        if (!type_equiv(param_ty, arg_ty)) {
+          break;
+        }
+        arg = arg->right_sibling;
+      }
+      if (ty == 0 && arg == 0) {
+        identified = true;
+      }
+    } else if (param_ty || arg) {
+      ;
+    } else { /* param == 0 && arg == 0 */
+      identified = true;
     }
   }
   return name_decl;
@@ -230,7 +250,7 @@ apply_function(Set* P, Set* S, Ast* args)
             if (cstr_match(func_ty->strname, method_ty->strname)) {
               set_add_or_lookup_member(S_new, storage, method_ty, 0);
             }
-          }
+          } = a
         } else {
           assert(method_ty->ctor == TYPE_FUNCTION);
           if (cstr_match(func_ty->strname, method_ty->strname)) {
@@ -1410,11 +1430,16 @@ static void
 visit_argument(Ast* arg)
 {
   assert(arg->kind == AST_argument);
+  Type* arg_ty;
+
   if (arg->argument.arg->kind == AST_expression) {
     visit_expression(arg->argument.arg);
   } else if (arg->argument.arg->kind == AST_dontcare) {
     visit_dontcare(arg->argument.arg);
   } else assert(0);
+
+  arg_ty = set_lookup_value(potential_types, arg->argument.arg, 0);
+  set_add_member(potential_types, storage, arg, actual_type(arg_ty));
 }
 
 static void
@@ -1456,8 +1481,10 @@ static void
 visit_expression(Ast* expr)
 {
   assert(expr->kind == AST_expression);
+  Type* expr_ty;
+
   if (expr->expression.expr->kind == AST_expression) {
-    return visit_expression(expr->expression.expr);
+    visit_expression(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_booleanLiteral) {
     visit_booleanLiteral(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_integerLiteral) {
@@ -1487,6 +1514,9 @@ visit_expression(Ast* expr)
   if (expr->expression.type_args) {
     visit_realTypeArgumentList(expr->expression.type_args);
   }
+
+  expr_ty = set_lookup_value(potential_types, expr->expression.expr, 0);
+  set_add_member(potential_types, storage, expr, expr_ty);
 }
 
 static void
