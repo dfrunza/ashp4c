@@ -154,6 +154,7 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
+#if 0
 static Type*
 create_product_type(int i, int j, Arena* storage)
 {
@@ -180,6 +181,7 @@ create_product_type(int i, int j, Arena* storage)
   } else assert(0);
   return 0;
 }
+#endif
 
 Type*
 actual_type(Type* type)
@@ -402,7 +404,6 @@ build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array
 
   Type* builtin_ty;
   NameDeclaration* name_decl;
-  SetMember* m;
 
   storage = storage_;
   root_scope = root_scope_;
@@ -419,8 +420,7 @@ build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array
     builtin_ty->ctor = builtin_types[i].type;
     builtin_ty->strname = name_decl->strname;
     name_decl->type = builtin_ty;
-    m = set_add_member(type_table, storage, name_decl->ast, builtin_ty);
-    assert(m);
+    set_add_member(type_table, storage, name_decl->ast, builtin_ty);
   }
 
   visit_p4program(p4program);
@@ -486,15 +486,13 @@ visit_name(Ast* name)
 {
   assert(name->kind == AST_name);
   Type* name_ty;
-  SetMember* m;
 
   name_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   name_ty->ctor = TYPE_NAMEREF;
   name_ty->strname = name->name.strname;
   name_ty->nameref.name = name;
   name_ty->nameref.scope = set_lookup_value(enclosing_scopes, name, 0);
-  m = set_add_member(type_table, storage, name, name_ty);
-  assert(m);
+  set_add_member(type_table, storage, name, name_ty);
 }
 
 static void
@@ -502,21 +500,19 @@ visit_parameterList(Ast* params)
 {
   assert(params->kind == AST_parameterList);
   Ast* ast;
-  Type* params_ty, *ty;
-  int i;
-  SetMember* m;
+  Type* params_ty;
 
-  i = type_array->elem_count;
+  params_ty = 0;
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parameter(ast);
-    ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_TYPE;
-    ty->type.type = set_lookup_value(type_table, ast->parameter.type, 0);
+
+    params_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+    params_ty->ctor = TYPE_PRODUCT;
+    params_ty->product.next = params_ty;
+    params_ty->product.type = set_lookup_value(type_table, ast->parameter.type, 0);
   }
-  params_ty = create_product_type(i, type_array->elem_count, storage);
-  m = set_add_member(type_table, storage, params, params_ty);
-  assert(m);
+  set_add_member(type_table, storage, params, params_ty);
 }
 
 static void
@@ -546,7 +542,6 @@ visit_packageTypeDeclaration(Ast* type_decl)
   Scope* scope;
   NameDeclaration* name_decl;
   Type* package_ty, *ctor_ty;
-  SetMember* m;
 
   if (type_decl->packageTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->packageTypeDeclaration.type_params);
@@ -557,8 +552,7 @@ visit_packageTypeDeclaration(Ast* type_decl)
   package_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   package_ty->ctor = TYPE_PACKAGE;
   package_ty->strname = name->name.strname;
-  m = set_add_member(type_table, storage, type_decl, package_ty);
-  assert(m);
+  set_add_member(type_table, storage, type_decl, package_ty);
 
   ctor_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   ctor_ty->ctor = TYPE_FUNCTION;
@@ -579,14 +573,12 @@ visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
   Type* inst_ty;
-  SetMember* m;
 
   visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
 
   inst_ty = set_lookup_value(type_table, inst->instantiation.type, 0);
-  m = set_add_member(type_table, storage, inst, inst_ty);
-  assert(m);
+  set_add_member(type_table, storage, inst, inst_ty);
 }
 
 /** PARSER **/
@@ -616,7 +608,6 @@ visit_parserTypeDeclaration(Ast* type_decl)
   Scope* scope;
   NameDeclaration* name_decl;
   Type* parser_ty, *ctor_ty;
-  SetMember* m;
 
   if (type_decl->parserTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->parserTypeDeclaration.type_params);
@@ -627,8 +618,7 @@ visit_parserTypeDeclaration(Ast* type_decl)
   parser_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   parser_ty->ctor = TYPE_PARSER;
   parser_ty->strname = name->name.strname;
-  m = set_add_member(type_table, storage, type_decl, parser_ty);
-  assert(m);
+  set_add_member(type_table, storage, type_decl, parser_ty);
 
   parser_ty->parser.params = set_lookup_value(type_table, type_decl->parserTypeDeclaration.params, 0);
 
@@ -839,7 +829,6 @@ visit_controlTypeDeclaration(Ast* type_decl)
   Scope* scope;
   NameDeclaration* name_decl;
   Type* control_ty, *ctor_ty;
-  SetMember* m;
 
   if (type_decl->controlTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->controlTypeDeclaration.type_params);
@@ -850,8 +839,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
   control_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   control_ty->ctor = TYPE_CONTROL;
   control_ty->strname = name->name.strname;
-  m = set_add_member(type_table, storage, type_decl, control_ty);
-  assert(m);
+  set_add_member(type_table, storage, type_decl, control_ty);
 
   control_ty->control.params = set_lookup_value(type_table, type_decl->packageTypeDeclaration.params, 0);
 
@@ -913,7 +901,6 @@ visit_externTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AST_externTypeDeclaration);
   Ast* name;
   Type* extern_ty;
-  SetMember* m;
 
   if (type_decl->externTypeDeclaration.type_params) {
     visit_typeParameterList(type_decl->externTypeDeclaration.type_params);
@@ -923,8 +910,7 @@ visit_externTypeDeclaration(Ast* type_decl)
   extern_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   extern_ty->ctor = TYPE_EXTERN;
   extern_ty->strname = name->name.strname;
-  m = set_add_member(type_table, storage, type_decl, extern_ty);
-  assert(m);
+  set_add_member(type_table, storage, type_decl, extern_ty);
 
   visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos,
           type_decl, type_decl->externTypeDeclaration.name);
@@ -936,21 +922,19 @@ visit_methodPrototypes(Ast* protos, Ast* extern_decl, Ast* extern_name)
 {
   assert(protos->kind == AST_methodPrototypes);
   Ast* ast;
-  Type* methods_ty, *ty;
-  int i;
-  SetMember* m;
+  Type* methods_ty;
 
-  i = type_array->elem_count;
+  methods_ty = 0;
   for (ast = protos->methodPrototypes.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_functionPrototype(ast, extern_decl, extern_name);
-    ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_TYPE;
-    ty->type.type = set_lookup_value(type_table, ast, 0);
+
+    methods_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+    methods_ty->ctor = TYPE_PRODUCT;
+    methods_ty->product.next = methods_ty;
+    methods_ty->product.type = set_lookup_value(type_table, ast, 0);
   }
-  methods_ty = create_product_type(i, type_array->elem_count, storage);
-  m = set_add_member(type_table, storage, protos, methods_ty);
-  assert(m);
+  set_add_member(type_table, storage, protos, methods_ty);
 }
 
 static void
@@ -960,8 +944,7 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
   Ast* name, *return_type;
   Scope* scope;
   NameDeclaration* name_decl;
-  Type* func_ty, *ty;
-  SetMember* m;
+  Type* func_ty;
 
   if (func_proto->functionPrototype.return_type) {
     visit_typeRef(func_proto->functionPrototype.return_type);
@@ -976,8 +959,7 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
   func_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   func_ty->ctor = TYPE_FUNCTION;
   func_ty->strname = name->name.strname;
-  m = set_add_member(type_table, storage, func_proto, func_ty);
-  assert(m);
+  set_add_member(type_table, storage, func_proto, func_ty);
 
   scope = set_lookup_value(enclosing_scopes, name, 0);
   name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
@@ -987,15 +969,9 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
 
   return_type = func_proto->functionPrototype.return_type;
   if (return_type) {
-    ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_TYPE;
-    ty->type.type = set_lookup_value(type_table, return_type, 0);
-    func_ty->function.return_ = ty;
+    func_ty->function.return_ = set_lookup_value(type_table, return_type, 0);
   } else if (cstr_match(name->name.strname, extern_name->name.strname)) {
-    ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_TYPE;
-    ty->type.type = set_lookup_value(type_table, extern_decl, 0);
-    func_ty->function.return_ = ty;
+    func_ty->function.return_ = set_lookup_value(type_table, extern_decl, 0);
   } else assert(0);
 }
 
@@ -1006,7 +982,6 @@ visit_typeRef(Ast* type_ref)
 {
   assert(type_ref->kind == AST_typeRef);
   Type* ref_ty;
-  SetMember* m;
 
   if (type_ref->typeRef.type->kind == AST_baseTypeBoolean) {
     visit_baseTypeBoolean(type_ref->typeRef.type);
@@ -1033,8 +1008,7 @@ visit_typeRef(Ast* type_ref)
   } else assert(0);
 
   ref_ty = set_lookup_value(type_table, type_ref->typeRef.type, 0);
-  m = set_add_member(type_table, storage, type_ref, ref_ty);
-  assert(m);
+  set_add_member(type_table, storage, type_ref, ref_ty);
 }
 
 static void
@@ -1042,54 +1016,42 @@ visit_tupleType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_tupleType);
   Type* tuple_ty;
-  SetMember* m;
 
   visit_typeArgumentList(type_decl->tupleType.type_args);
   tuple_ty = set_lookup_value(type_table, type_decl->tupleType.type_args, 0);
-  m = set_add_member(type_table, storage, type_decl, tuple_ty);
-  assert(m);
+  set_add_member(type_table, storage, type_decl, tuple_ty);
 }
 
 static void
 visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
-  Type* stack_ty, *ty;
-  SetMember* m;
+  Type* stack_ty;
 
   visit_typeRef(type_decl->headerStackType.type);
   visit_expression(type_decl->headerStackType.stack_expr);
 
   stack_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   stack_ty->ctor = TYPE_ARRAY;
-  m = set_add_member(type_table, storage, type_decl, stack_ty);
-  assert(m);
+  set_add_member(type_table, storage, type_decl, stack_ty);
 
-  ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-  ty->ctor = TYPE_TYPE;
-  ty->type.type = set_lookup_value(type_table, type_decl->headerStackType.type, 0);
-  stack_ty->array.element = ty;
+  stack_ty->array.element = set_lookup_value(type_table, type_decl->headerStackType.type, 0);
 }
 
 static void
 visit_specializedType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_specializedType);
-  Type* specd_ty, *ty;
-  SetMember* m;
+  Type* specd_ty;
 
   visit_typeRef(type_decl->specializedType.type);
   visit_typeArgumentList(type_decl->specializedType.type_args);
 
   specd_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   specd_ty->ctor = TYPE_SPECIALIZED;
-  m = set_add_member(type_table, storage, type_decl, specd_ty);
-  assert(m);
+  set_add_member(type_table, storage, type_decl, specd_ty);
 
-  ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-  ty->ctor = TYPE_TYPE;
-  ty->type.type = set_lookup_value(type_table, type_decl->specializedType.type, 0);
-  specd_ty->specialized.ref = ty;
+  specd_ty->specialized.ref = set_lookup_value(type_table, type_decl->specializedType.type, 0);
 }
 
 static void
@@ -1097,11 +1059,9 @@ visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AST_baseTypeBoolean);
   NameDeclaration* name_decl;
-  SetMember* m;
 
   name_decl = scope_lookup_namespace(root_scope, "bool", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
-  m = set_add_member(type_table, storage, bool_type, name_decl->type);
-  assert(m);
+  set_add_member(type_table, storage, bool_type, name_decl->type);
 }
 
 static void
@@ -1109,15 +1069,13 @@ visit_baseTypeInteger(Ast* int_type)
 {
   assert(int_type->kind == AST_baseTypeInteger);
   NameDeclaration* name_decl;
-  SetMember* m;
 
   if (int_type->baseTypeInteger.size) {
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
 
   name_decl = scope_lookup_namespace(root_scope, "int", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
-  m = set_add_member(type_table, storage, int_type, name_decl->type);
-  assert(m);
+  set_add_member(type_table, storage, int_type, name_decl->type);
 }
 
 static void
@@ -1125,15 +1083,13 @@ visit_baseTypeBit(Ast* bit_type)
 {
   assert(bit_type->kind == AST_baseTypeBit);
   NameDeclaration* name_decl;
-  SetMember* m;
 
   if (bit_type->baseTypeBit.size) {
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
 
   name_decl = scope_lookup_namespace(root_scope, "bit", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
-  m = set_add_member(type_table, storage, bit_type, name_decl->type);
-  assert(m);
+  set_add_member(type_table, storage, bit_type, name_decl->type);
 }
 
 static void
@@ -1141,13 +1097,11 @@ visit_baseTypeVarbit(Ast* varbit_type)
 {
   assert(varbit_type->kind == AST_baseTypeVarbit);
   NameDeclaration* name_decl;
-  SetMember* m;
 
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
 
   name_decl = scope_lookup_namespace(root_scope, "varbit", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
-  m = set_add_member(type_table, storage, varbit_type, name_decl->type);
-  assert(m);
+  set_add_member(type_table, storage, varbit_type, name_decl->type);
 }
 
 static void
@@ -1155,11 +1109,9 @@ visit_baseTypeString(Ast* str_type)
 {
   assert(str_type->kind == AST_baseTypeString);
   NameDeclaration* name_decl;
-  SetMember* m;
 
   name_decl = scope_lookup_namespace(root_scope, "string", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
-  m = set_add_member(type_table, storage, str_type, name_decl->type);
-  assert(m);
+  set_add_member(type_table, storage, str_type, name_decl->type);
 }
 
 static void
@@ -1167,11 +1119,9 @@ visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AST_baseTypeVoid);
   NameDeclaration* name_decl;
-  SetMember* m;
 
   name_decl = scope_lookup_namespace(root_scope, "void", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
-  m = set_add_member(type_table, storage, void_type, name_decl->type);
-  assert(m);
+  set_add_member(type_table, storage, void_type, name_decl->type);
 }
 
 static void
@@ -1179,11 +1129,9 @@ visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AST_baseTypeError);
   NameDeclaration* name_decl;
-  SetMember* m;
 
   name_decl = scope_lookup_namespace(root_scope, "error", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
-  m = set_add_member(type_table, storage, error_type, name_decl->type);
-  assert(m);
+  set_add_member(type_table, storage, error_type, name_decl->type);
 }
 
 static void
@@ -1198,21 +1146,21 @@ visit_typeParameterList(Ast* param_list)
   assert(param_list->kind == AST_typeParameterList);
   Ast* ast;
   Type* params_ty, *ty;
-  int i;
-  SetMember* m;
 
-  i = type_array->elem_count;
+  params_ty = 0;
   for (ast = param_list->typeParameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
     ty->ctor = TYPE_TYPEVAR;
     ty->strname = ast->name.strname;
-    m = set_add_member(type_table, storage, ast, ty);
-    assert(m);
+    set_add_member(type_table, storage, ast, ty);
+
+    params_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+    params_ty->ctor = TYPE_PRODUCT;
+    params_ty->product.next = params_ty;
+    params_ty->product.type = ty;
   }
-  params_ty = create_product_type(i, type_array->elem_count, storage);
-  m = set_add_member(type_table, storage, param_list, params_ty);
-  assert(m);
+  set_add_member(type_table, storage, param_list, params_ty);
 }
 
 static void
@@ -1231,7 +1179,6 @@ visit_typeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AST_typeArg);
   Type* arg_ty;
-  SetMember* m;
 
   if (type_arg->typeArg.arg->kind == AST_typeRef) {
     visit_typeRef(type_arg->typeArg.arg);
@@ -1242,8 +1189,7 @@ visit_typeArg(Ast* type_arg)
   } else assert(0);
 
   arg_ty = set_lookup_value(type_table, type_arg->typeArg.arg, 0);
-  m = set_add_member(type_table, storage, type_arg, arg_ty);
-  assert(m);
+  set_add_member(type_table, storage, type_arg, arg_ty);
 }
 
 static void
@@ -1263,21 +1209,19 @@ visit_typeArgumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AST_typeArgumentList);
   Ast* ast;
-  Type* args_ty, *ty;
-  int i;
-  SetMember* m;
+  Type* args_ty;
 
-  i = type_array->elem_count;
+  args_ty = 0;
   for (ast = arg_list->typeArgumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_typeArg(ast);
-    ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_TYPE;
-    ty->type.type = set_lookup_value(type_table, ast, 0);
+
+    args_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+    args_ty->ctor = TYPE_PRODUCT;
+    args_ty->product.next = args_ty;
+    args_ty->product.type = set_lookup_value(type_table, ast, 0);
   }
-  args_ty = create_product_type(i, type_array->elem_count, storage);
-  m = set_add_member(type_table, storage, arg_list, args_ty);
-  assert(m);
+  set_add_member(type_table, storage, arg_list, args_ty);
 }
 
 static void
@@ -1285,7 +1229,6 @@ visit_typeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_typeDeclaration);
   Type* decl_ty;
-  SetMember* m;
 
   if (type_decl->typeDeclaration.decl->kind == AST_derivedTypeDeclaration) {
     visit_derivedTypeDeclaration(type_decl->typeDeclaration.decl);
@@ -1300,8 +1243,7 @@ visit_typeDeclaration(Ast* type_decl)
   } else assert(0);
 
   decl_ty = set_lookup_value(type_table, type_decl->typeDeclaration.decl, 0);
-  m = set_add_member(type_table, storage, type_decl, decl_ty);
-  assert(m);
+  set_add_member(type_table, storage, type_decl, decl_ty);
 }
 
 static void
@@ -1309,7 +1251,6 @@ visit_derivedTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_derivedTypeDeclaration);
   Type* decl_ty;
-  SetMember* m;
 
   if (type_decl->derivedTypeDeclaration.decl->kind == AST_headerTypeDeclaration) {
     visit_headerTypeDeclaration(type_decl->derivedTypeDeclaration.decl);
@@ -1322,8 +1263,7 @@ visit_derivedTypeDeclaration(Ast* type_decl)
   } else assert(0);
 
   decl_ty = set_lookup_value(type_table, type_decl->derivedTypeDeclaration.decl, 0);
-  m = set_add_member(type_table, storage, type_decl, decl_ty);
-  assert(m);
+  set_add_member(type_table, storage, type_decl, decl_ty);
 }
 
 static void
@@ -1332,7 +1272,6 @@ visit_headerTypeDeclaration(Ast* header_decl)
   assert(header_decl->kind == AST_headerTypeDeclaration);
   Ast* name;
   Type* header_ty;
-  SetMember* m;
 
   visit_structFieldList(header_decl->headerTypeDeclaration.fields);
 
@@ -1340,8 +1279,7 @@ visit_headerTypeDeclaration(Ast* header_decl)
   header_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   header_ty->ctor = TYPE_STRUCT;
   header_ty->strname = name->name.strname;
-  m = set_add_member(type_table, storage, header_decl, header_ty);
-  assert(m);
+  set_add_member(type_table, storage, header_decl, header_ty);
 
   header_ty->struct_.fields = set_lookup_value(type_table, header_decl->headerTypeDeclaration.fields, 0);
 }
@@ -1352,7 +1290,6 @@ visit_headerUnionDeclaration(Ast* union_decl)
   assert(union_decl->kind == AST_headerUnionDeclaration);
   Ast* name;
   Type* union_ty;
-  SetMember* m;
 
   visit_structFieldList(union_decl->headerUnionDeclaration.fields);
 
@@ -1360,8 +1297,7 @@ visit_headerUnionDeclaration(Ast* union_decl)
   union_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   union_ty->ctor = TYPE_STRUCT;
   union_ty->strname = name->name.strname;
-  m = set_add_member(type_table, storage, union_decl, union_ty);
-  assert(m);
+  set_add_member(type_table, storage, union_decl, union_ty);
 
   union_ty->struct_.fields = set_lookup_value(type_table, union_decl->headerUnionDeclaration.fields, 0);
 }
@@ -1372,7 +1308,6 @@ visit_structTypeDeclaration(Ast* struct_decl)
   assert(struct_decl->kind == AST_structTypeDeclaration);
   Ast* name;
   Type* struct_ty;
-  SetMember* m;
 
   visit_structFieldList(struct_decl->structTypeDeclaration.fields);
 
@@ -1380,8 +1315,7 @@ visit_structTypeDeclaration(Ast* struct_decl)
   struct_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   struct_ty->ctor = TYPE_STRUCT;
   struct_ty->strname = name->name.strname;
-  m = set_add_member(type_table, storage, struct_decl, struct_ty);
-  assert(m);
+  set_add_member(type_table, storage, struct_decl, struct_ty);
 
   struct_ty->struct_.fields = set_lookup_value(type_table, struct_decl->structTypeDeclaration.fields, 0);
 }
@@ -1391,21 +1325,19 @@ visit_structFieldList(Ast* field_list)
 {
   assert(field_list->kind == AST_structFieldList);
   Ast* ast;
-  Type* fields_ty, *ty;
-  int i;
-  SetMember* m;
+  Type* fields_ty;
 
-  i = type_array->elem_count;
+  fields_ty = 0;
   for (ast = field_list->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_structField(ast);
-    ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_TYPE;
-    ty->type.type = set_lookup_value(type_table, ast->structField.type, 0);
+
+    fields_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+    fields_ty->ctor = TYPE_PRODUCT;
+    fields_ty->product.next = fields_ty;
+    fields_ty->product.type = set_lookup_value(type_table, ast->structField.type, 0);
   }
-  fields_ty = create_product_type(i, type_array->elem_count, storage);
-  m = set_add_member(type_table, storage, field_list, fields_ty);
-  assert(m);
+  set_add_member(type_table, storage, field_list, fields_ty);
 }
 
 static void
@@ -1421,7 +1353,6 @@ visit_enumDeclaration(Ast* enum_decl)
   assert(enum_decl->kind == AST_enumDeclaration);
   Ast* name;
   Type* enum_ty;
-  SetMember* m;
 
   visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
 
@@ -1429,8 +1360,7 @@ visit_enumDeclaration(Ast* enum_decl)
   enum_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   enum_ty->ctor = TYPE_ENUM;
   enum_ty->strname = name->name.strname;
-  m = set_add_member(type_table, storage, enum_decl, enum_ty);
-  assert(m);
+  set_add_member(type_table, storage, enum_decl, enum_ty);
 }
 
 static void
@@ -1485,8 +1415,7 @@ visit_typedefDeclaration(Ast* typedef_decl)
 {
   assert(typedef_decl->kind == AST_typedefDeclaration);
   Ast* name;
-  Type* typedef_ty, *ty;
-  SetMember* m;
+  Type* typedef_ty;
 
   if (typedef_decl->typedefDeclaration.type_ref->kind == AST_typeRef) {
     visit_typeRef(typedef_decl->typedefDeclaration.type_ref);
@@ -1498,13 +1427,9 @@ visit_typedefDeclaration(Ast* typedef_decl)
   typedef_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   typedef_ty->ctor = TYPE_TYPEDEF;
   typedef_ty->strname = name->name.strname;
-  m = set_add_member(type_table, storage, typedef_decl, typedef_ty);
-  assert(m);
+  set_add_member(type_table, storage, typedef_decl, typedef_ty);
 
-  ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-  ty->ctor = TYPE_TYPE;
-  ty->type.type = set_lookup_value(type_table, typedef_decl->typedefDeclaration.type_ref, 0);
-  typedef_ty->typedef_.ref = ty;
+  typedef_ty->typedef_.ref = set_lookup_value(type_table, typedef_decl->typedefDeclaration.type_ref, 0);
 }
 
 /** STATEMENTS **/
@@ -1677,7 +1602,6 @@ visit_tableDeclaration(Ast* table_decl)
   assert(table_decl->kind == AST_tableDeclaration);
   Ast* name;
   Type* table_ty;
-  SetMember* m;
 
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
 
@@ -1685,8 +1609,7 @@ visit_tableDeclaration(Ast* table_decl)
   table_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   table_ty->ctor = TYPE_TABLE;
   table_ty->strname = name->name.strname;
-  m = set_add_member(type_table, storage, table_decl, table_ty);
-  assert(m);
+  set_add_member(type_table, storage, table_decl, table_ty);
 }
 
 static void
@@ -1811,7 +1734,6 @@ visit_actionDeclaration(Ast* action_decl)
   NameDeclaration* name_decl;
   Ast* name;
   Type* action_ty;
-  SetMember* m;
 
   visit_parameterList(action_decl->actionDeclaration.params);
   visit_blockStatement(action_decl->actionDeclaration.stmt);
@@ -1820,8 +1742,7 @@ visit_actionDeclaration(Ast* action_decl)
   action_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   action_ty->ctor = TYPE_FUNCTION;
   action_ty->strname = name->name.strname;
-  m = set_add_member(type_table, storage, action_decl, action_ty);
-  assert(m);
+  set_add_member(type_table, storage, action_decl, action_ty);
 
   name_decl = scope_lookup_namespace(root_scope, "void", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
   action_ty->function.return_ = name_decl->type;
@@ -2028,10 +1949,8 @@ visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AST_dontcare);
   NameDeclaration* name_decl;
-  SetMember* m;
 
   name_decl = scope_lookup_namespace(root_scope, "_", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
-  m = set_add_member(type_table, storage, dontcare, name_decl->type);
-  assert(m);
+  set_add_member(type_table, storage, dontcare, name_decl->type);
 }
 

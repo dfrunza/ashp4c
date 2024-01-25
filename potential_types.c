@@ -148,39 +148,36 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 static bool
-validate_param_and_arg_type(Type* param_ty, Ast* arg)
+validate_param_and_arg_type(Type* params_ty, Type* args_ty)
 {
-  Type* arg_ty, *ty;
-
-  if (param_ty && arg) {
-    if (param_ty->ctor == TYPE_PRODUCT) {
-      for (ty = param_ty; ty != 0; ty = ty->product.next) {
-        param_ty = actual_type(ty->product.type);
-        arg_ty = set_lookup_value(potential_types, arg, 0);
-        if (!type_equiv(param_ty, arg_ty)) {
+  if (params_ty && args_ty) {
+    if (params_ty->ctor == TYPE_PRODUCT && args_ty->ctor == TYPE_PRODUCT) {
+      while (params_ty && args_ty) {
+        params_ty = actual_type(params_ty->product.type);
+        args_ty = actual_type(args_ty->product.type);
+        if (!type_equiv(params_ty, args_ty)) {
           break;
         }
-        arg = arg->right_sibling;
+        params_ty = params_ty->product.next;
+        args_ty = args_ty->product.next;
       }
-      if (ty == 0 && arg == 0) {
+      if (params_ty == 0 && args_ty == 0) {
         return true;
       }
     } else {
-      arg_ty = set_lookup_value(potential_types, arg, 0);
-      return type_equiv(param_ty, arg_ty);
+      return type_equiv(params_ty, args_ty);
     }
-  } else if (param_ty || arg) {
+  } else if (params_ty || args_ty) {
     return false;
-  } else { /* param == 0 && arg == 0 */
+  } else { /* params_ty == 0 && args_ty == 0 */
     return true;
   }
   return false;
 }
 
 static NameDeclaration*
-select_extern_method(Ast* name, Ast* extern_, Ast* args)
+select_extern_method(Ast* name, Ast* extern_, Type* args_ty)
 {
-  Ast* arg;
   Type* method_ty, *param_ty;
   Scope* scope;
   NameEntry* name_entry;
@@ -200,8 +197,7 @@ select_extern_method(Ast* name, Ast* extern_, Ast* args)
     method_ty = actual_type(nd->type);
     assert(method_ty->ctor == TYPE_FUNCTION);
     param_ty = actual_type(method_ty->function.params);
-    arg = args->argumentList.first_child;
-    if (validate_param_and_arg_type(param_ty, arg)) {
+    if (validate_param_and_arg_type(param_ty, args_ty)) {
       identified = nd;
     }
   }
@@ -209,10 +205,9 @@ select_extern_method(Ast* name, Ast* extern_, Ast* args)
 }
 
 static NameDeclaration*
-select_function(Ast* name, NameDeclaration* name_decl, Ast* args)
+select_function(Ast* name, NameDeclaration* name_decl, Type* args_ty)
 {
-  Ast* arg;
-  Type* func_ty, *param_ty;
+  Type* func_ty, *params_ty;
   NameDeclaration* nd, *identified;
 
   identified = 0;
@@ -228,13 +223,12 @@ select_function(Ast* name, NameDeclaration* name_decl, Ast* args)
         func_ty->ctor == TYPE_CONTROL) {
       func_ty = actual_type(nd->ctor_type);
     } else if (func_ty->ctor == TYPE_EXTERN) {
-      identified = select_extern_method(name, nd->ast, args);
+      identified = select_extern_method(name, nd->ast, args_ty);
     } else assert(0);
 
     assert(func_ty->ctor == TYPE_FUNCTION);
-    param_ty = actual_type(func_ty->function.params);
-    arg = args->argumentList.first_child;
-    if (validate_param_and_arg_type(param_ty, arg)) {
+    params_ty = actual_type(func_ty->function.params);
+    if (validate_param_and_arg_type(params_ty, args_ty)) {
       identified = nd;
     }
   }
@@ -342,11 +336,19 @@ visit_parameterList(Ast* params)
 {
   assert(params->kind == AST_parameterList);
   Ast* ast;
+  Type* params_ty;
 
+  params_ty = 0;
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parameter(ast);
+
+    params_ty = arena_malloc(storage, sizeof(Type));
+    params_ty->ctor = TYPE_PRODUCT;
+    params_ty->product.next = params_ty;
+    params_ty->product.type = set_lookup_value(potential_types, ast, 0);
   }
+  set_add_member(potential_types, storage, params, params_ty);
 }
 
 static void
@@ -1034,16 +1036,18 @@ visit_functionCall(Ast* func_call)
   NameDeclaration*
   resolve_function_name(Ast* name, Ast* args)
   {
+    Type* args_ty;
     Scope* scope;
     NameEntry* name_entry;
 
+    args_ty = set_lookup_value(potential_types, args, 0);
     scope = set_lookup_value(enclosing_scopes, name, 0);
     name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE);
     if (!name_entry->ns[NAMESPACE_TYPE]) {
       error("At line %d, column %d: undeclared name `%s`.",
             name->line_no, name->column_no, name->name.strname);
     }
-    return select_function(name, name_entry->ns[NAMESPACE_TYPE], args);
+    return select_function(name, name_entry->ns[NAMESPACE_TYPE], args_ty);
   }
 
   visit_argumentList(func_call->functionCall.args);
@@ -1384,11 +1388,19 @@ visit_argumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AST_argumentList);
   Ast* ast;
+  Type* args_ty;
 
+  args_ty = 0;
   for (ast = arg_list->argumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_argument(ast);
+
+    args_ty = arena_malloc(storage, sizeof(Type));
+    args_ty->ctor = TYPE_PRODUCT;
+    args_ty->product.next = args_ty;
+    args_ty->product.type = set_lookup_value(potential_types, ast, 0);
   }
+  set_add_member(potential_types, storage, arg_list, args_ty);
 }
 
 static void
@@ -1492,8 +1504,13 @@ static void
 visit_castExpression(Ast* cast_expr)
 {
   assert(cast_expr->kind == AST_castExpression);
+  Type* cast_ty;
+
   visit_typeRef(cast_expr->castExpression.type);
   visit_expression(cast_expr->castExpression.expr);
+
+  cast_ty = set_lookup_value(type_table, cast_expr->castExpression.type, 0);
+  set_add_member(potential_types, storage, cast_expr, cast_ty);
 }
 
 static void
