@@ -125,9 +125,8 @@ semantic_analysis(Ast* program, Scope* root_scope, Arena* storage)
   type_table = build_type_table(program, root_scope, &type_array,
           opened_scopes, enclosing_scopes, storage);
   resolve_type_xref(type_table, type_array);
-
-  build_potential_types(program, root_scope, enclosing_scopes, type_table, storage);
-  /*do_narrow_types(program, type_table, potential_types, storage);*/
+  build_potential_types(program, root_scope, opened_scopes,
+          enclosing_scopes, type_table, storage);
 }
 
 int

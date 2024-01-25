@@ -5,10 +5,9 @@
 
 static Arena* storage;
 static Scope* root_scope;
-static Set*   enclosing_scopes;
+static Set*   opened_scopes, *enclosing_scopes;
 static Set*   type_table, *potential_types;
 static Set*   decl_table;
-static UnboundedArray* nmdecl_buf;
 
 /** PROGRAM **/
 
@@ -148,53 +147,13 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
-#if 0
 static bool
 validate_param_and_arg_type(Type* param_ty, Ast* arg)
 {
-  Type* arg_ty;
-  Set* A;
-  SetMember* m;
+  Type* arg_ty, *ty;
 
-  if (!arg) {
-    return false;
-  }
-  A = set_lookup_value(potential_types, arg, 0);
-  for (m = A->first; m != 0; m = m->next) {
-    arg_ty = actual_type(m->key);
-    if (type_equiv(param_ty, arg_ty)) {
-      return true;
-    }
-  }
-  return false;
-}
-#endif
-
-static NameDeclaration*
-select_function(Ast* name, NameDeclaration* name_decl, Ast* args)
-{
-  Ast* arg;
-  Type* func_ty, *ty;
-  Type* param_ty, *arg_ty;
-  Scope* scope;
-  NameEntry* name_entry;
-  NameDeclaration* ctor_decl, *nd;
-  bool identified = false;
-
-  scope = set_lookup_value(enclosing_scopes, name, 0);
-  for (nd = name_decl; nd != 0; nd = nd->next_in_scope) {
-    if (identified) {
-      error("FIXME");
-    }
-    func_ty = actual_type(nd->type);
-    if (func_ty->ctor == TYPE_PACKAGE || func_ty->ctor == TYPE_PARSER ||
-        func_ty->ctor == TYPE_CONTROL) {
-      func_ty = actual_type(nd->ctor_type);
-    }
-    assert(func_ty->ctor == TYPE_FUNCTION);
-    param_ty = actual_type(func_ty->function.params);
-    arg = args->argumentList.first_child;
-    if (param_ty && arg) {
+  if (param_ty && arg) {
+    if (param_ty->ctor == TYPE_PRODUCT) {
       for (ty = param_ty; ty != 0; ty = ty->product.next) {
         param_ty = actual_type(ty->product.type);
         arg_ty = set_lookup_value(potential_types, arg, 0);
@@ -204,94 +163,83 @@ select_function(Ast* name, NameDeclaration* name_decl, Ast* args)
         arg = arg->right_sibling;
       }
       if (ty == 0 && arg == 0) {
-        identified = true;
+        return true;
       }
-    } else if (param_ty || arg) {
-      ;
-    } else { /* param == 0 && arg == 0 */
-      identified = true;
+    } else {
+      arg_ty = set_lookup_value(potential_types, arg, 0);
+      return type_equiv(param_ty, arg_ty);
     }
+  } else if (param_ty || arg) {
+    return false;
+  } else { /* param == 0 && arg == 0 */
+    return true;
   }
-  return name_decl;
+  return false;
 }
 
-#if 0
-static void
-apply_function(Set* P, Set* S, Ast* args)
+static NameDeclaration*
+select_extern_method(Ast* name, Ast* extern_, Ast* args)
 {
   Ast* arg;
-  Type* func_ty, *method_ty;
-  Type* param_ty, *ty; 
-  Set* S_new;
-  SetMember* m;
+  Type* method_ty, *param_ty;
+  Scope* scope;
+  NameEntry* name_entry;
+  NameDeclaration* nd, *identified;
 
-  /* NOTE: The members of 'S_new' become unused memory. */
-
-  S_new = arena_malloc(storage, sizeof(Set));
-  *S_new = (Set){};
-
-  for (m = S->first; m != 0; m = m->next) {
-    func_ty = actual_type(m->key);
-    if (func_ty->ctor == TYPE_FUNCTION) {
-      set_add_or_lookup_member(S_new, storage, func_ty, 0);
-    } else if (func_ty->ctor == TYPE_PACKAGE) {
-      set_add_or_lookup_member(S_new, storage, actual_type(func_ty->package.ctor), 0);
-    } else if (func_ty->ctor == TYPE_PARSER) {
-      set_add_or_lookup_member(S_new, storage, actual_type(func_ty->parser.ctor), 0);
-    } else if (func_ty->ctor == TYPE_CONTROL) {
-      set_add_or_lookup_member(S_new, storage, actual_type(func_ty->control.ctor), 0);
-    } else if (func_ty->ctor == TYPE_EXTERN) {
-      method_ty = actual_type(func_ty->extern_.methods);
-      if (method_ty) {
-        if (method_ty->ctor == TYPE_PRODUCT) {
-          for (ty = method_ty; ty != 0; ty = ty->product.next) {
-            method_ty = actual_type(ty->product.type);
-            assert(method_ty->ctor == TYPE_FUNCTION);
-            if (cstr_match(func_ty->strname, method_ty->strname)) {
-              set_add_or_lookup_member(S_new, storage, method_ty, 0);
-            }
-          } = a
-        } else {
-          assert(method_ty->ctor == TYPE_FUNCTION);
-          if (cstr_match(func_ty->strname, method_ty->strname)) {
-            set_add_or_lookup_member(S_new, storage, method_ty, 0);
-          }
-        }
-      }
-    } else assert(0);
+  scope = set_lookup_value(opened_scopes, extern_, 0);
+  name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE);
+  if (!name_entry) {
+    return 0;
   }
-
-  for (m = S_new->first; m != 0; m = m->next) {
-    func_ty = actual_type(m->key);
-    if (func_ty->ctor == TYPE_FUNCTION) {
-      param_ty = actual_type(func_ty->function.params);
-      arg = args->argumentList.first_child;
-      if (param_ty && arg) {
-        if (param_ty->ctor == TYPE_PRODUCT) {
-          for (ty = param_ty; ty != 0; ty = ty->product.next) {
-            param_ty = actual_type(ty->product.type);
-            if (!validate_param_and_arg_type(param_ty, arg)) {
-              break;
-            }
-            arg = arg->right_sibling;
-          }
-          if (ty == 0 && arg == 0) {
-            set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
-          }
-        } else {
-          if (validate_param_and_arg_type(param_ty, arg)) {
-            set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
-          }
-        }
-      } else if (param_ty || arg) {
-        ;
-      } else { /* param == 0 && arg == 0 */
-        set_add_or_lookup_member(P, storage, actual_type(func_ty->function.return_), 0);
-      }
-    } else assert(0);
+  identified = 0;
+  for (nd = name_entry->ns[NAMESPACE_TYPE]; nd != 0; nd = nd->next_in_scope) {
+    if (identified) {
+      error("At line %d, column %d: ambiguous name reference `%s`.",
+            name->line_no, name->column_no, name->name.strname);
+    }
+    method_ty = actual_type(nd->type);
+    assert(method_ty->ctor == TYPE_FUNCTION);
+    param_ty = actual_type(method_ty->function.params);
+    arg = args->argumentList.first_child;
+    if (validate_param_and_arg_type(param_ty, arg)) {
+      identified = nd;
+    }
   }
+  return identified;
 }
-#endif
+
+static NameDeclaration*
+select_function(Ast* name, NameDeclaration* name_decl, Ast* args)
+{
+  Ast* arg;
+  Type* func_ty, *param_ty;
+  NameDeclaration* nd, *identified;
+
+  identified = 0;
+  for (nd = name_decl; nd != 0; nd = nd->next_in_scope) {
+    if (identified) {
+      error("At line %d, column %d: ambiguous name reference `%s`.",
+            name->line_no, name->column_no, name->name.strname);
+    }
+    func_ty = actual_type(nd->type);
+    if (func_ty->ctor == TYPE_FUNCTION) {
+      ;
+    } else if (func_ty->ctor == TYPE_PACKAGE || func_ty->ctor == TYPE_PARSER ||
+        func_ty->ctor == TYPE_CONTROL) {
+      func_ty = actual_type(nd->ctor_type);
+    } else if (func_ty->ctor == TYPE_EXTERN) {
+      identified = select_extern_method(name, nd->ast, args);
+    } else assert(0);
+
+    assert(func_ty->ctor == TYPE_FUNCTION);
+    param_ty = actual_type(func_ty->function.params);
+    arg = args->argumentList.first_child;
+    if (validate_param_and_arg_type(param_ty, arg)) {
+      identified = nd;
+    }
+  }
+  return identified;
+}
 
 void
 Debug_print_potential_types(Set* table)
@@ -313,18 +261,18 @@ Debug_print_potential_types(Set* table)
 }
 
 Set*
-build_potential_types(Ast* p4program, Scope* root_scope_, Set* enclosing_scopes_,
-          Set* type_table_, Arena* storage_)
+build_potential_types(Ast* p4program, Scope* root_scope_, Set* opened_scopes_,
+          Set* enclosing_scopes_, Set* type_table_, Arena* storage_)
 {
-  root_scope = root_scope_;
+  root_scope       = root_scope_;
+  opened_scopes    = opened_scopes_;
   enclosing_scopes = enclosing_scopes_;
-  type_table = type_table_;
-  storage = storage_;
+  type_table       = type_table_;
+  storage          = storage_;
   potential_types = arena_malloc(storage, sizeof(Set));
   *potential_types = (Set){};
   decl_table = arena_malloc(storage, sizeof(Set));
   *decl_table = (Set){};
-  nmdecl_buf = array_create(storage, sizeof(NameDeclaration*), 48);
 
   visit_p4program(p4program);
 
@@ -407,13 +355,11 @@ visit_parameter(Ast* param)
   assert(param->kind == AST_parameter);
   Ast* name;
   Scope* scope;
-  NameEntry* name_entry;
   NameDeclaration* name_decl;
 
   name = param->parameter.name;
   scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR);
-  name_decl = name_entry->ns[NAMESPACE_VAR];
+  name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR)->ns[NAMESPACE_VAR];
   set_add_member(decl_table, storage, name, name_decl);
   set_add_member(potential_types, storage, param, actual_type(name_decl->type));
 
@@ -1083,18 +1029,35 @@ visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
   Ast* lhs_expr, *name;
-  Scope* scope;
-  NameEntry* name_entry;
   NameDeclaration* name_decl;
+
+  NameDeclaration*
+  resolve_function_name(Ast* name, Ast* args)
+  {
+    Scope* scope;
+    NameEntry* name_entry;
+
+    scope = set_lookup_value(enclosing_scopes, name, 0);
+    name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE);
+    if (!name_entry->ns[NAMESPACE_TYPE]) {
+      error("At line %d, column %d: undeclared name `%s`.",
+            name->line_no, name->column_no, name->name.strname);
+    }
+    return select_function(name, name_entry->ns[NAMESPACE_TYPE], args);
+  }
 
   visit_argumentList(func_call->functionCall.args);
   if (func_call->functionCall.lhs_expr->kind == AST_expression) {
     lhs_expr = func_call->functionCall.lhs_expr;
     name = lhs_expr->expression.expr;
     if (name->kind == AST_name) {
-      scope = set_lookup_value(enclosing_scopes, name, 0);
-      name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE);
-      name_decl = select_function(name, name_entry->ns[NAMESPACE_TYPE], func_call->functionCall.args);
+      name_decl = resolve_function_name(name, func_call->functionCall.args);
+      if (!name_decl) {
+        error("At line %d, column %d: unresolved function call `%s`.",
+              name->line_no, name->column_no, name->name.strname);
+      }
+      set_add_member(decl_table, storage, name, name_decl);
+      set_add_member(potential_types, storage, func_call->functionCall.lhs_expr, actual_type(name_decl->type));
     } else {
       visit_expression(func_call->functionCall.lhs_expr);
     }
@@ -1102,13 +1065,17 @@ visit_functionCall(Ast* func_call)
     lhs_expr = func_call->functionCall.lhs_expr;
     name = lhs_expr->expression.expr;
     if (name->kind == AST_name) {
-      scope = set_lookup_value(enclosing_scopes, name, 0);
-      name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE);
+      name_decl = resolve_function_name(name, func_call->functionCall.args);
+      if (!name_decl) {
+        error("At line %d, column %d: unresolved function call `%s`.",
+              name->line_no, name->column_no, name->name.strname);
+      }
+      set_add_member(decl_table, storage, name, name_decl);
+      set_add_member(potential_types, storage, func_call->functionCall.lhs_expr, actual_type(name_decl->type));
     } else {
       visit_lvalueExpression(func_call->functionCall.lhs_expr);
     }
   } else assert(0);
-  printf("0x%x", name_decl);
 }
 
 static void
@@ -1389,13 +1356,11 @@ visit_variableDeclaration(Ast* var_decl)
   assert(var_decl->kind == AST_variableDeclaration);
   Ast* name;
   Scope* scope;
-  NameEntry* name_entry;
   NameDeclaration* name_decl;
 
   name = var_decl->variableDeclaration.name;
   scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR);
-  name_decl = name_entry->ns[NAMESPACE_VAR];
+  name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR)->ns[NAMESPACE_VAR];
   set_add_member(decl_table, storage, name, name_decl);
   set_add_member(potential_types, storage, var_decl, actual_type(name_decl->type));
 
@@ -1467,6 +1432,10 @@ visit_lvalueExpression(Ast* lvalue_expr)
     name = lvalue_expr->lvalueExpression.expr;
     scope = set_lookup_value(enclosing_scopes, name, 0);
     name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR);
+    if (!name_entry->ns[NAMESPACE_VAR]) {
+      error("At line %d, column %d: undeclared name `%s`.",
+            name->line_no, name->column_no, name->name.strname);
+    }
     name_decl = name_entry->ns[NAMESPACE_VAR];
     set_add_member(decl_table, storage, name, name_decl);
     set_add_member(potential_types, storage, lvalue_expr, actual_type(name_decl->type));
@@ -1540,6 +1509,10 @@ visit_unaryExpression(Ast* unary_expr)
   if (name->kind == AST_name) {
     scope = set_lookup_value(enclosing_scopes, name, 0);
     name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR);
+    if (!name_entry->ns[NAMESPACE_VAR]) {
+      error("At line %d, column %d: undeclared name `%s`.",
+            name->line_no, name->column_no, name->name.strname);
+    }
     name_decl = name_entry->ns[NAMESPACE_VAR];
     set_add_member(decl_table, storage, name, name_decl);
   }
@@ -1560,6 +1533,10 @@ visit_binaryExpression(Ast* binary_expr)
   if (name->kind == AST_name) {
     scope = set_lookup_value(enclosing_scopes, name, 0);
     name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR);
+    if (!name_entry->ns[NAMESPACE_VAR]) {
+      error("At line %d, column %d: undeclared name `%s`.",
+            name->line_no, name->column_no, name->name.strname);
+    }
     name_decl = name_entry->ns[NAMESPACE_VAR];
     set_add_member(decl_table, storage, name, name_decl);
   }
@@ -1570,6 +1547,10 @@ visit_binaryExpression(Ast* binary_expr)
   if (name->kind == AST_name) {
     scope = set_lookup_value(enclosing_scopes, name, 0);
     name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR);
+    if (!name_entry->ns[NAMESPACE_VAR]) {
+      error("At line %d, column %d: undeclared name `%s`.",
+            name->line_no, name->column_no, name->name.strname);
+    }
     name_decl = name_entry->ns[NAMESPACE_VAR];
     set_add_member(decl_table, storage, name, name_decl);
   }
