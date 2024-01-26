@@ -115,16 +115,16 @@ static void
 semantic_analysis(Ast* program, Scope* root_scope, Arena* storage)
 {
   Set* opened_scopes, *enclosing_scopes;
-  Set* type_table;
+  Set* type_table, *decl_table = 0;
 
   drypass(program);
 
   opened_scopes = build_open_scope(program, root_scope, storage);
-  enclosing_scopes = build_symtable(program, root_scope, opened_scopes, storage);
-  type_table = build_type_table(program, root_scope,
-          opened_scopes, enclosing_scopes, storage);
-  build_potential_types(program, root_scope, opened_scopes,
-          enclosing_scopes, type_table, storage);
+  enclosing_scopes = build_symtable(program, root_scope, opened_scopes, &decl_table, storage);
+  type_table = build_type_table(program, root_scope, opened_scopes, enclosing_scopes,
+              decl_table, storage);
+  build_potential_types(program, root_scope, opened_scopes, enclosing_scopes,
+              type_table, decl_table, storage);
 }
 
 int

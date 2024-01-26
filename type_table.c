@@ -12,7 +12,7 @@ typedef struct TypePair
 static Arena*   storage;
 static Scope*   root_scope;
 static Set*     opened_scopes, *enclosing_scopes;
-static Set*     type_table;
+static Set*     type_table, *decl_table;
 static UnboundedArray* type_array;
 static UnboundedArray* type_equiv_pairs;
 
@@ -342,14 +342,16 @@ resolve_TYPE_NAMEREF(Set* type_table, UnboundedArray* type_array)
       name_entry = scope_lookup_namespace(ty->nameref.scope, name->name.strname, NAMESPACE_TYPE);
       if (name_entry->ns[NAMESPACE_TYPE]) {
         name_decl = name_entry->ns[NAMESPACE_TYPE];
-        if (!name_decl->next_in_scope) {
+        if (name_decl->next_in_scope) {
+          error("At line %d, column %d: ambiguous type reference `%s`.",
+                     name->line_no, name->column_no, name->name.strname);
+        } else {
           ref_ty = set_lookup_value(type_table, name_decl->ast, 0);
           assert(ref_ty);
           name_decl->type = ref_ty;
           ty->ctor = TYPE_TYPE;
           ty->type.type = ref_ty;
-        } else error("At line %d, column %d: ambiguous type reference `%s`.",
-                     name->line_no, name->column_no, name->name.strname);
+        }
       } else error("At line %d, column %d: unresolved type reference `%s`.",
                    name->line_no, name->column_no, name->name.strname);
     }
@@ -418,7 +420,7 @@ Debug_print_type_array(UnboundedArray* type_array)
 
 Set*
 build_type_table(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, Set* enclosing_scopes_,
-                 Arena* storage_)
+        Set* decl_table_, Arena* storage_)
 {
   struct BuiltinType {
     char* strname;
@@ -440,10 +442,11 @@ build_type_table(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, Set* e
   Type* builtin_ty;
   NameDeclaration* name_decl;
 
-  storage          = storage_;
-  root_scope       = root_scope_;
-  opened_scopes    = opened_scopes_;
+  storage = storage_;
+  root_scope = root_scope_;
+  opened_scopes = opened_scopes_;
   enclosing_scopes = enclosing_scopes_;
+  decl_table = decl_table_;
   type_table = arena_malloc(storage, sizeof(Set));
   *type_table = (Set){};
   type_array = array_create(storage, sizeof(Type), 1008);
@@ -556,18 +559,15 @@ static void
 visit_parameter(Ast* param)
 {
   assert(param->kind == AST_parameter);
-  Ast* name;
   NameDeclaration* name_decl;
-  Scope* scope;
 
   visit_typeRef(param->parameter.type);
   if (param->parameter.init_expr) {
     visit_expression(param->parameter.init_expr);
   }
 
-  name = param->parameter.name;
-  scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR)->ns[NAMESPACE_VAR];
+  name_decl = set_lookup_value(decl_table, param, 0);
+  assert(!name_decl->next_in_scope);
   name_decl->type = set_lookup_value(type_table, param->parameter.type, 0);
 }
 
@@ -576,7 +576,6 @@ visit_packageTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_packageTypeDeclaration);
   Ast* name;
-  Scope* scope;
   NameDeclaration* name_decl;
   Type* package_ty, *ctor_ty;
 
@@ -595,14 +594,12 @@ visit_packageTypeDeclaration(Ast* type_decl)
   ctor_ty->ctor = TYPE_FUNCTION;
   ctor_ty->strname = name->name.strname;
   ctor_ty->function.return_ = package_ty;
+  ctor_ty->function.params = set_lookup_value(type_table, type_decl->packageTypeDeclaration.params, 0);
   package_ty->package.ctor = ctor_ty;
 
-  scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl = set_lookup_value(decl_table, type_decl, 0);
   name_decl->type = package_ty;
   name_decl->ctor_type = ctor_ty;
-
-  ctor_ty->function.params = set_lookup_value(type_table, type_decl->packageTypeDeclaration.params, 0);
 }
 
 static void
@@ -642,7 +639,6 @@ visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_parserTypeDeclaration);
   Ast* name;
-  Scope* scope;
   NameDeclaration* name_decl;
   Type* parser_ty, *ctor_ty;
 
@@ -665,8 +661,7 @@ visit_parserTypeDeclaration(Ast* type_decl)
   ctor_ty->function.return_ = parser_ty;
   parser_ty->parser.ctor = ctor_ty;
 
-  scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl = set_lookup_value(decl_table, type_decl, 0);
   name_decl->type = parser_ty;
   name_decl->ctor_type = ctor_ty;
 }
@@ -863,7 +858,6 @@ visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_controlTypeDeclaration);
   Ast* name;
-  Scope* scope;
   NameDeclaration* name_decl;
   Type* control_ty, *ctor_ty;
 
@@ -886,8 +880,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
   ctor_ty->function.return_ = control_ty;
   control_ty->control.ctor = ctor_ty;
 
-  scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl = set_lookup_value(decl_table, type_decl, 0);
   name_decl->type = control_ty;
   name_decl->ctor_type = ctor_ty;
 }
@@ -980,7 +973,6 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
 {
   assert(func_proto->kind == AST_functionPrototype);
   Ast* name, *return_type;
-  Scope* scope;
   NameDeclaration* name_decl;
   Type* func_ty;
 
@@ -997,13 +989,8 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
   func_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   func_ty->ctor = TYPE_FUNCTION;
   func_ty->strname = name->name.strname;
-  set_add_member(type_table, storage, func_proto, func_ty);
-
-  scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
-  name_decl->type = func_ty;
-
   func_ty->function.params = set_lookup_value(type_table, func_proto->functionPrototype.params, 0);
+  set_add_member(type_table, storage, func_proto, func_ty);
 
   return_type = func_proto->functionPrototype.return_type;
   if (return_type) {
@@ -1011,6 +998,9 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
   } else if (cstr_match(name->name.strname, extern_name->name.strname)) {
     func_ty->function.return_ = set_lookup_value(type_table, extern_decl, 0);
   } else assert(0);
+
+  name_decl = set_lookup_value(decl_table, func_proto, 0);
+  name_decl->type = func_ty;
 }
 
 /** TYPES **/
@@ -1098,7 +1088,7 @@ visit_baseTypeBoolean(Ast* bool_type)
   assert(bool_type->kind == AST_baseTypeBoolean);
   NameDeclaration* name_decl;
 
-  name_decl = scope_lookup_namespace(root_scope, "bool", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl = set_lookup_value(decl_table, bool_type, 0);
   set_add_member(type_table, storage, bool_type, name_decl->type);
 }
 
@@ -1112,7 +1102,7 @@ visit_baseTypeInteger(Ast* int_type)
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
 
-  name_decl = scope_lookup_namespace(root_scope, "int", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl = set_lookup_value(decl_table, int_type, 0);
   set_add_member(type_table, storage, int_type, name_decl->type);
 }
 
@@ -1126,7 +1116,7 @@ visit_baseTypeBit(Ast* bit_type)
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
 
-  name_decl = scope_lookup_namespace(root_scope, "bit", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl = set_lookup_value(decl_table, bit_type, 0);
   set_add_member(type_table, storage, bit_type, name_decl->type);
 }
 
@@ -1138,7 +1128,7 @@ visit_baseTypeVarbit(Ast* varbit_type)
 
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
 
-  name_decl = scope_lookup_namespace(root_scope, "varbit", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl = set_lookup_value(decl_table, varbit_type, 0);
   set_add_member(type_table, storage, varbit_type, name_decl->type);
 }
 
@@ -1148,7 +1138,7 @@ visit_baseTypeString(Ast* str_type)
   assert(str_type->kind == AST_baseTypeString);
   NameDeclaration* name_decl;
 
-  name_decl = scope_lookup_namespace(root_scope, "string", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl = set_lookup_value(decl_table, str_type, 0);
   set_add_member(type_table, storage, str_type, name_decl->type);
 }
 
@@ -1158,7 +1148,7 @@ visit_baseTypeVoid(Ast* void_type)
   assert(void_type->kind == AST_baseTypeVoid);
   NameDeclaration* name_decl;
 
-  name_decl = scope_lookup_namespace(root_scope, "void", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl = set_lookup_value(decl_table, void_type, 0);
   set_add_member(type_table, storage, void_type, name_decl->type);
 }
 
@@ -1168,7 +1158,7 @@ visit_baseTypeError(Ast* error_type)
   assert(error_type->kind == AST_baseTypeError);
   NameDeclaration* name_decl;
 
-  name_decl = scope_lookup_namespace(root_scope, "error", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl = set_lookup_value(decl_table, error_type, 0);
   set_add_member(type_table, storage, error_type, name_decl->type);
 }
 
@@ -1783,11 +1773,11 @@ visit_actionDeclaration(Ast* action_decl)
   action_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   action_ty->ctor = TYPE_FUNCTION;
   action_ty->strname = name->name.strname;
+  action_ty->function.params = set_lookup_value(type_table, action_decl->actionDeclaration.params, 0);
   set_add_member(type_table, storage, action_decl, action_ty);
 
-  name_decl = scope_lookup_namespace(root_scope, "void", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl = set_lookup_value(decl_table, action_decl, 0);
   action_ty->function.return_ = name_decl->type;
-  action_ty->function.params = set_lookup_value(type_table, action_decl->actionDeclaration.params, 0);
 }
 
 /** VARIABLES **/
@@ -1796,18 +1786,15 @@ static void
 visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
-  Ast* name;
   NameDeclaration* name_decl;
-  Scope* scope;
 
   visit_typeRef(var_decl->variableDeclaration.type);
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);
   }
 
-  name = var_decl->variableDeclaration.name;
-  scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_decl = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR)->ns[NAMESPACE_VAR];
+  name_decl = set_lookup_value(decl_table, var_decl, 0);
+  assert(!name_decl->next_in_scope);
   name_decl->type = set_lookup_value(type_table, var_decl->variableDeclaration.type, 0);
 }
 
@@ -1965,18 +1952,30 @@ static void
 visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AST_booleanLiteral);
+  NameDeclaration* name_decl;
+
+  name_decl = set_lookup_value(decl_table, bool_literal, 0);
+  set_add_member(type_table, storage, bool_literal, name_decl->type);
 }
 
 static void
 visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AST_integerLiteral);
+  NameDeclaration* name_decl;
+
+  name_decl = set_lookup_value(decl_table, int_literal, 0);
+  set_add_member(type_table, storage, int_literal, name_decl->type);
 }
 
 static void
 visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AST_stringLiteral);
+  NameDeclaration* name_decl;
+
+  name_decl = set_lookup_value(decl_table, str_literal, 0);
+  set_add_member(type_table, storage, str_literal, name_decl->type);
 }
 
 static void
@@ -1991,7 +1990,7 @@ visit_dontcare(Ast* dontcare)
   assert(dontcare->kind == AST_dontcare);
   NameDeclaration* name_decl;
 
-  name_decl = scope_lookup_namespace(root_scope, "_", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_decl = set_lookup_value(decl_table, dontcare, 0);
   set_add_member(type_table, storage, dontcare, name_decl->type);
 }
 
