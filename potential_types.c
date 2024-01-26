@@ -235,6 +235,23 @@ select_function(Ast* name, NameDeclaration* name_decl, Type* args_ty)
   return identified;
 }
 
+static NameDeclaration*
+resolve_function_name(Ast* name, Ast* args)
+{
+  Type* args_ty;
+  Scope* scope;
+  NameEntry* name_entry;
+
+  args_ty = set_lookup_value(potential_types, args, 0);
+  scope = set_lookup_value(enclosing_scopes, name, 0);
+  name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE);
+  if (!name_entry->ns[NAMESPACE_TYPE]) {
+    error("At line %d, column %d: undeclared name `%s`.",
+          name->line_no, name->column_no, name->name.strname);
+  }
+  return select_function(name, name_entry->ns[NAMESPACE_TYPE], args_ty);
+}
+
 void
 Debug_print_potential_types(Set* table)
 {
@@ -336,17 +353,18 @@ visit_parameterList(Ast* params)
 {
   assert(params->kind == AST_parameterList);
   Ast* ast;
-  Type* params_ty;
+  Type* params_ty, *ty;
 
   params_ty = 0;
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parameter(ast);
 
-    params_ty = arena_malloc(storage, sizeof(Type));
-    params_ty->ctor = TYPE_PRODUCT;
-    params_ty->product.next = params_ty;
-    params_ty->product.type = set_lookup_value(potential_types, ast, 0);
+    ty = arena_malloc(storage, sizeof(Type));
+    ty->ctor = TYPE_PRODUCT;
+    ty->product.next = params_ty;
+    ty->product.type = set_lookup_value(potential_types, ast, 0);
+    params_ty = ty;
   }
   set_add_member(potential_types, storage, params, params_ty);
 }
@@ -384,8 +402,31 @@ static void
 visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
+  Ast* type, *name;
+  Type* ctor_ty;
+  NameDeclaration* name_decl;
+
   visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
+
+  type = inst->instantiation.type;
+  name = type->typeRef.type;
+  if (name->kind == AST_name) {
+    name_decl = resolve_function_name(name, inst->instantiation.args);
+    if (!name_decl) {
+      error("At line %d, column %d: unresolved constructor call `%s`.",
+            name->line_no, name->column_no, name->name.strname);
+    }
+    set_add_member(decl_table, storage, name, name_decl);
+    ctor_ty = actual_type(name_decl->type);
+    if (ctor_ty->ctor == TYPE_FUNCTION) {
+      ;
+    } else if (ctor_ty->ctor == TYPE_PACKAGE || ctor_ty->ctor == TYPE_PARSER ||
+                ctor_ty->ctor == TYPE_CONTROL) {
+      ctor_ty = actual_type(name_decl->ctor_type);
+    }
+    set_add_member(potential_types, storage, inst, ctor_ty->function.return_);
+  } else assert(0);
 }
 
 /** PARSER **/
@@ -1018,12 +1059,21 @@ static void
 visit_assignmentStatement(Ast* assign_stmt)
 {
   assert(assign_stmt->kind == AST_assignmentStatement);
+  Type* lhs_ty, *rhs_ty;
+
   if (assign_stmt->assignmentStatement.lhs_expr->kind == AST_expression) {
     visit_expression(assign_stmt->assignmentStatement.lhs_expr);
   } else if (assign_stmt->assignmentStatement.lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression(assign_stmt->assignmentStatement.lhs_expr);
   } else assert(0);
   visit_expression(assign_stmt->assignmentStatement.rhs_expr);
+
+  lhs_ty = set_lookup_value(potential_types, assign_stmt->assignmentStatement.lhs_expr, 0);
+  rhs_ty = set_lookup_value(potential_types, assign_stmt->assignmentStatement.rhs_expr, 0);
+  if (!type_equiv(lhs_ty, rhs_ty)) {
+    error("At line %d, column %d: incompatible types in assignment statement.",
+          assign_stmt->line_no, assign_stmt->column_no);
+  }
 }
 
 static void
@@ -1031,55 +1081,45 @@ visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
   Ast* lhs_expr, *name;
+  Type* func_ty;
   NameDeclaration* name_decl;
 
-  NameDeclaration*
-  resolve_function_name(Ast* name, Ast* args)
-  {
-    Type* args_ty;
-    Scope* scope;
-    NameEntry* name_entry;
-
-    args_ty = set_lookup_value(potential_types, args, 0);
-    scope = set_lookup_value(enclosing_scopes, name, 0);
-    name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE);
-    if (!name_entry->ns[NAMESPACE_TYPE]) {
-      error("At line %d, column %d: undeclared name `%s`.",
-            name->line_no, name->column_no, name->name.strname);
-    }
-    return select_function(name, name_entry->ns[NAMESPACE_TYPE], args_ty);
-  }
-
   visit_argumentList(func_call->functionCall.args);
+
+  name = 0;
   if (func_call->functionCall.lhs_expr->kind == AST_expression) {
     lhs_expr = func_call->functionCall.lhs_expr;
     name = lhs_expr->expression.expr;
-    if (name->kind == AST_name) {
-      name_decl = resolve_function_name(name, func_call->functionCall.args);
-      if (!name_decl) {
-        error("At line %d, column %d: unresolved function call `%s`.",
-              name->line_no, name->column_no, name->name.strname);
-      }
-      set_add_member(decl_table, storage, name, name_decl);
-      set_add_member(potential_types, storage, func_call->functionCall.lhs_expr, actual_type(name_decl->type));
-    } else {
-      visit_expression(func_call->functionCall.lhs_expr);
-    }
   } else if (func_call->functionCall.lhs_expr->kind == AST_lvalueExpression) {
     lhs_expr = func_call->functionCall.lhs_expr;
-    name = lhs_expr->expression.expr;
-    if (name->kind == AST_name) {
-      name_decl = resolve_function_name(name, func_call->functionCall.args);
-      if (!name_decl) {
-        error("At line %d, column %d: unresolved function call `%s`.",
-              name->line_no, name->column_no, name->name.strname);
-      }
-      set_add_member(decl_table, storage, name, name_decl);
-      set_add_member(potential_types, storage, func_call->functionCall.lhs_expr, actual_type(name_decl->type));
-    } else {
-      visit_lvalueExpression(func_call->functionCall.lhs_expr);
+    name = lhs_expr->lvalueExpression.expr;
+  }
+  if (name && name->kind == AST_name) {
+    name_decl = resolve_function_name(name, func_call->functionCall.args);
+    if (!name_decl) {
+      error("At line %d, column %d: unresolved function call `%s`.",
+            name->line_no, name->column_no, name->name.strname);
     }
+    set_add_member(decl_table, storage, name, name_decl);
+    func_ty = actual_type(name_decl->type);
+    if (func_ty->ctor == TYPE_FUNCTION) {
+      ;
+    } else if (func_ty->ctor == TYPE_PACKAGE || func_ty->ctor == TYPE_PARSER ||
+                func_ty->ctor == TYPE_CONTROL) {
+      func_ty = actual_type(name_decl->ctor_type);
+    }
+    set_add_member(potential_types, storage, func_call->functionCall.lhs_expr, func_ty);
+  }
+
+  if (func_call->functionCall.lhs_expr->kind == AST_expression) {
+    visit_expression(func_call->functionCall.lhs_expr);
+  } else if (func_call->functionCall.lhs_expr->kind == AST_lvalueExpression) {
+    visit_lvalueExpression(func_call->functionCall.lhs_expr);
   } else assert(0);
+
+  func_ty = set_lookup_value(potential_types, func_call->functionCall.lhs_expr, 0);
+  assert(func_ty->ctor == TYPE_FUNCTION);
+  set_add_member(potential_types, storage, func_call, func_ty->function.return_);
 }
 
 static void
@@ -1388,17 +1428,18 @@ visit_argumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AST_argumentList);
   Ast* ast;
-  Type* args_ty;
+  Type* args_ty, *ty;
 
   args_ty = 0;
   for (ast = arg_list->argumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_argument(ast);
 
-    args_ty = arena_malloc(storage, sizeof(Type));
-    args_ty->ctor = TYPE_PRODUCT;
-    args_ty->product.next = args_ty;
-    args_ty->product.type = set_lookup_value(potential_types, ast, 0);
+    ty = arena_malloc(storage, sizeof(Type));
+    ty->ctor = TYPE_PRODUCT;
+    ty->product.next = args_ty;
+    ty->product.type = set_lookup_value(potential_types, ast, 0);
+    args_ty = ty;
   }
   set_add_member(potential_types, storage, arg_list, args_ty);
 }

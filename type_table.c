@@ -536,17 +536,18 @@ visit_parameterList(Ast* params)
 {
   assert(params->kind == AST_parameterList);
   Ast* ast;
-  Type* params_ty;
+  Type* params_ty, *ty;
 
   params_ty = 0;
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parameter(ast);
 
-    params_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    params_ty->ctor = TYPE_PRODUCT;
-    params_ty->product.next = params_ty;
-    params_ty->product.type = set_lookup_value(type_table, ast->parameter.type, 0);
+    ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_PRODUCT;
+    ty->product.next = params_ty;
+    ty->product.type = set_lookup_value(type_table, ast->parameter.type, 0);
+    params_ty = ty;
   }
   set_add_member(type_table, storage, params, params_ty);
 }
@@ -958,17 +959,18 @@ visit_methodPrototypes(Ast* protos, Ast* extern_decl, Ast* extern_name)
 {
   assert(protos->kind == AST_methodPrototypes);
   Ast* ast;
-  Type* methods_ty;
+  Type* methods_ty, *ty;
 
   methods_ty = 0;
   for (ast = protos->methodPrototypes.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_functionPrototype(ast, extern_decl, extern_name);
 
-    methods_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    methods_ty->ctor = TYPE_PRODUCT;
-    methods_ty->product.next = methods_ty;
-    methods_ty->product.type = set_lookup_value(type_table, ast, 0);
+    ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_PRODUCT;
+    ty->product.next = methods_ty;
+    ty->product.type = set_lookup_value(type_table, ast, 0);
+    methods_ty = ty;
   }
   set_add_member(type_table, storage, protos, methods_ty);
 }
@@ -1191,10 +1193,11 @@ visit_typeParameterList(Ast* param_list)
     ty->strname = ast->name.strname;
     set_add_member(type_table, storage, ast, ty);
 
-    params_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    params_ty->ctor = TYPE_PRODUCT;
-    params_ty->product.next = params_ty;
-    params_ty->product.type = ty;
+    ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_PRODUCT;
+    ty->product.next = params_ty;
+    ty->product.type = ty;
+    params_ty = ty;
   }
   set_add_member(type_table, storage, param_list, params_ty);
 }
@@ -1245,17 +1248,18 @@ visit_typeArgumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AST_typeArgumentList);
   Ast* ast;
-  Type* args_ty;
+  Type* args_ty, *ty;
 
   args_ty = 0;
   for (ast = arg_list->typeArgumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_typeArg(ast);
 
-    args_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    args_ty->ctor = TYPE_PRODUCT;
-    args_ty->product.next = args_ty;
-    args_ty->product.type = set_lookup_value(type_table, ast, 0);
+    ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_PRODUCT;
+    ty->product.next = args_ty;
+    ty->product.type = set_lookup_value(type_table, ast, 0);
+    args_ty = ty;
   }
   set_add_member(type_table, storage, arg_list, args_ty);
 }
@@ -1361,17 +1365,18 @@ visit_structFieldList(Ast* field_list)
 {
   assert(field_list->kind == AST_structFieldList);
   Ast* ast;
-  Type* fields_ty;
+  Type* fields_ty, *ty;
 
   fields_ty = 0;
   for (ast = field_list->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_structField(ast);
 
-    fields_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    fields_ty->ctor = TYPE_PRODUCT;
-    fields_ty->product.next = fields_ty;
-    fields_ty->product.type = set_lookup_value(type_table, ast->structField.type, 0);
+    ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
+    ty->ctor = TYPE_PRODUCT;
+    ty->product.next = fields_ty;
+    ty->product.type = set_lookup_value(type_table, ast->structField.type, 0);
+    fields_ty = ty;
   }
   set_add_member(type_table, storage, field_list, fields_ty);
 }
