@@ -417,8 +417,8 @@ Debug_print_type_array(UnboundedArray* type_array)
 }
 
 Set*
-build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array_,
-        Set* opened_scopes_, Set* enclosing_scopes_, Arena* storage_)
+build_type_table(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, Set* enclosing_scopes_,
+                 Arena* storage_)
 {
   struct BuiltinType {
     char* strname;
@@ -440,9 +440,9 @@ build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array
   Type* builtin_ty;
   NameDeclaration* name_decl;
 
-  storage = storage_;
-  root_scope = root_scope_;
-  opened_scopes = opened_scopes_;
+  storage          = storage_;
+  root_scope       = root_scope_;
+  opened_scopes    = opened_scopes_;
   enclosing_scopes = enclosing_scopes_;
   type_table = arena_malloc(storage, sizeof(Set));
   *type_table = (Set){};
@@ -462,7 +462,6 @@ build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array
   resolve_TYPE_NAMEREF(type_table, type_array);
   resolve_TYPE_TYPE(type_array);
 
-  *type_array_ = type_array;
   return type_table;
 }
 
