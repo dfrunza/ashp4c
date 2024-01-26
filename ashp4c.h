@@ -12,7 +12,6 @@ Set* build_open_scope(Ast* p4program, Scope* root_scope, Arena* storage);
 Set* build_symtable(Ast* p4program, Scope* root_scope, Set* opened_scopes, Arena* storage);
 Set* build_type_table(Ast* p4program, Scope* root_scope, UnboundedArray** type_array,
         Set* opened_scopes, Set* enclosing_scopes, Arena* storage);
-void resolve_type_xref(Set* type_table, UnboundedArray* type_array);
 Set* build_potential_types(Ast* ast, Scope* root_scope,
         Set* opened_scopes,  Set* enclosing_scopes, Set* type_table, Arena* storage);
 void Debug_potential_types(Ast* p4program, Set* potential_types);

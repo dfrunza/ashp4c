@@ -154,35 +154,6 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
-#if 0
-static Type*
-create_product_type(int i, int j, Arena* storage)
-{
-  Type* product_ty, *ty;
-
-  if (j == i) {
-    return 0;
-  } else if ((j - i) == 1) {
-    return (Type*)array_get_element(type_array, i, sizeof(Type));
-  } else if ((j - i) >= 2) {
-    product_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    product_ty->ctor = TYPE_PRODUCT;
-    product_ty->product.type = (Type*)array_get_element(type_array, j-1, sizeof(Type));
-    product_ty->product.next = 0;
-
-    for (int k = j-2; k >= i; k--) {
-      ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-      ty->ctor = TYPE_PRODUCT;
-      ty->product.type = (Type*)array_get_element(type_array, k, sizeof(Type));
-      ty->product.next = product_ty;
-      product_ty = ty;
-    }
-    return product_ty;
-  } else assert(0);
-  return 0;
-}
-#endif
-
 Type*
 actual_type(Type* type)
 {
@@ -356,6 +327,52 @@ Debug_TypeEnum_to_string(enum TypeEnum type)
   return 0;
 }
 
+static void
+resolve_TYPE_NAMEREF(Set* type_table, UnboundedArray* type_array)
+{
+  Ast* name;
+  Type* ref_ty, *ty;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
+
+  for (int i = 0; i < type_array->elem_count; i++) {
+    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
+    if (ty->ctor == TYPE_NAMEREF) {
+      name = ty->nameref.name;
+      name_entry = scope_lookup_namespace(ty->nameref.scope, name->name.strname, NAMESPACE_TYPE);
+      if (name_entry->ns[NAMESPACE_TYPE]) {
+        name_decl = name_entry->ns[NAMESPACE_TYPE];
+        if (!name_decl->next_in_scope) {
+          ref_ty = set_lookup_value(type_table, name_decl->ast, 0);
+          assert(ref_ty);
+          name_decl->type = ref_ty;
+          ty->ctor = TYPE_TYPE;
+          ty->type.type = ref_ty;
+        } else error("At line %d, column %d: ambiguous type reference `%s`.",
+                     name->line_no, name->column_no, name->name.strname);
+      } else error("At line %d, column %d: unresolved type reference `%s`.",
+                   name->line_no, name->column_no, name->name.strname);
+    }
+  }
+}
+
+static void
+resolve_TYPE_TYPE(UnboundedArray* type_array)
+{
+  Type* ref_ty, *ty;
+
+  for (int i = 0; i < type_array->elem_count; i++) {
+    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
+    if (ty->ctor == TYPE_TYPE) {
+      ref_ty = ty->type.type;
+      while (ref_ty->ctor == TYPE_TYPE) {
+        ref_ty = ref_ty->type.type;
+      }
+      ty->type.type = ref_ty;
+    }
+  }
+}
+
 void
 Debug_print_type_table(Set* table)
 {
@@ -378,6 +395,24 @@ Debug_print_type_table(Set* table)
       }
     }
     i += 1;
+  }
+}
+
+void
+Debug_print_type_array(UnboundedArray* type_array)
+{
+  Type* ty;
+  int i;
+
+  for (i = 0; i < type_array->elem_count; i++) {
+    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
+    ty = actual_type(ty);
+
+    if (ty->strname) {
+      printf("[%d] 0x%x %s %s\n", i, ty, ty->strname, Debug_TypeEnum_to_string(ty->ctor));
+    } else {
+      printf("[%d] 0x%x %s\n", i, ty, Debug_TypeEnum_to_string(ty->ctor));
+    }
   }
 }
 
@@ -424,6 +459,8 @@ build_type_table(Ast* p4program, Scope* root_scope_, UnboundedArray** type_array
   }
 
   visit_p4program(p4program);
+  resolve_TYPE_NAMEREF(type_table, type_array);
+  resolve_TYPE_TYPE(type_array);
 
   *type_array_ = type_array;
   return type_table;

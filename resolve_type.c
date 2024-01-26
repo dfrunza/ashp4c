@@ -3,75 +3,10 @@
 #include "foundation.h"
 #include "frontend.h"
 
-static void
-resolve_TYPE_NAMEREF(Set* type_table, UnboundedArray* type_array)
-{
-  Ast* name;
-  Type* ref_ty, *ty;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
-
-  for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
-    if (ty->ctor == TYPE_NAMEREF) {
-      name = ty->nameref.name;
-      name_entry = scope_lookup_namespace(ty->nameref.scope, name->name.strname, NAMESPACE_TYPE);
-      if (name_entry->ns[NAMESPACE_TYPE]) {
-        name_decl = name_entry->ns[NAMESPACE_TYPE];
-        if (!name_decl->next_in_scope) {
-          ref_ty = set_lookup_value(type_table, name_decl->ast, 0);
-          assert(ref_ty);
-          name_decl->type = ref_ty;
-          ty->ctor = TYPE_TYPE;
-          ty->type.type = ref_ty;
-        } else error("At line %d, column %d: ambiguous type reference `%s`.",
-                     name->line_no, name->column_no, name->name.strname);
-      } else error("At line %d, column %d: unresolved type reference `%s`.",
-                   name->line_no, name->column_no, name->name.strname);
-    }
-  }
-}
-
-void
-resolve_TYPE_TYPE(UnboundedArray* type_array)
-{
-  Type* ref_ty, *ty;
-
-  for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
-    if (ty->ctor == TYPE_TYPE) {
-      ref_ty = ty->type.type;
-      while (ref_ty->ctor == TYPE_TYPE) {
-        ref_ty = ref_ty->type.type;
-      }
-      ty->type.type = ref_ty;
-    }
-  }
-}
-
-void
-Debug_print_type_array(UnboundedArray* type_array)
-{
-  Type* ty;
-  int i;
-
-  for (i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
-    ty = actual_type(ty);
-
-    if (ty->strname) {
-      printf("[%d] 0x%x %s %s\n", i, ty, ty->strname, Debug_TypeEnum_to_string(ty->ctor));
-    } else {
-      printf("[%d] 0x%x %s\n", i, ty, Debug_TypeEnum_to_string(ty->ctor));
-    }
-  }
-}
 
 void
 resolve_type_xref(Set* type_table, UnboundedArray* type_array)
 {
-  resolve_TYPE_NAMEREF(type_table, type_array);
-  resolve_TYPE_TYPE(type_array);
 
 #if 0
   printf("\nTYPE ARRAY\n"
