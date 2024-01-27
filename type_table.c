@@ -1172,16 +1172,17 @@ static void
 visit_typeParameterList(Ast* param_list)
 {
   assert(param_list->kind == AST_typeParameterList);
-  Ast* ast;
+  Ast* ast, *name;
   Type* params_ty, *ty;
 
   params_ty = 0;
   for (ast = param_list->typeParameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
+    name = ast;
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
     ty->ctor = TYPE_TYPEVAR;
-    ty->strname = ast->name.strname;
-    set_add_member(type_table, storage, ast, ty);
+    ty->strname = name->name.strname;
+    set_add_member(type_table, storage, name, ty);
 
     ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
     ty->ctor = TYPE_PRODUCT;
