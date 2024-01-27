@@ -363,26 +363,6 @@ Set*
 build_potential_types(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, Set* enclosing_scopes_,
           Set* type_table_, Set* decl_table_, Arena* storage_)
 {
-#if 0
-  struct BuiltinType {
-    char* strname;
-    Type** type;
-  };
-
-  struct BuiltinType builtin_types[] = {
-    {"void",       &builtin_void_ty},
-    {"bool",       &builtin_bool_ty},
-    {"int",        &builtin_int_ty},
-    {"bit",        &builtin_bit_ty},
-    {"varbit",     &builtin_varbit_ty},
-    {"string",     &builtin_string_ty},
-    {"error",      &builtin_error_ty},
-    {"match_kind", &builtin_match_kind_ty},
-    {"_",          &builtin_dontcare_ty},
-  };
-  NameDeclaration* name_decl;
-#endif
-
   root_scope = root_scope_;
   opened_scopes = opened_scopes_;
   enclosing_scopes = enclosing_scopes_;
@@ -524,15 +504,19 @@ visit_instantiation(Ast* inst)
   name = type->typeRef.type;
   assert(name->kind == AST_name);
   name_decl = resolve_function(name, name_entry, inst->instantiation.args);
-  set_add_member(decl_table, storage, name, name_decl);
+
   ctor_ty = actual_type(name_decl->type);
   if (ctor_ty->ctor == TYPE_FUNCTION) {
     ;
   } else if (ctor_ty->ctor == TYPE_PACKAGE || ctor_ty->ctor == TYPE_PARSER ||
-              ctor_ty->ctor == TYPE_CONTROL) {
+             ctor_ty->ctor == TYPE_CONTROL) {
     ctor_ty = actual_type(name_decl->ctor_type);
   }
+  set_add_member(potential_types, storage, inst->instantiation.name, actual_type(ctor_ty->function.return_));
   set_add_member(potential_types, storage, inst, actual_type(ctor_ty->function.return_));
+
+  name_decl = set_lookup_value(decl_table, inst, 0);
+  name_decl->type = actual_type(ctor_ty->function.return_);
 }
 
 /** PARSER **/
