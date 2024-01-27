@@ -181,16 +181,16 @@ select_extern_method(Ast* name, Ast* extern_, Type* args_ty)
   Type* method_ty, *param_ty;
   Scope* scope;
   NameEntry* name_entry;
-  NameDeclaration* nd, *identified;
+  NameDeclaration* nd, *name_decl;
 
   scope = set_lookup_value(opened_scopes, extern_, 0);
   name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE);
   if (!name_entry) {
     return 0;
   }
-  identified = 0;
+  name_decl = 0;
   for (nd = name_entry->ns[NAMESPACE_TYPE]; nd != 0; nd = nd->next_in_scope) {
-    if (identified) {
+    if (name_decl) {
       error("At line %d, column %d: ambiguous name reference `%s`.",
             name->line_no, name->column_no, name->name.strname);
     }
@@ -198,21 +198,21 @@ select_extern_method(Ast* name, Ast* extern_, Type* args_ty)
     assert(method_ty->ctor == TYPE_FUNCTION);
     param_ty = actual_type(method_ty->function.params);
     if (validate_param_and_arg_type(param_ty, args_ty)) {
-      identified = nd;
+      name_decl = nd;
     }
   }
-  return identified;
+  return name_decl;
 }
 
 static NameDeclaration*
-select_function(Ast* name, NameDeclaration* name_decl, Type* args_ty)
+select_function(Ast* name, NameDeclaration* func_decl, Type* args_ty)
 {
   Type* func_ty, *params_ty;
-  NameDeclaration* nd, *identified;
+  NameDeclaration* nd, *name_decl;
 
-  identified = 0;
-  for (nd = name_decl; nd != 0; nd = nd->next_in_scope) {
-    if (identified) {
+  name_decl = 0;
+  for (nd = func_decl; nd != 0; nd = nd->next_in_scope) {
+    if (name_decl) {
       error("At line %d, column %d: ambiguous name reference `%s`.",
             name->line_no, name->column_no, name->name.strname);
     }
@@ -223,16 +223,16 @@ select_function(Ast* name, NameDeclaration* name_decl, Type* args_ty)
         func_ty->ctor == TYPE_CONTROL) {
       func_ty = actual_type(nd->ctor_type);
     } else if (func_ty->ctor == TYPE_EXTERN) {
-      identified = select_extern_method(name, nd->ast, args_ty);
+      name_decl = select_extern_method(name, nd->ast, args_ty);
     } else assert(0);
 
     assert(func_ty->ctor == TYPE_FUNCTION);
     params_ty = actual_type(func_ty->function.params);
     if (validate_param_and_arg_type(params_ty, args_ty)) {
-      identified = nd;
+      name_decl = nd;
     }
   }
-  return identified;
+  return name_decl;
 }
 
 static NameDeclaration*
@@ -267,7 +267,66 @@ resolve_variable(Ast* name, NameEntry* name_entry)
   }
   assert(!name_decl->next_in_scope);
   set_add_member(decl_table, storage, name, name_decl);
-  set_add_member(potential_types, storage, name, name_decl->type);
+  set_add_member(potential_types, storage, name, actual_type(name_decl->type));
+  return name_decl;
+}
+
+static NameDeclaration*
+resolve_type(Ast* name, NameEntry* name_entry)
+{
+  NameDeclaration* name_decl;
+
+  name_decl = name_entry->ns[NAMESPACE_TYPE];
+  if (!name_decl) {
+    error("At line %d, column %d: undeclared name `%s`.",
+          name->line_no, name->column_no, name->name.strname);
+  }
+  if (name_decl->next_in_scope) {
+    error("At line %d, column %d: ambiguous name reference `%s`.",
+          name->line_no, name->column_no, name->name.strname);
+  }
+  set_add_member(decl_table, storage, name, name_decl);
+  set_add_member(potential_types, storage, name, actual_type(name_decl->type));
+  return name_decl;
+}
+
+static NameDeclaration*
+select_member(Ast* name, Ast* type_decl)
+{
+  Scope* scope;
+  NameEntry* name_entry;
+  NameDeclaration* nd, *name_decl;
+
+  scope = set_lookup_value(opened_scopes, type_decl, 0);
+  name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR);
+  if (!name_entry) {
+    return 0;
+  }
+  name_decl = 0;
+  for (nd = name_entry->ns[NAMESPACE_VAR]; nd != 0; nd = nd->next_in_scope) {
+    if (name_decl) {
+      error("At line %d, column %d: ambiguous name reference `%s`.",
+            name->line_no, name->column_no, name->name.strname);
+    }
+    if (cstr_match(name->name.strname, nd->strname)) {
+      name_decl = nd;
+    }
+  }
+  return name_decl;
+}
+
+static NameDeclaration*
+resolve_member(Ast* name, Ast* type_decl)
+{
+  NameDeclaration* name_decl;
+
+  name_decl = select_member(name, type_decl);
+  if (!name_decl) {
+    error("At line %d, column %d: unresolved name `%s`.",
+          name->line_no, name->column_no, name->name.strname);
+  }
+  set_add_member(decl_table, storage, name, name_decl);
+  set_add_member(potential_types, storage, name, actual_type(name_decl->type));
   return name_decl;
 }
 
@@ -1092,7 +1151,7 @@ visit_assignmentStatement(Ast* assign_stmt)
     name = expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
-    set_add_member(potential_types, storage, assign_stmt->assignmentStatement.lhs_expr, name_decl->type);
+    set_add_member(potential_types, storage, assign_stmt->assignmentStatement.lhs_expr, actual_type(name_decl->type));
   }
 
   name_entry = visit_expression(assign_stmt->assignmentStatement.rhs_expr);
@@ -1102,7 +1161,7 @@ visit_assignmentStatement(Ast* assign_stmt)
     name = expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
-    set_add_member(potential_types, storage, assign_stmt->assignmentStatement.rhs_expr, name_decl->type);
+    set_add_member(potential_types, storage, assign_stmt->assignmentStatement.rhs_expr, actual_type(name_decl->type));
   }
 
   lhs_ty = set_lookup_value(potential_types, assign_stmt->assignmentStatement.lhs_expr, 0);
@@ -1168,7 +1227,7 @@ visit_returnStatement(Ast* return_stmt)
     name = expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
-    set_add_member(potential_types, storage, return_stmt->returnStatement.expr, name_decl->type);
+    set_add_member(potential_types, storage, return_stmt->returnStatement.expr, actual_type(name_decl->type));
   }
 
   expr_ty = set_lookup_value(potential_types, return_stmt->returnStatement.expr, 0);
@@ -1504,7 +1563,7 @@ visit_argument(Ast* arg)
     name = expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
-    set_add_member(potential_types, storage, arg->argument.arg, name_decl->type);
+    set_add_member(potential_types, storage, arg->argument.arg, actual_type(name_decl->type));
   }
 
   arg_ty = set_lookup_value(potential_types, arg->argument.arg, 0);
@@ -1609,19 +1668,77 @@ static void
 visit_binaryExpression(Ast* binary_expr)
 {
   assert(binary_expr->kind == AST_binaryExpression);
-  visit_expression(binary_expr->binaryExpression.left_operand);
-  visit_expression(binary_expr->binaryExpression.right_operand);
+  Type* lhs_ty, *rhs_ty;
+  Ast* expr, *name;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
+
+  name_entry = visit_expression(binary_expr->binaryExpression.left_operand);
+
+  if (name_entry) {
+    expr = binary_expr->binaryExpression.left_operand;
+    name = expr->expression.expr;
+    assert(name->kind == AST_name);
+    name_decl = resolve_variable(name, name_entry);
+    set_add_member(potential_types, storage, binary_expr->binaryExpression.left_operand, actual_type(name_decl->type));
+  }
+
+  name_entry = visit_expression(binary_expr->binaryExpression.right_operand);
+
+  if (name_entry) {
+    expr = binary_expr->binaryExpression.right_operand;
+    name = expr->expression.expr;
+    assert(name->kind == AST_name);
+    name_decl = resolve_variable(name, name_entry);
+    set_add_member(potential_types, storage, binary_expr->binaryExpression.right_operand, actual_type(name_decl->type));
+  }
+
+  lhs_ty = set_lookup_value(potential_types, binary_expr->binaryExpression.left_operand, 0);
+  rhs_ty = set_lookup_value(potential_types, binary_expr->binaryExpression.right_operand, 0);
+  if (!type_equiv(lhs_ty, rhs_ty)) {
+    error("At line %d, column %d: incompatible types in binary expression.",
+          binary_expr->line_no, binary_expr->column_no);
+  }
+  set_add_member(potential_types, storage, binary_expr, lhs_ty);
 }
 
 static void
 visit_memberSelector(Ast* selector)
 {
   assert(selector->kind == AST_memberSelector);
+  Type* lhs_ty;
+  Ast* expr, *name;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
+
   if (selector->memberSelector.lhs_expr->kind == AST_expression) {
-    visit_expression(selector->memberSelector.lhs_expr);
+    name_entry = visit_expression(selector->memberSelector.lhs_expr);
   } else if (selector->memberSelector.lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(selector->memberSelector.lhs_expr);
+    name_entry = visit_lvalueExpression(selector->memberSelector.lhs_expr);
   } else assert(0);
+
+  if (name_entry) {
+    expr = selector->memberSelector.lhs_expr;
+    name = expr->expression.expr;
+    assert(name->kind == AST_name);
+    if (name_entry->ns[NAMESPACE_VAR] && name_entry->ns[NAMESPACE_TYPE]) {
+      error("At line %d, column %d: ambiguous name reference `%s`.",
+            name->line_no, name->column_no, name->name.strname);
+    }
+    if (name_entry->ns[NAMESPACE_VAR]) {
+      name_decl = resolve_variable(name, name_entry);
+    } else if (name_entry->ns[NAMESPACE_TYPE]) {
+      name_decl = resolve_type(name, name_entry);
+    } else assert(0);
+    set_add_member(potential_types, storage, selector->memberSelector.lhs_expr, actual_type(name_decl->type));
+  }
+
+  lhs_ty = set_lookup_value(potential_types, selector->memberSelector.lhs_expr, 0);
+  if (lhs_ty->ctor == TYPE_STRUCT || lhs_ty->ctor == TYPE_ENUM || lhs_ty->ctor == TYPE_EXTERN) {
+    name_decl = resolve_member(selector->memberSelector.name, lhs_ty->ast);
+    set_add_member(potential_types, storage, selector, actual_type(name_decl->type));
+  } else error("At line %d, column %d: type does not support member selection.",
+               name->line_no, name->column_no);
 }
 
 static void

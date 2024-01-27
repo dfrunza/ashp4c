@@ -873,6 +873,7 @@ enum TypeEnum {
 typedef struct Type {
   enum TypeEnum ctor;
   char* strname;
+  Ast* ast;
 
   union {
     struct {
