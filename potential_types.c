@@ -3,6 +3,16 @@
 #include "foundation.h"
 #include "frontend.h"
 
+extern Type *builtin_void_ty,
+            *builtin_bool_ty,
+            *builtin_int_ty,
+            *builtin_bit_ty,
+            *builtin_varbit_ty,
+            *builtin_string_ty,
+            *builtin_error_ty,
+            *builtin_match_kind_ty,
+            *builtin_dontcare_ty;
+
 static Arena* storage;
 static Scope* root_scope;
 static Set*   opened_scopes, *enclosing_scopes;
@@ -330,7 +340,7 @@ resolve_member(Ast* name, Ast* type_decl)
   return name_decl;
 }
 
-void
+static void
 Debug_print_potential_types(Set* table)
 {
   SetMember* m;
@@ -353,6 +363,26 @@ Set*
 build_potential_types(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, Set* enclosing_scopes_,
           Set* type_table_, Set* decl_table_, Arena* storage_)
 {
+#if 0
+  struct BuiltinType {
+    char* strname;
+    Type** type;
+  };
+
+  struct BuiltinType builtin_types[] = {
+    {"void",       &builtin_void_ty},
+    {"bool",       &builtin_bool_ty},
+    {"int",        &builtin_int_ty},
+    {"bit",        &builtin_bit_ty},
+    {"varbit",     &builtin_varbit_ty},
+    {"string",     &builtin_string_ty},
+    {"error",      &builtin_error_ty},
+    {"match_kind", &builtin_match_kind_ty},
+    {"_",          &builtin_dontcare_ty},
+  };
+  NameDeclaration* name_decl;
+#endif
+
   root_scope = root_scope_;
   opened_scopes = opened_scopes_;
   enclosing_scopes = enclosing_scopes_;
@@ -361,6 +391,7 @@ build_potential_types(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, S
   storage = storage_;
   potential_types = arena_malloc(storage, sizeof(Set));
   *potential_types = (Set){};
+
 
   visit_p4program(p4program);
 
@@ -501,7 +532,7 @@ visit_instantiation(Ast* inst)
               ctor_ty->ctor == TYPE_CONTROL) {
     ctor_ty = actual_type(name_decl->ctor_type);
   }
-  set_add_member(potential_types, storage, inst, ctor_ty->function.return_);
+  set_add_member(potential_types, storage, inst, actual_type(ctor_ty->function.return_));
 }
 
 /** PARSER **/
@@ -1206,7 +1237,7 @@ visit_functionCall(Ast* func_call)
 
   func_ty = set_lookup_value(potential_types, func_call->functionCall.lhs_expr, 0);
   assert(func_ty->ctor == TYPE_FUNCTION);
-  set_add_member(potential_types, storage, func_call, func_ty->function.return_);
+  set_add_member(potential_types, storage, func_call, actual_type(func_ty->function.return_));
 }
 
 static void
@@ -1670,6 +1701,7 @@ visit_binaryExpression(Ast* binary_expr)
   assert(binary_expr->kind == AST_binaryExpression);
   Type* lhs_ty, *rhs_ty;
   Ast* expr, *name;
+  enum Ast_Operator op;
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
@@ -1699,7 +1731,20 @@ visit_binaryExpression(Ast* binary_expr)
     error("At line %d, column %d: incompatible types in binary expression.",
           binary_expr->line_no, binary_expr->column_no);
   }
-  set_add_member(potential_types, storage, binary_expr, lhs_ty);
+
+  op = binary_expr->binaryExpression.op;
+  if (op == OP_ADD || op == OP_SUB || op == OP_MUL || op == OP_DIV) {
+    set_add_member(potential_types, storage, binary_expr, lhs_ty);
+  } else if (op == OP_AND || op == OP_OR || op == OP_NOT) {
+    set_add_member(potential_types, storage, binary_expr, builtin_bool_ty);
+  } else if (op == OP_EQ || op == OP_NEQ || op == OP_LESS ||
+             op == OP_GREAT || op == OP_LESS_EQ || op == OP_GREAT_EQ) {
+    set_add_member(potential_types, storage, binary_expr, builtin_bool_ty);
+  } else if (op == OP_BITW_AND || op == OP_BITW_OR || op == OP_BITW_XOR ||
+             op == OP_BITW_NOT || op == OP_BITW_SHL || op == OP_BITW_SHR ||
+             op == OP_MASK) {
+    set_add_member(potential_types, storage, binary_expr, lhs_ty);
+  }
 }
 
 static void
@@ -1745,22 +1790,72 @@ static void
 visit_arraySubscript(Ast* subscript)
 {
   assert(subscript->kind == AST_arraySubscript);
-  if (subscript->arraySubscript.lhs_expr->kind == AST_expression) {
-    visit_expression(subscript->arraySubscript.lhs_expr);
-  } else if (subscript->arraySubscript.lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(subscript->arraySubscript.lhs_expr);
-  } else assert(0);
+  Type* lhs_ty, *index_ty;
+  Ast* expr, *name;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
+
   visit_indexExpression(subscript->arraySubscript.index_expr);
+
+  if (subscript->arraySubscript.lhs_expr->kind == AST_expression) {
+    name_entry = visit_expression(subscript->arraySubscript.lhs_expr);
+  } else if (subscript->arraySubscript.lhs_expr->kind == AST_lvalueExpression) {
+    name_entry = visit_lvalueExpression(subscript->arraySubscript.lhs_expr);
+  } else assert(0);
+
+  if (name_entry) {
+    expr = subscript->arraySubscript.lhs_expr;
+    name = expr->expression.expr;
+    assert(name->kind == AST_name);
+    name_decl = resolve_variable(name, name_entry);
+    set_add_member(potential_types, storage, subscript->arraySubscript.lhs_expr, actual_type(name_decl->type));
+  }
+
+  lhs_ty = set_lookup_value(potential_types, subscript->arraySubscript.lhs_expr, 0);
+  set_add_member(potential_types, storage, subscript, actual_type(lhs_ty->array.element));
 }
 
 static void
 visit_indexExpression(Ast* index_expr)
 {
   assert(index_expr->kind == AST_indexExpression);
-  visit_expression(index_expr->indexExpression.start_index);
-  if (index_expr->indexExpression.end_index) {
-    visit_expression(index_expr->indexExpression.end_index);
+  Type* start_ty, *end_ty;
+  Ast* start_expr, *end_expr, *name;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
+
+  start_expr = index_expr->indexExpression.start_index;
+  end_expr = index_expr->indexExpression.end_index;
+
+  name_entry = visit_expression(index_expr->indexExpression.start_index);
+  if (name_entry) {
+    name = start_expr->expression.expr;
+    assert(name->kind == AST_name);
+    name_decl = resolve_variable(name, name_entry);
+    set_add_member(potential_types, storage, index_expr->indexExpression.start_index, actual_type(name_decl->type));
   }
+
+  if (index_expr->indexExpression.end_index) {
+    name_entry = visit_expression(index_expr->indexExpression.end_index);
+    if (name_entry) {
+      name = end_expr->expression.expr;
+      assert(name->kind == AST_name);
+      name_decl = resolve_variable(name, name_entry);
+      set_add_member(potential_types, storage, index_expr->indexExpression.end_index, actual_type(name_decl->type));
+    }
+  }
+
+  start_ty = set_lookup_value(potential_types, index_expr->indexExpression.start_index, 0);
+  if (!type_equiv(start_ty, builtin_bit_ty)) {
+    error("At line %d, column %d: array index must be of `bit` type.",
+          start_expr->line_no, start_expr->column_no);
+  }
+  end_ty = set_lookup_value(potential_types, index_expr->indexExpression.end_index, 0);
+  if (end_ty && !type_equiv(end_ty, builtin_bit_ty)) {
+    error("At line %d, column %d: array index must be of `bit` type.",
+          end_expr->line_no, end_expr->column_no);
+  }
+  set_add_member(potential_types, storage, index_expr, start_ty);
 }
 
 static void

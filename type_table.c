@@ -9,6 +9,16 @@ typedef struct TypePair
   Type* right;
 } TypePair;
 
+Type *builtin_void_ty,
+     *builtin_bool_ty,
+     *builtin_int_ty,
+     *builtin_bit_ty,
+     *builtin_varbit_ty,
+     *builtin_string_ty,
+     *builtin_error_ty,
+     *builtin_match_kind_ty,
+     *builtin_dontcare_ty;
+
 static Arena*   storage;
 static Scope*   root_scope;
 static Set*     opened_scopes, *enclosing_scopes;
@@ -328,7 +338,7 @@ Debug_TypeEnum_to_string(enum TypeEnum type)
 }
 
 static void
-resolve_TYPE_NAMEREF(Set* type_table, UnboundedArray* type_array)
+resolve_type_nameref(Set* type_table, UnboundedArray* type_array)
 {
   Ast* name;
   Type* ref_ty, *ty;
@@ -359,7 +369,7 @@ resolve_TYPE_NAMEREF(Set* type_table, UnboundedArray* type_array)
 }
 
 static void
-resolve_TYPE_TYPE(UnboundedArray* type_array)
+resolve_type_type(UnboundedArray* type_array)
 {
   Type* ref_ty, *ty;
 
@@ -424,19 +434,20 @@ build_type_table(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, Set* e
 {
   struct BuiltinType {
     char* strname;
-    enum TypeEnum type;
+    enum TypeEnum ctor;
+    Type** type;
   };
 
   struct BuiltinType builtin_types[] = {
-    {"void",   TYPE_VOID},
-    {"bool",   TYPE_BOOL},
-    {"int",    TYPE_INT},
-    {"bit",    TYPE_BIT},
-    {"varbit", TYPE_VARBIT},
-    {"string", TYPE_STRING},
-    {"error",  TYPE_ENUM},
-    {"match_kind", TYPE_ENUM},
-    {"_",      TYPE_DONTCARE},
+    {"void",       TYPE_VOID,     &builtin_void_ty},
+    {"bool",       TYPE_BOOL,     &builtin_bool_ty},
+    {"int",        TYPE_INT,      &builtin_int_ty},
+    {"bit",        TYPE_BIT,      &builtin_bit_ty},
+    {"varbit",     TYPE_VARBIT,   &builtin_varbit_ty},
+    {"string",     TYPE_STRING,   &builtin_string_ty},
+    {"error",      TYPE_ENUM,     &builtin_error_ty},
+    {"match_kind", TYPE_ENUM,     &builtin_match_kind_ty},
+    {"_",          TYPE_DONTCARE, &builtin_dontcare_ty},
   };
 
   Type* builtin_ty;
@@ -455,16 +466,17 @@ build_type_table(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, Set* e
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_decl = scope_lookup_namespace(root_scope, builtin_types[i].strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
     builtin_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    builtin_ty->ctor = builtin_types[i].type;
+    builtin_ty->ctor = builtin_types[i].ctor;
     builtin_ty->strname = name_decl->strname;
     builtin_ty->ast = name_decl->ast;
     name_decl->type = builtin_ty;
     set_add_member(type_table, storage, name_decl->ast, builtin_ty);
+    *builtin_types[i].type = builtin_ty;
   }
 
   visit_p4program(p4program);
-  resolve_TYPE_NAMEREF(type_table, type_array);
-  resolve_TYPE_TYPE(type_array);
+  resolve_type_nameref(type_table, type_array);
+  resolve_type_type(type_array);
 
   return type_table;
 }

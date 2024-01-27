@@ -3860,13 +3860,13 @@ parse_expression(int priority_threshold)
       } else if (token_is_binaryOperator(token)){
         int priority = operator_priority(token);
         if (priority >= priority_threshold) {
-          next_token();
           expr = arena_malloc(storage, sizeof(Ast));
           expr->kind = AST_binaryExpression;
           expr->line_no = token->line_no;
           expr->column_no = token->column_no;
           expr->binaryExpression.left_operand = primary;
           expr->binaryExpression.op = token_to_binop(token);
+          next_token();
           expr->binaryExpression.right_operand = parse_expression(priority + 1);
           primary = arena_malloc(storage, sizeof(Ast));
           primary->kind = AST_expression;

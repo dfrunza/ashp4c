@@ -935,7 +935,6 @@ typedef struct Type {
 Type* actual_type(Type* type);
 bool  type_equiv(Type* u, Type* v);
 char* Debug_TypeEnum_to_string(enum TypeEnum type);
-void  Debug_print_potential_types(Set* table);
 
 typedef struct Scope {
   int scope_level;
