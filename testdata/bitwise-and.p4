@@ -14,12 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-extern void digest();
+extern void digest(bit v, bit m);
 
 control C(bit<1> meta) {
     apply {
-        if ((meta & 0x0) == 0) {
-            digest(0, meta);
+        if ((meta & (bit)0x0) == 0w8) {
+            digest(0w8, meta);
         }
     }
 }

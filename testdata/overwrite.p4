@@ -20,8 +20,8 @@ package top(c _c);
 
 control my(out bit<32> x) {
     apply {
-        x = 1;
-        x = 2;
+        x = 1w8;
+        x = 2w8;
     }
 }
 

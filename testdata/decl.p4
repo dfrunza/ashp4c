@@ -18,12 +18,12 @@ control p(in bit y_0)
 {
     apply {
         bit x;
-        x = 1w0;
+        x = 8w1;
     
-        if (x == 1w0)
+        if (x == 8w1)
         {
             bit y;
-            y = 1w1;
+            y = 8w1;
         }
         else
         {
@@ -31,11 +31,11 @@ control p(in bit y_0)
             y = y_0;
             {
                 bit y;
-                y = 1w0;
+                y = 8w1;
 
                 {
                     bit y;
-                    y = 1w0;
+                    y = 8w1;
                 }
             }
         }

@@ -973,5 +973,6 @@ Scope*     scope_push(Scope* scope, Scope* parent_scope);
 Scope*     scope_pop(Scope* scope);
 NameEntry* scope_lookup_any(Scope* scope, char* name);
 NameEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
+NameEntry* scope_lookup_local(Scope* scope, char* strname);
 NameEntry* scope_push_decl(Scope* scope, Arena* storage, NameDeclaration* decl, enum NameSpace ns);
 

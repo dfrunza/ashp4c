@@ -13,8 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-extern packet_in {}
-extern packet_out {}
 
 header IPv4_option_NOP {
     bit<8> value;
@@ -24,9 +22,15 @@ struct Parsed_Packet {
     IPv4_option_NOP[3] nop;
 }
 
+extern packet_in {
+  void extract(IPv4_option_NOP v);
+}
+
+extern packet_out {}
+
 parser Parser(packet_in b, out Parsed_Packet p) {
     state start {
-        transition select(8w0, b.lookahead<bit<8> >()) {
+        transition select(8w0, b.lookahead< bit<8> >()) {
             default : accept;
             (0, 0 &&& 0) : accept;
             (0 &&& 0, 0x44) : ipv4_option_NOP;

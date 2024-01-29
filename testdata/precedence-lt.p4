@@ -10,7 +10,7 @@ struct data {
 
 control C(inout data d, inout bit<16> foo, Object o) {
     apply {
-        if (4 + d.f < 10) {
+        if (4w8 + d.f < 10w8) {
             d.foo = (bit<8>)(o.foo< bit<16> >());
         }
     }

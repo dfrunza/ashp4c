@@ -22,7 +22,7 @@ control c(inout bit<32> b) {
     action a() {
         S s1;
         S s2;
-        s2 = { 0 };
+        s2 = (S){ 0 };
         s1 = s2;
         //s1.x = b;
         s2 = s1;

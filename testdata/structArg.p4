@@ -19,7 +19,7 @@ struct S {
 
 control c(inout S data) {
     apply {
-        data.f = 0;
+        data.f = 0w1;
     }
 }
 
@@ -28,7 +28,7 @@ control caller() {
     c() cinst;
 
     apply {
-        data.f = 0;
+        data.f = 0w1;
         cinst.apply(data);
     }
 }

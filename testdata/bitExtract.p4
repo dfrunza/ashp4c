@@ -15,4 +15,4 @@ limitations under the License.
 */
 
 const bit<32> b = 32w0xAAAAA;
-const bit<2> c = b[3:2];
+const bit<2> c = b[3w8:2w8];

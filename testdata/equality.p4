@@ -20,15 +20,15 @@ control c(out bit x) {
 
     apply {
         if (a == b) {
-            x = 1;
+            x = 1w1;
         } else if (h1 == h2) {
-            x = 1;
+            x = 1w1;
         } else if (s1 == s2) {
-            x = 1;
+            x = 1w1;
         } else if (a1 == a2) {
-            x = 1;
+            x = 1w1;
         } else {
-            x = 0;
+            x = 0w1;
         }
     }
 }

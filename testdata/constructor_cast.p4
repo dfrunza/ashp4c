@@ -19,7 +19,7 @@ extern E {
 }
 
 control c() {
-    E(12) e;
+    E(12w8) e;
     apply {}
 }
 

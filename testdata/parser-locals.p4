@@ -28,7 +28,7 @@ struct S {
 parser p() {
     state start {
         S s;
-        s.c = 0;
+        s.c = 8w0;
         transition accept;
     }
 }

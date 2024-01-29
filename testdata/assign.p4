@@ -22,6 +22,6 @@ control c() {
     h hdr;
 
     apply {
-        hdr = { 10 };
+        hdr = (h){ 10 };
     }
 }

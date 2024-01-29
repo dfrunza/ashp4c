@@ -80,6 +80,19 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
 }
 
 NameEntry*
+scope_lookup_local(Scope* scope, char* strname)
+{
+  NameEntry* name_entry = 0;
+  HashmapEntry* e;
+
+  e = hashmap_lookup_entry(&scope->name_table, strname);
+  if (e) {
+    name_entry = (NameEntry*)e->value;
+  }
+  return name_entry;
+}
+
+NameEntry*
 scope_push_decl(Scope* scope, Arena* storage, NameDeclaration* decl, enum NameSpace ns)
 {
   NameEntry* name_entry;

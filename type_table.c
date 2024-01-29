@@ -582,7 +582,6 @@ visit_parameter(Ast* param)
   }
 
   name_decl = set_lookup_value(decl_table, param, 0);
-  assert(!name_decl->next_in_scope);
   name_decl->type = set_lookup_value(type_table, param->parameter.type, 0);
 }
 
@@ -1677,6 +1676,7 @@ visit_tableDeclaration(Ast* table_decl)
 {
   assert(table_decl->kind == AST_tableDeclaration);
   Ast* name;
+  NameDeclaration* name_decl;
   Type* table_ty;
 
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
@@ -1687,6 +1687,9 @@ visit_tableDeclaration(Ast* table_decl)
   table_ty->strname = name->name.strname;
   table_ty->ast = table_decl;
   set_add_member(type_table, storage, table_decl, table_ty);
+
+  name_decl = set_lookup_value(decl_table, table_decl, 0);
+  name_decl->type = table_ty;
 }
 
 static void
@@ -1844,7 +1847,6 @@ visit_variableDeclaration(Ast* var_decl)
   }
 
   name_decl = set_lookup_value(decl_table, var_decl, 0);
-  assert(!name_decl->next_in_scope);
   name_decl->type = set_lookup_value(type_table, var_decl->variableDeclaration.type, 0);
 }
 

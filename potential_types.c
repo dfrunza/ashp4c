@@ -191,16 +191,16 @@ select_extern_method(Ast* name, Ast* extern_, Type* args_ty)
   Type* method_ty, *param_ty;
   Scope* scope;
   NameEntry* name_entry;
-  NameDeclaration* nd, *name_decl;
+  NameDeclaration* nd, *identified;
 
   scope = set_lookup_value(opened_scopes, extern_, 0);
-  name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_TYPE);
+  name_entry = scope_lookup_local(scope, name->name.strname);
   if (!name_entry) {
     return 0;
   }
-  name_decl = 0;
+  identified = 0;
   for (nd = name_entry->ns[NAMESPACE_TYPE]; nd != 0; nd = nd->next_in_scope) {
-    if (name_decl) {
+    if (identified) {
       error("At line %d, column %d: ambiguous name reference `%s`.",
             name->line_no, name->column_no, name->name.strname);
     }
@@ -208,41 +208,42 @@ select_extern_method(Ast* name, Ast* extern_, Type* args_ty)
     assert(method_ty->ctor == TYPE_FUNCTION);
     param_ty = actual_type(method_ty->function.params);
     if (validate_param_and_arg_type(param_ty, args_ty)) {
-      name_decl = nd;
+      identified = nd;
     }
   }
-  return name_decl;
+  return identified;
 }
 
 static NameDeclaration*
 select_function(Ast* name, NameDeclaration* func_decl, Type* args_ty)
 {
   Type* func_ty, *params_ty;
-  NameDeclaration* nd, *name_decl;
+  NameDeclaration* nd, *identified;
 
-  name_decl = 0;
+  identified = 0;
   for (nd = func_decl; nd != 0; nd = nd->next_in_scope) {
-    if (name_decl) {
+    if (identified) {
       error("At line %d, column %d: ambiguous name reference `%s`.",
             name->line_no, name->column_no, name->name.strname);
     }
     func_ty = actual_type(nd->type);
-    if (func_ty->ctor == TYPE_FUNCTION) {
-      ;
-    } else if (func_ty->ctor == TYPE_PACKAGE || func_ty->ctor == TYPE_PARSER ||
-        func_ty->ctor == TYPE_CONTROL) {
-      func_ty = actual_type(nd->ctor_type);
-    } else if (func_ty->ctor == TYPE_EXTERN) {
-      name_decl = select_extern_method(name, nd->ast, args_ty);
-    } else assert(0);
-
-    assert(func_ty->ctor == TYPE_FUNCTION);
-    params_ty = actual_type(func_ty->function.params);
-    if (validate_param_and_arg_type(params_ty, args_ty)) {
-      name_decl = nd;
+    if (func_ty->ctor == TYPE_EXTERN) {
+      identified = select_extern_method(name, nd->ast, args_ty);
+    } else {
+      if (func_ty->ctor == TYPE_FUNCTION) {
+        ;
+      } else if (func_ty->ctor == TYPE_PACKAGE || func_ty->ctor == TYPE_PARSER ||
+          func_ty->ctor == TYPE_CONTROL) {
+        func_ty = actual_type(nd->ctor_type);
+      } else assert(0);
+      assert(func_ty->ctor == TYPE_FUNCTION);
+      params_ty = actual_type(func_ty->function.params);
+      if (validate_param_and_arg_type(params_ty, args_ty)) {
+        identified = nd;
+      }
     }
   }
-  return name_decl;
+  return identified;
 }
 
 static NameDeclaration*
@@ -305,24 +306,34 @@ select_member(Ast* name, Ast* type_decl)
 {
   Scope* scope;
   NameEntry* name_entry;
-  NameDeclaration* nd, *name_decl;
+  NameDeclaration* nd, *identified, *name_decl;
 
   scope = set_lookup_value(opened_scopes, type_decl, 0);
-  name_entry = scope_lookup_namespace(scope, name->name.strname, NAMESPACE_VAR);
+  name_entry = scope_lookup_local(scope, name->name.strname);
   if (!name_entry) {
     return 0;
   }
-  name_decl = 0;
-  for (nd = name_entry->ns[NAMESPACE_VAR]; nd != 0; nd = nd->next_in_scope) {
-    if (name_decl) {
+  if (name_entry->ns[NAMESPACE_VAR] && name_entry->ns[NAMESPACE_TYPE]) {
+    error("At line %d, column %d: ambiguous name reference `%s`.",
+          name->line_no, name->column_no, name->name.strname);
+  }
+  if (name_entry->ns[NAMESPACE_VAR]) {
+    name_decl = name_entry->ns[NAMESPACE_VAR];
+  } else if (name_entry->ns[NAMESPACE_TYPE]) {
+    name_decl = name_entry->ns[NAMESPACE_TYPE];
+  } else assert(0);
+
+  identified = 0;
+  for (nd = name_decl; nd != 0; nd = nd->next_in_scope) {
+    if (identified) {
       error("At line %d, column %d: ambiguous name reference `%s`.",
             name->line_no, name->column_no, name->name.strname);
     }
     if (cstr_match(name->name.strname, nd->strname)) {
-      name_decl = nd;
+      identified = nd;
     }
   }
-  return name_decl;
+  return identified;
 }
 
 static NameDeclaration*
@@ -470,7 +481,6 @@ visit_parameter(Ast* param)
   NameDeclaration* name_decl;
 
   name_decl = set_lookup_value(decl_table, param, 0);
-  assert(!name_decl->next_in_scope);
   set_add_member(potential_types, storage, param, actual_type(name_decl->type));
 
   if (param->parameter.init_expr) {
@@ -493,27 +503,37 @@ visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
   Ast* type, *name;
-  Type* ctor_ty;
+  Type* ctor_ty, *params_ty, *args_ty;
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
   name_entry = visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
 
-  type = inst->instantiation.type;
-  name = type->typeRef.type;
-  assert(name->kind == AST_name);
-  name_decl = resolve_function(name, name_entry, inst->instantiation.args);
-
-  ctor_ty = actual_type(name_decl->type);
-  if (ctor_ty->ctor == TYPE_FUNCTION) {
-    ;
-  } else if (ctor_ty->ctor == TYPE_PACKAGE || ctor_ty->ctor == TYPE_PARSER ||
-             ctor_ty->ctor == TYPE_CONTROL) {
-    ctor_ty = actual_type(name_decl->ctor_type);
+  if (name_entry) {
+    type = inst->instantiation.type;
+    name = type->typeRef.type;
+    assert(name->kind == AST_name);
+    name_decl = resolve_function(name, name_entry, inst->instantiation.args);
+    ctor_ty = actual_type(name_decl->type);
+    if (ctor_ty->ctor == TYPE_FUNCTION) {
+      ;
+    } else if (ctor_ty->ctor == TYPE_PACKAGE || ctor_ty->ctor == TYPE_PARSER ||
+              ctor_ty->ctor == TYPE_CONTROL) {
+      ctor_ty = actual_type(name_decl->ctor_type);
+    } else assert(0);
+    set_add_member(potential_types, storage, inst, actual_type(ctor_ty->function.return_));
+    set_add_member(potential_types, storage, inst->instantiation.name, actual_type(ctor_ty->function.return_));
+  } else {
+    ctor_ty = set_lookup_value(type_table, inst->instantiation.type, 0);
+    assert(ctor_ty->ctor == TYPE_FUNCTION);
+    params_ty = actual_type(ctor_ty->function.params);
+    args_ty = set_lookup_value(potential_types, inst->instantiation.args, 0);
+    if (!validate_param_and_arg_type(params_ty, args_ty)) {
+      error("At line %d, column %d: mismatch between parameter and argument types.",
+            inst->line_no, inst->column_no);
+    }
   }
-  set_add_member(potential_types, storage, inst->instantiation.name, actual_type(ctor_ty->function.return_));
-  set_add_member(potential_types, storage, inst, actual_type(ctor_ty->function.return_));
 
   name_decl = set_lookup_value(decl_table, inst, 0);
   name_decl->type = actual_type(ctor_ty->function.return_);
@@ -1192,7 +1212,7 @@ visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
   Ast* lhs_expr, *name;
-  Type* func_ty;
+  Type* func_ty, *params_ty, *args_ty;
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
@@ -1208,15 +1228,24 @@ visit_functionCall(Ast* func_call)
     name = lhs_expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_function(name, name_entry, func_call->functionCall.args);
-    set_add_member(decl_table, storage, name, name_decl);
     func_ty = actual_type(name_decl->type);
     if (func_ty->ctor == TYPE_FUNCTION) {
       ;
     } else if (func_ty->ctor == TYPE_PACKAGE || func_ty->ctor == TYPE_PARSER ||
                 func_ty->ctor == TYPE_CONTROL) {
       func_ty = actual_type(name_decl->ctor_type);
-    }
+    } else assert(0);
+    set_add_member(decl_table, storage, name, name_decl);
     set_add_member(potential_types, storage, func_call->functionCall.lhs_expr, func_ty);
+  } else {
+    func_ty = set_lookup_value(potential_types, func_call->functionCall.lhs_expr, 0);
+    assert(func_ty->ctor == TYPE_FUNCTION);
+    params_ty = actual_type(func_ty->function.params);
+    args_ty = set_lookup_value(potential_types, func_call->functionCall.args, 0);
+    if (!validate_param_and_arg_type(params_ty, args_ty)) {
+      error("At line %d, column %d: mismatch between parameter and argument types.",
+            func_call->line_no, func_call->column_no);
+    }
   }
 
   func_ty = set_lookup_value(potential_types, func_call->functionCall.lhs_expr, 0);
@@ -1519,7 +1548,6 @@ visit_variableDeclaration(Ast* var_decl)
   NameDeclaration* name_decl;
 
   name_decl = set_lookup_value(decl_table, var_decl, 0);
-  assert(!name_decl->next_in_scope);
   set_add_member(potential_types, storage, var_decl, actual_type(name_decl->type));
 
   if (var_decl->variableDeclaration.init_expr) {

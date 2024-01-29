@@ -14,12 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-extern packet_in {}
-extern packet_out {}
-
 header Header {
     bit<32> data;
 }
+
+extern packet_in {
+  void extract(Header h);
+}
+
+extern packet_out {}
 
 parser p1(packet_in p, out Header h) {
     state start {
