@@ -32,10 +32,10 @@ control p()
         f = (bit<32>)a ^ (bit<32>)b;
         f = (bit<32>)a << (bit<32>)b;
         f = (bit<32>)a >> (bit<32>)b;
-        f = (bit<32>)a >> 4;
-        f = (bit<32>)a << 6;
+        f = (bit<32>)a >> 8w4;
+        f = (bit<32>)a << 8w6;
         c = a * b;
-        e = ((bit<32>)a)[15:0];
+        e = ((bit<32>)a)[8w15:8w0];
         //f = e ++ e;
         //c = d ? a : b;
     

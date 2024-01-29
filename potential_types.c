@@ -1715,7 +1715,23 @@ static void
 visit_unaryExpression(Ast* unary_expr)
 {
   assert(unary_expr->kind == AST_unaryExpression);
-  visit_expression(unary_expr->unaryExpression.operand);
+  Type* ty;
+  Ast* expr, *name;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
+
+  name_entry = visit_expression(unary_expr->unaryExpression.operand);
+
+  if (name_entry) {
+    expr = unary_expr->unaryExpression.operand;
+    name = expr->expression.expr;
+    assert(name->kind == AST_name);
+    name_decl = resolve_variable(name, name_entry);
+    set_add_member(potential_types, storage, unary_expr->unaryExpression.operand, actual_type(name_decl->type));
+  }
+
+  ty = set_lookup_value(potential_types, unary_expr->unaryExpression.operand, 0);
+  set_add_member(potential_types, storage, unary_expr, ty);
 }
 
 static void

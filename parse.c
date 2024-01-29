@@ -3942,7 +3942,7 @@ parse_expressionPrimary()
         expr->castExpression.type = parse_typeRef();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
-          expr->castExpression.expr = parse_expression(1);
+          expr->castExpression.expr = parse_expression(10);
         } else error("At line %d, column %d: `)` was expected, got `%s`.",
                      token->line_no, token->column_no, token->lexeme);
         primary->expression.expr = expr;
