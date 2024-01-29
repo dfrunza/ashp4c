@@ -522,10 +522,21 @@ visit_instantiation(Ast* inst)
               ctor_ty->ctor == TYPE_CONTROL) {
       ctor_ty = actual_type(name_decl->ctor_type);
     } else assert(0);
+    set_add_member(decl_table, storage, name, name_decl);
     set_add_member(potential_types, storage, inst, actual_type(ctor_ty->function.return_));
     set_add_member(potential_types, storage, inst->instantiation.name, actual_type(ctor_ty->function.return_));
   } else {
     ctor_ty = set_lookup_value(type_table, inst->instantiation.type, 0);
+    ctor_ty = actual_type(ctor_ty);
+    if (ctor_ty->ctor == TYPE_FUNCTION) {
+      ;
+    } else if (ctor_ty->ctor == TYPE_PACKAGE) {
+      ctor_ty = actual_type(ctor_ty->package.ctor);
+    } else if (ctor_ty->ctor == TYPE_PARSER) {
+      ctor_ty = actual_type(ctor_ty->parser.ctor);
+    } else if (ctor_ty->ctor == TYPE_CONTROL) {
+      ctor_ty = actual_type(ctor_ty->control.ctor);
+    } else assert(0);
     assert(ctor_ty->ctor == TYPE_FUNCTION);
     params_ty = actual_type(ctor_ty->function.params);
     args_ty = set_lookup_value(potential_types, inst->instantiation.args, 0);

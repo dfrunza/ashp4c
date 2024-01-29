@@ -28,18 +28,18 @@ parser prs(packet_in p, out Headers_t headers) {
 
 control pipe(inout Headers_t headers, out bool pass) {
     action Reject(bit<8> rej, bit<8> bar) {
-        if (rej == 0) {
+        if (rej == 8w0) {
             pass = true;
         } else {
             pass = false;
         }
-        if (bar == 0) {
+        if (bar == 8w0) {
             pass = false;
         }
     }
     table t {
         actions = { Reject(); }
-        default_action = Reject(1, 0);
+        default_action = Reject(8w1, 8w0);
     }
     apply {
         bool x = true;

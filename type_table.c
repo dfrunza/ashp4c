@@ -278,16 +278,16 @@ structural_type_equiv(Type* left, Type* right)
     }
     goto deref_right;
   } else if (left->ctor == TYPE_SPECIALIZED) {
-    return structural_type_equiv(left->specialized.ref, right);
+    assert(0);
   } else if (left->ctor == TYPE_TYPEDEF) {
-    return structural_type_equiv(left->typedef_.ref, right);
+    assert(0);
   } else assert(0);
 
 deref_right:
   if (right->ctor == TYPE_SPECIALIZED) {
-    return structural_type_equiv(left, right->specialized.ref);
+    assert(0);
   } else if (right->ctor == TYPE_TYPEDEF) {
-    return structural_type_equiv(left, right->typedef_.ref);
+    assert(0);
   } else {
     return false;
   }
@@ -350,17 +350,16 @@ resolve_type_nameref(Set* type_table, UnboundedArray* type_array)
     if (ty->ctor == TYPE_NAMEREF) {
       name = ty->nameref.name;
       name_entry = scope_lookup_namespace(ty->nameref.scope, name->name.strname, NAMESPACE_TYPE);
-      if (name_entry->ns[NAMESPACE_TYPE]) {
-        name_decl = name_entry->ns[NAMESPACE_TYPE];
+      name_decl = name_entry->ns[NAMESPACE_TYPE];
+      if (name_decl) {
+        ref_ty = set_lookup_value(type_table, name_decl->ast, 0);
+        assert(ref_ty);
+        name_decl->type = ref_ty;
+        ty->ctor = TYPE_TYPE;
+        ty->type.type = ref_ty;
         if (name_decl->next_in_scope) {
           error("At line %d, column %d: ambiguous type reference `%s`.",
                      name->line_no, name->column_no, name->name.strname);
-        } else {
-          ref_ty = set_lookup_value(type_table, name_decl->ast, 0);
-          assert(ref_ty);
-          name_decl->type = ref_ty;
-          ty->ctor = TYPE_TYPE;
-          ty->type.type = ref_ty;
         }
       } else error("At line %d, column %d: unresolved type reference `%s`.",
                    name->line_no, name->column_no, name->name.strname);
@@ -380,6 +379,42 @@ resolve_type_type(UnboundedArray* type_array)
       while (ref_ty->ctor == TYPE_TYPE) {
         ref_ty = ref_ty->type.type;
       }
+      ty->type.type = ref_ty;
+    }
+  }
+}
+
+static void
+deref_typedef_type(UnboundedArray* type_array)
+{
+  Type* ref_ty, *ty;
+
+  for (int i = 0; i < type_array->elem_count; i++) {
+    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
+    if (ty->ctor == TYPE_TYPEDEF) {
+      ref_ty = actual_type(ty->typedef_.ref);
+      while (ref_ty->ctor == TYPE_TYPEDEF) {
+        ref_ty = actual_type(ref_ty->typedef_.ref);
+      }
+      ty->ctor = TYPE_TYPE;
+      ty->type.type = ref_ty;
+    }
+  }
+}
+
+static void
+deref_specd_type(UnboundedArray* type_array)
+{
+  Type* ref_ty, *ty;
+
+  for (int i = 0; i < type_array->elem_count; i++) {
+    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
+    if (ty->ctor == TYPE_SPECIALIZED) {
+      ref_ty = actual_type(ty->specd.ref);
+      while (ref_ty->ctor == TYPE_SPECIALIZED) {
+        ref_ty = actual_type(ref_ty->specd.ref);
+      }
+      ty->ctor = TYPE_TYPE;
       ty->type.type = ref_ty;
     }
   }
@@ -477,6 +512,8 @@ build_type_table(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, Set* e
   visit_p4program(p4program);
   resolve_type_nameref(type_table, type_array);
   resolve_type_type(type_array);
+  deref_specd_type(type_array);
+  deref_typedef_type(type_array);
 
   return type_table;
 }
@@ -950,6 +987,7 @@ visit_externTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_externTypeDeclaration);
   Ast* name;
+  NameDeclaration* name_decl;
   Type* extern_ty;
 
   if (type_decl->externTypeDeclaration.type_params) {
@@ -966,6 +1004,9 @@ visit_externTypeDeclaration(Ast* type_decl)
   visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos,
           type_decl, type_decl->externTypeDeclaration.name);
   extern_ty->extern_.methods = set_lookup_value(type_table, type_decl->externTypeDeclaration.method_protos, 0);
+
+  name_decl = set_lookup_value(decl_table, type_decl, 0);
+  name_decl->type = extern_ty;
 }
 
 static void
@@ -1104,7 +1145,7 @@ visit_specializedType(Ast* type_decl)
   specd_ty->ast = type_decl;
   set_add_member(type_table, storage, type_decl, specd_ty);
 
-  specd_ty->specialized.ref = set_lookup_value(type_table, type_decl->specializedType.type, 0);
+  specd_ty->specd.ref = set_lookup_value(type_table, type_decl->specializedType.type, 0);
 }
 
 static void

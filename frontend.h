@@ -919,7 +919,7 @@ typedef struct Type {
     struct {
       struct Type* ref;
       struct Type* args;
-    } specialized;
+    } specd;
 
     struct {
       Ast* name;
