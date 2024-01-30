@@ -35,9 +35,6 @@ control p()
         f = (bit<32>)a >> 8w4;
         f = (bit<32>)a << 8w6;
         c = a * b;
-        e = ((bit<32>)a)[8w15:8w0];
-        //f = e ++ e;
-        //c = d ? a : b;
     
         d = a == b;
         d = a != b;

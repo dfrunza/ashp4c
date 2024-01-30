@@ -10,21 +10,6 @@ error {
                            /// not supported by the implementation.
 }
 
-extern packet_in {
-    void extract<T>(out T hdr);
-    void extract<T>(out T variableSizeHeader,
-                    in bit<32> variableFieldSizeInBits);
-    T lookahead<T>();
-    void advance(in bit<32> sizeInBits);
-    bit<32> length();
-}
-
-extern packet_out {
-    void emit<T>(in T hdr);
-}
-
-extern void verify(in bool check, in error toSignal);
-
 /// Built-in action that does nothing.
 action NoAction() {}
 
@@ -38,7 +23,7 @@ match_kind {
 }
 
 typedef bit<32> B32;
-type bit<32> N32;
+typedef bit<32> N32;
 
 struct S {
     B32 b;
@@ -49,7 +34,7 @@ header H {
     N32 field;
 }
 
-type N32 NN32;
+typedef N32 NN32;
 
 control c(out B32 x) {
     N32 k;

@@ -75,12 +75,12 @@ parser p(packet_in packet, out O o) {
         E1 a = E1.e1;
         E2 b = E2.e2;
 
-        bb = (a == b);
-        bb = bb && (a == 0);
-        bb = bb && (b == 0);
+        bb = (a == (E1)b);
+        bb = bb && (a == (E1)0);
+        bb = bb && (b == (E2)0);
 
         a = (E1) b; // OK
-        a = (E1)(E1.e1 + 1); // Final explicit casting makes the assignment legal
+        a = (E1)(E1.e1 + (E1)1); // Final explicit casting makes the assignment legal
         a = (E1)(E2.e1 + E2.e2); //  Final explicit casting makes the assignment legal
 
         packet.extract(o.b);

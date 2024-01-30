@@ -95,8 +95,8 @@ static void visit_enumDeclaration(Ast* enum_decl);
 static void visit_errorDeclaration(Ast* error_decl);
 static void visit_matchKindDeclaration(Ast* match_decl);
 static void visit_identifierList(Ast* ident_list);
-static void visit_specifiedIdentifierList(Ast* ident_list);
-static void visit_specifiedIdentifier(Ast* ident);
+static void visit_specifiedIdentifierList(Ast* ident_list, Type* enum_type);
+static void visit_specifiedIdentifier(Ast* ident, Type* enum_type);
 static void visit_typedefDeclaration(Ast* typedef_decl);
 
 /** STATEMENTS **/
@@ -1115,7 +1115,11 @@ static void
 visit_enumDeclaration(Ast* enum_decl)
 {
   assert(enum_decl->kind == AST_enumDeclaration);
-  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
+  NameDeclaration* name_decl;
+
+  name_decl = set_lookup_value(decl_table, enum_decl, 0);
+
+  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields, name_decl->type);
 }
 
 static void
@@ -1145,21 +1149,26 @@ visit_identifierList(Ast* ident_list)
 }
 
 static void
-visit_specifiedIdentifierList(Ast* ident_list)
+visit_specifiedIdentifierList(Ast* ident_list, Type* enum_type)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
   Ast* ast;
 
   for (ast = ident_list->specifiedIdentifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_specifiedIdentifier(ast);
+    visit_specifiedIdentifier(ast, enum_type);
   }
 }
 
 static void
-visit_specifiedIdentifier(Ast* ident)
+visit_specifiedIdentifier(Ast* ident, Type* enum_type)
 {
   assert(ident->kind == AST_specifiedIdentifier);
+  NameDeclaration* name_decl;
+
+  name_decl = set_lookup_value(decl_table, ident, 0);
+  name_decl->type = enum_type;
+
   if (ident->specifiedIdentifier.init_expr) {
     visit_expression(ident->specifiedIdentifier.init_expr);
   }
@@ -1703,9 +1712,20 @@ visit_castExpression(Ast* cast_expr)
 {
   assert(cast_expr->kind == AST_castExpression);
   Type* cast_ty;
+  Ast* expr, *name;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
 
   visit_typeRef(cast_expr->castExpression.type);
-  visit_expression(cast_expr->castExpression.expr);
+  name_entry = visit_expression(cast_expr->castExpression.expr);
+
+  if (name_entry) {
+    expr = cast_expr->castExpression.expr;
+    name = expr->expression.expr;
+    assert(name->kind == AST_name);
+    name_decl = resolve_variable(name, name_entry);
+    set_add_member(potential_types, storage, cast_expr->castExpression.expr, actual_type(name_decl->type));
+  }
 
   cast_ty = set_lookup_value(type_table, cast_expr->castExpression.type, 0);
   set_add_member(potential_types, storage, cast_expr, cast_ty);
@@ -1767,7 +1787,7 @@ visit_binaryExpression(Ast* binary_expr)
   lhs_ty = set_lookup_value(potential_types, binary_expr->binaryExpression.left_operand, 0);
   rhs_ty = set_lookup_value(potential_types, binary_expr->binaryExpression.right_operand, 0);
   if (!type_equiv(lhs_ty, rhs_ty)) {
-    error("At line %d, column %d: incompatible types in binary expression.",
+    error("At line %d, column %d: incompatible operand types in binary expression.",
           binary_expr->line_no, binary_expr->column_no);
   }
 
@@ -1830,7 +1850,7 @@ visit_arraySubscript(Ast* subscript)
 {
   assert(subscript->kind == AST_arraySubscript);
   Type* lhs_ty, *index_ty;
-  Ast* expr, *name;
+  Ast* expr, *lhs_expr, *name;
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
@@ -1850,8 +1870,12 @@ visit_arraySubscript(Ast* subscript)
     set_add_member(potential_types, storage, subscript->arraySubscript.lhs_expr, actual_type(name_decl->type));
   }
 
+  lhs_expr = subscript->arraySubscript.lhs_expr;
   lhs_ty = set_lookup_value(potential_types, subscript->arraySubscript.lhs_expr, 0);
-  set_add_member(potential_types, storage, subscript, actual_type(lhs_ty->array.element));
+  if (lhs_ty->ctor == TYPE_ARRAY) {
+    set_add_member(potential_types, storage, subscript, actual_type(lhs_ty->array.element));
+  } else error("At line %d, column %d: array type was expected.",
+               lhs_expr->line_no, lhs_expr->column_no);
 }
 
 static void

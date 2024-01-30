@@ -1072,6 +1072,7 @@ visit_enumDeclaration(Ast* enum_decl)
   assert(enum_decl->kind == AST_enumDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
+  Scope* prev_scope;
 
   name = enum_decl->enumDeclaration.name;
   name_decl = arena_malloc(storage, sizeof(NameDeclaration));
@@ -1081,7 +1082,12 @@ visit_enumDeclaration(Ast* enum_decl)
   set_add_member(decl_table, storage, name, name_decl);
   set_add_member(decl_table, storage, enum_decl, name_decl);
 
+  prev_scope = current_scope;
+  current_scope = set_lookup_value(opened_scopes, enum_decl, 0);
+
   visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
+
+  current_scope = prev_scope;
 }
 
 static void
