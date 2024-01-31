@@ -47,13 +47,6 @@ action ac()
     a = b | c | d;
     a = (b | c) | d;
     a = b | (c | d);
-    //a = e ? c : d;
-    //a = e ? c + c : d + d;
-    //a = e ? (c + c) : (d + d);
-    //a = d + (e ? (c + c) : d);
-    //a = (e ? (c + c) : d) + d;
-    //a = e ? (e ? b : c) : (e ? b : c);
-    //a = (e ? (e ? b : c) : b) == b ? b : c;
     a = b & c | d;
     a = b | c & d;
     a = (b & c) | d;

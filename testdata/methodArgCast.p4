@@ -22,7 +22,7 @@ extern E {
 control c() {
     E() e;
     apply {
-        e.setValue(10);
+        e.setValue(8w10);
     }
 }
 

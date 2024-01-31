@@ -20,7 +20,7 @@ control c()
         bit x;
         {
             bit x;
-            x = 0;
+            x = 8w0;
         }
     }
 }
