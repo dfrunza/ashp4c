@@ -282,7 +282,8 @@ structural_type_equiv(Type* left, Type* right)
     assert(0);
   } else if (left->ctor == TYPE_TYPEDEF) {
     assert(0);
-  } else assert(0);
+  }
+  else assert(0);
 
 deref_right:
   if (right->ctor == TYPE_SPECIALIZED) {
@@ -369,7 +370,7 @@ resolve_type_nameref(Set* type_table, UnboundedArray* type_array)
 }
 
 static void
-resolve_type_type(UnboundedArray* type_array)
+deref_type_type(UnboundedArray* type_array)
 {
   Type* ref_ty, *ty;
 
@@ -513,9 +514,9 @@ build_type_table(char* source_file_, Ast* p4program, Scope* root_scope_, Set* op
 
   visit_p4program(p4program);
   resolve_type_nameref(type_table, type_array);
-  resolve_type_type(type_array);
-  deref_specd_type(type_array);
   deref_typedef_type(type_array);
+  deref_specd_type(type_array);
+  deref_type_type(type_array);
 
   return type_table;
 }
