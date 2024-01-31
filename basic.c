@@ -5,7 +5,7 @@
 #include "foundation.h"
 
 void
-_assert(char* message, char* file, int line)
+assert_(char* message, char* file, int line)
 {
   printf("%s:%d: ", file, line);
   if(!message || message[0] == '\0') {
@@ -113,18 +113,13 @@ cstr_print_substr(char* begin_char, char* end_char)
 }
 
 void
-_error(char* file, int line, char* message, ...)
+error_(char* file, int line, char* message, ...)
 {
-  printf("[ERROR] ");
-  if (!message) {
-    printf("at %s:%d\n", file, line);
-  } else {
-    va_list args;
-    va_start(args, message);
-    vprintf(message, args);
-    va_end(args);
-    printf("\n");
-  }
+  va_list args;
+  va_start(args, message);
+  vprintf(message, args);
+  va_end(args);
+  printf("\n");
   exit(1);
 }
 

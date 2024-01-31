@@ -4,10 +4,10 @@ typedef uint32_t bool;
 #define KILOBYTE 1024
 #define MEGABYTE 1024*KILOBYTE
 
-void    _assert(char* message, char* file, int line);
-#define  assert(EXPR)  do { if(!(EXPR)) _assert(#EXPR, __FILE__, __LINE__); } while(0)
-void    _error(char* file, int line, char* message, ...);
-#define  error(MSG, ...)  _error(__FILE__, __LINE__, (MSG), ## __VA_ARGS__)
+void     assert_(char* message, char* file, int line);
+#define  assert(EXPR)  do { if(!(EXPR))  assert_(#EXPR, __FILE__, __LINE__); } while(0)
+void     error_(char* file, int line, char* message, ...);
+#define  error(MSG, ...)  error_(__FILE__, __LINE__, (MSG), ## __VA_ARGS__)
 bool  cstr_is_letter(char c);
 bool  cstr_is_digit(char c, int base);
 bool  cstr_is_ascii_printable(char c);

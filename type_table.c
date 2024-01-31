@@ -19,6 +19,7 @@ Type *builtin_void_ty,
      *builtin_match_kind_ty,
      *builtin_dontcare_ty;
 
+static char*    source_file;
 static Arena*   storage;
 static Scope*   root_scope;
 static Set*     opened_scopes, *enclosing_scopes;
@@ -358,11 +359,11 @@ resolve_type_nameref(Set* type_table, UnboundedArray* type_array)
         ty->ctor = TYPE_TYPE;
         ty->type.type = ref_ty;
         if (name_decl->next_in_scope) {
-          error("At line %d, column %d: ambiguous type reference `%s`.",
-                     name->line_no, name->column_no, name->name.strname);
+          error("%s:%d:%d: error: ambiguous type reference `%s`.",
+                source_file, name->line_no, name->column_no, name->name.strname);
         }
-      } else error("At line %d, column %d: unresolved type reference `%s`.",
-                   name->line_no, name->column_no, name->name.strname);
+      } else error("%s:%d:%d: error: unresolved type reference `%s`.",
+                   source_file, name->line_no, name->column_no, name->name.strname);
     }
   }
 }
@@ -464,8 +465,8 @@ Debug_print_type_array(UnboundedArray* type_array)
 }
 
 Set*
-build_type_table(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, Set* enclosing_scopes_,
-        Set* decl_table_, Arena* storage_)
+build_type_table(char* source_file_, Ast* p4program, Scope* root_scope_, Set* opened_scopes_,
+        Set* enclosing_scopes_, Set* decl_table_, Arena* storage_)
 {
   struct BuiltinType {
     char* strname;
@@ -488,6 +489,7 @@ build_type_table(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, Set* e
   Type* builtin_ty;
   NameDeclaration* name_decl;
 
+  source_file = source_file_;
   storage = storage_;
   root_scope = root_scope_;
   opened_scopes = opened_scopes_;

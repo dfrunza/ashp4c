@@ -147,7 +147,7 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 Set*
-build_symtable(Ast* p4program, Scope* root_scope_, Set* opened_scopes_,
+build_symtable(char* source_file, Ast* p4program, Scope* root_scope_, Set* opened_scopes_,
         Set** decl_table_, Arena* storage_)
 {
   root_scope = root_scope_;

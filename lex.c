@@ -12,6 +12,7 @@ typedef struct Lexeme {
 static Arena* storage;
 static char*  text;
 static int    text_size;
+static char*  filename;
 static int    line_no;
 static char*  line_start;
 static int    state;
@@ -156,17 +157,17 @@ token_install_integer(Token* token, Lexeme* lexeme, int base)
     token->integer.value = parse_integer(string, base);
   } else {
     if (base == 10) {
-      error("At line %d, column %d: expected one or more digits, got '%s'.",
-            token->line_no, token->column_no, string);
+      error("%s:%d:%d: error: expected one or more digits, got '%s'.",
+            filename, token->line_no, token->column_no, string);
     } else if (base == 16) {
-      error("At line %d, column %d: expected one or more hexadecimal digits, got '%s'.",
-            token->line_no, token->column_no, string);
+      error("%s:%d:%d: error: expected one or more hexadecimal digits, got '%s'.",
+            filename, token->line_no, token->column_no, string);
     } else if (base == 8) {
-      error("At line %d, column %d: expected one or more octal digits, got '%s'.",
-            token->line_no, token->column_no, string);
+      error("%s:%d:%d: error: expected one or more octal digits, got '%s'.",
+            filename, token->line_no, token->column_no, string);
     } else if (base == 2) {
-      error("At line %d, column %d: expected one or more binary digits, got '%s'.",
-            token->line_no, token->column_no, string);
+      error("%s:%d:%d: error: expected one or more binary digits, got '%s'.",
+            filename, token->line_no, token->column_no, string);
     } else assert(0);
   }
 }
@@ -840,6 +841,7 @@ tokenize_source_text(SourceText* source_text, Arena* storage_)
   Token token = {};
 
   storage = storage_;
+  filename = source_text->filename;
   text = source_text->text;
   text_size = source_text->text_size;
 
@@ -855,9 +857,9 @@ tokenize_source_text(SourceText* source_text, Arena* storage_)
   *(Token*)array_append_element(tokens, storage, sizeof(Token)) = token;
   while (token.klass != TK_END_OF_INPUT) {
     if (token.klass == TK_UNKNOWN) {
-      error("At line %d, column %d: unknown token.", token.line_no, token.column_no);
+      error("%s:%d:%d: error: unknown token.", filename, token.line_no, token.column_no);
     } else if (token.klass == TK_LEXICAL_ERROR) {
-      error("At line %d, column %d: lexical error.", token.line_no, token.column_no);
+      error("%s:%d:%d: error: lexical error.", filename, token.line_no, token.column_no);
     }
     next_token(&token);
     *(Token*)array_append_element(tokens, storage, sizeof(Token)) = token;

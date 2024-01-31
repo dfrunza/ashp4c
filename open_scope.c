@@ -146,7 +146,7 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 Set*
-build_open_scope(Ast* p4program, Scope* root_scope, Arena* storage_)
+build_open_scope(char* source_file, Ast* p4program, Scope* root_scope, Arena* storage_)
 {
   storage = storage_;
   opened_scopes = arena_malloc(storage, sizeof(Set));

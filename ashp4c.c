@@ -99,31 +99,31 @@ parse_cmdline_args(int arg_count, char* args[], Arena* storage)
 }
 
 static Ast*
-syntactic_analysis(CmdlineArg* filename, Scope** root_scope, Arena* storage, Arena* tmp_storage)
+syntactic_analysis(char* source_file, Scope** root_scope, Arena* storage, Arena* tmp_storage)
 {
   SourceText source_text;
   UnboundedArray* tokens;
   Ast* program;
 
-  source_text = read_source_text(filename->value, tmp_storage);
+  source_text = read_source_text(source_file, tmp_storage);
   tokens = tokenize_source_text(&source_text, storage);
-  program = parse_program(tokens, storage, root_scope);
+  program = parse_program(source_file, tokens, storage, root_scope);
   return program;
 }
 
 static void
-semantic_analysis(Ast* program, Scope* root_scope, Arena* storage)
+semantic_analysis(char* source_file, Ast* program, Scope* root_scope, Arena* storage)
 {
   Set* opened_scopes, *enclosing_scopes;
   Set* type_table, *decl_table = 0;
 
-  drypass(program);
+  drypass(source_file, program);
 
-  opened_scopes = build_open_scope(program, root_scope, storage);
-  enclosing_scopes = build_symtable(program, root_scope, opened_scopes, &decl_table, storage);
-  type_table = build_type_table(program, root_scope, opened_scopes, enclosing_scopes,
+  opened_scopes = build_open_scope(source_file, program, root_scope, storage);
+  enclosing_scopes = build_symtable(source_file, program, root_scope, opened_scopes, &decl_table, storage);
+  type_table = build_type_table(source_file, program, root_scope, opened_scopes, enclosing_scopes,
               decl_table, storage);
-  build_potential_types(program, root_scope, opened_scopes, enclosing_scopes,
+  build_potential_types(source_file, program, root_scope, opened_scopes, enclosing_scopes,
               type_table, decl_table, storage);
 }
 
@@ -144,10 +144,10 @@ main(int arg_count, char* args[])
     exit(1);
   }
 
-  program = syntactic_analysis(filename, &root_scope, &storage, &tmp_storage);
+  program = syntactic_analysis(filename->value, &root_scope, &storage, &tmp_storage);
   arena_free(&tmp_storage);
 
-  semantic_analysis(program, root_scope, &storage);
+  semantic_analysis(filename->value, program, root_scope, &storage);
 
   arena_free(&storage);
   return 0;

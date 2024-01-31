@@ -3,7 +3,8 @@
 #include "foundation.h"
 #include "frontend.h"
 
-static Arena  *storage;
+static char*  source_file;
+static Arena* storage;
 static UnboundedArray* tokens;
 static int    token_at = 0, prev_token_at = 0;
 static Token* token = 0, *prev_token = 0;
@@ -690,7 +691,7 @@ Debug_AstEnum_to_string(enum AstEnum ast)
 }
 
 Ast*
-parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_)
+parse_program(char* source_file_, UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_)
 {
   struct Keyword {
     char* strname;
@@ -762,6 +763,7 @@ parse_program(UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_)
   NameDeclaration* name_decl;
   Ast* name, *program;
 
+  source_file = source_file_;
   tokens = tokens_;
   storage = storage_;
   root_scope = scope_create(storage, 496);
@@ -811,8 +813,8 @@ parse_p4program()
   program->p4program.decl_list = parse_declarationList();
   current_scope = scope_pop(current_scope);
   if (token->klass != TK_END_OF_INPUT) {
-    error("At line %d, column %d: unexpected token `%s`.",
-          token->line_no, token->column_no, token->lexeme);
+    error("%s:%d:%d: error: unexpected token `%s`.",
+          source_file, token->line_no, token->column_no, token->lexeme);
   }
   return program;
 }
@@ -893,15 +895,15 @@ parse_declaration()
       } else if (token_is_name(token)) {
         decl->declaration.decl = parse_functionDeclaration(type_ref);
         return decl;
-      } else error("At line %d, column %d: unexpected token `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: unexpected token `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       assert(0);
     } else if (token_is_typeOrVoid(token)) {
       decl->declaration.decl = parse_functionDeclaration(parse_typeRef());
       return decl;
     } else assert(0);
-  } else error("At line %d, column %d: top-level declaration as expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: top-level declaration as expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -919,8 +921,8 @@ parse_nonTypeName()
     name->name.strname = token->lexeme;
     next_token();
     return name;
-  } else error("At line %d, column %d: non-type name was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: non-type name was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -942,8 +944,8 @@ parse_name()
       next_token();
       return type_name;
     } else assert(0);
-  } else error("At line %d, column %d: name was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: name was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -987,14 +989,14 @@ parse_parameter()
         next_token();
         if (token_is_expression(token)) {
           param->parameter.init_expr = parse_expression(1);
-        } else error("At line %d, column %d: expression was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: expression was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
       }
-    } else error("At line %d, column %d: name was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return param;
-  } else error("At line %d, column %d: type was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: type was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1041,15 +1043,15 @@ parse_packageTypeDeclaration()
         package_decl->packageTypeDeclaration.params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `(` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: name was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return package_decl;
-  } else error("At line %d, column %d: `package` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `package` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1074,17 +1076,17 @@ parse_instantiation(Ast* type_ref)
           inst_stmt->instantiation.name = parse_name();
           if (token->klass == TK_SEMICOLON) {
             next_token();
-          } else error("At line %d, column %d: `;` was expected, got `%s`.",
-                       token->line_no, token->column_no, token->lexeme);
-        } else error("At line %d, column %d: instance name was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `(` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+          } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
+                       source_file, token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: instance name was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return inst_stmt;
-  } else error("At line %d, column %d: type was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: type was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1102,13 +1104,13 @@ parse_optConstructorParameters()
       params = parse_parameterList();
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
-      } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       return params;
     } else if (token->klass == TK_PARENTH_CLOSE) {
       next_token();
-    } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
   }
   return 0;
 }
@@ -1130,17 +1132,17 @@ parse_parserDeclaration(Ast* parser_proto)
       parser_decl->parserDeclaration.local_elements = parse_parserLocalElements();
       if (token->klass == TK_STATE) {
         parser_decl->parserDeclaration.states = parse_parserStates();
-      } else error("At line %d, column %d: `state` was expected, got `%s`.",
-                    token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `state` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       if (token->klass == TK_BRACE_CLOSE) {
         next_token();
-      } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                    token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                  token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return parser_decl;
-  } else error("At line %d, column %d: `parser` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `parser` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1186,11 +1188,11 @@ parse_parserLocalElement()
       } else if (token_is_name(token)) {
         local_element->parserLocalElement.element = parse_variableDeclaration(type_ref);
         return local_element;
-      } else error("At line %d, column %d: unexpected token `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: unexpected token `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
     } else assert(0);
-  } else error("At line %d, column %d: local declaration was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: local declaration was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1219,15 +1221,15 @@ parse_parserTypeDeclaration()
         parser_proto->parserTypeDeclaration.params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `(` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: name was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return parser_proto;
-  } else error("At line %d, column %d: `parser` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `parser` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1270,13 +1272,13 @@ parse_parserState()
       state->parserState.transition_stmt = parse_transitionStatement();
       if (token->klass == TK_BRACE_CLOSE) {
         next_token();
-      } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return state;
-  } else error("At line %d, column %d: `state` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `state` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1337,8 +1339,8 @@ parse_parserStatement()
       parser_stmt->parserStatement.stmt = stmt;
       return parser_stmt;
     } else assert(0);
-  } else error("At line %d, column %d: statement was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: statement was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1357,11 +1359,11 @@ parse_parserBlockStatement()
     stmt->parserBlockStatement.stmt_list = parse_parserStatements();
     if (token->klass == TK_BRACE_CLOSE) {
       next_token();
-    } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return stmt;
-  } else error("At line %d, column %d: `{` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1379,8 +1381,8 @@ parse_transitionStatement()
     transition->column_no = token->column_no;
     transition->transitionStatement.stmt = parse_stateExpression();
     return transition;
-  } else error("At line %d, column %d: `transition` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `transition` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1399,15 +1401,15 @@ parse_stateExpression()
       state_expr->stateExpression.expr = parse_name();
       if (token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("At line %d, column %d: `;` was expected, got `%s`.",
-                  token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
+                  source_file, token->line_no, token->column_no, token->lexeme);
       return state_expr;
     } else if (token->klass == TK_SELECT) {
       state_expr->stateExpression.expr = parse_selectExpression();
       return state_expr;
     } else assert(0);
-  } else error("At line %d, column %d: state expression was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: state expression was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1433,17 +1435,17 @@ parse_selectExpression()
           select_expr->selectExpression.case_list = parse_selectCaseList();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
-          } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                       token->line_no, token->column_no, token->lexeme);
-        } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `(` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+          } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                       source_file, token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return select_expr;
-  } else error("At line %d, column %d: `select` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `select` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1485,15 +1487,15 @@ parse_selectCase()
         select_case->selectCase.name = parse_name();
         if (token->klass == TK_SEMICOLON) {
           next_token();
-        } else error("At line %d, column %d: `;` expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: name was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `:` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `;` expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `:` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return select_case;
-  } else error("At line %d, column %d: keyset expression was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: keyset expression was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1515,8 +1517,8 @@ parse_keysetExpression()
       keyset_expr->keysetExpression.expr = parse_simpleKeysetExpression();
       return keyset_expr;
     } else assert(0);
-  } else error("At line %d, column %d: keyset expression was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: keyset expression was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1535,11 +1537,11 @@ parse_tupleKeysetExpression()
     tuple_keyset->tupleKeysetExpression.expr_list = parse_simpleExpressionList();
     if (token->klass == TK_PARENTH_CLOSE) {
       next_token();
-    } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return tuple_keyset;
-  } else error("At line %d, column %d: `(` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1595,8 +1597,8 @@ parse_simpleKeysetExpression()
       simple_keyset->simpleKeysetExpression.expr = dontcare_keyset;
       return simple_keyset;
     }
-  } else error("At line %d, column %d: keyset expression was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: keyset expression was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1623,15 +1625,15 @@ parse_controlDeclaration(Ast* control_proto)
         control_decl->controlDeclaration.apply_stmt = parse_blockStatement();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                      token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `apply` was expected, got `%s`.",
-                    token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                  token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `apply` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return control_decl;
-  } else error("At line %d, column %d: `control` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `control` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1660,15 +1662,15 @@ parse_controlTypeDeclaration()
         control_proto->controlTypeDeclaration.params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `(` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: name was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return control_proto;
-  } else error("At line %d, column %d: `control` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `control` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1700,11 +1702,11 @@ parse_controlLocalDeclaration()
       } else if (token_is_name(token)) {
         local_decl->controlLocalDeclaration.decl = parse_variableDeclaration(type_ref);
         return local_decl;
-      } else error("At line %d, column %d: unexpected token `%s`.",
-                  token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: unexpected token `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
     } else assert(0);
-  } else error("At line %d, column %d: local declaration was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: local declaration was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1752,15 +1754,15 @@ parse_externDeclaration()
       is_function_type = true;
     } else if (token_is_nonTypeName(token)) {
       is_function_type = false;
-    } else error("At line %d, column %d: extern declaration was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: extern declaration was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
 
     if (is_function_type) {
       extern_decl->externDeclaration.decl = parse_functionPrototype(0);
       if (token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("At line %d, column %d: `;` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       return extern_decl;
     } else {
       extern_type = arena_malloc(storage, sizeof(Ast));
@@ -1778,15 +1780,15 @@ parse_externDeclaration()
         extern_type->externTypeDeclaration.method_protos = parse_methodPrototypes();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       extern_decl->externDeclaration.decl = extern_type;
       return extern_decl;
     }
-  } else error("At line %d, column %d: `extern` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `extern` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1849,15 +1851,15 @@ parse_functionPrototype(Ast* return_type)
         func_proto->functionPrototype.params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `(` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: function name was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: function name was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return func_proto;
-  } else error("At line %d, column %d: type was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: type was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1880,26 +1882,26 @@ parse_methodPrototype()
         func_proto->functionPrototype.params = parse_parameterList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `(` as expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `(` as expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       if (token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("At line %d, column %d: `;` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       return func_proto;
     } else if (token_is_typeOrVoid(token)) {
       func_proto = parse_functionPrototype(0);
       if (token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("At line %d, column %d: `;` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       return func_proto;
-    } else error("At line %d, column %d: type was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
-  } else error("At line %d, column %d: type was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: type was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: type was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1926,8 +1928,8 @@ parse_typeRef()
       type_ref->typeRef.type = parse_tupleType();
       return type_ref;
     } else assert(0);
-  } else error("At line %d, column %d: type was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: type was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1947,8 +1949,8 @@ parse_namedType()
       return named_type;
     }
     return named_type;
-  } else error("At line %d, column %d: type was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: type was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1972,8 +1974,8 @@ parse_prefixedType()
     type_name->name.is_prefixed = is_prefixed;
     next_token();
     return type_name;
-  } else error("At line %d, column %d: type was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: type was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -1994,13 +1996,13 @@ parse_tupleType()
       tuple->tupleType.type_args = parse_typeArgumentList();
       if (token->klass == TK_ANGLE_CLOSE) {
         next_token();
-      } else error("At line %d, column %d: `>` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `<` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `<` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return tuple;
-  } else error("At line %d, column %d: `tuple` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `tuple` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2026,13 +2028,13 @@ parse_headerStackType(Ast* named_type)
       type->headerStackType.stack_expr = parse_expression(1);
       if (token->klass == TK_BRACKET_CLOSE) {
         next_token();
-      } else error("At line %d, column %d: `]` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: expression expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: expression expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return type;
-  } else error("At line %d, column %d: `[` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `[` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2057,11 +2059,11 @@ parse_specializedType(Ast* named_type)
     type->specializedType.type = type_ref;
     if (token->klass == TK_ANGLE_CLOSE) {
       next_token();
-    } else error("At line %d, column %d: `>` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return type;
-  } else error("At line %d, column %d: `<` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `<` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2098,8 +2100,8 @@ parse_baseType()
         type->baseTypeInteger.size = parse_integerTypeSize();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `>` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
       }
       return type;
     } else if (token->klass == TK_BIT) {
@@ -2115,8 +2117,8 @@ parse_baseType()
         type->baseTypeBit.size = parse_integerTypeSize();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `>` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
       }
       return type;
     } else if (token->klass == TK_VARBIT) {
@@ -2132,10 +2134,10 @@ parse_baseType()
         type->baseTypeVarbit.size = parse_integerTypeSize();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `>` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: '<' was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: '<' was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       return type;
     } else if (token->klass == TK_STRING) {
       type = arena_malloc(storage, sizeof(Ast));
@@ -2165,8 +2167,8 @@ parse_baseType()
       next_token();
       return type;
     } else assert(0);
-  } else error("At line %d, column %d: base type was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: base type was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2185,10 +2187,10 @@ parse_integerTypeSize()
   } else if (token->klass == TK_PARENTH_OPEN) {
     /* TODO
     type_size->size = parse_expression(1); */
-    error("At line %d, column %d: integer was expected, got `%s`.",
-          token->line_no, token->column_no, token->lexeme);
-  } else error("At line %d, column %d: `(` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+    error("%s:%d:%d: error: integer was expected, got `%s`.",
+          source_file, token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   return type_size;
 }
 
@@ -2212,8 +2214,8 @@ parse_typeOrVoid()
       next_token();
       return name;
     } else assert(0);
-  } else error("At line %d, column %d: type was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: type was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2229,15 +2231,15 @@ parse_optTypeParameters()
       params = parse_typeParameterList();
       if (token->klass == TK_ANGLE_CLOSE) {
         next_token();
-      } else error("At line %d, column %d: `>` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       return params;
-    } else error("At line %d, column %d: name was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     if (token->klass == TK_ANGLE_CLOSE) {
       next_token();
-    } else error("At line %d, column %d: `>` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
   }
   return 0;
 }
@@ -2294,8 +2296,8 @@ parse_realTypeArg()
       type_arg->realTypeArg.arg = parse_typeRef();
       return type_arg;
     } else assert(0);
-  } else error("At line %d, column %d: type argument was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: type argument was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2325,8 +2327,8 @@ parse_typeArg()
       type_arg->typeArg.arg = parse_nonTypeName();
       return type_arg;
     } else assert(0);
-  } else error("At line %d, column %d: type argument was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: type argument was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2399,12 +2401,12 @@ parse_typeDeclaration()
       type_decl->typeDeclaration.decl = parse_packageTypeDeclaration();
       if (token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("At line %d, column %d: `;` expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `;` expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       return type_decl;
     } else assert(0);
-  } else error("At line %d, column %d: type declaration was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme); 
+  } else error("%s:%d:%d: error: type declaration was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme); 
   assert(0);
   return 0;
 }
@@ -2432,8 +2434,8 @@ parse_derivedTypeDeclaration()
       type_decl->derivedTypeDeclaration.decl = parse_enumDeclaration();
       return type_decl;
     } else assert(0);
-  } else error("At line %d, column %d: structure declaration was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: structure declaration was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2462,15 +2464,15 @@ parse_headerTypeDeclaration()
         header_decl->headerTypeDeclaration.fields = parse_structFieldList();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token(token);
-        } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: name was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return header_decl;
-  } else error("At line %d, column %d: `header` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `header` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2499,15 +2501,15 @@ parse_headerUnionDeclaration()
         union_decl->headerUnionDeclaration.fields = parse_structFieldList();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: name was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return union_decl;
-  } else error("At line %d, column %d: `header_union` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `header_union` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2536,15 +2538,15 @@ parse_structTypeDeclaration()
         struct_decl->structTypeDeclaration.fields = parse_structFieldList();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: name was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return struct_decl;
-  } else error("At line %d, column %d: `struct` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `struct` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2582,13 +2584,13 @@ parse_structField()
       field->structField.name = parse_name();
       if (token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("At line %d, column %d: `;` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: name was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return field;
-  } else error("At line %d, column %d: struct field was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: struct field was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2614,12 +2616,12 @@ parse_enumDeclaration()
           enum_decl->enumDeclaration.type_size = parse_integer();
           if (token->klass == TK_ANGLE_CLOSE) {
             next_token();
-          } else error("At line %d, column %d: `>` was expected, got `%s`.",
-                       token->line_no, token->column_no, token->lexeme);
-        } else error("At line %d, column %d: an integer was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `<` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+          } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
+                       source_file, token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: an integer was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `<` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
     }
     if (token_is_name(token)) {
       name = parse_name();
@@ -2633,17 +2635,17 @@ parse_enumDeclaration()
           enum_decl->enumDeclaration.fields = parse_specifiedIdentifierList();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
-          } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                       token->line_no, token->column_no, token->lexeme);
-        } else error("At line %d, column %d: name was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: name was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+          } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                       source_file, token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return enum_decl;
-  } else error("At line %d, column %d: `enum` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `enum` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2664,19 +2666,19 @@ parse_errorDeclaration()
       if (token_is_name(token)) {
         if (token_is_name(token)) {
           error_decl->errorDeclaration.fields = parse_identifierList();
-        } else error("At line %d, column %d: name was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: name was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return error_decl;
-  } else error("At line %d, column %d: `error` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `error` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2698,15 +2700,15 @@ parse_matchKindDeclaration()
         match_decl->matchKindDeclaration.fields = parse_identifierList();
         if (token->klass == TK_BRACE_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: name was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return match_decl;
-  } else error("At line %d, column %d: `match_kind` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `match_kind` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2768,12 +2770,12 @@ parse_specifiedIdentifier()
       next_token();
       if (token_is_expression(token)) {
         id->specifiedIdentifier.init_expr = parse_expression(1);
-      } else error("At line %d, column %d: expression was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: expression was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
     }
     return id;
-  } else error("At line %d, column %d: name was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: name was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2805,15 +2807,15 @@ parse_typedefDeclaration()
         type_decl->typedefDeclaration.name = name;
         if (token->klass == TK_SEMICOLON) {
           next_token();
-        } else error("At line %d, column %d: `;` expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: name was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `;` expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       return type_decl;
-    } else error("At line %d, column %d: type was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
-  } else error("At line %d, column %d: type definition was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: type was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: type definition was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2832,8 +2834,8 @@ parse_assignmentOrMethodCallStatement()
       lvalue->lvalueExpression.type_args = parse_typeArgumentList();
       if (token->klass == TK_ANGLE_CLOSE) {
         next_token();
-      } else error("At line %d, column %d: `>` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
     }
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
@@ -2845,12 +2847,12 @@ parse_assignmentOrMethodCallStatement()
       stmt->functionCall.args = parse_argumentList();
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
-      } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       if (token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("At line %d, column %d: `;` expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `;` expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       return stmt;
     } else if (token->klass == TK_EQUAL) {
       next_token();
@@ -2862,13 +2864,13 @@ parse_assignmentOrMethodCallStatement()
       stmt->assignmentStatement.rhs_expr = parse_expression(1);
       if (token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("At line %d, column %d: `;` expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `;` expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       return stmt;
-    } else error("At line %d, column %d: assignment or function call was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
-  } else error("At line %d, column %d: lvalue was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: assignment or function call was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: lvalue was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2888,11 +2890,11 @@ parse_returnStatement()
       return_stmt->returnStatement.expr = parse_expression(1);
     if (token->klass == TK_SEMICOLON) {
       next_token();
-    } else error("At line %d, column %d: `;` expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `;` expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return return_stmt;
-  } else error("At line %d, column %d: `return` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `return` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2910,11 +2912,11 @@ parse_exitStatement()
     exit_stmt->column_no = token->column_no;
     if (token->klass == TK_SEMICOLON) {
       next_token();
-    } else error("At line %d, column %d: `;` expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `;` expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return exit_stmt;
-  } else error("At line %d, column %d: `exit` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `exit` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2942,20 +2944,20 @@ parse_conditionalStatement()
               next_token();
               if (token_is_statement(token)) {
                 if_stmt->conditionalStatement.else_stmt = parse_statement(0);
-              } else error("At line %d, column %d: statement was expected, got `%s`.",
-                           token->line_no, token->column_no, token->lexeme);
+              } else error("%s:%d:%d: error: statement was expected, got `%s`.",
+                           source_file, token->line_no, token->column_no, token->lexeme);
             }
-          } else error("At line %d, column %d: statement was expected, got `%s`.",
-                       token->line_no, token->column_no, token->lexeme);
-        } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: expression was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `(` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+          } else error("%s:%d:%d: error: statement was expected, got `%s`.",
+                       source_file, token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: expression was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return if_stmt;
-  } else error("At line %d, column %d: `if` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `if` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -2982,19 +2984,19 @@ parse_directApplication(Ast* type_name)
             next_token();
             if (token->klass == TK_SEMICOLON) {
               next_token();
-            } else error("At line %d, column %d: `;` was expected, got `%s`.",
-                         token->line_no, token->column_no, token->lexeme);
-          } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                       token->line_no, token->column_no, token->lexeme);
-        } else error("At line %d, column %d: `(` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `apply` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `.` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+            } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
+                         source_file, token->line_no, token->column_no, token->lexeme);
+          } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                       source_file, token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `apply` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `.` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return apply_stmt;
-  } else error("At line %d, column %d: type name was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: type name was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3039,8 +3041,8 @@ parse_statement(Ast* type_name)
       stmt->statement.stmt = parse_switchStatement();
       return stmt;
     }
-  } else error("At line %d, column %d: statement was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: statement was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3059,11 +3061,11 @@ parse_blockStatement()
     block_stmt->blockStatement.stmt_list = parse_statementOrDeclList();
     if (token->klass == TK_BRACE_CLOSE) {
       next_token();
-    } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return block_stmt;
-  } else error("At line %d, column %d: `{` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3109,17 +3111,17 @@ parse_switchStatement()
           stmt->switchStatement.switch_cases = parse_switchCases();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
-          } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                       token->line_no, token->column_no, token->lexeme);
-        } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `(` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+          } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                       source_file, token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return stmt;
-  } else error("At line %d, column %d: `switch` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `switch` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3160,11 +3162,11 @@ parse_switchCase()
       if (token->klass == TK_BRACE_OPEN) {
         switch_case->switchCase.stmt = parse_blockStatement();
       }
-    } else error("At line %d, column %d: `:` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `:` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return switch_case;
-  } else error("At line %d, column %d: switch label was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: switch label was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3191,8 +3193,8 @@ parse_switchLabel()
       switch_label->switchLabel.label = default_label;
       return switch_label;
     } else assert(0);
-  } else error("At line %d, column %d: switch label was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: switch label was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3250,17 +3252,17 @@ parse_tableDeclaration()
       next_token();
       if (token_is_tableProperty(token)) {
         table->tableDeclaration.prop_list = parse_tablePropertyList();
-      } else error("At line %d, column %d: table property was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: table property was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       if (token->klass == TK_BRACE_CLOSE) {
         next_token();
-      } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return table;
-  } else error("At line %d, column %d: `table` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `table` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3313,12 +3315,12 @@ parse_tableProperty()
           prop->keyProperty.keyelem_list = parse_keyElementList();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
-          } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                       token->line_no, token->column_no, token->lexeme);
-        } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `=` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+          } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                       source_file, token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `=` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       table_prop->tableProperty.prop = prop;
       return table_prop;
     } else if (token->klass == TK_ACTIONS) {
@@ -3334,12 +3336,12 @@ parse_tableProperty()
           prop->actionsProperty.action_list = parse_actionList();
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
-          } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                       token->line_no, token->column_no, token->lexeme);
-        } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `=` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+          } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                       source_file, token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `=` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       table_prop->tableProperty.prop = prop;
       return table_prop;
     } else if (token->klass == TK_ENTRIES) {
@@ -3354,16 +3356,16 @@ parse_tableProperty()
           next_token();
           if (token_is_keysetExpression(token)) {
             prop->entriesProperty.entries_list = parse_entriesList();
-          } else error("At line %d, column %d: keyset expression was expected, got `%s`.",
-                       token->line_no, token->column_no, token->lexeme);
+          } else error("%s:%d:%d: error: keyset expression was expected, got `%s`.",
+                       source_file, token->line_no, token->column_no, token->lexeme);
           if (token->klass == TK_BRACE_CLOSE) {
             next_token();
-          } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                       token->line_no, token->column_no, token->lexeme);
-        } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `=` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+          } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                       source_file, token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `=` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       table_prop->tableProperty.prop = prop;
       return table_prop;
     } else if (token_is_nonTableKwName(token)) {
@@ -3378,15 +3380,15 @@ parse_tableProperty()
         prop->simpleProperty.init_expr = parse_expression(1);
         if (token->klass == TK_SEMICOLON) {
           next_token();
-        } else error("At line %d, column %d: `;` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `=` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `=` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       table_prop->tableProperty.prop = prop;
       return table_prop;
     } else assert(0);
-  } else error("At line %d, column %d: table property was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: table property was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3427,13 +3429,13 @@ parse_keyElement()
       key_elem->keyElement.match = parse_name();
       if (token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("At line %d, column %d: `;` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `:` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `:` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return key_elem;
-  } else error("At line %d, column %d: expression was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: expression was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3452,15 +3454,15 @@ parse_actionList()
     actions->actionList.first_child = ast;
     if (token->klass == TK_SEMICOLON) {
       next_token();
-    } else error("At line %d, column %d: `;` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     while (token_is_actionRef(token)) {
       ast->right_sibling = parse_actionRef();
       ast = ast->right_sibling;
       if (token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("At line %d, column %d: `;` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
     }
   }
   return actions;
@@ -3483,16 +3485,16 @@ parse_actionRef()
         action_ref->actionRef.args = parse_argumentList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                    token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
       } else if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
-      } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                  token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
     }
     return action_ref;
-  } else error("At line %d, column %d: non-type name was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: non-type name was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3533,13 +3535,13 @@ parse_entry()
       entry->entry.action = parse_actionRef();
       if (token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("At line %d, column %d: `;` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: `:` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `:` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return entry;
-  } else error("At line %d, column %d: keyset was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: keyset was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3564,17 +3566,17 @@ parse_actionDeclaration()
           next_token();
           if (token->klass == TK_BRACE_OPEN) {
             action_decl->actionDeclaration.stmt = parse_blockStatement();
-          } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                       token->line_no, token->column_no, token->lexeme);
-        } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
-      } else error("At line %d, column %d: `(` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: name was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+          } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                       source_file, token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return action_decl;
-  } else error("At line %d, column %d: `action` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: `action` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3605,14 +3607,14 @@ parse_variableDeclaration(Ast* type_ref)
       }
       if (token->klass == TK_SEMICOLON) {
         next_token();
-      } else error("At line %d, column %d: `;` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
-    } else error("At line %d, column %d: name was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     var_decl->variableDeclaration.is_const = is_const;
     return var_decl;
-  } else error("At line %d, column %d: type was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: type was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3632,11 +3634,11 @@ parse_functionDeclaration(Ast* type_ref)
     func_decl->functionDeclaration.proto = parse_functionPrototype(type_ref);
     if (token->klass == TK_BRACE_OPEN) {
       func_decl->functionDeclaration.stmt = parse_blockStatement();
-    } else error("At line %d, column %d: `{` was expected, got `%s`.",
-                 token->line_no, token->column_no, token->lexeme);
+    } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
+                 source_file, token->line_no, token->column_no, token->lexeme);
     return func_decl;
-  } else error("At line %d, column %d: type was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: type was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3684,8 +3686,8 @@ parse_argument()
       arg->argument.arg = dontcare_arg;
       return arg;
     } else assert(0);
-  } else error("At line %d, column %d: an argument was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: an argument was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3717,8 +3719,8 @@ parse_prefixedNonTypeName()
   }
   if (token_is_nonTypeName(token)) {
     return parse_nonTypeName();
-  } else error("At line %d, column %d: non-type name was expected, ",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: non-type name was expected, ",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3744,8 +3746,8 @@ parse_lvalue()
         expr->memberSelector.lhs_expr = lvalue;
         if (token_is_name(token)) {
           expr->memberSelector.name = parse_name();
-        } else error("At line %d, column %d: name was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: name was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
         lvalue = arena_malloc(storage, sizeof(Ast));
         lvalue->kind = AST_lvalueExpression;
         lvalue->line_no = token->line_no;
@@ -3762,8 +3764,8 @@ parse_lvalue()
         expr->arraySubscript.index_expr = parse_indexExpression();
         if (token->klass == TK_BRACKET_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `]` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
         lvalue = arena_malloc(storage, sizeof(Ast));
         lvalue->kind = AST_lvalueExpression;
         lvalue->line_no = token->line_no;
@@ -3772,8 +3774,8 @@ parse_lvalue()
       }
     }
     return lvalue;
-  } else error("At line %d, column %d: lvalue was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: lvalue was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3796,8 +3798,8 @@ parse_expression(int priority_threshold)
         expr->memberSelector.lhs_expr = primary;
         if (token_is_nonTypeName(token)) {
           expr->memberSelector.name = parse_nonTypeName();
-        } else error("At line %d, column %d: non-type name was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: non-type name was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
         primary = arena_malloc(storage, sizeof(Ast));
         primary->kind = AST_expression;
         primary->line_no = token->line_no;
@@ -3813,8 +3815,8 @@ parse_expression(int priority_threshold)
         expr->arraySubscript.index_expr = parse_indexExpression();
         if (token->klass == TK_BRACKET_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `]` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
         primary = arena_malloc(storage, sizeof(Ast));
         primary->kind = AST_expression;
         primary->line_no = token->line_no;
@@ -3830,8 +3832,8 @@ parse_expression(int priority_threshold)
         expr->functionCall.args = parse_argumentList();
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
         primary = arena_malloc(storage, sizeof(Ast));
         primary->kind = AST_expression;
         primary->line_no = token->line_no;
@@ -3842,8 +3844,8 @@ parse_expression(int priority_threshold)
         primary->expression.type_args = parse_realTypeArgumentList();
         if (token->klass == TK_ANGLE_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `>` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
       } else if (token->klass == TK_EQUAL) {
         next_token();
         expr = arena_malloc(storage, sizeof(Ast));
@@ -3877,8 +3879,8 @@ parse_expression(int priority_threshold)
       } else assert(0);
     }
     return primary;
-  } else error("At line %d, column %d: expression was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: expression was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -3910,8 +3912,8 @@ parse_expressionPrimary()
       } else if (token->klass == TK_TYPE_IDENTIFIER) {
         primary->expression.expr = parse_prefixedType();
         return primary;
-      } else error("At line %d, column %d: unexpected token `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: unexpected token `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       assert(0);
     } else if (token_is_nonTypeName(token)) {
       primary->expression.expr = parse_nonTypeName();
@@ -3921,8 +3923,8 @@ parse_expressionPrimary()
       primary->expression.expr = parse_expressionList();
       if (token->klass == TK_BRACE_CLOSE) {
         next_token();
-      } else error("At line %d, column %d: `}` was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       return primary;
     } else if (token->klass == TK_PARENTH_OPEN) {
       next_token();
@@ -3931,8 +3933,8 @@ parse_expressionPrimary()
         primary->expression.expr = parse_expression(1);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
         return primary;
       } else if (token_is_typeRef(token)) {
         expr = arena_malloc(storage, sizeof(Ast));
@@ -3943,19 +3945,19 @@ parse_expressionPrimary()
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
           expr->castExpression.expr = parse_expression(10);
-        } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
         primary->expression.expr = expr;
         return primary;
       } else if (token_is_expression(token)) {
         primary->expression.expr = parse_expression(1);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
-        } else error("At line %d, column %d: `)` was expected, got `%s`.",
-                     token->line_no, token->column_no, token->lexeme);
+        } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
+                     source_file, token->line_no, token->column_no, token->lexeme);
         return primary;
-      } else error("At line %d, column %d: expression was expected, got `%s`.",
-                   token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: expression was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
       assert(0);
     } else if (token->klass == TK_EXCLAMATION) {
       next_token();
@@ -4001,8 +4003,8 @@ parse_expressionPrimary()
       return primary;
     } else assert(0);
     assert(0);
-  } else error("At line %d, column %d: expression was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: expression was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -4022,12 +4024,12 @@ parse_indexExpression()
       next_token();
       if (token_is_expression(token)) {
         index_expr->indexExpression.end_index = parse_expression(1);
-      } else error("At line %d, column %d: expression was expected, got `%s`.",
-                  token->line_no, token->column_no, token->lexeme);
+      } else error("%s:%d:%d: error: expression was expected, got `%s`.",
+                   source_file, token->line_no, token->column_no, token->lexeme);
     }
     return index_expr;
-  } else error("At line %d, column %d: expression or `:` was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: expression or `:` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -4047,8 +4049,8 @@ parse_integer()
     int_literal->integerLiteral.value = token->integer.value;
     next_token();
     return int_literal;
-  } else error("At line %d, column %d: integer was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: integer was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -4066,8 +4068,8 @@ parse_boolean()
     bool_literal->booleanLiteral.value = (token->klass == TK_TRUE);
     next_token();
     return bool_literal;
-  } else error("At line %d, column %d: boolean was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: boolean was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }
@@ -4085,8 +4087,8 @@ parse_string()
     string_literal->stringLiteral.value = token->lexeme;
     next_token();
     return string_literal;
-  } else error("At line %d, column %d: string was expected, got `%s`.",
-               token->line_no, token->column_no, token->lexeme);
+  } else error("%s:%d:%d: error: string was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
 }

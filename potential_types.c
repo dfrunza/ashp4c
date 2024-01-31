@@ -13,6 +13,7 @@ extern Type *builtin_void_ty,
             *builtin_match_kind_ty,
             *builtin_dontcare_ty;
 
+static char*  source_file;
 static Arena* storage;
 static Scope* root_scope;
 static Set*   opened_scopes, *enclosing_scopes;
@@ -201,8 +202,8 @@ select_extern_method(Ast* name, Ast* extern_, Type* args_ty)
   identified = 0;
   for (nd = name_entry->ns[NAMESPACE_TYPE]; nd != 0; nd = nd->next_in_scope) {
     if (identified) {
-      error("At line %d, column %d: ambiguous name reference `%s`.",
-            name->line_no, name->column_no, name->name.strname);
+      error("%s:%d:%d: error: ambiguous name reference `%s`.",
+            source_file, name->line_no, name->column_no, name->name.strname);
     }
     method_ty = actual_type(nd->type);
     assert(method_ty->ctor == TYPE_FUNCTION);
@@ -223,8 +224,8 @@ select_function(Ast* name, NameDeclaration* func_decl, Type* args_ty)
   identified = 0;
   for (nd = func_decl; nd != 0; nd = nd->next_in_scope) {
     if (identified) {
-      error("At line %d, column %d: ambiguous name reference `%s`.",
-            name->line_no, name->column_no, name->name.strname);
+      error("%s:%d:%d: error: ambiguous name reference `%s`.",
+            source_file, name->line_no, name->column_no, name->name.strname);
     }
     func_ty = actual_type(nd->type);
     if (func_ty->ctor == TYPE_EXTERN) {
@@ -254,14 +255,14 @@ resolve_function(Ast* name, NameEntry* name_entry, Ast* args)
 
   name_decl = name_entry->ns[NAMESPACE_TYPE];
   if (!name_decl) {
-    error("At line %d, column %d: undeclared name `%s`.",
-          name->line_no, name->column_no, name->name.strname);
+    error("%s:%d:%d: error: undeclared name `%s`.",
+          source_file, name->line_no, name->column_no, name->name.strname);
   }
   args_ty = set_lookup_value(potential_types, args, 0);
   name_decl = select_function(name, name_decl, args_ty);
   if (!name_decl) {
-    error("At line %d, column %d: unresolved function call `%s`.",
-          name->line_no, name->column_no, name->name.strname);
+    error("%s:%d:%d: error: unresolved function call `%s`.",
+          source_file, name->line_no, name->column_no, name->name.strname);
   }
   return name_decl;
 }
@@ -273,8 +274,8 @@ resolve_variable(Ast* name, NameEntry* name_entry)
 
   name_decl = name_entry->ns[NAMESPACE_VAR];
   if (!name_decl) {
-    error("At line %d, column %d: undeclared name `%s`.",
-          name->line_no, name->column_no, name->name.strname);
+    error("%s:%d:%d: error: undeclared name `%s`.",
+          source_file, name->line_no, name->column_no, name->name.strname);
   }
   assert(!name_decl->next_in_scope);
   set_add_member(decl_table, storage, name, name_decl);
@@ -289,12 +290,12 @@ resolve_type(Ast* name, NameEntry* name_entry)
 
   name_decl = name_entry->ns[NAMESPACE_TYPE];
   if (!name_decl) {
-    error("At line %d, column %d: undeclared name `%s`.",
-          name->line_no, name->column_no, name->name.strname);
+    error("%s:%d:%d: error: undeclared name `%s`.",
+          source_file, name->line_no, name->column_no, name->name.strname);
   }
   if (name_decl->next_in_scope) {
-    error("At line %d, column %d: ambiguous name reference `%s`.",
-          name->line_no, name->column_no, name->name.strname);
+    error("%s:%d:%d: error: ambiguous name reference `%s`.",
+          source_file, name->line_no, name->column_no, name->name.strname);
   }
   set_add_member(decl_table, storage, name, name_decl);
   set_add_member(potential_types, storage, name, actual_type(name_decl->type));
@@ -314,8 +315,8 @@ select_member(Ast* name, Ast* type_decl)
     return 0;
   }
   if (name_entry->ns[NAMESPACE_VAR] && name_entry->ns[NAMESPACE_TYPE]) {
-    error("At line %d, column %d: ambiguous name reference `%s`.",
-          name->line_no, name->column_no, name->name.strname);
+    error("%s:%d:%d: error: ambiguous name reference `%s`.",
+          source_file, name->line_no, name->column_no, name->name.strname);
   }
   if (name_entry->ns[NAMESPACE_VAR]) {
     name_decl = name_entry->ns[NAMESPACE_VAR];
@@ -326,8 +327,8 @@ select_member(Ast* name, Ast* type_decl)
   identified = 0;
   for (nd = name_decl; nd != 0; nd = nd->next_in_scope) {
     if (identified) {
-      error("At line %d, column %d: ambiguous name reference `%s`.",
-            name->line_no, name->column_no, name->name.strname);
+      error("%s:%d:%d: error: ambiguous name reference `%s`.",
+            source_file, name->line_no, name->column_no, name->name.strname);
     }
     if (cstr_match(name->name.strname, nd->strname)) {
       identified = nd;
@@ -343,8 +344,8 @@ resolve_member(Ast* name, Ast* type_decl)
 
   name_decl = select_member(name, type_decl);
   if (!name_decl) {
-    error("At line %d, column %d: unresolved name `%s`.",
-          name->line_no, name->column_no, name->name.strname);
+    error("%s:%d:%d: error: unresolved name `%s`.",
+          source_file, name->line_no, name->column_no, name->name.strname);
   }
   set_add_member(decl_table, storage, name, name_decl);
   set_add_member(potential_types, storage, name, actual_type(name_decl->type));
@@ -371,9 +372,10 @@ Debug_print_potential_types(Set* table)
 }
 
 Set*
-build_potential_types(Ast* p4program, Scope* root_scope_, Set* opened_scopes_, Set* enclosing_scopes_,
-          Set* type_table_, Set* decl_table_, Arena* storage_)
+build_potential_types(char* source_file_, Ast* p4program, Scope* root_scope_, Set* opened_scopes_,
+          Set* enclosing_scopes_, Set* type_table_, Set* decl_table_, Arena* storage_)
 {
+  source_file = source_file_;
   root_scope = root_scope_;
   opened_scopes = opened_scopes_;
   enclosing_scopes = enclosing_scopes_;
@@ -541,8 +543,8 @@ visit_instantiation(Ast* inst)
     params_ty = actual_type(ctor_ty->function.params);
     args_ty = set_lookup_value(potential_types, inst->instantiation.args, 0);
     if (!validate_param_and_arg_type(params_ty, args_ty)) {
-      error("At line %d, column %d: mismatch between parameter and argument types.",
-            inst->line_no, inst->column_no);
+      error("%s:%d:%d: error: mismatch between parameter and argument types.",
+            source_file, inst->line_no, inst->column_no);
     }
   }
 
@@ -1222,8 +1224,8 @@ visit_assignmentStatement(Ast* assign_stmt)
   lhs_ty = set_lookup_value(potential_types, assign_stmt->assignmentStatement.lhs_expr, 0);
   rhs_ty = set_lookup_value(potential_types, assign_stmt->assignmentStatement.rhs_expr, 0);
   if (!type_equiv(lhs_ty, rhs_ty)) {
-    error("At line %d, column %d: incompatible types in assignment statement.",
-          assign_stmt->line_no, assign_stmt->column_no);
+    error("%s:%d:%d: error: incompatible types in assignment statement.",
+          source_file, assign_stmt->line_no, assign_stmt->column_no);
   }
 }
 
@@ -1263,8 +1265,8 @@ visit_functionCall(Ast* func_call)
     params_ty = actual_type(func_ty->function.params);
     args_ty = set_lookup_value(potential_types, func_call->functionCall.args, 0);
     if (!validate_param_and_arg_type(params_ty, args_ty)) {
-      error("At line %d, column %d: mismatch between parameter and argument types.",
-            func_call->line_no, func_call->column_no);
+      error("%s:%d:%d: error: mismatch between parameter and argument types.",
+            source_file, func_call->line_no, func_call->column_no);
     }
   }
 
@@ -1787,8 +1789,8 @@ visit_binaryExpression(Ast* binary_expr)
   lhs_ty = set_lookup_value(potential_types, binary_expr->binaryExpression.left_operand, 0);
   rhs_ty = set_lookup_value(potential_types, binary_expr->binaryExpression.right_operand, 0);
   if (!type_equiv(lhs_ty, rhs_ty)) {
-    error("At line %d, column %d: incompatible operand types in binary expression.",
-          binary_expr->line_no, binary_expr->column_no);
+    error("%s:%d:%d: error: incompatible operand types in binary expression.",
+          source_file, binary_expr->line_no, binary_expr->column_no);
   }
 
   op = binary_expr->binaryExpression.op;
@@ -1826,8 +1828,8 @@ visit_memberSelector(Ast* selector)
     name = expr->expression.expr;
     assert(name->kind == AST_name);
     if (name_entry->ns[NAMESPACE_VAR] && name_entry->ns[NAMESPACE_TYPE]) {
-      error("At line %d, column %d: ambiguous name reference `%s`.",
-            name->line_no, name->column_no, name->name.strname);
+      error("%s:%d:%d: error: ambiguous name reference `%s`.",
+            source_file, name->line_no, name->column_no, name->name.strname);
     }
     if (name_entry->ns[NAMESPACE_VAR]) {
       name_decl = resolve_variable(name, name_entry);
@@ -1841,8 +1843,8 @@ visit_memberSelector(Ast* selector)
   if (lhs_ty->ctor == TYPE_STRUCT || lhs_ty->ctor == TYPE_ENUM || lhs_ty->ctor == TYPE_EXTERN) {
     name_decl = resolve_member(selector->memberSelector.name, lhs_ty->ast);
     set_add_member(potential_types, storage, selector, actual_type(name_decl->type));
-  } else error("At line %d, column %d: type does not support member selection.",
-               name->line_no, name->column_no);
+  } else error("%s:%d:%d: error: type does not support member selection.",
+               source_file, name->line_no, name->column_no);
 }
 
 static void
@@ -1874,8 +1876,8 @@ visit_arraySubscript(Ast* subscript)
   lhs_ty = set_lookup_value(potential_types, subscript->arraySubscript.lhs_expr, 0);
   if (lhs_ty->ctor == TYPE_ARRAY) {
     set_add_member(potential_types, storage, subscript, actual_type(lhs_ty->array.element));
-  } else error("At line %d, column %d: array type was expected.",
-               lhs_expr->line_no, lhs_expr->column_no);
+  } else error("%s:%d:%d: error: array type was expected.",
+               source_file, lhs_expr->line_no, lhs_expr->column_no);
 }
 
 static void
@@ -1910,13 +1912,13 @@ visit_indexExpression(Ast* index_expr)
 
   start_ty = set_lookup_value(potential_types, index_expr->indexExpression.start_index, 0);
   if (!type_equiv(start_ty, builtin_bit_ty)) {
-    error("At line %d, column %d: array index must be of `bit` type.",
-          start_expr->line_no, start_expr->column_no);
+    error("%s:%d:%d: error: array index must be of `bit` type.",
+          source_file, start_expr->line_no, start_expr->column_no);
   }
   end_ty = set_lookup_value(potential_types, index_expr->indexExpression.end_index, 0);
   if (end_ty && !type_equiv(end_ty, builtin_bit_ty)) {
-    error("At line %d, column %d: array index must be of `bit` type.",
-          end_expr->line_no, end_expr->column_no);
+    error("%s:%d:%d: error: array index must be of `bit` type.",
+          source_file, end_expr->line_no, end_expr->column_no);
   }
   set_add_member(potential_types, storage, index_expr, start_ty);
 }
