@@ -1,4 +1,5 @@
 header h { }
+
 control c(out bit<32> x) {
     apply {
         h[4] stack;
@@ -6,6 +7,7 @@ control c(out bit<32> x) {
         x = sz;
     }
 }
+
 control Simpler(out bit<32> x);
 package top(Simpler ctr);
 top(c()) main;

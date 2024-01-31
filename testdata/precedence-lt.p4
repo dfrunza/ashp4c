@@ -1,6 +1,7 @@
-extern T f<T>(T x);
+extern bit<16> f(bit<16> x);
+
 extern Object {
-    T foo<T>();
+    bit<16> foo();
 }
 
 struct data {
@@ -10,8 +11,8 @@ struct data {
 
 control C(inout data d, inout bit<16> foo, Object o) {
     apply {
-        if (4w8 + d.f < 10w8) {
-            d.foo = (bit<8>)(o.foo< bit<16> >());
+        if (8w4 + d.f < 8w10) {
+            d.foo = (bit<8>)(o.foo());
         }
     }
 }

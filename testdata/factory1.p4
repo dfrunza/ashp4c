@@ -16,10 +16,9 @@ limitations under the License.
 
 extern packet_in {}
 extern packet_out {}
-
 extern widget { }
 
-extern widget createWidget<T, U>(U a, T b);
+extern widget createWidget(bit<16> a, bit<16> b);
 
 parser P();
 parser p1()(widget w) {
