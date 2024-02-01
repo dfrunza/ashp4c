@@ -1,4 +1,21 @@
+header first_header {
+    bit<8> value;
+}
+
+header next_header {
+    bit<32> value;
+}
+
+struct Headers_t {
+    first_header first;
+    next_header next;
+}
+
+typedef Headers_t H;
+typedef Headers_t T;
+
 /// #include <core.p4>
+
 /// Standard error codes.  New error codes can be declared by users.
 error {
     NoError,           /// No error.
@@ -12,16 +29,16 @@ error {
 }
 
 extern packet_in {
-    void extract<T>(out T hdr);
-    void extract<T>(out T variableSizeHeader,
+    void extract(out T hdr);
+    void extract(out T variableSizeHeader,
                     in bit<32> variableFieldSizeInBits);
-    T lookahead<T>();
+    T lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit<T>(in T hdr);
+    void emit(in T hdr);
 }
 
 extern void verify(in bool check, in error toSignal);
@@ -37,9 +54,11 @@ match_kind {
     /// Longest-prefix match.
     lpm
 }
+
 /// #end
 
 /// #include <ebpf_model.p4>
+
 extern CounterArray {
     CounterArray(bit<32> max_index, bool sparse);
     void increment(in bit<32> index);
@@ -54,25 +73,12 @@ extern hash_table {
     hash_table(bit<32> size);
 }
 
-parser parse<H>(packet_in packet, out H headers);
-control filter<H>(inout H headers, out bool accept);
+parser parse(packet_in packet, out H headers);
+control filter(inout H headers, out bool accept);
 
-package ebpfFilter<H>(parse<H> prs,
-                      filter<H> filt);
+package ebpfFilter(parse prs, filter filt);
+
 /// #end
-
-header first_header {
-    bit<8> value;
-}
-
-header next_header {
-    bit<32> value;
-}
-
-struct Headers_t {
-    first_header first;
-    next_header next;
-}
 
 parser prs(packet_in p, out Headers_t headers) {
     state start {

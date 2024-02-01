@@ -1,3 +1,12 @@
+header EthernetHeader { bit<16> etherType; }
+header IPv4           { bit<16> protocol; }
+struct Packet_header {
+    EthernetHeader ethernet;
+    IPv4           ipv4;
+}
+
+typedef Packet_header T;
+
 /// Standard error codes.  New error codes can be declared by users.
 error {
     NoError,           /// No error.
@@ -11,16 +20,16 @@ error {
 }
 
 extern packet_in {
-    void extract<T>(out T hdr);
-    void extract<T>(out T variableSizeHeader,
+    void extract(out T hdr);
+    void extract(out T variableSizeHeader,
                     in bit<32> variableFieldSizeInBits);
-    T lookahead<T>();
+    T lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit<T>(in T hdr);
+    void emit(in T hdr);
 }
 
 extern void verify(in bool check, in error toSignal);
@@ -35,13 +44,6 @@ match_kind {
     ternary,
     /// Longest-prefix match.
     lpm
-}
-
-header EthernetHeader { bit<16> etherType; }
-header IPv4           { bit<16> protocol; }
-struct Packet_header {
-    EthernetHeader ethernet;
-    IPv4           ipv4;
 }
 
 parser EthernetParser(packet_in b,

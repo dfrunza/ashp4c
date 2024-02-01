@@ -1,3 +1,17 @@
+
+header Ethernet {
+    bit<48> destination;
+    bit<48> source;
+    bit<16> protocol;
+}
+
+struct Headers_t {
+    Ethernet ethernet;
+}
+
+typedef Headers_t H;
+typedef Headers_t T;
+
 /// Standard error codes.  New error codes can be declared by users.
 error {
     NoError,           /// No error.
@@ -11,16 +25,15 @@ error {
 }
 
 extern packet_in {
-    void extract<T>(out T hdr);
-    void extract<T>(out T variableSizeHeader,
-                    in bit<32> variableFieldSizeInBits);
-    T lookahead<T>();
+    void extract(out T hdr);
+    void extract(out T variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    T lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit<T>(in T hdr);
+    void emit(in T hdr);
 }
 
 extern void verify(in bool check, in error toSignal);
@@ -51,22 +64,10 @@ extern hash_table {
     hash_table(bit<32> size);
 }
 
-parser parse<H>(packet_in packet, out H headers);
-control filter<H>(inout H headers, out bool accept);
+parser parse(packet_in packet, out H headers);
+control filter(inout H headers, out bool accept);
 
-package ebpfFilter<H>(parse<H> prs,
-                      filter<H> filt);
-
-
-header Ethernet {
-    bit<48> destination;
-    bit<48> source;
-    bit<16> protocol;
-}
-
-struct Headers_t {
-    Ethernet ethernet;
-}
+package ebpfFilter(parse prs, filter filt);
 
 parser prs(packet_in p, out Headers_t headers) {
     state start {
