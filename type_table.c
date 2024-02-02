@@ -205,29 +205,29 @@ structural_type_equiv(Type* left, Type* right)
     if (right->ctor == left->ctor) {
       return true;
     }
-    goto deref_right;
+    return false;
   } else if (left->ctor == TYPE_DONTCARE) {
     return true;
   } else if (left->ctor == TYPE_ENUM) {
     if (right->ctor == left->ctor) {
       return cstr_match(left->strname, right->strname);
     }
-    goto deref_right;
+    return false;
   } else if (left->ctor == TYPE_TYPEVAR) {
     if (right->ctor == left->ctor) {
       return cstr_match(left->strname, right->strname);
     }
-    goto deref_right;
+    return false;
   } else if (left->ctor == TYPE_EXTERN) {
     if (right->ctor == left->ctor) {
       return cstr_match(left->strname, right->strname);
     }
-    goto deref_right;
+    return false;
   } else if (left->ctor == TYPE_TABLE) {
     if (right->ctor == left->ctor) {
       return cstr_match(left->strname, right->strname);
     }
-    goto deref_right;
+    return false;
   } else if (left->ctor == TYPE_PRODUCT) {
     if (right->ctor == left->ctor) {
       if (!structural_type_equiv(left->product.type, right->product.type)) {
@@ -238,7 +238,7 @@ structural_type_equiv(Type* left, Type* right)
       }
       return true;
     }
-    goto deref_right;
+    return false;
   } else if (left->ctor == TYPE_FUNCTION) {
     if (right->ctor == left->ctor) {
       if (!structural_type_equiv(left->function.return_, right->function.return_)) {
@@ -249,43 +249,33 @@ structural_type_equiv(Type* left, Type* right)
       }
       return true;
     }
-    goto deref_right;
+    return false;
   } else if (left->ctor == TYPE_PACKAGE) {
     if (right->ctor == left->ctor) {
       return structural_type_equiv(left->package.ctor, right->package.ctor);
     }
-    goto deref_right;
+    return false;
   } else if (left->ctor == TYPE_PARSER) {
     if (right->ctor == left->ctor) {
       return structural_type_equiv(left->parser.params, right->parser.params);
     }
-    goto deref_right;
+    return false;
   } else if (left->ctor == TYPE_CONTROL) {
     if (right->ctor == left->ctor) {
       return structural_type_equiv(left->control.params, right->control.params);
     }
-    goto deref_right;
+    return false;
   } else if (left->ctor == TYPE_STRUCT) {
     if (right->ctor == left->ctor) {
       return structural_type_equiv(left->struct_.fields, right->struct_.fields);
     }
-    goto deref_right;
+    return false;
   } else if (left->ctor == TYPE_ARRAY) {
     if (right->ctor == left->ctor) {
       return structural_type_equiv(left->array.element, right->array.element);
     }
-    goto deref_right;
-  } else if (left->ctor == TYPE_TYPEDEF) {
-    assert(0);
-  }
-  else assert(0);
-
-deref_right:
-  if (right->ctor == TYPE_TYPEDEF) {
-    assert(0);
-  } else {
     return false;
-  }
+  } else assert(0);
 
   assert(0);
   return false;
