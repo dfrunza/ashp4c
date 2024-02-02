@@ -32,8 +32,7 @@ typedef Parsed_headers T;
 
 extern packet_in {
     void extract(out T hdr);
-    void extract(out T variableSizeHeader,
-                    in bit<32> variableFieldSizeInBits);
+    void extract(out T variableSizeHeader, in bit<32> variableFieldSizeInBits);
     T lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();

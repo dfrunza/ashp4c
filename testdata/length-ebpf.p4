@@ -1,11 +1,20 @@
-header EthernetHeader { bit<16> etherType; }
-header IPv4           { bit<16> protocol; }
-struct Packet_header {
-    EthernetHeader ethernet;
-    IPv4           ipv4;
+header first_header {
+    bit<8> value;
 }
 
-typedef Packet_header T;
+header next_header {
+    bit<32> value;
+}
+
+struct Headers_t {
+    first_header first;
+    next_header next;
+}
+
+typedef Headers_t H;
+typedef Headers_t T;
+
+/// #include <core.p4>
 
 /// Standard error codes.  New error codes can be declared by users.
 error {
@@ -45,36 +54,50 @@ match_kind {
     lpm
 }
 
-parser EthernetParser(packet_in b, out EthernetHeader h)
-{ state start { transition accept; } }
+/// #end
 
-parser GenericParser(packet_in b, out Packet_header p)(bool udpSupport)
-{
-    EthernetParser() ethParser;
+/// #include <ebpf_model.p4>
 
+extern CounterArray {
+    CounterArray(bit<32> max_index, bool sparse);
+    void increment(in bit<32> index);
+    void add(in bit<32> index, in bit<32> value);
+}
+
+extern array_table {
+    array_table(bit<32> size);
+}
+
+extern hash_table {
+    hash_table(bit<32> size);
+}
+
+parser parse(packet_in packet, out H headers);
+control filter(inout H headers, out bool accept);
+
+package ebpfFilter(parse prs, filter filt);
+
+/// #end
+
+parser prs(packet_in p, out Headers_t headers) {
     state start {
-        ethParser.apply(b, p.ethernet);
-        transition select(p.ethernet.etherType) {
-            16w0x0800 : ipv4;
+        p.extract(headers.first);
+        transition select(p.length()) {
+            16: parse_next;
+            default: reject;
         }
     }
-    state ipv4 {
-        b.extract(p.ipv4);
-        transition select(p.ipv4.protocol) {
-           16w6  : tryudp;
-           16w17 : tcp;
-        }
-    }
-    state tryudp {
-        transition select(udpSupport) {
-            false : reject;
-            true  : udp;
-        }
-    }
-    state udp {
-        transition accept;
-    }
-    state tcp {
+
+    state parse_next {
+        p.extract(headers.next);
         transition accept;
     }
 }
+
+control pipe(inout Headers_t headers, out bool pass) {
+    apply {
+        pass = true;
+    }
+}
+
+ebpfFilter(prs(), pipe()) main;

@@ -1,20 +1,38 @@
-header first_header {
-    bit<8> value;
+typedef bit<48> EthernetAddress;
+typedef bit<32> IPv4Address;
+
+// standard Ethernet header
+header Ethernet_h
+{
+    EthernetAddress dstAddr;
+    EthernetAddress srcAddr;
+    bit<16> etherType;
 }
 
-header next_header {
-    bit<32> value;
+// IPv4 header without options
+header IPv4_h {
+    bit<4>       version;
+    bit<4>       ihl;
+    bit<8>       diffserv;
+    bit<16>      totalLen;
+    bit<16>      identification;
+    bit<3>       flags;
+    bit<13>      fragOffset;
+    bit<8>       ttl;
+    bit<8>       protocol;
+    bit<16>      hdrChecksum;
+    IPv4Address  srcAddr;
+    IPv4Address  dstAddr;
 }
 
-struct Headers_t {
-    first_header first;
-    next_header next;
+struct Headers_t
+{
+    Ethernet_h ethernet;
+    IPv4_h     ipv4;
 }
 
 typedef Headers_t H;
 typedef Headers_t T;
-
-/// #include <core.p4>
 
 /// Standard error codes.  New error codes can be declared by users.
 error {
@@ -30,8 +48,7 @@ error {
 
 extern packet_in {
     void extract(out T hdr);
-    void extract(out T variableSizeHeader,
-                    in bit<32> variableFieldSizeInBits);
+    void extract(out T variableSizeHeader, in bit<32> variableFieldSizeInBits);
     T lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
@@ -43,7 +60,6 @@ extern packet_out {
 
 extern void verify(in bool check, in error toSignal);
 
-/// Built-in action that does nothing.
 action NoAction() {}
 
 match_kind {
@@ -54,10 +70,6 @@ match_kind {
     /// Longest-prefix match.
     lpm
 }
-
-/// #end
-
-/// #include <ebpf_model.p4>
 
 extern CounterArray {
     CounterArray(bit<32> max_index, bool sparse);
@@ -78,26 +90,50 @@ control filter(inout H headers, out bool accept);
 
 package ebpfFilter(parse prs, filter filt);
 
-/// #end
-
-parser prs(packet_in p, out Headers_t headers) {
-    state start {
-        p.extract(headers.first);
-        transition select(p.length()) {
-            16: parse_next;
-            default: reject;
+parser prs(packet_in p, out Headers_t headers)
+{
+    state start
+    {
+        p.extract(headers.ethernet);
+        transition select(headers.ethernet.etherType)
+        {
+            16w0x800 : ip;
+            default : reject;
         }
     }
 
-    state parse_next {
-        p.extract(headers.next);
+    state ip
+    {
+        p.extract(headers.ipv4);
         transition accept;
     }
 }
 
-control pipe(inout Headers_t headers, out bool pass) {
+control pipe(inout Headers_t headers, out bool pass)
+{
+    CounterArray(32w10, true) counters;
+
+    action invalidate() {
+        headers.ipv4.setInvalid();
+        headers.ethernet.setInvalid();
+    }
+    table t {
+        actions = {
+            invalidate;
+        }
+        implementation = array_table(1);
+    }
+
     apply {
-        pass = true;
+        if (headers.ipv4.isValid())
+        {
+            counters.increment((bit<32>)headers.ipv4.dstAddr);
+            pass = true;
+        }
+        else {
+            t.apply();
+            pass = false;
+        }
     }
 }
 

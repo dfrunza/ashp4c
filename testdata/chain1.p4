@@ -1,3 +1,9 @@
+header Header {
+    bit<32> data;
+}
+
+typedef Header H;
+
 /// Standard error codes.  New error codes can be declared by users.
 error {
     NoError,           /// No error.
@@ -11,21 +17,19 @@ error {
 }
 
 extern packet_in {
-    void extract<T>(out T hdr);
-    void extract<T>(out T variableSizeHeader,
-                    in bit<32> variableFieldSizeInBits);
-    T lookahead<T>();
+    void extract(out H hdr);
+    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    H lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit<T>(in T hdr);
+    void emit(in H hdr);
 }
 
 extern void verify(in bool check, in error toSignal);
 
-/// Built-in action that does nothing.
 action NoAction() {}
 
 match_kind {
@@ -35,10 +39,6 @@ match_kind {
     ternary,
     /// Longest-prefix match.
     lpm
-}
-
-header Header {
-    bit<32> data;
 }
 
 parser p1(packet_in p, out Header h) {

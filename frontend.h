@@ -70,7 +70,6 @@ enum TokenClass {
   TK_ENTRIES,
   TK_KEY,
   TK_TYPEDEF,
-  TK_TYPE,
   TK_BOOL,
   TK_TRUE,
   TK_FALSE,
@@ -171,7 +170,6 @@ enum AstEnum {
   AST_namedType,
   AST_tupleType,
   AST_headerStackType,
-  AST_specializedType,
   AST_baseTypeBoolean,
   AST_baseTypeInteger,
   AST_baseTypeBit,
@@ -180,10 +178,8 @@ enum AstEnum {
   AST_baseTypeVoid,
   AST_baseTypeError,
   AST_integerTypeSize,
-  AST_typeParameterList,
   AST_realTypeArg,
   AST_typeArg,
-  AST_realTypeArgumentList,
   AST_typeArgumentList,
   AST_typeDeclaration,
   AST_derivedTypeDeclaration,
@@ -329,7 +325,6 @@ typedef struct Ast {
 
     struct {
       char* strname;
-      bool is_prefixed;
     } name;
 
     struct {
@@ -345,7 +340,6 @@ typedef struct Ast {
 
     struct {
       struct Ast* name;
-      struct Ast* type_params;
       struct Ast* params;
     } packageTypeDeclaration;
 
@@ -370,7 +364,6 @@ typedef struct Ast {
 
     struct {
       struct Ast* name;
-      struct Ast* type_params;
       struct Ast* params;
     } parserTypeDeclaration;
 
@@ -449,7 +442,6 @@ typedef struct Ast {
 
     struct {
       struct Ast* name;
-      struct Ast* type_params;
       struct Ast* params;
     } controlTypeDeclaration;
 
@@ -473,14 +465,12 @@ typedef struct Ast {
 
     struct {
       struct Ast* name;
-      struct Ast* type_params;
       struct Ast* method_protos;
     } externTypeDeclaration;
 
     struct {
       struct Ast* name;
       struct Ast* return_type;
-      struct Ast* type_params;
       struct Ast* params;
     } functionPrototype;
 
@@ -498,11 +488,6 @@ typedef struct Ast {
       struct Ast* type;
       struct Ast* stack_expr;
     } headerStackType;
-
-    struct {
-      struct Ast* type;
-      struct Ast* type_args;
-    } specializedType;
 
     struct {
       struct Ast* name;
@@ -540,20 +525,12 @@ typedef struct Ast {
     } integerTypeSize;
 
     struct {
-      struct Ast* first_child;
-    } typeParameterList;
-
-    struct {
       struct Ast* arg;
     } realTypeArg;
 
     struct {
       struct Ast* arg;
     } typeArg;
-
-    struct {
-      struct Ast* first_child;
-    } realTypeArgumentList;
 
     struct {
       struct Ast* first_child;
@@ -783,12 +760,10 @@ typedef struct Ast {
 
     struct {
       struct Ast* expr;
-      struct Ast* type_args;
     } lvalueExpression;
 
     struct {
       struct Ast* expr;
-      struct Ast* type_args;
     } expression;
 
     struct {
@@ -865,7 +840,6 @@ enum TypeEnum {
   TYPE_TABLE,
   TYPE_STRUCT,
   TYPE_ARRAY,
-  TYPE_SPECIALIZED,
   TYPE_NAMEREF,
   TYPE_TYPE,
 };

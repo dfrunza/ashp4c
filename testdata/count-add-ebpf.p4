@@ -1,3 +1,4 @@
+
 typedef bit<48>     EthernetAddress;
 typedef bit<32>     IPv4Address;
 
@@ -10,9 +11,7 @@ header Ethernet_h {
     bit<16> etherType;
 }
 
-/*
- * IPv4 header without options
- */
+// IPv4 header without options
 header IPv4_h {
     bit<4>       version;
     bit<4>       ihl;
@@ -34,45 +33,18 @@ struct Headers_t
     IPv4_h     ipv4;
 }
 
-typedef Headers_t T;
-
-/// Standard error codes.  New error codes can be declared by users.
-error {
-    NoError,           /// No error.
-    PacketTooShort,    /// Not enough bits in packet for 'extract'.
-    NoMatch,           /// 'select' expression has no matches.
-    StackOutOfBounds,  /// Reference to invalid element of a header stack.
-    HeaderTooShort,    /// Extracting too many bits into a varbit field.
-    ParserTimeout,     /// Parser execution time limit exceeded.
-    ParserInvalidArgument  /// Parser operation was called with a value
-                           /// not supported by the implementation.
-}
+typedef Headers_t H;
 
 extern packet_in {
-    void extract(out T hdr);
-    void extract(out T variableSizeHeader,
-                    in bit<32> variableFieldSizeInBits);
-    T lookahead();
+    void extract(out H hdr);
+    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    H lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in T hdr);
-}
-
-extern void verify(in bool check, in error toSignal);
-
-/// Built-in action that does nothing.
-action NoAction() {}
-
-match_kind {
-    /// Match bits exactly.
-    exact,
-    /// Ternary match, using a mask.
-    ternary,
-    /// Longest-prefix match.
-    lpm
+    void emit(in H hdr);
 }
 
 package ebpfFilter();
@@ -116,7 +88,7 @@ control pipe(inout Headers_t headers, out bool pass)
     apply {
         if (headers.ipv4.isValid())
         {
-            counters.increment((bit<32>)headers.ipv4.dstAddr);
+            counters.add((bit<32>)headers.ipv4.dstAddr, (bit<32>)headers.ipv4.totalLen);
             pass = true;
         }
         else

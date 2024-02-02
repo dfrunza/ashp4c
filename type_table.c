@@ -78,7 +78,6 @@ static void visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* exte
 static void visit_typeRef(Ast* type_ref);
 static void visit_tupleType(Ast* type);
 static void visit_headerStackType(Ast* type_decl);
-static void visit_specializedType(Ast* type_decl);
 static void visit_baseTypeBoolean(Ast* bool_type);
 static void visit_baseTypeInteger(Ast* int_type);
 static void visit_baseTypeBit(Ast* bit_type);
@@ -87,10 +86,8 @@ static void visit_baseTypeString(Ast* str_type);
 static void visit_baseTypeVoid(Ast* void_type);
 static void visit_baseTypeError(Ast* error_type);
 static void visit_integerTypeSize(Ast* type_size);
-static void visit_typeParameterList(Ast* param_list);
 static void visit_realTypeArg(Ast* type_arg);
 static void visit_typeArg(Ast* type_arg);
-static void visit_realTypeArgumentList(Ast* arg_list);
 static void visit_typeArgumentList(Ast* arg_list);
 static void visit_typeDeclaration(Ast* type_decl);
 static void visit_derivedTypeDeclaration(Ast* type_decl);
@@ -278,17 +275,13 @@ structural_type_equiv(Type* left, Type* right)
       return structural_type_equiv(left->array.element, right->array.element);
     }
     goto deref_right;
-  } else if (left->ctor == TYPE_SPECIALIZED) {
-    assert(0);
   } else if (left->ctor == TYPE_TYPEDEF) {
     assert(0);
   }
   else assert(0);
 
 deref_right:
-  if (right->ctor == TYPE_SPECIALIZED) {
-    assert(0);
-  } else if (right->ctor == TYPE_TYPEDEF) {
+  if (right->ctor == TYPE_TYPEDEF) {
     assert(0);
   } else {
     return false;
@@ -329,7 +322,6 @@ Debug_TypeEnum_to_string(enum TypeEnum type)
     case TYPE_PRODUCT: return "TYPE_PRODUCT";
     case TYPE_STRUCT: return "TYPE_STRUCT";
     case TYPE_ARRAY: return "TYPE_ARRAY";
-    case TYPE_SPECIALIZED: return "TYPE_SPECIALIZED";
     case TYPE_NAMEREF: return "TYPE_NAMEREF";
     case TYPE_TYPE: return "TYPE_TYPE";
 
@@ -397,24 +389,6 @@ deref_typedef_type(UnboundedArray* type_array)
       ref_ty = actual_type(ty->typedef_.ref);
       while (ref_ty->ctor == TYPE_TYPEDEF) {
         ref_ty = actual_type(ref_ty->typedef_.ref);
-      }
-      ty->ctor = TYPE_TYPE;
-      ty->type.type = ref_ty;
-    }
-  }
-}
-
-static void
-deref_specd_type(UnboundedArray* type_array)
-{
-  Type* ref_ty, *ty;
-
-  for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
-    if (ty->ctor == TYPE_SPECIALIZED) {
-      ref_ty = actual_type(ty->specd.ref);
-      while (ref_ty->ctor == TYPE_SPECIALIZED) {
-        ref_ty = actual_type(ref_ty->specd.ref);
       }
       ty->ctor = TYPE_TYPE;
       ty->type.type = ref_ty;
@@ -515,7 +489,6 @@ build_type_table(char* source_file_, Ast* p4program, Scope* root_scope_, Set* op
   visit_p4program(p4program);
   resolve_type_nameref(type_table, type_array);
   deref_typedef_type(type_array);
-  deref_specd_type(type_array);
   deref_type_type(type_array);
 
   return type_table;
@@ -633,9 +606,6 @@ visit_packageTypeDeclaration(Ast* type_decl)
   NameDeclaration* name_decl;
   Type* package_ty, *ctor_ty;
 
-  if (type_decl->packageTypeDeclaration.type_params) {
-    visit_typeParameterList(type_decl->packageTypeDeclaration.type_params);
-  }
   visit_parameterList(type_decl->packageTypeDeclaration.params);
 
   name = type_decl->packageTypeDeclaration.name;
@@ -698,9 +668,6 @@ visit_parserTypeDeclaration(Ast* type_decl)
   NameDeclaration* name_decl;
   Type* parser_ty, *ctor_ty;
 
-  if (type_decl->parserTypeDeclaration.type_params) {
-    visit_typeParameterList(type_decl->parserTypeDeclaration.type_params);
-  }
   visit_parameterList(type_decl->parserTypeDeclaration.params);
 
   name = type_decl->parserTypeDeclaration.name;
@@ -919,9 +886,6 @@ visit_controlTypeDeclaration(Ast* type_decl)
   NameDeclaration* name_decl;
   Type* control_ty, *ctor_ty;
 
-  if (type_decl->controlTypeDeclaration.type_params) {
-    visit_typeParameterList(type_decl->controlTypeDeclaration.type_params);
-  }
   visit_parameterList(type_decl->controlTypeDeclaration.params);
 
   name = type_decl->controlTypeDeclaration.name;
@@ -993,10 +957,6 @@ visit_externTypeDeclaration(Ast* type_decl)
   NameDeclaration* name_decl;
   Type* extern_ty;
 
-  if (type_decl->externTypeDeclaration.type_params) {
-    visit_typeParameterList(type_decl->externTypeDeclaration.type_params);
-  }
-
   name = type_decl->externTypeDeclaration.name;
   extern_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
   extern_ty->ctor = TYPE_EXTERN;
@@ -1046,9 +1006,6 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
     visit_typeRef(func_proto->functionPrototype.return_type);
   }
 
-  if (func_proto->functionPrototype.type_params) {
-    visit_typeParameterList(func_proto->functionPrototype.type_params);
-  }
   visit_parameterList(func_proto->functionPrototype.params);
 
   name = func_proto->functionPrototype.name;
@@ -1094,8 +1051,6 @@ visit_typeRef(Ast* type_ref)
     visit_baseTypeError(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_name) {
     visit_name(type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_specializedType) {
-    visit_specializedType(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_headerStackType) {
     visit_headerStackType(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_tupleType) {
@@ -1132,23 +1087,6 @@ visit_headerStackType(Ast* type_decl)
   set_add_member(type_table, storage, type_decl, stack_ty);
 
   stack_ty->array.element = set_lookup_value(type_table, type_decl->headerStackType.type, 0);
-}
-
-static void
-visit_specializedType(Ast* type_decl)
-{
-  assert(type_decl->kind == AST_specializedType);
-  Type* specd_ty;
-
-  visit_typeRef(type_decl->specializedType.type);
-  visit_typeArgumentList(type_decl->specializedType.type_args);
-
-  specd_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-  specd_ty->ctor = TYPE_SPECIALIZED;
-  specd_ty->ast = type_decl;
-  set_add_member(type_table, storage, type_decl, specd_ty);
-
-  specd_ty->specd.ref = set_lookup_value(type_table, type_decl->specializedType.type, 0);
 }
 
 static void
@@ -1238,33 +1176,6 @@ visit_integerTypeSize(Ast* type_size)
 }
 
 static void
-visit_typeParameterList(Ast* param_list)
-{
-  assert(param_list->kind == AST_typeParameterList);
-  Ast* ast, *name;
-  Type* params_ty, *ty;
-
-  params_ty = 0;
-  for (ast = param_list->typeParameterList.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    name = ast;
-    ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_TYPEVAR;
-    ty->strname = name->name.strname;
-    ty->ast = name;
-    set_add_member(type_table, storage, name, ty);
-
-    ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    ty->ctor = TYPE_PRODUCT;
-    ty->ast = param_list;
-    ty->product.next = params_ty;
-    ty->product.type = ty;
-    params_ty = ty;
-  }
-  set_add_member(type_table, storage, param_list, params_ty);
-}
-
-static void
 visit_realTypeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AST_realTypeArg);
@@ -1291,18 +1202,6 @@ visit_typeArg(Ast* type_arg)
 
   arg_ty = set_lookup_value(type_table, type_arg->typeArg.arg, 0);
   set_add_member(type_table, storage, type_arg, arg_ty);
-}
-
-static void
-visit_realTypeArgumentList(Ast* arg_list)
-{
-  assert(arg_list->kind == AST_realTypeArgumentList);
-  Ast* ast;
-
-  for (ast = arg_list->realTypeArgumentList.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_realTypeArg(ast);
-  }
 }
 
 static void
@@ -1983,9 +1882,6 @@ visit_expression(Ast* expr)
   } else if (expr->expression.expr->kind == AST_assignmentStatement) {
     visit_assignmentStatement(expr->expression.expr);
   } else assert(0);
-  if (expr->expression.type_args) {
-    visit_realTypeArgumentList(expr->expression.type_args);
-  }
 }
 
 static void
