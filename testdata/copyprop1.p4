@@ -72,11 +72,9 @@ enum MeterType {
 }
 
 extern counter
-<I>
 {
     counter(bit<32> size, CounterType type);
-    // FIXME -- size arg should be `int` but that breaks typechecking
-    void count(in I index);
+    void count(in bit<32> index);
 }
 
 extern direct_counter {
@@ -85,71 +83,31 @@ extern direct_counter {
 }
 
 extern meter
-<I>
 {
     meter(bit<32> size, MeterType type);
-    void execute_meter<T>(in I index, out T result);
+    void execute_meter(in bit<32> index, out bit result);
 }
 
-extern direct_meter<T> {
+extern direct_meter {
     direct_meter(MeterType type);
-    void read(out T result);
+    void read(out bit result);
 }
 
-extern register<T, I>
+extern register
 {
     register(bit<32> size);
-    void read(out T result, in I index);
-    void write(in I index, in T value);
-}
-
-// used as table implementation attribute
-extern action_profile {
-    action_profile(bit<32> size);
-}
-
-extern void random<T>(out T result, in T lo, in T hi);
-
-extern void digest<T>(in bit<32> receiver, in T data);
-
-enum HashAlgorithm {
-    crc32,
-    crc32_custom,
-    crc16,
-    crc16_custom,
-    random,
-    identity,
-    csum16,
-    xor16
+    void read(out bit result, in bit<32> index);
+    void write(in bit<32> index, in bit value);
 }
 
 extern void mark_to_drop();
 
 extern void mark_to_drop(inout standard_metadata_t standard_metadata);
 
-extern void hash<O, T, D, M>(out O result, in HashAlgorithm algo, in T base, in D data, in M max);
-
-extern action_selector {
-    action_selector(HashAlgorithm algorithm, bit<32> size, bit<32> outputWidth);
-}
-
-enum CloneType {
-    I2E,
-    E2E
-}
-
 extern Checksum16 {
     Checksum16();
     bit<16> get<D>(in D data);
 }
-
-extern void verify_checksum(in bool condition, in bit data, in bit<32> checksum, HashAlgorithm algo);
-
-extern void update_checksum(in bool condition, in bit data, inout bit<32> checksum, HashAlgorithm algo);
-
-extern void verify_checksum_with_payload(in bool condition, in bit data, in bit<32> checksum, HashAlgorithm algo);
-
-extern void update_checksum_with_payload(in bool condition, in bit data, inout bit<32> checksum, HashAlgorithm algo);
 
 extern void log_msg(string msg);
 extern void log_msg(string msg, in bit data);

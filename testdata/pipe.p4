@@ -1,6 +1,5 @@
 extern void verify(in bool check, in error toSignal);
 
-/// Built-in action that does nothing.
 action NoAction() {}
 
 match_kind {
@@ -91,7 +90,7 @@ control Q_pipe(inout TArg1 qArg1, inout TArg2 qArg2) {
     P_pipe(32w5) p1;  // instantiate pipeline p1 with parameter t2Size=5
 
     apply {
-        p1.apply(qArg1, qArg2);            // invoke pipeline
+        p1.apply(qArg1, qArg2);  // invoke pipeline
     }
 }
 

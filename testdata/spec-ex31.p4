@@ -21,8 +21,7 @@ error {
 
 extern packet_in {
     void extract(out T hdr);
-    void extract(out T variableSizeHeader,
-                    in bit<32> variableFieldSizeInBits);
+    void extract(out T variableSizeHeader, in bit<32> variableFieldSizeInBits);
     T lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
@@ -46,12 +45,10 @@ match_kind {
     lpm
 }
 
-parser EthernetParser(packet_in b,
-                      out EthernetHeader h)
+parser EthernetParser(packet_in b, out EthernetHeader h)
 { state start { transition accept; } }
 
-parser GenericParser(packet_in b,
-                     out Packet_header p)(bool udpSupport)
+parser GenericParser(packet_in b, out Packet_header p)(bool udpSupport)
 {
     EthernetParser() ethParser;
 

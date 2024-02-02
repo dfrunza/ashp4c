@@ -6,7 +6,7 @@ bit<16> max(in bit<16> left, in bit<16> right) {
 
 control c(out bit<16> b) {
     apply {
-        b = max(10w8, 12w8);
+        b = max(8w10, 8w12);
     }
 }
 

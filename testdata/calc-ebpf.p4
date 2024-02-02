@@ -35,18 +35,24 @@ header p4calc_t {
     bit<32> res;
 }
 
-/*
- * All headers, used in the program needs to be assembled into a single struct.
- * We only need to declare the type, but there is no need to instantiate it,
- * because it is done "by the architecture", i.e. outside of P4 functions
- */
 struct headers {
     ethernet_t   ethernet;
     p4calc_t     p4calc;
 }
 
-extern packet_in {}
-extern packet_out {}
+typedef p4calc_t H;
+
+extern packet_in {
+    void extract(out H hdr);
+    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    H lookahead();
+    void advance(in bit<32> sizeInBits);
+    bit<32> length();
+}
+
+extern packet_out {
+    void emit(in H hdr);
+}
 
 package ebpfFilter();
 extern void hash_table(int size);
@@ -59,13 +65,6 @@ match_kind {
     /// Longest-prefix match.
     lpm
 }
-
-/*
- * All metadata, globally used in the program, also  needs to be assembled
- * into a single struct. As in the case of the headers, we only need to
- * declare the type, but there is no need to instantiate it,
- * because it is done "by the architecture", i.e. outside of P4 functions
- */
 
 /*************************************************************************
  ***********************  P A R S E R  ***********************************
@@ -81,10 +80,10 @@ parser Parser(packet_in packet, out headers hdr)
     }
 
     state check_p4calc {
-        transition select(packet.lookahead<p4calc_t>().p,
-                          packet.lookahead<p4calc_t>().four,
-                          packet.lookahead<p4calc_t>().ver) {
-            (P4CALC_P,P4CALC_4,P4CALC_VER)   : parse_p4calc;
+        transition select(packet.lookahead().p,
+                          packet.lookahead().four,
+                          packet.lookahead().ver) {
+            (P4CALC_P, P4CALC_4, P4CALC_VER)   : parse_p4calc;
             default                          : accept;
         }
     }
@@ -100,36 +99,36 @@ parser Parser(packet_in packet, out headers hdr)
  *************************************************************************/
 control Ingress(inout headers hdr, out bool xout) {
     action send_back(bit<32> result) {
-		bit<48> tmp;
-		tmp = hdr.ethernet.dstAddr;
-		hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
-		hdr.ethernet.srcAddr = tmp;
-		hdr.p4calc.res = result;
+	bit<48> tmp;
+	tmp = hdr.ethernet.dstAddr;
+	hdr.ethernet.dstAddr = hdr.ethernet.srcAddr;
+	hdr.ethernet.srcAddr = tmp;
+	hdr.p4calc.res = result;
     }
 
     action operation_add() {
         /* call send_back with operand_a + operand_b */
-		send_back(hdr.p4calc.operand_a + hdr.p4calc.operand_b);
+	send_back(hdr.p4calc.operand_a + hdr.p4calc.operand_b);
     }
 
     action operation_sub() {
         /* call send_back with operand_a - operand_b */
-		send_back(hdr.p4calc.operand_a - hdr.p4calc.operand_b);
+	send_back(hdr.p4calc.operand_a - hdr.p4calc.operand_b);
     }
 
     action operation_and() {
         /* call send_back with operand_a & operand_b */
-		send_back(hdr.p4calc.operand_a & hdr.p4calc.operand_b);
+	send_back(hdr.p4calc.operand_a & hdr.p4calc.operand_b);
     }
 
     action operation_or() {
         /* call send_back with operand_a | operand_b */
-		send_back(hdr.p4calc.operand_a | hdr.p4calc.operand_b);
+	send_back(hdr.p4calc.operand_a | hdr.p4calc.operand_b);
     }
 
     action operation_xor() {
         /* call send_back with operand_a ^ operand_b */
-		send_back(hdr.p4calc.operand_a ^ hdr.p4calc.operand_b);
+	send_back(hdr.p4calc.operand_a ^ hdr.p4calc.operand_b);
     }
 
     action operation_drop() {
@@ -156,8 +155,7 @@ control Ingress(inout headers hdr, out bool xout) {
             P4CALC_OR   : operation_or();
             P4CALC_CARET: operation_xor();
         }
-		/* this is required in XDP model */
-		implementation = hash_table(8);
+	implementation = hash_table(8);
     }
 
     apply {

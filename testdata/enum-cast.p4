@@ -43,8 +43,7 @@ error {
 
 extern packet_in {
     void extract(out T hdr);
-    void extract(out T variableSizeHeader,
-                    in bit<32> variableFieldSizeInBits);
+    void extract(out T variableSizeHeader, in bit<32> variableFieldSizeInBits);
     T lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
@@ -85,8 +84,8 @@ parser p(packet_in packet, out O o) {
         bb = bb && (b == (E2)0);
 
         a = (E1) b; // OK
-        a = (E1)(E1.e1 + (E1)1); // Final explicit casting makes the assignment legal
-        a = (E1)(E2.e1 + E2.e2); //  Final explicit casting makes the assignment legal
+        a = (E1)(E1.e1 + (E1)1);
+        a = (E1)(E2.e1 + E2.e2);
 
         packet.extract(o.b);
         transition select (o.b.x) {

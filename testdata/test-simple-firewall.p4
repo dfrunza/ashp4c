@@ -138,23 +138,6 @@ enum HashAlgorithm {
 
 extern void hash(out bit<32> result, in HashAlgorithm algo, in bit data);
 
-extern bit<16> csum_replace2(in bit<16> csum,  // current csum
-                             in bit<16> old,   // old value of the field
-                             in bit<16> new);
-
-extern bit<16> csum_replace4(in bit<16> csum,
-                             in bit<32> old,
-                             in bit<32> new);
-
-/*
- * Architecture.
- *
- * M must be a struct.
- *
- * H must be a struct where every one of its members is of type
- * header, header_stack, or header_union.
- */
-
 parser parse(packet_in packet, out H headers, inout M meta, inout standard_metadata std);
 
 control pipeline(inout H headers, inout M meta, inout standard_metadata std);
