@@ -106,7 +106,7 @@ extern void mark_to_drop(inout standard_metadata_t standard_metadata);
 
 extern Checksum16 {
     Checksum16();
-    bit<16> get<D>(in D data);
+    bit<16> get(in bit data);
 }
 
 extern void log_msg(string msg);

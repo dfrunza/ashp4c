@@ -90,7 +90,7 @@ extern hash_table {
 parser parse(packet_in packet, out H headers);
 control filter(inout H headers, out bool accept);
 
-package ebpfFilter(parse<H> prs, filter<H> filt);
+package ebpfFilter(parse prs, filter filt);
 
 parser prs(packet_in p, out Headers_t headers)
 {

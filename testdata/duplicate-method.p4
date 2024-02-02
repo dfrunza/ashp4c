@@ -1,14 +1,14 @@
 struct packet_in {}
 struct D {}
 
-extern Checksum<T>
+extern Checksum
 {
     Checksum();
     void reset();
     void append(in D d);
     void append(in bool condition, in D d);
     void append(in packet_in b);
-    T get();
+    bit<32> get();
 }
 
 control c() {

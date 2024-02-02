@@ -67,15 +67,11 @@ static Ast* parse_namedType();
 static Ast* parse_prefixedType();
 static Ast* parse_tupleType();
 static Ast* parse_headerStackType(Ast* named_type);
-static Ast* parse_specializedType(Ast* named_type);
 static Ast* parse_baseType();
 static Ast* parse_integerTypeSize();
 static Ast* parse_typeOrVoid();
-static Ast* parse_optTypeParameters();
-static Ast* parse_typeParameterList();
 static Ast* parse_realTypeArg();
 static Ast* parse_typeArg();
-static Ast* parse_realTypeArgumentList();
 static Ast* parse_typeArgumentList();
 static Ast* parse_typeDeclaration();
 static Ast* parse_derivedTypeDeclaration();
@@ -271,12 +267,6 @@ token_is_typeArg(Token* token)
 {
   bool result = token->klass == TK_DONTCARE || token_is_typeRef(token) || token_is_nonTypeName(token);
   return result;
-}
-
-static bool
-token_is_typeParameterList(Token* token)
-{
-  return token_is_name(token);
 }
 
 static bool
@@ -596,7 +586,6 @@ Debug_AstEnum_to_string(enum AstEnum ast)
     case AST_namedType: return "AST_namedType";
     case AST_tupleType: return "AST_tupleType";
     case AST_headerStackType: return "AST_headerStackType";
-    case AST_specializedType: return "AST_specializedType";
     case AST_baseTypeBoolean: return "AST_baseTypeBoolean";
     case AST_baseTypeInteger: return "AST_baseTypeInteger";
     case AST_baseTypeBit: return "AST_baseTypeBit";
@@ -605,10 +594,8 @@ Debug_AstEnum_to_string(enum AstEnum ast)
     case AST_baseTypeVoid: return "AST_baseTypeVoid";
     case AST_baseTypeError: return "AST_baseTypeError";
     case AST_integerTypeSize: return "AST_integerTypeSize";
-    case AST_typeParameterList: return "AST_typeParameterList";
     case AST_realTypeArg: return "AST_realTypeArg";
     case AST_typeArg: return "AST_typeArg";
-    case AST_realTypeArgumentList: return "AST_realTypeArgumentList";
     case AST_typeArgumentList: return "AST_typeArgumentList";
     case AST_typeDeclaration: return "AST_typeDeclaration";
     case AST_derivedTypeDeclaration: return "AST_derivedTypeDeclaration";
@@ -1037,7 +1024,6 @@ parse_packageTypeDeclaration()
       name_decl->strname = name->name.strname;
       scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
       package_decl->packageTypeDeclaration.name = name;
-      package_decl->packageTypeDeclaration.type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
         package_decl->packageTypeDeclaration.params = parse_parameterList();
@@ -1215,7 +1201,6 @@ parse_parserTypeDeclaration()
       name_decl->strname = name->name.strname;
       scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
       parser_proto->parserTypeDeclaration.name = name;
-      parser_proto->parserTypeDeclaration.type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
         parser_proto->parserTypeDeclaration.params = parse_parameterList();
@@ -1656,7 +1641,6 @@ parse_controlTypeDeclaration()
       name_decl->strname = name->name.strname;
       scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
       control_proto->controlTypeDeclaration.name = name;
-      control_proto->controlTypeDeclaration.type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
         control_proto->controlTypeDeclaration.params = parse_parameterList();
@@ -1774,7 +1758,6 @@ parse_externDeclaration()
       name_decl = arena_malloc(storage, sizeof(NameDeclaration));
       name_decl->strname = name->name.strname;
       scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
-      extern_type->externTypeDeclaration.type_params = parse_optTypeParameters();
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
         extern_type->externTypeDeclaration.method_protos = parse_methodPrototypes();
@@ -1845,7 +1828,6 @@ parse_functionPrototype(Ast* return_type)
       func_proto->line_no = token->line_no;
       func_proto->column_no = token->column_no;
       func_proto->functionPrototype.name = parse_name();
-      func_proto->functionPrototype.type_params = parse_optTypeParameters();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
         func_proto->functionPrototype.params = parse_parameterList();
@@ -1941,10 +1923,7 @@ parse_namedType()
 
   if (token_is_typeName(token)) {
     named_type = parse_prefixedType();
-    if (token->klass == TK_ANGLE_OPEN) {
-      named_type = parse_specializedType(named_type);
-      return named_type;
-    } else if (token->klass == TK_BRACKET_OPEN) {
+    if (token->klass == TK_BRACKET_OPEN) {
       named_type = parse_headerStackType(named_type);
       return named_type;
     }
@@ -2034,35 +2013,6 @@ parse_headerStackType(Ast* named_type)
                  source_file, token->line_no, token->column_no, token->lexeme);
     return type;
   } else error("%s:%d:%d: error: `[` was expected, got `%s`.",
-               source_file, token->line_no, token->column_no, token->lexeme);
-  assert(0);
-  return 0;
-}
-
-static Ast*
-parse_specializedType(Ast* named_type)
-{
-  Ast* type_ref, *type;
-
-  if (token->klass == TK_ANGLE_OPEN) {
-    next_token();
-    type_ref = arena_malloc(storage, sizeof(Ast));
-    type_ref->kind = AST_typeRef;
-    type_ref->line_no = named_type->line_no;
-    type_ref->column_no = named_type->column_no;
-    type_ref->typeRef.type = named_type;
-    type = arena_malloc(storage, sizeof(Ast));
-    type->kind = AST_specializedType;
-    type->line_no = named_type->line_no;
-    type->column_no = named_type->column_no;
-    type->specializedType.type_args = parse_typeArgumentList();
-    type->specializedType.type = type_ref;
-    if (token->klass == TK_ANGLE_CLOSE) {
-      next_token();
-    } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
-                 source_file, token->line_no, token->column_no, token->lexeme);
-    return type;
-  } else error("%s:%d:%d: error: `<` was expected, got `%s`.",
                source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
@@ -2221,60 +2171,6 @@ parse_typeOrVoid()
 }
 
 static Ast*
-parse_optTypeParameters()
-{
-  Ast* params;
-
-  if (token->klass == TK_ANGLE_OPEN) {
-    next_token();
-    if (token_is_typeParameterList(token)) {
-      params = parse_typeParameterList();
-      if (token->klass == TK_ANGLE_CLOSE) {
-        next_token();
-      } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
-                   source_file, token->line_no, token->column_no, token->lexeme);
-      return params;
-    } else error("%s:%d:%d: error: name was expected, got `%s`.",
-                 source_file, token->line_no, token->column_no, token->lexeme);
-    if (token->klass == TK_ANGLE_CLOSE) {
-      next_token();
-    } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
-                 source_file, token->line_no, token->column_no, token->lexeme);
-  }
-  return 0;
-}
-
-static Ast*
-parse_typeParameterList()
-{
-  Ast* params, *name, *ast;
-  NameDeclaration* name_decl;
-
-  params = arena_malloc(storage, sizeof(Ast));
-  params->kind = AST_typeParameterList;
-  params->line_no = token->line_no;
-  params->column_no = token->column_no;
-  if (token_is_typeParameterList(token)) {
-    name = parse_name();
-    name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-    name_decl->strname = name->name.strname;
-    scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
-    ast = name;
-    params->typeParameterList.first_child = ast;
-    while (token->klass == TK_COMMA) {
-      next_token();
-      name = parse_name();
-      NameDeclaration* name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-      name_decl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
-      ast->right_sibling = name;
-      ast = ast->right_sibling;
-    }
-  }
-  return params;
-}
-
-static Ast*
 parse_realTypeArg()
 {
   Ast* type_arg, *dontcare_arg;
@@ -2331,27 +2227,6 @@ parse_typeArg()
                source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
-}
-
-static Ast*
-parse_realTypeArgumentList()
-{
-  Ast* args, *ast;
-
-  args = arena_malloc(storage, sizeof(Ast));
-  args->kind = AST_realTypeArgumentList;
-  args->line_no = token->line_no;
-  args->column_no = token->column_no;
-  if (token_is_realTypeArg(token)) {
-    ast = parse_realTypeArg();
-    args->realTypeArgumentList.first_child = ast;
-    while (token->klass == TK_COMMA) {
-      next_token();
-      ast->right_sibling = parse_realTypeArg();
-      ast = ast->right_sibling;
-    }
-  }
-  return args;
 }
 
 static Ast*
@@ -2829,14 +2704,6 @@ parse_assignmentOrMethodCallStatement()
 
   if (token_is_lvalue(token)) {
     lvalue = parse_lvalue();
-    if (token->klass == TK_ANGLE_OPEN) {
-      next_token();
-      lvalue->lvalueExpression.type_args = parse_typeArgumentList();
-      if (token->klass == TK_ANGLE_CLOSE) {
-        next_token();
-      } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
-                   source_file, token->line_no, token->column_no, token->lexeme);
-    }
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
       stmt = arena_malloc(storage, sizeof(Ast));
@@ -3839,13 +3706,6 @@ parse_expression(int priority_threshold)
         primary->line_no = token->line_no;
         primary->column_no = token->column_no;
         primary->expression.expr = expr;
-      } else if (token->klass == TK_ANGLE_OPEN && token_is_realTypeArg(peek_token())) {
-        next_token();
-        primary->expression.type_args = parse_realTypeArgumentList();
-        if (token->klass == TK_ANGLE_CLOSE) {
-          next_token();
-        } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
-                     source_file, token->line_no, token->column_no, token->lexeme);
       } else if (token->klass == TK_EQUAL) {
         next_token();
         expr = arena_malloc(storage, sizeof(Ast));

@@ -71,7 +71,6 @@ static void visit_functionPrototype(Ast* func_proto);
 static NameEntry* visit_typeRef(Ast* type_ref);
 static void visit_tupleType(Ast* type);
 static void visit_headerStackType(Ast* type_decl);
-static void visit_specializedType(Ast* type_decl);
 static void visit_baseTypeBoolean(Ast* bool_type);
 static void visit_baseTypeInteger(Ast* int_type);
 static void visit_baseTypeBit(Ast* bit_type);
@@ -80,10 +79,8 @@ static void visit_baseTypeString(Ast* str_type);
 static void visit_baseTypeVoid(Ast* void_type);
 static void visit_baseTypeError(Ast* error_type);
 static void visit_integerTypeSize(Ast* type_size);
-static void visit_typeParameterList(Ast* param_list);
 static void visit_realTypeArg(Ast* type_arg);
 static void visit_typeArg(Ast* type_arg);
-static void visit_realTypeArgumentList(Ast* arg_list);
 static void visit_typeArgumentList(Ast* arg_list);
 static void visit_typeDeclaration(Ast* type_decl);
 static void visit_derivedTypeDeclaration(Ast* type_decl);
@@ -494,9 +491,6 @@ static void
 visit_packageTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_packageTypeDeclaration);
-  if (type_decl->packageTypeDeclaration.type_params) {
-    visit_typeParameterList(type_decl->packageTypeDeclaration.type_params);
-  }
   visit_parameterList(type_decl->packageTypeDeclaration.params);
 }
 
@@ -570,9 +564,6 @@ static void
 visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_parserTypeDeclaration);
-  if (type_decl->parserTypeDeclaration.type_params) {
-    visit_typeParameterList(type_decl->parserTypeDeclaration.type_params);
-  }
   visit_parameterList(type_decl->parserTypeDeclaration.params);
 }
 
@@ -762,9 +753,6 @@ static void
 visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_controlTypeDeclaration);
-  if (type_decl->controlTypeDeclaration.type_params) {
-    visit_typeParameterList(type_decl->controlTypeDeclaration.type_params);
-  }
   visit_parameterList(type_decl->controlTypeDeclaration.params);
 }
 
@@ -812,9 +800,6 @@ static void
 visit_externTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_externTypeDeclaration);
-  if (type_decl->externTypeDeclaration.type_params) {
-    visit_typeParameterList(type_decl->externTypeDeclaration.type_params);
-  }
   visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos);
 }
 
@@ -836,9 +821,6 @@ visit_functionPrototype(Ast* func_proto)
   assert(func_proto->kind == AST_functionPrototype);
   if (func_proto->functionPrototype.return_type) {
     ;
-  }
-  if (func_proto->functionPrototype.type_params) {
-    visit_typeParameterList(func_proto->functionPrototype.type_params);
   }
   visit_parameterList(func_proto->functionPrototype.params);
 }
@@ -865,8 +847,6 @@ visit_typeRef(Ast* type_ref)
     visit_baseTypeError(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_name) {
     return visit_name(type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_specializedType) {
-    visit_specializedType(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_headerStackType) {
     visit_headerStackType(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_tupleType) {
@@ -887,13 +867,6 @@ visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
   visit_expression(type_decl->headerStackType.stack_expr);
-}
-
-static void
-visit_specializedType(Ast* type_decl)
-{
-  assert(type_decl->kind == AST_specializedType);
-  visit_typeArgumentList(type_decl->specializedType.type_args);
 }
 
 static void
@@ -983,18 +956,6 @@ visit_integerTypeSize(Ast* type_size)
 }
 
 static void
-visit_typeParameterList(Ast* param_list)
-{
-  assert(param_list->kind == AST_typeParameterList);
-  Ast* ast;
-
-  for (ast = param_list->typeParameterList.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    ;
-  }
-}
-
-static void
 visit_realTypeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AST_realTypeArg);
@@ -1016,18 +977,6 @@ visit_typeArg(Ast* type_arg)
   } else if (type_arg->typeArg.arg->kind == AST_dontcare) {
     visit_dontcare(type_arg->typeArg.arg);
   } else assert(0);
-}
-
-static void
-visit_realTypeArgumentList(Ast* arg_list)
-{
-  assert(arg_list->kind == AST_realTypeArgumentList);
-  Ast* ast;
-
-  for (ast = arg_list->realTypeArgumentList.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_realTypeArg(ast);
-  }
 }
 
 static void
@@ -1671,10 +1620,6 @@ visit_expression(Ast* expr)
 {
   assert(expr->kind == AST_expression);
   Type* expr_ty;
-
-  if (expr->expression.type_args) {
-    visit_realTypeArgumentList(expr->expression.type_args);
-  }
 
   if (expr->expression.expr->kind == AST_expression) {
     visit_expression(expr->expression.expr);

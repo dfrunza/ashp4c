@@ -14,7 +14,7 @@ extern packet_out {}
 
 parser Parser(packet_in b, out Parsed_Packet p) {
     state start {
-        transition select(8w0, b.lookahead< bit<8> >()) {
+        transition select(8w0, b.lookahead()) {
             default : accept;
             (0, 0 &&& 0) : accept;
             (0 &&& 0, 0x44) : ipv4_option_NOP;

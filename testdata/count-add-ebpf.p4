@@ -1,16 +1,3 @@
-extern packet_in {
-    void extract<T>(out T hdr);
-    void extract<T>(out T variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    T lookahead<T>();
-    void advance(in bit<32> sizeInBits);
-    bit<32> length();
-}
-
-extern packet_out {
-    void emit<T>(in T hdr);
-}
-
-package ebpfFilter();
 
 typedef bit<48>     EthernetAddress;
 typedef bit<32>     IPv4Address;
@@ -40,6 +27,28 @@ header IPv4_h {
     IPv4Address  dstAddr;
 }
 
+struct Headers_t
+{
+    Ethernet_h ethernet;
+    IPv4_h     ipv4;
+}
+
+typedef Headers_t H;
+
+extern packet_in {
+    void extract(out H hdr);
+    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    H lookahead();
+    void advance(in bit<32> sizeInBits);
+    bit<32> length();
+}
+
+extern packet_out {
+    void emit(in H hdr);
+}
+
+package ebpfFilter();
+
 extern CounterArray {
     /** Allocate an array of counters.
      * @param max_index  Maximum counter index supported.
@@ -51,12 +60,6 @@ extern CounterArray {
     
     /** Add value to counter with specified index. */
     void add(in bit<32> index, in bit<32> value);
-}
-
-struct Headers_t
-{
-    Ethernet_h ethernet;
-    IPv4_h     ipv4;
 }
 
 parser prs(packet_in p, out Headers_t headers)
