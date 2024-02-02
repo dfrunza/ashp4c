@@ -1,4 +1,3 @@
-
 header Ethernet {
     bit<48> destination;
     bit<48> source;

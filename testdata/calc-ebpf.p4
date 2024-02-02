@@ -1,17 +1,3 @@
-extern packet_in {}
-extern packet_out {}
-package ebpfFilter();
-extern void hash_table(int size);
-
-match_kind {
-    /// Match bits exactly.
-    exact,
-    /// Ternary match, using a mask.
-    ternary,
-    /// Longest-prefix match.
-    lpm
-}
-
 /*
  * Define the headers the program will recognize
  */
@@ -59,6 +45,21 @@ struct headers {
     p4calc_t     p4calc;
 }
 
+extern packet_in {}
+extern packet_out {}
+
+package ebpfFilter();
+extern void hash_table(int size);
+
+match_kind {
+    /// Match bits exactly.
+    exact,
+    /// Ternary match, using a mask.
+    ternary,
+    /// Longest-prefix match.
+    lpm
+}
+
 /*
  * All metadata, globally used in the program, also  needs to be assembled
  * into a single struct. As in the case of the headers, we only need to
@@ -97,8 +98,7 @@ parser Parser(packet_in packet, out headers hdr)
 /*************************************************************************
  **************  I N G R E S S   P R O C E S S I N G   *******************
  *************************************************************************/
-control Ingress(inout headers hdr,
-                out bool xout) {
+control Ingress(inout headers hdr, out bool xout) {
     action send_back(bit<32> result) {
 		bit<48> tmp;
 		tmp = hdr.ethernet.dstAddr;
@@ -161,7 +161,7 @@ control Ingress(inout headers hdr,
     }
 
     apply {
-		xout = true;
+	xout = true;
         if (hdr.p4calc.isValid()) {
             calculate.apply();
         } else {

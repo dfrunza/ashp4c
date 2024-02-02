@@ -1,4 +1,19 @@
+header payload_t {
+    bit<8> x;
+    bit<8> y;
+}
+
+struct header_t {
+    payload_t payload;
+}
+
+struct metadata {}
+
+typedef header_t H;
+typedef metadata M;
+
 /// #include <v1model.p4>
+
 match_kind {
     /// Match bits exactly.
     exact,
@@ -11,19 +26,18 @@ match_kind {
 const bit<32> __v1model_version = 20200408;
 
 extern packet_in {
-    void extract<T>(out T hdr);
-    void extract<T>(out T variableSizeHeader,
-                    in bit<32> variableFieldSizeInBits);
-    T lookahead<T>();
+    void extract(out H hdr);
+    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    H lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit<T>(in T hdr);
+    void emit(in H hdr);
 }
 
-typedef bit<9>  PortId_t;       // should not be a constant size?
+typedef bit<9>  PortId_t;
 
 struct standard_metadata_t {
     PortId_t    ingress_port;
@@ -74,8 +88,6 @@ extern meter
 <I>
 {
     meter(bit<32> size, MeterType type);
-    // FIXME -- size arg should be `int` but that breaks typechecking
-
     void execute_meter<T>(in I index, out T result);
 }
 
@@ -86,7 +98,7 @@ extern direct_meter<T> {
 
 extern register<T, I>
 {
-    register(bit<32> size);  // FIXME -- arg should be `int` but that breaks typechecking
+    register(bit<32> size);
     void read(out T result, in I index);
     void write(in I index, in T value);
 }
@@ -131,95 +143,60 @@ extern Checksum16 {
     bit<16> get<D>(in D data);
 }
 
-extern void verify_checksum<T, O>(in bool condition, in T data, in O checksum, HashAlgorithm algo);
+extern void verify_checksum(in bool condition, in bit data, in bit<32> checksum, HashAlgorithm algo);
 
-extern void update_checksum<T, O>(in bool condition, in T data, inout O checksum, HashAlgorithm algo);
+extern void update_checksum(in bool condition, in bit data, inout bit<32> checksum, HashAlgorithm algo);
 
-extern void verify_checksum_with_payload<T, O>(in bool condition, in T data, in O checksum, HashAlgorithm algo);
+extern void verify_checksum_with_payload(in bool condition, in bit data, in bit<32> checksum, HashAlgorithm algo);
 
-extern void update_checksum_with_payload<T, O>(in bool condition, in T data, inout O checksum, HashAlgorithm algo);
-
-extern void resubmit<T>(in T data);
-
-extern void recirculate<T>(in T data);
-
-extern void clone(in CloneType type, in bit<32> session);
-
-extern void clone3<T>(in CloneType type, in bit<32> session, in T data);
-
-extern void truncate(in bit<32> length);
-
-extern void assert(in bool check);
-
-extern void assume(in bool check);
+extern void update_checksum_with_payload(in bool condition, in bit data, inout bit<32> checksum, HashAlgorithm algo);
 
 extern void log_msg(string msg);
-extern void log_msg<T>(string msg, in T data);
+extern void log_msg(string msg, in bit data);
 
 // The name 'standard_metadata' is reserved
 
-/*
- * Architecture.
- *
- * M must be a struct.
- *
- * H must be a struct where every one if its members is of type
- * header, header stack, or header_union.
- */
-
-parser Parser<H, M>(packet_in b,
-                    out H parsedHdr,
-                    inout M meta,
-                    inout standard_metadata_t standard_metadata);
+parser Parser(packet_in b,
+              out H parsedHdr,
+              inout M meta,
+              inout standard_metadata_t standard_metadata);
 
 /*
  * The only legal statements in the body of the VerifyChecksum control
  * are: block statements, calls to the verify_checksum and
  * verify_checksum_with_payload methods, and return statements.
  */
-control VerifyChecksum<H, M>(inout H hdr,
-                             inout M meta);
+control VerifyChecksum(inout H hdr, inout M meta);
 
-control Ingress<H, M>(inout H hdr,
-                      inout M meta,
-                      inout standard_metadata_t standard_metadata);
+control Ingress(inout H hdr,
+                inout M meta,
+                inout standard_metadata_t standard_metadata);
 
-control Egress<H, M>(inout H hdr,
-                     inout M meta,
-                     inout standard_metadata_t standard_metadata);
+control Egress(inout H hdr,
+               inout M meta,
+               inout standard_metadata_t standard_metadata);
 
 /*
  * The only legal statements in the body of the ComputeChecksum
  * control are: block statements, calls to the update_checksum and
  * update_checksum_with_payload methods, and return statements.
  */
-control ComputeChecksum<H, M>(inout H hdr,
-                              inout M meta);
+control ComputeChecksum(inout H hdr, inout M meta);
 
 /*
  * The only legal statements in the body of the Deparser control are:
  * calls to the packet_out.emit() method.
  */
-control Deparser<H>(packet_out b, in H hdr);
+control Deparser(packet_out b, in H hdr);
 
-package V1Switch<H, M>(Parser<H, M> p,
-                       VerifyChecksum<H, M> vr,
-                       Ingress<H, M> ig,
-                       Egress<H, M> eg,
-                       ComputeChecksum<H, M> ck,
-                       Deparser<H> dep
-                       );
-/// #endf
+package V1Switch(Parser p,
+                 VerifyChecksum vr,
+                 Ingress ig,
+                 Egress eg,
+                 ComputeChecksum ck,
+                 Deparser dep);
 
-
-header payload_t {
-    bit<8> x;
-    bit<8> y;
-}
-struct header_t {
-    payload_t payload;
-}
-struct metadata {}
+/// #end
 
 parser MyParser(packet_in packet,
                 out header_t hdr,
@@ -267,10 +244,9 @@ control MyDeparser(packet_out packet, in header_t hdr) {
 control MyComputeChecksum(inout header_t hdr, inout metadata meta) { apply { } }
 
 V1Switch(
-MyParser(),
-MyVerifyChecksum(),
-MyIngress(),
-MyEgress(),
-MyComputeChecksum(),
-MyDeparser()
-) main;
+  MyParser(),
+  MyVerifyChecksum(),
+  MyIngress(),
+  MyEgress(),
+  MyComputeChecksum(),
+  MyDeparser()) main;

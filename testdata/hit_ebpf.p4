@@ -25,6 +25,14 @@ header IPv4_h {
     IPv4Address  dstAddr;
 }
 
+struct Headers_t {
+    Ethernet_h ethernet;
+    IPv4_h     ipv4;
+}
+
+typedef Headers_t H;
+typedef Headers_t T;
+
 /// Standard error codes.  New error codes can be declared by users.
 error {
     NoError,           /// No error.
@@ -38,21 +46,19 @@ error {
 }
 
 extern packet_in {
-    void extract<T>(out T hdr);
-    void extract<T>(out T variableSizeHeader,
-                    in bit<32> variableFieldSizeInBits);
-    T lookahead<T>();
+    void extract(out T hdr);
+    void extract(out T variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    T lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit<T>(in T hdr);
+    void emit(in T hdr);
 }
 
 extern void verify(in bool check, in error toSignal);
 
-/// Built-in action that does nothing.
 action NoAction() {}
 
 match_kind {
@@ -78,17 +84,10 @@ extern hash_table {
     hash_table(bit<32> size);
 }
 
-parser parse<H>(packet_in packet, out H headers);
-control filter<H>(inout H headers, out bool accept);
+parser parse(packet_in packet, out H headers);
+control filter(inout H headers, out bool accept);
 
-package ebpfFilter<H>(parse<H> prs,
-                      filter<H> filt);
-
-
-struct Headers_t {
-    Ethernet_h ethernet;
-    IPv4_h     ipv4;
-}
+package ebpfFilter(parse prs, filter filt);
 
 parser prs(packet_in p, out Headers_t headers) {
     state start {

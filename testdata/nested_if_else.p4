@@ -1,118 +1,3 @@
-/// Standard error codes.  New error codes can be declared by users.
-error {
-    NoError,           /// No error.
-    PacketTooShort,    /// Not enough bits in packet for 'extract'.
-    NoMatch,           /// 'select' expression has no matches.
-    StackOutOfBounds,  /// Reference to invalid element of a header stack.
-    HeaderTooShort,    /// Extracting too many bits into a varbit field.
-    ParserTimeout,     /// Parser execution time limit exceeded.
-    ParserInvalidArgument  /// Parser operation was called with a value
-                           /// not supported by the implementation.
-}
-
-extern packet_in {
-    void extract<T>(out T hdr);
-    void extract<T>(out T variableSizeHeader,
-                    in bit<32> variableFieldSizeInBits);
-    T lookahead<T>();
-    void advance(in bit<32> sizeInBits);
-    bit<32> length();
-}
-
-extern packet_out {
-    void emit<T>(in T hdr);
-}
-
-extern void verify(in bool check, in error toSignal);
-
-/// Built-in action that does nothing.
-action NoAction() {}
-
-match_kind {
-    /// Match bits exactly.
-    exact,
-    /// Ternary match, using a mask.
-    ternary,
-    /// Longest-prefix match.
-    lpm
-}
-
-typedef bit<9>  PortId_t;       // should not be a constant size?
-
-struct standard_metadata_t {
-    PortId_t    ingress_port;
-    PortId_t    egress_spec;
-    PortId_t    egress_port;
-    bit<32>     instance_type;
-    bit<32>     packet_length;
-
-    bit<32> enq_timestamp;
-    bit<19> enq_qdepth;
-    bit<32> deq_timedelta;
-    bit<19> deq_qdepth;
-
-    bit<48> ingress_global_timestamp;
-    bit<48> egress_global_timestamp;
-    bit<16> mcast_grp;
-    bit<16> egress_rid;
-    bit<1>  checksum_error;
-    error parser_error;
-    bit<3> priority;
-}
-
-/*
- * Architecture.
- *
- * M must be a struct.
- *
- * H must be a struct where every one if its members is of type
- * header, header stack, or header_union.
- */
-
-parser Parser<H, M>(packet_in b,
-                    out H parsedHdr,
-                    inout M meta,
-                    inout standard_metadata_t standard_metadata);
-
-/*
- * The only legal statements in the body of the VerifyChecksum control
- * are: block statements, calls to the verify_checksum and
- * verify_checksum_with_payload methods, and return statements.
- */
-control VerifyChecksum<H, M>(inout H hdr,
-                             inout M meta);
-
-control Ingress<H, M>(inout H hdr,
-                      inout M meta,
-                      inout standard_metadata_t standard_metadata);
-
-control Egress<H, M>(inout H hdr,
-                     inout M meta,
-                     inout standard_metadata_t standard_metadata);
-
-/*
- * The only legal statements in the body of the ComputeChecksum
- * control are: block statements, calls to the update_checksum and
- * update_checksum_with_payload methods, and return statements.
- */
-control ComputeChecksum<H, M>(inout H hdr,
-                              inout M meta);
-
-/*
- * The only legal statements in the body of the Deparser control are:
- * calls to the packet_out.emit() method.
- */
-control Deparser<H>(packet_out b, in H hdr);
-
-package V1Switch<H, M>(Parser<H, M> p,
-                       VerifyChecksum<H, M> vr,
-                       Ingress<H, M> ig,
-                       Egress<H, M> eg,
-                       ComputeChecksum<H, M> ck,
-                       Deparser<H> dep
-                       );
-
-const bit<16> TYPE_IPV4 = 0x800;
 
 typedef bit<48> macAddr_t;
 typedef bit<32> ip4Addr_t;
@@ -145,6 +30,111 @@ struct headers {
     ethernet_t   ethernet;
     ipv4_t       ipv4;
 }
+
+typedef headers  H;
+typedef metadata M;
+
+/// Standard error codes.  New error codes can be declared by users.
+error {
+    NoError,           /// No error.
+    PacketTooShort,    /// Not enough bits in packet for 'extract'.
+    NoMatch,           /// 'select' expression has no matches.
+    StackOutOfBounds,  /// Reference to invalid element of a header stack.
+    HeaderTooShort,    /// Extracting too many bits into a varbit field.
+    ParserTimeout,     /// Parser execution time limit exceeded.
+    ParserInvalidArgument  /// Parser operation was called with a value
+                           /// not supported by the implementation.
+}
+
+extern packet_in {
+    void extract(out H hdr);
+    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    H lookahead();
+    void advance(in bit<32> sizeInBits);
+    bit<32> length();
+}
+
+extern packet_out {
+    void emit(in H hdr);
+}
+
+extern void verify(in bool check, in error toSignal);
+
+action NoAction() {}
+
+match_kind {
+    /// Match bits exactly.
+    exact,
+    /// Ternary match, using a mask.
+    ternary,
+    /// Longest-prefix match.
+    lpm
+}
+
+typedef bit<9> PortId_t;
+
+struct standard_metadata_t {
+    PortId_t    ingress_port;
+    PortId_t    egress_spec;
+    PortId_t    egress_port;
+    bit<32>     instance_type;
+    bit<32>     packet_length;
+
+    bit<32> enq_timestamp;
+    bit<19> enq_qdepth;
+    bit<32> deq_timedelta;
+    bit<19> deq_qdepth;
+
+    bit<48> ingress_global_timestamp;
+    bit<48> egress_global_timestamp;
+    bit<16> mcast_grp;
+    bit<16> egress_rid;
+    bit<1>  checksum_error;
+    error parser_error;
+    bit<3> priority;
+}
+
+parser Parser(packet_in b,
+              out H parsedHdr,
+              inout M meta,
+              inout standard_metadata_t standard_metadata);
+
+/*
+ * The only legal statements in the body of the VerifyChecksum control
+ * are: block statements, calls to the verify_checksum and
+ * verify_checksum_with_payload methods, and return statements.
+ */
+control VerifyChecksum(inout H hdr, inout M meta);
+
+control Ingress(inout H hdr,
+                inout M meta,
+                inout standard_metadata_t standard_metadata);
+
+control Egress(inout H hdr,
+               inout M meta,
+               inout standard_metadata_t standard_metadata);
+
+/*
+ * The only legal statements in the body of the ComputeChecksum
+ * control are: block statements, calls to the update_checksum and
+ * update_checksum_with_payload methods, and return statements.
+ */
+control ComputeChecksum(inout H hdr, inout M meta);
+
+/*
+ * The only legal statements in the body of the Deparser control are:
+ * calls to the packet_out.emit() method.
+ */
+control Deparser(packet_out b, in H hdr);
+
+package V1Switch(Parser p,
+                 VerifyChecksum vr,
+                 Ingress ig,
+                 Egress eg,
+                 ComputeChecksum ck,
+                 Deparser dep);
+
+const bit<16> TYPE_IPV4 = 0x800;
 
 parser MyParser(packet_in packet,
                 out headers hdr,
@@ -252,10 +242,9 @@ control MyComputeChecksum(inout headers  hdr, inout metadata meta) {
 }
 
 V1Switch(
-MyParser(),
-MyVerifyChecksum(),
-MyIngress(),
-MyEgress(),
-MyComputeChecksum(),
-MyDeparser()
-) main;
+  MyParser(),
+  MyVerifyChecksum(),
+  MyIngress(),
+  MyEgress(),
+  MyComputeChecksum(),
+  MyDeparser()) main;
