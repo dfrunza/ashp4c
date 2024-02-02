@@ -64,7 +64,7 @@ static Ast* parse_methodPrototype();
 
 static Ast* parse_typeRef();
 static Ast* parse_namedType();
-static Ast* parse_prefixedType();
+static Ast* parse_typeName();
 static Ast* parse_tupleType();
 static Ast* parse_headerStackType(Ast* named_type);
 static Ast* parse_baseType();
@@ -127,7 +127,6 @@ static Ast* parse_functionDeclaration(Ast* type_ref);
 static Ast* parse_argumentList();
 static Ast* parse_argument();
 static Ast* parse_expressionList();
-static Ast* parse_prefixedNonTypeName();
 static Ast* parse_lvalue();
 static Ast* parse_expression(int priority_threshold);
 static Ast* parse_expressionPrimary();
@@ -180,7 +179,7 @@ static bool
 token_is_nonTypeName(Token* token)
 {
   bool result = token->klass == TK_IDENTIFIER || token->klass == TK_APPLY || token->klass == TK_KEY
-    || token->klass == TK_ACTIONS || token->klass == TK_STATE || token->klass == TK_ENTRIES || token->klass == TK_TYPE;
+    || token->klass == TK_ACTIONS || token->klass == TK_STATE || token->klass == TK_ENTRIES;
   return result;
 }
 
@@ -194,25 +193,14 @@ token_is_name(Token* token)
 static bool
 token_is_typeName(Token* token)
 {
-  return token->klass == TK_DOT || token->klass == TK_TYPE_IDENTIFIER;
-}
-
-static bool
-token_is_prefixedType(Token* token)
-{
-  return token->klass == TK_DOT || token->klass == TK_TYPE_IDENTIFIER;
-}
-
-static bool
-token_is_prefixedNonTypeName(Token* token) {
-  return token->klass == TK_DOT || token_is_nonTypeName(token);
+  return token->klass == TK_TYPE_IDENTIFIER;
 }
 
 static bool
 token_is_nonTableKwName(Token* token)
 {
   bool result = token->klass == TK_IDENTIFIER || token->klass == TK_TYPE_IDENTIFIER
-    || token->klass == TK_APPLY || token->klass == TK_STATE || token->klass == TK_TYPE;
+    || token->klass == TK_APPLY || token->klass == TK_STATE;
   return result;
 }
 
@@ -228,7 +216,7 @@ token_is_baseType(Token* token)
 static bool
 token_is_typeRef(Token* token)
 {
-  bool result = token_is_baseType(token) || token_is_prefixedType(token) || token->klass == TK_TUPLE;
+  bool result = token_is_baseType(token) || token->klass == TK_TYPE_IDENTIFIER || token->klass == TK_TUPLE;
   return result;
 }
 
@@ -257,7 +245,7 @@ token_is_derivedTypeDeclaration(Token* token)
 static bool
 token_is_typeDeclaration(Token* token)
 {
-  bool result = token_is_derivedTypeDeclaration(token) || token->klass == TK_TYPEDEF || token->klass == TK_TYPE
+  bool result = token_is_derivedTypeDeclaration(token) || token->klass == TK_TYPEDEF
     || token->klass == TK_PARSER || token->klass == TK_CONTROL || token->klass == TK_PACKAGE;
   return result;
 }
@@ -279,8 +267,7 @@ token_is_typeOrVoid(Token* token)
 static bool
 token_is_actionRef(Token* token)
 {
-  bool result = token->klass == TK_DOT || token_is_nonTypeName(token)
-    || token->klass == TK_PARENTH_OPEN;
+  bool result = token_is_nonTypeName(token) || token->klass == TK_PARENTH_OPEN;
   return result;
 }
 
@@ -304,10 +291,10 @@ static bool
 token_is_expressionPrimary(Token* token)
 {
   bool result = token->klass == TK_INTEGER_LITERAL || token->klass == TK_TRUE || token->klass == TK_FALSE
-    || token->klass == TK_STRING_LITERAL || token->klass == TK_DOT || token_is_nonTypeName(token)
+    || token->klass == TK_STRING_LITERAL || token_is_nonTypeName(token)
     || token->klass == TK_BRACE_OPEN || token->klass == TK_PARENTH_OPEN || token->klass == TK_EXCLAMATION
     || token->klass == TK_TILDA || token->klass == TK_UNARY_MINUS || token_is_typeName(token)
-    || token->klass == TK_ERROR || token_is_prefixedType(token);
+    || token->klass == TK_ERROR || token->klass == TK_TYPE_IDENTIFIER;
   return result;
 }
 
@@ -342,7 +329,7 @@ token_is_declaration(Token* token)
   bool result = token->klass == TK_CONST || token->klass == TK_EXTERN || token->klass == TK_ACTION
     || token->klass == TK_PARSER || token_is_typeDeclaration(token) || token->klass == TK_CONTROL
     || token_is_typeRef(token) || token->klass == TK_ERROR || token->klass == TK_MATCH_KIND
-    || token_is_typeOrVoid(token) || token->klass == TK_DOT;
+    || token_is_typeOrVoid(token);
   return result;
 }
 
@@ -709,7 +696,6 @@ parse_program(char* source_file_, UnboundedArray* tokens_, Arena* storage_, Scop
     {"table",   TK_TABLE},
     {"key",     TK_KEY},
     {"typedef", TK_TYPEDEF},
-    {"type",    TK_TYPE},
     {"default", TK_DEFAULT},
     {"extern",  TK_EXTERN},
     {"header_union", TK_HEADER_UNION},
@@ -1922,7 +1908,7 @@ parse_namedType()
   Ast* named_type;
 
   if (token_is_typeName(token)) {
-    named_type = parse_prefixedType();
+    named_type = parse_typeName();
     if (token->klass == TK_BRACKET_OPEN) {
       named_type = parse_headerStackType(named_type);
       return named_type;
@@ -1935,22 +1921,16 @@ parse_namedType()
 }
 
 static Ast*
-parse_prefixedType()
+parse_typeName()
 {
   Ast* type_name;
-  bool is_prefixed = false;
 
-  if (token->klass == TK_DOT) {
-    next_token();
-    is_prefixed = true;
-  }
   if (token->klass == TK_TYPE_IDENTIFIER) {
     type_name = arena_malloc(storage, sizeof(Ast));
     type_name->kind = AST_name;
     type_name->line_no = token->line_no;
     type_name->column_no = token->column_no;
     type_name->name.strname = token->lexeme;
-    type_name->name.is_prefixed = is_prefixed;
     next_token();
     return type_name;
   } else error("%s:%d:%d: error: type was expected, got `%s`.",
@@ -2263,7 +2243,7 @@ parse_typeDeclaration()
     if (token_is_derivedTypeDeclaration(token)) {
       type_decl->typeDeclaration.decl = parse_derivedTypeDeclaration();
       return type_decl;
-    } else if (token->klass == TK_TYPEDEF || token->klass == TK_TYPE) {
+    } else if (token->klass == TK_TYPEDEF) {
       type_decl->typeDeclaration.decl = parse_typedefDeclaration();
       return type_decl;
     } else if (token->klass == TK_PARSER) {
@@ -2662,7 +2642,7 @@ parse_typedefDeclaration()
   Ast* name;
   NameDeclaration* name_decl;
 
-  if (token->klass == TK_TYPEDEF || token->klass == TK_TYPE) {
+  if (token->klass == TK_TYPEDEF) {
     next_token();
     if (token_is_typeRef(token) || token_is_derivedTypeDeclaration(token)) {
       type_decl = arena_malloc(storage, sizeof(Ast));
@@ -2839,7 +2819,7 @@ parse_directApplication(Ast* type_name)
     apply_stmt->kind = AST_directApplication;
     apply_stmt->line_no = token->line_no;
     apply_stmt->column_no = token->column_no;
-    apply_stmt->directApplication.name = type_name ? type_name : parse_prefixedType();
+    apply_stmt->directApplication.name = type_name ? type_name : parse_typeName();
     if (token->klass == TK_DOT) {
       next_token();
       if (token->klass == TK_APPLY) {
@@ -3340,12 +3320,12 @@ parse_actionRef()
 {
   Ast* action_ref;
 
-  if (token_is_prefixedNonTypeName(token)) {
+  if (token_is_nonTypeName(token)) {
     action_ref = arena_malloc(storage, sizeof(Ast));
     action_ref->kind = AST_actionRef;
     action_ref->line_no = token->line_no;
     action_ref->column_no = token->column_no;
-    action_ref->actionRef.name = parse_prefixedNonTypeName();
+    action_ref->actionRef.name = parse_nonTypeName(token);
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
       if (token_is_argument(token)) {
@@ -3579,20 +3559,6 @@ parse_expressionList()
 }
 
 static Ast*
-parse_prefixedNonTypeName()
-{
-  if (token->klass == TK_DOT) {
-    next_token();
-  }
-  if (token_is_nonTypeName(token)) {
-    return parse_nonTypeName();
-  } else error("%s:%d:%d: error: non-type name was expected, ",
-               source_file, token->line_no, token->column_no, token->lexeme);
-  assert(0);
-  return 0;
-}
-
-static Ast*
 parse_lvalue()
 {
   Ast* lvalue, *expr;
@@ -3602,7 +3568,7 @@ parse_lvalue()
     lvalue->kind = AST_lvalueExpression;
     lvalue->line_no = token->line_no;
     lvalue->column_no = token->column_no;
-    lvalue->lvalueExpression.expr = parse_prefixedNonTypeName();
+    lvalue->lvalueExpression.expr = parse_nonTypeName(token);
     while(token->klass == TK_DOT || token->klass == TK_BRACKET_OPEN) {
       if (token->klass == TK_DOT) {
         next_token();
@@ -3770,7 +3736,7 @@ parse_expressionPrimary()
         primary->expression.expr = parse_nonTypeName();
         return primary;
       } else if (token->klass == TK_TYPE_IDENTIFIER) {
-        primary->expression.expr = parse_prefixedType();
+        primary->expression.expr = parse_typeName();
         return primary;
       } else error("%s:%d:%d: error: unexpected token `%s`.",
                    source_file, token->line_no, token->column_no, token->lexeme);
@@ -3788,8 +3754,8 @@ parse_expressionPrimary()
       return primary;
     } else if (token->klass == TK_PARENTH_OPEN) {
       next_token();
-      if (token_is_prefixedType(token) && peek_token()->klass == TK_DOT) {
-        /* (<prefixedType>.<name>) */
+      if (token->klass == TK_TYPE_IDENTIFIER && peek_token()->klass == TK_DOT) {
+        /* (<typeName>.<name>) */
         primary->expression.expr = parse_expression(1);
         if (token->klass == TK_PARENTH_CLOSE) {
           next_token();
@@ -3850,7 +3816,7 @@ parse_expressionPrimary()
       primary->expression.expr = expr;
       return primary;
     } else if (token_is_typeName(token)) {
-      primary->expression.expr = parse_prefixedType();
+      primary->expression.expr = parse_typeName();
       return primary;
     } else if (token->klass == TK_ERROR) {
       next_token();

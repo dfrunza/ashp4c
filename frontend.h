@@ -70,7 +70,6 @@ enum TokenClass {
   TK_ENTRIES,
   TK_KEY,
   TK_TYPEDEF,
-  TK_TYPE,
   TK_BOOL,
   TK_TRUE,
   TK_FALSE,
@@ -326,7 +325,6 @@ typedef struct Ast {
 
     struct {
       char* strname;
-      bool is_prefixed;
     } name;
 
     struct {
