@@ -36,7 +36,6 @@ struct Headers_t
 }
 
 typedef Headers_t H;
-typedef Headers_t T;
 
 /// #include <core.p4>
 
@@ -53,15 +52,15 @@ error {
 }
 
 extern packet_in {
-    void extract(out T hdr);
-    void extract(out T variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    T lookahead();
+    void extract(out H hdr);
+    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    H lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in T hdr);
+    void emit(in H hdr);
 }
 
 extern void verify(in bool check, in error toSignal);

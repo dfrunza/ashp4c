@@ -1,4 +1,3 @@
-
 enum bit<32> X {
     Zero = 0,
     One = 1
@@ -25,7 +24,7 @@ struct O {
     Opt opt;
 }
 
-typedef O T;
+typedef O H;
 
 /// #include <core.p4>
 
@@ -42,15 +41,15 @@ error {
 }
 
 extern packet_in {
-    void extract(out T hdr);
-    void extract(out T variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    T lookahead();
+    void extract(out H hdr);
+    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    H lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in T hdr);
+    void emit(in H hdr);
 }
 
 extern void verify(in bool check, in error toSignal);
@@ -100,6 +99,6 @@ parser p(packet_in packet, out O o) {
     }
 }
 
-parser proto(packet_in p, out T t);
+parser proto(packet_in p, out H t);
 package top(proto _p);
 top(p()) main;
