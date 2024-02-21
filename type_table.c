@@ -213,11 +213,6 @@ structural_type_equiv(Type* left, Type* right)
       return cstr_match(left->strname, right->strname);
     }
     return false;
-  } else if (left->ctor == TYPE_TYPEVAR) {
-    if (right->ctor == left->ctor) {
-      return cstr_match(left->strname, right->strname);
-    }
-    return false;
   } else if (left->ctor == TYPE_EXTERN) {
     if (right->ctor == left->ctor) {
       return cstr_match(left->strname, right->strname);
@@ -302,7 +297,6 @@ Debug_TypeEnum_to_string(enum TypeEnum type)
     case TYPE_DONTCARE: return "TYPE_DONTCARE";
     case TYPE_ENUM: return "TYPE_ENUM";
     case TYPE_TYPEDEF: return "TYPE_TYPEDEF";
-    case TYPE_TYPEVAR: return "TYPE_TYPEVAR";
     case TYPE_FUNCTION: return "TYPE_FUNCTION";
     case TYPE_EXTERN: return "TYPE_EXTERN";
     case TYPE_TABLE: return "TYPE_TABLE";

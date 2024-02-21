@@ -830,7 +830,6 @@ enum TypeEnum {
   TYPE_DONTCARE,
   TYPE_ENUM,
   TYPE_TYPEDEF,
-  TYPE_TYPEVAR,
   TYPE_PRODUCT,
   TYPE_FUNCTION,
   TYPE_EXTERN,
@@ -889,11 +888,6 @@ typedef struct Type {
       struct Type* element;
       int size;
     } array;
-
-    struct {
-      struct Type* ref;
-      struct Type* args;
-    } specd;
 
     struct {
       Ast* name;

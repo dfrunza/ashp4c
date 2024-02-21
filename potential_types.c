@@ -382,7 +382,6 @@ build_potential_types(char* source_file_, Ast* p4program, Scope* root_scope_, Se
   potential_types = arena_malloc(storage, sizeof(Set));
   *potential_types = (Set){};
 
-
   visit_p4program(p4program);
 
   return potential_types;
