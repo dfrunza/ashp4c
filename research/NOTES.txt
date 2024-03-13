@@ -1,3 +1,15 @@
+== Random ==
+============
+
+ - Reduce the complexity of the P4 grammar.
+
+ - Should we support the n in bit<n>?
+
+ - A P4 table T can be considered as having a 'type', which defines the properties of all instances of T.
+
+ - We need a mechanism to allocate temporary memory such that it can be reset and reused repeatedly.
+
+
 == XDP ==
 =========
 
@@ -85,7 +97,7 @@ Adds everything above, plus interfaces modeled after GNU libc extensions and int
 
 
 == Core Dump ==
-======================
+===============
 
 Enable coredump:
 $ ulimit -c unlimited

@@ -9,16 +9,6 @@ typedef struct TypePair
   Type* right;
 } TypePair;
 
-Type *builtin_void_ty,
-     *builtin_bool_ty,
-     *builtin_int_ty,
-     *builtin_bit_ty,
-     *builtin_varbit_ty,
-     *builtin_string_ty,
-     *builtin_error_ty,
-     *builtin_match_kind_ty,
-     *builtin_dontcare_ty;
-
 static char*    source_file;
 static Arena*   storage;
 static Scope*   root_scope;
@@ -315,7 +305,7 @@ Debug_TypeEnum_to_string(enum TypeEnum type)
   return 0;
 }
 
-static void
+void
 resolve_type_nameref(Set* type_table, UnboundedArray* type_array)
 {
   Ast* name;
@@ -345,25 +335,8 @@ resolve_type_nameref(Set* type_table, UnboundedArray* type_array)
   }
 }
 
-static void
+void
 deref_type_type(UnboundedArray* type_array)
-{
-  Type* ref_ty, *ty;
-
-  for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
-    if (ty->ctor == TYPE_TYPE) {
-      ref_ty = ty->type.type;
-      while (ref_ty->ctor == TYPE_TYPE) {
-        ref_ty = ref_ty->type.type;
-      }
-      ty->type.type = ref_ty;
-    }
-  }
-}
-
-static void
-deref_typedef_type(UnboundedArray* type_array)
 {
   Type* ref_ty, *ty;
 
@@ -375,6 +348,17 @@ deref_typedef_type(UnboundedArray* type_array)
         ref_ty = actual_type(ref_ty->typedef_.ref);
       }
       ty->ctor = TYPE_TYPE;
+      ty->type.type = ref_ty;
+    }
+  }
+
+  for (int i = 0; i < type_array->elem_count; i++) {
+    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
+    if (ty->ctor == TYPE_TYPE) {
+      ref_ty = ty->type.type;
+      while (ref_ty->ctor == TYPE_TYPE) {
+        ref_ty = ref_ty->type.type;
+      }
       ty->type.type = ref_ty;
     }
   }
@@ -423,59 +407,21 @@ Debug_print_type_array(UnboundedArray* type_array)
   }
 }
 
-Set*
-build_type_table(char* source_file_, Ast* p4program, Scope* root_scope_, Set* opened_scopes_,
-        Set* enclosing_scopes_, Set* decl_table_, Arena* storage_)
+void
+build_type_table(char* source_file_, Ast* p4program, Scope* root_scope_, UnboundedArray* type_array_,
+        Set* type_table_, Set* opened_scopes_, Set* enclosing_scopes_, Set* decl_table_, Arena* storage_)
 {
-  struct BuiltinType {
-    char* strname;
-    enum TypeEnum ctor;
-    Type** type;
-  };
-
-  struct BuiltinType builtin_types[] = {
-    {"void",       TYPE_VOID,     &builtin_void_ty},
-    {"bool",       TYPE_BOOL,     &builtin_bool_ty},
-    {"int",        TYPE_INT,      &builtin_int_ty},
-    {"bit",        TYPE_BIT,      &builtin_bit_ty},
-    {"varbit",     TYPE_VARBIT,   &builtin_varbit_ty},
-    {"string",     TYPE_STRING,   &builtin_string_ty},
-    {"error",      TYPE_ENUM,     &builtin_error_ty},
-    {"match_kind", TYPE_ENUM,     &builtin_match_kind_ty},
-    {"_",          TYPE_DONTCARE, &builtin_dontcare_ty},
-  };
-
-  Type* builtin_ty;
-  NameDeclaration* name_decl;
-
   source_file = source_file_;
   storage = storage_;
   root_scope = root_scope_;
+  type_array = type_array_;
+  type_table = type_table_;
   opened_scopes = opened_scopes_;
   enclosing_scopes = enclosing_scopes_;
   decl_table = decl_table_;
-  type_table = arena_malloc(storage, sizeof(Set));
-  *type_table = (Set){};
-  type_array = array_create(storage, sizeof(Type), 1008);
   type_equiv_pairs = array_create(storage, sizeof(TypePair), 48);
 
-  for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
-    name_decl = scope_lookup_namespace(root_scope, builtin_types[i].strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
-    builtin_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    builtin_ty->ctor = builtin_types[i].ctor;
-    builtin_ty->strname = name_decl->strname;
-    builtin_ty->ast = name_decl->ast;
-    name_decl->type = builtin_ty;
-    set_add_member(type_table, storage, name_decl->ast, builtin_ty);
-    *builtin_types[i].type = builtin_ty;
-  }
-
   visit_p4program(p4program);
-  resolve_type_nameref(type_table, type_array);
-  deref_typedef_type(type_array);
-  deref_type_type(type_array);
-
-  return type_table;
 }
 
 /** PROGRAM **/

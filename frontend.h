@@ -903,6 +903,8 @@ typedef struct Type {
 Type* actual_type(Type* type);
 bool  type_equiv(Type* u, Type* v);
 char* Debug_TypeEnum_to_string(enum TypeEnum type);
+void  resolve_type_nameref(Set* type_table, UnboundedArray* type_array);
+void  deref_type_type(UnboundedArray* type_array);
 
 typedef struct Scope {
   int scope_level;

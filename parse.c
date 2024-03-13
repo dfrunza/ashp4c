@@ -9,7 +9,6 @@ static UnboundedArray* tokens;
 static int    token_at = 0, prev_token_at = 0;
 static Token* token = 0, *prev_token = 0;
 static Scope* current_scope;
-static Scope* root_scope;
 
 /** PROGRAM **/
 
@@ -665,104 +664,20 @@ Debug_AstEnum_to_string(enum AstEnum ast)
 }
 
 Ast*
-parse_program(char* source_file_, UnboundedArray* tokens_, Arena* storage_, Scope** root_scope_)
+parse_program(char* source_file_, UnboundedArray* tokens_, Arena* storage_, Scope* root_scope)
 {
-  struct Keyword {
-    char* strname;
-    enum TokenClass token_class;
-  };
-
-  struct BuiltinName {
-    char* strname;
-    enum NameSpace ns;
-  };
-
-  struct Keyword keywords[] = {
-    {"action",  TK_ACTION},
-    {"actions", TK_ACTIONS},
-    {"entries", TK_ENTRIES},
-    {"enum",    TK_ENUM},
-    {"in",      TK_IN},
-    {"package", TK_PACKAGE},
-    {"select",  TK_SELECT},
-    {"switch",  TK_SWITCH},
-    {"tuple",   TK_TUPLE},
-    {"control", TK_CONTROL},
-    {"error",   TK_ERROR},
-    {"header",  TK_HEADER},
-    {"inout",   TK_INOUT},
-    {"parser",  TK_PARSER},
-    {"state",   TK_STATE},
-    {"table",   TK_TABLE},
-    {"key",     TK_KEY},
-    {"typedef", TK_TYPEDEF},
-    {"default", TK_DEFAULT},
-    {"extern",  TK_EXTERN},
-    {"header_union", TK_HEADER_UNION},
-    {"out",     TK_OUT},
-    {"transition", TK_TRANSITION},
-    {"else",    TK_ELSE},
-    {"exit",    TK_EXIT},
-    {"if",      TK_IF},
-    {"match_kind", TK_MATCH_KIND},
-    {"return",  TK_RETURN},
-    {"struct",  TK_STRUCT},
-    {"apply",   TK_APPLY},
-    {"const",   TK_CONST},
-    {"bool",    TK_BOOL},
-    {"true",    TK_TRUE},
-    {"false",   TK_FALSE},
-    {"void",    TK_VOID},
-    {"int",     TK_INT},
-    {"bit",     TK_BIT},
-    {"varbit",  TK_VARBIT},
-    {"string",  TK_STRING},
-  };
-
-  struct BuiltinName builtin_names[] = {
-    {"bool",   NAMESPACE_TYPE},
-    {"int",    NAMESPACE_TYPE},
-    {"bit",    NAMESPACE_TYPE},
-    {"varbit", NAMESPACE_TYPE},
-    {"string", NAMESPACE_TYPE},
-    {"void",   NAMESPACE_TYPE},
-    {"error",  NAMESPACE_TYPE},
-    {"match_kind", NAMESPACE_TYPE},
-    {"_",      NAMESPACE_TYPE},
-    {"accept", NAMESPACE_VAR},
-    {"reject", NAMESPACE_VAR},
-  };
-
-  NameDeclaration* name_decl;
-  Ast* name, *program;
+  Ast *program;
 
   source_file = source_file_;
   tokens = tokens_;
   storage = storage_;
-  root_scope = scope_create(storage, 496);
   current_scope = root_scope;
 
-  for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
-    name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-    name_decl->strname = keywords[i].strname;
-    name_decl->token_class = keywords[i].token_class;
-    scope_push_decl(current_scope, storage, name_decl, NAMESPACE_KEYWORD);
-  }
-  for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
-    name = arena_malloc(storage, sizeof(Ast));
-    name->kind = AST_name;
-    name->name.strname = builtin_names[i].strname;
-    name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-    name_decl->strname = name->name.strname;
-    name_decl->ast = name;
-    scope_push_decl(root_scope, storage, name_decl, builtin_names[i].ns);
-  }
   token_at = 0;
   token = array_get_element(tokens, token_at, sizeof(Token));
   next_token();
   program = parse_p4program();
   assert(current_scope == root_scope);
-  *root_scope_ = root_scope;
   return program;
 }
 
