@@ -109,7 +109,39 @@ parse_cmdline_args(int arg_count, char* args[], Arena* storage)
 }
 
 static Ast*
-syntactic_analysis(char* source_file, Scope** root_scope_, Arena* storage, Arena* text_storage)
+syntactic_analysis(char* source_file, Scope* root_scope, Arena* storage, Arena* text_storage)
+{
+  SourceText source_text;
+  UnboundedArray* tokens;
+  Ast *program;
+
+  source_text = read_source_text(source_file, text_storage);
+  tokens = tokenize_source_text(&source_text, storage);
+  program = parse_program(source_file, tokens, storage, root_scope);
+  return program;
+}
+
+static void
+semantic_analysis(char* source_file, Ast* program, Scope* root_scope,
+      UnboundedArray* type_array, Set* type_table, Arena* storage)
+{
+  Set* opened_scopes, *enclosing_scopes;
+  Set* decl_table;
+
+  drypass(source_file, program);
+
+  opened_scopes = build_open_scope(source_file, program, root_scope, storage);
+  enclosing_scopes = build_symtable(source_file, program, root_scope, opened_scopes, &decl_table, storage);
+  build_type_table(source_file, program, root_scope, type_array, type_table,
+              opened_scopes, enclosing_scopes, decl_table, storage);
+  resolve_type_nameref(type_table, type_array);
+  deref_type_type(type_array);
+  build_potential_types(source_file, program, root_scope, opened_scopes, enclosing_scopes,
+              type_table, decl_table, storage);
+}
+
+int
+main(int arg_count, char* args[])
 {
   struct Keyword {
     char* strname;
@@ -119,6 +151,12 @@ syntactic_analysis(char* source_file, Scope** root_scope_, Arena* storage, Arena
   struct BuiltinName {
     char* strname;
     enum NameSpace ns;
+  };
+
+  struct BuiltinType {
+    char* strname;
+    enum TypeEnum ctor;
+    Type** type;
   };
 
   struct Keyword keywords[] = {
@@ -177,45 +215,6 @@ syntactic_analysis(char* source_file, Scope** root_scope_, Arena* storage, Arena
     {"reject", NAMESPACE_VAR},
   };
 
-  SourceText source_text;
-  UnboundedArray* tokens;
-  NameDeclaration* name_decl;
-  Scope* root_scope;
-  Ast* name, *program;
-
-  root_scope = scope_create(storage, 496);
-  *root_scope_ = root_scope;
-  for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
-    name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-    name_decl->strname = keywords[i].strname;
-    name_decl->token_class = keywords[i].token_class;
-    scope_push_decl(root_scope, storage, name_decl, NAMESPACE_KEYWORD);
-  }
-  for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
-    name = arena_malloc(storage, sizeof(Ast));
-    name->kind = AST_name;
-    name->name.strname = builtin_names[i].strname;
-    name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-    name_decl->strname = name->name.strname;
-    name_decl->ast = name;
-    scope_push_decl(root_scope, storage, name_decl, builtin_names[i].ns);
-  }
-
-  source_text = read_source_text(source_file, text_storage);
-  tokens = tokenize_source_text(&source_text, storage);
-  program = parse_program(source_file, tokens, storage, root_scope);
-  return program;
-}
-
-static void
-semantic_analysis(char* source_file, Ast* program, Scope* root_scope, Arena* storage)
-{
-  struct BuiltinType {
-    char* strname;
-    enum TypeEnum ctor;
-    Type** type;
-  };
-
   struct BuiltinType builtin_types[] = {
     {"void",       TYPE_VOID,     &builtin_void_ty},
     {"bool",       TYPE_BOOL,     &builtin_bool_ty},
@@ -228,45 +227,14 @@ semantic_analysis(char* source_file, Ast* program, Scope* root_scope, Arena* sto
     {"_",          TYPE_DONTCARE, &builtin_dontcare_ty},
   };
 
-  Set* opened_scopes, *enclosing_scopes;
-  UnboundedArray* type_array;
-  Set* type_table, *decl_table = 0;
-  Type* builtin_ty;
-  NameDeclaration* name_decl;
-
-  type_array = array_create(storage, sizeof(Type), 1008);
-  type_table = arena_malloc(storage, sizeof(Set));
-  *type_table = (Set){};
-  for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
-    name_decl = scope_lookup_namespace(root_scope, builtin_types[i].strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
-    builtin_ty = (Type*)array_append_element(type_array, storage, sizeof(Type));
-    builtin_ty->ctor = builtin_types[i].ctor;
-    builtin_ty->strname = name_decl->strname;
-    builtin_ty->ast = name_decl->ast;
-    name_decl->type = builtin_ty;
-    set_add_member(type_table, storage, name_decl->ast, builtin_ty);
-    *builtin_types[i].type = builtin_ty;
-  }
-
-  drypass(source_file, program);
-
-  opened_scopes = build_open_scope(source_file, program, root_scope, storage);
-  enclosing_scopes = build_symtable(source_file, program, root_scope, opened_scopes, &decl_table, storage);
-  build_type_table(source_file, program, root_scope, type_array, type_table,
-              opened_scopes, enclosing_scopes, decl_table, storage);
-  resolve_type_nameref(type_table, type_array);
-  deref_type_type(type_array);
-  build_potential_types(source_file, program, root_scope, opened_scopes, enclosing_scopes,
-              type_table, decl_table, storage);
-}
-
-int
-main(int arg_count, char* args[])
-{
   CmdlineArg* cmdline, *filename;
   Arena storage = {}, tmp_storage = {};
-  Ast* program;
+  Ast* name, *program;
+  NameDeclaration* name_decl;
   Scope* root_scope;
+  UnboundedArray* type_array;
+  Set* type_table;
+  Type* builtin_ty;
 
   reserve_page_memory(500*KILOBYTE);
 
@@ -277,10 +245,41 @@ main(int arg_count, char* args[])
     exit(1);
   }
 
-  program = syntactic_analysis(filename->value, &root_scope, &storage, &tmp_storage);
+  root_scope = scope_create(&storage, 496);
+  for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
+    name_decl = arena_malloc(&storage, sizeof(NameDeclaration));
+    name_decl->strname = keywords[i].strname;
+    name_decl->token_class = keywords[i].token_class;
+    scope_push_decl(root_scope, &storage, name_decl, NAMESPACE_KEYWORD);
+  }
+  for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
+    name = arena_malloc(&storage, sizeof(Ast));
+    name->kind = AST_name;
+    name->name.strname = builtin_names[i].strname;
+    name_decl = arena_malloc(&storage, sizeof(NameDeclaration));
+    name_decl->strname = name->name.strname;
+    name_decl->ast = name;
+    scope_push_decl(root_scope, &storage, name_decl, builtin_names[i].ns);
+  }
+
+  type_array = array_create(&storage, sizeof(Type), 1008);
+  type_table = arena_malloc(&storage, sizeof(Set));
+  *type_table = (Set){};
+  for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
+    name_decl = scope_lookup_namespace(root_scope, builtin_types[i].strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+    builtin_ty = (Type*)array_append_element(type_array, &storage, sizeof(Type));
+    builtin_ty->ctor = builtin_types[i].ctor;
+    builtin_ty->strname = name_decl->strname;
+    builtin_ty->ast = name_decl->ast;
+    name_decl->type = builtin_ty;
+    set_add_member(type_table, &storage, name_decl->ast, builtin_ty);
+    *builtin_types[i].type = builtin_ty;
+  }
+
+  program = syntactic_analysis(filename->value, root_scope, &storage, &tmp_storage);
   arena_free(&tmp_storage);
 
-  semantic_analysis(filename->value, program, root_scope, &storage);
+  semantic_analysis(filename->value, program, root_scope, type_array, type_table, &storage);
 
   arena_free(&storage);
   return 0;
