@@ -42,7 +42,7 @@ match_kind {
 }
 
 parser p1(packet_in p, out Header h) {
-    bit x;
+    bit<1> x;
     state start {
         transition select (x) {
             0: chain1;

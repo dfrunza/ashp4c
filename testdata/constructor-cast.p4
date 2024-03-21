@@ -3,7 +3,7 @@ extern E {
 }
 
 control c() {
-    E(12w8) e;
+    E(8w12) e;
     apply {}
 }
 

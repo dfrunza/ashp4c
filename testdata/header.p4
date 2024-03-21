@@ -1,5 +1,5 @@
 header my_header {
-    bit    g1;
+    bit<1> g1;
     bit<2> g2;
     bit<3> g3;
 }

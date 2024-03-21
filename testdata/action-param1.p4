@@ -2,7 +2,7 @@ control c(inout bit<32> x) {
     action a(in bit<32> arg) { x = arg; }
 
     apply {
-        a(15w8);
+        a(8w15);
     }
 }
 

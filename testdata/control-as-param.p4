@@ -2,13 +2,13 @@ control E(out bit b);
 
 control D(out bit b) {
     apply {
-        b = 1w8;
+        b = 8w1;
     }
 }
 
 control F(out bit b) {
     apply {
-        b = 0w8;
+        b = 8w0;
     }
 }
 
