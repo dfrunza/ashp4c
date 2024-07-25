@@ -1,6 +1,6 @@
 for f in `find testdata -maxdepth 1 -type f -name "*.p4"`; do \
     echo;
-    ./build/ashp4c $f;
+    ./ashp4c $f;
     if [ $? -eq 0 ]; then
         echo "$f ... [PASS]"
         echo "--------";

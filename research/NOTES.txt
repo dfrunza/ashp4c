@@ -1,8 +1,6 @@
 == Random ==
 ============
 
- - Reduce the complexity of the P4 grammar.
-
  - Should we support the n in bit<n>?
 
  - A P4 table T can be considered as having a 'type', which defines the properties of all instances of T.
@@ -40,8 +38,8 @@ pkt/=Raw("W"*(100-len(pkt)))
 ./xdp_redirect_user -S 61 10
 
 
-== Static linking of libc ==
-============================
+== musl and static linking of GNU libc ==
+=========================================
 
 GNU libc is not designed to be statically linked. Important functions, e.g. gethostbyname and iconv,
 will malfunction or not work at all in a static binary. Arguably even worse, under some conditions a
@@ -70,30 +68,6 @@ Stricter checking of function usage, which leads to better error reporting by th
 For examle, a warning is reported if a function is used without declaration :
 
   `warning| implicit declaration of function ‘hashmap_init’`
-
-
-== _GNU_SOURCE macro definition ==
-==================================
-
-If no feature test macros are defined, musl's headers operate in "default features" mode,
-exposing the equivalent of the _BSD_SOURCE option below. This corresponds
-fairly well to what most applications unaware of feature test macros expect,
-and also provides a number of more modern features.
-
-Otherwise, if at least one of the below-listed feature test macros is defined,
-they are treated additively, starting from pure ISO C as a base.
-Unless otherwise specified, musl ignores the value of the macro and only checks whether it is defined.
-
-__STRICT_ANSI__
-
-Adds nothing; only suppresses the default features. This macro is defined
-automatically by GCC and other major compilers in strict standards-conformance modes.
-
-...
-
-_GNU_SOURCE (or _ALL_SOURCE)
-
-Adds everything above, plus interfaces modeled after GNU libc extensions and interfaces for making use of Linux-specific features.
 
 
 == Core Dump ==
