@@ -37,12 +37,12 @@ NameEntry*
 scope_lookup(Scope* scope, char* strname)
 {
   NameEntry* name_entry = 0;
-  HashmapEntry* e;
+  HashmapEntry* he;
 
   while (scope) {
-    e = hashmap_lookup_entry(&scope->name_table, strname);
-    if (e) {
-      name_entry = (NameEntry*)e->value;
+    he = hashmap_lookup_entry(&scope->name_table, strname);
+    if (he) {
+      name_entry = (NameEntry*)he->value;
       if (name_entry->ns[NAMESPACE_TYPE] || name_entry->ns[NAMESPACE_VAR] || name_entry->ns[NAMESPACE_KEYWORD]) {
         break;
       }
@@ -61,12 +61,12 @@ scope_lookup_in_namespace(Scope* scope, char* strname, enum NameSpace ns)
 {
   assert(NAMESPACE_NONE < ns && ns < NameSpace_COUNT);
   NameEntry* name_entry = 0;
-  HashmapEntry* e;
+  HashmapEntry* he;
 
   while (scope) {
-    e = hashmap_lookup_entry(&scope->name_table, strname);
-    if (e) {
-      name_entry = (NameEntry*)e->value;
+    he = hashmap_lookup_entry(&scope->name_table, strname);
+    if (he) {
+      name_entry = (NameEntry*)he->value;
       if (name_entry->ns[ns]) {
         break;
       }
@@ -84,11 +84,11 @@ NameEntry*
 scope_lookup_current(Scope* scope, char* strname)
 {
   NameEntry* name_entry = 0;
-  HashmapEntry* e;
+  HashmapEntry* he;
 
-  e = hashmap_lookup_entry(&scope->name_table, strname);
-  if (e) {
-    name_entry = (NameEntry*)e->value;
+  he = hashmap_lookup_entry(&scope->name_table, strname);
+  if (he) {
+    name_entry = (NameEntry*)he->value;
   }
   return name_entry;
 }
@@ -99,16 +99,16 @@ scope_bind(Scope* scope, Arena* storage, char*strname, enum NameSpace ns)
   assert(NAMESPACE_NONE < ns && ns < NameSpace_COUNT);
   NameDeclaration* name_decl;
   NameEntry* name_entry;
-  HashmapEntry* e;
+  HashmapEntry* he;
 
   name_decl = arena_malloc(storage, sizeof(NameDeclaration));
   name_decl->strname = strname;
 
-  e = hashmap_lookup_or_insert_entry(&scope->name_table, storage, strname, 0);
-  if (e->value == 0) {
-    e->value = arena_malloc(storage, sizeof(NameEntry));
+  he = hashmap_lookup_or_insert_entry(&scope->name_table, storage, strname, 0);
+  if (he->value == 0) {
+    he->value = arena_malloc(storage, sizeof(NameEntry));
   }
-  name_entry = (NameEntry*)e->value;
+  name_entry = (NameEntry*)he->value;
   name_decl->next_in_scope = name_entry->ns[ns];
   name_entry->ns[ns] = name_decl;
   return name_decl;
@@ -121,13 +121,13 @@ Debug_scope_decls(Scope* scope)
   NameDeclaration* decl;
   int count = 0;
   HashmapCursor it = {};
-  HashmapEntry* e;
+  HashmapEntry* he;
 
   hashmap_cursor_begin(&it, &scope->name_table);
   printf("Names in scope 0x%x\n\n", scope);
-  e = hashmap_cursor_next_entry(&it);
-  while (e) {
-    name_entry = (NameEntry*)e->value;
+  he = hashmap_cursor_next_entry(&it);
+  while (he) {
+    name_entry = (NameEntry*)he->value;
     for (int i = 1; i < NameSpace_COUNT; i++) {
       decl = name_entry->ns[i];
       while (decl) {
@@ -141,7 +141,7 @@ Debug_scope_decls(Scope* scope)
         count += 1;
       }
     }
-    e = hashmap_cursor_next_entry(&it);
+    he = hashmap_cursor_next_entry(&it);
   }
   printf("\nTotal names: %d\n", count);
 }

@@ -790,7 +790,7 @@ parse_declaration()
       decl->declaration.decl = parse_functionDeclaration(parse_typeRef());
       return decl;
     } else assert(0);
-  } else error("%s:%d:%d: error: top-level declaration as expected, got `%s`.",
+  } else error("%s:%d:%d: error: top-level declaration was expected, got `%s`.",
                source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
@@ -1752,7 +1752,7 @@ parse_methodPrototype()
           next_token();
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      source_file, token->line_no, token->column_no, token->lexeme);
-      } else error("%s:%d:%d: error: `(` as expected, got `%s`.",
+      } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
                    source_file, token->line_no, token->column_no, token->lexeme);
       if (token->klass == TK_SEMICOLON) {
         next_token();

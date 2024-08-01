@@ -262,7 +262,7 @@ Debug_hashmap_occupancy(Hashmap* hashmap)
     printf("[%d] -> %d\n", i, entry_count);
   }
   printf(
-  "Entry count: %d\n" \
-  "Empty buckets: %d\n" \
-  "Max. bucket length: %d\n", total_entry_count, empty_buckets, max_bucket_length);
+    "Entry count: %d\n" \
+    "Empty buckets: %d\n" \
+    "Max. bucket length: %d\n", total_entry_count, empty_buckets, max_bucket_length);
 }
