@@ -75,6 +75,12 @@ typedef struct HashmapEntry {
   struct HashmapEntry* next_entry;
 } HashmapEntry;
 
+typedef struct HashmapBucket {
+  uint32_t h;
+  HashmapEntry** entry_slot;
+  int last_segment;
+} HashmapBucket;
+
 typedef struct Hashmap {
   int entry_count;
   int capacity;
@@ -89,9 +95,8 @@ typedef struct HashmapCursor {
 
 Hashmap*      hashmap_create(Arena* storage, int max_capacity);
 void          hashmap_init(Hashmap* hashmap, Arena* storage, int segment_count);
-HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, char* key);
-HashmapEntry* hashmap_insert_entry(Hashmap* hashmap, Arena* storage, char* key, void* value);
-HashmapEntry* hashmap_lookup_or_insert_entry(Hashmap* hashmap, Arena* storage, char* key, void* value);
+HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, char* key, HashmapBucket* bucket);
+HashmapEntry* hashmap_insert_entry(Hashmap* hashmap, Arena* storage, char* key, void* value, bool nop_if_exists);
 void          hashmap_cursor_begin(HashmapCursor* cursor, Hashmap* hashmap);
 HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor);
 

@@ -40,7 +40,7 @@ scope_lookup(Scope* scope, char* strname, enum NameSpace ns)
   HashmapEntry* he;
 
   while (scope) {
-    he = hashmap_lookup_entry(&scope->name_table, strname);
+    he = hashmap_lookup_entry(&scope->name_table, strname, 0);
     if (he) {
       name_entry = (NameEntry*)he->value;
       if ((ns & NAMESPACE_TYPE) != 0 && name_entry->ns[NAMESPACE_TYPE >> 1]) {
@@ -68,7 +68,7 @@ scope_lookup_current(Scope* scope, char* strname)
   NameEntry* name_entry = 0;
   HashmapEntry* he;
 
-  he = hashmap_lookup_entry(&scope->name_table, strname);
+  he = hashmap_lookup_entry(&scope->name_table, strname, 0);
   if (he) {
     name_entry = (NameEntry*)he->value;
   }
@@ -86,7 +86,7 @@ scope_bind(Scope* scope, Arena* storage, char*strname, enum NameSpace ns)
   name_decl = arena_malloc(storage, sizeof(NameDeclaration));
   name_decl->strname = strname;
 
-  he = hashmap_lookup_or_insert_entry(&scope->name_table, storage, strname, 0);
+  he = hashmap_insert_entry(&scope->name_table, storage, strname, 0, false);
   if (he->value == 0) {
     he->value = arena_malloc(storage, sizeof(NameEntry));
   }
