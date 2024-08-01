@@ -317,7 +317,7 @@ resolve_type_nameref(Set* type_table, UnboundedArray* type_array)
     ty = (Type*)array_get_element(type_array, i, sizeof(Type));
     if (ty->ctor == TYPE_NAMEREF) {
       name = ty->nameref.name;
-      name_entry = scope_lookup_in_namespace(ty->nameref.scope, name->name.strname, NAMESPACE_TYPE);
+      name_entry = scope_lookup(ty->nameref.scope, name->name.strname, NAMESPACE_TYPE);
       name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
       if (name_decl) {
         ref_ty = set_lookup_value(type_table, name_decl->ast, 0);
@@ -1700,7 +1700,7 @@ visit_actionDeclaration(Ast* action_decl)
   action_ty->function.params = set_lookup_value(type_table, action_decl->actionDeclaration.params, 0);
   set_add_member(type_table, storage, action_decl, action_ty);
 
-  name_entry = scope_lookup_in_namespace(root_scope, "void", NAMESPACE_TYPE);
+  name_entry = scope_lookup(root_scope, "void", NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   action_ty->function.return_ = name_decl->type;
 

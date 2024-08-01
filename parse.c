@@ -148,7 +148,7 @@ next_token()
     token = array_get_element(tokens, ++token_at, sizeof(Token));
   }
   if (token->klass == TK_IDENTIFIER) {
-    name_entry = scope_lookup(current_scope, token->lexeme);
+    name_entry = scope_lookup(current_scope, token->lexeme, NAMESPACE_KEYWORD|NAMESPACE_TYPE);
     name_decl = name_entry_getdecl(name_entry, NAMESPACE_KEYWORD);
     if (name_decl) {
       token->klass = name_decl->token_class;

@@ -34,7 +34,7 @@ scope_pop(Scope* scope)
 }
 
 NameEntry*
-scope_lookup(Scope* scope, char* strname)
+scope_lookup(Scope* scope, char* strname, enum NameSpace ns)
 {
   NameEntry* name_entry = 0;
   HashmapEntry* he;
@@ -43,31 +43,13 @@ scope_lookup(Scope* scope, char* strname)
     he = hashmap_lookup_entry(&scope->name_table, strname);
     if (he) {
       name_entry = (NameEntry*)he->value;
-      if (name_entry->ns[NAMESPACE_TYPE] || name_entry->ns[NAMESPACE_VAR] || name_entry->ns[NAMESPACE_KEYWORD]) {
+      if ((ns & NAMESPACE_TYPE) != 0 && name_entry->ns[NAMESPACE_TYPE >> 1]) {
         break;
       }
-    }
-    name_entry = 0;
-    scope = scope->parent_scope;
-  }
-  if (name_entry) {
-    return name_entry;
-  }
-  return &null_entry;
-}
-
-NameEntry*
-scope_lookup_in_namespace(Scope* scope, char* strname, enum NameSpace ns)
-{
-  assert(NAMESPACE_NONE < ns);
-  NameEntry* name_entry = 0;
-  HashmapEntry* he;
-
-  while (scope) {
-    he = hashmap_lookup_entry(&scope->name_table, strname);
-    if (he) {
-      name_entry = (NameEntry*)he->value;
-      if (name_entry->ns[ns]) {
+      if ((ns & NAMESPACE_VAR) != 0 && name_entry->ns[NAMESPACE_VAR >> 1]) {
+        break;;
+      }
+      if ((ns & NAMESPACE_KEYWORD) != 0 && name_entry->ns[NAMESPACE_KEYWORD >> 1]) {
         break;
       }
     }
@@ -109,8 +91,8 @@ scope_bind(Scope* scope, Arena* storage, char*strname, enum NameSpace ns)
     he->value = arena_malloc(storage, sizeof(NameEntry));
   }
   name_entry = (NameEntry*)he->value;
-  name_decl->next_in_scope = name_entry->ns[ns];
-  name_entry->ns[ns] = name_decl;
+  name_decl->next_in_scope = name_entry->ns[ns >> 1];
+  name_entry->ns[ns >> 1] = name_decl;
   return name_decl;
 }
 
@@ -118,7 +100,7 @@ NameDeclaration*
 name_entry_getdecl(NameEntry* name_entry, enum NameSpace ns)
 {
   assert(NAMESPACE_NONE < ns);
-  return name_entry->ns[ns];
+  return name_entry->ns[ns >> 1];
 }
 
 void

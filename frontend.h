@@ -927,9 +927,9 @@ typedef struct NameDeclaration {
 
 enum NameSpace {
   NAMESPACE_NONE    = 0,
-  NAMESPACE_VAR     = 1,
-  NAMESPACE_TYPE    = 2,
-  NAMESPACE_KEYWORD = 3,
+  NAMESPACE_VAR     = 1 << 0,
+  NAMESPACE_TYPE    = 1 << 1,
+  NAMESPACE_KEYWORD = 1 << 2,
 };
 #define NameSpace_COUNT 4
 
@@ -942,8 +942,7 @@ typedef struct NameEntry {
 Scope*     scope_create(Arena* storage, int max_capacity);
 Scope*     scope_push(Scope* scope, Scope* parent_scope);
 Scope*     scope_pop(Scope* scope);
-NameEntry* scope_lookup(Scope* scope, char* name);
-NameEntry* scope_lookup_in_namespace(Scope* scope, char* strname, enum NameSpace ns);
+NameEntry* scope_lookup(Scope* scope, char* name, enum NameSpace ns);
 NameEntry* scope_lookup_current(Scope* scope, char* strname);
 NameDeclaration* scope_bind(Scope* scope, Arena* storage, char* strname, enum NameSpace ns);
 NameDeclaration* name_entry_getdecl(NameEntry* name_entry, enum NameSpace ns);

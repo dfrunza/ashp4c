@@ -447,7 +447,7 @@ visit_name(Ast* name)
   NameEntry* name_entry;
 
   scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_entry = scope_lookup(scope, name->name.strname);
+  name_entry = scope_lookup(scope, name->name.strname, NAMESPACE_VAR|NAMESPACE_TYPE);
   return name_entry;
 }
 

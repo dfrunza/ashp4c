@@ -737,7 +737,7 @@ visit_baseTypeBoolean(Ast* bool_type)
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_entry = scope_lookup_in_namespace(root_scope, "bool", NAMESPACE_TYPE);
+  name_entry = scope_lookup(root_scope, "bool", NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, bool_type, name_decl);
 }
@@ -753,7 +753,7 @@ visit_baseTypeInteger(Ast* int_type)
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
 
-  name_entry = scope_lookup_in_namespace(root_scope, "int", NAMESPACE_TYPE); 
+  name_entry = scope_lookup(root_scope, "int", NAMESPACE_TYPE); 
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, int_type, name_decl);
 }
@@ -769,7 +769,7 @@ visit_baseTypeBit(Ast* bit_type)
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
 
-  name_entry = scope_lookup_in_namespace(root_scope, "bit", NAMESPACE_TYPE);
+  name_entry = scope_lookup(root_scope, "bit", NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, bit_type, name_decl);
 }
@@ -783,7 +783,7 @@ visit_baseTypeVarbit(Ast* varbit_type)
 
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
 
-  name_entry = scope_lookup_in_namespace(root_scope, "varbit", NAMESPACE_TYPE);
+  name_entry = scope_lookup(root_scope, "varbit", NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, varbit_type, name_decl);
 }
@@ -795,7 +795,7 @@ visit_baseTypeString(Ast* str_type)
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_entry = scope_lookup_in_namespace(root_scope, "string", NAMESPACE_TYPE);
+  name_entry = scope_lookup(root_scope, "string", NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, str_type, name_decl);
 }
@@ -807,7 +807,7 @@ visit_baseTypeVoid(Ast* void_type)
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_entry = scope_lookup_in_namespace(root_scope, "void", NAMESPACE_TYPE);
+  name_entry = scope_lookup(root_scope, "void", NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, void_type, name_decl);
 }
@@ -819,7 +819,7 @@ visit_baseTypeError(Ast* error_type)
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_entry = scope_lookup_in_namespace(root_scope, "error", NAMESPACE_TYPE);
+  name_entry = scope_lookup(root_scope, "error", NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, error_type, name_decl);
 }
@@ -1644,7 +1644,7 @@ visit_booleanLiteral(Ast* bool_literal)
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_entry = scope_lookup_in_namespace(root_scope, "bool", NAMESPACE_TYPE);
+  name_entry = scope_lookup(root_scope, "bool", NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, bool_literal, name_decl);
 }
@@ -1657,9 +1657,9 @@ visit_integerLiteral(Ast* int_literal)
   NameDeclaration* name_decl;
 
   if (int_literal->integerLiteral.is_signed) {
-    name_entry = scope_lookup_in_namespace(root_scope, "int", NAMESPACE_TYPE);
+    name_entry = scope_lookup(root_scope, "int", NAMESPACE_TYPE);
   } else {
-    name_entry = scope_lookup_in_namespace(root_scope, "bit", NAMESPACE_TYPE);
+    name_entry = scope_lookup(root_scope, "bit", NAMESPACE_TYPE);
   }
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, int_literal, name_decl);
@@ -1672,7 +1672,7 @@ visit_stringLiteral(Ast* str_literal)
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_entry = scope_lookup_in_namespace(root_scope, "string", NAMESPACE_TYPE);
+  name_entry = scope_lookup(root_scope, "string", NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, str_literal, name_decl);
 }
@@ -1690,7 +1690,7 @@ visit_dontcare(Ast* dontcare)
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_entry = scope_lookup_in_namespace(root_scope, "_", NAMESPACE_TYPE);
+  name_entry = scope_lookup(root_scope, "_", NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, dontcare, name_decl);
 }
