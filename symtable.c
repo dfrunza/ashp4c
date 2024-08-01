@@ -734,9 +734,11 @@ static void
 visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AST_baseTypeBoolean);
+  NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_decl = scope_lookup_in_namespace(root_scope, "bool", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_entry = scope_lookup_in_namespace(root_scope, "bool", NAMESPACE_TYPE);
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, bool_type, name_decl);
 }
 
@@ -744,13 +746,15 @@ static void
 visit_baseTypeInteger(Ast* int_type)
 {
   assert(int_type->kind == AST_baseTypeInteger);
+  NameEntry* name_entry;
   NameDeclaration* name_decl;
 
   if (int_type->baseTypeInteger.size) {
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
 
-  name_decl = scope_lookup_in_namespace(root_scope, "int", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_entry = scope_lookup_in_namespace(root_scope, "int", NAMESPACE_TYPE); 
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, int_type, name_decl);
 }
 
@@ -758,13 +762,15 @@ static void
 visit_baseTypeBit(Ast* bit_type)
 {
   assert(bit_type->kind == AST_baseTypeBit);
+  NameEntry* name_entry;
   NameDeclaration* name_decl;
 
   if (bit_type->baseTypeBit.size) {
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
 
-  name_decl = scope_lookup_in_namespace(root_scope, "bit", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_entry = scope_lookup_in_namespace(root_scope, "bit", NAMESPACE_TYPE);
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, bit_type, name_decl);
 }
 
@@ -772,11 +778,13 @@ static void
 visit_baseTypeVarbit(Ast* varbit_type)
 {
   assert(varbit_type->kind == AST_baseTypeVarbit);
+  NameEntry* name_entry;
   NameDeclaration* name_decl;
 
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
 
-  name_decl = scope_lookup_in_namespace(root_scope, "varbit", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_entry = scope_lookup_in_namespace(root_scope, "varbit", NAMESPACE_TYPE);
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, varbit_type, name_decl);
 }
 
@@ -784,9 +792,11 @@ static void
 visit_baseTypeString(Ast* str_type)
 {
   assert(str_type->kind == AST_baseTypeString);
+  NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_decl = scope_lookup_in_namespace(root_scope, "string", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_entry = scope_lookup_in_namespace(root_scope, "string", NAMESPACE_TYPE);
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, str_type, name_decl);
 }
 
@@ -794,9 +804,11 @@ static void
 visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AST_baseTypeVoid);
+  NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_decl = scope_lookup_in_namespace(root_scope, "void", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_entry = scope_lookup_in_namespace(root_scope, "void", NAMESPACE_TYPE);
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, void_type, name_decl);
 }
 
@@ -804,9 +816,11 @@ static void
 visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AST_baseTypeError);
+  NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_decl = scope_lookup_in_namespace(root_scope, "error", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_entry = scope_lookup_in_namespace(root_scope, "error", NAMESPACE_TYPE);
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, error_type, name_decl);
 }
 
@@ -1627,9 +1641,11 @@ static void
 visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AST_booleanLiteral);
+  NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_decl = scope_lookup_in_namespace(root_scope, "bool", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_entry = scope_lookup_in_namespace(root_scope, "bool", NAMESPACE_TYPE);
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, bool_literal, name_decl);
 }
 
@@ -1637,13 +1653,15 @@ static void
 visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AST_integerLiteral);
+  NameEntry* name_entry;
   NameDeclaration* name_decl;
 
   if (int_literal->integerLiteral.is_signed) {
-    name_decl = scope_lookup_in_namespace(root_scope, "int", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+    name_entry = scope_lookup_in_namespace(root_scope, "int", NAMESPACE_TYPE);
   } else {
-    name_decl = scope_lookup_in_namespace(root_scope, "bit", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+    name_entry = scope_lookup_in_namespace(root_scope, "bit", NAMESPACE_TYPE);
   }
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, int_literal, name_decl);
 }
 
@@ -1651,9 +1669,11 @@ static void
 visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AST_stringLiteral);
+  NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_decl = scope_lookup_in_namespace(root_scope, "string", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_entry = scope_lookup_in_namespace(root_scope, "string", NAMESPACE_TYPE);
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, str_literal, name_decl);
 }
 
@@ -1667,8 +1687,10 @@ static void
 visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AST_dontcare);
+  NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_decl = scope_lookup_in_namespace(root_scope, "_", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_entry = scope_lookup_in_namespace(root_scope, "_", NAMESPACE_TYPE);
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
   set_add_member(decl_table, storage, dontcare, name_decl);
 }

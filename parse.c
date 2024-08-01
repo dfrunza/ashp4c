@@ -149,11 +149,13 @@ next_token()
   }
   if (token->klass == TK_IDENTIFIER) {
     name_entry = scope_lookup(current_scope, token->lexeme);
-    if (name_entry->ns[NAMESPACE_KEYWORD]) {
-      name_decl = name_entry->ns[NAMESPACE_KEYWORD];
+    name_decl = namespace_getdecl(name_entry, NAMESPACE_KEYWORD);
+    if (name_decl) {
       token->klass = name_decl->token_class;
       return token;
-    } else if (name_entry->ns[NAMESPACE_TYPE]) {
+    }
+    name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
+    if (name_decl) {
       token->klass = TK_TYPE_IDENTIFIER;
       return token;
     }
@@ -521,7 +523,7 @@ token_to_binop(Token* token)
 }
 
 char*
-Debug_AstEnum_to_string(enum AstEnum ast)
+AstEnum_to_string(enum AstEnum ast)
 {
   switch (ast) {
     case AST_none: return "AST_none";

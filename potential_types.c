@@ -197,7 +197,7 @@ select_extern_method(Ast* name, Ast* extern_, Type* args_ty)
     return 0;
   }
   identity = 0;
-  for (nd = name_entry->ns[NAMESPACE_TYPE]; nd != 0; nd = nd->next_in_scope) {
+  for (nd = namespace_getdecl(name_entry, NAMESPACE_TYPE); nd != 0; nd = nd->next_in_scope) {
     if (identity) {
       error("%s:%d:%d: error: ambiguous name reference `%s`.",
             source_file, name->line_no, name->column_no, name->name.strname);
@@ -250,7 +250,7 @@ resolve_function(Ast* name, NameEntry* name_entry, Ast* args)
   Type* args_ty;
   NameDeclaration* name_decl;
 
-  name_decl = name_entry->ns[NAMESPACE_TYPE];
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
   if (!name_decl) {
     error("%s:%d:%d: error: undeclared name `%s`.",
           source_file, name->line_no, name->column_no, name->name.strname);
@@ -269,7 +269,7 @@ resolve_variable(Ast* name, NameEntry* name_entry)
 {
   NameDeclaration* name_decl;
 
-  name_decl = name_entry->ns[NAMESPACE_VAR];
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_VAR);
   if (!name_decl) {
     error("%s:%d:%d: error: undeclared name `%s`.",
           source_file, name->line_no, name->column_no, name->name.strname);
@@ -285,7 +285,7 @@ resolve_type(Ast* name, NameEntry* name_entry)
 {
   NameDeclaration* name_decl;
 
-  name_decl = name_entry->ns[NAMESPACE_TYPE];
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
   if (!name_decl) {
     error("%s:%d:%d: error: undeclared name `%s`.",
           source_file, name->line_no, name->column_no, name->name.strname);
@@ -311,15 +311,15 @@ select_member(Ast* name, Ast* type_decl)
   if (!name_entry) {
     return 0;
   }
-  if (name_entry->ns[NAMESPACE_VAR] && name_entry->ns[NAMESPACE_TYPE]) {
+  if (namespace_getdecl(name_entry, NAMESPACE_VAR) && namespace_getdecl(name_entry, NAMESPACE_TYPE)) {
     error("%s:%d:%d: error: ambiguous name reference `%s`.",
           source_file, name->line_no, name->column_no, name->name.strname);
   }
-  if (name_entry->ns[NAMESPACE_VAR]) {
-    name_decl = name_entry->ns[NAMESPACE_VAR];
-  } else if (name_entry->ns[NAMESPACE_TYPE]) {
-    name_decl = name_entry->ns[NAMESPACE_TYPE];
-  } else assert(0);
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_VAR);
+  if (!name_decl) {
+    name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
+  } 
+  assert(name_decl);
 
   identity = 0;
   for (nd = name_decl; nd != 0; nd = nd->next_in_scope) {
@@ -360,9 +360,9 @@ Debug_print_potential_types(Set* table)
   for (m = table->first; m != 0; m = m->next) {
     ty = (Type*)m->key;
     if (ty->strname) {
-      printf("  [%d] 0x%x %s %s\n", i, ty, Debug_TypeEnum_to_string(ty->ctor), ty->strname);
+      printf("  [%d] 0x%x %s %s\n", i, ty, TypeEnum_to_string(ty->ctor), ty->strname);
     } else {
-      printf("  [%d] 0x%x %s\n", i, ty, Debug_TypeEnum_to_string(ty->ctor));
+      printf("  [%d] 0x%x %s\n", i, ty, TypeEnum_to_string(ty->ctor));
     }
     i += 1;
   }
@@ -1771,13 +1771,13 @@ visit_memberSelector(Ast* selector)
     expr = selector->memberSelector.lhs_expr;
     name = expr->expression.expr;
     assert(name->kind == AST_name);
-    if (name_entry->ns[NAMESPACE_VAR] && name_entry->ns[NAMESPACE_TYPE]) {
+    if (namespace_getdecl(name_entry, NAMESPACE_VAR) && namespace_getdecl(name_entry, NAMESPACE_TYPE)) {
       error("%s:%d:%d: error: ambiguous name reference `%s`.",
             source_file, name->line_no, name->column_no, name->name.strname);
     }
-    if (name_entry->ns[NAMESPACE_VAR]) {
+    if (namespace_getdecl(name_entry, NAMESPACE_VAR)) {
       name_decl = resolve_variable(name, name_entry);
-    } else if (name_entry->ns[NAMESPACE_TYPE]) {
+    } else if (namespace_getdecl(name_entry, NAMESPACE_TYPE)) {
       name_decl = resolve_type(name, name_entry);
     } else assert(0);
     set_add_member(potential_types, storage, selector->memberSelector.lhs_expr, actual_type(name_decl->type));

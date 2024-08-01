@@ -816,7 +816,7 @@ typedef struct Ast {
   };
 } Ast;
 
-char* Debug_AstEnum_to_string(enum AstEnum ast);
+char* AstEnum_to_string(enum AstEnum ast);
 
 enum TypeEnum {
   TYPE_NONE = 0,
@@ -904,7 +904,7 @@ Type* actual_type(Type* type);
 bool  type_equiv(Type* u, Type* v);
 void  resolve_type_nameref(Set* type_table, UnboundedArray* type_array);
 void  deref_type_type(UnboundedArray* type_array);
-char* Debug_TypeEnum_to_string(enum TypeEnum type);
+char* TypeEnum_to_string(enum TypeEnum type);
 
 typedef struct Scope {
   int scope_level;
@@ -930,9 +930,10 @@ enum NameSpace {
   NAMESPACE_VAR     = 1,
   NAMESPACE_TYPE    = 2,
   NAMESPACE_KEYWORD = 3,
-
-  NameSpace_COUNT = 4,
 };
+#define NameSpace_COUNT 4
+
+char* NameSpace_to_string(enum NameSpace ns);
 
 typedef struct NameEntry {
   NameDeclaration* ns[NameSpace_COUNT];
@@ -945,4 +946,4 @@ NameEntry* scope_lookup(Scope* scope, char* name);
 NameEntry* scope_lookup_in_namespace(Scope* scope, char* strname, enum NameSpace ns);
 NameEntry* scope_lookup_current(Scope* scope, char* strname);
 NameDeclaration* scope_bind(Scope* scope, Arena* storage, char* strname, enum NameSpace ns);
-
+NameDeclaration* namespace_getdecl(NameEntry* name_entry, enum NameSpace ns);

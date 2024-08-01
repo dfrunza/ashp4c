@@ -59,7 +59,7 @@ scope_lookup(Scope* scope, char* strname)
 NameEntry*
 scope_lookup_in_namespace(Scope* scope, char* strname, enum NameSpace ns)
 {
-  assert(NAMESPACE_NONE < ns && ns < NameSpace_COUNT);
+  assert(NAMESPACE_NONE < ns);
   NameEntry* name_entry = 0;
   HashmapEntry* he;
 
@@ -96,7 +96,7 @@ scope_lookup_current(Scope* scope, char* strname)
 NameDeclaration*
 scope_bind(Scope* scope, Arena* storage, char*strname, enum NameSpace ns)
 {
-  assert(NAMESPACE_NONE < ns && ns < NameSpace_COUNT);
+  assert(NAMESPACE_NONE < ns);
   NameDeclaration* name_decl;
   NameEntry* name_entry;
   HashmapEntry* he;
@@ -114,6 +114,13 @@ scope_bind(Scope* scope, Arena* storage, char*strname, enum NameSpace ns)
   return name_decl;
 }
 
+NameDeclaration*
+namespace_getdecl(NameEntry* name_entry, enum NameSpace ns)
+{
+  assert(NAMESPACE_NONE < ns);
+  return name_entry->ns[ns];
+}
+
 void
 Debug_scope_decls(Scope* scope)
 {
@@ -122,20 +129,21 @@ Debug_scope_decls(Scope* scope)
   int count = 0;
   HashmapCursor it = {};
   HashmapEntry* he;
+  enum NameSpace ns[] = {NAMESPACE_VAR, NAMESPACE_TYPE, NAMESPACE_KEYWORD};
 
   hashmap_cursor_begin(&it, &scope->name_table);
   printf("Names in scope 0x%x\n\n", scope);
   he = hashmap_cursor_next_entry(&it);
   while (he) {
     name_entry = (NameEntry*)he->value;
-    for (int i = 1; i < NameSpace_COUNT; i++) {
-      decl = name_entry->ns[i];
+    for (int i = 0; i < sizeof(ns)/sizeof(ns[0]); i++) {
+      decl = namespace_getdecl(name_entry, ns[i]);
       while (decl) {
-        if (i == NAMESPACE_KEYWORD) {
-          printf("%s, ns[%d]\n", decl->strname, i);
+        if (ns[i] == NAMESPACE_KEYWORD) {
+          printf("%s, %s\n", decl->strname, NameSpace_to_string(ns[i]));
         } else {
           Ast* ast = decl->ast;
-          printf("%s  ...  at %d:%d, ns[%d]\n", decl->strname, ast->line_no, ast->column_no, i);
+          printf("%s  ...  at %d:%d, %s\n", decl->strname, ast->line_no, ast->column_no, NameSpace_to_string(ns[i]));
         }
         decl = decl->next_in_scope;
         count += 1;
@@ -146,3 +154,17 @@ Debug_scope_decls(Scope* scope)
   printf("\nTotal names: %d\n", count);
 }
 
+char*
+NameSpace_to_string(enum NameSpace ns)
+{
+  switch (ns) {
+    case NAMESPACE_NONE: return "NAMESPACE_NONE";
+    case NAMESPACE_VAR: return "NAMESPACE_VAR";
+    case NAMESPACE_TYPE: return "NAMESPACE_TYPE";
+    case NAMESPACE_KEYWORD: return "NAMESPACE_KEYWORD";
+
+    default: return "?";
+  }
+  assert(0);
+  return 0;
+}

@@ -274,7 +274,7 @@ type_equiv(Type* left, Type* right)
 }
 
 char*
-Debug_TypeEnum_to_string(enum TypeEnum type)
+TypeEnum_to_string(enum TypeEnum type)
 {
   switch(type) {
     case TYPE_NONE: return "TYPE_NONE";
@@ -318,7 +318,7 @@ resolve_type_nameref(Set* type_table, UnboundedArray* type_array)
     if (ty->ctor == TYPE_NAMEREF) {
       name = ty->nameref.name;
       name_entry = scope_lookup_in_namespace(ty->nameref.scope, name->name.strname, NAMESPACE_TYPE);
-      name_decl = name_entry->ns[NAMESPACE_TYPE];
+      name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
       if (name_decl) {
         ref_ty = set_lookup_value(type_table, name_decl->ast, 0);
         assert(ref_ty);
@@ -380,9 +380,9 @@ Debug_print_type_table(Set* table)
       printf("[%d] 0x%x %s ... %d:%d\n", i, ty, ty->strname, ast->line_no, ast->column_no);
     } else {
       if (ast) {
-        printf("[%d] 0x%x %s ... %d:%d\n", i, ty, Debug_TypeEnum_to_string(ty->ctor), ast->line_no, ast->column_no);
+        printf("[%d] 0x%x %s ... %d:%d\n", i, ty, TypeEnum_to_string(ty->ctor), ast->line_no, ast->column_no);
       } else {
-        printf("[%d] 0x%x %s\n", i, ty, Debug_TypeEnum_to_string(ty->ctor));
+        printf("[%d] 0x%x %s\n", i, ty, TypeEnum_to_string(ty->ctor));
       }
     }
     i += 1;
@@ -400,9 +400,9 @@ Debug_print_type_array(UnboundedArray* type_array)
     ty = actual_type(ty);
 
     if (ty->strname) {
-      printf("[%d] 0x%x %s %s\n", i, ty, ty->strname, Debug_TypeEnum_to_string(ty->ctor));
+      printf("[%d] 0x%x %s %s\n", i, ty, ty->strname, TypeEnum_to_string(ty->ctor));
     } else {
-      printf("[%d] 0x%x %s\n", i, ty, Debug_TypeEnum_to_string(ty->ctor));
+      printf("[%d] 0x%x %s\n", i, ty, TypeEnum_to_string(ty->ctor));
     }
   }
 }
@@ -1684,6 +1684,7 @@ static void
 visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AST_actionDeclaration);
+  NameEntry* name_entry;
   NameDeclaration* name_decl;
   Ast* name;
   Type* action_ty;
@@ -1699,7 +1700,8 @@ visit_actionDeclaration(Ast* action_decl)
   action_ty->function.params = set_lookup_value(type_table, action_decl->actionDeclaration.params, 0);
   set_add_member(type_table, storage, action_decl, action_ty);
 
-  name_decl = scope_lookup_in_namespace(root_scope, "void", NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+  name_entry = scope_lookup_in_namespace(root_scope, "void", NAMESPACE_TYPE);
+  name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
   action_ty->function.return_ = name_decl->type;
 
   name_decl = set_lookup_value(decl_table, action_decl, 0);
