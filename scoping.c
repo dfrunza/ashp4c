@@ -115,7 +115,7 @@ scope_bind(Scope* scope, Arena* storage, char*strname, enum NameSpace ns)
 }
 
 NameDeclaration*
-namespace_getdecl(NameEntry* name_entry, enum NameSpace ns)
+name_entry_getdecl(NameEntry* name_entry, enum NameSpace ns)
 {
   assert(NAMESPACE_NONE < ns);
   return name_entry->ns[ns];
@@ -137,7 +137,7 @@ Debug_scope_decls(Scope* scope)
   while (he) {
     name_entry = (NameEntry*)he->value;
     for (int i = 0; i < sizeof(ns)/sizeof(ns[0]); i++) {
-      decl = namespace_getdecl(name_entry, ns[i]);
+      decl = name_entry_getdecl(name_entry, ns[i]);
       while (decl) {
         if (ns[i] == NAMESPACE_KEYWORD) {
           printf("%s, %s\n", decl->strname, NameSpace_to_string(ns[i]));

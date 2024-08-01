@@ -149,12 +149,12 @@ next_token()
   }
   if (token->klass == TK_IDENTIFIER) {
     name_entry = scope_lookup(current_scope, token->lexeme);
-    name_decl = namespace_getdecl(name_entry, NAMESPACE_KEYWORD);
+    name_decl = name_entry_getdecl(name_entry, NAMESPACE_KEYWORD);
     if (name_decl) {
       token->klass = name_decl->token_class;
       return token;
     }
-    name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
+    name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
     if (name_decl) {
       token->klass = TK_TYPE_IDENTIFIER;
       return token;

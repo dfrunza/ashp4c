@@ -264,7 +264,7 @@ main(int arg_count, char* args[])
   *type_table = (Set){};
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_entry = scope_lookup_in_namespace(root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
-    name_decl = namespace_getdecl(name_entry, NAMESPACE_TYPE);
+    name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
     builtin_ty = (Type*)array_append_element(type_array, &storage, sizeof(Type));
     builtin_ty->ctor = builtin_types[i].ctor;
     builtin_ty->strname = name_decl->strname;
