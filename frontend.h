@@ -7,7 +7,7 @@ typedef struct SourceText {
 enum TokenClass {
   TK_NONE = 0,
 
-  /* Operators and syntactic elements */
+  /* Operators and syntactic structure */
 
   TK_SEMICOLON,
   TK_IDENTIFIER,
@@ -902,9 +902,9 @@ typedef struct Type {
 
 Type* actual_type(Type* type);
 bool  type_equiv(Type* u, Type* v);
-char* Debug_TypeEnum_to_string(enum TypeEnum type);
 void  resolve_type_nameref(Set* type_table, UnboundedArray* type_array);
 void  deref_type_type(UnboundedArray* type_array);
+char* Debug_TypeEnum_to_string(enum TypeEnum type);
 
 typedef struct Scope {
   int scope_level;
@@ -926,12 +926,12 @@ typedef struct NameDeclaration {
 } NameDeclaration;
 
 enum NameSpace {
-  NAMESPACE_NONE = 0,
-  NAMESPACE_VAR,
-  NAMESPACE_TYPE,
-  NAMESPACE_KEYWORD,
+  NAMESPACE_NONE    = 0,
+  NAMESPACE_VAR     = 1,
+  NAMESPACE_TYPE    = 2,
+  NAMESPACE_KEYWORD = 3,
 
-  NameSpace_COUNT,
+  NameSpace_COUNT = 4,
 };
 
 typedef struct NameEntry {
@@ -941,8 +941,8 @@ typedef struct NameEntry {
 Scope*     scope_create(Arena* storage, int max_capacity);
 Scope*     scope_push(Scope* scope, Scope* parent_scope);
 Scope*     scope_pop(Scope* scope);
-NameEntry* scope_lookup_any(Scope* scope, char* name);
-NameEntry* scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns);
-NameEntry* scope_lookup_local(Scope* scope, char* strname);
-NameEntry* scope_push_decl(Scope* scope, Arena* storage, NameDeclaration* decl, enum NameSpace ns);
+NameEntry* scope_lookup(Scope* scope, char* name);
+NameEntry* scope_lookup_in_namespace(Scope* scope, char* strname, enum NameSpace ns);
+NameEntry* scope_lookup_current(Scope* scope, char* strname);
+NameDeclaration* scope_bind(Scope* scope, Arena* storage, char* strname, enum NameSpace ns);
 

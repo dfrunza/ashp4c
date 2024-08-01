@@ -12,7 +12,7 @@ gcc $CC -o ashp4c \
   basic.c arena.c array.c hashmap.c set.c scoping.c \
   lex.c parse.c drypass.c open_scope.c symtable.c type_table.c \
   potential_types.c ashp4c.c \
-  $LD -lc -lm
+  $LD -lm
 
 if [ $? -ne 0 ]; then
   exit 1

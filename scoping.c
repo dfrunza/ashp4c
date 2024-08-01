@@ -4,7 +4,7 @@
 #include "foundation.h"
 #include "frontend.h"
 
-static NameEntry entry_none = {};
+static NameEntry null_entry = {};
 
 Scope*
 scope_create(Arena* storage, int max_capacity)
@@ -34,7 +34,7 @@ scope_pop(Scope* scope)
 }
 
 NameEntry*
-scope_lookup_any(Scope* scope, char* strname)
+scope_lookup(Scope* scope, char* strname)
 {
   NameEntry* name_entry = 0;
   HashmapEntry* e;
@@ -53,12 +53,13 @@ scope_lookup_any(Scope* scope, char* strname)
   if (name_entry) {
     return name_entry;
   }
-  return &entry_none;
+  return &null_entry;
 }
 
 NameEntry*
-scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
+scope_lookup_in_namespace(Scope* scope, char* strname, enum NameSpace ns)
 {
+  assert(NAMESPACE_NONE < ns && ns < NameSpace_COUNT);
   NameEntry* name_entry = 0;
   HashmapEntry* e;
 
@@ -76,11 +77,11 @@ scope_lookup_namespace(Scope* scope, char* strname, enum NameSpace ns)
   if (name_entry) {
     return name_entry;
   }
-  return &entry_none;
+  return &null_entry;
 }
 
 NameEntry*
-scope_lookup_local(Scope* scope, char* strname)
+scope_lookup_current(Scope* scope, char* strname)
 {
   NameEntry* name_entry = 0;
   HashmapEntry* e;
@@ -92,20 +93,25 @@ scope_lookup_local(Scope* scope, char* strname)
   return name_entry;
 }
 
-NameEntry*
-scope_push_decl(Scope* scope, Arena* storage, NameDeclaration* decl, enum NameSpace ns)
+NameDeclaration*
+scope_bind(Scope* scope, Arena* storage, char*strname, enum NameSpace ns)
 {
+  assert(NAMESPACE_NONE < ns && ns < NameSpace_COUNT);
+  NameDeclaration* name_decl;
   NameEntry* name_entry;
   HashmapEntry* e;
 
-  e = hashmap_lookup_or_insert_entry(&scope->name_table, storage, decl->strname, 0);
+  name_decl = arena_malloc(storage, sizeof(NameDeclaration));
+  name_decl->strname = strname;
+
+  e = hashmap_lookup_or_insert_entry(&scope->name_table, storage, strname, 0);
   if (e->value == 0) {
     e->value = arena_malloc(storage, sizeof(NameEntry));
   }
   name_entry = (NameEntry*)e->value;
-  decl->next_in_scope = name_entry->ns[ns];
-  name_entry->ns[ns] = decl;
-  return name_entry;
+  name_decl->next_in_scope = name_entry->ns[ns];
+  name_entry->ns[ns] = name_decl;
+  return name_decl;
 }
 
 void

@@ -189,16 +189,16 @@ select_extern_method(Ast* name, Ast* extern_, Type* args_ty)
   Type* method_ty, *param_ty;
   Scope* scope;
   NameEntry* name_entry;
-  NameDeclaration* nd, *identified;
+  NameDeclaration* nd, *identity;
 
   scope = set_lookup_value(opened_scopes, extern_, 0);
-  name_entry = scope_lookup_local(scope, name->name.strname);
+  name_entry = scope_lookup_current(scope, name->name.strname);
   if (!name_entry) {
     return 0;
   }
-  identified = 0;
+  identity = 0;
   for (nd = name_entry->ns[NAMESPACE_TYPE]; nd != 0; nd = nd->next_in_scope) {
-    if (identified) {
+    if (identity) {
       error("%s:%d:%d: error: ambiguous name reference `%s`.",
             source_file, name->line_no, name->column_no, name->name.strname);
     }
@@ -206,27 +206,27 @@ select_extern_method(Ast* name, Ast* extern_, Type* args_ty)
     assert(method_ty->ctor == TYPE_FUNCTION);
     param_ty = actual_type(method_ty->function.params);
     if (validate_param_and_arg_type(param_ty, args_ty)) {
-      identified = nd;
+      identity = nd;
     }
   }
-  return identified;
+  return identity;
 }
 
 static NameDeclaration*
 select_function(Ast* name, NameDeclaration* func_decl, Type* args_ty)
 {
   Type* func_ty, *params_ty;
-  NameDeclaration* nd, *identified;
+  NameDeclaration* nd, *identity;
 
-  identified = 0;
+  identity = 0;
   for (nd = func_decl; nd != 0; nd = nd->next_in_scope) {
-    if (identified) {
+    if (identity) {
       error("%s:%d:%d: error: ambiguous name reference `%s`.",
             source_file, name->line_no, name->column_no, name->name.strname);
     }
     func_ty = actual_type(nd->type);
     if (func_ty->ctor == TYPE_EXTERN) {
-      identified = select_extern_method(name, nd->ast, args_ty);
+      identity = select_extern_method(name, nd->ast, args_ty);
     } else {
       if (func_ty->ctor == TYPE_FUNCTION) {
         ;
@@ -237,11 +237,11 @@ select_function(Ast* name, NameDeclaration* func_decl, Type* args_ty)
       assert(func_ty->ctor == TYPE_FUNCTION);
       params_ty = actual_type(func_ty->function.params);
       if (validate_param_and_arg_type(params_ty, args_ty)) {
-        identified = nd;
+        identity = nd;
       }
     }
   }
-  return identified;
+  return identity;
 }
 
 static NameDeclaration*
@@ -304,10 +304,10 @@ select_member(Ast* name, Ast* type_decl)
 {
   Scope* scope;
   NameEntry* name_entry;
-  NameDeclaration* nd, *identified, *name_decl;
+  NameDeclaration* nd, *identity, *name_decl;
 
   scope = set_lookup_value(opened_scopes, type_decl, 0);
-  name_entry = scope_lookup_local(scope, name->name.strname);
+  name_entry = scope_lookup_current(scope, name->name.strname);
   if (!name_entry) {
     return 0;
   }
@@ -321,17 +321,17 @@ select_member(Ast* name, Ast* type_decl)
     name_decl = name_entry->ns[NAMESPACE_TYPE];
   } else assert(0);
 
-  identified = 0;
+  identity = 0;
   for (nd = name_decl; nd != 0; nd = nd->next_in_scope) {
-    if (identified) {
+    if (identity) {
       error("%s:%d:%d: error: ambiguous name reference `%s`.",
             source_file, name->line_no, name->column_no, name->name.strname);
     }
     if (cstr_match(name->name.strname, nd->strname)) {
-      identified = nd;
+      identity = nd;
     }
   }
-  return identified;
+  return identity;
 }
 
 static NameDeclaration*
@@ -447,7 +447,7 @@ visit_name(Ast* name)
   NameEntry* name_entry;
 
   scope = set_lookup_value(enclosing_scopes, name, 0);
-  name_entry = scope_lookup_any(scope, name->name.strname);
+  name_entry = scope_lookup(scope, name->name.strname);
   return name_entry;
 }
 

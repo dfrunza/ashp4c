@@ -148,7 +148,7 @@ next_token()
     token = array_get_element(tokens, ++token_at, sizeof(Token));
   }
   if (token->klass == TK_IDENTIFIER) {
-    name_entry = scope_lookup_any(current_scope, token->lexeme);
+    name_entry = scope_lookup(current_scope, token->lexeme);
     if (name_entry->ns[NAMESPACE_KEYWORD]) {
       name_decl = name_entry->ns[NAMESPACE_KEYWORD];
       token->klass = name_decl->token_class;
@@ -452,15 +452,15 @@ operator_priority(Token* token)
     /* Logical AND, OR */
     return 1;
   } else if (token->klass == TK_DOUBLE_EQUAL || token->klass == TK_EXCLAMATION_EQUAL
-      || token->klass == TK_ANGLE_OPEN /* Less */ || token->klass == TK_ANGLE_CLOSE /* Greater */
-      || token->klass == TK_ANGLE_OPEN_EQUAL /* Less-equal */ || token->klass == TK_ANGLE_CLOSE_EQUAL /* Greater-equal */) {
+      || token->klass == TK_ANGLE_OPEN /* < */ || token->klass == TK_ANGLE_CLOSE /* > */
+      || token->klass == TK_ANGLE_OPEN_EQUAL /* <= */ || token->klass == TK_ANGLE_CLOSE_EQUAL /* >= */) {
     /* Relational ops  */
     return 2;
   }
   else if (token->klass == TK_PLUS || token->klass == TK_MINUS
            || token->klass == TK_AMPERSAND || token->klass == TK_PIPE
-           || token->klass == TK_CIRCUMFLEX || token->klass == TK_DOUBLE_ANGLE_OPEN /* BitshiftLeft */
-           || token->klass == TK_DOUBLE_ANGLE_CLOSE /* BitshiftRight */) {
+           || token->klass == TK_CIRCUMFLEX || token->klass == TK_DOUBLE_ANGLE_OPEN /* << */
+           || token->klass == TK_DOUBLE_ANGLE_CLOSE /* >> */) {
     /* Addition and subtraction; bitwise ops */
     return 3;
   }
@@ -911,7 +911,6 @@ static Ast*
 parse_packageTypeDeclaration()
 {
   Ast* package_decl, *name;
-  NameDeclaration* name_decl;
 
   if (token->klass == TK_PACKAGE) {
     next_token();
@@ -921,9 +920,7 @@ parse_packageTypeDeclaration()
     package_decl->column_no = token->column_no;
     if (token_is_name(token)) {
       name = parse_name();
-      name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-      name_decl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
+      scope_bind(current_scope, storage, name->name.strname, NAMESPACE_TYPE);
       package_decl->packageTypeDeclaration.name = name;
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
@@ -1088,7 +1085,6 @@ static Ast*
 parse_parserTypeDeclaration()
 {
   Ast* parser_proto, *name;
-  NameDeclaration* name_decl;
 
   if (token->klass == TK_PARSER) {
     next_token();
@@ -1098,9 +1094,7 @@ parse_parserTypeDeclaration()
     parser_proto->column_no = token->column_no;
     if (token_is_name(token)) {
       name = parse_name();
-      name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-      name_decl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
+      scope_bind(current_scope, storage, name->name.strname, NAMESPACE_TYPE);
       parser_proto->parserTypeDeclaration.name = name;
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
@@ -1528,7 +1522,6 @@ static Ast*
 parse_controlTypeDeclaration()
 {
   Ast* control_proto, *name;
-  NameDeclaration* name_decl;
 
   if (token->klass == TK_CONTROL) {
     next_token();
@@ -1538,9 +1531,7 @@ parse_controlTypeDeclaration()
     control_proto->column_no = token->column_no;
     if (token_is_name(token)) {
       name = parse_name();
-      name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-      name_decl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
+      scope_bind(current_scope, storage, name->name.strname, NAMESPACE_TYPE);
       control_proto->controlTypeDeclaration.name = name;
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
@@ -1624,7 +1615,6 @@ parse_externDeclaration()
   Ast* extern_decl, *extern_type;
   bool is_function_type = false;
   Ast* name;
-  NameDeclaration* name_decl;
 
   if (token->klass == TK_EXTERN) {
     next_token();
@@ -1656,9 +1646,7 @@ parse_externDeclaration()
       extern_type->column_no = token->column_no;
       extern_type->externTypeDeclaration.name = parse_nonTypeName();
       name = extern_type->externTypeDeclaration.name;
-      name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-      name_decl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
+      scope_bind(current_scope, storage, name->name.strname, NAMESPACE_TYPE);
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
         extern_type->externTypeDeclaration.method_protos = parse_methodPrototypes();
@@ -1702,7 +1690,6 @@ parse_functionPrototype(Ast* return_type)
 {
   Ast* func_proto, *type_ref;
   Ast* name;
-  NameDeclaration* name_decl;
 
   if (token_is_typeOrVoid(token) || return_type) {
     func_proto = arena_malloc(storage, sizeof(Ast));
@@ -1713,9 +1700,7 @@ parse_functionPrototype(Ast* return_type)
       return_type = parse_typeOrVoid();
       if (return_type->kind == AST_name) {
         name = return_type;
-        name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-        name_decl->strname = name->name.strname;
-        scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
+        scope_bind(current_scope, storage, name->name.strname, NAMESPACE_TYPE);
         type_ref = arena_malloc(storage, sizeof(Ast));
         type_ref->kind = AST_typeRef;
         type_ref->line_no = token->line_no;
@@ -2215,7 +2200,6 @@ parse_headerTypeDeclaration()
 {
   Ast* header_decl;
   Ast* name;
-  NameDeclaration* name_decl;
 
   if (token->klass == TK_HEADER) {
     next_token();
@@ -2225,9 +2209,7 @@ parse_headerTypeDeclaration()
     header_decl->column_no = token->column_no;
     if (token_is_name(token)) {
       name = parse_name();
-      name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-      name_decl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
+      scope_bind(current_scope, storage, name->name.strname, NAMESPACE_TYPE);
       header_decl->headerTypeDeclaration.name = name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2252,7 +2234,6 @@ parse_headerUnionDeclaration()
 {
   Ast* union_decl;
   Ast* name;
-  NameDeclaration* name_decl;
 
   if (token->klass == TK_HEADER_UNION) {
     next_token();
@@ -2262,9 +2243,7 @@ parse_headerUnionDeclaration()
     union_decl->column_no = token->column_no;
     if (token_is_name(token)) {
       name = parse_name();
-      name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-      name_decl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
+      scope_bind(current_scope, storage, name->name.strname, NAMESPACE_TYPE);
       union_decl->headerUnionDeclaration.name = name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2289,7 +2268,6 @@ parse_structTypeDeclaration()
 {
   Ast* struct_decl;
   Ast* name;
-  NameDeclaration* name_decl;
 
   if (token->klass == TK_STRUCT) {
     next_token();
@@ -2299,9 +2277,7 @@ parse_structTypeDeclaration()
     struct_decl->column_no = token->column_no;
     if (token_is_name(token)) {
       name = parse_name();
-      name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-      name_decl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
+      scope_bind(current_scope, storage, name->name.strname, NAMESPACE_TYPE);
       struct_decl->structTypeDeclaration.name = name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2370,7 +2346,6 @@ parse_enumDeclaration()
 {
   Ast* enum_decl;
   Ast* name;
-  NameDeclaration* name_decl;
 
   if (token->klass == TK_ENUM) {
     next_token();
@@ -2395,9 +2370,7 @@ parse_enumDeclaration()
     }
     if (token_is_name(token)) {
       name = parse_name();
-      name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-      name_decl->strname = name->name.strname;
-      scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
+      scope_bind(current_scope, storage, name->name.strname, NAMESPACE_TYPE);
       enum_decl->enumDeclaration.name = name;
       if (token->klass == TK_BRACE_OPEN) {
         next_token();
@@ -2555,7 +2528,6 @@ parse_typedefDeclaration()
 {
   Ast* type_decl;
   Ast* name;
-  NameDeclaration* name_decl;
 
   if (token->klass == TK_TYPEDEF) {
     next_token();
@@ -2571,9 +2543,7 @@ parse_typedefDeclaration()
         type_decl->line_no = token->line_no;
         type_decl->column_no = token->column_no;
         name = parse_name();
-        name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-        name_decl->strname = name->name.strname;
-        scope_push_decl(current_scope, storage, name_decl, NAMESPACE_TYPE);
+        scope_bind(current_scope, storage, name->name.strname, NAMESPACE_TYPE);
         type_decl->typedefDeclaration.name = name;
         if (token->klass == TK_SEMICOLON) {
           next_token();

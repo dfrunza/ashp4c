@@ -30,7 +30,7 @@ read_source_text(char* filename, Arena* storage)
 
   f_stream = fopen(filename, "rb");
   if (!f_stream) {
-    error("Could not open file '%s'\n", filename);
+    error("Could not open file '%s'.", filename);
   }
   fseek(f_stream, 0, SEEK_END);
   int text_size = ftell(f_stream);
@@ -247,26 +247,22 @@ main(int arg_count, char* args[])
 
   root_scope = scope_create(&storage, 496);
   for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
-    name_decl = arena_malloc(&storage, sizeof(NameDeclaration));
-    name_decl->strname = keywords[i].strname;
+    name_decl = scope_bind(root_scope, &storage, keywords[i].strname, NAMESPACE_KEYWORD);
     name_decl->token_class = keywords[i].token_class;
-    scope_push_decl(root_scope, &storage, name_decl, NAMESPACE_KEYWORD);
   }
   for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
     name = arena_malloc(&storage, sizeof(Ast));
     name->kind = AST_name;
     name->name.strname = builtin_names[i].strname;
-    name_decl = arena_malloc(&storage, sizeof(NameDeclaration));
-    name_decl->strname = name->name.strname;
+    name_decl = scope_bind(root_scope, &storage, name->name.strname, builtin_names[i].ns);
     name_decl->ast = name;
-    scope_push_decl(root_scope, &storage, name_decl, builtin_names[i].ns);
   }
 
   type_array = array_create(&storage, sizeof(Type), 1008);
   type_table = arena_malloc(&storage, sizeof(Set));
   *type_table = (Set){};
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
-    name_decl = scope_lookup_namespace(root_scope, builtin_types[i].strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
+    name_decl = scope_lookup_in_namespace(root_scope, builtin_types[i].strname, NAMESPACE_TYPE)->ns[NAMESPACE_TYPE];
     builtin_ty = (Type*)array_append_element(type_array, &storage, sizeof(Type));
     builtin_ty->ctor = builtin_types[i].ctor;
     builtin_ty->strname = name_decl->strname;
