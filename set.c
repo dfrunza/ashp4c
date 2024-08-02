@@ -94,7 +94,7 @@ set_open_inner(Set* set, Arena* storage, void* key)
   SetMember* m;
   Set* s;
 
-  m = set_add(set, storage, key, 0, true);
+  m = set_add(set, storage, key, 0, 1);
   if (m->value == 0) {
     s = arena_malloc(storage, sizeof(Set));
     *s = (Set){};

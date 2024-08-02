@@ -653,7 +653,7 @@ next_token(Token* token)
         if (c == 'w' || c == 's') {
           token->klass = TK_INTEGER_LITERAL;
           if (c == 's') {
-            token->integer.is_signed = true;
+            token->integer.is_signed = 1;
           }
           lexeme[1].end = lexeme->end - 1;  // omit w|s
           token->integer.width = parse_integer(lexeme_to_cstring(&lexeme[1]), 10);
@@ -663,7 +663,7 @@ next_token(Token* token)
           char_retract();
           lexeme[1].end = lexeme->end;
           token->klass = TK_INTEGER_LITERAL;
-          token->integer.is_signed = true;
+          token->integer.is_signed = 1;
           token_install_integer(token, &lexeme[1], 10);
           token->lexeme = lexeme_to_cstring(lexeme);
           token->column_no = lexeme->start - line_start + 1;
@@ -683,7 +683,7 @@ next_token(Token* token)
         char_retract();
         lexeme[1].end = lexeme->end;
         token->klass = TK_INTEGER_LITERAL;
-        token->integer.is_signed = true;
+        token->integer.is_signed = 1;
         token_install_integer(token, &lexeme[1], 16);
         token->lexeme = lexeme_to_cstring(lexeme);
         token->column_no = lexeme->start - line_start + 1;
@@ -702,7 +702,7 @@ next_token(Token* token)
         char_retract();
         lexeme[1].end = lexeme->end;
         token->klass = TK_INTEGER_LITERAL;
-        token->integer.is_signed = true;
+        token->integer.is_signed = 1;
         token_install_integer(token, &lexeme[1], 8);
         token->lexeme = lexeme_to_cstring(lexeme);
         token->column_no = lexeme->start - line_start + 1;
@@ -721,7 +721,7 @@ next_token(Token* token)
         char_retract();
         lexeme[1].end = lexeme->end;
         token->klass = TK_INTEGER_LITERAL;
-        token->integer.is_signed = true;
+        token->integer.is_signed = 1;
         token_install_integer(token, &lexeme[1], 2);
         token->lexeme = lexeme_to_cstring(lexeme);
         token->column_no = lexeme->start - line_start + 1;

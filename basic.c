@@ -33,7 +33,7 @@ cstr_is_digit(char c, int base)
   } else if (base == 2) {
     return c == '0' || c == '1';
   } else assert(0);
-  return false;
+  return 0;
 }
 
 bool

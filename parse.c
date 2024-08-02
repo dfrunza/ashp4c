@@ -1615,7 +1615,7 @@ static Ast*
 parse_externDeclaration()
 {
   Ast* extern_decl, *extern_type;
-  bool is_function_type = false;
+  bool is_function_type = 0;
   Ast* name;
 
   if (token->klass == TK_EXTERN) {
@@ -1628,9 +1628,9 @@ parse_externDeclaration()
     if (token_is_typeOrVoid(token) && token_is_nonTypeName(token)) {
       is_function_type = token_is_typeOrVoid(token) && token_is_name(peek_token());
     } else if (token_is_typeOrVoid(token)) {
-      is_function_type = true;
+      is_function_type = 1;
     } else if (token_is_nonTypeName(token)) {
-      is_function_type = false;
+      is_function_type = 0;
     } else error("%s:%d:%d: error: extern declaration was expected, got `%s`.",
                  source_file, token->line_no, token->column_no, token->lexeme);
 
@@ -3024,13 +3024,13 @@ parse_tablePropertyList()
 static Ast*
 parse_tableProperty()
 {
-  bool is_const = false;
+  bool is_const = 0;
   Ast* table_prop, *prop;
 
   if (token_is_tableProperty(token)) {
     if (token->klass == TK_CONST) {
       next_token();
-      is_const = true;
+      is_const = 1;
     }
     table_prop = arena_malloc(storage, sizeof(Ast));
     table_prop->kind = AST_tableProperty;
@@ -3320,12 +3320,12 @@ parse_actionDeclaration()
 static Ast*
 parse_variableDeclaration(Ast* type_ref)
 {
-  bool is_const = false;
+  bool is_const = 0;
   Ast* var_decl;
 
   if (token->klass == TK_CONST) {
     next_token();
-    is_const = true;
+    is_const = 1;
   }
   if (token_is_typeRef(token) || type_ref) {
     var_decl = arena_malloc(storage, sizeof(Ast));

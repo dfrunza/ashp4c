@@ -270,7 +270,7 @@ main(int arg_count, char* args[])
     builtin_ty->strname = name_decl->strname;
     builtin_ty->ast = name_decl->ast;
     name_decl->type = builtin_ty;
-    set_add(type_table, &storage, name_decl->ast, builtin_ty, false);
+    set_add(type_table, &storage, name_decl->ast, builtin_ty, 0);
     *builtin_types[i].type = builtin_ty;
   }
 

@@ -170,17 +170,17 @@ validate_param_and_arg_type(Type* params_ty, Type* args_ty)
         args_ty = args_ty->product.next;
       }
       if (params_ty == 0 && args_ty == 0) {
-        return true;
+        return 1;
       }
     } else {
       return type_equiv(params_ty, args_ty);
     }
   } else if (params_ty || args_ty) {
-    return false;
+    return 0;
   } else { /* params_ty == 0 && args_ty == 0 */
-    return true;
+    return 1;
   }
-  return false;
+  return 0;
 }
 
 static NameDeclaration*
@@ -275,8 +275,8 @@ resolve_variable(Ast* name, NameEntry* name_entry)
           source_file, name->line_no, name->column_no, name->name.strname);
   }
   assert(!name_decl->next_in_scope);
-  set_add(decl_table, storage, name, name_decl, false);
-  set_add(potential_types, storage, name, actual_type(name_decl->type), false);
+  set_add(decl_table, storage, name, name_decl, 0);
+  set_add(potential_types, storage, name, actual_type(name_decl->type), 0);
   return name_decl;
 }
 
@@ -294,8 +294,8 @@ resolve_type(Ast* name, NameEntry* name_entry)
     error("%s:%d:%d: error: ambiguous name reference `%s`.",
           source_file, name->line_no, name->column_no, name->name.strname);
   }
-  set_add(decl_table, storage, name, name_decl, false);
-  set_add(potential_types, storage, name, actual_type(name_decl->type), false);
+  set_add(decl_table, storage, name, name_decl, 0);
+  set_add(potential_types, storage, name, actual_type(name_decl->type), 0);
   return name_decl;
 }
 
@@ -344,8 +344,8 @@ resolve_member(Ast* name, Ast* type_decl)
     error("%s:%d:%d: error: unresolved name `%s`.",
           source_file, name->line_no, name->column_no, name->name.strname);
   }
-  set_add(decl_table, storage, name, name_decl, false);
-  set_add(potential_types, storage, name, actual_type(name_decl->type), false);
+  set_add(decl_table, storage, name, name_decl, 0);
+  set_add(potential_types, storage, name, actual_type(name_decl->type), 0);
   return name_decl;
 }
 
@@ -469,7 +469,7 @@ visit_parameterList(Ast* params)
     ty->product.type = set_lookup(potential_types, ast, 0, 0);
     params_ty = ty;
   }
-  set_add(potential_types, storage, params, params_ty, false);
+  set_add(potential_types, storage, params, params_ty, 0);
 }
 
 static void
@@ -479,7 +479,7 @@ visit_parameter(Ast* param)
   NameDeclaration* name_decl;
 
   name_decl = set_lookup(decl_table, param, 0, 0);
-  set_add(potential_types, storage, param, actual_type(name_decl->type), false);
+  set_add(potential_types, storage, param, actual_type(name_decl->type), 0);
 
   if (param->parameter.init_expr) {
     visit_expression(param->parameter.init_expr);
@@ -517,9 +517,9 @@ visit_instantiation(Ast* inst)
               ctor_ty->ctor == TYPE_CONTROL) {
       ctor_ty = actual_type(name_decl->ctor_type);
     } else assert(0);
-    set_add(decl_table, storage, name, name_decl, false);
-    set_add(potential_types, storage, inst, actual_type(ctor_ty->function.return_), false);
-    set_add(potential_types, storage, inst->instantiation.name, actual_type(ctor_ty->function.return_), false);
+    set_add(decl_table, storage, name, name_decl, 0);
+    set_add(potential_types, storage, inst, actual_type(ctor_ty->function.return_), 0);
+    set_add(potential_types, storage, inst->instantiation.name, actual_type(ctor_ty->function.return_), 0);
   } else {
     ctor_ty = set_lookup(type_table, inst->instantiation.type, 0, 0);
     ctor_ty = actual_type(ctor_ty);
@@ -875,7 +875,7 @@ visit_baseTypeBoolean(Ast* bool_type)
   NameDeclaration* name_decl;
 
   name_decl = set_lookup(decl_table, bool_type, 0, 0);
-  set_add(potential_types, storage, bool_type, actual_type(name_decl->type), false);
+  set_add(potential_types, storage, bool_type, actual_type(name_decl->type), 0);
 }
 
 static void
@@ -889,7 +889,7 @@ visit_baseTypeInteger(Ast* int_type)
   }
 
   name_decl = set_lookup(decl_table, int_type, 0, 0);
-  set_add(potential_types, storage, int_type, actual_type(name_decl->type), false);
+  set_add(potential_types, storage, int_type, actual_type(name_decl->type), 0);
 }
 
 static void
@@ -903,7 +903,7 @@ visit_baseTypeBit(Ast* bit_type)
   }
 
   name_decl = set_lookup(decl_table, bit_type, 0, 0);
-  set_add(potential_types, storage, bit_type, actual_type(name_decl->type), false);
+  set_add(potential_types, storage, bit_type, actual_type(name_decl->type), 0);
 }
 
 static void
@@ -915,7 +915,7 @@ visit_baseTypeVarbit(Ast* varbit_type)
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
 
   name_decl = set_lookup(decl_table, varbit_type, 0, 0);
-  set_add(potential_types, storage, varbit_type, actual_type(name_decl->type), false);
+  set_add(potential_types, storage, varbit_type, actual_type(name_decl->type), 0);
 }
 
 static void
@@ -925,7 +925,7 @@ visit_baseTypeString(Ast* str_type)
   NameDeclaration* name_decl;
 
   name_decl = set_lookup(decl_table, str_type, 0, 0);
-  set_add(potential_types, storage, str_type, actual_type(name_decl->type), false);
+  set_add(potential_types, storage, str_type, actual_type(name_decl->type), 0);
 }
 
 static void
@@ -935,7 +935,7 @@ visit_baseTypeVoid(Ast* void_type)
   NameDeclaration* name_decl;
 
   name_decl = set_lookup(decl_table, void_type, 0, 0);
-  set_add(potential_types, storage, void_type, actual_type(name_decl->type), false);
+  set_add(potential_types, storage, void_type, actual_type(name_decl->type), 0);
 }
 
 static void
@@ -945,7 +945,7 @@ visit_baseTypeError(Ast* error_type)
   NameDeclaration* name_decl;
 
   name_decl = set_lookup(decl_table, error_type, 0, 0);
-  set_add(potential_types, storage, error_type, actual_type(name_decl->type), false);
+  set_add(potential_types, storage, error_type, actual_type(name_decl->type), 0);
 }
 
 static void
@@ -1156,7 +1156,7 @@ visit_assignmentStatement(Ast* assign_stmt)
     name = expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
-    set_add(potential_types, storage, assign_stmt->assignmentStatement.lhs_expr, actual_type(name_decl->type), false);
+    set_add(potential_types, storage, assign_stmt->assignmentStatement.lhs_expr, actual_type(name_decl->type), 0);
   }
 
   name_entry = visit_expression(assign_stmt->assignmentStatement.rhs_expr);
@@ -1166,7 +1166,7 @@ visit_assignmentStatement(Ast* assign_stmt)
     name = expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
-    set_add(potential_types, storage, assign_stmt->assignmentStatement.rhs_expr, actual_type(name_decl->type), false);
+    set_add(potential_types, storage, assign_stmt->assignmentStatement.rhs_expr, actual_type(name_decl->type), 0);
   }
 
   lhs_ty = set_lookup(potential_types, assign_stmt->assignmentStatement.lhs_expr, 0, 0);
@@ -1205,8 +1205,8 @@ visit_functionCall(Ast* func_call)
                 func_ty->ctor == TYPE_CONTROL) {
       func_ty = actual_type(name_decl->ctor_type);
     } else assert(0);
-    set_add(decl_table, storage, name, name_decl, false);
-    set_add(potential_types, storage, func_call->functionCall.lhs_expr, func_ty, false);
+    set_add(decl_table, storage, name, name_decl, 0);
+    set_add(potential_types, storage, func_call->functionCall.lhs_expr, func_ty, 0);
   } else {
     func_ty = set_lookup(potential_types, func_call->functionCall.lhs_expr, 0, 0);
     assert(func_ty->ctor == TYPE_FUNCTION);
@@ -1220,7 +1220,7 @@ visit_functionCall(Ast* func_call)
 
   func_ty = set_lookup(potential_types, func_call->functionCall.lhs_expr, 0, 0);
   assert(func_ty->ctor == TYPE_FUNCTION);
-  set_add(potential_types, storage, func_call, actual_type(func_ty->function.return_), false);
+  set_add(potential_types, storage, func_call, actual_type(func_ty->function.return_), 0);
 }
 
 static void
@@ -1241,11 +1241,11 @@ visit_returnStatement(Ast* return_stmt)
     name = expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
-    set_add(potential_types, storage, return_stmt->returnStatement.expr, actual_type(name_decl->type), false);
+    set_add(potential_types, storage, return_stmt->returnStatement.expr, actual_type(name_decl->type), 0);
   }
 
   expr_ty = set_lookup(potential_types, return_stmt->returnStatement.expr, 0, 0);
-  set_add(potential_types, storage, return_stmt, expr_ty, false);
+  set_add(potential_types, storage, return_stmt, expr_ty, 0);
 }
 
 static void
@@ -1518,7 +1518,7 @@ visit_variableDeclaration(Ast* var_decl)
   NameDeclaration* name_decl;
 
   name_decl = set_lookup(decl_table, var_decl, 0, 0);
-  set_add(potential_types, storage, var_decl, actual_type(name_decl->type), false);
+  set_add(potential_types, storage, var_decl, actual_type(name_decl->type), 0);
 
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);
@@ -1553,7 +1553,7 @@ visit_argumentList(Ast* arg_list)
     ty->product.type = set_lookup(potential_types, ast, 0, 0);
     args_ty = ty;
   }
-  set_add(potential_types, storage, arg_list, args_ty, false);
+  set_add(potential_types, storage, arg_list, args_ty, 0);
 }
 
 static void
@@ -1576,11 +1576,11 @@ visit_argument(Ast* arg)
     name = expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
-    set_add(potential_types, storage, arg->argument.arg, actual_type(name_decl->type), false);
+    set_add(potential_types, storage, arg->argument.arg, actual_type(name_decl->type), 0);
   }
 
   arg_ty = set_lookup(potential_types, arg->argument.arg, 0, 0);
-  set_add(potential_types, storage, arg, actual_type(arg_ty), false);
+  set_add(potential_types, storage, arg, actual_type(arg_ty), 0);
 }
 
 static void
@@ -1610,7 +1610,7 @@ visit_lvalueExpression(Ast* lvalue_expr)
   } else assert(0);
 
   expr_ty = set_lookup(potential_types, lvalue_expr->lvalueExpression.expr, 0, 0);
-  set_add(potential_types, storage, lvalue_expr, actual_type(expr_ty), false);
+  set_add(potential_types, storage, lvalue_expr, actual_type(expr_ty), 0);
   return 0;
 }
 
@@ -1649,7 +1649,7 @@ visit_expression(Ast* expr)
   } else assert(0);
 
   expr_ty = set_lookup(potential_types, expr->expression.expr, 0, 0);
-  set_add(potential_types, storage, expr, expr_ty, false);
+  set_add(potential_types, storage, expr, expr_ty, 0);
   return 0;
 }
 
@@ -1670,11 +1670,11 @@ visit_castExpression(Ast* cast_expr)
     name = expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
-    set_add(potential_types, storage, cast_expr->castExpression.expr, actual_type(name_decl->type), false);
+    set_add(potential_types, storage, cast_expr->castExpression.expr, actual_type(name_decl->type), 0);
   }
 
   cast_ty = set_lookup(type_table, cast_expr->castExpression.type, 0, 0);
-  set_add(potential_types, storage, cast_expr, cast_ty, false);
+  set_add(potential_types, storage, cast_expr, cast_ty, 0);
 }
 
 static void
@@ -1693,11 +1693,11 @@ visit_unaryExpression(Ast* unary_expr)
     name = expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
-    set_add(potential_types, storage, unary_expr->unaryExpression.operand, actual_type(name_decl->type), false);
+    set_add(potential_types, storage, unary_expr->unaryExpression.operand, actual_type(name_decl->type), 0);
   }
 
   ty = set_lookup(potential_types, unary_expr->unaryExpression.operand, 0, 0);
-  set_add(potential_types, storage, unary_expr, ty, false);
+  set_add(potential_types, storage, unary_expr, ty, 0);
 }
 
 static void
@@ -1717,7 +1717,7 @@ visit_binaryExpression(Ast* binary_expr)
     name = expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
-    set_add(potential_types, storage, binary_expr->binaryExpression.left_operand, actual_type(name_decl->type), false);
+    set_add(potential_types, storage, binary_expr->binaryExpression.left_operand, actual_type(name_decl->type), 0);
   }
 
   name_entry = visit_expression(binary_expr->binaryExpression.right_operand);
@@ -1727,7 +1727,7 @@ visit_binaryExpression(Ast* binary_expr)
     name = expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
-    set_add(potential_types, storage, binary_expr->binaryExpression.right_operand, actual_type(name_decl->type), false);
+    set_add(potential_types, storage, binary_expr->binaryExpression.right_operand, actual_type(name_decl->type), 0);
   }
 
   lhs_ty = set_lookup(potential_types, binary_expr->binaryExpression.left_operand, 0, 0);
@@ -1739,16 +1739,16 @@ visit_binaryExpression(Ast* binary_expr)
 
   op = binary_expr->binaryExpression.op;
   if (op == OP_ADD || op == OP_SUB || op == OP_MUL || op == OP_DIV) {
-    set_add(potential_types, storage, binary_expr, lhs_ty, false);
+    set_add(potential_types, storage, binary_expr, lhs_ty, 0);
   } else if (op == OP_AND || op == OP_OR || op == OP_NOT) {
-    set_add(potential_types, storage, binary_expr, builtin_bool_ty, false);
+    set_add(potential_types, storage, binary_expr, builtin_bool_ty, 0);
   } else if (op == OP_EQ || op == OP_NEQ || op == OP_LESS ||
              op == OP_GREAT || op == OP_LESS_EQ || op == OP_GREAT_EQ) {
-    set_add(potential_types, storage, binary_expr, builtin_bool_ty, false);
+    set_add(potential_types, storage, binary_expr, builtin_bool_ty, 0);
   } else if (op == OP_BITW_AND || op == OP_BITW_OR || op == OP_BITW_XOR ||
              op == OP_BITW_NOT || op == OP_BITW_SHL || op == OP_BITW_SHR ||
              op == OP_MASK) {
-    set_add(potential_types, storage, binary_expr, lhs_ty, false);
+    set_add(potential_types, storage, binary_expr, lhs_ty, 0);
   }
 }
 
@@ -1780,13 +1780,13 @@ visit_memberSelector(Ast* selector)
     } else if (name_entry_getdecl(name_entry, NAMESPACE_TYPE)) {
       name_decl = resolve_type(name, name_entry);
     } else assert(0);
-    set_add(potential_types, storage, selector->memberSelector.lhs_expr, actual_type(name_decl->type), false);
+    set_add(potential_types, storage, selector->memberSelector.lhs_expr, actual_type(name_decl->type), 0);
   }
 
   lhs_ty = set_lookup(potential_types, selector->memberSelector.lhs_expr, 0, 0);
   if (lhs_ty->ctor == TYPE_STRUCT || lhs_ty->ctor == TYPE_ENUM || lhs_ty->ctor == TYPE_EXTERN) {
     name_decl = resolve_member(selector->memberSelector.name, lhs_ty->ast);
-    set_add(potential_types, storage, selector, actual_type(name_decl->type), false);
+    set_add(potential_types, storage, selector, actual_type(name_decl->type), 0);
   } else error("%s:%d:%d: error: type does not support member selection.",
                source_file, name->line_no, name->column_no);
 }
@@ -1813,13 +1813,13 @@ visit_arraySubscript(Ast* subscript)
     name = expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
-    set_add(potential_types, storage, subscript->arraySubscript.lhs_expr, actual_type(name_decl->type), false);
+    set_add(potential_types, storage, subscript->arraySubscript.lhs_expr, actual_type(name_decl->type), 0);
   }
 
   lhs_expr = subscript->arraySubscript.lhs_expr;
   lhs_ty = set_lookup(potential_types, subscript->arraySubscript.lhs_expr, 0, 0);
   if (lhs_ty->ctor == TYPE_ARRAY) {
-    set_add(potential_types, storage, subscript, actual_type(lhs_ty->array.element), false);
+    set_add(potential_types, storage, subscript, actual_type(lhs_ty->array.element), 0);
   } else error("%s:%d:%d: error: array type was expected.",
                source_file, lhs_expr->line_no, lhs_expr->column_no);
 }
@@ -1841,7 +1841,7 @@ visit_indexExpression(Ast* index_expr)
     name = start_expr->expression.expr;
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
-    set_add(potential_types, storage, index_expr->indexExpression.start_index, actual_type(name_decl->type), false);
+    set_add(potential_types, storage, index_expr->indexExpression.start_index, actual_type(name_decl->type), 0);
   }
 
   if (index_expr->indexExpression.end_index) {
@@ -1850,7 +1850,7 @@ visit_indexExpression(Ast* index_expr)
       name = end_expr->expression.expr;
       assert(name->kind == AST_name);
       name_decl = resolve_variable(name, name_entry);
-      set_add(potential_types, storage, index_expr->indexExpression.end_index, actual_type(name_decl->type), false);
+      set_add(potential_types, storage, index_expr->indexExpression.end_index, actual_type(name_decl->type), 0);
     }
   }
 
@@ -1864,7 +1864,7 @@ visit_indexExpression(Ast* index_expr)
     error("%s:%d:%d: error: array index must be of `bit` type.",
           source_file, end_expr->line_no, end_expr->column_no);
   }
-  set_add(potential_types, storage, index_expr, start_ty, false);
+  set_add(potential_types, storage, index_expr, start_ty, 0);
 }
 
 static void
@@ -1874,7 +1874,7 @@ visit_booleanLiteral(Ast* bool_literal)
   NameDeclaration* name_decl;
 
   name_decl = set_lookup(decl_table, bool_literal, 0, 0);
-  set_add(potential_types, storage, bool_literal, actual_type(name_decl->type), false);
+  set_add(potential_types, storage, bool_literal, actual_type(name_decl->type), 0);
 }
 
 static void
@@ -1884,7 +1884,7 @@ visit_integerLiteral(Ast* int_literal)
   NameDeclaration* name_decl;
 
   name_decl = set_lookup(decl_table, int_literal, 0, 0);
-  set_add(potential_types, storage, int_literal, actual_type(name_decl->type), false);
+  set_add(potential_types, storage, int_literal, actual_type(name_decl->type), 0);
 }
 
 static void
@@ -1894,7 +1894,7 @@ visit_stringLiteral(Ast* str_literal)
   NameDeclaration* name_decl;
 
   name_decl = set_lookup(decl_table, str_literal, 0, 0);
-  set_add(potential_types, storage, str_literal, actual_type(name_decl->type), false);
+  set_add(potential_types, storage, str_literal, actual_type(name_decl->type), 0);
 }
 
 static void

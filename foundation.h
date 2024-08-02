@@ -1,6 +1,4 @@
 typedef uint32_t bool;
-#define true 1u
-#define false 0u
 #define KILOBYTE 1024
 #define MEGABYTE 1024*KILOBYTE
 
