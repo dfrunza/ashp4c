@@ -89,7 +89,7 @@ set_add(Set* set, Arena* storage, void* key, void* value, bool return_if_found)
 }
 
 Set*
-set_open_inner(Set* set, Arena* storage, void* key)
+set_create_inner(Set* set, Arena* storage, void* key)
 {
   SetMember* m;
   Set* s;

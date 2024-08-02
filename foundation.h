@@ -93,8 +93,8 @@ typedef struct HashmapCursor {
 
 Hashmap*      hashmap_create(Arena* storage, int max_capacity);
 void          hashmap_init(Hashmap* hashmap, Arena* storage, int segment_count);
-HashmapEntry* hashmap_lookup_entry(Hashmap* hashmap, char* key, HashmapBucket* bucket);
-HashmapEntry* hashmap_insert_entry(Hashmap* hashmap, Arena* storage, char* key, void* value, bool nop_if_exists);
+HashmapEntry* hashmap_lookup(Hashmap* hashmap, char* key, HashmapBucket* bucket);
+HashmapEntry* hashmap_insert(Hashmap* hashmap, Arena* storage, char* key, void* value, bool nop_if_exists);
 void          hashmap_cursor_begin(HashmapCursor* cursor, Hashmap* hashmap);
 HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor);
 
@@ -112,7 +112,7 @@ typedef struct Set {
 } Set;
 
 SetMember* set_add(Set* set, Arena* storage, void* key, void* value, bool return_if_found);
-Set*       set_open_inner(Set* set, Arena* storage, void* key);
+Set*       set_create_inner(Set* set, Arena* storage, void* key);
 void*      set_lookup(Set* set, void* key, void* default_, SetMember** member);
 int        set_members_to_array(Set* set, UnboundedArray* array, Arena* storage);
 void       set_enumerate_members(Set* set, void (*visitor)(SetMember*));

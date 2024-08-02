@@ -105,7 +105,7 @@ hashmap_grow(Hashmap* hashmap, Arena* storage)
 }
 
 HashmapEntry*
-hashmap_lookup_entry(Hashmap* hashmap, char* key, HashmapBucket* bucket/*out*/)
+hashmap_lookup(Hashmap* hashmap, char* key, HashmapBucket* bucket/*out*/)
 {
   int last_segment;
   HashmapEntry** entry_slot, *entry;
@@ -130,12 +130,12 @@ hashmap_lookup_entry(Hashmap* hashmap, char* key, HashmapBucket* bucket/*out*/)
 }
 
 HashmapEntry*
-hashmap_insert_entry(Hashmap* hashmap, Arena* storage, char* key, void* value, bool return_if_found)
+hashmap_insert(Hashmap* hashmap, Arena* storage, char* key, void* value, bool return_if_found)
 {
   HashmapEntry* entry;
   HashmapBucket bucket = {0};
  
-  entry = hashmap_lookup_entry(hashmap, key, &bucket);
+  entry = hashmap_lookup(hashmap, key, &bucket);
   if (entry) {
     if (return_if_found) { return entry; } else { return 0; }
   }
