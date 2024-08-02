@@ -123,21 +123,21 @@ syntactic_analysis(Arena* storage, Arena* text_storage, char* source_file, Scope
 
 static void
 semantic_analysis(Arena* storage, char* source_file, Ast* program, Scope* root_scope,
-      UnboundedArray* type_array, Set* type_table)
+                  UnboundedArray* type_array, Set* type_table)
 {
   Set* opened_scopes, *enclosing_scopes;
   Set* decl_table;
 
   drypass(source_file, program);
 
-  opened_scopes = build_open_scope(source_file, program, root_scope, storage);
-  enclosing_scopes = build_symtable(source_file, program, root_scope, opened_scopes, &decl_table, storage);
-  build_type_table(source_file, program, root_scope, type_array, type_table,
-              opened_scopes, enclosing_scopes, decl_table, storage);
+  opened_scopes = build_opened_scopes(storage, source_file, program, root_scope);
+  enclosing_scopes = build_symtable(storage, source_file, program, root_scope, opened_scopes, &decl_table);
+  build_type_table(storage, source_file, program, root_scope, type_array, type_table,
+                   opened_scopes, enclosing_scopes, decl_table);
   resolve_type_nameref(type_table, type_array);
   deref_type_type(type_array);
-  build_potential_types(source_file, program, root_scope, opened_scopes, enclosing_scopes,
-              type_table, decl_table, storage);
+  build_potential_types(storage, source_file, program, root_scope, opened_scopes, enclosing_scopes,
+                        type_table, decl_table);
 }
 
 int

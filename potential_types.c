@@ -369,8 +369,8 @@ Debug_print_potential_types(Set* table)
 }
 
 Set*
-build_potential_types(char* source_file_, Ast* p4program, Scope* root_scope_, Set* opened_scopes_,
-          Set* enclosing_scopes_, Set* type_table_, Set* decl_table_, Arena* storage_)
+build_potential_types(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_, Set* opened_scopes_,
+                      Set* enclosing_scopes_, Set* type_table_, Set* decl_table_)
 {
   source_file = source_file_;
   root_scope = root_scope_;

@@ -408,8 +408,8 @@ Debug_print_type_array(UnboundedArray* type_array)
 }
 
 void
-build_type_table(char* source_file_, Ast* p4program, Scope* root_scope_, UnboundedArray* type_array_,
-        Set* type_table_, Set* opened_scopes_, Set* enclosing_scopes_, Set* decl_table_, Arena* storage_)
+build_type_table(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_, UnboundedArray* type_array_,
+                 Set* type_table_, Set* opened_scopes_, Set* enclosing_scopes_, Set* decl_table_)
 {
   source_file = source_file_;
   storage = storage_;
