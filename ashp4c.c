@@ -21,8 +21,8 @@ typedef struct CmdlineArg {
   struct CmdlineArg* next_arg;
 } CmdlineArg;
 
-SourceText
-read_source_text(char* filename, Arena* storage)
+static SourceText
+read_source_text(Arena* storage, char* filename)
 {
   SourceText source_text = {};
   FILE* f_stream;
@@ -80,7 +80,7 @@ find_named_arg(char* name, CmdlineArg* args)
 #endif
 
 static CmdlineArg*
-parse_cmdline_args(int arg_count, char* args[], Arena* storage)
+parse_cmdline_args(Arena* storage, int arg_count, char* args[])
 {
   CmdlineArg* arg_list = 0;
   CmdlineArg *prev_arg, *cmdline_arg;
@@ -109,21 +109,21 @@ parse_cmdline_args(int arg_count, char* args[], Arena* storage)
 }
 
 static Ast*
-syntactic_analysis(char* source_file, Scope* root_scope, Arena* storage, Arena* text_storage)
+syntactic_analysis(Arena* storage, Arena* text_storage, char* source_file, Scope* root_scope)
 {
   SourceText source_text;
   UnboundedArray* tokens;
   Ast *program;
 
-  source_text = read_source_text(source_file, text_storage);
+  source_text = read_source_text(text_storage, source_file);
   tokens = tokenize_source_text(&source_text, storage);
   program = parse_program(source_file, tokens, storage, root_scope);
   return program;
 }
 
 static void
-semantic_analysis(char* source_file, Ast* program, Scope* root_scope,
-      UnboundedArray* type_array, Set* type_table, Arena* storage)
+semantic_analysis(Arena* storage, char* source_file, Ast* program, Scope* root_scope,
+      UnboundedArray* type_array, Set* type_table)
 {
   Set* opened_scopes, *enclosing_scopes;
   Set* decl_table;
@@ -239,7 +239,7 @@ main(int arg_count, char* args[])
 
   reserve_page_memory(500*KILOBYTE);
 
-  cmdline = parse_cmdline_args(arg_count, args, &storage);
+  cmdline = parse_cmdline_args(&storage, arg_count, args);
   filename = find_unnamed_arg(cmdline);
   if (!filename) {
     printf("<filename> is required.\n");
@@ -270,14 +270,14 @@ main(int arg_count, char* args[])
     builtin_ty->strname = name_decl->strname;
     builtin_ty->ast = name_decl->ast;
     name_decl->type = builtin_ty;
-    set_add_member(type_table, &storage, name_decl->ast, builtin_ty);
+    set_add(type_table, &storage, name_decl->ast, builtin_ty, false);
     *builtin_types[i].type = builtin_ty;
   }
 
-  program = syntactic_analysis(filename->value, root_scope, &storage, &tmp_storage);
+  program = syntactic_analysis(&storage, &tmp_storage, filename->value, root_scope);
   arena_free(&tmp_storage);
 
-  semantic_analysis(filename->value, program, root_scope, type_array, type_table, &storage);
+  semantic_analysis(&storage, filename->value, program, root_scope, type_array, type_table);
 
   arena_free(&storage);
   return 0;

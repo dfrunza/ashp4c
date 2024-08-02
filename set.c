@@ -18,26 +18,9 @@ search_member(SetMember* member, void* key)
   return 0;
 }
 
-SetMember*
-set_lookup_member(Set* set, void* key)
-{
-  return search_member(set->root, key);
-}
-
-void*
-set_lookup_value(Set* set, void* key, void* default_)
-{
-  SetMember* m;
-
-  m = set_lookup_member(set, key);
-  if (m) {
-    return m->value;
-  }
-  return default_;
-}
-
 static SetMember*
-insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, void* key, void* value)
+add_member(Set* set, Arena* storage, SetMember** branch, SetMember* member,
+                   void* key, void* value, bool return_if_found)
 {
   if (!member) {
     member = arena_malloc(storage, sizeof(SetMember));
@@ -50,65 +33,16 @@ insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, v
     set->first = member;
     return member;
   } else if (member->key == key) {
-    return 0;
+    if (return_if_found) { return member; } else { return 0; }
   } else if (key < member->key) {
-    return insert_member(set, storage, &member->left_branch, member->left_branch, key, value);
+    return add_member(set, storage, &member->left_branch, member->left_branch,
+                                  key, value, return_if_found);
   } else {
-    return insert_member(set, storage, &member->right_branch, member->right_branch, key, value);
+    return add_member(set, storage, &member->right_branch, member->right_branch,
+                                  key, value, return_if_found);
   }
   assert(0);
   return 0;
-}
-
-SetMember*
-set_add_member(Set* set, Arena* storage, void* key, void* value)
-{
-  return insert_member(set, storage, &set->root, set->root, key, value);
-}
-
-static SetMember*
-search_or_insert_member(Set* set, Arena* storage, SetMember** branch, SetMember* member, void* key, void* value)
-{
-  if (!member) {
-    member = arena_malloc(storage, sizeof(SetMember));
-    *branch = member;
-    member->key = key;
-    member->value = value;
-    member->left_branch = 0;
-    member->right_branch = 0;
-    member->next = set->first;
-    set->first = member;
-    return member;
-  } else if (member->key == key) {
-    return member;
-  } else if (key < member->key) {
-    return search_or_insert_member(set, storage, &member->left_branch, member->left_branch, key, value);
-  } else {
-    return search_or_insert_member(set, storage, &member->right_branch, member->right_branch, key, value);
-  }
-  assert(0);
-  return 0;
-}
-
-SetMember*
-set_add_or_lookup_member(Set* set, Arena* storage, void* key, void* value)
-{
-  return search_or_insert_member(set, storage, &set->root, set->root, key, value);
-}
-
-Set*
-set_open_inner_set(Set* set, Arena* storage, void* key)
-{
-  SetMember* m;
-  Set* s;
-
-  m = set_add_or_lookup_member(set, storage, key, 0);
-  if (m->value == 0) {
-    s = arena_malloc(storage, sizeof(Set));
-    *s = (Set){};
-    m->value = s;
-  }
-  return (Set*)m->value;
 }
 
 static void
@@ -121,6 +55,54 @@ traverse_and_collect(SetMember* member, UnboundedArray* array, Arena* storage)
   }
 }
 
+static void
+traverse_and_enumerate(SetMember* member, void (*visitor)(SetMember*))
+{
+  if (member) {
+    visitor(member);
+    traverse_and_enumerate(member->left_branch, visitor);
+    traverse_and_enumerate(member->right_branch, visitor);
+  }
+}
+
+void*
+set_lookup(Set* set, void* key, void* default_, SetMember** member)
+{
+  SetMember* m;
+  void* value;
+
+  m = search_member(set->root, key);
+  value = default_;
+  if (m) {
+    value = m->value;
+  }
+  if (member) {
+    *member = m;
+  }
+  return value;
+}
+
+SetMember*
+set_add(Set* set, Arena* storage, void* key, void* value, bool return_if_found)
+{
+  return add_member(set, storage, &set->root, set->root, key, value, return_if_found);
+}
+
+Set*
+set_open_inner(Set* set, Arena* storage, void* key)
+{
+  SetMember* m;
+  Set* s;
+
+  m = set_add(set, storage, key, 0, true);
+  if (m->value == 0) {
+    s = arena_malloc(storage, sizeof(Set));
+    *s = (Set){};
+    m->value = s;
+  }
+  return (Set*)m->value;
+}
+
 int
 set_members_to_array(Set* set, UnboundedArray* array, Arena* storage)
 {
@@ -130,16 +112,6 @@ set_members_to_array(Set* set, UnboundedArray* array, Arena* storage)
   }
   traverse_and_collect(set->root, array, storage);
   return array->elem_count;
-}
-
-static void
-traverse_and_enumerate(SetMember* member, void (*visitor)(SetMember*))
-{
-  if (member) {
-    visitor(member);
-    traverse_and_enumerate(member->left_branch, visitor);
-    traverse_and_enumerate(member->right_branch, visitor);
-  }
 }
 
 void

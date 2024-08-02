@@ -130,14 +130,14 @@ hashmap_lookup_entry(Hashmap* hashmap, char* key, HashmapBucket* bucket/*out*/)
 }
 
 HashmapEntry*
-hashmap_insert_entry(Hashmap* hashmap, Arena* storage, char* key, void* value, bool return_if_exists)
+hashmap_insert_entry(Hashmap* hashmap, Arena* storage, char* key, void* value, bool return_if_found)
 {
   HashmapEntry* entry;
   HashmapBucket bucket = {0};
  
   entry = hashmap_lookup_entry(hashmap, key, &bucket);
   if (entry) {
-    if (return_if_exists) { return entry; } else { return 0; }
+    if (return_if_found) { return entry; } else { return 0; }
   }
 
   if (hashmap->entry_count >= hashmap->capacity) {
