@@ -78,7 +78,7 @@ scope_lookup_current(Scope* scope, char* strname)
 NameDeclaration*
 scope_bind(Scope* scope, Arena* storage, char*strname, enum NameSpace ns)
 {
-  assert(NAMESPACE_NONE < ns);
+  assert(0 < ns);
   NameDeclaration* name_decl;
   NameEntry* name_entry;
   HashmapEntry* he;
@@ -99,7 +99,7 @@ scope_bind(Scope* scope, Arena* storage, char*strname, enum NameSpace ns)
 NameDeclaration*
 name_entry_getdecl(NameEntry* name_entry, enum NameSpace ns)
 {
-  assert(NAMESPACE_NONE < ns);
+  assert(0 < ns);
   return name_entry->ns[ns >> 1];
 }
 
@@ -140,7 +140,6 @@ char*
 NameSpace_to_string(enum NameSpace ns)
 {
   switch (ns) {
-    case NAMESPACE_NONE: return "NAMESPACE_NONE";
     case NAMESPACE_VAR: return "NAMESPACE_VAR";
     case NAMESPACE_TYPE: return "NAMESPACE_TYPE";
     case NAMESPACE_KEYWORD: return "NAMESPACE_KEYWORD";

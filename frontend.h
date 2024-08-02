@@ -926,12 +926,11 @@ typedef struct NameDeclaration {
 } NameDeclaration;
 
 enum NameSpace {
-  NAMESPACE_NONE    = 0,
   NAMESPACE_VAR     = 1 << 0,
   NAMESPACE_TYPE    = 1 << 1,
   NAMESPACE_KEYWORD = 1 << 2,
 };
-#define NameSpace_COUNT 4
+#define NameSpace_COUNT 3
 
 char* NameSpace_to_string(enum NameSpace ns);
 

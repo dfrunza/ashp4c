@@ -20,7 +20,7 @@ search_member(SetMember* member, void* key)
 
 static SetMember*
 add_member(Set* set, Arena* storage, SetMember** branch, SetMember* member,
-                   void* key, void* value, bool return_if_found)
+           void* key, void* value, bool return_if_found)
 {
   if (!member) {
     member = arena_malloc(storage, sizeof(SetMember));
@@ -97,7 +97,7 @@ set_create_inner(Set* set, Arena* storage, void* key)
   m = set_add(set, storage, key, 0, 1);
   if (m->value == 0) {
     s = arena_malloc(storage, sizeof(Set));
-    *s = (Set){};
+    *s = (Set){0};
     m->value = s;
   }
   return (Set*)m->value;
