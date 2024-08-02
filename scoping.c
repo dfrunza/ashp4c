@@ -86,7 +86,7 @@ scope_bind(Scope* scope, Arena* storage, char*strname, enum NameSpace ns)
   name_decl = arena_malloc(storage, sizeof(NameDeclaration));
   name_decl->strname = strname;
 
-  he = hashmap_insert_entry(&scope->name_table, storage, strname, 0, false);
+  he = hashmap_insert_entry(&scope->name_table, storage, strname, 0, true);
   if (he->value == 0) {
     he->value = arena_malloc(storage, sizeof(NameEntry));
   }
