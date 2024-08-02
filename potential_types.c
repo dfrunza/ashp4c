@@ -1140,7 +1140,6 @@ static void
 visit_assignmentStatement(Ast* assign_stmt)
 {
   assert(assign_stmt->kind == AST_assignmentStatement);
-  Type* lhs_ty, *rhs_ty;
   Ast* expr, *name;
   NameEntry* name_entry;
   NameDeclaration* name_decl;
@@ -1167,13 +1166,6 @@ visit_assignmentStatement(Ast* assign_stmt)
     assert(name->kind == AST_name);
     name_decl = resolve_variable(name, name_entry);
     set_add(potential_types, storage, assign_stmt->assignmentStatement.rhs_expr, actual_type(name_decl->type), 0);
-  }
-
-  lhs_ty = set_lookup(potential_types, assign_stmt->assignmentStatement.lhs_expr, 0, 0);
-  rhs_ty = set_lookup(potential_types, assign_stmt->assignmentStatement.rhs_expr, 0, 0);
-  if (!type_equiv(lhs_ty, rhs_ty)) {
-    error("%s:%d:%d: error: incompatible types in assignment statement.",
-          source_file, assign_stmt->line_no, assign_stmt->column_no);
   }
 }
 
@@ -1704,7 +1696,7 @@ static void
 visit_binaryExpression(Ast* binary_expr)
 {
   assert(binary_expr->kind == AST_binaryExpression);
-  Type* lhs_ty, *rhs_ty;
+  Type* lhs_ty;
   Ast* expr, *name;
   enum Ast_Operator op;
   NameEntry* name_entry;
@@ -1731,11 +1723,6 @@ visit_binaryExpression(Ast* binary_expr)
   }
 
   lhs_ty = set_lookup(potential_types, binary_expr->binaryExpression.left_operand, 0, 0);
-  rhs_ty = set_lookup(potential_types, binary_expr->binaryExpression.right_operand, 0, 0);
-  if (!type_equiv(lhs_ty, rhs_ty)) {
-    error("%s:%d:%d: error: incompatible operand types in binary expression.",
-          source_file, binary_expr->line_no, binary_expr->column_no);
-  }
 
   op = binary_expr->binaryExpression.op;
   if (op == OP_ADD || op == OP_SUB || op == OP_MUL || op == OP_DIV) {
@@ -1795,7 +1782,7 @@ static void
 visit_arraySubscript(Ast* subscript)
 {
   assert(subscript->kind == AST_arraySubscript);
-  Type* lhs_ty, *index_ty;
+  Type* lhs_ty;
   Ast* expr, *lhs_expr, *name;
   NameEntry* name_entry;
   NameDeclaration* name_decl;
@@ -1828,7 +1815,7 @@ static void
 visit_indexExpression(Ast* index_expr)
 {
   assert(index_expr->kind == AST_indexExpression);
-  Type* start_ty, *end_ty;
+  Type* start_ty;
   Ast* start_expr, *end_expr, *name;
   NameEntry* name_entry;
   NameDeclaration* name_decl;
@@ -1855,15 +1842,6 @@ visit_indexExpression(Ast* index_expr)
   }
 
   start_ty = set_lookup(potential_types, index_expr->indexExpression.start_index, 0, 0);
-  if (!type_equiv(start_ty, builtin_bit_ty)) {
-    error("%s:%d:%d: error: array index must be of `bit` type.",
-          source_file, start_expr->line_no, start_expr->column_no);
-  }
-  end_ty = set_lookup(potential_types, index_expr->indexExpression.end_index, 0, 0);
-  if (end_ty && !type_equiv(end_ty, builtin_bit_ty)) {
-    error("%s:%d:%d: error: array index must be of `bit` type.",
-          source_file, end_expr->line_no, end_expr->column_no);
-  }
   set_add(potential_types, storage, index_expr, start_ty, 0);
 }
 

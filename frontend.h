@@ -359,21 +359,21 @@ typedef struct Ast {
     } parserDeclaration;
 
     struct {
-      struct Ast* first_child;
-    } parserLocalElements;
-
-    struct {
       struct Ast* name;
       struct Ast* params;
     } parserTypeDeclaration;
 
     struct {
       struct Ast* first_child;
-    } parserStates;
+    } parserLocalElements;
 
     struct {
       struct Ast* element;
     } parserLocalElement;
+
+    struct {
+      struct Ast* first_child;
+    } parserStates;
 
     struct {
       struct Ast* name;
@@ -446,12 +446,12 @@ typedef struct Ast {
     } controlTypeDeclaration;
 
     struct {
-      struct Ast* decl;
-    } controlLocalDeclaration;
-
-    struct {
       struct Ast* first_child;
     } controlLocalDeclarations;
+
+    struct {
+      struct Ast* decl;
+    } controlLocalDeclaration;
 
     /** EXTERN **/
 
@@ -460,17 +460,17 @@ typedef struct Ast {
     } externDeclaration;
 
     struct {
-      struct Ast* first_child;
-    } methodPrototypes;
-
-    struct {
       struct Ast* name;
       struct Ast* method_protos;
     } externTypeDeclaration;
 
     struct {
-      struct Ast* name;
+      struct Ast* first_child;
+    } methodPrototypes;
+
+    struct {
       struct Ast* return_type;
+      struct Ast* name;
       struct Ast* params;
     } functionPrototype;
 
@@ -596,8 +596,8 @@ typedef struct Ast {
     } specifiedIdentifier;
 
     struct {
-      struct Ast* name;
       struct Ast* type_ref;
+      struct Ast* name;
     } typedefDeclaration;
 
     /** STATEMENTS **/
@@ -733,8 +733,8 @@ typedef struct Ast {
     /** VARIABLES **/
 
     struct {
-      struct Ast* name;
       struct Ast* type;
+      struct Ast* name;
       struct Ast* init_expr;
       bool is_const;
     } variableDeclaration;

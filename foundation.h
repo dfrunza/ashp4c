@@ -34,20 +34,25 @@ void  reserve_page_memory(int memory_amount);
 void* arena_malloc(Arena* arena, uint32_t size);
 void  arena_free(Arena* arena);
 
-/*
- * n |  Capacity
- * 1 => 16
- * 2 => 48
- * 3 => 112
- * 4 => 240
- * 5 => 496
- * 6 => 1008
- * 7 => 2032
- * 8 => 4080
- * 9 => 8176
+/**
+ * n  ...  segment count
+ * C  ...  capacity (max. nr. of elements)
+ *
+ * n |  C
+ * --+-----
+ * 1 | 16
+ * 2 | 48
+ * 3 | 112
+ * 4 | 240
+ * 5 | 496
+ * 6 | 1008
+ * 7 | 2032
+ * 8 | 4080
+ * 9 | 8176
  * ...
+ *
  * C = (2^n - 1)*16
- */
+ **/
 
 typedef struct SegmentTable {
   int segment_count;
@@ -92,9 +97,9 @@ typedef struct HashmapCursor {
 } HashmapCursor;
 
 Hashmap*      hashmap_create(Arena* storage, int max_capacity);
-void          hashmap_init(Hashmap* hashmap, Arena* storage, int segment_count);
-HashmapEntry* hashmap_lookup(Hashmap* hashmap, char* key, HashmapBucket* bucket);
-HashmapEntry* hashmap_insert(Hashmap* hashmap, Arena* storage, char* key, void* value, bool nop_if_exists);
+void          hashmap_init(Arena* storage, Hashmap* hashmap, int segment_count);
+void*         hashmap_lookup(Hashmap* hashmap, char* key, HashmapEntry** entry, HashmapBucket* bucket);
+HashmapEntry* hashmap_insert(Hashmap* hashmap, Arena* storage, char* key, void* value, bool return_if_found);
 void          hashmap_cursor_begin(HashmapCursor* cursor, Hashmap* hashmap);
 HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor);
 
@@ -114,6 +119,4 @@ typedef struct Set {
 SetMember* set_add(Set* set, Arena* storage, void* key, void* value, bool return_if_found);
 Set*       set_create_inner(Set* set, Arena* storage, void* key);
 void*      set_lookup(Set* set, void* key, void* default_, SetMember** member);
-int        set_members_to_array(Set* set, UnboundedArray* array, Arena* storage);
-void       set_enumerate_members(Set* set, void (*visitor)(SetMember*));
 

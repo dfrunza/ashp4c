@@ -40,12 +40,12 @@ hashmap_create(Arena* storage, int max_capacity)
 
   segment_count = ceil(log2(max_capacity/16 + 1));
   hashmap = arena_malloc(storage, sizeof(Hashmap) + sizeof(HashmapEntry**) * segment_count);
-  hashmap_init(hashmap, storage, segment_count);
+  hashmap_init(storage, hashmap, segment_count);
   return hashmap;
 }
 
 void
-hashmap_init(Hashmap* hashmap, Arena* storage, int segment_count)
+hashmap_init(Arena* storage, Hashmap* hashmap, int segment_count)
 {
   assert(segment_count >= 1);
 
@@ -104,8 +104,8 @@ hashmap_grow(Hashmap* hashmap, Arena* storage)
   }
 }
 
-HashmapEntry*
-hashmap_lookup(Hashmap* hashmap, char* key, HashmapBucket* bucket/*out*/)
+void*
+hashmap_lookup(Hashmap* hashmap, char* key, HashmapEntry** entry_/*out*/, HashmapBucket* bucket/*out*/)
 {
   int last_segment;
   HashmapEntry** entry_slot, *entry;
@@ -121,12 +121,14 @@ hashmap_lookup(Hashmap* hashmap, char* key, HashmapBucket* bucket/*out*/)
     }
     entry = entry->next_entry;
   }
+  if (entry_) { *entry_ = entry; }
   if (bucket) {
     bucket->h = h;
     bucket->entry_slot = entry_slot;
     bucket->last_segment = last_segment;
   }
-  return entry;
+  if (entry) { return entry->value; }
+  return 0;
 }
 
 HashmapEntry*
@@ -135,7 +137,7 @@ hashmap_insert(Hashmap* hashmap, Arena* storage, char* key, void* value, bool re
   HashmapEntry* entry;
   HashmapBucket bucket = {0};
  
-  entry = hashmap_lookup(hashmap, key, &bucket);
+  hashmap_lookup(hashmap, key, &entry, &bucket);
   if (entry) {
     if (return_if_found) { return entry; } else { return 0; }
   }

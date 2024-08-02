@@ -78,8 +78,8 @@ block_insert_and_coalesce(PageBlock* block_list, PageBlock* new_block)
   PageBlock* merged_list;
   PageBlock* left_neighbour = 0, *right_neighbour = 0;
   PageBlock* p;
-  const int STITCH_LEFT = 1 << 1, STITCH_RIGHT = 1 << 2;
-  int stitch_type = 0;
+  const int STITCH_NONE = 0, STITCH_LEFT = 1 << 1, STITCH_RIGHT = 1 << 2;
+  int stitch_method;
 
   if (!block_list) {
     return new_block;
@@ -94,7 +94,7 @@ block_insert_and_coalesce(PageBlock* block_list, PageBlock* new_block)
     }
     p = p->next_block;
   }
-  /* Insert the 'new_block' in the ordered list of blocks. */
+  /* Insert the 'new_block' into the list. */
   if (left_neighbour) {
     right_neighbour = left_neighbour->next_block;
     left_neighbour->next_block = new_block;
@@ -111,26 +111,27 @@ block_insert_and_coalesce(PageBlock* block_list, PageBlock* new_block)
   }
 
   /* Coalesce adjacent blocks. */
+  stitch_method = STITCH_NONE;
   if (left_neighbour && (left_neighbour->memory_end == new_block->memory_begin)) {
-    stitch_type |= STITCH_LEFT;
+    stitch_method |= STITCH_LEFT;
   }
   if (right_neighbour && (right_neighbour->memory_begin == new_block->memory_end)) {
-    stitch_type |= STITCH_RIGHT;
+    stitch_method |= STITCH_RIGHT;
   }
-  if (stitch_type == (STITCH_LEFT | STITCH_RIGHT)) {
+  if (stitch_method == (STITCH_LEFT | STITCH_RIGHT)) {
     left_neighbour->memory_end = right_neighbour->memory_end;
     left_neighbour->next_block = right_neighbour->next_block;
     if (right_neighbour->next_block) {
       right_neighbour->next_block->prev_block = left_neighbour;
     }
     recycle_block_struct(right_neighbour);
-  } else if (stitch_type == STITCH_LEFT) {
+  } else if (stitch_method == STITCH_LEFT) {
     left_neighbour->memory_end = new_block->memory_end;
     left_neighbour->next_block = right_neighbour;
     if (right_neighbour) {
       right_neighbour->prev_block = left_neighbour;
     }
-  } else if (stitch_type == STITCH_RIGHT) {
+  } else if (stitch_method == STITCH_RIGHT) {
     right_neighbour->memory_begin = new_block->memory_begin;
     right_neighbour->prev_block = left_neighbour;
     if (left_neighbour) {
@@ -139,7 +140,7 @@ block_insert_and_coalesce(PageBlock* block_list, PageBlock* new_block)
       merged_list = right_neighbour;
     }
   }
-  if (stitch_type != 0) {
+  if (stitch_method != STITCH_NONE) {
     recycle_block_struct(new_block);
   }
   return merged_list;

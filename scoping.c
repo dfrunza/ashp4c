@@ -15,7 +15,7 @@ scope_create(Arena* storage, int max_capacity)
 
   segment_count = ceil(log2(max_capacity/16 + 1));
   scope = arena_malloc(storage, sizeof(Scope) + sizeof(HashmapEntry**) * segment_count);
-  hashmap_init(&scope->name_table, storage, segment_count);
+  hashmap_init(storage, &scope->name_table, segment_count);
   return scope;
 }
 
@@ -36,18 +36,16 @@ scope_pop(Scope* scope)
 NameEntry*
 scope_lookup(Scope* scope, char* strname, enum NameSpace ns)
 {
-  NameEntry* name_entry = 0;
-  HashmapEntry* he;
+  NameEntry* name_entry;
 
   while (scope) {
-    he = hashmap_lookup(&scope->name_table, strname, 0);
-    if (he) {
-      name_entry = (NameEntry*)he->value;
-      if ((ns & NAMESPACE_TYPE) != 0 && name_entry->ns[NAMESPACE_TYPE >> 1]) {
+    name_entry = hashmap_lookup(&scope->name_table, strname, 0, 0);
+    if (name_entry) {
+      if ((ns & NAMESPACE_VAR) != 0 && name_entry->ns[NAMESPACE_VAR >> 1]) {
         break;
       }
-      if ((ns & NAMESPACE_VAR) != 0 && name_entry->ns[NAMESPACE_VAR >> 1]) {
-        break;;
+      if ((ns & NAMESPACE_TYPE) != 0 && name_entry->ns[NAMESPACE_TYPE >> 1]) {
+        break;
       }
       if ((ns & NAMESPACE_KEYWORD) != 0 && name_entry->ns[NAMESPACE_KEYWORD >> 1]) {
         break;
@@ -65,14 +63,7 @@ scope_lookup(Scope* scope, char* strname, enum NameSpace ns)
 NameEntry*
 scope_lookup_current(Scope* scope, char* strname)
 {
-  NameEntry* name_entry = 0;
-  HashmapEntry* he;
-
-  he = hashmap_lookup(&scope->name_table, strname, 0);
-  if (he) {
-    name_entry = (NameEntry*)he->value;
-  }
-  return name_entry;
+  return hashmap_lookup(&scope->name_table, strname, 0, 0);
 }
 
 NameDeclaration*
