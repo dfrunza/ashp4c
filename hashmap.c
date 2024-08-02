@@ -60,7 +60,7 @@ static void
 hashmap_grow(Hashmap* hashmap, Arena* storage)
 {
   int last_segment;
-  HashmapCursor it = {};
+  HashmapCursor it = {0};
   HashmapEntry* first_entry, *last_entry;
   HashmapEntry* entry, *next_entry;
   HashmapEntry** segment, **entry_slot;

@@ -24,7 +24,7 @@ typedef struct CmdlineArg {
 static SourceText
 read_source_text(Arena* storage, char* filename)
 {
-  SourceText source_text = {};
+  SourceText source_text = {0};
   FILE* f_stream;
   char* text;
 
@@ -228,7 +228,7 @@ main(int arg_count, char* args[])
   };
 
   CmdlineArg* cmdline, *filename;
-  Arena storage = {}, tmp_storage = {};
+  Arena storage = {0}, tmp_storage = {0};
   Ast* name, *program;
   NameDeclaration* name_decl;
   NameEntry* name_entry;
@@ -261,7 +261,7 @@ main(int arg_count, char* args[])
 
   type_array = array_create(&storage, sizeof(Type), 1008);
   type_table = arena_malloc(&storage, sizeof(Set));
-  *type_table = (Set){};
+  *type_table = (Set){0};
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_entry = scope_lookup(root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
     name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);

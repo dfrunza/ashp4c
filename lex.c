@@ -838,7 +838,7 @@ next_token(Token* token)
 UnboundedArray*
 tokenize_source_text(SourceText* source_text, Arena* storage_)
 {
-  Token token = {};
+  Token token = {0};
 
   storage = storage_;
   filename = source_text->filename;

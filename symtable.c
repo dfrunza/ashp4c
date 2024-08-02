@@ -152,9 +152,9 @@ build_symtable(Arena* storage_, char* source_file, Ast* p4program, Scope* root_s
   storage = storage_;
   current_scope = root_scope;
   enclosing_scopes = arena_malloc(storage, sizeof(Set));
-  *enclosing_scopes = (Set){};
+  *enclosing_scopes = (Set){0};
   decl_table = arena_malloc(storage, sizeof(Set));
-  *decl_table = (Set){};
+  *decl_table = (Set){0};
   *decl_table_ = decl_table;
 
   visit_p4program(p4program);

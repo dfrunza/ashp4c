@@ -147,7 +147,7 @@ build_opened_scopes(Arena* storage_, char* source_file, Ast* p4program, Scope* r
 {
   storage = storage_;
   opened_scopes = arena_malloc(storage, sizeof(Set));
-  *opened_scopes = (Set){};
+  *opened_scopes = (Set){0};
   current_scope = root_scope;
 
   visit_p4program(p4program);

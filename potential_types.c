@@ -380,7 +380,7 @@ build_potential_types(Arena* storage_, char* source_file_, Ast* p4program, Scope
   decl_table = decl_table_;
   storage = storage_;
   potential_types = arena_malloc(storage, sizeof(Set));
-  *potential_types = (Set){};
+  *potential_types = (Set){0};
 
   visit_p4program(p4program);
 

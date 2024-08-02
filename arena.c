@@ -13,7 +13,7 @@
 static int   page_size = 0;
 static int   total_page_count = 0;
 static void* page_memory_start = 0;
-static Arena storage = {};
+static Arena storage = {0};
 static PageBlock* first_block = 0;
 static PageBlock* block_freelist_head = 0;
 static PageBlock* recycled_block_structs = 0;
