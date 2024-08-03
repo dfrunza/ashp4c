@@ -9,6 +9,8 @@ typedef struct TypePair
   Type* right;
 } TypePair;
 
+extern Type *builtin_void_ty;
+
 static char*    source_file;
 static Arena*   storage;
 static Scope*   root_scope;
@@ -266,6 +268,66 @@ structural_type_equiv(Type* left, Type* right)
   return 0;
 }
 
+static void
+resolve_type_nameref(Set* type_env, UnboundedArray* type_array)
+{
+  Ast* name;
+  Type* ref_ty, *ty;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
+
+  for (int i = 0; i < type_array->elem_count; i++) {
+    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
+    if (ty->ctor == TYPE_NAMEREF) {
+      name = ty->nameref.name;
+      name_entry = scope_lookup(ty->nameref.scope, name->name.strname, NAMESPACE_TYPE);
+      name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+      if (name_decl) {
+        ref_ty = set_lookup(type_env, name_decl->ast, 0, 0);
+        assert(ref_ty);
+        name_decl->type = ref_ty;
+        ty->ctor = TYPE_TYPE;
+        ty->type.type = ref_ty;
+        if (name_decl->next_in_scope) {
+          error("%s:%d:%d: error: ambiguous type reference `%s`.",
+                source_file, name->line_no, name->column_no, name->name.strname);
+        }
+      } else error("%s:%d:%d: error: unresolved type reference `%s`.",
+                   source_file, name->line_no, name->column_no, name->name.strname);
+    }
+  }
+}
+
+static void
+deref_type_type(UnboundedArray* type_array)
+{
+  Type* ref_ty, *ty;
+
+  for (int i = 0; i < type_array->elem_count; i++) {
+    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
+    if (ty->ctor == TYPE_TYPEDEF) {
+      ref_ty = actual_type(ty->typedef_.ref);
+      while (ref_ty->ctor == TYPE_TYPEDEF) {
+        ref_ty = actual_type(ref_ty->typedef_.ref);
+      }
+      ty->ctor = TYPE_TYPE;
+      ty->type.type = ref_ty;
+    }
+  }
+
+  for (int i = 0; i < type_array->elem_count; i++) {
+    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
+    if (ty->ctor == TYPE_TYPE) {
+      ref_ty = actual_type(ty->type.type);
+      while (ref_ty->ctor == TYPE_TYPE) {
+        ref_ty = actual_type(ref_ty->type.type);
+      }
+      ty->ctor = TYPE_TYPE;
+      ty->type.type = ref_ty;
+    }
+  }
+}
+
 bool
 type_equiv(Type* left, Type* right)
 {
@@ -306,66 +368,7 @@ TypeEnum_to_string(enum TypeEnum type)
 }
 
 void
-resolve_type_nameref(Set* type_env, UnboundedArray* type_array)
-{
-  Ast* name;
-  Type* ref_ty, *ty;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
-
-  for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
-    if (ty->ctor == TYPE_NAMEREF) {
-      name = ty->nameref.name;
-      name_entry = scope_lookup(ty->nameref.scope, name->name.strname, NAMESPACE_TYPE);
-      name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-      if (name_decl) {
-        ref_ty = set_lookup(type_env, name_decl->ast, 0, 0);
-        assert(ref_ty);
-        name_decl->type = ref_ty;
-        ty->ctor = TYPE_TYPE;
-        ty->type.type = ref_ty;
-        if (name_decl->next_in_scope) {
-          error("%s:%d:%d: error: ambiguous type reference `%s`.",
-                source_file, name->line_no, name->column_no, name->name.strname);
-        }
-      } else error("%s:%d:%d: error: unresolved type reference `%s`.",
-                   source_file, name->line_no, name->column_no, name->name.strname);
-    }
-  }
-}
-
-void
-deref_type_type(UnboundedArray* type_array)
-{
-  Type* ref_ty, *ty;
-
-  for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
-    if (ty->ctor == TYPE_TYPEDEF) {
-      ref_ty = actual_type(ty->typedef_.ref);
-      while (ref_ty->ctor == TYPE_TYPEDEF) {
-        ref_ty = actual_type(ref_ty->typedef_.ref);
-      }
-      ty->ctor = TYPE_TYPE;
-      ty->type.type = ref_ty;
-    }
-  }
-
-  for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
-    if (ty->ctor == TYPE_TYPE) {
-      ref_ty = ty->type.type;
-      while (ref_ty->ctor == TYPE_TYPE) {
-        ref_ty = ref_ty->type.type;
-      }
-      ty->type.type = ref_ty;
-    }
-  }
-}
-
-void
-Debug_print_type_env(Set* table)
+Debug_print_type_env(Set* env)
 {
   Ast* ast;
   SetMember* m;
@@ -373,7 +376,7 @@ Debug_print_type_env(Set* table)
   int i;
 
   i = 0;
-  for (m = table->first; m != 0; m = m->next) {
+  for (m = env->first; m != 0; m = m->next) {
     ast = (Ast*)m->key;
     ty = (Type*)m->value;
     if (ty->strname) {
@@ -422,6 +425,8 @@ build_type_env(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_
   type_equiv_pairs = array_create(storage, sizeof(TypePair), 48);
 
   visit_p4program(p4program);
+  resolve_type_nameref(type_env, type_array);
+  deref_type_type(type_array);
 }
 
 /** PROGRAM **/
@@ -498,7 +503,7 @@ visit_parameterList(Ast* params)
   Ast* ast;
   Type* params_ty, *ty;
 
-  params_ty = 0;
+  params_ty = builtin_void_ty;
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parameter(ast);
@@ -909,7 +914,7 @@ visit_methodPrototypes(Ast* protos, Ast* extern_decl, Ast* extern_name)
   Ast* ast;
   Type* methods_ty, *ty;
 
-  methods_ty = 0;
+  methods_ty = builtin_void_ty;
   for (ast = protos->methodPrototypes.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_functionPrototype(ast, extern_decl, extern_name);
@@ -1141,7 +1146,7 @@ visit_typeArgumentList(Ast* arg_list)
   Ast* ast;
   Type* args_ty, *ty;
 
-  args_ty = 0;
+  args_ty = builtin_void_ty;
   for (ast = arg_list->typeArgumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_typeArg(ast);
@@ -1262,7 +1267,7 @@ visit_structFieldList(Ast* field_list)
   Ast* ast;
   Type* fields_ty, *ty;
 
-  fields_ty = 0;
+  fields_ty = builtin_void_ty;
   for (ast = field_list->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_structField(ast);

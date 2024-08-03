@@ -145,7 +145,7 @@ static void visit_dontcare(Ast* dontcare);
 
 Set*
 build_symtable(Arena* storage_, char* source_file, Ast* p4program, Scope* root_scope_, Set* opened_scopes_,
-    Set** decl_map_)
+    Set** decl_map_/*out*/)
 {
   root_scope = root_scope_;
   opened_scopes = opened_scopes_;
