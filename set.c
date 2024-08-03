@@ -19,7 +19,7 @@ search_member(SetMember* member, void* key)
 }
 
 static SetMember*
-add_member(Set* set, Arena* storage, SetMember** branch, SetMember* member,
+add_member(Arena* storage, Set* set, SetMember** branch, SetMember* member,
            void* key, void* value, bool return_if_found)
 {
   if (!member) {
@@ -35,10 +35,10 @@ add_member(Set* set, Arena* storage, SetMember** branch, SetMember* member,
   } else if (member->key == key) {
     if (return_if_found) { return member; } else { return 0; }
   } else if (key < member->key) {
-    return add_member(set, storage, &member->left_branch, member->left_branch,
+    return add_member(storage, set, &member->left_branch, member->left_branch,
                                   key, value, return_if_found);
   } else {
-    return add_member(set, storage, &member->right_branch, member->right_branch,
+    return add_member(storage, set, &member->right_branch, member->right_branch,
                                   key, value, return_if_found);
   }
   assert(0);
@@ -63,18 +63,18 @@ set_lookup(Set* set, void* key, void* default_, SetMember** member)
 }
 
 SetMember*
-set_add(Set* set, Arena* storage, void* key, void* value, bool return_if_found)
+set_add(Arena* storage, Set* set, void* key, void* value, bool return_if_found)
 {
-  return add_member(set, storage, &set->root, set->root, key, value, return_if_found);
+  return add_member(storage, set, &set->root, set->root, key, value, return_if_found);
 }
 
 Set*
-set_create_inner(Set* set, Arena* storage, void* key)
+set_create_inner(Arena* storage, Set* set, void* key)
 {
   SetMember* m;
   Set* s;
 
-  m = set_add(set, storage, key, 0, 1);
+  m = set_add(storage, set, key, 0, 1);
   if (m->value == 0) {
     s = arena_malloc(storage, sizeof(Set));
     *s = (Set){0};

@@ -942,5 +942,5 @@ Scope*     scope_push(Scope* scope, Scope* parent_scope);
 Scope*     scope_pop(Scope* scope);
 NameEntry* scope_lookup(Scope* scope, char* name, enum NameSpace ns);
 NameEntry* scope_lookup_current(Scope* scope, char* strname);
-NameDeclaration* scope_bind(Scope* scope, Arena* storage, char* strname, enum NameSpace ns);
+NameDeclaration* scope_bind(Arena* storage, Scope* scope, char* strname, enum NameSpace ns);
 NameDeclaration* name_entry_getdecl(NameEntry* name_entry, enum NameSpace ns);

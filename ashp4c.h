@@ -1,8 +1,8 @@
 
 /* Syntactic analysis */
 
-UnboundedArray* tokenize_source_text(SourceText* source_text, Arena* storage);
-Ast*            parse_program(char* source_file, UnboundedArray* tokens, Arena* storage, Scope* root_scope);
+UnboundedArray* tokenize_source_text(Arena* storage, SourceText* source_text);
+Ast*            parse_program(Arena* storage, char* source_file, UnboundedArray* tokens, Scope* root_scope);
 
 /* Semantic analysis */
 

@@ -67,10 +67,10 @@ typedef struct UnboundedArray {
 
 void* segment_locate_cell(SegmentTable* data, int i, int elem_size);
 UnboundedArray* array_create(Arena* storage, int elem_size, int max_capacity);
-void  array_init(UnboundedArray* array, Arena* storage, int elem_size, int segment_count);
-void  array_extend(UnboundedArray* array, Arena* storage, int elem_size);
+void  array_init(Arena* storage, UnboundedArray* array, int elem_size, int segment_count);
+void  array_extend(Arena* storage, UnboundedArray* array, int elem_size);
 void* array_get_element(UnboundedArray* array, int i, int elem_size);
-void* array_append_element(UnboundedArray* array, Arena* storage, int elem_size);
+void* array_append_element(Arena* storage, UnboundedArray* array, int elem_size);
 
 typedef struct HashmapEntry {
   char* key;
@@ -99,7 +99,7 @@ typedef struct HashmapCursor {
 Hashmap*      hashmap_create(Arena* storage, int max_capacity);
 void          hashmap_init(Arena* storage, Hashmap* hashmap, int segment_count);
 void*         hashmap_lookup(Hashmap* hashmap, char* key, HashmapEntry** entry, HashmapBucket* bucket);
-HashmapEntry* hashmap_insert(Hashmap* hashmap, Arena* storage, char* key, void* value, bool return_if_found);
+HashmapEntry* hashmap_insert(Arena* storage, Hashmap* hashmap, char* key, void* value, bool return_if_found);
 void          hashmap_cursor_begin(HashmapCursor* cursor, Hashmap* hashmap);
 HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor);
 
@@ -116,7 +116,7 @@ typedef struct Set {
   SetMember* root;
 } Set;
 
-SetMember* set_add(Set* set, Arena* storage, void* key, void* value, bool return_if_found);
-Set*       set_create_inner(Set* set, Arena* storage, void* key);
+SetMember* set_add(Arena* storage, Set* set, void* key, void* value, bool return_if_found);
+Set*       set_create_inner(Arena* storage, Set* set, void* key);
 void*      set_lookup(Set* set, void* key, void* default_, SetMember** member);
 

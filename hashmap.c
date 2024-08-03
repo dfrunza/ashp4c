@@ -57,7 +57,7 @@ hashmap_init(Arena* storage, Hashmap* hashmap, int segment_count)
 }
 
 static void
-hashmap_grow(Hashmap* hashmap, Arena* storage)
+hashmap_grow(Arena* storage, Hashmap* hashmap)
 {
   int last_segment;
   HashmapCursor it = {0};
@@ -132,7 +132,7 @@ hashmap_lookup(Hashmap* hashmap, char* key, HashmapEntry** entry_/*out*/, Hashma
 }
 
 HashmapEntry*
-hashmap_insert(Hashmap* hashmap, Arena* storage, char* key, void* value, bool return_if_found)
+hashmap_insert(Arena* storage, Hashmap* hashmap, char* key, void* value, bool return_if_found)
 {
   HashmapEntry* entry;
   HashmapBucket bucket = {0};
@@ -143,7 +143,7 @@ hashmap_insert(Hashmap* hashmap, Arena* storage, char* key, void* value, bool re
   }
 
   if (hashmap->entry_count >= hashmap->capacity) {
-    hashmap_grow(hashmap, storage);
+    hashmap_grow(storage, hashmap);
     bucket.last_segment = floor(log2(hashmap->capacity/16));
     bucket.h = hashmap_hash_key(key, 4 + (bucket.last_segment + 1), hashmap->capacity);
     bucket.entry_slot = segment_locate_cell(&hashmap->entries, bucket.h, sizeof(HashmapEntry*));

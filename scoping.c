@@ -67,7 +67,7 @@ scope_lookup_current(Scope* scope, char* strname)
 }
 
 NameDeclaration*
-scope_bind(Scope* scope, Arena* storage, char*strname, enum NameSpace ns)
+scope_bind(Arena* storage, Scope* scope, char*strname, enum NameSpace ns)
 {
   assert(0 < ns);
   NameDeclaration* name_decl;
@@ -77,7 +77,7 @@ scope_bind(Scope* scope, Arena* storage, char*strname, enum NameSpace ns)
   name_decl = arena_malloc(storage, sizeof(NameDeclaration));
   name_decl->strname = strname;
 
-  he = hashmap_insert(&scope->name_table, storage, strname, 0, 1);
+  he = hashmap_insert(storage, &scope->name_table, strname, 0, 1);
   if (he->value == 0) {
     he->value = arena_malloc(storage, sizeof(NameEntry));
   }

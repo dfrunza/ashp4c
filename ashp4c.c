@@ -116,8 +116,8 @@ syntactic_analysis(Arena* storage, Arena* text_storage, char* source_file, Scope
   Ast *program;
 
   source_text = read_source_text(text_storage, source_file);
-  tokens = tokenize_source_text(&source_text, storage);
-  program = parse_program(source_file, tokens, storage, root_scope);
+  tokens = tokenize_source_text(storage, &source_text);
+  program = parse_program(storage, source_file, tokens, root_scope);
   return program;
 }
 
@@ -248,14 +248,14 @@ main(int arg_count, char* args[])
 
   root_scope = scope_create(&storage, 496);
   for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
-    name_decl = scope_bind(root_scope, &storage, keywords[i].strname, NAMESPACE_KEYWORD);
+    name_decl = scope_bind(&storage, root_scope, keywords[i].strname, NAMESPACE_KEYWORD);
     name_decl->token_class = keywords[i].token_class;
   }
   for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
     name = arena_malloc(&storage, sizeof(Ast));
     name->kind = AST_name;
     name->name.strname = builtin_names[i].strname;
-    name_decl = scope_bind(root_scope, &storage, name->name.strname, builtin_names[i].ns);
+    name_decl = scope_bind(&storage, root_scope, name->name.strname, builtin_names[i].ns);
     name_decl->ast = name;
   }
 
@@ -265,12 +265,12 @@ main(int arg_count, char* args[])
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_entry = scope_lookup(root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
     name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-    builtin_ty = (Type*)array_append_element(type_array, &storage, sizeof(Type));
+    builtin_ty = (Type*)array_append_element(&storage, type_array, sizeof(Type));
     builtin_ty->ctor = builtin_types[i].ctor;
     builtin_ty->strname = name_decl->strname;
     builtin_ty->ast = name_decl->ast;
     name_decl->type = builtin_ty;
-    set_add(type_env, &storage, name_decl->ast, builtin_ty, 0);
+    set_add(&storage, type_env, name_decl->ast, builtin_ty, 0);
     *builtin_types[i].type = builtin_ty;
   }
 
