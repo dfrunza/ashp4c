@@ -13,7 +13,7 @@ static char*    source_file;
 static Arena*   storage;
 static Scope*   root_scope;
 static Set*     opened_scopes, *enclosing_scopes;
-static Set*     type_env, *decl_table;
+static Set*     type_env, *decl_map;
 static UnboundedArray* type_array;
 static UnboundedArray* type_equiv_pairs;
 
@@ -409,7 +409,7 @@ Debug_print_type_array(UnboundedArray* type_array)
 
 void
 build_type_env(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_, UnboundedArray* type_array_,
-                 Set* type_env_, Set* opened_scopes_, Set* enclosing_scopes_, Set* decl_table_)
+    Set* type_env_, Set* opened_scopes_, Set* enclosing_scopes_, Set* decl_map_)
 {
   source_file = source_file_;
   storage = storage_;
@@ -418,7 +418,7 @@ build_type_env(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_
   type_env = type_env_;
   opened_scopes = opened_scopes_;
   enclosing_scopes = enclosing_scopes_;
-  decl_table = decl_table_;
+  decl_map = decl_map_;
   type_equiv_pairs = array_create(storage, sizeof(TypePair), 48);
 
   visit_p4program(p4program);
@@ -524,7 +524,7 @@ visit_parameter(Ast* param)
     visit_expression(param->parameter.init_expr);
   }
 
-  name_decl = set_lookup(decl_table, param, 0, 0);
+  name_decl = set_lookup(decl_map, param, 0, 0);
   name_decl->type = set_lookup(type_env, param->parameter.type, 0, 0);
 }
 
@@ -553,7 +553,7 @@ visit_packageTypeDeclaration(Ast* type_decl)
   ctor_ty->function.params = set_lookup(type_env, type_decl->packageTypeDeclaration.params, 0, 0);
   package_ty->package.ctor = ctor_ty;
 
-  name_decl = set_lookup(decl_table, type_decl, 0, 0);
+  name_decl = set_lookup(decl_map, type_decl, 0, 0);
   name_decl->type = package_ty;
   name_decl->ctor_type = ctor_ty;
 }
@@ -616,7 +616,7 @@ visit_parserTypeDeclaration(Ast* type_decl)
   ctor_ty->function.return_ = parser_ty;
   parser_ty->parser.ctor = ctor_ty;
 
-  name_decl = set_lookup(decl_table, type_decl, 0, 0);
+  name_decl = set_lookup(decl_map, type_decl, 0, 0);
   name_decl->type = parser_ty;
   name_decl->ctor_type = ctor_ty;
 }
@@ -834,7 +834,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
   ctor_ty->function.return_ = control_ty;
   control_ty->control.ctor = ctor_ty;
 
-  name_decl = set_lookup(decl_table, type_decl, 0, 0);
+  name_decl = set_lookup(decl_map, type_decl, 0, 0);
   name_decl->type = control_ty;
   name_decl->ctor_type = ctor_ty;
 }
@@ -898,7 +898,7 @@ visit_externTypeDeclaration(Ast* type_decl)
           type_decl, type_decl->externTypeDeclaration.name);
   extern_ty->extern_.methods = set_lookup(type_env, type_decl->externTypeDeclaration.method_protos, 0, 0);
 
-  name_decl = set_lookup(decl_table, type_decl, 0, 0);
+  name_decl = set_lookup(decl_map, type_decl, 0, 0);
   name_decl->type = extern_ty;
 }
 
@@ -953,7 +953,7 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
     func_ty->function.return_ = set_lookup(type_env, extern_decl, 0, 0);
   } else assert(0);
 
-  name_decl = set_lookup(decl_table, func_proto, 0, 0);
+  name_decl = set_lookup(decl_map, func_proto, 0, 0);
   name_decl->type = func_ty;
 }
 
@@ -1025,7 +1025,7 @@ visit_baseTypeBoolean(Ast* bool_type)
   assert(bool_type->kind == AST_baseTypeBoolean);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, bool_type, 0, 0);
+  name_decl = set_lookup(decl_map, bool_type, 0, 0);
   set_add(type_env, storage, bool_type, name_decl->type, 0);
 }
 
@@ -1039,7 +1039,7 @@ visit_baseTypeInteger(Ast* int_type)
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
 
-  name_decl = set_lookup(decl_table, int_type, 0, 0);
+  name_decl = set_lookup(decl_map, int_type, 0, 0);
   set_add(type_env, storage, int_type, name_decl->type, 0);
 }
 
@@ -1053,7 +1053,7 @@ visit_baseTypeBit(Ast* bit_type)
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
 
-  name_decl = set_lookup(decl_table, bit_type, 0, 0);
+  name_decl = set_lookup(decl_map, bit_type, 0, 0);
   set_add(type_env, storage, bit_type, name_decl->type, 0);
 }
 
@@ -1065,7 +1065,7 @@ visit_baseTypeVarbit(Ast* varbit_type)
 
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
 
-  name_decl = set_lookup(decl_table, varbit_type, 0, 0);
+  name_decl = set_lookup(decl_map, varbit_type, 0, 0);
   set_add(type_env, storage, varbit_type, name_decl->type, 0);
 }
 
@@ -1075,7 +1075,7 @@ visit_baseTypeString(Ast* str_type)
   assert(str_type->kind == AST_baseTypeString);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, str_type, 0, 0);
+  name_decl = set_lookup(decl_map, str_type, 0, 0);
   set_add(type_env, storage, str_type, name_decl->type, 0);
 }
 
@@ -1085,7 +1085,7 @@ visit_baseTypeVoid(Ast* void_type)
   assert(void_type->kind == AST_baseTypeVoid);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, void_type, 0, 0);
+  name_decl = set_lookup(decl_map, void_type, 0, 0);
   set_add(type_env, storage, void_type, name_decl->type, 0);
 }
 
@@ -1095,7 +1095,7 @@ visit_baseTypeError(Ast* error_type)
   assert(error_type->kind == AST_baseTypeError);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, error_type, 0, 0);
+  name_decl = set_lookup(decl_map, error_type, 0, 0);
   set_add(type_env, storage, error_type, name_decl->type, 0);
 }
 
@@ -1289,7 +1289,7 @@ visit_structField(Ast* field)
   field_ty = set_lookup(type_env, field->structField.type, 0, 0);
   set_add(type_env, storage, field, field_ty, 0);
 
-  name_decl = set_lookup(decl_table, field, 0, 0);
+  name_decl = set_lookup(decl_map, field, 0, 0);
   name_decl->type = field_ty;
 }
 
@@ -1561,7 +1561,7 @@ visit_tableDeclaration(Ast* table_decl)
   table_ty->ast = table_decl;
   set_add(type_env, storage, table_decl, table_ty, 0);
 
-  name_decl = set_lookup(decl_table, table_decl, 0, 0);
+  name_decl = set_lookup(decl_map, table_decl, 0, 0);
   name_decl->type = table_ty;
 }
 
@@ -1704,7 +1704,7 @@ visit_actionDeclaration(Ast* action_decl)
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   action_ty->function.return_ = name_decl->type;
 
-  name_decl = set_lookup(decl_table, action_decl, 0, 0);
+  name_decl = set_lookup(decl_map, action_decl, 0, 0);
   name_decl->type = action_ty;
 }
 
@@ -1721,7 +1721,7 @@ visit_variableDeclaration(Ast* var_decl)
     visit_expression(var_decl->variableDeclaration.init_expr);
   }
 
-  name_decl = set_lookup(decl_table, var_decl, 0, 0);
+  name_decl = set_lookup(decl_map, var_decl, 0, 0);
   name_decl->type = set_lookup(type_env, var_decl->variableDeclaration.type, 0, 0);
 }
 
@@ -1878,7 +1878,7 @@ visit_booleanLiteral(Ast* bool_literal)
   assert(bool_literal->kind == AST_booleanLiteral);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, bool_literal, 0, 0);
+  name_decl = set_lookup(decl_map, bool_literal, 0, 0);
   set_add(type_env, storage, bool_literal, name_decl->type, 0);
 }
 
@@ -1888,7 +1888,7 @@ visit_integerLiteral(Ast* int_literal)
   assert(int_literal->kind == AST_integerLiteral);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, int_literal, 0, 0);
+  name_decl = set_lookup(decl_map, int_literal, 0, 0);
   set_add(type_env, storage, int_literal, name_decl->type, 0);
 }
 
@@ -1898,7 +1898,7 @@ visit_stringLiteral(Ast* str_literal)
   assert(str_literal->kind == AST_stringLiteral);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, str_literal, 0, 0);
+  name_decl = set_lookup(decl_map, str_literal, 0, 0);
   set_add(type_env, storage, str_literal, name_decl->type, 0);
 }
 
@@ -1914,7 +1914,7 @@ visit_dontcare(Ast* dontcare)
   assert(dontcare->kind == AST_dontcare);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, dontcare, 0, 0);
+  name_decl = set_lookup(decl_map, dontcare, 0, 0);
   set_add(type_env, storage, dontcare, name_decl->type, 0);
 }
 

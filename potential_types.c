@@ -18,7 +18,7 @@ static Arena* storage;
 static Scope* root_scope;
 static Set*   opened_scopes, *enclosing_scopes;
 static Set*   type_env, *potential_types;
-static Set*   decl_table;
+static Set*   decl_map;
 
 /** PROGRAM **/
 
@@ -275,7 +275,7 @@ resolve_variable(Ast* name, NameEntry* name_entry)
           source_file, name->line_no, name->column_no, name->name.strname);
   }
   assert(!name_decl->next_in_scope);
-  set_add(decl_table, storage, name, name_decl, 0);
+  set_add(decl_map, storage, name, name_decl, 0);
   set_add(potential_types, storage, name, actual_type(name_decl->type), 0);
   return name_decl;
 }
@@ -294,7 +294,7 @@ resolve_type(Ast* name, NameEntry* name_entry)
     error("%s:%d:%d: error: ambiguous name reference `%s`.",
           source_file, name->line_no, name->column_no, name->name.strname);
   }
-  set_add(decl_table, storage, name, name_decl, 0);
+  set_add(decl_map, storage, name, name_decl, 0);
   set_add(potential_types, storage, name, actual_type(name_decl->type), 0);
   return name_decl;
 }
@@ -344,7 +344,7 @@ resolve_member(Ast* name, Ast* type_decl)
     error("%s:%d:%d: error: unresolved name `%s`.",
           source_file, name->line_no, name->column_no, name->name.strname);
   }
-  set_add(decl_table, storage, name, name_decl, 0);
+  set_add(decl_map, storage, name, name_decl, 0);
   set_add(potential_types, storage, name, actual_type(name_decl->type), 0);
   return name_decl;
 }
@@ -370,14 +370,14 @@ Debug_print_potential_types(Set* table)
 
 Set*
 build_potential_types(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_, Set* opened_scopes_,
-                      Set* enclosing_scopes_, Set* type_env_, Set* decl_table_)
+                      Set* enclosing_scopes_, Set* type_env_, Set* decl_map_)
 {
   source_file = source_file_;
   root_scope = root_scope_;
   opened_scopes = opened_scopes_;
   enclosing_scopes = enclosing_scopes_;
   type_env = type_env_;
-  decl_table = decl_table_;
+  decl_map = decl_map_;
   storage = storage_;
   potential_types = arena_malloc(storage, sizeof(Set));
   *potential_types = (Set){0};
@@ -478,7 +478,7 @@ visit_parameter(Ast* param)
   assert(param->kind == AST_parameter);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, param, 0, 0);
+  name_decl = set_lookup(decl_map, param, 0, 0);
   set_add(potential_types, storage, param, actual_type(name_decl->type), 0);
 
   if (param->parameter.init_expr) {
@@ -517,7 +517,7 @@ visit_instantiation(Ast* inst)
               ctor_ty->ctor == TYPE_CONTROL) {
       ctor_ty = actual_type(name_decl->ctor_type);
     } else assert(0);
-    set_add(decl_table, storage, name, name_decl, 0);
+    set_add(decl_map, storage, name, name_decl, 0);
     set_add(potential_types, storage, inst, actual_type(ctor_ty->function.return_), 0);
     set_add(potential_types, storage, inst->instantiation.name, actual_type(ctor_ty->function.return_), 0);
   } else {
@@ -541,7 +541,7 @@ visit_instantiation(Ast* inst)
     }
   }
 
-  name_decl = set_lookup(decl_table, inst, 0, 0);
+  name_decl = set_lookup(decl_map, inst, 0, 0);
   name_decl->type = actual_type(ctor_ty->function.return_);
 }
 
@@ -874,7 +874,7 @@ visit_baseTypeBoolean(Ast* bool_type)
   assert(bool_type->kind == AST_baseTypeBoolean);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, bool_type, 0, 0);
+  name_decl = set_lookup(decl_map, bool_type, 0, 0);
   set_add(potential_types, storage, bool_type, actual_type(name_decl->type), 0);
 }
 
@@ -888,7 +888,7 @@ visit_baseTypeInteger(Ast* int_type)
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
 
-  name_decl = set_lookup(decl_table, int_type, 0, 0);
+  name_decl = set_lookup(decl_map, int_type, 0, 0);
   set_add(potential_types, storage, int_type, actual_type(name_decl->type), 0);
 }
 
@@ -902,7 +902,7 @@ visit_baseTypeBit(Ast* bit_type)
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
 
-  name_decl = set_lookup(decl_table, bit_type, 0, 0);
+  name_decl = set_lookup(decl_map, bit_type, 0, 0);
   set_add(potential_types, storage, bit_type, actual_type(name_decl->type), 0);
 }
 
@@ -914,7 +914,7 @@ visit_baseTypeVarbit(Ast* varbit_type)
 
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
 
-  name_decl = set_lookup(decl_table, varbit_type, 0, 0);
+  name_decl = set_lookup(decl_map, varbit_type, 0, 0);
   set_add(potential_types, storage, varbit_type, actual_type(name_decl->type), 0);
 }
 
@@ -924,7 +924,7 @@ visit_baseTypeString(Ast* str_type)
   assert(str_type->kind == AST_baseTypeString);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, str_type, 0, 0);
+  name_decl = set_lookup(decl_map, str_type, 0, 0);
   set_add(potential_types, storage, str_type, actual_type(name_decl->type), 0);
 }
 
@@ -934,7 +934,7 @@ visit_baseTypeVoid(Ast* void_type)
   assert(void_type->kind == AST_baseTypeVoid);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, void_type, 0, 0);
+  name_decl = set_lookup(decl_map, void_type, 0, 0);
   set_add(potential_types, storage, void_type, actual_type(name_decl->type), 0);
 }
 
@@ -944,7 +944,7 @@ visit_baseTypeError(Ast* error_type)
   assert(error_type->kind == AST_baseTypeError);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, error_type, 0, 0);
+  name_decl = set_lookup(decl_map, error_type, 0, 0);
   set_add(potential_types, storage, error_type, actual_type(name_decl->type), 0);
 }
 
@@ -1067,7 +1067,7 @@ visit_enumDeclaration(Ast* enum_decl)
   assert(enum_decl->kind == AST_enumDeclaration);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, enum_decl, 0, 0);
+  name_decl = set_lookup(decl_map, enum_decl, 0, 0);
 
   visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields, name_decl->type);
 }
@@ -1116,7 +1116,7 @@ visit_specifiedIdentifier(Ast* ident, Type* enum_type)
   assert(ident->kind == AST_specifiedIdentifier);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, ident, 0, 0);
+  name_decl = set_lookup(decl_map, ident, 0, 0);
   name_decl->type = enum_type;
 
   if (ident->specifiedIdentifier.init_expr) {
@@ -1197,7 +1197,7 @@ visit_functionCall(Ast* func_call)
                 func_ty->ctor == TYPE_CONTROL) {
       func_ty = actual_type(name_decl->ctor_type);
     } else assert(0);
-    set_add(decl_table, storage, name, name_decl, 0);
+    set_add(decl_map, storage, name, name_decl, 0);
     set_add(potential_types, storage, func_call->functionCall.lhs_expr, func_ty, 0);
   } else {
     func_ty = set_lookup(potential_types, func_call->functionCall.lhs_expr, 0, 0);
@@ -1509,7 +1509,7 @@ visit_variableDeclaration(Ast* var_decl)
   assert(var_decl->kind == AST_variableDeclaration);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, var_decl, 0, 0);
+  name_decl = set_lookup(decl_map, var_decl, 0, 0);
   set_add(potential_types, storage, var_decl, actual_type(name_decl->type), 0);
 
   if (var_decl->variableDeclaration.init_expr) {
@@ -1851,7 +1851,7 @@ visit_booleanLiteral(Ast* bool_literal)
   assert(bool_literal->kind == AST_booleanLiteral);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, bool_literal, 0, 0);
+  name_decl = set_lookup(decl_map, bool_literal, 0, 0);
   set_add(potential_types, storage, bool_literal, actual_type(name_decl->type), 0);
 }
 
@@ -1861,7 +1861,7 @@ visit_integerLiteral(Ast* int_literal)
   assert(int_literal->kind == AST_integerLiteral);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, int_literal, 0, 0);
+  name_decl = set_lookup(decl_map, int_literal, 0, 0);
   set_add(potential_types, storage, int_literal, actual_type(name_decl->type), 0);
 }
 
@@ -1871,7 +1871,7 @@ visit_stringLiteral(Ast* str_literal)
   assert(str_literal->kind == AST_stringLiteral);
   NameDeclaration* name_decl;
 
-  name_decl = set_lookup(decl_table, str_literal, 0, 0);
+  name_decl = set_lookup(decl_map, str_literal, 0, 0);
   set_add(potential_types, storage, str_literal, actual_type(name_decl->type), 0);
 }
 

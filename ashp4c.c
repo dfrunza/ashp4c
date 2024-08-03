@@ -126,18 +126,18 @@ semantic_analysis(Arena* storage, char* source_file, Ast* program, Scope* root_s
                   UnboundedArray* type_array, Set* type_env)
 {
   Set* opened_scopes, *enclosing_scopes;
-  Set* decl_table;
+  Set* decl_map;
 
   drypass(source_file, program);
 
   opened_scopes = build_opened_scopes(storage, source_file, program, root_scope);
-  enclosing_scopes = build_symtable(storage, source_file, program, root_scope, opened_scopes, &decl_table);
+  enclosing_scopes = build_symtable(storage, source_file, program, root_scope, opened_scopes, &decl_map);
   build_type_env(storage, source_file, program, root_scope, type_array, type_env,
-                 opened_scopes, enclosing_scopes, decl_table);
+      opened_scopes, enclosing_scopes, decl_map);
   resolve_type_nameref(type_env, type_array);
   deref_type_type(type_array);
   build_potential_types(storage, source_file, program, root_scope, opened_scopes, enclosing_scopes,
-                        type_env, decl_table);
+      type_env, decl_map);
 }
 
 int

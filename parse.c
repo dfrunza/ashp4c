@@ -903,7 +903,7 @@ parse_direction()
       return PARAMDIR_OUT;
     } else if (token->klass == TK_INOUT) {
       next_token();
-      return PARAMDIR_INOUT;
+      return PARAMDIR_IN | PARAMDIR_OUT;
     } else assert(0);
   }
   return 0;

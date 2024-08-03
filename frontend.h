@@ -296,9 +296,8 @@ enum Ast_Operator {
 
 enum Ast_ParamDirection {
   PARAMDIR_NONE = 0,
-  PARAMDIR_IN,
-  PARAMDIR_OUT,
-  PARAMDIR_INOUT,
+  PARAMDIR_IN   = 1 << 1,
+  PARAMDIR_OUT  = 1 << 2,
 };
 
 typedef struct Ast {
