@@ -9,9 +9,6 @@ struct header_t {
 
 struct metadata {}
 
-typedef header_t H;
-typedef metadata M;
-
 /// #include <v1model.p4>
 
 match_kind {
@@ -26,15 +23,15 @@ match_kind {
 const bit<32> __v1model_version = 20200408;
 
 extern packet_in {
-    void extract(out H hdr);
-    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    H lookahead();
+    void extract(out header_t hdr);
+    void extract(out header_t variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    header_t lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in H hdr);
+    void emit(in header_t hdr);
 }
 
 typedef bit<9>  PortId_t;
@@ -115,8 +112,8 @@ extern void log_msg(string msg, in bit data);
 // The name 'standard_metadata' is reserved
 
 parser Parser(packet_in b,
-              out H parsedHdr,
-              inout M meta,
+              out header_t parsedHdr,
+              inout metadata meta,
               inout standard_metadata_t standard_metadata);
 
 /*
@@ -124,14 +121,14 @@ parser Parser(packet_in b,
  * are: block statements, calls to the verify_checksum and
  * verify_checksum_with_payload methods, and return statements.
  */
-control VerifyChecksum(inout H hdr, inout M meta);
+control VerifyChecksum(inout header_t hdr, inout metadata meta);
 
-control Ingress(inout H hdr,
-                inout M meta,
+control Ingress(inout header_t hdr,
+                inout metadata meta,
                 inout standard_metadata_t standard_metadata);
 
-control Egress(inout H hdr,
-               inout M meta,
+control Egress(inout header_t hdr,
+               inout metadata meta,
                inout standard_metadata_t standard_metadata);
 
 /*
@@ -139,13 +136,13 @@ control Egress(inout H hdr,
  * control are: block statements, calls to the update_checksum and
  * update_checksum_with_payload methods, and return statements.
  */
-control ComputeChecksum(inout H hdr, inout M meta);
+control ComputeChecksum(inout header_t hdr, inout metadata meta);
 
 /*
  * The only legal statements in the body of the Deparser control are:
  * calls to the packet_out.emit() method.
  */
-control Deparser(packet_out b, in H hdr);
+control Deparser(packet_out b, in header_t hdr);
 
 package V1Switch(Parser p,
                  VerifyChecksum vr,

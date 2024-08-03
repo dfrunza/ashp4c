@@ -40,18 +40,16 @@ struct headers {
     p4calc_t     p4calc;
 }
 
-typedef p4calc_t H;
-
 extern packet_in {
-    void extract(out H hdr);
-    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    H lookahead();
+    void extract(out p4calc_t hdr);
+    void extract(out p4calc_t variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    p4calc_t lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in H hdr);
+    void emit(in p4calc_t hdr);
 }
 
 package ebpfFilter();

@@ -28,8 +28,6 @@ struct Parsed_headers {
     Tcp               tcp;
 }
 
-typedef Parsed_headers H;
-
 /// Standard error codes.  New error codes can be declared by users.
 error {
     NoError,           /// No error.
@@ -43,15 +41,15 @@ error {
 }
 
 extern packet_in {
-    void extract(out H hdr);
-    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    H lookahead();
+    void extract(out Parsed_headers hdr);
+    void extract(out Parsed_headers variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    Parsed_headers lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in H hdr);
+    void emit(in Parsed_headers hdr);
 }
 
 extern void verify(in bool check, in error toSignal);

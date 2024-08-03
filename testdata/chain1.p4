@@ -2,8 +2,6 @@ header Header {
     bit<32> data;
 }
 
-typedef Header H;
-
 /// Standard error codes.  New error codes can be declared by users.
 error {
     NoError,           /// No error.
@@ -17,15 +15,15 @@ error {
 }
 
 extern packet_in {
-    void extract(out H hdr);
-    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    H lookahead();
+    void extract(out Header hdr);
+    void extract(out Header variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    Header lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in H hdr);
+    void emit(in Header hdr);
 }
 
 extern void verify(in bool check, in error toSignal);

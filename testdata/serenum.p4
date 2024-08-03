@@ -18,8 +18,6 @@ struct Headers {
     Ethernet eth;
 }
 
-typedef Headers H;
-
 /// Standard error codes.  New error codes can be declared by users.
 error {
     NoError,           /// No error.
@@ -33,15 +31,15 @@ error {
 }
 
 extern packet_in {
-    void extract(out H hdr);
-    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    H lookahead();
+    void extract(out Headers hdr);
+    void extract(out Headers variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    Headers lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in H hdr);
+    void emit(in Headers hdr);
 }
 
 extern void verify(in bool check, in error toSignal);
@@ -81,8 +79,8 @@ control c(inout Headers h) {
     }
 }
 
-parser p(packet_in _p, out H h);
-control ctr(inout H h);
+parser p(packet_in _p, out Headers h);
+control ctr(inout Headers h);
 package top(p _p, ctr _c);
 
 top(prs(), c()) main;

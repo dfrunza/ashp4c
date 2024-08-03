@@ -30,8 +30,6 @@ struct Headers_t {
     IPv4_h     ipv4;
 }
 
-typedef Headers_t H;
-
 /// Standard error codes.  New error codes can be declared by users.
 error {
     NoError,           /// No error.
@@ -45,15 +43,15 @@ error {
 }
 
 extern packet_in {
-    void extract(out H hdr);
-    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    H lookahead();
+    void extract(out Headers_t hdr);
+    void extract(out Headers_t variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    Headers_t lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in H hdr);
+    void emit(in Headers_t hdr);
 }
 
 extern void verify(in bool check, in error toSignal);
@@ -83,8 +81,8 @@ extern hash_table {
     hash_table(bit<32> size);
 }
 
-parser parse(packet_in packet, out H headers);
-control filter(inout H headers, out bool accept);
+parser parse(packet_in packet, out Headers_t headers);
+control filter(inout Headers_t headers, out bool accept);
 
 package ebpfFilter(parse prs, filter filt);
 

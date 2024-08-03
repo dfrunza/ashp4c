@@ -34,8 +34,6 @@ struct Headers_t
     IPv4_h     ipv4;
 }
 
-typedef Headers_t T;
-
 /// Standard error codes.  New error codes can be declared by users.
 error {
     NoError,           /// No error.
@@ -49,15 +47,15 @@ error {
 }
 
 extern packet_in {
-    void extract(out T hdr);
-    void extract(out T variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    T lookahead();
+    void extract(out Headers_t hdr);
+    void extract(out Headers_t variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    Headers_t lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in T hdr);
+    void emit(in Headers_t hdr);
 }
 
 extern void verify(in bool check, in error toSignal);

@@ -2,20 +2,18 @@ header H {
     bit<32> field;
 }
 
-typedef H[2] T;
-
 error { NoError }
 
 extern packet_in {
-    void extract(out T hdr);
-    void extract(out T variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    T lookahead();
+    void extract(out H[2] hdr);
+    void extract(out H[2] variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    H[2] lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in T hdr);
+    void emit(in H[2] hdr);
 }
 
 extern void verify(in bool check, in error toSignal);
@@ -56,6 +54,6 @@ parser P(packet_in p, out H[2] h) {
     }
 }
 
-parser Simple(packet_in p, out T t);
+parser Simple(packet_in p, out H[2] t);
 package top(Simple prs);
 top(P()) main;

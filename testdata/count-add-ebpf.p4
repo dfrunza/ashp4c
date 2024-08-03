@@ -32,18 +32,16 @@ struct Headers_t
     IPv4_h     ipv4;
 }
 
-typedef Headers_t H;
-
 extern packet_in {
-    void extract(out H hdr);
-    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    H lookahead();
+    void extract(out Headers_t hdr);
+    void extract(out Headers_t variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    Headers_t lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in H hdr);
+    void emit(in Headers_t hdr);
 }
 
 package ebpfFilter();

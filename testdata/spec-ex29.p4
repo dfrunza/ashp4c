@@ -24,8 +24,6 @@ struct Parsed_packet {
    IP ip;
 }
 
-typedef Parsed_packet H;
-
 /// Standard error codes.  New error codes can be declared by users.
 error {
     NoError,           /// No error.
@@ -39,15 +37,15 @@ error {
 }
 
 extern packet_in {
-    void extract(out H hdr);
-    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    H lookahead();
+    void extract(out Parsed_packet hdr);
+    void extract(out Parsed_packet variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    Parsed_packet lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in H hdr);
+    void emit(in Parsed_packet hdr);
 }
 
 extern void verify(in bool check, in error toSignal);

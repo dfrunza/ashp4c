@@ -41,9 +41,6 @@ struct Headers_t
 
 struct metadata {}
 
-typedef Headers_t H;
-typedef metadata  M;
-
 /// Standard error codes.  New error codes can be declared by users.
 error {
     NoError,           /// No error.
@@ -57,15 +54,15 @@ error {
 }
 
 extern packet_in {
-    void extract(out H hdr);
-    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    H lookahead();
+    void extract(out Headers_t hdr);
+    void extract(out Headers_t variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    Headers_t lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in H hdr);
+    void emit(in Headers_t hdr);
 }
 
 extern void verify(in bool check, in error toSignal);
@@ -103,15 +100,15 @@ extern void mark_to_drop();
 
 extern void mark_to_pass();
 
-parser parse(packet_in packet, out H headers, inout M meta, inout standard_metadata std);
+parser parse(packet_in packet, out Headers_t headers, inout metadata meta, inout standard_metadata std);
 
-control pipeline(inout H headers, inout M meta, inout standard_metadata std);
+control pipeline(inout Headers_t headers, inout metadata meta, inout standard_metadata std);
 
 /*
  * The only legal statements in the body of the deparser control are:
  * calls to the packet_out.emit() method.
  */
-control deparser(packet_out b, in H headers);
+control deparser(packet_out b, in Headers_t headers);
 
 package ubpf(parse prs,
              pipeline p,

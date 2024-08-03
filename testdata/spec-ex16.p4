@@ -10,18 +10,16 @@ error {
                            /// not supported by the implementation.
 }
 
-typedef bit<32> H;
-
 extern packet_in {
-    void extract(out H hdr);
-    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    H lookahead();
+    void extract(out bit<32> hdr);
+    void extract(out bit<32> variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    bit<32> lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in H hdr);
+    void emit(in bit<32> hdr);
 }
 
 extern void verify(in bool check, in error toSignal);
@@ -38,8 +36,8 @@ match_kind {
     lpm
 }
 
-parser Prs(packet_in b, out H result);
-control Map(in H d);
+parser Prs(packet_in b, out bit<32> result);
+control Map(in bit<32> d);
 
 package Switch(Prs prs, Map map);
 
