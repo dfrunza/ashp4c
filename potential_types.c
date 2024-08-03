@@ -17,7 +17,7 @@ static char*  source_file;
 static Arena* storage;
 static Scope* root_scope;
 static Set*   opened_scopes, *enclosing_scopes;
-static Set*   type_table, *potential_types;
+static Set*   type_env, *potential_types;
 static Set*   decl_table;
 
 /** PROGRAM **/
@@ -370,13 +370,13 @@ Debug_print_potential_types(Set* table)
 
 Set*
 build_potential_types(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_, Set* opened_scopes_,
-                      Set* enclosing_scopes_, Set* type_table_, Set* decl_table_)
+                      Set* enclosing_scopes_, Set* type_env_, Set* decl_table_)
 {
   source_file = source_file_;
   root_scope = root_scope_;
   opened_scopes = opened_scopes_;
   enclosing_scopes = enclosing_scopes_;
-  type_table = type_table_;
+  type_env = type_env_;
   decl_table = decl_table_;
   storage = storage_;
   potential_types = arena_malloc(storage, sizeof(Set));
@@ -521,7 +521,7 @@ visit_instantiation(Ast* inst)
     set_add(potential_types, storage, inst, actual_type(ctor_ty->function.return_), 0);
     set_add(potential_types, storage, inst->instantiation.name, actual_type(ctor_ty->function.return_), 0);
   } else {
-    ctor_ty = set_lookup(type_table, inst->instantiation.type, 0, 0);
+    ctor_ty = set_lookup(type_env, inst->instantiation.type, 0, 0);
     ctor_ty = actual_type(ctor_ty);
     if (ctor_ty->ctor == TYPE_FUNCTION) {
       ;
@@ -1665,7 +1665,7 @@ visit_castExpression(Ast* cast_expr)
     set_add(potential_types, storage, cast_expr->castExpression.expr, actual_type(name_decl->type), 0);
   }
 
-  cast_ty = set_lookup(type_table, cast_expr->castExpression.type, 0, 0);
+  cast_ty = set_lookup(type_env, cast_expr->castExpression.type, 0, 0);
   set_add(potential_types, storage, cast_expr, cast_ty, 0);
 }
 

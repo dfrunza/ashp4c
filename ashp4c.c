@@ -123,7 +123,7 @@ syntactic_analysis(Arena* storage, Arena* text_storage, char* source_file, Scope
 
 static void
 semantic_analysis(Arena* storage, char* source_file, Ast* program, Scope* root_scope,
-                  UnboundedArray* type_array, Set* type_table)
+                  UnboundedArray* type_array, Set* type_env)
 {
   Set* opened_scopes, *enclosing_scopes;
   Set* decl_table;
@@ -132,12 +132,12 @@ semantic_analysis(Arena* storage, char* source_file, Ast* program, Scope* root_s
 
   opened_scopes = build_opened_scopes(storage, source_file, program, root_scope);
   enclosing_scopes = build_symtable(storage, source_file, program, root_scope, opened_scopes, &decl_table);
-  build_type_table(storage, source_file, program, root_scope, type_array, type_table,
-                   opened_scopes, enclosing_scopes, decl_table);
-  resolve_type_nameref(type_table, type_array);
+  build_type_env(storage, source_file, program, root_scope, type_array, type_env,
+                 opened_scopes, enclosing_scopes, decl_table);
+  resolve_type_nameref(type_env, type_array);
   deref_type_type(type_array);
   build_potential_types(storage, source_file, program, root_scope, opened_scopes, enclosing_scopes,
-                        type_table, decl_table);
+                        type_env, decl_table);
 }
 
 int
@@ -234,7 +234,7 @@ main(int arg_count, char* args[])
   NameEntry* name_entry;
   Scope* root_scope;
   UnboundedArray* type_array;
-  Set* type_table;
+  Set* type_env;
   Type* builtin_ty;
 
   reserve_page_memory(500*KILOBYTE);
@@ -260,8 +260,8 @@ main(int arg_count, char* args[])
   }
 
   type_array = array_create(&storage, sizeof(Type), 1008);
-  type_table = arena_malloc(&storage, sizeof(Set));
-  *type_table = (Set){0};
+  type_env = arena_malloc(&storage, sizeof(Set));
+  *type_env = (Set){0};
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_entry = scope_lookup(root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
     name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
@@ -270,14 +270,14 @@ main(int arg_count, char* args[])
     builtin_ty->strname = name_decl->strname;
     builtin_ty->ast = name_decl->ast;
     name_decl->type = builtin_ty;
-    set_add(type_table, &storage, name_decl->ast, builtin_ty, 0);
+    set_add(type_env, &storage, name_decl->ast, builtin_ty, 0);
     *builtin_types[i].type = builtin_ty;
   }
 
   program = syntactic_analysis(&storage, &tmp_storage, filename->value, root_scope);
   arena_free(&tmp_storage);
 
-  semantic_analysis(&storage, filename->value, program, root_scope, type_array, type_table);
+  semantic_analysis(&storage, filename->value, program, root_scope, type_array, type_env);
 
   arena_free(&storage);
   return 0;
