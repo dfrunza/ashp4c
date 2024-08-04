@@ -173,9 +173,7 @@ visit_p4program(Ast* p4program)
 
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, p4program, 0);
-
   visit_declarationList(p4program->p4program.decl_list);
-
   current_scope = prev_scope;
 }
 
@@ -252,13 +250,10 @@ visit_parameter(Ast* param)
 
   visit_typeRef(param->parameter.type);
   visit_name(param->parameter.name);
-
   name = param->parameter.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
   name_decl->ast = param;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, param, name_decl, 0);
-
   if (param->parameter.init_expr) {
     visit_expression(param->parameter.init_expr);
   }
@@ -276,14 +271,10 @@ visit_packageTypeDeclaration(Ast* type_decl)
   name = type_decl->packageTypeDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = type_decl;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, type_decl, name_decl, 0);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, type_decl, 0);
-
   visit_parameterList(type_decl->packageTypeDeclaration.params);
-
   current_scope = prev_scope;
 }
 
@@ -296,11 +287,9 @@ visit_instantiation(Ast* inst)
 
   visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
-
   name = inst->instantiation.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
   name_decl->ast = inst;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, inst, name_decl, 0);
 }
 
@@ -313,16 +302,13 @@ visit_parserDeclaration(Ast* parser_decl)
   Scope* prev_scope;
 
   visit_typeDeclaration(parser_decl->parserDeclaration.proto);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, parser_decl, 0);
-
   if (parser_decl->parserDeclaration.ctor_params) {
     visit_parameterList(parser_decl->parserDeclaration.ctor_params);
   }
   visit_parserLocalElements(parser_decl->parserDeclaration.local_elements);
   visit_parserStates(parser_decl->parserDeclaration.states);
-
   current_scope = prev_scope;
 }
 
@@ -338,14 +324,10 @@ visit_parserTypeDeclaration(Ast* type_decl)
   name = type_decl->parserTypeDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = type_decl;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, type_decl, name_decl, 0);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, type_decl, 0);
-
   visit_parameterList(type_decl->parserTypeDeclaration.params);
-
   current_scope = prev_scope;
 }
 
@@ -395,15 +377,11 @@ visit_parserState(Ast* state)
   name = state->parserState.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
   name_decl->ast = state;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, state, name_decl, 0);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, state, 0);
-
   visit_parserStatements(state->parserState.stmt_list);
   visit_transitionStatement(state->parserState.transition_stmt);
-
   current_scope = prev_scope;
 }
 
@@ -445,9 +423,7 @@ visit_parserBlockStatement(Ast* block_stmt)
 
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, block_stmt, 0);
-
   visit_parserStatements(block_stmt->parserBlockStatement.stmt_list);
-
   current_scope = prev_scope;
 }
 
@@ -549,16 +525,13 @@ visit_controlDeclaration(Ast* control_decl)
   Scope* prev_scope;
 
   visit_typeDeclaration(control_decl->controlDeclaration.proto);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, control_decl, 0);
-
   if (control_decl->controlDeclaration.ctor_params) {
     visit_parameterList(control_decl->controlDeclaration.ctor_params);
   }
   visit_controlLocalDeclarations(control_decl->controlDeclaration.local_decls);
   visit_blockStatement(control_decl->controlDeclaration.apply_stmt);
-
   current_scope = prev_scope;
 }
 
@@ -574,14 +547,10 @@ visit_controlTypeDeclaration(Ast* type_decl)
   name = type_decl->controlTypeDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = type_decl;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, type_decl, name_decl, 0);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, type_decl, 0);
-
   visit_parameterList(type_decl->controlTypeDeclaration.params);
-
   current_scope = prev_scope;
 }
 
@@ -636,14 +605,10 @@ visit_externTypeDeclaration(Ast* type_decl)
   name = type_decl->externTypeDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = type_decl;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, type_decl, name_decl, 0);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, type_decl, 0);
-
   visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos);
-
   current_scope = prev_scope;
 }
 
@@ -671,18 +636,13 @@ visit_functionPrototype(Ast* func_proto)
   name = func_proto->functionPrototype.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = func_proto;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, func_proto, name_decl, 0);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, func_proto, 0);
-
   if (func_proto->functionPrototype.return_type) {
     visit_typeRef(func_proto->functionPrototype.return_type);
   }
-
   visit_parameterList(func_proto->functionPrototype.params);
-
   current_scope = prev_scope;
 }
 
@@ -752,7 +712,6 @@ visit_baseTypeInteger(Ast* int_type)
   if (int_type->baseTypeInteger.size) {
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
-
   name_entry = scope_lookup(root_scope, "int", NAMESPACE_TYPE); 
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   map_insert(storage, decl_map, int_type, name_decl, 0);
@@ -768,7 +727,6 @@ visit_baseTypeBit(Ast* bit_type)
   if (bit_type->baseTypeBit.size) {
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
-
   name_entry = scope_lookup(root_scope, "bit", NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   map_insert(storage, decl_map, bit_type, name_decl, 0);
@@ -782,7 +740,6 @@ visit_baseTypeVarbit(Ast* varbit_type)
   NameDeclaration* name_decl;
 
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
-
   name_entry = scope_lookup(root_scope, "varbit", NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   map_insert(storage, decl_map, varbit_type, name_decl, 0);
@@ -909,14 +866,10 @@ visit_headerTypeDeclaration(Ast* header_decl)
   name = header_decl->headerTypeDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = header_decl;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, header_decl, name_decl, 0);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, header_decl, 0);
-
   visit_structFieldList(header_decl->headerTypeDeclaration.fields);
-
   current_scope = prev_scope;
 }
 
@@ -931,14 +884,10 @@ visit_headerUnionDeclaration(Ast* union_decl)
   name = union_decl->headerUnionDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = union_decl;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, union_decl, name_decl, 0);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, union_decl, 0);
-
   visit_structFieldList(union_decl->headerUnionDeclaration.fields);
-
   current_scope = prev_scope;
 }
 
@@ -953,14 +902,10 @@ visit_structTypeDeclaration(Ast* struct_decl)
   name = struct_decl->structTypeDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = struct_decl;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, struct_decl, name_decl, 0);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, struct_decl, 0);
-
   visit_structFieldList(struct_decl->structTypeDeclaration.fields);
-
   current_scope = prev_scope;
 }
 
@@ -984,11 +929,9 @@ visit_structField(Ast* field)
   NameDeclaration* name_decl;
 
   visit_typeRef(field->structField.type);
-  
   name = field->structField.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
   name_decl->ast = field;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, field, name_decl, 0);
 }
 
@@ -1003,14 +946,10 @@ visit_enumDeclaration(Ast* enum_decl)
   name = enum_decl->enumDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = enum_decl;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, enum_decl, name_decl, 0);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, enum_decl, 0);
-
   visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
-
   current_scope = prev_scope;
 }
 
@@ -1022,9 +961,7 @@ visit_errorDeclaration(Ast* error_decl)
 
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, error_decl, 0);
-
   visit_identifierList(error_decl->errorDeclaration.fields);
-
   current_scope = prev_scope;
 }
 
@@ -1036,9 +973,7 @@ visit_matchKindDeclaration(Ast* match_decl)
 
   prev_scope = current_scope;
   current_scope = root_scope;
-
   visit_identifierList(match_decl->matchKindDeclaration.fields);
-
   current_scope = prev_scope;
 }
 
@@ -1080,9 +1015,7 @@ visit_specifiedIdentifier(Ast* ident)
   name = ident->specifiedIdentifier.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
   name_decl->ast = ident;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, ident, name_decl, 0);
-
   if (ident->specifiedIdentifier.init_expr) {
     visit_expression(ident->specifiedIdentifier.init_expr);
   }
@@ -1100,11 +1033,9 @@ visit_typedefDeclaration(Ast* typedef_decl)
   } else if (typedef_decl->typedefDeclaration.type_ref->kind == AST_derivedTypeDeclaration) {
     visit_derivedTypeDeclaration(typedef_decl->typedefDeclaration.type_ref);
   } else assert(0);
-
   name = typedef_decl->typedefDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = typedef_decl;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, typedef_decl, name_decl, 0);
 }
 
@@ -1191,9 +1122,7 @@ visit_statement(Ast* stmt)
   } else if (stmt->statement.stmt->kind == AST_blockStatement) {
     prev_scope = current_scope;
     current_scope = map_lookup(opened_scopes, stmt, 0);
-
     visit_blockStatement(stmt->statement.stmt);
-
     current_scope = prev_scope;
   } else if (stmt->statement.stmt->kind == AST_exitStatement) {
     visit_exitStatement(stmt->statement.stmt);
@@ -1290,14 +1219,10 @@ visit_tableDeclaration(Ast* table_decl)
   name = table_decl->tableDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = table_decl;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, table_decl, name_decl, 0);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, table_decl, 0);
-
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
-
   current_scope = prev_scope;
 }
 
@@ -1354,12 +1279,9 @@ visit_keyElement(Ast* element)
   Scope* prev_scope;
 
   visit_expression(element->keyElement.expr);
-
   prev_scope = current_scope;
   current_scope = root_scope;
-
   visit_name(element->keyElement.match);
-
   current_scope = prev_scope;
 }
 
@@ -1429,9 +1351,7 @@ visit_simpleProperty(Ast* simple_prop)
   name = simple_prop->simpleProperty.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
   name_decl->ast = simple_prop;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, simple_prop, name_decl, 0);
-
   visit_expression(simple_prop->simpleProperty.init_expr);
 }
 
@@ -1446,15 +1366,11 @@ visit_actionDeclaration(Ast* action_decl)
   name = action_decl->actionDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = action_decl;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, action_decl, name_decl, 0);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, action_decl, 0);
-
   visit_parameterList(action_decl->actionDeclaration.params);
   visit_blockStatement(action_decl->actionDeclaration.stmt);
-
   current_scope = prev_scope;
 }
 
@@ -1469,13 +1385,10 @@ visit_variableDeclaration(Ast* var_decl)
 
   visit_typeRef(var_decl->variableDeclaration.type);
   visit_name(var_decl->variableDeclaration.name);
-
   name = var_decl->variableDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
   name_decl->ast = var_decl;
-  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, var_decl, name_decl, 0);
-
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);
   }
@@ -1490,12 +1403,9 @@ visit_functionDeclaration(Ast* func_decl)
   Scope* prev_scope;
 
   visit_functionPrototype(func_decl->functionDeclaration.proto);
-
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, func_decl, 0);
-
   visit_blockStatement(func_decl->functionDeclaration.stmt);
-
   current_scope = prev_scope;
 }
 
@@ -1641,40 +1551,18 @@ static void
 visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AST_booleanLiteral);
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
-
-  name_entry = scope_lookup(root_scope, "bool", NAMESPACE_TYPE);
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-  map_insert(storage, decl_map, bool_literal, name_decl, 0);
 }
 
 static void
 visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AST_integerLiteral);
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
-
-  if (int_literal->integerLiteral.is_signed) {
-    name_entry = scope_lookup(root_scope, "int", NAMESPACE_TYPE);
-  } else {
-    name_entry = scope_lookup(root_scope, "bit", NAMESPACE_TYPE);
-  }
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-  map_insert(storage, decl_map, int_literal, name_decl, 0);
 }
 
 static void
 visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AST_stringLiteral);
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
-
-  name_entry = scope_lookup(root_scope, "string", NAMESPACE_TYPE);
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-  map_insert(storage, decl_map, str_literal, name_decl, 0);
 }
 
 static void
@@ -1687,10 +1575,4 @@ static void
 visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AST_dontcare);
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
-
-  name_entry = scope_lookup(root_scope, "_", NAMESPACE_TYPE);
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-  map_insert(storage, decl_map, dontcare, name_decl, 0);
 }

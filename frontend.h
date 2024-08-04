@@ -838,7 +838,9 @@ enum TypeEnum {
   TYPE_CONTROL,
   TYPE_TABLE,
   TYPE_STRUCT,
-  TYPE_ARRAY,
+  TYPE_HEADER,
+  TYPE_HEADER_UNION,
+  TYPE_HEADER_STACK,
   TYPE_NAMEREF,
   TYPE_TYPE,
 };
@@ -887,7 +889,7 @@ typedef struct Type {
     struct {
       struct Type* element;
       int size;
-    } array;
+    } header_stack;
 
     struct {
       Ast* name;
