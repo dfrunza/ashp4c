@@ -22,7 +22,7 @@ typedef struct CmdlineArg {
 } CmdlineArg;
 
 static void
-read_source_text(Arena* storage, char* filename, SourceText* source_text)
+read_source_text(Arena* storage, char* filename, SourceText* source_text/*out*/)
 {
   FILE* f_stream;
   char* text;
@@ -104,35 +104,6 @@ parse_cmdline_args(Arena* storage, int arg_count, char* args[])
   }
   arg_list = sentinel_arg.next_arg;
   return arg_list;
-}
-
-static Ast*
-syntactic_analysis(Arena* storage, char* filename, SourceText* source_text, Scope* root_scope)
-{
-  UnboundedArray* tokens;
-  Ast *program;
-
-  tokens = tokenize_source_text(storage, source_text);
-  program = parse_program(storage, filename, tokens, root_scope);
-  return program;
-}
-
-static Set*
-semantic_analysis(Arena* storage, char* filename, Ast* program, Scope* root_scope,
-    UnboundedArray* type_array, Set* type_env)
-{
-  Set* opened_scopes, *enclosing_scopes;
-  Set* decl_map;
-
-  drypass(filename, program);
-
-  opened_scopes = build_opened_scopes(storage, filename, program, root_scope);
-  enclosing_scopes = build_symtable(storage, filename, program, root_scope, opened_scopes, &decl_map);
-  build_type_env(storage, filename, program, root_scope, type_array, type_env,
-      opened_scopes, enclosing_scopes, decl_map);
-  build_potential_types(storage, filename, program, root_scope, opened_scopes, enclosing_scopes,
-      type_env, decl_map);
-  return decl_map;
 }
 
 int
@@ -223,13 +194,16 @@ main(int arg_count, char* args[])
   CmdlineArg* cmdline, *filename;
   SourceText source_text = {0};
   Arena storage = {0}, text_storage = {0};
+  UnboundedArray* tokens;
   Ast* name, *program;
   NameDeclaration* name_decl;
   NameEntry* name_entry;
   Scope* root_scope;
   UnboundedArray* type_array;
   Set* type_env;
-  Type* builtin_ty;
+  Type* ty;
+  Set* opened_scopes, *enclosing_scopes;
+  Set* decl_map;
 
   reserve_page_memory(500*KILOBYTE);
 
@@ -259,20 +233,29 @@ main(int arg_count, char* args[])
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_entry = scope_lookup(root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
     name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-    builtin_ty = (Type*)array_append_element(&storage, type_array, sizeof(Type));
-    builtin_ty->ctor = builtin_types[i].ctor;
-    builtin_ty->strname = name_decl->strname;
-    builtin_ty->ast = name_decl->ast;
-    name_decl->type = builtin_ty;
-    set_add(&storage, type_env, name_decl->ast, builtin_ty, 0);
-    *builtin_types[i].type = builtin_ty;
+    ty = (Type*)array_append_element(&storage, type_array, sizeof(Type));
+    ty->ctor = builtin_types[i].ctor;
+    ty->strname = name_decl->strname;
+    ty->ast = name_decl->ast;
+    name_decl->type = ty;
+    set_add(&storage, type_env, name_decl->ast, ty, 0);
+    *builtin_types[i].type = ty;
   }
 
   read_source_text(&text_storage, filename->value, &source_text);
-  program = syntactic_analysis(&storage, filename->value, &source_text, root_scope);
+  tokens = tokenize_source_text(&storage, &source_text);
+  program = parse_program(&storage, source_text.filename, tokens, root_scope);
   arena_free(&text_storage);
 
-  semantic_analysis(&storage, filename->value, program, root_scope, type_array, type_env);
+  drypass(source_text.filename, program);
+
+  opened_scopes = build_opened_scopes(&storage, source_text.filename, program, root_scope);
+  enclosing_scopes = build_symtable(&storage, source_text.filename, program, root_scope,
+      opened_scopes, &decl_map);
+  build_type_env(&storage, source_text.filename, program, root_scope, type_array, type_env,
+      opened_scopes, enclosing_scopes, decl_map);
+  build_potential_types(&storage, source_text.filename, program, root_scope,
+      opened_scopes, enclosing_scopes, type_env, decl_map);
 
   arena_free(&storage);
   return 0;
