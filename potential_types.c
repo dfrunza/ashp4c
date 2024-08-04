@@ -25,7 +25,7 @@ static Map*   decl_map;
 static void visit_p4program(Ast* p4program);
 static void visit_declarationList(Ast* decl_list);
 static void visit_declaration(Ast* decl);
-static NameEntry* visit_name(Ast* name);
+static void visit_name(Ast* name);
 static void visit_parameterList(Ast* params);
 static void visit_parameter(Ast* param);
 static void visit_packageTypeDeclaration(Ast* package_decl);
@@ -68,7 +68,7 @@ static void visit_functionPrototype(Ast* func_proto);
 
 /** TYPES **/
 
-static NameEntry* visit_typeRef(Ast* type_ref);
+static void visit_typeRef(Ast* type_ref);
 static void visit_tupleType(Ast* type);
 static void visit_headerStackType(Ast* type_decl);
 static void visit_baseTypeBoolean(Ast* bool_type);
@@ -93,8 +93,8 @@ static void visit_enumDeclaration(Ast* enum_decl);
 static void visit_errorDeclaration(Ast* error_decl);
 static void visit_matchKindDeclaration(Ast* match_decl);
 static void visit_identifierList(Ast* ident_list);
-static void visit_specifiedIdentifierList(Ast* ident_list, Type* enum_type);
-static void visit_specifiedIdentifier(Ast* ident, Type* enum_type);
+static void visit_specifiedIdentifierList(Ast* ident_list);
+static void visit_specifiedIdentifier(Ast* ident);
 static void visit_typedefDeclaration(Ast* typedef_decl);
 
 /** STATEMENTS **/
@@ -141,8 +141,8 @@ static void visit_functionDeclaration(Ast* func_decl);
 static void visit_argumentList(Ast* arg_list);
 static void visit_argument(Ast* arg);
 static void visit_expressionList(Ast* expr_list);
-static NameEntry* visit_lvalueExpression(Ast* lvalue_expr);
-static NameEntry* visit_expression(Ast* expr);
+static void visit_lvalueExpression(Ast* lvalue_expr);
+static void visit_expression(Ast* expr);
 static void visit_castExpression(Ast* cast_expr);
 static void visit_unaryExpression(Ast* unary_expr);
 static void visit_binaryExpression(Ast* binary_expr);
@@ -154,200 +154,6 @@ static void visit_integerLiteral(Ast* int_literal);
 static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
-
-static bool
-validate_param_and_arg_type(Type* params_ty, Type* args_ty)
-{
-  if (params_ty && args_ty) {
-    if (params_ty->ctor == TYPE_PRODUCT && args_ty->ctor == TYPE_PRODUCT) {
-      while (params_ty && args_ty) {
-        params_ty = actual_type(params_ty->product.type);
-        args_ty = actual_type(args_ty->product.type);
-        if (!type_equiv(params_ty, args_ty)) {
-          break;
-        }
-        params_ty = params_ty->product.next;
-        args_ty = args_ty->product.next;
-      }
-      if (params_ty == 0 && args_ty == 0) {
-        return 1;
-      }
-    } else {
-      return type_equiv(params_ty, args_ty);
-    }
-  } else if (params_ty || args_ty) {
-    return 0;
-  } else { /* params_ty == 0 && args_ty == 0 */
-    return 1;
-  }
-  return 0;
-}
-
-static NameDeclaration*
-select_extern_method(Ast* name, Ast* extern_, Type* args_ty)
-{
-  Type* method_ty, *param_ty;
-  Scope* scope;
-  NameEntry* name_entry;
-  NameDeclaration* nd, *identity;
-
-  scope = map_lookup(opened_scopes, extern_, 0);
-  name_entry = scope_lookup_current(scope, name->name.strname);
-  if (!name_entry) {
-    return 0;
-  }
-  identity = 0;
-  for (nd = name_entry_getdecl(name_entry, NAMESPACE_TYPE); nd != 0; nd = nd->next_in_scope) {
-    if (identity) {
-      error("%s:%d:%d: error: ambiguous name reference `%s`.",
-            source_file, name->line_no, name->column_no, name->name.strname);
-    }
-    method_ty = actual_type(nd->type);
-    assert(method_ty->ctor == TYPE_FUNCTION);
-    param_ty = actual_type(method_ty->function.params);
-    if (validate_param_and_arg_type(param_ty, args_ty)) {
-      identity = nd;
-    }
-  }
-  return identity;
-}
-
-static NameDeclaration*
-select_function(Ast* name, NameDeclaration* func_decl, Type* args_ty)
-{
-  Type* func_ty, *params_ty;
-  NameDeclaration* nd, *identity;
-
-  identity = 0;
-  for (nd = func_decl; nd != 0; nd = nd->next_in_scope) {
-    if (identity) {
-      error("%s:%d:%d: error: ambiguous name reference `%s`.",
-            source_file, name->line_no, name->column_no, name->name.strname);
-    }
-    func_ty = actual_type(nd->type);
-    if (func_ty->ctor == TYPE_EXTERN) {
-      identity = select_extern_method(name, nd->ast, args_ty);
-    } else {
-      if (func_ty->ctor == TYPE_FUNCTION) {
-        ;
-      } else if (func_ty->ctor == TYPE_PACKAGE || func_ty->ctor == TYPE_PARSER ||
-          func_ty->ctor == TYPE_CONTROL) {
-        func_ty = actual_type(nd->ctor_type);
-      } else assert(0);
-      assert(func_ty->ctor == TYPE_FUNCTION);
-      params_ty = actual_type(func_ty->function.params);
-      if (validate_param_and_arg_type(params_ty, args_ty)) {
-        identity = nd;
-      }
-    }
-  }
-  return identity;
-}
-
-static NameDeclaration*
-resolve_function(Ast* name, NameEntry* name_entry, Ast* args)
-{
-  Type* args_ty;
-  NameDeclaration* name_decl;
-
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-  if (!name_decl) {
-    error("%s:%d:%d: error: undeclared name `%s`.",
-          source_file, name->line_no, name->column_no, name->name.strname);
-  }
-  args_ty = map_lookup(potential_types, args, 0);
-  name_decl = select_function(name, name_decl, args_ty);
-  if (!name_decl) {
-    error("%s:%d:%d: error: unresolved function call `%s`.",
-          source_file, name->line_no, name->column_no, name->name.strname);
-  }
-  return name_decl;
-}
-
-static NameDeclaration*
-resolve_variable(Ast* name, NameEntry* name_entry)
-{
-  NameDeclaration* name_decl;
-
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_VAR);
-  if (!name_decl) {
-    error("%s:%d:%d: error: undeclared name `%s`.",
-          source_file, name->line_no, name->column_no, name->name.strname);
-  }
-  assert(!name_decl->next_in_scope);
-  map_insert(storage, decl_map, name, name_decl, 0);
-  map_insert(storage, potential_types, name, actual_type(name_decl->type), 0);
-  return name_decl;
-}
-
-static NameDeclaration*
-resolve_type(Ast* name, NameEntry* name_entry)
-{
-  NameDeclaration* name_decl;
-
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-  if (!name_decl) {
-    error("%s:%d:%d: error: undeclared name `%s`.",
-          source_file, name->line_no, name->column_no, name->name.strname);
-  }
-  if (name_decl->next_in_scope) {
-    error("%s:%d:%d: error: ambiguous name reference `%s`.",
-          source_file, name->line_no, name->column_no, name->name.strname);
-  }
-  map_insert(storage, decl_map, name, name_decl, 0);
-  map_insert(storage, potential_types, name, actual_type(name_decl->type), 0);
-  return name_decl;
-}
-
-static NameDeclaration*
-select_member(Ast* name, Ast* type_decl)
-{
-  Scope* scope;
-  NameEntry* name_entry;
-  NameDeclaration* nd, *identity, *name_decl;
-
-  scope = map_lookup(opened_scopes, type_decl, 0);
-  name_entry = scope_lookup_current(scope, name->name.strname);
-  if (!name_entry) {
-    return 0;
-  }
-  if (name_entry_getdecl(name_entry, NAMESPACE_VAR) && name_entry_getdecl(name_entry, NAMESPACE_TYPE)) {
-    error("%s:%d:%d: error: ambiguous name reference `%s`.",
-          source_file, name->line_no, name->column_no, name->name.strname);
-  }
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_VAR);
-  if (!name_decl) {
-    name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-  } 
-  assert(name_decl);
-
-  identity = 0;
-  for (nd = name_decl; nd != 0; nd = nd->next_in_scope) {
-    if (identity) {
-      error("%s:%d:%d: error: ambiguous name reference `%s`.",
-            source_file, name->line_no, name->column_no, name->name.strname);
-    }
-    if (cstr_match(name->name.strname, nd->strname)) {
-      identity = nd;
-    }
-  }
-  return identity;
-}
-
-static NameDeclaration*
-resolve_member(Ast* name, Ast* type_decl)
-{
-  NameDeclaration* name_decl;
-
-  name_decl = select_member(name, type_decl);
-  if (!name_decl) {
-    error("%s:%d:%d: error: unresolved name `%s`.",
-          source_file, name->line_no, name->column_no, name->name.strname);
-  }
-  map_insert(storage, decl_map, name, name_decl, 0);
-  map_insert(storage, potential_types, name, actual_type(name_decl->type), 0);
-  return name_decl;
-}
 
 static void
 Debug_print_potential_types(Map* map)
@@ -439,25 +245,27 @@ visit_declaration(Ast* decl)
   } else assert(0);
 }
 
-static NameEntry*
+static void
 visit_name(Ast* name)
 {
   assert(name->kind == AST_name);
   Scope* scope;
   NameEntry* name_entry;
   NameDeclaration* name_decl;
+  Map* tau;
+
+  tau = map_create_inner_map(storage, potential_types, name);
 
   scope = map_lookup(enclosing_scopes, name, 0);
   name_entry = scope_lookup(scope, name->name.strname, NAMESPACE_VAR|NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_VAR);
   if (name_decl) {
-    map_insert(storage, potential_types, name, actual_type(name_decl->type), 0);
+    map_insert(storage, tau, actual_type(name_decl->type), 0, 0);
   }
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   if (name_decl) {
-    map_insert(storage, potential_types, name, actual_type(name_decl->type), 0);
+    map_insert(storage, tau, actual_type(name_decl->type), 0, 0);
   }
-  return name_entry;
 }
 
 static void
@@ -465,31 +273,17 @@ visit_parameterList(Ast* params)
 {
   assert(params->kind == AST_parameterList);
   Ast* ast;
-  Type* params_ty, *ty;
 
-  params_ty = 0;
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parameter(ast);
-
-    ty = arena_malloc(storage, sizeof(Type));
-    ty->ctor = TYPE_PRODUCT;
-    ty->product.next = params_ty;
-    ty->product.type = map_lookup(potential_types, ast, 0);
-    params_ty = ty;
   }
-  map_insert(storage, potential_types, params, params_ty, 0);
 }
 
 static void
 visit_parameter(Ast* param)
 {
   assert(param->kind == AST_parameter);
-  NameDeclaration* name_decl;
-
-  name_decl = map_lookup(decl_map, param, 0);
-  map_insert(storage, potential_types, param, actual_type(name_decl->type), 0);
-
   if (param->parameter.init_expr) {
     visit_expression(param->parameter.init_expr);
   }
@@ -506,52 +300,9 @@ static void
 visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
-  Ast* type, *name;
-  Type* ctor_ty, *params_ty, *args_ty;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
-
-  name_entry = visit_typeRef(inst->instantiation.type);
+  visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
-
-  if (name_entry) {
-    type = inst->instantiation.type;
-    name = type->typeRef.type;
-    assert(name->kind == AST_name);
-    name_decl = resolve_function(name, name_entry, inst->instantiation.args);
-    ctor_ty = actual_type(name_decl->type);
-    if (ctor_ty->ctor == TYPE_FUNCTION) {
-      ;
-    } else if (ctor_ty->ctor == TYPE_PACKAGE || ctor_ty->ctor == TYPE_PARSER ||
-              ctor_ty->ctor == TYPE_CONTROL) {
-      ctor_ty = actual_type(name_decl->ctor_type);
-    } else assert(0);
-    map_insert(storage, decl_map, name, name_decl, 0);
-    map_insert(storage, potential_types, inst, actual_type(ctor_ty->function.return_), 0);
-    map_insert(storage, potential_types, inst->instantiation.name, actual_type(ctor_ty->function.return_), 0);
-  } else {
-    ctor_ty = map_lookup(type_env, inst->instantiation.type, 0);
-    ctor_ty = actual_type(ctor_ty);
-    if (ctor_ty->ctor == TYPE_FUNCTION) {
-      ;
-    } else if (ctor_ty->ctor == TYPE_PACKAGE) {
-      ctor_ty = actual_type(ctor_ty->package.ctor);
-    } else if (ctor_ty->ctor == TYPE_PARSER) {
-      ctor_ty = actual_type(ctor_ty->parser.ctor);
-    } else if (ctor_ty->ctor == TYPE_CONTROL) {
-      ctor_ty = actual_type(ctor_ty->control.ctor);
-    } else assert(0);
-    assert(ctor_ty->ctor == TYPE_FUNCTION);
-    params_ty = actual_type(ctor_ty->function.params);
-    args_ty = map_lookup(potential_types, inst->instantiation.args, 0);
-    if (!validate_param_and_arg_type(params_ty, args_ty)) {
-      error("%s:%d:%d: error: mismatch between parameter and argument types.",
-            source_file, inst->line_no, inst->column_no);
-    }
-  }
-
-  name_decl = map_lookup(decl_map, inst, 0);
-  name_decl->type = actual_type(ctor_ty->function.return_);
+  visit_name(inst->instantiation.name);
 }
 
 /** PARSER **/
@@ -835,7 +586,7 @@ visit_functionPrototype(Ast* func_proto)
 
 /** TYPES **/
 
-static NameEntry*
+static void
 visit_typeRef(Ast* type_ref)
 {
   assert(type_ref->kind == AST_typeRef);
@@ -860,7 +611,6 @@ visit_typeRef(Ast* type_ref)
   } else if (type_ref->typeRef.type->kind == AST_tupleType) {
     visit_tupleType(type_ref->typeRef.type);
   } else assert(0);
-  return 0;
 }
 
 static void
@@ -881,80 +631,49 @@ static void
 visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AST_baseTypeBoolean);
-  NameDeclaration* name_decl;
-
-  name_decl = map_lookup(decl_map, bool_type, 0);
-  map_insert(storage, potential_types, bool_type, actual_type(name_decl->type), 0);
 }
 
 static void
 visit_baseTypeInteger(Ast* int_type)
 {
   assert(int_type->kind == AST_baseTypeInteger);
-  NameDeclaration* name_decl;
-
   if (int_type->baseTypeInteger.size) {
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
-
-  name_decl = map_lookup(decl_map, int_type, 0);
-  map_insert(storage, potential_types, int_type, actual_type(name_decl->type), 0);
 }
 
 static void
 visit_baseTypeBit(Ast* bit_type)
 {
   assert(bit_type->kind == AST_baseTypeBit);
-  NameDeclaration* name_decl;
-
   if (bit_type->baseTypeBit.size) {
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
-
-  name_decl = map_lookup(decl_map, bit_type, 0);
-  map_insert(storage, potential_types, bit_type, actual_type(name_decl->type), 0);
 }
 
 static void
 visit_baseTypeVarbit(Ast* varbit_type)
 {
   assert(varbit_type->kind == AST_baseTypeVarbit);
-  NameDeclaration* name_decl;
-
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
-
-  name_decl = map_lookup(decl_map, varbit_type, 0);
-  map_insert(storage, potential_types, varbit_type, actual_type(name_decl->type), 0);
 }
 
 static void
 visit_baseTypeString(Ast* str_type)
 {
   assert(str_type->kind == AST_baseTypeString);
-  NameDeclaration* name_decl;
-
-  name_decl = map_lookup(decl_map, str_type, 0);
-  map_insert(storage, potential_types, str_type, actual_type(name_decl->type), 0);
 }
 
 static void
 visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AST_baseTypeVoid);
-  NameDeclaration* name_decl;
-
-  name_decl = map_lookup(decl_map, void_type, 0);
-  map_insert(storage, potential_types, void_type, actual_type(name_decl->type), 0);
 }
 
 static void
 visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AST_baseTypeError);
-  NameDeclaration* name_decl;
-
-  name_decl = map_lookup(decl_map, error_type, 0);
-  map_insert(storage, potential_types, error_type, actual_type(name_decl->type), 0);
 }
 
 static void
@@ -1074,11 +793,7 @@ static void
 visit_enumDeclaration(Ast* enum_decl)
 {
   assert(enum_decl->kind == AST_enumDeclaration);
-  NameDeclaration* name_decl;
-
-  name_decl = map_lookup(decl_map, enum_decl, 0);
-
-  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields, name_decl->type);
+  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
 }
 
 static void
@@ -1108,26 +823,21 @@ visit_identifierList(Ast* ident_list)
 }
 
 static void
-visit_specifiedIdentifierList(Ast* ident_list, Type* enum_type)
+visit_specifiedIdentifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
   Ast* ast;
 
   for (ast = ident_list->specifiedIdentifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_specifiedIdentifier(ast, enum_type);
+    visit_specifiedIdentifier(ast);
   }
 }
 
 static void
-visit_specifiedIdentifier(Ast* ident, Type* enum_type)
+visit_specifiedIdentifier(Ast* ident)
 {
   assert(ident->kind == AST_specifiedIdentifier);
-  NameDeclaration* name_decl;
-
-  name_decl = map_lookup(decl_map, ident, 0);
-  name_decl->type = enum_type;
-
   if (ident->specifiedIdentifier.init_expr) {
     visit_expression(ident->specifiedIdentifier.init_expr);
   }
@@ -1149,104 +859,33 @@ static void
 visit_assignmentStatement(Ast* assign_stmt)
 {
   assert(assign_stmt->kind == AST_assignmentStatement);
-  Ast* expr, *name;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
-
   if (assign_stmt->assignmentStatement.lhs_expr->kind == AST_expression) {
-    name_entry = visit_expression(assign_stmt->assignmentStatement.lhs_expr);
+    visit_expression(assign_stmt->assignmentStatement.lhs_expr);
   } else if (assign_stmt->assignmentStatement.lhs_expr->kind == AST_lvalueExpression) {
-    name_entry = visit_lvalueExpression(assign_stmt->assignmentStatement.lhs_expr);
+    visit_lvalueExpression(assign_stmt->assignmentStatement.lhs_expr);
   } else assert(0);
-
-  if (name_entry) {
-    expr = assign_stmt->assignmentStatement.lhs_expr;
-    name = expr->expression.expr;
-    assert(name->kind == AST_name);
-    name_decl = resolve_variable(name, name_entry);
-    map_insert(storage, potential_types, assign_stmt->assignmentStatement.lhs_expr, actual_type(name_decl->type), 0);
-  }
-
-  name_entry = visit_expression(assign_stmt->assignmentStatement.rhs_expr);
-
-  if (name_entry) {
-    expr = assign_stmt->assignmentStatement.rhs_expr;
-    name = expr->expression.expr;
-    assert(name->kind == AST_name);
-    name_decl = resolve_variable(name, name_entry);
-    map_insert(storage, potential_types, assign_stmt->assignmentStatement.rhs_expr, actual_type(name_decl->type), 0);
-  }
+  visit_expression(assign_stmt->assignmentStatement.rhs_expr);
 }
 
 static void
 visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
-  Ast* lhs_expr, *name;
-  Type* func_ty, *params_ty, *args_ty;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
-
   if (func_call->functionCall.lhs_expr->kind == AST_expression) {
-    name_entry = visit_expression(func_call->functionCall.lhs_expr);
+    visit_expression(func_call->functionCall.lhs_expr);
   } else if (func_call->functionCall.lhs_expr->kind == AST_lvalueExpression) {
-    name_entry = visit_lvalueExpression(func_call->functionCall.lhs_expr);
+    visit_lvalueExpression(func_call->functionCall.lhs_expr);
   } else assert(0);
   visit_argumentList(func_call->functionCall.args);
-
-  if (name_entry) {
-    lhs_expr = func_call->functionCall.lhs_expr;
-    name = lhs_expr->expression.expr;
-    assert(name->kind == AST_name);
-    name_decl = resolve_function(name, name_entry, func_call->functionCall.args);
-    func_ty = actual_type(name_decl->type);
-    if (func_ty->ctor == TYPE_FUNCTION) {
-      ;
-    } else if (func_ty->ctor == TYPE_PACKAGE || func_ty->ctor == TYPE_PARSER ||
-                func_ty->ctor == TYPE_CONTROL) {
-      func_ty = actual_type(name_decl->ctor_type);
-    } else assert(0);
-    map_insert(storage, decl_map, name, name_decl, 0);
-    map_insert(storage, potential_types, func_call->functionCall.lhs_expr, func_ty, 0);
-  } else {
-    func_ty = map_lookup(potential_types, func_call->functionCall.lhs_expr, 0);
-    assert(func_ty->ctor == TYPE_FUNCTION);
-    params_ty = actual_type(func_ty->function.params);
-    args_ty = map_lookup(potential_types, func_call->functionCall.args, 0);
-    if (!validate_param_and_arg_type(params_ty, args_ty)) {
-      error("%s:%d:%d: error: mismatch between parameter and argument types.",
-            source_file, func_call->line_no, func_call->column_no);
-    }
-  }
-
-  func_ty = map_lookup(potential_types, func_call->functionCall.lhs_expr, 0);
-  assert(func_ty->ctor == TYPE_FUNCTION);
-  map_insert(storage, potential_types, func_call, actual_type(func_ty->function.return_), 0);
 }
 
 static void
 visit_returnStatement(Ast* return_stmt)
 {
   assert(return_stmt->kind == AST_returnStatement);
-  Type* expr_ty;
-  Ast* expr, *name;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
-
   if (return_stmt->returnStatement.expr) {
-    name_entry = visit_expression(return_stmt->returnStatement.expr);
+    visit_expression(return_stmt->returnStatement.expr);
   }
-
-  if (name_entry) {
-    expr = return_stmt->returnStatement.expr;
-    name = expr->expression.expr;
-    assert(name->kind == AST_name);
-    name_decl = resolve_variable(name, name_entry);
-    map_insert(storage, potential_types, return_stmt->returnStatement.expr, actual_type(name_decl->type), 0);
-  }
-
-  expr_ty = map_lookup(potential_types, return_stmt->returnStatement.expr, 0);
-  map_insert(storage, potential_types, return_stmt, expr_ty, 0);
 }
 
 static void
@@ -1516,11 +1155,6 @@ static void
 visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
-  NameDeclaration* name_decl;
-
-  name_decl = map_lookup(decl_map, var_decl, 0);
-  map_insert(storage, potential_types, var_decl, actual_type(name_decl->type), 0);
-
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);
   }
@@ -1541,47 +1175,23 @@ visit_argumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AST_argumentList);
   Ast* ast;
-  Type* args_ty, *ty;
 
-  args_ty = 0;
   for (ast = arg_list->argumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_argument(ast);
-
-    ty = arena_malloc(storage, sizeof(Type));
-    ty->ctor = TYPE_PRODUCT;
-    ty->product.next = args_ty;
-    ty->product.type = map_lookup(potential_types, ast, 0);
-    args_ty = ty;
   }
-  map_insert(storage, potential_types, arg_list, args_ty, 0);
 }
 
 static void
 visit_argument(Ast* arg)
 {
   assert(arg->kind == AST_argument);
-  Type* arg_ty;
-  Ast* expr, *name;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
 
   if (arg->argument.arg->kind == AST_expression) {
-    name_entry = visit_expression(arg->argument.arg);
+    visit_expression(arg->argument.arg);
   } else if (arg->argument.arg->kind == AST_dontcare) {
     visit_dontcare(arg->argument.arg);
   } else assert(0);
-
-  if (name_entry) {
-    expr = arg->argument.arg;
-    name = expr->expression.expr;
-    assert(name->kind == AST_name);
-    name_decl = resolve_variable(name, name_entry);
-    map_insert(storage, potential_types, arg->argument.arg, actual_type(name_decl->type), 0);
-  }
-
-  arg_ty = map_lookup(potential_types, arg->argument.arg, 0);
-  map_insert(storage, potential_types, arg, actual_type(arg_ty), 0);
 }
 
 static void
@@ -1596,11 +1206,10 @@ visit_expressionList(Ast* expr_list)
   }
 }
 
-static NameEntry*
+static void
 visit_lvalueExpression(Ast* lvalue_expr)
 {
   assert(lvalue_expr->kind == AST_lvalueExpression);
-  Type* expr_ty;
 
   if (lvalue_expr->lvalueExpression.expr->kind == AST_name) {
     return visit_name(lvalue_expr->lvalueExpression.expr);
@@ -1609,17 +1218,12 @@ visit_lvalueExpression(Ast* lvalue_expr)
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_arraySubscript) {
     visit_arraySubscript(lvalue_expr->lvalueExpression.expr);
   } else assert(0);
-
-  expr_ty = map_lookup(potential_types, lvalue_expr->lvalueExpression.expr, 0);
-  map_insert(storage, potential_types, lvalue_expr, actual_type(expr_ty), 0);
-  return 0;
 }
 
-static NameEntry*
+static void
 visit_expression(Ast* expr)
 {
   assert(expr->kind == AST_expression);
-  Type* expr_ty;
 
   if (expr->expression.expr->kind == AST_expression) {
     visit_expression(expr->expression.expr);
@@ -1648,240 +1252,88 @@ visit_expression(Ast* expr)
   } else if (expr->expression.expr->kind == AST_assignmentStatement) {
     visit_assignmentStatement(expr->expression.expr);
   } else assert(0);
-
-  expr_ty = map_lookup(potential_types, expr->expression.expr, 0);
-  map_insert(storage, potential_types, expr, expr_ty, 0);
-  return 0;
 }
 
 static void
 visit_castExpression(Ast* cast_expr)
 {
   assert(cast_expr->kind == AST_castExpression);
-  Type* cast_ty;
-  Ast* expr, *name;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
 
   visit_typeRef(cast_expr->castExpression.type);
-  name_entry = visit_expression(cast_expr->castExpression.expr);
-
-  if (name_entry) {
-    expr = cast_expr->castExpression.expr;
-    name = expr->expression.expr;
-    assert(name->kind == AST_name);
-    name_decl = resolve_variable(name, name_entry);
-    map_insert(storage, potential_types, cast_expr->castExpression.expr, actual_type(name_decl->type), 0);
-  }
-
-  cast_ty = map_lookup(type_env, cast_expr->castExpression.type, 0);
-  map_insert(storage, potential_types, cast_expr, cast_ty, 0);
+  visit_expression(cast_expr->castExpression.expr);
 }
 
 static void
 visit_unaryExpression(Ast* unary_expr)
 {
   assert(unary_expr->kind == AST_unaryExpression);
-  Type* ty;
-  Ast* expr, *name;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
 
-  name_entry = visit_expression(unary_expr->unaryExpression.operand);
-
-  if (name_entry) {
-    expr = unary_expr->unaryExpression.operand;
-    name = expr->expression.expr;
-    assert(name->kind == AST_name);
-    name_decl = resolve_variable(name, name_entry);
-    map_insert(storage, potential_types, unary_expr->unaryExpression.operand, actual_type(name_decl->type), 0);
-  }
-
-  ty = map_lookup(potential_types, unary_expr->unaryExpression.operand, 0);
-  map_insert(storage, potential_types, unary_expr, ty, 0);
+  visit_expression(unary_expr->unaryExpression.operand);
 }
 
 static void
 visit_binaryExpression(Ast* binary_expr)
 {
   assert(binary_expr->kind == AST_binaryExpression);
-  Type* lhs_ty;
-  Ast* expr, *name;
-  enum Ast_Operator op;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
-
-  name_entry = visit_expression(binary_expr->binaryExpression.left_operand);
-
-  if (name_entry) {
-    expr = binary_expr->binaryExpression.left_operand;
-    name = expr->expression.expr;
-    assert(name->kind == AST_name);
-    name_decl = resolve_variable(name, name_entry);
-    map_insert(storage, potential_types, binary_expr->binaryExpression.left_operand, actual_type(name_decl->type), 0);
-  }
-
-  name_entry = visit_expression(binary_expr->binaryExpression.right_operand);
-
-  if (name_entry) {
-    expr = binary_expr->binaryExpression.right_operand;
-    name = expr->expression.expr;
-    assert(name->kind == AST_name);
-    name_decl = resolve_variable(name, name_entry);
-    map_insert(storage, potential_types, binary_expr->binaryExpression.right_operand, actual_type(name_decl->type), 0);
-  }
-
-  lhs_ty = map_lookup(potential_types, binary_expr->binaryExpression.left_operand, 0);
-
-  op = binary_expr->binaryExpression.op;
-  if (op == OP_ADD || op == OP_SUB || op == OP_MUL || op == OP_DIV) {
-    map_insert(storage, potential_types, binary_expr, lhs_ty, 0);
-  } else if (op == OP_AND || op == OP_OR || op == OP_NOT) {
-    map_insert(storage, potential_types, binary_expr, builtin_bool_ty, 0);
-  } else if (op == OP_EQ || op == OP_NEQ || op == OP_LESS ||
-             op == OP_GREAT || op == OP_LESS_EQ || op == OP_GREAT_EQ) {
-    map_insert(storage, potential_types, binary_expr, builtin_bool_ty, 0);
-  } else if (op == OP_BITW_AND || op == OP_BITW_OR || op == OP_BITW_XOR ||
-             op == OP_BITW_NOT || op == OP_BITW_SHL || op == OP_BITW_SHR ||
-             op == OP_MASK) {
-    map_insert(storage, potential_types, binary_expr, lhs_ty, 0);
-  }
+  visit_expression(binary_expr->binaryExpression.left_operand);
+  visit_expression(binary_expr->binaryExpression.right_operand);
 }
 
 static void
 visit_memberSelector(Ast* selector)
 {
   assert(selector->kind == AST_memberSelector);
-  Type* lhs_ty;
-  Ast* expr, *name;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
 
   if (selector->memberSelector.lhs_expr->kind == AST_expression) {
-    name_entry = visit_expression(selector->memberSelector.lhs_expr);
+    visit_expression(selector->memberSelector.lhs_expr);
   } else if (selector->memberSelector.lhs_expr->kind == AST_lvalueExpression) {
-    name_entry = visit_lvalueExpression(selector->memberSelector.lhs_expr);
+    visit_lvalueExpression(selector->memberSelector.lhs_expr);
   } else assert(0);
-
-  if (name_entry) {
-    expr = selector->memberSelector.lhs_expr;
-    name = expr->expression.expr;
-    assert(name->kind == AST_name);
-    if (name_entry_getdecl(name_entry, NAMESPACE_VAR) && name_entry_getdecl(name_entry, NAMESPACE_TYPE)) {
-      error("%s:%d:%d: error: ambiguous name reference `%s`.",
-            source_file, name->line_no, name->column_no, name->name.strname);
-    }
-    if (name_entry_getdecl(name_entry, NAMESPACE_VAR)) {
-      name_decl = resolve_variable(name, name_entry);
-    } else if (name_entry_getdecl(name_entry, NAMESPACE_TYPE)) {
-      name_decl = resolve_type(name, name_entry);
-    } else assert(0);
-    map_insert(storage, potential_types, selector->memberSelector.lhs_expr, actual_type(name_decl->type), 0);
-  }
-
-  lhs_ty = map_lookup(potential_types, selector->memberSelector.lhs_expr, 0);
-  if (lhs_ty->ctor == TYPE_STRUCT || lhs_ty->ctor == TYPE_ENUM || lhs_ty->ctor == TYPE_EXTERN) {
-    name_decl = resolve_member(selector->memberSelector.name, lhs_ty->ast);
-    map_insert(storage, potential_types, selector, actual_type(name_decl->type), 0);
-  } else error("%s:%d:%d: error: type does not support member selection.",
-               source_file, name->line_no, name->column_no);
+  visit_name(selector->memberSelector.name);
 }
 
 static void
 visit_arraySubscript(Ast* subscript)
 {
   assert(subscript->kind == AST_arraySubscript);
-  Type* lhs_ty;
-  Ast* expr, *lhs_expr, *name;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
 
   visit_indexExpression(subscript->arraySubscript.index_expr);
 
   if (subscript->arraySubscript.lhs_expr->kind == AST_expression) {
-    name_entry = visit_expression(subscript->arraySubscript.lhs_expr);
+    visit_expression(subscript->arraySubscript.lhs_expr);
   } else if (subscript->arraySubscript.lhs_expr->kind == AST_lvalueExpression) {
-    name_entry = visit_lvalueExpression(subscript->arraySubscript.lhs_expr);
+    visit_lvalueExpression(subscript->arraySubscript.lhs_expr);
   } else assert(0);
-
-  if (name_entry) {
-    expr = subscript->arraySubscript.lhs_expr;
-    name = expr->expression.expr;
-    assert(name->kind == AST_name);
-    name_decl = resolve_variable(name, name_entry);
-    map_insert(storage, potential_types, subscript->arraySubscript.lhs_expr, actual_type(name_decl->type), 0);
-  }
-
-  lhs_expr = subscript->arraySubscript.lhs_expr;
-  lhs_ty = map_lookup(potential_types, subscript->arraySubscript.lhs_expr, 0);
-  if (lhs_ty->ctor == TYPE_ARRAY) {
-    map_insert(storage, potential_types, subscript, actual_type(lhs_ty->array.element), 0);
-  } else error("%s:%d:%d: error: array type was expected.",
-               source_file, lhs_expr->line_no, lhs_expr->column_no);
+  visit_indexExpression(subscript->arraySubscript.index_expr);
 }
 
 static void
 visit_indexExpression(Ast* index_expr)
 {
   assert(index_expr->kind == AST_indexExpression);
-  Type* start_ty;
-  Ast* start_expr, *end_expr, *name;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
 
-  start_expr = index_expr->indexExpression.start_index;
-  end_expr = index_expr->indexExpression.end_index;
-
-  name_entry = visit_expression(index_expr->indexExpression.start_index);
-  if (name_entry) {
-    name = start_expr->expression.expr;
-    assert(name->kind == AST_name);
-    name_decl = resolve_variable(name, name_entry);
-    map_insert(storage, potential_types, index_expr->indexExpression.start_index, actual_type(name_decl->type), 0);
-  }
-
+  visit_expression(index_expr->indexExpression.start_index);
   if (index_expr->indexExpression.end_index) {
-    name_entry = visit_expression(index_expr->indexExpression.end_index);
-    if (name_entry) {
-      name = end_expr->expression.expr;
-      assert(name->kind == AST_name);
-      name_decl = resolve_variable(name, name_entry);
-      map_insert(storage, potential_types, index_expr->indexExpression.end_index, actual_type(name_decl->type), 0);
-    }
+    visit_expression(index_expr->indexExpression.end_index);
   }
-
-  start_ty = map_lookup(potential_types, index_expr->indexExpression.start_index, 0);
-  map_insert(storage, potential_types, index_expr, start_ty, 0);
 }
 
 static void
 visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AST_booleanLiteral);
-  NameDeclaration* name_decl;
-
-  name_decl = map_lookup(decl_map, bool_literal, 0);
-  map_insert(storage, potential_types, bool_literal, actual_type(name_decl->type), 0);
 }
 
 static void
 visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AST_integerLiteral);
-  NameDeclaration* name_decl;
-
-  name_decl = map_lookup(decl_map, int_literal, 0);
-  map_insert(storage, potential_types, int_literal, actual_type(name_decl->type), 0);
 }
 
 static void
 visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AST_stringLiteral);
-  NameDeclaration* name_decl;
-
-  name_decl = map_lookup(decl_map, str_literal, 0);
-  map_insert(storage, potential_types, str_literal, actual_type(name_decl->type), 0);
 }
 
 static void

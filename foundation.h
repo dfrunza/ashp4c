@@ -118,5 +118,6 @@ typedef struct Map {
 
 MapEntry* map_insert(Arena* storage, Map* map, void* key, void* value, bool return_if_found);
 void*     map_lookup(Map* map, void* key, MapEntry** entry);
-Map*      map_create_inner(Arena* storage, Map* map, void* key);
+Map*      map_create_inner_map(Arena* storage, Map* map, void* key);
+void      map_copy(Arena* storage, Map* dest, Map* source);
 

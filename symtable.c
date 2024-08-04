@@ -256,7 +256,7 @@ visit_parameter(Ast* param)
   name = param->parameter.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
   name_decl->ast = param;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, param, name_decl, 0);
 
   if (param->parameter.init_expr) {
@@ -276,7 +276,7 @@ visit_packageTypeDeclaration(Ast* type_decl)
   name = type_decl->packageTypeDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = type_decl;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, type_decl, name_decl, 0);
 
   prev_scope = current_scope;
@@ -300,7 +300,7 @@ visit_instantiation(Ast* inst)
   name = inst->instantiation.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
   name_decl->ast = inst;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, inst, name_decl, 0);
 }
 
@@ -338,7 +338,7 @@ visit_parserTypeDeclaration(Ast* type_decl)
   name = type_decl->parserTypeDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = type_decl;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, type_decl, name_decl, 0);
 
   prev_scope = current_scope;
@@ -395,7 +395,7 @@ visit_parserState(Ast* state)
   name = state->parserState.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
   name_decl->ast = state;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, state, name_decl, 0);
 
   prev_scope = current_scope;
@@ -574,7 +574,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
   name = type_decl->controlTypeDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = type_decl;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, type_decl, name_decl, 0);
 
   prev_scope = current_scope;
@@ -636,7 +636,7 @@ visit_externTypeDeclaration(Ast* type_decl)
   name = type_decl->externTypeDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = type_decl;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, type_decl, name_decl, 0);
 
   prev_scope = current_scope;
@@ -671,7 +671,7 @@ visit_functionPrototype(Ast* func_proto)
   name = func_proto->functionPrototype.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = func_proto;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, func_proto, name_decl, 0);
 
   prev_scope = current_scope;
@@ -909,7 +909,7 @@ visit_headerTypeDeclaration(Ast* header_decl)
   name = header_decl->headerTypeDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = header_decl;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, header_decl, name_decl, 0);
 
   prev_scope = current_scope;
@@ -931,7 +931,7 @@ visit_headerUnionDeclaration(Ast* union_decl)
   name = union_decl->headerUnionDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = union_decl;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, union_decl, name_decl, 0);
 
   prev_scope = current_scope;
@@ -953,7 +953,7 @@ visit_structTypeDeclaration(Ast* struct_decl)
   name = struct_decl->structTypeDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = struct_decl;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, struct_decl, name_decl, 0);
 
   prev_scope = current_scope;
@@ -988,7 +988,7 @@ visit_structField(Ast* field)
   name = field->structField.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
   name_decl->ast = field;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, field, name_decl, 0);
 }
 
@@ -1003,7 +1003,7 @@ visit_enumDeclaration(Ast* enum_decl)
   name = enum_decl->enumDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = enum_decl;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, enum_decl, name_decl, 0);
 
   prev_scope = current_scope;
@@ -1080,7 +1080,7 @@ visit_specifiedIdentifier(Ast* ident)
   name = ident->specifiedIdentifier.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
   name_decl->ast = ident;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, ident, name_decl, 0);
 
   if (ident->specifiedIdentifier.init_expr) {
@@ -1104,7 +1104,7 @@ visit_typedefDeclaration(Ast* typedef_decl)
   name = typedef_decl->typedefDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = typedef_decl;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, typedef_decl, name_decl, 0);
 }
 
@@ -1290,7 +1290,7 @@ visit_tableDeclaration(Ast* table_decl)
   name = table_decl->tableDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = table_decl;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, table_decl, name_decl, 0);
 
   prev_scope = current_scope;
@@ -1429,7 +1429,7 @@ visit_simpleProperty(Ast* simple_prop)
   name = simple_prop->simpleProperty.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
   name_decl->ast = simple_prop;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, simple_prop, name_decl, 0);
 
   visit_expression(simple_prop->simpleProperty.init_expr);
@@ -1446,7 +1446,7 @@ visit_actionDeclaration(Ast* action_decl)
   name = action_decl->actionDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
   name_decl->ast = action_decl;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, action_decl, name_decl, 0);
 
   prev_scope = current_scope;
@@ -1473,7 +1473,7 @@ visit_variableDeclaration(Ast* var_decl)
   name = var_decl->variableDeclaration.name;
   name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
   name_decl->ast = var_decl;
-  map_insert(storage, decl_map, name, name_decl, 0);
+  //map_insert(storage, decl_map, name, name_decl, 0);
   map_insert(storage, decl_map, var_decl, name_decl, 0);
 
   if (var_decl->variableDeclaration.init_expr) {
