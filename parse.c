@@ -698,7 +698,7 @@ parse_p4program()
   while (token->klass == TK_SEMICOLON) {
     next_token(); /* empty declaration */
   }
-  scope = scope_create(storage, 1008);
+  scope = scope_create(storage, 6);
   current_scope = scope_push(scope, current_scope);
   program->p4program.decl_list = parse_declarationList();
   current_scope = scope_pop(current_scope);

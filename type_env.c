@@ -422,7 +422,7 @@ build_type_env(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_
   opened_scopes = opened_scopes_;
   enclosing_scopes = enclosing_scopes_;
   decl_map = decl_map_;
-  type_equiv_pairs = array_create(storage, sizeof(TypePair), 48);
+  type_equiv_pairs = array_create(storage, sizeof(TypePair), 2);
 
   visit_p4program(p4program);
   resolve_type_nameref(type_env, type_array);

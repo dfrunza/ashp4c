@@ -66,7 +66,7 @@ typedef struct UnboundedArray {
 } UnboundedArray;
 
 void* segment_locate_cell(SegmentTable* data, int i, int elem_size);
-UnboundedArray* array_create(Arena* storage, int elem_size, int max_capacity);
+UnboundedArray* array_create(Arena* storage, int elem_size, int segment_count);
 void  array_init(Arena* storage, UnboundedArray* array, int elem_size, int segment_count);
 void  array_extend(Arena* storage, UnboundedArray* array, int elem_size);
 void* array_get_element(UnboundedArray* array, int i, int elem_size);
@@ -96,7 +96,7 @@ typedef struct HashmapCursor {
   HashmapEntry* entry;
 } HashmapCursor;
 
-Hashmap*      hashmap_create(Arena* storage, int max_capacity);
+Hashmap*      hashmap_create(Arena* storage, int segment_count);
 void          hashmap_init(Arena* storage, Hashmap* hashmap, int segment_count);
 void*         hashmap_lookup(Hashmap* hashmap, char* key, HashmapEntry** entry, HashmapBucket* bucket);
 HashmapEntry* hashmap_insert(Arena* storage, Hashmap* hashmap, char* key, void* value, bool return_if_found);

@@ -165,7 +165,7 @@ visit_p4program(Ast* p4program)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 240);
+  scope = scope_create(storage, 3);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
@@ -261,7 +261,7 @@ visit_packageTypeDeclaration(Ast* type_decl)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 48);
+  scope = scope_create(storage, 2);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
@@ -312,7 +312,7 @@ visit_parserTypeDeclaration(Ast* type_decl)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 48);
+  scope = scope_create(storage, 2);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
@@ -365,7 +365,7 @@ visit_parserState(Ast* state)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 240);
+  scope = scope_create(storage, 3);
   prev_scope = current_scope;
 
   current_scope = scope_push(scope, current_scope);
@@ -414,7 +414,7 @@ visit_parserBlockStatement(Ast* block_stmt)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 240);
+  scope = scope_create(storage, 3);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
@@ -545,7 +545,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 48);
+  scope = scope_create(storage, 2);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
@@ -610,7 +610,7 @@ visit_externTypeDeclaration(Ast* type_decl)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 48);
+  scope = scope_create(storage, 2);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
@@ -644,7 +644,7 @@ visit_functionPrototype(Ast* func_proto)
     visit_typeRef(func_proto->functionPrototype.return_type);
   }
 
-  scope = scope_create(storage, 48);
+  scope = scope_create(storage, 2);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
@@ -843,7 +843,7 @@ visit_headerTypeDeclaration(Ast* header_decl)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 112);
+  scope = scope_create(storage, 3);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
@@ -861,7 +861,7 @@ visit_headerUnionDeclaration(Ast* union_decl)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 112);
+  scope = scope_create(storage, 3);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
@@ -879,7 +879,7 @@ visit_structTypeDeclaration(Ast* struct_decl)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 112);
+  scope = scope_create(storage, 3);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
@@ -916,7 +916,7 @@ visit_enumDeclaration(Ast* enum_decl)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 112);
+  scope = scope_create(storage, 3);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
@@ -934,7 +934,7 @@ visit_errorDeclaration(Ast* error_decl)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 112);
+  scope = scope_create(storage, 3);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
@@ -952,7 +952,7 @@ visit_matchKindDeclaration(Ast* match_decl)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 112);
+  scope = scope_create(storage, 3);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
@@ -1089,7 +1089,7 @@ visit_statement(Ast* stmt)
   } else if (stmt->statement.stmt->kind == AST_emptyStatement) {
     ;
   } else if (stmt->statement.stmt->kind == AST_blockStatement) {
-    scope = scope_create(storage, 240);
+    scope = scope_create(storage, 3);
     prev_scope = current_scope;
     current_scope = scope_push(scope, current_scope);
 
@@ -1189,7 +1189,7 @@ visit_tableDeclaration(Ast* table_decl)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 112);
+  scope = scope_create(storage, 3);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 
@@ -1322,7 +1322,7 @@ visit_actionDeclaration(Ast* action_decl)
   Scope* scope, *prev_scope;
   SetMember* m;
 
-  scope = scope_create(storage, 48);
+  scope = scope_create(storage, 2);
   prev_scope = current_scope;
   current_scope = scope_push(scope, current_scope);
 

@@ -7,13 +7,11 @@
 static NameEntry null_entry = {};
 
 Scope*
-scope_create(Arena* storage, int max_capacity)
+scope_create(Arena* storage, int segment_count)
 {
-  assert(max_capacity >= 16);
-  int segment_count;
+  assert(segment_count >= 1 && segment_count <= 16);
   Scope* scope;
 
-  segment_count = ceil(log2(max_capacity/16 + 1));
   scope = arena_malloc(storage, sizeof(Scope) + sizeof(HashmapEntry**) * segment_count);
   hashmap_init(storage, &scope->name_table, segment_count);
   return scope;

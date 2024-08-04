@@ -935,7 +935,7 @@ typedef struct NameEntry {
   NameDeclaration* ns[NameSpace_COUNT];
 } NameEntry;
 
-Scope*     scope_create(Arena* storage, int max_capacity);
+Scope*     scope_create(Arena* storage, int segment_count);
 Scope*     scope_push(Scope* scope, Scope* parent_scope);
 Scope*     scope_pop(Scope* scope);
 NameEntry* scope_lookup(Scope* scope, char* name, enum NameSpace ns);

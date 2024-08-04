@@ -32,13 +32,11 @@ hashmap_hash_key(char* key, int m, int capacity)
 }
 
 Hashmap*
-hashmap_create(Arena* storage, int max_capacity)
+hashmap_create(Arena* storage, int segment_count)
 {
-  assert(max_capacity >= 16);
-  int segment_count;
+  assert(segment_count >= 1 && segment_count <= 16);
   Hashmap* hashmap;
 
-  segment_count = ceil(log2(max_capacity/16 + 1));
   hashmap = arena_malloc(storage, sizeof(Hashmap) + sizeof(HashmapEntry**) * segment_count);
   hashmap_init(storage, hashmap, segment_count);
   return hashmap;

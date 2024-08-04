@@ -23,14 +23,12 @@ array_extend(Arena* storage, UnboundedArray* array, int elem_size)
 }
 
 UnboundedArray*
-array_create(Arena* storage, int elem_size, int max_capacity)
+array_create(Arena* storage, int elem_size, int segment_count)
 {
   assert(elem_size > 0);
-  assert(max_capacity >= 16);
-  int segment_count;
+  assert(segment_count >= 1 && segment_count <= 16);
   UnboundedArray* array;
 
-  segment_count = ceil(log2(max_capacity/16 + 1));
   array = arena_malloc(storage, sizeof(UnboundedArray) + sizeof(void*) * segment_count);
   array_init(storage, array, elem_size, segment_count);
   return array;

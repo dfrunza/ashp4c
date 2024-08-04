@@ -214,7 +214,7 @@ main(int arg_count, char* args[])
     exit(1);
   }
 
-  root_scope = scope_create(&storage, 496);
+  root_scope = scope_create(&storage, 5);
   for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
     name_decl = scope_bind(&storage, root_scope, keywords[i].strname, NAMESPACE_KEYWORD);
     name_decl->token_class = keywords[i].token_class;
@@ -227,7 +227,7 @@ main(int arg_count, char* args[])
     name_decl->ast = name;
   }
 
-  type_array = array_create(&storage, sizeof(Type), 1008);
+  type_array = array_create(&storage, sizeof(Type), 5);
   type_env = arena_malloc(&storage, sizeof(Set));
   *type_env = (Set){0};
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
