@@ -205,7 +205,7 @@ main(int arg_count, char* args[])
   Set* opened_scopes, *enclosing_scopes;
   Set* decl_map;
 
-  reserve_page_memory(500*KILOBYTE);
+  reserve_memory(500*KILOBYTE);
 
   cmdline = parse_cmdline_args(&storage, arg_count, args);
   filename = find_unnamed_arg(cmdline);

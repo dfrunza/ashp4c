@@ -19,7 +19,7 @@ static PageBlock* block_freelist_head = 0;
 static PageBlock* recycled_block_structs = 0;
 
 void
-reserve_page_memory(int memory_amount)
+reserve_memory(int memory_amount)
 {
   page_size = getpagesize();
   total_page_count = ceil(memory_amount / page_size);
@@ -78,7 +78,9 @@ block_insert_and_coalesce(PageBlock* block_list, PageBlock* new_block)
   PageBlock* merged_list;
   PageBlock* left_neighbour = 0, *right_neighbour = 0;
   PageBlock* p;
-  const int STITCH_NONE = 0, STITCH_LEFT = 1 << 1, STITCH_RIGHT = 1 << 2;
+  const int STITCH_NONE  = 0,
+            STITCH_LEFT  = 1 << 1,
+            STITCH_RIGHT = 1 << 2;
   int stitch_method;
 
   if (!block_list) {
