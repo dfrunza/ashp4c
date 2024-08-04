@@ -291,6 +291,7 @@ enum Ast_Operator {
   OP_BITW_NOT,
   OP_BITW_SHL,
   OP_BITW_SHR,
+
   OP_MASK,
 };
 

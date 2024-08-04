@@ -103,20 +103,20 @@ HashmapEntry* hashmap_insert(Arena* storage, Hashmap* hashmap, char* key, void* 
 void          hashmap_cursor_begin(HashmapCursor* cursor, Hashmap* hashmap);
 HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor);
 
-typedef struct SetMember {
-  struct SetMember* next;
-  struct SetMember* left_branch;
-  struct SetMember* right_branch;
+typedef struct MapEntry {
+  struct MapEntry* next;
+  struct MapEntry* left_branch;
+  struct MapEntry* right_branch;
   void* key;
   void* value;
-} SetMember;
+} MapEntry;
 
-typedef struct Set {
-  SetMember* first;
-  SetMember* root;
-} Set;
+typedef struct Map {
+  MapEntry* first;
+  MapEntry* root;
+} Map;
 
-SetMember* set_add(Arena* storage, Set* set, void* key, void* value, bool return_if_found);
-Set*       set_create_inner(Arena* storage, Set* set, void* key);
-void*      set_lookup(Set* set, void* key, void* default_, SetMember** member);
+MapEntry* map_insert(Arena* storage, Map* map, void* key, void* value, bool return_if_found);
+void*     map_lookup(Map* map, void* key, MapEntry** entry);
+Map*      map_create_inner(Arena* storage, Map* map, void* key);
 

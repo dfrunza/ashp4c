@@ -200,10 +200,10 @@ main(int arg_count, char* args[])
   NameEntry* name_entry;
   Scope* root_scope;
   UnboundedArray* type_array;
-  Set* type_env;
+  Map* type_env;
   Type* ty;
-  Set* opened_scopes, *enclosing_scopes;
-  Set* decl_map;
+  Map* opened_scopes, *enclosing_scopes;
+  Map* decl_map;
 
   reserve_memory(500*KILOBYTE);
 
@@ -228,8 +228,8 @@ main(int arg_count, char* args[])
   }
 
   type_array = array_create(&storage, sizeof(Type), 5);
-  type_env = arena_malloc(&storage, sizeof(Set));
-  *type_env = (Set){0};
+  type_env = arena_malloc(&storage, sizeof(Map));
+  *type_env = (Map){0};
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_entry = scope_lookup(root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
     name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
@@ -238,7 +238,7 @@ main(int arg_count, char* args[])
     ty->strname = name_decl->strname;
     ty->ast = name_decl->ast;
     name_decl->type = ty;
-    set_add(&storage, type_env, name_decl->ast, ty, 0);
+    map_insert(&storage, type_env, name_decl->ast, ty, 0);
     *builtin_types[i].type = ty;
   }
 

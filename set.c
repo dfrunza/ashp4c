@@ -2,43 +2,43 @@
 #include <stdint.h>
 #include "foundation.h"
 
-static SetMember*
-search_member(SetMember* member, void* key)
+static MapEntry*
+search_entry(MapEntry* entry, void* key)
 {
-  if (!member) {
+  if (!entry) {
     return 0;
-  } else if (member->key == key) {
-    return member;
-  } else if (key < member->key) {
-    return search_member(member->left_branch, key);
+  } else if (entry->key == key) {
+    return entry;
+  } else if (key < entry->key) {
+    return search_entry(entry->left_branch, key);
   } else {
-    return search_member(member->right_branch, key);
+    return search_entry(entry->right_branch, key);
   }
   assert(0);
   return 0;
 }
 
-static SetMember*
-add_member(Arena* storage, Set* set, SetMember** branch, SetMember* member,
-           void* key, void* value, bool return_if_found)
+static MapEntry*
+add_entry(Arena* storage, Map* map, MapEntry** branch, MapEntry* entry,
+    void* key, void* value, bool return_if_found)
 {
-  if (!member) {
-    member = arena_malloc(storage, sizeof(SetMember));
-    *branch = member;
-    member->key = key;
-    member->value = value;
-    member->left_branch = 0;
-    member->right_branch = 0;
-    member->next = set->first;
-    set->first = member;
-    return member;
-  } else if (member->key == key) {
-    if (return_if_found) { return member; } else { return 0; }
-  } else if (key < member->key) {
-    return add_member(storage, set, &member->left_branch, member->left_branch,
+  if (!entry) {
+    entry = arena_malloc(storage, sizeof(MapEntry));
+    *branch = entry;
+    entry->key = key;
+    entry->value = value;
+    entry->left_branch = 0;
+    entry->right_branch = 0;
+    entry->next = map->first;
+    map->first = entry;
+    return entry;
+  } else if (entry->key == key) {
+    if (return_if_found) { return entry; } else { return 0; }
+  } else if (key < entry->key) {
+    return add_entry(storage, map, &entry->left_branch, entry->left_branch,
                                   key, value, return_if_found);
   } else {
-    return add_member(storage, set, &member->right_branch, member->right_branch,
+    return add_entry(storage, map, &entry->right_branch, entry->right_branch,
                                   key, value, return_if_found);
   }
   assert(0);
@@ -46,40 +46,40 @@ add_member(Arena* storage, Set* set, SetMember** branch, SetMember* member,
 }
 
 void*
-set_lookup(Set* set, void* key, void* default_, SetMember** member)
+map_lookup(Map* map, void* key, MapEntry** entry)
 {
-  SetMember* m;
+  MapEntry* m;
   void* value;
 
-  m = search_member(set->root, key);
-  value = default_;
+  m = search_entry(map->root, key);
+  value = 0;
   if (m) {
     value = m->value;
   }
-  if (member) {
-    *member = m;
+  if (entry) {
+    *entry = m;
   }
   return value;
 }
 
-SetMember*
-set_add(Arena* storage, Set* set, void* key, void* value, bool return_if_found)
+MapEntry*
+map_insert(Arena* storage, Map* map, void* key, void* value, bool return_if_found)
 {
-  return add_member(storage, set, &set->root, set->root, key, value, return_if_found);
+  return add_entry(storage, map, &map->root, map->root, key, value, return_if_found);
 }
 
-Set*
-set_create_inner(Arena* storage, Set* set, void* key)
+Map*
+map_create_inner(Arena* storage, Map* map, void* key)
 {
-  SetMember* m;
-  Set* s;
+  MapEntry* m;
+  Map* s;
 
-  m = set_add(storage, set, key, 0, 1);
+  m = map_insert(storage, map, key, 0, 1);
   if (m->value == 0) {
-    s = arena_malloc(storage, sizeof(Set));
-    *s = (Set){0};
+    s = arena_malloc(storage, sizeof(Map));
+    *s = (Map){0};
     m->value = s;
   }
-  return (Set*)m->value;
+  return (Map*)m->value;
 }
 
