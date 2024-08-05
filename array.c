@@ -5,7 +5,7 @@
 #include "foundation.h"
 
 void
-array_extend(Arena* storage, UnboundedArray* array, int elem_size)
+array_extend(Arena* storage, Array* array, int elem_size)
 {
   assert(elem_size > 0);
   assert(array->elem_count >= array->capacity);
@@ -22,20 +22,20 @@ array_extend(Arena* storage, UnboundedArray* array, int elem_size)
   array->capacity = 16 * ((1 << (last_segment + 1)) - 1);
 }
 
-UnboundedArray*
+Array*
 array_create(Arena* storage, int elem_size, int segment_count)
 {
   assert(elem_size > 0);
   assert(segment_count >= 1 && segment_count <= 16);
-  UnboundedArray* array;
+  Array* array;
 
-  array = arena_malloc(storage, sizeof(UnboundedArray) + sizeof(void*) * segment_count);
+  array = arena_malloc(storage, sizeof(Array) + sizeof(void*) * segment_count);
   array_init(storage, array, elem_size, segment_count);
   return array;
 }
 
 void
-array_init(Arena* storage, UnboundedArray* array, int elem_size, int segment_count)
+array_init(Arena* storage, Array* array, int elem_size, int segment_count)
 {
   assert(elem_size > 0);
   assert(segment_count >= 1);
@@ -59,7 +59,7 @@ segment_locate_cell(SegmentTable* data, int i, int elem_size)
 }
 
 void*
-array_get_element(UnboundedArray* array, int i, int elem_size)
+array_get(Array* array, int i, int elem_size)
 {
   assert(elem_size > 0);
   assert(i >= 0 && i < array->elem_count);
@@ -70,7 +70,7 @@ array_get_element(UnboundedArray* array, int i, int elem_size)
 }
 
 void*
-array_append_element(Arena* storage, UnboundedArray* array, int elem_size)
+array_append(Arena* storage, Array* array, int elem_size)
 {
   assert(elem_size > 0);
   void* elem_slot;

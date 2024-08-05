@@ -5,7 +5,7 @@
 
 static char*  source_file;
 static Arena* storage;
-static UnboundedArray* tokens;
+static Array* tokens;
 static int    token_at = 0, prev_token_at = 0;
 static Token* token = 0, *prev_token = 0;
 static Scope* current_scope;
@@ -143,9 +143,9 @@ next_token()
 
   prev_token = token;
   prev_token_at = token_at;
-  token = array_get_element(tokens, ++token_at, sizeof(Token));
+  token = array_get(tokens, ++token_at, sizeof(Token));
   while (token->klass == TK_COMMENT) {
-    token = array_get_element(tokens, ++token_at, sizeof(Token));
+    token = array_get(tokens, ++token_at, sizeof(Token));
   }
   if (token->klass == TK_IDENTIFIER) {
     name_entry = scope_lookup(current_scope, token->lexeme, NAMESPACE_KEYWORD|NAMESPACE_TYPE);
@@ -666,7 +666,7 @@ AstEnum_to_string(enum AstEnum ast)
 }
 
 Ast*
-parse_program(Arena* storage_, char* source_file_, UnboundedArray* tokens_, Scope* root_scope)
+parse_program(Arena* storage_, char* source_file_, Array* tokens_, Scope* root_scope)
 {
   Ast *program;
 
@@ -676,7 +676,7 @@ parse_program(Arena* storage_, char* source_file_, UnboundedArray* tokens_, Scop
   current_scope = root_scope;
 
   token_at = 0;
-  token = array_get_element(tokens, token_at, sizeof(Token));
+  token = array_get(tokens, token_at, sizeof(Token));
   next_token();
   program = parse_p4program();
   assert(current_scope == root_scope);

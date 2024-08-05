@@ -166,9 +166,9 @@ Debug_print_potential_types(Map* map)
   for (m = map->first; m != 0; m = m->next) {
     ty = (Type*)m->key;
     if (ty->strname) {
-      printf("  [%d] 0x%x %s %s\n", i, ty, TypeEnum_to_string(ty->ctor), ty->strname);
+      printf("  [%d] 0x%x %s %s\n", i, ty, TypeEnum_to_string(ty->ty_former), ty->strname);
     } else {
-      printf("  [%d] 0x%x %s\n", i, ty, TypeEnum_to_string(ty->ctor));
+      printf("  [%d] 0x%x %s\n", i, ty, TypeEnum_to_string(ty->ty_former));
     }
     i += 1;
   }
@@ -255,15 +255,15 @@ visit_name(Ast* name)
   Map* tau;
 
   tau = map_create_inner_map(storage, potential_types, name);
-
   scope = map_lookup(enclosing_scopes, name, 0);
   name_entry = scope_lookup(scope, name->name.strname, NAMESPACE_VAR|NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_VAR);
   if (name_decl) {
     map_insert(storage, tau, actual_type(name_decl->type), 0, 0);
+    assert(!name_decl->next_in_scope);
   }
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-  if (name_decl) {
+  for(; name_decl != 0; name_decl = name_decl->next_in_scope) {
     map_insert(storage, tau, actual_type(name_decl->type), 0, 0);
   }
 }
@@ -300,9 +300,11 @@ static void
 visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
+  Map* tau;
+  
+  tau = map_create_inner_map(storage, potential_types, inst);
   visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
-  visit_name(inst->instantiation.name);
 }
 
 /** PARSER **/

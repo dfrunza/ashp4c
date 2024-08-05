@@ -119,7 +119,7 @@ main(int arg_count, char* args[])
   };
   struct BuiltinType {
     char* strname;
-    enum TypeEnum ctor;
+    enum TypeEnum ty_former;
     Type** type;
   };
 
@@ -193,13 +193,13 @@ main(int arg_count, char* args[])
 
   CmdlineArg* cmdline, *filename;
   SourceText source_text = {0};
-  Arena storage = {0}, text_storage = {0};
-  UnboundedArray* tokens;
+  Arena storage = {0}, scratch_storage = {0};
+  Array* tokens;
   Ast* name, *program;
   NameDeclaration* name_decl;
   NameEntry* name_entry;
   Scope* root_scope;
-  UnboundedArray* type_array;
+  Array* type_array;
   Map* type_env;
   Type* ty;
   Map* opened_scopes, *enclosing_scopes;
@@ -233,8 +233,8 @@ main(int arg_count, char* args[])
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_entry = scope_lookup(root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
     name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-    ty = (Type*)array_append_element(&storage, type_array, sizeof(Type));
-    ty->ctor = builtin_types[i].ctor;
+    ty = (Type*)array_append(&storage, type_array, sizeof(Type));
+    ty->ty_former = builtin_types[i].ty_former;
     ty->strname = name_decl->strname;
     ty->ast = name_decl->ast;
     name_decl->type = ty;
@@ -242,10 +242,10 @@ main(int arg_count, char* args[])
     *builtin_types[i].type = ty;
   }
 
-  read_source_text(&text_storage, filename->value, &source_text);
+  read_source_text(&scratch_storage, filename->value, &source_text);
   tokens = tokenize_source_text(&storage, &source_text);
   program = parse_program(&storage, source_text.filename, tokens, root_scope);
-  arena_free(&text_storage);
+  arena_free(&scratch_storage);
 
   drypass(source_text.filename, program);
 

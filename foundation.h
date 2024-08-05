@@ -59,18 +59,18 @@ typedef struct SegmentTable {
   void* segments[];
 } SegmentTable;
 
-typedef struct UnboundedArray {
+typedef struct Array {
   int elem_count;
   int capacity;
   SegmentTable data;
-} UnboundedArray;
+} Array;
 
-void* segment_locate_cell(SegmentTable* data, int i, int elem_size);
-UnboundedArray* array_create(Arena* storage, int elem_size, int segment_count);
-void  array_init(Arena* storage, UnboundedArray* array, int elem_size, int segment_count);
-void  array_extend(Arena* storage, UnboundedArray* array, int elem_size);
-void* array_get_element(UnboundedArray* array, int i, int elem_size);
-void* array_append_element(Arena* storage, UnboundedArray* array, int elem_size);
+void*  segment_locate_cell(SegmentTable* data, int i, int elem_size);
+Array* array_create(Arena* storage, int elem_size, int segment_count);
+void   array_init(Arena* storage, Array* array, int elem_size, int segment_count);
+void   array_extend(Arena* storage, Array* array, int elem_size);
+void*  array_get(Array* array, int i, int elem_size);
+void*  array_append(Arena* storage, Array* array, int elem_size);
 
 typedef struct HashmapEntry {
   char* key;

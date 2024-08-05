@@ -843,10 +843,11 @@ enum TypeEnum {
   TYPE_HEADER_STACK,
   TYPE_NAMEREF,
   TYPE_TYPE,
+  TYPE_TUPLE,
 };
 
 typedef struct Type {
-  enum TypeEnum ctor;
+  enum TypeEnum ty_former;
   char* strname;
   Ast* ast;
 
@@ -862,6 +863,9 @@ typedef struct Type {
     struct {
       struct Type* type;
       struct Type* next;
+
+      struct Type** members;
+      int count;
     } product;
 
     struct {
@@ -875,16 +879,12 @@ typedef struct Type {
 
     struct {
       struct Type* methods;
+      struct Type* ctors;
     } extern_;
 
     struct {
-      struct Type* ctor;
-    } package;
-
-    struct {
-      struct Type* ctor;
       struct Type* params;
-    } parser, control;
+    } parser, control, package;
 
     struct {
       struct Type* element;
@@ -899,6 +899,11 @@ typedef struct Type {
     struct {
       struct Type* type;
     } type;
+
+    struct {
+      struct Type* left;
+      struct Type* right;
+    } tuple;
   };
 } Type;
 
@@ -922,7 +927,6 @@ typedef struct NameDeclaration {
   };
 
   Type* type;
-  Type* ctor_type;
 } NameDeclaration;
 
 enum NameSpace {

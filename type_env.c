@@ -3,12 +3,6 @@
 #include "foundation.h"
 #include "frontend.h"
 
-typedef struct TypePair
-{
-  Type* left;
-  Type* right;
-} TypePair;
-
 extern Type *builtin_void_ty,
             *builtin_bool_ty,
             *builtin_int_ty,
@@ -19,13 +13,15 @@ extern Type *builtin_void_ty,
             *builtin_match_kind_ty,
             *builtin_dontcare_ty;
 
-static char*    source_file;
-static Arena*   storage;
-static Scope*   root_scope;
-static Map*     opened_scopes, *enclosing_scopes;
-static Map*     type_env, *decl_map;
-static UnboundedArray* type_array;
-static UnboundedArray* type_equiv_pairs;
+static char*  source_file;
+static Arena* storage;
+static Scope* root_scope;
+static Map*   opened_scopes, *enclosing_scopes;
+static Map*   type_env, *decl_map;
+static Array* type_array;
+static Array* type_equiv_pairs;
+static Array* type_stacks;
+static int    type_stack_cursor;
 
 /** PROGRAM **/
 
@@ -88,13 +84,13 @@ static void visit_baseTypeError(Ast* error_type);
 static void visit_integerTypeSize(Ast* type_size);
 static void visit_realTypeArg(Ast* type_arg);
 static void visit_typeArg(Ast* type_arg);
-static void visit_typeArgumentList(Ast* arg_list);
+static void visit_typeArgumentList(Ast* args);
 static void visit_typeDeclaration(Ast* type_decl);
 static void visit_derivedTypeDeclaration(Ast* type_decl);
 static void visit_headerTypeDeclaration(Ast* header_decl);
 static void visit_headerUnionDeclaration(Ast* union_decl);
 static void visit_structTypeDeclaration(Ast* struct_decl);
-static void visit_structFieldList(Ast* field_list);
+static void visit_structFieldList(Ast* fields);
 static void visit_structField(Ast* field);
 static void visit_enumDeclaration(Ast* enum_decl);
 static void visit_errorDeclaration(Ast* error_decl);
@@ -145,7 +141,7 @@ static void visit_variableDeclaration(Ast* var_decl);
 /** EXPRESSIONS **/
 
 static void visit_functionDeclaration(Ast* func_decl);
-static void visit_argumentList(Ast* arg_list);
+static void visit_argumentList(Ast* args);
 static void visit_argument(Ast* arg);
 static void visit_expressionList(Ast* expr_list);
 static void visit_lvalueExpression(Ast* lvalue_expr);
@@ -168,7 +164,7 @@ actual_type(Type* type)
   if (!type) {
     return 0;
   }
-  if (type->ctor == TYPE_TYPE) {
+  if (type->ty_former == TYPE_TYPE) {
     return type->type.type;
   }
   return type;
@@ -177,7 +173,7 @@ actual_type(Type* type)
 static bool
 structural_type_equiv(Type* left, Type* right)
 {
-  TypePair* type_pair;
+  Type* type_pair;
   int i;
 
   if (left == 0 && right == 0) {
@@ -189,42 +185,44 @@ structural_type_equiv(Type* left, Type* right)
   left = actual_type(left);
   right = actual_type(right);
   for (i = 0; i < type_equiv_pairs->elem_count; i++) {
-    type_pair = (TypePair*)array_get_element(type_equiv_pairs, i, sizeof(TypePair));
-    if ((left == type_pair->left || left == type_pair->right) &&
-        (right == type_pair->left || right == type_pair->right)) {
+    type_pair = (Type*)array_get(type_equiv_pairs, i, sizeof(Type));
+    assert(type_pair->ty_former == TYPE_TUPLE);
+    if ((left == type_pair->tuple.left || left == type_pair->tuple.right) &&
+        (right == type_pair->tuple.left || right == type_pair->tuple.right)) {
       return 1;
     }
   }
 
-  type_pair = (TypePair*)array_append_element(storage, type_equiv_pairs, sizeof(TypePair));
-  type_pair->left = left;
-  type_pair->right = right;
+  type_pair = (Type*)array_append(storage, type_equiv_pairs, sizeof(Type));
+  type_pair->ty_former = TYPE_TUPLE;
+  type_pair->tuple.left = left;
+  type_pair->tuple.right = right;
 
-  if (left->ctor == TYPE_VOID || left->ctor == TYPE_BOOL || left->ctor == TYPE_INT ||
-      left->ctor == TYPE_BIT || left->ctor == TYPE_VARBIT || left->ctor == TYPE_STRING) {
-    if (right->ctor == left->ctor) {
+  if (left->ty_former == TYPE_VOID || left->ty_former == TYPE_BOOL || left->ty_former == TYPE_INT ||
+      left->ty_former == TYPE_BIT || left->ty_former == TYPE_VARBIT || left->ty_former == TYPE_STRING) {
+    if (right->ty_former == left->ty_former) {
       return 1;
     }
     return 0;
-  } else if (left->ctor == TYPE_DONTCARE) {
+  } else if (left->ty_former == TYPE_DONTCARE) {
     return 1;
-  } else if (left->ctor == TYPE_ENUM) {
-    if (right->ctor == left->ctor) {
+  } else if (left->ty_former == TYPE_ENUM) {
+    if (right->ty_former == left->ty_former) {
       return cstr_match(left->strname, right->strname);
     }
     return 0;
-  } else if (left->ctor == TYPE_EXTERN) {
-    if (right->ctor == left->ctor) {
+  } else if (left->ty_former == TYPE_EXTERN) {
+    if (right->ty_former == left->ty_former) {
       return cstr_match(left->strname, right->strname);
     }
     return 0;
-  } else if (left->ctor == TYPE_TABLE) {
-    if (right->ctor == left->ctor) {
+  } else if (left->ty_former == TYPE_TABLE) {
+    if (right->ty_former == left->ty_former) {
       return cstr_match(left->strname, right->strname);
     }
     return 0;
-  } else if (left->ctor == TYPE_PRODUCT) {
-    if (right->ctor == left->ctor) {
+  } else if (left->ty_former == TYPE_PRODUCT) {
+    if (right->ty_former == left->ty_former) {
       if (!structural_type_equiv(left->product.type, right->product.type)) {
         return 0;
       }
@@ -234,8 +232,8 @@ structural_type_equiv(Type* left, Type* right)
       return 1;
     }
     return 0;
-  } else if (left->ctor == TYPE_FUNCTION) {
-    if (right->ctor == left->ctor) {
+  } else if (left->ty_former == TYPE_FUNCTION) {
+    if (right->ty_former == left->ty_former) {
       if (!structural_type_equiv(left->function.return_, right->function.return_)) {
         return 0;
       }
@@ -245,28 +243,28 @@ structural_type_equiv(Type* left, Type* right)
       return 1;
     }
     return 0;
-  } else if (left->ctor == TYPE_PACKAGE) {
-    if (right->ctor == left->ctor) {
-      return structural_type_equiv(left->package.ctor, right->package.ctor);
+  } else if (left->ty_former == TYPE_PACKAGE) {
+    if (right->ty_former == left->ty_former) {
+      return structural_type_equiv(left->package.params, right->package.params);
     }
     return 0;
-  } else if (left->ctor == TYPE_PARSER) {
-    if (right->ctor == left->ctor) {
+  } else if (left->ty_former == TYPE_PARSER) {
+    if (right->ty_former == left->ty_former) {
       return structural_type_equiv(left->parser.params, right->parser.params);
     }
     return 0;
-  } else if (left->ctor == TYPE_CONTROL) {
-    if (right->ctor == left->ctor) {
+  } else if (left->ty_former == TYPE_CONTROL) {
+    if (right->ty_former == left->ty_former) {
       return structural_type_equiv(left->control.params, right->control.params);
     }
     return 0;
-  } else if (left->ctor == TYPE_STRUCT) {
-    if (right->ctor == left->ctor) {
+  } else if (left->ty_former == TYPE_STRUCT) {
+    if (right->ty_former == left->ty_former) {
       return structural_type_equiv(left->struct_.fields, right->struct_.fields);
     }
     return 0;
-  } else if (left->ctor == TYPE_HEADER_STACK) {
-    if (right->ctor == left->ctor) {
+  } else if (left->ty_former == TYPE_HEADER_STACK) {
+    if (right->ty_former == left->ty_former) {
       return structural_type_equiv(left->header_stack.element, right->header_stack.element);
     }
     return 0;
@@ -276,71 +274,37 @@ structural_type_equiv(Type* left, Type* right)
   return 0;
 }
 
-static void
-resolve_type_nameref(Map* type_env, UnboundedArray* type_array)
-{
-  Ast* name;
-  Type* ref_ty, *ty;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
-
-  for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
-    if (ty->ctor == TYPE_NAMEREF) {
-      name = ty->nameref.name;
-      name_entry = scope_lookup(ty->nameref.scope, name->name.strname, NAMESPACE_TYPE);
-      name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-      if (name_decl) {
-        ref_ty = map_lookup(type_env, name_decl->ast, 0);
-        assert(ref_ty);
-        name_decl->type = ref_ty;
-        ty->ctor = TYPE_TYPE;
-        ty->type.type = ref_ty;
-        if (name_decl->next_in_scope) {
-          error("%s:%d:%d: error: ambiguous type reference `%s`.",
-                source_file, name->line_no, name->column_no, name->name.strname);
-        }
-      } else error("%s:%d:%d: error: unresolved type reference `%s`.",
-                   source_file, name->line_no, name->column_no, name->name.strname);
-    }
-  }
-}
-
-static void
-deref_type_type(UnboundedArray* type_array)
-{
-  Type* ref_ty, *ty;
-
-  for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
-    if (ty->ctor == TYPE_TYPEDEF) {
-      ref_ty = actual_type(ty->typedef_.ref);
-      while (ref_ty->ctor == TYPE_TYPEDEF) {
-        ref_ty = actual_type(ref_ty->typedef_.ref);
-      }
-      ty->ctor = TYPE_TYPE;
-      ty->type.type = ref_ty;
-    }
-  }
-
-  for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
-    if (ty->ctor == TYPE_TYPE) {
-      ref_ty = actual_type(ty->type.type);
-      while (ref_ty->ctor == TYPE_TYPE) {
-        ref_ty = actual_type(ref_ty->type.type);
-      }
-      ty->ctor = TYPE_TYPE;
-      ty->type.type = ref_ty;
-    }
-  }
-}
-
 bool
 type_equiv(Type* left, Type* right)
 {
   type_equiv_pairs->elem_count = 0;
   return structural_type_equiv(left, right);
+}
+
+static Array*
+reserve_type_stack()
+{
+  Array* ts;
+
+  if (type_stack_cursor >= type_stacks->elem_count) {
+    *(Array**)array_append(storage, type_stacks, sizeof(Array*)) = \
+                  array_create(storage, sizeof(Array), 2);
+  }
+  ts = *(Array**)array_get(type_stacks, type_stack_cursor, sizeof(Array*));
+  type_stack_cursor += 1;
+  return ts;
+}
+
+static void
+release_type_stack(Array* ts_)
+{
+  Array* ts;
+
+  type_stack_cursor -= 1;
+  assert(type_stack_cursor >= 0);
+  ts = *(Array**)array_get(type_stacks, type_stack_cursor, sizeof(Array*));
+  assert(ts == ts_);
+  ts->elem_count = 0;
 }
 
 char*
@@ -391,9 +355,9 @@ Debug_print_type_env(Map* env)
       printf("[%d] 0x%x %s ... %d:%d\n", i, ty, ty->strname, ast->line_no, ast->column_no);
     } else {
       if (ast) {
-        printf("[%d] 0x%x %s ... %d:%d\n", i, ty, TypeEnum_to_string(ty->ctor), ast->line_no, ast->column_no);
+        printf("[%d] 0x%x %s ... %d:%d\n", i, ty, TypeEnum_to_string(ty->ty_former), ast->line_no, ast->column_no);
       } else {
-        printf("[%d] 0x%x %s\n", i, ty, TypeEnum_to_string(ty->ctor));
+        printf("[%d] 0x%x %s\n", i, ty, TypeEnum_to_string(ty->ty_former));
       }
     }
     i += 1;
@@ -401,27 +365,32 @@ Debug_print_type_env(Map* env)
 }
 
 void
-Debug_print_type_array(UnboundedArray* type_array)
+Debug_print_type_array(Array* type_array)
 {
   Type* ty;
   int i;
 
   for (i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)array_get_element(type_array, i, sizeof(Type));
+    ty = (Type*)array_get(type_array, i, sizeof(Type));
     ty = actual_type(ty);
 
     if (ty->strname) {
-      printf("[%d] 0x%x %s %s\n", i, ty, ty->strname, TypeEnum_to_string(ty->ctor));
+      printf("[%d] 0x%x %s %s\n", i, ty, ty->strname, TypeEnum_to_string(ty->ty_former));
     } else {
-      printf("[%d] 0x%x %s\n", i, ty, TypeEnum_to_string(ty->ctor));
+      printf("[%d] 0x%x %s\n", i, ty, TypeEnum_to_string(ty->ty_former));
     }
   }
 }
 
 void
-build_type_env(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_, UnboundedArray* type_array_,
+build_type_env(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_, Array* type_array_,
     Map* type_env_, Map* opened_scopes_, Map* enclosing_scopes_, Map* decl_map_)
 {
+  Ast* name;
+  Type* ref_ty, *ty;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
+
   source_file = source_file_;
   storage = storage_;
   root_scope = root_scope_;
@@ -430,11 +399,53 @@ build_type_env(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_
   opened_scopes = opened_scopes_;
   enclosing_scopes = enclosing_scopes_;
   decl_map = decl_map_;
-  type_equiv_pairs = array_create(storage, sizeof(TypePair), 2);
+  type_equiv_pairs = array_create(storage, sizeof(Type), 2);
+  type_stacks = array_create(storage, sizeof(Array*), 1);
+  type_stack_cursor = 0;
 
   visit_p4program(p4program);
-  resolve_type_nameref(type_env, type_array);
-  deref_type_type(type_array);
+  for (int i = 0; i < type_array->elem_count; i++) {
+    ty = (Type*)array_get(type_array, i, sizeof(Type));
+    if (ty->ty_former == TYPE_NAMEREF) {
+      name = ty->nameref.name;
+      name_entry = scope_lookup(ty->nameref.scope, name->name.strname, NAMESPACE_TYPE);
+      name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+      if (name_decl) {
+        ref_ty = map_lookup(type_env, name_decl->ast, 0);
+        assert(ref_ty);
+        name_decl->type = ref_ty;
+        ty->ty_former = TYPE_TYPE;
+        ty->type.type = ref_ty;
+        if (name_decl->next_in_scope) {
+          error("%s:%d:%d: error: ambiguous type reference `%s`.",
+                source_file, name->line_no, name->column_no, name->name.strname);
+        }
+      } else error("%s:%d:%d: error: unresolved type reference `%s`.",
+                   source_file, name->line_no, name->column_no, name->name.strname);
+    }
+  }
+  for (int i = 0; i < type_array->elem_count; i++) {
+    ty = (Type*)array_get(type_array, i, sizeof(Type));
+    if (ty->ty_former == TYPE_TYPEDEF) {
+      ref_ty = actual_type(ty->typedef_.ref);
+      while (ref_ty->ty_former == TYPE_TYPEDEF) {
+        ref_ty = actual_type(ref_ty->typedef_.ref);
+      }
+      ty->ty_former = TYPE_TYPE;
+      ty->type.type = ref_ty;
+    }
+  }
+  for (int i = 0; i < type_array->elem_count; i++) {
+    ty = (Type*)array_get(type_array, i, sizeof(Type));
+    if (ty->ty_former == TYPE_TYPE) {
+      ref_ty = actual_type(ty->type.type);
+      while (ref_ty->ty_former == TYPE_TYPE) {
+        ref_ty = actual_type(ref_ty->type.type);
+      }
+      ty->ty_former = TYPE_TYPE;
+      ty->type.type = ref_ty;
+    }
+  }
 }
 
 /** PROGRAM **/
@@ -495,8 +506,8 @@ visit_name(Ast* name)
   assert(name->kind == AST_name);
   Type* name_ty;
 
-  name_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  name_ty->ctor = TYPE_NAMEREF;
+  name_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  name_ty->ty_former = TYPE_NAMEREF;
   name_ty->strname = name->name.strname;
   name_ty->ast = name;
   name_ty->nameref.name = name;
@@ -510,19 +521,29 @@ visit_parameterList(Ast* params)
   assert(params->kind == AST_parameterList);
   Ast* ast;
   Type* params_ty, *ty;
+  Array* ts;
 
-  params_ty = builtin_void_ty;
+  ts = reserve_type_stack();
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parameter(ast);
-    ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-    ty->ctor = TYPE_PRODUCT;
-    ty->ast = params;
-    ty->product.next = params_ty;
-    ty->product.type = map_lookup(type_env, ast->parameter.type, 0);
-    params_ty = ty;
+    ty = map_lookup(type_env, ast->parameter.type, 0);
+    *(Type**)array_append(storage, ts, sizeof(Type*)) = ty;
+  }
+  params_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  params_ty->ty_former = TYPE_PRODUCT;
+  params_ty->ast = params;
+  params_ty->product.count = ts->elem_count;
+  params_ty->product.members = 0;
+  if (params_ty->product.count > 0) {
+    params_ty->product.members = arena_malloc(storage, params_ty->product.count*sizeof(Type*));
+  }
+  for (int i = 0; i < params_ty->product.count; i++) {
+    ty = *(Type**)array_get(ts, i, sizeof(Type*));
+    params_ty->product.members[i] = ty;
   }
   map_insert(storage, type_env, params, params_ty, 0);
+  release_type_stack(ts);
 }
 
 static void
@@ -548,25 +569,18 @@ visit_packageTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AST_packageTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
-  Type* package_ty, *ctor_ty;
+  Type* package_ty;
 
   visit_parameterList(type_decl->packageTypeDeclaration.params);
   name = type_decl->packageTypeDeclaration.name;
-  package_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  package_ty->ctor = TYPE_PACKAGE;
+  package_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  package_ty->ty_former = TYPE_PACKAGE;
   package_ty->strname = name->name.strname;
   package_ty->ast = type_decl;
+  package_ty->package.params = map_lookup(type_env, type_decl->packageTypeDeclaration.params, 0);
   map_insert(storage, type_env, type_decl, package_ty, 0);
-  ctor_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  ctor_ty->ctor = TYPE_FUNCTION;
-  ctor_ty->strname = name->name.strname;
-  ctor_ty->ast = type_decl;
-  ctor_ty->function.return_ = package_ty;
-  ctor_ty->function.params = map_lookup(type_env, type_decl->packageTypeDeclaration.params, 0);
-  package_ty->package.ctor = ctor_ty;
   name_decl = map_lookup(decl_map, type_decl, 0);
   name_decl->type = package_ty;
-  name_decl->ctor_type = ctor_ty;
 }
 
 static void
@@ -587,14 +601,10 @@ static void
 visit_parserDeclaration(Ast* parser_decl)
 {
   assert(parser_decl->kind == AST_parserDeclaration);
-  Type* parser_ty, *ctor_ty;
 
   visit_typeDeclaration(parser_decl->parserDeclaration.proto);
   if (parser_decl->parserDeclaration.ctor_params) {
     visit_parameterList(parser_decl->parserDeclaration.ctor_params);
-    parser_ty = map_lookup(type_env, parser_decl->parserDeclaration.proto, 0);
-    ctor_ty = parser_ty->parser.ctor;
-    ctor_ty->function.params = map_lookup(type_env, parser_decl->parserDeclaration.ctor_params, 0);
   }
   visit_parserLocalElements(parser_decl->parserDeclaration.local_elements);
   visit_parserStates(parser_decl->parserDeclaration.states);
@@ -606,25 +616,18 @@ visit_parserTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AST_parserTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
-  Type* parser_ty, *ctor_ty;
+  Type* parser_ty;
 
   visit_parameterList(type_decl->parserTypeDeclaration.params);
   name = type_decl->parserTypeDeclaration.name;
-  parser_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  parser_ty->ctor = TYPE_PARSER;
+  parser_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  parser_ty->ty_former = TYPE_PARSER;
   parser_ty->strname = name->name.strname;
   parser_ty->ast = type_decl;
-  map_insert(storage, type_env, type_decl, parser_ty, 0);
   parser_ty->parser.params = map_lookup(type_env, type_decl->parserTypeDeclaration.params, 0);
-  ctor_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  ctor_ty->ctor = TYPE_FUNCTION;
-  ctor_ty->strname = name->name.strname;
-  ctor_ty->ast = type_decl;
-  ctor_ty->function.return_ = parser_ty;
-  parser_ty->parser.ctor = ctor_ty;
+  map_insert(storage, type_env, type_decl, parser_ty, 0);
   name_decl = map_lookup(decl_map, type_decl, 0);
   name_decl->type = parser_ty;
-  name_decl->ctor_type = ctor_ty;
 }
 
 static void
@@ -801,14 +804,10 @@ static void
 visit_controlDeclaration(Ast* control_decl)
 {
   assert(control_decl->kind == AST_controlDeclaration);
-  Type* control_ty, *ctor_ty;
 
   visit_typeDeclaration(control_decl->controlDeclaration.proto);
   if (control_decl->controlDeclaration.ctor_params) {
     visit_parameterList(control_decl->controlDeclaration.ctor_params);
-    control_ty = map_lookup(type_env, control_decl->controlDeclaration.proto, 0);
-    ctor_ty = control_ty->control.ctor;
-    ctor_ty->function.params = map_lookup(type_env, control_decl->controlDeclaration.ctor_params, 0);
   }
   visit_controlLocalDeclarations(control_decl->controlDeclaration.local_decls);
   visit_blockStatement(control_decl->controlDeclaration.apply_stmt);
@@ -820,25 +819,18 @@ visit_controlTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AST_controlTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
-  Type* control_ty, *ctor_ty;
+  Type* control_ty;
 
   visit_parameterList(type_decl->controlTypeDeclaration.params);
   name = type_decl->controlTypeDeclaration.name;
-  control_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  control_ty->ctor = TYPE_CONTROL;
+  control_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  control_ty->ty_former = TYPE_CONTROL;
   control_ty->strname = name->name.strname;
   control_ty->ast = type_decl;
-  map_insert(storage, type_env, type_decl, control_ty, 0);
   control_ty->control.params = map_lookup(type_env, type_decl->packageTypeDeclaration.params, 0);
-  ctor_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  ctor_ty->ctor = TYPE_FUNCTION;
-  ctor_ty->strname = name->name.strname;
-  ctor_ty->ast = type_decl;
-  ctor_ty->function.return_ = control_ty;
-  control_ty->control.ctor = ctor_ty;
+  map_insert(storage, type_env, type_decl, control_ty, 0);
   name_decl = map_lookup(decl_map, type_decl, 0);
   name_decl->type = control_ty;
-  name_decl->ctor_type = ctor_ty;
 }
 
 static void
@@ -887,19 +879,29 @@ visit_externTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AST_externTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
-  Type* extern_ty;
+  Type* extern_ty, *methods_ty, *ty;
+  Array* ts;
 
+  ts = reserve_type_stack();
   name = type_decl->externTypeDeclaration.name;
-  extern_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  extern_ty->ctor = TYPE_EXTERN;
+  extern_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  extern_ty->ty_former = TYPE_EXTERN;
   extern_ty->strname = name->name.strname;
   extern_ty->ast = type_decl;
   map_insert(storage, type_env, type_decl, extern_ty, 0);
   visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos,
       type_decl, type_decl->externTypeDeclaration.name);
-  extern_ty->extern_.methods = map_lookup(type_env, type_decl->externTypeDeclaration.method_protos, 0);
+  methods_ty = map_lookup(type_env, type_decl->externTypeDeclaration.method_protos, 0);
+  extern_ty->extern_.methods = methods_ty;
+  for (int i = 0; i < methods_ty->product.count; i++) {
+    ty = methods_ty->product.members[i];
+    if (cstr_match(ty->strname, name->name.strname)) {
+      *(Type**)array_append(storage, ts, sizeof(Type*)) = ty;
+    }
+  }
   name_decl = map_lookup(decl_map, type_decl, 0);
   name_decl->type = extern_ty;
+  release_type_stack(ts);
 }
 
 static void
@@ -908,19 +910,29 @@ visit_methodPrototypes(Ast* protos, Ast* extern_decl, Ast* extern_name)
   assert(protos->kind == AST_methodPrototypes);
   Ast* ast;
   Type* methods_ty, *ty;
+  Array* ts;
 
-  methods_ty = builtin_void_ty;
+  ts = reserve_type_stack();
   for (ast = protos->methodPrototypes.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_functionPrototype(ast, extern_decl, extern_name);
-    ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-    ty->ctor = TYPE_PRODUCT;
-    ty->ast = protos;
-    ty->product.next = methods_ty;
-    ty->product.type = map_lookup(type_env, ast, 0);
-    methods_ty = ty;
+    ty = map_lookup(type_env, ast, 0);
+    *(Type**)array_append(storage, ts, sizeof(Type*)) = ty;
+  }
+  methods_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  methods_ty->ty_former = TYPE_PRODUCT;
+  methods_ty->ast = protos;
+  methods_ty->product.count = ts->elem_count;
+  methods_ty->product.members = 0;
+  if (methods_ty->product.count > 0) {
+    methods_ty->product.members = arena_malloc(storage, methods_ty->product.count*sizeof(Type*));
+  }
+  for (int i = 0; i < methods_ty->product.count; i++) {
+    ty = *(Type**)array_get(ts, i, sizeof(Type*));
+    methods_ty->product.members[i] = ty;
   }
   map_insert(storage, type_env, protos, methods_ty, 0);
+  release_type_stack(ts);
 }
 
 static void
@@ -936,8 +948,8 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
   }
   visit_parameterList(func_proto->functionPrototype.params);
   name = func_proto->functionPrototype.name;
-  func_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  func_ty->ctor = TYPE_FUNCTION;
+  func_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  func_ty->ty_former = TYPE_FUNCTION;
   func_ty->strname = name->name.strname;
   func_ty->ast = func_proto;
   func_ty->function.params = map_lookup(type_env, func_proto->functionPrototype.params, 0);
@@ -1004,8 +1016,8 @@ visit_headerStackType(Ast* type_decl)
 
   visit_typeRef(type_decl->headerStackType.type);
   visit_expression(type_decl->headerStackType.stack_expr);
-  stack_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  stack_ty->ctor = TYPE_HEADER_STACK;
+  stack_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  stack_ty->ty_former = TYPE_HEADER_STACK;
   stack_ty->ast = type_decl;
   map_insert(storage, type_env, type_decl, stack_ty, 0);
   stack_ty->header_stack.element = map_lookup(type_env, type_decl->headerStackType.type, 0);
@@ -1123,24 +1135,34 @@ visit_typeArg(Ast* type_arg)
 }
 
 static void
-visit_typeArgumentList(Ast* arg_list)
+visit_typeArgumentList(Ast* args)
 {
-  assert(arg_list->kind == AST_typeArgumentList);
+  assert(args->kind == AST_typeArgumentList);
   Ast* ast;
   Type* args_ty, *ty;
+  Array* ts;
 
-  args_ty = builtin_void_ty;
-  for (ast = arg_list->typeArgumentList.first_child;
+  ts = reserve_type_stack();
+  for (ast = args->typeArgumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_typeArg(ast);
-    ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-    ty->ctor = TYPE_PRODUCT;
-    ty->ast = arg_list;
-    ty->product.next = args_ty;
-    ty->product.type = map_lookup(type_env, ast, 0);
-    args_ty = ty;
+    ty = map_lookup(type_env, ast, 0);
+    *(Type**)array_append(storage, ts, sizeof(Type*)) = ty;
   }
-  map_insert(storage, type_env, arg_list, args_ty, 0);
+  args_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  args_ty->ty_former = TYPE_PRODUCT;
+  args_ty->ast = args;
+  args_ty->product.count = ts->elem_count;
+  args_ty->product.members = 0;
+  if (args_ty->product.count > 0) {
+    args_ty->product.members = arena_malloc(storage, args_ty->product.count*sizeof(Type*));
+  }
+  for (int i = 0; i < args_ty->product.count; i++) {
+    ty = *(Type**)array_get(ts, i, sizeof(Type*));
+    args_ty->product.members[i] = ty;
+  }
+  map_insert(storage, type_env, args, args_ty, 0);
+  release_type_stack(ts);
 }
 
 static void
@@ -1192,8 +1214,8 @@ visit_headerTypeDeclaration(Ast* header_decl)
 
   visit_structFieldList(header_decl->headerTypeDeclaration.fields);
   name = header_decl->headerTypeDeclaration.name;
-  header_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  header_ty->ctor = TYPE_HEADER;
+  header_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  header_ty->ty_former = TYPE_HEADER;
   header_ty->strname = name->name.strname;
   header_ty->ast = header_decl;
   map_insert(storage, type_env, header_decl, header_ty, 0);
@@ -1209,8 +1231,8 @@ visit_headerUnionDeclaration(Ast* union_decl)
 
   visit_structFieldList(union_decl->headerUnionDeclaration.fields);
   name = union_decl->headerUnionDeclaration.name;
-  union_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  union_ty->ctor = TYPE_HEADER_UNION;
+  union_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  union_ty->ty_former = TYPE_HEADER_UNION;
   union_ty->strname = name->name.strname;
   union_ty->ast = union_decl;
   map_insert(storage, type_env, union_decl, union_ty, 0);
@@ -1226,8 +1248,8 @@ visit_structTypeDeclaration(Ast* struct_decl)
 
   visit_structFieldList(struct_decl->structTypeDeclaration.fields);
   name = struct_decl->structTypeDeclaration.name;
-  struct_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  struct_ty->ctor = TYPE_STRUCT;
+  struct_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  struct_ty->ty_former = TYPE_STRUCT;
   struct_ty->strname = name->name.strname;
   struct_ty->ast = struct_decl;
   map_insert(storage, type_env, struct_decl, struct_ty, 0);
@@ -1235,24 +1257,34 @@ visit_structTypeDeclaration(Ast* struct_decl)
 }
 
 static void
-visit_structFieldList(Ast* field_list)
+visit_structFieldList(Ast* fields)
 {
-  assert(field_list->kind == AST_structFieldList);
+  assert(fields->kind == AST_structFieldList);
   Ast* ast;
   Type* fields_ty, *ty;
+  Array* ts;
 
-  fields_ty = builtin_void_ty;
-  for (ast = field_list->structFieldList.first_child;
+  ts = reserve_type_stack();
+  for (ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_structField(ast);
-    ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-    ty->ctor = TYPE_PRODUCT;
-    ty->ast = field_list;
-    ty->product.next = fields_ty;
-    ty->product.type = map_lookup(type_env, ast->structField.type, 0);
-    fields_ty = ty;
+    ty = map_lookup(type_env, ast->structField.type, 0);
+    *(Type**)array_append(storage, ts, sizeof(Type*)) = ty;
   }
-  map_insert(storage, type_env, field_list, fields_ty, 0);
+  fields_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  fields_ty->ty_former = TYPE_PRODUCT;
+  fields_ty->ast = fields;
+  fields_ty->product.count = ts->elem_count;
+  fields_ty->product.members = 0;
+  if (fields_ty->product.count > 0) {
+    fields_ty->product.members = arena_malloc(storage, fields_ty->product.count*sizeof(Type*));
+  }
+  for (int i = 0; i < fields_ty->product.count; i++) {
+    ty = *(Type**)array_get(ts, i, sizeof(Type*));
+    fields_ty->product.members[i] = ty;
+  }
+  map_insert(storage, type_env, fields, fields_ty, 0);
+  release_type_stack(ts);
 }
 
 static void
@@ -1278,8 +1310,8 @@ visit_enumDeclaration(Ast* enum_decl)
 
   visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
   name = enum_decl->enumDeclaration.name;
-  enum_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  enum_ty->ctor = TYPE_ENUM;
+  enum_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  enum_ty->ty_former = TYPE_ENUM;
   enum_ty->strname = name->name.strname;
   enum_ty->ast = enum_decl;
   map_insert(storage, type_env, enum_decl, enum_ty, 0);
@@ -1345,8 +1377,8 @@ visit_typedefDeclaration(Ast* typedef_decl)
     visit_derivedTypeDeclaration(typedef_decl->typedefDeclaration.type_ref);
   } else assert(0);
   name = typedef_decl->typedefDeclaration.name;
-  typedef_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  typedef_ty->ctor = TYPE_TYPEDEF;
+  typedef_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  typedef_ty->ty_former = TYPE_TYPEDEF;
   typedef_ty->strname = name->name.strname;
   typedef_ty->ast = typedef_decl;
   map_insert(storage, type_env, typedef_decl, typedef_ty, 0);
@@ -1527,8 +1559,8 @@ visit_tableDeclaration(Ast* table_decl)
 
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
   name = table_decl->tableDeclaration.name;
-  table_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  table_ty->ctor = TYPE_TABLE;
+  table_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  table_ty->ty_former = TYPE_TABLE;
   table_ty->strname = name->name.strname;
   table_ty->ast = table_decl;
   map_insert(storage, type_env, table_decl, table_ty, 0);
@@ -1662,8 +1694,8 @@ visit_actionDeclaration(Ast* action_decl)
   visit_parameterList(action_decl->actionDeclaration.params);
   visit_blockStatement(action_decl->actionDeclaration.stmt);
   name = action_decl->actionDeclaration.name;
-  action_ty = (Type*)array_append_element(storage, type_array, sizeof(Type));
-  action_ty->ctor = TYPE_FUNCTION;
+  action_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  action_ty->ty_former = TYPE_FUNCTION;
   action_ty->strname = name->name.strname;
   action_ty->ast = action_decl;
   action_ty->function.params = map_lookup(type_env, action_decl->actionDeclaration.params, 0);
@@ -1700,12 +1732,12 @@ visit_functionDeclaration(Ast* func_decl)
 }
 
 static void
-visit_argumentList(Ast* arg_list)
+visit_argumentList(Ast* args)
 {
-  assert(arg_list->kind == AST_argumentList);
+  assert(args->kind == AST_argumentList);
   Ast* ast;
 
-  for (ast = arg_list->argumentList.first_child;
+  for (ast = args->argumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_argument(ast);
   }
