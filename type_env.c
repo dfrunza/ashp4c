@@ -879,7 +879,7 @@ visit_externTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AST_externTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
-  Type* extern_ty, *methods_ty, *ty;
+  Type* extern_ty, *methods_ty, *ctors_ty, *ty;
   Array* ts;
 
   ts = reserve_type_stack();
@@ -899,6 +899,19 @@ visit_externTypeDeclaration(Ast* type_decl)
       *(Type**)array_append(storage, ts, sizeof(Type*)) = ty;
     }
   }
+  ctors_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  ctors_ty->ty_former = TYPE_PRODUCT;
+  ctors_ty->ast = type_decl;
+  ctors_ty->product.count = ts->elem_count;
+  ctors_ty->product.members = 0;
+  if (ctors_ty->product.count > 0) {
+    ctors_ty->product.members = arena_malloc(storage, ctors_ty->product.count*sizeof(Type*));
+  }
+  for (int i = 0; i < ctors_ty->product.count; i++) {
+    ty = *(Type**)array_get(ts, i, sizeof(Type*));
+    ctors_ty->product.members[i] = ty;
+  }
+  extern_ty->extern_.ctors = ctors_ty;
   name_decl = map_lookup(decl_map, type_decl, 0);
   name_decl->type = extern_ty;
   release_type_stack(ts);

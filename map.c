@@ -79,6 +79,8 @@ map_create_inner_map(Arena* storage, Map* map, void* key)
     inner = arena_malloc(storage, sizeof(Map));
     *inner = (Map){0};
     entry->value = inner;
+  } else {
+    inner = entry->value;
   }
   return inner;
 }

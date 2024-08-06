@@ -1299,8 +1299,6 @@ visit_arraySubscript(Ast* subscript)
 {
   assert(subscript->kind == AST_arraySubscript);
 
-  visit_indexExpression(subscript->arraySubscript.index_expr);
-
   if (subscript->arraySubscript.lhs_expr->kind == AST_expression) {
     visit_expression(subscript->arraySubscript.lhs_expr);
   } else if (subscript->arraySubscript.lhs_expr->kind == AST_lvalueExpression) {

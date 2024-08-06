@@ -850,7 +850,7 @@ tokenize_source_text(Arena* storage_, SourceText* source_text)
   line_no = 1;
 
   token.klass = TK_START_OF_INPUT;
-  tokens = array_create(storage, sizeof(Token), 6);
+  tokens = array_create(storage, sizeof(Token), 7);
   *(Token*)array_append(storage, tokens, sizeof(Token)) = token;
 
   next_token(&token);
