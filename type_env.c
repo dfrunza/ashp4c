@@ -1223,6 +1223,7 @@ visit_headerTypeDeclaration(Ast* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
   Ast* name;
+  NameDeclaration* name_decl;
   Type* header_ty;
 
   visit_structFieldList(header_decl->headerTypeDeclaration.fields);
@@ -1233,6 +1234,8 @@ visit_headerTypeDeclaration(Ast* header_decl)
   header_ty->ast = header_decl;
   map_insert(storage, type_env, header_decl, header_ty, 0);
   header_ty->struct_.fields = map_lookup(type_env, header_decl->headerTypeDeclaration.fields, 0);
+  name_decl = map_lookup(decl_map, header_decl, 0);
+  name_decl->type = header_ty;
 }
 
 static void
@@ -1240,6 +1243,7 @@ visit_headerUnionDeclaration(Ast* union_decl)
 {
   assert(union_decl->kind == AST_headerUnionDeclaration);
   Ast* name;
+  NameDeclaration* name_decl;
   Type* union_ty;
 
   visit_structFieldList(union_decl->headerUnionDeclaration.fields);
@@ -1250,6 +1254,8 @@ visit_headerUnionDeclaration(Ast* union_decl)
   union_ty->ast = union_decl;
   map_insert(storage, type_env, union_decl, union_ty, 0);
   union_ty->struct_.fields = map_lookup(type_env, union_decl->headerUnionDeclaration.fields, 0);
+  name_decl = map_lookup(decl_map, union_decl, 0);
+  name_decl->type = union_ty;
 }
 
 static void
@@ -1257,6 +1263,7 @@ visit_structTypeDeclaration(Ast* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
   Ast* name;
+  NameDeclaration* name_decl;
   Type* struct_ty;
 
   visit_structFieldList(struct_decl->structTypeDeclaration.fields);
@@ -1267,6 +1274,8 @@ visit_structTypeDeclaration(Ast* struct_decl)
   struct_ty->ast = struct_decl;
   map_insert(storage, type_env, struct_decl, struct_ty, 0);
   struct_ty->struct_.fields = map_lookup(type_env, struct_decl->structTypeDeclaration.fields, 0);
+  name_decl = map_lookup(decl_map, struct_decl, 0);
+  name_decl->type = struct_ty;
 }
 
 static void
@@ -1319,6 +1328,7 @@ visit_enumDeclaration(Ast* enum_decl)
 {
   assert(enum_decl->kind == AST_enumDeclaration);
   Ast* name;
+  NameDeclaration* name_decl;
   Type* enum_ty;
 
   visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
@@ -1328,6 +1338,8 @@ visit_enumDeclaration(Ast* enum_decl)
   enum_ty->strname = name->name.strname;
   enum_ty->ast = enum_decl;
   map_insert(storage, type_env, enum_decl, enum_ty, 0);
+  name_decl = map_lookup(decl_map, enum_decl, 0);
+  name_decl->type = enum_ty;
 }
 
 static void
@@ -1382,6 +1394,7 @@ visit_typedefDeclaration(Ast* typedef_decl)
 {
   assert(typedef_decl->kind == AST_typedefDeclaration);
   Ast* name;
+  NameDeclaration* name_decl;
   Type* typedef_ty;
 
   if (typedef_decl->typedefDeclaration.type_ref->kind == AST_typeRef) {
@@ -1396,6 +1409,8 @@ visit_typedefDeclaration(Ast* typedef_decl)
   typedef_ty->ast = typedef_decl;
   map_insert(storage, type_env, typedef_decl, typedef_ty, 0);
   typedef_ty->typedef_.ref = map_lookup(type_env, typedef_decl->typedefDeclaration.type_ref, 0);
+  name_decl = map_lookup(decl_map, typedef_decl, 0);
+  name_decl->type = typedef_ty;
 }
 
 /** STATEMENTS **/

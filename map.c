@@ -19,7 +19,7 @@ search_entry(MapEntry* entry, void* key)
 }
 
 static MapEntry*
-add_entry(Arena* storage, Map* map, MapEntry** branch, MapEntry* entry,
+insert_entry(Arena* storage, Map* map, MapEntry** branch, MapEntry* entry,
     void* key, void* value, bool return_if_found)
 {
   if (!entry) {
@@ -35,11 +35,11 @@ add_entry(Arena* storage, Map* map, MapEntry** branch, MapEntry* entry,
   } else if (entry->key == key) {
     if (return_if_found) { return entry; } else { return 0; }
   } else if (key < entry->key) {
-    return add_entry(storage, map, &entry->left_branch, entry->left_branch,
-                                  key, value, return_if_found);
+    return insert_entry(storage, map, &entry->left_branch, entry->left_branch,
+                key, value, return_if_found);
   } else {
-    return add_entry(storage, map, &entry->right_branch, entry->right_branch,
-                                  key, value, return_if_found);
+    return insert_entry(storage, map, &entry->right_branch, entry->right_branch,
+                key, value, return_if_found);
   }
   assert(0);
   return 0;
@@ -53,19 +53,15 @@ map_lookup(Map* map, void* key, MapEntry** entry)
 
   m = search_entry(map->root, key);
   value = 0;
-  if (m) {
-    value = m->value;
-  }
-  if (entry) {
-    *entry = m;
-  }
+  if (m) { value = m->value; }
+  if (entry) { *entry = m; }
   return value;
 }
 
 MapEntry*
 map_insert(Arena* storage, Map* map, void* key, void* value, bool return_if_found)
 {
-  return add_entry(storage, map, &map->root, map->root, key, value, return_if_found);
+  return insert_entry(storage, map, &map->root, map->root, key, value, return_if_found);
 }
 
 Map*
@@ -79,9 +75,8 @@ map_create_inner_map(Arena* storage, Map* map, void* key)
     inner = arena_malloc(storage, sizeof(Map));
     *inner = (Map){0};
     entry->value = inner;
-  } else {
-    inner = entry->value;
   }
+  inner = entry->value;
   return inner;
 }
 
