@@ -158,18 +158,6 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
-Type*
-actual_type(Type* type)
-{
-  if (!type) {
-    return 0;
-  }
-  if (type->ty_former == TYPE_TYPE) {
-    return type->type.type;
-  }
-  return type;
-}
-
 static bool
 structural_type_equiv(Type* left, Type* right)
 {
@@ -223,11 +211,13 @@ structural_type_equiv(Type* left, Type* right)
     return 0;
   } else if (left->ty_former == TYPE_PRODUCT) {
     if (right->ty_former == left->ty_former) {
-      if (!structural_type_equiv(left->product.type, right->product.type)) {
+      if (left->product.count != right->product.count) {
         return 0;
       }
-      if (!structural_type_equiv(left->product.next, right->product.next)) {
-        return 0;
+      for (int i = 0; i < left->product.count; i++) {
+        if (!structural_type_equiv(left->product.members[i], left->product.members[i])) {
+          return 0;
+        }
       }
       return 1;
     }
@@ -274,28 +264,21 @@ structural_type_equiv(Type* left, Type* right)
   return 0;
 }
 
-bool
-type_equiv(Type* left, Type* right)
-{
-  type_equiv_pairs->elem_count = 0;
-  return structural_type_equiv(left, right);
-}
-
-static Array*
+Array*
 reserve_type_stack()
 {
   Array* ts;
 
   if (type_stack_cursor >= type_stacks->elem_count) {
     *(Array**)array_append(storage, type_stacks, sizeof(Array*)) = \
-                  array_create(storage, sizeof(Array), 2);
+                  array_create(storage, sizeof(void*), 2);
   }
   ts = *(Array**)array_get(type_stacks, type_stack_cursor, sizeof(Array*));
   type_stack_cursor += 1;
   return ts;
 }
 
-static void
+void
 release_type_stack(Array* ts_)
 {
   Array* ts;
@@ -305,6 +288,25 @@ release_type_stack(Array* ts_)
   ts = *(Array**)array_get(type_stacks, type_stack_cursor, sizeof(Array*));
   assert(ts == ts_);
   ts->elem_count = 0;
+}
+
+bool
+type_equiv(Type* left, Type* right)
+{
+  type_equiv_pairs->elem_count = 0;
+  return structural_type_equiv(left, right);
+}
+
+Type*
+actual_type(Type* type)
+{
+  if (!type) {
+    return 0;
+  }
+  if (type->ty_former == TYPE_TYPE) {
+    return type->type.type;
+  }
+  return type;
 }
 
 char*

@@ -64,28 +64,3 @@ map_insert(Arena* storage, Map* map, void* key, void* value, bool return_if_foun
   return insert_entry(storage, map, &map->root, map->root, key, value, return_if_found);
 }
 
-Map*
-map_create_inner_map(Arena* storage, Map* map, void* key)
-{
-  MapEntry* entry;
-  Map* inner;
-
-  entry = map_insert(storage, map, key, 0, 1);
-  if (!entry->value) {
-    inner = arena_malloc(storage, sizeof(Map));
-    *inner = (Map){0};
-    entry->value = inner;
-  }
-  inner = entry->value;
-  return inner;
-}
-
-void
-set_union(Arena* storage, Map* dest, Map* source)
-{
-  MapEntry* m;
-
-  for (m = source->first; m != 0; m = m->next) {
-    map_insert(storage, dest, m->key, m->value, 1);
-  }
-}

@@ -861,14 +861,6 @@ typedef struct Type {
     } typedef_;
 
     struct {
-      struct Type* type;
-      struct Type* next;
-
-      struct Type** members;
-      int count;
-    } product;
-
-    struct {
       struct Type* fields;
     } struct_, enum_;
 
@@ -904,12 +896,38 @@ typedef struct Type {
       struct Type* left;
       struct Type* right;
     } tuple;
+
+    struct {
+      struct Type** members;
+      int count;
+    } product;
   };
 } Type;
 
-Type* actual_type(Type* type);
-bool  type_equiv(Type* u, Type* v);
-char* TypeEnum_to_string(enum TypeEnum type);
+enum PotentialTypeEnum {
+  POTYPE_NONE = 0,
+  POTYPE_SET,
+  POTYPE_PRODUCT,
+};
+
+typedef struct PotentialType {
+  enum PotentialTypeEnum kind;
+
+  union {
+    Map* members;
+
+    struct {
+      struct PotentialType** members;
+      int count;
+    } product;
+  };
+} PotentialType;
+
+Type*  actual_type(Type* type);
+bool   type_equiv(Type* u, Type* v);
+Array* reserve_type_stack();
+void   release_type_stack(Array* ts_);
+char*  TypeEnum_to_string(enum TypeEnum type);
 
 typedef struct Scope {
   int scope_level;
