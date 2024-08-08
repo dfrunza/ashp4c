@@ -950,6 +950,8 @@ parse_instantiation(Ast* type_ref)
   if (token_is_typeRef(token) || type_ref) {
     inst_stmt = arena_malloc(storage, sizeof(Ast));
     inst_stmt->kind = AST_instantiation;
+    inst_stmt->line_no = token->line_no;
+    inst_stmt->column_no = token->column_no;
     inst_stmt->instantiation.type = type_ref ? type_ref : parse_typeRef();
     if (token->klass == TK_PARENTH_OPEN) {
       next_token();
@@ -957,8 +959,6 @@ parse_instantiation(Ast* type_ref)
       if (token->klass == TK_PARENTH_CLOSE) {
         next_token();
         if (token_is_name(token)) {
-          inst_stmt->line_no = token->line_no;
-          inst_stmt->column_no = token->column_no;
           inst_stmt->instantiation.name = parse_name();
           if (token->klass == TK_SEMICOLON) {
             next_token();
@@ -1696,6 +1696,8 @@ parse_functionPrototype(Ast* return_type)
   if (token_is_typeOrVoid(token) || return_type) {
     func_proto = arena_malloc(storage, sizeof(Ast));
     func_proto->kind = AST_functionPrototype;
+    func_proto->line_no = token->line_no;
+    func_proto->column_no = token->column_no;
     if (return_type) {
       func_proto->functionPrototype.return_type = return_type;
     } else {
@@ -1713,8 +1715,6 @@ parse_functionPrototype(Ast* return_type)
       func_proto->functionPrototype.return_type = return_type;
     }
     if (token_is_name(token)) {
-      func_proto->line_no = token->line_no;
-      func_proto->column_no = token->column_no;
       func_proto->functionPrototype.name = parse_name();
       if (token->klass == TK_PARENTH_OPEN) {
         next_token();
@@ -2536,14 +2536,14 @@ parse_typedefDeclaration()
     if (token_is_typeRef(token) || token_is_derivedTypeDeclaration(token)) {
       type_decl = arena_malloc(storage, sizeof(Ast));
       type_decl->kind = AST_typedefDeclaration;
+      type_decl->line_no = token->line_no;
+      type_decl->column_no = token->column_no;
       if (token_is_typeRef(token)) {
         type_decl->typedefDeclaration.type_ref = parse_typeRef();
       } else if (token_is_derivedTypeDeclaration(token)) {
         type_decl->typedefDeclaration.type_ref = parse_derivedTypeDeclaration();
       } else assert(0);
       if (token_is_name(token)) {
-        type_decl->line_no = token->line_no;
-        type_decl->column_no = token->column_no;
         name = parse_name();
         scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
         type_decl->typedefDeclaration.name = name;
@@ -3330,10 +3330,10 @@ parse_variableDeclaration(Ast* type_ref)
   if (token_is_typeRef(token) || type_ref) {
     var_decl = arena_malloc(storage, sizeof(Ast));
     var_decl->kind = AST_variableDeclaration;
+    var_decl->line_no = token->line_no;
+    var_decl->column_no = token->column_no;
     var_decl->variableDeclaration.type = type_ref ? type_ref : parse_typeRef();
     if (token_is_name(token)) {
-      var_decl->line_no = token->line_no;
-      var_decl->column_no = token->column_no;
       var_decl->variableDeclaration.name = parse_name();
       if (token->klass == TK_EQUAL) {
         next_token();
@@ -3522,8 +3522,8 @@ parse_expression(int priority_threshold)
                      source_file, token->line_no, token->column_no, token->lexeme);
         primary = arena_malloc(storage, sizeof(Ast));
         primary->kind = AST_expression;
-        primary->line_no = token->line_no;
-        primary->column_no = token->column_no;
+        primary->line_no = expr->line_no;
+        primary->column_no = expr->column_no;
         primary->expression.expr = expr;
       } else if (token->klass == TK_BRACKET_OPEN) {
         next_token();
@@ -3539,8 +3539,8 @@ parse_expression(int priority_threshold)
                      source_file, token->line_no, token->column_no, token->lexeme);
         primary = arena_malloc(storage, sizeof(Ast));
         primary->kind = AST_expression;
-        primary->line_no = token->line_no;
-        primary->column_no = token->column_no;
+        primary->line_no = expr->line_no;
+        primary->column_no = expr->column_no;
         primary->expression.expr = expr;
       } else if (token->klass == TK_PARENTH_OPEN) {
         next_token();
@@ -3556,8 +3556,8 @@ parse_expression(int priority_threshold)
                      source_file, token->line_no, token->column_no, token->lexeme);
         primary = arena_malloc(storage, sizeof(Ast));
         primary->kind = AST_expression;
-        primary->line_no = token->line_no;
-        primary->column_no = token->column_no;
+        primary->line_no = expr->line_no;
+        primary->column_no = expr->column_no;
         primary->expression.expr = expr;
       } else if (token->klass == TK_EQUAL) {
         next_token();
@@ -3569,8 +3569,8 @@ parse_expression(int priority_threshold)
         expr->assignmentStatement.rhs_expr = parse_expression(1);
         primary = arena_malloc(storage, sizeof(Ast));
         primary->kind = AST_expression;
-        primary->line_no = token->line_no;
-        primary->column_no = token->column_no;
+        primary->line_no = expr->line_no;
+        primary->column_no = expr->column_no;
         primary->expression.expr = expr;
       } else if (token_is_binaryOperator(token)){
         int priority = operator_priority(token);
@@ -3585,8 +3585,8 @@ parse_expression(int priority_threshold)
           expr->binaryExpression.right_operand = parse_expression(priority + 1);
           primary = arena_malloc(storage, sizeof(Ast));
           primary->kind = AST_expression;
-          primary->line_no = token->line_no;
-          primary->column_no = token->column_no;
+          primary->line_no = expr->line_no;
+          primary->column_no = expr->column_no;
           primary->expression.expr = expr;
         } else break;
       } else assert(0);

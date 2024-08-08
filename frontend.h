@@ -904,20 +904,12 @@ typedef struct Type {
   };
 } Type;
 
-enum PotentialTypeEnum {
-  POTYPE_NONE = 0,
-  POTYPE_SET,
-  POTYPE_PRODUCT,
-};
-
 typedef struct PotentialType {
-  enum PotentialTypeEnum kind;
-
   union {
     Map* members;
 
     struct {
-      struct PotentialType** members;
+      Map** members;
       int count;
     } product;
   };
