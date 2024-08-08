@@ -428,11 +428,21 @@ static void
 visit_stateExpression(Ast* state_expr)
 {
   assert(state_expr->kind == AST_stateExpression);
+  PotentialType* tau, *tau_expr;
+  MapEntry* m;
+
+  tau = arena_malloc(storage, sizeof(PotentialType));
+  tau->members = (Map){0};
+  map_insert(storage, potential_types, state_expr, tau, 0);
   if (state_expr->stateExpression.expr->kind == AST_name) {
     visit_name(state_expr->stateExpression.expr);
   } else if (state_expr->stateExpression.expr->kind == AST_selectExpression) {
     visit_selectExpression(state_expr->stateExpression.expr);
   } else assert(0);
+  tau_expr = map_lookup(potential_types, state_expr->stateExpression.expr, 0);
+  for (m = tau_expr->members.first; m != 0; m = m->next) {
+    map_insert(storage, &tau->members, m->key, 0, 1);
+  }
 }
 
 static void
@@ -894,6 +904,7 @@ visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
   PotentialType* tau, *tau_call;
+  MapEntry* m;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
   tau->members = (Map){0};
@@ -904,6 +915,10 @@ visit_functionCall(Ast* func_call)
     visit_lvalueExpression(func_call->functionCall.lhs_expr);
   } else assert(0);
   visit_argumentList(func_call->functionCall.args);
+  tau_call = map_lookup(potential_types, func_call->functionCall.lhs_expr, 0);
+  for (m = tau_call->members.first; m != 0; m = m->next) {
+    map_insert(storage, &tau->members, m->key, 0, 1);
+  }
 }
 
 static void
@@ -1216,6 +1231,7 @@ visit_argumentList(Ast* args)
   tau = arena_malloc(storage, sizeof(PotentialType));
   tau->product.count = 0;
   tau->product.members = 0;
+  map_insert(storage, potential_types, args, tau, 0);
   for (ast = args->argumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_argument(ast);
@@ -1260,11 +1276,29 @@ visit_expressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AST_expressionList);
   Ast* ast;
+  PotentialType* tau, *tau_expr;
+  int i;
 
+  tau = arena_malloc(storage, sizeof(PotentialType));
+  tau->product.count = 0;
+  tau->product.members = 0;
+  map_insert(storage, potential_types, expr_list, tau, 0);
   for (ast = expr_list->expressionList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_expression(ast);
+    tau->product.count += 1;
   }
+  if (tau->product.count > 0) {
+    tau->product.members = arena_malloc(storage, tau->product.count*sizeof(Map*));
+  }
+  i = 0;
+  for (ast = expr_list->expressionList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    tau_expr = map_lookup(potential_types, ast, 0);
+    tau->product.members[i] = &tau_expr->members;
+    i += 1;
+  }
+  assert(i == tau->product.count);
 }
 
 static void
@@ -1378,15 +1412,29 @@ visit_memberSelector(Ast* selector)
   name = selector->memberSelector.name;
   tau_expr = map_lookup(potential_types, selector->memberSelector.lhs_expr, 0);
   for (m = tau_expr->members.first; m != 0; m = m->next) {
-    lhs_ty = (Type*)m->key;
-    fields_ty = 0;
+    lhs_ty = effective_type((Type*)m->key);
     if (lhs_ty->ty_former == TYPE_EXTERN) {
       fields_ty = lhs_ty->extern_.methods;
+      for (int i = 0; i < fields_ty->product.count; i++) {
+        if (cstr_match(fields_ty->product.members[i]->strname, name->name.strname)) {
+          map_insert(storage, &tau->members, fields_ty->product.members[i], 0, 1);
+        }
+      }
     } else if (lhs_ty->ty_former == TYPE_ENUM) {
       fields_ty = lhs_ty->enum_.fields;
+      for (int i = 0; i < fields_ty->product.count; i++) {
+        if (cstr_match(fields_ty->product.members[i]->strname, name->name.strname)) {
+          map_insert(storage, &tau->members, fields_ty->product.members[i], 0, 1);
+        }
+      }
     } else if (lhs_ty->ty_former == TYPE_STRUCT || lhs_ty->ty_former == TYPE_HEADER ||
                lhs_ty->ty_former == TYPE_HEADER_UNION) {
       fields_ty = lhs_ty->struct_.fields;
+      for (int i = 0; i < fields_ty->product.count; i++) {
+        if (cstr_match(fields_ty->product.members[i]->strname, name->name.strname)) {
+          map_insert(storage, &tau->members, fields_ty->product.members[i], 0, 1);
+        }
+      }
     } else if (lhs_ty->ty_former == TYPE_HEADER_STACK) {
       /* TODO */
     } else if (lhs_ty->ty_former == TYPE_TABLE) {
@@ -1397,12 +1445,6 @@ visit_memberSelector(Ast* selector)
       /* TODO */
     } else error("%s:%d:%d: error: type does not support member selection.",
                  source_file, name->line_no, name->column_no, name->name.strname);
-    if (!fields_ty) continue;
-    for (int i = 0; i < fields_ty->product.count; i++) {
-      if (cstr_match(fields_ty->product.members[i]->strname, name->name.strname)) {
-        map_insert(storage, &tau->members, fields_ty->product.members[i], 0, 1);
-      }
-    }
   }
 }
 

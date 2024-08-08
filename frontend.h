@@ -830,20 +830,23 @@ enum TypeEnum {
   TYPE_DONTCARE,
   TYPE_ENUM,
   TYPE_TYPEDEF,
-  TYPE_PRODUCT,
   TYPE_FUNCTION,
   TYPE_EXTERN,
   TYPE_PACKAGE,
   TYPE_PARSER,
   TYPE_CONTROL,
   TYPE_TABLE,
+  TYPE_FIELD,
   TYPE_STRUCT,
   TYPE_HEADER,
   TYPE_HEADER_UNION,
   TYPE_HEADER_STACK,
+  TYPE_STATE,
+  TYPE_KEYSET,
   TYPE_NAMEREF,
   TYPE_TYPE,
   TYPE_TUPLE,
+  TYPE_PRODUCT,
 };
 
 typedef struct Type {
@@ -863,6 +866,10 @@ typedef struct Type {
     struct {
       struct Type* fields;
     } struct_, enum_;
+
+    struct {
+      struct Type* type;
+    } field;
 
     struct {
       struct Type* params;
@@ -895,7 +902,7 @@ typedef struct Type {
     struct {
       struct Type* left;
       struct Type* right;
-    } tuple;
+    } tuple; /* 2-tuple */
 
     struct {
       struct Type** members;
@@ -916,6 +923,7 @@ typedef struct PotentialType {
 } PotentialType;
 
 Type*  actual_type(Type* type);
+Type*  effective_type(Type* type);
 bool   type_equiv(Type* u, Type* v);
 char*  TypeEnum_to_string(enum TypeEnum type);
 

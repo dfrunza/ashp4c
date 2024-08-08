@@ -272,13 +272,24 @@ type_equiv(Type* left, Type* right)
 Type*
 actual_type(Type* type)
 {
-  if (!type) {
-    return 0;
-  }
+  if (!type) { return 0; }
   if (type->ty_former == TYPE_TYPE) {
     return type->type.type;
   }
   return type;
+}
+
+Type*
+effective_type(Type* type)
+{
+  Type* applied_ty = actual_type(type);
+  if (!applied_ty) { return 0; }
+  if (type->ty_former == TYPE_FIELD) {
+    return actual_type(type->field.type);
+  } else if (type->ty_former == TYPE_FUNCTION) {
+    return actual_type(type->function.return_);
+  }
+  return applied_ty;
 }
 
 char*
@@ -511,7 +522,7 @@ visit_parameterList(Ast* params)
   i = 0;
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    params_ty->product.members[i] = map_lookup(type_env, ast->parameter.type, 0);
+    params_ty->product.members[i] = map_lookup(type_env, ast, 0);
     i++;
   }
   assert(i == params_ty->product.count);
@@ -1278,7 +1289,7 @@ visit_structFieldList(Ast* fields)
   i = 0;
   for (ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    fields_ty->product.members[i] = map_lookup(type_env, ast->structField.type, 0);
+    fields_ty->product.members[i] = map_lookup(type_env, ast, 0);
     i++;
   }
   assert(i == fields_ty->product.count);
@@ -1289,11 +1300,17 @@ static void
 visit_structField(Ast* field)
 {
   assert(field->kind == AST_structField);
+  Ast* name;
   NameDeclaration* name_decl;
   Type* field_ty;
 
   visit_typeRef(field->structField.type);
-  field_ty = map_lookup(type_env, field->structField.type, 0);
+  name = field->structField.name;
+  field_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  field_ty->ty_former = TYPE_FIELD;
+  field_ty->strname = name->name.strname;
+  field_ty->ast = field;
+  field_ty->field.type = map_lookup(type_env, field->structField.type, 0);
   map_insert(storage, type_env, field, field_ty, 0);
   name_decl = map_lookup(decl_map, field, 0);
   name_decl->type = field_ty;
