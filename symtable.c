@@ -7,6 +7,7 @@ static Arena* storage;
 static Scope* root_scope, *current_scope;
 static Map*   opened_scopes, *enclosing_scopes;
 static Map*   decl_map;
+static NameEntry null_entry = {};
 
 /** PROGRAM **/
 
@@ -142,6 +143,114 @@ static void visit_integerLiteral(Ast* int_literal);
 static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
+
+NameEntry*
+scope_lookup(Scope* scope, char* strname, enum NameSpace ns)
+{
+  NameEntry* name_entry;
+
+  while (scope) {
+    name_entry = hashmap_lookup(&scope->name_table, strname, 0, 0);
+    if (name_entry) {
+      if ((ns & NAMESPACE_VAR) != 0 && name_entry->ns[NAMESPACE_VAR >> 1]) {
+        break;
+      }
+      if ((ns & NAMESPACE_TYPE) != 0 && name_entry->ns[NAMESPACE_TYPE >> 1]) {
+        break;
+      }
+      if ((ns & NAMESPACE_KEYWORD) != 0 && name_entry->ns[NAMESPACE_KEYWORD >> 1]) {
+        break;
+      }
+    }
+    name_entry = 0;
+    scope = scope->parent_scope;
+  }
+  if (name_entry) {
+    return name_entry;
+  }
+  return &null_entry;
+}
+
+NameEntry*
+scope_lookup_current(Scope* scope, char* strname)
+{
+  return hashmap_lookup(&scope->name_table, strname, 0, 0);
+}
+
+NameDeclaration*
+scope_bind(Arena* storage, Scope* scope, char*strname, enum NameSpace ns)
+{
+  assert(0 < ns);
+  NameDeclaration* name_decl;
+  NameEntry* name_entry;
+  HashmapEntry* he;
+
+  name_decl = arena_malloc(storage, sizeof(NameDeclaration));
+  name_decl->strname = strname;
+
+  he = hashmap_insert(storage, &scope->name_table, strname, 0, 1);
+  if (he->value == 0) {
+    he->value = arena_malloc(storage, sizeof(NameEntry));
+  }
+  name_entry = (NameEntry*)he->value;
+  name_decl->next_in_scope = name_entry->ns[ns >> 1];
+  name_entry->ns[ns >> 1] = name_decl;
+  return name_decl;
+}
+
+NameDeclaration*
+name_entry_getdecl(NameEntry* name_entry, enum NameSpace ns)
+{
+  assert(0 < ns);
+  return name_entry->ns[ns >> 1];
+}
+
+void
+Debug_scope_decls(Scope* scope)
+{
+  NameEntry* name_entry;
+  NameDeclaration* decl;
+  int count = 0;
+  HashmapCursor it = {0};
+  HashmapEntry* he;
+  enum NameSpace ns[] = {NAMESPACE_VAR, NAMESPACE_TYPE, NAMESPACE_KEYWORD};
+
+  hashmap_cursor_begin(&it, &scope->name_table);
+  printf("Names in scope 0x%x\n\n", scope);
+  he = hashmap_cursor_next_entry(&it);
+  while (he) {
+    name_entry = (NameEntry*)he->value;
+    for (int i = 0; i < sizeof(ns)/sizeof(ns[0]); i++) {
+      decl = name_entry_getdecl(name_entry, ns[i]);
+      while (decl) {
+        if (ns[i] == NAMESPACE_KEYWORD) {
+          printf("%s, %s\n", decl->strname, NameSpace_to_string(ns[i]));
+        } else {
+          Ast* ast = decl->ast;
+          printf("%s  ...  at %d:%d, %s\n", decl->strname, ast->line_no, ast->column_no, NameSpace_to_string(ns[i]));
+        }
+        decl = decl->next_in_scope;
+        count += 1;
+      }
+    }
+    he = hashmap_cursor_next_entry(&it);
+  }
+  printf("\nTotal names: %d\n", count);
+}
+
+char*
+NameSpace_to_string(enum NameSpace ns)
+{
+  switch (ns) {
+    case NAMESPACE_VAR: return "NAMESPACE_VAR";
+    case NAMESPACE_TYPE: return "NAMESPACE_TYPE";
+    case NAMESPACE_KEYWORD: return "NAMESPACE_KEYWORD";
+
+    default: return "?";
+  }
+  assert(0);
+  return 0;
+}
 
 Map*
 build_symtable(Arena* storage_, char* source_file, Ast* p4program, Scope* root_scope_, Map* opened_scopes_,

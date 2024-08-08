@@ -253,6 +253,7 @@ visit_name(Ast* name)
   NameEntry* name_entry;
   NameDeclaration* name_decl;
   PotentialType* tau;
+  Type* decl_ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
   tau->members = arena_malloc(storage, sizeof(Map));
@@ -262,12 +263,14 @@ visit_name(Ast* name)
   name_entry = scope_lookup(scope, name->name.strname, NAMESPACE_VAR|NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_VAR);
   if (name_decl) {
-    map_insert(storage, tau->members, actual_type(name_decl->type), 0, 0);
+    decl_ty = map_lookup(type_env, name_decl->ast, 0);
+    map_insert(storage, tau->members, actual_type(decl_ty), 0, 0);
     assert(!name_decl->next_in_scope);
   }
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   for(; name_decl != 0; name_decl = name_decl->next_in_scope) {
-    map_insert(storage, tau->members, actual_type(name_decl->type), 0, 0);
+    decl_ty = map_lookup(type_env, name_decl->ast, 0);
+    map_insert(storage, tau->members, actual_type(decl_ty), 0, 0);
   }
 }
 
@@ -1276,7 +1279,13 @@ static void
 visit_lvalueExpression(Ast* lvalue_expr)
 {
   assert(lvalue_expr->kind == AST_lvalueExpression);
+  PotentialType* tau, *tau_expr;
+  MapEntry* m;
 
+  tau = arena_malloc(storage, sizeof(PotentialType));
+  tau->members = arena_malloc(storage, sizeof(Map));
+  *tau->members = (Map){0};
+  map_insert(storage, potential_types, lvalue_expr, tau, 0);
   if (lvalue_expr->lvalueExpression.expr->kind == AST_name) {
     visit_name(lvalue_expr->lvalueExpression.expr);
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_memberSelector) {
@@ -1284,6 +1293,10 @@ visit_lvalueExpression(Ast* lvalue_expr)
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_arraySubscript) {
     visit_arraySubscript(lvalue_expr->lvalueExpression.expr);
   } else assert(0);
+  tau_expr = map_lookup(potential_types, lvalue_expr->lvalueExpression.expr, 0);
+  for (m = tau_expr->members->first; m != 0; m = m->next) {
+    map_insert(storage, tau->members, m->key, 0, 1);
+  }
 }
 
 static void
@@ -1359,13 +1372,23 @@ static void
 visit_memberSelector(Ast* selector)
 {
   assert(selector->kind == AST_memberSelector);
+  PotentialType* tau, *tau_expr;
+  MapEntry* m;
 
+  tau = arena_malloc(storage, sizeof(PotentialType));
+  tau->members = arena_malloc(storage, sizeof(Map));
+  *tau->members = (Map){0};
+  map_insert(storage, potential_types, selector, tau, 0);
   if (selector->memberSelector.lhs_expr->kind == AST_expression) {
     visit_expression(selector->memberSelector.lhs_expr);
   } else if (selector->memberSelector.lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression(selector->memberSelector.lhs_expr);
   } else assert(0);
   visit_name(selector->memberSelector.name);
+  tau_expr = map_lookup(potential_types, selector->memberSelector.lhs_expr, 0);
+  for (m = tau_expr->members->first; m != 0; m = m->next) {
+    map_insert(storage, tau->members, m->key, 0, 1);
+  }
 }
 
 static void

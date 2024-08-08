@@ -142,6 +142,31 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
+Scope*
+scope_create(Arena* storage, int segment_count)
+{
+  assert(segment_count >= 1 && segment_count <= 16);
+  Scope* scope;
+
+  scope = arena_malloc(storage, sizeof(Scope) + sizeof(HashmapEntry**) * segment_count);
+  hashmap_init(storage, &scope->name_table, segment_count);
+  return scope;
+}
+
+Scope*
+scope_push(Scope* scope, Scope* parent_scope)
+{
+  scope->scope_level = parent_scope->scope_level + 1;
+  scope->parent_scope = parent_scope;
+  return scope;
+}
+
+Scope*
+scope_pop(Scope* scope)
+{
+  return scope->parent_scope;
+}
+
 Map*
 build_opened_scopes(Arena* storage_, char* source_file, Ast* p4program, Scope* root_scope)
 {
