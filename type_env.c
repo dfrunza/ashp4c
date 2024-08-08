@@ -560,11 +560,14 @@ visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
   Type* inst_ty;
+  NameDeclaration* name_decl;
 
   visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
   inst_ty = map_lookup(type_env, inst->instantiation.type, 0);
   map_insert(storage, type_env, inst, inst_ty, 0);
+  name_decl = map_lookup(decl_map, inst, 0);
+  name_decl->type = inst_ty;
 }
 
 /** PARSER **/
@@ -1302,15 +1305,17 @@ visit_enumDeclaration(Ast* enum_decl)
   assert(enum_decl->kind == AST_enumDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
-  Type* enum_ty;
+  Type* enum_ty, *fields_ty;
 
-  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
   name = enum_decl->enumDeclaration.name;
   enum_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   enum_ty->ty_former = TYPE_ENUM;
   enum_ty->strname = name->name.strname;
   enum_ty->ast = enum_decl;
   map_insert(storage, type_env, enum_decl, enum_ty, 0);
+  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
+  fields_ty = map_lookup(type_env, enum_decl->enumDeclaration.fields, 0);
+  enum_ty->enum_.fields = fields_ty;
   name_decl = map_lookup(decl_map, enum_decl, 0);
   name_decl->type = enum_ty;
 }
@@ -1346,20 +1351,48 @@ visit_specifiedIdentifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
   Ast* ast;
+  Type* idents_ty;
+  int i;
 
+  idents_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  idents_ty->ty_former = TYPE_PRODUCT;
+  idents_ty->ast = ident_list;
+  idents_ty->product.count = 0;
+  idents_ty->product.members = 0;
   for (ast = ident_list->specifiedIdentifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_specifiedIdentifier(ast);
+    idents_ty->product.count += 1;
   }
+  if (idents_ty->product.count > 0) {
+    idents_ty->product.members = arena_malloc(storage, idents_ty->product.count*sizeof(Type*));
+  }
+  i = 0;
+  for (ast = ident_list->specifiedIdentifierList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    idents_ty->product.members[i] = map_lookup(type_env, ast, 0);
+    i++;
+  }
+  assert(i == idents_ty->product.count);
+  map_insert(storage, type_env, ident_list, idents_ty, 0);
 }
 
 static void
 visit_specifiedIdentifier(Ast* ident)
 {
   assert(ident->kind == AST_specifiedIdentifier);
-  if (ident->specifiedIdentifier.init_expr) {
-    visit_expression(ident->specifiedIdentifier.init_expr);
-  }
+  Ast* name;
+  NameDeclaration* name_decl;
+  Type* ident_ty;
+
+  name = ident->specifiedIdentifier.name;
+  ident_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  ident_ty->ty_former = TYPE_ENUM;
+  ident_ty->strname = name->name.strname;
+  ident_ty->ast = ident;
+  map_insert(storage, type_env, ident, ident_ty, 0);
+  name_decl = map_lookup(decl_map, ident, 0);
+  name_decl->type = ident_ty;
 }
 
 static void
@@ -1713,13 +1746,16 @@ visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
   NameDeclaration* name_decl;
+  Type* var_ty;
 
   visit_typeRef(var_decl->variableDeclaration.type);
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);
   }
+  var_ty = map_lookup(type_env, var_decl->variableDeclaration.type, 0);
+  map_insert(storage, type_env, var_decl, var_ty, 0);
   name_decl = map_lookup(decl_map, var_decl, 0);
-  name_decl->type = map_lookup(type_env, var_decl->variableDeclaration.type, 0);
+  name_decl->type = var_ty;
 }
 
 /** EXPRESSIONS **/

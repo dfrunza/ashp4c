@@ -253,7 +253,7 @@ visit_name(Ast* name)
   NameEntry* name_entry;
   NameDeclaration* name_decl;
   PotentialType* tau;
-  Type* decl_ty;
+  Type* name_ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
   tau->members = (Map){0};
@@ -262,14 +262,14 @@ visit_name(Ast* name)
   name_entry = scope_lookup(scope, name->name.strname, NAMESPACE_VAR|NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_VAR);
   if (name_decl) {
-    decl_ty = map_lookup(type_env, name_decl->ast, 0);
-    map_insert(storage, &tau->members, actual_type(decl_ty), 0, 0);
+    name_ty = map_lookup(type_env, name_decl->ast, 0);
+    map_insert(storage, &tau->members, actual_type(name_ty), 0, 0);
     assert(!name_decl->next_in_scope);
   }
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   for(; name_decl != 0; name_decl = name_decl->next_in_scope) {
-    decl_ty = map_lookup(type_env, name_decl->ast, 0);
-    map_insert(storage, &tau->members, actual_type(decl_ty), 0, 0);
+    name_ty = map_lookup(type_env, name_decl->ast, 0);
+    map_insert(storage, &tau->members, actual_type(name_ty), 0, 0);
   }
 }
 
@@ -305,18 +305,16 @@ static void
 visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
-  PotentialType* tau, *tau_type;
-  MapEntry* m;
+  PotentialType* tau;
+  Type* inst_ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
   tau->members = (Map){0};
   map_insert(storage, potential_types, inst, tau, 0);
   visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
-  tau_type = map_lookup(potential_types, inst->instantiation.type, 0);
-  for (m = tau_type->members.first; m != 0; m = m->next) {
-    map_insert(storage, &tau->members, m->key, 0, 1);
-  }
+  inst_ty = map_lookup(type_env, inst, 0);
+  map_insert(storage, &tau->members, actual_type(inst_ty), 0, 1);
 }
 
 /** PARSER **/
@@ -1184,20 +1182,17 @@ static void
 visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
-  PotentialType* tau, *tau_type;
-  MapEntry* m;
+  PotentialType* tau;
+  Type* var_ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
   tau->members = (Map){0};
   map_insert(storage, potential_types, var_decl, tau, 0);
-  visit_typeRef(var_decl->variableDeclaration.type);
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);
   }
-  tau_type = map_lookup(potential_types, var_decl->variableDeclaration.type, 0);
-  for (m = tau_type->members.first; m != 0; m = m->next) {
-    map_insert(storage, &tau->members, m->key, 0, 1);
-  }
+  var_ty = map_lookup(type_env, var_decl, 0);
+  map_insert(storage, &tau->members, actual_type(var_ty), 0, 1);
 }
 
 /** EXPRESSIONS **/
@@ -1367,9 +1362,10 @@ static void
 visit_memberSelector(Ast* selector)
 {
   assert(selector->kind == AST_memberSelector);
+  Ast* name;
   PotentialType* tau, *tau_expr;
   MapEntry* m;
-  Type* lhs_ty;
+  Type* lhs_ty, *fields_ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
   tau->members = (Map){0};
@@ -1379,13 +1375,34 @@ visit_memberSelector(Ast* selector)
   } else if (selector->memberSelector.lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression(selector->memberSelector.lhs_expr);
   } else assert(0);
+  name = selector->memberSelector.name;
   tau_expr = map_lookup(potential_types, selector->memberSelector.lhs_expr, 0);
   for (m = tau_expr->members.first; m != 0; m = m->next) {
     lhs_ty = (Type*)m->key;
+    fields_ty = 0;
     if (lhs_ty->ty_former == TYPE_EXTERN) {
-      int x = 0;
+      fields_ty = lhs_ty->extern_.methods;
+    } else if (lhs_ty->ty_former == TYPE_ENUM) {
+      fields_ty = lhs_ty->enum_.fields;
+    } else if (lhs_ty->ty_former == TYPE_STRUCT || lhs_ty->ty_former == TYPE_HEADER ||
+               lhs_ty->ty_former == TYPE_HEADER_UNION) {
+      fields_ty = lhs_ty->struct_.fields;
+    } else if (lhs_ty->ty_former == TYPE_HEADER_STACK) {
+      /* TODO */
+    } else if (lhs_ty->ty_former == TYPE_TABLE) {
+      /* TODO */
+    } else if (lhs_ty->ty_former == TYPE_CONTROL) {
+      /* TODO */
+    } else if (lhs_ty->ty_former == TYPE_PARSER) {
+      /* TODO */
+    } else error("%s:%d:%d: error: type does not support member selection.",
+                 source_file, name->line_no, name->column_no, name->name.strname);
+    if (!fields_ty) continue;
+    for (int i = 0; i < fields_ty->product.count; i++) {
+      if (cstr_match(fields_ty->product.members[i]->strname, name->name.strname)) {
+        map_insert(storage, &tau->members, fields_ty->product.members[i], 0, 1);
+      }
     }
-    map_insert(storage, &tau->members, m->key, 0, 1);
   }
 }
 
