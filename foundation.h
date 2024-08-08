@@ -30,7 +30,7 @@ typedef struct Arena {
   void* memory_limit;
 } Arena;
 
-void  reserve_memory(int memory_amount);
+void  reserve_memory(int amount);
 void* arena_malloc(Arena* arena, uint32_t size);
 void  arena_free(Arena* arena);
 
@@ -101,7 +101,7 @@ void          hashmap_init(Arena* storage, Hashmap* hashmap, int segment_count);
 void*         hashmap_lookup(Hashmap* hashmap, char* key, HashmapEntry** entry, HashmapBucket* bucket);
 HashmapEntry* hashmap_insert(Arena* storage, Hashmap* hashmap, char* key, void* value, bool return_if_found);
 void          hashmap_cursor_begin(HashmapCursor* cursor, Hashmap* hashmap);
-HashmapEntry* hashmap_cursor_next_entry(HashmapCursor* cursor);
+HashmapEntry* hashmap_cursor_next(HashmapCursor* cursor);
 
 typedef struct MapEntry {
   struct MapEntry* next;
@@ -118,5 +118,4 @@ typedef struct Map {
 
 MapEntry* map_insert(Arena* storage, Map* map, void* key, void* value, bool return_if_found);
 void*     map_lookup(Map* map, void* key, MapEntry** entry);
-void      map_copy(Arena* storage, Map* dest, Map* source);
 

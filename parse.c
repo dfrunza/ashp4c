@@ -19,7 +19,7 @@ static Ast* parse_nonTypeName();
 static Ast* parse_name();
 static Ast* parse_parameterList();
 static Ast* parse_parameter();
-static enum Ast_ParamDirection parse_direction();
+static enum AstParamDirection parse_direction();
 static Ast* parse_packageTypeDeclaration();
 static Ast* parse_instantiation(Ast* type_ref);
 static Ast* parse_optConstructorParameters();
@@ -478,7 +478,7 @@ operator_priority(Token* token)
   return 0;
 }
 
-static enum Ast_Operator
+static enum AstOperator
 token_to_binop(Token* token)
 {
   switch (token->klass) {
@@ -891,7 +891,7 @@ parse_parameter()
   return 0;
 }
 
-static enum Ast_ParamDirection
+static enum AstParamDirection
 parse_direction()
 {
   if (token_is_direction(token)) {

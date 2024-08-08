@@ -257,7 +257,7 @@ enum AstEnum {
   AST_default,
 };
 
-enum Ast_Operator {
+enum AstOperator {
   OP_NONE = 0,
 
   /* Arithmetic */
@@ -295,7 +295,7 @@ enum Ast_Operator {
   OP_MASK,
 };
 
-enum Ast_ParamDirection {
+enum AstParamDirection {
   PARAMDIR_NONE = 0,
   PARAMDIR_IN   = 1 << 1,
   PARAMDIR_OUT  = 1 << 2,
@@ -332,7 +332,7 @@ typedef struct Ast {
     } parameterList;
 
     struct {
-      enum Ast_ParamDirection direction;
+      enum AstParamDirection direction;
       struct Ast* name;
       struct Ast* type;
       struct Ast* init_expr;
@@ -772,12 +772,12 @@ typedef struct Ast {
     } castExpression;
 
     struct {
-      enum Ast_Operator op;
+      enum AstOperator op;
       struct Ast* operand;
     } unaryExpression;
 
     struct {
-      enum Ast_Operator op;
+      enum AstOperator op;
       struct Ast* left_operand;
       struct Ast* right_operand;
     } binaryExpression;
@@ -906,7 +906,7 @@ typedef struct Type {
 
 typedef struct PotentialType {
   union {
-    Map* members;
+    Map members;
 
     struct {
       Map** members;
@@ -917,8 +917,6 @@ typedef struct PotentialType {
 
 Type*  actual_type(Type* type);
 bool   type_equiv(Type* u, Type* v);
-Array* reserve_type_stack();
-void   release_type_stack(Array* ts_);
 char*  TypeEnum_to_string(enum TypeEnum type);
 
 typedef struct Scope {

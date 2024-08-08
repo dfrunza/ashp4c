@@ -19,10 +19,10 @@ static PageBlock* block_freelist_head = 0;
 static PageBlock* recycled_block_structs = 0;
 
 void
-reserve_memory(int memory_amount)
+reserve_memory(int amount)
 {
   page_size = getpagesize();
-  total_page_count = ceil(memory_amount / page_size);
+  total_page_count = ceil(amount / page_size);
   page_memory_start = mmap(0, total_page_count * page_size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
   if (page_memory_start == MAP_FAILED) {
     perror("mmap");

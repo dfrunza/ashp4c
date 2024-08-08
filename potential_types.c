@@ -256,21 +256,20 @@ visit_name(Ast* name)
   Type* decl_ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  tau->members = arena_malloc(storage, sizeof(Map));
-  *tau->members = (Map){0};
+  tau->members = (Map){0};
   map_insert(storage, potential_types, name, tau, 0);
   scope = map_lookup(enclosing_scopes, name, 0);
   name_entry = scope_lookup(scope, name->name.strname, NAMESPACE_VAR|NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_VAR);
   if (name_decl) {
     decl_ty = map_lookup(type_env, name_decl->ast, 0);
-    map_insert(storage, tau->members, actual_type(decl_ty), 0, 0);
+    map_insert(storage, &tau->members, actual_type(decl_ty), 0, 0);
     assert(!name_decl->next_in_scope);
   }
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
   for(; name_decl != 0; name_decl = name_decl->next_in_scope) {
     decl_ty = map_lookup(type_env, name_decl->ast, 0);
-    map_insert(storage, tau->members, actual_type(decl_ty), 0, 0);
+    map_insert(storage, &tau->members, actual_type(decl_ty), 0, 0);
   }
 }
 
@@ -310,14 +309,13 @@ visit_instantiation(Ast* inst)
   MapEntry* m;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  tau->members = arena_malloc(storage, sizeof(Map));
-  *tau->members = (Map){0};
+  tau->members = (Map){0};
   map_insert(storage, potential_types, inst, tau, 0);
   visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
   tau_type = map_lookup(potential_types, inst->instantiation.type, 0);
-  for (m = tau_type->members->first; m != 0; m = m->next) {
-    map_insert(storage, tau->members, m->key, 0, 1);
+  for (m = tau_type->members.first; m != 0; m = m->next) {
+    map_insert(storage, &tau->members, m->key, 0, 1);
   }
 }
 
@@ -610,8 +608,7 @@ visit_typeRef(Ast* type_ref)
   MapEntry* m;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  tau->members = arena_malloc(storage, sizeof(Map));
-  *tau->members = (Map){0};
+  tau->members = (Map){0};
   map_insert(storage, potential_types, type_ref, tau, 0);
   if (type_ref->typeRef.type->kind == AST_baseTypeBoolean) {
     visit_baseTypeBoolean(type_ref->typeRef.type);
@@ -635,8 +632,8 @@ visit_typeRef(Ast* type_ref)
     visit_tupleType(type_ref->typeRef.type);
   } else assert(0);
   tau_ref = map_lookup(potential_types, type_ref->typeRef.type, 0);
-  for (m = tau_ref->members->first; m != 0; m = m->next) {
-    map_insert(storage, tau->members, m->key, 0, 1);
+  for (m = tau_ref->members.first; m != 0; m = m->next) {
+    map_insert(storage, &tau->members, m->key, 0, 1);
   }
 }
 
@@ -901,8 +898,7 @@ visit_functionCall(Ast* func_call)
   PotentialType* tau, *tau_call;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  tau->members = arena_malloc(storage, sizeof(Map));
-  *tau->members = (Map){0};
+  tau->members = (Map){0};
   map_insert(storage, potential_types, func_call, tau, 0);
   if (func_call->functionCall.lhs_expr->kind == AST_expression) {
     visit_expression(func_call->functionCall.lhs_expr);
@@ -1192,16 +1188,15 @@ visit_variableDeclaration(Ast* var_decl)
   MapEntry* m;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  tau->members = arena_malloc(storage, sizeof(Map));
-  *tau->members = (Map){0};
+  tau->members = (Map){0};
   map_insert(storage, potential_types, var_decl, tau, 0);
   visit_typeRef(var_decl->variableDeclaration.type);
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);
   }
   tau_type = map_lookup(potential_types, var_decl->variableDeclaration.type, 0);
-  for (m = tau_type->members->first; m != 0; m = m->next) {
-    map_insert(storage, tau->members, m->key, 0, 1);
+  for (m = tau_type->members.first; m != 0; m = m->next) {
+    map_insert(storage, &tau->members, m->key, 0, 1);
   }
 }
 
@@ -1221,24 +1216,27 @@ visit_argumentList(Ast* args)
   assert(args->kind == AST_argumentList);
   Ast* ast;
   PotentialType* tau, *tau_arg;
-  Array* ts;
+  int i;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  ts = reserve_type_stack();
+  tau->product.count = 0;
+  tau->product.members = 0;
   for (ast = args->argumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_argument(ast);
-    tau_arg = map_lookup(potential_types, ast, 0);
-    *(Map**)array_append(storage, ts, sizeof(Map*)) = tau_arg->members;
+    tau->product.count += 1;
   }
-  tau->product.count = ts->elem_count;
   if (tau->product.count > 0) {
     tau->product.members = arena_malloc(storage, tau->product.count*sizeof(Map*));
   }
-  for (int i = 0; i < tau->product.count; i++) {
-    tau->product.members[i] = *(Map**)array_get(ts, i, sizeof(Map*));
+  i = 0;
+  for (ast = args->argumentList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    tau_arg = map_lookup(potential_types, ast, 0);
+    tau->product.members[i] = &tau_arg->members;
+    i += 1;
   }
-  release_type_stack(ts);
+  assert(i == tau->product.count);
 }
 
 static void
@@ -1249,8 +1247,7 @@ visit_argument(Ast* arg)
   MapEntry* m;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  tau->members = arena_malloc(storage, sizeof(Map));
-  *tau->members = (Map){0};
+  tau->members = (Map){0};
   map_insert(storage, potential_types, arg, tau, 0);
   if (arg->argument.arg->kind == AST_expression) {
     visit_expression(arg->argument.arg);
@@ -1258,8 +1255,8 @@ visit_argument(Ast* arg)
     visit_dontcare(arg->argument.arg);
   } else assert(0);
   tau_arg = map_lookup(potential_types, arg->argument.arg, 0);
-  for (m = tau_arg->members->first; m != 0; m = m->next) {
-    map_insert(storage, tau->members, m->key, 0, 1);
+  for (m = tau_arg->members.first; m != 0; m = m->next) {
+    map_insert(storage, &tau->members, m->key, 0, 1);
   }
 }
 
@@ -1283,8 +1280,7 @@ visit_lvalueExpression(Ast* lvalue_expr)
   MapEntry* m;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  tau->members = arena_malloc(storage, sizeof(Map));
-  *tau->members = (Map){0};
+  tau->members = (Map){0};
   map_insert(storage, potential_types, lvalue_expr, tau, 0);
   if (lvalue_expr->lvalueExpression.expr->kind == AST_name) {
     visit_name(lvalue_expr->lvalueExpression.expr);
@@ -1294,8 +1290,8 @@ visit_lvalueExpression(Ast* lvalue_expr)
     visit_arraySubscript(lvalue_expr->lvalueExpression.expr);
   } else assert(0);
   tau_expr = map_lookup(potential_types, lvalue_expr->lvalueExpression.expr, 0);
-  for (m = tau_expr->members->first; m != 0; m = m->next) {
-    map_insert(storage, tau->members, m->key, 0, 1);
+  for (m = tau_expr->members.first; m != 0; m = m->next) {
+    map_insert(storage, &tau->members, m->key, 0, 1);
   }
 }
 
@@ -1307,8 +1303,7 @@ visit_expression(Ast* expr)
   MapEntry* m;
 
   tau  = arena_malloc(storage, sizeof(PotentialType));
-  tau->members = arena_malloc(storage, sizeof(Map));
-  *tau->members = (Map){0};
+  tau->members = (Map){0};
   map_insert(storage, potential_types, expr, tau, 0);
   if (expr->expression.expr->kind == AST_expression) {
     visit_expression(expr->expression.expr);
@@ -1338,8 +1333,8 @@ visit_expression(Ast* expr)
     visit_assignmentStatement(expr->expression.expr);
   } else assert(0);
   tau_expr = map_lookup(potential_types, expr->expression.expr, 0);
-  for (m = tau_expr->members->first; m != 0; m = m->next) {
-    map_insert(storage, tau->members, m->key, 0, 1);
+  for (m = tau_expr->members.first; m != 0; m = m->next) {
+    map_insert(storage, &tau->members, m->key, 0, 1);
   }
 }
 
@@ -1374,20 +1369,23 @@ visit_memberSelector(Ast* selector)
   assert(selector->kind == AST_memberSelector);
   PotentialType* tau, *tau_expr;
   MapEntry* m;
+  Type* lhs_ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  tau->members = arena_malloc(storage, sizeof(Map));
-  *tau->members = (Map){0};
+  tau->members = (Map){0};
   map_insert(storage, potential_types, selector, tau, 0);
   if (selector->memberSelector.lhs_expr->kind == AST_expression) {
     visit_expression(selector->memberSelector.lhs_expr);
   } else if (selector->memberSelector.lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression(selector->memberSelector.lhs_expr);
   } else assert(0);
-  visit_name(selector->memberSelector.name);
   tau_expr = map_lookup(potential_types, selector->memberSelector.lhs_expr, 0);
-  for (m = tau_expr->members->first; m != 0; m = m->next) {
-    map_insert(storage, tau->members, m->key, 0, 1);
+  for (m = tau_expr->members.first; m != 0; m = m->next) {
+    lhs_ty = (Type*)m->key;
+    if (lhs_ty->ty_former == TYPE_EXTERN) {
+      int x = 0;
+    }
+    map_insert(storage, &tau->members, m->key, 0, 1);
   }
 }
 

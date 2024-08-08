@@ -20,8 +20,6 @@ static Map*   opened_scopes, *enclosing_scopes;
 static Map*   type_env, *decl_map;
 static Array* type_array;
 static Array* type_equiv_pairs;
-static Array* type_stacks;
-static int    type_stack_cursor;
 
 /** PROGRAM **/
 
@@ -264,32 +262,6 @@ structural_type_equiv(Type* left, Type* right)
   return 0;
 }
 
-Array*
-reserve_type_stack()
-{
-  Array* ts;
-
-  if (type_stack_cursor >= type_stacks->elem_count) {
-    *(Array**)array_append(storage, type_stacks, sizeof(Array*)) = \
-                  array_create(storage, sizeof(void*), 2);
-  }
-  ts = *(Array**)array_get(type_stacks, type_stack_cursor, sizeof(Array*));
-  type_stack_cursor += 1;
-  return ts;
-}
-
-void
-release_type_stack(Array* ts_)
-{
-  Array* ts;
-
-  type_stack_cursor -= 1;
-  assert(type_stack_cursor >= 0);
-  ts = *(Array**)array_get(type_stacks, type_stack_cursor, sizeof(Array*));
-  assert(ts == ts_);
-  ts->elem_count = 0;
-}
-
 bool
 type_equiv(Type* left, Type* right)
 {
@@ -402,8 +374,6 @@ build_type_env(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_
   enclosing_scopes = enclosing_scopes_;
   decl_map = decl_map_;
   type_equiv_pairs = array_create(storage, sizeof(Type), 2);
-  type_stacks = array_create(storage, sizeof(Array*), 1);
-  type_stack_cursor = 0;
 
   visit_p4program(p4program);
   for (int i = 0; i < type_array->elem_count; i++) {
@@ -522,30 +492,30 @@ visit_parameterList(Ast* params)
 {
   assert(params->kind == AST_parameterList);
   Ast* ast;
-  Type* params_ty, *ty;
-  Array* ts;
+  Type* params_ty;
+  int i;
 
-  ts = reserve_type_stack();
-  for (ast = params->parameterList.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_parameter(ast);
-    ty = map_lookup(type_env, ast->parameter.type, 0);
-    *(Type**)array_append(storage, ts, sizeof(Type*)) = ty;
-  }
   params_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   params_ty->ty_former = TYPE_PRODUCT;
   params_ty->ast = params;
-  params_ty->product.count = ts->elem_count;
+  params_ty->product.count = 0;
   params_ty->product.members = 0;
+  for (ast = params->parameterList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    visit_parameter(ast);
+    params_ty->product.count += 1;
+  }
   if (params_ty->product.count > 0) {
     params_ty->product.members = arena_malloc(storage, params_ty->product.count*sizeof(Type*));
   }
-  for (int i = 0; i < params_ty->product.count; i++) {
-    ty = *(Type**)array_get(ts, i, sizeof(Type*));
-    params_ty->product.members[i] = ty;
+  i = 0;
+  for (ast = params->parameterList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    params_ty->product.members[i] = map_lookup(type_env, ast->parameter.type, 0);
+    i++;
   }
+  assert(i == params_ty->product.count);
   map_insert(storage, type_env, params, params_ty, 0);
-  release_type_stack(ts);
 }
 
 static void
@@ -881,10 +851,9 @@ visit_externTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AST_externTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
-  Type* extern_ty, *methods_ty, *ctors_ty, *ty;
-  Array* ts;
+  Type* extern_ty, *methods_ty, *ctors_ty;
+  int i, j;
 
-  ts = reserve_type_stack();
   name = type_decl->externTypeDeclaration.name;
   extern_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   extern_ty->ty_former = TYPE_EXTERN;
@@ -895,28 +864,30 @@ visit_externTypeDeclaration(Ast* type_decl)
       type_decl, type_decl->externTypeDeclaration.name);
   methods_ty = map_lookup(type_env, type_decl->externTypeDeclaration.method_protos, 0);
   extern_ty->extern_.methods = methods_ty;
-  for (int i = 0; i < methods_ty->product.count; i++) {
-    ty = methods_ty->product.members[i];
-    if (cstr_match(ty->strname, name->name.strname)) {
-      *(Type**)array_append(storage, ts, sizeof(Type*)) = ty;
-    }
-  }
   ctors_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   ctors_ty->ty_former = TYPE_PRODUCT;
   ctors_ty->ast = type_decl;
-  ctors_ty->product.count = ts->elem_count;
+  ctors_ty->product.count = 0;
   ctors_ty->product.members = 0;
+  for (i = 0; i < methods_ty->product.count; i++) {
+    if (cstr_match(methods_ty->product.members[i]->strname, name->name.strname)) {
+      ctors_ty->product.count += 1;
+    }
+  }
   if (ctors_ty->product.count > 0) {
     ctors_ty->product.members = arena_malloc(storage, ctors_ty->product.count*sizeof(Type*));
   }
-  for (int i = 0; i < ctors_ty->product.count; i++) {
-    ty = *(Type**)array_get(ts, i, sizeof(Type*));
-    ctors_ty->product.members[i] = ty;
+  j = 0;
+  for (i = 0; i < methods_ty->product.count; i++) {
+    if (cstr_match(methods_ty->product.members[i]->strname, name->name.strname)) {
+      ctors_ty->product.members[j] = methods_ty->product.members[i];
+      j++;
+    }
   }
+  assert(j == ctors_ty->product.count);
   extern_ty->extern_.ctors = ctors_ty;
   name_decl = map_lookup(decl_map, type_decl, 0);
   name_decl->type = extern_ty;
-  release_type_stack(ts);
 }
 
 static void
@@ -924,30 +895,30 @@ visit_methodPrototypes(Ast* protos, Ast* extern_decl, Ast* extern_name)
 {
   assert(protos->kind == AST_methodPrototypes);
   Ast* ast;
-  Type* methods_ty, *ty;
-  Array* ts;
+  Type* methods_ty;
+  int i;
 
-  ts = reserve_type_stack();
-  for (ast = protos->methodPrototypes.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_functionPrototype(ast, extern_decl, extern_name);
-    ty = map_lookup(type_env, ast, 0);
-    *(Type**)array_append(storage, ts, sizeof(Type*)) = ty;
-  }
   methods_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   methods_ty->ty_former = TYPE_PRODUCT;
   methods_ty->ast = protos;
-  methods_ty->product.count = ts->elem_count;
+  methods_ty->product.count = 0;
   methods_ty->product.members = 0;
+  for (ast = protos->methodPrototypes.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    visit_functionPrototype(ast, extern_decl, extern_name);
+    methods_ty->product.count += 1;
+  }
   if (methods_ty->product.count > 0) {
     methods_ty->product.members = arena_malloc(storage, methods_ty->product.count*sizeof(Type*));
   }
-  for (int i = 0; i < methods_ty->product.count; i++) {
-    ty = *(Type**)array_get(ts, i, sizeof(Type*));
-    methods_ty->product.members[i] = ty;
+  i = 0;
+  for (ast = protos->methodPrototypes.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    methods_ty->product.members[i] = map_lookup(type_env, ast, 0);
+    i++;
   }
+  assert(i == methods_ty->product.count);
   map_insert(storage, type_env, protos, methods_ty, 0);
-  release_type_stack(ts);
 }
 
 static void
@@ -1154,30 +1125,30 @@ visit_typeArgumentList(Ast* args)
 {
   assert(args->kind == AST_typeArgumentList);
   Ast* ast;
-  Type* args_ty, *ty;
-  Array* ts;
+  Type* args_ty;
+  int i;
 
-  ts = reserve_type_stack();
-  for (ast = args->typeArgumentList.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_typeArg(ast);
-    ty = map_lookup(type_env, ast, 0);
-    *(Type**)array_append(storage, ts, sizeof(Type*)) = ty;
-  }
   args_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   args_ty->ty_former = TYPE_PRODUCT;
   args_ty->ast = args;
-  args_ty->product.count = ts->elem_count;
+  args_ty->product.count = 0;
   args_ty->product.members = 0;
+  for (ast = args->typeArgumentList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    visit_typeArg(ast);
+    args_ty->product.count += 1;
+  }
   if (args_ty->product.count > 0) {
     args_ty->product.members = arena_malloc(storage, args_ty->product.count*sizeof(Type*));
   }
-  for (int i = 0; i < args_ty->product.count; i++) {
-    ty = *(Type**)array_get(ts, i, sizeof(Type*));
-    args_ty->product.members[i] = ty;
+  i = 0;
+  for (ast = args->typeArgumentList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    args_ty->product.members[i] = map_lookup(type_env, ast, 0);
+    i++;
   }
+  assert(i == args_ty->product.count);
   map_insert(storage, type_env, args, args_ty, 0);
-  release_type_stack(ts);
 }
 
 static void
@@ -1285,30 +1256,30 @@ visit_structFieldList(Ast* fields)
 {
   assert(fields->kind == AST_structFieldList);
   Ast* ast;
-  Type* fields_ty, *ty;
-  Array* ts;
+  Type* fields_ty;
+  int i;
 
-  ts = reserve_type_stack();
-  for (ast = fields->structFieldList.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_structField(ast);
-    ty = map_lookup(type_env, ast->structField.type, 0);
-    *(Type**)array_append(storage, ts, sizeof(Type*)) = ty;
-  }
   fields_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   fields_ty->ty_former = TYPE_PRODUCT;
   fields_ty->ast = fields;
-  fields_ty->product.count = ts->elem_count;
+  fields_ty->product.count = 0;
   fields_ty->product.members = 0;
+  for (ast = fields->structFieldList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    visit_structField(ast);
+    fields_ty->product.count += 1;
+  }
   if (fields_ty->product.count > 0) {
     fields_ty->product.members = arena_malloc(storage, fields_ty->product.count*sizeof(Type*));
   }
-  for (int i = 0; i < fields_ty->product.count; i++) {
-    ty = *(Type**)array_get(ts, i, sizeof(Type*));
-    fields_ty->product.members[i] = ty;
+  i = 0;
+  for (ast = fields->structFieldList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    fields_ty->product.members[i] = map_lookup(type_env, ast->structField.type, 0);
+    i++;
   }
+  assert(i == fields_ty->product.count);
   map_insert(storage, type_env, fields, fields_ty, 0);
-  release_type_stack(ts);
 }
 
 static void

@@ -72,11 +72,11 @@ hashmap_grow(Arena* storage, Hashmap* hashmap)
     exit(1);
   }
   hashmap_cursor_begin(&it, hashmap);
-  first_entry = hashmap_cursor_next_entry(&it);
+  first_entry = hashmap_cursor_next(&it);
   last_entry = first_entry;
   entry_count = first_entry ? 1 : 0;
-  for (entry = hashmap_cursor_next_entry(&it);
-       entry != 0; entry = hashmap_cursor_next_entry(&it)) {
+  for (entry = hashmap_cursor_next(&it);
+       entry != 0; entry = hashmap_cursor_next(&it)) {
     last_entry->next_entry = entry;
     last_entry = entry;
     entry_count += 1;
@@ -164,7 +164,7 @@ hashmap_cursor_begin(HashmapCursor* cursor, Hashmap* hashmap)
 }
 
 HashmapEntry*
-hashmap_cursor_next_entry(HashmapCursor* cursor)
+hashmap_cursor_next(HashmapCursor* cursor)
 {
   Hashmap* hashmap;
   HashmapEntry* entry = 0;
