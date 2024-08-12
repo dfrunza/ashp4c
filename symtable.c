@@ -727,14 +727,9 @@ visit_methodPrototypes(Ast* protos, NameDeclaration* name_decl)
   assert(protos->kind == AST_methodPrototypes);
   Ast* ast;
 
-  name_decl->extern_.method_count = 0;
   for (ast = protos->methodPrototypes.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_functionPrototype(ast);
-    name_decl->extern_.method_count += 1;
-  }
-  if (name_decl->extern_.method_count > 0) {
-    name_decl->extern_.methods = arena_malloc(storage, name_decl->extern_.method_count*sizeof(NameDeclaration*));
   }
 }
 
@@ -1028,24 +1023,11 @@ visit_structFieldList(Ast* field_list, NameDeclaration* name_decl)
 {
   assert(field_list->kind == AST_structFieldList);
   Ast* ast;
-  int i;
 
-  name_decl->struct_.field_count = 0;
   for (ast = field_list->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_structField(ast);
-    name_decl->struct_.field_count += 1;
   }
-  if (name_decl->struct_.field_count > 0) {
-    name_decl->struct_.fields = arena_malloc(storage, name_decl->struct_.field_count*sizeof(NameDeclaration*));
-  }
-  i = 0;
-  for (ast = field_list->structFieldList.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    name_decl->struct_.fields[i] = map_lookup(decl_map, ast, 0);
-    i += 1;
-  }
-  assert(i == name_decl->struct_.field_count);
 }
 
 static void
@@ -1125,24 +1107,11 @@ visit_specifiedIdentifierList(Ast* ident_list, NameDeclaration* name_decl)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
   Ast* ast;
-  int i;
 
-  name_decl->enum_.field_count = 0;
   for (ast = ident_list->specifiedIdentifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_specifiedIdentifier(ast);
-    name_decl->enum_.field_count += 1;
   }
-  if (name_decl->enum_.field_count > 0) {
-    name_decl->enum_.fields = arena_malloc(storage, name_decl->enum_.field_count*sizeof(NameDeclaration*));
-  }
-  i = 0;
-  for (ast = ident_list->specifiedIdentifierList.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    name_decl->enum_.fields[i] = map_lookup(decl_map, ast, 0);
-    i += 1;
-  }
-  assert(i == name_decl->enum_.field_count);
 }
 
 static void

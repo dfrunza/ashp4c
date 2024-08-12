@@ -842,6 +842,7 @@ enum TypeEnum {
   TYPE_HEADER_STACK,
   TYPE_STATE,
   TYPE_KEYSET,
+  TYPE_FIELD,
   TYPE_NAMEREF,
   TYPE_TYPE,
   TYPE_TUPLE,
@@ -864,7 +865,7 @@ typedef struct Type {
 
     struct {
       struct Type* fields;
-    } struct_;
+    } struct_, enum_;
 
     struct {
       struct Type* params;
@@ -883,6 +884,10 @@ typedef struct Type {
       struct Type* element;
       int size;
     } header_stack;
+
+    struct {
+      struct Type* type;
+    } field;
 
     struct {
       Ast* name;
@@ -937,17 +942,6 @@ typedef struct NameDeclaration {
   };
 
   Type* type;
-  union {
-    struct {
-      struct NameDeclaration** fields;
-      int field_count;
-    } struct_, enum_;
-
-    struct {
-      struct NameDeclaration** methods;
-      int method_count;
-    } extern_;
-  };
 } NameDeclaration;
 
 enum NameSpace {

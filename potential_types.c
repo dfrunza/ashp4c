@@ -156,6 +156,16 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 static void
+collect_matching_field_or_method(Arena* storage, PotentialType* tau, Type* fields_ty, char* strname)
+{
+  for (int i = 0; i < fields_ty->product.count; i++) {
+    if (cstr_match(fields_ty->product.members[i]->strname, strname)) {
+      map_insert(storage, &tau->members, fields_ty->product.members[i], 0, 1);
+    }
+  }
+}
+
+static void
 Debug_print_potential_types(Map* map)
 {
   MapEntry* m;
@@ -1400,7 +1410,6 @@ visit_memberSelector(Ast* selector)
   PotentialType* tau, *tau_expr;
   MapEntry* m;
   Type* lhs_ty;
-  NameDeclaration* lhs_decl;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
   tau->members = (Map){0};
@@ -1415,17 +1424,12 @@ visit_memberSelector(Ast* selector)
   for (m = tau_expr->members.first; m != 0; m = m->next) {
     lhs_ty = effective_type(m->key);
     if (lhs_ty->ty_former == TYPE_EXTERN) {
-      lhs_decl = map_lookup(decl_map, selector->memberSelector.lhs_expr, 0);
-      for (int i = 0; i < lhs_decl->extern_.method_count; i++) {
-        if (cstr_match(lhs_decl->extern_.methods[i]->strname, name->name.strname)) {
-          map_insert(storage, &tau->members, lhs_decl->extern_.methods[i]->type, 0, 1);
-        }
-      }
+      collect_matching_field_or_method(storage, tau, lhs_ty->extern_.methods, name->name.strname);
     } else if (lhs_ty->ty_former == TYPE_ENUM) {
-      /* TODO */
+      collect_matching_field_or_method(storage, tau, lhs_ty->enum_.fields, name->name.strname);
     } else if (lhs_ty->ty_former == TYPE_STRUCT || lhs_ty->ty_former == TYPE_HEADER ||
                lhs_ty->ty_former == TYPE_HEADER_UNION) {
-      /* TODO */
+      collect_matching_field_or_method(storage, tau, lhs_ty->struct_.fields, name->name.strname);
     } else if (lhs_ty->ty_former == TYPE_HEADER_STACK) {
       /* TODO */
     } else if (lhs_ty->ty_former == TYPE_TABLE) {

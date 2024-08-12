@@ -88,14 +88,14 @@ static void visit_derivedTypeDeclaration(Ast* type_decl);
 static void visit_headerTypeDeclaration(Ast* header_decl);
 static void visit_headerUnionDeclaration(Ast* union_decl);
 static void visit_structTypeDeclaration(Ast* struct_decl);
-static void visit_structFieldList(Ast* fields);
-static void visit_structField(Ast* field);
+static void visit_structFieldList(Ast* fields, Ast* struct_decl);
+static void visit_structField(Ast* field, Ast* struct_decl);
 static void visit_enumDeclaration(Ast* enum_decl);
 static void visit_errorDeclaration(Ast* error_decl);
 static void visit_matchKindDeclaration(Ast* match_decl);
 static void visit_identifierList(Ast* ident_list);
-static void visit_specifiedIdentifierList(Ast* ident_list, Type* enum_ty);
-static void visit_specifiedIdentifier(Ast* ident, Type* enum_ty);
+static void visit_specifiedIdentifierList(Ast* ident_list, Ast* enum_decl);
+static void visit_specifiedIdentifier(Ast* ident, Ast* enum_decl);
 static void visit_typedefDeclaration(Ast* typedef_decl);
 
 /** STATEMENTS **/
@@ -286,6 +286,8 @@ effective_type(Type* type)
   if (!applied_ty) { return 0; }
   if (type->ty_former == TYPE_FUNCTION) {
     return actual_type(type->function.return_);
+  } else if (type->ty_former == TYPE_FIELD) {
+    return actual_type(type->field.type);
   }
   return applied_ty;
 }
@@ -1188,7 +1190,7 @@ visit_headerTypeDeclaration(Ast* header_decl)
   NameDeclaration* name_decl;
   Type* header_ty;
 
-  visit_structFieldList(header_decl->headerTypeDeclaration.fields);
+  visit_structFieldList(header_decl->headerTypeDeclaration.fields, header_decl);
   name = header_decl->headerTypeDeclaration.name;
   header_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   header_ty->ty_former = TYPE_HEADER;
@@ -1208,7 +1210,7 @@ visit_headerUnionDeclaration(Ast* union_decl)
   NameDeclaration* name_decl;
   Type* union_ty;
 
-  visit_structFieldList(union_decl->headerUnionDeclaration.fields);
+  visit_structFieldList(union_decl->headerUnionDeclaration.fields, union_decl);
   name = union_decl->headerUnionDeclaration.name;
   union_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   union_ty->ty_former = TYPE_HEADER_UNION;
@@ -1228,7 +1230,7 @@ visit_structTypeDeclaration(Ast* struct_decl)
   NameDeclaration* name_decl;
   Type* struct_ty;
 
-  visit_structFieldList(struct_decl->structTypeDeclaration.fields);
+  visit_structFieldList(struct_decl->structTypeDeclaration.fields, struct_decl);
   name = struct_decl->structTypeDeclaration.name;
   struct_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   struct_ty->ty_former = TYPE_STRUCT;
@@ -1241,7 +1243,7 @@ visit_structTypeDeclaration(Ast* struct_decl)
 }
 
 static void
-visit_structFieldList(Ast* fields)
+visit_structFieldList(Ast* fields, Ast* struct_decl)
 {
   assert(fields->kind == AST_structFieldList);
   Ast* ast;
@@ -1255,7 +1257,7 @@ visit_structFieldList(Ast* fields)
   fields_ty->product.members = 0;
   for (ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_structField(ast);
+    visit_structField(ast, struct_decl);
     fields_ty->product.count += 1;
   }
   if (fields_ty->product.count > 0) {
@@ -1272,14 +1274,20 @@ visit_structFieldList(Ast* fields)
 }
 
 static void
-visit_structField(Ast* field)
+visit_structField(Ast* field, Ast* struct_decl)
 {
   assert(field->kind == AST_structField);
+  Ast* name;
   NameDeclaration* name_decl;
   Type* field_ty;
 
   visit_typeRef(field->structField.type);
-  field_ty = map_lookup(type_env, field->structField.type, 0);
+  name = field->structField.name;
+  field_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  field_ty->ty_former = TYPE_FIELD;
+  field_ty->strname = name->name.strname;
+  field_ty->ast = field;
+  field_ty->field.type = map_lookup(type_env, field->structField.type, 0);
   map_insert(storage, type_env, field, field_ty, 0);
   name_decl = map_lookup(decl_map, field, 0);
   name_decl->type = field_ty;
@@ -1299,7 +1307,7 @@ visit_enumDeclaration(Ast* enum_decl)
   enum_ty->strname = name->name.strname;
   enum_ty->ast = enum_decl;
   map_insert(storage, type_env, enum_decl, enum_ty, 0);
-  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields, enum_ty);
+  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields, enum_decl);
   name_decl = map_lookup(decl_map, enum_decl, 0);
   name_decl->type = enum_ty;
 }
@@ -1331,33 +1339,50 @@ visit_identifierList(Ast* ident_list)
 }
 
 static void
-visit_specifiedIdentifierList(Ast* ident_list, Type* enum_ty)
+visit_specifiedIdentifierList(Ast* ident_list, Ast* enum_decl)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
   Ast* ast;
   Type* idents_ty;
+  int i;
 
   idents_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   idents_ty->ty_former = TYPE_PRODUCT;
   idents_ty->ast = ident_list;
-  idents_ty->product.count = 1;
-  idents_ty->product.members = arena_malloc(storage, idents_ty->product.count*sizeof(Type*));
+  idents_ty->product.count = 0;
+  idents_ty->product.members = 0;
   for (ast = ident_list->specifiedIdentifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_specifiedIdentifier(ast, enum_ty);
+    visit_specifiedIdentifier(ast, enum_decl);
+    idents_ty->product.count += 1;
   }
-  idents_ty->product.members[0] = enum_ty;
+  if (idents_ty->product.count > 0) {
+    idents_ty->product.members = arena_malloc(storage, idents_ty->product.count*sizeof(Type*));
+  }
+  i = 0;
+  for (ast = ident_list->specifiedIdentifierList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    idents_ty->product.members[i] = map_lookup(type_env, ast, 0);
+    i += 1;
+  }
+  assert(i == idents_ty->product.count);
   map_insert(storage, type_env, ident_list, idents_ty, 0);
 }
 
 static void
-visit_specifiedIdentifier(Ast* ident, Type* enum_ty)
+visit_specifiedIdentifier(Ast* ident, Ast* enum_decl)
 {
   assert(ident->kind == AST_specifiedIdentifier);
+  Ast* name;
   NameDeclaration* name_decl;
   Type* ident_ty;
 
-  ident_ty = enum_ty;
+  name = ident->specifiedIdentifier.name;
+  ident_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  ident_ty->ty_former = TYPE_FIELD;
+  ident_ty->strname = name->name.strname;
+  ident_ty->ast = ident;
+  ident_ty->field.type = map_lookup(type_env, enum_decl, 0);
   map_insert(storage, type_env, ident, ident_ty, 0);
   name_decl = map_lookup(decl_map, ident, 0);
   name_decl->type = ident_ty;
