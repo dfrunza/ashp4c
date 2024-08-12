@@ -308,15 +308,20 @@ TypeEnum_to_string(enum TypeEnum type)
     case TYPE_TYPEDEF: return "TYPE_TYPEDEF";
     case TYPE_FUNCTION: return "TYPE_FUNCTION";
     case TYPE_EXTERN: return "TYPE_EXTERN";
-    case TYPE_TABLE: return "TYPE_TABLE";
-    case TYPE_CONTROL: return "TYPE_CONTROL";
-    case TYPE_PARSER: return "TYPE_PARSER";
     case TYPE_PACKAGE: return "TYPE_PACKAGE";
-    case TYPE_PRODUCT: return "TYPE_PRODUCT";
+    case TYPE_PARSER: return "TYPE_PARSER";
+    case TYPE_CONTROL: return "TYPE_CONTROL";
+    case TYPE_TABLE: return "TYPE_TABLE";
     case TYPE_STRUCT: return "TYPE_STRUCT";
+    case TYPE_HEADER: return "TYPE_HEADER";
+    case TYPE_HEADER_UNION: return "TYPE_HEADER_UNION";
     case TYPE_HEADER_STACK: return "TYPE_HEADER_STACK";
+    case TYPE_STATE: return "TYPE_STATE";                            
+    case TYPE_FIELD: return "TYPE_FIELD";
     case TYPE_NAMEREF: return "TYPE_NAMEREF";
     case TYPE_TYPE: return "TYPE_TYPE";
+    case TYPE_TUPLE: return "TYPE_TUPLE";
+    case TYPE_PRODUCT: return "TYPE_PRODUCT";
 
     default: return "?";
   }
@@ -655,9 +660,20 @@ static void
 visit_parserState(Ast* state)
 {
   assert(state->kind == AST_parserState);
+  Ast* name;
+  NameDeclaration* name_decl;
+  Type* state_ty;
 
+  name = state->parserState.name;
+  state_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  state_ty->ty_former = TYPE_STATE;
+  state_ty->strname = name->name.strname;
+  state_ty->ast = state;
   visit_parserStatements(state->parserState.stmt_list);
   visit_transitionStatement(state->parserState.transition_stmt);
+  map_insert(storage, type_env, state, state_ty, 0);
+  name_decl = map_lookup(decl_map, state, 0);
+  name_decl->type = state_ty;
 }
 
 static void
@@ -1330,12 +1346,6 @@ static void
 visit_identifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AST_identifierList);
-  Ast* ast;
-
-  for (ast = ident_list->identifierList.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    ;
-  }
 }
 
 static void
@@ -1468,9 +1478,7 @@ static void
 visit_directApplication(Ast* applic_stmt)
 {
   assert(applic_stmt->kind == AST_directApplication);
-  if (applic_stmt->directApplication.name->kind == AST_name) {
-    ;
-  } else if (applic_stmt->directApplication.name->kind == AST_typeRef) {
+  if (applic_stmt->directApplication.name->kind == AST_typeRef) {
     visit_typeRef(applic_stmt->directApplication.name);
   } else assert(0);
   visit_argumentList(applic_stmt->directApplication.args);
@@ -1488,8 +1496,6 @@ visit_statement(Ast* stmt)
     visit_directApplication(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AST_conditionalStatement) {
     visit_conditionalStatement(stmt->statement.stmt);
-  } else if (stmt->statement.stmt->kind == AST_emptyStatement) {
-    ;
   } else if (stmt->statement.stmt->kind == AST_blockStatement) {
     visit_blockStatement(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AST_exitStatement) {
@@ -1554,9 +1560,7 @@ static void
 visit_switchLabel(Ast* label)
 {
   assert(label->kind == AST_switchLabel);
-  if (label->switchLabel.label->kind == AST_name) {
-    ;
-  } else if (label->switchLabel.label->kind == AST_default) {
+  if (label->switchLabel.label->kind == AST_default) {
     visit_default(label->switchLabel.label);
   } else assert(0);
 }
@@ -1779,8 +1783,6 @@ visit_argument(Ast* arg)
   assert(arg->kind == AST_argument);
   if (arg->argument.arg->kind == AST_expression) {
     visit_expression(arg->argument.arg);
-  } else if (arg->argument.arg->kind == AST_dontcare) {
-    ;
   } else assert(0);
 }
 
