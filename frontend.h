@@ -836,7 +836,6 @@ enum TypeEnum {
   TYPE_PARSER,
   TYPE_CONTROL,
   TYPE_TABLE,
-  TYPE_FIELD,
   TYPE_STRUCT,
   TYPE_HEADER,
   TYPE_HEADER_UNION,
@@ -865,11 +864,7 @@ typedef struct Type {
 
     struct {
       struct Type* fields;
-    } struct_, enum_;
-
-    struct {
-      struct Type* type;
-    } field;
+    } struct_;
 
     struct {
       struct Type* params;
@@ -878,7 +873,6 @@ typedef struct Type {
 
     struct {
       struct Type* methods;
-      struct Type* ctors;
     } extern_;
 
     struct {
@@ -943,6 +937,17 @@ typedef struct NameDeclaration {
   };
 
   Type* type;
+  union {
+    struct {
+      struct NameDeclaration** fields;
+      int field_count;
+    } struct_, enum_;
+
+    struct {
+      struct NameDeclaration** methods;
+      int method_count;
+    } extern_;
+  };
 } NameDeclaration;
 
 enum NameSpace {

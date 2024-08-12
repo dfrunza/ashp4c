@@ -52,7 +52,7 @@ static void visit_controlLocalDeclaration(Ast* local_decl);
 
 static void visit_externDeclaration(Ast* extern_decl);
 static void visit_externTypeDeclaration(Ast* type_decl);
-static void visit_methodPrototypes(Ast* protos);
+static void visit_methodPrototypes(Ast* protos, NameDeclaration* name_decl);
 static void visit_functionPrototype(Ast* func_proto);
 
 /** TYPES **/
@@ -76,13 +76,13 @@ static void visit_derivedTypeDeclaration(Ast* type_decl);
 static void visit_headerTypeDeclaration(Ast* header_decl);
 static void visit_headerUnionDeclaration(Ast* union_decl);
 static void visit_structTypeDeclaration(Ast* struct_decl);
-static void visit_structFieldList(Ast* field_list);
+static void visit_structFieldList(Ast* field_list, NameDeclaration* name_decl);
 static void visit_structField(Ast* field);
 static void visit_enumDeclaration(Ast* enum_decl);
 static void visit_errorDeclaration(Ast* error_decl);
 static void visit_matchKindDeclaration(Ast* match_decl);
 static void visit_identifierList(Ast* ident_list);
-static void visit_specifiedIdentifierList(Ast* ident_list);
+static void visit_specifiedIdentifierList(Ast* ident_list, NameDeclaration* name_decl);
 static void visit_specifiedIdentifier(Ast* ident);
 static void visit_typedefDeclaration(Ast* typedef_decl);
 
@@ -717,19 +717,24 @@ visit_externTypeDeclaration(Ast* type_decl)
   map_insert(storage, decl_map, type_decl, name_decl, 0);
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, type_decl, 0);
-  visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos);
+  visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos, name_decl);
   current_scope = prev_scope;
 }
 
 static void
-visit_methodPrototypes(Ast* protos)
+visit_methodPrototypes(Ast* protos, NameDeclaration* name_decl)
 {
   assert(protos->kind == AST_methodPrototypes);
   Ast* ast;
 
+  name_decl->extern_.method_count = 0;
   for (ast = protos->methodPrototypes.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_functionPrototype(ast);
+    name_decl->extern_.method_count += 1;
+  }
+  if (name_decl->extern_.method_count > 0) {
+    name_decl->extern_.methods = arena_malloc(storage, name_decl->extern_.method_count*sizeof(NameDeclaration*));
   }
 }
 
@@ -978,7 +983,7 @@ visit_headerTypeDeclaration(Ast* header_decl)
   map_insert(storage, decl_map, header_decl, name_decl, 0);
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, header_decl, 0);
-  visit_structFieldList(header_decl->headerTypeDeclaration.fields);
+  visit_structFieldList(header_decl->headerTypeDeclaration.fields, name_decl);
   current_scope = prev_scope;
 }
 
@@ -996,7 +1001,7 @@ visit_headerUnionDeclaration(Ast* union_decl)
   map_insert(storage, decl_map, union_decl, name_decl, 0);
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, union_decl, 0);
-  visit_structFieldList(union_decl->headerUnionDeclaration.fields);
+  visit_structFieldList(union_decl->headerUnionDeclaration.fields, name_decl);
   current_scope = prev_scope;
 }
 
@@ -1014,20 +1019,33 @@ visit_structTypeDeclaration(Ast* struct_decl)
   map_insert(storage, decl_map, struct_decl, name_decl, 0);
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, struct_decl, 0);
-  visit_structFieldList(struct_decl->structTypeDeclaration.fields);
+  visit_structFieldList(struct_decl->structTypeDeclaration.fields, name_decl);
   current_scope = prev_scope;
 }
 
 static void
-visit_structFieldList(Ast* field_list)
+visit_structFieldList(Ast* field_list, NameDeclaration* name_decl)
 {
   assert(field_list->kind == AST_structFieldList);
   Ast* ast;
+  int i;
 
+  name_decl->struct_.field_count = 0;
   for (ast = field_list->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_structField(ast);
+    name_decl->struct_.field_count += 1;
   }
+  if (name_decl->struct_.field_count > 0) {
+    name_decl->struct_.fields = arena_malloc(storage, name_decl->struct_.field_count*sizeof(NameDeclaration*));
+  }
+  i = 0;
+  for (ast = field_list->structFieldList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    name_decl->struct_.fields[i] = map_lookup(decl_map, ast, 0);
+    i += 1;
+  }
+  assert(i == name_decl->struct_.field_count);
 }
 
 static void
@@ -1058,7 +1076,7 @@ visit_enumDeclaration(Ast* enum_decl)
   map_insert(storage, decl_map, enum_decl, name_decl, 0);
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, enum_decl, 0);
-  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
+  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields, name_decl);
   current_scope = prev_scope;
 }
 
@@ -1103,15 +1121,28 @@ visit_identifierList(Ast* ident_list)
 }
 
 static void
-visit_specifiedIdentifierList(Ast* ident_list)
+visit_specifiedIdentifierList(Ast* ident_list, NameDeclaration* name_decl)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
   Ast* ast;
+  int i;
 
+  name_decl->enum_.field_count = 0;
   for (ast = ident_list->specifiedIdentifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_specifiedIdentifier(ast);
+    name_decl->enum_.field_count += 1;
   }
+  if (name_decl->enum_.field_count > 0) {
+    name_decl->enum_.fields = arena_malloc(storage, name_decl->enum_.field_count*sizeof(NameDeclaration*));
+  }
+  i = 0;
+  for (ast = ident_list->specifiedIdentifierList.first_child;
+       ast != 0; ast = ast->right_sibling) {
+    name_decl->enum_.fields[i] = map_lookup(decl_map, ast, 0);
+    i += 1;
+  }
+  assert(i == name_decl->enum_.field_count);
 }
 
 static void

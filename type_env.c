@@ -94,8 +94,8 @@ static void visit_enumDeclaration(Ast* enum_decl);
 static void visit_errorDeclaration(Ast* error_decl);
 static void visit_matchKindDeclaration(Ast* match_decl);
 static void visit_identifierList(Ast* ident_list);
-static void visit_specifiedIdentifierList(Ast* ident_list);
-static void visit_specifiedIdentifier(Ast* ident);
+static void visit_specifiedIdentifierList(Ast* ident_list, Type* enum_ty);
+static void visit_specifiedIdentifier(Ast* ident, Type* enum_ty);
 static void visit_typedefDeclaration(Ast* typedef_decl);
 
 /** STATEMENTS **/
@@ -284,9 +284,7 @@ effective_type(Type* type)
 {
   Type* applied_ty = actual_type(type);
   if (!applied_ty) { return 0; }
-  if (type->ty_former == TYPE_FIELD) {
-    return actual_type(type->field.type);
-  } else if (type->ty_former == TYPE_FUNCTION) {
+  if (type->ty_former == TYPE_FUNCTION) {
     return actual_type(type->function.return_);
   }
   return applied_ty;
@@ -523,7 +521,7 @@ visit_parameterList(Ast* params)
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     params_ty->product.members[i] = map_lookup(type_env, ast, 0);
-    i++;
+    i += 1;
   }
   assert(i == params_ty->product.count);
   map_insert(storage, type_env, params, params_ty, 0);
@@ -865,8 +863,7 @@ visit_externTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AST_externTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
-  Type* extern_ty, *methods_ty, *ctors_ty;
-  int i, j;
+  Type* extern_ty, *methods_ty;
 
   name = type_decl->externTypeDeclaration.name;
   extern_ty = (Type*)array_append(storage, type_array, sizeof(Type));
@@ -878,28 +875,6 @@ visit_externTypeDeclaration(Ast* type_decl)
       type_decl, type_decl->externTypeDeclaration.name);
   methods_ty = map_lookup(type_env, type_decl->externTypeDeclaration.method_protos, 0);
   extern_ty->extern_.methods = methods_ty;
-  ctors_ty = (Type*)array_append(storage, type_array, sizeof(Type));
-  ctors_ty->ty_former = TYPE_PRODUCT;
-  ctors_ty->ast = type_decl;
-  ctors_ty->product.count = 0;
-  ctors_ty->product.members = 0;
-  for (i = 0; i < methods_ty->product.count; i++) {
-    if (cstr_match(methods_ty->product.members[i]->strname, name->name.strname)) {
-      ctors_ty->product.count += 1;
-    }
-  }
-  if (ctors_ty->product.count > 0) {
-    ctors_ty->product.members = arena_malloc(storage, ctors_ty->product.count*sizeof(Type*));
-  }
-  j = 0;
-  for (i = 0; i < methods_ty->product.count; i++) {
-    if (cstr_match(methods_ty->product.members[i]->strname, name->name.strname)) {
-      ctors_ty->product.members[j] = methods_ty->product.members[i];
-      j++;
-    }
-  }
-  assert(j == ctors_ty->product.count);
-  extern_ty->extern_.ctors = ctors_ty;
   name_decl = map_lookup(decl_map, type_decl, 0);
   name_decl->type = extern_ty;
 }
@@ -929,7 +904,7 @@ visit_methodPrototypes(Ast* protos, Ast* extern_decl, Ast* extern_name)
   for (ast = protos->methodPrototypes.first_child;
        ast != 0; ast = ast->right_sibling) {
     methods_ty->product.members[i] = map_lookup(type_env, ast, 0);
-    i++;
+    i += 1;
   }
   assert(i == methods_ty->product.count);
   map_insert(storage, type_env, protos, methods_ty, 0);
@@ -1159,7 +1134,7 @@ visit_typeArgumentList(Ast* args)
   for (ast = args->typeArgumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     args_ty->product.members[i] = map_lookup(type_env, ast, 0);
-    i++;
+    i += 1;
   }
   assert(i == args_ty->product.count);
   map_insert(storage, type_env, args, args_ty, 0);
@@ -1290,7 +1265,7 @@ visit_structFieldList(Ast* fields)
   for (ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     fields_ty->product.members[i] = map_lookup(type_env, ast, 0);
-    i++;
+    i += 1;
   }
   assert(i == fields_ty->product.count);
   map_insert(storage, type_env, fields, fields_ty, 0);
@@ -1300,17 +1275,11 @@ static void
 visit_structField(Ast* field)
 {
   assert(field->kind == AST_structField);
-  Ast* name;
   NameDeclaration* name_decl;
   Type* field_ty;
 
   visit_typeRef(field->structField.type);
-  name = field->structField.name;
-  field_ty = (Type*)array_append(storage, type_array, sizeof(Type));
-  field_ty->ty_former = TYPE_FIELD;
-  field_ty->strname = name->name.strname;
-  field_ty->ast = field;
-  field_ty->field.type = map_lookup(type_env, field->structField.type, 0);
+  field_ty = map_lookup(type_env, field->structField.type, 0);
   map_insert(storage, type_env, field, field_ty, 0);
   name_decl = map_lookup(decl_map, field, 0);
   name_decl->type = field_ty;
@@ -1322,7 +1291,7 @@ visit_enumDeclaration(Ast* enum_decl)
   assert(enum_decl->kind == AST_enumDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
-  Type* enum_ty, *fields_ty;
+  Type* enum_ty;
 
   name = enum_decl->enumDeclaration.name;
   enum_ty = (Type*)array_append(storage, type_array, sizeof(Type));
@@ -1330,9 +1299,7 @@ visit_enumDeclaration(Ast* enum_decl)
   enum_ty->strname = name->name.strname;
   enum_ty->ast = enum_decl;
   map_insert(storage, type_env, enum_decl, enum_ty, 0);
-  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
-  fields_ty = map_lookup(type_env, enum_decl->enumDeclaration.fields, 0);
-  enum_ty->enum_.fields = fields_ty;
+  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields, enum_ty);
   name_decl = map_lookup(decl_map, enum_decl, 0);
   name_decl->type = enum_ty;
 }
@@ -1364,49 +1331,33 @@ visit_identifierList(Ast* ident_list)
 }
 
 static void
-visit_specifiedIdentifierList(Ast* ident_list)
+visit_specifiedIdentifierList(Ast* ident_list, Type* enum_ty)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
   Ast* ast;
   Type* idents_ty;
-  int i;
 
   idents_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   idents_ty->ty_former = TYPE_PRODUCT;
   idents_ty->ast = ident_list;
-  idents_ty->product.count = 0;
-  idents_ty->product.members = 0;
+  idents_ty->product.count = 1;
+  idents_ty->product.members = arena_malloc(storage, idents_ty->product.count*sizeof(Type*));
   for (ast = ident_list->specifiedIdentifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_specifiedIdentifier(ast);
-    idents_ty->product.count += 1;
+    visit_specifiedIdentifier(ast, enum_ty);
   }
-  if (idents_ty->product.count > 0) {
-    idents_ty->product.members = arena_malloc(storage, idents_ty->product.count*sizeof(Type*));
-  }
-  i = 0;
-  for (ast = ident_list->specifiedIdentifierList.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    idents_ty->product.members[i] = map_lookup(type_env, ast, 0);
-    i++;
-  }
-  assert(i == idents_ty->product.count);
+  idents_ty->product.members[0] = enum_ty;
   map_insert(storage, type_env, ident_list, idents_ty, 0);
 }
 
 static void
-visit_specifiedIdentifier(Ast* ident)
+visit_specifiedIdentifier(Ast* ident, Type* enum_ty)
 {
   assert(ident->kind == AST_specifiedIdentifier);
-  Ast* name;
   NameDeclaration* name_decl;
   Type* ident_ty;
 
-  name = ident->specifiedIdentifier.name;
-  ident_ty = (Type*)array_append(storage, type_array, sizeof(Type));
-  ident_ty->ty_former = TYPE_ENUM;
-  ident_ty->strname = name->name.strname;
-  ident_ty->ast = ident;
+  ident_ty = enum_ty;
   map_insert(storage, type_env, ident, ident_ty, 0);
   name_decl = map_lookup(decl_map, ident, 0);
   name_decl->type = ident_ty;
