@@ -5,9 +5,6 @@
 #include "frontend.h"
 #include "ashp4c.h"
 
-static Type *void_ty,   *bool_ty,  *int_ty,        *bit_ty,     *varbit_ty,
-            *string_ty, *error_ty, *match_kind_ty, *dontcare_ty;
-
 typedef struct CmdlineArg {
   char* name;
   char* value;
@@ -113,7 +110,6 @@ main(int arg_count, char* args[])
   struct BuiltinType {
     char* strname;
     enum TypeEnum ty_former;
-    Type** type;
   };
 
   struct Keyword keywords[] = {
@@ -173,15 +169,15 @@ main(int arg_count, char* args[])
   };
 
   struct BuiltinType builtin_types[] = {
-    {"void",       TYPE_VOID,       &void_ty},
-    {"bool",       TYPE_BOOL,       &bool_ty},
-    {"int",        TYPE_INT,        &int_ty},
-    {"bit",        TYPE_BIT,        &bit_ty},
-    {"varbit",     TYPE_VARBIT,     &varbit_ty},
-    {"string",     TYPE_STRING,     &string_ty},
-    {"error",      TYPE_ERROR,      &error_ty},
-    {"match_kind", TYPE_MATCH_KIND, &match_kind_ty},
-    {"_",          TYPE_DONTCARE,   &dontcare_ty},
+    {"void",       TYPE_VOID},
+    {"bool",       TYPE_BOOL},
+    {"int",        TYPE_INT},
+    {"bit",        TYPE_BIT},
+    {"varbit",     TYPE_VARBIT},
+    {"string",     TYPE_STRING},
+    {"error",      TYPE_ERROR},
+    {"match_kind", TYPE_MATCH_KIND},
+    {"_",          TYPE_DONTCARE},
   };
 
   CmdlineArg* cmdline, *filename;
@@ -194,7 +190,7 @@ main(int arg_count, char* args[])
   Scope* root_scope;
   Array* type_array;
   Map* type_env;
-  Type* ty;
+  Type* builtin_ty;
   Map* opened_scopes, *enclosing_scopes;
   Map* decl_map;
 
@@ -226,26 +222,23 @@ main(int arg_count, char* args[])
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_entry = scope_lookup(root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
     name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-    ty = (Type*)array_append(&storage, type_array, sizeof(Type));
-    ty->ty_former = builtin_types[i].ty_former;
-    ty->strname = name_decl->strname;
-    ty->ast = name_decl->ast;
-    name_decl->type = ty;
-    map_insert(&storage, type_env, name_decl->ast, ty, 0);
-    *builtin_types[i].type = ty;
+    builtin_ty = (Type*)array_append(&storage, type_array, sizeof(Type));
+    builtin_ty->ty_former = builtin_types[i].ty_former;
+    builtin_ty->strname = name_decl->strname;
+    builtin_ty->ast = name_decl->ast;
+    name_decl->type = builtin_ty;
+    map_insert(&storage, type_env, name_decl->ast, builtin_ty, 0);
   }
 
-  ty = builtin_type(root_scope, "error");
-  *ty = (Type){0};
-  ty->builtin_enum.fields = (Type*)array_append(&storage, type_array, sizeof(Type));
-  ty = ty->builtin_enum.fields;
-  ty->ty_former = TYPE_PRODUCT;
+  builtin_ty = builtin_type(root_scope, "error");
+  *builtin_ty = (Type){0};
+  builtin_ty->builtin_enum.fields = (Type*)array_append(&storage, type_array, sizeof(Type));
+  builtin_ty->builtin_enum.fields->ty_former = TYPE_PRODUCT;
 
-  ty = builtin_type(root_scope, "match_kind");
-  *ty = (Type){0};
-  ty->builtin_enum.fields = (Type*)array_append(&storage, type_array, sizeof(Type));
-  ty = ty->builtin_enum.fields;
-  ty->ty_former = TYPE_PRODUCT;
+  builtin_ty = builtin_type(root_scope, "match_kind");
+  *builtin_ty = (Type){0};
+  builtin_ty->builtin_enum.fields = (Type*)array_append(&storage, type_array, sizeof(Type));
+  builtin_ty->builtin_enum.fields->ty_former = TYPE_PRODUCT;
 
   read_source_text(&scratch_storage, filename->value, &source_text);
   tokens = tokenize_source_text(&storage, &source_text);

@@ -818,6 +818,12 @@ typedef struct Ast {
 
 char* AstEnum_to_string(enum AstEnum ast);
 
+typedef struct Scope {
+  int scope_level;
+  struct Scope* parent_scope;
+  Hashmap name_table;
+} Scope;
+
 enum TypeEnum {
   TYPE_NONE = 0,
 
@@ -930,15 +936,9 @@ typedef struct PotentialType {
 
 Type*  actual_type(Type* type);
 Type*  effective_type(Type* type);
-Type*  builtin_type(struct Scope* root_scope, char* strname);
+Type*  builtin_type(Scope* root_scope, char* strname);
 bool   type_equiv(Type* u, Type* v);
 char*  TypeEnum_to_string(enum TypeEnum type);
-
-typedef struct Scope {
-  int scope_level;
-  struct Scope* parent_scope;
-  Hashmap name_table;
-} Scope;
 
 typedef struct NameDeclaration {
   char* strname;

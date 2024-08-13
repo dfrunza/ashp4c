@@ -188,7 +188,6 @@ scope_bind(Arena* storage, Scope* scope, char*strname, enum NameSpace ns)
   name_decl = arena_malloc(storage, sizeof(NameDeclaration));
   *name_decl = (NameDeclaration){0};
   name_decl->strname = strname;
-
   he = hashmap_insert(storage, &scope->name_table, strname, 0, 1);
   if (he->value == 0) {
     he->value = arena_malloc(storage, sizeof(NameEntry));
@@ -269,7 +268,6 @@ build_symtable(Arena* storage_, char* source_file, Ast* p4program, Scope* root_s
   *decl_map_ = decl_map;
 
   visit_p4program(p4program);
-
   assert(current_scope == root_scope);
   return enclosing_scopes;
 }

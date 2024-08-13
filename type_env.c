@@ -321,6 +321,8 @@ TypeEnum_to_string(enum TypeEnum type)
     case TYPE_HEADER_STACK: return "TYPE_HEADER_STACK";
     case TYPE_STATE: return "TYPE_STATE";                            
     case TYPE_FIELD: return "TYPE_FIELD";
+    case TYPE_ERROR: return "TYPE_ERROR";
+    case TYPE_MATCH_KIND: return "TYPE_MATCH_KIND";
     case TYPE_NAMEREF: return "TYPE_NAMEREF";
     case TYPE_TYPE: return "TYPE_TYPE";
     case TYPE_TUPLE: return "TYPE_TUPLE";
