@@ -1359,7 +1359,7 @@ visit_matchKindDeclaration(Ast* match_decl)
 
   match_kind_ty = builtin_type(root_scope, "match_kind");
   fields_ty = match_kind_ty->builtin_enum.fields;
-  if (match_kind_ty->builtin_enum.field_count > 0 && match_kind_ty->product.members == 0) {
+  if (match_kind_ty->builtin_enum.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = match_kind_ty->builtin_enum.field_count;
     fields_ty->product.members = arena_malloc(storage, fields_ty->product.count*sizeof(Type*));
   }

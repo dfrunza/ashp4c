@@ -1095,7 +1095,7 @@ visit_matchKindDeclaration(Ast* match_decl)
   match_kind_ty = name_decl->type;
   map_insert(storage, decl_map, match_decl, name_decl, 0);
   prev_scope = current_scope;
-  current_scope = root_scope;
+  current_scope = map_lookup(opened_scopes, match_decl, 0);
   match_kind_ty->builtin_enum.field_count += visit_identifierList(match_decl->matchKindDeclaration.fields);
   current_scope = prev_scope;
 }

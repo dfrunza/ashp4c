@@ -5,15 +5,8 @@
 #include "frontend.h"
 #include "ashp4c.h"
 
-static Type *void_ty,
-            *bool_ty,
-            *int_ty,
-            *bit_ty,
-            *varbit_ty,
-            *string_ty,
-            *error_ty,
-            *match_kind_ty,
-            *dontcare_ty;
+static Type *void_ty,   *bool_ty,  *int_ty,        *bit_ty,     *varbit_ty,
+            *string_ty, *error_ty, *match_kind_ty, *dontcare_ty;
 
 typedef struct CmdlineArg {
   char* name;
@@ -243,18 +236,16 @@ main(int arg_count, char* args[])
   }
 
   ty = builtin_type(root_scope, "error");
+  *ty = (Type){0};
   ty->builtin_enum.fields = (Type*)array_append(&storage, type_array, sizeof(Type));
   ty = ty->builtin_enum.fields;
   ty->ty_former = TYPE_PRODUCT;
-  ty->product.count = 0;
-  ty->product.members = 0;
 
   ty = builtin_type(root_scope, "match_kind");
+  *ty = (Type){0};
   ty->builtin_enum.fields = (Type*)array_append(&storage, type_array, sizeof(Type));
   ty = ty->builtin_enum.fields;
   ty->ty_former = TYPE_PRODUCT;
-  ty->product.count = 0;
-  ty->product.members = 0;
 
   read_source_text(&scratch_storage, filename->value, &source_text);
   tokens = tokenize_source_text(&storage, &source_text);
