@@ -836,7 +836,7 @@ next_token(Token* token)
 }
 
 Array*
-tokenize_source_text(Arena* storage_, SourceText* source_text)
+tokenize(Arena* storage_, SourceText* source_text)
 {
   Token token = {0};
 

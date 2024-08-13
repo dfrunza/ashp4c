@@ -3,6 +3,16 @@
 #include "foundation.h"
 #include "frontend.h"
 
+struct BuiltinName {
+  char* strname;
+  enum NameSpace ns;
+};
+
+struct BuiltinType {
+  char* strname;
+  enum TypeEnum ty_former;
+};
+
 static Arena* storage;
 static Scope* root_scope, *current_scope;
 static Map*   scope_map, *decl_map;
@@ -143,6 +153,67 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
+static void
+setup_builtin_names(Array* type_array)
+{
+  struct BuiltinName builtin_names[] = {
+    {"void",   NAMESPACE_TYPE},
+    {"bool",   NAMESPACE_TYPE},
+    {"int",    NAMESPACE_TYPE},
+    {"bit",    NAMESPACE_TYPE},
+    {"varbit", NAMESPACE_TYPE},
+    {"string", NAMESPACE_TYPE},
+    {"error",  NAMESPACE_TYPE},
+    {"match_kind", NAMESPACE_TYPE},
+    {"_",      NAMESPACE_TYPE},
+    {"accept", NAMESPACE_VAR},
+    {"reject", NAMESPACE_VAR},
+  };
+  struct BuiltinType builtin_types[] = {
+    {"void",       TYPE_VOID},
+    {"bool",       TYPE_BOOL},
+    {"int",        TYPE_INT},
+    {"bit",        TYPE_BIT},
+    {"varbit",     TYPE_VARBIT},
+    {"string",     TYPE_STRING},
+    {"error",      TYPE_ERROR},
+    {"match_kind", TYPE_MATCH_KIND},
+    {"_",          TYPE_DONTCARE},
+  };
+  Ast* name;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
+  Type* ty;
+
+  for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
+    name = arena_malloc(storage, sizeof(Ast));
+    name->kind = AST_name;
+    name->name.strname = builtin_names[i].strname;
+    name_decl = scope_bind(storage, root_scope, name->name.strname, builtin_names[i].ns);
+    name_decl->ast = name;
+  }
+  for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
+    name_entry = scope_lookup(root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
+    name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+    ty = (Type*)array_append(storage, type_array, sizeof(Type));
+    *ty = (Type){0};
+    ty->ty_former = builtin_types[i].ty_former;
+    ty->strname = name_decl->strname;
+    ty->ast = name_decl->ast;
+    name_decl->type = ty;
+  }
+
+  ty = builtin_type(root_scope, "error");
+  ty->builtin_enum.fields = (Type*)array_append(storage, type_array, sizeof(Type));
+  *ty->builtin_enum.fields = (Type){0};
+  ty->builtin_enum.fields->ty_former = TYPE_PRODUCT;
+
+  ty = builtin_type(root_scope, "match_kind");
+  ty->builtin_enum.fields = (Type*)array_append(storage, type_array, sizeof(Type));
+  *ty->builtin_enum.fields = (Type){0};
+  ty->builtin_enum.fields->ty_former = TYPE_PRODUCT;
+}
+
 NameEntry*
 scope_lookup(Scope* scope, char* strname, enum NameSpace ns)
 {
@@ -252,20 +323,25 @@ NameSpace_to_string(enum NameSpace ns)
   return 0;
 }
 
-void
+Map*
 build_symtable(Arena* storage_, char* source_file, Ast* p4program, Scope* root_scope_,
-    Map* scope_map_, Map** decl_map_/*out*/)
+    Map* scope_map_, Array** type_array_)
 {
+  Array* type_array;
+
   root_scope = root_scope_;
   scope_map = scope_map_;
   storage = storage_;
   current_scope = root_scope;
   decl_map = arena_malloc(storage, sizeof(Map));
   *decl_map = (Map){0};
-  *decl_map_ = decl_map;
+  type_array = array_create(storage, sizeof(Type), 5);
 
+  setup_builtin_names(type_array);
   visit_p4program(p4program);
   assert(current_scope == root_scope);
+  *type_array_ = type_array;
+  return decl_map;
 }
 
 /** PROGRAM **/

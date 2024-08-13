@@ -12,7 +12,7 @@ typedef struct CmdlineArg {
 } CmdlineArg;
 
 static void
-read_source_text(Arena* storage, char* filename, SourceText* source_text/*out*/)
+read_source(Arena* storage, char* filename, SourceText* source_text/*out*/)
 {
   FILE* f_stream;
   char* text;
@@ -99,97 +99,13 @@ parse_cmdline_args(Arena* storage, int arg_count, char* args[])
 int
 main(int arg_count, char* args[])
 {
-  struct Keyword {
-    char* strname;
-    enum TokenClass token_class;
-  };
-  struct BuiltinName {
-    char* strname;
-    enum NameSpace ns;
-  };
-  struct BuiltinType {
-    char* strname;
-    enum TypeEnum ty_former;
-  };
-
-  struct Keyword keywords[] = {
-    {"action",  TK_ACTION},
-    {"actions", TK_ACTIONS},
-    {"entries", TK_ENTRIES},
-    {"enum",    TK_ENUM},
-    {"in",      TK_IN},
-    {"package", TK_PACKAGE},
-    {"select",  TK_SELECT},
-    {"switch",  TK_SWITCH},
-    {"tuple",   TK_TUPLE},
-    {"control", TK_CONTROL},
-    {"error",   TK_ERROR},
-    {"header",  TK_HEADER},
-    {"inout",   TK_INOUT},
-    {"parser",  TK_PARSER},
-    {"state",   TK_STATE},
-    {"table",   TK_TABLE},
-    {"key",     TK_KEY},
-    {"typedef", TK_TYPEDEF},
-    {"default", TK_DEFAULT},
-    {"extern",  TK_EXTERN},
-    {"out",     TK_OUT},
-    {"else",    TK_ELSE},
-    {"exit",    TK_EXIT},
-    {"if",      TK_IF},
-    {"return",  TK_RETURN},
-    {"struct",  TK_STRUCT},
-    {"apply",   TK_APPLY},
-    {"const",   TK_CONST},
-    {"bool",    TK_BOOL},
-    {"true",    TK_TRUE},
-    {"false",   TK_FALSE},
-    {"void",    TK_VOID},
-    {"int",     TK_INT},
-    {"bit",     TK_BIT},
-    {"varbit",  TK_VARBIT},
-    {"string",  TK_STRING},
-    {"match_kind",   TK_MATCH_KIND},
-    {"transition",   TK_TRANSITION},
-    {"header_union", TK_HEADER_UNION},
-  };
-
-  struct BuiltinName builtin_names[] = {
-    {"void",   NAMESPACE_TYPE},
-    {"bool",   NAMESPACE_TYPE},
-    {"int",    NAMESPACE_TYPE},
-    {"bit",    NAMESPACE_TYPE},
-    {"varbit", NAMESPACE_TYPE},
-    {"string", NAMESPACE_TYPE},
-    {"error",  NAMESPACE_TYPE},
-    {"match_kind", NAMESPACE_TYPE},
-    {"_",      NAMESPACE_TYPE},
-    {"accept", NAMESPACE_VAR},
-    {"reject", NAMESPACE_VAR},
-  };
-
-  struct BuiltinType builtin_types[] = {
-    {"void",       TYPE_VOID},
-    {"bool",       TYPE_BOOL},
-    {"int",        TYPE_INT},
-    {"bit",        TYPE_BIT},
-    {"varbit",     TYPE_VARBIT},
-    {"string",     TYPE_STRING},
-    {"error",      TYPE_ERROR},
-    {"match_kind", TYPE_MATCH_KIND},
-    {"_",          TYPE_DONTCARE},
-  };
-
   CmdlineArg* cmdline, *filename;
   SourceText source_text = {0};
   Arena storage = {0}, scratch_storage = {0};
+  Ast* program;
   Array* tokens;
-  Ast* name, *program;
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
   Scope* root_scope;
   Array* type_array;
-  Type* builtin_ty;
   Map* type_env, *decl_map, *scope_map;
 
   reserve_memory(500*KILOBYTE);
@@ -201,54 +117,17 @@ main(int arg_count, char* args[])
     exit(1);
   }
 
-  root_scope = scope_create(&storage, 5);
-  for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
-    name_decl = scope_bind(&storage, root_scope, keywords[i].strname, NAMESPACE_KEYWORD);
-    name_decl->token_class = keywords[i].token_class;
-  }
-  for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
-    name = arena_malloc(&storage, sizeof(Ast));
-    name->kind = AST_name;
-    name->name.strname = builtin_names[i].strname;
-    name_decl = scope_bind(&storage, root_scope, name->name.strname, builtin_names[i].ns);
-    name_decl->ast = name;
-  }
-
-  type_array = array_create(&storage, sizeof(Type), 5);
-  type_env = arena_malloc(&storage, sizeof(Map));
-  *type_env = (Map){0};
-  for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
-    name_entry = scope_lookup(root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
-    name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-    builtin_ty = (Type*)array_append(&storage, type_array, sizeof(Type));
-    builtin_ty->ty_former = builtin_types[i].ty_former;
-    builtin_ty->strname = name_decl->strname;
-    builtin_ty->ast = name_decl->ast;
-    name_decl->type = builtin_ty;
-    map_insert(&storage, type_env, name_decl->ast, builtin_ty, 0);
-  }
-
-  builtin_ty = builtin_type(root_scope, "error");
-  *builtin_ty = (Type){0};
-  builtin_ty->builtin_enum.fields = (Type*)array_append(&storage, type_array, sizeof(Type));
-  builtin_ty->builtin_enum.fields->ty_former = TYPE_PRODUCT;
-
-  builtin_ty = builtin_type(root_scope, "match_kind");
-  *builtin_ty = (Type){0};
-  builtin_ty->builtin_enum.fields = (Type*)array_append(&storage, type_array, sizeof(Type));
-  builtin_ty->builtin_enum.fields->ty_former = TYPE_PRODUCT;
-
-  read_source_text(&scratch_storage, filename->value, &source_text);
-  tokens = tokenize_source_text(&storage, &source_text);
-  program = parse_program(&storage, source_text.filename, tokens, root_scope);
+  read_source(&scratch_storage, filename->value, &source_text);
+  tokens = tokenize(&storage, &source_text);
+  program = parse(&storage, source_text.filename, tokens, &root_scope);
   arena_free(&scratch_storage);
 
   drypass(source_text.filename, program);
   scope_map = build_scopes(&storage, source_text.filename, program, root_scope);
-  build_symtable(&storage, source_text.filename, program, root_scope,
-      scope_map, &decl_map);
-  build_type_env(&storage, source_text.filename, program, root_scope, type_array,
-      scope_map, decl_map, type_env);
+  decl_map = build_symtable(&storage, source_text.filename, program, root_scope,
+      scope_map, &type_array);
+  type_env = build_type_env(&storage, source_text.filename, program, root_scope,
+      type_array, scope_map, decl_map);
   build_potential_types(&storage, source_text.filename, program, root_scope,
       scope_map, decl_map, type_env);
 

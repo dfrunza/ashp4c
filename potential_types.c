@@ -177,17 +177,16 @@ Map*
 build_potential_types(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_,
     Map* scope_map_, Map* decl_map_, Map* type_env_)
 {
+  storage = storage_;
   source_file = source_file_;
   root_scope = root_scope_;
   scope_map = scope_map_;
-  type_env = type_env_;
   decl_map = decl_map_;
-  storage = storage_;
+  type_env = type_env_;
   potential_types = arena_malloc(storage, sizeof(Map));
   *potential_types = (Map){0};
 
   visit_p4program(p4program);
-
   return potential_types;
 }
 

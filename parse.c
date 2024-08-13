@@ -3,6 +3,11 @@
 #include "foundation.h"
 #include "frontend.h"
 
+struct Keyword {
+  char* strname;
+  enum TokenClass token_class;
+};
+
 static char*  source_file;
 static Arena* storage;
 static Array* tokens;
@@ -133,6 +138,58 @@ static Ast* parse_indexExpression();
 static Ast* parse_integer();
 static Ast* parse_boolean();
 static Ast* parse_string();
+
+static void
+setup_keywords(Scope* scope)
+{
+  struct Keyword keywords[] = {
+    {"action",  TK_ACTION},
+    {"actions", TK_ACTIONS},
+    {"entries", TK_ENTRIES},
+    {"enum",    TK_ENUM},
+    {"in",      TK_IN},
+    {"package", TK_PACKAGE},
+    {"select",  TK_SELECT},
+    {"switch",  TK_SWITCH},
+    {"tuple",   TK_TUPLE},
+    {"control", TK_CONTROL},
+    {"error",   TK_ERROR},
+    {"header",  TK_HEADER},
+    {"inout",   TK_INOUT},
+    {"parser",  TK_PARSER},
+    {"state",   TK_STATE},
+    {"table",   TK_TABLE},
+    {"key",     TK_KEY},
+    {"typedef", TK_TYPEDEF},
+    {"default", TK_DEFAULT},
+    {"extern",  TK_EXTERN},
+    {"out",     TK_OUT},
+    {"else",    TK_ELSE},
+    {"exit",    TK_EXIT},
+    {"if",      TK_IF},
+    {"return",  TK_RETURN},
+    {"struct",  TK_STRUCT},
+    {"apply",   TK_APPLY},
+    {"const",   TK_CONST},
+    {"bool",    TK_BOOL},
+    {"true",    TK_TRUE},
+    {"false",   TK_FALSE},
+    {"void",    TK_VOID},
+    {"int",     TK_INT},
+    {"bit",     TK_BIT},
+    {"varbit",  TK_VARBIT},
+    {"string",  TK_STRING},
+    {"match_kind",   TK_MATCH_KIND},
+    {"transition",   TK_TRANSITION},
+    {"header_union", TK_HEADER_UNION},
+  };
+  NameDeclaration* name_decl;
+
+  for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
+    name_decl = scope_bind(storage, scope, keywords[i].strname, NAMESPACE_KEYWORD);
+    name_decl->token_class = keywords[i].token_class;
+  }
+}
 
 static Token*
 next_token()
@@ -666,20 +723,24 @@ AstEnum_to_string(enum AstEnum ast)
 }
 
 Ast*
-parse_program(Arena* storage_, char* source_file_, Array* tokens_, Scope* root_scope)
+parse(Arena* storage_, char* source_file_, Array* tokens_, Scope** root_scope_)
 {
   Ast *program;
+  Scope* root_scope;
 
   source_file = source_file_;
   tokens = tokens_;
   storage = storage_;
+  root_scope = scope_create(storage, 5);
   current_scope = root_scope;
 
+  setup_keywords(root_scope);
   token_at = 0;
   token = array_get(tokens, token_at, sizeof(Token));
   next_token();
   program = parse_p4program();
   assert(current_scope == root_scope);
+  *root_scope_ = root_scope;
   return program;
 }
 
