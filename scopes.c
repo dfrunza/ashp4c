@@ -173,7 +173,6 @@ build_scopes(Arena* storage_, char* source_file, Ast* p4program, Scope* root_sco
   storage = storage_;
   current_scope = root_scope;
   scope_map = arena_malloc(storage, sizeof(Map));
-  *scope_map = (Map){0};
   visit_p4program(p4program);
   assert(current_scope == root_scope);
   return scope_map;

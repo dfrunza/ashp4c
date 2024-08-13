@@ -16,7 +16,7 @@ struct BuiltinType {
 static Arena* storage;
 static Scope* root_scope, *current_scope;
 static Map*   scope_map, *decl_map;
-static NameEntry null_entry = {};
+static NameEntry null_entry = {0};
 
 /** PROGRAM **/
 
@@ -196,7 +196,6 @@ setup_builtin_names(Array* type_array)
     name_entry = scope_lookup(root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
     name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
     ty = (Type*)array_append(storage, type_array, sizeof(Type));
-    *ty = (Type){0};
     ty->ty_former = builtin_types[i].ty_former;
     ty->strname = name_decl->strname;
     ty->ast = name_decl->ast;
@@ -205,12 +204,10 @@ setup_builtin_names(Array* type_array)
 
   ty = builtin_type(root_scope, "error");
   ty->builtin_enum.fields = (Type*)array_append(storage, type_array, sizeof(Type));
-  *ty->builtin_enum.fields = (Type){0};
   ty->builtin_enum.fields->ty_former = TYPE_PRODUCT;
 
   ty = builtin_type(root_scope, "match_kind");
   ty->builtin_enum.fields = (Type*)array_append(storage, type_array, sizeof(Type));
-  *ty->builtin_enum.fields = (Type){0};
   ty->builtin_enum.fields->ty_former = TYPE_PRODUCT;
 }
 
@@ -222,22 +219,14 @@ scope_lookup(Scope* scope, char* strname, enum NameSpace ns)
   while (scope) {
     name_entry = hashmap_lookup(&scope->name_table, strname, 0, 0);
     if (name_entry) {
-      if ((ns & NAMESPACE_VAR) != 0 && name_entry->ns[NAMESPACE_VAR >> 1]) {
-        break;
-      }
-      if ((ns & NAMESPACE_TYPE) != 0 && name_entry->ns[NAMESPACE_TYPE >> 1]) {
-        break;
-      }
-      if ((ns & NAMESPACE_KEYWORD) != 0 && name_entry->ns[NAMESPACE_KEYWORD >> 1]) {
-        break;
-      }
+      if ((ns & NAMESPACE_VAR) != 0 && name_entry->ns[NAMESPACE_VAR >> 1]) break;
+      if ((ns & NAMESPACE_TYPE) != 0 && name_entry->ns[NAMESPACE_TYPE >> 1]) break;
+      if ((ns & NAMESPACE_KEYWORD) != 0 && name_entry->ns[NAMESPACE_KEYWORD >> 1]) break;
     }
     name_entry = 0;
     scope = scope->parent_scope;
   }
-  if (name_entry) {
-    return name_entry;
-  }
+  if (name_entry) return name_entry;
   return &null_entry;
 }
 
@@ -256,12 +245,10 @@ scope_bind(Arena* storage, Scope* scope, char*strname, enum NameSpace ns)
   HashmapEntry* he;
 
   name_decl = arena_malloc(storage, sizeof(NameDeclaration));
-  *name_decl = (NameDeclaration){0};
   name_decl->strname = strname;
   he = hashmap_insert(storage, &scope->name_table, strname, 0, 1);
   if (he->value == 0) {
     he->value = arena_malloc(storage, sizeof(NameEntry));
-    *(NameEntry*)he->value = (NameEntry){0};
   }
   name_entry = (NameEntry*)he->value;
   name_decl->next_in_scope = name_entry->ns[ns >> 1];
@@ -334,7 +321,6 @@ build_symtable(Arena* storage_, char* source_file, Ast* p4program, Scope* root_s
   storage = storage_;
   current_scope = root_scope;
   decl_map = arena_malloc(storage, sizeof(Map));
-  *decl_map = (Map){0};
   type_array = array_create(storage, sizeof(Type), 5);
 
   setup_builtin_names(type_array);
