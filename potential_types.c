@@ -176,7 +176,7 @@ Debug_print_potential_types(PotentialType* tau)
 
 Map*
 build_potential_types(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_, Map* opened_scopes_,
-    Map* enclosing_scopes_, Map* type_env_, Map* decl_map_)
+    Map* enclosing_scopes_, Map* decl_map_, Map* type_env_)
 {
   source_file = source_file_;
   root_scope = root_scope_;
