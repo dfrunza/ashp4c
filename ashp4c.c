@@ -189,10 +189,8 @@ main(int arg_count, char* args[])
   NameDeclaration* name_decl;
   Scope* root_scope;
   Array* type_array;
-  Map* type_env;
   Type* builtin_ty;
-  Map* opened_scopes, *enclosing_scopes;
-  Map* decl_map;
+  Map* type_env, *decl_map, *scope_map;
 
   reserve_memory(500*KILOBYTE);
 
@@ -246,13 +244,13 @@ main(int arg_count, char* args[])
   arena_free(&scratch_storage);
 
   drypass(source_text.filename, program);
-  opened_scopes = build_opened_scopes(&storage, source_text.filename, program, root_scope);
-  enclosing_scopes = build_symtable(&storage, source_text.filename, program, root_scope,
-      opened_scopes, &decl_map);
-  build_type_env(&storage, source_text.filename, program, root_scope, type_array, type_env,
-      opened_scopes, enclosing_scopes, decl_map);
+  scope_map = build_scopes(&storage, source_text.filename, program, root_scope);
+  build_symtable(&storage, source_text.filename, program, root_scope,
+      scope_map, &decl_map);
+  build_type_env(&storage, source_text.filename, program, root_scope, type_array,
+      scope_map, decl_map, type_env);
   build_potential_types(&storage, source_text.filename, program, root_scope,
-      opened_scopes, enclosing_scopes, decl_map, type_env);
+      scope_map, decl_map, type_env);
 
   arena_free(&storage);
   return 0;

@@ -6,8 +6,7 @@
 static char*  source_file;
 static Arena* storage;
 static Scope* root_scope;
-static Map*   opened_scopes, *enclosing_scopes;
-static Map*   type_env, *decl_map;
+static Map*   type_env, *scope_map, *decl_map;
 static Array* type_array;
 static Array* type_equiv_pairs;
 
@@ -379,7 +378,7 @@ Debug_print_type_array(Array* type_array)
 
 void
 build_type_env(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_, Array* type_array_,
-    Map* type_env_, Map* opened_scopes_, Map* enclosing_scopes_, Map* decl_map_)
+    Map* scope_map_, Map* decl_map_, Map* type_env_)
 {
   Ast* name;
   Type* ref_ty, *ty;
@@ -391,8 +390,7 @@ build_type_env(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_
   root_scope = root_scope_;
   type_array = type_array_;
   type_env = type_env_;
-  opened_scopes = opened_scopes_;
-  enclosing_scopes = enclosing_scopes_;
+  scope_map = scope_map_;
   decl_map = decl_map_;
   type_equiv_pairs = array_create(storage, sizeof(Type), 2);
 
@@ -504,7 +502,7 @@ visit_name(Ast* name)
   name_ty->strname = name->name.strname;
   name_ty->ast = name;
   name_ty->nameref.name = name;
-  name_ty->nameref.scope = map_lookup(enclosing_scopes, name, 0);
+  name_ty->nameref.scope = map_lookup(scope_map, name, 0);
   map_insert(storage, type_env, name, name_ty, 0);
 }
 

@@ -6,9 +6,8 @@
 static char*  source_file;
 static Arena* storage;
 static Scope* root_scope;
-static Map*   opened_scopes, *enclosing_scopes;
 static Map*   type_env, *potential_types;
-static Map*   decl_map;
+static Map*   scope_map, *decl_map;
 
 /** PROGRAM **/
 
@@ -175,13 +174,12 @@ Debug_print_potential_types(PotentialType* tau)
 }
 
 Map*
-build_potential_types(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_, Map* opened_scopes_,
-    Map* enclosing_scopes_, Map* decl_map_, Map* type_env_)
+build_potential_types(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_,
+    Map* scope_map_, Map* decl_map_, Map* type_env_)
 {
   source_file = source_file_;
   root_scope = root_scope_;
-  opened_scopes = opened_scopes_;
-  enclosing_scopes = enclosing_scopes_;
+  scope_map = scope_map_;
   type_env = type_env_;
   decl_map = decl_map_;
   storage = storage_;
@@ -258,7 +256,7 @@ visit_name(Ast* name)
   tau = arena_malloc(storage, sizeof(PotentialType));
   *tau = (PotentialType){0};
   map_insert(storage, potential_types, name, tau, 0);
-  scope = map_lookup(enclosing_scopes, name, 0);
+  scope = map_lookup(scope_map, name, 0);
   name_entry = scope_lookup(scope, name->name.strname, NAMESPACE_VAR|NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_VAR);
   if (name_decl) {
