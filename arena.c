@@ -7,7 +7,7 @@
 #include <math.h> /* ceil */
 #include "foundation.h"
 
-#define ZMEM_ON_FREE  1
+#define ZMEM_ON_FREE  0
 #define ZMEM_ON_ALLOC 1
 
 static int   page_size = 0;
