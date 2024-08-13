@@ -145,7 +145,7 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 static void
-collect_matching_field_or_method(Arena* storage, PotentialType* tau, Type* fields_ty, char* strname)
+collect_matching_member(Arena* storage, PotentialType* tau, Type* fields_ty, char* strname)
 {
   for (int i = 0; i < fields_ty->product.count; i++) {
     if (cstr_match(fields_ty->product.members[i]->strname, strname)) {
@@ -1377,7 +1377,6 @@ static void
 visit_unaryExpression(Ast* unary_expr)
 {
   assert(unary_expr->kind == AST_unaryExpression);
-
   visit_expression(unary_expr->unaryExpression.operand);
 }
 
@@ -1410,14 +1409,14 @@ visit_memberSelector(Ast* selector)
   for (m = tau_lhs->members.first; m != 0; m = m->next) {
     lhs_ty = effective_type(m->key);
     if (lhs_ty->ty_former == TYPE_EXTERN) {
-      collect_matching_field_or_method(storage, tau, lhs_ty->extern_.methods, name->name.strname);
+      collect_matching_member(storage, tau, lhs_ty->extern_.methods, name->name.strname);
     } else if (lhs_ty->ty_former == TYPE_ENUM) {
-      collect_matching_field_or_method(storage, tau, lhs_ty->enum_.fields, name->name.strname);
+      collect_matching_member(storage, tau, lhs_ty->enum_.fields, name->name.strname);
     } else if (lhs_ty->ty_former == TYPE_MATCH_KIND || lhs_ty->ty_former == TYPE_ERROR) {
-      collect_matching_field_or_method(storage, tau, lhs_ty->builtin_enum.fields, name->name.strname);
+      collect_matching_member(storage, tau, lhs_ty->builtin_enum.fields, name->name.strname);
     } else if (lhs_ty->ty_former == TYPE_STRUCT || lhs_ty->ty_former == TYPE_HEADER ||
                lhs_ty->ty_former == TYPE_HEADER_UNION) {
-      collect_matching_field_or_method(storage, tau, lhs_ty->struct_.fields, name->name.strname);
+      collect_matching_member(storage, tau, lhs_ty->struct_.fields, name->name.strname);
     } else if (lhs_ty->ty_former == TYPE_HEADER_STACK) {
       /* TODO */
     } else if (lhs_ty->ty_former == TYPE_TABLE) {
