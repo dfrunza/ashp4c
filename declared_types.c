@@ -401,7 +401,7 @@ Debug_print_type_array(Array* type_array)
 }
 
 Map*
-build_type_env(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_,
+declared_types(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_,
     Array* type_array_, Map* scope_map_, Map* decl_map_)
 {
   Ast* name;

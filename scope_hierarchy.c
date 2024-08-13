@@ -168,7 +168,7 @@ scope_pop(Scope* scope)
 }
 
 Map*
-build_scopes(Arena* storage_, char* source_file, Ast* p4program, Scope* root_scope)
+scope_hierarchy(Arena* storage_, char* source_file, Ast* p4program, Scope* root_scope)
 {
   storage = storage_;
   current_scope = root_scope;

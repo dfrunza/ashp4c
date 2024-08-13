@@ -123,12 +123,12 @@ main(int arg_count, char* args[])
   arena_free(&scratch_storage);
 
   drypass(source_text.filename, program);
-  scope_map = build_scopes(&storage, source_text.filename, program, root_scope);
-  decl_map = build_symtable(&storage, source_text.filename, program, root_scope,
+  scope_map = scope_hierarchy(&storage, source_text.filename, program, root_scope);
+  decl_map = name_binding(&storage, source_text.filename, program, root_scope,
       scope_map, &type_array);
-  type_env = build_type_env(&storage, source_text.filename, program, root_scope,
+  type_env = declared_types(&storage, source_text.filename, program, root_scope,
       type_array, scope_map, decl_map);
-  build_potential_types(&storage, source_text.filename, program, root_scope,
+  potential_types(&storage, source_text.filename, program, root_scope,
       scope_map, decl_map, type_env);
 
   arena_free(&storage);

@@ -6,7 +6,7 @@
 static char*  source_file;
 static Arena* storage;
 static Scope* root_scope;
-static Map*   type_env, *potential_types;
+static Map*   type_env, *potential_type_map;
 static Map*   scope_map, *decl_map;
 
 /** PROGRAM **/
@@ -174,7 +174,7 @@ Debug_print_potential_types(PotentialType* tau)
 }
 
 Map*
-build_potential_types(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_,
+potential_types(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_,
     Map* scope_map_, Map* decl_map_, Map* type_env_)
 {
   storage = storage_;
@@ -183,10 +183,10 @@ build_potential_types(Arena* storage_, char* source_file_, Ast* p4program, Scope
   scope_map = scope_map_;
   decl_map = decl_map_;
   type_env = type_env_;
-  potential_types = arena_malloc(storage, sizeof(Map));
+  potential_type_map = arena_malloc(storage, sizeof(Map));
 
   visit_p4program(p4program);
-  return potential_types;
+  return potential_type_map;
 }
 
 /** PROGRAM **/
@@ -252,7 +252,7 @@ visit_name(Ast* name)
   Type* name_ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  map_insert(storage, potential_types, name, tau, 0);
+  map_insert(storage, potential_type_map, name, tau, 0);
   scope = map_lookup(scope_map, name, 0);
   name_entry = scope_lookup(scope, name->name.strname, NAMESPACE_VAR|NAMESPACE_TYPE);
   name_decl = name_entry_getdecl(name_entry, NAMESPACE_VAR);
@@ -304,7 +304,7 @@ visit_instantiation(Ast* inst)
   Type* inst_ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  map_insert(storage, potential_types, inst, tau, 0);
+  map_insert(storage, potential_type_map, inst, tau, 0);
   visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
   inst_ty = map_lookup(type_env, inst, 0);
@@ -429,8 +429,8 @@ visit_stateExpression(Ast* state_expr)
   } else if (state_expr->stateExpression.expr->kind == AST_selectExpression) {
     visit_selectExpression(state_expr->stateExpression.expr);
   } else assert(0);
-  tau = map_lookup(potential_types, state_expr->stateExpression.expr, 0);
-  map_insert(storage, potential_types, state_expr, tau, 0);
+  tau = map_lookup(potential_type_map, state_expr->stateExpression.expr, 0);
+  map_insert(storage, potential_type_map, state_expr, tau, 0);
 }
 
 static void
@@ -450,7 +450,7 @@ visit_selectCaseList(Ast* case_list)
   int i;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  map_insert(storage, potential_types, case_list, tau, 0);
+  map_insert(storage, potential_type_map, case_list, tau, 0);
   for (ast = case_list->selectCaseList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_selectCase(ast);
@@ -462,7 +462,7 @@ visit_selectCaseList(Ast* case_list)
   i = 0;
   for (ast = case_list->selectCaseList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    tau_case = map_lookup(potential_types, ast, 0);
+    tau_case = map_lookup(potential_type_map, ast, 0);
     tau->product.members[i] = &tau_case->members;
     i += 1;
   }
@@ -477,8 +477,8 @@ visit_selectCase(Ast* select_case)
 
   visit_keysetExpression(select_case->selectCase.keyset_expr);
   visit_name(select_case->selectCase.name);
-  tau = map_lookup(potential_types, select_case->selectCase.name, 0);
-  map_insert(storage, potential_types, select_case, tau, 0);
+  tau = map_lookup(potential_type_map, select_case->selectCase.name, 0);
+  map_insert(storage, potential_type_map, select_case, tau, 0);
 }
 
 static void
@@ -489,15 +489,15 @@ visit_keysetExpression(Ast* keyset_expr)
 
   if (keyset_expr->keysetExpression.expr->kind == AST_tupleKeysetExpression) {
     visit_tupleKeysetExpression(keyset_expr->keysetExpression.expr);
-    tau = map_lookup(potential_types, keyset_expr->keysetExpression.expr, 0);
-    map_insert(storage, potential_types, keyset_expr, tau, 0);
+    tau = map_lookup(potential_type_map, keyset_expr->keysetExpression.expr, 0);
+    map_insert(storage, potential_type_map, keyset_expr, tau, 0);
   } else if (keyset_expr->keysetExpression.expr->kind == AST_simpleKeysetExpression) {
     visit_simpleKeysetExpression(keyset_expr->keysetExpression.expr);
     tau = arena_malloc(storage, sizeof(PotentialType));
     tau->product.count = 1;
     tau->product.members = arena_malloc(storage, tau->product.count*sizeof(Map*));
-    tau->product.members[0] = map_lookup(potential_types, keyset_expr->keysetExpression.expr, 0);
-    map_insert(storage, potential_types, keyset_expr, tau, 0);
+    tau->product.members[0] = map_lookup(potential_type_map, keyset_expr->keysetExpression.expr, 0);
+    map_insert(storage, potential_type_map, keyset_expr, tau, 0);
   } else assert(0);
 }
 
@@ -508,8 +508,8 @@ visit_tupleKeysetExpression(Ast* tuple_expr)
   PotentialType* tau;
 
   visit_simpleExpressionList(tuple_expr->tupleKeysetExpression.expr_list);
-  tau = map_lookup(potential_types, tuple_expr->tupleKeysetExpression.expr_list, 0);
-  map_insert(storage, potential_types, tuple_expr, tau, 0);
+  tau = map_lookup(potential_type_map, tuple_expr->tupleKeysetExpression.expr_list, 0);
+  map_insert(storage, potential_type_map, tuple_expr, tau, 0);
 }
 
 static void
@@ -525,8 +525,8 @@ visit_simpleKeysetExpression(Ast* simple_expr)
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_dontcare) {
     visit_dontcare(simple_expr->simpleKeysetExpression.expr);
   } else assert(0);
-  tau = map_lookup(potential_types, simple_expr->simpleKeysetExpression.expr, 0);
-  map_insert(storage, potential_types, simple_expr, tau, 0);
+  tau = map_lookup(potential_type_map, simple_expr->simpleKeysetExpression.expr, 0);
+  map_insert(storage, potential_type_map, simple_expr, tau, 0);
 }
 
 static void
@@ -538,7 +538,7 @@ visit_simpleExpressionList(Ast* expr_list)
   int i;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  map_insert(storage, potential_types, expr_list, tau, 0);
+  map_insert(storage, potential_type_map, expr_list, tau, 0);
   for (ast = expr_list->simpleExpressionList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_simpleKeysetExpression(ast);
@@ -550,7 +550,7 @@ visit_simpleExpressionList(Ast* expr_list)
   i = 0;
   for (ast = expr_list->simpleExpressionList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    tau_expr = map_lookup(potential_types, ast, 0);
+    tau_expr = map_lookup(potential_type_map, ast, 0);
     tau->product.members[i] = &tau_expr->members;
     i += 1;
   }
@@ -676,8 +676,8 @@ visit_typeRef(Ast* type_ref)
   } else if (type_ref->typeRef.type->kind == AST_tupleType) {
     visit_tupleType(type_ref->typeRef.type);
   } else assert(0);
-  tau = map_lookup(potential_types, type_ref->typeRef.type, 0);
-  map_insert(storage, potential_types, type_ref, tau, 0);
+  tau = map_lookup(potential_type_map, type_ref->typeRef.type, 0);
+  map_insert(storage, potential_type_map, type_ref, tau, 0);
 }
 
 static void
@@ -936,8 +936,8 @@ visit_functionCall(Ast* func_call)
     visit_lvalueExpression(func_call->functionCall.lhs_expr);
   } else assert(0);
   visit_argumentList(func_call->functionCall.args);
-  tau = map_lookup(potential_types, func_call->functionCall.lhs_expr, 0);
-  map_insert(storage, potential_types, func_call, tau, 0);
+  tau = map_lookup(potential_type_map, func_call->functionCall.lhs_expr, 0);
+  map_insert(storage, potential_type_map, func_call, tau, 0);
 }
 
 static void
@@ -1218,7 +1218,7 @@ visit_variableDeclaration(Ast* var_decl)
   Type* var_ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  map_insert(storage, potential_types, var_decl, tau, 0);
+  map_insert(storage, potential_type_map, var_decl, tau, 0);
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr);
   }
@@ -1245,7 +1245,7 @@ visit_argumentList(Ast* args)
   int i;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  map_insert(storage, potential_types, args, tau, 0);
+  map_insert(storage, potential_type_map, args, tau, 0);
   for (ast = args->argumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_argument(ast);
@@ -1257,7 +1257,7 @@ visit_argumentList(Ast* args)
   i = 0;
   for (ast = args->argumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    tau_arg = map_lookup(potential_types, ast, 0);
+    tau_arg = map_lookup(potential_type_map, ast, 0);
     tau->product.members[i] = &tau_arg->members;
     i += 1;
   }
@@ -1275,8 +1275,8 @@ visit_argument(Ast* arg)
   } else if (arg->argument.arg->kind == AST_dontcare) {
     visit_dontcare(arg->argument.arg);
   } else assert(0);
-  tau = map_lookup(potential_types, arg->argument.arg, 0);
-  map_insert(storage, potential_types, arg, tau, 0);
+  tau = map_lookup(potential_type_map, arg->argument.arg, 0);
+  map_insert(storage, potential_type_map, arg, tau, 0);
 }
 
 static void
@@ -1288,7 +1288,7 @@ visit_expressionList(Ast* expr_list)
   int i;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  map_insert(storage, potential_types, expr_list, tau, 0);
+  map_insert(storage, potential_type_map, expr_list, tau, 0);
   for (ast = expr_list->expressionList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_expression(ast);
@@ -1300,7 +1300,7 @@ visit_expressionList(Ast* expr_list)
   i = 0;
   for (ast = expr_list->expressionList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    tau_expr = map_lookup(potential_types, ast, 0);
+    tau_expr = map_lookup(potential_type_map, ast, 0);
     tau->product.members[i] = &tau_expr->members;
     i += 1;
   }
@@ -1320,8 +1320,8 @@ visit_lvalueExpression(Ast* lvalue_expr)
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_arraySubscript) {
     visit_arraySubscript(lvalue_expr->lvalueExpression.expr);
   } else assert(0);
-  tau = map_lookup(potential_types, lvalue_expr->lvalueExpression.expr, 0);
-  map_insert(storage, potential_types, lvalue_expr, tau, 0);
+  tau = map_lookup(potential_type_map, lvalue_expr->lvalueExpression.expr, 0);
+  map_insert(storage, potential_type_map, lvalue_expr, tau, 0);
 }
 
 static void
@@ -1357,8 +1357,8 @@ visit_expression(Ast* expr)
   } else if (expr->expression.expr->kind == AST_assignmentStatement) {
     visit_assignmentStatement(expr->expression.expr);
   } else assert(0);
-  tau = map_lookup(potential_types, expr->expression.expr, 0);
-  map_insert(storage, potential_types, expr, tau, 0);
+  tau = map_lookup(potential_type_map, expr->expression.expr, 0);
+  map_insert(storage, potential_type_map, expr, tau, 0);
 }
 
 static void
@@ -1369,8 +1369,8 @@ visit_castExpression(Ast* cast_expr)
 
   visit_typeRef(cast_expr->castExpression.type);
   visit_expression(cast_expr->castExpression.expr);
-  tau = map_lookup(potential_types, cast_expr->castExpression.type, 0);
-  map_insert(storage, potential_types, cast_expr, tau, 0);
+  tau = map_lookup(potential_type_map, cast_expr->castExpression.type, 0);
+  map_insert(storage, potential_type_map, cast_expr, tau, 0);
 }
 
 static void
@@ -1399,14 +1399,14 @@ visit_memberSelector(Ast* selector)
   Type* lhs_ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  map_insert(storage, potential_types, selector, tau, 0);
+  map_insert(storage, potential_type_map, selector, tau, 0);
   if (selector->memberSelector.lhs_expr->kind == AST_expression) {
     visit_expression(selector->memberSelector.lhs_expr);
   } else if (selector->memberSelector.lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression(selector->memberSelector.lhs_expr);
   } else assert(0);
   name = selector->memberSelector.name;
-  tau_lhs = map_lookup(potential_types, selector->memberSelector.lhs_expr, 0);
+  tau_lhs = map_lookup(potential_type_map, selector->memberSelector.lhs_expr, 0);
   for (m = tau_lhs->members.first; m != 0; m = m->next) {
     lhs_ty = effective_type(m->key);
     if (lhs_ty->ty_former == TYPE_EXTERN) {
@@ -1442,8 +1442,8 @@ visit_arraySubscript(Ast* subscript)
     visit_lvalueExpression(subscript->arraySubscript.lhs_expr);
   } else assert(0);
   visit_indexExpression(subscript->arraySubscript.index_expr);
-  tau = map_lookup(potential_types, subscript->arraySubscript.lhs_expr, 0);
-  map_insert(storage, potential_types, subscript, tau, 0);
+  tau = map_lookup(potential_type_map, subscript->arraySubscript.lhs_expr, 0);
+  map_insert(storage, potential_type_map, subscript, tau, 0);
 }
 
 static void
@@ -1464,7 +1464,7 @@ visit_booleanLiteral(Ast* bool_literal)
   PotentialType* tau;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  map_insert(storage, potential_types, bool_literal, tau, 0);
+  map_insert(storage, potential_type_map, bool_literal, tau, 0);
   map_insert(storage, &tau->members, builtin_type(root_scope, "bool"), 0, 0);
 }
 
@@ -1475,7 +1475,7 @@ visit_integerLiteral(Ast* int_literal)
   PotentialType* tau;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  map_insert(storage, potential_types, int_literal, tau, 0);
+  map_insert(storage, potential_type_map, int_literal, tau, 0);
   map_insert(storage, &tau->members, builtin_type(root_scope, "int"), 0, 0);
 }
 
@@ -1486,7 +1486,7 @@ visit_stringLiteral(Ast* str_literal)
   PotentialType* tau;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  map_insert(storage, potential_types, str_literal, tau, 0);
+  map_insert(storage, potential_type_map, str_literal, tau, 0);
   map_insert(storage, &tau->members, builtin_type(root_scope, "string"), 0, 0);
 }
 
@@ -1503,6 +1503,6 @@ visit_dontcare(Ast* dontcare)
   PotentialType* tau;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
-  map_insert(storage, potential_types, dontcare, tau, 0);
+  map_insert(storage, potential_type_map, dontcare, tau, 0);
   map_insert(storage, &tau->members, builtin_type(root_scope, "_"), 0, 0);
 }

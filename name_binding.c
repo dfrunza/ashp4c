@@ -311,7 +311,7 @@ NameSpace_to_string(enum NameSpace ns)
 }
 
 Map*
-build_symtable(Arena* storage_, char* source_file, Ast* p4program, Scope* root_scope_,
+name_binding(Arena* storage_, char* source_file, Ast* p4program, Scope* root_scope_,
     Map* scope_map_, Array** type_array_)
 {
   Array* type_array;
