@@ -842,6 +842,8 @@ enum TypeEnum {
   TYPE_HEADER_STACK,
   TYPE_STATE,
   TYPE_FIELD,
+  TYPE_ERROR,
+  TYPE_MATCH_KIND,
   TYPE_NAMEREF,
   TYPE_TYPE,
   TYPE_TUPLE,
@@ -889,6 +891,12 @@ typedef struct Type {
     } field;
 
     struct {
+      struct Type* fields;
+      int field_count;
+      int i;
+    } builtin_enum;
+
+    struct {
       Ast* name;
       struct Scope* scope;
     } nameref;
@@ -922,6 +930,7 @@ typedef struct PotentialType {
 
 Type*  actual_type(Type* type);
 Type*  effective_type(Type* type);
+Type*  builtin_type(struct Scope* root_scope, char* strname);
 bool   type_equiv(Type* u, Type* v);
 char*  TypeEnum_to_string(enum TypeEnum type);
 

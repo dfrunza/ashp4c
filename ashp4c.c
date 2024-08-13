@@ -5,15 +5,15 @@
 #include "frontend.h"
 #include "ashp4c.h"
 
-Type *builtin_void_ty,
-     *builtin_bool_ty,
-     *builtin_int_ty,
-     *builtin_bit_ty,
-     *builtin_varbit_ty,
-     *builtin_string_ty,
-     *builtin_error_ty,
-     *builtin_match_kind_ty,
-     *builtin_dontcare_ty;
+static Type *void_ty,
+            *bool_ty,
+            *int_ty,
+            *bit_ty,
+            *varbit_ty,
+            *string_ty,
+            *error_ty,
+            *match_kind_ty,
+            *dontcare_ty;
 
 typedef struct CmdlineArg {
   char* name;
@@ -144,13 +144,10 @@ main(int arg_count, char* args[])
     {"typedef", TK_TYPEDEF},
     {"default", TK_DEFAULT},
     {"extern",  TK_EXTERN},
-    {"header_union", TK_HEADER_UNION},
     {"out",     TK_OUT},
-    {"transition", TK_TRANSITION},
     {"else",    TK_ELSE},
     {"exit",    TK_EXIT},
     {"if",      TK_IF},
-    {"match_kind", TK_MATCH_KIND},
     {"return",  TK_RETURN},
     {"struct",  TK_STRUCT},
     {"apply",   TK_APPLY},
@@ -163,15 +160,18 @@ main(int arg_count, char* args[])
     {"bit",     TK_BIT},
     {"varbit",  TK_VARBIT},
     {"string",  TK_STRING},
+    {"match_kind",   TK_MATCH_KIND},
+    {"transition",   TK_TRANSITION},
+    {"header_union", TK_HEADER_UNION},
   };
 
   struct BuiltinName builtin_names[] = {
+    {"void",   NAMESPACE_TYPE},
     {"bool",   NAMESPACE_TYPE},
     {"int",    NAMESPACE_TYPE},
     {"bit",    NAMESPACE_TYPE},
     {"varbit", NAMESPACE_TYPE},
     {"string", NAMESPACE_TYPE},
-    {"void",   NAMESPACE_TYPE},
     {"error",  NAMESPACE_TYPE},
     {"match_kind", NAMESPACE_TYPE},
     {"_",      NAMESPACE_TYPE},
@@ -180,15 +180,15 @@ main(int arg_count, char* args[])
   };
 
   struct BuiltinType builtin_types[] = {
-    {"void",       TYPE_VOID,     &builtin_void_ty},
-    {"bool",       TYPE_BOOL,     &builtin_bool_ty},
-    {"int",        TYPE_INT,      &builtin_int_ty},
-    {"bit",        TYPE_BIT,      &builtin_bit_ty},
-    {"varbit",     TYPE_VARBIT,   &builtin_varbit_ty},
-    {"string",     TYPE_STRING,   &builtin_string_ty},
-    {"error",      TYPE_ENUM,     &builtin_error_ty},
-    {"match_kind", TYPE_ENUM,     &builtin_match_kind_ty},
-    {"_",          TYPE_DONTCARE, &builtin_dontcare_ty},
+    {"void",       TYPE_VOID,       &void_ty},
+    {"bool",       TYPE_BOOL,       &bool_ty},
+    {"int",        TYPE_INT,        &int_ty},
+    {"bit",        TYPE_BIT,        &bit_ty},
+    {"varbit",     TYPE_VARBIT,     &varbit_ty},
+    {"string",     TYPE_STRING,     &string_ty},
+    {"error",      TYPE_ERROR,      &error_ty},
+    {"match_kind", TYPE_MATCH_KIND, &match_kind_ty},
+    {"_",          TYPE_DONTCARE,   &dontcare_ty},
   };
 
   CmdlineArg* cmdline, *filename;
@@ -196,8 +196,8 @@ main(int arg_count, char* args[])
   Arena storage = {0}, scratch_storage = {0};
   Array* tokens;
   Ast* name, *program;
-  NameDeclaration* name_decl;
   NameEntry* name_entry;
+  NameDeclaration* name_decl;
   Scope* root_scope;
   Array* type_array;
   Map* type_env;
@@ -241,6 +241,20 @@ main(int arg_count, char* args[])
     map_insert(&storage, type_env, name_decl->ast, ty, 0);
     *builtin_types[i].type = ty;
   }
+
+  ty = builtin_type(root_scope, "error");
+  ty->builtin_enum.fields = (Type*)array_append(&storage, type_array, sizeof(Type));
+  ty = ty->builtin_enum.fields;
+  ty->ty_former = TYPE_PRODUCT;
+  ty->product.count = 0;
+  ty->product.members = 0;
+
+  ty = builtin_type(root_scope, "match_kind");
+  ty->builtin_enum.fields = (Type*)array_append(&storage, type_array, sizeof(Type));
+  ty = ty->builtin_enum.fields;
+  ty->ty_former = TYPE_PRODUCT;
+  ty->product.count = 0;
+  ty->product.members = 0;
 
   read_source_text(&scratch_storage, filename->value, &source_text);
   tokens = tokenize_source_text(&storage, &source_text);

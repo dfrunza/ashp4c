@@ -3,16 +3,6 @@
 #include "foundation.h"
 #include "frontend.h"
 
-extern Type *builtin_void_ty,
-            *builtin_bool_ty,
-            *builtin_int_ty,
-            *builtin_bit_ty,
-            *builtin_varbit_ty,
-            *builtin_string_ty,
-            *builtin_error_ty,
-            *builtin_match_kind_ty,
-            *builtin_dontcare_ty;
-
 static char*  source_file;
 static Arena* storage;
 static Scope* root_scope;
@@ -1390,9 +1380,12 @@ static void
 visit_castExpression(Ast* cast_expr)
 {
   assert(cast_expr->kind == AST_castExpression);
+  PotentialType* tau;
 
   visit_typeRef(cast_expr->castExpression.type);
   visit_expression(cast_expr->castExpression.expr);
+  tau = map_lookup(potential_types, cast_expr->castExpression.type, 0);
+  map_insert(storage, potential_types, cast_expr, tau, 0);
 }
 
 static void
@@ -1436,6 +1429,8 @@ visit_memberSelector(Ast* selector)
       collect_matching_field_or_method(storage, tau, lhs_ty->extern_.methods, name->name.strname);
     } else if (lhs_ty->ty_former == TYPE_ENUM) {
       collect_matching_field_or_method(storage, tau, lhs_ty->enum_.fields, name->name.strname);
+    } else if (lhs_ty->ty_former == TYPE_MATCH_KIND || lhs_ty->ty_former == TYPE_ERROR) {
+      collect_matching_field_or_method(storage, tau, lhs_ty->builtin_enum.fields, name->name.strname);
     } else if (lhs_ty->ty_former == TYPE_STRUCT || lhs_ty->ty_former == TYPE_HEADER ||
                lhs_ty->ty_former == TYPE_HEADER_UNION) {
       collect_matching_field_or_method(storage, tau, lhs_ty->struct_.fields, name->name.strname);
@@ -1455,6 +1450,7 @@ static void
 visit_arraySubscript(Ast* subscript)
 {
   assert(subscript->kind == AST_arraySubscript);
+  PotentialType* tau;
 
   if (subscript->arraySubscript.lhs_expr->kind == AST_expression) {
     visit_expression(subscript->arraySubscript.lhs_expr);
@@ -1462,6 +1458,8 @@ visit_arraySubscript(Ast* subscript)
     visit_lvalueExpression(subscript->arraySubscript.lhs_expr);
   } else assert(0);
   visit_indexExpression(subscript->arraySubscript.index_expr);
+  tau = map_lookup(potential_types, subscript->arraySubscript.lhs_expr, 0);
+  map_insert(storage, potential_types, subscript, tau, 0);
 }
 
 static void
@@ -1484,7 +1482,7 @@ visit_booleanLiteral(Ast* bool_literal)
   tau = arena_malloc(storage, sizeof(PotentialType));
   tau->members = (Map){0};
   map_insert(storage, potential_types, bool_literal, tau, 0);
-  map_insert(storage, &tau->members, builtin_bool_ty, 0, 0);
+  map_insert(storage, &tau->members, builtin_type(root_scope, "bool"), 0, 0);
 }
 
 static void
@@ -1496,7 +1494,7 @@ visit_integerLiteral(Ast* int_literal)
   tau = arena_malloc(storage, sizeof(PotentialType));
   tau->members = (Map){0};
   map_insert(storage, potential_types, int_literal, tau, 0);
-  map_insert(storage, &tau->members, builtin_int_ty, 0, 0);
+  map_insert(storage, &tau->members, builtin_type(root_scope, "int"), 0, 0);
 }
 
 static void
@@ -1508,7 +1506,7 @@ visit_stringLiteral(Ast* str_literal)
   tau = arena_malloc(storage, sizeof(PotentialType));
   tau->members = (Map){0};
   map_insert(storage, potential_types, str_literal, tau, 0);
-  map_insert(storage, &tau->members, builtin_string_ty, 0, 0);
+  map_insert(storage, &tau->members, builtin_type(root_scope, "string"), 0, 0);
 }
 
 static void
@@ -1526,5 +1524,5 @@ visit_dontcare(Ast* dontcare)
   tau = arena_malloc(storage, sizeof(PotentialType));
   tau->members = (Map){0};
   map_insert(storage, potential_types, dontcare, tau, 0);
-  map_insert(storage, &tau->members, builtin_dontcare_ty, 0, 0);
+  map_insert(storage, &tau->members, builtin_type(root_scope, "_"), 0, 0);
 }

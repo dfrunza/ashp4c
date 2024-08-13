@@ -3,16 +3,6 @@
 #include "foundation.h"
 #include "frontend.h"
 
-extern Type *builtin_void_ty,
-            *builtin_bool_ty,
-            *builtin_int_ty,
-            *builtin_bit_ty,
-            *builtin_varbit_ty,
-            *builtin_string_ty,
-            *builtin_error_ty,
-            *builtin_match_kind_ty,
-            *builtin_dontcare_ty;
-
 static char*  source_file;
 static Arena* storage;
 static Scope* root_scope;
@@ -64,8 +54,8 @@ static void visit_controlLocalDeclaration(Ast* local_decl);
 
 static void visit_externDeclaration(Ast* extern_decl);
 static void visit_externTypeDeclaration(Ast* type_decl);
-static void visit_methodPrototypes(Ast* protos, Ast* extern_decl, Ast* extern_name);
-static void visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name);
+static void visit_methodPrototypes(Ast* protos, Ast* extern_decl);
+static void visit_functionPrototype(Ast* func_proto, Ast* extern_decl);
 
 /** TYPES **/
 
@@ -88,14 +78,14 @@ static void visit_derivedTypeDeclaration(Ast* type_decl);
 static void visit_headerTypeDeclaration(Ast* header_decl);
 static void visit_headerUnionDeclaration(Ast* union_decl);
 static void visit_structTypeDeclaration(Ast* struct_decl);
-static void visit_structFieldList(Ast* fields, Ast* struct_decl);
-static void visit_structField(Ast* field, Ast* struct_decl);
+static void visit_structFieldList(Ast* fields);
+static void visit_structField(Ast* field);
 static void visit_enumDeclaration(Ast* enum_decl);
 static void visit_errorDeclaration(Ast* error_decl);
 static void visit_matchKindDeclaration(Ast* match_decl);
-static void visit_identifierList(Ast* ident_list);
-static void visit_specifiedIdentifierList(Ast* ident_list, Ast* enum_decl);
-static void visit_specifiedIdentifier(Ast* ident, Ast* enum_decl);
+static void visit_identifierList(Ast* ident_list, Type* enum_ty, Type* idents_ty, int* i);
+static void visit_specifiedIdentifierList(Ast* ident_list, Type* enum_ty);
+static void visit_specifiedIdentifier(Ast* ident, Type* enum_ty);
 static void visit_typedefDeclaration(Ast* typedef_decl);
 
 /** STATEMENTS **/
@@ -288,8 +278,21 @@ effective_type(Type* type)
     return actual_type(type->function.return_);
   } else if (type->ty_former == TYPE_FIELD) {
     return actual_type(type->field.type);
+  } else if (type->ty_former == TYPE_HEADER_STACK) {
+    return actual_type(type->header_stack.element);
   }
   return applied_ty;
+}
+
+Type*
+builtin_type(Scope* root_scope, char* strname)
+{
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
+
+  name_entry = scope_lookup(root_scope, strname, NAMESPACE_TYPE);
+  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+  return name_decl->type;
 }
 
 char*
@@ -871,7 +874,7 @@ visit_externDeclaration(Ast* extern_decl)
   if (extern_decl->externDeclaration.decl->kind == AST_externTypeDeclaration) {
     visit_externTypeDeclaration(extern_decl->externDeclaration.decl);
   } else if (extern_decl->externDeclaration.decl->kind == AST_functionPrototype) {
-    visit_functionPrototype(extern_decl->externDeclaration.decl, 0, 0);
+    visit_functionPrototype(extern_decl->externDeclaration.decl, 0);
   } else assert(0);
 }
 
@@ -889,8 +892,7 @@ visit_externTypeDeclaration(Ast* type_decl)
   extern_ty->strname = name->name.strname;
   extern_ty->ast = type_decl;
   map_insert(storage, type_env, type_decl, extern_ty, 0);
-  visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos,
-      type_decl, type_decl->externTypeDeclaration.name);
+  visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos, type_decl);
   methods_ty = map_lookup(type_env, type_decl->externTypeDeclaration.method_protos, 0);
   extern_ty->extern_.methods = methods_ty;
   name_decl = map_lookup(decl_map, type_decl, 0);
@@ -898,9 +900,10 @@ visit_externTypeDeclaration(Ast* type_decl)
 }
 
 static void
-visit_methodPrototypes(Ast* protos, Ast* extern_decl, Ast* extern_name)
+visit_methodPrototypes(Ast* protos, Ast* extern_decl)
 {
   assert(protos->kind == AST_methodPrototypes);
+  assert(extern_decl->kind == AST_externTypeDeclaration);
   Ast* ast;
   Type* methods_ty;
   int i;
@@ -912,7 +915,7 @@ visit_methodPrototypes(Ast* protos, Ast* extern_decl, Ast* extern_name)
   methods_ty->product.members = 0;
   for (ast = protos->methodPrototypes.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_functionPrototype(ast, extern_decl, extern_name);
+    visit_functionPrototype(ast, extern_decl);
     methods_ty->product.count += 1;
   }
   if (methods_ty->product.count > 0) {
@@ -929,10 +932,11 @@ visit_methodPrototypes(Ast* protos, Ast* extern_decl, Ast* extern_name)
 }
 
 static void
-visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
+visit_functionPrototype(Ast* func_proto, Ast* extern_decl)
 {
   assert(func_proto->kind == AST_functionPrototype);
-  Ast* name, *return_type;
+  if (extern_decl) assert(extern_decl->kind == AST_externTypeDeclaration);
+  Ast* name, *extern_name, *return_type;
   NameDeclaration* name_decl;
   Type* func_ty;
 
@@ -941,6 +945,8 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl, Ast* extern_name)
   }
   visit_parameterList(func_proto->functionPrototype.params);
   name = func_proto->functionPrototype.name;
+  extern_name = 0;
+  if (extern_decl) extern_name = extern_decl->externTypeDeclaration.name;
   func_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   func_ty->ty_former = TYPE_FUNCTION;
   func_ty->strname = name->name.strname;
@@ -1206,7 +1212,7 @@ visit_headerTypeDeclaration(Ast* header_decl)
   NameDeclaration* name_decl;
   Type* header_ty;
 
-  visit_structFieldList(header_decl->headerTypeDeclaration.fields, header_decl);
+  visit_structFieldList(header_decl->headerTypeDeclaration.fields);
   name = header_decl->headerTypeDeclaration.name;
   header_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   header_ty->ty_former = TYPE_HEADER;
@@ -1226,7 +1232,7 @@ visit_headerUnionDeclaration(Ast* union_decl)
   NameDeclaration* name_decl;
   Type* union_ty;
 
-  visit_structFieldList(union_decl->headerUnionDeclaration.fields, union_decl);
+  visit_structFieldList(union_decl->headerUnionDeclaration.fields);
   name = union_decl->headerUnionDeclaration.name;
   union_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   union_ty->ty_former = TYPE_HEADER_UNION;
@@ -1246,7 +1252,7 @@ visit_structTypeDeclaration(Ast* struct_decl)
   NameDeclaration* name_decl;
   Type* struct_ty;
 
-  visit_structFieldList(struct_decl->structTypeDeclaration.fields, struct_decl);
+  visit_structFieldList(struct_decl->structTypeDeclaration.fields);
   name = struct_decl->structTypeDeclaration.name;
   struct_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   struct_ty->ty_former = TYPE_STRUCT;
@@ -1259,7 +1265,7 @@ visit_structTypeDeclaration(Ast* struct_decl)
 }
 
 static void
-visit_structFieldList(Ast* fields, Ast* struct_decl)
+visit_structFieldList(Ast* fields)
 {
   assert(fields->kind == AST_structFieldList);
   Ast* ast;
@@ -1273,7 +1279,7 @@ visit_structFieldList(Ast* fields, Ast* struct_decl)
   fields_ty->product.members = 0;
   for (ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_structField(ast, struct_decl);
+    visit_structField(ast);
     fields_ty->product.count += 1;
   }
   if (fields_ty->product.count > 0) {
@@ -1290,7 +1296,7 @@ visit_structFieldList(Ast* fields, Ast* struct_decl)
 }
 
 static void
-visit_structField(Ast* field, Ast* struct_decl)
+visit_structField(Ast* field)
 {
   assert(field->kind == AST_structField);
   Ast* name;
@@ -1323,7 +1329,8 @@ visit_enumDeclaration(Ast* enum_decl)
   enum_ty->strname = name->name.strname;
   enum_ty->ast = enum_decl;
   map_insert(storage, type_env, enum_decl, enum_ty, 0);
-  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields, enum_decl);
+  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields, enum_ty);
+  enum_ty->enum_.fields = map_lookup(type_env, enum_decl->enumDeclaration.fields, 0);
   name_decl = map_lookup(decl_map, enum_decl, 0);
   name_decl->type = enum_ty;
 }
@@ -1332,24 +1339,62 @@ static void
 visit_errorDeclaration(Ast* error_decl)
 {
   assert(error_decl->kind == AST_errorDeclaration);
-  visit_identifierList(error_decl->errorDeclaration.fields);
+  Type* error_ty, *fields_ty;
+
+  error_ty = builtin_type(root_scope, "error");
+  fields_ty = error_ty->builtin_enum.fields;
+  if (error_ty->builtin_enum.field_count > 0 && fields_ty->product.members == 0) {
+    fields_ty->product.count = error_ty->builtin_enum.field_count;
+    fields_ty->product.members = arena_malloc(storage, fields_ty->product.count*sizeof(Type*));
+  }
+  visit_identifierList(error_decl->errorDeclaration.fields, error_ty,
+      error_ty->builtin_enum.fields, &error_ty->builtin_enum.i);
 }
 
 static void
 visit_matchKindDeclaration(Ast* match_decl)
 {
   assert(match_decl->kind == AST_matchKindDeclaration);
-  visit_identifierList(match_decl->matchKindDeclaration.fields);
+  Type* match_kind_ty, *fields_ty;
+
+  match_kind_ty = builtin_type(root_scope, "match_kind");
+  fields_ty = match_kind_ty->builtin_enum.fields;
+  if (match_kind_ty->builtin_enum.field_count > 0 && match_kind_ty->product.members == 0) {
+    fields_ty->product.count = match_kind_ty->builtin_enum.field_count;
+    fields_ty->product.members = arena_malloc(storage, fields_ty->product.count*sizeof(Type*));
+  }
+  visit_identifierList(match_decl->matchKindDeclaration.fields, match_kind_ty,
+      match_kind_ty->builtin_enum.fields, &match_kind_ty->builtin_enum.i);
 }
 
 static void
-visit_identifierList(Ast* ident_list)
+visit_identifierList(Ast* ident_list, Type* enum_ty, Type* idents_ty, int* i)
 {
   assert(ident_list->kind == AST_identifierList);
+  Ast* name;
+  NameDeclaration* name_decl;
+  Type* name_ty;
+  int j;
+
+  j = *i;
+  for (name = ident_list->identifierList.first_child;
+       name != 0; name = name->right_sibling) {
+    name_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+    name_ty->ty_former = TYPE_FIELD;
+    name_ty->strname = name->name.strname;
+    name_ty->ast = name;
+    name_ty->field.type = enum_ty;
+    map_insert(storage, type_env, name, name_ty, 0);
+    name_decl = map_lookup(decl_map, name, 0);
+    name_decl->type = name_ty;
+    idents_ty->product.members[j] = map_lookup(type_env, name, 0);
+    j += 1;
+  }
+  *i = j;
 }
 
 static void
-visit_specifiedIdentifierList(Ast* ident_list, Ast* enum_decl)
+visit_specifiedIdentifierList(Ast* ident_list, Type* enum_ty)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
   Ast* ast;
@@ -1363,7 +1408,7 @@ visit_specifiedIdentifierList(Ast* ident_list, Ast* enum_decl)
   idents_ty->product.members = 0;
   for (ast = ident_list->specifiedIdentifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_specifiedIdentifier(ast, enum_decl);
+    visit_specifiedIdentifier(ast, enum_ty);
     idents_ty->product.count += 1;
   }
   if (idents_ty->product.count > 0) {
@@ -1380,7 +1425,7 @@ visit_specifiedIdentifierList(Ast* ident_list, Ast* enum_decl)
 }
 
 static void
-visit_specifiedIdentifier(Ast* ident, Ast* enum_decl)
+visit_specifiedIdentifier(Ast* ident, Type* enum_ty)
 {
   assert(ident->kind == AST_specifiedIdentifier);
   Ast* name;
@@ -1392,7 +1437,7 @@ visit_specifiedIdentifier(Ast* ident, Ast* enum_decl)
   ident_ty->ty_former = TYPE_FIELD;
   ident_ty->strname = name->name.strname;
   ident_ty->ast = ident;
-  ident_ty->field.type = map_lookup(type_env, enum_decl, 0);
+  ident_ty->field.type = enum_ty;
   map_insert(storage, type_env, ident, ident_ty, 0);
   name_decl = map_lookup(decl_map, ident, 0);
   name_decl->type = ident_ty;
@@ -1560,7 +1605,9 @@ static void
 visit_switchLabel(Ast* label)
 {
   assert(label->kind == AST_switchLabel);
-  if (label->switchLabel.label->kind == AST_default) {
+  if (label->switchLabel.label->kind == AST_name) {
+    ;
+  } else if (label->switchLabel.label->kind == AST_default) {
     visit_default(label->switchLabel.label);
   } else assert(0);
 }
@@ -1731,7 +1778,7 @@ visit_actionDeclaration(Ast* action_decl)
   action_ty->ast = action_decl;
   action_ty->function.params = map_lookup(type_env, action_decl->actionDeclaration.params, 0);
   map_insert(storage, type_env, action_decl, action_ty, 0);
-  action_ty->function.return_ = builtin_void_ty;
+  action_ty->function.return_ = builtin_type(root_scope, "void");
   name_decl = map_lookup(decl_map, action_decl, 0);
   name_decl->type = action_ty;
 }
@@ -1761,7 +1808,7 @@ static void
 visit_functionDeclaration(Ast* func_decl)
 {
   assert(func_decl->kind == AST_functionDeclaration);
-  visit_functionPrototype(func_decl->functionDeclaration.proto, 0, 0);
+  visit_functionPrototype(func_decl->functionDeclaration.proto, 0);
   visit_blockStatement(func_decl->functionDeclaration.stmt);
 }
 
@@ -1904,21 +1951,21 @@ static void
 visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AST_booleanLiteral);
-  map_insert(storage, type_env, bool_literal, builtin_bool_ty, 0);
+  map_insert(storage, type_env, bool_literal, builtin_type(root_scope, "bool"), 0);
 }
 
 static void
 visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AST_integerLiteral);
-  map_insert(storage, type_env, int_literal, builtin_int_ty, 0);
+  map_insert(storage, type_env, int_literal, builtin_type(root_scope, "int"), 0);
 }
 
 static void
 visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AST_stringLiteral);
-  map_insert(storage, type_env, str_literal, builtin_string_ty, 0);
+  map_insert(storage, type_env, str_literal, builtin_type(root_scope, "string"), 0);
 }
 
 static void
@@ -1931,6 +1978,6 @@ static void
 visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AST_dontcare);
-  map_insert(storage, type_env, dontcare, builtin_dontcare_ty, 0);
+  map_insert(storage, type_env, dontcare, builtin_type(root_scope, "_"), 0);
 }
 

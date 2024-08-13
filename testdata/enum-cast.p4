@@ -24,8 +24,6 @@ struct O {
     Opt opt;
 }
 
-typedef O H;
-
 /// #include <core.p4>
 
 /// Standard error codes.  New error codes can be declared by users.
@@ -41,15 +39,15 @@ error {
 }
 
 extern packet_in {
-    void extract(out H hdr);
-    void extract(out H variableSizeHeader, in bit<32> variableFieldSizeInBits);
-    H lookahead();
+    void extract(out O hdr);
+    void extract(out O variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    O lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
 }
 
 extern packet_out {
-    void emit(in H hdr);
+    void emit(in O hdr);
 }
 
 extern void verify(in bool check, in error toSignal);
@@ -99,6 +97,6 @@ parser p(packet_in packet, out O o) {
     }
 }
 
-parser proto(packet_in p, out H t);
+parser proto(packet_in p, out O t);
 package top(proto _p);
 top(p()) main;

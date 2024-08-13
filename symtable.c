@@ -81,7 +81,7 @@ static void visit_structField(Ast* field);
 static void visit_enumDeclaration(Ast* enum_decl);
 static void visit_errorDeclaration(Ast* error_decl);
 static void visit_matchKindDeclaration(Ast* match_decl);
-static void visit_identifierList(Ast* ident_list);
+static int  visit_identifierList(Ast* ident_list);
 static void visit_specifiedIdentifierList(Ast* ident_list, NameDeclaration* name_decl);
 static void visit_specifiedIdentifier(Ast* ident);
 static void visit_typedefDeclaration(Ast* typedef_decl);
@@ -1067,10 +1067,17 @@ visit_errorDeclaration(Ast* error_decl)
 {
   assert(error_decl->kind == AST_errorDeclaration);
   Scope* prev_scope;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
+  Type* error_ty;
 
+  name_entry = scope_lookup(root_scope, "error", NAMESPACE_TYPE);
+  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+  error_ty = name_decl->type;
+  map_insert(storage, decl_map, error_decl, name_decl, 0);
   prev_scope = current_scope;
   current_scope = map_lookup(opened_scopes, error_decl, 0);
-  visit_identifierList(error_decl->errorDeclaration.fields);
+  error_ty->builtin_enum.field_count += visit_identifierList(error_decl->errorDeclaration.fields);
   current_scope = prev_scope;
 }
 
@@ -1079,19 +1086,27 @@ visit_matchKindDeclaration(Ast* match_decl)
 {
   assert(match_decl->kind == AST_matchKindDeclaration);
   Scope* prev_scope;
+  NameEntry* name_entry;
+  NameDeclaration* name_decl;
+  Type* match_kind_ty;
 
+  name_entry = scope_lookup(root_scope, "match_kind", NAMESPACE_TYPE);
+  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+  match_kind_ty = name_decl->type;
+  map_insert(storage, decl_map, match_decl, name_decl, 0);
   prev_scope = current_scope;
   current_scope = root_scope;
-  visit_identifierList(match_decl->matchKindDeclaration.fields);
+  match_kind_ty->builtin_enum.field_count += visit_identifierList(match_decl->matchKindDeclaration.fields);
   current_scope = prev_scope;
 }
 
-static void
+static int
 visit_identifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AST_identifierList);
   Ast* ast, *name;
   NameDeclaration* name_decl;
+  int count = 0;
 
   for (ast = ident_list->identifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -1099,7 +1114,9 @@ visit_identifierList(Ast* ident_list)
     name_decl = scope_bind(storage, current_scope, name->name.strname, NAMESPACE_VAR);
     name_decl->ast = name;
     map_insert(storage, decl_map, name, name_decl, 0);
+    count += 1;
   }
+  return count;
 }
 
 static void
