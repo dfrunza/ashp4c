@@ -731,6 +731,8 @@ visit_parserStatement(Ast* stmt)
     visit_parserBlockStatement(stmt->parserStatement.stmt);
   } else if (stmt->parserStatement.stmt->kind == AST_variableDeclaration) {
     visit_variableDeclaration(stmt->parserStatement.stmt);
+  } else if (stmt->parserStatement.stmt->kind == AST_emptyStatement) {
+    ;
   } else assert(0);
 }
 
@@ -1563,6 +1565,8 @@ visit_statement(Ast* stmt)
     visit_directApplication(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AST_conditionalStatement) {
     visit_conditionalStatement(stmt->statement.stmt);
+  } else if (stmt->statement.stmt->kind == AST_emptyStatement) {
+    ;
   } else if (stmt->statement.stmt->kind == AST_blockStatement) {
     visit_blockStatement(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AST_exitStatement) {

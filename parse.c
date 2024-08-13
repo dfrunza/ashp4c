@@ -1280,6 +1280,7 @@ parse_parserStatement()
       stmt->line_no = token->line_no;
       stmt->column_no = token->column_no;
       parser_stmt->parserStatement.stmt = stmt;
+      next_token();
       return parser_stmt;
     } else assert(0);
   } else error("%s:%d:%d: error: statement was expected, got `%s`.",
@@ -2816,12 +2817,12 @@ parse_statement(Ast* type_name)
       stmt->statement.stmt = parse_conditionalStatement();
       return stmt;
     } else if (token->klass == TK_SEMICOLON) {
-      next_token();
       empty_stmt = arena_malloc(storage, sizeof(Ast));
       empty_stmt->kind = AST_emptyStatement;
       empty_stmt->line_no = token->line_no;
       empty_stmt->column_no = token->column_no;
       stmt->statement.stmt = empty_stmt;
+      next_token();
       return stmt;
     } else if (token->klass == TK_BRACE_OPEN) {
       stmt->statement.stmt = parse_blockStatement();

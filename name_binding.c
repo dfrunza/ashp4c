@@ -579,6 +579,8 @@ visit_parserStatement(Ast* stmt)
     visit_parserBlockStatement(stmt->parserStatement.stmt);
   } else if (stmt->parserStatement.stmt->kind == AST_variableDeclaration) {
     visit_variableDeclaration(stmt->parserStatement.stmt);
+  } else if (stmt->parserStatement.stmt->kind == AST_emptyStatement) {
+    ;
   } else assert(0);
 }
 
