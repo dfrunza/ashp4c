@@ -53,8 +53,8 @@ static void visit_controlLocalDeclaration(Ast* local_decl);
 
 static void visit_externDeclaration(Ast* extern_decl);
 static void visit_externTypeDeclaration(Ast* type_decl);
-static void visit_methodPrototypes(Ast* protos, Ast* extern_decl);
-static void visit_functionPrototype(Ast* func_proto, Ast* extern_decl);
+static void visit_methodPrototypes(Ast* protos, Type* extern_ty);
+static void visit_functionPrototype(Ast* func_proto, Type* extern_ty);
 
 /** TYPES **/
 
@@ -918,7 +918,7 @@ visit_externTypeDeclaration(Ast* type_decl)
   extern_ty->strname = name->name.strname;
   extern_ty->ast = type_decl;
   map_insert(storage, type_env, type_decl, extern_ty, 0);
-  visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos, type_decl);
+  visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos, extern_ty);
   methods_ty = map_lookup(type_env, type_decl->externTypeDeclaration.method_protos, 0);
   extern_ty->extern_.methods = methods_ty;
   name_decl = map_lookup(decl_map, type_decl, 0);
@@ -926,10 +926,9 @@ visit_externTypeDeclaration(Ast* type_decl)
 }
 
 static void
-visit_methodPrototypes(Ast* protos, Ast* extern_decl)
+visit_methodPrototypes(Ast* protos, Type* extern_ty)
 {
   assert(protos->kind == AST_methodPrototypes);
-  assert(extern_decl->kind == AST_externTypeDeclaration);
   Ast* ast;
   Type* methods_ty;
   int i;
@@ -941,7 +940,7 @@ visit_methodPrototypes(Ast* protos, Ast* extern_decl)
   methods_ty->product.members = 0;
   for (ast = protos->methodPrototypes.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_functionPrototype(ast, extern_decl);
+    visit_functionPrototype(ast, extern_ty);
     methods_ty->product.count += 1;
   }
   if (methods_ty->product.count > 0) {
@@ -958,11 +957,10 @@ visit_methodPrototypes(Ast* protos, Ast* extern_decl)
 }
 
 static void
-visit_functionPrototype(Ast* func_proto, Ast* extern_decl)
+visit_functionPrototype(Ast* func_proto, Type* extern_ty)
 {
   assert(func_proto->kind == AST_functionPrototype);
-  if (extern_decl) assert(extern_decl->kind == AST_externTypeDeclaration);
-  Ast* name, *extern_name, *return_type;
+  Ast* name, *return_type;
   NameDeclaration* name_decl;
   Type* func_ty;
 
@@ -971,8 +969,6 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl)
   }
   visit_parameterList(func_proto->functionPrototype.params);
   name = func_proto->functionPrototype.name;
-  extern_name = 0;
-  if (extern_decl) extern_name = extern_decl->externTypeDeclaration.name;
   func_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   func_ty->ty_former = TYPE_FUNCTION;
   func_ty->strname = name->name.strname;
@@ -982,8 +978,8 @@ visit_functionPrototype(Ast* func_proto, Ast* extern_decl)
   return_type = func_proto->functionPrototype.return_type;
   if (return_type) {
     func_ty->function.return_ = map_lookup(type_env, return_type, 0);
-  } else if (cstr_match(name->name.strname, extern_name->name.strname)) {
-    func_ty->function.return_ = map_lookup(type_env, extern_decl, 0);
+  } else if (cstr_match(name->name.strname, extern_ty->strname)) {
+    func_ty->function.return_ = extern_ty;
   } else assert(0);
   name_decl = map_lookup(decl_map, func_proto, 0);
   name_decl->type = func_ty;
