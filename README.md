@@ -23,7 +23,7 @@ For example, this code fragment
     a(8w15,);
   }
 ```
-gives the error (not the extraneous comma in the code above)
+gives the error (note the comma in the example above)
 
 ```
 $ ./ashp4c testsdata/action-param1.p4
