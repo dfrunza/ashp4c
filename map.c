@@ -64,3 +64,14 @@ map_insert(Arena* storage, Map* map, void* key, void* value, bool return_if_foun
   return insert_entry(storage, map, &map->root, map->root, key, value, return_if_found);
 }
 
+int
+map_count(Map* map)
+{
+  int c = 0;
+  MapEntry* m;
+
+  for (m = map->first; m != 0; m = m->next) {
+    c += 1;
+  }
+  return c;
+}

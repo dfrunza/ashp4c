@@ -106,7 +106,8 @@ main(int arg_count, char* args[])
   Array* tokens;
   Scope* root_scope;
   Array* type_array;
-  Map* type_env, *decl_map, *scope_map;
+  Map* scope_map, *decl_map;
+  Map* type_env, *potype_map;
 
   reserve_memory(500*KILOBYTE);
 
@@ -124,12 +125,14 @@ main(int arg_count, char* args[])
 
   drypass(source_text.filename, program);
   scope_map = scope_hierarchy(&storage, source_text.filename, program, root_scope);
-  decl_map = name_binding(&storage, source_text.filename, program, root_scope,
+  decl_map = name_bind(&storage, source_text.filename, program, root_scope,
       scope_map, &type_array);
   type_env = declared_types(&storage, source_text.filename, program, root_scope,
       type_array, scope_map, decl_map);
-  potential_types(&storage, source_text.filename, program, root_scope,
+  potype_map = potential_types(&storage, source_text.filename, program, root_scope,
       scope_map, decl_map, type_env);
+  select_type(&storage, source_text.filename, program, root_scope,
+      scope_map, decl_map, type_env, potype_map);
 
   arena_free(&storage);
   return 0;

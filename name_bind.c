@@ -178,7 +178,7 @@ setup_builtin_names(Array* type_array)
     {"string",     TYPE_STRING},
     {"error",      TYPE_ERROR},
     {"match_kind", TYPE_MATCH_KIND},
-    {"_",          TYPE_DONTCARE},
+    {"_",          TYPE_ANY},
   };
   Ast* name;
   NameEntry* name_entry;
@@ -311,7 +311,7 @@ NameSpace_to_string(enum NameSpace ns)
 }
 
 Map*
-name_binding(Arena* storage_, char* source_file, Ast* p4program, Scope* root_scope_,
+name_bind(Arena* storage_, char* source_file, Ast* p4program, Scope* root_scope_,
     Map* scope_map_, Array** type_array_)
 {
   Array* type_array;

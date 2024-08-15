@@ -7,9 +7,9 @@ CC="$CC -g -ggdb -std=gnu99 -fms-extensions -ffreestanding"
 CC="$CC -Winline -Wno-write-strings -Wno-unused-function -Wreturn-type -Wall"
 
 gcc $CC -o ashp4c \
-  basic.c arena.c array.c hashmap.c map.c \
-  lex.c parse.c drypass.c scope_hierarchy.c name_binding.c declared_types.c \
-  potential_types.c ashp4c.c \
+  ashp4c.c basic.c arena.c array.c hashmap.c map.c \
+  lex.c parse.c drypass.c scope_hierarchy.c declared_types.c name_bind.c \
+  potential_types.c select_type.c \
   -lm
 
 if [ $? -ne 0 ]; then

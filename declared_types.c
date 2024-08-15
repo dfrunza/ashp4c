@@ -203,7 +203,7 @@ structural_type_equiv(Type* left, Type* right)
       return 1;
     }
     return 0;
-  } else if (left->ty_former == TYPE_DONTCARE) {
+  } else if (left->ty_former == TYPE_ANY) {
     return 1;
   } else if (left->ty_former == TYPE_ENUM) {
     if (right->ty_former == left->ty_former) {
@@ -329,7 +329,7 @@ TypeEnum_to_string(enum TypeEnum type)
     case TYPE_BIT: return "TYPE_BIT";
     case TYPE_VARBIT: return "TYPE_VARBIT";
     case TYPE_STRING: return "TYPE_STRING";
-    case TYPE_DONTCARE: return "TYPE_DONTCARE";
+    case TYPE_ANY: return "TYPE_ANY";
     case TYPE_ENUM: return "TYPE_ENUM";
     case TYPE_TYPEDEF: return "TYPE_TYPEDEF";
     case TYPE_FUNCTION: return "TYPE_FUNCTION";

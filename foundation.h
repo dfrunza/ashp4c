@@ -118,4 +118,5 @@ typedef struct Map {
 
 MapEntry* map_insert(Arena* storage, Map* map, void* key, void* value, bool return_if_found);
 void*     map_lookup(Map* map, void* key, MapEntry** entry);
+int       map_count(Map* map);
 
