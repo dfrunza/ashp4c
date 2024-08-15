@@ -13,7 +13,7 @@ To run all the tests, launch this script on a Linux machine:
 
 ```$ ./run_tests.sh```
 
-To test the parsing algorithm, edit a P4 source file and introduct a mistake somewhere. The compiler should be able to detect it and report it.
+To test the parsing algorithm, edit a P4 source file and introduce a mistake somewhere. The compiler should be able to detect it and report it.
 
 For example, this code fragment
 
