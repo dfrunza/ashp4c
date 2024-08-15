@@ -872,6 +872,8 @@ typedef struct Type {
 
     struct {
       struct Type* fields;
+      int field_count;
+      int i;
     } struct_, enum_;
 
     struct {
@@ -895,12 +897,6 @@ typedef struct Type {
     struct {
       struct Type* type;
     } field;
-
-    struct {
-      struct Type* fields;
-      int field_count;
-      int i;
-    } builtin_enum;
 
     struct {
       Ast* name;

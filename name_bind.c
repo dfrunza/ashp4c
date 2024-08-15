@@ -203,12 +203,12 @@ setup_builtin_names(Array* type_array)
   }
 
   ty = builtin_type(root_scope, "error");
-  ty->builtin_enum.fields = (Type*)array_append(storage, type_array, sizeof(Type));
-  ty->builtin_enum.fields->ty_former = TYPE_PRODUCT;
+  ty->enum_.fields = (Type*)array_append(storage, type_array, sizeof(Type));
+  ty->enum_.fields->ty_former = TYPE_PRODUCT;
 
   ty = builtin_type(root_scope, "match_kind");
-  ty->builtin_enum.fields = (Type*)array_append(storage, type_array, sizeof(Type));
-  ty->builtin_enum.fields->ty_former = TYPE_PRODUCT;
+  ty->enum_.fields = (Type*)array_append(storage, type_array, sizeof(Type));
+  ty->enum_.fields->ty_former = TYPE_PRODUCT;
 }
 
 NameEntry*
@@ -1137,7 +1137,7 @@ visit_errorDeclaration(Ast* error_decl)
   map_insert(storage, decl_map, error_decl, name_decl, 0);
   prev_scope = current_scope;
   current_scope = map_lookup(scope_map, error_decl, 0);
-  error_ty->builtin_enum.field_count += visit_identifierList(error_decl->errorDeclaration.fields);
+  error_ty->enum_.field_count += visit_identifierList(error_decl->errorDeclaration.fields);
   current_scope = prev_scope;
 }
 
@@ -1156,7 +1156,7 @@ visit_matchKindDeclaration(Ast* match_decl)
   map_insert(storage, decl_map, match_decl, name_decl, 0);
   prev_scope = current_scope;
   current_scope = map_lookup(scope_map, match_decl, 0);
-  match_kind_ty->builtin_enum.field_count += visit_identifierList(match_decl->matchKindDeclaration.fields);
+  match_kind_ty->enum_.field_count += visit_identifierList(match_decl->matchKindDeclaration.fields);
   current_scope = prev_scope;
 }
 

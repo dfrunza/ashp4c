@@ -51,7 +51,7 @@ void  arena_free(Arena* arena);
  * 9 | 8176
  * ...
  *
- * C = (2^n - 1)*16
+ * C(n) = (2^n - 1)*16
  **/
 
 typedef struct SegmentTable {

@@ -1366,13 +1366,13 @@ visit_errorDeclaration(Ast* error_decl)
   Type* error_ty, *fields_ty;
 
   error_ty = builtin_type(root_scope, "error");
-  fields_ty = error_ty->builtin_enum.fields;
-  if (error_ty->builtin_enum.field_count > 0 && fields_ty->product.members == 0) {
-    fields_ty->product.count = error_ty->builtin_enum.field_count;
+  fields_ty = error_ty->enum_.fields;
+  if (error_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
+    fields_ty->product.count = error_ty->enum_.field_count;
     fields_ty->product.members = arena_malloc(storage, fields_ty->product.count*sizeof(Type*));
   }
   visit_identifierList(error_decl->errorDeclaration.fields, error_ty,
-      error_ty->builtin_enum.fields, &error_ty->builtin_enum.i);
+      error_ty->enum_.fields, &error_ty->enum_.i);
 }
 
 static void
@@ -1382,13 +1382,13 @@ visit_matchKindDeclaration(Ast* match_decl)
   Type* match_kind_ty, *fields_ty;
 
   match_kind_ty = builtin_type(root_scope, "match_kind");
-  fields_ty = match_kind_ty->builtin_enum.fields;
-  if (match_kind_ty->builtin_enum.field_count > 0 && fields_ty->product.members == 0) {
-    fields_ty->product.count = match_kind_ty->builtin_enum.field_count;
+  fields_ty = match_kind_ty->enum_.fields;
+  if (match_kind_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
+    fields_ty->product.count = match_kind_ty->enum_.field_count;
     fields_ty->product.members = arena_malloc(storage, fields_ty->product.count*sizeof(Type*));
   }
   visit_identifierList(match_decl->matchKindDeclaration.fields, match_kind_ty,
-      match_kind_ty->builtin_enum.fields, &match_kind_ty->builtin_enum.i);
+      match_kind_ty->enum_.fields, &match_kind_ty->enum_.i);
 }
 
 static void

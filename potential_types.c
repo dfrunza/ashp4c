@@ -1423,10 +1423,9 @@ visit_memberSelector(Ast* selector)
     lhs_ty = effective_type(m->key);
     if (lhs_ty->ty_former == TYPE_EXTERN) {
       collect_matching_member(storage, tau, lhs_ty->extern_.methods, name->name.strname);
-    } else if (lhs_ty->ty_former == TYPE_ENUM) {
+    } else if (lhs_ty->ty_former == TYPE_ENUM ||
+               lhs_ty->ty_former == TYPE_MATCH_KIND || lhs_ty->ty_former == TYPE_ERROR) {
       collect_matching_member(storage, tau, lhs_ty->enum_.fields, name->name.strname);
-    } else if (lhs_ty->ty_former == TYPE_MATCH_KIND || lhs_ty->ty_former == TYPE_ERROR) {
-      collect_matching_member(storage, tau, lhs_ty->builtin_enum.fields, name->name.strname);
     } else if (lhs_ty->ty_former == TYPE_STRUCT || lhs_ty->ty_former == TYPE_HEADER ||
                lhs_ty->ty_former == TYPE_HEADER_UNION) {
       collect_matching_member(storage, tau, lhs_ty->struct_.fields, name->name.strname);
