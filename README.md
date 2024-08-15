@@ -5,8 +5,7 @@ What has been finished and tested:
   - The lexer and parser. 
   
 Under development:
-  - Name identification.
-  - Type checking.
+  - Name identification and type checking.
 
 ### Tests
 
