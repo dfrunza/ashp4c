@@ -1,4 +1,4 @@
-### Work in progress
+### This is a work in progress
 The fronted part is currently under development. The compiler doesn't output any code. 
 
 What has been finished and tested:
