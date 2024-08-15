@@ -15,6 +15,7 @@ To run all the tests, launch this script on a Linux machine:
 ```$ ./run_tests.sh```
 
 To test the parsing algorithm, pass a P4 source file to *ashp4c* as argument - there should be no errors. Edit the P4 code and introduce a mistake somewhere, then the compiler should be able to detect it and report it.
+
 For example, this code fragment
 
 ```
