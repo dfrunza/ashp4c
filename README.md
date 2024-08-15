@@ -26,7 +26,7 @@ For example, this code fragment
 gives the error (note the comma in the example above)
 
 ```
-$ ./ashp4c testsdata/action-param1.p4
+$ ./ashp4c testdata/action-param1.p4
 testdata/action-param1.p4:5:16: error: an argument was expected, got ')'.
 ```
 
