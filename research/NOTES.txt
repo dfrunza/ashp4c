@@ -38,15 +38,13 @@ pkt/=Raw("W"*(100-len(pkt)))
 ./xdp_redirect_user -S 61 10
 
 
-== musl and static linking of GNU libc ==
-=========================================
+== Static linking of libc ==
+============================
 
 GNU libc is not designed to be statically linked. Important functions, e.g. gethostbyname and iconv,
 will malfunction or not work at all in a static binary. Arguably even worse, under some conditions a
 static binary will attempt to dynamically open and use libc.so.6, even though the whole point of
 static linkage is to avoid such dependencies.
-
-You should compile your program against uClibc or musl libc instead.
 
 
 == Address-space Randomization ==
