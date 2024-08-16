@@ -1,6 +1,6 @@
 ## This is a work in progress
 
-The fronted part - parsing and type checking, is currently under development. At this stage the compiler doesn't output any code. 
+The fronted - parsing and type checking, is currently under development. At this stage the compiler doesn't output any code. 
 
 What has been finished and tested:
   - The lexer and parser. 
