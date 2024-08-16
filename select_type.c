@@ -90,7 +90,7 @@ static void visit_typedefDeclaration(Ast* typedef_decl);
 /** STATEMENTS **/
 
 static void visit_assignmentStatement(Ast* assign_stmt);
-static void visit_functionCall(Ast* func_call);
+static void visit_functionCall(Ast* func_call, Type* expected_ty);
 static void visit_returnStatement(Ast* return_stmt);
 static void visit_exitStatement(Ast* exit_stmt);
 static void visit_conditionalStatement(Ast* cond_stmt);
@@ -132,7 +132,7 @@ static void visit_argumentList(Ast* arg_list);
 static void visit_argument(Ast* arg);
 static void visit_expressionList(Ast* expr_list);
 static void visit_lvalueExpression(Ast* lvalue_expr);
-static void visit_expression(Ast* expr, PotentialType* expected_ty);
+static void visit_expression(Ast* expr, Type* expected_ty);
 static void visit_castExpression(Ast* cast_expr);
 static void visit_unaryExpression(Ast* unary_expr);
 static void visit_binaryExpression(Ast* binary_expr);
@@ -140,26 +140,24 @@ static void visit_memberSelector(Ast* selector);
 static void visit_arraySubscript(Ast* subscript);
 static void visit_indexExpression(Ast* index_expr);
 static void visit_booleanLiteral(Ast* bool_literal);
-static void visit_integerLiteral(Ast* int_literal, PotentialType* expected_ty);
+static void visit_integerLiteral(Ast* int_literal, Type* expected_ty);
 static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
-static int
+static bool
 match_type(Type* expected_ty, PotentialType* tau)
 {
-  Type* type_match[10];
   MapEntry* m;
-  int i = 0;
+  int i;
 
+  i = 0;
   for (m = tau->members.first; m != 0; m = m->next) {
     if (type_equiv((Type*)m->key, expected_ty)) {
-      type_match[i] = (Type*)m->key;
       i += 1;
     }
-    assert(i < sizeof(type_match)/sizeof(type_match[0]));
   }
-  return i;
+  return (i == 1);
 }
 
 void
@@ -233,6 +231,16 @@ static void
 visit_name(Ast* name)
 {
   assert(name->kind == AST_name);
+  PotentialType* name_tau;
+  Type* name_ty;
+
+  name_tau = map_lookup(potype_map, name, 0);
+  if (map_count(&name_tau->members) != 1) {
+    error("%s:%d:%d: error: ambiguous or unknown type.",
+        source_file, name->line_no, name->column_no);
+  }
+  name_ty = (Type*)name_tau->members.first->key;
+  map_insert(storage, type_env, name, name_ty, 0);
 }
 
 static void
@@ -262,17 +270,17 @@ static void
 visit_packageTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_packageTypeDeclaration);
-  visit_name(type_decl->packageTypeDeclaration.name);
-  visit_parameterList(type_decl->packageTypeDeclaration.params);
+  //visit_name(type_decl->packageTypeDeclaration.name);
+  //visit_parameterList(type_decl->packageTypeDeclaration.params);
 }
 
 static void
 visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
-  visit_typeRef(inst->instantiation.type);
-  visit_argumentList(inst->instantiation.args);
-  visit_name(inst->instantiation.name);
+  //visit_typeRef(inst->instantiation.type);
+  //visit_argumentList(inst->instantiation.args);
+  //visit_name(inst->instantiation.name);
 }
 
 /** PARSER **/
@@ -281,9 +289,9 @@ static void
 visit_parserDeclaration(Ast* parser_decl)
 {
   assert(parser_decl->kind == AST_parserDeclaration);
-  visit_typeDeclaration(parser_decl->parserDeclaration.proto);
+  //visit_typeDeclaration(parser_decl->parserDeclaration.proto);
   if (parser_decl->parserDeclaration.ctor_params) {
-    visit_parameterList(parser_decl->parserDeclaration.ctor_params);
+    //visit_parameterList(parser_decl->parserDeclaration.ctor_params);
   }
   visit_parserLocalElements(parser_decl->parserDeclaration.local_elements);
   visit_parserStates(parser_decl->parserDeclaration.states);
@@ -293,8 +301,8 @@ static void
 visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_parserTypeDeclaration);
-  visit_name(type_decl->parserTypeDeclaration.name);
-  visit_parameterList(type_decl->parserTypeDeclaration.params);
+  //visit_name(type_decl->parserTypeDeclaration.name);
+  //visit_parameterList(type_decl->parserTypeDeclaration.params);
 }
 
 static void
@@ -336,7 +344,7 @@ static void
 visit_parserState(Ast* state)
 {
   assert(state->kind == AST_parserState);
-  visit_name(state->parserState.name);
+  //visit_name(state->parserState.name);
   visit_parserStatements(state->parserState.stmt_list);
   visit_transitionStatement(state->parserState.transition_stmt);
 }
@@ -360,7 +368,7 @@ visit_parserStatement(Ast* stmt)
   if (stmt->parserStatement.stmt->kind == AST_assignmentStatement) {
     visit_assignmentStatement(stmt->parserStatement.stmt);
   } else if (stmt->parserStatement.stmt->kind == AST_functionCall) {
-    visit_functionCall(stmt->parserStatement.stmt);
+    visit_functionCall(stmt->parserStatement.stmt, 0);
   } else if (stmt->parserStatement.stmt->kind == AST_directApplication) {
     visit_directApplication(stmt->parserStatement.stmt);
   } else if (stmt->parserStatement.stmt->kind == AST_parserBlockStatement) {
@@ -447,8 +455,11 @@ static void
 visit_simpleKeysetExpression(Ast* simple_expr)
 {
   assert(simple_expr->kind == AST_simpleKeysetExpression);
+  Type* expr_ty;
+
   if (simple_expr->simpleKeysetExpression.expr->kind == AST_expression) {
-    visit_expression(simple_expr->simpleKeysetExpression.expr, 0);
+    expr_ty = builtin_type(root_scope, "int");
+    visit_expression(simple_expr->simpleKeysetExpression.expr, expr_ty);
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_default) {
     visit_default(simple_expr->simpleKeysetExpression.expr);
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_dontcare) {
@@ -534,8 +545,8 @@ static void
 visit_externTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_externTypeDeclaration);
-  visit_name(type_decl->externTypeDeclaration.name);
-  visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos);
+  //visit_name(type_decl->externTypeDeclaration.name);
+  //visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos);
 }
 
 static void
@@ -555,10 +566,10 @@ visit_functionPrototype(Ast* func_proto)
 {
   assert(func_proto->kind == AST_functionPrototype);
   if (func_proto->functionPrototype.return_type) {
-    visit_typeRef(func_proto->functionPrototype.return_type);
+    //visit_typeRef(func_proto->functionPrototype.return_type);
   }
-  visit_name(func_proto->functionPrototype.name);
-  visit_parameterList(func_proto->functionPrototype.params);
+  //visit_name(func_proto->functionPrototype.name);
+  //visit_parameterList(func_proto->functionPrototype.params);
 }
 
 /** TYPES **/
@@ -601,17 +612,11 @@ static void
 visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
-  PotentialType* tau_index;
-  Type* expected_ty;
+  Type* index_ty;
 
   visit_typeRef(type_decl->headerStackType.type);
-  visit_expression(type_decl->headerStackType.stack_expr, 0);
-  tau_index = map_lookup(potype_map, type_decl->headerStackType.stack_expr, 0);
-  expected_ty = builtin_type(root_scope, "int");
-  if (match_type(expected_ty, tau_index) != 1) {
-    error("%s:%d:%d: error: ambiguous or unmatched type.",
-        source_file, type_decl->line_no, type_decl->column_no);
-  }
+  index_ty = builtin_type(root_scope, "int");
+  visit_expression(type_decl->headerStackType.stack_expr, index_ty);
 }
 
 static void
@@ -748,8 +753,8 @@ static void
 visit_headerTypeDeclaration(Ast* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
-  visit_name(header_decl->headerTypeDeclaration.name);
-  visit_structFieldList(header_decl->headerTypeDeclaration.fields);
+  //visit_name(header_decl->headerTypeDeclaration.name);
+  //visit_structFieldList(header_decl->headerTypeDeclaration.fields);
 }
 
 static void
@@ -800,14 +805,14 @@ static void
 visit_errorDeclaration(Ast* error_decl)
 {
   assert(error_decl->kind == AST_errorDeclaration);
-  visit_identifierList(error_decl->errorDeclaration.fields);
+  //visit_identifierList(error_decl->errorDeclaration.fields);
 }
 
 static void
 visit_matchKindDeclaration(Ast* match_decl)
 {
   assert(match_decl->kind == AST_matchKindDeclaration);
-  visit_identifierList(match_decl->matchKindDeclaration.fields);
+  //visit_identifierList(match_decl->matchKindDeclaration.fields);
 }
 
 static void
@@ -862,25 +867,19 @@ static void
 visit_assignmentStatement(Ast* assign_stmt)
 {
   assert(assign_stmt->kind == AST_assignmentStatement);
-  PotentialType* tau_lhs;
-  Type* expected_ty;
+  Type* lhs_type;
 
   if (assign_stmt->assignmentStatement.lhs_expr->kind == AST_expression) {
     visit_expression(assign_stmt->assignmentStatement.lhs_expr, 0);
   } else if (assign_stmt->assignmentStatement.lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression(assign_stmt->assignmentStatement.lhs_expr);
   } else assert(0);
-  tau_lhs = map_lookup(potype_map, assign_stmt->assignmentStatement.lhs_expr, 0);
-  expected_ty = map_lookup(type_env, assign_stmt->assignmentStatement.lhs_expr, 0);
-  visit_expression(assign_stmt->assignmentStatement.rhs_expr, tau_lhs);
-  if (match_type(expected_ty, tau_lhs)) {
-    error("%s:%d:%d: error: ambiguous or unmatched type.",
-        source_file, assign_stmt->line_no, assign_stmt->column_no);
-  }
+  lhs_type = map_lookup(type_env, assign_stmt->assignmentStatement.lhs_expr, 0);
+  visit_expression(assign_stmt->assignmentStatement.rhs_expr, lhs_type);
 }
 
 static void
-visit_functionCall(Ast* func_call)
+visit_functionCall(Ast* func_call, Type* expected_ty)
 {
   assert(func_call->kind == AST_functionCall);
   if (func_call->functionCall.lhs_expr->kind == AST_expression) {
@@ -936,7 +935,7 @@ visit_statement(Ast* stmt)
   if (stmt->statement.stmt->kind == AST_assignmentStatement) {
     visit_assignmentStatement(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AST_functionCall) {
-    visit_functionCall(stmt->statement.stmt);
+    visit_functionCall(stmt->statement.stmt, 0);
   } else if (stmt->statement.stmt->kind == AST_directApplication) {
     visit_directApplication(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AST_conditionalStatement) {
@@ -1159,8 +1158,8 @@ static void
 visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AST_actionDeclaration);
-  visit_name(action_decl->actionDeclaration.name);
-  visit_parameterList(action_decl->actionDeclaration.params);
+  //visit_name(action_decl->actionDeclaration.name);
+  //visit_parameterList(action_decl->actionDeclaration.params);
   visit_blockStatement(action_decl->actionDeclaration.stmt);
 }
 
@@ -1170,8 +1169,8 @@ static void
 visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
-  visit_typeRef(var_decl->variableDeclaration.type);
-  visit_name(var_decl->variableDeclaration.name);
+  //visit_typeRef(var_decl->variableDeclaration.type);
+  //visit_name(var_decl->variableDeclaration.name);
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr, 0);
   }
@@ -1226,6 +1225,8 @@ static void
 visit_lvalueExpression(Ast* lvalue_expr)
 {
   assert(lvalue_expr->kind == AST_lvalueExpression);
+  Type* expr_ty;
+
   if (lvalue_expr->lvalueExpression.expr->kind == AST_name) {
     visit_name(lvalue_expr->lvalueExpression.expr);
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_memberSelector) {
@@ -1233,12 +1234,16 @@ visit_lvalueExpression(Ast* lvalue_expr)
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_arraySubscript) {
     visit_arraySubscript(lvalue_expr->lvalueExpression.expr);
   } else assert(0);
+  expr_ty = map_lookup(type_env, lvalue_expr->lvalueExpression.expr, 0);
+  map_insert(storage, type_env, lvalue_expr, expr_ty, 0);
 }
 
 static void
-visit_expression(Ast* expr, PotentialType* expected_ty)
+visit_expression(Ast* expr, Type* expected_ty)
 {
   assert(expr->kind == AST_expression);
+  Type* expr_ty;
+
   if (expr->expression.expr->kind == AST_expression) {
     visit_expression(expr->expression.expr, expected_ty);
   } else if (expr->expression.expr->kind == AST_booleanLiteral) {
@@ -1262,10 +1267,12 @@ visit_expression(Ast* expr, PotentialType* expected_ty)
   } else if (expr->expression.expr->kind == AST_arraySubscript) {
     visit_arraySubscript(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_functionCall) {
-    visit_functionCall(expr->expression.expr);
+    visit_functionCall(expr->expression.expr, 0);
   } else if (expr->expression.expr->kind == AST_assignmentStatement) {
     visit_assignmentStatement(expr->expression.expr);
   } else assert(0);
+  expr_ty = map_lookup(type_env, expr->expression.expr, 0);
+  map_insert(storage, type_env, expr, expr_ty, 0);
 }
 
 static void
@@ -1300,7 +1307,7 @@ visit_memberSelector(Ast* selector)
   } else if (selector->memberSelector.lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression(selector->memberSelector.lhs_expr);
   } else assert(0);
-  visit_name(selector->memberSelector.name);
+  //visit_name(selector->memberSelector.name);
 }
 
 static void
@@ -1332,9 +1339,18 @@ visit_booleanLiteral(Ast* bool_literal)
 }
 
 static void
-visit_integerLiteral(Ast* int_literal, PotentialType* expected_ty)
+visit_integerLiteral(Ast* int_literal, Type* expected_ty)
 {
   assert(int_literal->kind == AST_integerLiteral);
+  PotentialType* literal_tau;
+
+  if (expected_ty) {
+    literal_tau = map_lookup(potype_map, int_literal, 0);
+    if (!match_type(expected_ty, literal_tau)) {
+      error("%s:%d:%d: error: type mismatch.",
+          source_file, int_literal->line_no, int_literal->column_no);
+    }
+  }
 }
 
 static void

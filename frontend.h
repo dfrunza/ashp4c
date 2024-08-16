@@ -955,11 +955,11 @@ enum NameSpace {
 };
 #define NameSpace_COUNT 3
 
-char* NameSpace_to_string(enum NameSpace ns);
-
 typedef struct NameEntry {
   NameDeclaration* ns[NameSpace_COUNT];
 } NameEntry;
+
+char* NameSpace_to_string(enum NameSpace ns);
 
 Scope*     scope_create(Arena* storage, int segment_count);
 Scope*     scope_push(Scope* scope, Scope* parent_scope);
