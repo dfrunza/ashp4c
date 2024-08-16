@@ -1,4 +1,4 @@
-## This is a work in progress
+## Project status
 
 The fronted - parsing and type checking, is currently under development. At this stage the compiler doesn't output any code. 
 
