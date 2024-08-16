@@ -1,4 +1,5 @@
-### This is a work in progress
+## This is a work in progress
+
 The fronted part - parsing and type checking, is currently under development. At this stage the compiler doesn't output any code. 
 
 What has been finished and tested:
@@ -7,7 +8,7 @@ What has been finished and tested:
 Under development:
   - Name identification and type checking.
 
-### Tests
+## Tests
 
 To run all the tests, launch this script on a Linux machine:
 
