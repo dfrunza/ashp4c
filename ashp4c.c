@@ -132,7 +132,7 @@ main(int arg_count, char* args[])
   potype_map = potential_types(&storage, source_text.filename, program, root_scope,
       scope_map, decl_map, type_env);
   select_type(&storage, source_text.filename, program, root_scope,
-      scope_map, decl_map, type_env, potype_map);
+      type_array, scope_map, decl_map, type_env, potype_map);
 
   arena_free(&storage);
   return 0;

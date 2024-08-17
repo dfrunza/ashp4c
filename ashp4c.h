@@ -9,5 +9,5 @@ Map*   declared_types(Arena* storage, char* source_file, Ast* p4program, Scope* 
 Map*   potential_types(Arena* storage, char* source_file, Ast* ast, Scope* root_scope,
           Map* scope_map, Map* decl_map, Map* type_env);
 void   select_type(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_scope_,
-          Map* scope_map_, Map* decl_map_, Map* type_env_, Map* potype_map);
+          Array* type_array, Map* scope_map_, Map* decl_map_, Map* type_env_, Map* potype_map);
 

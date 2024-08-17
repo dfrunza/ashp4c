@@ -6,7 +6,7 @@ error { NoError }
 
 extern packet_in {
     void extract(out H[2] hdr);
-    void extract(out H[2] variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    //void extract(out H[2] variableSizeHeader, in bit<32> variableFieldSizeInBits);
     H[2] lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();

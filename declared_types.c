@@ -550,8 +550,6 @@ visit_parameterList(Ast* params)
   params_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   params_ty->ty_former = TYPE_PRODUCT;
   params_ty->ast = params;
-  params_ty->product.count = 0;
-  params_ty->product.members = 0;
   for (ast = params->parameterList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parameter(ast);
@@ -945,8 +943,6 @@ visit_methodPrototypes(Ast* protos, Type* extern_ty)
   methods_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   methods_ty->ty_former = TYPE_PRODUCT;
   methods_ty->ast = protos;
-  methods_ty->product.count = 0;
-  methods_ty->product.members = 0;
   for (ast = protos->methodPrototypes.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_functionPrototype(ast, extern_ty);
@@ -1175,8 +1171,6 @@ visit_typeArgumentList(Ast* args)
   args_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   args_ty->ty_former = TYPE_PRODUCT;
   args_ty->ast = args;
-  args_ty->product.count = 0;
-  args_ty->product.members = 0;
   for (ast = args->typeArgumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_typeArg(ast);
@@ -1306,8 +1300,6 @@ visit_structFieldList(Ast* fields)
   fields_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   fields_ty->ty_former = TYPE_PRODUCT;
   fields_ty->ast = fields;
-  fields_ty->product.count = 0;
-  fields_ty->product.members = 0;
   for (ast = fields->structFieldList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_structField(ast);
@@ -1435,8 +1427,6 @@ visit_specifiedIdentifierList(Ast* ident_list, Type* enum_ty)
   idents_ty = (Type*)array_append(storage, type_array, sizeof(Type));
   idents_ty->ty_former = TYPE_PRODUCT;
   idents_ty->ast = ident_list;
-  idents_ty->product.count = 0;
-  idents_ty->product.members = 0;
   for (ast = ident_list->specifiedIdentifierList.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_specifiedIdentifier(ast, enum_ty);
