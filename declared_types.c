@@ -271,7 +271,13 @@ structural_type_equiv(Type* left, Type* right)
       return structural_type_equiv(left->struct_.fields, right->struct_.fields);
     }
     return 0;
-  } else if (left->ty_former == TYPE_HEADER_STACK) {
+  } else if (left->ty_former == TYPE_HEADER) {
+    if (right->ty_former == left->ty_former) {
+      return structural_type_equiv(left->struct_.fields, right->struct_.fields);
+    }
+    return 0;
+  }
+  else if (left->ty_former == TYPE_HEADER_STACK) {
     if (right->ty_former == left->ty_former) {
       return structural_type_equiv(left->header_stack.element, right->header_stack.element);
     }

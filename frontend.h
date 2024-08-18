@@ -924,7 +924,7 @@ typedef struct PotentialType {
     Map members;
 
     struct {
-      Map** members;
+      struct PotentialType** members;
       int count;
     } product;
   };

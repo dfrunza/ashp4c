@@ -16,7 +16,7 @@ static Array* type_array;
 static void visit_p4program(Ast* p4program);
 static void visit_declarationList(Ast* decl_list);
 static void visit_declaration(Ast* decl);
-static void visit_name(Ast* name, Type* required_ty, Type* args_ty);
+static void visit_name(Ast* name, Type* required_ty, PotentialType* args_tau);
 static void visit_parameterList(Ast* params);
 static void visit_parameter(Ast* param);
 static void visit_packageTypeDeclaration(Ast* type_decl);
@@ -92,10 +92,10 @@ static void visit_typedefDeclaration(Ast* typedef_decl);
 
 static void visit_assignmentStatement(Ast* assign_stmt);
 static void visit_functionCall(Ast* func_call, Type* required_ty);
-static void visit_returnStatement(Ast* return_stmt, Type* required_ty, Type* args_ty);
+static void visit_returnStatement(Ast* return_stmt, Type* required_ty, PotentialType* args_tau);
 static void visit_exitStatement(Ast* exit_stmt);
 static void visit_conditionalStatement(Ast* cond_stmt);
-static void visit_directApplication(Ast* applic_stmt, Type* required_ty, Type* args_ty);
+static void visit_directApplication(Ast* applic_stmt, Type* required_ty, PotentialType* args_tau);
 static void visit_statement(Ast* stmt);
 static void visit_blockStatement(Ast* block_stmt);
 static void visit_statementOrDeclList(Ast* stmt_list);
@@ -115,7 +115,7 @@ static void visit_keyElementList(Ast* element_list);
 static void visit_keyElement(Ast* element);
 static void visit_actionsProperty(Ast* actions_prop);
 static void visit_actionList(Ast* action_list);
-static void visit_actionRef(Ast* action_ref, Type* required_ty, Type* args_ty);
+static void visit_actionRef(Ast* action_ref, Type* required_ty, PotentialType* args_tau);
 static void visit_entriesProperty(Ast* entries_prop);
 static void visit_entriesList(Ast* entries_list);
 static void visit_entry(Ast* entry);
@@ -130,34 +130,61 @@ static void visit_variableDeclaration(Ast* var_decl);
 
 static void visit_functionDeclaration(Ast* func_decl);
 static void visit_argumentList(Ast* args, Type* required_ty);
-static void visit_argument(Ast* arg, Type* required_ty, Type* args_ty);
-static void visit_expressionList(Ast* expr_list, Type* required_ty, Type* args_ty);
-static void visit_lvalueExpression(Ast* lvalue_expr, Type* required_ty, Type* args_ty);
-static void visit_expression(Ast* expr, Type* required_ty, Type* args_ty);
-static void visit_castExpression(Ast* cast_expr, Type* required_ty, Type* args_ty);
-static void visit_unaryExpression(Ast* unary_expr, Type* required_ty, Type* args_ty);
-static void visit_binaryExpression(Ast* binary_expr, Type* required_ty, Type* args_ty);
-static void visit_memberSelector(Ast* selector, Type* required_ty, Type* args_ty);
-static void visit_arraySubscript(Ast* subscript, Type* required_ty, Type* args_ty);
-static void visit_indexExpression(Ast* index_expr, Type* required_ty, Type* args_ty);
-static void visit_booleanLiteral(Ast* bool_literal, Type* required_ty, Type* args_ty);
-static void visit_integerLiteral(Ast* int_literal, Type* required_ty, Type* args_ty);
-static void visit_stringLiteral(Ast* str_literal, Type* required_ty, Type* args_ty);
+static void visit_argument(Ast* arg, Type* required_ty, PotentialType* args_tau);
+static void visit_expressionList(Ast* expr_list, Type* required_ty, PotentialType* args_tau);
+static void visit_lvalueExpression(Ast* lvalue_expr, Type* required_ty, PotentialType* args_tau);
+static void visit_expression(Ast* expr, Type* required_ty, PotentialType* args_tau);
+static void visit_castExpression(Ast* cast_expr, Type* required_ty, PotentialType* args_tau);
+static void visit_unaryExpression(Ast* unary_expr, Type* required_ty, PotentialType* args_tau);
+static void visit_binaryExpression(Ast* binary_expr, Type* required_ty, PotentialType* args_tau);
+static void visit_memberSelector(Ast* selector, Type* required_ty, PotentialType* args_tau);
+static void visit_arraySubscript(Ast* subscript, Type* required_ty, PotentialType* args_tau);
+static void visit_indexExpression(Ast* index_expr, Type* required_ty, PotentialType* args_tau);
+static void visit_booleanLiteral(Ast* bool_literal, Type* required_ty, PotentialType* args_tau);
+static void visit_integerLiteral(Ast* int_literal, Type* required_ty, PotentialType* args_tau);
+static void visit_stringLiteral(Ast* str_literal, Type* required_ty, PotentialType* args_tau);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 static bool
-match_type(Type* required_ty, PotentialType* tau)
+match_type(PotentialType* tau, Type* required_ty)
 {
+  Type* ty;
   MapEntry* m;
   int i;
 
   i = 0;
   for (m = tau->members.first; m != 0; m = m->next) {
-    if (type_equiv((Type*)m->key, required_ty)) {
+    ty = (Type*)m->key;
+    if (type_equiv(ty, required_ty)) {
       i += 1;
     }
   }
+  return (i == 1);
+}
+
+static bool
+match_function(PotentialType* tau, Type* return_ty, PotentialType* args_tau)
+{
+  Type* func_ty, *params_ty;
+  MapEntry* m;
+  int i, j;
+
+  i = 0;
+  for (m = tau->members.first; m != 0; m = m->next) {
+    func_ty = (Type*)m->key;
+    params_ty = func_ty->function.params;
+    assert(func_ty->ty_former == TYPE_FUNCTION);
+    if (return_ty) {
+      if (!type_equiv(func_ty->function.return_, return_ty)) continue;
+    }
+    if (params_ty->product.count != args_tau->product.count) continue;
+    for (j = 0; j < params_ty->product.count; j++) {
+      if (!match_type(args_tau->product.members[j], params_ty->product.members[j])) break;
+    }
+    if (j != params_ty->product.count) continue;
+    i += 1;
+  } 
   return (i == 1);
 }
 
@@ -230,7 +257,7 @@ visit_declaration(Ast* decl)
 }
 
 static void
-visit_name(Ast* name, Type* required_ty, Type* args_ty)
+visit_name(Ast* name, Type* required_ty, PotentialType* args_tau)
 {
   assert(name->kind == AST_name);
   PotentialType* name_tau;
@@ -238,7 +265,7 @@ visit_name(Ast* name, Type* required_ty, Type* args_ty)
 
   name_tau = map_lookup(potype_map, name, 0);
   if (required_ty) {
-    if (!match_type(required_ty, name_tau)) {
+    if (!match_type(name_tau, required_ty)) {
       error("%s:%d:%d: error: type mismatch.",
           source_file, name->line_no, name->column_no);
     }
@@ -892,23 +919,23 @@ static void
 visit_functionCall(Ast* func_call, Type* required_ty)
 {
   assert(func_call->kind == AST_functionCall);
-  Type* args_ty;
+  PotentialType* args_tau;
 
-  visit_argumentList(func_call->functionCall.args, 0);
-  args_ty = map_lookup(type_env, func_call->functionCall.args, 0);
+  args_tau = map_lookup(potype_map, func_call->functionCall.args, 0);
   if (func_call->functionCall.lhs_expr->kind == AST_expression) {
-    visit_expression(func_call->functionCall.lhs_expr, required_ty, args_ty);
+    visit_expression(func_call->functionCall.lhs_expr, required_ty, args_tau);
   } else if (func_call->functionCall.lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(func_call->functionCall.lhs_expr, required_ty, args_ty);
+    visit_lvalueExpression(func_call->functionCall.lhs_expr, required_ty, args_tau);
   } else assert(0);
+  visit_argumentList(func_call->functionCall.args, 0);
 }
 
 static void
-visit_returnStatement(Ast* return_stmt, Type* required_ty, Type* args_ty)
+visit_returnStatement(Ast* return_stmt, Type* required_ty, PotentialType* args_tau)
 {
   assert(return_stmt->kind == AST_returnStatement);
   if (return_stmt->returnStatement.expr) {
-    visit_expression(return_stmt->returnStatement.expr, required_ty, args_ty);
+    visit_expression(return_stmt->returnStatement.expr, required_ty, args_tau);
   }
 }
 
@@ -930,12 +957,12 @@ visit_conditionalStatement(Ast* cond_stmt)
 }
 
 static void
-visit_directApplication(Ast* applic_stmt, Type* required_ty, Type* args_ty)
+visit_directApplication(Ast* applic_stmt, Type* required_ty, PotentialType* args_tau)
 {
   assert(applic_stmt->kind == AST_directApplication);
   visit_argumentList(applic_stmt->directApplication.args, required_ty);
   if (applic_stmt->directApplication.name->kind == AST_name) {
-    visit_name(applic_stmt->directApplication.name, required_ty, args_ty);
+    visit_name(applic_stmt->directApplication.name, required_ty, args_tau);
   } else if (applic_stmt->directApplication.name->kind == AST_typeRef) {
     visit_typeRef(applic_stmt->directApplication.name);
   } else assert(0);
@@ -1123,7 +1150,7 @@ visit_actionList(Ast* action_list)
 }
 
 static void
-visit_actionRef(Ast* action_ref, Type* required_ty, Type* args_ty)
+visit_actionRef(Ast* action_ref, Type* required_ty, PotentialType* args_tau)
 {
   assert(action_ref->kind == AST_actionRef);
   visit_name(action_ref->actionRef.name, 0, 0);
@@ -1204,38 +1231,21 @@ visit_argumentList(Ast* args, Type* required_ty)
 {
   assert(args->kind == AST_argumentList);
   Ast* ast;
-  Type* args_ty;
-  int i = 0;
 
-  args_ty = (Type*)array_append(storage, type_array, sizeof(Type));
-  args_ty->ty_former = TYPE_PRODUCT;
-  args_ty->ast = args;
   for (ast = args->argumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_argument(ast, required_ty, args_ty);
-    args_ty->product.count += 1;
+    visit_argument(ast, required_ty, 0);
   }
-  if (args_ty->product.count > 0) {
-    args_ty->product.members = arena_malloc(storage, args_ty->product.count*sizeof(Type*));
-  }
-  i = 0;
-  for (ast = args->argumentList.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    args_ty->product.members[i] = map_lookup(type_env, ast, 0);
-    i += 1;
-  }
-  assert(i == args_ty->product.count);
-  map_insert(storage, type_env, args, args_ty, 0);
 }
 
 static void
-visit_argument(Ast* arg, Type* required_ty, Type* args_ty)
+visit_argument(Ast* arg, Type* required_ty, PotentialType* args_tau)
 {
   assert(arg->kind == AST_argument);
   Type* arg_ty;
 
   if (arg->argument.arg->kind == AST_expression) {
-    visit_expression(arg->argument.arg, required_ty, args_ty);
+    visit_expression(arg->argument.arg, required_ty, args_tau);
   } else if (arg->argument.arg->kind == AST_dontcare) {
     visit_dontcare(arg->argument.arg);
   } else assert(0);
@@ -1244,29 +1254,29 @@ visit_argument(Ast* arg, Type* required_ty, Type* args_ty)
 }
 
 static void
-visit_expressionList(Ast* expr_list, Type* required_ty, Type* args_ty)
+visit_expressionList(Ast* expr_list, Type* required_ty, PotentialType* args_tau)
 {
   assert(expr_list->kind == AST_expressionList);
   Ast* ast;
 
   for (ast = expr_list->expressionList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_expression(ast, required_ty, args_ty);
+    visit_expression(ast, required_ty, args_tau);
   }
 }
 
 static void
-visit_lvalueExpression(Ast* lvalue_expr, Type* required_ty, Type* args_ty)
+visit_lvalueExpression(Ast* lvalue_expr, Type* required_ty, PotentialType* args_tau)
 {
   assert(lvalue_expr->kind == AST_lvalueExpression);
   Type* expr_ty;
 
   if (lvalue_expr->lvalueExpression.expr->kind == AST_name) {
-    visit_name(lvalue_expr->lvalueExpression.expr, required_ty, args_ty);
+    visit_name(lvalue_expr->lvalueExpression.expr, required_ty, args_tau);
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_memberSelector) {
-    visit_memberSelector(lvalue_expr->lvalueExpression.expr, required_ty, args_ty);
+    visit_memberSelector(lvalue_expr->lvalueExpression.expr, required_ty, args_tau);
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_arraySubscript) {
-    visit_arraySubscript(lvalue_expr->lvalueExpression.expr, required_ty, args_ty);
+    visit_arraySubscript(lvalue_expr->lvalueExpression.expr, required_ty, args_tau);
   } else assert(0);
   expr_ty = map_lookup(type_env, lvalue_expr->lvalueExpression.expr, 0);
   assert(expr_ty);
@@ -1274,33 +1284,33 @@ visit_lvalueExpression(Ast* lvalue_expr, Type* required_ty, Type* args_ty)
 }
 
 static void
-visit_expression(Ast* expr, Type* required_ty, Type* args_ty)
+visit_expression(Ast* expr, Type* required_ty, PotentialType* args_tau)
 {
   assert(expr->kind == AST_expression);
   Type* expr_ty;
 
   if (expr->expression.expr->kind == AST_expression) {
-    visit_expression(expr->expression.expr, required_ty, args_ty);
+    visit_expression(expr->expression.expr, required_ty, args_tau);
   } else if (expr->expression.expr->kind == AST_booleanLiteral) {
-    visit_booleanLiteral(expr->expression.expr, required_ty, args_ty);
+    visit_booleanLiteral(expr->expression.expr, required_ty, args_tau);
   } else if (expr->expression.expr->kind == AST_integerLiteral) {
-    visit_integerLiteral(expr->expression.expr, required_ty, args_ty);
+    visit_integerLiteral(expr->expression.expr, required_ty, args_tau);
   } else if (expr->expression.expr->kind == AST_stringLiteral) {
-    visit_stringLiteral(expr->expression.expr, required_ty, args_ty);
+    visit_stringLiteral(expr->expression.expr, required_ty, args_tau);
   } else if (expr->expression.expr->kind == AST_name) {
-    visit_name(expr->expression.expr, required_ty, args_ty);
+    visit_name(expr->expression.expr, required_ty, args_tau);
   } else if (expr->expression.expr->kind == AST_expressionList) {
-    visit_expressionList(expr->expression.expr, required_ty, args_ty);
+    visit_expressionList(expr->expression.expr, required_ty, args_tau);
   } else if (expr->expression.expr->kind == AST_castExpression) {
-    visit_castExpression(expr->expression.expr, required_ty, args_ty);
+    visit_castExpression(expr->expression.expr, required_ty, args_tau);
   } else if (expr->expression.expr->kind == AST_unaryExpression) {
-    visit_unaryExpression(expr->expression.expr, required_ty, args_ty);
+    visit_unaryExpression(expr->expression.expr, required_ty, args_tau);
   } else if (expr->expression.expr->kind == AST_binaryExpression) {
-    visit_binaryExpression(expr->expression.expr, required_ty, args_ty);
+    visit_binaryExpression(expr->expression.expr, required_ty, args_tau);
   } else if (expr->expression.expr->kind == AST_memberSelector) {
-    visit_memberSelector(expr->expression.expr, required_ty, args_ty);
+    visit_memberSelector(expr->expression.expr, required_ty, args_tau);
   } else if (expr->expression.expr->kind == AST_arraySubscript) {
-    visit_arraySubscript(expr->expression.expr, required_ty, args_ty);
+    visit_arraySubscript(expr->expression.expr, required_ty, args_tau);
   } else if (expr->expression.expr->kind == AST_functionCall) {
     visit_functionCall(expr->expression.expr, required_ty);
   } else if (expr->expression.expr->kind == AST_assignmentStatement) {
@@ -1312,34 +1322,33 @@ visit_expression(Ast* expr, Type* required_ty, Type* args_ty)
 }
 
 static void
-visit_castExpression(Ast* cast_expr, Type* required_ty, Type* args_ty)
+visit_castExpression(Ast* cast_expr, Type* required_ty, PotentialType* args_tau)
 {
   assert(cast_expr->kind == AST_castExpression);
   visit_typeRef(cast_expr->castExpression.type);
-  visit_expression(cast_expr->castExpression.expr, required_ty, args_ty);
+  visit_expression(cast_expr->castExpression.expr, required_ty, args_tau);
 }
 
 static void
-visit_unaryExpression(Ast* unary_expr, Type* required_ty, Type* args_ty)
+visit_unaryExpression(Ast* unary_expr, Type* required_ty, PotentialType* args_tau)
 {
   assert(unary_expr->kind == AST_unaryExpression);
-  visit_expression(unary_expr->unaryExpression.operand, required_ty, args_ty);
+  visit_expression(unary_expr->unaryExpression.operand, required_ty, args_tau);
 }
 
 static void
-visit_binaryExpression(Ast* binary_expr, Type* required_ty, Type* args_ty)
+visit_binaryExpression(Ast* binary_expr, Type* required_ty, PotentialType* args_tau)
 {
   assert(binary_expr->kind == AST_binaryExpression);
-  visit_expression(binary_expr->binaryExpression.left_operand, required_ty, args_ty);
-  visit_expression(binary_expr->binaryExpression.right_operand, required_ty, args_ty);
+  visit_expression(binary_expr->binaryExpression.left_operand, required_ty, args_tau);
+  visit_expression(binary_expr->binaryExpression.right_operand, required_ty, args_tau);
 }
 
 static void
-visit_memberSelector(Ast* selector, Type* required_ty, Type* args_ty)
+visit_memberSelector(Ast* selector, Type* required_ty, PotentialType* args_tau)
 {
   assert(selector->kind == AST_memberSelector);
   PotentialType* selector_tau;
-  Type* selector_ty;
 
   if (selector->memberSelector.lhs_expr->kind == AST_expression) {
     visit_expression(selector->memberSelector.lhs_expr, 0, 0);
@@ -1347,63 +1356,57 @@ visit_memberSelector(Ast* selector, Type* required_ty, Type* args_ty)
     visit_lvalueExpression(selector->memberSelector.lhs_expr, 0, 0);
   } else assert(0);
   selector_tau = map_lookup(potype_map, selector, 0);
-  if (required_ty) {
-    ;
-  } else {
-    if (map_count(&selector_tau->members) != 1) {
-      error("%s:%d:%d: error: ambiguous or unknown type.",
+  if (!match_function(selector_tau, required_ty, args_tau)) {
+    error("%s:%d:%d: error: type mismatch.",
           source_file, selector->line_no, selector->column_no);
-    }
-    selector_ty = (Type*)selector_tau->members.first->key;
-    map_insert(storage, type_env, selector, effective_type(selector_ty), 0);
   }
 }
 
 static void
-visit_arraySubscript(Ast* subscript, Type* required_ty, Type* args_ty)
+visit_arraySubscript(Ast* subscript, Type* required_ty, PotentialType* args_tau)
 {
   assert(subscript->kind == AST_arraySubscript);
   if (subscript->arraySubscript.lhs_expr->kind == AST_expression) {
-    visit_expression(subscript->arraySubscript.lhs_expr, required_ty, args_ty);
+    visit_expression(subscript->arraySubscript.lhs_expr, required_ty, args_tau);
   } else if (subscript->arraySubscript.lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(subscript->arraySubscript.lhs_expr, required_ty, args_ty);
+    visit_lvalueExpression(subscript->arraySubscript.lhs_expr, required_ty, args_tau);
   } else assert(0);
-  visit_indexExpression(subscript->arraySubscript.index_expr, required_ty, args_ty);
+  visit_indexExpression(subscript->arraySubscript.index_expr, required_ty, args_tau);
 }
 
 static void
-visit_indexExpression(Ast* index_expr, Type* required_ty, Type* args_ty)
+visit_indexExpression(Ast* index_expr, Type* required_ty, PotentialType* args_tau)
 {
   assert(index_expr->kind == AST_indexExpression);
-  visit_expression(index_expr->indexExpression.start_index, required_ty, args_ty);
+  visit_expression(index_expr->indexExpression.start_index, required_ty, args_tau);
   if (index_expr->indexExpression.end_index) {
-    visit_expression(index_expr->indexExpression.end_index, required_ty, args_ty);
+    visit_expression(index_expr->indexExpression.end_index, required_ty, args_tau);
   }
 }
 
 static void
-visit_booleanLiteral(Ast* bool_literal, Type* required_ty, Type* args_ty)
+visit_booleanLiteral(Ast* bool_literal, Type* required_ty, PotentialType* args_tau)
 {
   assert(bool_literal->kind == AST_booleanLiteral);
 }
 
 static void
-visit_integerLiteral(Ast* int_literal, Type* required_ty, Type* args_ty)
+visit_integerLiteral(Ast* int_literal, Type* required_ty, PotentialType* args_tau)
 {
   assert(int_literal->kind == AST_integerLiteral);
   PotentialType* literal_tau;
 
   if (required_ty) {
     literal_tau = map_lookup(potype_map, int_literal, 0);
-    if (!match_type(required_ty, literal_tau)) {
+    if (!match_type(literal_tau, required_ty)) {
       error("%s:%d:%d: error: type mismatch.",
-          source_file, int_literal->line_no, int_literal->column_no);
+            source_file, int_literal->line_no, int_literal->column_no);
     }
   }
 }
 
 static void
-visit_stringLiteral(Ast* str_literal, Type* required_ty, Type* args_ty)
+visit_stringLiteral(Ast* str_literal, Type* required_ty, PotentialType* args_tau)
 {
   assert(str_literal->kind == AST_stringLiteral);
 }

@@ -460,13 +460,13 @@ visit_selectCaseList(Ast* case_list)
     tau->product.count += 1;
   }
   if (tau->product.count > 0) {
-    tau->product.members = arena_malloc(storage, tau->product.count*sizeof(Map*));
+    tau->product.members = arena_malloc(storage, tau->product.count*sizeof(PotentialType*));
   }
   i = 0;
   for (ast = case_list->selectCaseList.first_child;
        ast != 0; ast = ast->right_sibling) {
     tau_case = map_lookup(potype_map, ast, 0);
-    tau->product.members[i] = &tau_case->members;
+    tau->product.members[i] = tau_case;
     i += 1;
   }
   assert(i == tau->product.count);
@@ -498,7 +498,7 @@ visit_keysetExpression(Ast* keyset_expr)
     visit_simpleKeysetExpression(keyset_expr->keysetExpression.expr);
     tau = arena_malloc(storage, sizeof(PotentialType));
     tau->product.count = 1;
-    tau->product.members = arena_malloc(storage, tau->product.count*sizeof(Map*));
+    tau->product.members = arena_malloc(storage, tau->product.count*sizeof(PotentialType*));
     tau->product.members[0] = map_lookup(potype_map, keyset_expr->keysetExpression.expr, 0);
     map_insert(storage, potype_map, keyset_expr, tau, 0);
   } else assert(0);
@@ -548,13 +548,13 @@ visit_simpleExpressionList(Ast* expr_list)
     tau->product.count += 1;
   }
   if (tau->product.count > 0) {
-    tau->product.members = arena_malloc(storage, tau->product.count*sizeof(Map*));
+    tau->product.members = arena_malloc(storage, tau->product.count*sizeof(PotentialType*));
   }
   i = 0;
   for (ast = expr_list->simpleExpressionList.first_child;
        ast != 0; ast = ast->right_sibling) {
     tau_expr = map_lookup(potype_map, ast, 0);
-    tau->product.members[i] = &tau_expr->members;
+    tau->product.members[i] = tau_expr;
     i += 1;
   }
   assert(i == tau->product.count);
@@ -1265,13 +1265,13 @@ visit_argumentList(Ast* args)
     tau->product.count += 1;
   }
   if (tau->product.count > 0) {
-    tau->product.members = arena_malloc(storage, tau->product.count*sizeof(Map*));
+    tau->product.members = arena_malloc(storage, tau->product.count*sizeof(PotentialType*));
   }
   i = 0;
   for (ast = args->argumentList.first_child;
        ast != 0; ast = ast->right_sibling) {
     tau_arg = map_lookup(potype_map, ast, 0);
-    tau->product.members[i] = &tau_arg->members;
+    tau->product.members[i] = tau_arg;
     i += 1;
   }
   assert(i == tau->product.count);
@@ -1308,13 +1308,13 @@ visit_expressionList(Ast* expr_list)
     tau->product.count += 1;
   }
   if (tau->product.count > 0) {
-    tau->product.members = arena_malloc(storage, tau->product.count*sizeof(Map*));
+    tau->product.members = arena_malloc(storage, tau->product.count*sizeof(PotentialType*));
   }
   i = 0;
   for (ast = expr_list->expressionList.first_child;
        ast != 0; ast = ast->right_sibling) {
     tau_expr = map_lookup(potype_map, ast, 0);
-    tau->product.members[i] = &tau_expr->members;
+    tau->product.members[i] = tau_expr;
     i += 1;
   }
   assert(i == tau->product.count);
