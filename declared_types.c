@@ -633,10 +633,13 @@ static void
 visit_parserDeclaration(Ast* parser_decl)
 {
   assert(parser_decl->kind == AST_parserDeclaration);
+  Type* parser_ty;
 
   visit_typeDeclaration(parser_decl->parserDeclaration.proto);
   if (parser_decl->parserDeclaration.ctor_params) {
     visit_parameterList(parser_decl->parserDeclaration.ctor_params);
+    parser_ty = map_lookup(type_env, parser_decl->parserDeclaration.proto, 0);
+    parser_ty->parser.ctor_params = map_lookup(type_env, parser_decl->parserDeclaration.ctor_params, 0);
   }
   visit_parserLocalElements(parser_decl->parserDeclaration.local_elements);
   visit_parserStates(parser_decl->parserDeclaration.states);
@@ -849,10 +852,13 @@ static void
 visit_controlDeclaration(Ast* control_decl)
 {
   assert(control_decl->kind == AST_controlDeclaration);
+  Type* control_ty;
 
   visit_typeDeclaration(control_decl->controlDeclaration.proto);
   if (control_decl->controlDeclaration.ctor_params) {
     visit_parameterList(control_decl->controlDeclaration.ctor_params);
+    control_ty = map_lookup(type_env, control_decl->controlDeclaration.proto, 0);
+    control_ty->control.ctor_params = map_lookup(type_env, control_decl->controlDeclaration.ctor_params, 0);
   }
   visit_controlLocalDeclarations(control_decl->controlDeclaration.local_decls);
   visit_blockStatement(control_decl->controlDeclaration.apply_stmt);
@@ -924,7 +930,7 @@ visit_externTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AST_externTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
-  Type* extern_ty, *methods_ty;
+  Type* extern_ty, *methods_ty, *ctors_ty;
 
   name = type_decl->externTypeDeclaration.name;
   extern_ty = (Type*)array_append(storage, type_array, sizeof(Type));
@@ -935,6 +941,23 @@ visit_externTypeDeclaration(Ast* type_decl)
   visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos, extern_ty);
   methods_ty = map_lookup(type_env, type_decl->externTypeDeclaration.method_protos, 0);
   extern_ty->extern_.methods = methods_ty;
+  ctors_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  ctors_ty->ty_former = TYPE_PRODUCT;
+  ctors_ty->ast = type_decl;
+  for (int i = 0; i < methods_ty->product.count; i++) {
+    if (cstr_match(methods_ty->product.members[i]->strname, name->name.strname)) {
+      ctors_ty->product.count += 1;
+    }
+  }
+  if (ctors_ty->product.count > 0) {
+    ctors_ty->product.members = arena_malloc(storage, ctors_ty->product.count*sizeof(Type*));
+  }
+  for (int i = 0; i < methods_ty->product.count; i++) {
+    if (cstr_match(methods_ty->product.members[i]->strname, name->name.strname)) {
+      ctors_ty->product.members[i] = methods_ty->product.members[i];
+    }
+  }
+  extern_ty->extern_.ctors = ctors_ty;
   name_decl = map_lookup(decl_map, type_decl, 0);
   name_decl->type = extern_ty;
 }

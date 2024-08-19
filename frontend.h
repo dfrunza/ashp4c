@@ -883,10 +883,12 @@ typedef struct Type {
 
     struct {
       struct Type* methods;
+      struct Type* ctors;
     } extern_;
 
     struct {
       struct Type* params;
+      struct Type* ctor_params;
     } parser, control, package;
 
     struct {

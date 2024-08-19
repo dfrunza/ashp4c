@@ -8,7 +8,6 @@ static Arena* storage;
 static Scope* root_scope;
 static Map*   type_env, *potype_map;
 static Map*   scope_map, *decl_map;
-static Array* name_ty;
 
 /** PROGRAM **/
 
@@ -170,6 +169,12 @@ match_function_args(Type* func_ty, PotentialType* potential_args)
 
   if (func_ty->ty_former == TYPE_FUNCTION) {
     params_ty = func_ty->function.params;
+  } else if (func_ty->ty_former == TYPE_PARSER) {
+    params_ty = func_ty->parser.ctor_params;
+  } else if (func_ty->ty_former == TYPE_CONTROL) {
+    params_ty = func_ty->control.ctor_params;
+  } else if (func_ty->ty_former == TYPE_EXTERN) {
+    assert(0); /* TODO */
   } else assert(0);
   if (params_ty->product.count != potential_args->product.count) return 0;
   for (i = 0; i < params_ty->product.count; i++) {
@@ -296,6 +301,7 @@ visit_name(Ast* name, PotentialType* potential_args)
   NameDeclaration* name_decl;
   PotentialType* tau;
   Type* ty;
+  static Array* name_ty;
 
   if (!name_ty) name_ty = array_create(storage, sizeof(Type*), 1);
   name_ty->elem_count = 0;
@@ -316,11 +322,18 @@ visit_name(Ast* name, PotentialType* potential_args)
   }
   for (int i = 0; i < name_ty->elem_count; i++) {
     ty = *(Type**)array_get(name_ty, i, sizeof(Type*));
-    if (ty->ty_former == TYPE_FUNCTION) {
+    if (ty->ty_former == TYPE_FUNCTION ||
+        ty->ty_former == TYPE_PARSER || ty->ty_former == TYPE_CONTROL) {
       if (potential_args) {
         if (match_function_args(ty, potential_args)) {
           map_insert(storage, &tau->members, ty, 0, 0);
         }
+      } else {
+        map_insert(storage, &tau->members, ty, 0, 0);
+      }
+    } else if (ty->ty_former == TYPE_EXTERN) {
+      if (potential_args) {
+        assert(0); /* TODO */
       } else {
         map_insert(storage, &tau->members, ty, 0, 0);
       }

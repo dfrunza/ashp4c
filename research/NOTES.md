@@ -1,6 +1,7 @@
 ## Random
 
  - Should we support the n in bit<n>?
+      Yes. For example, bit<12> may be used as the type of the VID field in the VLAN header.
  - A P4 table T can be considered as having a 'type', which defines the properties of all instances of T.
  - We need a mechanism to allocate temporary memory such that it can be reset and reused repeatedly.
 

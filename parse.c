@@ -1047,17 +1047,12 @@ parse_optConstructorParameters()
 
   if (token->klass == TK_PARENTH_OPEN) {
     next_token();
-    if (token_is_parameter(token)) {
-      params = parse_parameterList();
-      if (token->klass == TK_PARENTH_CLOSE) {
-        next_token();
-      } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
-                   source_file, token->line_no, token->column_no, token->lexeme);
-      return params;
-    } else if (token->klass == TK_PARENTH_CLOSE) {
+    params = parse_parameterList();
+    if (token->klass == TK_PARENTH_CLOSE) {
       next_token();
     } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                  source_file, token->line_no, token->column_no, token->lexeme);
+    return params;
   }
   return 0;
 }
