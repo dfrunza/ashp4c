@@ -8,6 +8,7 @@ static Arena* storage;
 static Scope* root_scope;
 static Map*   type_env, *potype_map;
 static Map*   scope_map, *decl_map;
+static Array* name_ty;
 
 /** PROGRAM **/
 
@@ -161,14 +162,15 @@ match_type(PotentialType* tau, Type* required_ty)
   return (i == 1);
 }
 
-static bool
+bool
 match_function_args(Type* func_ty, PotentialType* potential_args)
 {
   Type* params_ty;
   int i;
 
-  assert(func_ty->ty_former == TYPE_FUNCTION);
-  params_ty = func_ty->function.params;
+  if (func_ty->ty_former == TYPE_FUNCTION) {
+    params_ty = func_ty->function.params;
+  } else assert(0);
   if (params_ty->product.count != potential_args->product.count) return 0;
   for (i = 0; i < params_ty->product.count; i++) {
     if (!match_type(potential_args->product.members[i],
@@ -293,22 +295,38 @@ visit_name(Ast* name, PotentialType* potential_args)
   NameEntry* name_entry;
   NameDeclaration* name_decl;
   PotentialType* tau;
-  Type* name_ty;
+  Type* ty;
 
+  if (!name_ty) name_ty = array_create(storage, sizeof(Type*), 1);
+  name_ty->elem_count = 0;
   tau = arena_malloc(storage, sizeof(PotentialType));
   map_insert(storage, potype_map, name, tau, 0);
   scope = map_lookup(scope_map, name, 0);
   name_entry = scope_lookup(scope, name->name.strname, NAMESPACE_VAR|NAMESPACE_TYPE);
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_VAR);
+  name_decl = name_entry->ns[NAMESPACE_VAR >> 1];
   if (name_decl) {
-    name_ty = map_lookup(type_env, name_decl->ast, 0);
-    map_insert(storage, &tau->members, actual_type(name_ty), 0, 0);
+    ty = map_lookup(type_env, name_decl->ast, 0);
+    *(Type**)array_append(storage, name_ty, sizeof(Type*)) = actual_type(ty);
     assert(!name_decl->next_in_scope);
   }
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+  name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
   for(; name_decl != 0; name_decl = name_decl->next_in_scope) {
-    name_ty = map_lookup(type_env, name_decl->ast, 0);
-    map_insert(storage, &tau->members, actual_type(name_ty), 0, 0);
+    ty = map_lookup(type_env, name_decl->ast, 0);
+    *(Type**)array_append(storage, name_ty, sizeof(Type*)) = actual_type(ty);
+  }
+  for (int i = 0; i < name_ty->elem_count; i++) {
+    ty = *(Type**)array_get(name_ty, i, sizeof(Type*));
+    if (ty->ty_former == TYPE_FUNCTION) {
+      if (potential_args) {
+        if (match_function_args(ty, potential_args)) {
+          map_insert(storage, &tau->members, ty, 0, 0);
+        }
+      } else {
+        map_insert(storage, &tau->members, ty, 0, 0);
+      }
+    } else {
+      map_insert(storage, &tau->members, ty, 0, 0);
+    }
   }
 }
 
@@ -1518,10 +1536,12 @@ visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AST_booleanLiteral);
   PotentialType* tau;
+  Type* ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
   map_insert(storage, potype_map, bool_literal, tau, 0);
-  map_insert(storage, &tau->members, builtin_type(root_scope, "bool"), 0, 0);
+  ty = builtin_lookup(root_scope, "bool", NAMESPACE_TYPE)->type;
+  map_insert(storage, &tau->members, ty, 0, 0);
 }
 
 static void
@@ -1529,10 +1549,12 @@ visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AST_integerLiteral);
   PotentialType* tau;
+  Type *ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
   map_insert(storage, potype_map, int_literal, tau, 0);
-  map_insert(storage, &tau->members, builtin_type(root_scope, "int"), 0, 0);
+  ty = builtin_lookup(root_scope, "int", NAMESPACE_TYPE)->type;
+  map_insert(storage, &tau->members, ty, 0, 0);
 }
 
 static void
@@ -1540,10 +1562,12 @@ visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AST_stringLiteral);
   PotentialType* tau;
+  Type* ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
   map_insert(storage, potype_map, str_literal, tau, 0);
-  map_insert(storage, &tau->members, builtin_type(root_scope, "string"), 0, 0);
+  ty = builtin_lookup(root_scope, "string", NAMESPACE_TYPE)->type;
+  map_insert(storage, &tau->members, ty, 0, 0);
 }
 
 static void
@@ -1557,8 +1581,10 @@ visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AST_dontcare);
   PotentialType* tau;
+  Type* ty;
 
   tau = arena_malloc(storage, sizeof(PotentialType));
   map_insert(storage, potype_map, dontcare, tau, 0);
-  map_insert(storage, &tau->members, builtin_type(root_scope, "_"), 0, 0);
+  ty = builtin_lookup(root_scope, "_", NAMESPACE_TYPE)->type;
+  map_insert(storage, &tau->members, ty, 0, 0);
 }

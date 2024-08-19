@@ -932,10 +932,10 @@ typedef struct PotentialType {
 
 Type*  actual_type(Type* type);
 Type*  effective_type(Type* type);
-Type*  builtin_type(Scope* root_scope, char* strname);
 bool   type_equiv(Type* u, Type* v);
 char*  TypeEnum_to_string(enum TypeEnum type);
 bool   match_type(PotentialType* tau, Type* required_ty);
+bool   match_function_args(Type* func_ty, PotentialType* potential_args);
 
 typedef struct NameDeclaration {
   char* strname;
@@ -968,4 +968,4 @@ Scope*     scope_pop(Scope* scope);
 NameEntry* scope_lookup(Scope* scope, char* name, enum NameSpace ns);
 NameEntry* scope_lookup_current(Scope* scope, char* strname);
 NameDeclaration* scope_bind(Arena* storage, Scope* scope, char* strname, enum NameSpace ns);
-NameDeclaration* name_entry_getdecl(NameEntry* name_entry, enum NameSpace ns);
+NameDeclaration* builtin_lookup(Scope* scope, char* strname, enum NameSpace ns);

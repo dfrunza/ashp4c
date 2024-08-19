@@ -452,7 +452,7 @@ visit_simpleKeysetExpression(Ast* simple_expr)
   Type* expr_ty;
 
   if (simple_expr->simpleKeysetExpression.expr->kind == AST_expression) {
-    expr_ty = builtin_type(root_scope, "int");
+    expr_ty = builtin_lookup(root_scope, "int", NAMESPACE_TYPE)->type;
     visit_expression(simple_expr->simpleKeysetExpression.expr, expr_ty, 0);
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_default) {
     visit_default(simple_expr->simpleKeysetExpression.expr);
@@ -609,7 +609,7 @@ visit_headerStackType(Ast* type_decl)
   Type* index_ty;
 
   visit_typeRef(type_decl->headerStackType.type);
-  index_ty = builtin_type(root_scope, "int");
+  index_ty = builtin_lookup(root_scope, "int", NAMESPACE_TYPE)->type;
   visit_expression(type_decl->headerStackType.stack_expr, index_ty, 0);
 }
 

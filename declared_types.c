@@ -161,12 +161,24 @@ setup_builtin_types()
   };
   NameEntry* name_entry;
   NameDeclaration* name_decl;
+  Ast* ast;
+  Type* ty;
 
   for (int i = 0; i < sizeof(strnames)/sizeof(strnames[0]); i++) {
     name_entry = scope_lookup(root_scope, strnames[i], NAMESPACE_TYPE);
-    name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+    name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
     map_insert(storage, type_env, name_decl->ast, name_decl->type, 0);
   }
+
+  ast = builtin_lookup(root_scope, "accept", NAMESPACE_VAR)->ast;
+  ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  ty->ty_former = TYPE_STATE;
+  map_insert(storage, type_env, ast, ty, 0);
+
+  ast = builtin_lookup(root_scope, "reject", NAMESPACE_VAR)->ast;
+  ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  ty->ty_former = TYPE_STATE;
+  map_insert(storage, type_env, ast, ty, 0);
 }
 
 static bool
@@ -320,17 +332,6 @@ effective_type(Type* type)
   return applied_ty;
 }
 
-Type*
-builtin_type(Scope* root_scope, char* strname)
-{
-  NameEntry* name_entry;
-  NameDeclaration* name_decl;
-
-  name_entry = scope_lookup(root_scope, strname, NAMESPACE_TYPE);
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
-  return name_decl->type;
-}
-
 char*
 TypeEnum_to_string(enum TypeEnum type)
 {
@@ -438,7 +439,7 @@ declared_types(Arena* storage_, char* source_file_, Ast* p4program, Scope* root_
     if (ty->ty_former == TYPE_NAMEREF) {
       name = ty->nameref.name;
       name_entry = scope_lookup(ty->nameref.scope, name->name.strname, NAMESPACE_TYPE);
-      name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+      name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
       if (name_decl) {
         ref_ty = map_lookup(type_env, name_decl->ast, 0);
         assert(ref_ty);
@@ -1370,7 +1371,7 @@ visit_errorDeclaration(Ast* error_decl)
   assert(error_decl->kind == AST_errorDeclaration);
   Type* error_ty, *fields_ty;
 
-  error_ty = builtin_type(root_scope, "error");
+  error_ty = builtin_lookup(root_scope, "error", NAMESPACE_TYPE)->type;
   fields_ty = error_ty->enum_.fields;
   if (error_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = error_ty->enum_.field_count;
@@ -1386,7 +1387,7 @@ visit_matchKindDeclaration(Ast* match_decl)
   assert(match_decl->kind == AST_matchKindDeclaration);
   Type* match_kind_ty, *fields_ty;
 
-  match_kind_ty = builtin_type(root_scope, "match_kind");
+  match_kind_ty = builtin_lookup(root_scope, "match_kind", NAMESPACE_TYPE)->type;
   fields_ty = match_kind_ty->enum_.fields;
   if (match_kind_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = match_kind_ty->enum_.field_count;
@@ -1807,7 +1808,7 @@ visit_actionDeclaration(Ast* action_decl)
   action_ty->ast = action_decl;
   action_ty->function.params = map_lookup(type_env, action_decl->actionDeclaration.params, 0);
   map_insert(storage, type_env, action_decl, action_ty, 0);
-  action_ty->function.return_ = builtin_type(root_scope, "void");
+  action_ty->function.return_ = builtin_lookup(root_scope, "void", NAMESPACE_TYPE)->type;
   name_decl = map_lookup(decl_map, action_decl, 0);
   name_decl->type = action_ty;
 }
@@ -1980,21 +1981,30 @@ static void
 visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AST_booleanLiteral);
-  map_insert(storage, type_env, bool_literal, builtin_type(root_scope, "bool"), 0);
+  Type* ty;
+
+  ty = builtin_lookup(root_scope, "bool", NAMESPACE_TYPE)->type;
+  map_insert(storage, type_env, bool_literal, ty, 0);
 }
 
 static void
 visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AST_integerLiteral);
-  map_insert(storage, type_env, int_literal, builtin_type(root_scope, "int"), 0);
+  Type* ty;
+
+  ty = builtin_lookup(root_scope, "int", NAMESPACE_TYPE)->type;
+  map_insert(storage, type_env, int_literal, ty, 0);
 }
 
 static void
 visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AST_stringLiteral);
-  map_insert(storage, type_env, str_literal, builtin_type(root_scope, "string"), 0);
+  Type* ty;
+
+  ty = builtin_lookup(root_scope, "string", NAMESPACE_TYPE)->type;
+  map_insert(storage, type_env, str_literal, ty, 0);
 }
 
 static void
@@ -2007,6 +2017,9 @@ static void
 visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AST_dontcare);
-  map_insert(storage, type_env, dontcare, builtin_type(root_scope, "_"), 0);
+  Type* ty;
+
+  ty = builtin_lookup(root_scope, "_", NAMESPACE_TYPE)->type;
+  map_insert(storage, type_env, dontcare, ty, 0);
 }
 

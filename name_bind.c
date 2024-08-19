@@ -194,7 +194,7 @@ setup_builtin_names(Array* type_array)
   }
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_entry = scope_lookup(root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
-    name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+    name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
     ty = (Type*)array_append(storage, type_array, sizeof(Type));
     ty->ty_former = builtin_types[i].ty_former;
     ty->strname = name_decl->strname;
@@ -202,13 +202,23 @@ setup_builtin_names(Array* type_array)
     name_decl->type = ty;
   }
 
-  ty = builtin_type(root_scope, "error");
+  ty = builtin_lookup(root_scope, "error", NAMESPACE_TYPE)->type;
   ty->enum_.fields = (Type*)array_append(storage, type_array, sizeof(Type));
   ty->enum_.fields->ty_former = TYPE_PRODUCT;
 
-  ty = builtin_type(root_scope, "match_kind");
+  ty = builtin_lookup(root_scope, "match_kind", NAMESPACE_TYPE)->type;
   ty->enum_.fields = (Type*)array_append(storage, type_array, sizeof(Type));
   ty->enum_.fields->ty_former = TYPE_PRODUCT;
+}
+
+NameDeclaration*
+builtin_lookup(Scope* scope, char* strname, enum NameSpace ns)
+{
+  NameEntry* name_entry;
+  assert (ns == NAMESPACE_VAR || ns == NAMESPACE_TYPE);
+
+  name_entry = scope_lookup(scope, strname, ns);
+  return name_entry->ns[ns >> 1];
 }
 
 NameEntry*
@@ -256,13 +266,6 @@ scope_bind(Arena* storage, Scope* scope, char*strname, enum NameSpace ns)
   return name_decl;
 }
 
-NameDeclaration*
-name_entry_getdecl(NameEntry* name_entry, enum NameSpace ns)
-{
-  assert(0 < ns);
-  return name_entry->ns[ns >> 1];
-}
-
 void
 Debug_scope_decls(Scope* scope)
 {
@@ -279,7 +282,7 @@ Debug_scope_decls(Scope* scope)
   while (he) {
     name_entry = (NameEntry*)he->value;
     for (int i = 0; i < sizeof(ns)/sizeof(ns[0]); i++) {
-      decl = name_entry_getdecl(name_entry, ns[i]);
+      decl = name_entry->ns[ns[i] >> 1];
       while (decl) {
         if (ns[i] == NAMESPACE_KEYWORD) {
           printf("%s, %s\n", decl->strname, NameSpace_to_string(ns[i]));
@@ -867,7 +870,7 @@ visit_baseTypeBoolean(Ast* bool_type)
   NameDeclaration* name_decl;
 
   name_entry = scope_lookup(root_scope, "bool", NAMESPACE_TYPE);
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+  name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
   map_insert(storage, decl_map, bool_type, name_decl, 0);
 }
 
@@ -882,7 +885,7 @@ visit_baseTypeInteger(Ast* int_type)
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
   name_entry = scope_lookup(root_scope, "int", NAMESPACE_TYPE); 
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+  name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
   map_insert(storage, decl_map, int_type, name_decl, 0);
 }
 
@@ -897,7 +900,7 @@ visit_baseTypeBit(Ast* bit_type)
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
   name_entry = scope_lookup(root_scope, "bit", NAMESPACE_TYPE);
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+  name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
   map_insert(storage, decl_map, bit_type, name_decl, 0);
 }
 
@@ -910,7 +913,7 @@ visit_baseTypeVarbit(Ast* varbit_type)
 
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
   name_entry = scope_lookup(root_scope, "varbit", NAMESPACE_TYPE);
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+  name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
   map_insert(storage, decl_map, varbit_type, name_decl, 0);
 }
 
@@ -922,7 +925,7 @@ visit_baseTypeString(Ast* str_type)
   NameDeclaration* name_decl;
 
   name_entry = scope_lookup(root_scope, "string", NAMESPACE_TYPE);
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+  name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
   map_insert(storage, decl_map, str_type, name_decl, 0);
 }
 
@@ -934,7 +937,7 @@ visit_baseTypeVoid(Ast* void_type)
   NameDeclaration* name_decl;
 
   name_entry = scope_lookup(root_scope, "void", NAMESPACE_TYPE);
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+  name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
   map_insert(storage, decl_map, void_type, name_decl, 0);
 }
 
@@ -946,7 +949,7 @@ visit_baseTypeError(Ast* error_type)
   NameDeclaration* name_decl;
 
   name_entry = scope_lookup(root_scope, "error", NAMESPACE_TYPE);
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+  name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
   map_insert(storage, decl_map, error_type, name_decl, 0);
 }
 
@@ -1132,7 +1135,7 @@ visit_errorDeclaration(Ast* error_decl)
   Type* error_ty;
 
   name_entry = scope_lookup(root_scope, "error", NAMESPACE_TYPE);
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+  name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
   error_ty = name_decl->type;
   map_insert(storage, decl_map, error_decl, name_decl, 0);
   prev_scope = current_scope;
@@ -1151,7 +1154,7 @@ visit_matchKindDeclaration(Ast* match_decl)
   Type* match_kind_ty;
 
   name_entry = scope_lookup(root_scope, "match_kind", NAMESPACE_TYPE);
-  name_decl = name_entry_getdecl(name_entry, NAMESPACE_TYPE);
+  name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
   match_kind_ty = name_decl->type;
   map_insert(storage, decl_map, match_decl, name_decl, 0);
   prev_scope = current_scope;
