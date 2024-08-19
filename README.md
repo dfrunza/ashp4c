@@ -14,7 +14,7 @@ Requirements:
  - A machine running Linux.
  - The `gcc` C-compiler.
 
-Change the current directory to the root of the source tree and run the `build.sh` script. Assuming there were no errors, then the `ashp4c` executable should have been created.
+Change the current directory to the root of the source tree and run the `build.sh` script.
 
 ## Tests
 
