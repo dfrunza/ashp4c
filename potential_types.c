@@ -14,7 +14,7 @@ static Map*   scope_map, *decl_map;
 static void visit_p4program(Ast* p4program);
 static void visit_declarationList(Ast* decl_list);
 static void visit_declaration(Ast* decl);
-static void visit_name(Ast* name);
+static void visit_name(Ast* name, PotentialType* potential_args);
 static void visit_parameterList(Ast* params);
 static void visit_parameter(Ast* param);
 static void visit_packageTypeDeclaration(Ast* package_decl);
@@ -130,13 +130,13 @@ static void visit_functionDeclaration(Ast* func_decl);
 static void visit_argumentList(Ast* args);
 static void visit_argument(Ast* arg);
 static void visit_expressionList(Ast* expr_list);
-static void visit_lvalueExpression(Ast* lvalue_expr);
-static void visit_expression(Ast* expr);
+static void visit_lvalueExpression(Ast* lvalue_expr, PotentialType* potential_args);
+static void visit_expression(Ast* expr, PotentialType* potential_args);
 static void visit_castExpression(Ast* cast_expr);
 static void visit_unaryExpression(Ast* unary_expr);
 static void visit_binaryExpression(Ast* binary_expr);
-static void visit_memberSelector(Ast* selector);
-static void visit_arraySubscript(Ast* subscript);
+static void visit_memberSelector(Ast* selector, PotentialType* potential_args);
+static void visit_arraySubscript(Ast* subscript, PotentialType* potential_args);
 static void visit_indexExpression(Ast* index_expr);
 static void visit_booleanLiteral(Ast* bool_literal);
 static void visit_integerLiteral(Ast* int_literal);
@@ -144,12 +144,56 @@ static void visit_stringLiteral(Ast* str_literal);
 static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
-static void
-collect_matching_member(Arena* storage, PotentialType* tau, Type* fields_ty, char* strname)
+bool
+match_type(PotentialType* tau, Type* required_ty)
 {
-  for (int i = 0; i < fields_ty->product.count; i++) {
-    if (cstr_match(fields_ty->product.members[i]->strname, strname)) {
-      map_insert(storage, &tau->members, fields_ty->product.members[i], 0, 1);
+  Type* ty;
+  MapEntry* m;
+  int i;
+
+  i = 0;
+  for (m = tau->members.first; m != 0; m = m->next) {
+    ty = effective_type((Type*)m->key);
+    if (type_equiv(ty, actual_type(required_ty))) {
+      i += 1;
+    }
+  }
+  return (i == 1);
+}
+
+static bool
+match_function_args(Type* func_ty, PotentialType* potential_args)
+{
+  Type* params_ty;
+  int i;
+
+  assert(func_ty->ty_former == TYPE_FUNCTION);
+  params_ty = func_ty->function.params;
+  if (params_ty->product.count != potential_args->product.count) return 0;
+  for (i = 0; i < params_ty->product.count; i++) {
+    if (!match_type(potential_args->product.members[i],
+                    params_ty->product.members[i])) break;
+  }
+  return (i == params_ty->product.count);
+}
+
+
+static void
+collect_matching_member(Arena* storage, PotentialType* tau, Type* product_ty,
+    char* strname, PotentialType* potential_args)
+{
+  Type* member_ty;
+
+  for (int i = 0; i < product_ty->product.count; i++) {
+    member_ty = product_ty->product.members[i];
+    if (cstr_match(member_ty->strname, strname)) {
+      if (member_ty->ty_former == TYPE_FUNCTION) {
+        if (match_function_args(member_ty, potential_args)) {
+          map_insert(storage, &tau->members, member_ty, 0, 1);
+        }
+      } else {
+        map_insert(storage, &tau->members, member_ty, 0, 1);
+      }
     }
   }
 }
@@ -242,7 +286,7 @@ visit_declaration(Ast* decl)
 }
 
 static void
-visit_name(Ast* name)
+visit_name(Ast* name, PotentialType* potential_args)
 {
   assert(name->kind == AST_name);
   Scope* scope;
@@ -286,7 +330,7 @@ visit_parameter(Ast* param)
   assert(param->kind == AST_parameter);
   visit_typeRef(param->parameter.type);
   if (param->parameter.init_expr) {
-    visit_expression(param->parameter.init_expr);
+    visit_expression(param->parameter.init_expr, 0);
   }
 }
 
@@ -428,7 +472,7 @@ visit_stateExpression(Ast* state_expr)
   PotentialType* tau;
 
   if (state_expr->stateExpression.expr->kind == AST_name) {
-    visit_name(state_expr->stateExpression.expr);
+    visit_name(state_expr->stateExpression.expr, 0);
   } else if (state_expr->stateExpression.expr->kind == AST_selectExpression) {
     visit_selectExpression(state_expr->stateExpression.expr);
   } else assert(0);
@@ -479,7 +523,7 @@ visit_selectCase(Ast* select_case)
   PotentialType* tau;
 
   visit_keysetExpression(select_case->selectCase.keyset_expr);
-  visit_name(select_case->selectCase.name);
+  visit_name(select_case->selectCase.name, 0);
   tau = map_lookup(potype_map, select_case->selectCase.name, 0);
   map_insert(storage, potype_map, select_case, tau, 0);
 }
@@ -522,7 +566,7 @@ visit_simpleKeysetExpression(Ast* simple_expr)
   PotentialType* tau;
 
   if (simple_expr->simpleKeysetExpression.expr->kind == AST_expression) {
-    visit_expression(simple_expr->simpleKeysetExpression.expr);
+    visit_expression(simple_expr->simpleKeysetExpression.expr, 0);
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_default) {
     visit_default(simple_expr->simpleKeysetExpression.expr);
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_dontcare) {
@@ -673,7 +717,7 @@ visit_typeRef(Ast* type_ref)
   } else if (type_ref->typeRef.type->kind == AST_baseTypeError) {
     visit_baseTypeError(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_name) {
-    visit_name(type_ref->typeRef.type);
+    visit_name(type_ref->typeRef.type, 0);
   } else if (type_ref->typeRef.type->kind == AST_headerStackType) {
     visit_headerStackType(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_tupleType) {
@@ -695,7 +739,7 @@ visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
   visit_typeRef(type_decl->headerStackType.type);
-  visit_expression(type_decl->headerStackType.stack_expr);
+  visit_expression(type_decl->headerStackType.stack_expr, 0);
 }
 
 static void
@@ -771,7 +815,7 @@ visit_typeArg(Ast* type_arg)
   if (type_arg->typeArg.arg->kind == AST_typeRef) {
     visit_typeRef(type_arg->typeArg.arg);
   } else if (type_arg->typeArg.arg->kind == AST_name) {
-    visit_name(type_arg->typeArg.arg);
+    visit_name(type_arg->typeArg.arg, 0);
   } else if (type_arg->typeArg.arg->kind == AST_dontcare) {
     visit_dontcare(type_arg->typeArg.arg);
   } else assert(0);
@@ -905,7 +949,7 @@ visit_specifiedIdentifier(Ast* ident)
 {
   assert(ident->kind == AST_specifiedIdentifier);
   if (ident->specifiedIdentifier.init_expr) {
-    visit_expression(ident->specifiedIdentifier.init_expr);
+    visit_expression(ident->specifiedIdentifier.init_expr, 0);
   }
 }
 
@@ -927,25 +971,26 @@ visit_assignmentStatement(Ast* assign_stmt)
 {
   assert(assign_stmt->kind == AST_assignmentStatement);
   if (assign_stmt->assignmentStatement.lhs_expr->kind == AST_expression) {
-    visit_expression(assign_stmt->assignmentStatement.lhs_expr);
+    visit_expression(assign_stmt->assignmentStatement.lhs_expr, 0);
   } else if (assign_stmt->assignmentStatement.lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(assign_stmt->assignmentStatement.lhs_expr);
+    visit_lvalueExpression(assign_stmt->assignmentStatement.lhs_expr, 0);
   } else assert(0);
-  visit_expression(assign_stmt->assignmentStatement.rhs_expr);
+  visit_expression(assign_stmt->assignmentStatement.rhs_expr, 0);
 }
 
 static void
 visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AST_functionCall);
-  PotentialType* tau;
+  PotentialType* tau, *args_tau;
 
-  if (func_call->functionCall.lhs_expr->kind == AST_expression) {
-    visit_expression(func_call->functionCall.lhs_expr);
-  } else if (func_call->functionCall.lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(func_call->functionCall.lhs_expr);
-  } else assert(0);
   visit_argumentList(func_call->functionCall.args);
+  args_tau = map_lookup(potype_map, func_call->functionCall.args, 0);
+  if (func_call->functionCall.lhs_expr->kind == AST_expression) {
+    visit_expression(func_call->functionCall.lhs_expr, args_tau);
+  } else if (func_call->functionCall.lhs_expr->kind == AST_lvalueExpression) {
+    visit_lvalueExpression(func_call->functionCall.lhs_expr, args_tau);
+  } else assert(0);
   tau = map_lookup(potype_map, func_call->functionCall.lhs_expr, 0);
   map_insert(storage, potype_map, func_call, tau, 0);
 }
@@ -955,7 +1000,7 @@ visit_returnStatement(Ast* return_stmt)
 {
   assert(return_stmt->kind == AST_returnStatement);
   if (return_stmt->returnStatement.expr) {
-    visit_expression(return_stmt->returnStatement.expr);
+    visit_expression(return_stmt->returnStatement.expr, 0);
   }
 }
 
@@ -969,7 +1014,7 @@ static void
 visit_conditionalStatement(Ast* cond_stmt)
 {
   assert(cond_stmt->kind == AST_conditionalStatement);
-  visit_expression(cond_stmt->conditionalStatement.cond_expr);
+  visit_expression(cond_stmt->conditionalStatement.cond_expr, 0);
   visit_statement(cond_stmt->conditionalStatement.stmt);
   if (cond_stmt->conditionalStatement.else_stmt) {
     visit_statement(cond_stmt->conditionalStatement.else_stmt);
@@ -981,7 +1026,7 @@ visit_directApplication(Ast* applic_stmt)
 {
   assert(applic_stmt->kind == AST_directApplication);
   if (applic_stmt->directApplication.name->kind == AST_name) {
-    visit_name(applic_stmt->directApplication.name);
+    visit_name(applic_stmt->directApplication.name, 0);
   } else if (applic_stmt->directApplication.name->kind == AST_typeRef) {
     visit_typeRef(applic_stmt->directApplication.name);
   } else assert(0);
@@ -1036,7 +1081,7 @@ static void
 visit_switchStatement(Ast* switch_stmt)
 {
   assert(switch_stmt->kind == AST_switchStatement);
-  visit_expression(switch_stmt->switchStatement.expr);
+  visit_expression(switch_stmt->switchStatement.expr, 0);
   visit_switchCases(switch_stmt->switchStatement.switch_cases);
 }
 
@@ -1067,7 +1112,7 @@ visit_switchLabel(Ast* label)
 {
   assert(label->kind == AST_switchLabel);
   if (label->switchLabel.label->kind == AST_name) {
-    visit_name(label->switchLabel.label);
+    visit_name(label->switchLabel.label, 0);
   } else if (label->switchLabel.label->kind == AST_default) {
     visit_default(label->switchLabel.label);
   } else assert(0);
@@ -1145,8 +1190,8 @@ static void
 visit_keyElement(Ast* element)
 {
   assert(element->kind == AST_keyElement);
-  visit_expression(element->keyElement.expr);
-  visit_name(element->keyElement.match);
+  visit_expression(element->keyElement.expr, 0);
+  visit_name(element->keyElement.match, 0);
 }
 
 static void
@@ -1172,7 +1217,7 @@ static void
 visit_actionRef(Ast* action_ref)
 {
   assert(action_ref->kind == AST_actionRef);
-  visit_name(action_ref->actionRef.name);
+  visit_name(action_ref->actionRef.name, 0);
   if (action_ref->actionRef.args) {
     visit_argumentList(action_ref->actionRef.args);
   }
@@ -1209,7 +1254,7 @@ static void
 visit_simpleProperty(Ast* simple_prop)
 {
   assert(simple_prop->kind == AST_simpleProperty);
-  visit_expression(simple_prop->simpleProperty.init_expr);
+  visit_expression(simple_prop->simpleProperty.init_expr, 0);
 }
 
 static void
@@ -1233,7 +1278,7 @@ visit_variableDeclaration(Ast* var_decl)
   tau = arena_malloc(storage, sizeof(PotentialType));
   map_insert(storage, potype_map, var_decl, tau, 0);
   if (var_decl->variableDeclaration.init_expr) {
-    visit_expression(var_decl->variableDeclaration.init_expr);
+    visit_expression(var_decl->variableDeclaration.init_expr, 0);
   }
   var_ty = map_lookup(type_env, var_decl, 0);
   map_insert(storage, &tau->members, actual_type(var_ty), 0, 1);
@@ -1284,7 +1329,7 @@ visit_argument(Ast* arg)
   PotentialType* tau;
 
   if (arg->argument.arg->kind == AST_expression) {
-    visit_expression(arg->argument.arg);
+    visit_expression(arg->argument.arg, 0);
   } else if (arg->argument.arg->kind == AST_dontcare) {
     visit_dontcare(arg->argument.arg);
   } else assert(0);
@@ -1304,7 +1349,7 @@ visit_expressionList(Ast* expr_list)
   map_insert(storage, potype_map, expr_list, tau, 0);
   for (ast = expr_list->expressionList.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_expression(ast);
+    visit_expression(ast, 0);
     tau->product.count += 1;
   }
   if (tau->product.count > 0) {
@@ -1321,30 +1366,30 @@ visit_expressionList(Ast* expr_list)
 }
 
 static void
-visit_lvalueExpression(Ast* lvalue_expr)
+visit_lvalueExpression(Ast* lvalue_expr, PotentialType* potential_args)
 {
   assert(lvalue_expr->kind == AST_lvalueExpression);
   PotentialType* tau;
 
   if (lvalue_expr->lvalueExpression.expr->kind == AST_name) {
-    visit_name(lvalue_expr->lvalueExpression.expr);
+    visit_name(lvalue_expr->lvalueExpression.expr, potential_args);
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_memberSelector) {
-    visit_memberSelector(lvalue_expr->lvalueExpression.expr);
+    visit_memberSelector(lvalue_expr->lvalueExpression.expr, potential_args);
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_arraySubscript) {
-    visit_arraySubscript(lvalue_expr->lvalueExpression.expr);
+    visit_arraySubscript(lvalue_expr->lvalueExpression.expr, potential_args);
   } else assert(0);
   tau = map_lookup(potype_map, lvalue_expr->lvalueExpression.expr, 0);
   map_insert(storage, potype_map, lvalue_expr, tau, 0);
 }
 
 static void
-visit_expression(Ast* expr)
+visit_expression(Ast* expr, PotentialType* potential_args)
 {
   assert(expr->kind == AST_expression);
   PotentialType* tau;
 
   if (expr->expression.expr->kind == AST_expression) {
-    visit_expression(expr->expression.expr);
+    visit_expression(expr->expression.expr, potential_args);
   } else if (expr->expression.expr->kind == AST_booleanLiteral) {
     visit_booleanLiteral(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_integerLiteral) {
@@ -1352,7 +1397,7 @@ visit_expression(Ast* expr)
   } else if (expr->expression.expr->kind == AST_stringLiteral) {
     visit_stringLiteral(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_name) {
-    visit_name(expr->expression.expr);
+    visit_name(expr->expression.expr, potential_args);
   } else if (expr->expression.expr->kind == AST_expressionList) {
     visit_expressionList(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_castExpression) {
@@ -1362,9 +1407,9 @@ visit_expression(Ast* expr)
   } else if (expr->expression.expr->kind == AST_binaryExpression) {
     visit_binaryExpression(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_memberSelector) {
-    visit_memberSelector(expr->expression.expr);
+    visit_memberSelector(expr->expression.expr, potential_args);
   } else if (expr->expression.expr->kind == AST_arraySubscript) {
-    visit_arraySubscript(expr->expression.expr);
+    visit_arraySubscript(expr->expression.expr, potential_args);
   } else if (expr->expression.expr->kind == AST_functionCall) {
     visit_functionCall(expr->expression.expr);
   } else if (expr->expression.expr->kind == AST_assignmentStatement) {
@@ -1381,7 +1426,7 @@ visit_castExpression(Ast* cast_expr)
   PotentialType* tau;
 
   visit_typeRef(cast_expr->castExpression.type);
-  visit_expression(cast_expr->castExpression.expr);
+  visit_expression(cast_expr->castExpression.expr, 0);
   tau = map_lookup(potype_map, cast_expr->castExpression.type, 0);
   map_insert(storage, potype_map, cast_expr, tau, 0);
 }
@@ -1390,19 +1435,19 @@ static void
 visit_unaryExpression(Ast* unary_expr)
 {
   assert(unary_expr->kind == AST_unaryExpression);
-  visit_expression(unary_expr->unaryExpression.operand);
+  visit_expression(unary_expr->unaryExpression.operand, 0);
 }
 
 static void
 visit_binaryExpression(Ast* binary_expr)
 {
   assert(binary_expr->kind == AST_binaryExpression);
-  visit_expression(binary_expr->binaryExpression.left_operand);
-  visit_expression(binary_expr->binaryExpression.right_operand);
+  visit_expression(binary_expr->binaryExpression.left_operand, 0);
+  visit_expression(binary_expr->binaryExpression.right_operand, 0);
 }
 
 static void
-visit_memberSelector(Ast* selector)
+visit_memberSelector(Ast* selector, PotentialType* potential_args)
 {
   assert(selector->kind == AST_memberSelector);
   Ast* name;
@@ -1413,22 +1458,22 @@ visit_memberSelector(Ast* selector)
   tau = arena_malloc(storage, sizeof(PotentialType));
   map_insert(storage, potype_map, selector, tau, 0);
   if (selector->memberSelector.lhs_expr->kind == AST_expression) {
-    visit_expression(selector->memberSelector.lhs_expr);
+    visit_expression(selector->memberSelector.lhs_expr, 0);
   } else if (selector->memberSelector.lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(selector->memberSelector.lhs_expr);
+    visit_lvalueExpression(selector->memberSelector.lhs_expr, 0);
   } else assert(0);
   name = selector->memberSelector.name;
   tau_lhs = map_lookup(potype_map, selector->memberSelector.lhs_expr, 0);
   for (m = tau_lhs->members.first; m != 0; m = m->next) {
     lhs_ty = effective_type(m->key);
     if (lhs_ty->ty_former == TYPE_EXTERN) {
-      collect_matching_member(storage, tau, lhs_ty->extern_.methods, name->name.strname);
+      collect_matching_member(storage, tau, lhs_ty->extern_.methods, name->name.strname, potential_args);
     } else if (lhs_ty->ty_former == TYPE_ENUM ||
                lhs_ty->ty_former == TYPE_MATCH_KIND || lhs_ty->ty_former == TYPE_ERROR) {
-      collect_matching_member(storage, tau, lhs_ty->enum_.fields, name->name.strname);
+      collect_matching_member(storage, tau, lhs_ty->enum_.fields, name->name.strname, 0);
     } else if (lhs_ty->ty_former == TYPE_STRUCT || lhs_ty->ty_former == TYPE_HEADER ||
                lhs_ty->ty_former == TYPE_HEADER_UNION) {
-      collect_matching_member(storage, tau, lhs_ty->struct_.fields, name->name.strname);
+      collect_matching_member(storage, tau, lhs_ty->struct_.fields, name->name.strname, 0);
     } else if (lhs_ty->ty_former == TYPE_HEADER_STACK) {
       /* TODO */
     } else if (lhs_ty->ty_former == TYPE_TABLE) {
@@ -1442,15 +1487,15 @@ visit_memberSelector(Ast* selector)
 }
 
 static void
-visit_arraySubscript(Ast* subscript)
+visit_arraySubscript(Ast* subscript, PotentialType* potential_args)
 {
   assert(subscript->kind == AST_arraySubscript);
   PotentialType* tau;
 
   if (subscript->arraySubscript.lhs_expr->kind == AST_expression) {
-    visit_expression(subscript->arraySubscript.lhs_expr);
+    visit_expression(subscript->arraySubscript.lhs_expr, 0);
   } else if (subscript->arraySubscript.lhs_expr->kind == AST_lvalueExpression) {
-    visit_lvalueExpression(subscript->arraySubscript.lhs_expr);
+    visit_lvalueExpression(subscript->arraySubscript.lhs_expr, 0);
   } else assert(0);
   visit_indexExpression(subscript->arraySubscript.index_expr);
   tau = map_lookup(potype_map, subscript->arraySubscript.lhs_expr, 0);
@@ -1462,9 +1507,9 @@ visit_indexExpression(Ast* index_expr)
 {
   assert(index_expr->kind == AST_indexExpression);
 
-  visit_expression(index_expr->indexExpression.start_index);
+  visit_expression(index_expr->indexExpression.start_index, 0);
   if (index_expr->indexExpression.end_index) {
-    visit_expression(index_expr->indexExpression.end_index);
+    visit_expression(index_expr->indexExpression.end_index, 0);
   }
 }
 

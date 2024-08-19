@@ -183,6 +183,8 @@ structural_type_equiv(Type* left, Type* right)
 
   left = actual_type(left);
   right = actual_type(right);
+  if (left == right) return 1;
+
   for (i = 0; i < type_equiv_pairs->elem_count; i++) {
     type_pair = (Type*)array_get(type_equiv_pairs, i, sizeof(Type));
     assert(type_pair->ty_former == TYPE_TUPLE);
@@ -202,8 +204,7 @@ structural_type_equiv(Type* left, Type* right)
       return 1;
     }
     return 0;
-  }
-  if (left->ty_former == TYPE_BOOL || left->ty_former == TYPE_INT ||
+  } else if (left->ty_former == TYPE_BOOL || left->ty_former == TYPE_INT ||
       left->ty_former == TYPE_BIT || left->ty_former == TYPE_VARBIT) {
     if (right->ty_former == TYPE_BOOL || right->ty_former == TYPE_INT ||
         right->ty_former == TYPE_BIT || right->ty_former == TYPE_VARBIT) {
@@ -276,8 +277,7 @@ structural_type_equiv(Type* left, Type* right)
       return structural_type_equiv(left->struct_.fields, right->struct_.fields);
     }
     return 0;
-  }
-  else if (left->ty_former == TYPE_HEADER_STACK) {
+  } else if (left->ty_former == TYPE_HEADER_STACK) {
     if (right->ty_former == left->ty_former) {
       return structural_type_equiv(left->header_stack.element, right->header_stack.element);
     }

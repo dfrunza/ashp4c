@@ -935,6 +935,7 @@ Type*  effective_type(Type* type);
 Type*  builtin_type(Scope* root_scope, char* strname);
 bool   type_equiv(Type* u, Type* v);
 char*  TypeEnum_to_string(enum TypeEnum type);
+bool   match_type(PotentialType* tau, Type* required_ty);
 
 typedef struct NameDeclaration {
   char* strname;
