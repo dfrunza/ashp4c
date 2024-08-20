@@ -830,7 +830,7 @@ visit_simpleKeysetExpression(Ast* simple_expr)
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_default) {
     visit_default(simple_expr->simpleKeysetExpression.expr);
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_dontcare) {
-    ;
+    visit_dontcare(simple_expr->simpleKeysetExpression.expr);
   } else assert(0);
 }
 
@@ -2034,6 +2034,10 @@ static void
 visit_default(Ast* default_)
 {
   assert(default_->kind == AST_default);
+  Type* ty;
+
+  ty = builtin_lookup(root_scope, "_", NAMESPACE_TYPE)->type;
+  map_insert(storage, type_env, default_, ty, 0);
 }
 
 static void

@@ -313,12 +313,18 @@ visit_name(Ast* name, PotentialType* potential_args)
   for (int i = 0; i < name_ty->elem_count; i++) {
     ty = *(Type**)array_get(name_ty, i, sizeof(Type*));
     if (potential_args) {
-      if (ty->ty_former == TYPE_FUNCTION && match_params(potential_args, ty->function.params)) {
-        map_insert(storage, &tau->members, ty, 0, 0);
-      } else if (ty->ty_former == TYPE_PARSER && match_params(potential_args, ty->parser.ctor_params)) {
-        map_insert(storage, &tau->members, ty, 0, 0);
-      } else if (ty->ty_former == TYPE_CONTROL && match_params(potential_args, ty->control.ctor_params)) {
-        map_insert(storage, &tau->members, ty, 0, 0);
+      if (ty->ty_former == TYPE_FUNCTION) {
+        if (match_params(potential_args, ty->function.params)) {
+          map_insert(storage, &tau->members, ty, 0, 0);
+        }
+      } else if (ty->ty_former == TYPE_PARSER) {
+        if (match_params(potential_args, ty->parser.ctor_params)) {
+          map_insert(storage, &tau->members, ty, 0, 0);
+        }
+      } else if (ty->ty_former == TYPE_CONTROL) {
+        if (match_params(potential_args, ty->control.ctor_params)) {
+          map_insert(storage, &tau->members, ty, 0, 0);
+        }
       } else if (ty->ty_former == TYPE_EXTERN) {
         ctors_ty = ty->extern_.ctors;
         for (int j = 0; j < ctors_ty->product.count; j++) {
@@ -558,16 +564,11 @@ visit_keysetExpression(Ast* keyset_expr)
 
   if (keyset_expr->keysetExpression.expr->kind == AST_tupleKeysetExpression) {
     visit_tupleKeysetExpression(keyset_expr->keysetExpression.expr);
-    tau = map_lookup(potype_map, keyset_expr->keysetExpression.expr, 0);
-    map_insert(storage, potype_map, keyset_expr, tau, 0);
   } else if (keyset_expr->keysetExpression.expr->kind == AST_simpleKeysetExpression) {
     visit_simpleKeysetExpression(keyset_expr->keysetExpression.expr);
-    tau = arena_malloc(storage, sizeof(PotentialType));
-    tau->product.count = 1;
-    tau->product.members = arena_malloc(storage, tau->product.count*sizeof(PotentialType*));
-    tau->product.members[0] = map_lookup(potype_map, keyset_expr->keysetExpression.expr, 0);
-    map_insert(storage, potype_map, keyset_expr, tau, 0);
   } else assert(0);
+  tau = map_lookup(potype_map, keyset_expr->keysetExpression.expr, 0);
+  map_insert(storage, potype_map, keyset_expr, tau, 0);
 }
 
 static void
@@ -594,7 +595,10 @@ visit_simpleKeysetExpression(Ast* simple_expr)
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_dontcare) {
     visit_dontcare(simple_expr->simpleKeysetExpression.expr);
   } else assert(0);
-  tau = map_lookup(potype_map, simple_expr->simpleKeysetExpression.expr, 0);
+  tau = arena_malloc(storage, sizeof(PotentialType));
+  tau->product.count = 1;
+  tau->product.members = arena_malloc(storage, tau->product.count*sizeof(PotentialType*));
+  tau->product.members[0] = map_lookup(potype_map, simple_expr->simpleKeysetExpression.expr, 0);
   map_insert(storage, potype_map, simple_expr, tau, 0);
 }
 
@@ -1495,7 +1499,7 @@ visit_memberSelector(Ast* selector, PotentialType* potential_args)
       collect_matching_member(storage, tau, lhs_ty->enum_.fields, name->name.strname, 0);
     } else if (lhs_ty->ty_former == TYPE_STRUCT || lhs_ty->ty_former == TYPE_HEADER ||
                lhs_ty->ty_former == TYPE_HEADER_UNION) {
-      collect_matching_member(storage, tau, lhs_ty->struct_.fields, name->name.strname, 0);
+      collect_matching_member(storage, tau, lhs_ty->struct_.fields, name->name.strname, potential_args);
     } else if (lhs_ty->ty_former == TYPE_HEADER_STACK) {
       /* TODO */
     } else if (lhs_ty->ty_former == TYPE_TABLE) {
