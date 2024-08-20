@@ -145,14 +145,14 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 bool
-match_type(PotentialType* tau, Type* required_ty)
+match_type(PotentialType* potential_types, Type* required_ty)
 {
   Type* ty;
   MapEntry* m;
   int i;
 
   i = 0;
-  for (m = tau->members.first; m != 0; m = m->next) {
+  for (m = potential_types->members.first; m != 0; m = m->next) {
     ty = effective_type((Type*)m->key);
     if (type_equiv(ty, actual_type(required_ty))) {
       i += 1;
@@ -162,20 +162,10 @@ match_type(PotentialType* tau, Type* required_ty)
 }
 
 bool
-match_function_args(Type* func_ty, PotentialType* potential_args)
+match_params(PotentialType* potential_args, Type* params_ty)
 {
-  Type* params_ty;
   int i;
 
-  if (func_ty->ty_former == TYPE_FUNCTION) {
-    params_ty = func_ty->function.params;
-  } else if (func_ty->ty_former == TYPE_PARSER) {
-    params_ty = func_ty->parser.ctor_params;
-  } else if (func_ty->ty_former == TYPE_CONTROL) {
-    params_ty = func_ty->control.ctor_params;
-  } else if (func_ty->ty_former == TYPE_EXTERN) {
-    assert(0); /* TODO */
-  } else assert(0);
   if (params_ty->product.count != potential_args->product.count) return 0;
   for (i = 0; i < params_ty->product.count; i++) {
     if (!match_type(potential_args->product.members[i],
@@ -195,7 +185,7 @@ collect_matching_member(Arena* storage, PotentialType* tau, Type* product_ty,
     member_ty = product_ty->product.members[i];
     if (cstr_match(member_ty->strname, strname)) {
       if (member_ty->ty_former == TYPE_FUNCTION) {
-        if (match_function_args(member_ty, potential_args)) {
+        if (match_params(potential_args, member_ty->function.params)) {
           map_insert(storage, &tau->members, member_ty, 0, 1);
         }
       } else {
@@ -300,7 +290,7 @@ visit_name(Ast* name, PotentialType* potential_args)
   NameEntry* name_entry;
   NameDeclaration* name_decl;
   PotentialType* tau;
-  Type* ty;
+  Type* ty, *ctors_ty;
   static Array* name_ty;
 
   if (!name_ty) name_ty = array_create(storage, sizeof(Type*), 1);
@@ -322,21 +312,22 @@ visit_name(Ast* name, PotentialType* potential_args)
   }
   for (int i = 0; i < name_ty->elem_count; i++) {
     ty = *(Type**)array_get(name_ty, i, sizeof(Type*));
-    if (ty->ty_former == TYPE_FUNCTION ||
-        ty->ty_former == TYPE_PARSER || ty->ty_former == TYPE_CONTROL) {
-      if (potential_args) {
-        if (match_function_args(ty, potential_args)) {
-          map_insert(storage, &tau->members, ty, 0, 0);
+    if (potential_args) {
+      if (ty->ty_former == TYPE_FUNCTION && match_params(potential_args, ty->function.params)) {
+        map_insert(storage, &tau->members, ty, 0, 0);
+      } else if (ty->ty_former == TYPE_PARSER && match_params(potential_args, ty->parser.ctor_params)) {
+        map_insert(storage, &tau->members, ty, 0, 0);
+      } else if (ty->ty_former == TYPE_CONTROL && match_params(potential_args, ty->control.ctor_params)) {
+        map_insert(storage, &tau->members, ty, 0, 0);
+      } else if (ty->ty_former == TYPE_EXTERN) {
+        ctors_ty = ty->extern_.ctors;
+        for (int j = 0; j < ctors_ty->product.count; j++) {
+          ty = ctors_ty->product.members[j];
+          if (match_params(potential_args, ty->function.params)) {
+            map_insert(storage, &tau->members, ty, 0, 0);
+          }
         }
-      } else {
-        map_insert(storage, &tau->members, ty, 0, 0);
-      }
-    } else if (ty->ty_former == TYPE_EXTERN) {
-      if (potential_args) {
-        assert(0); /* TODO */
-      } else {
-        map_insert(storage, &tau->members, ty, 0, 0);
-      }
+      } else assert(0);
     } else {
       map_insert(storage, &tau->members, ty, 0, 0);
     }
