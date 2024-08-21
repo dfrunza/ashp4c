@@ -59,9 +59,9 @@ static void visit_functionPrototype(Ast* func_proto);
 
 /** TYPES **/
 
-static void visit_typeRef(Ast* type_ref);
-static void visit_tupleType(Ast* type);
-static void visit_headerStackType(Ast* type_decl);
+static void visit_typeRef(Ast* type_ref, Type* required_ty);
+static void visit_tupleType(Ast* type, Type* required_ty);
+static void visit_headerStackType(Ast* type_decl, Type* required_ty);
 static void visit_baseTypeBoolean(Ast* bool_type);
 static void visit_baseTypeInteger(Ast* int_type);
 static void visit_baseTypeBit(Ast* bit_type);
@@ -86,7 +86,7 @@ static void visit_matchKindDeclaration(Ast* match_decl);
 static void visit_identifierList(Ast* ident_list);
 static void visit_specifiedIdentifierList(Ast* ident_list);
 static void visit_specifiedIdentifier(Ast* ident);
-static void visit_typedefDeclaration(Ast* typedef_decl);
+static void visit_typedefDeclaration(Ast* typedef_decl, Type* required_ty);
 
 /** STATEMENTS **/
 
@@ -608,9 +608,11 @@ visit_functionPrototype(Ast* func_proto)
 /** TYPES **/
 
 static void
-visit_typeRef(Ast* type_ref)
+visit_typeRef(Ast* type_ref, Type* required_ty)
 {
   assert(type_ref->kind == AST_typeRef);
+  Type* ref_ty;
+
   if (type_ref->typeRef.type->kind == AST_baseTypeBoolean) {
     visit_baseTypeBoolean(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_baseTypeInteger) {
@@ -626,86 +628,116 @@ visit_typeRef(Ast* type_ref)
   } else if (type_ref->typeRef.type->kind == AST_baseTypeError) {
     visit_baseTypeError(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AST_name) {
-    visit_name(type_ref->typeRef.type, 0);
+    visit_name(type_ref->typeRef.type, required_ty);
   } else if (type_ref->typeRef.type->kind == AST_headerStackType) {
-    visit_headerStackType(type_ref->typeRef.type);
+    visit_headerStackType(type_ref->typeRef.type, required_ty);
   } else if (type_ref->typeRef.type->kind == AST_tupleType) {
-    visit_tupleType(type_ref->typeRef.type);
+    visit_tupleType(type_ref->typeRef.type, required_ty);
   } else assert(0);
+  ref_ty = map_lookup(type_env, type_ref->typeRef.type, 0);
+  if (required_ty) {
+    if (!type_equiv(ref_ty, required_ty)) {
+      error("%s:%d:%d: error: type mismatch.",
+          source_file, type_ref->line_no, type_ref->column_no);
+    }
+  }
+  map_insert(storage, type_env, type_ref, ref_ty, 0);
 }
 
 static void
-visit_tupleType(Ast* type_decl)
+visit_tupleType(Ast* type_decl, Type* required_ty)
 {
   assert(type_decl->kind == AST_tupleType);
   visit_typeArgumentList(type_decl->tupleType.type_args);
 }
 
 static void
-visit_headerStackType(Ast* type_decl)
+visit_headerStackType(Ast* type_decl, Type* required_ty)
 {
   assert(type_decl->kind == AST_headerStackType);
   Type* index_ty;
 
-  visit_typeRef(type_decl->headerStackType.type);
+  visit_typeRef(type_decl->headerStackType.type, required_ty);
   index_ty = builtin_lookup(root_scope, "int", NAMESPACE_TYPE)->type;
   visit_expression(type_decl->headerStackType.stack_expr, index_ty);
+  /* TODO */
 }
 
 static void
 visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AST_baseTypeBoolean);
-  //visit_name(bool_type->baseTypeBoolean.name);
+  Type* bool_ty;
+
+  bool_ty = builtin_lookup(root_scope, "bool", NAMESPACE_TYPE)->type;
+  map_insert(storage, type_env, bool_type, bool_ty, 0);
 }
 
 static void
 visit_baseTypeInteger(Ast* int_type)
 {
   assert(int_type->kind == AST_baseTypeInteger);
-  //visit_name(int_type->baseTypeInteger.name);
+  Type* int_ty;
+
   if (int_type->baseTypeInteger.size) {
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
+  int_ty = builtin_lookup(root_scope, "int", NAMESPACE_TYPE)->type;
+  map_insert(storage, type_env, int_type, int_ty, 0);
 }
 
 static void
 visit_baseTypeBit(Ast* bit_type)
 {
   assert(bit_type->kind == AST_baseTypeBit);
-  //visit_name(bit_type->baseTypeBit.name);
+  Type* bit_ty;
+
   if (bit_type->baseTypeBit.size) {
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
+  bit_ty = builtin_lookup(root_scope, "bit", NAMESPACE_TYPE)->type;
+  map_insert(storage, type_env, bit_type, bit_ty, 0);
 }
 
 static void
 visit_baseTypeVarbit(Ast* varbit_type)
 {
   assert(varbit_type->kind == AST_baseTypeVarbit);
-  //visit_name(varbit_type->baseTypeVarbit.name);
+  Type* varbit_ty;
+
+  varbit_ty = builtin_lookup(root_scope, "varbit", NAMESPACE_TYPE)->type;
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
+  map_insert(storage, type_env, varbit_type, varbit_ty, 0);
 }
 
 static void
-visit_baseTypeString(Ast* str_type)
+visit_baseTypeString(Ast* string_type)
 {
-  assert(str_type->kind == AST_baseTypeString);
-  //visit_name(str_type->baseTypeString.name);
+  assert(string_type->kind == AST_baseTypeString);
+  Type* string_ty;
+
+  string_ty = builtin_lookup(root_scope, "string", NAMESPACE_TYPE)->type;
+  map_insert(storage, type_env, string_type, string_ty, 0);
 }
 
 static void
 visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AST_baseTypeVoid);
-  //visit_name(void_type->baseTypeVoid.name);
+  Type* void_ty;
+
+  void_ty = builtin_lookup(root_scope, "void", NAMESPACE_TYPE)->type;
+  map_insert(storage, type_env, void_type, void_ty, 0);
 }
 
 static void
 visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AST_baseTypeError);
-  //visit_name(error_type->baseTypeError.name);
+  Type* error_ty;
+
+  error_ty = builtin_lookup(root_scope, "error", NAMESPACE_TYPE)->type;
+  map_insert(storage, type_env, error_type, error_ty, 0);
 }
 
 static void
@@ -719,7 +751,7 @@ visit_realTypeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AST_realTypeArg);
   if (type_arg->realTypeArg.arg->kind == AST_typeRef) {
-    visit_typeRef(type_arg->realTypeArg.arg);
+    visit_typeRef(type_arg->realTypeArg.arg, 0);
   } else if (type_arg->realTypeArg.arg->kind == AST_dontcare) {
     visit_dontcare(type_arg->realTypeArg.arg);
   } else assert(0);
@@ -730,7 +762,7 @@ visit_typeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AST_typeArg);
   if (type_arg->typeArg.arg->kind == AST_typeRef) {
-    visit_typeRef(type_arg->typeArg.arg);
+    visit_typeRef(type_arg->typeArg.arg, 0);
   } else if (type_arg->typeArg.arg->kind == AST_name) {
     visit_name(type_arg->typeArg.arg, 0);
   } else if (type_arg->typeArg.arg->kind == AST_dontcare) {
@@ -757,7 +789,7 @@ visit_typeDeclaration(Ast* type_decl)
   if (type_decl->typeDeclaration.decl->kind == AST_derivedTypeDeclaration) {
     visit_derivedTypeDeclaration(type_decl->typeDeclaration.decl);
   } else if (type_decl->typeDeclaration.decl->kind == AST_typedefDeclaration) {
-    visit_typedefDeclaration(type_decl->typeDeclaration.decl);
+    visit_typedefDeclaration(type_decl->typeDeclaration.decl, 0);
   } else if (type_decl->typeDeclaration.decl->kind == AST_parserTypeDeclaration) {
     visit_parserTypeDeclaration(type_decl->typeDeclaration.decl);
   } else if (type_decl->typeDeclaration.decl->kind == AST_controlTypeDeclaration) {
@@ -771,6 +803,8 @@ static void
 visit_derivedTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_derivedTypeDeclaration);
+  Type* decl_ty;
+
   if (type_decl->derivedTypeDeclaration.decl->kind == AST_headerTypeDeclaration) {
     visit_headerTypeDeclaration(type_decl->derivedTypeDeclaration.decl);
   } else if (type_decl->derivedTypeDeclaration.decl->kind == AST_headerUnionDeclaration) {
@@ -780,6 +814,8 @@ visit_derivedTypeDeclaration(Ast* type_decl)
   } else if (type_decl->derivedTypeDeclaration.decl->kind == AST_enumDeclaration) {
     visit_enumDeclaration(type_decl->derivedTypeDeclaration.decl);
   } else assert(0);
+  decl_ty = map_lookup(type_env, type_decl->derivedTypeDeclaration.decl, 0);
+  map_insert(storage, type_env, type_decl, decl_ty, 0);
 }
 
 static void
@@ -883,15 +919,18 @@ visit_specifiedIdentifier(Ast* ident)
 }
 
 static void
-visit_typedefDeclaration(Ast* typedef_decl)
+visit_typedefDeclaration(Ast* typedef_decl, Type* required_ty)
 {
   assert(typedef_decl->kind == AST_typedefDeclaration);
+  Type* ref_ty;
+
   if (typedef_decl->typedefDeclaration.type_ref->kind == AST_typeRef) {
-    visit_typeRef(typedef_decl->typedefDeclaration.type_ref);
+    visit_typeRef(typedef_decl->typedefDeclaration.type_ref, required_ty);
   } else if (typedef_decl->typedefDeclaration.type_ref->kind == AST_derivedTypeDeclaration) {
     visit_derivedTypeDeclaration(typedef_decl->typedefDeclaration.type_ref);
   } else assert(0);
-  //visit_name(typedef_decl->typedefDeclaration.name);
+  ref_ty = map_lookup(type_env, typedef_decl->typedefDeclaration.type_ref, 0);
+  map_insert(storage, type_env, typedef_decl, ref_ty, 0);
 }
 
 /** STATEMENTS **/
@@ -959,7 +998,7 @@ visit_directApplication(Ast* applic_stmt, Type* required_ty)
   if (applic_stmt->directApplication.name->kind == AST_name) {
     visit_name(applic_stmt->directApplication.name, required_ty);
   } else if (applic_stmt->directApplication.name->kind == AST_typeRef) {
-    visit_typeRef(applic_stmt->directApplication.name);
+    visit_typeRef(applic_stmt->directApplication.name, required_ty);
   } else assert(0);
 }
 
@@ -1338,8 +1377,12 @@ static void
 visit_castExpression(Ast* cast_expr, Type* required_ty)
 {
   assert(cast_expr->kind == AST_castExpression);
-  visit_typeRef(cast_expr->castExpression.type);
-  visit_expression(cast_expr->castExpression.expr, required_ty);
+  Type* cast_ty;
+
+  visit_typeRef(cast_expr->castExpression.type, required_ty);
+  visit_expression(cast_expr->castExpression.expr, 0);
+  cast_ty = map_lookup(type_env, cast_expr->castExpression.type, 0);
+  map_insert(storage, type_env, cast_expr, cast_ty, 0);
 }
 
 static void

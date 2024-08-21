@@ -211,15 +211,10 @@ structural_type_equiv(Type* left, Type* right)
   type_pair->tuple.left = left;
   type_pair->tuple.right = right;
 
-  if (left->ty_former == TYPE_VOID || left->ty_former == TYPE_STRING) {
-    if (right->ty_former == left->ty_former) {
-      return 1;
-    }
-    return 0;
-  } else if (left->ty_former == TYPE_BOOL || left->ty_former == TYPE_INT ||
+  if (left->ty_former == TYPE_VOID || left->ty_former == TYPE_STRING ||
+      left->ty_former == TYPE_BOOL || left->ty_former == TYPE_INT ||
       left->ty_former == TYPE_BIT || left->ty_former == TYPE_VARBIT) {
-    if (right->ty_former == TYPE_BOOL || right->ty_former == TYPE_INT ||
-        right->ty_former == TYPE_BIT || right->ty_former == TYPE_VARBIT) {
+    if (right->ty_former == left->ty_former) {
       return 1;
     }
     return 0;
