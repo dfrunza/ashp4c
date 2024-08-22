@@ -773,11 +773,13 @@ typedef struct Ast {
 
     struct {
       enum AstOperator op;
+      char* strname;
       struct Ast* operand;
     } unaryExpression;
 
     struct {
       enum AstOperator op;
+      char* strname;
       struct Ast* left_operand;
       struct Ast* right_operand;
     } binaryExpression;

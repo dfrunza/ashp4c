@@ -16,6 +16,7 @@ struct BuiltinType {
 static Arena* storage;
 static Scope* root_scope, *current_scope;
 static Map*   scope_map, *decl_map;
+static Array* type_array;
 static NameEntry null_entry = {0};
 
 /** PROGRAM **/
@@ -154,7 +155,7 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 static void
-setup_builtin_names(Array* type_array)
+setup_builtin_names()
 {
   struct BuiltinName builtin_names[] = {
     {"void",   NAMESPACE_TYPE},
@@ -317,7 +318,6 @@ Map*
 name_bind(Arena* storage_, char* source_file, Ast* p4program, Scope* root_scope_,
     Map* scope_map_, Array** type_array_)
 {
-  Array* type_array;
 
   root_scope = root_scope_;
   scope_map = scope_map_;
@@ -326,7 +326,7 @@ name_bind(Arena* storage_, char* source_file, Ast* p4program, Scope* root_scope_
   decl_map = arena_malloc(storage, sizeof(Map));
   type_array = array_create(storage, sizeof(Type), 5);
 
-  setup_builtin_names(type_array);
+  setup_builtin_names();
   visit_p4program(p4program);
   assert(current_scope == root_scope);
   *type_array_ = type_array;

@@ -148,7 +148,7 @@ static void visit_dontcare(Ast* dontcare);
 static void
 setup_builtin_types()
 {
-  char* strnames[] = {
+  char* base_types[] = {
     "void",
     "bool",
     "int",
@@ -159,13 +159,25 @@ setup_builtin_types()
     "match_kind",
     "_",
   };
+  char* arithmetic_ops[] = {
+    "+", "-", "*", "/"
+  };
+  char* logical_ops[] = {
+    "&&", "||"
+  };
+  char* relational_ops[] = {
+    "==", "!=", "<", ">", "<=", ">="
+  };
+  char* bitwise_ops[] = {
+    "&", "|", "^", "<<", ">>"
+  };
   NameEntry* name_entry;
   NameDeclaration* name_decl;
   Ast* ast;
-  Type* ty;
+  Type* ty, *params_ty;
 
-  for (int i = 0; i < sizeof(strnames)/sizeof(strnames[0]); i++) {
-    name_entry = scope_lookup(root_scope, strnames[i], NAMESPACE_TYPE);
+  for (int i = 0; i < sizeof(base_types)/sizeof(base_types[0]); i++) {
+    name_entry = scope_lookup(root_scope, base_types[i], NAMESPACE_TYPE);
     name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
     map_insert(storage, type_env, name_decl->ast, name_decl->type, 0);
   }
@@ -179,6 +191,67 @@ setup_builtin_types()
   ty = (Type*)array_append(storage, type_array, sizeof(Type));
   ty->ty_former = TYPE_STATE;
   map_insert(storage, type_env, ast, ty, 0);
+
+  for (int i = 0; i < sizeof(arithmetic_ops)/sizeof(arithmetic_ops[0]); i++) {
+    ty = (Type*)array_append(storage, type_array, sizeof(Type));
+    ty->strname = arithmetic_ops[i];
+    ty->ty_former = TYPE_FUNCTION;
+    params_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+    params_ty->ty_former = TYPE_PRODUCT;
+    params_ty->product.count = 2;
+    params_ty->product.members = arena_malloc(storage, params_ty->product.count*sizeof(Type*));
+    params_ty->product.members[0] = builtin_lookup(root_scope, "int", NAMESPACE_TYPE)->type;
+    params_ty->product.members[1] = builtin_lookup(root_scope, "int", NAMESPACE_TYPE)->type;
+    ty->function.params = params_ty;
+    ty->function.return_ = builtin_lookup(root_scope, "int", NAMESPACE_TYPE)->type;
+    name_decl = scope_bind(storage, root_scope, ty->strname, NAMESPACE_TYPE);
+    name_decl->type = ty;
+  }
+  for (int i = 0; i < sizeof(logical_ops)/sizeof(logical_ops[0]); i++) {
+    ty = (Type*)array_append(storage, type_array, sizeof(Type));
+    ty->strname = logical_ops[i];
+    ty->ty_former = TYPE_FUNCTION;
+    params_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+    params_ty->ty_former = TYPE_PRODUCT;
+    params_ty->product.count = 2;
+    params_ty->product.members = arena_malloc(storage, params_ty->product.count*sizeof(Type*));
+    params_ty->product.members[0] = builtin_lookup(root_scope, "bool", NAMESPACE_TYPE)->type;
+    params_ty->product.members[1] = builtin_lookup(root_scope, "bool", NAMESPACE_TYPE)->type;
+    ty->function.params = params_ty;
+    ty->function.return_ = builtin_lookup(root_scope, "bool", NAMESPACE_TYPE)->type;
+    name_decl = scope_bind(storage, root_scope, ty->strname, NAMESPACE_TYPE);
+    name_decl->type = ty;
+  }
+  for (int i = 0; i < sizeof(relational_ops)/sizeof(relational_ops[0]); i++) {
+    ty = (Type*)array_append(storage, type_array, sizeof(Type));
+    ty->strname = relational_ops[i];
+    ty->ty_former = TYPE_FUNCTION;
+    params_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+    params_ty->ty_former = TYPE_PRODUCT;
+    params_ty->product.count = 2;
+    params_ty->product.members = arena_malloc(storage, params_ty->product.count*sizeof(Type*));
+    params_ty->product.members[0] = builtin_lookup(root_scope, "int", NAMESPACE_TYPE)->type;
+    params_ty->product.members[1] = builtin_lookup(root_scope, "int", NAMESPACE_TYPE)->type;
+    ty->function.params = params_ty;
+    ty->function.return_ = builtin_lookup(root_scope, "bool", NAMESPACE_TYPE)->type;
+    name_decl = scope_bind(storage, root_scope, ty->strname, NAMESPACE_TYPE);
+    name_decl->type = ty;
+  }
+  for (int i = 0; i < sizeof(bitwise_ops)/sizeof(bitwise_ops[0]); i++) {
+    ty = (Type*)array_append(storage, type_array, sizeof(Type));
+    ty->strname = bitwise_ops[i];
+    ty->ty_former = TYPE_FUNCTION;
+    params_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+    params_ty->ty_former = TYPE_PRODUCT;
+    params_ty->product.count = 2;
+    params_ty->product.members = arena_malloc(storage, params_ty->product.count*sizeof(Type*));
+    params_ty->product.members[0] = builtin_lookup(root_scope, "bit", NAMESPACE_TYPE)->type;
+    params_ty->product.members[1] = builtin_lookup(root_scope, "bit", NAMESPACE_TYPE)->type;
+    ty->function.params = params_ty;
+    ty->function.return_ = builtin_lookup(root_scope, "bit", NAMESPACE_TYPE)->type;
+    name_decl = scope_bind(storage, root_scope, ty->strname, NAMESPACE_TYPE);
+    name_decl->type = ty;
+  }
 }
 
 static bool
@@ -1989,10 +2062,14 @@ static void
 visit_indexExpression(Ast* index_expr)
 {
   assert(index_expr->kind == AST_indexExpression);
+  Type* ty;
+
   visit_expression(index_expr->indexExpression.start_index);
   if (index_expr->indexExpression.end_index) {
     visit_expression(index_expr->indexExpression.end_index);
   }
+  ty = builtin_lookup(root_scope, "int", NAMESPACE_TYPE)->type;
+  map_insert(storage, type_env, index_expr, ty, 0);
 }
 
 static void

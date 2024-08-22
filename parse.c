@@ -3638,6 +3638,7 @@ parse_expression(int priority_threshold)
           expr->column_no = token->column_no;
           expr->binaryExpression.left_operand = primary;
           expr->binaryExpression.op = token_to_binop(token);
+          expr->binaryExpression.strname = token->lexeme;
           next_token();
           expr->binaryExpression.right_operand = parse_expression(priority + 1);
           primary = arena_malloc(storage, sizeof(Ast));
@@ -3736,6 +3737,7 @@ parse_expressionPrimary()
       expr->line_no = token->line_no;
       expr->column_no = token->column_no;
       expr->unaryExpression.op = OP_NOT;
+      expr->unaryExpression.strname = token->lexeme;
       expr->unaryExpression.operand = parse_expression(1);
       primary->expression.expr = expr;
       return primary;
@@ -3746,6 +3748,7 @@ parse_expressionPrimary()
       expr->line_no = token->line_no;
       expr->column_no = token->column_no;
       expr->unaryExpression.op = OP_BITW_NOT;
+      expr->unaryExpression.strname = token->lexeme;
       expr->unaryExpression.operand = parse_expression(1);
       primary->expression.expr = expr;
       return primary;
@@ -3756,6 +3759,7 @@ parse_expressionPrimary()
       expr->line_no = token->line_no;
       expr->column_no = token->column_no;
       expr->unaryExpression.op = OP_NEG;
+      expr->unaryExpression.strname = token->lexeme;
       expr->unaryExpression.operand = parse_expression(1);
       primary->expression.expr = expr;
       return primary;
