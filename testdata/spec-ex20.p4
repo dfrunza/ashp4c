@@ -1,6 +1,3 @@
-extern packet_in {}
-extern packet_out {}
-
 header Ethernet_h {
    bit<48> dstAddr;
    bit<48> srcAddr;
@@ -17,6 +14,16 @@ header Mpls_h {
 struct Pkthdr {
    Ethernet_h ethernet;
    Mpls_h[3] mpls_vec;
+}
+
+extern packet_in {
+    packet_in();
+    void extract(out Ethernet_h hdr);
+    void extract(out Mpls_h hdr);
+}
+
+extern packet_out {
+    packet_out();
 }
 
 parser X(packet_in b, out Pkthdr p)

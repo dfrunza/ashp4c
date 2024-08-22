@@ -4,7 +4,7 @@ control p(in bit y_0)
         bit x;
         x = 8w1;
     
-        if (x == 8w1)
+        if ((int)x == 8w1)
         {
             bit y;
             y = 8w1;

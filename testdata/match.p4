@@ -29,7 +29,9 @@ struct Parsed_headers {
 }
 
 extern packet_in {
+    packet_in();
     void extract(out Parsed_headers hdr);
+    void extract(out Ipv4_no_options_h hdr);
     void extract(out Parsed_headers variableSizeHeader, in bit<32> variableFieldSizeInBits);
     Parsed_headers lookahead();
     void advance(in bit<32> sizeInBits);
@@ -37,6 +39,7 @@ extern packet_in {
 }
 
 extern packet_out {
+    packet_out();
     void emit(in Parsed_headers hdr);
 }
 
