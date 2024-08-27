@@ -723,6 +723,33 @@ AstEnum_to_string(enum AstEnum ast)
 }
 
 Ast*
+clone_ast(Arena* storage, Ast* original)
+{
+  Ast* clone;
+
+  if (!original) return 0;
+  clone = arena_malloc(storage, sizeof(Ast));
+  clone->kind = original->kind;
+  clone->line_no = original->line_no;
+  clone->column_no = original->column_no;
+  clone->right_sibling = clone_ast(storage, original->right_sibling);
+  if (original->kind == AST_parameterList) {
+    clone->parameterList.first_child = clone_ast(storage, original->parameterList.first_child);
+  } else if (original->kind == AST_parameter) {
+    clone->parameter.direction = original->parameter.direction;
+    clone->parameter.name = clone_ast(storage, original->parameter.name);
+    clone->parameter.type = clone_ast(storage, original->parameter.type);
+    clone->parameter.init_expr = clone_ast(storage, original->parameter.init_expr);
+  } else if (original->kind == AST_name) {
+    clone->name.strname = original->name.strname;
+  } else if (original->kind == AST_typeRef) {
+    clone->typeRef.type = clone_ast(storage, original->typeRef.type);
+  }
+  else assert(0);
+  return clone;
+}
+
+Ast*
 parse(Arena* storage_, char* source_file_, Array* tokens_, Scope** root_scope_)
 {
   Ast *program;
@@ -1142,7 +1169,7 @@ parse_parserLocalElement()
 static Ast*
 parse_parserTypeDeclaration()
 {
-  Ast* parser_proto, *name;
+  Ast* parser_proto, *name, *method_protos;
 
   if (token->klass == TK_PARSER) {
     next_token();
@@ -1150,6 +1177,11 @@ parse_parserTypeDeclaration()
     parser_proto->kind = AST_parserTypeDeclaration;
     parser_proto->line_no = token->line_no; 
     parser_proto->column_no = token->column_no;
+    method_protos = arena_malloc(storage, sizeof(Ast));
+    method_protos->kind = AST_methodPrototypes;
+    method_protos->line_no = parser_proto->line_no;
+    method_protos->column_no = parser_proto->column_no;
+    parser_proto->parserTypeDeclaration.method_protos = method_protos;
     if (token_is_name(token)) {
       name = parse_name();
       scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);

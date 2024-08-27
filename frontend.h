@@ -361,6 +361,7 @@ typedef struct Ast {
     struct {
       struct Ast* name;
       struct Ast* params;
+      struct Ast* method_protos;
     } parserTypeDeclaration;
 
     struct {
@@ -818,6 +819,7 @@ typedef struct Ast {
   };
 } Ast;
 
+Ast*  clone_ast(Arena* storage, Ast* original);
 char* AstEnum_to_string(enum AstEnum ast);
 
 typedef struct Scope {
@@ -891,7 +893,12 @@ typedef struct Type {
     struct {
       struct Type* params;
       struct Type* ctor_params;
-    } parser, control, package;
+      struct Type* methods;
+    } parser, control;
+
+    struct {
+      struct Type* params;
+    } package;
 
     struct {
       struct Type* element;

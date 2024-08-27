@@ -463,7 +463,7 @@ visit_simpleKeysetExpression(Ast* simple_expr, Type* required_ty)
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_dontcare) {
     visit_dontcare(simple_expr->simpleKeysetExpression.expr);
   } else assert(0);
-  simple_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  simple_ty = array_append(storage, type_array, sizeof(Type));
   simple_ty->ty_former = TYPE_PRODUCT;
   simple_ty->ast = simple_expr;
   simple_ty->product.count = 1;
@@ -480,7 +480,7 @@ visit_simpleExpressionList(Ast* expr_list, Type* required_ty)
   Type* list_ty;
   int i;
 
-  list_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  list_ty = array_append(storage, type_array, sizeof(Type));
   list_ty->ty_former = TYPE_PRODUCT;
   list_ty->ast = expr_list;
   for (ast = expr_list->simpleExpressionList.first_child;
@@ -1266,7 +1266,7 @@ visit_expressionList(Ast* expr_list, Type* required_ty)
   Type* list_ty;
   int i;
 
-  list_ty = (Type*)array_append(storage, type_array, sizeof(Type));
+  list_ty = array_append(storage, type_array, sizeof(Type));
   list_ty->ty_former = TYPE_PRODUCT;
   list_ty->ast = expr_list;
   for (ast = expr_list->expressionList.first_child;

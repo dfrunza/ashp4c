@@ -196,7 +196,7 @@ setup_builtin_names()
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_entry = scope_lookup(root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
     name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
-    ty = (Type*)array_append(storage, type_array, sizeof(Type));
+    ty = array_append(storage, type_array, sizeof(Type));
     ty->ty_former = builtin_types[i].ty_former;
     ty->strname = name_decl->strname;
     ty->ast = name_decl->ast;
@@ -204,11 +204,11 @@ setup_builtin_names()
   }
 
   ty = builtin_lookup(root_scope, "error", NAMESPACE_TYPE)->type;
-  ty->enum_.fields = (Type*)array_append(storage, type_array, sizeof(Type));
+  ty->enum_.fields = array_append(storage, type_array, sizeof(Type));
   ty->enum_.fields->ty_former = TYPE_PRODUCT;
 
   ty = builtin_lookup(root_scope, "match_kind", NAMESPACE_TYPE)->type;
-  ty->enum_.fields = (Type*)array_append(storage, type_array, sizeof(Type));
+  ty->enum_.fields = array_append(storage, type_array, sizeof(Type));
   ty->enum_.fields->ty_former = TYPE_PRODUCT;
 }
 
@@ -319,9 +319,9 @@ name_bind(Arena* storage_, char* source_file, Ast* p4program, Scope* root_scope_
     Map* scope_map_, Array** type_array_)
 {
 
+  storage = storage_;
   root_scope = root_scope_;
   scope_map = scope_map_;
-  storage = storage_;
   current_scope = root_scope;
   decl_map = arena_malloc(storage, sizeof(Map));
   type_array = array_create(storage, sizeof(Type), 5);
@@ -498,6 +498,7 @@ visit_parserTypeDeclaration(Ast* type_decl)
   prev_scope = current_scope;
   current_scope = map_lookup(scope_map, type_decl, 0);
   visit_parameterList(type_decl->parserTypeDeclaration.params);
+  visit_methodPrototypes(type_decl->parserTypeDeclaration.method_protos, name_decl);
   current_scope = prev_scope;
 }
 

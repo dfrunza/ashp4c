@@ -332,6 +332,7 @@ visit_parserTypeDeclaration(Ast* type_decl)
   m = map_insert(storage, scope_map, type_decl, current_scope, 0);
   assert(m);
   visit_parameterList(type_decl->parserTypeDeclaration.params);
+  visit_methodPrototypes(type_decl->parserTypeDeclaration.method_protos);
   current_scope = prev_scope;
 }
 
