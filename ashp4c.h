@@ -1,7 +1,7 @@
 Array* tokenize(Arena* storage, SourceText* source_text);
 Ast*   parse(Arena* storage, char* source_file, Array* tokens, Scope** root_scope);
 void   drypass(char* source_file, Ast* ast);
-void   create_builtins(Arena* storage, char* source_file, Ast* ast);
+void   builtin_methods(Arena* storage, char* source_file, Ast* ast);
 Map*   scope_hierarchy(Arena* storage, char* source_file, Ast* p4program, Scope* root_scope);
 Map*   name_bind(Arena* storage, char* source_file, Ast* p4program, Scope* root_scope,
           Map* scope_map, Array** type_array);

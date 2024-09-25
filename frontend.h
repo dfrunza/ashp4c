@@ -167,7 +167,6 @@ enum AstEnum {
   /** TYPES **/
 
   AST_typeRef,
-  AST_namedType,
   AST_tupleType,
   AST_headerStackType,
   AST_baseTypeBoolean,
@@ -233,7 +232,6 @@ enum AstEnum {
   /** VARIABLES **/
 
   AST_variableDeclaration,
-  AST_constantDeclaration,
 
   /** EXPRESSIONS **/
 
@@ -253,8 +251,8 @@ enum AstEnum {
   AST_integerLiteral,
   AST_booleanLiteral,
   AST_stringLiteral,
-  AST_dontcare,
   AST_default,
+  AST_dontcare,
 };
 
 enum AstOperator {

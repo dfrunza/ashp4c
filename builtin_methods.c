@@ -141,7 +141,7 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 void
-create_builtins(Arena* storage_, char* source_file, Ast* ast)
+builtin_methods(Arena* storage_, char* source_file, Ast* ast)
 {
   storage = storage_;
 

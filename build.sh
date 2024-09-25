@@ -8,7 +8,7 @@ CC="$CC -Winline -Wno-write-strings -Wno-unused-function -Wreturn-type -Wall"
 
 gcc $CC -o ashp4c \
   ashp4c.c basic.c arena.c array.c hashmap.c map.c \
-  lex.c parse.c drypass.c create_builtins.c scope_hierarchy.c declared_types.c name_bind.c \
+  lex.c parse.c drypass.c builtin_methods.c scope_hierarchy.c declared_types.c name_bind.c \
   potential_types.c select_type.c \
   -lm
 

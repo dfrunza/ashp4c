@@ -124,7 +124,7 @@ main(int arg_count, char* args[])
   arena_free(&scratch_storage);
 
   drypass(source_text.filename, program);
-  create_builtins(&storage, source_text.filename, program);
+  builtin_methods(&storage, source_text.filename, program);
   scope_map = scope_hierarchy(&storage, source_text.filename, program, root_scope);
   decl_map = name_bind(&storage, source_text.filename, program, root_scope,
       scope_map, &type_array);
