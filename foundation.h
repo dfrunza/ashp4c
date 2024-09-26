@@ -72,36 +72,36 @@ void   array_extend(Arena* storage, Array* array, int elem_size);
 void*  array_get(Array* array, int i, int elem_size);
 void*  array_append(Arena* storage, Array* array, int elem_size);
 
-typedef struct HashmapEntry {
+typedef struct StrmapEntry {
   char* key;
   void* value;
-  struct HashmapEntry* next_entry;
-} HashmapEntry;
+  struct StrmapEntry* next_entry;
+} StrmapEntry;
 
-typedef struct HashmapBucket {
+typedef struct StrmapBucket {
   uint32_t h;
-  HashmapEntry** entry_slot;
+  StrmapEntry** entry_slot;
   int last_segment;
-} HashmapBucket;
+} StrmapBucket;
 
-typedef struct Hashmap {
+typedef struct Strmap {
   int entry_count;
   int capacity;
   SegmentTable entries;
-} Hashmap;
+} Strmap;
 
-typedef struct HashmapCursor {
-  Hashmap* hashmap;
+typedef struct StrmapCursor {
+  Strmap* strmap;
   int i;
-  HashmapEntry* entry;
-} HashmapCursor;
+  StrmapEntry* entry;
+} StrmapCursor;
 
-Hashmap*      hashmap_create(Arena* storage, int segment_count);
-void          hashmap_init(Arena* storage, Hashmap* hashmap, int segment_count);
-void*         hashmap_lookup(Hashmap* hashmap, char* key, HashmapEntry** entry, HashmapBucket* bucket);
-HashmapEntry* hashmap_insert(Arena* storage, Hashmap* hashmap, char* key, void* value, bool return_if_found);
-void          hashmap_cursor_begin(HashmapCursor* cursor, Hashmap* hashmap);
-HashmapEntry* hashmap_cursor_next(HashmapCursor* cursor);
+Strmap*      strmap_create(Arena* storage, int segment_count);
+void         strmap_init(Arena* storage, Strmap* strmap, int segment_count);
+void*        strmap_lookup(Strmap* strmap, char* key, StrmapEntry** entry, StrmapBucket* bucket);
+StrmapEntry* strmap_insert(Arena* storage, Strmap* strmap, char* key, void* value, bool return_if_found);
+void         strmap_cursor_begin(StrmapCursor* cursor, Strmap* strmap);
+StrmapEntry* strmap_cursor_next(StrmapCursor* cursor);
 
 typedef struct MapEntry {
   struct MapEntry* next;

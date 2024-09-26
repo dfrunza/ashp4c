@@ -148,8 +148,8 @@ scope_create(Arena* storage, int segment_count)
   assert(segment_count >= 1 && segment_count <= 16);
   Scope* scope;
 
-  scope = arena_malloc(storage, sizeof(Scope) + sizeof(HashmapEntry**) * segment_count);
-  hashmap_init(storage, &scope->name_table, segment_count);
+  scope = arena_malloc(storage, sizeof(Scope) + sizeof(StrmapEntry**) * segment_count);
+  strmap_init(storage, &scope->name_table, segment_count);
   return scope;
 }
 

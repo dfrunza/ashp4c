@@ -823,7 +823,7 @@ char* AstEnum_to_string(enum AstEnum ast);
 typedef struct Scope {
   int scope_level;
   struct Scope* parent_scope;
-  Hashmap name_table;
+  Strmap name_table;
 } Scope;
 
 enum TypeEnum {

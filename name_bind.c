@@ -228,7 +228,7 @@ scope_lookup(Scope* scope, char* strname, enum NameSpace ns)
   NameEntry* name_entry;
 
   while (scope) {
-    name_entry = hashmap_lookup(&scope->name_table, strname, 0, 0);
+    name_entry = strmap_lookup(&scope->name_table, strname, 0, 0);
     if (name_entry) {
       if ((ns & NAMESPACE_VAR) != 0 && name_entry->ns[NAMESPACE_VAR >> 1]) break;
       if ((ns & NAMESPACE_TYPE) != 0 && name_entry->ns[NAMESPACE_TYPE >> 1]) break;
@@ -244,7 +244,7 @@ scope_lookup(Scope* scope, char* strname, enum NameSpace ns)
 NameEntry*
 scope_lookup_current(Scope* scope, char* strname)
 {
-  return hashmap_lookup(&scope->name_table, strname, 0, 0);
+  return strmap_lookup(&scope->name_table, strname, 0, 0);
 }
 
 NameDeclaration*
@@ -253,11 +253,11 @@ scope_bind(Arena* storage, Scope* scope, char*strname, enum NameSpace ns)
   assert(0 < ns);
   NameDeclaration* name_decl;
   NameEntry* name_entry;
-  HashmapEntry* he;
+  StrmapEntry* he;
 
   name_decl = arena_malloc(storage, sizeof(NameDeclaration));
   name_decl->strname = strname;
-  he = hashmap_insert(storage, &scope->name_table, strname, 0, 1);
+  he = strmap_insert(storage, &scope->name_table, strname, 0, 1);
   if (he->value == 0) {
     he->value = arena_malloc(storage, sizeof(NameEntry));
   }
@@ -273,13 +273,13 @@ Debug_scope_decls(Scope* scope)
   NameEntry* name_entry;
   NameDeclaration* decl;
   int count = 0;
-  HashmapCursor it = {0};
-  HashmapEntry* he;
+  StrmapCursor it = {0};
+  StrmapEntry* he;
   enum NameSpace ns[] = {NAMESPACE_VAR, NAMESPACE_TYPE, NAMESPACE_KEYWORD};
 
-  hashmap_cursor_begin(&it, &scope->name_table);
+  strmap_cursor_begin(&it, &scope->name_table);
   printf("Names in scope 0x%x\n\n", scope);
-  he = hashmap_cursor_next(&it);
+  he = strmap_cursor_next(&it);
   while (he) {
     name_entry = (NameEntry*)he->value;
     for (int i = 0; i < sizeof(ns)/sizeof(ns[0]); i++) {
@@ -295,7 +295,7 @@ Debug_scope_decls(Scope* scope)
         count += 1;
       }
     }
-    he = hashmap_cursor_next(&it);
+    he = strmap_cursor_next(&it);
   }
   printf("\nTotal names: %d\n", count);
 }
