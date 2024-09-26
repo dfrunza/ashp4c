@@ -47,7 +47,7 @@ extern void verify(bool condition, error code);
 
 error { InvalidOptions }
 
-parser Top(packet_in b, out Parsed_headers headers) {
+parser Top(packet_in b, out Parsed_headers headers)() {
     state start {
         transition parse_ipv4;
     }

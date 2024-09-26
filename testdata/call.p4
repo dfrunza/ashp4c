@@ -1,4 +1,4 @@
-control qp()
+control qp()()
 {
     action drop() {}
 
@@ -23,7 +23,7 @@ extern Ix
     int<32> h();
 }
 
-control p()
+control p()()
 {
     Ix() x;
     Ix() y;

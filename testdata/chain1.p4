@@ -39,7 +39,7 @@ match_kind {
     lpm
 }
 
-parser p1(packet_in p, out Header h) {
+parser p1(packet_in p, out Header h)() {
     bit<1> x;
     state start {
         transition select (x) {

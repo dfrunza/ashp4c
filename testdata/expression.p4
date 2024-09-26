@@ -1,4 +1,4 @@
-control p()
+control p()()
 {
     apply {
         int<32> a = 32s1;

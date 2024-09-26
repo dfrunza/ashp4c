@@ -2,13 +2,13 @@ extern packet_in {}
 
 struct Headers_t {}
 
-parser prs(packet_in p, out Headers_t headers) {
+parser prs(packet_in p, out Headers_t headers)() {
     state start {
         transition accept;
     }
 }
 
-control pipe(inout Headers_t headers, out bool pass) {
+control pipe(inout Headers_t headers, out bool pass)() {
     action Reject(bool rej) {
         pass = rej;
     }

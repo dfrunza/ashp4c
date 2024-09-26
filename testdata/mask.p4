@@ -16,7 +16,7 @@ extern packet_out {
   packet_out();
 }
 
-parser Parser(packet_in b, out Parsed_Packet p) {
+parser Parser(packet_in b, out Parsed_Packet p)() {
     state start {
         transition select(8w0, b.lookahead()) {
             (0, 0 &&& 0) : accept;

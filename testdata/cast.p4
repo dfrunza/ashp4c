@@ -1,4 +1,4 @@
-control p()
+control p()()
 {
     apply {
         bit<2>  a;

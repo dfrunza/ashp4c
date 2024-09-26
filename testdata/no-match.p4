@@ -1,4 +1,4 @@
-parser p() {
+parser p()() {
     state start {
         bit<32> x;
         transition select(x) {

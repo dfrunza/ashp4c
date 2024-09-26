@@ -112,7 +112,7 @@ package V1Switch(Parser p,
                  ComputeChecksum ck,
                  Deparser dep);
 
-parser prs(packet_in p, out Headers h) {
+parser prs(packet_in p, out Headers h)() {
     Ethernet e;
 
     state start {
@@ -125,7 +125,7 @@ parser prs(packet_in p, out Headers h) {
     }
 }
 
-control c(inout Headers h, inout standard_metadata_t sm) {
+control c(inout Headers h, inout standard_metadata_t sm)() {
     action do_act(bit<32> type) {
 	sm.instance_type = type;
     }

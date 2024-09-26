@@ -5,7 +5,7 @@ header Mpls_h {
     bit<8>  ttl;
 } 
 
-control p()
+control p()()
 {
     apply {
         Mpls_h[10] mpls_vec;

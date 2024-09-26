@@ -64,7 +64,7 @@ match_kind {
 
 error { IPv4FragmentsNotSupported, IPv4OptionsNotSupported, IPv4IncorrectVersion }
 
-parser top(packet_in b, out Parsed_packet p) {
+parser top(packet_in b, out Parsed_packet p)() {
     state start {
        b.extract(p.ethernet);
        transition select(p.ethernet.etherType) {
@@ -87,7 +87,7 @@ parser top(packet_in b, out Parsed_packet p) {
    }
 }
 
-control Automatic(packet_out b, in Parsed_packet p) {
+control Automatic(packet_out b, in Parsed_packet p)() {
     apply {
         b.emit(p.ethernet);
         b.emit(p.ip.ipv6);

@@ -1,6 +1,6 @@
 action nop() {}
 
-control x()
+control x()()
 {
     table t {
         actions = { nop; }

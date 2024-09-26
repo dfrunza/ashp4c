@@ -151,7 +151,7 @@ const bit<32> SYNSENT = 1;
 const bit<32> SYNACKED = 2;
 const bit<32> ESTABLISHED = 3;
 
-parser prs(packet_in p, out Headers_t headers, inout metadata meta, inout standard_metadata std_meta) {
+parser prs(packet_in p, out Headers_t headers, inout metadata meta, inout standard_metadata std_meta)() {
     state start {
         transition parse_ethernet;
     }
@@ -172,7 +172,7 @@ parser prs(packet_in p, out Headers_t headers, inout metadata meta, inout standa
     }
 }
 
-control pipe(inout Headers_t headers, inout metadata meta, inout standard_metadata std_meta) {
+control pipe(inout Headers_t headers, inout metadata meta, inout standard_metadata std_meta)() {
 
     Register(65536) conn_state;
     Register(65536) conn_srv_addr;
@@ -238,7 +238,7 @@ control pipe(inout Headers_t headers, inout metadata meta, inout standard_metada
     }
 }
 
-control dprs(packet_out packet, in Headers_t headers) {
+control dprs(packet_out packet, in Headers_t headers)() {
     apply {
         packet.emit(headers.ethernet);
         packet.emit(headers.ipv4);

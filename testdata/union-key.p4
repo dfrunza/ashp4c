@@ -19,7 +19,7 @@ struct Headers {
     U u;
 }
 
-control c(in Headers h) {
+control c(in Headers h)() {
     action a() {}
     table t {
         key = {

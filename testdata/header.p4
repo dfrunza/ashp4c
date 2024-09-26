@@ -23,7 +23,7 @@ struct str
      bit<32>     dt;
 }
 
-control p()
+control p()()
 {
     apply {
         your_header[5] stack;

@@ -68,7 +68,7 @@ match_kind {
 
 error { InvalidOptions }
 
-parser Top(packet_in b, out Parsed_headers headers) {
+parser Top(packet_in b, out Parsed_headers headers)() {
    state start {
        transition parse_ipv4;
    }

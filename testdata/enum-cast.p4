@@ -66,7 +66,7 @@ match_kind {
 
 /// #end
 
-parser p(packet_in packet, out O o) {
+parser p(packet_in packet, out O o)() {
     state start {
         X x = (X)0;
         bit<32> z = (bit<32>)X.One;

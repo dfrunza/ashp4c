@@ -2,7 +2,7 @@ header h {
     bit<32> field;
 }
 
-control c() {
+control c()() {
     h hdr;
 
     apply {

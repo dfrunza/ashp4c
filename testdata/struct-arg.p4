@@ -2,13 +2,13 @@ struct S {
     bit<32> f;
 }
 
-control c(inout S data) {
+control c(inout S data)() {
     apply {
         data.f = 8w1;
     }
 }
 
-control caller() {
+control caller()() {
     S data;
     c() cinst;
 

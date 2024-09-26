@@ -1,4 +1,4 @@
-control ctrl() {
+control ctrl()() {
     action e() {
         exit;
     }

@@ -1,6 +1,6 @@
 struct bs {}
 
-parser p(in bs b, out bool matches)
+parser p(in bs b, out bool matches)()
 {
     state start
     {

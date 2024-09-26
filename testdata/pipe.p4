@@ -86,7 +86,7 @@ control P_pipe(inout TArg1 pArg1, inout TArg2 pArg2)(bit<32> t2Size) {
     }
 }
 
-control Q_pipe(inout TArg1 qArg1, inout TArg2 qArg2) {
+control Q_pipe(inout TArg1 qArg1, inout TArg2 qArg2)() {
     P_pipe(32w5) p1;  // instantiate pipeline p1 with parameter t2Size=5
 
     apply {
@@ -99,6 +99,6 @@ control pp(inout TArg1 arg1, inout TArg2 arg2);
 
 package myswitch(prs prser, pp pipe);
 
-parser my_parser(bs b, out Packet_data p) { state start { transition accept; } }
+parser my_parser(bs b, out Packet_data p)() { state start { transition accept; } }
 
 myswitch(my_parser(), Q_pipe()) main;

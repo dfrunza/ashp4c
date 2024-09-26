@@ -87,7 +87,7 @@ control filter(inout Headers_t headers, out bool accept);
 
 package ebpfFilter(parse prs, filter filt);
 
-parser prs(packet_in p, out Headers_t headers)
+parser prs(packet_in p, out Headers_t headers)()
 {
     state start
     {
@@ -107,7 +107,7 @@ parser prs(packet_in p, out Headers_t headers)
     }
 }
 
-control pipe(inout Headers_t headers, out bool pass)
+control pipe(inout Headers_t headers, out bool pass)()
 {
     action Reject(IPv4Address add)
     {

@@ -1,10 +1,10 @@
 control noargs();
 
-control p() {
+control p()() {
     apply {}
 }
 
-control q() {
+control q()() {
     p() p1;
     
     apply {    

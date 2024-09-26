@@ -1,7 +1,7 @@
 struct S { bit d; }   
 const S c = { 1w1 };
 
-control p()
+control p()()
 {
     apply {
         S a;

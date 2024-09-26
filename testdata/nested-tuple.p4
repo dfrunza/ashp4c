@@ -14,7 +14,7 @@ struct tuple_0 {
 extern void f0(in tuple<T, T> data);
 extern void f1(in tuple_0 data);
 
-control c(inout bit r) {
+control c(inout bit r)() {
     apply {
         S s = { { {0}, {1} }, {0}, 1 };
         f0(s.f1);

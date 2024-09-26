@@ -134,7 +134,7 @@ package ubpf(parse prs,
              pipeline p,
              deparser dprs);
 
-parser prs(packet_in p, out Headers_t headers, inout metadata meta, inout standard_metadata std_meta) {
+parser prs(packet_in p, out Headers_t headers, inout metadata meta, inout standard_metadata std_meta)() {
     state start {
         p.extract(headers.ethernet);
         transition select(headers.ethernet.etherType) {
@@ -157,7 +157,7 @@ parser prs(packet_in p, out Headers_t headers, inout metadata meta, inout standa
 
 }
 
-control pipe(inout Headers_t headers, inout metadata meta, inout standard_metadata std_meta) {
+control pipe(inout Headers_t headers, inout metadata meta, inout standard_metadata std_meta)() {
 
     action ip_modify_saddr(bit<32> srcAddr) {
         headers.ipv4.srcAddr = srcAddr;
@@ -227,7 +227,7 @@ control pipe(inout Headers_t headers, inout metadata meta, inout standard_metada
     }
 }
 
-control dprs(packet_out packet, in Headers_t headers) {
+control dprs(packet_out packet, in Headers_t headers)() {
     apply {
         packet.emit(headers.ethernet);
         packet.emit(headers.mpls);

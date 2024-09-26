@@ -26,7 +26,7 @@ extern packet_out {
     packet_out();
 }
 
-parser X(packet_in b, out Pkthdr p)
+parser X(packet_in b, out Pkthdr p)()
 {
     state start {
         b.extract(p.ethernet);

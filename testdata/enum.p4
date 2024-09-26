@@ -5,7 +5,7 @@ enum X
     Field2
 }
 
-control c()
+control c()()
 {
     apply {
         X v = X.Field;

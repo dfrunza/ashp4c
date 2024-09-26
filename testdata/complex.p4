@@ -1,6 +1,6 @@
 extern bit<32> f(in bit<32> x);
 
-control c(inout bit<32> r) {
+control c(inout bit<32> r)() {
     apply {
         r = f(f(((bit<32>)5)));
     }

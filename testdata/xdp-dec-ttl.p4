@@ -166,7 +166,7 @@ package xdp(xdp_parse p, xdp_switch s, xdp_deparse d);
 
 //#end
 
-parser prs(packet_in p, out Headers_t headers) {
+parser prs(packet_in p, out Headers_t headers)() {
     state start {
         p.extract(headers.ethernet);
         transition select(headers.ethernet.etherType) {
@@ -181,7 +181,7 @@ parser prs(packet_in p, out Headers_t headers) {
     }
 }
 
-control sw(inout Headers_t headers, in xdp_input imd, out xdp_output omd) {
+control sw(inout Headers_t headers, in xdp_input imd, out xdp_output omd)() {
     apply {
         if (headers.ipv4.isValid()) {
           headers.ipv4.ttl = headers.ipv4.ttl - 1;
@@ -192,7 +192,7 @@ control sw(inout Headers_t headers, in xdp_input imd, out xdp_output omd) {
     }
 }
 
-control deprs(in Headers_t headers, packet_out packet)
+control deprs(in Headers_t headers, packet_out packet)()
 {
     apply {
         packet.emit(headers.ethernet);

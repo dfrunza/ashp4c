@@ -1,7 +1,7 @@
-parser f(out bool x)
+parser f(out bool x)()
 { state start { transition accept; } }
 
-parser f2(out bool x, out bool y)
+parser f2(out bool x, out bool y)()
 { state start { transition accept; } }
 
 parser Filter(out bool filter);

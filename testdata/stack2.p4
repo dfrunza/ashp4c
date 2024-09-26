@@ -1,6 +1,6 @@
 header h { }
 
-control c(out bit<32> x) {
+control c(out bit<32> x)() {
     apply {
         h[4] stack;
         bit<32> sz = stack.size;

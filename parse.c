@@ -27,7 +27,7 @@ static Ast* parse_parameter();
 static enum AstParamDirection parse_direction();
 static Ast* parse_packageTypeDeclaration();
 static Ast* parse_instantiation(Ast* type_ref);
-static Ast* parse_optConstructorParameters();
+static Ast* parse_constructorParameters();
 
 /** PARSER **/
 
@@ -1356,7 +1356,7 @@ parse_instantiation(Ast* type_ref)
 /** PARSER **/
 
 static Ast*
-parse_optConstructorParameters()
+parse_constructorParameters()
 {
    Ast* params;
 
@@ -1368,7 +1368,8 @@ parse_optConstructorParameters()
     } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                  source_file, token->line_no, token->column_no, token->lexeme);
     return params;
-  }
+  } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
+               source_file, token->line_no, token->column_no, token->lexeme);
   return 0;
 }
 
@@ -1383,7 +1384,7 @@ parse_parserDeclaration(Ast* parser_proto)
     parser_decl->line_no = token->line_no;
     parser_decl->column_no = token->column_no;
     parser_decl->parserDeclaration.proto = parser_proto;
-    parser_decl->parserDeclaration.ctor_params = parse_optConstructorParameters();
+    parser_decl->parserDeclaration.ctor_params = parse_constructorParameters();
     if (token->klass == TK_BRACE_OPEN) {
       next_token();
       parser_decl->parserDeclaration.local_elements = parse_parserLocalElements();
@@ -1875,7 +1876,7 @@ parse_controlDeclaration(Ast* control_proto)
     control_decl->line_no = token->line_no;
     control_decl->column_no = token->column_no;
     control_decl->controlDeclaration.proto = control_proto;
-    control_decl->controlDeclaration.ctor_params = parse_optConstructorParameters();
+    control_decl->controlDeclaration.ctor_params = parse_constructorParameters();
     if (token->klass == TK_BRACE_OPEN) {
       next_token();
       control_decl->controlDeclaration.local_decls = parse_controlLocalDeclarations();

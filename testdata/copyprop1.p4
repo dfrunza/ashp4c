@@ -156,7 +156,7 @@ package V1Switch(Parser p,
 parser MyParser(packet_in packet,
                 out header_t hdr,
                 inout metadata meta,
-                inout standard_metadata_t standard_metadata) {
+                inout standard_metadata_t standard_metadata)() {
     state start {
         packet.extract(hdr.payload);
         transition accept;
@@ -165,7 +165,7 @@ parser MyParser(packet_in packet,
 
 control MyIngress(inout header_t hdr,
                   inout metadata meta,
-                  inout standard_metadata_t standard_metadata) {
+                  inout standard_metadata_t standard_metadata)() {
 
     action a1() {
         hdr.payload.x = 0xaa;
@@ -188,15 +188,15 @@ control MyIngress(inout header_t hdr,
     }
 }
 
-control MyVerifyChecksum(inout header_t hdr, inout metadata meta) { apply { } }
+control MyVerifyChecksum(inout header_t hdr, inout metadata meta)() { apply { } }
 control MyEgress(inout header_t hdr, inout metadata meta,
-                 inout standard_metadata_t standard_metadata) { apply {  } }
-control MyDeparser(packet_out packet, in header_t hdr) {
+                 inout standard_metadata_t standard_metadata)() { apply {  } }
+control MyDeparser(packet_out packet, in header_t hdr)() {
     apply {
         packet.emit(hdr);
     }
 }
-control MyComputeChecksum(inout header_t hdr, inout metadata meta) { apply { } }
+control MyComputeChecksum(inout header_t hdr, inout metadata meta)() { apply { } }
 
 V1Switch(
   MyParser(),

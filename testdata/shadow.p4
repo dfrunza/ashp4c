@@ -1,4 +1,4 @@
-control c()
+control c()()
 {
     apply {
         bit x;

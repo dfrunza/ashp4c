@@ -1,4 +1,4 @@
-control p(in bit y_0)
+control p(in bit y_0)()
 {
     apply {
         bit x;

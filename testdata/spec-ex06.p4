@@ -1,6 +1,6 @@
 extern void f(in int<9> x, in int<9> y);
 
-control p()
+control p()()
 {
     action A1()
     {

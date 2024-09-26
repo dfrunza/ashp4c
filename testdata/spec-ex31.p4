@@ -45,7 +45,7 @@ match_kind {
     lpm
 }
 
-parser EthernetParser(packet_in b, out EthernetHeader h)
+parser EthernetParser(packet_in b, out EthernetHeader h)()
 { state start { transition accept; } }
 
 parser GenericParser(packet_in b, out Packet_header p)(bool udpSupport)

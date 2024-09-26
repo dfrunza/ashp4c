@@ -55,7 +55,7 @@ match_kind {
     lpm
 }
 
-parser prs(packet_in p, out Headers h) {
+parser prs(packet_in p, out Headers h)() {
     Ethernet e;
 
     state start {
@@ -68,7 +68,7 @@ parser prs(packet_in p, out Headers h) {
     }
 }
 
-control c(inout Headers h) {
+control c(inout Headers h)() {
     apply {
         if (!h.eth.isValid())
             return;

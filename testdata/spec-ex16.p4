@@ -41,9 +41,9 @@ control Map(in bit<32> d);
 
 package Switch(Prs prs, Map map);
 
-parser P(packet_in b, out bit<32> d) { state start { transition accept; } }
-control Map1(in bit<32> d) { apply {} }
-control Map2(in bit<8> d) { apply {} }
+parser P(packet_in b, out bit<32> d)() { state start { transition accept; } }
+control Map1(in bit<32> d)() { apply {} }
+control Map2(in bit<8> d)() { apply {} }
 
 Switch(P(), Map1()) main;
 

@@ -4,7 +4,7 @@ typedef bit<48> EthernetAddress;
 
 extern tbl { tbl(); }
 
-control c(bit<32> x)
+control c(bit<32> x)()
 {
     action Set_dmac(EthernetAddress dmac)
     {}

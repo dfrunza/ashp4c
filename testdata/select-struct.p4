@@ -3,7 +3,7 @@ struct S {
     bit<8> f1;
 }
 
-parser p() {
+parser p()() {
     state start {
         bit<8> x = 5;
         S s = { 0, 0 };

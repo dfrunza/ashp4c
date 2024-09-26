@@ -8,7 +8,7 @@ extern packet_in {
 
 extern packet_out {}
 
-parser p1(packet_in p, out Header h) {
+parser p1(packet_in p, out Header h)() {
     state start {
         transition next;
     }

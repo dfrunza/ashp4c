@@ -1,4 +1,4 @@
-control c(inout bit<32> x) {
+control c(inout bit<32> x)() {
 	action a(in bit<32> arg) { x = arg; }
 	table t {
 		actions = { a(8w10); }

@@ -36,7 +36,7 @@ header H {
 
 typedef N32 NN32;
 
-control c(out B32 x) {
+control c(out B32 x)() {
     N32 k;
     NN32 nn;
 

@@ -11,7 +11,7 @@ extern Checksum
     bit<32> get();
 }
 
-control c() {
+control c()() {
   Checksum() ck;
   packet_in p;
   

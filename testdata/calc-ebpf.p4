@@ -67,7 +67,7 @@ match_kind {
 /*************************************************************************
  ***********************  P A R S E R  ***********************************
  *************************************************************************/
-parser Parser(packet_in packet, out headers hdr)
+parser Parser(packet_in packet, out headers hdr)()
 {
    state start {
         packet.extract(hdr.ethernet);
@@ -95,7 +95,7 @@ parser Parser(packet_in packet, out headers hdr)
 /*************************************************************************
  **************  I N G R E S S   P R O C E S S I N G   *******************
  *************************************************************************/
-control Ingress(inout headers hdr, out bool xout) {
+control Ingress(inout headers hdr, out bool xout)() {
     action send_back(bit<32> result) {
 	bit<48> tmp;
 	tmp = hdr.ethernet.dstAddr;

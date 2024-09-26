@@ -8,7 +8,7 @@ struct S {
     H h;
 }
 
-control c(out bit x) {
+control c(out bit x)() {
     varbit<32> a;
     varbit<32> b;
     H h1;

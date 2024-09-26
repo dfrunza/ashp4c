@@ -6,7 +6,7 @@ header Ethernet_h {
    bit<16> etherType;
 }
 
-control p()
+control p()()
 {
     apply {
         Ethernet_h ethernetHeader;

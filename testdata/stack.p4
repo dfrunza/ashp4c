@@ -1,6 +1,6 @@
 header h {}
 
-parser p()
+parser p()()
 {
     state start {
         h[4] stack;
@@ -15,7 +15,7 @@ parser p()
     }
 }
 
-control c() {
+control c()() {
     apply {
         h[8w4] stack;
         stack[8w3].setValid();

@@ -18,7 +18,7 @@ extern hash_function {
 
 extern hash_function crc_poly(O poly);
 
-control test(inout hdrs hdr) {
+control test(inout hdrs hdr)() {
     apply {
         hdr.crc = crc_poly(16w0x801a).hash(hdr.h1);
     }

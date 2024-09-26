@@ -3,7 +3,7 @@ extern E {
     void setValue(in bit<32> arg);
 }
 
-control c() {
+control c()() {
     E() e;
     apply {
         e.setValue(8w10);

@@ -1,7 +1,7 @@
 extern void log_msg(string msg);
 extern void log_msg(string msg, in bit data);
 
-control c(inout bit<32> x, inout bit<32> y) {
+control c(inout bit<32> x, inout bit<32> y)() {
     action a(inout bit<32> b, inout bit<32> d) {
         log_msg("Logging message.");
         log_msg("Logging values {} and {}", (bit){b, d});

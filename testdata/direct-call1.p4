@@ -1,10 +1,10 @@
-parser p() {
+parser p()() {
     state start {
         transition accept;
     }
 }
 
-parser q() {
+parser q()() {
     state start {
         p.apply();
         transition accept;

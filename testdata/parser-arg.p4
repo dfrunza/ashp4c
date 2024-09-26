@@ -15,7 +15,7 @@ parser Parser2()(Parser p) {
     }
 }
 
-parser Inside() {
+parser Inside()() {
     state start { transition accept; }
 }
 

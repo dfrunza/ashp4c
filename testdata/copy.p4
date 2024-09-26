@@ -2,7 +2,7 @@ struct S {
     bit<32> x;
 }
 
-control c(inout bit<32> b) {
+control c(inout bit<32> b)() {
     action a() {
         S s1;
         S s2;

@@ -1,6 +1,6 @@
 extern void log(string s);
 
-control c() {
+control c()() {
     apply {
         log("This is a message");
     }

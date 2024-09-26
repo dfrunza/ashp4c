@@ -1,6 +1,6 @@
 action Global() {}
 
-control c() {
+control c()() {
     table t {
         actions = { Global; }
         default_action = Global;

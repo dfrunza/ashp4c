@@ -9,7 +9,7 @@ struct S {
     bit<32> c;
 }
 
-parser p() {
+parser p()() {
     state start {
         S s;
         s.c = 8w0;

@@ -1,4 +1,4 @@
-control p()
+control p()()
 {
     action b(in bit<1> x, out bit<1> y)
     {

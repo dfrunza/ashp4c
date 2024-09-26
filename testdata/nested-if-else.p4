@@ -135,7 +135,7 @@ const bit<16> TYPE_IPV4 = 0x800;
 parser MyParser(packet_in packet,
                 out headers hdr,
                 inout metadata meta,
-                inout standard_metadata_t standard_metadata) {
+                inout standard_metadata_t standard_metadata)() {
 
     state start {
         transition parse_ethernet;
@@ -157,13 +157,13 @@ parser MyParser(packet_in packet,
     }
 }
 
-control MyVerifyChecksum(inout headers hdr, inout metadata meta) {
+control MyVerifyChecksum(inout headers hdr, inout metadata meta)() {
     apply { }
 }
 
 control MyIngress(inout headers hdr,
                   inout metadata meta,
-                  inout standard_metadata_t standard_metadata) {
+                  inout standard_metadata_t standard_metadata)() {
     bool c = true;
     bool c1 = true;
     bool c2 = true;
@@ -222,18 +222,18 @@ control MyIngress(inout headers hdr,
 
 control MyEgress(inout headers hdr,
                  inout metadata meta,
-                 inout standard_metadata_t standard_metadata) {
+                 inout standard_metadata_t standard_metadata)() {
     apply {  }
 }
 
-control MyDeparser(packet_out packet, in headers hdr) {
+control MyDeparser(packet_out packet, in headers hdr)() {
     apply {
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);
     }
 }
 
-control MyComputeChecksum(inout headers  hdr, inout metadata meta) {
+control MyComputeChecksum(inout headers  hdr, inout metadata meta)() {
      apply { }
 }
 
