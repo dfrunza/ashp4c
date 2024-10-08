@@ -10,8 +10,7 @@ Under development:
 
 ## Building the compiler
 
-Requirements are the Linux OS and the `gcc` compiler.
-To build the `ashp4c` executable, change the current directory to the root of the source tree and launch the `build.sh` script.
+To build the `ashp4c` executable on a Linux OS, change the current directory to the root of the source tree and launch the `build.sh` script. The `gcc` C-compiler is required.
 
 ## Tests
 
@@ -28,7 +27,7 @@ For example, this code fragment:
     a(8w15,);
   }
 ```
-gives this error (note the comma in the example above):
+is throwing this error (note the comma):
 
 ```
 $ ./ashp4c testdata/action-param1.p4
