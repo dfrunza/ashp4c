@@ -1,6 +1,6 @@
 ## Project status
 
-The compiler is under development; at this stage it doesn't output any code. 
+The compiler is under development and at this stage it doesn't output any code. 
 
 What has been finished and tested:
   - The lexer and parser. 

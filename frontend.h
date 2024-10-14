@@ -303,6 +303,7 @@ typedef struct Ast {
   enum AstEnum kind;
   int line_no;
   int column_no;
+  struct Ast* first_child;
   struct Ast* right_sibling;
 
   union {
@@ -314,7 +315,6 @@ typedef struct Ast {
     } p4program;
 
     struct {
-      struct Ast* first_child;
     } declarationList;
 
     struct {
@@ -326,7 +326,6 @@ typedef struct Ast {
     } name;
 
     struct {
-      struct Ast* first_child;
     } parameterList;
 
     struct {
@@ -363,7 +362,6 @@ typedef struct Ast {
     } parserTypeDeclaration;
 
     struct {
-      struct Ast* first_child;
     } parserLocalElements;
 
     struct {
@@ -371,7 +369,6 @@ typedef struct Ast {
     } parserLocalElement;
 
     struct {
-      struct Ast* first_child;
     } parserStates;
 
     struct {
@@ -381,7 +378,6 @@ typedef struct Ast {
     } parserState;
 
     struct {
-      struct Ast* first_child;
     } parserStatements;
 
     struct {
@@ -406,7 +402,6 @@ typedef struct Ast {
     } selectExpression;
 
     struct {
-      struct Ast* first_child;
     } selectCaseList;
 
     struct {
@@ -427,7 +422,6 @@ typedef struct Ast {
     } simpleKeysetExpression;
 
     struct {
-      struct Ast* first_child;
     } simpleExpressionList;
 
     /** CONTROL **/
@@ -445,7 +439,6 @@ typedef struct Ast {
     } controlTypeDeclaration;
 
     struct {
-      struct Ast* first_child;
     } controlLocalDeclarations;
 
     struct {
@@ -464,7 +457,6 @@ typedef struct Ast {
     } externTypeDeclaration;
 
     struct {
-      struct Ast* first_child;
     } methodPrototypes;
 
     struct {
@@ -532,7 +524,6 @@ typedef struct Ast {
     } typeArg;
 
     struct {
-      struct Ast* first_child;
     } typeArgumentList;
 
     struct {
@@ -559,7 +550,6 @@ typedef struct Ast {
     } structTypeDeclaration;
 
     struct {
-      struct Ast* first_child;
     } structFieldList;
 
     struct {
@@ -582,11 +572,9 @@ typedef struct Ast {
     } matchKindDeclaration;
 
     struct {
-      struct Ast* first_child;
     } identifierList;
 
     struct {
-      struct Ast* first_child;
     } specifiedIdentifierList;
 
     struct {
@@ -638,7 +626,6 @@ typedef struct Ast {
     } blockStatement;
 
     struct {
-      struct Ast* first_child;
     } statementOrDeclList;
 
     struct {
@@ -647,7 +634,6 @@ typedef struct Ast {
     } switchStatement;
 
     struct {
-      struct Ast* first_child;
     } switchCases;
 
     struct {
@@ -671,7 +657,6 @@ typedef struct Ast {
     } tableDeclaration;
 
     struct {
-      struct Ast* first_child;
     } tablePropertyList;
 
     struct {
@@ -683,7 +668,6 @@ typedef struct Ast {
     } keyProperty;
 
     struct {
-      struct Ast* first_child;
     } keyElementList;
 
     struct {
@@ -696,7 +680,6 @@ typedef struct Ast {
     } actionsProperty;
 
     struct {
-      struct Ast* first_child;
     } actionList;
 
     struct {
@@ -709,7 +692,6 @@ typedef struct Ast {
     } entriesProperty;
 
     struct {
-      struct Ast* first_child;
     } entriesList;
 
     struct {
@@ -746,7 +728,6 @@ typedef struct Ast {
     } functionDeclaration;
 
     struct {
-      struct Ast* first_child;
     } argumentList;
 
     struct {
@@ -754,7 +735,6 @@ typedef struct Ast {
     } argument;
 
     struct {
-      struct Ast* first_child;
     } expressionList;
 
     struct {

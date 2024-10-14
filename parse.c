@@ -731,17 +731,18 @@ clone_ast(Arena* storage, Ast* original)
   clone->line_no = original->line_no;
   clone->column_no = original->column_no;
   clone->right_sibling = clone_ast(storage, original->right_sibling);
+
   /** PROGRAM **/
   if (original->kind == AST_p4program) {
     clone->p4program.decl_list = clone_ast(storage, original->p4program.decl_list);
   } else if (original->kind == AST_declarationList) {
-    clone->declarationList.first_child = clone_ast(storage, original->declarationList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_declaration) {
     clone->declaration.decl = clone_ast(storage, original->declaration.decl);
   } else if (original->kind == AST_name) {
     clone->name.strname = original->name.strname;
   } else if (original->kind == AST_parameterList) {
-    clone->parameterList.first_child = clone_ast(storage, original->parameterList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_parameter) {
     clone->parameter.direction = original->parameter.direction;
     clone->parameter.name = clone_ast(storage, original->parameter.name);
@@ -766,17 +767,17 @@ clone_ast(Arena* storage, Ast* original)
     clone->parserTypeDeclaration.params = clone_ast(storage, original->parserTypeDeclaration.params);
     clone->parserTypeDeclaration.method_protos = clone_ast(storage, original->parserTypeDeclaration.method_protos);
   } else if (original->kind == AST_parserLocalElements) {
-    clone->parserLocalElements.first_child = clone_ast(storage, original->parserLocalElements.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_parserLocalElement) {
     clone->parserLocalElement.element = clone_ast(storage, original->parserLocalElement.element);
   } else if (original->kind == AST_parserStates) {
-    clone->parserStates.first_child = clone_ast(storage, original->parserStates.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_parserState) {
     clone->parserState.name = clone_ast(storage, original->parserState.name);
     clone->parserState.stmt_list = clone_ast(storage, original->parserState.stmt_list);
     clone->parserState.transition_stmt = clone_ast(storage, original->parserState.transition_stmt);
   } else if (original->kind == AST_parserStatements) {
-    clone->parserStatements.first_child = clone_ast(storage, original->parserStatements.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_parserStatement) {
     clone->parserStatement.stmt = clone_ast(storage, original->parserStatement.stmt);
   } else if (original->kind == AST_parserBlockStatement) {
@@ -789,7 +790,7 @@ clone_ast(Arena* storage, Ast* original)
     clone->selectExpression.expr_list = clone_ast(storage, original->selectExpression.expr_list);
     clone->selectExpression.case_list = clone_ast(storage, original->selectExpression.case_list);
   } else if (original->kind == AST_selectCaseList) {
-    clone->selectCaseList.first_child = clone_ast(storage, original->selectCaseList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_selectCase) {
     clone->selectCase.keyset_expr = clone_ast(storage, original->selectCase.keyset_expr);
     clone->selectCase.name = clone_ast(storage, original->selectCase.name);
@@ -800,7 +801,7 @@ clone_ast(Arena* storage, Ast* original)
   } else if (original->kind == AST_simpleKeysetExpression) {
     clone->simpleKeysetExpression.expr = clone_ast(storage, original->simpleKeysetExpression.expr);
   } else if (original->kind == AST_simpleExpressionList) {
-    clone->simpleExpressionList.first_child = clone_ast(storage, original->simpleExpressionList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_typeRef) {
     clone->typeRef.type = clone_ast(storage, original->typeRef.type);
   } else if (original->kind == AST_tupleType) {
@@ -816,7 +817,7 @@ clone_ast(Arena* storage, Ast* original)
     clone->controlTypeDeclaration.name = clone_ast(storage, original->controlTypeDeclaration.name);
     clone->controlTypeDeclaration.params = clone_ast(storage, original->controlTypeDeclaration.params);
   } else if (original->kind == AST_controlLocalDeclarations) {
-    clone->controlLocalDeclarations.first_child = clone_ast(storage, original->controlLocalDeclarations.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_controlLocalDeclaration) {
     clone->controlLocalDeclaration.decl = clone_ast(storage, original->controlLocalDeclaration.decl);
   }
@@ -827,7 +828,7 @@ clone_ast(Arena* storage, Ast* original)
     clone->externTypeDeclaration.name = clone_ast(storage, original->externTypeDeclaration.name);
     clone->externTypeDeclaration.method_protos = clone_ast(storage, original->externTypeDeclaration.method_protos);
   } else if (original->kind == AST_methodPrototypes) {
-    clone->methodPrototypes.first_child = clone_ast(storage, original->methodPrototypes.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_functionPrototype) {
     clone->functionPrototype.return_type = clone_ast(storage, original->functionPrototype.return_type);
     clone->functionPrototype.name = clone_ast(storage, original->functionPrototype.name);
@@ -865,7 +866,7 @@ clone_ast(Arena* storage, Ast* original)
   } else if (original->kind == AST_typeArg) {
     clone->typeArg.arg = clone_ast(storage, original->typeArg.arg);
   } else if (original->kind == AST_typeArgumentList) {
-    clone->typeArgumentList.first_child = clone_ast(storage, original->typeArgumentList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_typeDeclaration) {
     clone->typeDeclaration.decl = clone_ast(storage, original->typeDeclaration.decl);
   } else if (original->kind == AST_derivedTypeDeclaration) {
@@ -880,7 +881,7 @@ clone_ast(Arena* storage, Ast* original)
     clone->structTypeDeclaration.name = clone_ast(storage, original->structTypeDeclaration.name);
     clone->structTypeDeclaration.fields = clone_ast(storage, original->structTypeDeclaration.fields);
   } else if (original->kind == AST_structFieldList) {
-    clone->structFieldList.first_child = clone_ast(storage, original->structFieldList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_structField) {
     clone->structField.type = clone_ast(storage, original->structField.type);
     clone->structField.name = clone_ast(storage, original->structField.name);
@@ -893,9 +894,9 @@ clone_ast(Arena* storage, Ast* original)
   } else if (original->kind == AST_matchKindDeclaration) {
     clone->matchKindDeclaration.fields = clone_ast(storage, original->matchKindDeclaration.fields);
   } else if (original->kind == AST_matchKindDeclaration) {
-    clone->identifierList.first_child = clone_ast(storage, original->identifierList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_specifiedIdentifierList) {
-    clone->specifiedIdentifierList.first_child = clone_ast(storage, original->specifiedIdentifierList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_specifiedIdentifier) {
     clone->specifiedIdentifier.name = clone_ast(storage, original->specifiedIdentifier.name);
     clone->specifiedIdentifier.init_expr = clone_ast(storage, original->specifiedIdentifier.init_expr);
@@ -927,12 +928,12 @@ clone_ast(Arena* storage, Ast* original)
   } else if (original->kind == AST_statementOrDeclaration) {
     clone->statementOrDeclaration.stmt = clone_ast(storage, original->statementOrDeclaration.stmt);
   } else if (original->kind == AST_statementOrDeclList) {
-    clone->statementOrDeclList.first_child = clone_ast(storage, original->statementOrDeclList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_switchStatement) {
     clone->switchStatement.expr = clone_ast(storage, original->switchStatement.expr);
     clone->switchStatement.switch_cases = clone_ast(storage, original->switchStatement.switch_cases);
   } else if (original->kind == AST_switchCases) {
-    clone->switchCases.first_child = clone_ast(storage, original->switchCases.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_switchCase) {
     clone->switchCase.label = clone_ast(storage, original->switchCase.label);
     clone->switchCase.stmt = clone_ast(storage, original->switchCase.stmt);
@@ -944,27 +945,27 @@ clone_ast(Arena* storage, Ast* original)
     clone->tableDeclaration.name = clone_ast(storage, original->tableDeclaration.name);
     clone->tableDeclaration.prop_list = clone_ast(storage, original->tableDeclaration.prop_list);
   } else if (original->kind == AST_tablePropertyList) {
-    clone->tablePropertyList.first_child = clone_ast(storage, original->tablePropertyList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_tableProperty) {
     clone->tableProperty.prop = clone_ast(storage, original->tableProperty.prop);
   } else if (original->kind == AST_keyProperty) {
     clone->keyProperty.keyelem_list = clone_ast(storage, original->keyProperty.keyelem_list);
   } else if (original->kind == AST_keyElementList) {
-    clone->keyElementList.first_child = clone_ast(storage, original->keyElementList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_keyElement) {
     clone->keyElement.expr = clone_ast(storage, original->keyElement.expr);
     clone->keyElement.match = clone_ast(storage, original->keyElement.match);
   } else if (original->kind == AST_actionsProperty) {
     clone->actionsProperty.action_list = clone_ast(storage, original->actionsProperty.action_list);
   } else if (original->kind == AST_actionList) {
-    clone->actionList.first_child = clone_ast(storage, original->actionList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_actionRef) {
     clone->actionRef.name = clone_ast(storage, original->actionRef.name);
     clone->actionRef.args = clone_ast(storage, original->actionRef.args);
   } else if (original->kind == AST_entriesProperty) {
     clone->entriesProperty.entries_list = clone_ast(storage, original->entriesProperty.entries_list);
   } else if (original->kind == AST_entriesList) {
-    clone->entriesList.first_child = clone_ast(storage, original->entriesList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_entry) {
     clone->entry.keyset = clone_ast(storage, original->entry.keyset);
     clone->entry.action = clone_ast(storage, original->entry.action);
@@ -989,11 +990,11 @@ clone_ast(Arena* storage, Ast* original)
     clone->functionDeclaration.proto = clone_ast(storage, original->functionDeclaration.proto);
     clone->functionDeclaration.stmt = clone_ast(storage, original->functionDeclaration.stmt);
   } else if (original->kind == AST_argumentList) {
-    clone->argumentList.first_child = clone_ast(storage, original->argumentList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_argument) {
     clone->argument.arg = clone_ast(storage, original->argument.arg);
   } else if (original->kind == AST_expressionList) {
-    clone->expressionList.first_child = clone_ast(storage, original->expressionList.first_child);
+    clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_expression) {
     clone->expression.expr = clone_ast(storage, original->expression.expr);
   } else if (original->kind == AST_lvalueExpression) {
@@ -1096,7 +1097,7 @@ parse_declarationList()
   decls->column_no = token->column_no;
   if (token_is_declaration(token)) {
     ast = parse_declaration();
-    decls->declarationList.first_child = ast;
+    decls->first_child = ast;
     while (token_is_declaration(token) || token->klass == TK_SEMICOLON) {
       if (token_is_declaration(token)) {
         ast->right_sibling = parse_declaration();
@@ -1227,7 +1228,7 @@ parse_parameterList()
   params->column_no = token->column_no;
   if (token_is_parameter(token)) {
     ast = parse_parameter();
-    params->parameterList.first_child = ast;
+    params->first_child = ast;
     while (token->klass == TK_COMMA) {
       next_token();
       ast->right_sibling = parse_parameter();
@@ -1416,7 +1417,7 @@ parse_parserLocalElements()
   elems->column_no = token->column_no;
   if (token_is_parserLocalElement(token)) {
     ast = parse_parserLocalElement();
-    elems->parserLocalElements.first_child = ast;
+    elems->first_child = ast;
     while (token_is_parserLocalElement(token)) {
       ast->right_sibling = parse_parserLocalElement();
       ast = ast->right_sibling;
@@ -1504,7 +1505,7 @@ parse_parserStates()
   states->column_no = token->column_no;
   if (token->klass == TK_STATE) {
     ast = parse_parserState();
-    states->parserStates.first_child = ast;
+    states->first_child = ast;
     while (token->klass == TK_STATE) {
       ast->right_sibling = parse_parserState();
       ast = ast->right_sibling;
@@ -1553,7 +1554,7 @@ parse_parserStatements()
   stmts->column_no = token->column_no;
   if (token_is_parserStatement(token)) {
     ast = parse_parserStatement();
-    stmts->parserStatements.first_child = ast;
+    stmts->first_child = ast;
     while (token_is_parserStatement(token)) {
       ast->right_sibling = parse_parserStatement();
       ast = ast->right_sibling;
@@ -1721,7 +1722,7 @@ parse_selectCaseList()
   cases->column_no = token->column_no;
   if (token_is_selectCase(token)) {
     ast = parse_selectCase();
-    cases->selectCaseList.first_child = ast;
+    cases->first_child = ast;
     while (token_is_selectCase(token)) {
       ast->right_sibling = parse_selectCase();
       ast = ast->right_sibling;
@@ -1817,7 +1818,7 @@ parse_simpleExpressionList()
   exprs->column_no = token->column_no;
   if (token_is_expression(token)) {
     ast = parse_simpleKeysetExpression();
-    exprs->simpleExpressionList.first_child = ast;
+    exprs->first_child = ast;
     while (token->klass == TK_COMMA) {
       next_token();
       ast->right_sibling = parse_simpleKeysetExpression();
@@ -1978,7 +1979,7 @@ parse_controlLocalDeclarations()
   decls->column_no = token->column_no;
   if (token_is_controlLocalDeclaration(token)) {
     ast = parse_controlLocalDeclaration();
-    decls->controlLocalDeclarations.first_child = ast;
+    decls->first_child = ast;
     while (token_is_controlLocalDeclaration(token)) {
       ast->right_sibling = parse_controlLocalDeclaration();
       ast = ast->right_sibling;
@@ -2056,7 +2057,7 @@ parse_methodPrototypes()
   protos->column_no = token->column_no;
   if (token_is_methodPrototype(token)) {
     ast = parse_methodPrototype();
-    protos->methodPrototypes.first_child = ast;
+    protos->first_child = ast;
     while (token_is_methodPrototype(token)) {
       ast->right_sibling = parse_methodPrototype();
       ast = ast->right_sibling;
@@ -2500,7 +2501,7 @@ parse_typeArgumentList()
   args->column_no = token->column_no;
   if (token_is_typeArg(token)) {
     ast = parse_typeArg();
-    args->typeArgumentList.first_child = ast;
+    args->first_child = ast;
     while (token->klass == TK_COMMA) {
       next_token();
       ast->right_sibling = parse_typeArg();
@@ -2688,7 +2689,7 @@ parse_structFieldList()
   fields->column_no = token->column_no;
   if (token_is_structField(token)) {
     ast = parse_structField();
-    fields->structFieldList.first_child = ast;
+    fields->first_child = ast;
     while (token_is_structField(token)) {
       ast->right_sibling = parse_structField();
       ast = ast->right_sibling;
@@ -2847,7 +2848,7 @@ parse_identifierList()
   ids->column_no = token->column_no;
   if (token_is_name(token)) {
     ast = parse_name();
-    ids->identifierList.first_child = ast;
+    ids->first_child = ast;
     while (token->klass == TK_COMMA) {
       next_token();
       ast->right_sibling = parse_name();
@@ -2868,7 +2869,7 @@ parse_specifiedIdentifierList()
   ids->column_no = token->column_no;
   if (token_is_specifiedIdentifier(token)) {
     ast = parse_specifiedIdentifier();
-    ids->specifiedIdentifierList.first_child = ast;
+    ids->first_child = ast;
     while (token->klass == TK_COMMA) {
       next_token();
       ast->right_sibling = parse_specifiedIdentifier();
@@ -3193,7 +3194,7 @@ parse_statementOrDeclList()
   stmts->column_no = token->column_no;
   if (token_is_statementOrDeclaration(token)) {
     ast = parse_statementOrDeclaration();
-    stmts->statementOrDeclList.first_child = ast;
+    stmts->first_child = ast;
     while (token_is_statementOrDeclaration(token)) {
       ast->right_sibling = parse_statementOrDeclaration();
       ast = ast->right_sibling;
@@ -3249,7 +3250,7 @@ parse_switchCases()
   cases->column_no = token->column_no;
   if (token_is_switchLabel(token)) {
     ast = parse_switchCase();
-    cases->switchCases.first_child = ast;
+    cases->first_child = ast;
     while (token_is_switchLabel(token)) {
       ast->right_sibling = parse_switchCase();
       ast = ast->right_sibling;
@@ -3390,7 +3391,7 @@ parse_tablePropertyList()
   props->column_no = token->column_no;
   if (token_is_tableProperty(token)) {
     ast = parse_tableProperty();
-    props->tablePropertyList.first_child = ast;
+    props->first_child = ast;
     while (token_is_tableProperty(token)) {
       ast->right_sibling = parse_tableProperty();
       ast = ast->right_sibling;
@@ -3516,7 +3517,7 @@ parse_keyElementList()
   elems->column_no = token->column_no;
   if (token_is_expression(token)) {
     ast = parse_keyElement();
-    elems->keyElementList.first_child = ast;
+    elems->first_child = ast;
     while (token_is_expression(token)) {
       ast->right_sibling = parse_keyElement();
       ast = ast->right_sibling;
@@ -3563,7 +3564,7 @@ parse_actionList()
   actions->column_no = token->column_no;
   if (token_is_actionRef(token)) {
     ast = parse_actionRef();
-    actions->actionList.first_child = ast;
+    actions->first_child = ast;
     if (token->klass == TK_SEMICOLON) {
       next_token();
     } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
@@ -3622,7 +3623,7 @@ parse_entriesList()
   entries->column_no = token->column_no;
   if (token_is_keysetExpression(token)) {
     ast = parse_entry();
-    entries->entriesList.first_child = ast;
+    entries->first_child = ast;
     while (token_is_keysetExpression(token)) {
       ast->right_sibling = parse_entry();
       ast = ast->right_sibling;
@@ -3766,7 +3767,7 @@ parse_argumentList()
   args->column_no = token->column_no;
   if (token_is_argument(token)) {
     ast = parse_argument();
-    args->argumentList.first_child = ast;
+    args->first_child = ast;
     while (token->klass == TK_COMMA) {
       next_token();
       ast->right_sibling = parse_argument();
@@ -3813,7 +3814,7 @@ parse_expressionList()
   exprs->column_no = token->column_no;
   if (token_is_expression(token)) {
     Ast* ast = parse_expression(1);
-    exprs->expressionList.first_child = ast;
+    exprs->first_child = ast;
     while (token->klass == TK_COMMA) {
       next_token();
       ast->right_sibling = parse_expression(1);

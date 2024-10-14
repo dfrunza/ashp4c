@@ -562,7 +562,7 @@ visit_declarationList(Ast* decl_list)
   assert(decl_list->kind == AST_declarationList);
   Ast* ast;
 
-  for (ast = decl_list->declarationList.first_child;
+  for (ast = decl_list->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_declaration(ast);
   }
@@ -625,7 +625,7 @@ visit_parameterList(Ast* params)
   params_ty = array_append(storage, type_array, sizeof(Type));
   params_ty->ty_former = TYPE_PRODUCT;
   params_ty->ast = params;
-  for (ast = params->parameterList.first_child;
+  for (ast = params->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parameter(ast);
     params_ty->product.count += 1;
@@ -634,7 +634,7 @@ visit_parameterList(Ast* params)
     params_ty->product.members = arena_malloc(storage, params_ty->product.count*sizeof(Type*));
   }
   i = 0;
-  for (ast = params->parameterList.first_child;
+  for (ast = params->first_child;
        ast != 0; ast = ast->right_sibling) {
     params_ty->product.members[i] = map_lookup(type_env, ast, 0);
     i += 1;
@@ -742,7 +742,7 @@ visit_parserLocalElements(Ast* local_elements)
   assert(local_elements->kind == AST_parserLocalElements);
   Ast* ast;
 
-  for (ast = local_elements->parserLocalElements.first_child;
+  for (ast = local_elements->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parserLocalElement(ast);
   }
@@ -765,7 +765,7 @@ visit_parserStates(Ast* states)
   assert(states->kind == AST_parserStates);
   Ast* ast;
 
-  for (ast = states->parserStates.first_child;
+  for (ast = states->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parserState(ast);
   }
@@ -797,7 +797,7 @@ visit_parserStatements(Ast* stmts)
   assert(stmts->kind == AST_parserStatements);
   Ast* ast;
 
-  for (ast = stmts->parserStatements.first_child;
+  for (ast = stmts->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_parserStatement(ast);
   }
@@ -861,7 +861,7 @@ visit_selectCaseList(Ast* case_list)
   assert(case_list->kind == AST_selectCaseList);
   Ast* ast;
 
-  for (ast = case_list->selectCaseList.first_child;
+  for (ast = case_list->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_selectCase(ast);
   }
@@ -911,7 +911,7 @@ visit_simpleExpressionList(Ast* expr_list)
   assert(expr_list->kind == AST_simpleExpressionList);
   Ast* ast;
 
-  for (ast = expr_list->simpleExpressionList.first_child;
+  for (ast = expr_list->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_simpleKeysetExpression(ast);
   }
@@ -961,7 +961,7 @@ visit_controlLocalDeclarations(Ast* local_decls)
   assert(local_decls->kind == AST_controlLocalDeclarations);
   Ast* ast;
 
-  for (ast = local_decls->controlLocalDeclarations.first_child;
+  for (ast = local_decls->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_controlLocalDeclaration(ast);
   }
@@ -1044,7 +1044,7 @@ visit_methodPrototypes(Ast* protos, Type* ctor_ty, char* ctor_strname)
   methods_ty = array_append(storage, type_array, sizeof(Type));
   methods_ty->ty_former = TYPE_PRODUCT;
   methods_ty->ast = protos;
-  for (ast = protos->methodPrototypes.first_child;
+  for (ast = protos->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_functionPrototype(ast, ctor_ty, ctor_strname);
     methods_ty->product.count += 1;
@@ -1053,7 +1053,7 @@ visit_methodPrototypes(Ast* protos, Type* ctor_ty, char* ctor_strname)
     methods_ty->product.members = arena_malloc(storage, methods_ty->product.count*sizeof(Type*));
   }
   i = 0;
-  for (ast = protos->methodPrototypes.first_child;
+  for (ast = protos->first_child;
        ast != 0; ast = ast->right_sibling) {
     methods_ty->product.members[i] = map_lookup(type_env, ast, 0);
     i += 1;
@@ -1272,7 +1272,7 @@ visit_typeArgumentList(Ast* args)
   args_ty = array_append(storage, type_array, sizeof(Type));
   args_ty->ty_former = TYPE_PRODUCT;
   args_ty->ast = args;
-  for (ast = args->typeArgumentList.first_child;
+  for (ast = args->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_typeArg(ast);
     args_ty->product.count += 1;
@@ -1281,7 +1281,7 @@ visit_typeArgumentList(Ast* args)
     args_ty->product.members = arena_malloc(storage, args_ty->product.count*sizeof(Type*));
   }
   i = 0;
-  for (ast = args->typeArgumentList.first_child;
+  for (ast = args->first_child;
        ast != 0; ast = ast->right_sibling) {
     args_ty->product.members[i] = map_lookup(type_env, ast, 0);
     i += 1;
@@ -1401,7 +1401,7 @@ visit_structFieldList(Ast* fields)
   fields_ty = array_append(storage, type_array, sizeof(Type));
   fields_ty->ty_former = TYPE_PRODUCT;
   fields_ty->ast = fields;
-  for (ast = fields->structFieldList.first_child;
+  for (ast = fields->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_structField(ast);
     fields_ty->product.count += 1;
@@ -1410,7 +1410,7 @@ visit_structFieldList(Ast* fields)
     fields_ty->product.members = arena_malloc(storage, fields_ty->product.count*sizeof(Type*));
   }
   i = 0;
-  for (ast = fields->structFieldList.first_child;
+  for (ast = fields->first_child;
        ast != 0; ast = ast->right_sibling) {
     fields_ty->product.members[i] = map_lookup(type_env, ast, 0);
     i += 1;
@@ -1501,7 +1501,7 @@ visit_identifierList(Ast* ident_list, Type* enum_ty, Type* idents_ty, int* i)
   int j;
 
   j = *i;
-  for (name = ident_list->identifierList.first_child;
+  for (name = ident_list->first_child;
        name != 0; name = name->right_sibling) {
     name_ty = array_append(storage, type_array, sizeof(Type));
     name_ty->ty_former = TYPE_FIELD;
@@ -1528,7 +1528,7 @@ visit_specifiedIdentifierList(Ast* ident_list, Type* enum_ty)
   idents_ty = array_append(storage, type_array, sizeof(Type));
   idents_ty->ty_former = TYPE_PRODUCT;
   idents_ty->ast = ident_list;
-  for (ast = ident_list->specifiedIdentifierList.first_child;
+  for (ast = ident_list->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_specifiedIdentifier(ast, enum_ty);
     idents_ty->product.count += 1;
@@ -1537,7 +1537,7 @@ visit_specifiedIdentifierList(Ast* ident_list, Type* enum_ty)
     idents_ty->product.members = arena_malloc(storage, idents_ty->product.count*sizeof(Type*));
   }
   i = 0;
-  for (ast = ident_list->specifiedIdentifierList.first_child;
+  for (ast = ident_list->first_child;
        ast != 0; ast = ast->right_sibling) {
     idents_ty->product.members[i] = map_lookup(type_env, ast, 0);
     i += 1;
@@ -1689,7 +1689,7 @@ visit_statementOrDeclList(Ast* stmt_list)
   assert(stmt_list->kind == AST_statementOrDeclList);
   Ast* ast;
 
-  for (ast = stmt_list->statementOrDeclList.first_child;
+  for (ast = stmt_list->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_statementOrDeclaration(ast);
   }
@@ -1709,7 +1709,7 @@ visit_switchCases(Ast* switch_cases)
   assert(switch_cases->kind == AST_switchCases);
   Ast* ast;
 
-  for (ast = switch_cases->switchCases.first_child;
+  for (ast = switch_cases->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_switchCase(ast);
   }
@@ -1776,7 +1776,7 @@ visit_tablePropertyList(Ast* prop_list)
   assert(prop_list->kind == AST_tablePropertyList);
   Ast* ast;
 
-  for (ast = prop_list->tablePropertyList.first_child;
+  for (ast = prop_list->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_tableProperty(ast);
   }
@@ -1810,7 +1810,7 @@ visit_keyElementList(Ast* element_list)
   assert(element_list->kind == AST_keyElementList);
   Ast* ast;
 
-  for (ast = element_list->keyElementList.first_child;
+  for (ast = element_list->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_keyElement(ast);
   }
@@ -1836,7 +1836,7 @@ visit_actionList(Ast* action_list)
   assert(action_list->kind == AST_actionList);
   Ast* ast;
 
-  for (ast = action_list->actionList.first_child;
+  for (ast = action_list->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_actionRef(ast);
   }
@@ -1864,7 +1864,7 @@ visit_entriesList(Ast* entries_list)
   assert(entries_list->kind == AST_entriesList);
   Ast* ast;
 
-  for (ast = entries_list->entriesList.first_child;
+  for (ast = entries_list->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_entry(ast);
   }
@@ -1942,7 +1942,7 @@ visit_argumentList(Ast* args)
   assert(args->kind == AST_argumentList);
   Ast* ast;
 
-  for (ast = args->argumentList.first_child;
+  for (ast = args->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_argument(ast);
   }
@@ -1963,7 +1963,7 @@ visit_expressionList(Ast* expr_list)
   assert(expr_list->kind == AST_expressionList);
   Ast* ast;
 
-  for (ast = expr_list->expressionList.first_child;
+  for (ast = expr_list->first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_expression(ast);
   }
