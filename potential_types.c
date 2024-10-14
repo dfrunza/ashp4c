@@ -1593,7 +1593,7 @@ visit_memberSelector(Ast* selector, PotentialType* potential_args)
     } else if (lhs_ty->ty_former == TYPE_TABLE) {
       /* TODO */
     } else if (lhs_ty->ty_former == TYPE_CONTROL) {
-      /* TODO */
+      assert(0);
     } else if (lhs_ty->ty_former == TYPE_PARSER) {
       collect_matching_member(storage, tau, lhs_ty->parser.methods, name->name.strname, potential_args);
     }
