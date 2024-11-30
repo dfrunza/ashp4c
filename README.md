@@ -14,11 +14,11 @@ To build the `ashp4c` executable on a Linux OS, change the current directory to 
 
 ## Tests
 
-To run all the tests, launch this script:
+To run all the tests, launch the script:
 
 ```$ ./run_tests.sh```
 
-To test the parsing algorithm, edit a P4 source file and artificially introduce an error somewhere. The compiler then should be able to detect and report it.
+To test the parsing algorithm, edit a P4 source file and introduce an error somewhere. The compiler then should be able to detect and report it.
 
 For example, this code fragment:
 
