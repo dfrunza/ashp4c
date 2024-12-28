@@ -655,6 +655,7 @@ typedef struct Ast {
     struct {
       struct Ast* name;
       struct Ast* prop_list;
+      struct Ast* method_protos;
     } tableDeclaration;
 
     struct {
@@ -874,6 +875,10 @@ typedef struct Type {
       struct Type* ctor_params;
       struct Type* methods;
     } parser, control;
+
+    struct {
+      struct Type* methods;
+    } table;
 
     struct {
       struct Type* params;

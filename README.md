@@ -18,16 +18,16 @@ To run all the tests, launch the script:
 
 ```$ ./run_tests.sh```
 
-To test the parsing algorithm, edit a P4 source file and introduce an error somewhere. The compiler then should be able to detect and report it.
+To test the parsing algorithm, edit a P4 source file and introduce an error somewhere. The compiler should be able to detect and report it.
 
-For example, this code fragment:
+For example in this code fragment:
 
 ```
   apply {
     a(8w15,);
   }
 ```
-is throwing this error (note the comma):
+the error is caused by the trailing comma:
 
 ```
 $ ./ashp4c testdata/action-param1.p4

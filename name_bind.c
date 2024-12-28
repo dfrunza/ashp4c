@@ -1414,6 +1414,7 @@ visit_tableDeclaration(Ast* table_decl)
   prev_scope = current_scope;
   current_scope = map_lookup(scope_map, table_decl, 0);
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
+  visit_methodPrototypes(table_decl->tableDeclaration.method_protos, name_decl);
   current_scope = prev_scope;
 }
 

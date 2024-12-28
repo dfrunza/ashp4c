@@ -34,6 +34,6 @@ control p()()
     apply {
         x.f();
         x.f1(32s1);
-        b(32w0);
+        b((bit<32>)32w0);
     }
 }

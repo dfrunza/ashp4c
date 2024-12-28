@@ -1760,7 +1760,7 @@ visit_tableDeclaration(Ast* table_decl)
   assert(table_decl->kind == AST_tableDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
-  Type* table_ty;
+  Type* table_ty, *methods_ty;
 
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
   name = table_decl->tableDeclaration.name;
@@ -1769,6 +1769,9 @@ visit_tableDeclaration(Ast* table_decl)
   table_ty->strname = name->name.strname;
   table_ty->ast = table_decl;
   map_insert(storage, type_env, table_decl, table_ty, 0);
+  visit_methodPrototypes(table_decl->tableDeclaration.method_protos, 0, 0);
+  methods_ty = map_lookup(type_env, table_decl->tableDeclaration.method_protos, 0);
+  table_ty->table.methods = methods_ty;
   name_decl = map_lookup(decl_map, table_decl, 0);
   name_decl->type = table_ty;
 }

@@ -1180,6 +1180,7 @@ visit_tableDeclaration(Ast* table_decl)
   m = map_insert(storage, scope_map, table_decl, scope, 0);
   assert(m);
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
+  visit_methodPrototypes(table_decl->tableDeclaration.method_protos);
   current_scope = prev_scope;
 }
 

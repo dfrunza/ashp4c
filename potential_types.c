@@ -1229,6 +1229,7 @@ visit_tableDeclaration(Ast* table_decl)
 {
   assert(table_decl->kind == AST_tableDeclaration);
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
+  visit_methodPrototypes(table_decl->tableDeclaration.method_protos);
 }
 
 static void
@@ -1592,7 +1593,7 @@ visit_memberSelector(Ast* selector, PotentialType* potential_args)
     } else if (lhs_ty->ty_former == TYPE_HEADER_STACK) {
       /* TODO */
     } else if (lhs_ty->ty_former == TYPE_TABLE) {
-      /* TODO */
+      collect_matching_member(storage, tau, lhs_ty->table.methods, name->name.strname, potential_args);
     } else if (lhs_ty->ty_former == TYPE_CONTROL) {
       collect_matching_member(storage, tau, lhs_ty->control.methods, name->name.strname, potential_args);
     } else if (lhs_ty->ty_former == TYPE_PARSER) {

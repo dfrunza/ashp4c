@@ -3358,7 +3358,7 @@ parse_statementOrDeclaration()
 static Ast*
 parse_tableDeclaration()
 {
-  Ast* table;
+  Ast* table, *method_protos;
 
   if (token->klass == TK_TABLE) {
     next_token();
@@ -3367,6 +3367,11 @@ parse_tableDeclaration()
     table->line_no = token->line_no;
     table->column_no = token->column_no;
     table->tableDeclaration.name = parse_name();
+    method_protos = arena_malloc(storage, sizeof(Ast));
+    method_protos->kind = AST_methodPrototypes;
+    method_protos->line_no = table->line_no;
+    method_protos->column_no = table->column_no;
+    table->tableDeclaration.method_protos = method_protos;
     if (token->klass == TK_BRACE_OPEN) {
       next_token();
       if (token_is_tableProperty(token)) {
