@@ -476,8 +476,27 @@ static void
 visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_controlTypeDeclaration);
-  visit_name(type_decl->controlTypeDeclaration.name);
-  visit_parameterList(type_decl->controlTypeDeclaration.params);
+  Ast* type_ref, *return_type, *method, *name;
+  Ast* method_protos;
+
+  return_type = arena_malloc(storage, sizeof(Ast));
+  return_type->kind = AST_baseTypeVoid;
+  return_type->name.strname = "void";
+  type_ref = arena_malloc(storage, sizeof(Ast));
+  type_ref->kind = AST_typeRef;
+  type_ref->typeRef.type = return_type;
+  method = arena_malloc(storage, sizeof(Ast));
+  method->kind = AST_functionPrototype;
+  method->line_no = type_decl->line_no;
+  method->column_no = type_decl->column_no;
+  method->functionPrototype.return_type = type_ref;
+  method->functionPrototype.params = clone_ast(storage, type_decl->controlTypeDeclaration.params);
+  name = arena_malloc(storage, sizeof(Ast));
+  name->kind = AST_name;
+  name->name.strname = "apply";
+  method->functionPrototype.name = name;
+  method_protos = type_decl->controlTypeDeclaration.method_protos;
+  method_protos->first_child = method;
 }
 
 static void

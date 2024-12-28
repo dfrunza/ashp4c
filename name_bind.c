@@ -724,6 +724,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
   prev_scope = current_scope;
   current_scope = map_lookup(scope_map, type_decl, 0);
   visit_parameterList(type_decl->controlTypeDeclaration.params);
+  visit_methodPrototypes(type_decl->controlTypeDeclaration.method_protos, name_decl);
   current_scope = prev_scope;
 }
 

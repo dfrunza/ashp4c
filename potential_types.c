@@ -655,6 +655,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AST_controlTypeDeclaration);
   visit_parameterList(type_decl->controlTypeDeclaration.params);
+  visit_methodPrototypes(type_decl->controlTypeDeclaration.method_protos);
 }
 
 static void
@@ -1593,7 +1594,7 @@ visit_memberSelector(Ast* selector, PotentialType* potential_args)
     } else if (lhs_ty->ty_former == TYPE_TABLE) {
       /* TODO */
     } else if (lhs_ty->ty_former == TYPE_CONTROL) {
-      assert(0);
+      collect_matching_member(storage, tau, lhs_ty->control.methods, name->name.strname, potential_args);
     } else if (lhs_ty->ty_former == TYPE_PARSER) {
       collect_matching_member(storage, tau, lhs_ty->parser.methods, name->name.strname, potential_args);
     }

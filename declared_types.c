@@ -941,7 +941,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AST_controlTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
-  Type* control_ty;
+  Type* control_ty, *methods_ty;
 
   visit_parameterList(type_decl->controlTypeDeclaration.params);
   name = type_decl->controlTypeDeclaration.name;
@@ -951,6 +951,9 @@ visit_controlTypeDeclaration(Ast* type_decl)
   control_ty->ast = type_decl;
   control_ty->control.params = map_lookup(type_env, type_decl->packageTypeDeclaration.params, 0);
   map_insert(storage, type_env, type_decl, control_ty, 0);
+  visit_methodPrototypes(type_decl->controlTypeDeclaration.method_protos, 0, 0);
+  methods_ty = map_lookup(type_env, type_decl->controlTypeDeclaration.method_protos, 0);
+  control_ty->control.methods = methods_ty;
   name_decl = map_lookup(decl_map, type_decl, 0);
   name_decl->type = control_ty;
 }

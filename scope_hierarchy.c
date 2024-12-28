@@ -559,6 +559,7 @@ visit_controlTypeDeclaration(Ast* type_decl)
   m = map_insert(storage, scope_map, type_decl, scope, 0);
   assert(m);
   visit_parameterList(type_decl->controlTypeDeclaration.params);
+  visit_methodPrototypes(type_decl->controlTypeDeclaration.method_protos);
   current_scope = prev_scope;
 }
 

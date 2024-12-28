@@ -436,6 +436,7 @@ typedef struct Ast {
     struct {
       struct Ast* name;
       struct Ast* params;
+      struct Ast* method_protos;
     } controlTypeDeclaration;
 
     struct {

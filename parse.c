@@ -816,6 +816,7 @@ clone_ast(Arena* storage, Ast* original)
   } else if (original->kind == AST_controlTypeDeclaration) {
     clone->controlTypeDeclaration.name = clone_ast(storage, original->controlTypeDeclaration.name);
     clone->controlTypeDeclaration.params = clone_ast(storage, original->controlTypeDeclaration.params);
+    clone->controlTypeDeclaration.method_protos = clone_ast(storage, original->controlTypeDeclaration.params);
   } else if (original->kind == AST_controlLocalDeclarations) {
     clone->first_child = clone_ast(storage, original->first_child);
   } else if (original->kind == AST_controlLocalDeclaration) {
@@ -1902,7 +1903,7 @@ parse_controlDeclaration(Ast* control_proto)
 static Ast*
 parse_controlTypeDeclaration()
 {
-  Ast* control_proto, *name;
+  Ast* control_proto, *name, *method_protos;
 
   if (token->klass == TK_CONTROL) {
     next_token();
@@ -1910,6 +1911,11 @@ parse_controlTypeDeclaration()
     control_proto->kind = AST_controlTypeDeclaration;
     control_proto->line_no = token->line_no;
     control_proto->column_no = token->column_no;
+    method_protos = arena_malloc(storage, sizeof(Ast));
+    method_protos->kind = AST_methodPrototypes;
+    method_protos->line_no = control_proto->line_no;
+    method_protos->column_no = control_proto->column_no;
+    control_proto->controlTypeDeclaration.method_protos = method_protos;
     if (token_is_name(token)) {
       name = parse_name();
       scope_bind(storage, current_scope, name->name.strname, NAMESPACE_TYPE);
