@@ -8,7 +8,7 @@ Building the compiler executable requires a Linux OS and GCC. Change the current
 
 ## Tests
 
-'run_tests.sh' will run 'ashp4c' on a series of test P4 programs located in the 'testdata' folder:
+Compile a series of P4 programs and report PASS/FAIL status:
 
 ```$ ./run_tests.sh```
 
