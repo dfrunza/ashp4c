@@ -226,15 +226,18 @@ visit_name(Ast* name, Type* required_ty)
     if (!match_type(name_tau, required_ty)) {
       error("%s:%d:%d: error: type mismatch.",
           source_file, name->line_no, name->column_no);
+    } else {
+      name_ty = (Type*)name_tau->set.members.first->key;
+      map_insert(storage, type_env, name, effective_type(name_ty), 0);
     }
-    /* TODO map_insert(storage, type_env, ...) */
   } else {
     if (map_count(&name_tau->set.members) != 1) {
       error("%s:%d:%d: error: type mismatch.",
           source_file, name->line_no, name->column_no);
+    } else {
+      name_ty = (Type*)name_tau->set.members.first->key;
+      map_insert(storage, type_env, name, effective_type(name_ty), 0);
     }
-    name_ty = (Type*)name_tau->set.members.first->key;
-    map_insert(storage, type_env, name, effective_type(name_ty), 0);
   }
 }
 
@@ -455,21 +458,22 @@ visit_simpleKeysetExpression(Ast* simple_expr, Type* required_ty)
   if (required_ty->product.count != 1) {
     error("%s:%d:%d: error: type mismatch.",
         source_file, simple_expr->line_no, simple_expr->column_no);
+  } else {
+    if (simple_expr->simpleKeysetExpression.expr->kind == AST_expression) {
+      visit_expression(simple_expr->simpleKeysetExpression.expr, required_ty->product.members[0]);
+    } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_default) {
+      visit_default(simple_expr->simpleKeysetExpression.expr);
+    } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_dontcare) {
+      visit_dontcare(simple_expr->simpleKeysetExpression.expr);
+    } else assert(0);
+    simple_ty = array_append(storage, type_array, sizeof(Type));
+    simple_ty->ty_former = TYPE_PRODUCT;
+    simple_ty->ast = simple_expr;
+    simple_ty->product.count = 1;
+    simple_ty->product.members = arena_malloc(storage, simple_ty->product.count*sizeof(Type*));
+    simple_ty->product.members[0] = map_lookup(type_env, simple_expr->simpleKeysetExpression.expr, 0);
+    map_insert(storage, type_env, simple_expr, simple_ty, 0);
   }
-  if (simple_expr->simpleKeysetExpression.expr->kind == AST_expression) {
-    visit_expression(simple_expr->simpleKeysetExpression.expr, required_ty->product.members[0]);
-  } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_default) {
-    visit_default(simple_expr->simpleKeysetExpression.expr);
-  } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_dontcare) {
-    visit_dontcare(simple_expr->simpleKeysetExpression.expr);
-  } else assert(0);
-  simple_ty = array_append(storage, type_array, sizeof(Type));
-  simple_ty->ty_former = TYPE_PRODUCT;
-  simple_ty->ast = simple_expr;
-  simple_ty->product.count = 1;
-  simple_ty->product.members = arena_malloc(storage, simple_ty->product.count*sizeof(Type*));
-  simple_ty->product.members[0] = map_lookup(type_env, simple_expr->simpleKeysetExpression.expr, 0);
-  map_insert(storage, type_env, simple_expr, simple_ty, 0);
 }
 
 static void
@@ -929,15 +933,18 @@ visit_functionCall(Ast* func_call, Type* required_ty)
     if (!match_type(func_tau, required_ty)) {
       error("%s:%d:%d: error: type mismatch.",
             source_file, func_call->line_no, func_call->column_no);
+    } else {
+      func_ty = (Type*)func_tau->set.members.first->key;
+      map_insert(storage, type_env, func_call, effective_type(func_ty), 0);
     }
-    /* TODO map_insert(storage, type_env, ...) */
   } else {
     if (map_count(&func_tau->set.members) != 1) {
       error("%s:%d:%d: error: type mismatch.",
           source_file, func_call->line_no, func_call->column_no);
+    } else {
+      func_ty = (Type*)func_tau->set.members.first->key;
+      map_insert(storage, type_env, func_call, effective_type(func_ty), 0);
     }
-    func_ty = (Type*)func_tau->set.members.first->key;
-    map_insert(storage, type_env, func_call, effective_type(func_ty), 0);
   }
 }
 
@@ -1339,7 +1346,9 @@ visit_expression(Ast* expr, Type* required_ty)
     visit_assignmentStatement(expr->expression.expr);
   } else assert(0);
   expr_ty = map_lookup(type_env, expr->expression.expr, 0);
-  assert(expr_ty);
+  if (!expr_ty) {
+    assert(expr_ty);
+  }
   map_insert(storage, type_env, expr, expr_ty, 0);
 }
 
@@ -1376,15 +1385,18 @@ visit_binaryExpression(Ast* binary_expr, Type* required_ty)
     if (!match_type(op_tau, required_ty)) {
       error("%s:%d:%d: error: type mismatch.",
             source_file, binary_expr->line_no, binary_expr->column_no);
+    } else {
+      op_ty = (Type*)op_tau->set.members.first->key;
+      map_insert(storage, type_env, binary_expr, effective_type(op_ty), 0);
     }
-    /* TODO map_insert(storage, type_env, ...) */
   } else {
     if (map_count(&op_tau->set.members) != 1) {
       error("%s:%d:%d: error: type mismatch.",
           source_file, binary_expr->line_no, binary_expr->column_no);
+    } else {
+      op_ty = (Type*)op_tau->set.members.first->key;
+      map_insert(storage, type_env, binary_expr, effective_type(op_ty), 0);
     }
-    op_ty = (Type*)op_tau->set.members.first->key;
-    map_insert(storage, type_env, binary_expr, effective_type(op_ty), 0);
   }
 }
 
@@ -1405,15 +1417,18 @@ visit_memberSelector(Ast* selector, Type* required_ty)
     if (!match_type(selector_tau, required_ty)) {
       error("%s:%d:%d: error: type mismatch.",
             source_file, selector->line_no, selector->column_no);
+    } else {
+      selector_ty = (Type*)selector_tau->set.members.first->key;
+      map_insert(storage, type_env, selector, effective_type(selector_ty), 0);
     }
-    /* TODO map_insert(storage, type_env, ...) */
   } else {
     if (map_count(&selector_tau->set.members) != 1) {
       error("%s:%d:%d: error: type mismatch.",
           source_file, selector->line_no, selector->column_no);
+    } else {
+      selector_ty = (Type*)selector_tau->set.members.first->key;
+      map_insert(storage, type_env, selector, effective_type(selector_ty), 0);
     }
-    selector_ty = (Type*)selector_tau->set.members.first->key;
-    map_insert(storage, type_env, selector, effective_type(selector_ty), 0);
   }
 }
 
