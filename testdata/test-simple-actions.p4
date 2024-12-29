@@ -25,7 +25,7 @@ header IPv4_h {
     IPv4Address  dstAddr;
 }
 
-header mpls_h {
+header Mpls_h {
     bit<20> label;
     bit<3>  tc;
     bit<1>  stack;
@@ -35,7 +35,7 @@ header mpls_h {
 struct Headers_t
 {
     Ethernet_h ethernet;
-    mpls_h     mpls;
+    Mpls_h     mpls;
     IPv4_h     ipv4;
 }
 
@@ -55,6 +55,9 @@ error {
 
 extern packet_in {
     void extract(out Headers_t hdr);
+    void extract(out Ethernet_h hdr);
+    void extract(out Mpls_h hdr);
+    void extract(out IPv4_h hdr);
     void extract(out Headers_t variableSizeHeader, in bit<32> variableFieldSizeInBits);
     Headers_t lookahead();
     void advance(in bit<32> sizeInBits);

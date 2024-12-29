@@ -71,6 +71,9 @@ error {
 
 extern packet_in {
     void extract(out Headers_t hdr);
+    void extract(out Ethernet_t hdr);
+    void extract(out Ipv4_t hdr);
+    void extract(out Tcp_t hdr);
     void extract(out Headers_t variableSizeHeader, in bit<32> variableFieldSizeInBits);
     Headers_t lookahead();
     void advance(in bit<32> sizeInBits);

@@ -53,6 +53,8 @@ extern packet_in {
     /// May trigger error PacketTooShort or StackOutOfBounds.
     /// @T must be a fixed-size header type
     void extract(out Headers_t hdr);
+    void extract(out Ethernet_h hdr);
+    void extract(out IPv4_h hdr);
 
     /// Read bits from the packet into a variable-sized header @variableSizeHeader
     /// and advance the cursor.

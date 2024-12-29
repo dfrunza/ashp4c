@@ -1,11 +1,11 @@
-header Ethernet {
+header Ethernet_t {
     bit<48> destination;
     bit<48> source;
     bit<16> protocol;
 }
 
 struct Headers_t {
-    Ethernet ethernet;
+    Ethernet_t ethernet;
 }
 
 /// Standard error codes.  New error codes can be declared by users.
@@ -23,6 +23,7 @@ error {
 extern packet_in {
     void extract(out Headers_t hdr);
     void extract(out Headers_t variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    void extract(out Ethernet_t hdr);
     Headers_t lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();

@@ -38,6 +38,10 @@ error {
 
 extern packet_in {
     void extract(out Parsed_packet hdr);
+    void extract(out Ethernet hdr);
+    void extract(out IP hdr);
+    void extract(out IPv4 hdr);
+    void extract(out IPv6 hdr);
     void extract(out Parsed_packet variableSizeHeader, in bit<32> variableFieldSizeInBits);
     Parsed_packet lookahead();
     void advance(in bit<32> sizeInBits);

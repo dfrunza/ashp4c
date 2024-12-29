@@ -42,6 +42,9 @@ error {
 
 extern packet_in {
     void extract(out Parsed_headers hdr);
+    void extract(out IPv4_no_options_h hdr);
+    void extract(out IPv4_options_h hdr);
+    void extract(out Tcp hdr);
     void extract(out Parsed_headers variableSizeHeader, in bit<32> variableFieldSizeInBits);
     Parsed_headers lookahead();
     void advance(in bit<32> sizeInBits);

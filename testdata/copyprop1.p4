@@ -25,6 +25,7 @@ const bit<32> __v1model_version = 20200408;
 extern packet_in {
     void extract(out header_t hdr);
     void extract(out header_t variableSizeHeader, in bit<32> variableFieldSizeInBits);
+    void extract(out payload_t hdr);
     header_t lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();

@@ -42,6 +42,8 @@ struct headers {
 
 extern packet_in {
     void extract(out p4calc_t hdr);
+    void extract(out ethernet_t hdr);
+    void extract(out p4calc_t hdr);
     void extract(out p4calc_t variableSizeHeader, in bit<32> variableFieldSizeInBits);
     p4calc_t lookahead();
     void advance(in bit<32> sizeInBits);

@@ -44,6 +44,8 @@ error {
 
 extern packet_in {
     void extract(out headers hdr);
+    void extract(out ethernet_t hdr);
+    void extract(out ipv4_t hdr);
     void extract(out headers variableSizeHeader, in bit<32> variableFieldSizeInBits);
     headers lookahead();
     void advance(in bit<32> sizeInBits);
