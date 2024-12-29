@@ -222,27 +222,21 @@ visit_name(Ast* name, Type* required_ty)
   Type* name_ty;
 
   name_tau = map_lookup(potype_map, name, 0);
+  if (map_count(&name_tau->set.members) != 1) {
+    error("%s:%d:%d: error: type mismatch.",
+        source_file, name->line_no, name->column_no);
+  }
   if (required_ty) {
     if (!match_type(name_tau, required_ty)) {
-      error("%s:%d:%d: error: type mismatch.",
-          source_file, name->line_no, name->column_no);
-    } else {
-      if (map_count(&name_tau->set.members) != 1) {
-        error("%s:%d:%d: error: type mismatch.",
-            source_file, name->line_no, name->column_no);
-      } else {
-        name_ty = (Type*)name_tau->set.members.first->key;
-        map_insert(storage, type_env, name, effective_type(name_ty), 0);
-      }
-    }
-  } else {
-    if (map_count(&name_tau->set.members) != 1) {
       error("%s:%d:%d: error: type mismatch.",
           source_file, name->line_no, name->column_no);
     } else {
       name_ty = (Type*)name_tau->set.members.first->key;
       map_insert(storage, type_env, name, effective_type(name_ty), 0);
     }
+  } else {
+      name_ty = (Type*)name_tau->set.members.first->key;
+      map_insert(storage, type_env, name, effective_type(name_ty), 0);
   }
 }
 
@@ -934,27 +928,21 @@ visit_functionCall(Ast* func_call, Type* required_ty)
   } else assert(0);
   visit_argumentList(func_call->functionCall.args, 0);
   func_tau = map_lookup(potype_map, func_call, 0);
+  if (map_count(&func_tau->set.members) != 1) {
+    error("%s:%d:%d: error: type mismatch.",
+        source_file, func_call->line_no, func_call->column_no);
+  }
   if (required_ty) {
     if (!match_type(func_tau, required_ty)) {
       error("%s:%d:%d: error: type mismatch.",
             source_file, func_call->line_no, func_call->column_no);
     } else {
-      if (map_count(&func_tau->set.members) != 1) {
-        error("%s:%d:%d: error: type mismatch.",
-            source_file, func_call->line_no, func_call->column_no);
-      } else {
-        func_ty = (Type*)func_tau->set.members.first->key;
-        map_insert(storage, type_env, func_call, effective_type(func_ty), 0);
-      }
-    }
-  } else {
-    if (map_count(&func_tau->set.members) != 1) {
-      error("%s:%d:%d: error: type mismatch.",
-          source_file, func_call->line_no, func_call->column_no);
-    } else {
       func_ty = (Type*)func_tau->set.members.first->key;
       map_insert(storage, type_env, func_call, effective_type(func_ty), 0);
     }
+  } else {
+    func_ty = (Type*)func_tau->set.members.first->key;
+    map_insert(storage, type_env, func_call, effective_type(func_ty), 0);
   }
 }
 
@@ -1391,27 +1379,21 @@ visit_binaryExpression(Ast* binary_expr, Type* required_ty)
   visit_expression(binary_expr->binaryExpression.left_operand, required_ty);
   visit_expression(binary_expr->binaryExpression.right_operand, required_ty);
   op_tau = map_lookup(potype_map, binary_expr, 0);
+  if (map_count(&op_tau->set.members) != 1) {
+    error("%s:%d:%d: error: type mismatch.",
+        source_file, binary_expr->line_no, binary_expr->column_no);
+  }
   if (required_ty) {
     if (!match_type(op_tau, required_ty)) {
       error("%s:%d:%d: error: type mismatch.",
             source_file, binary_expr->line_no, binary_expr->column_no);
     } else {
-      if (map_count(&op_tau->set.members) != 1) {
-        error("%s:%d:%d: error: type mismatch.",
-            source_file, binary_expr->line_no, binary_expr->column_no);
-      } else {
-        op_ty = (Type*)op_tau->set.members.first->key;
-        map_insert(storage, type_env, binary_expr, effective_type(op_ty), 0);
-      }
-    }
-  } else {
-    if (map_count(&op_tau->set.members) != 1) {
-      error("%s:%d:%d: error: type mismatch.",
-          source_file, binary_expr->line_no, binary_expr->column_no);
-    } else {
       op_ty = (Type*)op_tau->set.members.first->key;
       map_insert(storage, type_env, binary_expr, effective_type(op_ty), 0);
     }
+  } else {
+    op_ty = (Type*)op_tau->set.members.first->key;
+    map_insert(storage, type_env, binary_expr, effective_type(op_ty), 0);
   }
 }
 
@@ -1428,27 +1410,21 @@ visit_memberSelector(Ast* selector, Type* required_ty)
     visit_lvalueExpression(selector->memberSelector.lhs_expr, 0);
   } else assert(0);
   selector_tau = map_lookup(potype_map, selector, 0);
+  if (map_count(&selector_tau->set.members) != 1) {
+    error("%s:%d:%d: error: type mismatch.",
+        source_file, selector->line_no, selector->column_no);
+  }
   if (required_ty) {
     if (!match_type(selector_tau, required_ty)) {
       error("%s:%d:%d: error: type mismatch.",
             source_file, selector->line_no, selector->column_no);
     } else {
-      if (map_count(&selector_tau->set.members) != 1) {
-        error("%s:%d:%d: error: type mismatch.",
-            source_file, selector->line_no, selector->column_no);
-      } else {
-        selector_ty = (Type*)selector_tau->set.members.first->key;
-        map_insert(storage, type_env, selector, effective_type(selector_ty), 0);
-      }
-    }
-  } else {
-    if (map_count(&selector_tau->set.members) != 1) {
-      error("%s:%d:%d: error: type mismatch.",
-          source_file, selector->line_no, selector->column_no);
-    } else {
       selector_ty = (Type*)selector_tau->set.members.first->key;
       map_insert(storage, type_env, selector, effective_type(selector_ty), 0);
     }
+  } else {
+    selector_ty = (Type*)selector_tau->set.members.first->key;
+    map_insert(storage, type_env, selector, effective_type(selector_ty), 0);
   }
 }
 
