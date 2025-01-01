@@ -1594,9 +1594,7 @@ visit_memberSelector(Ast* selector, PotentialType* potential_args)
       /* TODO */
     } else if (lhs_ty->ty_former == TYPE_TABLE) {
       collect_matching_member(storage, tau, lhs_ty->table.methods, name->name.strname, potential_args);
-    } else if (lhs_ty->ty_former == TYPE_CONTROL) {
-      collect_matching_member(storage, tau, lhs_ty->control.methods, name->name.strname, potential_args);
-    } else if (lhs_ty->ty_former == TYPE_PARSER) {
+    } else if (lhs_ty->ty_former == TYPE_PARSER || lhs_ty->ty_former == TYPE_CONTROL) {
       collect_matching_member(storage, tau, lhs_ty->parser.methods, name->name.strname, potential_args);
     }
   }

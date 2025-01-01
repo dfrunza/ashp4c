@@ -223,12 +223,12 @@ visit_name(Ast* name, Type* required_ty)
 
   name_tau = map_lookup(potype_map, name, 0);
   if (map_count(&name_tau->set.members) != 1) {
-    error("%s:%d:%d: error: type mismatch.",
+    error("%s:%d:%d: error: failed type check.",
         source_file, name->line_no, name->column_no);
   }
   if (required_ty) {
     if (!match_type(name_tau, required_ty)) {
-      error("%s:%d:%d: error: type mismatch.",
+      error("%s:%d:%d: error: failed type check.",
           source_file, name->line_no, name->column_no);
     } else {
       name_ty = (Type*)name_tau->set.members.first->key;
@@ -455,7 +455,7 @@ visit_simpleKeysetExpression(Ast* simple_expr, Type* required_ty)
   Type* simple_ty;
 
   if (required_ty->product.count != 1) {
-    error("%s:%d:%d: error: type mismatch.",
+    error("%s:%d:%d: error: failed type check.",
         source_file, simple_expr->line_no, simple_expr->column_no);
   } else {
     if (simple_expr->simpleKeysetExpression.expr->kind == AST_expression) {
@@ -620,7 +620,7 @@ visit_typeRef(Ast* type_ref, Type* required_ty)
   ref_ty = map_lookup(type_env, type_ref->typeRef.type, 0);
   if (required_ty) {
     if (!type_equiv(ref_ty, required_ty)) {
-      error("%s:%d:%d: error: type mismatch.",
+      error("%s:%d:%d: error: failed type check.",
           source_file, type_ref->line_no, type_ref->column_no);
     }
   }
@@ -929,12 +929,12 @@ visit_functionCall(Ast* func_call, Type* required_ty)
   visit_argumentList(func_call->functionCall.args, 0);
   func_tau = map_lookup(potype_map, func_call, 0);
   if (map_count(&func_tau->set.members) != 1) {
-    error("%s:%d:%d: error: type mismatch.",
+    error("%s:%d:%d: error: failed type check.",
         source_file, func_call->line_no, func_call->column_no);
   }
   if (required_ty) {
     if (!match_type(func_tau, required_ty)) {
-      error("%s:%d:%d: error: type mismatch.",
+      error("%s:%d:%d: error: failed type check.",
             source_file, func_call->line_no, func_call->column_no);
     } else {
       func_ty = (Type*)func_tau->set.members.first->key;
@@ -1380,12 +1380,12 @@ visit_binaryExpression(Ast* binary_expr, Type* required_ty)
   visit_expression(binary_expr->binaryExpression.right_operand, required_ty);
   op_tau = map_lookup(potype_map, binary_expr, 0);
   if (map_count(&op_tau->set.members) != 1) {
-    error("%s:%d:%d: error: type mismatch.",
+    error("%s:%d:%d: error: failed type check.",
         source_file, binary_expr->line_no, binary_expr->column_no);
   }
   if (required_ty) {
     if (!match_type(op_tau, required_ty)) {
-      error("%s:%d:%d: error: type mismatch.",
+      error("%s:%d:%d: error: failed type check.",
             source_file, binary_expr->line_no, binary_expr->column_no);
     } else {
       op_ty = (Type*)op_tau->set.members.first->key;
@@ -1411,12 +1411,12 @@ visit_memberSelector(Ast* selector, Type* required_ty)
   } else assert(0);
   selector_tau = map_lookup(potype_map, selector, 0);
   if (map_count(&selector_tau->set.members) != 1) {
-    error("%s:%d:%d: error: type mismatch.",
+    error("%s:%d:%d: error: failed type check.",
         source_file, selector->line_no, selector->column_no);
   }
   if (required_ty) {
     if (!match_type(selector_tau, required_ty)) {
-      error("%s:%d:%d: error: type mismatch.",
+      error("%s:%d:%d: error: failed type check.",
             source_file, selector->line_no, selector->column_no);
     } else {
       selector_ty = (Type*)selector_tau->set.members.first->key;

@@ -82,8 +82,8 @@ parse_cmdline_args(Arena* storage, int arg_count, char* args[])
   int i = 1;
   while (i < arg_count) {
     cmdline_arg = arena_malloc(storage, sizeof(CmdlineArg));
-    if (cstr_start_with(args[i], "--")) {
-      raw_arg = args[i] + 2;  /* skip the `--` prefix */
+    if (cstr_start_with(args[i], "-")) {
+      raw_arg = args[i] + 1;  /* skip the `-` prefix */
       cmdline_arg->name = raw_arg;
     } else {
       cmdline_arg->value = args[i];
