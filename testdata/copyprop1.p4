@@ -175,7 +175,9 @@ control MyIngress(inout header_t hdr,
     table t1 {
         key = { hdr.payload.x : exact; }
         actions = { a1; }
+        /*
         size = 1024;
+        */
     }
 
     apply {

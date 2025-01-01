@@ -55,8 +55,10 @@ control T_host(inout TArg1 tArg1, in TArg2 aArg2)(bit<32> t2Size) {
             C_action;
         }
 
+        /*
         size = t2Size;
         const default_action = C_action(9w5);
+        */
     }
 
     apply {
@@ -76,7 +78,9 @@ control P_pipe(inout TArg1 pArg1, inout TArg2 pArg2)(bit<32> t2Size) {
         actions = {
             Drop; NoAction;
         }
+        /*
         const default_action = NoAction;
+        */
     }
 
     apply {

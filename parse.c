@@ -333,8 +333,10 @@ static bool
 token_is_tableProperty(Token* token)
 {
   bool result = token->klass == TK_KEY || token->klass == TK_ACTIONS
+#if 0
     || token->klass == TK_CONST || token->klass == TK_ENTRIES
     || token_is_nonTableKwName(token);
+#endif
   return result;
 }
 
@@ -684,10 +686,12 @@ AstEnum_to_string(enum AstEnum ast)
     case AST_actionsProperty: return "AST_actionsProperty";
     case AST_actionList: return "AST_actionList";
     case AST_actionRef: return "AST_actionRef";
+#if 0
     case AST_entriesProperty: return "AST_entriesProperty";
     case AST_entriesList: return "AST_entriesList";
     case AST_entry: return "AST_entry";
     case AST_simpleProperty: return "AST_simpleProperty";
+#endif
     case AST_actionDeclaration: return "AST_actionDeclaration";
 
     /** VARIABLES **/
@@ -963,7 +967,9 @@ clone_ast(Arena* storage, Ast* original)
   } else if (original->kind == AST_actionRef) {
     clone->actionRef.name = clone_ast(storage, original->actionRef.name);
     clone->actionRef.args = clone_ast(storage, original->actionRef.args);
-  } else if (original->kind == AST_entriesProperty) {
+  }
+#if 0
+  else if (original->kind == AST_entriesProperty) {
     clone->entriesProperty.entries_list = clone_ast(storage, original->entriesProperty.entries_list);
   } else if (original->kind == AST_entriesList) {
     clone->first_child = clone_ast(storage, original->first_child);
@@ -974,7 +980,9 @@ clone_ast(Arena* storage, Ast* original)
     clone->simpleProperty.name = clone_ast(storage, original->simpleProperty.name);
     clone->simpleProperty.init_expr = clone_ast(storage, original->simpleProperty.init_expr);
     clone->simpleProperty.is_const = original->simpleProperty.is_const;
-  } else if (original->kind == AST_actionDeclaration) {
+  }
+#endif
+  else if (original->kind == AST_actionDeclaration) {
     clone->actionDeclaration.name = clone_ast(storage, original->actionDeclaration.name);
     clone->actionDeclaration.params = clone_ast(storage, original->actionDeclaration.params);
     clone->actionDeclaration.stmt = clone_ast(storage, original->actionDeclaration.stmt);
@@ -2402,8 +2410,9 @@ parse_integerTypeSize()
   if (token->klass == TK_INTEGER_LITERAL) {
     type_size->integerTypeSize.size = parse_integer();
   } else if (token->klass == TK_PARENTH_OPEN) {
-    /* TODO
-    type_size->size = parse_expression(1); */
+#if 0
+    type_size->size = parse_expression(1);
+#endif
     error("%s:%d:%d: error: integer was expected, got `%s`.",
           source_file, token->line_no, token->column_no, token->lexeme);
   } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
@@ -3414,14 +3423,18 @@ parse_tablePropertyList()
 static Ast*
 parse_tableProperty()
 {
+#if 0
   bool is_const = 0;
+#endif
   Ast* table_prop, *prop;
 
   if (token_is_tableProperty(token)) {
+#if 0
     if (token->klass == TK_CONST) {
       next_token();
       is_const = 1;
     }
+#endif
     table_prop = arena_malloc(storage, sizeof(Ast));
     table_prop->kind = AST_tableProperty;
     table_prop->line_no = token->line_no;
@@ -3468,7 +3481,9 @@ parse_tableProperty()
                    source_file, token->line_no, token->column_no, token->lexeme);
       table_prop->tableProperty.prop = prop;
       return table_prop;
-    } else if (token->klass == TK_ENTRIES) {
+    }
+#if 0
+    else if (token->klass == TK_ENTRIES) {
       next_token();
       prop = arena_malloc(storage, sizeof(Ast));
       prop->kind = AST_entriesProperty;
@@ -3492,7 +3507,8 @@ parse_tableProperty()
                    source_file, token->line_no, token->column_no, token->lexeme);
       table_prop->tableProperty.prop = prop;
       return table_prop;
-    } else if (token_is_nonTableKwName(token)) {
+    }
+    else if (token_is_nonTableKwName(token)) {
       prop = arena_malloc(storage, sizeof(Ast));
       prop->kind = AST_simpleProperty;
       prop->line_no = token->line_no;
@@ -3511,7 +3527,11 @@ parse_tableProperty()
       table_prop->tableProperty.prop = prop;
       return table_prop;
     } else assert(0);
-  } else error("%s:%d:%d: error: table property was expected, got `%s`.",
+#endif
+    else error("%s:%d:%d: error: table property was expected, got `%s`.",
+                source_file, token->line_no, token->column_no, token->lexeme);
+  }
+  else error("%s:%d:%d: error: table property was expected, got `%s`.",
                source_file, token->line_no, token->column_no, token->lexeme);
   assert(0);
   return 0;
@@ -3623,6 +3643,7 @@ parse_actionRef()
   return 0;
 }
 
+#if 0
 static Ast*
 parse_entriesList()
 {
@@ -3669,6 +3690,7 @@ parse_entry()
   assert(0);
   return 0;
 }
+#endif
 
 static Ast*
 parse_actionDeclaration()

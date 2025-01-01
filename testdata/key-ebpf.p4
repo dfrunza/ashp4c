@@ -122,8 +122,10 @@ control pipe(inout Headers_t headers, out bool pass)() {
         actions = {
             invalidate; drop;
         }
+        /*
         implementation = hash_table(10);
         default_action = drop;
+        */
     }
 
     apply {

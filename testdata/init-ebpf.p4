@@ -22,8 +22,8 @@ error {
 
 extern packet_in {
     void extract(out Headers_t hdr);
-    void extract(out Headers_t variableSizeHeader, in bit<32> variableFieldSizeInBits);
     void extract(out Ethernet_t hdr);
+    void extract(out Headers_t variableSizeHeader, in bit<32> variableFieldSizeInBits);
     Headers_t lookahead();
     void advance(in bit<32> sizeInBits);
     bit<32> length();
@@ -85,12 +85,14 @@ control pipe(inout Headers_t headers, out bool pass)() {
             match; NoAction;
         }
 
+        /*
         const entries = {
             (0x0800) : match(true);
             (0xD000) : match(false);
         }
 
         implementation = hash_table(64);
+         */
     }
 
     apply {

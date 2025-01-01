@@ -18,6 +18,7 @@ control c(bit<32> x)()
             drop;
         }
 
+        /*
         const entries = {
             32w0x0A_00_00_01 : drop();
             32w0x0A_00_00_02 : Set_dmac((EthernetAddress)48w0x11_22_33_44_55_66);
@@ -28,6 +29,7 @@ control c(bit<32> x)()
         default_action = Set_dmac((EthernetAddress)48w0xAA_BB_CC_DD_EE_FF);
 
         implementation = tbl();
+        */
     }
 
     apply {}

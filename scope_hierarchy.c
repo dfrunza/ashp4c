@@ -1204,11 +1204,15 @@ visit_tableProperty(Ast* table_prop)
     visit_keyProperty(table_prop->tableProperty.prop);
   } else if (table_prop->tableProperty.prop->kind == AST_actionsProperty) {
     visit_actionsProperty(table_prop->tableProperty.prop);
-  } else if (table_prop->tableProperty.prop->kind == AST_entriesProperty) {
+  }
+#if 0
+  else if (table_prop->tableProperty.prop->kind == AST_entriesProperty) {
     visit_entriesProperty(table_prop->tableProperty.prop);
   } else if (table_prop->tableProperty.prop->kind == AST_simpleProperty) {
     visit_simpleProperty(table_prop->tableProperty.prop);
-  } else assert(0);
+  }
+#endif
+  else assert(0);
 }
 
 static void
@@ -1265,6 +1269,7 @@ visit_actionRef(Ast* action_ref)
   }
 }
 
+#if 0
 static void
 visit_entriesProperty(Ast* entries_prop)
 {
@@ -1298,6 +1303,7 @@ visit_simpleProperty(Ast* simple_prop)
   assert(simple_prop->kind == AST_simpleProperty);
   visit_expression(simple_prop->simpleProperty.init_expr);
 }
+#endif
 
 static void
 visit_actionDeclaration(Ast* action_decl)

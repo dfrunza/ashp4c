@@ -130,7 +130,9 @@ control pipe(inout Headers_t headers, inout metadata meta, inout standard_metada
             NoAction;
         }
 
+        /*
         default_action = Reject(0);
+        */
     }
 
     apply

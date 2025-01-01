@@ -23,7 +23,9 @@ control pipe(inout Headers_t headers, out bool pass)() {
     }
     table t {
         actions = { Reject(); }
+        /*
         default_action = Reject(8w1, 8w0);
+        */
     }
     apply {
         bool x = true;

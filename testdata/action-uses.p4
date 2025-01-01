@@ -3,11 +3,15 @@ control c()() {
     action b() {}
     table t1 {
         actions = { a; b; }
+        /*
         default_action = a;
+        */
     }
     table t2 {
         actions = { a; }
+        /*
         default_action = a;
+        */
     }
 
     apply {

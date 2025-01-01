@@ -120,7 +120,9 @@ control pipe(inout Headers_t headers, out bool pass)()
         actions = {
             invalidate;
         }
+        /*
         implementation = array_table(1);
+        */
     }
 
     apply {

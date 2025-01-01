@@ -223,10 +223,12 @@ enum AstEnum {
   AST_actionsProperty,
   AST_actionList,
   AST_actionRef,
+#if 0
   AST_entriesProperty,
   AST_entriesList,
   AST_entry,
   AST_simpleProperty,
+#endif
   AST_actionDeclaration,
 
   /** VARIABLES **/
@@ -689,6 +691,7 @@ typedef struct Ast {
       struct Ast* args;
     } actionRef;
 
+#if 0
     struct {
       struct Ast* entries_list;
     } entriesProperty;
@@ -706,6 +709,7 @@ typedef struct Ast {
       struct Ast* init_expr;
       bool is_const;
     } simpleProperty;
+#endif
 
     struct {
       struct Ast* name;

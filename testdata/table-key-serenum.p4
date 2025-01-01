@@ -127,19 +127,21 @@ parser prs(packet_in p, out Headers h)() {
 
 control c(inout Headers h, inout standard_metadata_t sm)() {
     action do_act(bit<32> type) {
-	sm.instance_type = type;
+      sm.instance_type = type;
     }
     table tns {
         key = {
             h.eth.type : exact;
         }
-	actions = {
-            do_act;
+        actions = {
+                  do_act;
         }
-	const entries = {
-            EthTypes.IPv4 : do_act(0x0800);
-	    EthTypes.VLAN : do_act(0x8100);
-	}
+        /*
+        const entries = {
+                  EthTypes.IPv4 : do_act(0x0800);
+            EthTypes.VLAN : do_act(0x8100);
+        }
+        */
     }
 
     apply {

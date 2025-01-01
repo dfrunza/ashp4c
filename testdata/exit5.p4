@@ -6,7 +6,9 @@ control ctrl()() {
 
     table t {
         actions = { e; f; }
+        /*
         default_action = e();
+        */
     }
 
     apply {

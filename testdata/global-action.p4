@@ -3,7 +3,9 @@ action Global() {}
 control c()() {
     table t {
         actions = { Global; }
+        /*
         default_action = Global;
+        */
     }
 
     apply {
