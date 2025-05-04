@@ -332,7 +332,7 @@ token_is_actionRef(Token* token)
 static bool
 token_is_tableProperty(Token* token)
 {
-  bool result = token->klass == TK_KEY || token->klass == TK_ACTIONS
+  bool result = token->klass == TK_KEY || token->klass == TK_ACTIONS;
 #if 0
     || token->klass == TK_CONST || token->klass == TK_ENTRIES
     || token_is_nonTableKwName(token);

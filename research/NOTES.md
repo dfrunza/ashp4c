@@ -22,7 +22,7 @@ sudo echo 1 > /sys/kernel/debug/tracing/tracing_on
 sudo cat /sys/kernel/debug/tracing/trace_pipe
 ```
 
-The kernel part of XDP source should be compiled with -02, or the BPF loader could reject it:
+The kernel part of XDP source should be compiled with -02, or else the BPF loader could reject it:
 ```
 llvm-objdump -S -no-show-raw-insn xdp-example.o
 readelf -a xde-example.o
@@ -44,7 +44,7 @@ pkt/=Raw("W"*(100-len(pkt)))
 
 ## Static linking of libc
 
-GNU libc is not designed to be statically linked. Important functions, e.g. gethostbyname and iconv,
+GNU libc is ~not~ designed to be statically linked. Important functions, e.g. gethostbyname and iconv,
 will malfunction or not work at all in a static binary. Arguably even worse, under some conditions a
 static binary will attempt to dynamically open and use libc.so.6, even though the whole point of
 static linkage is to avoid such dependencies.
