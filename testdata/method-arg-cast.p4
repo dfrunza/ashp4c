@@ -6,7 +6,7 @@ extern E {
 control c()() {
     E() e;
     apply {
-        e.setValue(8w10);
+        e.setValue((bit<32>)8w10);
     }
 }
 
