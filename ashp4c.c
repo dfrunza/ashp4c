@@ -12,7 +12,7 @@ typedef struct CmdlineArg {
 } CmdlineArg;
 
 static void
-read_source(Arena* storage, char* filename, SourceText* source_text/*out*/)
+read_source(SourceText* source_text, char* filename)
 {
   FILE* f_stream;
   char* text;
@@ -24,7 +24,7 @@ read_source(Arena* storage, char* filename, SourceText* source_text/*out*/)
   fseek(f_stream, 0, SEEK_END);
   int text_size = ftell(f_stream);
   fseek(f_stream, 0, SEEK_SET);
-  text = arena_malloc(storage, (text_size + 1)*sizeof(char));
+  text = arena_malloc(source_text->storage, (text_size + 1)*sizeof(char));
   fread(text, sizeof(char), text_size, f_stream);
   text[text_size] = '\0';
   fclose(f_stream);
@@ -102,9 +102,8 @@ main(int arg_count, char* args[])
   CmdlineArg* cmdline, *filename;
   SourceText source_text = {0};
   Arena storage = {0}, scratch_storage = {0};
-  Ast* program;
-  Array* tokens;
-  Scope* root_scope;
+  Lexer lexer = {0};
+  Parser parser = {0};
   Array* type_array;
   Map* scope_map, *decl_map;
   Map* type_env, *potype_map;
@@ -118,21 +117,26 @@ main(int arg_count, char* args[])
     exit(1);
   }
 
-  read_source(&scratch_storage, filename->value, &source_text);
-  tokens = tokenize(&storage, &source_text);
-  program = parse(&storage, source_text.filename, tokens, &root_scope);
+  source_text.storage = &scratch_storage;
+  read_source(&source_text, filename->value);
+  lexer.storage = &storage;
+  tokenize(&lexer, &source_text);
+  parser.storage = &storage;
+  parser.source_file = source_text.filename;
+  parser.tokens = lexer.tokens;
+  parse(&parser);
   arena_free(&scratch_storage);
 
-  drypass(source_text.filename, program);
-  builtin_methods(&storage, source_text.filename, program);
-  scope_map = scope_hierarchy(&storage, source_text.filename, program, root_scope);
-  decl_map = name_bind(&storage, source_text.filename, program, root_scope,
+  drypass(source_text.filename, parser.program);
+  builtin_methods(&storage, source_text.filename, parser.program);
+  scope_map = scope_hierarchy(&storage, source_text.filename, parser.program, parser.root_scope);
+  decl_map = name_bind(&storage, source_text.filename, parser.program, parser.root_scope,
       scope_map, &type_array);
-  type_env = declared_types(&storage, source_text.filename, program, root_scope,
+  type_env = declared_types(&storage, source_text.filename, parser.program, parser.root_scope,
       type_array, scope_map, decl_map);
-  potype_map = potential_types(&storage, source_text.filename, program, root_scope,
+  potype_map = potential_types(&storage, source_text.filename, parser.program, parser.root_scope,
       scope_map, decl_map, type_env);
-  select_type(&storage, source_text.filename, program, root_scope,
+  select_type(&storage, source_text.filename, parser.program, parser.root_scope,
       type_array, scope_map, decl_map, type_env, potype_map);
 
   arena_free(&storage);

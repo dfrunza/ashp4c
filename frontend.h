@@ -1,4 +1,5 @@
 typedef struct SourceText {
+  Arena* storage;
   char*  text;
   int    text_size;
   char*  filename;
@@ -113,6 +114,23 @@ typedef struct Token {
     char* str;
   };
 } Token;
+
+typedef struct Lexeme {
+  char* start;
+  char* end;
+} Lexeme;
+
+typedef struct Lexer {
+  Arena* storage;
+  char*  text;
+  int    text_size;
+  char*  filename;
+  int    line_no;
+  char*  line_start;
+  int    state;
+  Lexeme lexeme[2];
+  Array* tokens;
+} Lexer;
 
 enum AstEnum {
   AST_none = 0,
@@ -811,6 +829,19 @@ typedef struct Scope {
   struct Scope* parent_scope;
   Strmap name_table;
 } Scope;
+
+typedef struct Parser {
+  char*  source_file;
+  Arena* storage;
+  Array* tokens;
+  int    token_at;
+  int    prev_token_at;
+  Token* token;
+  Token* prev_token;
+  Scope* current_scope;
+  Scope* root_scope;
+  Ast*   program;
+} Parser;
 
 enum TypeEnum {
   TYPE_NONE = 0,
