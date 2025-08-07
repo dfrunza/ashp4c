@@ -99,19 +99,19 @@ parse_cmdline_args(Arena* storage, int arg_count, char* args[])
 int
 main(int arg_count, char* args[])
 {
-  CmdlineArg* cmdline, *filename;
-  SourceText source_text = {0};
+  CmdlineArg* cmdline_arg, *filename;
   Arena storage = {0}, scratch_storage = {0};
+  SourceText source_text = {0};
   Lexer lexer = {0};
   Parser parser = {0};
-  Array* type_array;
-  Map* scope_map, *decl_map;
-  Map* type_env, *potype_map;
+  ScopeBuilder scope_builder = {0};
+  NameBinder name_binder = {0};
+  TypeChecker type_checker = {0};
 
   reserve_memory(500*KILOBYTE);
 
-  cmdline = parse_cmdline_args(&storage, arg_count, args);
-  filename = find_unnamed_arg(cmdline);
+  cmdline_arg = parse_cmdline_args(&storage, arg_count, args);
+  filename = find_unnamed_arg(cmdline_arg);
   if (!filename) {
     printf("<filename> is required.\n");
     exit(1);
@@ -126,19 +126,27 @@ main(int arg_count, char* args[])
   parser.tokens = lexer.tokens;
   parse(&parser);
   arena_free(&scratch_storage);
-
-  drypass(source_text.filename, parser.program);
-  builtin_methods(&storage, source_text.filename, parser.program);
-  scope_map = scope_hierarchy(&storage, source_text.filename, parser.program, parser.root_scope);
-  decl_map = name_bind(&storage, source_text.filename, parser.program, parser.root_scope,
-      scope_map, &type_array);
-  type_env = declared_types(&storage, source_text.filename, parser.program, parser.root_scope,
-      type_array, scope_map, decl_map);
-  potype_map = potential_types(&storage, source_text.filename, parser.program, parser.root_scope,
-      scope_map, decl_map, type_env);
-  select_type(&storage, source_text.filename, parser.program, parser.root_scope,
-      type_array, scope_map, decl_map, type_env, potype_map);
-
+  drypass(source_text.filename, parser.p4program);
+  builtin_methods(&storage, source_text.filename, parser.p4program);
+  scope_builder.storage = &storage;
+  scope_builder.root_scope = parser.root_scope;
+  scope_builder.p4program = parser.p4program;
+  scope_hierarchy(&scope_builder);
+  name_binder.storage = &storage;
+  name_binder.p4program = parser.p4program;
+  name_binder.root_scope = scope_builder.root_scope;
+  name_binder.scope_map = scope_builder.scope_map;
+  name_bind(&name_binder);
+  type_checker.storage = &storage;
+  type_checker.source_file = source_text.filename;
+  type_checker.p4program = parser.p4program;
+  type_checker.root_scope = parser.root_scope;
+  type_checker.type_array = name_binder.type_array;
+  type_checker.scope_map = scope_builder.scope_map;
+  type_checker.decl_map = name_binder.decl_map;
+  declared_types(&type_checker);
+  potential_types(&type_checker);
+  select_type(&type_checker);
   arena_free(&storage);
   return 0;
 }

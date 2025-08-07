@@ -1050,7 +1050,7 @@ parse(Parser* parser)
   parser->token_at = 0;
   parser->token = array_get(parser->tokens, parser->token_at, sizeof(Token));
   next_token(parser);
-  parser->program = parse_p4program(parser);
+  parser->p4program = parse_p4program(parser);
   assert(parser->current_scope == parser->root_scope);
 }
 
@@ -1059,25 +1059,25 @@ parse(Parser* parser)
 static Ast*
 parse_p4program(Parser* parser)
 {
-  Ast* program;
+  Ast* p4program;
   Scope* scope;
 
-  program = arena_malloc(parser->storage, sizeof(Ast));
-  program->kind = AST_p4program;
-  program->line_no = parser->token->line_no;
-  program->column_no = parser->token->column_no;
+  p4program = arena_malloc(parser->storage, sizeof(Ast));
+  p4program->kind = AST_p4program;
+  p4program->line_no = parser->token->line_no;
+  p4program->column_no = parser->token->column_no;
   while (parser->token->klass == TK_SEMICOLON) {
     next_token(parser); /* empty declaration */
   }
   scope = scope_create(parser->storage, 6);
   parser->current_scope = scope_push(scope, parser->current_scope);
-  program->p4program.decl_list = parse_declarationList(parser);
+  p4program->p4program.decl_list = parse_declarationList(parser);
   parser->current_scope = scope_pop(parser->current_scope);
   if (parser->token->klass != TK_END_OF_INPUT) {
     error("%s:%d:%d: error: unexpected token `%s`.",
           parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
   }
-  return program;
+  return p4program;
 }
 
 static Ast*

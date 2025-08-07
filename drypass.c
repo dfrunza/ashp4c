@@ -139,7 +139,7 @@ static void visit_default(Ast* default_);
 static void visit_dontcare(Ast* dontcare);
 
 void
-drypass(char* source_file, Ast* ast)
+drypass(Ast* ast)
 {
   visit_p4program(ast);
 }
