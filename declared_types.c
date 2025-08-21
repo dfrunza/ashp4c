@@ -547,8 +547,8 @@ visit_declarationList(TypeChecker* checker, Ast* decl_list)
   assert(decl_list->kind == AST_declarationList);
   Ast* ast;
 
-  for (ast = decl_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = decl_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_declaration(checker, ast);
   }
 }
@@ -610,8 +610,8 @@ visit_parameterList(TypeChecker* checker, Ast* params)
   params_ty = array_append(checker->storage, checker->type_array, sizeof(Type));
   params_ty->ty_former = TYPE_PRODUCT;
   params_ty->ast = params;
-  for (ast = params->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = params->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_parameter(checker, ast);
     params_ty->product.count += 1;
   }
@@ -619,8 +619,8 @@ visit_parameterList(TypeChecker* checker, Ast* params)
     params_ty->product.members = arena_malloc(checker->storage, params_ty->product.count*sizeof(Type*));
   }
   i = 0;
-  for (ast = params->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = params->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     params_ty->product.members[i] = map_lookup(checker->type_env, ast, 0);
     i += 1;
   }
@@ -727,8 +727,8 @@ visit_parserLocalElements(TypeChecker* checker, Ast* local_elements)
   assert(local_elements->kind == AST_parserLocalElements);
   Ast* ast;
 
-  for (ast = local_elements->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = local_elements->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_parserLocalElement(checker, ast);
   }
 }
@@ -750,8 +750,8 @@ visit_parserStates(TypeChecker* checker, Ast* states)
   assert(states->kind == AST_parserStates);
   Ast* ast;
 
-  for (ast = states->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = states->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_parserState(checker, ast);
   }
 }
@@ -782,8 +782,8 @@ visit_parserStatements(TypeChecker* checker, Ast* stmts)
   assert(stmts->kind == AST_parserStatements);
   Ast* ast;
 
-  for (ast = stmts->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = stmts->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_parserStatement(checker, ast);
   }
 }
@@ -846,8 +846,8 @@ visit_selectCaseList(TypeChecker* checker, Ast* case_list)
   assert(case_list->kind == AST_selectCaseList);
   Ast* ast;
 
-  for (ast = case_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = case_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_selectCase(checker, ast);
   }
 }
@@ -896,8 +896,8 @@ visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list)
   assert(expr_list->kind == AST_simpleExpressionList);
   Ast* ast;
 
-  for (ast = expr_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = expr_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_simpleKeysetExpression(checker, ast);
   }
 }
@@ -949,8 +949,8 @@ visit_controlLocalDeclarations(TypeChecker* checker, Ast* local_decls)
   assert(local_decls->kind == AST_controlLocalDeclarations);
   Ast* ast;
 
-  for (ast = local_decls->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = local_decls->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_controlLocalDeclaration(checker, ast);
   }
 }
@@ -1032,8 +1032,8 @@ visit_methodPrototypes(TypeChecker* checker, Ast* protos, Type* ctor_ty, char* c
   methods_ty = array_append(checker->storage, checker->type_array, sizeof(Type));
   methods_ty->ty_former = TYPE_PRODUCT;
   methods_ty->ast = protos;
-  for (ast = protos->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = protos->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_functionPrototype(checker, ast, ctor_ty, ctor_strname);
     methods_ty->product.count += 1;
   }
@@ -1041,8 +1041,8 @@ visit_methodPrototypes(TypeChecker* checker, Ast* protos, Type* ctor_ty, char* c
     methods_ty->product.members = arena_malloc(checker->storage, methods_ty->product.count*sizeof(Type*));
   }
   i = 0;
-  for (ast = protos->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = protos->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     methods_ty->product.members[i] = map_lookup(checker->type_env, ast, 0);
     i += 1;
   }
@@ -1260,8 +1260,8 @@ visit_typeArgumentList(TypeChecker* checker, Ast* args)
   args_ty = array_append(checker->storage, checker->type_array, sizeof(Type));
   args_ty->ty_former = TYPE_PRODUCT;
   args_ty->ast = args;
-  for (ast = args->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = args->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_typeArg(checker, ast);
     args_ty->product.count += 1;
   }
@@ -1269,8 +1269,8 @@ visit_typeArgumentList(TypeChecker* checker, Ast* args)
     args_ty->product.members = arena_malloc(checker->storage, args_ty->product.count*sizeof(Type*));
   }
   i = 0;
-  for (ast = args->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = args->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     args_ty->product.members[i] = map_lookup(checker->type_env, ast, 0);
     i += 1;
   }
@@ -1389,8 +1389,8 @@ visit_structFieldList(TypeChecker* checker, Ast* fields)
   fields_ty = array_append(checker->storage, checker->type_array, sizeof(Type));
   fields_ty->ty_former = TYPE_PRODUCT;
   fields_ty->ast = fields;
-  for (ast = fields->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = fields->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_structField(checker, ast);
     fields_ty->product.count += 1;
   }
@@ -1398,8 +1398,8 @@ visit_structFieldList(TypeChecker* checker, Ast* fields)
     fields_ty->product.members = arena_malloc(checker->storage, fields_ty->product.count*sizeof(Type*));
   }
   i = 0;
-  for (ast = fields->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = fields->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     fields_ty->product.members[i] = map_lookup(checker->type_env, ast, 0);
     i += 1;
   }
@@ -1489,8 +1489,8 @@ visit_identifierList(TypeChecker* checker, Ast* ident_list, Type* enum_ty, Type*
   int j;
 
   j = *i;
-  for (name = ident_list->first_child;
-       name != 0; name = name->right_sibling) {
+  for (name = ident_list->tree.first_child;
+       name != 0; name = name->tree.right_sibling) {
     name_ty = array_append(checker->storage, checker->type_array, sizeof(Type));
     name_ty->ty_former = TYPE_FIELD;
     name_ty->strname = name->name.strname;
@@ -1516,8 +1516,8 @@ visit_specifiedIdentifierList(TypeChecker* checker, Ast* ident_list, Type* enum_
   idents_ty = array_append(checker->storage, checker->type_array, sizeof(Type));
   idents_ty->ty_former = TYPE_PRODUCT;
   idents_ty->ast = ident_list;
-  for (ast = ident_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = ident_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_specifiedIdentifier(checker, ast, enum_ty);
     idents_ty->product.count += 1;
   }
@@ -1525,8 +1525,8 @@ visit_specifiedIdentifierList(TypeChecker* checker, Ast* ident_list, Type* enum_
     idents_ty->product.members = arena_malloc(checker->storage, idents_ty->product.count*sizeof(Type*));
   }
   i = 0;
-  for (ast = ident_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = ident_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     idents_ty->product.members[i] = map_lookup(checker->type_env, ast, 0);
     i += 1;
   }
@@ -1677,8 +1677,8 @@ visit_statementOrDeclList(TypeChecker* checker, Ast* stmt_list)
   assert(stmt_list->kind == AST_statementOrDeclList);
   Ast* ast;
 
-  for (ast = stmt_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = stmt_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_statementOrDeclaration(checker, ast);
   }
 }
@@ -1697,8 +1697,8 @@ visit_switchCases(TypeChecker* checker, Ast* switch_cases)
   assert(switch_cases->kind == AST_switchCases);
   Ast* ast;
 
-  for (ast = switch_cases->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = switch_cases->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_switchCase(checker, ast);
   }
 }
@@ -1767,8 +1767,8 @@ visit_tablePropertyList(TypeChecker* checker, Ast* prop_list)
   assert(prop_list->kind == AST_tablePropertyList);
   Ast* ast;
 
-  for (ast = prop_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = prop_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_tableProperty(checker, ast);
   }
 }
@@ -1805,8 +1805,8 @@ visit_keyElementList(TypeChecker* checker, Ast* element_list)
   assert(element_list->kind == AST_keyElementList);
   Ast* ast;
 
-  for (ast = element_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = element_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_keyElement(checker, ast);
   }
 }
@@ -1831,8 +1831,8 @@ visit_actionList(TypeChecker* checker, Ast* action_list)
   assert(action_list->kind == AST_actionList);
   Ast* ast;
 
-  for (ast = action_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = action_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_actionRef(checker, ast);
   }
 }
@@ -1860,8 +1860,8 @@ visit_entriesList(TypeChecker* checker, Ast* entries_list)
   assert(entries_list->kind == AST_entriesList);
   Ast* ast;
 
-  for (ast = entries_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = entries_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_entry(checker, ast);
   }
 }
@@ -1939,8 +1939,8 @@ visit_argumentList(TypeChecker* checker, Ast* args)
   assert(args->kind == AST_argumentList);
   Ast* ast;
 
-  for (ast = args->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = args->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_argument(checker, ast);
   }
 }
@@ -1960,8 +1960,8 @@ visit_expressionList(TypeChecker* checker, Ast* expr_list)
   assert(expr_list->kind == AST_expressionList);
   Ast* ast;
 
-  for (ast = expr_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = expr_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_expression(checker, ast);
   }
 }

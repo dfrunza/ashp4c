@@ -341,8 +341,8 @@ visit_declarationList(NameBinder* name_binder, Ast* decl_list)
   assert(decl_list->kind == AST_declarationList);
   Ast* ast;
 
-  for (ast = decl_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = decl_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_declaration(name_binder, ast);
   }
 }
@@ -393,8 +393,8 @@ visit_parameterList(NameBinder* name_binder, Ast* params)
   assert(params->kind == AST_parameterList);
   Ast* ast;
 
-  for (ast = params->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = params->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_parameter(name_binder, ast);
   }
 }
@@ -496,8 +496,8 @@ visit_parserLocalElements(NameBinder* name_binder, Ast* local_elements)
   assert(local_elements->kind == AST_parserLocalElements);
   Ast* ast;
 
-  for (ast = local_elements->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = local_elements->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_parserLocalElement(name_binder, ast);
   }
 }
@@ -519,8 +519,8 @@ visit_parserStates(NameBinder* name_binder, Ast* states)
   assert(states->kind == AST_parserStates);
   Ast* ast;
 
-  for (ast = states->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = states->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_parserState(name_binder, ast);
   }
 }
@@ -550,8 +550,8 @@ visit_parserStatements(NameBinder* name_binder, Ast* stmts)
   assert(stmts->kind == AST_parserStatements);
   Ast* ast;
 
-  for (ast = stmts->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = stmts->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_parserStatement(name_binder, ast);
   }
 }
@@ -620,8 +620,8 @@ visit_selectCaseList(NameBinder* name_binder, Ast* case_list)
   assert(case_list->kind == AST_selectCaseList);
   Ast* ast;
 
-  for (ast = case_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = case_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_selectCase(name_binder, ast);
   }
 }
@@ -671,8 +671,8 @@ visit_simpleExpressionList(NameBinder* name_binder, Ast* expr_list)
   assert(expr_list->kind == AST_simpleExpressionList);
   Ast* ast;
 
-  for (ast = expr_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = expr_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_simpleKeysetExpression(name_binder, ast);
   }
 }
@@ -722,8 +722,8 @@ visit_controlLocalDeclarations(NameBinder* name_binder, Ast* local_decls)
   assert(local_decls->kind == AST_controlLocalDeclarations);
   Ast* ast;
 
-  for (ast = local_decls->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = local_decls->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_controlLocalDeclaration(name_binder, ast);
   }
 }
@@ -780,8 +780,8 @@ visit_methodPrototypes(NameBinder* name_binder, Ast* protos, NameDeclaration* na
   assert(protos->kind == AST_methodPrototypes);
   Ast* ast;
 
-  for (ast = protos->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = protos->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_functionPrototype(name_binder, ast);
   }
 }
@@ -979,8 +979,8 @@ visit_typeArgumentList(NameBinder* name_binder, Ast* arg_list)
   assert(arg_list->kind == AST_typeArgumentList);
   Ast* ast;
 
-  for (ast = arg_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = arg_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_typeArg(name_binder, ast);
   }
 }
@@ -1077,8 +1077,8 @@ visit_structFieldList(NameBinder* name_binder, Ast* field_list, NameDeclaration*
   assert(field_list->kind == AST_structFieldList);
   Ast* ast;
 
-  for (ast = field_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = field_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_structField(name_binder, ast);
   }
 }
@@ -1161,8 +1161,8 @@ visit_identifierList(NameBinder* name_binder, Ast* ident_list)
   NameDeclaration* name_decl;
   int count = 0;
 
-  for (ast = ident_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = ident_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     name = ast;
     name_decl = scope_bind(name_binder->storage, name_binder->current_scope, name->name.strname, NAMESPACE_VAR);
     name_decl->ast = name;
@@ -1178,8 +1178,8 @@ visit_specifiedIdentifierList(NameBinder* name_binder, Ast* ident_list, NameDecl
   assert(ident_list->kind == AST_specifiedIdentifierList);
   Ast* ast;
 
-  for (ast = ident_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = ident_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_specifiedIdentifier(name_binder, ast);
   }
 }
@@ -1325,8 +1325,8 @@ visit_statementOrDeclList(NameBinder* name_binder, Ast* stmt_list)
   assert(stmt_list->kind == AST_statementOrDeclList);
   Ast* ast;
 
-  for (ast = stmt_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = stmt_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_statementOrDeclaration(name_binder, ast);
   }
 }
@@ -1345,8 +1345,8 @@ visit_switchCases(NameBinder* name_binder, Ast* switch_cases)
   assert(switch_cases->kind == AST_switchCases);
   Ast* ast;
 
-  for (ast = switch_cases->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = switch_cases->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_switchCase(name_binder, ast);
   }
 }
@@ -1412,8 +1412,8 @@ visit_tablePropertyList(NameBinder* name_binder, Ast* prop_list)
   assert(prop_list->kind == AST_tablePropertyList);
   Ast* ast;
 
-  for (ast = prop_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = prop_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_tableProperty(name_binder, ast);
   }
 }
@@ -1450,8 +1450,8 @@ visit_keyElementList(NameBinder* name_binder, Ast* element_list)
   assert(element_list->kind == AST_keyElementList);
   Ast* ast;
 
-  for (ast = element_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = element_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_keyElement(name_binder, ast);
   }
 }
@@ -1482,8 +1482,8 @@ visit_actionList(NameBinder* name_binder, Ast* action_list)
   assert(action_list->kind == AST_actionList);
   Ast* ast;
 
-  for (ast = action_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = action_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_actionRef(name_binder, ast);
   }
 }
@@ -1512,8 +1512,8 @@ visit_entriesList(NameBinder* name_binder, Ast* entries_list)
   assert(entries_list->kind == AST_entriesList);
   Ast* ast;
 
-  for (ast = entries_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = entries_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_entry(name_binder, ast);
   }
 }
@@ -1601,8 +1601,8 @@ visit_argumentList(NameBinder* name_binder, Ast* arg_list)
   assert(arg_list->kind == AST_argumentList);
   Ast* ast;
 
-  for (ast = arg_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = arg_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_argument(name_binder, ast);
   }
 }
@@ -1624,8 +1624,8 @@ visit_expressionList(NameBinder* name_binder, Ast* expr_list)
   assert(expr_list->kind == AST_expressionList);
   Ast* ast;
 
-  for (ast = expr_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = expr_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_expression(name_binder, ast);
   }
 }

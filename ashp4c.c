@@ -119,24 +119,30 @@ main(int arg_count, char* args[])
 
   source_text.storage = &scratch_storage;
   read_source(&source_text, filename->value);
+
   lexer.storage = &storage;
   tokenize(&lexer, &source_text);
+
   parser.storage = &storage;
   parser.source_file = source_text.filename;
   parser.tokens = lexer.tokens;
   parse(&parser);
   arena_free(&scratch_storage);
-  drypass(source_text.filename, parser.p4program);
+
+  drypass(parser.p4program);
   builtin_methods(&storage, source_text.filename, parser.p4program);
+
   scope_builder.storage = &storage;
   scope_builder.root_scope = parser.root_scope;
   scope_builder.p4program = parser.p4program;
   scope_hierarchy(&scope_builder);
+
   name_binder.storage = &storage;
   name_binder.p4program = parser.p4program;
   name_binder.root_scope = scope_builder.root_scope;
   name_binder.scope_map = scope_builder.scope_map;
   name_bind(&name_binder);
+
   type_checker.storage = &storage;
   type_checker.source_file = source_text.filename;
   type_checker.p4program = parser.p4program;
@@ -148,6 +154,7 @@ main(int arg_count, char* args[])
   potential_types(&type_checker);
   select_type(&type_checker);
   arena_free(&storage);
+
   return 0;
 }
 

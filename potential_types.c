@@ -230,8 +230,8 @@ visit_declarationList(TypeChecker* checker, Ast* decl_list)
   assert(decl_list->kind == AST_declarationList);
   Ast* ast;
 
-  for (ast = decl_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = decl_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_declaration(checker, ast);
   }
 }
@@ -332,8 +332,8 @@ visit_parameterList(TypeChecker* checker, Ast* params)
   assert(params->kind == AST_parameterList);
   Ast* ast;
 
-  for (ast = params->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = params->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_parameter(checker, ast);
   }
 }
@@ -399,8 +399,8 @@ visit_parserLocalElements(TypeChecker* checker, Ast* local_elements)
   assert(local_elements->kind == AST_parserLocalElements);
   Ast* ast;
 
-  for (ast = local_elements->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = local_elements->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_parserLocalElement(checker, ast);
   }
 }
@@ -422,8 +422,8 @@ visit_parserStates(TypeChecker* checker, Ast* states)
   assert(states->kind == AST_parserStates);
   Ast* ast;
 
-  for (ast = states->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = states->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_parserState(checker, ast);
   }
 }
@@ -442,8 +442,8 @@ visit_parserStatements(TypeChecker* checker, Ast* stmts)
   assert(stmts->kind == AST_parserStatements);
   Ast* ast;
 
-  for (ast = stmts->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = stmts->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_parserStatement(checker, ast);
   }
 }
@@ -515,8 +515,8 @@ visit_selectCaseList(TypeChecker* checker, Ast* case_list)
   tau = arena_malloc(checker->storage, sizeof(PotentialType));
   tau->kind = POTYPE_PRODUCT;
   map_insert(checker->storage, checker->potype_map, case_list, tau, 0);
-  for (ast = case_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = case_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_selectCase(checker, ast);
     tau->product.count += 1;
   }
@@ -524,8 +524,8 @@ visit_selectCaseList(TypeChecker* checker, Ast* case_list)
     tau->product.members = arena_malloc(checker->storage, tau->product.count*sizeof(PotentialType*));
   }
   i = 0;
-  for (ast = case_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = case_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     tau_case = map_lookup(checker->potype_map, ast, 0);
     tau->product.members[i] = tau_case;
     i += 1;
@@ -603,8 +603,8 @@ visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list)
   tau = arena_malloc(checker->storage, sizeof(PotentialType));
   tau->kind = POTYPE_PRODUCT;
   map_insert(checker->storage, checker->potype_map, expr_list, tau, 0);
-  for (ast = expr_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = expr_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_simpleKeysetExpression(checker, ast);
     tau->product.count += 1;
   }
@@ -612,8 +612,8 @@ visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list)
     tau->product.members = arena_malloc(checker->storage, tau->product.count*sizeof(PotentialType*));
   }
   i = 0;
-  for (ast = expr_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = expr_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     tau_expr = map_lookup(checker->potype_map, ast, 0);
     tau->product.members[i] = tau_expr;
     i += 1;
@@ -649,8 +649,8 @@ visit_controlLocalDeclarations(TypeChecker* checker, Ast* local_decls)
   assert(local_decls->kind == AST_controlLocalDeclarations);
   Ast* ast;
 
-  for (ast = local_decls->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = local_decls->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_controlLocalDeclaration(checker, ast);
   }
 }
@@ -696,8 +696,8 @@ visit_methodPrototypes(TypeChecker* checker, Ast* protos)
   assert(protos->kind == AST_methodPrototypes);
   Ast* ast;
 
-  for (ast = protos->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = protos->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_functionPrototype(checker, ast);
   }
 }
@@ -903,8 +903,8 @@ visit_typeArgumentList(TypeChecker* checker, Ast* args)
   assert(args->kind == AST_typeArgumentList);
   Ast* ast;
 
-  for (ast = args->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = args->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_typeArg(checker, ast);
   }
 }
@@ -968,8 +968,8 @@ visit_structFieldList(TypeChecker* checker, Ast* fields)
   assert(fields->kind == AST_structFieldList);
   Ast* ast;
 
-  for (ast = fields->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = fields->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_structField(checker, ast);
   }
 }
@@ -1014,8 +1014,8 @@ visit_specifiedIdentifierList(TypeChecker* checker, Ast* ident_list)
   assert(ident_list->kind == AST_specifiedIdentifierList);
   Ast* ast;
 
-  for (ast = ident_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = ident_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_specifiedIdentifier(checker, ast);
   }
 }
@@ -1147,8 +1147,8 @@ visit_statementOrDeclList(TypeChecker* checker, Ast* stmt_list)
   assert(stmt_list->kind == AST_statementOrDeclList);
   Ast* ast;
 
-  for (ast = stmt_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = stmt_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_statementOrDeclaration(checker, ast);
   }
 }
@@ -1167,8 +1167,8 @@ visit_switchCases(TypeChecker* checker, Ast* switch_cases)
   assert(switch_cases->kind == AST_switchCases);
   Ast* ast;
 
-  for (ast = switch_cases->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = switch_cases->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_switchCase(checker, ast);
   }
 }
@@ -1223,8 +1223,8 @@ visit_tablePropertyList(TypeChecker* checker, Ast* prop_list)
   assert(prop_list->kind == AST_tablePropertyList);
   Ast* ast;
 
-  for (ast = prop_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = prop_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_tableProperty(checker, ast);
   }
 }
@@ -1261,8 +1261,8 @@ visit_keyElementList(TypeChecker* checker, Ast* element_list)
   assert(element_list->kind == AST_keyElementList);
   Ast* ast;
 
-  for (ast = element_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = element_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_keyElement(checker, ast);
   }
 }
@@ -1288,8 +1288,8 @@ visit_actionList(TypeChecker* checker, Ast* action_list)
   assert(action_list->kind == AST_actionList);
   Ast* ast;
 
-  for (ast = action_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = action_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_actionRef(checker, ast);
   }
 }
@@ -1318,8 +1318,8 @@ visit_entriesList(TypeChecker* checker, Ast* entries_list)
   assert(entries_list->kind == AST_entriesList);
   Ast* ast;
 
-  for (ast = entries_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = entries_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_entry(checker, ast);
   }
 }
@@ -1389,8 +1389,8 @@ visit_argumentList(TypeChecker* checker, Ast* args)
   tau = arena_malloc(checker->storage, sizeof(PotentialType));
   tau->kind = POTYPE_PRODUCT;
   map_insert(checker->storage, checker->potype_map, args, tau, 0);
-  for (ast = args->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = args->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_argument(checker, ast);
     tau->product.count += 1;
   }
@@ -1398,8 +1398,8 @@ visit_argumentList(TypeChecker* checker, Ast* args)
     tau->product.members = arena_malloc(checker->storage, tau->product.count*sizeof(PotentialType*));
   }
   i = 0;
-  for (ast = args->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = args->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     tau_arg = map_lookup(checker->potype_map, ast, 0);
     tau->product.members[i] = tau_arg;
     i += 1;
@@ -1433,8 +1433,8 @@ visit_expressionList(TypeChecker* checker, Ast* expr_list)
   tau = arena_malloc(checker->storage, sizeof(PotentialType));
   tau->kind = POTYPE_PRODUCT;
   map_insert(checker->storage, checker->potype_map, expr_list, tau, 0);
-  for (ast = expr_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = expr_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     visit_expression(checker, ast, 0);
     tau->product.count += 1;
   }
@@ -1442,8 +1442,8 @@ visit_expressionList(TypeChecker* checker, Ast* expr_list)
     tau->product.members = arena_malloc(checker->storage, tau->product.count*sizeof(PotentialType*));
   }
   i = 0;
-  for (ast = expr_list->first_child;
-       ast != 0; ast = ast->right_sibling) {
+  for (ast = expr_list->tree.first_child;
+       ast != 0; ast = ast->tree.right_sibling) {
     tau_expr = map_lookup(checker->potype_map, ast, 0);
     tau->product.members[i] = tau_expr;
     i += 1;

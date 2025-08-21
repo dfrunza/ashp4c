@@ -1,3 +1,5 @@
+#include "ast_tree.h"
+
 typedef struct SourceText {
   Arena* storage;
   char*  text;
@@ -323,8 +325,7 @@ typedef struct Ast {
   enum AstEnum kind;
   int line_no;
   int column_no;
-  struct Ast* first_child;
-  struct Ast* right_sibling;
+  AstTree tree;
 
   union {
 
