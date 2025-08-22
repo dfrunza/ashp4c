@@ -1,3 +1,5 @@
+#pragma once
+
 typedef struct Ast Ast;
 
 typedef struct AstTree {
@@ -6,7 +8,7 @@ typedef struct AstTree {
 } AstTree;
 
 typedef struct AstTreeCtor {
-  AstTree* last_sibling;
+  Ast* last_sibling;
 } AstTreeCtor;
 
 void ast_tree_append_node(AstTree* tree, AstTreeCtor* ctor, Ast* node);

@@ -842,7 +842,6 @@ typedef struct Parser {
   Token* prev_token;
   Scope* current_scope;
   Scope* root_scope;
-  AstTreeCtor tree_ctor;
 } Parser;
 
 typedef struct ScopeBuilder {

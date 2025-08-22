@@ -1009,10 +1009,6 @@ void parse(Parser* parser)
   next_token(parser);
   parser->p4program = parse_p4program(parser);
   assert(parser->current_scope == parser->root_scope);
-
-  Ast* ast;
-  ast = container_of(parser->p4program, Ast, tree.first_child);
-  printf("%x=%x\n", ast, parser->p4program);
 }
 
 /** PROGRAM **/
@@ -1043,6 +1039,7 @@ static Ast* parse_p4program(Parser* parser)
 static Ast* parse_declarationList(Parser* parser)
 {
   Ast* decls, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   decls = arena_malloc(parser->storage, sizeof(Ast));
   decls->kind = AST_declarationList;
@@ -1050,11 +1047,11 @@ static Ast* parse_declarationList(Parser* parser)
   decls->column_no = parser->token->column_no;
   if (token_is_declaration(parser->token)) {
     ast = parse_declaration(parser);
-    decls->tree.first_child = ast;
+    ast_tree_append_node(&decls->tree, &tree_ctor, ast);
     while (token_is_declaration(parser->token) || parser->token->klass == TK_SEMICOLON) {
       if (token_is_declaration(parser->token)) {
-        ast->tree.right_sibling = parse_declaration(parser);
-        ast = ast->tree.right_sibling;
+        ast = parse_declaration(parser);
+        ast_tree_append_node(&decls->tree, &tree_ctor, ast);
       } else if (parser->token->klass == TK_SEMICOLON) {
         next_token(parser); /* empty declaration */
       }
@@ -1170,6 +1167,7 @@ static Ast* parse_name(Parser* parser)
 static Ast* parse_parameterList(Parser* parser)
 {
   Ast* params, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   params = arena_malloc(parser->storage, sizeof(Ast));
   params->kind = AST_parameterList;
@@ -1177,11 +1175,11 @@ static Ast* parse_parameterList(Parser* parser)
   params->column_no = parser->token->column_no;
   if (token_is_parameter(parser->token)) {
     ast = parse_parameter(parser);
-    params->tree.first_child = ast;
+    ast_tree_append_node(&params->tree, &tree_ctor, ast);
     while (parser->token->klass == TK_COMMA) {
       next_token(parser);
-      ast->tree.right_sibling = parse_parameter(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_parameter(parser);
+      ast_tree_append_node(&params->tree, &tree_ctor, ast);
     }
   }
   return params;
@@ -1352,6 +1350,7 @@ static Ast* parse_parserDeclaration(Parser* parser, Ast* parser_proto)
 static Ast* parse_parserLocalElements(Parser* parser)
 {
   Ast* elems, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   elems = arena_malloc(parser->storage, sizeof(Ast));
   elems->kind = AST_parserLocalElements;
@@ -1359,10 +1358,10 @@ static Ast* parse_parserLocalElements(Parser* parser)
   elems->column_no = parser->token->column_no;
   if (token_is_parserLocalElement(parser->token)) {
     ast = parse_parserLocalElement(parser);
-    elems->tree.first_child = ast;
+    ast_tree_append_node(&elems->tree, &tree_ctor, ast);
     while (token_is_parserLocalElement(parser->token)) {
-      ast->tree.right_sibling = parse_parserLocalElement(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_parserLocalElement(parser);
+      ast_tree_append_node(&elems->tree, &tree_ctor, ast);
     }
   }
   return elems;
@@ -1437,6 +1436,7 @@ static Ast* parse_parserTypeDeclaration(Parser* parser)
 static Ast* parse_parserStates(Parser* parser)
 {
   Ast* states, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   states = arena_malloc(parser->storage, sizeof(Ast));
   states->kind = AST_parserStates;
@@ -1444,10 +1444,10 @@ static Ast* parse_parserStates(Parser* parser)
   states->column_no = parser->token->column_no;
   if (parser->token->klass == TK_STATE) {
     ast = parse_parserState(parser);
-    states->tree.first_child = ast;
+    ast_tree_append_node(&states->tree, &tree_ctor, ast);
     while (parser->token->klass == TK_STATE) {
-      ast->tree.right_sibling = parse_parserState(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_parserState(parser);
+      ast_tree_append_node(&states->tree, &tree_ctor, ast);
     }
   }
   return states;
@@ -1484,6 +1484,7 @@ static Ast* parse_parserState(Parser* parser)
 static Ast* parse_parserStatements(Parser* parser)
 {
   Ast* stmts, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   stmts = arena_malloc(parser->storage, sizeof(Ast));
   stmts->kind = AST_parserStatements;
@@ -1491,10 +1492,10 @@ static Ast* parse_parserStatements(Parser* parser)
   stmts->column_no = parser->token->column_no;
   if (token_is_parserStatement(parser->token)) {
     ast = parse_parserStatement(parser);
-    stmts->tree.first_child = ast;
+    ast_tree_append_node(&stmts->tree, &tree_ctor, ast);
     while (token_is_parserStatement(parser->token)) {
-      ast->tree.right_sibling = parse_parserStatement(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_parserStatement(parser);
+      ast_tree_append_node(&stmts->tree, &tree_ctor, ast);
     }
   }
   return stmts;
@@ -1646,6 +1647,7 @@ static Ast* parse_selectExpression(Parser* parser)
 static Ast* parse_selectCaseList(Parser* parser)
 {
   Ast* cases, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   cases = arena_malloc(parser->storage, sizeof(Ast));
   cases->kind = AST_selectCaseList;
@@ -1653,10 +1655,10 @@ static Ast* parse_selectCaseList(Parser* parser)
   cases->column_no = parser->token->column_no;
   if (token_is_selectCase(parser->token)) {
     ast = parse_selectCase(parser);
-    cases->tree.first_child = ast;
+    ast_tree_append_node(&cases->tree, &tree_ctor, ast);
     while (token_is_selectCase(parser->token)) {
-      ast->tree.right_sibling = parse_selectCase(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_selectCase(parser);
+      ast_tree_append_node(&cases->tree, &tree_ctor, ast);
     }
   }
   return cases;
@@ -1738,6 +1740,7 @@ static Ast* parse_tupleKeysetExpression(Parser* parser)
 static Ast* parse_simpleExpressionList(Parser* parser)
 {
   Ast* exprs, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   exprs = arena_malloc(parser->storage, sizeof(Ast));
   exprs->kind = AST_simpleExpressionList;
@@ -1745,11 +1748,11 @@ static Ast* parse_simpleExpressionList(Parser* parser)
   exprs->column_no = parser->token->column_no;
   if (token_is_expression(parser->token)) {
     ast = parse_simpleKeysetExpression(parser);
-    exprs->tree.first_child = ast;
+    ast_tree_append_node(&exprs->tree, &tree_ctor, ast);
     while (parser->token->klass == TK_COMMA) {
       next_token(parser);
-      ast->tree.right_sibling = parse_simpleKeysetExpression(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_simpleKeysetExpression(parser);
+      ast_tree_append_node(&exprs->tree, &tree_ctor, ast);
     }
   }
   return exprs;
@@ -1899,6 +1902,7 @@ static Ast* parse_controlLocalDeclaration(Parser* parser)
 static Ast* parse_controlLocalDeclarations(Parser* parser)
 {
   Ast* decls, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   decls = arena_malloc(parser->storage, sizeof(Ast));
   decls->kind = AST_controlLocalDeclarations;
@@ -1906,10 +1910,10 @@ static Ast* parse_controlLocalDeclarations(Parser* parser)
   decls->column_no = parser->token->column_no;
   if (token_is_controlLocalDeclaration(parser->token)) {
     ast = parse_controlLocalDeclaration(parser);
-    decls->tree.first_child = ast;
+    ast_tree_append_node(&decls->tree, &tree_ctor, ast);
     while (token_is_controlLocalDeclaration(parser->token)) {
-      ast->tree.right_sibling = parse_controlLocalDeclaration(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_controlLocalDeclaration(parser);
+      ast_tree_append_node(&decls->tree, &tree_ctor, ast);
     }
   }
   return decls;
@@ -1975,6 +1979,7 @@ static Ast* parse_externDeclaration(Parser* parser)
 static Ast* parse_methodPrototypes(Parser* parser)
 {
   Ast* protos, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   protos = arena_malloc(parser->storage, sizeof(Ast));
   protos->kind = AST_methodPrototypes;
@@ -1982,10 +1987,10 @@ static Ast* parse_methodPrototypes(Parser* parser)
   protos->column_no = parser->token->column_no;
   if (token_is_methodPrototype(parser->token)) {
     ast = parse_methodPrototype(parser);
-    protos->tree.first_child = ast;
+    ast_tree_append_node(&protos->tree, &tree_ctor, ast);
     while (token_is_methodPrototype(parser->token)) {
-      ast->tree.right_sibling = parse_methodPrototype(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_methodPrototype(parser);
+      ast_tree_append_node(&protos->tree, &tree_ctor, ast);
     }
   }
   return protos;
@@ -2407,6 +2412,7 @@ static Ast* parse_typeArg(Parser* parser)
 static Ast* parse_typeArgumentList(Parser* parser)
 {
   Ast* args, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   args = arena_malloc(parser->storage, sizeof(Ast));
   args->kind = AST_typeArgumentList;
@@ -2414,11 +2420,11 @@ static Ast* parse_typeArgumentList(Parser* parser)
   args->column_no = parser->token->column_no;
   if (token_is_typeArg(parser->token)) {
     ast = parse_typeArg(parser);
-    args->tree.first_child = ast;
+    ast_tree_append_node(&args->tree, &tree_ctor, ast);
     while (parser->token->klass == TK_COMMA) {
       next_token(parser);
-      ast->tree.right_sibling = parse_typeArg(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_typeArg(parser);
+      ast_tree_append_node(&args->tree, &tree_ctor, ast);
     }
   }
   return args;
@@ -2589,6 +2595,7 @@ static Ast* parse_structTypeDeclaration(Parser* parser)
 static Ast* parse_structFieldList(Parser* parser)
 {
   Ast* fields, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   fields = arena_malloc(parser->storage, sizeof(Ast));
   fields->kind = AST_structFieldList;
@@ -2596,10 +2603,10 @@ static Ast* parse_structFieldList(Parser* parser)
   fields->column_no = parser->token->column_no;
   if (token_is_structField(parser->token)) {
     ast = parse_structField(parser);
-    fields->tree.first_child = ast;
+    ast_tree_append_node(&fields->tree, &tree_ctor, ast);
     while (token_is_structField(parser->token)) {
-      ast->tree.right_sibling = parse_structField(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_structField(parser);
+      ast_tree_append_node(&fields->tree, &tree_ctor, ast);
     }
   }
   return fields;
@@ -2743,6 +2750,7 @@ static Ast* parse_matchKindDeclaration(Parser* parser)
 static Ast* parse_identifierList(Parser* parser)
 {
   Ast* ids, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   ids = arena_malloc(parser->storage, sizeof(Ast));
   ids->kind = AST_identifierList;
@@ -2750,11 +2758,11 @@ static Ast* parse_identifierList(Parser* parser)
   ids->column_no = parser->token->column_no;
   if (token_is_name(parser->token)) {
     ast = parse_name(parser);
-    ids->tree.first_child = ast;
+    ast_tree_append_node(&ids->tree, &tree_ctor, ast);
     while (parser->token->klass == TK_COMMA) {
       next_token(parser);
-      ast->tree.right_sibling = parse_name(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_name(parser);
+      ast_tree_append_node(&ids->tree, &tree_ctor, ast);
     }
   }
   return ids;
@@ -2763,6 +2771,7 @@ static Ast* parse_identifierList(Parser* parser)
 static Ast* parse_specifiedIdentifierList(Parser* parser)
 {
   Ast* ids, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   ids = arena_malloc(parser->storage, sizeof(Ast));
   ids->kind = AST_specifiedIdentifierList;
@@ -2770,11 +2779,11 @@ static Ast* parse_specifiedIdentifierList(Parser* parser)
   ids->column_no = parser->token->column_no;
   if (token_is_specifiedIdentifier(parser->token)) {
     ast = parse_specifiedIdentifier(parser);
-    ids->tree.first_child = ast;
+    ast_tree_append_node(&ids->tree, &tree_ctor, ast);
     while (parser->token->klass == TK_COMMA) {
       next_token(parser);
-      ast->tree.right_sibling = parse_specifiedIdentifier(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_specifiedIdentifier(parser);
+      ast_tree_append_node(&ids->tree, &tree_ctor, ast);
     }
   }
   return ids;
@@ -3078,6 +3087,7 @@ static Ast* parse_blockStatement(Parser* parser)
 static Ast* parse_statementOrDeclList(Parser* parser)
 {
   Ast* stmts, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   stmts = arena_malloc(parser->storage, sizeof(Ast));
   stmts->kind = AST_statementOrDeclList;
@@ -3085,10 +3095,10 @@ static Ast* parse_statementOrDeclList(Parser* parser)
   stmts->column_no = parser->token->column_no;
   if (token_is_statementOrDeclaration(parser->token)) {
     ast = parse_statementOrDeclaration(parser);
-    stmts->tree.first_child = ast;
+    ast_tree_append_node(&stmts->tree, &tree_ctor, ast);
     while (token_is_statementOrDeclaration(parser->token)) {
-      ast->tree.right_sibling = parse_statementOrDeclaration(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_statementOrDeclaration(parser);
+      ast_tree_append_node(&stmts->tree, &tree_ctor, ast);
     }
   }
   return stmts;
@@ -3132,6 +3142,7 @@ static Ast* parse_switchStatement(Parser* parser)
 static Ast* parse_switchCases(Parser* parser)
 {
   Ast* cases, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   cases = arena_malloc(parser->storage, sizeof(Ast));
   cases->kind = AST_switchCases;
@@ -3139,10 +3150,10 @@ static Ast* parse_switchCases(Parser* parser)
   cases->column_no = parser->token->column_no;
   if (token_is_switchLabel(parser->token)) {
     ast = parse_switchCase(parser);
-    cases->tree.first_child = ast;
+    ast_tree_append_node(&cases->tree, &tree_ctor, ast);
     while (token_is_switchLabel(parser->token)) {
-      ast->tree.right_sibling = parse_switchCase(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_switchCase(parser);
+      ast_tree_append_node(&cases->tree, &tree_ctor, ast);
     }
   }
   return cases;
@@ -3273,6 +3284,7 @@ static Ast* parse_tableDeclaration(Parser* parser)
 static Ast* parse_tablePropertyList(Parser* parser)
 {
   Ast* props, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   props = arena_malloc(parser->storage, sizeof(Ast));
   props->kind = AST_tablePropertyList;
@@ -3280,10 +3292,10 @@ static Ast* parse_tablePropertyList(Parser* parser)
   props->column_no = parser->token->column_no;
   if (token_is_tableProperty(parser->token)) {
     ast = parse_tableProperty(parser);
-    props->tree.first_child = ast;
+    ast_tree_append_node(&props->tree, &tree_ctor, ast);
     while (token_is_tableProperty(parser->token)) {
-      ast->tree.right_sibling = parse_tableProperty(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_tableProperty(parser);
+      ast_tree_append_node(&props->tree, &tree_ctor, ast);
     }
   }
   return props;
@@ -3408,6 +3420,7 @@ static Ast* parse_tableProperty(Parser* parser)
 static Ast* parse_keyElementList(Parser* parser)
 {
   Ast* elems, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   elems = arena_malloc(parser->storage, sizeof(Ast));
   elems->kind = AST_keyElementList;
@@ -3415,10 +3428,10 @@ static Ast* parse_keyElementList(Parser* parser)
   elems->column_no = parser->token->column_no;
   if (token_is_expression(parser->token)) {
     ast = parse_keyElement(parser);
-    elems->tree.first_child = ast;
+    ast_tree_append_node(&elems->tree, &tree_ctor, ast);
     while (token_is_expression(parser->token)) {
-      ast->tree.right_sibling = parse_keyElement(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_keyElement(parser);
+      ast_tree_append_node(&elems->tree, &tree_ctor, ast);
     }
   }
   return elems;
@@ -3453,6 +3466,7 @@ static Ast* parse_keyElement(Parser* parser)
 static Ast* parse_actionList(Parser* parser)
 {
   Ast* actions, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   actions = arena_malloc(parser->storage, sizeof(Ast));
   actions->kind = AST_actionList;
@@ -3460,14 +3474,14 @@ static Ast* parse_actionList(Parser* parser)
   actions->column_no = parser->token->column_no;
   if (token_is_actionRef(parser->token)) {
     ast = parse_actionRef(parser);
-    actions->tree.first_child = ast;
+    ast_tree_append_node(&actions->tree, &tree_ctor, ast);
     if (parser->token->klass == TK_SEMICOLON) {
       next_token(parser);
     } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                  parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
     while (token_is_actionRef(parser->token)) {
-      ast->tree.right_sibling = parse_actionRef(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_actionRef(parser);
+      ast_tree_append_node(&actions->tree, &tree_ctor, ast);
       if (parser->token->klass == TK_SEMICOLON) {
         next_token(parser);
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
@@ -3511,6 +3525,7 @@ static Ast* parse_actionRef(Parser* parser)
 static Ast* parse_entriesList(Parser* parser)
 {
   Ast* entries, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   entries = arena_malloc(parser->storage, sizeof(Ast));
   entries->kind = AST_entriesList;
@@ -3518,10 +3533,10 @@ static Ast* parse_entriesList(Parser* parser)
   entries->column_no = parser->token->column_no;
   if (token_is_keysetExpression(parser->token)) {
     ast = parse_entry(parser);
-    entries->tree.first_child = ast;
+    ast_tree_append_node(&entries->tree, &tree_ctor, ast);
     while (token_is_keysetExpression(parser->token)) {
-      ast->tree.right_sibling = parse_entry(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_entry(parser);
+      ast_tree_append_node(&entries->tree, &tree_ctor, ast);
     }
   }
   return entries;
@@ -3651,6 +3666,7 @@ static Ast* parse_functionDeclaration(Parser* parser, Ast* type_ref)
 static Ast* parse_argumentList(Parser* parser)
 {
   Ast* args, *ast;
+  AstTreeCtor tree_ctor = {0};
 
   args = arena_malloc(parser->storage, sizeof(Ast));
   args->kind = AST_argumentList;
@@ -3658,11 +3674,11 @@ static Ast* parse_argumentList(Parser* parser)
   args->column_no = parser->token->column_no;
   if (token_is_argument(parser->token)) {
     ast = parse_argument(parser);
-    args->tree.first_child = ast;
+    ast_tree_append_node(&args->tree, &tree_ctor, ast);
     while (parser->token->klass == TK_COMMA) {
       next_token(parser);
-      ast->tree.right_sibling = parse_argument(parser);
-      ast = ast->tree.right_sibling;
+      ast = parse_argument(parser);
+      ast_tree_append_node(&args->tree, &tree_ctor, ast);
     }
   }
   return args;
@@ -3697,17 +3713,20 @@ static Ast* parse_argument(Parser* parser)
 
 static Ast* parse_expressionList(Parser* parser)
 {
-  Ast* exprs = arena_malloc(parser->storage, sizeof(Ast));
+  Ast* exprs, *ast;
+  AstTreeCtor tree_ctor = {0};
+  
+  exprs = arena_malloc(parser->storage, sizeof(Ast));
   exprs->kind = AST_expressionList;
   exprs->line_no = parser->token->line_no;
   exprs->column_no = parser->token->column_no;
   if (token_is_expression(parser->token)) {
-    Ast* ast = parse_expression(parser, 1);
-    exprs->tree.first_child = ast;
+    ast = parse_expression(parser, 1);
+    ast_tree_append_node(&exprs->tree, &tree_ctor, ast);
     while (parser->token->klass == TK_COMMA) {
       next_token(parser);
-      ast->tree.right_sibling = parse_expression(parser, 1);
-      ast = ast->tree.right_sibling;
+      ast = parse_expression(parser, 1);
+      ast_tree_append_node(&exprs->tree, &tree_ctor, ast);
     }
   }
   return exprs;
