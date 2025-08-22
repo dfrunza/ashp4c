@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>   /* exit */
-#include <math.h>  /* floor, ceil, log2 */
+#include <stdlib.h>
+#include <math.h>
 #include "foundation.h"
 
-void
-array_extend(Arena* storage, Array* array, int elem_size)
+void array_extend(Arena* storage, Array* array, int elem_size)
 {
   assert(elem_size > 0);
   assert(array->elem_count >= array->capacity);
@@ -22,8 +21,7 @@ array_extend(Arena* storage, Array* array, int elem_size)
   array->capacity = 16 * ((1 << (last_segment + 1)) - 1);
 }
 
-Array*
-array_create(Arena* storage, int elem_size, int segment_count)
+Array* array_create(Arena* storage, int elem_size, int segment_count)
 {
   assert(elem_size > 0);
   assert(segment_count >= 1 && segment_count <= 16);
@@ -34,8 +32,7 @@ array_create(Arena* storage, int elem_size, int segment_count)
   return array;
 }
 
-void
-array_init(Arena* storage, Array* array, int elem_size, int segment_count)
+void array_init(Arena* storage, Array* array, int elem_size, int segment_count)
 {
   assert(elem_size > 0);
   assert(segment_count >= 1);
@@ -45,8 +42,7 @@ array_init(Arena* storage, Array* array, int elem_size, int segment_count)
   array->data.segments[0] = arena_malloc(storage, 16 * elem_size);
 }
 
-void*
-segment_locate_cell(SegmentTable* data, int i, int elem_size)
+void* segment_locate_cell(SegmentTable* data, int i, int elem_size)
 {
   assert(elem_size > 0);
   int segment_index, elem_offset;
@@ -58,8 +54,7 @@ segment_locate_cell(SegmentTable* data, int i, int elem_size)
   return elem_slot;
 }
 
-void*
-array_get(Array* array, int i, int elem_size)
+void* array_get(Array* array, int i, int elem_size)
 {
   assert(elem_size > 0);
   assert(i >= 0 && i < array->elem_count);
@@ -69,8 +64,7 @@ array_get(Array* array, int i, int elem_size)
   return elem_slot;
 }
 
-void*
-array_append(Arena* storage, Array* array, int elem_size)
+void* array_append(Arena* storage, Array* array, int elem_size)
 {
   assert(elem_size > 0);
   void* elem_slot;

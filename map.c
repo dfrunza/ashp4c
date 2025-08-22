@@ -2,8 +2,7 @@
 #include <stdint.h>
 #include "foundation.h"
 
-static MapEntry*
-search_entry(MapEntry* entry, void* key)
+static MapEntry* search_entry(MapEntry* entry, void* key)
 {
   if (!entry) {
     return 0;
@@ -18,8 +17,7 @@ search_entry(MapEntry* entry, void* key)
   return 0;
 }
 
-static MapEntry*
-insert_entry(Arena* storage, Map* map, MapEntry** branch, MapEntry* entry,
+static MapEntry* insert_entry(Arena* storage, Map* map, MapEntry** branch, MapEntry* entry,
     void* key, void* value, bool return_if_found)
 {
   if (!entry) {
@@ -45,8 +43,7 @@ insert_entry(Arena* storage, Map* map, MapEntry** branch, MapEntry* entry,
   return 0;
 }
 
-void*
-map_lookup(Map* map, void* key, MapEntry** entry)
+void* map_lookup(Map* map, void* key, MapEntry** entry)
 {
   MapEntry* m;
   void* value;
@@ -58,8 +55,7 @@ map_lookup(Map* map, void* key, MapEntry** entry)
   return value;
 }
 
-MapEntry*
-map_insert(Arena* storage, Map* map, void* key, void* value, bool return_if_found)
+MapEntry* map_insert(Arena* storage, Map* map, void* key, void* value, bool return_if_found)
 {
   return insert_entry(storage, map, &map->root, map->root, key, value, return_if_found);
 }

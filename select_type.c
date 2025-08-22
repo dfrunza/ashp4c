@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>   /* exit */
+#include <stdlib.h>
 #include "foundation.h"
 #include "frontend.h"
 
@@ -139,23 +139,20 @@ static void visit_stringLiteral(TypeChecker* checker, Ast* str_literal);
 static void visit_default(TypeChecker* checker, Ast* default_);
 static void visit_dontcare(TypeChecker* checker, Ast* dontcare);
 
-void
-select_type(TypeChecker* checker)
+void select_type(TypeChecker* checker)
 {
   visit_p4program(checker, checker->p4program);
 }
 
 /** PROGRAM **/
 
-static void
-visit_p4program(TypeChecker* checker, Ast* p4program)
+static void visit_p4program(TypeChecker* checker, Ast* p4program)
 {
   assert(p4program->kind == AST_p4program);
   visit_declarationList(checker, p4program->p4program.decl_list);
 }
 
-static void
-visit_declarationList(TypeChecker* checker, Ast* decl_list)
+static void visit_declarationList(TypeChecker* checker, Ast* decl_list)
 {
   assert(decl_list->kind == AST_declarationList);
   Ast* ast;
@@ -166,8 +163,7 @@ visit_declarationList(TypeChecker* checker, Ast* decl_list)
   }
 }
 
-static void
-visit_declaration(TypeChecker* checker, Ast* decl)
+static void visit_declaration(TypeChecker* checker, Ast* decl)
 {
   assert(decl->kind == AST_declaration);
   if (decl->declaration.decl->kind == AST_variableDeclaration) {
@@ -197,8 +193,7 @@ visit_declaration(TypeChecker* checker, Ast* decl)
   } else assert(0);
 }
 
-static void
-visit_name(TypeChecker* checker, Ast* name, Type* required_ty)
+static void visit_name(TypeChecker* checker, Ast* name, Type* required_ty)
 {
   assert(name->kind == AST_name);
   PotentialType* name_tau;
@@ -223,8 +218,7 @@ visit_name(TypeChecker* checker, Ast* name, Type* required_ty)
   }
 }
 
-static void
-visit_parameterList(TypeChecker* checker, Ast* params)
+static void visit_parameterList(TypeChecker* checker, Ast* params)
 {
   assert(params->kind == AST_parameterList);
   Ast* ast;
@@ -235,8 +229,7 @@ visit_parameterList(TypeChecker* checker, Ast* params)
   }
 }
 
-static void
-visit_parameter(TypeChecker* checker, Ast* param)
+static void visit_parameter(TypeChecker* checker, Ast* param)
 {
   assert(param->kind == AST_parameter);
   if (param->parameter.init_expr) {
@@ -244,14 +237,12 @@ visit_parameter(TypeChecker* checker, Ast* param)
   }
 }
 
-static void
-visit_packageTypeDeclaration(TypeChecker* checker, Ast* type_decl)
+static void visit_packageTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 {
   assert(type_decl->kind == AST_packageTypeDeclaration);
 }
 
-static void
-visit_instantiation(TypeChecker* checker, Ast* inst)
+static void visit_instantiation(TypeChecker* checker, Ast* inst)
 {
   assert(inst->kind == AST_instantiation);
   //visit_typeRef(checker, inst->instantiation.type);
@@ -260,22 +251,19 @@ visit_instantiation(TypeChecker* checker, Ast* inst)
 
 /** PARSER **/
 
-static void
-visit_parserDeclaration(TypeChecker* checker, Ast* parser_decl)
+static void visit_parserDeclaration(TypeChecker* checker, Ast* parser_decl)
 {
   assert(parser_decl->kind == AST_parserDeclaration);
   visit_parserLocalElements(checker, parser_decl->parserDeclaration.local_elements);
   visit_parserStates(checker, parser_decl->parserDeclaration.states);
 }
 
-static void
-visit_parserTypeDeclaration(TypeChecker* checker, Ast* type_decl)
+static void visit_parserTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 {
   assert(type_decl->kind == AST_parserTypeDeclaration);
 }
 
-static void
-visit_parserLocalElements(TypeChecker* checker, Ast* local_elements)
+static void visit_parserLocalElements(TypeChecker* checker, Ast* local_elements)
 {
   assert(local_elements->kind == AST_parserLocalElements);
   Ast* ast;
@@ -286,8 +274,7 @@ visit_parserLocalElements(TypeChecker* checker, Ast* local_elements)
   }
 }
 
-static void
-visit_parserLocalElement(TypeChecker* checker, Ast* local_element)
+static void visit_parserLocalElement(TypeChecker* checker, Ast* local_element)
 {
   assert(local_element->kind == AST_parserLocalElement);
   if (local_element->parserLocalElement.element->kind == AST_variableDeclaration) {
@@ -297,8 +284,7 @@ visit_parserLocalElement(TypeChecker* checker, Ast* local_element)
   } else assert(0);
 }
 
-static void
-visit_parserStates(TypeChecker* checker, Ast* states)
+static void visit_parserStates(TypeChecker* checker, Ast* states)
 {
   assert(states->kind == AST_parserStates);
   Ast* ast;
@@ -309,16 +295,14 @@ visit_parserStates(TypeChecker* checker, Ast* states)
   }
 }
 
-static void
-visit_parserState(TypeChecker* checker, Ast* state)
+static void visit_parserState(TypeChecker* checker, Ast* state)
 {
   assert(state->kind == AST_parserState);
   visit_parserStatements(checker, state->parserState.stmt_list);
   visit_transitionStatement(checker, state->parserState.transition_stmt);
 }
 
-static void
-visit_parserStatements(TypeChecker* checker, Ast* stmts)
+static void visit_parserStatements(TypeChecker* checker, Ast* stmts)
 {
   assert(stmts->kind == AST_parserStatements);
   Ast* ast;
@@ -329,8 +313,7 @@ visit_parserStatements(TypeChecker* checker, Ast* stmts)
   }
 }
 
-static void
-visit_parserStatement(TypeChecker* checker, Ast* stmt)
+static void visit_parserStatement(TypeChecker* checker, Ast* stmt)
 {
   assert(stmt->kind == AST_parserStatement);
   if (stmt->parserStatement.stmt->kind == AST_assignmentStatement) {
@@ -348,22 +331,19 @@ visit_parserStatement(TypeChecker* checker, Ast* stmt)
   } else assert(0);
 }
 
-static void
-visit_parserBlockStatement(TypeChecker* checker, Ast* block_stmt)
+static void visit_parserBlockStatement(TypeChecker* checker, Ast* block_stmt)
 {
   assert(block_stmt->kind == AST_parserBlockStatement);
   visit_parserStatements(checker, block_stmt->parserBlockStatement.stmt_list);
 }
 
-static void
-visit_transitionStatement(TypeChecker* checker, Ast* transition_stmt)
+static void visit_transitionStatement(TypeChecker* checker, Ast* transition_stmt)
 {
   assert(transition_stmt->kind == AST_transitionStatement);
   visit_stateExpression(checker, transition_stmt->transitionStatement.stmt);
 }
 
-static void
-visit_stateExpression(TypeChecker* checker, Ast* state_expr)
+static void visit_stateExpression(TypeChecker* checker, Ast* state_expr)
 {
   assert(state_expr->kind == AST_stateExpression);
   if (state_expr->stateExpression.expr->kind == AST_name) {
@@ -373,8 +353,7 @@ visit_stateExpression(TypeChecker* checker, Ast* state_expr)
   } else assert(0);
 }
 
-static void
-visit_selectExpression(TypeChecker* checker, Ast* select_expr)
+static void visit_selectExpression(TypeChecker* checker, Ast* select_expr)
 {
   assert(select_expr->kind == AST_selectExpression);
   Type* list_ty;
@@ -384,8 +363,7 @@ visit_selectExpression(TypeChecker* checker, Ast* select_expr)
   visit_selectCaseList(checker, select_expr->selectExpression.case_list, list_ty);
 }
 
-static void
-visit_selectCaseList(TypeChecker* checker, Ast* case_list, Type* required_ty)
+static void visit_selectCaseList(TypeChecker* checker, Ast* case_list, Type* required_ty)
 {
   assert(case_list->kind == AST_selectCaseList);
   Ast* ast;
@@ -396,16 +374,14 @@ visit_selectCaseList(TypeChecker* checker, Ast* case_list, Type* required_ty)
   }
 }
 
-static void
-visit_selectCase(TypeChecker* checker, Ast* select_case, Type* required_ty)
+static void visit_selectCase(TypeChecker* checker, Ast* select_case, Type* required_ty)
 {
   assert(select_case->kind == AST_selectCase);
   visit_keysetExpression(checker, select_case->selectCase.keyset_expr, required_ty);
   visit_name(checker, select_case->selectCase.name, 0);
 }
 
-static void
-visit_keysetExpression(TypeChecker* checker, Ast* keyset_expr, Type* required_ty)
+static void visit_keysetExpression(TypeChecker* checker, Ast* keyset_expr, Type* required_ty)
 {
   assert(keyset_expr->kind == AST_keysetExpression);
   Type* keyset_ty;
@@ -420,8 +396,7 @@ visit_keysetExpression(TypeChecker* checker, Ast* keyset_expr, Type* required_ty
   map_insert(checker->storage, checker->type_env, keyset_expr, keyset_ty, 0);
 }
 
-static void
-visit_tupleKeysetExpression(TypeChecker* checker, Ast* tuple_expr, Type* required_ty)
+static void visit_tupleKeysetExpression(TypeChecker* checker, Ast* tuple_expr, Type* required_ty)
 {
   assert(tuple_expr->kind == AST_tupleKeysetExpression);
   Type* tuple_ty;
@@ -431,8 +406,7 @@ visit_tupleKeysetExpression(TypeChecker* checker, Ast* tuple_expr, Type* require
   map_insert(checker->storage, checker->type_env, tuple_expr, tuple_ty, 0);
 }
 
-static void
-visit_simpleKeysetExpression(TypeChecker* checker, Ast* simple_expr, Type* required_ty)
+static void visit_simpleKeysetExpression(TypeChecker* checker, Ast* simple_expr, Type* required_ty)
 {
   assert(simple_expr->kind == AST_simpleKeysetExpression);
   Type* simple_ty;
@@ -458,8 +432,7 @@ visit_simpleKeysetExpression(TypeChecker* checker, Ast* simple_expr, Type* requi
   }
 }
 
-static void
-visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list, Type* required_ty)
+static void visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list, Type* required_ty)
 {
   assert(expr_list->kind == AST_simpleExpressionList);
   Ast* ast;
@@ -489,8 +462,7 @@ visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list, Type* required_
 
 /** CONTROL **/
 
-static void
-visit_controlDeclaration(TypeChecker* checker, Ast* control_decl)
+static void visit_controlDeclaration(TypeChecker* checker, Ast* control_decl)
 {
   assert(control_decl->kind == AST_controlDeclaration);
   visit_typeDeclaration(checker, control_decl->controlDeclaration.proto);
@@ -501,14 +473,12 @@ visit_controlDeclaration(TypeChecker* checker, Ast* control_decl)
   visit_blockStatement(checker, control_decl->controlDeclaration.apply_stmt);
 }
 
-static void
-visit_controlTypeDeclaration(TypeChecker* checker, Ast* type_decl)
+static void visit_controlTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 {
   assert(type_decl->kind == AST_controlTypeDeclaration);
 }
 
-static void
-visit_controlLocalDeclarations(TypeChecker* checker, Ast* local_decls)
+static void visit_controlLocalDeclarations(TypeChecker* checker, Ast* local_decls)
 {
   assert(local_decls->kind == AST_controlLocalDeclarations);
   Ast* ast;
@@ -519,8 +489,7 @@ visit_controlLocalDeclarations(TypeChecker* checker, Ast* local_decls)
   }
 }
 
-static void
-visit_controlLocalDeclaration(TypeChecker* checker, Ast* local_decl)
+static void visit_controlLocalDeclaration(TypeChecker* checker, Ast* local_decl)
 {
   assert(local_decl->kind == AST_controlLocalDeclaration);
   if (local_decl->controlLocalDeclaration.decl->kind == AST_variableDeclaration) {
@@ -536,8 +505,7 @@ visit_controlLocalDeclaration(TypeChecker* checker, Ast* local_decl)
 
 /** EXTERN **/
 
-static void
-visit_externDeclaration(TypeChecker* checker, Ast* extern_decl)
+static void visit_externDeclaration(TypeChecker* checker, Ast* extern_decl)
 {
   assert(extern_decl->kind == AST_externDeclaration);
   if (extern_decl->externDeclaration.decl->kind == AST_externTypeDeclaration) {
@@ -547,14 +515,12 @@ visit_externDeclaration(TypeChecker* checker, Ast* extern_decl)
   } else assert(0);
 }
 
-static void
-visit_externTypeDeclaration(TypeChecker* checker, Ast* type_decl)
+static void visit_externTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 {
   assert(type_decl->kind == AST_externTypeDeclaration);
 }
 
-static void
-visit_methodPrototypes(TypeChecker* checker, Ast* protos)
+static void visit_methodPrototypes(TypeChecker* checker, Ast* protos)
 {
   assert(protos->kind == AST_methodPrototypes);
   Ast* ast;
@@ -565,16 +531,14 @@ visit_methodPrototypes(TypeChecker* checker, Ast* protos)
   }
 }
 
-static void
-visit_functionPrototype(TypeChecker* checker, Ast* func_proto)
+static void visit_functionPrototype(TypeChecker* checker, Ast* func_proto)
 {
   assert(func_proto->kind == AST_functionPrototype);
 }
 
 /** TYPES **/
 
-static void
-visit_typeRef(TypeChecker* checker, Ast* type_ref, Type* required_ty)
+static void visit_typeRef(TypeChecker* checker, Ast* type_ref, Type* required_ty)
 {
   assert(type_ref->kind == AST_typeRef);
   Type* ref_ty;
@@ -610,15 +574,13 @@ visit_typeRef(TypeChecker* checker, Ast* type_ref, Type* required_ty)
   map_insert(checker->storage, checker->type_env, type_ref, ref_ty, 0);
 }
 
-static void
-visit_tupleType(TypeChecker* checker, Ast* type_decl)
+static void visit_tupleType(TypeChecker* checker, Ast* type_decl)
 {
   assert(type_decl->kind == AST_tupleType);
   visit_typeArgumentList(checker, type_decl->tupleType.type_args);
 }
 
-static void
-visit_headerStackType(TypeChecker* checker, Ast* type_decl)
+static void visit_headerStackType(TypeChecker* checker, Ast* type_decl)
 {
   assert(type_decl->kind == AST_headerStackType);
   Type* index_ty;
@@ -627,8 +589,7 @@ visit_headerStackType(TypeChecker* checker, Ast* type_decl)
   visit_expression(checker, type_decl->headerStackType.stack_expr, index_ty);
 }
 
-static void
-visit_baseTypeBoolean(TypeChecker* checker, Ast* bool_type)
+static void visit_baseTypeBoolean(TypeChecker* checker, Ast* bool_type)
 {
   assert(bool_type->kind == AST_baseTypeBoolean);
   Type* bool_ty;
@@ -637,8 +598,7 @@ visit_baseTypeBoolean(TypeChecker* checker, Ast* bool_type)
   map_insert(checker->storage, checker->type_env, bool_type, bool_ty, 0);
 }
 
-static void
-visit_baseTypeInteger(TypeChecker* checker, Ast* int_type)
+static void visit_baseTypeInteger(TypeChecker* checker, Ast* int_type)
 {
   assert(int_type->kind == AST_baseTypeInteger);
   Type* int_ty;
@@ -650,8 +610,7 @@ visit_baseTypeInteger(TypeChecker* checker, Ast* int_type)
   map_insert(checker->storage, checker->type_env, int_type, int_ty, 0);
 }
 
-static void
-visit_baseTypeBit(TypeChecker* checker, Ast* bit_type)
+static void visit_baseTypeBit(TypeChecker* checker, Ast* bit_type)
 {
   assert(bit_type->kind == AST_baseTypeBit);
   Type* bit_ty;
@@ -663,8 +622,7 @@ visit_baseTypeBit(TypeChecker* checker, Ast* bit_type)
   map_insert(checker->storage, checker->type_env, bit_type, bit_ty, 0);
 }
 
-static void
-visit_baseTypeVarbit(TypeChecker* checker, Ast* varbit_type)
+static void visit_baseTypeVarbit(TypeChecker* checker, Ast* varbit_type)
 {
   assert(varbit_type->kind == AST_baseTypeVarbit);
   Type* varbit_ty;
@@ -674,8 +632,7 @@ visit_baseTypeVarbit(TypeChecker* checker, Ast* varbit_type)
   map_insert(checker->storage, checker->type_env, varbit_type, varbit_ty, 0);
 }
 
-static void
-visit_baseTypeString(TypeChecker* checker, Ast* string_type)
+static void visit_baseTypeString(TypeChecker* checker, Ast* string_type)
 {
   assert(string_type->kind == AST_baseTypeString);
   Type* string_ty;
@@ -684,8 +641,7 @@ visit_baseTypeString(TypeChecker* checker, Ast* string_type)
   map_insert(checker->storage, checker->type_env, string_type, string_ty, 0);
 }
 
-static void
-visit_baseTypeVoid(TypeChecker* checker, Ast* void_type)
+static void visit_baseTypeVoid(TypeChecker* checker, Ast* void_type)
 {
   assert(void_type->kind == AST_baseTypeVoid);
   Type* void_ty;
@@ -694,8 +650,7 @@ visit_baseTypeVoid(TypeChecker* checker, Ast* void_type)
   map_insert(checker->storage, checker->type_env, void_type, void_ty, 0);
 }
 
-static void
-visit_baseTypeError(TypeChecker* checker, Ast* error_type)
+static void visit_baseTypeError(TypeChecker* checker, Ast* error_type)
 {
   assert(error_type->kind == AST_baseTypeError);
   Type* error_ty;
@@ -704,14 +659,12 @@ visit_baseTypeError(TypeChecker* checker, Ast* error_type)
   map_insert(checker->storage, checker->type_env, error_type, error_ty, 0);
 }
 
-static void
-visit_integerTypeSize(TypeChecker* checker, Ast* type_size)
+static void visit_integerTypeSize(TypeChecker* checker, Ast* type_size)
 {
   assert(type_size->kind == AST_integerTypeSize);
 }
 
-static void
-visit_realTypeArg(TypeChecker* checker, Ast* type_arg)
+static void visit_realTypeArg(TypeChecker* checker, Ast* type_arg)
 {
   assert(type_arg->kind == AST_realTypeArg);
   if (type_arg->realTypeArg.arg->kind == AST_typeRef) {
@@ -721,8 +674,7 @@ visit_realTypeArg(TypeChecker* checker, Ast* type_arg)
   } else assert(0);
 }
 
-static void
-visit_typeArg(TypeChecker* checker, Ast* type_arg)
+static void visit_typeArg(TypeChecker* checker, Ast* type_arg)
 {
   assert(type_arg->kind == AST_typeArg);
   if (type_arg->typeArg.arg->kind == AST_typeRef) {
@@ -734,8 +686,7 @@ visit_typeArg(TypeChecker* checker, Ast* type_arg)
   } else assert(0);
 }
 
-static void
-visit_typeArgumentList(TypeChecker* checker, Ast* args)
+static void visit_typeArgumentList(TypeChecker* checker, Ast* args)
 {
   assert(args->kind == AST_typeArgumentList);
   Ast* ast;
@@ -746,8 +697,7 @@ visit_typeArgumentList(TypeChecker* checker, Ast* args)
   }
 }
 
-static void
-visit_typeDeclaration(TypeChecker* checker, Ast* type_decl)
+static void visit_typeDeclaration(TypeChecker* checker, Ast* type_decl)
 {
   assert(type_decl->kind == AST_typeDeclaration);
   if (type_decl->typeDeclaration.decl->kind == AST_derivedTypeDeclaration) {
@@ -763,8 +713,7 @@ visit_typeDeclaration(TypeChecker* checker, Ast* type_decl)
   } else assert(0);
 }
 
-static void
-visit_derivedTypeDeclaration(TypeChecker* checker, Ast* type_decl)
+static void visit_derivedTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 {
   assert(type_decl->kind == AST_derivedTypeDeclaration);
   Type* decl_ty;
@@ -782,26 +731,22 @@ visit_derivedTypeDeclaration(TypeChecker* checker, Ast* type_decl)
   map_insert(checker->storage, checker->type_env, type_decl, decl_ty, 0);
 }
 
-static void
-visit_headerTypeDeclaration(TypeChecker* checker, Ast* header_decl)
+static void visit_headerTypeDeclaration(TypeChecker* checker, Ast* header_decl)
 {
   assert(header_decl->kind == AST_headerTypeDeclaration);
 }
 
-static void
-visit_headerUnionDeclaration(TypeChecker* checker, Ast* union_decl)
+static void visit_headerUnionDeclaration(TypeChecker* checker, Ast* union_decl)
 {
   assert(union_decl->kind == AST_headerUnionDeclaration);
 }
 
-static void
-visit_structTypeDeclaration(TypeChecker* checker, Ast* struct_decl)
+static void visit_structTypeDeclaration(TypeChecker* checker, Ast* struct_decl)
 {
   assert(struct_decl->kind == AST_structTypeDeclaration);
 }
 
-static void
-visit_structFieldList(TypeChecker* checker, Ast* fields)
+static void visit_structFieldList(TypeChecker* checker, Ast* fields)
 {
   assert(fields->kind == AST_structFieldList);
   Ast* ast;
@@ -812,39 +757,33 @@ visit_structFieldList(TypeChecker* checker, Ast* fields)
   }
 }
 
-static void
-visit_structField(TypeChecker* checker, Ast* field)
+static void visit_structField(TypeChecker* checker, Ast* field)
 {
   assert(field->kind == AST_structField);
 }
 
-static void
-visit_enumDeclaration(TypeChecker* checker, Ast* enum_decl)
+static void visit_enumDeclaration(TypeChecker* checker, Ast* enum_decl)
 {
   assert(enum_decl->kind == AST_enumDeclaration);
   visit_specifiedIdentifierList(checker, enum_decl->enumDeclaration.fields);
 }
 
-static void
-visit_errorDeclaration(TypeChecker* checker, Ast* error_decl)
+static void visit_errorDeclaration(TypeChecker* checker, Ast* error_decl)
 {
   assert(error_decl->kind == AST_errorDeclaration);
 }
 
-static void
-visit_matchKindDeclaration(TypeChecker* checker, Ast* match_decl)
+static void visit_matchKindDeclaration(TypeChecker* checker, Ast* match_decl)
 {
   assert(match_decl->kind == AST_matchKindDeclaration);
 }
 
-static void
-visit_identifierList(TypeChecker* checker, Ast* ident_list)
+static void visit_identifierList(TypeChecker* checker, Ast* ident_list)
 {
   assert(ident_list->kind == AST_identifierList);
 }
 
-static void
-visit_specifiedIdentifierList(TypeChecker* checker, Ast* ident_list)
+static void visit_specifiedIdentifierList(TypeChecker* checker, Ast* ident_list)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
   Ast* ast;
@@ -855,8 +794,7 @@ visit_specifiedIdentifierList(TypeChecker* checker, Ast* ident_list)
   }
 }
 
-static void
-visit_specifiedIdentifier(TypeChecker* checker, Ast* ident)
+static void visit_specifiedIdentifier(TypeChecker* checker, Ast* ident)
 {
   assert(ident->kind == AST_specifiedIdentifier);
   if (ident->specifiedIdentifier.init_expr) {
@@ -864,8 +802,7 @@ visit_specifiedIdentifier(TypeChecker* checker, Ast* ident)
   }
 }
 
-static void
-visit_typedefDeclaration(TypeChecker* checker, Ast* typedef_decl, Type* required_ty)
+static void visit_typedefDeclaration(TypeChecker* checker, Ast* typedef_decl, Type* required_ty)
 {
   assert(typedef_decl->kind == AST_typedefDeclaration);
   Type* ref_ty;
@@ -881,8 +818,7 @@ visit_typedefDeclaration(TypeChecker* checker, Ast* typedef_decl, Type* required
 
 /** STATEMENTS **/
 
-static void
-visit_assignmentStatement(TypeChecker* checker, Ast* assign_stmt)
+static void visit_assignmentStatement(TypeChecker* checker, Ast* assign_stmt)
 {
   assert(assign_stmt->kind == AST_assignmentStatement);
   Type* lhs_ty;
@@ -897,8 +833,7 @@ visit_assignmentStatement(TypeChecker* checker, Ast* assign_stmt)
   visit_expression(checker, assign_stmt->assignmentStatement.rhs_expr, lhs_ty);
 }
 
-static void
-visit_functionCall(TypeChecker* checker, Ast* func_call, Type* required_ty)
+static void visit_functionCall(TypeChecker* checker, Ast* func_call, Type* required_ty)
 {
   assert(func_call->kind == AST_functionCall);
   PotentialType* func_tau;
@@ -929,8 +864,7 @@ visit_functionCall(TypeChecker* checker, Ast* func_call, Type* required_ty)
   }
 }
 
-static void
-visit_returnStatement(TypeChecker* checker, Ast* return_stmt, Type* required_ty)
+static void visit_returnStatement(TypeChecker* checker, Ast* return_stmt, Type* required_ty)
 {
   assert(return_stmt->kind == AST_returnStatement);
   if (return_stmt->returnStatement.expr) {
@@ -938,14 +872,12 @@ visit_returnStatement(TypeChecker* checker, Ast* return_stmt, Type* required_ty)
   }
 }
 
-static void
-visit_exitStatement(TypeChecker* checker, Ast* exit_stmt)
+static void visit_exitStatement(TypeChecker* checker, Ast* exit_stmt)
 {
   assert(exit_stmt->kind == AST_exitStatement);
 }
 
-static void
-visit_conditionalStatement(TypeChecker* checker, Ast* cond_stmt)
+static void visit_conditionalStatement(TypeChecker* checker, Ast* cond_stmt)
 {
   assert(cond_stmt->kind == AST_conditionalStatement);
   visit_expression(checker, cond_stmt->conditionalStatement.cond_expr, 0);
@@ -955,8 +887,7 @@ visit_conditionalStatement(TypeChecker* checker, Ast* cond_stmt)
   }
 }
 
-static void
-visit_directApplication(TypeChecker* checker, Ast* applic_stmt, Type* required_ty)
+static void visit_directApplication(TypeChecker* checker, Ast* applic_stmt, Type* required_ty)
 {
   assert(applic_stmt->kind == AST_directApplication);
   visit_argumentList(checker, applic_stmt->directApplication.args, required_ty);
@@ -967,8 +898,7 @@ visit_directApplication(TypeChecker* checker, Ast* applic_stmt, Type* required_t
   } else assert(0);
 }
 
-static void
-visit_statement(TypeChecker* checker, Ast* stmt)
+static void visit_statement(TypeChecker* checker, Ast* stmt)
 {
   assert(stmt->kind == AST_statement);
   if (stmt->statement.stmt->kind == AST_assignmentStatement) {
@@ -992,15 +922,13 @@ visit_statement(TypeChecker* checker, Ast* stmt)
   } else assert(0);
 }
 
-static void
-visit_blockStatement(TypeChecker* checker, Ast* block_stmt)
+static void visit_blockStatement(TypeChecker* checker, Ast* block_stmt)
 {
   assert(block_stmt->kind == AST_blockStatement);
   visit_statementOrDeclList(checker, block_stmt->blockStatement.stmt_list);
 }
 
-static void
-visit_statementOrDeclList(TypeChecker* checker, Ast* stmt_list)
+static void visit_statementOrDeclList(TypeChecker* checker, Ast* stmt_list)
 {
   assert(stmt_list->kind == AST_statementOrDeclList);
   Ast* ast;
@@ -1011,16 +939,14 @@ visit_statementOrDeclList(TypeChecker* checker, Ast* stmt_list)
   }
 }
 
-static void
-visit_switchStatement(TypeChecker* checker, Ast* switch_stmt)
+static void visit_switchStatement(TypeChecker* checker, Ast* switch_stmt)
 {
   assert(switch_stmt->kind == AST_switchStatement);
   visit_expression(checker, switch_stmt->switchStatement.expr, 0);
   visit_switchCases(checker, switch_stmt->switchStatement.switch_cases);
 }
 
-static void
-visit_switchCases(TypeChecker* checker, Ast* switch_cases)
+static void visit_switchCases(TypeChecker* checker, Ast* switch_cases)
 {
   assert(switch_cases->kind == AST_switchCases);
   Ast* ast;
@@ -1031,8 +957,7 @@ visit_switchCases(TypeChecker* checker, Ast* switch_cases)
   }
 }
 
-static void
-visit_switchCase(TypeChecker* checker, Ast* switch_case)
+static void visit_switchCase(TypeChecker* checker, Ast* switch_case)
 {
   assert(switch_case->kind == AST_switchCase);
   visit_switchLabel(checker, switch_case->switchCase.label);
@@ -1041,8 +966,7 @@ visit_switchCase(TypeChecker* checker, Ast* switch_case)
   }
 }
 
-static void
-visit_switchLabel(TypeChecker* checker, Ast* label)
+static void visit_switchLabel(TypeChecker* checker, Ast* label)
 {
   assert(label->kind == AST_switchLabel);
   if (label->switchLabel.label->kind == AST_name) {
@@ -1052,8 +976,7 @@ visit_switchLabel(TypeChecker* checker, Ast* label)
   } else assert(0);
 }
 
-static void
-visit_statementOrDeclaration(TypeChecker* checker, Ast* stmt)
+static void visit_statementOrDeclaration(TypeChecker* checker, Ast* stmt)
 {
   assert(stmt->kind == AST_statementOrDeclaration);
   if (stmt->statementOrDeclaration.stmt->kind == AST_variableDeclaration) {
@@ -1067,15 +990,13 @@ visit_statementOrDeclaration(TypeChecker* checker, Ast* stmt)
 
 /** TABLES **/
 
-static void
-visit_tableDeclaration(TypeChecker* checker, Ast* table_decl)
+static void visit_tableDeclaration(TypeChecker* checker, Ast* table_decl)
 {
   assert(table_decl->kind == AST_tableDeclaration);
   visit_tablePropertyList(checker, table_decl->tableDeclaration.prop_list);
 }
 
-static void
-visit_tablePropertyList(TypeChecker* checker, Ast* prop_list)
+static void visit_tablePropertyList(TypeChecker* checker, Ast* prop_list)
 {
   assert(prop_list->kind == AST_tablePropertyList);
   Ast* ast;
@@ -1086,8 +1007,7 @@ visit_tablePropertyList(TypeChecker* checker, Ast* prop_list)
   }
 }
 
-static void
-visit_tableProperty(TypeChecker* checker, Ast* table_prop)
+static void visit_tableProperty(TypeChecker* checker, Ast* table_prop)
 {
   assert(table_prop->kind == AST_tableProperty);
   if (table_prop->tableProperty.prop->kind == AST_keyProperty) {
@@ -1105,15 +1025,13 @@ visit_tableProperty(TypeChecker* checker, Ast* table_prop)
   else assert(0);
 }
 
-static void
-visit_keyProperty(TypeChecker* checker, Ast* key_prop)
+static void visit_keyProperty(TypeChecker* checker, Ast* key_prop)
 {
   assert(key_prop->kind == AST_keyProperty);
   visit_keyElementList(checker, key_prop->keyProperty.keyelem_list);
 }
 
-static void
-visit_keyElementList(TypeChecker* checker, Ast* element_list)
+static void visit_keyElementList(TypeChecker* checker, Ast* element_list)
 {
   assert(element_list->kind == AST_keyElementList);
   Ast* ast;
@@ -1124,22 +1042,19 @@ visit_keyElementList(TypeChecker* checker, Ast* element_list)
   }
 }
 
-static void
-visit_keyElement(TypeChecker* checker, Ast* element)
+static void visit_keyElement(TypeChecker* checker, Ast* element)
 {
   assert(element->kind == AST_keyElement);
   visit_expression(checker, element->keyElement.expr, 0);
 }
 
-static void
-visit_actionsProperty(TypeChecker* checker, Ast* actions_prop)
+static void visit_actionsProperty(TypeChecker* checker, Ast* actions_prop)
 {
   assert(actions_prop->kind == AST_actionsProperty);
   visit_actionList(checker, actions_prop->actionsProperty.action_list);
 }
 
-static void
-visit_actionList(TypeChecker* checker, Ast* action_list)
+static void visit_actionList(TypeChecker* checker, Ast* action_list)
 {
   assert(action_list->kind == AST_actionList);
   Ast* ast;
@@ -1150,8 +1065,7 @@ visit_actionList(TypeChecker* checker, Ast* action_list)
   }
 }
 
-static void
-visit_actionRef(TypeChecker* checker, Ast* action_ref, Type* required_ty)
+static void visit_actionRef(TypeChecker* checker, Ast* action_ref, Type* required_ty)
 {
   assert(action_ref->kind == AST_actionRef);
   visit_name(checker, action_ref->actionRef.name, 0);
@@ -1161,15 +1075,13 @@ visit_actionRef(TypeChecker* checker, Ast* action_ref, Type* required_ty)
 }
 
 #if 0
-static void
-visit_entriesProperty(TypeChecker* checker, Ast* entries_prop)
+static void visit_entriesProperty(TypeChecker* checker, Ast* entries_prop)
 {
   assert(entries_prop->kind == AST_entriesProperty);
   visit_entriesList(checker, entries_prop->entriesProperty.entries_list);
 }
 
-static void
-visit_entriesList(TypeChecker* checker, Ast* entries_list)
+static void visit_entriesList(TypeChecker* checker, Ast* entries_list)
 {
   assert(entries_list->kind == AST_entriesList);
   Ast* ast;
@@ -1180,24 +1092,21 @@ visit_entriesList(TypeChecker* checker, Ast* entries_list)
   }
 }
 
-static void
-visit_entry(TypeChecker* checker, Ast* entry)
+static void visit_entry(TypeChecker* checker, Ast* entry)
 {
   assert(entry->kind == AST_entry);
   visit_keysetExpression(checker, entry->entry.keyset, 0);
   visit_actionRef(checker, entry->entry.action, 0);
 }
 
-static void
-visit_simpleProperty(TypeChecker* checker, Ast* simple_prop)
+static void visit_simpleProperty(TypeChecker* checker, Ast* simple_prop)
 {
   assert(simple_prop->kind == AST_simpleProperty);
   visit_expression(checker, simple_prop->simpleProperty.init_expr, 0);
 }
 #endif
 
-static void
-visit_actionDeclaration(TypeChecker* checker, Ast* action_decl)
+static void visit_actionDeclaration(TypeChecker* checker, Ast* action_decl)
 {
   assert(action_decl->kind == AST_actionDeclaration);
   visit_blockStatement(checker, action_decl->actionDeclaration.stmt);
@@ -1205,8 +1114,7 @@ visit_actionDeclaration(TypeChecker* checker, Ast* action_decl)
 
 /** VARIABLES **/
 
-static void
-visit_variableDeclaration(TypeChecker* checker, Ast* var_decl)
+static void visit_variableDeclaration(TypeChecker* checker, Ast* var_decl)
 {
   assert(var_decl->kind == AST_variableDeclaration);
   if (var_decl->variableDeclaration.init_expr) {
@@ -1216,16 +1124,14 @@ visit_variableDeclaration(TypeChecker* checker, Ast* var_decl)
 
 /** EXPRESSIONS **/
 
-static void
-visit_functionDeclaration(TypeChecker* checker, Ast* func_decl)
+static void visit_functionDeclaration(TypeChecker* checker, Ast* func_decl)
 {
   assert(func_decl->kind == AST_functionDeclaration);
   visit_functionPrototype(checker, func_decl->functionDeclaration.proto);
   visit_blockStatement(checker, func_decl->functionDeclaration.stmt);
 }
 
-static void
-visit_argumentList(TypeChecker* checker, Ast* args, Type* required_ty)
+static void visit_argumentList(TypeChecker* checker, Ast* args, Type* required_ty)
 {
   assert(args->kind == AST_argumentList);
   Ast* ast;
@@ -1236,8 +1142,7 @@ visit_argumentList(TypeChecker* checker, Ast* args, Type* required_ty)
   }
 }
 
-static void
-visit_argument(TypeChecker* checker, Ast* arg, Type* required_ty)
+static void visit_argument(TypeChecker* checker, Ast* arg, Type* required_ty)
 {
   assert(arg->kind == AST_argument);
   Type* arg_ty;
@@ -1252,8 +1157,7 @@ visit_argument(TypeChecker* checker, Ast* arg, Type* required_ty)
   map_insert(checker->storage, checker->type_env, arg, arg_ty, 0);
 }
 
-static void
-visit_expressionList(TypeChecker* checker, Ast* expr_list, Type* required_ty)
+static void visit_expressionList(TypeChecker* checker, Ast* expr_list, Type* required_ty)
 {
   assert(expr_list->kind == AST_expressionList);
   Ast* ast;
@@ -1281,8 +1185,7 @@ visit_expressionList(TypeChecker* checker, Ast* expr_list, Type* required_ty)
   map_insert(checker->storage, checker->type_env, expr_list, list_ty, 0);
 }
 
-static void
-visit_lvalueExpression(TypeChecker* checker, Ast* lvalue_expr, Type* required_ty)
+static void visit_lvalueExpression(TypeChecker* checker, Ast* lvalue_expr, Type* required_ty)
 {
   assert(lvalue_expr->kind == AST_lvalueExpression);
   Type* expr_ty;
@@ -1299,8 +1202,7 @@ visit_lvalueExpression(TypeChecker* checker, Ast* lvalue_expr, Type* required_ty
   map_insert(checker->storage, checker->type_env, lvalue_expr, expr_ty, 0);
 }
 
-static void
-visit_expression(TypeChecker* checker, Ast* expr, Type* required_ty)
+static void visit_expression(TypeChecker* checker, Ast* expr, Type* required_ty)
 {
   assert(expr->kind == AST_expression);
   Type* expr_ty;
@@ -1339,8 +1241,7 @@ visit_expression(TypeChecker* checker, Ast* expr, Type* required_ty)
   map_insert(checker->storage, checker->type_env, expr, expr_ty, 0);
 }
 
-static void
-visit_castExpression(TypeChecker* checker, Ast* cast_expr, Type* required_ty)
+static void visit_castExpression(TypeChecker* checker, Ast* cast_expr, Type* required_ty)
 {
   assert(cast_expr->kind == AST_castExpression);
   Type* cast_ty;
@@ -1351,15 +1252,13 @@ visit_castExpression(TypeChecker* checker, Ast* cast_expr, Type* required_ty)
   map_insert(checker->storage, checker->type_env, cast_expr, cast_ty, 0);
 }
 
-static void
-visit_unaryExpression(TypeChecker* checker, Ast* unary_expr, Type* required_ty)
+static void visit_unaryExpression(TypeChecker* checker, Ast* unary_expr, Type* required_ty)
 {
   assert(unary_expr->kind == AST_unaryExpression);
   visit_expression(checker, unary_expr->unaryExpression.operand, required_ty);
 }
 
-static void
-visit_binaryExpression(TypeChecker* checker, Ast* binary_expr, Type* required_ty)
+static void visit_binaryExpression(TypeChecker* checker, Ast* binary_expr, Type* required_ty)
 {
   assert(binary_expr->kind == AST_binaryExpression);
   PotentialType* op_tau;
@@ -1386,8 +1285,7 @@ visit_binaryExpression(TypeChecker* checker, Ast* binary_expr, Type* required_ty
   }
 }
 
-static void
-visit_memberSelector(TypeChecker* checker, Ast* selector, Type* required_ty)
+static void visit_memberSelector(TypeChecker* checker, Ast* selector, Type* required_ty)
 {
   assert(selector->kind == AST_memberSelector);
   PotentialType* selector_tau;
@@ -1417,8 +1315,7 @@ visit_memberSelector(TypeChecker* checker, Ast* selector, Type* required_ty)
   }
 }
 
-static void
-visit_arraySubscript(TypeChecker* checker, Ast* subscript)
+static void visit_arraySubscript(TypeChecker* checker, Ast* subscript)
 {
   assert(subscript->kind == AST_arraySubscript);
   Type* lhs_ty;
@@ -1433,8 +1330,7 @@ visit_arraySubscript(TypeChecker* checker, Ast* subscript)
   map_insert(checker->storage, checker->type_env, subscript, lhs_ty, 0);
 }
 
-static void
-visit_indexExpression(TypeChecker* checker, Ast* index_expr)
+static void visit_indexExpression(TypeChecker* checker, Ast* index_expr)
 {
   assert(index_expr->kind == AST_indexExpression);
   visit_expression(checker, index_expr->indexExpression.start_index, 0);
@@ -1443,32 +1339,27 @@ visit_indexExpression(TypeChecker* checker, Ast* index_expr)
   }
 }
 
-static void
-visit_booleanLiteral(TypeChecker* checker, Ast* bool_literal)
+static void visit_booleanLiteral(TypeChecker* checker, Ast* bool_literal)
 {
   assert(bool_literal->kind == AST_booleanLiteral);
 }
 
-static void
-visit_integerLiteral(TypeChecker* checker, Ast* int_literal)
+static void visit_integerLiteral(TypeChecker* checker, Ast* int_literal)
 {
   assert(int_literal->kind == AST_integerLiteral);
 }
 
-static void
-visit_stringLiteral(TypeChecker* checker, Ast* str_literal)
+static void visit_stringLiteral(TypeChecker* checker, Ast* str_literal)
 {
   assert(str_literal->kind == AST_stringLiteral);
 }
 
-static void
-visit_default(TypeChecker* checker, Ast* default_)
+static void visit_default(TypeChecker* checker, Ast* default_)
 {
   assert(default_->kind == AST_default);
 }
 
-static void
-visit_dontcare(TypeChecker* checker, Ast* dontcare)
+static void visit_dontcare(TypeChecker* checker, Ast* dontcare)
 {
   assert(dontcare->kind == AST_dontcare);
 }

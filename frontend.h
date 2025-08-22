@@ -2,9 +2,9 @@
 
 typedef struct SourceText {
   Arena* storage;
-  char*  text;
-  int    text_size;
-  char*  filename;
+  char* text;
+  int text_size;
+  char* filename;
 } SourceText;
 
 enum TokenClass {
@@ -822,7 +822,7 @@ typedef struct Ast {
   };
 } Ast;
 
-Ast*  clone_ast(Arena* storage, Ast* original);
+Ast* clone_ast(Arena* storage, Ast* original);
 char* AstEnum_to_string(enum AstEnum ast);
 
 typedef struct Scope {
@@ -833,32 +833,33 @@ typedef struct Scope {
 
 typedef struct Parser {
   Arena* storage;
-  Ast*   p4program;
-  char*  source_file;
+  Ast* p4program;
+  char* source_file;
   Array* tokens;
-  int    token_at;
-  int    prev_token_at;
+  int token_at;
+  int prev_token_at;
   Token* token;
   Token* prev_token;
   Scope* current_scope;
   Scope* root_scope;
+  AstTreeCtor tree_ctor;
 } Parser;
 
 typedef struct ScopeBuilder {
-  Arena*   storage;
-  Ast*     p4program;
-  Scope*   root_scope;
-  Scope*   current_scope;
-  Map*     scope_map;
+  Arena* storage;
+  Ast* p4program;
+  Scope* root_scope;
+  Scope* current_scope;
+  Map* scope_map;
 } ScopeBuilder;
 
 typedef struct NameBinder {
   Arena* storage;
-  Ast*   p4program;
+  Ast* p4program;
   Scope* root_scope;
   Scope* current_scope;
-  Map*   scope_map;
-  Map*   decl_map;
+  Map* scope_map;
+  Map* decl_map;
   Array* type_array;
 } NameBinder;
 
@@ -991,23 +992,23 @@ typedef struct PotentialType {
 
 typedef struct TypeChecker {
   Arena* storage;
-  Ast*   p4program;
-  char*  source_file;
+  Ast* p4program;
+  char* source_file;
   Scope* root_scope;
-  Map*   scope_map;
-  Map*   decl_map;
+  Map* scope_map;
+  Map* decl_map;
   Array* type_array;
   Array* type_equiv_pairs;
-  Map*   type_env;
-  Map*   potype_map;
+  Map* type_env;
+  Map* potype_map;
 } TypeChecker;
 
-Type*  actual_type(Type* type);
-Type*  effective_type(Type* type);
-bool   type_equiv(TypeChecker* checker, Type* u, Type* v);
-char*  TypeEnum_to_string(enum TypeEnum type);
-bool   match_type(TypeChecker* checker, PotentialType* potential_types, Type* required_ty);
-bool   match_params(TypeChecker* checker, PotentialType* potential_args, Type* params_ty);
+Type* actual_type(Type* type);
+Type* effective_type(Type* type);
+bool type_equiv(TypeChecker* checker, Type* u, Type* v);
+char* TypeEnum_to_string(enum TypeEnum type);
+bool match_type(TypeChecker* checker, PotentialType* potential_types, Type* required_ty);
+bool match_params(TypeChecker* checker, PotentialType* potential_args, Type* params_ty);
 
 typedef struct NameDeclaration {
   char* strname;
@@ -1034,9 +1035,9 @@ typedef struct NameEntry {
 
 char* NameSpace_to_string(enum NameSpace ns);
 
-Scope*     scope_create(Arena* storage, int segment_count);
-Scope*     scope_push(Scope* scope, Scope* parent_scope);
-Scope*     scope_pop(Scope* scope);
+Scope* scope_create(Arena* storage, int segment_count);
+Scope* scope_push(Scope* scope, Scope* parent_scope);
+Scope* scope_pop(Scope* scope);
 NameEntry* scope_lookup(Scope* scope, char* name, enum NameSpace ns);
 NameEntry* scope_lookup_current(Scope* scope, char* strname);
 NameDeclaration* scope_bind(Arena* storage, Scope* scope, char* strname, enum NameSpace ns);

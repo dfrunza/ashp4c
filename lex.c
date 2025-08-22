@@ -1,11 +1,10 @@
-#include <memory.h>  // memset
+#include <memory.h>
 #include <stdint.h>
 #include <stdio.h>
 #include "foundation.h"
 #include "frontend.h"
 
-static char
-char_lookahead(Lexer* lexer, int pos)
+static char char_lookahead(Lexer* lexer, int pos)
 {
   char* char_pos;
 
@@ -14,8 +13,7 @@ char_lookahead(Lexer* lexer, int pos)
   return *char_pos;
 }
 
-static char
-char_advance(Lexer* lexer, int pos)
+static char char_advance(Lexer* lexer, int pos)
 {
   char* char_pos;
 
@@ -25,8 +23,7 @@ char_advance(Lexer* lexer, int pos)
   return *char_pos;
 }
 
-static char
-char_retract(Lexer* lexer)
+static char char_retract(Lexer* lexer)
 {
   char result;
 
@@ -35,15 +32,13 @@ char_retract(Lexer* lexer)
   return result;
 }
 
-static void
-lexeme_advance(Lexer* lexer)
+static void lexeme_advance(Lexer* lexer)
 {
   lexer->lexeme->start = ++lexer->lexeme->end;
   assert(lexer->lexeme->start <= (lexer->text + lexer->text_size));
 }
 
-static void
-lexeme_copy(char* dest, Lexeme* lexeme)
+static void lexeme_copy(char* dest, Lexeme* lexeme)
 {
   char* src;
 
@@ -70,8 +65,7 @@ lexeme_copy(char* dest, Lexeme* lexeme)
   while (src <= lexeme->end);
 }
 
-static bool
-lexeme_len(Lexeme* lexeme)
+static bool lexeme_len(Lexeme* lexeme)
 {
   int result;
 
@@ -79,8 +73,7 @@ lexeme_len(Lexeme* lexeme)
   return result;
 }
 
-static char*
-lexeme_to_cstring(Arena* storage, Lexeme* lexeme)
+static char* lexeme_to_cstring(Arena* storage, Lexeme* lexeme)
 {
   int len;
   char* string;
@@ -92,8 +85,7 @@ lexeme_to_cstring(Arena* storage, Lexeme* lexeme)
   return string;
 }
 
-static int
-digit_to_integer(char c, int base)
+static int digit_to_integer(char c, int base)
 {
   int digit_value = 0;
 
@@ -111,8 +103,7 @@ digit_to_integer(char c, int base)
   return digit_value;
 }
 
-static int
-parse_integer(char* str, int base)
+static int parse_integer(char* str, int base)
 {
   int result = 0;
   char c;
@@ -132,8 +123,7 @@ parse_integer(char* str, int base)
   return result;
 }
 
-static void
-token_install_integer(Lexer* lexer, Token* token, Lexeme* lexeme, int base)
+static void token_install_integer(Lexer* lexer, Token* token, Lexeme* lexeme, int base)
 {
   char* string;
 
@@ -157,8 +147,7 @@ token_install_integer(Lexer* lexer, Token* token, Lexeme* lexeme, int base)
   }
 }
 
-static void
-next_token(Lexer* lexer, Token* token)
+static void next_token(Lexer* lexer, Token* token)
 {
   char c, cc;
   Token* prev_token;

@@ -8,8 +8,7 @@
 static const uint32_t P = 257, Q = 4294967029;
 static const uint32_t SIGMA = 2654435769;
 
-static uint32_t
-hash_string(char* string, uint32_t m)
+static uint32_t hash_string(char* string, uint32_t m)
 {
   assert(m > 0 && m <= 32);
   uint32_t K = 0, h;
@@ -23,16 +22,14 @@ hash_string(char* string, uint32_t m)
   return h;
 }
 
-static uint32_t
-hash_key(char* key, int m, int capacity)
+static uint32_t hash_key(char* key, int m, int capacity)
 {
   uint32_t h;
   h = hash_string(key, m) % capacity;
   return h;
 }
 
-Strmap*
-strmap_create(Arena* storage, int segment_count)
+Strmap* strmap_create(Arena* storage, int segment_count)
 {
   assert(segment_count >= 1 && segment_count <= 16);
   Strmap* strmap;
@@ -42,8 +39,7 @@ strmap_create(Arena* storage, int segment_count)
   return strmap;
 }
 
-void
-strmap_init(Arena* storage, Strmap* strmap, int segment_count)
+void strmap_init(Arena* storage, Strmap* strmap, int segment_count)
 {
   assert(segment_count >= 1);
 
@@ -54,8 +50,7 @@ strmap_init(Arena* storage, Strmap* strmap, int segment_count)
   memset(strmap->entries.segments[0], 0, sizeof(StrmapEntry*) * 16);
 }
 
-static void
-strmap_grow(Arena* storage, Strmap* strmap)
+static void strmap_grow(Arena* storage, Strmap* strmap)
 {
   int last_segment;
   StrmapCursor it = {0};
@@ -102,8 +97,7 @@ strmap_grow(Arena* storage, Strmap* strmap)
   }
 }
 
-void*
-strmap_lookup(Strmap* strmap, char* key, StrmapEntry** entry_/*out*/, StrmapBucket* bucket/*out*/)
+void* strmap_lookup(Strmap* strmap, char* key, StrmapEntry** entry_/*out*/, StrmapBucket* bucket/*out*/)
 {
   int last_segment;
   StrmapEntry** entry_slot, *entry;
@@ -129,8 +123,7 @@ strmap_lookup(Strmap* strmap, char* key, StrmapEntry** entry_/*out*/, StrmapBuck
   return 0;
 }
 
-StrmapEntry*
-strmap_insert(Arena* storage, Strmap* strmap, char* key, void* value, bool return_if_found)
+StrmapEntry* strmap_insert(Arena* storage, Strmap* strmap, char* key, void* value, bool return_if_found)
 {
   StrmapEntry* entry;
   StrmapBucket bucket = {0};
@@ -155,16 +148,14 @@ strmap_insert(Arena* storage, Strmap* strmap, char* key, void* value, bool retur
   return entry;
 }
 
-void
-strmap_cursor_begin(StrmapCursor* cursor, Strmap* strmap)
+void strmap_cursor_begin(StrmapCursor* cursor, Strmap* strmap)
 {
   cursor->strmap = strmap;
   cursor->i = -1;
   cursor->entry = 0;
 }
 
-StrmapEntry*
-strmap_cursor_next(StrmapCursor* cursor)
+StrmapEntry* strmap_cursor_next(StrmapCursor* cursor)
 {
   Strmap* strmap;
   StrmapEntry* entry = 0;
@@ -192,8 +183,7 @@ strmap_cursor_next(StrmapCursor* cursor)
   return entry;
 }
 
-void
-Debug_strmap_occupancy(Strmap* strmap)
+void Debug_strmap_occupancy(Strmap* strmap)
 {
   StrmapEntry** entry_slot;
   StrmapEntry* entry;

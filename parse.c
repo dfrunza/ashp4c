@@ -132,8 +132,7 @@ static Ast* parse_integer(Parser* parser);
 static Ast* parse_boolean(Parser* parser);
 static Ast* parse_string(Parser* parser);
 
-static void
-setup_keywords(Parser* parser, Scope* scope)
+static void define_keywords(Parser* parser, Scope* scope)
 {
   struct Keyword keywords[] = {
     {"action",  TK_ACTION},
@@ -184,8 +183,7 @@ setup_keywords(Parser* parser, Scope* scope)
   }
 }
 
-static Token*
-next_token(Parser* parser)
+static Token* next_token(Parser* parser)
 {
   assert(parser->token_at < parser->tokens->elem_count);
   NameEntry* name_entry;
@@ -213,8 +211,7 @@ next_token(Parser* parser)
   return parser->token;
 }
 
-static Token*
-peek_token(Parser* parser)
+static Token* peek_token(Parser* parser)
 {
   Token* peek_token;
 
@@ -226,37 +223,32 @@ peek_token(Parser* parser)
   return peek_token;
 }
 
-static bool
-token_is_nonTypeName(Token* token)
+static bool token_is_nonTypeName(Token* token)
 {
   bool result = token->klass == TK_IDENTIFIER || token->klass == TK_APPLY || token->klass == TK_KEY
     || token->klass == TK_ACTIONS || token->klass == TK_STATE || token->klass == TK_ENTRIES;
   return result;
 }
 
-static bool
-token_is_name(Token* token)
+static bool token_is_name(Token* token)
 {
   bool result = token_is_nonTypeName(token) || token->klass == TK_TYPE_IDENTIFIER;
   return result;
 }
 
-static bool
-token_is_typeName(Token* token)
+static bool token_is_typeName(Token* token)
 {
   return token->klass == TK_TYPE_IDENTIFIER;
 }
 
-static bool
-token_is_nonTableKwName(Token* token)
+static bool token_is_nonTableKwName(Token* token)
 {
   bool result = token->klass == TK_IDENTIFIER || token->klass == TK_TYPE_IDENTIFIER
     || token->klass == TK_APPLY || token->klass == TK_STATE;
   return result;
 }
 
-static bool
-token_is_baseType(Token* token)
+static bool token_is_baseType(Token* token)
 {
   bool result = token->klass == TK_BOOL || token->klass == TK_ERROR || token->klass == TK_INT
     || token->klass == TK_BIT || token->klass == TK_VARBIT || token->klass == TK_STRING
@@ -264,66 +256,57 @@ token_is_baseType(Token* token)
   return result;
 }
 
-static bool
-token_is_typeRef(Token* token)
+static bool token_is_typeRef(Token* token)
 {
   bool result = token_is_baseType(token) || token->klass == TK_TYPE_IDENTIFIER || token->klass == TK_TUPLE;
   return result;
 }
 
-static bool
-token_is_direction(Token* token)
+static bool token_is_direction(Token* token)
 {
   bool result = token->klass == TK_IN || token->klass == TK_OUT || token->klass == TK_INOUT;
   return result;
 }
 
-static bool
-token_is_parameter(Token* token)
+static bool token_is_parameter(Token* token)
 {
   bool result = token_is_direction(token) || token_is_typeRef(token);
   return result;
 }
 
-static bool
-token_is_derivedTypeDeclaration(Token* token)
+static bool token_is_derivedTypeDeclaration(Token* token)
 {
   bool result = token->klass == TK_HEADER || token->klass == TK_HEADER_UNION || token->klass == TK_STRUCT
     || token->klass == TK_ENUM;
   return result;
 }
 
-static bool
-token_is_typeDeclaration(Token* token)
+static bool token_is_typeDeclaration(Token* token)
 {
   bool result = token_is_derivedTypeDeclaration(token) || token->klass == TK_TYPEDEF
     || token->klass == TK_PARSER || token->klass == TK_CONTROL || token->klass == TK_PACKAGE;
   return result;
 }
 
-static bool
-token_is_typeArg(Token* token)
+static bool token_is_typeArg(Token* token)
 {
   bool result = token->klass == TK_DONTCARE || token_is_typeRef(token) || token_is_nonTypeName(token);
   return result;
 }
 
-static bool
-token_is_typeOrVoid(Token* token)
+static bool token_is_typeOrVoid(Token* token)
 {
   bool result = token_is_typeRef(token) || token->klass == TK_VOID || token->klass == TK_IDENTIFIER;
   return result;
 }
 
-static bool
-token_is_actionRef(Token* token)
+static bool token_is_actionRef(Token* token)
 {
   bool result = token_is_nonTypeName(token) || token->klass == TK_PARENTH_OPEN;
   return result;
 }
 
-static bool
-token_is_tableProperty(Token* token)
+static bool token_is_tableProperty(Token* token)
 {
   bool result = token->klass == TK_KEY || token->klass == TK_ACTIONS;
 #if 0
@@ -333,15 +316,13 @@ token_is_tableProperty(Token* token)
   return result;
 }
 
-static bool
-token_is_switchLabel(Token* token)
+static bool token_is_switchLabel(Token* token)
 {
   bool result = token_is_name(token) || token->klass == TK_DEFAULT;
   return result;
 }
 
-static bool
-token_is_expressionPrimary(Token* token)
+static bool token_is_expressionPrimary(Token* token)
 {
   bool result = token->klass == TK_INTEGER_LITERAL || token->klass == TK_TRUE || token->klass == TK_FALSE
     || token->klass == TK_STRING_LITERAL || token_is_nonTypeName(token)
@@ -351,33 +332,28 @@ token_is_expressionPrimary(Token* token)
   return result;
 }
 
-static bool
-token_is_expression(Token* token)
+static bool token_is_expression(Token* token)
 {
   return token_is_expressionPrimary(token);
 }
 
-static bool
-token_is_methodPrototype(Token* token)
+static bool token_is_methodPrototype(Token* token)
 {
   return token_is_typeOrVoid(token) || token->klass == TK_TYPE_IDENTIFIER;
 }
 
-static bool
-token_is_structField(Token* token)
+static bool token_is_structField(Token* token)
 {
   bool result = token_is_typeRef(token);
   return result;
 }
 
-static bool
-token_is_specifiedIdentifier(Token* token)
+static bool token_is_specifiedIdentifier(Token* token)
 {
   return token_is_name(token);
 }
 
-static bool
-token_is_declaration(Token* token)
+static bool token_is_declaration(Token* token)
 {
   bool result = token->klass == TK_CONST || token->klass == TK_EXTERN || token->klass == TK_ACTION
     || token->klass == TK_PARSER || token_is_typeDeclaration(token) || token->klass == TK_CONTROL
@@ -386,23 +362,20 @@ token_is_declaration(Token* token)
   return result;
 }
 
-static bool
-token_is_lvalue(Token* token)
+static bool token_is_lvalue(Token* token)
 {
   bool result = token_is_nonTypeName(token) || (token->klass == TK_DOT);
   return result;
 }
 
-static bool
-token_is_assignmentOrMethodCallStatement(Token* token)
+static bool token_is_assignmentOrMethodCallStatement(Token* token)
 {
   bool result = token_is_lvalue(token) || token->klass == TK_PARENTH_OPEN || token->klass == TK_ANGLE_OPEN
     || token->klass == TK_EQUAL;
   return result;
 }
 
-static bool
-token_is_statement(Token* token)
+static bool token_is_statement(Token* token)
 {
   bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token) || token->klass == TK_IF
     || token->klass == TK_SEMICOLON || token->klass == TK_BRACE_OPEN || token->klass == TK_EXIT
@@ -410,29 +383,25 @@ token_is_statement(Token* token)
   return result;
 }
 
-static bool
-token_is_statementOrDeclaration(Token* token)
+static bool token_is_statementOrDeclaration(Token* token)
 {
   bool result = token_is_typeRef(token) || token->klass == TK_CONST || token_is_statement(token);
   return result;
 }
 
-static bool
-token_is_argument(Token* token)
+static bool token_is_argument(Token* token)
 {
   bool result = token_is_expression(token) || token_is_name(token) || token->klass == TK_DONTCARE;
   return result;
 }
 
-static bool
-token_is_parserLocalElement(Token* token)
+static bool token_is_parserLocalElement(Token* token)
 {
   bool result = token->klass == TK_CONST || token_is_typeRef(token);
   return result;
 }
 
-static bool
-token_is_parserStatement(Token* token)
+static bool token_is_parserStatement(Token* token)
 {
   bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token)
     || token->klass == TK_BRACE_OPEN || token->klass == TK_CONST || token_is_typeRef(token)
@@ -440,42 +409,36 @@ token_is_parserStatement(Token* token)
   return result;
 }
 
-static bool
-token_is_simpleKeysetExpression(Token* token) {
+static bool token_is_simpleKeysetExpression(Token* token) {
   bool result = token_is_expression(token) || token->klass == TK_DEFAULT || token->klass == TK_DONTCARE;
   return result;
 }
 
-static bool
-token_is_keysetExpression(Token* token)
+static bool token_is_keysetExpression(Token* token)
 {
   bool result = token->klass == TK_TUPLE || token_is_simpleKeysetExpression(token);
   return result;
 }
 
-static bool
-token_is_selectCase(Token* token)
+static bool token_is_selectCase(Token* token)
 {
   return token_is_keysetExpression(token);
 }
 
-static bool
-token_is_controlLocalDeclaration(Token* token)
+static bool token_is_controlLocalDeclaration(Token* token)
 {
   bool result = token->klass == TK_CONST || token->klass == TK_ACTION
     || token->klass == TK_TABLE || token_is_typeRef(token) || token_is_typeRef(token);
   return result;
 }
 
-static bool
-token_is_realTypeArg(Token* token)
+static bool token_is_realTypeArg(Token* token)
 {
   bool result = token->klass == TK_DONTCARE|| token_is_typeRef(token);
   return result;
 }
 
-static bool
-token_is_binaryOperator(Token* token)
+static bool token_is_binaryOperator(Token* token)
 {
   bool result = token->klass == TK_STAR || token->klass == TK_SLASH
     || token->klass == TK_PLUS || token->klass == TK_MINUS
@@ -490,8 +453,7 @@ token_is_binaryOperator(Token* token)
   return result;
 }
 
-static bool
-token_is_exprOperator(Token* token)
+static bool token_is_exprOperator(Token* token)
 {
   bool result = token_is_binaryOperator(token) || token->klass == TK_DOT
     || token->klass == TK_BRACKET_OPEN || token->klass == TK_PARENTH_OPEN
@@ -499,8 +461,7 @@ token_is_exprOperator(Token* token)
   return result;
 }
 
-static int
-operator_priority(Token* token)
+static int operator_priority(Token* token)
 {
   if (token->klass == TK_DOUBLE_AMPERSAND || token->klass == TK_DOUBLE_PIPE) {
     /* Logical AND, OR */
@@ -530,8 +491,7 @@ operator_priority(Token* token)
   return 0;
 }
 
-static enum AstOperator
-token_to_binop(Token* token)
+static enum AstOperator token_to_binop(Token* token)
 {
   switch (token->klass) {
     case TK_DOUBLE_AMPERSAND:
@@ -574,8 +534,7 @@ token_to_binop(Token* token)
   }
 }
 
-char*
-AstEnum_to_string(enum AstEnum ast)
+char* AstEnum_to_string(enum AstEnum ast)
 {
   switch (ast) {
     case AST_none: return "AST_none";
@@ -717,8 +676,7 @@ AstEnum_to_string(enum AstEnum ast)
   return 0;
 }
 
-Ast*
-clone_ast(Arena* storage, Ast* original)
+Ast* clone_ast(Arena* storage, Ast* original)
 {
   Ast* clone;
 
@@ -1040,13 +998,12 @@ clone_ast(Arena* storage, Ast* original)
   return clone;
 }
 
-void
-parse(Parser* parser)
+void parse(Parser* parser)
 {
   parser->root_scope = scope_create(parser->storage, 5);
   parser->current_scope = parser->root_scope;
 
-  setup_keywords(parser, parser->root_scope);
+  define_keywords(parser, parser->root_scope);
   parser->token_at = 0;
   parser->token = array_get(parser->tokens, parser->token_at, sizeof(Token));
   next_token(parser);
@@ -1060,8 +1017,7 @@ parse(Parser* parser)
 
 /** PROGRAM **/
 
-static Ast*
-parse_p4program(Parser* parser)
+static Ast* parse_p4program(Parser* parser)
 {
   Ast* p4program;
   Scope* scope;
@@ -1084,8 +1040,7 @@ parse_p4program(Parser* parser)
   return p4program;
 }
 
-static Ast*
-parse_declarationList(Parser* parser)
+static Ast* parse_declarationList(Parser* parser)
 {
   Ast* decls, *ast;
 
@@ -1108,8 +1063,7 @@ parse_declarationList(Parser* parser)
   return decls;
 }
 
-static Ast*
-parse_declaration(Parser* parser)
+static Ast* parse_declaration(Parser* parser)
 {
   Ast* decl;
 
@@ -1173,8 +1127,7 @@ parse_declaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_nonTypeName(Parser* parser)
+static Ast* parse_nonTypeName(Parser* parser)
 {
   Ast* name;
 
@@ -1192,8 +1145,7 @@ parse_nonTypeName(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_name(Parser* parser)
+static Ast* parse_name(Parser* parser)
 {
   Ast* type_name;
 
@@ -1215,8 +1167,7 @@ parse_name(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_parameterList(Parser* parser)
+static Ast* parse_parameterList(Parser* parser)
 {
   Ast* params, *ast;
 
@@ -1236,8 +1187,7 @@ parse_parameterList(Parser* parser)
   return params;
 }
 
-static Ast*
-parse_parameter(Parser* parser)
+static Ast* parse_parameter(Parser* parser)
 {
   Ast* param;
 
@@ -1266,8 +1216,7 @@ parse_parameter(Parser* parser)
   return 0;
 }
 
-static enum AstParamDirection
-parse_direction(Parser* parser)
+static enum AstParamDirection parse_direction(Parser* parser)
 {
   if (token_is_direction(parser->token)) {
     if (parser->token->klass == TK_IN) {
@@ -1284,8 +1233,7 @@ parse_direction(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_packageTypeDeclaration(Parser* parser)
+static Ast* parse_packageTypeDeclaration(Parser* parser)
 {
   Ast* package_decl, *name;
 
@@ -1317,8 +1265,7 @@ parse_packageTypeDeclaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_instantiation(Parser* parser, Ast* type_ref)
+static Ast* parse_instantiation(Parser* parser, Ast* type_ref)
 {
   Ast* inst_stmt;
 
@@ -1354,8 +1301,7 @@ parse_instantiation(Parser* parser, Ast* type_ref)
 
 /** PARSER **/
 
-static Ast*
-parse_constructorParameters(Parser* parser)
+static Ast* parse_constructorParameters(Parser* parser)
 {
    Ast* params;
 
@@ -1372,8 +1318,7 @@ parse_constructorParameters(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_parserDeclaration(Parser* parser, Ast* parser_proto)
+static Ast* parse_parserDeclaration(Parser* parser, Ast* parser_proto)
 {
   Ast* parser_decl;
 
@@ -1404,8 +1349,7 @@ parse_parserDeclaration(Parser* parser, Ast* parser_proto)
   return 0;
 }
 
-static Ast*
-parse_parserLocalElements(Parser* parser)
+static Ast* parse_parserLocalElements(Parser* parser)
 {
   Ast* elems, *ast;
 
@@ -1424,8 +1368,7 @@ parse_parserLocalElements(Parser* parser)
   return elems;
 }
 
-static Ast*
-parse_parserLocalElement(Parser* parser)
+static Ast* parse_parserLocalElement(Parser* parser)
 {
   Ast* local_element, *type_ref;
 
@@ -1454,8 +1397,7 @@ parse_parserLocalElement(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_parserTypeDeclaration(Parser* parser)
+static Ast* parse_parserTypeDeclaration(Parser* parser)
 {
   Ast* parser_proto, *name, *method_protos;
 
@@ -1492,8 +1434,7 @@ parse_parserTypeDeclaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_parserStates(Parser* parser)
+static Ast* parse_parserStates(Parser* parser)
 {
   Ast* states, *ast;
 
@@ -1512,8 +1453,7 @@ parse_parserStates(Parser* parser)
   return states;
 }
 
-static Ast*
-parse_parserState(Parser* parser)
+static Ast* parse_parserState(Parser* parser)
 {
   Ast* state;
 
@@ -1541,8 +1481,7 @@ parse_parserState(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_parserStatements(Parser* parser)
+static Ast* parse_parserStatements(Parser* parser)
 {
   Ast* stmts, *ast;
 
@@ -1561,8 +1500,7 @@ parse_parserStatements(Parser* parser)
   return stmts;
 }
 
-static Ast*
-parse_parserStatement(Parser* parser)
+static Ast* parse_parserStatement(Parser* parser)
 {
   Ast* parser_stmt, *type_ref;
 
@@ -1604,8 +1542,7 @@ parse_parserStatement(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_parserBlockStatement(Parser* parser)
+static Ast* parse_parserBlockStatement(Parser* parser)
 {
   Ast* stmt;
 
@@ -1627,8 +1564,7 @@ parse_parserBlockStatement(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_transitionStatement(Parser* parser)
+static Ast* parse_transitionStatement(Parser* parser)
 {
   Ast* transition;
 
@@ -1646,8 +1582,7 @@ parse_transitionStatement(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_stateExpression(Parser* parser)
+static Ast* parse_stateExpression(Parser* parser)
 {
   Ast* state_expr;
 
@@ -1673,8 +1608,7 @@ parse_stateExpression(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_selectExpression(Parser* parser)
+static Ast* parse_selectExpression(Parser* parser)
 {
   Ast* select_expr;
 
@@ -1709,8 +1643,7 @@ parse_selectExpression(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_selectCaseList(Parser* parser)
+static Ast* parse_selectCaseList(Parser* parser)
 {
   Ast* cases, *ast;
 
@@ -1729,8 +1662,7 @@ parse_selectCaseList(Parser* parser)
   return cases;
 }
 
-static Ast*
-parse_selectCase(Parser* parser)
+static Ast* parse_selectCase(Parser* parser)
 {
   Ast* select_case;
 
@@ -1759,8 +1691,7 @@ parse_selectCase(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_keysetExpression(Parser *parser)
+static Ast* parse_keysetExpression(Parser *parser)
 {
   Ast* keyset_expr;
 
@@ -1782,8 +1713,7 @@ parse_keysetExpression(Parser *parser)
   return 0;
 }
 
-static Ast*
-parse_tupleKeysetExpression(Parser* parser)
+static Ast* parse_tupleKeysetExpression(Parser* parser)
 {
   Ast* tuple_keyset;
 
@@ -1805,8 +1735,7 @@ parse_tupleKeysetExpression(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_simpleExpressionList(Parser* parser)
+static Ast* parse_simpleExpressionList(Parser* parser)
 {
   Ast* exprs, *ast;
 
@@ -1826,8 +1755,7 @@ parse_simpleExpressionList(Parser* parser)
   return exprs;
 }
 
-static Ast*
-parse_simpleKeysetExpression(Parser* parser)
+static Ast* parse_simpleKeysetExpression(Parser* parser)
 {
   Ast* simple_keyset, *default_keyset, *dontcare_keyset;
 
@@ -1864,8 +1792,7 @@ parse_simpleKeysetExpression(Parser* parser)
 
 /** CONTROL **/
 
-static Ast*
-parse_controlDeclaration(Parser* parser, Ast* control_proto)
+static Ast* parse_controlDeclaration(Parser* parser, Ast* control_proto)
 {
   Ast* control_decl;
 
@@ -1897,8 +1824,7 @@ parse_controlDeclaration(Parser* parser, Ast* control_proto)
   return 0;
 }
 
-static Ast*
-parse_controlTypeDeclaration(Parser* parser)
+static Ast* parse_controlTypeDeclaration(Parser* parser)
 {
   Ast* control_proto, *name, *method_protos;
 
@@ -1935,8 +1861,7 @@ parse_controlTypeDeclaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_controlLocalDeclaration(Parser* parser)
+static Ast* parse_controlLocalDeclaration(Parser* parser)
 {
   Ast* local_decl, *type_ref;
 
@@ -1971,8 +1896,7 @@ parse_controlLocalDeclaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_controlLocalDeclarations(Parser* parser)
+static Ast* parse_controlLocalDeclarations(Parser* parser)
 {
   Ast* decls, *ast;
 
@@ -1993,8 +1917,7 @@ parse_controlLocalDeclarations(Parser* parser)
 
 /** EXTERN **/
 
-static Ast*
-parse_externDeclaration(Parser* parser)
+static Ast* parse_externDeclaration(Parser* parser)
 {
   Ast* extern_decl, *extern_type;
   bool is_function_type = 0;
@@ -2049,8 +1972,7 @@ parse_externDeclaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_methodPrototypes(Parser* parser)
+static Ast* parse_methodPrototypes(Parser* parser)
 {
   Ast* protos, *ast;
 
@@ -2069,8 +1991,7 @@ parse_methodPrototypes(Parser* parser)
   return protos;
 }
 
-static Ast*
-parse_functionPrototype(Parser* parser, Ast* return_type)
+static Ast* parse_functionPrototype(Parser* parser, Ast* return_type)
 {
   Ast* func_proto, *type_ref;
   Ast* name;
@@ -2116,8 +2037,7 @@ parse_functionPrototype(Parser* parser, Ast* return_type)
   return 0;
 }
 
-static Ast*
-parse_methodPrototype(Parser* parser)
+static Ast* parse_methodPrototype(Parser* parser)
 {
   Ast* func_proto;
 
@@ -2160,8 +2080,7 @@ parse_methodPrototype(Parser* parser)
 
 /** TYPES **/
 
-static Ast*
-parse_typeRef(Parser* parser)
+static Ast* parse_typeRef(Parser* parser)
 {
   Ast* type_ref;
 
@@ -2186,8 +2105,7 @@ parse_typeRef(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_namedType(Parser* parser)
+static Ast* parse_namedType(Parser* parser)
 {
   Ast* named_type;
 
@@ -2204,8 +2122,7 @@ parse_namedType(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_typeName(Parser* parser)
+static Ast* parse_typeName(Parser* parser)
 {
   Ast* type_name;
 
@@ -2223,8 +2140,7 @@ parse_typeName(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_tupleType(Parser* parser)
+static Ast* parse_tupleType(Parser* parser)
 {
   Ast* tuple;
 
@@ -2250,8 +2166,7 @@ parse_tupleType(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_headerStackType(Parser* parser, Ast* named_type)
+static Ast* parse_headerStackType(Parser* parser, Ast* named_type)
 {
   Ast* type_ref, *type;
 
@@ -2282,8 +2197,7 @@ parse_headerStackType(Parser* parser, Ast* named_type)
   return 0;
 }
 
-static Ast*
-parse_baseType(Parser* parser)
+static Ast* parse_baseType(Parser* parser)
 {
   Ast* type_name, *type;
 
@@ -2387,8 +2301,7 @@ parse_baseType(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_integerTypeSize(Parser* parser)
+static Ast* parse_integerTypeSize(Parser* parser)
 {
   Ast* type_size;
 
@@ -2409,8 +2322,7 @@ parse_integerTypeSize(Parser* parser)
   return type_size;
 }
 
-static Ast*
-parse_typeOrVoid(Parser* parser)
+static Ast* parse_typeOrVoid(Parser* parser)
 {
   Ast* type, *name;
 
@@ -2435,8 +2347,7 @@ parse_typeOrVoid(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_realTypeArg(Parser* parser)
+static Ast* parse_realTypeArg(Parser* parser)
 {
   Ast* type_arg, *dontcare_arg;
 
@@ -2463,8 +2374,7 @@ parse_realTypeArg(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_typeArg(Parser* parser)
+static Ast* parse_typeArg(Parser* parser)
 {
   Ast* type_arg, *dontcare_arg;
 
@@ -2494,8 +2404,7 @@ parse_typeArg(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_typeArgumentList(Parser* parser)
+static Ast* parse_typeArgumentList(Parser* parser)
 {
   Ast* args, *ast;
 
@@ -2515,8 +2424,7 @@ parse_typeArgumentList(Parser* parser)
   return args;
 }
 
-static Ast*
-parse_typeDeclaration(Parser* parser)
+static Ast* parse_typeDeclaration(Parser* parser)
 {
   Ast* type_decl;
 
@@ -2551,8 +2459,7 @@ parse_typeDeclaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_derivedTypeDeclaration(Parser* parser)
+static Ast* parse_derivedTypeDeclaration(Parser* parser)
 {
   Ast* type_decl;
 
@@ -2580,8 +2487,7 @@ parse_derivedTypeDeclaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_headerTypeDeclaration(Parser* parser)
+static Ast* parse_headerTypeDeclaration(Parser* parser)
 {
   Ast* header_decl;
   Ast* name;
@@ -2614,8 +2520,7 @@ parse_headerTypeDeclaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_headerUnionDeclaration(Parser* parser)
+static Ast* parse_headerUnionDeclaration(Parser* parser)
 {
   Ast* union_decl;
   Ast* name;
@@ -2648,8 +2553,7 @@ parse_headerUnionDeclaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_structTypeDeclaration(Parser* parser)
+static Ast* parse_structTypeDeclaration(Parser* parser)
 {
   Ast* struct_decl;
   Ast* name;
@@ -2682,8 +2586,7 @@ parse_structTypeDeclaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_structFieldList(Parser* parser)
+static Ast* parse_structFieldList(Parser* parser)
 {
   Ast* fields, *ast;
 
@@ -2702,8 +2605,7 @@ parse_structFieldList(Parser* parser)
   return fields;
 }
 
-static Ast*
-parse_structField(Parser* parser)
+static Ast* parse_structField(Parser* parser)
 {
   if (token_is_structField(parser->token)) {
     Ast* field = arena_malloc(parser->storage, sizeof(Ast));
@@ -2726,8 +2628,7 @@ parse_structField(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_enumDeclaration(Parser* parser)
+static Ast* parse_enumDeclaration(Parser* parser)
 {
   Ast* enum_decl;
   Ast* name;
@@ -2778,8 +2679,7 @@ parse_enumDeclaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_errorDeclaration(Parser* parser)
+static Ast* parse_errorDeclaration(Parser* parser)
 {
   Ast* error_decl;
 
@@ -2811,8 +2711,7 @@ parse_errorDeclaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_matchKindDeclaration(Parser* parser)
+static Ast* parse_matchKindDeclaration(Parser* parser)
 {
   Ast* match_decl;
 
@@ -2841,8 +2740,7 @@ parse_matchKindDeclaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_identifierList(Parser* parser)
+static Ast* parse_identifierList(Parser* parser)
 {
   Ast* ids, *ast;
 
@@ -2862,8 +2760,7 @@ parse_identifierList(Parser* parser)
   return ids;
 }
 
-static Ast*
-parse_specifiedIdentifierList(Parser* parser)
+static Ast* parse_specifiedIdentifierList(Parser* parser)
 {
   Ast* ids, *ast;
 
@@ -2883,8 +2780,7 @@ parse_specifiedIdentifierList(Parser* parser)
   return ids;
 }
 
-static Ast*
-parse_specifiedIdentifier(Parser* parser)
+static Ast* parse_specifiedIdentifier(Parser* parser)
 {
   Ast* id;
 
@@ -2908,8 +2804,7 @@ parse_specifiedIdentifier(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_typedefDeclaration(Parser* parser)
+static Ast* parse_typedefDeclaration(Parser* parser)
 {
   Ast* type_decl;
   Ast* name;
@@ -2947,8 +2842,7 @@ parse_typedefDeclaration(Parser* parser)
 
 /** STATEMENTS **/
 
-static Ast*
-parse_assignmentOrMethodCallStatement(Parser* parser)
+static Ast* parse_assignmentOrMethodCallStatement(Parser* parser)
 {
   Ast* lvalue, *stmt; 
 
@@ -2992,8 +2886,7 @@ parse_assignmentOrMethodCallStatement(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_returnStatement(Parser* parser)
+static Ast* parse_returnStatement(Parser* parser)
 {
   Ast* return_stmt;
 
@@ -3016,8 +2909,7 @@ parse_returnStatement(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_exitStatement(Parser* parser)
+static Ast* parse_exitStatement(Parser* parser)
 {
   Ast* exit_stmt;
 
@@ -3038,8 +2930,7 @@ parse_exitStatement(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_conditionalStatement(Parser* parser)
+static Ast* parse_conditionalStatement(Parser* parser)
 {
   Ast* if_stmt;
 
@@ -3079,8 +2970,7 @@ parse_conditionalStatement(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_directApplication(Parser* parser, Ast* type_name)
+static Ast* parse_directApplication(Parser* parser, Ast* type_name)
 {
   Ast* apply_stmt;
 
@@ -3118,8 +3008,7 @@ parse_directApplication(Parser* parser, Ast* type_name)
   return 0;
 }
 
-static Ast*
-parse_statement(Parser* parser, Ast* type_name)
+static Ast* parse_statement(Parser* parser, Ast* type_name)
 {
   Ast* stmt, *empty_stmt;
 
@@ -3164,8 +3053,7 @@ parse_statement(Parser* parser, Ast* type_name)
   return 0;
 }
 
-static Ast*
-parse_blockStatement(Parser* parser)
+static Ast* parse_blockStatement(Parser* parser)
 {
   Ast* block_stmt;
 
@@ -3187,8 +3075,7 @@ parse_blockStatement(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_statementOrDeclList(Parser* parser)
+static Ast* parse_statementOrDeclList(Parser* parser)
 {
   Ast* stmts, *ast;
 
@@ -3207,8 +3094,7 @@ parse_statementOrDeclList(Parser* parser)
   return stmts;
 }
 
-static Ast*
-parse_switchStatement(Parser* parser)
+static Ast* parse_switchStatement(Parser* parser)
 {
   Ast* stmt;
 
@@ -3243,8 +3129,7 @@ parse_switchStatement(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_switchCases(Parser* parser)
+static Ast* parse_switchCases(Parser* parser)
 {
   Ast* cases, *ast;
 
@@ -3263,8 +3148,7 @@ parse_switchCases(Parser* parser)
   return cases;
 }
 
-static Ast*
-parse_switchCase(Parser* parser)
+static Ast* parse_switchCase(Parser* parser)
 {
   Ast* switch_case;
 
@@ -3288,8 +3172,7 @@ parse_switchCase(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_switchLabel(Parser* parser)
+static Ast* parse_switchLabel(Parser* parser)
 {
   Ast* switch_label, *default_label;
 
@@ -3316,8 +3199,7 @@ parse_switchLabel(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_statementOrDeclaration(Parser* parser)
+static Ast* parse_statementOrDeclaration(Parser* parser)
 {
   Ast* stmt, *type_ref;
 
@@ -3353,8 +3235,7 @@ parse_statementOrDeclaration(Parser* parser)
 
 /** TABLES **/ 
 
-static Ast*
-parse_tableDeclaration(Parser* parser)
+static Ast* parse_tableDeclaration(Parser* parser)
 {
   Ast* table, *method_protos;
 
@@ -3389,8 +3270,7 @@ parse_tableDeclaration(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_tablePropertyList(Parser* parser)
+static Ast* parse_tablePropertyList(Parser* parser)
 {
   Ast* props, *ast;
 
@@ -3409,8 +3289,7 @@ parse_tablePropertyList(Parser* parser)
   return props;
 }
 
-static Ast*
-parse_tableProperty(Parser* parser)
+static Ast* parse_tableProperty(Parser* parser)
 {
 #if 0
   bool is_const = 0;
@@ -3526,8 +3405,7 @@ parse_tableProperty(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_keyElementList(Parser* parser)
+static Ast* parse_keyElementList(Parser* parser)
 {
   Ast* elems, *ast;
 
@@ -3546,8 +3424,7 @@ parse_keyElementList(Parser* parser)
   return elems;
 }
 
-static Ast*
-parse_keyElement(Parser* parser)
+static Ast* parse_keyElement(Parser* parser)
 {
   Ast* key_elem;
 
@@ -3573,8 +3450,7 @@ parse_keyElement(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_actionList(Parser* parser)
+static Ast* parse_actionList(Parser* parser)
 {
   Ast* actions, *ast;
 
@@ -3601,8 +3477,7 @@ parse_actionList(Parser* parser)
   return actions;
 }
 
-static Ast*
-parse_actionRef(Parser* parser)
+static Ast* parse_actionRef(Parser* parser)
 {
   Ast* action_ref;
 
@@ -3633,8 +3508,7 @@ parse_actionRef(Parser* parser)
 }
 
 #if 0
-static Ast*
-parse_entriesList(Parser* parser)
+static Ast* parse_entriesList(Parser* parser)
 {
   Ast* entries, *ast;
 
@@ -3653,8 +3527,7 @@ parse_entriesList(Parser* parser)
   return entries;
 }
 
-static Ast*
-parse_entry(Parser* parser)
+static Ast* parse_entry(Parser* parser)
 {
   Ast* entry;
 
@@ -3681,8 +3554,7 @@ parse_entry(Parser* parser)
 }
 #endif
 
-static Ast*
-parse_actionDeclaration(Parser* parser)
+static Ast* parse_actionDeclaration(Parser* parser)
 {
   Ast* action_decl;
 
@@ -3718,8 +3590,7 @@ parse_actionDeclaration(Parser* parser)
 
 /** VARIABLES **/
 
-static Ast*
-parse_variableDeclaration(Parser* parser, Ast* type_ref)
+static Ast* parse_variableDeclaration(Parser* parser, Ast* type_ref)
 {
   bool is_const = 0;
   Ast* var_decl;
@@ -3756,8 +3627,7 @@ parse_variableDeclaration(Parser* parser, Ast* type_ref)
 
 /** EXPRESSIONS **/
 
-static Ast*
-parse_functionDeclaration(Parser* parser, Ast* type_ref)
+static Ast* parse_functionDeclaration(Parser* parser, Ast* type_ref)
 {
   Ast* func_decl;
 
@@ -3778,8 +3648,7 @@ parse_functionDeclaration(Parser* parser, Ast* type_ref)
   return 0;
 }
 
-static Ast*
-parse_argumentList(Parser* parser)
+static Ast* parse_argumentList(Parser* parser)
 {
   Ast* args, *ast;
 
@@ -3799,8 +3668,7 @@ parse_argumentList(Parser* parser)
   return args;
 }
 
-static Ast*
-parse_argument(Parser* parser)
+static Ast* parse_argument(Parser* parser)
 {
   Ast* arg, *dontcare_arg;
 
@@ -3827,8 +3695,7 @@ parse_argument(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_expressionList(Parser* parser)
+static Ast* parse_expressionList(Parser* parser)
 {
   Ast* exprs = arena_malloc(parser->storage, sizeof(Ast));
   exprs->kind = AST_expressionList;
@@ -3846,8 +3713,7 @@ parse_expressionList(Parser* parser)
   return exprs;
 }
 
-static Ast*
-parse_lvalue(Parser* parser)
+static Ast* parse_lvalue(Parser* parser)
 {
   Ast* lvalue, *expr;
 
@@ -3901,8 +3767,7 @@ parse_lvalue(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_expression(Parser* parser, int priority_threshold)
+static Ast* parse_expression(Parser* parser, int priority_threshold)
 {
   Ast* primary, *expr;
 
@@ -4000,8 +3865,7 @@ parse_expression(Parser* parser, int priority_threshold)
   return 0;
 }
 
-static Ast*
-parse_expressionPrimary(Parser* parser)
+static Ast* parse_expressionPrimary(Parser* parser)
 {
   Ast* primary, *expr;
 
@@ -4127,8 +3991,7 @@ parse_expressionPrimary(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_indexExpression(Parser* parser)
+static Ast* parse_indexExpression(Parser* parser)
 {
   Ast* index_expr;
 
@@ -4152,8 +4015,7 @@ parse_indexExpression(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_integer(Parser* parser)
+static Ast* parse_integer(Parser* parser)
 {
   Ast* int_literal;
 
@@ -4173,8 +4035,7 @@ parse_integer(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_boolean(Parser* parser)
+static Ast* parse_boolean(Parser* parser)
 {
   Ast* bool_literal;
 
@@ -4192,8 +4053,7 @@ parse_boolean(Parser* parser)
   return 0;
 }
 
-static Ast*
-parse_string(Parser* parser)
+static Ast* parse_string(Parser* parser)
 {
   Ast* string_literal;
 

@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>  /* exit */
-#include <stdarg.h>  /* va_list, va_start, va_end */
+#include <stdlib.h>
+#include <stdarg.h>
 #include "foundation.h"
 
-void
-assert_(char* message, char* file, int line)
+void assert_(char* message, char* file, int line)
 {
   printf("%s:%d: ", file, line);
   if(!message || message[0] == '\0') {
@@ -15,14 +14,12 @@ assert_(char* message, char* file, int line)
   exit(2);
 }
 
-bool
-cstr_is_letter(char c)
+bool cstr_is_letter(char c)
 {
   return ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z');
 }
 
-bool
-cstr_is_digit(char c, int base)
+bool cstr_is_digit(char c, int base)
 {
   if (base == 10) {
     return '0' <= c && c <= '9';
@@ -36,20 +33,17 @@ cstr_is_digit(char c, int base)
   return 0;
 }
 
-bool
-cstr_is_ascii_printable(char c)
+bool cstr_is_ascii_printable(char c)
 {
   return ' ' <= c && c <= '~';
 }
 
-bool
-cstr_is_whitespace(char c)
+bool cstr_is_whitespace(char c)
 {
   return c == ' ' || c == '\n' || c == '\r' || c == '\t';
 }
 
-int
-cstr_len(char* str)
+int cstr_len(char* str)
 {
   int len = 0;
   while(*str++ != 0)
@@ -57,8 +51,7 @@ cstr_len(char* str)
   return len;
 }
 
-char*
-cstr_copy(char* dest_str, char* src_str)
+char* cstr_copy(char* dest_str, char* src_str)
 {
   do
     *dest_str++ = *src_str++;
@@ -66,8 +59,7 @@ cstr_copy(char* dest_str, char* src_str)
   return dest_str;
 }
 
-void
-cstr_copy_substr(char* dest_str, char* begin_char, char* end_char)
+void cstr_copy_substr(char* dest_str, char* begin_char, char* end_char)
 {
   char* src_str = begin_char;
 
@@ -76,8 +68,7 @@ cstr_copy_substr(char* dest_str, char* begin_char, char* end_char)
   while(src_str <= end_char);
 }
 
-bool
-cstr_start_with(char* str, char* prefix)
+bool cstr_start_with(char* str, char* prefix)
 {
   while(*str == *prefix) {
     str++;
@@ -89,8 +80,7 @@ cstr_start_with(char* str, char* prefix)
   return result;
 }
 
-bool
-cstr_match(char* str_a, char* str_b)
+bool cstr_match(char* str_a, char* str_b)
 {
   while (*str_a == *str_b) {
     str_a++;
@@ -102,8 +92,7 @@ cstr_match(char* str_a, char* str_b)
   return result;
 }
 
-void
-cstr_print_substr(char* begin_char, char* end_char)
+void cstr_print_substr(char* begin_char, char* end_char)
 {
   char* c = begin_char;
   while (c <= end_char) {
@@ -112,8 +101,7 @@ cstr_print_substr(char* begin_char, char* end_char)
   }
 }
 
-void
-error_(char* file, int line, char* message, ...)
+void error_(char* file, int line, char* message, ...)
 {
   va_list args;
   va_start(args, message);

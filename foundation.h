@@ -4,24 +4,24 @@ typedef uint32_t bool;
 #define KILOBYTE 1024
 #define MEGABYTE 1024*KILOBYTE
 
-void     assert_(char* message, char* file, int line);
-#define  assert(expr) do { if(!(expr)) assert_(#expr, __FILE__, __LINE__); } while(0)
-void     error_(char* file, int line, char* message, ...);
-#define  error(msg, ...) error_(__FILE__, __LINE__, (msg), ## __VA_ARGS__)
-#define  container_of(container, type, member) ({ \
+void assert_(char* message, char* file, int line);
+#define assert(expr) do { if(!(expr)) assert_(#expr, __FILE__, __LINE__); } while(0)
+void error_(char* file, int line, char* message, ...);
+#define error(msg, ...) error_(__FILE__, __LINE__, (msg), ## __VA_ARGS__)
+#define container_of(container, type, member) ({ \
     typeof( ((type*)0)->member )* __member_ptr = &(container->member); \
     (type*)( (char*)__member_ptr - offsetof(type, member) );})
 
-bool  cstr_is_letter(char c);
-bool  cstr_is_digit(char c, int base);
-bool  cstr_is_ascii_printable(char c);
-bool  cstr_is_whitespace(char c);
-int   cstr_len(char* str);
+bool cstr_is_letter(char c);
+bool cstr_is_digit(char c, int base);
+bool cstr_is_ascii_printable(char c);
+bool cstr_is_whitespace(char c);
+int cstr_len(char* str);
 char* cstr_copy(char* dest_str, char* src_str);
-void  cstr_copy_substr(char* dest_str, char* begin_char, char* end_char);
-bool  cstr_start_with(char* str, char* prefix);
-bool  cstr_match(char* str_a, char* str_b);
-void  cstr_print_substr(char* begin_char, char* end_char);
+void cstr_copy_substr(char* dest_str, char* begin_char, char* end_char);
+bool cstr_start_with(char* str, char* prefix);
+bool cstr_match(char* str_a, char* str_b);
+void cstr_print_substr(char* begin_char, char* end_char);
 
 typedef struct PageBlock {
   struct PageBlock* next_block;
@@ -36,9 +36,9 @@ typedef struct Arena {
   void* memory_limit;
 } Arena;
 
-void  reserve_memory(int amount);
+void reserve_memory(int amount);
 void* arena_malloc(Arena* arena, uint32_t size);
-void  arena_free(Arena* arena);
+void arena_free(Arena* arena);
 
 /**
  * n  ...  segment count
@@ -71,12 +71,12 @@ typedef struct Array {
   SegmentTable data;
 } Array;
 
-void*  segment_locate_cell(SegmentTable* data, int i, int elem_size);
+void* segment_locate_cell(SegmentTable* data, int i, int elem_size);
 Array* array_create(Arena* storage, int elem_size, int segment_count);
-void   array_init(Arena* storage, Array* array, int elem_size, int segment_count);
-void   array_extend(Arena* storage, Array* array, int elem_size);
-void*  array_get(Array* array, int i, int elem_size);
-void*  array_append(Arena* storage, Array* array, int elem_size);
+void array_init(Arena* storage, Array* array, int elem_size, int segment_count);
+void array_extend(Arena* storage, Array* array, int elem_size);
+void* array_get(Array* array, int i, int elem_size);
+void* array_append(Arena* storage, Array* array, int elem_size);
 
 typedef struct StrmapEntry {
   char* key;
@@ -102,11 +102,11 @@ typedef struct StrmapCursor {
   StrmapEntry* entry;
 } StrmapCursor;
 
-Strmap*      strmap_create(Arena* storage, int segment_count);
-void         strmap_init(Arena* storage, Strmap* strmap, int segment_count);
-void*        strmap_lookup(Strmap* strmap, char* key, StrmapEntry** entry, StrmapBucket* bucket);
+Strmap* strmap_create(Arena* storage, int segment_count);
+void strmap_init(Arena* storage, Strmap* strmap, int segment_count);
+void* strmap_lookup(Strmap* strmap, char* key, StrmapEntry** entry, StrmapBucket* bucket);
 StrmapEntry* strmap_insert(Arena* storage, Strmap* strmap, char* key, void* value, bool return_if_found);
-void         strmap_cursor_begin(StrmapCursor* cursor, Strmap* strmap);
+void strmap_cursor_begin(StrmapCursor* cursor, Strmap* strmap);
 StrmapEntry* strmap_cursor_next(StrmapCursor* cursor);
 
 typedef struct MapEntry {
@@ -123,6 +123,6 @@ typedef struct Map {
 } Map;
 
 MapEntry* map_insert(Arena* storage, Map* map, void* key, void* value, bool return_if_found);
-void*     map_lookup(Map* map, void* key, MapEntry** entry);
-int       map_count(Map* map);
+void* map_lookup(Map* map, void* key, MapEntry** entry);
+int map_count(Map* map);
 

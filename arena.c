@@ -1,25 +1,24 @@
-#include <memory.h>  /* memset */
+#include <memory.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>   /* exit */
-#include <math.h> /* ceil */
+#include <stdlib.h>
+#include <math.h>
 #include "foundation.h"
 
 #define ZMEM_ON_FREE  0
 #define ZMEM_ON_ALLOC 1
 
-static int   page_size = 0;
-static int   total_page_count = 0;
+static int page_size = 0;
+static int total_page_count = 0;
 static void* page_memory_start = 0;
 static Arena storage = {0};
 static PageBlock* first_block = 0;
 static PageBlock* block_freelist_head = 0;
 static PageBlock* recycled_block_structs = 0;
 
-void
-reserve_memory(int amount)
+void reserve_memory(int amount)
 {
   page_size = getpagesize();
   total_page_count = ceil(amount / page_size);
@@ -47,8 +46,7 @@ reserve_memory(int amount)
   storage.memory_limit = first_block->memory_end;
 }
 
-static PageBlock*
-find_block_first_fit(int requested_memory_amount)
+static PageBlock* find_block_first_fit(int requested_memory_amount)
 {
   PageBlock* result = 0;
   PageBlock* b;
@@ -64,16 +62,14 @@ find_block_first_fit(int requested_memory_amount)
   return result;
 }
 
-static void
-recycle_block_struct(PageBlock* block)
+static void recycle_block_struct(PageBlock* block)
 {
   memset(block, 0, sizeof(PageBlock));
   block->next_block = recycled_block_structs;
   recycled_block_structs = block;
 }
 
-static PageBlock*
-block_insert_and_coalesce(PageBlock* block_list, PageBlock* new_block)
+static PageBlock* block_insert_and_coalesce(PageBlock* block_list, PageBlock* new_block)
 {
   PageBlock* merged_list;
   PageBlock* left_neighbour = 0, *right_neighbour = 0;
@@ -148,8 +144,7 @@ block_insert_and_coalesce(PageBlock* block_list, PageBlock* new_block)
   return merged_list;
 }
 
-static PageBlock*
-get_new_block_struct()
+static PageBlock* get_new_block_struct()
 {
   PageBlock* block;
 
@@ -163,8 +158,7 @@ get_new_block_struct()
   return block;
 }
 
-static void
-arena_grow(Arena* arena, uint32_t size)
+static void arena_grow(Arena* arena, uint32_t size)
 {
   PageBlock* free_block, *alloc_block;
   uint8_t* alloc_memory_begin = 0, *alloc_memory_end = 0;
@@ -199,8 +193,7 @@ arena_grow(Arena* arena, uint32_t size)
   arena->owned_pages = block_insert_and_coalesce(arena->owned_pages, alloc_block);
 }
 
-void*
-arena_malloc(Arena* arena, uint32_t size)
+void* arena_malloc(Arena* arena, uint32_t size)
 {
   assert(size > 0);
   uint8_t* user_memory;
@@ -217,8 +210,7 @@ arena_malloc(Arena* arena, uint32_t size)
   return user_memory;
 }
 
-void
-arena_free(Arena* arena)
+void arena_free(Arena* arena)
 {
   PageBlock* p, *next_block;
 

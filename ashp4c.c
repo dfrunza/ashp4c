@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>   /* exit */
+#include <stdlib.h>
 #include "foundation.h"
 #include "frontend.h"
 #include "ashp4c.h"
@@ -11,8 +11,7 @@ typedef struct CmdlineArg {
   struct CmdlineArg* next_arg;
 } CmdlineArg;
 
-static void
-read_source(SourceText* source_text, char* filename)
+static void read_source(SourceText* source_text, char* filename)
 {
   FILE* f_stream;
   char* text;
@@ -33,8 +32,7 @@ read_source(SourceText* source_text, char* filename)
   source_text->filename = filename;
 }
 
-static CmdlineArg*
-find_unnamed_arg(CmdlineArg* args)
+static CmdlineArg* find_unnamed_arg(CmdlineArg* args)
 {
   CmdlineArg* unnamed_arg = 0;
   CmdlineArg* arg;
@@ -51,8 +49,7 @@ find_unnamed_arg(CmdlineArg* args)
 }
 
 #if 0
-static CmdlineArg*
-find_named_arg(char* name, CmdlineArg* args)
+static CmdlineArg* find_named_arg(char* name, CmdlineArg* args)
 {
   CmdlineArg* named_arg = 0;
   CmdlineArg* arg = args;
@@ -67,8 +64,7 @@ find_named_arg(char* name, CmdlineArg* args)
 }
 #endif
 
-static CmdlineArg*
-parse_cmdline_args(Arena* storage, int arg_count, char* args[])
+static CmdlineArg* parse_cmdline_args(Arena* storage, int arg_count, char* args[])
 {
   CmdlineArg* arg_list = 0;
   CmdlineArg *prev_arg, *cmdline_arg;
@@ -96,8 +92,7 @@ parse_cmdline_args(Arena* storage, int arg_count, char* args[])
   return arg_list;
 }
 
-int
-main(int arg_count, char* args[])
+int main(int arg_count, char* args[])
 {
   CmdlineArg* cmdline_arg, *filename;
   Arena storage = {0}, scratch_storage = {0};
