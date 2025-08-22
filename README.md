@@ -1,25 +1,29 @@
 ## Project status
 
-The compiler is under development and at this stage it doesn't output any code. The lexer and parser have been finished and tested, name indentification and type checking are work in progress.
+The compiler is under development and at this stage it doesn't output any code.
+The lexer and parser have been finished and tested.
+Work on name indentification and type checking is in progress.
 
 ## Building the compiler
 
-Building the compiler executable requires a Linux OS and GCC. Change the current directory to the root of the source tree and launch the `build.sh` script.
+Building the executable requires a Linux OS and the GCC compiler.
+Change the current directory to the root of the source tree and launch the `build.sh` script.
 
 ## Tests
 
-Compile a series of P4 programs and report PASS/FAIL status:
+This script compiles a list of P4 programs and reports the PASS/FAIL status of each:
 
 ```$ ./run_tests.sh```
 
-To test the parsing algorithm, edit a P4 source file and introduce an error somewhere. The compiler should be able to detect and report it:
+Edit a P4 source file and introduce an error somewhere. The parser should be able to detect it:
 
 ```
   apply {
     a(8w15,);
   }
 ```
-In this code fragment the error is caused by the trailing comma:
+
+In the above code fragment the error is caused by a trailing comma:
 
 ```
 $ ./ashp4c testdata/action-param1.p4
