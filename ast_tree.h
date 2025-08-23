@@ -1,14 +1,12 @@
 #pragma once
 
-typedef struct Ast Ast;
-
 typedef struct AstTree {
-  struct Ast* first_child;
-  struct Ast* right_sibling;
+  struct AstTree* first_child;
+  struct AstTree* right_sibling;
 } AstTree;
 
 typedef struct AstTreeCtor {
-  Ast* last_sibling;
+  AstTree* last_sibling;
 } AstTreeCtor;
 
-void ast_tree_append_node(AstTree* tree, AstTreeCtor* ctor, Ast* node);
+void ast_tree_append_node(AstTree* tree, AstTreeCtor* ctor, AstTree* node);

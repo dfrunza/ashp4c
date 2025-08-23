@@ -8,9 +8,9 @@ void assert_(char* message, char* file, int line);
 #define assert(expr) do { if(!(expr)) assert_(#expr, __FILE__, __LINE__); } while(0)
 void error_(char* file, int line, char* message, ...);
 #define error(msg, ...) error_(__FILE__, __LINE__, (msg), ## __VA_ARGS__)
-#define container_of(container, type, member) ({ \
-    typeof( ((type*)0)->member )* __member_ptr = &(container->member); \
-    (type*)( (char*)__member_ptr - offsetof(type, member) );})
+/* macro define offsetof(type, field) ( (int) (((type*)0)->field) ) */
+#define container_of(member_ptr, container_type, member_name) \
+    ( (container_type*)((char*)member_ptr - offsetof(container_type, member_name)) )
 
 bool cstr_is_letter(char c);
 bool cstr_is_digit(char c, int base);

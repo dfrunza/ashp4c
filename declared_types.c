@@ -534,11 +534,11 @@ static void visit_p4program(TypeChecker* checker, Ast* p4program)
 static void visit_declarationList(TypeChecker* checker, Ast* decl_list)
 {
   assert(decl_list->kind == AST_declarationList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = decl_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_declaration(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_declaration(checker, container_of(ast, Ast, tree));
   }
 }
 
@@ -589,7 +589,7 @@ static void visit_name(TypeChecker* checker, Ast* name)
 static void visit_parameterList(TypeChecker* checker, Ast* params)
 {
   assert(params->kind == AST_parameterList);
-  Ast* ast;
+  AstTree* ast;
   Type* params_ty;
   int i;
 
@@ -597,8 +597,8 @@ static void visit_parameterList(TypeChecker* checker, Ast* params)
   params_ty->ty_former = TYPE_PRODUCT;
   params_ty->ast = params;
   for (ast = params->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_parameter(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_parameter(checker, container_of(ast, Ast, tree));
     params_ty->product.count += 1;
   }
   if (params_ty->product.count > 0) {
@@ -606,8 +606,8 @@ static void visit_parameterList(TypeChecker* checker, Ast* params)
   }
   i = 0;
   for (ast = params->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    params_ty->product.members[i] = map_lookup(checker->type_env, ast, 0);
+       ast != 0; ast = ast->right_sibling) {
+    params_ty->product.members[i] = map_lookup(checker->type_env, container_of(ast, Ast, tree), 0);
     i += 1;
   }
   assert(i == params_ty->product.count);
@@ -705,11 +705,11 @@ static void visit_parserTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 static void visit_parserLocalElements(TypeChecker* checker, Ast* local_elements)
 {
   assert(local_elements->kind == AST_parserLocalElements);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = local_elements->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_parserLocalElement(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_parserLocalElement(checker, container_of(ast, Ast, tree));
   }
 }
 
@@ -726,11 +726,11 @@ static void visit_parserLocalElement(TypeChecker* checker, Ast* local_element)
 static void visit_parserStates(TypeChecker* checker, Ast* states)
 {
   assert(states->kind == AST_parserStates);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = states->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_parserState(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_parserState(checker, container_of(ast, Ast, tree));
   }
 }
 
@@ -756,11 +756,11 @@ static void visit_parserState(TypeChecker* checker, Ast* state)
 static void visit_parserStatements(TypeChecker* checker, Ast* stmts)
 {
   assert(stmts->kind == AST_parserStatements);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = stmts->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_parserStatement(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_parserStatement(checker, container_of(ast, Ast, tree));
   }
 }
 
@@ -814,11 +814,11 @@ static void visit_selectExpression(TypeChecker* checker, Ast* select_expr)
 static void visit_selectCaseList(TypeChecker* checker, Ast* case_list)
 {
   assert(case_list->kind == AST_selectCaseList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = case_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_selectCase(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_selectCase(checker, container_of(ast, Ast, tree));
   }
 }
 
@@ -859,11 +859,11 @@ static void visit_simpleKeysetExpression(TypeChecker* checker, Ast* simple_expr)
 static void visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list)
 {
   assert(expr_list->kind == AST_simpleExpressionList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = expr_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_simpleKeysetExpression(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_simpleKeysetExpression(checker, container_of(ast, Ast, tree));
   }
 }
 
@@ -908,11 +908,11 @@ static void visit_controlTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 static void visit_controlLocalDeclarations(TypeChecker* checker, Ast* local_decls)
 {
   assert(local_decls->kind == AST_controlLocalDeclarations);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = local_decls->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_controlLocalDeclaration(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_controlLocalDeclaration(checker, container_of(ast, Ast, tree));
   }
 }
 
@@ -982,7 +982,7 @@ static void visit_externTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 static void visit_methodPrototypes(TypeChecker* checker, Ast* protos, Type* ctor_ty, char* ctor_strname)
 {
   assert(protos->kind == AST_methodPrototypes);
-  Ast* ast;
+  AstTree* ast;
   Type* methods_ty;
   int i;
 
@@ -990,8 +990,8 @@ static void visit_methodPrototypes(TypeChecker* checker, Ast* protos, Type* ctor
   methods_ty->ty_former = TYPE_PRODUCT;
   methods_ty->ast = protos;
   for (ast = protos->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_functionPrototype(checker, ast, ctor_ty, ctor_strname);
+       ast != 0; ast = ast->right_sibling) {
+    visit_functionPrototype(checker, container_of(ast, Ast, tree), ctor_ty, ctor_strname);
     methods_ty->product.count += 1;
   }
   if (methods_ty->product.count > 0) {
@@ -999,8 +999,8 @@ static void visit_methodPrototypes(TypeChecker* checker, Ast* protos, Type* ctor
   }
   i = 0;
   for (ast = protos->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    methods_ty->product.members[i] = map_lookup(checker->type_env, ast, 0);
+       ast != 0; ast = ast->right_sibling) {
+    methods_ty->product.members[i] = map_lookup(checker->type_env, container_of(ast, Ast, tree), 0);
     i += 1;
   }
   assert(i == methods_ty->product.count);
@@ -1195,7 +1195,7 @@ static void visit_typeArg(TypeChecker* checker, Ast* type_arg)
 static void visit_typeArgumentList(TypeChecker* checker, Ast* args)
 {
   assert(args->kind == AST_typeArgumentList);
-  Ast* ast;
+  AstTree* ast;
   Type* args_ty;
   int i;
 
@@ -1203,8 +1203,8 @@ static void visit_typeArgumentList(TypeChecker* checker, Ast* args)
   args_ty->ty_former = TYPE_PRODUCT;
   args_ty->ast = args;
   for (ast = args->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_typeArg(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_typeArg(checker, container_of(ast, Ast, tree));
     args_ty->product.count += 1;
   }
   if (args_ty->product.count > 0) {
@@ -1212,8 +1212,8 @@ static void visit_typeArgumentList(TypeChecker* checker, Ast* args)
   }
   i = 0;
   for (ast = args->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    args_ty->product.members[i] = map_lookup(checker->type_env, ast, 0);
+       ast != 0; ast = ast->right_sibling) {
+    args_ty->product.members[i] = map_lookup(checker->type_env, container_of(ast, Ast, tree), 0);
     i += 1;
   }
   assert(i == args_ty->product.count);
@@ -1318,7 +1318,7 @@ static void visit_structTypeDeclaration(TypeChecker* checker, Ast* struct_decl)
 static void visit_structFieldList(TypeChecker* checker, Ast* fields)
 {
   assert(fields->kind == AST_structFieldList);
-  Ast* ast;
+  AstTree* ast;
   Type* fields_ty;
   int i;
 
@@ -1326,8 +1326,8 @@ static void visit_structFieldList(TypeChecker* checker, Ast* fields)
   fields_ty->ty_former = TYPE_PRODUCT;
   fields_ty->ast = fields;
   for (ast = fields->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_structField(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_structField(checker, container_of(ast, Ast, tree));
     fields_ty->product.count += 1;
   }
   if (fields_ty->product.count > 0) {
@@ -1335,8 +1335,8 @@ static void visit_structFieldList(TypeChecker* checker, Ast* fields)
   }
   i = 0;
   for (ast = fields->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    fields_ty->product.members[i] = map_lookup(checker->type_env, ast, 0);
+       ast != 0; ast = ast->right_sibling) {
+    fields_ty->product.members[i] = map_lookup(checker->type_env, container_of(ast, Ast, tree), 0);
     i += 1;
   }
   assert(i == fields_ty->product.count);
@@ -1414,23 +1414,23 @@ static void visit_matchKindDeclaration(TypeChecker* checker, Ast* match_decl)
 static void visit_identifierList(TypeChecker* checker, Ast* ident_list, Type* enum_ty, Type* idents_ty, int* i)
 {
   assert(ident_list->kind == AST_identifierList);
-  Ast* name;
+  AstTree* ast;
   NameDeclaration* name_decl;
   Type* name_ty;
   int j;
 
   j = *i;
-  for (name = ident_list->tree.first_child;
-       name != 0; name = name->tree.right_sibling) {
+  for (ast = ident_list->tree.first_child;
+       ast != 0; ast = ast->right_sibling) {
     name_ty = array_append(checker->storage, checker->type_array, sizeof(Type));
     name_ty->ty_former = TYPE_FIELD;
-    name_ty->strname = name->name.strname;
-    name_ty->ast = name;
+    name_ty->strname = container_of(ast, Ast, tree)->name.strname;
+    name_ty->ast = container_of(ast, Ast, tree);
     name_ty->field.type = enum_ty;
-    map_insert(checker->storage, checker->type_env, name, name_ty, 0);
-    name_decl = map_lookup(checker->decl_map, name, 0);
+    map_insert(checker->storage, checker->type_env, ast, name_ty, 0);
+    name_decl = map_lookup(checker->decl_map, container_of(ast, Ast, tree), 0);
     name_decl->type = name_ty;
-    idents_ty->product.members[j] = map_lookup(checker->type_env, name, 0);
+    idents_ty->product.members[j] = map_lookup(checker->type_env, container_of(ast, Ast, tree), 0);
     j += 1;
   }
   *i = j;
@@ -1439,7 +1439,7 @@ static void visit_identifierList(TypeChecker* checker, Ast* ident_list, Type* en
 static void visit_specifiedIdentifierList(TypeChecker* checker, Ast* ident_list, Type* enum_ty)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
-  Ast* ast;
+  AstTree* ast;
   Type* idents_ty;
   int i;
 
@@ -1447,8 +1447,8 @@ static void visit_specifiedIdentifierList(TypeChecker* checker, Ast* ident_list,
   idents_ty->ty_former = TYPE_PRODUCT;
   idents_ty->ast = ident_list;
   for (ast = ident_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_specifiedIdentifier(checker, ast, enum_ty);
+       ast != 0; ast = ast->right_sibling) {
+    visit_specifiedIdentifier(checker, container_of(ast, Ast, tree), enum_ty);
     idents_ty->product.count += 1;
   }
   if (idents_ty->product.count > 0) {
@@ -1456,8 +1456,8 @@ static void visit_specifiedIdentifierList(TypeChecker* checker, Ast* ident_list,
   }
   i = 0;
   for (ast = ident_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    idents_ty->product.members[i] = map_lookup(checker->type_env, ast, 0);
+       ast != 0; ast = ast->right_sibling) {
+    idents_ty->product.members[i] = map_lookup(checker->type_env, container_of(ast, Ast, tree), 0);
     i += 1;
   }
   assert(i == idents_ty->product.count);
@@ -1594,11 +1594,11 @@ static void visit_blockStatement(TypeChecker* checker, Ast* block_stmt)
 static void visit_statementOrDeclList(TypeChecker* checker, Ast* stmt_list)
 {
   assert(stmt_list->kind == AST_statementOrDeclList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = stmt_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_statementOrDeclaration(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_statementOrDeclaration(checker, container_of(ast, Ast, tree));
   }
 }
 
@@ -1612,11 +1612,11 @@ static void visit_switchStatement(TypeChecker* checker, Ast* switch_stmt)
 static void visit_switchCases(TypeChecker* checker, Ast* switch_cases)
 {
   assert(switch_cases->kind == AST_switchCases);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = switch_cases->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_switchCase(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_switchCase(checker, container_of(ast, Ast, tree));
   }
 }
 
@@ -1677,11 +1677,11 @@ static void visit_tableDeclaration(TypeChecker* checker, Ast* table_decl)
 static void visit_tablePropertyList(TypeChecker* checker, Ast* prop_list)
 {
   assert(prop_list->kind == AST_tablePropertyList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = prop_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_tableProperty(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_tableProperty(checker, container_of(ast, Ast, tree));
   }
 }
 
@@ -1712,11 +1712,11 @@ static void visit_keyProperty(TypeChecker* checker, Ast* key_prop)
 static void visit_keyElementList(TypeChecker* checker, Ast* element_list)
 {
   assert(element_list->kind == AST_keyElementList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = element_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_keyElement(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_keyElement(checker, container_of(ast, Ast, tree));
   }
 }
 
@@ -1735,11 +1735,11 @@ static void visit_actionsProperty(TypeChecker* checker, Ast* actions_prop)
 static void visit_actionList(TypeChecker* checker, Ast* action_list)
 {
   assert(action_list->kind == AST_actionList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = action_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_actionRef(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_actionRef(checker, container_of(ast, Ast, tree));
   }
 }
 
@@ -1761,11 +1761,11 @@ static void visit_entriesProperty(TypeChecker* checker, Ast* entries_prop)
 static void visit_entriesList(TypeChecker* checker, Ast* entries_list)
 {
   assert(entries_list->kind == AST_entriesList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = entries_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_entry(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_entry(checker, container_of(ast, Ast, tree));
   }
 }
 
@@ -1834,11 +1834,11 @@ static void visit_functionDeclaration(TypeChecker* checker, Ast* func_decl)
 static void visit_argumentList(TypeChecker* checker, Ast* args)
 {
   assert(args->kind == AST_argumentList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = args->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_argument(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_argument(checker, container_of(ast, Ast, tree));
   }
 }
 
@@ -1853,11 +1853,11 @@ static void visit_argument(TypeChecker* checker, Ast* arg)
 static void visit_expressionList(TypeChecker* checker, Ast* expr_list)
 {
   assert(expr_list->kind == AST_expressionList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = expr_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_expression(checker, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_expression(checker, container_of(ast, Ast, tree));
   }
 }
 

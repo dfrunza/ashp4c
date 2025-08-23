@@ -188,11 +188,11 @@ static void visit_p4program(ScopeBuilder* scope_builder, Ast* p4program)
 static void visit_declarationList(ScopeBuilder* scope_builder, Ast* decl_list)
 {
   assert(decl_list->kind == AST_declarationList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = decl_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_declaration(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_declaration(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -240,11 +240,11 @@ static void visit_name(ScopeBuilder* scope_builder, Ast* name)
 static void visit_parameterList(ScopeBuilder* scope_builder, Ast* params)
 {
   assert(params->kind == AST_parameterList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = params->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_parameter(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_parameter(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -319,11 +319,11 @@ static void visit_parserTypeDeclaration(ScopeBuilder* scope_builder, Ast* type_d
 static void visit_parserLocalElements(ScopeBuilder* scope_builder, Ast* local_elements)
 {
   assert(local_elements->kind == AST_parserLocalElements);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = local_elements->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_parserLocalElement(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_parserLocalElement(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -340,11 +340,11 @@ static void visit_parserLocalElement(ScopeBuilder* scope_builder, Ast* local_ele
 static void visit_parserStates(ScopeBuilder* scope_builder, Ast* states)
 {
   assert(states->kind == AST_parserStates);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = states->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_parserState(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_parserState(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -367,11 +367,11 @@ static void visit_parserState(ScopeBuilder* scope_builder, Ast* state)
 static void visit_parserStatements(ScopeBuilder* scope_builder, Ast* stmts)
 {
   assert(stmts->kind == AST_parserStatements);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = stmts->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_parserStatement(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_parserStatement(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -435,11 +435,11 @@ static void visit_selectExpression(ScopeBuilder* scope_builder, Ast* select_expr
 static void visit_selectCaseList(ScopeBuilder* scope_builder, Ast* case_list)
 {
   assert(case_list->kind == AST_selectCaseList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = case_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_selectCase(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_selectCase(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -480,11 +480,11 @@ static void visit_simpleKeysetExpression(ScopeBuilder* scope_builder, Ast* simpl
 static void visit_simpleExpressionList(ScopeBuilder* scope_builder, Ast* expr_list)
 {
   assert(expr_list->kind == AST_simpleExpressionList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = expr_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_simpleKeysetExpression(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_simpleKeysetExpression(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -528,11 +528,11 @@ static void visit_controlTypeDeclaration(ScopeBuilder* scope_builder, Ast* type_
 static void visit_controlLocalDeclarations(ScopeBuilder* scope_builder, Ast* local_decls)
 {
   assert(local_decls->kind == AST_controlLocalDeclarations);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = local_decls->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_controlLocalDeclaration(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_controlLocalDeclaration(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -586,11 +586,11 @@ static void visit_externTypeDeclaration(ScopeBuilder* scope_builder, Ast* type_d
 static void visit_methodPrototypes(ScopeBuilder* scope_builder, Ast* protos)
 {
   assert(protos->kind == AST_methodPrototypes);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = protos->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_functionPrototype(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_functionPrototype(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -725,11 +725,11 @@ static void visit_typeArg(ScopeBuilder* scope_builder, Ast* type_arg)
 static void visit_typeArgumentList(ScopeBuilder* scope_builder, Ast* arg_list)
 {
   assert(arg_list->kind == AST_typeArgumentList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = arg_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_typeArg(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_typeArg(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -823,11 +823,11 @@ static void visit_structTypeDeclaration(ScopeBuilder* scope_builder, Ast* struct
 static void visit_structFieldList(ScopeBuilder* scope_builder, Ast* field_list)
 {
   assert(field_list->kind == AST_structFieldList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = field_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_structField(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_structField(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -885,10 +885,10 @@ static void visit_matchKindDeclaration(ScopeBuilder* scope_builder, Ast* match_d
 static void visit_identifierList(ScopeBuilder* scope_builder, Ast* ident_list)
 {
   assert(ident_list->kind == AST_identifierList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = ident_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
+       ast != 0; ast = ast->right_sibling) {
     ;
   }
 }
@@ -896,11 +896,11 @@ static void visit_identifierList(ScopeBuilder* scope_builder, Ast* ident_list)
 static void visit_specifiedIdentifierList(ScopeBuilder* scope_builder, Ast* ident_list)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = ident_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_specifiedIdentifier(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_specifiedIdentifier(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -1022,11 +1022,11 @@ static void visit_blockStatement(ScopeBuilder* scope_builder, Ast* block_stmt)
 static void visit_statementOrDeclList(ScopeBuilder* scope_builder, Ast* stmt_list)
 {
   assert(stmt_list->kind == AST_statementOrDeclList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = stmt_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_statementOrDeclaration(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_statementOrDeclaration(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -1040,11 +1040,11 @@ static void visit_switchStatement(ScopeBuilder* scope_builder, Ast* switch_stmt)
 static void visit_switchCases(ScopeBuilder* scope_builder, Ast* switch_cases)
 {
   assert(switch_cases->kind == AST_switchCases);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = switch_cases->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_switchCase(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_switchCase(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -1100,11 +1100,11 @@ static void visit_tableDeclaration(ScopeBuilder* scope_builder, Ast* table_decl)
 static void visit_tablePropertyList(ScopeBuilder* scope_builder, Ast* prop_list)
 {
   assert(prop_list->kind == AST_tablePropertyList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = prop_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_tableProperty(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_tableProperty(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -1135,11 +1135,11 @@ static void visit_keyProperty(ScopeBuilder* scope_builder, Ast* key_prop)
 static void visit_keyElementList(ScopeBuilder* scope_builder, Ast* element_list)
 {
   assert(element_list->kind == AST_keyElementList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = element_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_keyElement(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_keyElement(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -1158,11 +1158,11 @@ static void visit_actionsProperty(ScopeBuilder* scope_builder, Ast* actions_prop
 static void visit_actionList(ScopeBuilder* scope_builder, Ast* action_list)
 {
   assert(action_list->kind == AST_actionList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = action_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_actionRef(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_actionRef(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -1184,11 +1184,11 @@ static void visit_entriesProperty(ScopeBuilder* scope_builder, Ast* entries_prop
 static void visit_entriesList(ScopeBuilder* scope_builder, Ast* entries_list)
 {
   assert(entries_list->kind == AST_entriesList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = entries_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_entry(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_entry(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -1253,11 +1253,11 @@ static void visit_functionDeclaration(ScopeBuilder* scope_builder, Ast* func_dec
 static void visit_argumentList(ScopeBuilder* scope_builder, Ast* arg_list)
 {
   assert(arg_list->kind == AST_argumentList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = arg_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_argument(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_argument(scope_builder, container_of(ast, Ast, tree));
   }
 }
 
@@ -1274,11 +1274,11 @@ static void visit_argument(ScopeBuilder* scope_builder, Ast* arg)
 static void visit_expressionList(ScopeBuilder* scope_builder, Ast* expr_list)
 {
   assert(expr_list->kind == AST_expressionList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = expr_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_expression(scope_builder, ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_expression(scope_builder, container_of(ast, Ast, tree));
   }
 }
 

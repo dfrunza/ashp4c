@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# -std=gnu99  ...  Access to the GCC extension 'Referring to a Type with typeof'
+# -std=gnu99  ...  Access to the GCC extension 'Referring to a Type with typeof'.
 
 CC=""
-CC="$CC -g -ggdb -std=gnu99 -fms-extensions -ffreestanding"
+CC="$CC -g3 -ggdb -std=gnu99 -fms-extensions -ffreestanding"
 CC="$CC -Winline -Wno-write-strings -Wno-unused-function -Wreturn-type -Wall"
 
 gcc $CC -o ashp4c \

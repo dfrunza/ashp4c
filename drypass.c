@@ -154,11 +154,11 @@ static void visit_p4program(Ast* p4program)
 static void visit_declarationList(Ast* decl_list)
 {
   assert(decl_list->kind == AST_declarationList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = decl_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_declaration(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_declaration(container_of(ast, Ast, tree));
   }
 }
 
@@ -200,11 +200,11 @@ static void visit_name(Ast* name)
 static void visit_parameterList(Ast* params)
 {
   assert(params->kind == AST_parameterList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = params->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_parameter(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_parameter(container_of(ast, Ast, tree));
   }
 }
 
@@ -256,11 +256,11 @@ static void visit_parserTypeDeclaration(Ast* type_decl)
 static void visit_parserLocalElements(Ast* local_elements)
 {
   assert(local_elements->kind == AST_parserLocalElements);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = local_elements->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_parserLocalElement(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_parserLocalElement(container_of(ast, Ast, tree));
   }
 }
 
@@ -277,11 +277,11 @@ static void visit_parserLocalElement(Ast* local_element)
 static void visit_parserStates(Ast* states)
 {
   assert(states->kind == AST_parserStates);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = states->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_parserState(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_parserState(container_of(ast, Ast, tree));
   }
 }
 
@@ -296,11 +296,11 @@ static void visit_parserState(Ast* state)
 static void visit_parserStatements(Ast* stmts)
 {
   assert(stmts->kind == AST_parserStatements);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = stmts->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_parserStatement(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_parserStatement(container_of(ast, Ast, tree));
   }
 }
 
@@ -354,11 +354,11 @@ static void visit_selectExpression(Ast* select_expr)
 static void visit_selectCaseList(Ast* case_list)
 {
   assert(case_list->kind == AST_selectCaseList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = case_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_selectCase(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_selectCase(container_of(ast, Ast, tree));
   }
 }
 
@@ -400,11 +400,11 @@ static void visit_simpleKeysetExpression(Ast* simple_expr)
 static void visit_simpleExpressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AST_simpleExpressionList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = expr_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_simpleKeysetExpression(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_simpleKeysetExpression(container_of(ast, Ast, tree));
   }
 }
 
@@ -431,11 +431,11 @@ static void visit_controlTypeDeclaration(Ast* type_decl)
 static void visit_controlLocalDeclarations(Ast* local_decls)
 {
   assert(local_decls->kind == AST_controlLocalDeclarations);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = local_decls->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_controlLocalDeclaration(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_controlLocalDeclaration(container_of(ast, Ast, tree));
   }
 }
 
@@ -475,11 +475,11 @@ static void visit_externTypeDeclaration(Ast* type_decl)
 static void visit_methodPrototypes(Ast* protos)
 {
   assert(protos->kind == AST_methodPrototypes);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = protos->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_functionPrototype(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_functionPrototype(container_of(ast, Ast, tree));
   }
 }
 
@@ -613,11 +613,11 @@ static void visit_typeArg(Ast* type_arg)
 static void visit_typeArgumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AST_typeArgumentList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = arg_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_typeArg(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_typeArg(container_of(ast, Ast, tree));
   }
 }
 
@@ -675,11 +675,11 @@ static void visit_structTypeDeclaration(Ast* struct_decl)
 static void visit_structFieldList(Ast* field_list)
 {
   assert(field_list->kind == AST_structFieldList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = field_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_structField(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_structField(container_of(ast, Ast, tree));
   }
 }
 
@@ -712,22 +712,22 @@ static void visit_matchKindDeclaration(Ast* match_decl)
 static void visit_identifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AST_identifierList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = ident_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_name(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_name(container_of(ast, Ast, tree));
   }
 }
 
 static void visit_specifiedIdentifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AST_specifiedIdentifierList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = ident_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_specifiedIdentifier(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_specifiedIdentifier(container_of(ast, Ast, tree));
   }
 }
 
@@ -842,11 +842,11 @@ static void visit_blockStatement(Ast* block_stmt)
 static void visit_statementOrDeclList(Ast* stmt_list)
 {
   assert(stmt_list->kind == AST_statementOrDeclList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = stmt_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_statementOrDeclaration(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_statementOrDeclaration(container_of(ast, Ast, tree));
   }
 }
 
@@ -860,11 +860,11 @@ static void visit_switchStatement(Ast* switch_stmt)
 static void visit_switchCases(Ast* switch_cases)
 {
   assert(switch_cases->kind == AST_switchCases);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = switch_cases->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_switchCase(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_switchCase(container_of(ast, Ast, tree));
   }
 }
 
@@ -911,11 +911,11 @@ static void visit_tableDeclaration(Ast* table_decl)
 static void visit_tablePropertyList(Ast* prop_list)
 {
   assert(prop_list->kind == AST_tablePropertyList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = prop_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_tableProperty(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_tableProperty(container_of(ast, Ast, tree));
   }
 }
 
@@ -946,11 +946,11 @@ static void visit_keyProperty(Ast* key_prop)
 static void visit_keyElementList(Ast* element_list)
 {
   assert(element_list->kind == AST_keyElementList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = element_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_keyElement(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_keyElement(container_of(ast, Ast, tree));
   }
 }
 
@@ -970,11 +970,11 @@ static void visit_actionsProperty(Ast* actions_prop)
 static void visit_actionList(Ast* action_list)
 {
   assert(action_list->kind == AST_actionList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = action_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_actionRef(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_actionRef(container_of(ast, Ast, tree));
   }
 }
 
@@ -997,11 +997,11 @@ static void visit_entriesProperty(Ast* entries_prop)
 static void visit_entriesList(Ast* entries_list)
 {
   assert(entries_list->kind == AST_entriesList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = entries_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_entry(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_entry(container_of(ast, Ast, tree));
   }
 }
 
@@ -1052,11 +1052,11 @@ static void visit_functionDeclaration(Ast* func_decl)
 static void visit_argumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AST_argumentList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = arg_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_argument(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_argument(container_of(ast, Ast, tree));
   }
 }
 
@@ -1073,11 +1073,11 @@ static void visit_argument(Ast* arg)
 static void visit_expressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AST_expressionList);
-  Ast* ast;
+  AstTree* ast;
 
   for (ast = expr_list->tree.first_child;
-       ast != 0; ast = ast->tree.right_sibling) {
-    visit_expression(ast);
+       ast != 0; ast = ast->right_sibling) {
+    visit_expression(container_of(ast, Ast, tree));
   }
 }
 
