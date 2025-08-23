@@ -118,11 +118,12 @@ typedef struct MapEntry {
 } MapEntry;
 
 typedef struct Map {
+  Arena* storage; 
   MapEntry* first;
   MapEntry* root;
 } Map;
 
-MapEntry* map_insert(Arena* storage, Map* map, void* key, void* value, bool return_if_found);
+MapEntry* map_insert(Map* map, void* key, void* value, bool return_if_found);
 void* map_lookup(Map* map, void* key, MapEntry** entry);
 int map_count(Map* map);
 

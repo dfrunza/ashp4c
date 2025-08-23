@@ -210,11 +210,11 @@ static void visit_name(TypeChecker* checker, Ast* name, Type* required_ty)
           checker->source_file, name->line_no, name->column_no);
     } else {
       name_ty = (Type*)name_tau->set.members.first->key;
-      map_insert(checker->storage, checker->type_env, name, effective_type(name_ty), 0);
+      map_insert(checker->type_env, name, effective_type(name_ty), 0);
     }
   } else {
       name_ty = (Type*)name_tau->set.members.first->key;
-      map_insert(checker->storage, checker->type_env, name, effective_type(name_ty), 0);
+      map_insert(checker->type_env, name, effective_type(name_ty), 0);
   }
 }
 
@@ -393,7 +393,7 @@ static void visit_keysetExpression(TypeChecker* checker, Ast* keyset_expr, Type*
   } else assert(0);
   keyset_ty = map_lookup(checker->type_env, keyset_expr->keysetExpression.expr, 0);
   assert(keyset_ty);
-  map_insert(checker->storage, checker->type_env, keyset_expr, keyset_ty, 0);
+  map_insert(checker->type_env, keyset_expr, keyset_ty, 0);
 }
 
 static void visit_tupleKeysetExpression(TypeChecker* checker, Ast* tuple_expr, Type* required_ty)
@@ -403,7 +403,7 @@ static void visit_tupleKeysetExpression(TypeChecker* checker, Ast* tuple_expr, T
 
   visit_simpleExpressionList(checker, tuple_expr->tupleKeysetExpression.expr_list, required_ty);
   tuple_ty = map_lookup(checker->type_env, tuple_expr->tupleKeysetExpression.expr_list, 0);
-  map_insert(checker->storage, checker->type_env, tuple_expr, tuple_ty, 0);
+  map_insert(checker->type_env, tuple_expr, tuple_ty, 0);
 }
 
 static void visit_simpleKeysetExpression(TypeChecker* checker, Ast* simple_expr, Type* required_ty)
@@ -428,7 +428,7 @@ static void visit_simpleKeysetExpression(TypeChecker* checker, Ast* simple_expr,
     simple_ty->product.count = 1;
     simple_ty->product.members = arena_malloc(checker->storage, simple_ty->product.count*sizeof(Type*));
     simple_ty->product.members[0] = map_lookup(checker->type_env, simple_expr->simpleKeysetExpression.expr, 0);
-    map_insert(checker->storage, checker->type_env, simple_expr, simple_ty, 0);
+    map_insert(checker->type_env, simple_expr, simple_ty, 0);
   }
 }
 
@@ -457,7 +457,7 @@ static void visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list, Typ
     i += 1;
   }
   assert(i == list_ty->product.count);
-  map_insert(checker->storage, checker->type_env, expr_list, list_ty, 0);
+  map_insert(checker->type_env, expr_list, list_ty, 0);
 }
 
 /** CONTROL **/
@@ -571,7 +571,7 @@ static void visit_typeRef(TypeChecker* checker, Ast* type_ref, Type* required_ty
           checker->source_file, type_ref->line_no, type_ref->column_no);
     }
   }
-  map_insert(checker->storage, checker->type_env, type_ref, ref_ty, 0);
+  map_insert(checker->type_env, type_ref, ref_ty, 0);
 }
 
 static void visit_tupleType(TypeChecker* checker, Ast* type_decl)
@@ -595,7 +595,7 @@ static void visit_baseTypeBoolean(TypeChecker* checker, Ast* bool_type)
   Type* bool_ty;
 
   bool_ty = builtin_lookup(checker->root_scope, "bool", NAMESPACE_TYPE)->type;
-  map_insert(checker->storage, checker->type_env, bool_type, bool_ty, 0);
+  map_insert(checker->type_env, bool_type, bool_ty, 0);
 }
 
 static void visit_baseTypeInteger(TypeChecker* checker, Ast* int_type)
@@ -607,7 +607,7 @@ static void visit_baseTypeInteger(TypeChecker* checker, Ast* int_type)
     visit_integerTypeSize(checker, int_type->baseTypeInteger.size);
   }
   int_ty = builtin_lookup(checker->root_scope, "int", NAMESPACE_TYPE)->type;
-  map_insert(checker->storage, checker->type_env, int_type, int_ty, 0);
+  map_insert(checker->type_env, int_type, int_ty, 0);
 }
 
 static void visit_baseTypeBit(TypeChecker* checker, Ast* bit_type)
@@ -619,7 +619,7 @@ static void visit_baseTypeBit(TypeChecker* checker, Ast* bit_type)
     visit_integerTypeSize(checker, bit_type->baseTypeBit.size);
   }
   bit_ty = builtin_lookup(checker->root_scope, "bit", NAMESPACE_TYPE)->type;
-  map_insert(checker->storage, checker->type_env, bit_type, bit_ty, 0);
+  map_insert(checker->type_env, bit_type, bit_ty, 0);
 }
 
 static void visit_baseTypeVarbit(TypeChecker* checker, Ast* varbit_type)
@@ -629,7 +629,7 @@ static void visit_baseTypeVarbit(TypeChecker* checker, Ast* varbit_type)
 
   varbit_ty = builtin_lookup(checker->root_scope, "varbit", NAMESPACE_TYPE)->type;
   visit_integerTypeSize(checker, varbit_type->baseTypeVarbit.size);
-  map_insert(checker->storage, checker->type_env, varbit_type, varbit_ty, 0);
+  map_insert(checker->type_env, varbit_type, varbit_ty, 0);
 }
 
 static void visit_baseTypeString(TypeChecker* checker, Ast* string_type)
@@ -638,7 +638,7 @@ static void visit_baseTypeString(TypeChecker* checker, Ast* string_type)
   Type* string_ty;
 
   string_ty = builtin_lookup(checker->root_scope, "string", NAMESPACE_TYPE)->type;
-  map_insert(checker->storage, checker->type_env, string_type, string_ty, 0);
+  map_insert(checker->type_env, string_type, string_ty, 0);
 }
 
 static void visit_baseTypeVoid(TypeChecker* checker, Ast* void_type)
@@ -647,7 +647,7 @@ static void visit_baseTypeVoid(TypeChecker* checker, Ast* void_type)
   Type* void_ty;
 
   void_ty = builtin_lookup(checker->root_scope, "void", NAMESPACE_TYPE)->type;
-  map_insert(checker->storage, checker->type_env, void_type, void_ty, 0);
+  map_insert(checker->type_env, void_type, void_ty, 0);
 }
 
 static void visit_baseTypeError(TypeChecker* checker, Ast* error_type)
@@ -656,7 +656,7 @@ static void visit_baseTypeError(TypeChecker* checker, Ast* error_type)
   Type* error_ty;
 
   error_ty = builtin_lookup(checker->root_scope, "error", NAMESPACE_TYPE)->type;
-  map_insert(checker->storage, checker->type_env, error_type, error_ty, 0);
+  map_insert(checker->type_env, error_type, error_ty, 0);
 }
 
 static void visit_integerTypeSize(TypeChecker* checker, Ast* type_size)
@@ -728,7 +728,7 @@ static void visit_derivedTypeDeclaration(TypeChecker* checker, Ast* type_decl)
     visit_enumDeclaration(checker, type_decl->derivedTypeDeclaration.decl);
   } else assert(0);
   decl_ty = map_lookup(checker->type_env, type_decl->derivedTypeDeclaration.decl, 0);
-  map_insert(checker->storage, checker->type_env, type_decl, decl_ty, 0);
+  map_insert(checker->type_env, type_decl, decl_ty, 0);
 }
 
 static void visit_headerTypeDeclaration(TypeChecker* checker, Ast* header_decl)
@@ -813,7 +813,7 @@ static void visit_typedefDeclaration(TypeChecker* checker, Ast* typedef_decl, Ty
     visit_derivedTypeDeclaration(checker, typedef_decl->typedefDeclaration.type_ref);
   } else assert(0);
   ref_ty = map_lookup(checker->type_env, typedef_decl->typedefDeclaration.type_ref, 0);
-  map_insert(checker->storage, checker->type_env, typedef_decl, ref_ty, 0);
+  map_insert(checker->type_env, typedef_decl, ref_ty, 0);
 }
 
 /** STATEMENTS **/
@@ -856,11 +856,11 @@ static void visit_functionCall(TypeChecker* checker, Ast* func_call, Type* requi
             checker->source_file, func_call->line_no, func_call->column_no);
     } else {
       func_ty = (Type*)func_tau->set.members.first->key;
-      map_insert(checker->storage, checker->type_env, func_call, effective_type(func_ty), 0);
+      map_insert(checker->type_env, func_call, effective_type(func_ty), 0);
     }
   } else {
     func_ty = (Type*)func_tau->set.members.first->key;
-    map_insert(checker->storage, checker->type_env, func_call, effective_type(func_ty), 0);
+    map_insert(checker->type_env, func_call, effective_type(func_ty), 0);
   }
 }
 
@@ -1154,7 +1154,7 @@ static void visit_argument(TypeChecker* checker, Ast* arg, Type* required_ty)
   } else assert(0);
   arg_ty = map_lookup(checker->type_env, arg->argument.arg, 0);
   assert(arg_ty);
-  map_insert(checker->storage, checker->type_env, arg, arg_ty, 0);
+  map_insert(checker->type_env, arg, arg_ty, 0);
 }
 
 static void visit_expressionList(TypeChecker* checker, Ast* expr_list, Type* required_ty)
@@ -1182,7 +1182,7 @@ static void visit_expressionList(TypeChecker* checker, Ast* expr_list, Type* req
     i += 1;
   }
   assert(i == list_ty->product.count);
-  map_insert(checker->storage, checker->type_env, expr_list, list_ty, 0);
+  map_insert(checker->type_env, expr_list, list_ty, 0);
 }
 
 static void visit_lvalueExpression(TypeChecker* checker, Ast* lvalue_expr, Type* required_ty)
@@ -1199,7 +1199,7 @@ static void visit_lvalueExpression(TypeChecker* checker, Ast* lvalue_expr, Type*
   } else assert(0);
   expr_ty = map_lookup(checker->type_env, lvalue_expr->lvalueExpression.expr, 0);
   assert(expr_ty);
-  map_insert(checker->storage, checker->type_env, lvalue_expr, expr_ty, 0);
+  map_insert(checker->type_env, lvalue_expr, expr_ty, 0);
 }
 
 static void visit_expression(TypeChecker* checker, Ast* expr, Type* required_ty)
@@ -1238,7 +1238,7 @@ static void visit_expression(TypeChecker* checker, Ast* expr, Type* required_ty)
   if (!expr_ty) {
     assert(expr_ty);
   }
-  map_insert(checker->storage, checker->type_env, expr, expr_ty, 0);
+  map_insert(checker->type_env, expr, expr_ty, 0);
 }
 
 static void visit_castExpression(TypeChecker* checker, Ast* cast_expr, Type* required_ty)
@@ -1249,7 +1249,7 @@ static void visit_castExpression(TypeChecker* checker, Ast* cast_expr, Type* req
   visit_typeRef(checker, cast_expr->castExpression.type, required_ty);
   visit_expression(checker, cast_expr->castExpression.expr, 0);
   cast_ty = map_lookup(checker->type_env, cast_expr->castExpression.type, 0);
-  map_insert(checker->storage, checker->type_env, cast_expr, cast_ty, 0);
+  map_insert(checker->type_env, cast_expr, cast_ty, 0);
 }
 
 static void visit_unaryExpression(TypeChecker* checker, Ast* unary_expr, Type* required_ty)
@@ -1277,11 +1277,11 @@ static void visit_binaryExpression(TypeChecker* checker, Ast* binary_expr, Type*
             checker->source_file, binary_expr->line_no, binary_expr->column_no);
     } else {
       op_ty = (Type*)op_tau->set.members.first->key;
-      map_insert(checker->storage, checker->type_env, binary_expr, effective_type(op_ty), 0);
+      map_insert(checker->type_env, binary_expr, effective_type(op_ty), 0);
     }
   } else {
     op_ty = (Type*)op_tau->set.members.first->key;
-    map_insert(checker->storage, checker->type_env, binary_expr, effective_type(op_ty), 0);
+    map_insert(checker->type_env, binary_expr, effective_type(op_ty), 0);
   }
 }
 
@@ -1307,11 +1307,11 @@ static void visit_memberSelector(TypeChecker* checker, Ast* selector, Type* requ
             checker->source_file, selector->line_no, selector->column_no);
     } else {
       selector_ty = (Type*)selector_tau->set.members.first->key;
-      map_insert(checker->storage, checker->type_env, selector, effective_type(selector_ty), 0);
+      map_insert(checker->type_env, selector, effective_type(selector_ty), 0);
     }
   } else {
     selector_ty = (Type*)selector_tau->set.members.first->key;
-    map_insert(checker->storage, checker->type_env, selector, effective_type(selector_ty), 0);
+    map_insert(checker->type_env, selector, effective_type(selector_ty), 0);
   }
 }
 
@@ -1327,7 +1327,7 @@ static void visit_arraySubscript(TypeChecker* checker, Ast* subscript)
   } else assert(0);
   visit_indexExpression(checker, subscript->arraySubscript.index_expr);
   lhs_ty = map_lookup(checker->type_env, subscript->arraySubscript.lhs_expr, 0);
-  map_insert(checker->storage, checker->type_env, subscript, lhs_ty, 0);
+  map_insert(checker->type_env, subscript, lhs_ty, 0);
 }
 
 static void visit_indexExpression(TypeChecker* checker, Ast* index_expr)
