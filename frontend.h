@@ -844,6 +844,10 @@ typedef struct Parser {
   Scope* root_scope;
 } Parser;
 
+typedef struct BuiltinMethodBuilder {
+  Arena* storage;
+} BuiltinMethodBuilder;
+
 typedef struct ScopeBuilder {
   Arena* storage;
   Ast* p4program;

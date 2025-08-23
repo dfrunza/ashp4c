@@ -99,6 +99,7 @@ int main(int arg_count, char* args[])
   SourceText source_text = {0};
   Lexer lexer = {0};
   Parser parser = {0};
+  BuiltinMethodBuilder method_builder = {0};
   ScopeBuilder scope_builder = {0};
   NameBinder name_binder = {0};
   TypeChecker type_checker = {0};
@@ -125,7 +126,9 @@ int main(int arg_count, char* args[])
   arena_free(&scratch_storage);
 
   drypass(parser.p4program);
-  builtin_methods(&storage, source_text.filename, parser.p4program);
+
+  method_builder.storage = &storage;
+  builtin_methods(&method_builder, parser.p4program);
 
   scope_builder.storage = &storage;
   scope_builder.root_scope = parser.root_scope;
