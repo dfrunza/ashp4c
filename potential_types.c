@@ -281,13 +281,13 @@ static void visit_name(TypeChecker* checker, Ast* name, PotentialType* potential
   name_decl = name_entry->ns[NAMESPACE_VAR >> 1];
   if (name_decl) {
     ty = map_lookup(checker->type_env, name_decl->ast, 0);
-    *(Type**)array_append(checker->storage, name_ty, sizeof(Type*)) = actual_type(ty);
+    *(Type**)array_append(name_ty, sizeof(Type*)) = actual_type(ty);
     assert(!name_decl->next_in_scope);
   }
   name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
   for(; name_decl != 0; name_decl = name_decl->next_in_scope) {
     ty = map_lookup(checker->type_env, name_decl->ast, 0);
-    *(Type**)array_append(checker->storage, name_ty, sizeof(Type*)) = actual_type(ty);
+    *(Type**)array_append(name_ty, sizeof(Type*)) = actual_type(ty);
   }
   for (int i = 0; i < name_ty->elem_count; i++) {
     ty = *(Type**)array_get(name_ty, i, sizeof(Type*));

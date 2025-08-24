@@ -66,6 +66,7 @@ typedef struct SegmentTable {
 } SegmentTable;
 
 typedef struct Array {
+  Arena* storage; 
   int elem_count;
   int capacity;
   SegmentTable data;
@@ -74,9 +75,9 @@ typedef struct Array {
 void* segment_locate_cell(SegmentTable* data, int i, int elem_size);
 Array* array_create(Arena* storage, int elem_size, int segment_count);
 void array_init(Arena* storage, Array* array, int elem_size, int segment_count);
-void array_extend(Arena* storage, Array* array, int elem_size);
+void array_extend(Array* array, int elem_size);
 void* array_get(Array* array, int i, int elem_size);
-void* array_append(Arena* storage, Array* array, int elem_size);
+void* array_append(Array* array, int elem_size);
 
 typedef struct StrmapEntry {
   char* key;
@@ -91,6 +92,7 @@ typedef struct StrmapBucket {
 } StrmapBucket;
 
 typedef struct Strmap {
+  Arena* storage;
   int entry_count;
   int capacity;
   SegmentTable entries;
@@ -105,7 +107,7 @@ typedef struct StrmapCursor {
 Strmap* strmap_create(Arena* storage, int segment_count);
 void strmap_init(Arena* storage, Strmap* strmap, int segment_count);
 void* strmap_lookup(Strmap* strmap, char* key, StrmapEntry** entry, StrmapBucket* bucket);
-StrmapEntry* strmap_insert(Arena* storage, Strmap* strmap, char* key, void* value, bool return_if_found);
+StrmapEntry* strmap_insert(Strmap* strmap, char* key, void* value, bool return_if_found);
 void strmap_cursor_begin(StrmapCursor* cursor, Strmap* strmap);
 StrmapEntry* strmap_cursor_next(StrmapCursor* cursor);
 

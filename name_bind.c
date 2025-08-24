@@ -191,7 +191,7 @@ static void define_builtin_names(NameBinder* name_binder)
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_entry = scope_lookup(name_binder->root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
     name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
-    ty = array_append(name_binder->storage, name_binder->type_array, sizeof(Type));
+    ty = array_append(name_binder->type_array, sizeof(Type));
     ty->ty_former = builtin_types[i].ty_former;
     ty->strname = name_decl->strname;
     ty->ast = name_decl->ast;
@@ -199,11 +199,11 @@ static void define_builtin_names(NameBinder* name_binder)
   }
 
   ty = builtin_lookup(name_binder->root_scope, "error", NAMESPACE_TYPE)->type;
-  ty->enum_.fields = array_append(name_binder->storage, name_binder->type_array, sizeof(Type));
+  ty->enum_.fields = array_append(name_binder->type_array, sizeof(Type));
   ty->enum_.fields->ty_former = TYPE_PRODUCT;
 
   ty = builtin_lookup(name_binder->root_scope, "match_kind", NAMESPACE_TYPE)->type;
-  ty->enum_.fields = array_append(name_binder->storage, name_binder->type_array, sizeof(Type));
+  ty->enum_.fields = array_append(name_binder->type_array, sizeof(Type));
   ty->enum_.fields->ty_former = TYPE_PRODUCT;
 }
 
@@ -248,7 +248,7 @@ NameDeclaration* scope_bind(Arena* storage, Scope* scope, char*strname, enum Nam
 
   name_decl = arena_malloc(storage, sizeof(NameDeclaration));
   name_decl->strname = strname;
-  he = strmap_insert(storage, &scope->name_table, strname, 0, 1);
+  he = strmap_insert(&scope->name_table, strname, 0, 1);
   if (he->value == 0) {
     he->value = arena_malloc(storage, sizeof(NameEntry));
   }

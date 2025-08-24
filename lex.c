@@ -823,10 +823,10 @@ tokenize(Lexer* lexer, SourceText* source_text)
 
   token.klass = TK_START_OF_INPUT;
   lexer->tokens = array_create(lexer->storage, sizeof(Token), 7);
-  *(Token*)array_append(lexer->storage, lexer->tokens, sizeof(Token)) = token;
+  *(Token*)array_append(lexer->tokens, sizeof(Token)) = token;
 
   next_token(lexer, &token);
-  *(Token*)array_append(lexer->storage, lexer->tokens, sizeof(Token)) = token;
+  *(Token*)array_append(lexer->tokens, sizeof(Token)) = token;
   while (token.klass != TK_END_OF_INPUT) {
     if (token.klass == TK_UNKNOWN) {
       error("%s:%d:%d: error: unknown token.", lexer->filename, token.line_no, token.column_no);
@@ -834,7 +834,7 @@ tokenize(Lexer* lexer, SourceText* source_text)
       error("%s:%d:%d: error: lexical error.", lexer->filename, token.line_no, token.column_no);
     }
     next_token(lexer, &token);
-    *(Token*)array_append(lexer->storage, lexer->tokens, sizeof(Token)) = token;
+    *(Token*)array_append(lexer->tokens, sizeof(Token)) = token;
   }
 }
 
