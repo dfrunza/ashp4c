@@ -138,28 +138,6 @@ static void visit_stringLiteral(ScopeBuilder* scope_builder, Ast* str_literal);
 static void visit_default(ScopeBuilder* scope_builder, Ast* default_);
 static void visit_dontcare(ScopeBuilder* scope_builder, Ast* dontcare);
 
-Scope* scope_create(Arena* storage, int segment_count)
-{
-  assert(segment_count >= 1 && segment_count <= 16);
-  Scope* scope;
-
-  scope = arena_malloc(storage, sizeof(Scope) + sizeof(StrmapEntry**) * segment_count);
-  strmap_init(storage, &scope->name_table, segment_count);
-  return scope;
-}
-
-Scope* scope_push(Scope* scope, Scope* parent_scope)
-{
-  scope->scope_level = parent_scope->scope_level + 1;
-  scope->parent_scope = parent_scope;
-  return scope;
-}
-
-Scope* scope_pop(Scope* scope)
-{
-  return scope->parent_scope;
-}
-
 void scope_hierarchy(ScopeBuilder* scope_builder)
 {
   scope_builder->current_scope = scope_builder->root_scope;
