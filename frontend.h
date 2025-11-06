@@ -1027,10 +1027,10 @@ typedef struct NameDeclaration {
   Type* type;
 } NameDeclaration;
 
-enum NameSpace {
-  NAMESPACE_VAR     = 1 << 0,
-  NAMESPACE_TYPE    = 1 << 1,
-  NAMESPACE_KEYWORD = 1 << 2,
+enum class NameSpace {
+  VAR     = 1 << 0,
+  TYPE    = 1 << 1,
+  KEYWORD = 1 << 2,
 };
 #define NameSpace_COUNT 3
 

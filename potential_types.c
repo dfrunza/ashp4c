@@ -277,14 +277,14 @@ static void visit_name(TypeChecker* checker, Ast* name, PotentialType* potential
   tau->set.members.storage = checker->storage;
   map_insert(checker->potype_map, name, tau, 0);
   scope = (Scope*)map_lookup(checker->scope_map, name, 0);
-  name_entry = scope_lookup(scope, name->name.strname, (NameSpace)(NAMESPACE_VAR | NAMESPACE_TYPE));
-  name_decl = name_entry->ns[NAMESPACE_VAR >> 1];
+  name_entry = scope_lookup(scope, name->name.strname, (NameSpace)((int)NameSpace::VAR | (int)NameSpace::TYPE));
+  name_decl = name_entry->ns[(int)NameSpace::VAR >> 1];
   if (name_decl) {
     ty = (Type*)map_lookup(checker->type_env, name_decl->ast, 0);
     *(Type**)array_append(name_ty, sizeof(Type*)) = actual_type(ty);
     assert(!name_decl->next_in_scope);
   }
-  name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
+  name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
   for(; name_decl != 0; name_decl = name_decl->next_in_scope) {
     ty = (Type*)map_lookup(checker->type_env, name_decl->ast, 0);
     *(Type**)array_append(name_ty, sizeof(Type*)) = actual_type(ty);
@@ -1457,7 +1457,7 @@ static void visit_binaryExpression(TypeChecker* checker, Ast* binary_expr)
   tau->kind = POTYPE_SET;
   tau->set.members.storage = checker->storage;
   map_insert(checker->potype_map, binary_expr, tau, 0);
-  name_decl = scope_builtin_lookup(checker->root_scope, binary_expr->binaryExpression.strname, NAMESPACE_TYPE);
+  name_decl = scope_builtin_lookup(checker->root_scope, binary_expr->binaryExpression.strname, NameSpace::TYPE);
   for (; name_decl != 0; name_decl = name_decl->next_in_scope) {
     ty = name_decl->type;
     if (match_params(checker, &potential_args, ty->function.params)) {

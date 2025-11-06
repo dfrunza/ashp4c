@@ -177,7 +177,7 @@ static void define_keywords(Parser* parser, Scope* scope)
   NameDeclaration* name_decl;
 
   for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
-    name_decl = scope_bind(parser->storage, scope, keywords[i].strname, NAMESPACE_KEYWORD);
+    name_decl = scope_bind(parser->storage, scope, keywords[i].strname, NameSpace::KEYWORD);
     name_decl->token_class = keywords[i].token_class;
   }
 }
@@ -195,13 +195,14 @@ static Token* next_token(Parser* parser)
     parser->token = (Token*)array_get(parser->tokens, ++parser->token_at, sizeof(Token));
   }
   if (parser->token->klass == TK_IDENTIFIER) {
-    name_entry = scope_lookup(parser->current_scope, parser->token->lexeme, (NameSpace)(NAMESPACE_KEYWORD | NAMESPACE_TYPE));
-    name_decl = name_entry->ns[NAMESPACE_KEYWORD >> 1];
+    name_entry = scope_lookup(parser->current_scope, parser->token->lexeme,
+                              (NameSpace)((int)NameSpace::KEYWORD | (int)NameSpace::TYPE));
+    name_decl = name_entry->ns[(int)NameSpace::KEYWORD >> 1];
     if (name_decl) {
       parser->token->klass = name_decl->token_class;
       return parser->token;
     }
-    name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
+    name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
     if (name_decl) {
       parser->token->klass = TK_TYPE_IDENTIFIER;
       return parser->token;
@@ -1249,7 +1250,7 @@ static Ast* parse_packageTypeDeclaration(Parser* parser)
     package_decl->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
       name = parse_name(parser);
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NAMESPACE_TYPE);
+      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
       package_decl->packageTypeDeclaration.name = name;
       if (parser->token->klass == TK_PARENTH_OPEN) {
         next_token(parser);
@@ -1419,7 +1420,7 @@ static Ast* parse_parserTypeDeclaration(Parser* parser)
     parser_proto->parserTypeDeclaration.method_protos = method_protos;
     if (token_is_name(parser->token)) {
       name = parse_name(parser);
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NAMESPACE_TYPE);
+      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
       parser_proto->parserTypeDeclaration.name = name;
       if (parser->token->klass == TK_PARENTH_OPEN) {
         next_token(parser);
@@ -1850,7 +1851,7 @@ static Ast* parse_controlTypeDeclaration(Parser* parser)
     control_proto->controlTypeDeclaration.method_protos = method_protos;
     if (token_is_name(parser->token)) {
       name = parse_name(parser);
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NAMESPACE_TYPE);
+      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
       control_proto->controlTypeDeclaration.name = name;
       if (parser->token->klass == TK_PARENTH_OPEN) {
         next_token(parser);
@@ -1963,7 +1964,7 @@ static Ast* parse_externDeclaration(Parser* parser)
       extern_type->column_no = parser->token->column_no;
       extern_type->externTypeDeclaration.name = parse_nonTypeName(parser);
       name = extern_type->externTypeDeclaration.name;
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NAMESPACE_TYPE);
+      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
       if (parser->token->klass == TK_BRACE_OPEN) {
         next_token(parser);
         extern_type->externTypeDeclaration.method_protos = parse_methodPrototypes(parser);
@@ -2018,7 +2019,7 @@ static Ast* parse_functionPrototype(Parser* parser, Ast* return_type)
       return_type = parse_typeOrVoid(parser);
       if (return_type->kind == AST_name) {
         name = return_type;
-        scope_bind(parser->storage, parser->current_scope, name->name.strname, NAMESPACE_TYPE);
+        scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
         type_ref = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
         type_ref->kind = AST_typeRef;
         type_ref->line_no = parser->token->line_no;
@@ -2512,7 +2513,7 @@ static Ast* parse_headerTypeDeclaration(Parser* parser)
     header_decl->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
       name = parse_name(parser);
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NAMESPACE_TYPE);
+      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
       header_decl->headerTypeDeclaration.name = name;
       if (parser->token->klass == TK_BRACE_OPEN) {
         next_token(parser);
@@ -2545,7 +2546,7 @@ static Ast* parse_headerUnionDeclaration(Parser* parser)
     union_decl->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
       name = parse_name(parser);
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NAMESPACE_TYPE);
+      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
       union_decl->headerUnionDeclaration.name = name;
       if (parser->token->klass == TK_BRACE_OPEN) {
         next_token(parser);
@@ -2578,7 +2579,7 @@ static Ast* parse_structTypeDeclaration(Parser* parser)
     struct_decl->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
       name = parse_name(parser);
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NAMESPACE_TYPE);
+      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
       struct_decl->structTypeDeclaration.name = name;
       if (parser->token->klass == TK_BRACE_OPEN) {
         next_token(parser);
@@ -2669,7 +2670,7 @@ static Ast* parse_enumDeclaration(Parser* parser)
     }
     if (token_is_name(parser->token)) {
       name = parse_name(parser);
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NAMESPACE_TYPE);
+      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
       enum_decl->enumDeclaration.name = name;
       if (parser->token->klass == TK_BRACE_OPEN) {
         next_token(parser);
@@ -2838,7 +2839,7 @@ static Ast* parse_typedefDeclaration(Parser* parser)
       } else assert(0);
       if (token_is_name(parser->token)) {
         name = parse_name(parser);
-        scope_bind(parser->storage, parser->current_scope, name->name.strname, NAMESPACE_TYPE);
+        scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
         type_decl->typedefDeclaration.name = name;
         if (parser->token->klass == TK_SEMICOLON) {
           next_token(parser);

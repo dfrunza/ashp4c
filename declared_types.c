@@ -169,17 +169,17 @@ static void define_builtin_types(TypeChecker* checker)
   Type* ty, *params_ty;
 
   for (int i = 0; i < sizeof(base_types)/sizeof(base_types[0]); i++) {
-    name_entry = scope_lookup(checker->root_scope, base_types[i], NAMESPACE_TYPE);
-    name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
+    name_entry = scope_lookup(checker->root_scope, base_types[i], NameSpace::TYPE);
+    name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
     map_insert(checker->type_env, name_decl->ast, name_decl->type, 0);
   }
 
-  ast = scope_builtin_lookup(checker->root_scope, "accept", NAMESPACE_VAR)->ast;
+  ast = scope_builtin_lookup(checker->root_scope, "accept", NameSpace::VAR)->ast;
   ty = (Type*)array_append(checker->type_array, sizeof(Type));
   ty->ty_former = TYPE_STATE;
   map_insert(checker->type_env, ast, ty, 0);
 
-  ast = scope_builtin_lookup(checker->root_scope, "reject", NAMESPACE_VAR)->ast;
+  ast = scope_builtin_lookup(checker->root_scope, "reject", NameSpace::VAR)->ast;
   ty = (Type*)array_append(checker->type_array, sizeof(Type));
   ty->ty_former = TYPE_STATE;
   map_insert(checker->type_env, ast, ty, 0);
@@ -192,11 +192,11 @@ static void define_builtin_types(TypeChecker* checker)
     params_ty->ty_former = TYPE_PRODUCT;
     params_ty->product.count = 2;
     params_ty->product.members = (Type**)arena_malloc(checker->storage, params_ty->product.count * sizeof(Type*));
-    params_ty->product.members[0] = scope_builtin_lookup(checker->root_scope, "int", NAMESPACE_TYPE)->type;
-    params_ty->product.members[1] = scope_builtin_lookup(checker->root_scope, "int", NAMESPACE_TYPE)->type;
+    params_ty->product.members[0] = scope_builtin_lookup(checker->root_scope, "int", NameSpace::TYPE)->type;
+    params_ty->product.members[1] = scope_builtin_lookup(checker->root_scope, "int", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = scope_builtin_lookup(checker->root_scope, "int", NAMESPACE_TYPE)->type;
-    name_decl = scope_bind(checker->storage, checker->root_scope, ty->strname, NAMESPACE_TYPE);
+    ty->function.return_ = scope_builtin_lookup(checker->root_scope, "int", NameSpace::TYPE)->type;
+    name_decl = scope_bind(checker->storage, checker->root_scope, ty->strname, NameSpace::TYPE);
     name_decl->type = ty;
   }
   for (int i = 0; i < sizeof(logical_ops)/sizeof(logical_ops[0]); i++) {
@@ -207,11 +207,11 @@ static void define_builtin_types(TypeChecker* checker)
     params_ty->ty_former = TYPE_PRODUCT;
     params_ty->product.count = 2;
     params_ty->product.members = (Type**)arena_malloc(checker->storage, params_ty->product.count * sizeof(Type*));
-    params_ty->product.members[0] = scope_builtin_lookup(checker->root_scope, "bool", NAMESPACE_TYPE)->type;
-    params_ty->product.members[1] = scope_builtin_lookup(checker->root_scope, "bool", NAMESPACE_TYPE)->type;
+    params_ty->product.members[0] = scope_builtin_lookup(checker->root_scope, "bool", NameSpace::TYPE)->type;
+    params_ty->product.members[1] = scope_builtin_lookup(checker->root_scope, "bool", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = scope_builtin_lookup(checker->root_scope, "bool", NAMESPACE_TYPE)->type;
-    name_decl = scope_bind(checker->storage, checker->root_scope, ty->strname, NAMESPACE_TYPE);
+    ty->function.return_ = scope_builtin_lookup(checker->root_scope, "bool", NameSpace::TYPE)->type;
+    name_decl = scope_bind(checker->storage, checker->root_scope, ty->strname, NameSpace::TYPE);
     name_decl->type = ty;
   }
   for (int i = 0; i < sizeof(relational_ops)/sizeof(relational_ops[0]); i++) {
@@ -222,11 +222,11 @@ static void define_builtin_types(TypeChecker* checker)
     params_ty->ty_former = TYPE_PRODUCT;
     params_ty->product.count = 2;
     params_ty->product.members = (Type**)arena_malloc(checker->storage, params_ty->product.count * sizeof(Type*));
-    params_ty->product.members[0] = scope_builtin_lookup(checker->root_scope, "int", NAMESPACE_TYPE)->type;
-    params_ty->product.members[1] = scope_builtin_lookup(checker->root_scope, "int", NAMESPACE_TYPE)->type;
+    params_ty->product.members[0] = scope_builtin_lookup(checker->root_scope, "int", NameSpace::TYPE)->type;
+    params_ty->product.members[1] = scope_builtin_lookup(checker->root_scope, "int", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = scope_builtin_lookup(checker->root_scope, "bool", NAMESPACE_TYPE)->type;
-    name_decl = scope_bind(checker->storage, checker->root_scope, ty->strname, NAMESPACE_TYPE);
+    ty->function.return_ = scope_builtin_lookup(checker->root_scope, "bool", NameSpace::TYPE)->type;
+    name_decl = scope_bind(checker->storage, checker->root_scope, ty->strname, NameSpace::TYPE);
     name_decl->type = ty;
   }
   for (int i = 0; i < sizeof(bitwise_ops)/sizeof(bitwise_ops[0]); i++) {
@@ -237,11 +237,11 @@ static void define_builtin_types(TypeChecker* checker)
     params_ty->ty_former = TYPE_PRODUCT;
     params_ty->product.count = 2;
     params_ty->product.members = (Type**)arena_malloc(checker->storage, params_ty->product.count * sizeof(Type*));
-    params_ty->product.members[0] = scope_builtin_lookup(checker->root_scope, "bit", NAMESPACE_TYPE)->type;
-    params_ty->product.members[1] = scope_builtin_lookup(checker->root_scope, "bit", NAMESPACE_TYPE)->type;
+    params_ty->product.members[0] = scope_builtin_lookup(checker->root_scope, "bit", NameSpace::TYPE)->type;
+    params_ty->product.members[1] = scope_builtin_lookup(checker->root_scope, "bit", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = scope_builtin_lookup(checker->root_scope, "bit", NAMESPACE_TYPE)->type;
-    name_decl = scope_bind(checker->storage, checker->root_scope, ty->strname, NAMESPACE_TYPE);
+    ty->function.return_ = scope_builtin_lookup(checker->root_scope, "bit", NameSpace::TYPE)->type;
+    name_decl = scope_bind(checker->storage, checker->root_scope, ty->strname, NameSpace::TYPE);
     name_decl->type = ty;
   }
 }
@@ -484,8 +484,8 @@ void declared_types(TypeChecker* checker)
     ty = (Type*)array_get(checker->type_array, i, sizeof(Type));
     if (ty->ty_former == TYPE_NAMEREF) {
       name = ty->nameref.name;
-      name_entry = scope_lookup(ty->nameref.scope, name->name.strname, NAMESPACE_TYPE);
-      name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
+      name_entry = scope_lookup(ty->nameref.scope, name->name.strname, NameSpace::TYPE);
+      name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
       if (name_decl) {
         ref_ty = (Type*)map_lookup(checker->type_env, name_decl->ast, 0);
         assert(ref_ty);
@@ -1387,7 +1387,7 @@ static void visit_errorDeclaration(TypeChecker* checker, Ast* error_decl)
   assert(error_decl->kind == AST_errorDeclaration);
   Type* error_ty, *fields_ty;
 
-  error_ty = scope_builtin_lookup(checker->root_scope, "error", NAMESPACE_TYPE)->type;
+  error_ty = scope_builtin_lookup(checker->root_scope, "error", NameSpace::TYPE)->type;
   fields_ty = error_ty->enum_.fields;
   if (error_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = error_ty->enum_.field_count;
@@ -1402,7 +1402,7 @@ static void visit_matchKindDeclaration(TypeChecker* checker, Ast* match_decl)
   assert(match_decl->kind == AST_matchKindDeclaration);
   Type* match_kind_ty, *fields_ty;
 
-  match_kind_ty = scope_builtin_lookup(checker->root_scope, "match_kind", NAMESPACE_TYPE)->type;
+  match_kind_ty = scope_builtin_lookup(checker->root_scope, "match_kind", NameSpace::TYPE)->type;
   fields_ty = match_kind_ty->enum_.fields;
   if (match_kind_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = match_kind_ty->enum_.field_count;
@@ -1800,7 +1800,7 @@ static void visit_actionDeclaration(TypeChecker* checker, Ast* action_decl)
   action_ty->ast = action_decl;
   action_ty->function.params = (Type*)map_lookup(checker->type_env, action_decl->actionDeclaration.params, 0);
   map_insert(checker->type_env, action_decl, action_ty, 0);
-  action_ty->function.return_ = scope_builtin_lookup(checker->root_scope, "void", NAMESPACE_TYPE)->type;
+  action_ty->function.return_ = scope_builtin_lookup(checker->root_scope, "void", NameSpace::TYPE)->type;
   name_decl = (NameDeclaration*)map_lookup(checker->decl_map, action_decl, 0);
   name_decl->type = action_ty;
 }
@@ -1956,7 +1956,7 @@ static void visit_indexExpression(TypeChecker* checker, Ast* index_expr)
   if (index_expr->indexExpression.end_index) {
     visit_expression(checker, index_expr->indexExpression.end_index);
   }
-  ty = scope_builtin_lookup(checker->root_scope, "int", NAMESPACE_TYPE)->type;
+  ty = scope_builtin_lookup(checker->root_scope, "int", NameSpace::TYPE)->type;
   map_insert(checker->type_env, index_expr, ty, 0);
 }
 
@@ -1965,7 +1965,7 @@ static void visit_booleanLiteral(TypeChecker* checker, Ast* bool_literal)
   assert(bool_literal->kind == AST_booleanLiteral);
   Type* ty;
 
-  ty = scope_builtin_lookup(checker->root_scope, "bool", NAMESPACE_TYPE)->type;
+  ty = scope_builtin_lookup(checker->root_scope, "bool", NameSpace::TYPE)->type;
   map_insert(checker->type_env, bool_literal, ty, 0);
 }
 
@@ -1974,7 +1974,7 @@ static void visit_integerLiteral(TypeChecker* checker, Ast* int_literal)
   assert(int_literal->kind == AST_integerLiteral);
   Type* ty;
 
-  ty = scope_builtin_lookup(checker->root_scope, "int", NAMESPACE_TYPE)->type;
+  ty = scope_builtin_lookup(checker->root_scope, "int", NameSpace::TYPE)->type;
   map_insert(checker->type_env, int_literal, ty, 0);
 }
 
@@ -1983,7 +1983,7 @@ static void visit_stringLiteral(TypeChecker* checker, Ast* str_literal)
   assert(str_literal->kind == AST_stringLiteral);
   Type* ty;
 
-  ty = scope_builtin_lookup(checker->root_scope, "string", NAMESPACE_TYPE)->type;
+  ty = scope_builtin_lookup(checker->root_scope, "string", NameSpace::TYPE)->type;
   map_insert(checker->type_env, str_literal, ty, 0);
 }
 
@@ -1992,7 +1992,7 @@ static void visit_default(TypeChecker* checker, Ast* default_)
   assert(default_->kind == AST_default);
   Type* ty;
 
-  ty = scope_builtin_lookup(checker->root_scope, "_", NAMESPACE_TYPE)->type;
+  ty = scope_builtin_lookup(checker->root_scope, "_", NameSpace::TYPE)->type;
   map_insert(checker->type_env, default_, ty, 0);
 }
 
@@ -2001,7 +2001,7 @@ static void visit_dontcare(TypeChecker* checker, Ast* dontcare)
   assert(dontcare->kind == AST_dontcare);
   Type* ty;
 
-  ty = scope_builtin_lookup(checker->root_scope, "_", NAMESPACE_TYPE)->type;
+  ty = scope_builtin_lookup(checker->root_scope, "_", NameSpace::TYPE)->type;
   map_insert(checker->type_env, dontcare, ty, 0);
 }
 
