@@ -1,7 +1,6 @@
 #pragma once
 #include <stddef.h>
 
-typedef uint32_t bool;
 #define KILOBYTE 1024
 #define MEGABYTE 1024*KILOBYTE
 

@@ -140,7 +140,7 @@ static void visit_dontcare(ScopeBuilder* scope_builder, Ast* dontcare);
 void scope_hierarchy(ScopeBuilder* scope_builder)
 {
   scope_builder->current_scope = scope_builder->root_scope;
-  scope_builder->scope_map = arena_malloc(scope_builder->storage, sizeof(Map));
+  scope_builder->scope_map = (Map*)arena_malloc(scope_builder->storage, sizeof(Map));
   scope_builder->scope_map->storage = scope_builder->storage;
   visit_p4program(scope_builder, scope_builder->p4program);
   assert(scope_builder->current_scope == scope_builder->root_scope);
@@ -205,7 +205,7 @@ static void visit_declaration(ScopeBuilder* scope_builder, Ast* decl)
   } else if (decl->declaration.decl->kind == AST_instantiation) {
     visit_instantiation(scope_builder, decl->declaration.decl);
   } else assert(0);
-  scope = map_lookup(scope_builder->scope_map, decl->declaration.decl, 0);
+  scope = (Scope*)(Scope*)map_lookup(scope_builder->scope_map, decl->declaration.decl, 0);
   m = map_insert(scope_builder->scope_map, decl, scope, 0);
   assert(m);
 }
@@ -267,7 +267,7 @@ static void visit_parserDeclaration(ScopeBuilder* scope_builder, Ast* parser_dec
 
   visit_typeDeclaration(scope_builder, parser_decl->parserDeclaration.proto);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = map_lookup(scope_builder->scope_map, parser_decl->parserDeclaration.proto, 0);
+  scope_builder->current_scope = (Scope*)map_lookup(scope_builder->scope_map, parser_decl->parserDeclaration.proto, 0);
   m = map_insert(scope_builder->scope_map, parser_decl, scope_builder->current_scope, 0);
   assert(m);
   if (parser_decl->parserDeclaration.ctor_params) {
@@ -476,7 +476,7 @@ static void visit_controlDeclaration(ScopeBuilder* scope_builder, Ast* control_d
 
   visit_typeDeclaration(scope_builder, control_decl->controlDeclaration.proto);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = map_lookup(scope_builder->scope_map, control_decl->controlDeclaration.proto, 0);
+  scope_builder->current_scope = (Scope*)map_lookup(scope_builder->scope_map, control_decl->controlDeclaration.proto, 0);
   m = map_insert(scope_builder->scope_map, control_decl, scope_builder->current_scope, 0);
   assert(m);
   if (control_decl->controlDeclaration.ctor_params) {
@@ -541,7 +541,7 @@ static void visit_externDeclaration(ScopeBuilder* scope_builder, Ast* extern_dec
   } else if (extern_decl->externDeclaration.decl->kind == AST_functionPrototype) {
     visit_functionPrototype(scope_builder, extern_decl->externDeclaration.decl);
   } else assert(0);
-  scope = map_lookup(scope_builder->scope_map, extern_decl->externDeclaration.decl, 0);
+  scope = (Scope*)map_lookup(scope_builder->scope_map, extern_decl->externDeclaration.decl, 0);
   m = map_insert(scope_builder->scope_map, extern_decl, scope, 0);
   assert(m);
 }
@@ -728,7 +728,7 @@ static void visit_typeDeclaration(ScopeBuilder* scope_builder, Ast* type_decl)
   } else if (type_decl->typeDeclaration.decl->kind == AST_packageTypeDeclaration) {
     visit_packageTypeDeclaration(scope_builder, type_decl->typeDeclaration.decl);
   } else assert(0);
-  scope = map_lookup(scope_builder->scope_map, type_decl->typeDeclaration.decl, 0);
+  scope = (Scope*)map_lookup(scope_builder->scope_map, type_decl->typeDeclaration.decl, 0);
   m = map_insert(scope_builder->scope_map, type_decl, scope, 0);
   assert(m);
 }
@@ -748,7 +748,7 @@ static void visit_derivedTypeDeclaration(ScopeBuilder* scope_builder, Ast* type_
   } else if (type_decl->derivedTypeDeclaration.decl->kind == AST_enumDeclaration) {
     visit_enumDeclaration(scope_builder, type_decl->derivedTypeDeclaration.decl);
   } else assert(0);
-  scope = map_lookup(scope_builder->scope_map, type_decl->derivedTypeDeclaration.decl, 0);
+  scope = (Scope*)map_lookup(scope_builder->scope_map, type_decl->derivedTypeDeclaration.decl, 0);
   m = map_insert(scope_builder->scope_map, type_decl, scope, 0);
   assert(m);
 }
@@ -1221,7 +1221,7 @@ static void visit_functionDeclaration(ScopeBuilder* scope_builder, Ast* func_dec
 
   visit_functionPrototype(scope_builder, func_decl->functionDeclaration.proto);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = map_lookup(scope_builder->scope_map, func_decl->functionDeclaration.proto, 0);
+  scope_builder->current_scope = (Scope*)map_lookup(scope_builder->scope_map, func_decl->functionDeclaration.proto, 0);
   m = map_insert(scope_builder->scope_map, func_decl, scope_builder->current_scope, 0);
   assert(m);
   visit_blockStatement(scope_builder, func_decl->functionDeclaration.stmt);

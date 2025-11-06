@@ -9,7 +9,7 @@ Scope* scope_create(Arena* storage, int segment_count)
   assert(segment_count >= 1 && segment_count <= 16);
   Scope* scope;
 
-  scope = arena_malloc(storage, sizeof(Scope) + sizeof(StrmapEntry**) * segment_count);
+  scope = (Scope*)arena_malloc(storage, sizeof(Scope) + sizeof(StrmapEntry**) * segment_count);
   strmap_init(storage, &scope->name_table, segment_count);
   return scope;
 }
@@ -26,7 +26,7 @@ Scope* scope_pop(Scope* scope)
   return scope->parent_scope;
 }
 
-NameDeclaration* builtin_lookup(Scope* scope, char* strname, enum NameSpace ns)
+NameDeclaration* scope_builtin_lookup(Scope* scope, char* strname, enum NameSpace ns)
 {
   NameEntry* name_entry;
   assert (ns == NAMESPACE_VAR || ns == NAMESPACE_TYPE);
@@ -40,7 +40,7 @@ NameEntry* scope_lookup(Scope* scope, char* strname, enum NameSpace ns)
   NameEntry* name_entry;
 
   while (scope) {
-    name_entry = strmap_lookup(&scope->name_table, strname, 0, 0);
+    name_entry = (NameEntry*)strmap_lookup(&scope->name_table, strname, 0, 0);
     if (name_entry) {
       if ((ns & NAMESPACE_VAR) != 0 && name_entry->ns[NAMESPACE_VAR >> 1]) break;
       if ((ns & NAMESPACE_TYPE) != 0 && name_entry->ns[NAMESPACE_TYPE >> 1]) break;
@@ -55,7 +55,7 @@ NameEntry* scope_lookup(Scope* scope, char* strname, enum NameSpace ns)
 
 NameEntry* scope_lookup_current(Scope* scope, char* strname)
 {
-  return strmap_lookup(&scope->name_table, strname, 0, 0);
+  return (NameEntry*)strmap_lookup(&scope->name_table, strname, 0, 0);
 }
 
 NameDeclaration* scope_bind(Arena* storage, Scope* scope, char*strname, enum NameSpace ns)
@@ -65,7 +65,7 @@ NameDeclaration* scope_bind(Arena* storage, Scope* scope, char*strname, enum Nam
   NameEntry* name_entry;
   StrmapEntry* he;
 
-  name_decl = arena_malloc(storage, sizeof(NameDeclaration));
+  name_decl = (NameDeclaration*)arena_malloc(storage, sizeof(NameDeclaration));
   name_decl->strname = strname;
   he = strmap_insert(&scope->name_table, strname, 0, 1);
   if (he->value == 0) {

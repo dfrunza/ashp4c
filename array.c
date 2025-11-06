@@ -27,7 +27,7 @@ Array* array_create(Arena* storage, int elem_size, int segment_count)
   assert(segment_count >= 1 && segment_count <= 16);
   Array* array;
 
-  array = arena_malloc(storage, sizeof(Array) + sizeof(void*) * segment_count);
+  array = (Array*)arena_malloc(storage, sizeof(Array) + sizeof(void*) * segment_count);
   array->storage = storage;
   array_init(array->storage, array, elem_size, segment_count);
   return array;

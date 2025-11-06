@@ -31,7 +31,7 @@ void reserve_memory(int amount)
     perror("mprotect");
     exit(1);
   }
-  first_block = page_memory_start;
+  first_block = (PageBlock*)page_memory_start;
   memset(first_block, 0, sizeof(PageBlock));
   first_block->memory_begin = (uint8_t*)page_memory_start;
   first_block->memory_end = first_block->memory_begin + (1 * page_size);
@@ -152,7 +152,7 @@ static PageBlock* get_new_block_struct()
   if (block) {
     recycled_block_structs = block->next_block;
   } else {
-    block = arena_malloc(&storage, sizeof(PageBlock));
+    block = (PageBlock*)arena_malloc(&storage, sizeof(PageBlock));
   }
   memset(block, 0, sizeof(PageBlock));
   return block;
@@ -198,10 +198,10 @@ void* arena_malloc(Arena* arena, uint32_t size)
   assert(size > 0);
   uint8_t* user_memory;
 
-  user_memory = arena->memory_avail;
+  user_memory = (uint8_t*)arena->memory_avail;
   if (user_memory + size >= (uint8_t*)arena->memory_limit) {
     arena_grow(arena, size);
-    user_memory = arena->memory_avail;
+    user_memory = (uint8_t*)arena->memory_avail;
   }
   arena->memory_avail = user_memory + size;
   if (ZMEM_ON_ALLOC) {

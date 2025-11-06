@@ -180,7 +180,7 @@ static void define_builtin_names(NameBinder* name_binder)
   Type* ty;
 
   for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
-    name = arena_malloc(name_binder->storage, sizeof(Ast));
+    name = (Ast*)arena_malloc(name_binder->storage, sizeof(Ast));
     name->kind = AST_name;
     name->name.strname = builtin_names[i].strname;
     name_decl = scope_bind(name_binder->storage, name_binder->root_scope, name->name.strname, builtin_names[i].ns);
@@ -189,19 +189,19 @@ static void define_builtin_names(NameBinder* name_binder)
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_entry = scope_lookup(name_binder->root_scope, builtin_types[i].strname, NAMESPACE_TYPE);
     name_decl = name_entry->ns[NAMESPACE_TYPE >> 1];
-    ty = array_append(name_binder->type_array, sizeof(Type));
+    ty = (Type*)array_append(name_binder->type_array, sizeof(Type));
     ty->ty_former = builtin_types[i].ty_former;
     ty->strname = name_decl->strname;
     ty->ast = name_decl->ast;
     name_decl->type = ty;
   }
 
-  ty = builtin_lookup(name_binder->root_scope, "error", NAMESPACE_TYPE)->type;
-  ty->enum_.fields = array_append(name_binder->type_array, sizeof(Type));
+  ty = scope_builtin_lookup(name_binder->root_scope, "error", NAMESPACE_TYPE)->type;
+  ty->enum_.fields = (Type*)array_append(name_binder->type_array, sizeof(Type));
   ty->enum_.fields->ty_former = TYPE_PRODUCT;
 
-  ty = builtin_lookup(name_binder->root_scope, "match_kind", NAMESPACE_TYPE)->type;
-  ty->enum_.fields = array_append(name_binder->type_array, sizeof(Type));
+  ty = scope_builtin_lookup(name_binder->root_scope, "match_kind", NAMESPACE_TYPE)->type;
+  ty->enum_.fields = (Type*)array_append(name_binder->type_array, sizeof(Type));
   ty->enum_.fields->ty_former = TYPE_PRODUCT;
 }
 
@@ -253,9 +253,9 @@ char* NameSpace_to_string(enum NameSpace ns)
 void name_bind(NameBinder* name_binder)
 {
   name_binder->current_scope = name_binder->root_scope;
-  name_binder->decl_map = arena_malloc(name_binder->storage, sizeof(Map));
+  name_binder->decl_map = (Map*)arena_malloc(name_binder->storage, sizeof(Map));
   name_binder->decl_map->storage = name_binder->storage;
-  name_binder->type_array = array_create(name_binder->storage, sizeof(Type), 5);
+  name_binder->type_array = (Array*)array_create(name_binder->storage, sizeof(Type), 5);
   define_builtin_names(name_binder);
   visit_p4program(name_binder, name_binder->p4program);
   assert(name_binder->current_scope == name_binder->root_scope);
@@ -269,7 +269,7 @@ static void visit_p4program(NameBinder* name_binder, Ast* p4program)
   Scope* prev_scope;
 
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, p4program, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, p4program, 0);
   visit_declarationList(name_binder, p4program->p4program.decl_list);
   name_binder->current_scope = prev_scope;
 }
@@ -365,7 +365,7 @@ static void visit_packageTypeDeclaration(NameBinder* name_binder, Ast* type_decl
   name_decl->ast = type_decl;
   map_insert(name_binder->decl_map, type_decl, name_decl, 0);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, type_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, type_decl, 0);
   visit_parameterList(name_binder, type_decl->packageTypeDeclaration.params);
   name_binder->current_scope = prev_scope;
 }
@@ -393,7 +393,7 @@ static void visit_parserDeclaration(NameBinder* name_binder, Ast* parser_decl)
 
   visit_typeDeclaration(name_binder, parser_decl->parserDeclaration.proto);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, parser_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, parser_decl, 0);
   if (parser_decl->parserDeclaration.ctor_params) {
     visit_parameterList(name_binder, parser_decl->parserDeclaration.ctor_params);
   }
@@ -415,7 +415,7 @@ static void visit_parserTypeDeclaration(NameBinder* name_binder, Ast* type_decl)
   name_decl->ast = type_decl;
   map_insert(name_binder->decl_map, type_decl, name_decl, 0);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, type_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, type_decl, 0);
   visit_parameterList(name_binder, type_decl->parserTypeDeclaration.params);
   visit_methodPrototypes(name_binder, type_decl->parserTypeDeclaration.method_protos, name_decl);
   name_binder->current_scope = prev_scope;
@@ -465,7 +465,7 @@ static void visit_parserState(NameBinder* name_binder, Ast* state)
   name_decl->ast = state;
   map_insert(name_binder->decl_map, state, name_decl, 0);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, state, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, state, 0);
   visit_parserStatements(name_binder, state->parserState.stmt_list);
   visit_transitionStatement(name_binder, state->parserState.transition_stmt);
   name_binder->current_scope = prev_scope;
@@ -507,7 +507,7 @@ static void visit_parserBlockStatement(NameBinder* name_binder, Ast* block_stmt)
   Scope* prev_scope;
 
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, block_stmt, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, block_stmt, 0);
   visit_parserStatements(name_binder, block_stmt->parserBlockStatement.stmt_list);
   name_binder->current_scope = prev_scope;
 }
@@ -601,7 +601,7 @@ static void visit_controlDeclaration(NameBinder* name_binder, Ast* control_decl)
 
   visit_typeDeclaration(name_binder, control_decl->controlDeclaration.proto);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, control_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, control_decl, 0);
   if (control_decl->controlDeclaration.ctor_params) {
     visit_parameterList(name_binder, control_decl->controlDeclaration.ctor_params);
   }
@@ -623,7 +623,7 @@ static void visit_controlTypeDeclaration(NameBinder* name_binder, Ast* type_decl
   name_decl->ast = type_decl;
   map_insert(name_binder->decl_map, type_decl, name_decl, 0);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, type_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, type_decl, 0);
   visit_parameterList(name_binder, type_decl->controlTypeDeclaration.params);
   visit_methodPrototypes(name_binder, type_decl->controlTypeDeclaration.method_protos, name_decl);
   name_binder->current_scope = prev_scope;
@@ -678,7 +678,7 @@ static void visit_externTypeDeclaration(NameBinder* name_binder, Ast* type_decl)
   name_decl->ast = type_decl;
   map_insert(name_binder->decl_map, type_decl, name_decl, 0);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, type_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, type_decl, 0);
   visit_methodPrototypes(name_binder, type_decl->externTypeDeclaration.method_protos, name_decl);
   name_binder->current_scope = prev_scope;
 }
@@ -707,7 +707,7 @@ static void visit_functionPrototype(NameBinder* name_binder, Ast* func_proto)
   name_decl->ast = func_proto;
   map_insert(name_binder->decl_map, func_proto, name_decl, 0);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, func_proto, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, func_proto, 0);
   if (func_proto->functionPrototype.return_type) {
     visit_typeRef(name_binder, func_proto->functionPrototype.return_type);
   }
@@ -920,7 +920,7 @@ static void visit_headerTypeDeclaration(NameBinder* name_binder, Ast* header_dec
   name_decl->ast = header_decl;
   map_insert(name_binder->decl_map, header_decl, name_decl, 0);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, header_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, header_decl, 0);
   visit_structFieldList(name_binder, header_decl->headerTypeDeclaration.fields, name_decl);
   name_binder->current_scope = prev_scope;
 }
@@ -937,7 +937,7 @@ static void visit_headerUnionDeclaration(NameBinder* name_binder, Ast* union_dec
   name_decl->ast = union_decl;
   map_insert(name_binder->decl_map, union_decl, name_decl, 0);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, union_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, union_decl, 0);
   visit_structFieldList(name_binder, union_decl->headerUnionDeclaration.fields, name_decl);
   name_binder->current_scope = prev_scope;
 }
@@ -954,7 +954,7 @@ static void visit_structTypeDeclaration(NameBinder* name_binder, Ast* struct_dec
   name_decl->ast = struct_decl;
   map_insert(name_binder->decl_map, struct_decl, name_decl, 0);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, struct_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, struct_decl, 0);
   visit_structFieldList(name_binder, struct_decl->structTypeDeclaration.fields, name_decl);
   name_binder->current_scope = prev_scope;
 }
@@ -995,7 +995,7 @@ static void visit_enumDeclaration(NameBinder* name_binder, Ast* enum_decl)
   name_decl->ast = enum_decl;
   map_insert(name_binder->decl_map, enum_decl, name_decl, 0);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, enum_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, enum_decl, 0);
   visit_specifiedIdentifierList(name_binder, enum_decl->enumDeclaration.fields, name_decl);
   name_binder->current_scope = prev_scope;
 }
@@ -1013,7 +1013,7 @@ static void visit_errorDeclaration(NameBinder* name_binder, Ast* error_decl)
   error_ty = name_decl->type;
   map_insert(name_binder->decl_map, error_decl, name_decl, 0);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, error_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, error_decl, 0);
   error_ty->enum_.field_count += visit_identifierList(name_binder, error_decl->errorDeclaration.fields);
   name_binder->current_scope = prev_scope;
 }
@@ -1031,7 +1031,7 @@ static void visit_matchKindDeclaration(NameBinder* name_binder, Ast* match_decl)
   match_kind_ty = name_decl->type;
   map_insert(name_binder->decl_map, match_decl, name_decl, 0);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, match_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, match_decl, 0);
   match_kind_ty->enum_.field_count += visit_identifierList(name_binder, match_decl->matchKindDeclaration.fields);
   name_binder->current_scope = prev_scope;
 }
@@ -1173,7 +1173,7 @@ static void visit_statement(NameBinder* name_binder, Ast* stmt)
     ;
   } else if (stmt->statement.stmt->kind == AST_blockStatement) {
     prev_scope = name_binder->current_scope;
-    name_binder->current_scope = map_lookup(name_binder->scope_map, stmt, 0);
+    name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, stmt, 0);
     visit_blockStatement(name_binder, stmt->statement.stmt);
     name_binder->current_scope = prev_scope;
   } else if (stmt->statement.stmt->kind == AST_exitStatement) {
@@ -1265,7 +1265,7 @@ static void visit_tableDeclaration(NameBinder* name_binder, Ast* table_decl)
   name_decl->ast = table_decl;
   map_insert(name_binder->decl_map, table_decl, name_decl, 0);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, table_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, table_decl, 0);
   visit_tablePropertyList(name_binder, table_decl->tableDeclaration.prop_list);
   visit_methodPrototypes(name_binder, table_decl->tableDeclaration.method_protos, name_decl);
   name_binder->current_scope = prev_scope;
@@ -1406,7 +1406,7 @@ static void visit_actionDeclaration(NameBinder* name_binder, Ast* action_decl)
   name_decl->ast = action_decl;
   map_insert(name_binder->decl_map, action_decl, name_decl, 0);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, action_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, action_decl, 0);
   visit_parameterList(name_binder, action_decl->actionDeclaration.params);
   visit_blockStatement(name_binder, action_decl->actionDeclaration.stmt);
   name_binder->current_scope = prev_scope;
@@ -1440,7 +1440,7 @@ static void visit_functionDeclaration(NameBinder* name_binder, Ast* func_decl)
 
   visit_functionPrototype(name_binder, func_decl->functionDeclaration.proto);
   prev_scope = name_binder->current_scope;
-  name_binder->current_scope = map_lookup(name_binder->scope_map, func_decl, 0);
+  name_binder->current_scope = (Scope*)map_lookup(name_binder->scope_map, func_decl, 0);
   visit_blockStatement(name_binder, func_decl->functionDeclaration.stmt);
   name_binder->current_scope = prev_scope;
 }

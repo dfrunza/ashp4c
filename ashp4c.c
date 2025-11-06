@@ -21,7 +21,7 @@ static void read_source(SourceText* source_text, char* filename)
   fseek(f_stream, 0, SEEK_END);
   int text_size = ftell(f_stream);
   fseek(f_stream, 0, SEEK_SET);
-  text = arena_malloc(source_text->storage, (text_size + 1)*sizeof(char));
+  text = (char*)arena_malloc(source_text->storage, (text_size + 1)*sizeof(char));
   fread(text, sizeof(char), text_size, f_stream);
   text[text_size] = '\0';
   fclose(f_stream);
@@ -75,7 +75,7 @@ static CmdlineArg* parse_cmdline_args(Arena* storage, int arg_count, char* args[
   prev_arg = &sentinel_arg;
   int i = 1;
   while (i < arg_count) {
-    cmdline_arg = arena_malloc(storage, sizeof(CmdlineArg));
+    cmdline_arg = (CmdlineArg*)arena_malloc(storage, sizeof(CmdlineArg));
     if (cstr_start_with(args[i], "-")) {
       raw_arg = args[i] + 1;  /* skip the `-` prefix */
       cmdline_arg->name = raw_arg;

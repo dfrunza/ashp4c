@@ -34,7 +34,7 @@ Strmap* strmap_create(Arena* storage, int segment_count)
   assert(segment_count >= 1 && segment_count <= 16);
   Strmap* strmap;
 
-  strmap = arena_malloc(storage, sizeof(Strmap) + sizeof(StrmapEntry**) * segment_count);
+  strmap = (Strmap*)arena_malloc(storage, sizeof(Strmap) + sizeof(StrmapEntry**) * segment_count);
   strmap->storage = storage;
   strmap_init(strmap->storage, strmap, segment_count);
   return strmap;
@@ -85,14 +85,14 @@ static void strmap_grow(Strmap* strmap)
   for (int i = 0; i <= last_segment; i++) {
     segment_capacity = 16 * (1 << i);
     for (int j = 0; j < segment_capacity; j ++) {
-      segment = strmap->entries.segments[i];
+      segment = (StrmapEntry**)strmap->entries.segments[i];
       segment[j] = 0;
     }
   }
   for (entry = first_entry; entry != 0; ) {
     next_entry = entry->next_entry;
     h = hash_key(entry->key, 4 + (last_segment + 1), strmap->capacity);
-    entry_slot = segment_locate_cell(&strmap->entries, h, sizeof(StrmapEntry*));
+    entry_slot = (StrmapEntry**)segment_locate_cell(&strmap->entries, h, sizeof(StrmapEntry*));
     entry->next_entry = *entry_slot;
     *entry_slot = entry;
     entry = next_entry;
@@ -107,7 +107,7 @@ void* strmap_lookup(Strmap* strmap, char* key, StrmapEntry** entry_/*out*/, Strm
 
   last_segment = floor(log2(strmap->capacity/16));
   h = hash_key(key, 4 + (last_segment + 1), strmap->capacity);
-  entry_slot = segment_locate_cell(&strmap->entries, h, sizeof(StrmapEntry*));
+  entry_slot = (StrmapEntry**)segment_locate_cell(&strmap->entries, h, sizeof(StrmapEntry*));
   entry = *entry_slot;
   while (entry) {
     if (cstr_match(entry->key, key)) {
@@ -139,9 +139,9 @@ StrmapEntry* strmap_insert(Strmap* strmap, char* key, void* value, bool return_i
     strmap_grow(strmap);
     bucket.last_segment = floor(log2(strmap->capacity/16));
     bucket.h = hash_key(key, 4 + (bucket.last_segment + 1), strmap->capacity);
-    bucket.entry_slot = segment_locate_cell(&strmap->entries, bucket.h, sizeof(StrmapEntry*));
+    bucket.entry_slot = (StrmapEntry**)segment_locate_cell(&strmap->entries, bucket.h, sizeof(StrmapEntry*));
   }
-  entry = arena_malloc(strmap->storage, sizeof(StrmapEntry));
+  entry = (StrmapEntry*)arena_malloc(strmap->storage, sizeof(StrmapEntry));
   entry->key = key;
   entry->value = value;
   entry->next_entry = *bucket.entry_slot;
@@ -174,7 +174,7 @@ StrmapEntry* strmap_cursor_next(StrmapCursor* cursor)
   }
   cursor->i++;
   while (cursor->i < strmap->capacity) {
-    entry_slot = segment_locate_cell(&strmap->entries, cursor->i, sizeof(StrmapEntry*));
+    entry_slot = (StrmapEntry**)segment_locate_cell(&strmap->entries, cursor->i, sizeof(StrmapEntry*));
     entry = *entry_slot;
     if (entry) {
       cursor->entry = entry;
@@ -195,7 +195,7 @@ void Debug_strmap_occupancy(Strmap* strmap)
       max_bucket_length = 0;
 
   for (int i = 0; i < strmap->capacity; i++) {
-    entry_slot = segment_locate_cell(&strmap->entries, i, sizeof(StrmapEntry*));
+    entry_slot = (StrmapEntry**)segment_locate_cell(&strmap->entries, i, sizeof(StrmapEntry*));
     entry = *entry_slot;
     entry_count = 0;
     if (entry) {

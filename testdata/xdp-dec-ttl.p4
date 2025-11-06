@@ -83,7 +83,6 @@ extern packet_out {
     void emit(in Headers_t hdr);
 }
 
-// TODO: remove from this file, convert to built-in
 /// Check a predicate @check in the parser; if the predicate is true do nothing,
 /// otherwise set the parser error to @toSignal, and transition to the `reject` state.
 extern void verify(in bool check, in error toSignal);
@@ -157,7 +156,6 @@ extern bit<16> csum_replace4(in bit<16> csum,
                              in bit<32> new);
 
 extern bit<32> BPF_PERF_EVENT_OUTPUT();
-// FIXME: use 64 bit
 extern bit<32> BPF_KTIME_GET_NS();
 
 parser xdp_parse(packet_in packet, out Headers_t headers);

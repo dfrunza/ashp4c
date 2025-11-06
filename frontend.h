@@ -1046,5 +1046,4 @@ Scope* scope_pop(Scope* scope);
 NameEntry* scope_lookup(Scope* scope, char* name, enum NameSpace ns);
 NameEntry* scope_lookup_current(Scope* scope, char* strname);
 NameDeclaration* scope_bind(Arena* storage, Scope* scope, char* strname, enum NameSpace ns);
-NameDeclaration* builtin_lookup(Scope* scope, char* strname, enum NameSpace ns);
-
+NameDeclaration* scope_builtin_lookup(Scope* scope, char* strname, enum NameSpace ns);

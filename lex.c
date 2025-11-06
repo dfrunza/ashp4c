@@ -8,7 +8,7 @@ static char char_lookahead(Lexer* lexer, int pos)
   char* char_pos;
 
   char_pos = lexer->lexeme->end + pos;
-  assert(char_pos >= 0 && char_pos <= (lexer->text + lexer->text_size));
+  assert(char_pos >= (char*)0 && char_pos <= (lexer->text + lexer->text_size));
   return *char_pos;
 }
 
@@ -17,7 +17,7 @@ static char char_advance(Lexer* lexer, int pos)
   char* char_pos;
 
   char_pos = lexer->lexeme->end + pos;
-  assert(char_pos >= 0 && char_pos <= (lexer->text + lexer->text_size));
+  assert(char_pos >= (char*)0 && char_pos <= (lexer->text + lexer->text_size));
   lexer->lexeme->end = char_pos;
   return *char_pos;
 }
@@ -27,7 +27,7 @@ static char char_retract(Lexer* lexer)
   char result;
 
   result = *(--lexer->lexeme->end);
-  assert(lexer->lexeme->end >= 0);
+  assert(lexer->lexeme->end >= (char*)0);
   return result;
 }
 
@@ -64,7 +64,7 @@ static void lexeme_copy(char* dest, Lexeme* lexeme)
   while (src <= lexeme->end);
 }
 
-static bool lexeme_len(Lexeme* lexeme)
+static int lexeme_len(Lexeme* lexeme)
 {
   int result;
 
@@ -78,7 +78,7 @@ static char* lexeme_to_cstring(Arena* storage, Lexeme* lexeme)
   char* string;
 
   len = lexeme_len(lexeme);
-  string = arena_malloc(storage, (len + 1)*sizeof(char));   // +1 the NULL terminator
+  string = (char*)arena_malloc(storage, (len + 1)*sizeof(char));   // +1 the NULL terminator
   lexeme_copy(string, lexeme);
   string[len] = '\0';
   return string;
@@ -397,7 +397,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 113:
       {
-        prev_token = array_get(lexer->tokens, lexer->tokens->elem_count - 1, sizeof(Token));
+        prev_token = (Token*)array_get(lexer->tokens, lexer->tokens->elem_count - 1, sizeof(Token));
         if (prev_token->klass == TK_PARENTH_OPEN) {
           token->klass = TK_UNARY_MINUS;
         } else {
@@ -811,7 +811,7 @@ static void next_token(Lexer* lexer, Token* token)
 void
 tokenize(Lexer* lexer, SourceText* source_text)
 {
-  Token token = {0};
+  Token token = {};
 
   lexer->filename = source_text->filename;
   lexer->text = source_text->text;

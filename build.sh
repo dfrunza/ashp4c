@@ -3,10 +3,10 @@
 # -std=gnu99  ...  Access to the GCC extension 'Referring to a Type with typeof'.
 
 CC=""
-CC="$CC -g3 -ggdb -std=gnu99 -fms-extensions -ffreestanding"
-CC="$CC -Winline -Wno-write-strings -Wno-unused-function -Wreturn-type -Wall"
+CC="$CC -g3 -std=c++98 -ggdb -fpermissive -fms-extensions -ffreestanding"
+CC="$CC -Wno-pointer-arith -Wno-sign-compare -Winline -Wno-write-strings -Wno-unused-function -Wreturn-type -Wall"
 
-gcc $CC -o ashp4c \
+g++ $CC -o ashp4c \
   ashp4c.c basic.c arena.c array.c strmap.c map.c \
   lex.c ast_tree.c ast_visitor.c scope.c \
   parse.c drypass.c builtin_methods.c scope_hierarchy.c declared_types.c name_bind.c \
