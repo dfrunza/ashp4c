@@ -7,10 +7,10 @@ CC="$CC -g3 -std=c++11 -ggdb -fpermissive -fms-extensions -ffreestanding"
 CC="$CC -Wno-pointer-arith -Wno-sign-compare -Winline -Wno-write-strings -Wno-unused-function -Wreturn-type -Wall"
 
 g++ $CC -o ashp4c \
-  ashp4c.c basic.c arena.c array.c strmap.c map.c \
-  lex.c ast_tree.c ast_visitor.c scope.c \
-  parse.c drypass.c builtin_methods.c scope_hierarchy.c declared_types.c name_bind.c \
-  potential_types.c select_type.c \
+  ashp4c.cpp basic.cpp arena.cpp array.cpp strmap.cpp map.cpp \
+  lex.cpp ast_tree.cpp ast_visitor.cpp scope.cpp \
+  parse.cpp drypass.cpp builtin_methods.cpp scope_hierarchy.cpp declared_types.cpp name_bind.cpp \
+  potential_types.cpp select_type.cpp \
   -lm
 
 if [ $? -ne 0 ]; then
