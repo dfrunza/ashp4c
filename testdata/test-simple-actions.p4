@@ -66,6 +66,9 @@ extern packet_in {
 
 extern packet_out {
     void emit(in Headers_t hdr);
+    void emit(in Ethernet_h hdr);
+    void emit(in Mpls_h hdr);
+    void emit(in IPv4_h hdr);
 }
 
 extern void verify(in bool check, in error toSignal);
@@ -180,7 +183,7 @@ control pipe(inout Headers_t headers, inout metadata meta, inout standard_metada
     }
 
     action mpls_decrement_ttl() {
-        headers.mpls.ttl = headers.mpls.ttl - 1;
+        headers.mpls.ttl = (bit<8>)((int)headers.mpls.ttl - 1);
     }
 
     action mpls_set_label_decrement_ttl(bit<20> label) {
