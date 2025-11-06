@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "foundation.h"
-#include "frontend.h"
 #include "ashp4c.h"
 
 typedef struct CmdlineArg {

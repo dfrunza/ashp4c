@@ -1,3 +1,5 @@
+#pragma once
+#include "foundation.h"
 #include "ast_tree.h"
 
 typedef struct SourceText {

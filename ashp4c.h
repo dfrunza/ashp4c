@@ -1,3 +1,5 @@
+#include "frontend.h"
+
 void tokenize(Lexer* lexer, SourceText* source_text);
 void parse(Parser* parser);
 void drypass(Ast* ast);

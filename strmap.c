@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>  /* exit */
-#include <memory.h>  /* memset */
-#include <math.h>  /* floor, ceil, log2 */
+#include <stdlib.h>
+#include <memory.h>
+#include <math.h>
 #include "foundation.h"
 
 static const uint32_t P = 257, Q = 4294967029;
