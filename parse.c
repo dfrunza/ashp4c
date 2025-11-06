@@ -172,7 +172,7 @@ static void define_keywords(Parser* parser, Scope* scope)
     {"string",  TK_STRING},
     {"match_kind",   TK_MATCH_KIND},
     {"transition",   TK_TRANSITION},
-    {"header_union", TK_HEADER_UNION},
+    {"header_union", TK_UNION},
   };
   NameDeclaration* name_decl;
 
@@ -276,7 +276,7 @@ static bool token_is_parameter(Token* token)
 
 static bool token_is_derivedTypeDeclaration(Token* token)
 {
-  bool result = token->klass == TK_HEADER || token->klass == TK_HEADER_UNION || token->klass == TK_STRUCT
+  bool result = token->klass == TK_HEADER || token->klass == TK_UNION || token->klass == TK_STRUCT
     || token->klass == TK_ENUM;
   return result;
 }
@@ -2484,7 +2484,7 @@ static Ast* parse_derivedTypeDeclaration(Parser* parser)
     if (parser->token->klass == TK_HEADER) {
       type_decl->derivedTypeDeclaration.decl = parse_headerTypeDeclaration(parser);
       return type_decl;
-    } else if (parser->token->klass == TK_HEADER_UNION) {
+    } else if (parser->token->klass == TK_UNION) {
       type_decl->derivedTypeDeclaration.decl = parse_headerUnionDeclaration(parser);
       return type_decl;
     } else if (parser->token->klass == TK_STRUCT) {
@@ -2538,7 +2538,7 @@ static Ast* parse_headerUnionDeclaration(Parser* parser)
   Ast* union_decl;
   Ast* name;
 
-  if (parser->token->klass == TK_HEADER_UNION) {
+  if (parser->token->klass == TK_UNION) {
     next_token(parser);
     union_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
     union_decl->kind = AST_headerUnionDeclaration;

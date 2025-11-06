@@ -80,7 +80,7 @@ enum TokenClass {
   TK_FALSE,
   TK_DEFAULT,
   TK_EXTERN,
-  TK_HEADER_UNION,
+  TK_UNION,
   TK_INT,
   TK_BIT,
   TK_VARBIT,
@@ -868,37 +868,37 @@ typedef struct NameBinder {
   Array* type_array;
 } NameBinder;
 
-enum TypeEnum {
-  TYPE_NONE = 0,
-
-  TYPE_VOID,
-  TYPE_BOOL,
-  TYPE_INT,
-  TYPE_BIT,
-  TYPE_VARBIT,
-  TYPE_STRING,
-  TYPE_ANY,
-  TYPE_ENUM,
-  TYPE_TYPEDEF,
-  TYPE_FUNCTION,
-  TYPE_EXTERN,
-  TYPE_PACKAGE,
-  TYPE_PARSER,
-  TYPE_CONTROL,
-  TYPE_TABLE,
-  TYPE_STRUCT,
-  TYPE_HEADER,
-  TYPE_HEADER_UNION,
-  TYPE_HEADER_STACK,
-  TYPE_STATE,
-  TYPE_FIELD,
-  TYPE_ERROR,
-  TYPE_MATCH_KIND,
-  TYPE_NAMEREF,
-  TYPE_TYPE,
-  TYPE_TUPLE,
-  TYPE_PRODUCT,
+enum class TypeEnum {
+  NONE = 0,
+  VOID,
+  BOOL,
+  INT,
+  BIT,
+  VARBIT,
+  STRING,
+  ANY,
+  ENUM,
+  TYPEDEF,
+  FUNCTION,
+  EXTERN,
+  PACKAGE,
+  PARSER,
+  CONTROL,
+  TABLE,
+  STRUCT,
+  HEADER,
+  UNION,
+  STACK,
+  STATE,
+  FIELD,
+  ERROR,
+  MATCH_KIND,
+  NAMEREF,
+  TYPE,
+  TUPLE,
+  PRODUCT,
 };
+char* TypeEnum_to_string(enum TypeEnum type);
 
 typedef struct Type {
   enum TypeEnum ty_former;
@@ -975,7 +975,7 @@ typedef struct Type {
 } Type;
 
 enum PotentialTypeEnum {
-  POTYPE_NONE = 0,
+  PONONE = 0,
   POTYPE_SET,
   POTYPE_PRODUCT,
 };
@@ -1011,7 +1011,6 @@ typedef struct TypeChecker {
 Type* actual_type(Type* type);
 Type* effective_type(Type* type);
 bool type_equiv(TypeChecker* checker, Type* u, Type* v);
-char* TypeEnum_to_string(enum TypeEnum type);
 bool match_type(TypeChecker* checker, PotentialType* potential_types, Type* required_ty);
 bool match_params(TypeChecker* checker, PotentialType* potential_args, Type* params_ty);
 
@@ -1033,12 +1032,11 @@ enum class NameSpace {
   KEYWORD = 1 << 2,
 };
 #define NameSpace_COUNT 3
+char* NameSpace_to_string(enum NameSpace ns);
 
 typedef struct NameEntry {
   NameDeclaration* ns[NameSpace_COUNT];
 } NameEntry;
-
-char* NameSpace_to_string(enum NameSpace ns);
 
 Scope* scope_create(Arena* storage, int segment_count);
 Scope* scope_push(Scope* scope, Scope* parent_scope);

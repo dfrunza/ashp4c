@@ -176,20 +176,20 @@ static void define_builtin_types(TypeChecker* checker)
 
   ast = scope_builtin_lookup(checker->root_scope, "accept", NameSpace::VAR)->ast;
   ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  ty->ty_former = TYPE_STATE;
+  ty->ty_former = TypeEnum::STATE;
   map_insert(checker->type_env, ast, ty, 0);
 
   ast = scope_builtin_lookup(checker->root_scope, "reject", NameSpace::VAR)->ast;
   ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  ty->ty_former = TYPE_STATE;
+  ty->ty_former = TypeEnum::STATE;
   map_insert(checker->type_env, ast, ty, 0);
 
   for (int i = 0; i < sizeof(arithmetic_ops)/sizeof(arithmetic_ops[0]); i++) {
     ty = (Type*)array_append(checker->type_array, sizeof(Type));
     ty->strname = arithmetic_ops[i];
-    ty->ty_former = TYPE_FUNCTION;
+    ty->ty_former = TypeEnum::FUNCTION;
     params_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-    params_ty->ty_former = TYPE_PRODUCT;
+    params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
     params_ty->product.members = (Type**)arena_malloc(checker->storage, params_ty->product.count * sizeof(Type*));
     params_ty->product.members[0] = scope_builtin_lookup(checker->root_scope, "int", NameSpace::TYPE)->type;
@@ -202,9 +202,9 @@ static void define_builtin_types(TypeChecker* checker)
   for (int i = 0; i < sizeof(logical_ops)/sizeof(logical_ops[0]); i++) {
     ty = (Type*)array_append(checker->type_array, sizeof(Type));
     ty->strname = logical_ops[i];
-    ty->ty_former = TYPE_FUNCTION;
+    ty->ty_former = TypeEnum::FUNCTION;
     params_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-    params_ty->ty_former = TYPE_PRODUCT;
+    params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
     params_ty->product.members = (Type**)arena_malloc(checker->storage, params_ty->product.count * sizeof(Type*));
     params_ty->product.members[0] = scope_builtin_lookup(checker->root_scope, "bool", NameSpace::TYPE)->type;
@@ -217,9 +217,9 @@ static void define_builtin_types(TypeChecker* checker)
   for (int i = 0; i < sizeof(relational_ops)/sizeof(relational_ops[0]); i++) {
     ty = (Type*)array_append(checker->type_array, sizeof(Type));
     ty->strname = relational_ops[i];
-    ty->ty_former = TYPE_FUNCTION;
+    ty->ty_former = TypeEnum::FUNCTION;
     params_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-    params_ty->ty_former = TYPE_PRODUCT;
+    params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
     params_ty->product.members = (Type**)arena_malloc(checker->storage, params_ty->product.count * sizeof(Type*));
     params_ty->product.members[0] = scope_builtin_lookup(checker->root_scope, "int", NameSpace::TYPE)->type;
@@ -232,9 +232,9 @@ static void define_builtin_types(TypeChecker* checker)
   for (int i = 0; i < sizeof(bitwise_ops)/sizeof(bitwise_ops[0]); i++) {
     ty = (Type*)array_append(checker->type_array, sizeof(Type));
     ty->strname = bitwise_ops[i];
-    ty->ty_former = TYPE_FUNCTION;
+    ty->ty_former = TypeEnum::FUNCTION;
     params_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-    params_ty->ty_former = TYPE_PRODUCT;
+    params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
     params_ty->product.members = (Type**)arena_malloc(checker->storage, params_ty->product.count * sizeof(Type*));
     params_ty->product.members[0] = scope_builtin_lookup(checker->root_scope, "bit", NameSpace::TYPE)->type;
@@ -263,7 +263,7 @@ static bool structural_type_equiv(TypeChecker* checker, Type* left, Type* right)
 
   for (i = 0; i < checker->type_equiv_pairs->elem_count; i++) {
     type_pair = (Type*)array_get(checker->type_equiv_pairs, i, sizeof(Type));
-    assert(type_pair->ty_former == TYPE_TUPLE);
+    assert(type_pair->ty_former == TypeEnum::TUPLE);
     if ((left == type_pair->tuple.left || left == type_pair->tuple.right) &&
         (right == type_pair->tuple.left || right == type_pair->tuple.right)) {
       return 1;
@@ -271,35 +271,35 @@ static bool structural_type_equiv(TypeChecker* checker, Type* left, Type* right)
   }
 
   type_pair = (Type*)array_append(checker->type_equiv_pairs, sizeof(Type));
-  type_pair->ty_former = TYPE_TUPLE;
+  type_pair->ty_former = TypeEnum::TUPLE;
   type_pair->tuple.left = left;
   type_pair->tuple.right = right;
 
-  if (left->ty_former == TYPE_VOID || left->ty_former == TYPE_STRING ||
-      left->ty_former == TYPE_BOOL || left->ty_former == TYPE_INT ||
-      left->ty_former == TYPE_BIT || left->ty_former == TYPE_VARBIT) {
+  if (left->ty_former == TypeEnum::VOID || left->ty_former == TypeEnum::STRING ||
+      left->ty_former == TypeEnum::BOOL || left->ty_former == TypeEnum::INT ||
+      left->ty_former == TypeEnum::BIT || left->ty_former == TypeEnum::VARBIT) {
     if (right->ty_former == left->ty_former) {
       return 1;
     }
     return 0;
-  } else if (left->ty_former == TYPE_ANY) {
+  } else if (left->ty_former == TypeEnum::ANY) {
     return 1;
-  } else if (left->ty_former == TYPE_ENUM) {
+  } else if (left->ty_former == TypeEnum::ENUM) {
     if (right->ty_former == left->ty_former) {
       return cstr_match(left->strname, right->strname);
     }
     return 0;
-  } else if (left->ty_former == TYPE_EXTERN) {
+  } else if (left->ty_former == TypeEnum::EXTERN) {
     if (right->ty_former == left->ty_former) {
       return cstr_match(left->strname, right->strname);
     }
     return 0;
-  } else if (left->ty_former == TYPE_TABLE) {
+  } else if (left->ty_former == TypeEnum::TABLE) {
     if (right->ty_former == left->ty_former) {
       return cstr_match(left->strname, right->strname);
     }
     return 0;
-  } else if (left->ty_former == TYPE_PRODUCT) {
+  } else if (left->ty_former == TypeEnum::PRODUCT) {
     if (right->ty_former == left->ty_former) {
       if (left->product.count != right->product.count) {
         return 0;
@@ -312,7 +312,7 @@ static bool structural_type_equiv(TypeChecker* checker, Type* left, Type* right)
       return 1;
     }
     return 0;
-  } else if (left->ty_former == TYPE_FUNCTION) {
+  } else if (left->ty_former == TypeEnum::FUNCTION) {
     if (right->ty_former == left->ty_former) {
       if (!structural_type_equiv(checker, left->function.return_, right->function.return_)) {
         return 0;
@@ -323,32 +323,32 @@ static bool structural_type_equiv(TypeChecker* checker, Type* left, Type* right)
       return 1;
     }
     return 0;
-  } else if (left->ty_former == TYPE_PACKAGE) {
+  } else if (left->ty_former == TypeEnum::PACKAGE) {
     if (right->ty_former == left->ty_former) {
       return structural_type_equiv(checker, left->package.params, right->package.params);
     }
     return 0;
-  } else if (left->ty_former == TYPE_PARSER) {
+  } else if (left->ty_former == TypeEnum::PARSER) {
     if (right->ty_former == left->ty_former) {
       return structural_type_equiv(checker, left->parser.params, right->parser.params);
     }
     return 0;
-  } else if (left->ty_former == TYPE_CONTROL) {
+  } else if (left->ty_former == TypeEnum::CONTROL) {
     if (right->ty_former == left->ty_former) {
       return structural_type_equiv(checker, left->control.params, right->control.params);
     }
     return 0;
-  } else if (left->ty_former == TYPE_STRUCT) {
+  } else if (left->ty_former == TypeEnum::STRUCT) {
     if (right->ty_former == left->ty_former) {
       return structural_type_equiv(checker, left->struct_.fields, right->struct_.fields);
     }
     return 0;
-  } else if (left->ty_former == TYPE_HEADER) {
+  } else if (left->ty_former == TypeEnum::HEADER) {
     if (right->ty_former == left->ty_former) {
       return structural_type_equiv(checker, left->struct_.fields, right->struct_.fields);
     }
     return 0;
-  } else if (left->ty_former == TYPE_HEADER_STACK) {
+  } else if (left->ty_former == TypeEnum::STACK) {
     if (right->ty_former == left->ty_former) {
       return structural_type_equiv(checker, left->header_stack.element, right->header_stack.element);
     }
@@ -368,7 +368,7 @@ bool type_equiv(TypeChecker* checker, Type* left, Type* right)
 Type* actual_type(Type* type)
 {
   if (!type) { return 0; }
-  if (type->ty_former == TYPE_TYPE) {
+  if (type->ty_former == TypeEnum::TYPE) {
     return type->type.type;
   }
   return type;
@@ -378,11 +378,11 @@ Type* effective_type(Type* type)
 {
   Type* applied_ty = actual_type(type);
   if (!applied_ty) { return 0; }
-  if (type->ty_former == TYPE_FUNCTION) {
+  if (type->ty_former == TypeEnum::FUNCTION) {
     return actual_type(type->function.return_);
-  } else if (type->ty_former == TYPE_FIELD) {
+  } else if (type->ty_former == TypeEnum::FIELD) {
     return actual_type(type->field.type);
-  } else if (type->ty_former == TYPE_HEADER_STACK) {
+  } else if (type->ty_former == TypeEnum::STACK) {
     return actual_type(type->header_stack.element);
   }
   return applied_ty;
@@ -391,34 +391,34 @@ Type* effective_type(Type* type)
 char* TypeEnum_to_string(enum TypeEnum type)
 {
   switch(type) {
-    case TYPE_NONE: return "TYPE_NONE";
-    case TYPE_VOID: return "TYPE_VOID";
-    case TYPE_BOOL: return "TYPE_BOOL";
-    case TYPE_INT: return "TYPE_INT";
-    case TYPE_BIT: return "TYPE_BIT";
-    case TYPE_VARBIT: return "TYPE_VARBIT";
-    case TYPE_STRING: return "TYPE_STRING";
-    case TYPE_ANY: return "TYPE_ANY";
-    case TYPE_ENUM: return "TYPE_ENUM";
-    case TYPE_TYPEDEF: return "TYPE_TYPEDEF";
-    case TYPE_FUNCTION: return "TYPE_FUNCTION";
-    case TYPE_EXTERN: return "TYPE_EXTERN";
-    case TYPE_PACKAGE: return "TYPE_PACKAGE";
-    case TYPE_PARSER: return "TYPE_PARSER";
-    case TYPE_CONTROL: return "TYPE_CONTROL";
-    case TYPE_TABLE: return "TYPE_TABLE";
-    case TYPE_STRUCT: return "TYPE_STRUCT";
-    case TYPE_HEADER: return "TYPE_HEADER";
-    case TYPE_HEADER_UNION: return "TYPE_HEADER_UNION";
-    case TYPE_HEADER_STACK: return "TYPE_HEADER_STACK";
-    case TYPE_STATE: return "TYPE_STATE";                            
-    case TYPE_FIELD: return "TYPE_FIELD";
-    case TYPE_ERROR: return "TYPE_ERROR";
-    case TYPE_MATCH_KIND: return "TYPE_MATCH_KIND";
-    case TYPE_NAMEREF: return "TYPE_NAMEREF";
-    case TYPE_TYPE: return "TYPE_TYPE";
-    case TYPE_TUPLE: return "TYPE_TUPLE";
-    case TYPE_PRODUCT: return "TYPE_PRODUCT";
+    case TypeEnum::NONE: return "NONE";
+    case TypeEnum::VOID: return "VOID";
+    case TypeEnum::BOOL: return "BOOL";
+    case TypeEnum::INT: return "INT";
+    case TypeEnum::BIT: return "BIT";
+    case TypeEnum::VARBIT: return "VARBIT";
+    case TypeEnum::STRING: return "STRING";
+    case TypeEnum::ANY: return "ANY";
+    case TypeEnum::ENUM: return "ENUM";
+    case TypeEnum::TYPEDEF: return "TYPEDEF";
+    case TypeEnum::FUNCTION: return "FUNCTION";
+    case TypeEnum::EXTERN: return "EXTERN";
+    case TypeEnum::PACKAGE: return "PACKAGE";
+    case TypeEnum::PARSER: return "PARSER";
+    case TypeEnum::CONTROL: return "CONTROL";
+    case TypeEnum::TABLE: return "TABLE";
+    case TypeEnum::STRUCT: return "STRUCT";
+    case TypeEnum::HEADER: return "HEADER";
+    case TypeEnum::UNION: return "UNION";
+    case TypeEnum::STACK: return "STACK";
+    case TypeEnum::STATE: return "STATE";
+    case TypeEnum::FIELD: return "FIELD";
+    case TypeEnum::ERROR: return "ERROR";
+    case TypeEnum::MATCH_KIND: return "MATCH_KIND";
+    case TypeEnum::NAMEREF: return "NAMEREF";
+    case TypeEnum::TYPE: return "TYPE";
+    case TypeEnum::TUPLE: return "TUPLE";
+    case TypeEnum::PRODUCT: return "TYPE_PRODUCT";
 
     default: return "?";
   }
@@ -482,7 +482,7 @@ void declared_types(TypeChecker* checker)
   visit_p4program(checker, checker->p4program);
   for (int i = 0; i < checker->type_array->elem_count; i++) {
     ty = (Type*)array_get(checker->type_array, i, sizeof(Type));
-    if (ty->ty_former == TYPE_NAMEREF) {
+    if (ty->ty_former == TypeEnum::NAMEREF) {
       name = ty->nameref.name;
       name_entry = scope_lookup(ty->nameref.scope, name->name.strname, NameSpace::TYPE);
       name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
@@ -490,7 +490,7 @@ void declared_types(TypeChecker* checker)
         ref_ty = (Type*)map_lookup(checker->type_env, name_decl->ast, 0);
         assert(ref_ty);
         name_decl->type = ref_ty;
-        ty->ty_former = TYPE_TYPE;
+        ty->ty_former = TypeEnum::TYPE;
         ty->type.type = ref_ty;
         if (name_decl->next_in_scope) {
           error("%s:%d:%d: error: ambiguous type reference `%s`.",
@@ -502,23 +502,23 @@ void declared_types(TypeChecker* checker)
   }
   for (int i = 0; i < checker->type_array->elem_count; i++) {
     ty = (Type*)array_get(checker->type_array, i, sizeof(Type));
-    if (ty->ty_former == TYPE_TYPEDEF) {
+    if (ty->ty_former == TypeEnum::TYPEDEF) {
       ref_ty = actual_type(ty->typedef_.ref);
-      while (ref_ty->ty_former == TYPE_TYPEDEF) {
+      while (ref_ty->ty_former == TypeEnum::TYPEDEF) {
         ref_ty = actual_type(ref_ty->typedef_.ref);
       }
-      ty->ty_former = TYPE_TYPE;
+      ty->ty_former = TypeEnum::TYPE;
       ty->type.type = ref_ty;
     }
   }
   for (int i = 0; i < checker->type_array->elem_count; i++) {
     ty = (Type*)array_get(checker->type_array, i, sizeof(Type));
-    if (ty->ty_former == TYPE_TYPE) {
+    if (ty->ty_former == TypeEnum::TYPE) {
       ref_ty = actual_type(ty->type.type);
-      while (ref_ty->ty_former == TYPE_TYPE) {
+      while (ref_ty->ty_former == TypeEnum::TYPE) {
         ref_ty = actual_type(ref_ty->type.type);
       }
-      ty->ty_former = TYPE_TYPE;
+      ty->ty_former = TypeEnum::TYPE;
       ty->type.type = ref_ty;
     }
   }
@@ -579,7 +579,7 @@ static void visit_name(TypeChecker* checker, Ast* name)
   Type* name_ty;
 
   name_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  name_ty->ty_former = TYPE_NAMEREF;
+  name_ty->ty_former = TypeEnum::NAMEREF;
   name_ty->strname = name->name.strname;
   name_ty->ast = name;
   name_ty->nameref.name = name;
@@ -595,7 +595,7 @@ static void visit_parameterList(TypeChecker* checker, Ast* params)
   int i;
 
   params_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  params_ty->ty_former = TYPE_PRODUCT;
+  params_ty->ty_former = TypeEnum::PRODUCT;
   params_ty->ast = params;
   for (ast = params->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -641,7 +641,7 @@ static void visit_packageTypeDeclaration(TypeChecker* checker, Ast* type_decl)
   visit_parameterList(checker, type_decl->packageTypeDeclaration.params);
   name = type_decl->packageTypeDeclaration.name;
   package_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  package_ty->ty_former = TYPE_PACKAGE;
+  package_ty->ty_former = TypeEnum::PACKAGE;
   package_ty->strname = name->name.strname;
   package_ty->ast = type_decl;
   package_ty->package.params = (Type*)map_lookup(checker->type_env, type_decl->packageTypeDeclaration.params, 0);
@@ -691,7 +691,7 @@ static void visit_parserTypeDeclaration(TypeChecker* checker, Ast* type_decl)
   visit_parameterList(checker, type_decl->parserTypeDeclaration.params);
   name = type_decl->parserTypeDeclaration.name;
   parser_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  parser_ty->ty_former = TYPE_PARSER;
+  parser_ty->ty_former = TypeEnum::PARSER;
   parser_ty->strname = name->name.strname;
   parser_ty->ast = type_decl;
   parser_ty->parser.params = (Type*)map_lookup(checker->type_env, type_decl->parserTypeDeclaration.params, 0);
@@ -744,7 +744,7 @@ static void visit_parserState(TypeChecker* checker, Ast* state)
 
   name = state->parserState.name;
   state_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  state_ty->ty_former = TYPE_STATE;
+  state_ty->ty_former = TypeEnum::STATE;
   state_ty->strname = name->name.strname;
   state_ty->ast = state;
   visit_parserStatements(checker, state->parserState.stmt_list);
@@ -894,7 +894,7 @@ static void visit_controlTypeDeclaration(TypeChecker* checker, Ast* type_decl)
   visit_parameterList(checker, type_decl->controlTypeDeclaration.params);
   name = type_decl->controlTypeDeclaration.name;
   control_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  control_ty->ty_former = TYPE_CONTROL;
+  control_ty->ty_former = TypeEnum::CONTROL;
   control_ty->strname = name->name.strname;
   control_ty->ast = type_decl;
   control_ty->control.params = (Type*)map_lookup(checker->type_env, type_decl->packageTypeDeclaration.params, 0);
@@ -952,7 +952,7 @@ static void visit_externTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 
   name = type_decl->externTypeDeclaration.name;
   extern_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  extern_ty->ty_former = TYPE_EXTERN;
+  extern_ty->ty_former = TypeEnum::EXTERN;
   extern_ty->strname = name->name.strname;
   extern_ty->ast = type_decl;
   map_insert(checker->type_env, type_decl, extern_ty, 0);
@@ -960,7 +960,7 @@ static void visit_externTypeDeclaration(TypeChecker* checker, Ast* type_decl)
   methods_ty = (Type*)map_lookup(checker->type_env, type_decl->externTypeDeclaration.method_protos, 0);
   extern_ty->extern_.methods = methods_ty;
   ctors_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  ctors_ty->ty_former = TYPE_PRODUCT;
+  ctors_ty->ty_former = TypeEnum::PRODUCT;
   ctors_ty->ast = type_decl;
   for (int i = 0; i < methods_ty->product.count; i++) {
     if (cstr_match(methods_ty->product.members[i]->strname, name->name.strname)) {
@@ -988,7 +988,7 @@ static void visit_methodPrototypes(TypeChecker* checker, Ast* protos, Type* ctor
   int i;
 
   methods_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  methods_ty->ty_former = TYPE_PRODUCT;
+  methods_ty->ty_former = TypeEnum::PRODUCT;
   methods_ty->ast = protos;
   for (ast = protos->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -1021,7 +1021,7 @@ static void visit_functionPrototype(TypeChecker* checker, Ast* func_proto, Type*
   visit_parameterList(checker, func_proto->functionPrototype.params);
   name = func_proto->functionPrototype.name;
   func_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  func_ty->ty_former = TYPE_FUNCTION;
+  func_ty->ty_former = TypeEnum::FUNCTION;
   func_ty->strname = name->name.strname;
   func_ty->ast = func_proto;
   func_ty->function.params = (Type*)map_lookup(checker->type_env, func_proto->functionPrototype.params, 0);
@@ -1086,7 +1086,7 @@ static void visit_headerStackType(TypeChecker* checker, Ast* type_decl)
   visit_typeRef(checker, type_decl->headerStackType.type);
   visit_expression(checker, type_decl->headerStackType.stack_expr);
   stack_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  stack_ty->ty_former = TYPE_HEADER_STACK;
+  stack_ty->ty_former = TypeEnum::STACK;
   stack_ty->ast = type_decl;
   map_insert(checker->type_env, type_decl, stack_ty, 0);
   stack_ty->header_stack.element = (Type*)map_lookup(checker->type_env, type_decl->headerStackType.type, 0);
@@ -1201,7 +1201,7 @@ static void visit_typeArgumentList(TypeChecker* checker, Ast* args)
   int i;
 
   args_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  args_ty->ty_former = TYPE_PRODUCT;
+  args_ty->ty_former = TypeEnum::PRODUCT;
   args_ty->ast = args;
   for (ast = args->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -1269,7 +1269,7 @@ static void visit_headerTypeDeclaration(TypeChecker* checker, Ast* header_decl)
   visit_structFieldList(checker, header_decl->headerTypeDeclaration.fields);
   name = header_decl->headerTypeDeclaration.name;
   header_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  header_ty->ty_former = TYPE_HEADER;
+  header_ty->ty_former = TypeEnum::HEADER;
   header_ty->strname = name->name.strname;
   header_ty->ast = header_decl;
   map_insert(checker->type_env, header_decl, header_ty, 0);
@@ -1288,7 +1288,7 @@ static void visit_headerUnionDeclaration(TypeChecker* checker, Ast* union_decl)
   visit_structFieldList(checker, union_decl->headerUnionDeclaration.fields);
   name = union_decl->headerUnionDeclaration.name;
   union_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  union_ty->ty_former = TYPE_HEADER_UNION;
+  union_ty->ty_former = TypeEnum::UNION;
   union_ty->strname = name->name.strname;
   union_ty->ast = union_decl;
   map_insert(checker->type_env, union_decl, union_ty, 0);
@@ -1307,7 +1307,7 @@ static void visit_structTypeDeclaration(TypeChecker* checker, Ast* struct_decl)
   visit_structFieldList(checker, struct_decl->structTypeDeclaration.fields);
   name = struct_decl->structTypeDeclaration.name;
   struct_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  struct_ty->ty_former = TYPE_STRUCT;
+  struct_ty->ty_former = TypeEnum::STRUCT;
   struct_ty->strname = name->name.strname;
   struct_ty->ast = struct_decl;
   map_insert(checker->type_env, struct_decl, struct_ty, 0);
@@ -1324,7 +1324,7 @@ static void visit_structFieldList(TypeChecker* checker, Ast* fields)
   int i;
 
   fields_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  fields_ty->ty_former = TYPE_PRODUCT;
+  fields_ty->ty_former = TypeEnum::PRODUCT;
   fields_ty->ast = fields;
   for (ast = fields->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -1354,7 +1354,7 @@ static void visit_structField(TypeChecker* checker, Ast* field)
   visit_typeRef(checker, field->structField.type);
   name = field->structField.name;
   field_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  field_ty->ty_former = TYPE_FIELD;
+  field_ty->ty_former = TypeEnum::FIELD;
   field_ty->strname = name->name.strname;
   field_ty->ast = field;
   field_ty->field.type = (Type*)map_lookup(checker->type_env, field->structField.type, 0);
@@ -1372,7 +1372,7 @@ static void visit_enumDeclaration(TypeChecker* checker, Ast* enum_decl)
 
   name = enum_decl->enumDeclaration.name;
   enum_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  enum_ty->ty_former = TYPE_ENUM;
+  enum_ty->ty_former = TypeEnum::ENUM;
   enum_ty->strname = name->name.strname;
   enum_ty->ast = enum_decl;
   map_insert(checker->type_env, enum_decl, enum_ty, 0);
@@ -1424,7 +1424,7 @@ static void visit_identifierList(TypeChecker* checker, Ast* ident_list, Type* en
   for (ast = ident_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
     name_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-    name_ty->ty_former = TYPE_FIELD;
+    name_ty->ty_former = TypeEnum::FIELD;
     name_ty->strname = container_of(ast, Ast, tree)->name.strname;
     name_ty->ast = container_of(ast, Ast, tree);
     name_ty->field.type = enum_ty;
@@ -1445,7 +1445,7 @@ static void visit_specifiedIdentifierList(TypeChecker* checker, Ast* ident_list,
   int i;
 
   idents_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  idents_ty->ty_former = TYPE_PRODUCT;
+  idents_ty->ty_former = TypeEnum::PRODUCT;
   idents_ty->ast = ident_list;
   for (ast = ident_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -1474,7 +1474,7 @@ static void visit_specifiedIdentifier(TypeChecker* checker, Ast* ident, Type* en
 
   name = ident->specifiedIdentifier.name;
   ident_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  ident_ty->ty_former = TYPE_FIELD;
+  ident_ty->ty_former = TypeEnum::FIELD;
   ident_ty->strname = name->name.strname;
   ident_ty->ast = ident;
   ident_ty->field.type = enum_ty;
@@ -1497,7 +1497,7 @@ static void visit_typedefDeclaration(TypeChecker* checker, Ast* typedef_decl)
   } else assert(0);
   name = typedef_decl->typedefDeclaration.name;
   typedef_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  typedef_ty->ty_former = TYPE_TYPEDEF;
+  typedef_ty->ty_former = TypeEnum::TYPEDEF;
   typedef_ty->strname = name->name.strname;
   typedef_ty->ast = typedef_decl;
   map_insert(checker->type_env, typedef_decl, typedef_ty, 0);
@@ -1664,7 +1664,7 @@ static void visit_tableDeclaration(TypeChecker* checker, Ast* table_decl)
   visit_tablePropertyList(checker, table_decl->tableDeclaration.prop_list);
   name = table_decl->tableDeclaration.name;
   table_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  table_ty->ty_former = TYPE_TABLE;
+  table_ty->ty_former = TypeEnum::TABLE;
   table_ty->strname = name->name.strname;
   table_ty->ast = table_decl;
   map_insert(checker->type_env, table_decl, table_ty, 0);
@@ -1795,7 +1795,7 @@ static void visit_actionDeclaration(TypeChecker* checker, Ast* action_decl)
   visit_blockStatement(checker, action_decl->actionDeclaration.stmt);
   name = action_decl->actionDeclaration.name;
   action_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  action_ty->ty_former = TYPE_FUNCTION;
+  action_ty->ty_former = TypeEnum::FUNCTION;
   action_ty->strname = name->name.strname;
   action_ty->ast = action_decl;
   action_ty->function.params = (Type*)map_lookup(checker->type_env, action_decl->actionDeclaration.params, 0);

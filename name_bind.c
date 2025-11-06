@@ -164,15 +164,15 @@ static void define_builtin_names(NameBinder* name_binder)
     {"reject", NameSpace::VAR},
   };
   struct BuiltinType builtin_types[] = {
-    {"void",       TYPE_VOID},
-    {"bool",       TYPE_BOOL},
-    {"int",        TYPE_INT},
-    {"bit",        TYPE_BIT},
-    {"varbit",     TYPE_VARBIT},
-    {"string",     TYPE_STRING},
-    {"error",      TYPE_ERROR},
-    {"match_kind", TYPE_MATCH_KIND},
-    {"_",          TYPE_ANY},
+    {"void",       TypeEnum::VOID},
+    {"bool",       TypeEnum::BOOL},
+    {"int",        TypeEnum::INT},
+    {"bit",        TypeEnum::BIT},
+    {"varbit",     TypeEnum::VARBIT},
+    {"string",     TypeEnum::STRING},
+    {"error",      TypeEnum::ERROR},
+    {"match_kind", TypeEnum::MATCH_KIND},
+    {"_",          TypeEnum::ANY},
   };
   Ast* name;
   NameEntry* name_entry;
@@ -198,11 +198,11 @@ static void define_builtin_names(NameBinder* name_binder)
 
   ty = scope_builtin_lookup(name_binder->root_scope, "error", NameSpace::TYPE)->type;
   ty->enum_.fields = (Type*)array_append(name_binder->type_array, sizeof(Type));
-  ty->enum_.fields->ty_former = TYPE_PRODUCT;
+  ty->enum_.fields->ty_former = TypeEnum::PRODUCT;
 
   ty = scope_builtin_lookup(name_binder->root_scope, "match_kind", NameSpace::TYPE)->type;
   ty->enum_.fields = (Type*)array_append(name_binder->type_array, sizeof(Type));
-  ty->enum_.fields->ty_former = TYPE_PRODUCT;
+  ty->enum_.fields->ty_former = TypeEnum::PRODUCT;
 }
 
 void Debug_scope_decls(Scope* scope)

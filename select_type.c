@@ -421,7 +421,7 @@ static void visit_simpleKeysetExpression(TypeChecker* checker, Ast* simple_expr,
       visit_dontcare(checker, simple_expr->simpleKeysetExpression.expr);
     } else assert(0);
     simple_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-    simple_ty->ty_former = TYPE_PRODUCT;
+    simple_ty->ty_former = TypeEnum::PRODUCT;
     simple_ty->ast = simple_expr;
     simple_ty->product.count = 1;
     simple_ty->product.members = (Type**)arena_malloc(checker->storage, simple_ty->product.count * sizeof(Type*));
@@ -438,7 +438,7 @@ static void visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list, Typ
   int i;
 
   list_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  list_ty->ty_former = TYPE_PRODUCT;
+  list_ty->ty_former = TypeEnum::PRODUCT;
   list_ty->ast = expr_list;
   for (ast = expr_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -1163,7 +1163,7 @@ static void visit_expressionList(TypeChecker* checker, Ast* expr_list, Type* req
   int i;
 
   list_ty = (Type*)array_append(checker->type_array, sizeof(Type));
-  list_ty->ty_former = TYPE_PRODUCT;
+  list_ty->ty_former = TypeEnum::PRODUCT;
   list_ty->ast = expr_list;
   for (ast = expr_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {

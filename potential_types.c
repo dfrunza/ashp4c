@@ -175,7 +175,7 @@ static void collect_matching_member(TypeChecker* checker, PotentialType* tau, Ty
   for (int i = 0; i < product_ty->product.count; i++) {
     member_ty = product_ty->product.members[i];
     if (cstr_match(member_ty->strname, strname)) {
-      if (member_ty->ty_former == TYPE_FUNCTION) {
+      if (member_ty->ty_former == TypeEnum::FUNCTION) {
         if (match_params(checker, potential_args, member_ty->function.params)) {
           map_insert(&tau->set.members, member_ty, 0, 1);
         }
@@ -292,19 +292,19 @@ static void visit_name(TypeChecker* checker, Ast* name, PotentialType* potential
   for (int i = 0; i < name_ty->elem_count; i++) {
     ty = *(Type**)array_get(name_ty, i, sizeof(Type*));
     if (potential_args) {
-      if (ty->ty_former == TYPE_FUNCTION) {
+      if (ty->ty_former == TypeEnum::FUNCTION) {
         if (match_params(checker, potential_args, ty->function.params)) {
           map_insert(&tau->set.members, ty, 0, 0);
         }
-      } else if (ty->ty_former == TYPE_PARSER) {
+      } else if (ty->ty_former == TypeEnum::PARSER) {
         if (match_params(checker, potential_args, ty->parser.ctor_params)) {
           map_insert(&tau->set.members, ty, 0, 0);
         }
-      } else if (ty->ty_former == TYPE_CONTROL) {
+      } else if (ty->ty_former == TypeEnum::CONTROL) {
         if (match_params(checker, potential_args, ty->control.ctor_params)) {
           map_insert(&tau->set.members, ty, 0, 0);
         }
-      } else if (ty->ty_former == TYPE_EXTERN) {
+      } else if (ty->ty_former == TypeEnum::EXTERN) {
         ctors_ty = ty->extern_.ctors;
         for (int j = 0; j < ctors_ty->product.count; j++) {
           ty = ctors_ty->product.members[j];
@@ -1487,19 +1487,19 @@ static void visit_memberSelector(TypeChecker* checker, Ast* selector, PotentialT
   tau_lhs = (PotentialType*)map_lookup(checker->potype_map, selector->memberSelector.lhs_expr, 0);
   for (m = tau_lhs->set.members.first; m != 0; m = m->next) {
     lhs_ty = effective_type((Type*)m->key);
-    if (lhs_ty->ty_former == TYPE_EXTERN) {
+    if (lhs_ty->ty_former == TypeEnum::EXTERN) {
       collect_matching_member(checker, tau, lhs_ty->extern_.methods, name->name.strname, potential_args);
-    } else if (lhs_ty->ty_former == TYPE_ENUM ||
-               lhs_ty->ty_former == TYPE_MATCH_KIND || lhs_ty->ty_former == TYPE_ERROR) {
+    } else if (lhs_ty->ty_former == TypeEnum::ENUM ||
+               lhs_ty->ty_former == TypeEnum::MATCH_KIND || lhs_ty->ty_former == TypeEnum::ERROR) {
       collect_matching_member(checker, tau, lhs_ty->enum_.fields, name->name.strname, 0);
-    } else if (lhs_ty->ty_former == TYPE_STRUCT || lhs_ty->ty_former == TYPE_HEADER ||
-               lhs_ty->ty_former == TYPE_HEADER_UNION) {
+    } else if (lhs_ty->ty_former == TypeEnum::STRUCT || lhs_ty->ty_former == TypeEnum::HEADER ||
+               lhs_ty->ty_former == TypeEnum::UNION) {
       collect_matching_member(checker, tau, lhs_ty->struct_.fields, name->name.strname, potential_args);
-    } else if (lhs_ty->ty_former == TYPE_HEADER_STACK) {
+    } else if (lhs_ty->ty_former == TypeEnum::STACK) {
       /* TODO */
-    } else if (lhs_ty->ty_former == TYPE_TABLE) {
+    } else if (lhs_ty->ty_former == TypeEnum::TABLE) {
       collect_matching_member(checker, tau, lhs_ty->table.methods, name->name.strname, potential_args);
-    } else if (lhs_ty->ty_former == TYPE_PARSER || lhs_ty->ty_former == TYPE_CONTROL) {
+    } else if (lhs_ty->ty_former == TypeEnum::PARSER || lhs_ty->ty_former == TypeEnum::CONTROL) {
       collect_matching_member(checker, tau, lhs_ty->parser.methods, name->name.strname, potential_args);
     }
   }
