@@ -96,6 +96,11 @@ typedef struct Strmap {
   int entry_count;
   int capacity;
   SegmentTable entries;
+
+  static Strmap* create(Arena* storage, int segment_count);
+  void init(Arena* storage, int segment_count);
+  void* lookup(char* key, StrmapEntry** entry, StrmapBucket* bucket);
+  StrmapEntry* insert(char* key, void* value, bool return_if_found);
 } Strmap;
 
 typedef struct StrmapCursor {
@@ -104,10 +109,6 @@ typedef struct StrmapCursor {
   StrmapEntry* entry;
 } StrmapCursor;
 
-Strmap* strmap_create(Arena* storage, int segment_count);
-void strmap_init(Arena* storage, Strmap* strmap, int segment_count);
-void* strmap_lookup(Strmap* strmap, char* key, StrmapEntry** entry, StrmapBucket* bucket);
-StrmapEntry* strmap_insert(Strmap* strmap, char* key, void* value, bool return_if_found);
 void strmap_cursor_begin(StrmapCursor* cursor, Strmap* strmap);
 StrmapEntry* strmap_cursor_next(StrmapCursor* cursor);
 
@@ -128,4 +129,3 @@ typedef struct Map {
 MapEntry* map_insert(Map* map, void* key, void* value, bool return_if_found);
 void* map_lookup(Map* map, void* key, MapEntry** entry);
 int map_count(Map* map);
-
