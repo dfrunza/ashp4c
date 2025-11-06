@@ -68,12 +68,12 @@ static void strmap_grow(Strmap* strmap)
     printf("\nMaximum capacity has been reached.\n");
     exit(1);
   }
-  strmap_cursor_begin(&it, strmap);
-  first_entry = strmap_cursor_next(&it);
+  it.begin(strmap);
+  first_entry = it.next();
   last_entry = first_entry;
   entry_count = first_entry ? 1 : 0;
-  for (entry = strmap_cursor_next(&it);
-       entry != 0; entry = strmap_cursor_next(&it)) {
+  for (entry = it.next();
+       entry != 0; entry = it.next()) {
     last_entry->next_entry = entry;
     last_entry = entry;
     entry_count += 1;
@@ -150,37 +150,37 @@ StrmapEntry* Strmap::insert(char* key, void* value, bool return_if_found)
   return entry;
 }
 
-void strmap_cursor_begin(StrmapCursor* cursor, Strmap* strmap)
+void StrmapCursor::begin(Strmap* strmap)
 {
-  cursor->strmap = strmap;
-  cursor->i = -1;
-  cursor->entry = 0;
+  this->strmap = strmap;
+  this->i = -1;
+  this->entry = 0;
 }
 
-StrmapEntry* strmap_cursor_next(StrmapCursor* cursor)
+StrmapEntry* StrmapCursor::next()
 {
   Strmap* strmap;
   StrmapEntry* entry = 0;
   StrmapEntry** entry_slot;
 
-  strmap = cursor->strmap;
-  entry = cursor->entry;
+  strmap = this->strmap;
+  entry = this->entry;
   if (entry) {
     entry = entry->next_entry;
     if (entry) {
-      cursor->entry = entry;
-      return cursor->entry;
+      this->entry = entry;
+      return this->entry;
     }
   }
-  cursor->i++;
-  while (cursor->i < strmap->capacity) {
-    entry_slot = (StrmapEntry**)segment_locate_cell(&strmap->entries, cursor->i, sizeof(StrmapEntry*));
+  this->i++;
+  while (this->i < strmap->capacity) {
+    entry_slot = (StrmapEntry**)segment_locate_cell(&strmap->entries, this->i, sizeof(StrmapEntry*));
     entry = *entry_slot;
     if (entry) {
-      cursor->entry = entry;
+      this->entry = entry;
       break;
     }
-    cursor->i++;
+    this->i++;
   }
   return entry;
 }

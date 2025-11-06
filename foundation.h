@@ -107,10 +107,10 @@ typedef struct StrmapCursor {
   Strmap* strmap;
   int i;
   StrmapEntry* entry;
-} StrmapCursor;
 
-void strmap_cursor_begin(StrmapCursor* cursor, Strmap* strmap);
-StrmapEntry* strmap_cursor_next(StrmapCursor* cursor);
+  void begin(Strmap* strmap);
+  StrmapEntry* next();
+} StrmapCursor;
 
 typedef struct MapEntry {
   struct MapEntry* next;

@@ -214,9 +214,9 @@ void Debug_scope_decls(Scope* scope)
   StrmapEntry* he;
   enum NameSpace ns[] = {NAMESPACE_VAR, NAMESPACE_TYPE, NAMESPACE_KEYWORD};
 
-  strmap_cursor_begin(&it, &scope->name_table);
+  it.begin(&scope->name_table);
   printf("Names in scope 0x%x\n\n", scope);
-  he = strmap_cursor_next(&it);
+  he = it.next();
   while (he) {
     name_entry = (NameEntry*)he->value;
     for (int i = 0; i < sizeof(ns)/sizeof(ns[0]); i++) {
@@ -232,7 +232,7 @@ void Debug_scope_decls(Scope* scope)
         count += 1;
       }
     }
-    he = strmap_cursor_next(&it);
+    he = it.next();
   }
   printf("\nTotal names: %d\n", count);
 }
