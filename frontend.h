@@ -974,10 +974,10 @@ typedef struct Type {
   };
 } Type;
 
-enum PotentialTypeEnum {
-  PONONE = 0,
-  POTYPE_SET,
-  POTYPE_PRODUCT,
+enum class PotentialTypeEnum {
+  NONE = 0,
+  SET,
+  PRODUCT,
 };
 
 typedef struct PotentialType {
