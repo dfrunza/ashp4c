@@ -195,8 +195,7 @@ static Token* next_token(Parser* parser)
     parser->token = (Token*)array_get(parser->tokens, ++parser->token_at, sizeof(Token));
   }
   if (parser->token->klass == TK_IDENTIFIER) {
-    name_entry = scope_lookup(parser->current_scope, parser->token->lexeme,
-                              (NameSpace)((int)NameSpace::KEYWORD | (int)NameSpace::TYPE));
+    name_entry = scope_lookup(parser->current_scope, parser->token->lexeme, NameSpace::KEYWORD | NameSpace::TYPE);
     name_decl = name_entry->ns[(int)NameSpace::KEYWORD >> 1];
     if (name_decl) {
       parser->token->klass = name_decl->token_class;
@@ -1232,7 +1231,7 @@ static enum ParamDirection parse_direction(Parser* parser)
       return ParamDirection::OUT;
     } else if (parser->token->klass == TK_INOUT) {
       next_token(parser);
-      return (ParamDirection)((int)ParamDirection::IN | (int)ParamDirection::OUT);
+      return ParamDirection::IN | ParamDirection::OUT;
     } else assert(0);
   }
   return (ParamDirection)0;

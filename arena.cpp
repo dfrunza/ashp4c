@@ -74,7 +74,7 @@ static PageBlock* block_insert_and_coalesce(PageBlock* block_list, PageBlock* ne
   PageBlock* merged_list;
   PageBlock* left_neighbour = 0, *right_neighbour = 0;
   PageBlock* p;
-  enum class Stitch {
+  enum class Stitch : uint8_t {
     NONE  = 0,
     LEFT  = 1 << 1,
     RIGHT = 1 << 2,

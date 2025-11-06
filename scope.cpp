@@ -42,9 +42,9 @@ NameEntry* scope_lookup(Scope* scope, char* strname, enum NameSpace ns)
   while (scope) {
     name_entry = (NameEntry*)scope->name_table.lookup(strname, 0, 0);
     if (name_entry) {
-      if (((int)ns & (int)NameSpace::VAR) != 0 && name_entry->ns[(int)NameSpace::VAR >> 1]) break;
-      if (((int)ns & (int)NameSpace::TYPE) != 0 && name_entry->ns[(int)NameSpace::TYPE >> 1]) break;
-      if (((int)ns & (int)NameSpace::KEYWORD) != 0 && name_entry->ns[(int)NameSpace::KEYWORD >> 1]) break;
+      if ((ns & NameSpace::VAR) != (NameSpace)0 && name_entry->ns[(int)NameSpace::VAR >> 1]) break;
+      if ((ns & NameSpace::TYPE) != (NameSpace)0 && name_entry->ns[(int)NameSpace::TYPE >> 1]) break;
+      if ((ns & NameSpace::KEYWORD) != (NameSpace)0 && name_entry->ns[(int)NameSpace::KEYWORD >> 1]) break;
     }
     name_entry = 0;
     scope = scope->parent_scope;

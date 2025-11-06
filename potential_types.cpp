@@ -277,7 +277,7 @@ static void visit_name(TypeChecker* checker, Ast* name, PotentialType* potential
   tau->set.members.storage = checker->storage;
   map_insert(checker->potype_map, name, tau, 0);
   scope = (Scope*)map_lookup(checker->scope_map, name, 0);
-  name_entry = scope_lookup(scope, name->name.strname, (NameSpace)((int)NameSpace::VAR | (int)NameSpace::TYPE));
+  name_entry = scope_lookup(scope, name->name.strname, NameSpace::VAR | NameSpace::TYPE);
   name_decl = name_entry->ns[(int)NameSpace::VAR >> 1];
   if (name_decl) {
     ty = (Type*)map_lookup(checker->type_env, name_decl->ast, 0);

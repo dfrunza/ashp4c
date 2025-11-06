@@ -317,11 +317,17 @@ enum AstOperator {
   OP_MASK,
 };
 
-enum class ParamDirection {
+enum class ParamDirection : uint8_t {
   NONE = 0,
   IN   = 1 << 1,
   OUT  = 1 << 2,
 };
+inline ParamDirection operator | (ParamDirection lhs, ParamDirection rhs) {
+    return (ParamDirection)((int)lhs | (int)rhs);
+}
+inline ParamDirection operator & (ParamDirection lhs, ParamDirection rhs) {
+    return (ParamDirection)((int)lhs & (int)rhs);
+}
 
 typedef struct Ast {
   enum AstEnum kind;
@@ -868,7 +874,7 @@ typedef struct NameBinder {
   Array* type_array;
 } NameBinder;
 
-enum class TypeEnum {
+enum class TypeEnum : uint16_t {
   NONE = 0,
   VOID,
   BOOL,
@@ -974,7 +980,7 @@ typedef struct Type {
   };
 } Type;
 
-enum class PotentialTypeEnum {
+enum class PotentialTypeEnum : uint8_t {
   NONE = 0,
   SET,
   PRODUCT,
@@ -1026,12 +1032,18 @@ typedef struct NameDeclaration {
   Type* type;
 } NameDeclaration;
 
-enum class NameSpace {
+enum class NameSpace : uint8_t {
   VAR     = 1 << 0,
   TYPE    = 1 << 1,
   KEYWORD = 1 << 2,
 };
 #define NameSpace_COUNT 3
+inline NameSpace operator | (NameSpace lhs, NameSpace rhs) {
+    return (NameSpace)((int)lhs | (int)rhs);
+}
+inline NameSpace operator & (NameSpace lhs, NameSpace rhs) {
+    return (NameSpace)((int)lhs & (int)rhs);
+}
 char* NameSpace_to_string(enum NameSpace ns);
 
 typedef struct NameEntry {
