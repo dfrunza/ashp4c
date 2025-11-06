@@ -16,7 +16,7 @@ static Ast* parse_nonTypeName(Parser* parser);
 static Ast* parse_name(Parser* parser);
 static Ast* parse_parameterList(Parser* parser);
 static Ast* parse_parameter(Parser* parser);
-static enum AstParamDirection parse_direction(Parser* parser);
+static enum ParamDirection parse_direction(Parser* parser);
 static Ast* parse_packageTypeDeclaration(Parser* parser);
 static Ast* parse_instantiation(Parser* parser, Ast* type_ref);
 static Ast* parse_constructorParameters(Parser* parser);
@@ -1221,21 +1221,21 @@ static Ast* parse_parameter(Parser* parser)
   return 0;
 }
 
-static enum AstParamDirection parse_direction(Parser* parser)
+static enum ParamDirection parse_direction(Parser* parser)
 {
   if (token_is_direction(parser->token)) {
     if (parser->token->klass == TK_IN) {
       next_token(parser);
-      return PARAMDIR_IN;
+      return ParamDirection::IN;
     } else if (parser->token->klass == TK_OUT) {
       next_token(parser);
-      return PARAMDIR_OUT;
+      return ParamDirection::OUT;
     } else if (parser->token->klass == TK_INOUT) {
       next_token(parser);
-      return (AstParamDirection)(PARAMDIR_IN | PARAMDIR_OUT);
+      return (ParamDirection)((int)ParamDirection::IN | (int)ParamDirection::OUT);
     } else assert(0);
   }
-  return (AstParamDirection)0;
+  return (ParamDirection)0;
 }
 
 static Ast* parse_packageTypeDeclaration(Parser* parser)

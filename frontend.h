@@ -317,10 +317,10 @@ enum AstOperator {
   OP_MASK,
 };
 
-enum AstParamDirection {
-  PARAMDIR_NONE = 0,
-  PARAMDIR_IN   = 1 << 1,
-  PARAMDIR_OUT  = 1 << 2,
+enum class ParamDirection {
+  NONE = 0,
+  IN   = 1 << 1,
+  OUT  = 1 << 2,
 };
 
 typedef struct Ast {
@@ -352,7 +352,7 @@ typedef struct Ast {
     } parameterList;
 
     struct {
-      enum AstParamDirection direction;
+      enum ParamDirection direction;
       struct Ast* name;
       struct Ast* type;
       struct Ast* init_expr;
