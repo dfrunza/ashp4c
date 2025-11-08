@@ -257,8 +257,8 @@ static bool structural_type_equiv(TypeChecker* checker, Type* left, Type* right)
     return 0;
   }
 
-  left = actual_type(left);
-  right = actual_type(right);
+  left = left->actual_type();
+  right = right->actual_type();
   if (left == right) return 1;
 
   for (i = 0; i < checker->type_equiv_pairs->elem_count; i++) {
@@ -365,25 +365,27 @@ bool type_equiv(TypeChecker* checker, Type* left, Type* right)
   return structural_type_equiv(checker, left, right);
 }
 
-Type* actual_type(Type* type)
+Type* Type::actual_type()
 {
-  if (!type) { return 0; }
-  if (type->ty_former == TypeEnum::TYPE) {
-    return type->type.type;
+  if (!this) { return 0; }
+  if (this->ty_former == TypeEnum::TYPE) {
+    return this->type.type;
   }
-  return type;
+  return this;
 }
 
-Type* effective_type(Type* type)
+Type* Type::effective_type()
 {
-  Type* applied_ty = actual_type(type);
+  Type* applied_ty;
+
+  applied_ty = this->actual_type();
   if (!applied_ty) { return 0; }
-  if (type->ty_former == TypeEnum::FUNCTION) {
-    return actual_type(type->function.return_);
-  } else if (type->ty_former == TypeEnum::FIELD) {
-    return actual_type(type->field.type);
-  } else if (type->ty_former == TypeEnum::STACK) {
-    return actual_type(type->header_stack.element);
+  if (this->ty_former == TypeEnum::FUNCTION) {
+    return this->function.return_->actual_type();
+  } else if (this->ty_former == TypeEnum::FIELD) {
+    return this->field.type->actual_type();
+  } else if (this->ty_former == TypeEnum::STACK) {
+    return this->header_stack.element->actual_type();
   }
   return applied_ty;
 }
@@ -457,7 +459,7 @@ void Debug_print_type_array(Array* type_array)
 
   for (i = 0; i < type_array->elem_count; i++) {
     ty = (Type*)array_get(type_array, i, sizeof(Type));
-    ty = actual_type(ty);
+    ty = ty->actual_type();
 
     if (ty->strname) {
       printf("[%d] 0x%x %s %s\n", i, ty, ty->strname, TypeEnum_to_string(ty->ty_former));
@@ -503,9 +505,9 @@ void declared_types(TypeChecker* checker)
   for (int i = 0; i < checker->type_array->elem_count; i++) {
     ty = (Type*)array_get(checker->type_array, i, sizeof(Type));
     if (ty->ty_former == TypeEnum::TYPEDEF) {
-      ref_ty = actual_type(ty->typedef_.ref);
+      ref_ty = ty->typedef_.ref->actual_type();
       while (ref_ty->ty_former == TypeEnum::TYPEDEF) {
-        ref_ty = actual_type(ref_ty->typedef_.ref);
+        ref_ty = ref_ty->typedef_.ref->actual_type();
       }
       ty->ty_former = TypeEnum::TYPE;
       ty->type.type = ref_ty;
@@ -514,9 +516,9 @@ void declared_types(TypeChecker* checker)
   for (int i = 0; i < checker->type_array->elem_count; i++) {
     ty = (Type*)array_get(checker->type_array, i, sizeof(Type));
     if (ty->ty_former == TypeEnum::TYPE) {
-      ref_ty = actual_type(ty->type.type);
+      ref_ty = ty->type.type->actual_type();
       while (ref_ty->ty_former == TypeEnum::TYPE) {
-        ref_ty = actual_type(ref_ty->type.type);
+        ref_ty = ref_ty->type.type->actual_type();
       }
       ty->ty_former = TypeEnum::TYPE;
       ty->type.type = ref_ty;

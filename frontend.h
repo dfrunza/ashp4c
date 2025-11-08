@@ -1002,6 +1002,9 @@ typedef struct Type {
       int count;
     } product;
   };
+
+  Type* actual_type();
+  Type* effective_type();
 } Type;
 
 enum class PotentialTypeEnum : uint8_t {
@@ -1038,8 +1041,6 @@ typedef struct TypeChecker {
   Map* potype_map;
 } TypeChecker;
 
-Type* actual_type(Type* type);
-Type* effective_type(Type* type);
 bool type_equiv(TypeChecker* checker, Type* u, Type* v);
 bool match_type(TypeChecker* checker, PotentialType* potential_types, Type* required_ty);
 bool match_params(TypeChecker* checker, PotentialType* potential_args, Type* params_ty);

@@ -146,8 +146,8 @@ bool match_type(TypeChecker* checker, PotentialType* potential_types, Type* requ
 
   i = 0;
   for (m = potential_types->set.members.first; m != 0; m = m->next) {
-    ty = effective_type((Type*)m->key);
-    if (type_equiv(checker, ty, actual_type(required_ty))) {
+    ty = ((Type*)m->key)->effective_type();
+    if (type_equiv(checker, ty, required_ty->actual_type())) {
       i += 1;
     }
   }
@@ -281,13 +281,13 @@ static void visit_name(TypeChecker* checker, Ast* name, PotentialType* potential
   name_decl = name_entry->ns[(int)NameSpace::VAR >> 1];
   if (name_decl) {
     ty = (Type*)map_lookup(checker->type_env, name_decl->ast, 0);
-    *(Type**)array_append(name_ty, sizeof(Type*)) = actual_type(ty);
+    *(Type**)array_append(name_ty, sizeof(Type*)) = ty->actual_type();
     assert(!name_decl->next_in_scope);
   }
   name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
   for(; name_decl != 0; name_decl = name_decl->next_in_scope) {
     ty = (Type*)map_lookup(checker->type_env, name_decl->ast, 0);
-    *(Type**)array_append(name_ty, sizeof(Type*)) = actual_type(ty);
+    *(Type**)array_append(name_ty, sizeof(Type*)) = ty->actual_type();
   }
   for (int i = 0; i < name_ty->elem_count; i++) {
     ty = *(Type**)array_get(name_ty, i, sizeof(Type*));
@@ -358,7 +358,7 @@ static void visit_instantiation(TypeChecker* checker, Ast* inst)
   visit_typeRef(checker, inst->instantiation.type);
   visit_argumentList(checker, inst->instantiation.args);
   inst_ty = (Type*)map_lookup(checker->type_env, inst, 0);
-  map_insert(&tau->set.members, actual_type(inst_ty), 0, 1);
+  map_insert(&tau->set.members, inst_ty->actual_type(), 0, 1);
 }
 
 /** PARSER **/
@@ -1285,7 +1285,7 @@ static void visit_variableDeclaration(TypeChecker* checker, Ast* var_decl)
     visit_expression(checker, var_decl->variableDeclaration.init_expr, 0);
   }
   var_ty = (Type*)map_lookup(checker->type_env, var_decl, 0);
-  map_insert(&tau->set.members, actual_type(var_ty), 0, 1);
+  map_insert(&tau->set.members, var_ty->actual_type(), 0, 1);
 }
 
 /** EXPRESSIONS **/
@@ -1486,7 +1486,7 @@ static void visit_memberSelector(TypeChecker* checker, Ast* selector, PotentialT
   name = selector->memberSelector.name;
   tau_lhs = (PotentialType*)map_lookup(checker->potype_map, selector->memberSelector.lhs_expr, 0);
   for (m = tau_lhs->set.members.first; m != 0; m = m->next) {
-    lhs_ty = effective_type((Type*)m->key);
+    lhs_ty = ((Type*)m->key)->effective_type();
     if (lhs_ty->ty_former == TypeEnum::EXTERN) {
       collect_matching_member(checker, tau, lhs_ty->extern_.methods, name->name.strname, potential_args);
     } else if (lhs_ty->ty_former == TypeEnum::ENUM ||
