@@ -278,6 +278,7 @@ enum AstEnum {
   AST_default,
   AST_dontcare,
 };
+char* AstEnum_to_string(enum AstEnum ast);
 
 enum AstOperator {
   OP_NONE = 0,
@@ -828,10 +829,10 @@ typedef struct Ast {
     struct {
     } default_, dontcare;
   };
+
+  Ast* clone_ast(Arena* storage);
 } Ast;
 
-Ast* clone_ast(Arena* storage, Ast* original);
-char* AstEnum_to_string(enum AstEnum ast);
 
 typedef struct Scope {
   int scope_level;

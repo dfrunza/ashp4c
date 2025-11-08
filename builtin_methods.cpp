@@ -264,7 +264,7 @@ static void visit_parserTypeDeclaration(BuiltinMethodBuilder* builder, Ast* type
   method->line_no = type_decl->line_no;
   method->column_no = type_decl->column_no;
   method->functionPrototype.return_type = type_ref;
-  method->functionPrototype.params = clone_ast(builder->storage, type_decl->parserTypeDeclaration.params);
+  method->functionPrototype.params = type_decl->parserTypeDeclaration.params->clone_ast(builder->storage);
   name = (Ast*)arena_malloc(builder->storage, sizeof(Ast));
   name->kind = AST_name;
   name->name.strname = "apply";
@@ -459,7 +459,7 @@ static void visit_controlTypeDeclaration(BuiltinMethodBuilder* builder, Ast* typ
   method->line_no = type_decl->line_no;
   method->column_no = type_decl->column_no;
   method->functionPrototype.return_type = type_ref;
-  method->functionPrototype.params = clone_ast(builder->storage, type_decl->controlTypeDeclaration.params);
+  method->functionPrototype.params = type_decl->controlTypeDeclaration.params->clone_ast(builder->storage);
   name = (Ast*)arena_malloc(builder->storage, sizeof(Ast));
   name->kind = AST_name;
   name->name.strname = "apply";
