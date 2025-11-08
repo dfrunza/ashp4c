@@ -1457,7 +1457,7 @@ static void visit_binaryExpression(TypeChecker* checker, Ast* binary_expr)
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
   map_insert(checker->potype_map, binary_expr, tau, 0);
-  name_decl = scope_builtin_lookup(checker->root_scope, binary_expr->binaryExpression.strname, NameSpace::TYPE);
+  name_decl = checker->root_scope->builtin_lookup(binary_expr->binaryExpression.strname, NameSpace::TYPE);
   for (; name_decl != 0; name_decl = name_decl->next_in_scope) {
     ty = name_decl->type;
     if (match_params(checker, &potential_args, ty->function.params)) {

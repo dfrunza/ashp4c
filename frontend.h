@@ -859,10 +859,9 @@ typedef struct Scope {
   Scope* push(Scope* parent_scope);
   Scope* pop();
   NameEntry* lookup(char* name, enum NameSpace ns);
+  NameDeclaration* builtin_lookup(char* strname, enum NameSpace ns);
   NameDeclaration* bind(Arena* storage, char* strname, enum NameSpace ns);
 } Scope;
-
-NameDeclaration* scope_builtin_lookup(Scope* scope, char* strname, enum NameSpace ns);
 
 typedef struct Parser {
   Arena* storage;

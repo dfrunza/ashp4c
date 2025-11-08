@@ -196,11 +196,11 @@ static void define_builtin_names(NameBinder* name_binder)
     name_decl->type = ty;
   }
 
-  ty = scope_builtin_lookup(name_binder->root_scope, "error", NameSpace::TYPE)->type;
+  ty = name_binder->root_scope->builtin_lookup("error", NameSpace::TYPE)->type;
   ty->enum_.fields = (Type*)array_append(name_binder->type_array, sizeof(Type));
   ty->enum_.fields->ty_former = TypeEnum::PRODUCT;
 
-  ty = scope_builtin_lookup(name_binder->root_scope, "match_kind", NameSpace::TYPE)->type;
+  ty = name_binder->root_scope->builtin_lookup("match_kind", NameSpace::TYPE)->type;
   ty->enum_.fields = (Type*)array_append(name_binder->type_array, sizeof(Type));
   ty->enum_.fields->ty_former = TypeEnum::PRODUCT;
 }

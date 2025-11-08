@@ -46,6 +46,15 @@ NameEntry* Scope::lookup(char* strname, enum NameSpace ns)
   return &NULL_ENTRY;
 }
 
+NameDeclaration* Scope::builtin_lookup(char* strname, enum NameSpace ns)
+{
+  NameEntry* name_entry;
+  assert (ns == NameSpace::VAR || ns == NameSpace::TYPE);
+
+  name_entry = this->lookup(strname, ns);
+  return name_entry->ns[(int)ns >> 1];
+}
+
 NameDeclaration* Scope::bind(Arena* storage, char*strname, enum NameSpace ns)
 {
   assert((int)ns > 0);
@@ -63,13 +72,4 @@ NameDeclaration* Scope::bind(Arena* storage, char*strname, enum NameSpace ns)
   name_decl->next_in_scope = name_entry->ns[(int)ns >> 1];
   name_entry->ns[(int)ns >> 1] = name_decl;
   return name_decl;
-}
-
-NameDeclaration* scope_builtin_lookup(Scope* scope, char* strname, enum NameSpace ns)
-{
-  NameEntry* name_entry;
-  assert (ns == NameSpace::VAR || ns == NameSpace::TYPE);
-
-  name_entry = scope->lookup(strname, ns);
-  return name_entry->ns[(int)ns >> 1];
 }

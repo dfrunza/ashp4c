@@ -583,7 +583,7 @@ static void visit_headerStackType(TypeChecker* checker, Ast* type_decl)
   assert(type_decl->kind == AST_headerStackType);
   Type* index_ty;
 
-  index_ty = scope_builtin_lookup(checker->root_scope, "int", NameSpace::TYPE)->type;
+  index_ty = checker->root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
   visit_expression(checker, type_decl->headerStackType.stack_expr, index_ty);
 }
 
@@ -592,7 +592,7 @@ static void visit_baseTypeBoolean(TypeChecker* checker, Ast* bool_type)
   assert(bool_type->kind == AST_baseTypeBoolean);
   Type* bool_ty;
 
-  bool_ty = scope_builtin_lookup(checker->root_scope, "bool", NameSpace::TYPE)->type;
+  bool_ty = checker->root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
   map_insert(checker->type_env, bool_type, bool_ty, 0);
 }
 
@@ -604,7 +604,7 @@ static void visit_baseTypeInteger(TypeChecker* checker, Ast* int_type)
   if (int_type->baseTypeInteger.size) {
     visit_integerTypeSize(checker, int_type->baseTypeInteger.size);
   }
-  int_ty = scope_builtin_lookup(checker->root_scope, "int", NameSpace::TYPE)->type;
+  int_ty = checker->root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
   map_insert(checker->type_env, int_type, int_ty, 0);
 }
 
@@ -616,7 +616,7 @@ static void visit_baseTypeBit(TypeChecker* checker, Ast* bit_type)
   if (bit_type->baseTypeBit.size) {
     visit_integerTypeSize(checker, bit_type->baseTypeBit.size);
   }
-  bit_ty = scope_builtin_lookup(checker->root_scope, "bit", NameSpace::TYPE)->type;
+  bit_ty = checker->root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
   map_insert(checker->type_env, bit_type, bit_ty, 0);
 }
 
@@ -625,7 +625,7 @@ static void visit_baseTypeVarbit(TypeChecker* checker, Ast* varbit_type)
   assert(varbit_type->kind == AST_baseTypeVarbit);
   Type* varbit_ty;
 
-  varbit_ty = scope_builtin_lookup(checker->root_scope, "varbit", NameSpace::TYPE)->type;
+  varbit_ty = checker->root_scope->builtin_lookup("varbit", NameSpace::TYPE)->type;
   visit_integerTypeSize(checker, varbit_type->baseTypeVarbit.size);
   map_insert(checker->type_env, varbit_type, varbit_ty, 0);
 }
@@ -635,7 +635,7 @@ static void visit_baseTypeString(TypeChecker* checker, Ast* string_type)
   assert(string_type->kind == AST_baseTypeString);
   Type* string_ty;
 
-  string_ty = scope_builtin_lookup(checker->root_scope, "string", NameSpace::TYPE)->type;
+  string_ty = checker->root_scope->builtin_lookup("string", NameSpace::TYPE)->type;
   map_insert(checker->type_env, string_type, string_ty, 0);
 }
 
@@ -644,7 +644,7 @@ static void visit_baseTypeVoid(TypeChecker* checker, Ast* void_type)
   assert(void_type->kind == AST_baseTypeVoid);
   Type* void_ty;
 
-  void_ty = scope_builtin_lookup(checker->root_scope, "void", NameSpace::TYPE)->type;
+  void_ty = checker->root_scope->builtin_lookup("void", NameSpace::TYPE)->type;
   map_insert(checker->type_env, void_type, void_ty, 0);
 }
 
@@ -653,7 +653,7 @@ static void visit_baseTypeError(TypeChecker* checker, Ast* error_type)
   assert(error_type->kind == AST_baseTypeError);
   Type* error_ty;
 
-  error_ty = scope_builtin_lookup(checker->root_scope, "error", NameSpace::TYPE)->type;
+  error_ty = checker->root_scope->builtin_lookup("error", NameSpace::TYPE)->type;
   map_insert(checker->type_env, error_type, error_ty, 0);
 }
 
