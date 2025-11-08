@@ -154,9 +154,9 @@ static void visit_p4program(ScopeBuilder* scope_builder, Ast* p4program)
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 3);
+  scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, p4program, scope_builder->current_scope, 0);
   assert(m);
   visit_declarationList(scope_builder, p4program->p4program.decl_list);
@@ -241,9 +241,9 @@ static void visit_packageTypeDeclaration(ScopeBuilder* scope_builder, Ast* type_
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 2);
+  scope = Scope::create(scope_builder->storage, 2);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, type_decl, scope_builder->current_scope, 0);
   assert(m);
   visit_parameterList(scope_builder, type_decl->packageTypeDeclaration.params);
@@ -284,9 +284,9 @@ static void visit_parserTypeDeclaration(ScopeBuilder* scope_builder, Ast* type_d
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 2);
+  scope = Scope::create(scope_builder->storage, 2);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, type_decl, scope_builder->current_scope, 0);
   assert(m);
   visit_parameterList(scope_builder, type_decl->parserTypeDeclaration.params);
@@ -332,9 +332,9 @@ static void visit_parserState(ScopeBuilder* scope_builder, Ast* state)
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 3);
+  scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, state, scope_builder->current_scope, 0);
   assert(m);
   visit_parserStatements(scope_builder, state->parserState.stmt_list);
@@ -378,9 +378,9 @@ static void visit_parserBlockStatement(ScopeBuilder* scope_builder, Ast* block_s
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 3);
+  scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, block_stmt, scope_builder->current_scope, 0);
   assert(m);
   visit_parserStatements(scope_builder, block_stmt->parserBlockStatement.stmt_list);
@@ -493,9 +493,9 @@ static void visit_controlTypeDeclaration(ScopeBuilder* scope_builder, Ast* type_
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 2);
+  scope = Scope::create(scope_builder->storage, 2);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, type_decl, scope, 0);
   assert(m);
   visit_parameterList(scope_builder, type_decl->controlTypeDeclaration.params);
@@ -552,9 +552,9 @@ static void visit_externTypeDeclaration(ScopeBuilder* scope_builder, Ast* type_d
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 2);
+  scope = Scope::create(scope_builder->storage, 2);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, type_decl, scope_builder->current_scope, 0);
   assert(m);
   visit_methodPrototypes(scope_builder, type_decl->externTypeDeclaration.method_protos);
@@ -581,9 +581,9 @@ static void visit_functionPrototype(ScopeBuilder* scope_builder, Ast* func_proto
   if (func_proto->functionPrototype.return_type) {
     visit_typeRef(scope_builder, func_proto->functionPrototype.return_type);
   }
-  scope = scope_create(scope_builder->storage, 2);
+  scope = Scope::create(scope_builder->storage, 2);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, func_proto, scope_builder->current_scope, 0);
   assert(m);
   visit_parameterList(scope_builder, func_proto->functionPrototype.params);
@@ -759,9 +759,9 @@ static void visit_headerTypeDeclaration(ScopeBuilder* scope_builder, Ast* header
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 3);
+  scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, header_decl, scope, 0);
   assert(m);
   visit_structFieldList(scope_builder, header_decl->headerTypeDeclaration.fields);
@@ -774,9 +774,9 @@ static void visit_headerUnionDeclaration(ScopeBuilder* scope_builder, Ast* union
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 3);
+  scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, union_decl, scope, 0);
   assert(m);
   visit_structFieldList(scope_builder, union_decl->headerUnionDeclaration.fields);
@@ -789,9 +789,9 @@ static void visit_structTypeDeclaration(ScopeBuilder* scope_builder, Ast* struct
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 3);
+  scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, struct_decl, scope, 0);
   assert(m);
   visit_structFieldList(scope_builder, struct_decl->structTypeDeclaration.fields);
@@ -821,9 +821,9 @@ static void visit_enumDeclaration(ScopeBuilder* scope_builder, Ast* enum_decl)
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 3);
+  scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, enum_decl, scope, 0);
   assert(m);
   visit_specifiedIdentifierList(scope_builder, enum_decl->enumDeclaration.fields);
@@ -836,9 +836,9 @@ static void visit_errorDeclaration(ScopeBuilder* scope_builder, Ast* error_decl)
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 3);
+  scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, error_decl, scope, 0);
   assert(m);
   visit_identifierList(scope_builder, error_decl->errorDeclaration.fields);
@@ -851,9 +851,9 @@ static void visit_matchKindDeclaration(ScopeBuilder* scope_builder, Ast* match_d
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 3);
+  scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, match_decl, scope, 0);
   assert(m);
   visit_identifierList(scope_builder, match_decl->matchKindDeclaration.fields);
@@ -975,9 +975,9 @@ static void visit_statement(ScopeBuilder* scope_builder, Ast* stmt)
   } else if (stmt->statement.stmt->kind == AST_emptyStatement) {
     ;
   } else if (stmt->statement.stmt->kind == AST_blockStatement) {
-    scope = scope_create(scope_builder->storage, 3);
+    scope = Scope::create(scope_builder->storage, 3);
     prev_scope = scope_builder->current_scope;
-    scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+    scope_builder->current_scope = scope->push(scope_builder->current_scope);
     m = map_insert(scope_builder->scope_map, stmt, scope_builder->current_scope, 0);
     assert(m);
     visit_blockStatement(scope_builder, stmt->statement.stmt);
@@ -1065,9 +1065,9 @@ static void visit_tableDeclaration(ScopeBuilder* scope_builder, Ast* table_decl)
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 3);
+  scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, table_decl, scope, 0);
   assert(m);
   visit_tablePropertyList(scope_builder, table_decl->tableDeclaration.prop_list);
@@ -1190,9 +1190,9 @@ static void visit_actionDeclaration(ScopeBuilder* scope_builder, Ast* action_dec
   Scope* scope, *prev_scope;
   MapEntry* m;
 
-  scope = scope_create(scope_builder->storage, 2);
+  scope = Scope::create(scope_builder->storage, 2);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = scope_push(scope, scope_builder->current_scope);
+  scope_builder->current_scope = scope->push(scope_builder->current_scope);
   m = map_insert(scope_builder->scope_map, action_decl, scope_builder->current_scope, 0);
   assert(m);
   visit_parameterList(scope_builder, action_decl->actionDeclaration.params);

@@ -830,15 +830,39 @@ typedef struct Ast {
     } default_, dontcare;
   };
 
-  Ast* clone_ast(Arena* storage);
+  Ast* clone(Arena* storage);
 } Ast;
 
+struct NameEntry;
+struct NameDeclaration;
+
+enum class NameSpace : uint8_t {
+    VAR     = 1 << 0,
+    TYPE    = 1 << 1,
+    KEYWORD = 1 << 2,
+};
+#define NameSpace_COUNT 3
+inline NameSpace operator | (NameSpace lhs, NameSpace rhs) {
+    return (NameSpace)((int)lhs | (int)rhs);
+}
+inline NameSpace operator & (NameSpace lhs, NameSpace rhs) {
+    return (NameSpace)((int)lhs & (int)rhs);
+}
+char* NameSpace_to_string(enum NameSpace ns);
 
 typedef struct Scope {
   int scope_level;
   struct Scope* parent_scope;
   Strmap name_table;
+
+  static Scope* create(Arena* storage, int segment_count);
+  Scope* push(Scope* parent_scope);
+  Scope* pop();
+  NameEntry* lookup(char* name, enum NameSpace ns);
+  NameDeclaration* bind(Arena* storage, char* strname, enum NameSpace ns);
 } Scope;
+
+NameDeclaration* scope_builtin_lookup(Scope* scope, char* strname, enum NameSpace ns);
 
 typedef struct Parser {
   Arena* storage;
@@ -1024,7 +1048,7 @@ bool match_params(TypeChecker* checker, PotentialType* potential_args, Type* par
 typedef struct NameDeclaration {
   char* strname;
   struct NameDeclaration* next_in_scope;
-  
+
   union {
     Ast* ast;
     enum TokenClass token_class;
@@ -1033,28 +1057,6 @@ typedef struct NameDeclaration {
   Type* type;
 } NameDeclaration;
 
-enum class NameSpace : uint8_t {
-  VAR     = 1 << 0,
-  TYPE    = 1 << 1,
-  KEYWORD = 1 << 2,
-};
-#define NameSpace_COUNT 3
-inline NameSpace operator | (NameSpace lhs, NameSpace rhs) {
-    return (NameSpace)((int)lhs | (int)rhs);
-}
-inline NameSpace operator & (NameSpace lhs, NameSpace rhs) {
-    return (NameSpace)((int)lhs & (int)rhs);
-}
-char* NameSpace_to_string(enum NameSpace ns);
-
 typedef struct NameEntry {
   NameDeclaration* ns[NameSpace_COUNT];
 } NameEntry;
-
-Scope* scope_create(Arena* storage, int segment_count);
-Scope* scope_push(Scope* scope, Scope* parent_scope);
-Scope* scope_pop(Scope* scope);
-NameEntry* scope_lookup(Scope* scope, char* name, enum NameSpace ns);
-NameEntry* scope_lookup_current(Scope* scope, char* strname);
-NameDeclaration* scope_bind(Arena* storage, Scope* scope, char* strname, enum NameSpace ns);
-NameDeclaration* scope_builtin_lookup(Scope* scope, char* strname, enum NameSpace ns);

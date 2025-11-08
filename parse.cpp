@@ -177,7 +177,7 @@ static void define_keywords(Parser* parser, Scope* scope)
   NameDeclaration* name_decl;
 
   for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
-    name_decl = scope_bind(parser->storage, scope, keywords[i].strname, NameSpace::KEYWORD);
+    name_decl = scope->bind(parser->storage, keywords[i].strname, NameSpace::KEYWORD);
     name_decl->token_class = keywords[i].token_class;
   }
 }
@@ -195,7 +195,7 @@ static Token* next_token(Parser* parser)
     parser->token = (Token*)array_get(parser->tokens, ++parser->token_at, sizeof(Token));
   }
   if (parser->token->klass == TK_IDENTIFIER) {
-    name_entry = scope_lookup(parser->current_scope, parser->token->lexeme, NameSpace::KEYWORD | NameSpace::TYPE);
+    name_entry = parser->current_scope->lookup(parser->token->lexeme, NameSpace::KEYWORD | NameSpace::TYPE);
     name_decl = name_entry->ns[(int)NameSpace::KEYWORD >> 1];
     if (name_decl) {
       parser->token->klass = name_decl->token_class;
@@ -675,7 +675,7 @@ char* AstEnum_to_string(enum AstEnum ast)
   return 0;
 }
 
-Ast* Ast::clone_ast(Arena* storage)
+Ast* Ast::clone(Arena* storage)
 {
   Ast* clone, *sibling_clone, *child_clone;
 
@@ -685,310 +685,310 @@ Ast* Ast::clone_ast(Arena* storage)
   clone->line_no = this->line_no;
   clone->column_no = this->column_no;
   if (this->tree.first_child) {
-    child_clone = container_of(this->tree.first_child, Ast, tree)->clone_ast(storage);
+    child_clone = container_of(this->tree.first_child, Ast, tree)->clone(storage);
     clone->tree.first_child = &child_clone->tree;
   }
   if (this->tree.right_sibling) {
-    sibling_clone = container_of(this->tree.right_sibling, Ast, tree)->clone_ast(storage);
+    sibling_clone = container_of(this->tree.right_sibling, Ast, tree)->clone(storage);
     clone->tree.right_sibling = &sibling_clone->tree;
   }
 
   /** PROGRAM **/
   if (this->kind == AST_p4program) {
-    clone->p4program.decl_list = this->p4program.decl_list->clone_ast(storage);
+    clone->p4program.decl_list = this->p4program.decl_list->clone(storage);
   } else if (this->kind == AST_declarationList) {
     ;
   } else if (this->kind == AST_declaration) {
-    clone->declaration.decl = this->declaration.decl->clone_ast(storage);
+    clone->declaration.decl = this->declaration.decl->clone(storage);
   } else if (this->kind == AST_name) {
     clone->name.strname = this->name.strname;
   } else if (this->kind == AST_parameterList) {
     ;
   } else if (this->kind == AST_parameter) {
     clone->parameter.direction = this->parameter.direction;
-    clone->parameter.name = this->parameter.name->clone_ast(storage);
-    clone->parameter.type = this->parameter.type->clone_ast(storage);
-    clone->parameter.init_expr = this->parameter.init_expr->clone_ast(storage);
+    clone->parameter.name = this->parameter.name->clone(storage);
+    clone->parameter.type = this->parameter.type->clone(storage);
+    clone->parameter.init_expr = this->parameter.init_expr->clone(storage);
   } else if (this->kind == AST_packageTypeDeclaration) {
-    clone->packageTypeDeclaration.name = this->packageTypeDeclaration.name->clone_ast(storage);
-    clone->packageTypeDeclaration.params = this->packageTypeDeclaration.params->clone_ast(storage);
+    clone->packageTypeDeclaration.name = this->packageTypeDeclaration.name->clone(storage);
+    clone->packageTypeDeclaration.params = this->packageTypeDeclaration.params->clone(storage);
   } else if (this->kind == AST_instantiation) {
-    clone->instantiation.name = this->instantiation.name->clone_ast(storage);
-    clone->instantiation.type = this->instantiation.type->clone_ast(storage);
-    clone->instantiation.args = this->instantiation.args->clone_ast(storage);
+    clone->instantiation.name = this->instantiation.name->clone(storage);
+    clone->instantiation.type = this->instantiation.type->clone(storage);
+    clone->instantiation.args = this->instantiation.args->clone(storage);
   }
   /** PARSER **/
   else if (this->kind == AST_parserDeclaration) {
-    clone->parserDeclaration.proto = this->parserDeclaration.proto->clone_ast(storage);
-    clone->parserDeclaration.ctor_params = this->parserDeclaration.ctor_params->clone_ast(storage);
-    clone->parserDeclaration.local_elements = this->parserDeclaration.local_elements->clone_ast(storage);
-    clone->parserDeclaration.states = this->parserDeclaration.states->clone_ast(storage);
+    clone->parserDeclaration.proto = this->parserDeclaration.proto->clone(storage);
+    clone->parserDeclaration.ctor_params = this->parserDeclaration.ctor_params->clone(storage);
+    clone->parserDeclaration.local_elements = this->parserDeclaration.local_elements->clone(storage);
+    clone->parserDeclaration.states = this->parserDeclaration.states->clone(storage);
   } else if (this->kind == AST_parserTypeDeclaration) {
-    clone->parserTypeDeclaration.name = this->parserTypeDeclaration.name->clone_ast(storage);
-    clone->parserTypeDeclaration.params = this->parserTypeDeclaration.params->clone_ast(storage);
-    clone->parserTypeDeclaration.method_protos = this->parserTypeDeclaration.method_protos->clone_ast(storage);
+    clone->parserTypeDeclaration.name = this->parserTypeDeclaration.name->clone(storage);
+    clone->parserTypeDeclaration.params = this->parserTypeDeclaration.params->clone(storage);
+    clone->parserTypeDeclaration.method_protos = this->parserTypeDeclaration.method_protos->clone(storage);
   } else if (this->kind == AST_parserLocalElements) {
     ;
   } else if (this->kind == AST_parserLocalElement) {
-    clone->parserLocalElement.element = this->parserLocalElement.element->clone_ast(storage);
+    clone->parserLocalElement.element = this->parserLocalElement.element->clone(storage);
   } else if (this->kind == AST_parserStates) {
     ;
   } else if (this->kind == AST_parserState) {
-    clone->parserState.name = this->parserState.name->clone_ast(storage);
-    clone->parserState.stmt_list = this->parserState.stmt_list->clone_ast(storage);
-    clone->parserState.transition_stmt = this->parserState.transition_stmt->clone_ast(storage);
+    clone->parserState.name = this->parserState.name->clone(storage);
+    clone->parserState.stmt_list = this->parserState.stmt_list->clone(storage);
+    clone->parserState.transition_stmt = this->parserState.transition_stmt->clone(storage);
   } else if (this->kind == AST_parserStatements) {
     ;
   } else if (this->kind == AST_parserStatement) {
-    clone->parserStatement.stmt = this->parserStatement.stmt->clone_ast(storage);
+    clone->parserStatement.stmt = this->parserStatement.stmt->clone(storage);
   } else if (this->kind == AST_parserBlockStatement) {
-    clone->parserBlockStatement.stmt_list = this->parserBlockStatement.stmt_list->clone_ast(storage);
+    clone->parserBlockStatement.stmt_list = this->parserBlockStatement.stmt_list->clone(storage);
   } else if (this->kind == AST_transitionStatement) {
-    clone->transitionStatement.stmt = this->transitionStatement.stmt->clone_ast(storage);
+    clone->transitionStatement.stmt = this->transitionStatement.stmt->clone(storage);
   } else if (this->kind == AST_stateExpression) {
-    clone->stateExpression.expr = this->stateExpression.expr->clone_ast(storage);
+    clone->stateExpression.expr = this->stateExpression.expr->clone(storage);
   } else if (this->kind == AST_selectExpression) {
-    clone->selectExpression.expr_list = this->selectExpression.expr_list->clone_ast(storage);
-    clone->selectExpression.case_list = this->selectExpression.case_list->clone_ast(storage);
+    clone->selectExpression.expr_list = this->selectExpression.expr_list->clone(storage);
+    clone->selectExpression.case_list = this->selectExpression.case_list->clone(storage);
   } else if (this->kind == AST_selectCaseList) {
     ;
   } else if (this->kind == AST_selectCase) {
-    clone->selectCase.keyset_expr = this->selectCase.keyset_expr->clone_ast(storage);
-    clone->selectCase.name = this->selectCase.name->clone_ast(storage);
+    clone->selectCase.keyset_expr = this->selectCase.keyset_expr->clone(storage);
+    clone->selectCase.name = this->selectCase.name->clone(storage);
   } else if (this->kind == AST_keysetExpression) {
-    clone->keysetExpression.expr = this->keysetExpression.expr->clone_ast(storage);
+    clone->keysetExpression.expr = this->keysetExpression.expr->clone(storage);
   } else if (this->kind == AST_tupleKeysetExpression) {
-    clone->tupleKeysetExpression.expr_list = this->tupleKeysetExpression.expr_list->clone_ast(storage);
+    clone->tupleKeysetExpression.expr_list = this->tupleKeysetExpression.expr_list->clone(storage);
   } else if (this->kind == AST_simpleKeysetExpression) {
-    clone->simpleKeysetExpression.expr = this->simpleKeysetExpression.expr->clone_ast(storage);
+    clone->simpleKeysetExpression.expr = this->simpleKeysetExpression.expr->clone(storage);
   } else if (this->kind == AST_simpleExpressionList) {
     ;
   } else if (this->kind == AST_typeRef) {
-    clone->typeRef.type = this->typeRef.type->clone_ast(storage);
+    clone->typeRef.type = this->typeRef.type->clone(storage);
   } else if (this->kind == AST_tupleType) {
-    clone->tupleType.type_args = this->tupleType.type_args->clone_ast(storage);
+    clone->tupleType.type_args = this->tupleType.type_args->clone(storage);
   }
   /** CONTROL **/
   else if (this->kind == AST_controlDeclaration) {
-    clone->controlDeclaration.proto = this->controlDeclaration.proto->clone_ast(storage);
-    clone->controlDeclaration.ctor_params = this->controlDeclaration.ctor_params->clone_ast(storage);
-    clone->controlDeclaration.local_decls = this->controlDeclaration.local_decls->clone_ast(storage);
-    clone->controlDeclaration.apply_stmt = this->controlDeclaration.apply_stmt->clone_ast(storage);
+    clone->controlDeclaration.proto = this->controlDeclaration.proto->clone(storage);
+    clone->controlDeclaration.ctor_params = this->controlDeclaration.ctor_params->clone(storage);
+    clone->controlDeclaration.local_decls = this->controlDeclaration.local_decls->clone(storage);
+    clone->controlDeclaration.apply_stmt = this->controlDeclaration.apply_stmt->clone(storage);
   } else if (this->kind == AST_controlTypeDeclaration) {
-    clone->controlTypeDeclaration.name = this->controlTypeDeclaration.name->clone_ast(storage);
-    clone->controlTypeDeclaration.params = this->controlTypeDeclaration.params->clone_ast(storage);
-    clone->controlTypeDeclaration.method_protos = this->controlTypeDeclaration.params->clone_ast(storage);
+    clone->controlTypeDeclaration.name = this->controlTypeDeclaration.name->clone(storage);
+    clone->controlTypeDeclaration.params = this->controlTypeDeclaration.params->clone(storage);
+    clone->controlTypeDeclaration.method_protos = this->controlTypeDeclaration.params->clone(storage);
   } else if (this->kind == AST_controlLocalDeclarations) {
     ;
   } else if (this->kind == AST_controlLocalDeclaration) {
-    clone->controlLocalDeclaration.decl = this->controlLocalDeclaration.decl->clone_ast(storage);
+    clone->controlLocalDeclaration.decl = this->controlLocalDeclaration.decl->clone(storage);
   }
   /** EXTERN **/
   else if (this->kind == AST_externDeclaration) {
-    clone->externDeclaration.decl = this->externDeclaration.decl->clone_ast(storage);
+    clone->externDeclaration.decl = this->externDeclaration.decl->clone(storage);
   } else if (this->kind == AST_externTypeDeclaration) {
-    clone->externTypeDeclaration.name = this->externTypeDeclaration.name->clone_ast(storage);
-    clone->externTypeDeclaration.method_protos = this->externTypeDeclaration.method_protos->clone_ast(storage);
+    clone->externTypeDeclaration.name = this->externTypeDeclaration.name->clone(storage);
+    clone->externTypeDeclaration.method_protos = this->externTypeDeclaration.method_protos->clone(storage);
   } else if (this->kind == AST_methodPrototypes) {
     ;
   } else if (this->kind == AST_functionPrototype) {
-    clone->functionPrototype.return_type = this->functionPrototype.return_type->clone_ast(storage);
-    clone->functionPrototype.name = this->functionPrototype.name->clone_ast(storage);
-    clone->functionPrototype.params = this->functionPrototype.params->clone_ast(storage);
+    clone->functionPrototype.return_type = this->functionPrototype.return_type->clone(storage);
+    clone->functionPrototype.name = this->functionPrototype.name->clone(storage);
+    clone->functionPrototype.params = this->functionPrototype.params->clone(storage);
   }
   /** TYPES **/
   else if (this->kind == AST_typeRef) {
-    clone->typeRef.type = this->typeRef.type->clone_ast(storage);
+    clone->typeRef.type = this->typeRef.type->clone(storage);
   } else if (this->kind == AST_tupleType) {
-    clone->tupleType.type_args = this->tupleType.type_args->clone_ast(storage);
+    clone->tupleType.type_args = this->tupleType.type_args->clone(storage);
   } else if (this->kind == AST_headerStackType) {
-    clone->headerStackType.type = this->headerStackType.type->clone_ast(storage);
-    clone->headerStackType.stack_expr = this->headerStackType.stack_expr->clone_ast(storage);
+    clone->headerStackType.type = this->headerStackType.type->clone(storage);
+    clone->headerStackType.stack_expr = this->headerStackType.stack_expr->clone(storage);
   } else if (this->kind == AST_baseTypeBoolean) {
-    clone->baseTypeBoolean.name = this->baseTypeBoolean.name->clone_ast(storage);
+    clone->baseTypeBoolean.name = this->baseTypeBoolean.name->clone(storage);
   } else if (this->kind == AST_baseTypeInteger) {
-    clone->baseTypeInteger.name = this->baseTypeInteger.name->clone_ast(storage);
-    clone->baseTypeInteger.size = this->baseTypeInteger.size->clone_ast(storage);
+    clone->baseTypeInteger.name = this->baseTypeInteger.name->clone(storage);
+    clone->baseTypeInteger.size = this->baseTypeInteger.size->clone(storage);
   } else if (this->kind == AST_baseTypeBit) {
-    clone->baseTypeBit.name = this->baseTypeBit.name->clone_ast(storage);
-    clone->baseTypeBit.size = this->baseTypeBit.size->clone_ast(storage);
+    clone->baseTypeBit.name = this->baseTypeBit.name->clone(storage);
+    clone->baseTypeBit.size = this->baseTypeBit.size->clone(storage);
   } else if (this->kind == AST_baseTypeBit) {
-    clone->baseTypeBit.name = this->baseTypeBit.name->clone_ast(storage);
-    clone->baseTypeBit.size = this->baseTypeBit.size->clone_ast(storage);
+    clone->baseTypeBit.name = this->baseTypeBit.name->clone(storage);
+    clone->baseTypeBit.size = this->baseTypeBit.size->clone(storage);
   } else if (this->kind == AST_baseTypeString) {
-    clone->baseTypeString.name = this->baseTypeString.name->clone_ast(storage);
+    clone->baseTypeString.name = this->baseTypeString.name->clone(storage);
   } else if (this->kind == AST_baseTypeVoid) {
-    clone->baseTypeVoid.name = this->baseTypeVoid.name->clone_ast(storage);
+    clone->baseTypeVoid.name = this->baseTypeVoid.name->clone(storage);
   } else if (this->kind == AST_baseTypeError) {
-    clone->baseTypeError.name = this->baseTypeError.name->clone_ast(storage);
+    clone->baseTypeError.name = this->baseTypeError.name->clone(storage);
   } else if (this->kind == AST_integerTypeSize) {
-    clone->integerTypeSize.size = this->integerTypeSize.size->clone_ast(storage);
+    clone->integerTypeSize.size = this->integerTypeSize.size->clone(storage);
   } else if (this->kind == AST_realTypeArg) {
-    clone->realTypeArg.arg = this->realTypeArg.arg->clone_ast(storage);
+    clone->realTypeArg.arg = this->realTypeArg.arg->clone(storage);
   } else if (this->kind == AST_typeArg) {
-    clone->typeArg.arg = this->typeArg.arg->clone_ast(storage);
+    clone->typeArg.arg = this->typeArg.arg->clone(storage);
   } else if (this->kind == AST_typeArgumentList) {
     ;
   } else if (this->kind == AST_typeDeclaration) {
-    clone->typeDeclaration.decl = this->typeDeclaration.decl->clone_ast(storage);
+    clone->typeDeclaration.decl = this->typeDeclaration.decl->clone(storage);
   } else if (this->kind == AST_derivedTypeDeclaration) {
-    clone->derivedTypeDeclaration.decl = this->derivedTypeDeclaration.decl->clone_ast(storage);
+    clone->derivedTypeDeclaration.decl = this->derivedTypeDeclaration.decl->clone(storage);
   } else if (this->kind == AST_headerTypeDeclaration) {
-    clone->headerTypeDeclaration.name = this->headerTypeDeclaration.name->clone_ast(storage);
-    clone->headerTypeDeclaration.fields = this->headerTypeDeclaration.fields->clone_ast(storage);
+    clone->headerTypeDeclaration.name = this->headerTypeDeclaration.name->clone(storage);
+    clone->headerTypeDeclaration.fields = this->headerTypeDeclaration.fields->clone(storage);
   } else if (this->kind == AST_headerUnionDeclaration) {
-    clone->headerUnionDeclaration.name = this->headerUnionDeclaration.name->clone_ast(storage);
-    clone->headerUnionDeclaration.fields = this->headerUnionDeclaration.fields->clone_ast(storage);
+    clone->headerUnionDeclaration.name = this->headerUnionDeclaration.name->clone(storage);
+    clone->headerUnionDeclaration.fields = this->headerUnionDeclaration.fields->clone(storage);
   } else if (this->kind == AST_structTypeDeclaration) {
-    clone->structTypeDeclaration.name = this->structTypeDeclaration.name->clone_ast(storage);
-    clone->structTypeDeclaration.fields = this->structTypeDeclaration.fields->clone_ast(storage);
+    clone->structTypeDeclaration.name = this->structTypeDeclaration.name->clone(storage);
+    clone->structTypeDeclaration.fields = this->structTypeDeclaration.fields->clone(storage);
   } else if (this->kind == AST_structFieldList) {
     ;
   } else if (this->kind == AST_structField) {
-    clone->structField.type = this->structField.type->clone_ast(storage);
-    clone->structField.name = this->structField.name->clone_ast(storage);
+    clone->structField.type = this->structField.type->clone(storage);
+    clone->structField.name = this->structField.name->clone(storage);
   } else if (this->kind == AST_enumDeclaration) {
-    clone->enumDeclaration.type_size = this->enumDeclaration.type_size->clone_ast(storage);
-    clone->enumDeclaration.name = this->enumDeclaration.name->clone_ast(storage);
-    clone->enumDeclaration.fields = this->enumDeclaration.fields->clone_ast(storage);
+    clone->enumDeclaration.type_size = this->enumDeclaration.type_size->clone(storage);
+    clone->enumDeclaration.name = this->enumDeclaration.name->clone(storage);
+    clone->enumDeclaration.fields = this->enumDeclaration.fields->clone(storage);
   } else if (this->kind == AST_errorDeclaration) {
-    clone->errorDeclaration.fields = this->errorDeclaration.fields->clone_ast(storage);
+    clone->errorDeclaration.fields = this->errorDeclaration.fields->clone(storage);
   } else if (this->kind == AST_matchKindDeclaration) {
-    clone->matchKindDeclaration.fields = this->matchKindDeclaration.fields->clone_ast(storage);
+    clone->matchKindDeclaration.fields = this->matchKindDeclaration.fields->clone(storage);
   } else if (this->kind == AST_matchKindDeclaration) {
     ;
   } else if (this->kind == AST_specifiedIdentifierList) {
     ;
   } else if (this->kind == AST_specifiedIdentifier) {
-    clone->specifiedIdentifier.name = this->specifiedIdentifier.name->clone_ast(storage);
-    clone->specifiedIdentifier.init_expr = this->specifiedIdentifier.init_expr->clone_ast(storage);
+    clone->specifiedIdentifier.name = this->specifiedIdentifier.name->clone(storage);
+    clone->specifiedIdentifier.init_expr = this->specifiedIdentifier.init_expr->clone(storage);
   } else if (this->kind == AST_typedefDeclaration) {
-    clone->typedefDeclaration.type_ref = this->typedefDeclaration.type_ref->clone_ast(storage);
-    clone->typedefDeclaration.name = this->typedefDeclaration.name->clone_ast(storage);
+    clone->typedefDeclaration.type_ref = this->typedefDeclaration.type_ref->clone(storage);
+    clone->typedefDeclaration.name = this->typedefDeclaration.name->clone(storage);
   }
   /** STATEMENTS **/
   else if (this->kind == AST_assignmentStatement) {
-    clone->assignmentStatement.lhs_expr = this->assignmentStatement.lhs_expr->clone_ast(storage);
-    clone->assignmentStatement.rhs_expr = this->assignmentStatement.rhs_expr->clone_ast(storage);
+    clone->assignmentStatement.lhs_expr = this->assignmentStatement.lhs_expr->clone(storage);
+    clone->assignmentStatement.rhs_expr = this->assignmentStatement.rhs_expr->clone(storage);
   } else if (this->kind == AST_emptyStatement) {
     ;
   } else if (this->kind == AST_returnStatement) {
-    clone->returnStatement.expr = this->returnStatement.expr->clone_ast(storage);
+    clone->returnStatement.expr = this->returnStatement.expr->clone(storage);
   } else if (this->kind == AST_returnStatement) {
     ;
   } else if (this->kind == AST_conditionalStatement) {
-    clone->conditionalStatement.cond_expr = this->conditionalStatement.cond_expr->clone_ast(storage);
-    clone->conditionalStatement.stmt = this->conditionalStatement.stmt->clone_ast(storage);
-    clone->conditionalStatement.else_stmt = this->conditionalStatement.else_stmt->clone_ast(storage);
+    clone->conditionalStatement.cond_expr = this->conditionalStatement.cond_expr->clone(storage);
+    clone->conditionalStatement.stmt = this->conditionalStatement.stmt->clone(storage);
+    clone->conditionalStatement.else_stmt = this->conditionalStatement.else_stmt->clone(storage);
   } else if (this->kind == AST_directApplication) {
-    clone->directApplication.name = this->directApplication.name->clone_ast(storage);
-    clone->directApplication.args = this->directApplication.args->clone_ast(storage);
+    clone->directApplication.name = this->directApplication.name->clone(storage);
+    clone->directApplication.args = this->directApplication.args->clone(storage);
   } else if (this->kind == AST_statement) {
-    clone->statement.stmt = this->statement.stmt->clone_ast(storage);
+    clone->statement.stmt = this->statement.stmt->clone(storage);
   } else if (this->kind == AST_blockStatement) {
-    clone->blockStatement.stmt_list = this->blockStatement.stmt_list->clone_ast(storage);
+    clone->blockStatement.stmt_list = this->blockStatement.stmt_list->clone(storage);
   } else if (this->kind == AST_statementOrDeclaration) {
-    clone->statementOrDeclaration.stmt = this->statementOrDeclaration.stmt->clone_ast(storage);
+    clone->statementOrDeclaration.stmt = this->statementOrDeclaration.stmt->clone(storage);
   } else if (this->kind == AST_statementOrDeclList) {
     ;
   } else if (this->kind == AST_switchStatement) {
-    clone->switchStatement.expr = this->switchStatement.expr->clone_ast(storage);
-    clone->switchStatement.switch_cases = this->switchStatement.switch_cases->clone_ast(storage);
+    clone->switchStatement.expr = this->switchStatement.expr->clone(storage);
+    clone->switchStatement.switch_cases = this->switchStatement.switch_cases->clone(storage);
   } else if (this->kind == AST_switchCases) {
     ;
   } else if (this->kind == AST_switchCase) {
-    clone->switchCase.label = this->switchCase.label->clone_ast(storage);
-    clone->switchCase.stmt = this->switchCase.stmt->clone_ast(storage);
+    clone->switchCase.label = this->switchCase.label->clone(storage);
+    clone->switchCase.stmt = this->switchCase.stmt->clone(storage);
   } else if (this->kind == AST_switchLabel) {
-    clone->switchLabel.label = this->switchLabel.label->clone_ast(storage);
+    clone->switchLabel.label = this->switchLabel.label->clone(storage);
   }
   /** TABLES **/
   else if (this->kind == AST_tableDeclaration) {
-    clone->tableDeclaration.name = this->tableDeclaration.name->clone_ast(storage);
-    clone->tableDeclaration.prop_list = this->tableDeclaration.prop_list->clone_ast(storage);
+    clone->tableDeclaration.name = this->tableDeclaration.name->clone(storage);
+    clone->tableDeclaration.prop_list = this->tableDeclaration.prop_list->clone(storage);
   } else if (this->kind == AST_tablePropertyList) {
     ;
   } else if (this->kind == AST_tableProperty) {
-    clone->tableProperty.prop = this->tableProperty.prop->clone_ast(storage);
+    clone->tableProperty.prop = this->tableProperty.prop->clone(storage);
   } else if (this->kind == AST_keyProperty) {
-    clone->keyProperty.keyelem_list = this->keyProperty.keyelem_list->clone_ast(storage);
+    clone->keyProperty.keyelem_list = this->keyProperty.keyelem_list->clone(storage);
   } else if (this->kind == AST_keyElementList) {
     ;
   } else if (this->kind == AST_keyElement) {
-    clone->keyElement.expr = this->keyElement.expr->clone_ast(storage);
-    clone->keyElement.match = this->keyElement.match->clone_ast(storage);
+    clone->keyElement.expr = this->keyElement.expr->clone(storage);
+    clone->keyElement.match = this->keyElement.match->clone(storage);
   } else if (this->kind == AST_actionsProperty) {
-    clone->actionsProperty.action_list = this->actionsProperty.action_list->clone_ast(storage);
+    clone->actionsProperty.action_list = this->actionsProperty.action_list->clone(storage);
   } else if (this->kind == AST_actionList) {
     ;
   } else if (this->kind == AST_actionRef) {
-    clone->actionRef.name = this->actionRef.name->clone_ast(storage);
-    clone->actionRef.args = this->actionRef.args->clone_ast(storage);
+    clone->actionRef.name = this->actionRef.name->clone(storage);
+    clone->actionRef.args = this->actionRef.args->clone(storage);
   }
 #if 0
   else if (this->kind == AST_entriesProperty) {
-    clone->entriesProperty.entries_list = this->entriesProperty.entries_list->clone_ast(storage);
+    clone->entriesProperty.entries_list = this->entriesProperty.entries_list->clone(storage);
   } else if (this->kind == AST_entriesList) {
     ;
   } else if (this->kind == AST_entry) {
-    clone->entry.keyset = this->entry.keyset->clone_ast(storage);
-    clone->entry.action = this->entry.action->clone_ast(storage);
+    clone->entry.keyset = this->entry.keyset->clone(storage);
+    clone->entry.action = this->entry.action->clone(storage);
   } else if (this->kind == AST_simpleProperty) {
-    clone->simpleProperty.name = this->simpleProperty.name->clone_ast(storage);
-    clone->simpleProperty.init_expr = this->simpleProperty.init_expr->clone_ast(storage);
+    clone->simpleProperty.name = this->simpleProperty.name->clone(storage);
+    clone->simpleProperty.init_expr = this->simpleProperty.init_expr->clone(storage);
     clone->simpleProperty.is_const = this->simpleProperty.is_const;
   }
 #endif
   else if (this->kind == AST_actionDeclaration) {
-    clone->actionDeclaration.name = this->actionDeclaration.name->clone_ast(storage);
-    clone->actionDeclaration.params = this->actionDeclaration.params->clone_ast(storage);
-    clone->actionDeclaration.stmt = this->actionDeclaration.stmt->clone_ast(storage);
+    clone->actionDeclaration.name = this->actionDeclaration.name->clone(storage);
+    clone->actionDeclaration.params = this->actionDeclaration.params->clone(storage);
+    clone->actionDeclaration.stmt = this->actionDeclaration.stmt->clone(storage);
   }
   /** VARIABLES **/
   else if (this->kind == AST_variableDeclaration) {
-    clone->variableDeclaration.type = this->variableDeclaration.type->clone_ast(storage);
-    clone->variableDeclaration.name = this->variableDeclaration.name->clone_ast(storage);
-    clone->variableDeclaration.init_expr = this->variableDeclaration.init_expr->clone_ast(storage);
+    clone->variableDeclaration.type = this->variableDeclaration.type->clone(storage);
+    clone->variableDeclaration.name = this->variableDeclaration.name->clone(storage);
+    clone->variableDeclaration.init_expr = this->variableDeclaration.init_expr->clone(storage);
     clone->variableDeclaration.is_const = this->variableDeclaration.is_const;
   }
   /** EXPRESSIONS **/
   else if (this->kind == AST_functionDeclaration) {
-    clone->functionDeclaration.proto = this->functionDeclaration.proto->clone_ast(storage);
-    clone->functionDeclaration.stmt = this->functionDeclaration.stmt->clone_ast(storage);
+    clone->functionDeclaration.proto = this->functionDeclaration.proto->clone(storage);
+    clone->functionDeclaration.stmt = this->functionDeclaration.stmt->clone(storage);
   } else if (this->kind == AST_argumentList) {
     ;
   } else if (this->kind == AST_argument) {
-    clone->argument.arg = this->argument.arg->clone_ast(storage);
+    clone->argument.arg = this->argument.arg->clone(storage);
   } else if (this->kind == AST_expressionList) {
     ;
   } else if (this->kind == AST_expression) {
-    clone->expression.expr = this->expression.expr->clone_ast(storage);
+    clone->expression.expr = this->expression.expr->clone(storage);
   } else if (this->kind == AST_lvalueExpression) {
-    clone->lvalueExpression.expr = this->lvalueExpression.expr->clone_ast(storage);
+    clone->lvalueExpression.expr = this->lvalueExpression.expr->clone(storage);
   } else if (this->kind == AST_binaryExpression) {
     clone->binaryExpression.op = this->binaryExpression.op;
     clone->binaryExpression.strname = this->binaryExpression.strname;
-    clone->binaryExpression.left_operand = this->binaryExpression.left_operand->clone_ast(storage);
-    clone->binaryExpression.right_operand = this->binaryExpression.right_operand->clone_ast(storage);
+    clone->binaryExpression.left_operand = this->binaryExpression.left_operand->clone(storage);
+    clone->binaryExpression.right_operand = this->binaryExpression.right_operand->clone(storage);
   } else if (this->kind == AST_unaryExpression) {
     clone->unaryExpression.op = this->unaryExpression.op;
     clone->unaryExpression.strname = this->unaryExpression.strname;
-    clone->unaryExpression.operand = this->unaryExpression.operand->clone_ast(storage);
+    clone->unaryExpression.operand = this->unaryExpression.operand->clone(storage);
   } else if (this->kind == AST_functionCall) {
-    clone->functionCall.lhs_expr = this->functionCall.lhs_expr->clone_ast(storage);
-    clone->functionCall.args = this->functionCall.args->clone_ast(storage);
+    clone->functionCall.lhs_expr = this->functionCall.lhs_expr->clone(storage);
+    clone->functionCall.args = this->functionCall.args->clone(storage);
   } else if (this->kind == AST_memberSelector) {
-    clone->memberSelector.lhs_expr = this->memberSelector.lhs_expr->clone_ast(storage);
-    clone->memberSelector.name = this->memberSelector.name->clone_ast(storage);
+    clone->memberSelector.lhs_expr = this->memberSelector.lhs_expr->clone(storage);
+    clone->memberSelector.name = this->memberSelector.name->clone(storage);
   } else if (this->kind == AST_castExpression) {
-    clone->castExpression.type = this->castExpression.type->clone_ast(storage);
-    clone->castExpression.expr = this->castExpression.expr->clone_ast(storage);
+    clone->castExpression.type = this->castExpression.type->clone(storage);
+    clone->castExpression.expr = this->castExpression.expr->clone(storage);
   } else if (this->kind == AST_arraySubscript) {
-    clone->arraySubscript.lhs_expr = this->arraySubscript.lhs_expr->clone_ast(storage);
-    clone->arraySubscript.index_expr = this->arraySubscript.index_expr->clone_ast(storage);
+    clone->arraySubscript.lhs_expr = this->arraySubscript.lhs_expr->clone(storage);
+    clone->arraySubscript.index_expr = this->arraySubscript.index_expr->clone(storage);
   } else if (this->kind == AST_indexExpression) {
-    clone->indexExpression.start_index = this->indexExpression.start_index->clone_ast(storage);
-    clone->indexExpression.end_index = this->indexExpression.end_index->clone_ast(storage);
+    clone->indexExpression.start_index = this->indexExpression.start_index->clone(storage);
+    clone->indexExpression.end_index = this->indexExpression.end_index->clone(storage);
   } else if (this->kind == AST_integerLiteral) {
     clone->integerLiteral.is_signed = this->integerLiteral.is_signed;
     clone->integerLiteral.value = this->integerLiteral.value;
@@ -1006,7 +1006,7 @@ Ast* Ast::clone_ast(Arena* storage)
 
 void parse(Parser* parser)
 {
-  parser->root_scope = scope_create(parser->storage, 5);
+  parser->root_scope = Scope::create(parser->storage, 5);
   parser->current_scope = parser->root_scope;
 
   define_keywords(parser, parser->root_scope);
@@ -1031,10 +1031,10 @@ static Ast* parse_p4program(Parser* parser)
   while (parser->token->klass == TK_SEMICOLON) {
     next_token(parser); /* empty declaration */
   }
-  scope = scope_create(parser->storage, 6);
-  parser->current_scope = scope_push(scope, parser->current_scope);
+  scope = Scope::create(parser->storage, 6);
+  parser->current_scope = scope->push(parser->current_scope);
   p4program->p4program.decl_list = parse_declarationList(parser);
-  parser->current_scope = scope_pop(parser->current_scope);
+  parser->current_scope = parser->current_scope->pop();
   if (parser->token->klass != TK_END_OF_INPUT) {
     error("%s:%d:%d: error: unexpected token `%s`.",
           parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -1249,7 +1249,7 @@ static Ast* parse_packageTypeDeclaration(Parser* parser)
     package_decl->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
       name = parse_name(parser);
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
+      parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       package_decl->packageTypeDeclaration.name = name;
       if (parser->token->klass == TK_PARENTH_OPEN) {
         next_token(parser);
@@ -1419,7 +1419,7 @@ static Ast* parse_parserTypeDeclaration(Parser* parser)
     parser_proto->parserTypeDeclaration.method_protos = method_protos;
     if (token_is_name(parser->token)) {
       name = parse_name(parser);
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
+      parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       parser_proto->parserTypeDeclaration.name = name;
       if (parser->token->klass == TK_PARENTH_OPEN) {
         next_token(parser);
@@ -1850,7 +1850,7 @@ static Ast* parse_controlTypeDeclaration(Parser* parser)
     control_proto->controlTypeDeclaration.method_protos = method_protos;
     if (token_is_name(parser->token)) {
       name = parse_name(parser);
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
+      parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       control_proto->controlTypeDeclaration.name = name;
       if (parser->token->klass == TK_PARENTH_OPEN) {
         next_token(parser);
@@ -1963,7 +1963,7 @@ static Ast* parse_externDeclaration(Parser* parser)
       extern_type->column_no = parser->token->column_no;
       extern_type->externTypeDeclaration.name = parse_nonTypeName(parser);
       name = extern_type->externTypeDeclaration.name;
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
+      parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       if (parser->token->klass == TK_BRACE_OPEN) {
         next_token(parser);
         extern_type->externTypeDeclaration.method_protos = parse_methodPrototypes(parser);
@@ -2018,7 +2018,7 @@ static Ast* parse_functionPrototype(Parser* parser, Ast* return_type)
       return_type = parse_typeOrVoid(parser);
       if (return_type->kind == AST_name) {
         name = return_type;
-        scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
+        parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
         type_ref = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
         type_ref->kind = AST_typeRef;
         type_ref->line_no = parser->token->line_no;
@@ -2512,7 +2512,7 @@ static Ast* parse_headerTypeDeclaration(Parser* parser)
     header_decl->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
       name = parse_name(parser);
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
+      parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       header_decl->headerTypeDeclaration.name = name;
       if (parser->token->klass == TK_BRACE_OPEN) {
         next_token(parser);
@@ -2545,7 +2545,7 @@ static Ast* parse_headerUnionDeclaration(Parser* parser)
     union_decl->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
       name = parse_name(parser);
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
+      parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       union_decl->headerUnionDeclaration.name = name;
       if (parser->token->klass == TK_BRACE_OPEN) {
         next_token(parser);
@@ -2578,7 +2578,7 @@ static Ast* parse_structTypeDeclaration(Parser* parser)
     struct_decl->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
       name = parse_name(parser);
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
+      parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       struct_decl->structTypeDeclaration.name = name;
       if (parser->token->klass == TK_BRACE_OPEN) {
         next_token(parser);
@@ -2669,7 +2669,7 @@ static Ast* parse_enumDeclaration(Parser* parser)
     }
     if (token_is_name(parser->token)) {
       name = parse_name(parser);
-      scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
+      parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       enum_decl->enumDeclaration.name = name;
       if (parser->token->klass == TK_BRACE_OPEN) {
         next_token(parser);
@@ -2838,7 +2838,7 @@ static Ast* parse_typedefDeclaration(Parser* parser)
       } else assert(0);
       if (token_is_name(parser->token)) {
         name = parse_name(parser);
-        scope_bind(parser->storage, parser->current_scope, name->name.strname, NameSpace::TYPE);
+        parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
         type_decl->typedefDeclaration.name = name;
         if (parser->token->klass == TK_SEMICOLON) {
           next_token(parser);
