@@ -397,7 +397,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 113:
       {
-        prev_token = (Token*)array_get(lexer->tokens, lexer->tokens->elem_count - 1, sizeof(Token));
+        prev_token = (Token*)lexer->tokens->get(lexer->tokens->elem_count - 1, sizeof(Token));
         if (prev_token->klass == TK_PARENTH_OPEN) {
           token->klass = TK_UNARY_MINUS;
         } else {
@@ -821,11 +821,11 @@ tokenize(Lexer* lexer, SourceText* source_text)
   lexer->line_no = 1;
 
   token.klass = TK_START_OF_INPUT;
-  lexer->tokens = array_create(lexer->storage, sizeof(Token), 7);
-  *(Token*)array_append(lexer->tokens, sizeof(Token)) = token;
+  lexer->tokens = Array::create(lexer->storage, sizeof(Token), 7);
+  *(Token*)lexer->tokens->append(sizeof(Token)) = token;
 
   next_token(lexer, &token);
-  *(Token*)array_append(lexer->tokens, sizeof(Token)) = token;
+  *(Token*)lexer->tokens->append(sizeof(Token)) = token;
   while (token.klass != TK_END_OF_INPUT) {
     if (token.klass == TK_UNKNOWN) {
       error("%s:%d:%d: error: unknown token.", lexer->filename, token.line_no, token.column_no);
@@ -833,7 +833,7 @@ tokenize(Lexer* lexer, SourceText* source_text)
       error("%s:%d:%d: error: lexical error.", lexer->filename, token.line_no, token.column_no);
     }
     next_token(lexer, &token);
-    *(Token*)array_append(lexer->tokens, sizeof(Token)) = token;
+    *(Token*)lexer->tokens->append(sizeof(Token)) = token;
   }
 }
 

@@ -121,7 +121,7 @@ int main(int arg_count, char* args[])
   parser.source_file = source_text.filename;
   parser.tokens = lexer.tokens;
   parse(&parser);
-  arena_free(&scratch_storage);
+  scratch_storage.free();
 
   drypass(parser.p4program);
 
@@ -149,7 +149,7 @@ int main(int arg_count, char* args[])
   declared_types(&type_checker);
   potential_types(&type_checker);
   select_type(&type_checker);
-  arena_free(&storage);
+  storage.free();
 
   return 0;
 }

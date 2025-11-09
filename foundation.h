@@ -37,9 +37,9 @@ typedef struct Arena {
 
   static void reserve_memory(int amount);
   void* malloc(uint32_t size);
+  void free();
+  void grow(uint32_t size);
 } Arena;
-
-void arena_free(Arena* arena);
 
 /**
  * n  ...  segment count
@@ -71,14 +71,15 @@ typedef struct Array {
   int elem_count;
   int capacity;
   SegmentTable data;
+
+  static Array* create(Arena* storage, int elem_size, int segment_count);
+  void init(Arena* storage, int elem_size, int segment_count);
+  void extend(int elem_size);
+  void* get(int i, int elem_size);
+  void* append(int elem_size);
 } Array;
 
 void* segment_locate_cell(SegmentTable* data, int i, int elem_size);
-Array* array_create(Arena* storage, int elem_size, int segment_count);
-void array_init(Arena* storage, Array* array, int elem_size, int segment_count);
-void array_extend(Array* array, int elem_size);
-void* array_get(Array* array, int i, int elem_size);
-void* array_append(Array* array, int elem_size);
 
 typedef struct StrmapEntry {
   char* key;

@@ -159,7 +159,7 @@ static PageBlock* get_new_block_struct()
   return block;
 }
 
-static void arena_grow(Arena* arena, uint32_t size)
+void Arena::grow(uint32_t size)
 {
   PageBlock* free_block, *alloc_block;
   uint8_t* alloc_memory_begin = 0, *alloc_memory_end = 0;
@@ -185,13 +185,13 @@ static void arena_grow(Arena* arena, uint32_t size)
     perror("mprotect");
     exit(1);
   }
-  arena->memory_avail = alloc_memory_begin;
-  arena->memory_limit = alloc_memory_end;
+  this->memory_avail = alloc_memory_begin;
+  this->memory_limit = alloc_memory_end;
 
   alloc_block = get_new_block_struct();
   alloc_block->memory_begin = alloc_memory_begin;
   alloc_block->memory_end = alloc_memory_end;
-  arena->owned_pages = block_insert_and_coalesce(arena->owned_pages, alloc_block);
+  this->owned_pages = block_insert_and_coalesce(this->owned_pages, alloc_block);
 }
 
 void* Arena::malloc(uint32_t size)
@@ -201,7 +201,7 @@ void* Arena::malloc(uint32_t size)
 
   user_memory = (uint8_t*)this->memory_avail;
   if (user_memory + size >= (uint8_t*)this->memory_limit) {
-    arena_grow(this, size);
+    this->grow(size);
     user_memory = (uint8_t*)this->memory_avail;
   }
   this->memory_avail = user_memory + size;
@@ -211,11 +211,11 @@ void* Arena::malloc(uint32_t size)
   return user_memory;
 }
 
-void arena_free(Arena* arena)
+void Arena::free()
 {
   PageBlock* p, *next_block;
 
-  p = arena->owned_pages;
+  p = this->owned_pages;
   while (p) {
     if (ZMEM_ON_FREE) {
       memset(p->memory_begin, 0, p->memory_end - p->memory_begin);
@@ -228,6 +228,6 @@ void arena_free(Arena* arena)
     block_freelist_head = block_insert_and_coalesce(block_freelist_head, p);
     p = next_block;
   }
-  memset(arena, 0, sizeof(Arena));
+  memset(this, 0, sizeof(Arena));
 }
 

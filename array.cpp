@@ -4,24 +4,24 @@
 #include <math.h>
 #include "foundation.h"
 
-void array_extend(Array* array, int elem_size)
+void Array::extend(int elem_size)
 {
   assert(elem_size > 0);
-  assert(array->elem_count >= array->capacity);
+  assert(this->elem_count >= this->capacity);
   int last_segment;
   int segment_capacity;
 
-  last_segment = floor(log2(array->capacity/16 + 1));
-  if (last_segment >= array->data.segment_count) {
+  last_segment = floor(log2(this->capacity/16 + 1));
+  if (last_segment >= this->data.segment_count) {
     printf("\nMaximum array capacity has been reached.\n");
     exit(1);
   }
   segment_capacity = 16 * (1 << last_segment);
-  array->data.segments[last_segment] = array->storage->malloc(elem_size * segment_capacity);
-  array->capacity = 16 * ((1 << (last_segment + 1)) - 1);
+  this->data.segments[last_segment] = this->storage->malloc(elem_size * segment_capacity);
+  this->capacity = 16 * ((1 << (last_segment + 1)) - 1);
 }
 
-Array* array_create(Arena* storage, int elem_size, int segment_count)
+Array* Array::create(Arena* storage, int elem_size, int segment_count)
 {
   assert(elem_size > 0);
   assert(segment_count >= 1 && segment_count <= 16);
@@ -29,20 +29,20 @@ Array* array_create(Arena* storage, int elem_size, int segment_count)
 
   array = (Array*)storage->malloc(sizeof(Array) + sizeof(void*) * segment_count);
   array->storage = storage;
-  array_init(array->storage, array, elem_size, segment_count);
+  array->init(array->storage, elem_size, segment_count);
   return array;
 }
 
-void array_init(Arena* storage, Array* array, int elem_size, int segment_count)
+void Array::init(Arena* storage, int elem_size, int segment_count)
 {
   assert(elem_size > 0);
   assert(segment_count >= 1);
 
-  array->storage = storage;
-  array->elem_count = 0;
-  array->capacity = 16;
-  array->data.segment_count = segment_count;
-  array->data.segments[0] = array->storage->malloc(16 * elem_size);
+  this->storage = storage;
+  this->elem_count = 0;
+  this->capacity = 16;
+  this->data.segment_count = segment_count;
+  this->data.segments[0] = this->storage->malloc(16 * elem_size);
 }
 
 void* segment_locate_cell(SegmentTable* data, int i, int elem_size)
@@ -57,25 +57,25 @@ void* segment_locate_cell(SegmentTable* data, int i, int elem_size)
   return elem_slot;
 }
 
-void* array_get(Array* array, int i, int elem_size)
+void* Array::get(int i, int elem_size)
 {
   assert(elem_size > 0);
-  assert(i >= 0 && i < array->elem_count);
+  assert(i >= 0 && i < this->elem_count);
   void* elem_slot;
 
-  elem_slot = segment_locate_cell(&array->data, i, elem_size);
+  elem_slot = segment_locate_cell(&this->data, i, elem_size);
   return elem_slot;
 }
 
-void* array_append(Array* array, int elem_size)
+void* Array::append(int elem_size)
 {
   assert(elem_size > 0);
   void* elem_slot;
 
-  if (array->elem_count >= array->capacity) {
-    array_extend(array, elem_size);
+  if (this->elem_count >= this->capacity) {
+    this->extend(elem_size);
   }
-  elem_slot = segment_locate_cell(&array->data, array->elem_count, elem_size);
-  array->elem_count += 1;
+  elem_slot = segment_locate_cell(&this->data, this->elem_count, elem_size);
+  this->elem_count += 1;
   return elem_slot;
 }

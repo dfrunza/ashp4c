@@ -270,7 +270,7 @@ static void visit_name(TypeChecker* checker, Ast* name, PotentialType* potential
   Type* ty, *ctors_ty;
   static Array* name_ty;
 
-  if (!name_ty) name_ty = array_create(checker->storage, sizeof(Type*), 1);
+  if (!name_ty) name_ty = Array::create(checker->storage, sizeof(Type*), 1);
   name_ty->elem_count = 0;
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
@@ -281,16 +281,16 @@ static void visit_name(TypeChecker* checker, Ast* name, PotentialType* potential
   name_decl = name_entry->ns[(int)NameSpace::VAR >> 1];
   if (name_decl) {
     ty = (Type*)map_lookup(checker->type_env, name_decl->ast, 0);
-    *(Type**)array_append(name_ty, sizeof(Type*)) = ty->actual_type();
+    *(Type**)name_ty->append(sizeof(Type*)) = ty->actual_type();
     assert(!name_decl->next_in_scope);
   }
   name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
   for(; name_decl != 0; name_decl = name_decl->next_in_scope) {
     ty = (Type*)map_lookup(checker->type_env, name_decl->ast, 0);
-    *(Type**)array_append(name_ty, sizeof(Type*)) = ty->actual_type();
+    *(Type**)name_ty->append(sizeof(Type*)) = ty->actual_type();
   }
   for (int i = 0; i < name_ty->elem_count; i++) {
-    ty = *(Type**)array_get(name_ty, i, sizeof(Type*));
+    ty = *(Type**)name_ty->get(i, sizeof(Type*));
     if (potential_args) {
       if (ty->ty_former == TypeEnum::FUNCTION) {
         if (match_params(checker, potential_args, ty->function.params)) {

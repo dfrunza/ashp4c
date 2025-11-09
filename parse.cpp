@@ -190,9 +190,9 @@ static Token* next_token(Parser* parser)
 
   parser->prev_token = parser->token;
   parser->prev_token_at = parser->token_at;
-  parser->token = (Token*)array_get(parser->tokens, ++parser->token_at, sizeof(Token));
+  parser->token = (Token*)parser->tokens->get(++parser->token_at, sizeof(Token));
   while (parser->token->klass == TK_COMMENT) {
-    parser->token = (Token*)array_get(parser->tokens, ++parser->token_at, sizeof(Token));
+    parser->token = (Token*)parser->tokens->get(++parser->token_at, sizeof(Token));
   }
   if (parser->token->klass == TK_IDENTIFIER) {
     name_entry = parser->current_scope->lookup(parser->token->lexeme, NameSpace::KEYWORD | NameSpace::TYPE);
@@ -1011,7 +1011,7 @@ void parse(Parser* parser)
 
   define_keywords(parser, parser->root_scope);
   parser->token_at = 0;
-  parser->token = (Token*)array_get(parser->tokens, parser->token_at, sizeof(Token));
+  parser->token = (Token*)parser->tokens->get(parser->token_at, sizeof(Token));
   next_token(parser);
   parser->p4program = parse_p4program(parser);
   assert(parser->current_scope == parser->root_scope);
