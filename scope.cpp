@@ -9,7 +9,7 @@ Scope* Scope::create(Arena* storage, int segment_count)
   assert(segment_count >= 1 && segment_count <= 16);
   Scope* scope;
 
-  scope = (Scope*)arena_malloc(storage, sizeof(Scope) + sizeof(StrmapEntry**) * segment_count);
+  scope = (Scope*)storage->malloc(sizeof(Scope) + sizeof(StrmapEntry**) * segment_count);
   scope->name_table.init(storage, segment_count);
   return scope;
 }
@@ -62,11 +62,11 @@ NameDeclaration* Scope::bind(Arena* storage, char*strname, enum NameSpace ns)
   NameEntry* name_entry;
   StrmapEntry* he;
 
-  name_decl = (NameDeclaration*)arena_malloc(storage, sizeof(NameDeclaration));
+  name_decl = (NameDeclaration*)storage->malloc(sizeof(NameDeclaration));
   name_decl->strname = strname;
   he = this->name_table.insert(strname, 0, 1);
   if (he->value == 0) {
-    he->value = arena_malloc(storage, sizeof(NameEntry));
+    he->value = storage->malloc(sizeof(NameEntry));
   }
   name_entry = (NameEntry*)he->value;
   name_decl->next_in_scope = name_entry->ns[(int)ns >> 1];

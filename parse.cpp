@@ -680,7 +680,7 @@ Ast* Ast::clone(Arena* storage)
   Ast* clone, *sibling_clone, *child_clone;
 
   if (this == 0) return (Ast*)0;
-  clone = (Ast*)arena_malloc(storage, sizeof(Ast));
+  clone = (Ast*)storage->malloc(sizeof(Ast));
   clone->kind = this->kind;
   clone->line_no = this->line_no;
   clone->column_no = this->column_no;
@@ -1024,7 +1024,7 @@ static Ast* parse_p4program(Parser* parser)
   Ast* p4program;
   Scope* scope;
 
-  p4program = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  p4program = (Ast*)parser->storage->malloc(sizeof(Ast));
   p4program->kind = AST_p4program;
   p4program->line_no = parser->token->line_no;
   p4program->column_no = parser->token->column_no;
@@ -1047,7 +1047,7 @@ static Ast* parse_declarationList(Parser* parser)
   Ast* decls, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  decls = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  decls = (Ast*)parser->storage->malloc(sizeof(Ast));
   decls->kind = AST_declarationList;
   decls->line_no = parser->token->line_no;
   decls->column_no = parser->token->column_no;
@@ -1071,7 +1071,7 @@ static Ast* parse_declaration(Parser* parser)
   Ast* decl;
 
   if (token_is_declaration(parser->token)) {
-    decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     decl->kind = AST_declaration;
     decl->line_no = parser->token->line_no;
     decl->column_no = parser->token->column_no;
@@ -1135,7 +1135,7 @@ static Ast* parse_nonTypeName(Parser* parser)
   Ast* name;
 
   if (token_is_nonTypeName(parser->token)) {
-    name = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    name = (Ast*)parser->storage->malloc(sizeof(Ast));
     name->kind = AST_name;
     name->line_no = parser->token->line_no;
     name->column_no = parser->token->column_no;
@@ -1156,7 +1156,7 @@ static Ast* parse_name(Parser* parser)
     if (token_is_nonTypeName(parser->token)) {
       return parse_nonTypeName(parser);
     } else if (parser->token->klass == TK_TYPE_IDENTIFIER) {
-      type_name = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      type_name = (Ast*)parser->storage->malloc(sizeof(Ast));
       type_name->kind = AST_name;
       type_name->line_no = parser->token->line_no;
       type_name->column_no = parser->token->column_no;
@@ -1175,7 +1175,7 @@ static Ast* parse_parameterList(Parser* parser)
   Ast* params, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  params = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  params = (Ast*)parser->storage->malloc(sizeof(Ast));
   params->kind = AST_parameterList;
   params->line_no = parser->token->line_no;
   params->column_no = parser->token->column_no;
@@ -1196,7 +1196,7 @@ static Ast* parse_parameter(Parser* parser)
   Ast* param;
 
   if (token_is_parameter(parser->token)) {
-    param = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    param = (Ast*)parser->storage->malloc(sizeof(Ast));
     param->kind = AST_parameter;
     param->line_no = parser->token->line_no;
     param->column_no = parser->token->column_no;
@@ -1243,7 +1243,7 @@ static Ast* parse_packageTypeDeclaration(Parser* parser)
 
   if (parser->token->klass == TK_PACKAGE) {
     next_token(parser);
-    package_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    package_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     package_decl->kind = AST_packageTypeDeclaration;
     package_decl->line_no = parser->token->line_no;
     package_decl->column_no = parser->token->column_no;
@@ -1274,7 +1274,7 @@ static Ast* parse_instantiation(Parser* parser, Ast* type_ref)
   Ast* inst_stmt;
 
   if (token_is_typeRef(parser->token) || type_ref) {
-    inst_stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    inst_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     inst_stmt->kind = AST_instantiation;
     inst_stmt->line_no = parser->token->line_no;
     inst_stmt->column_no = parser->token->column_no;
@@ -1327,7 +1327,7 @@ static Ast* parse_parserDeclaration(Parser* parser, Ast* parser_proto)
   Ast* parser_decl;
 
   if (parser->token->klass == TK_PARENTH_OPEN || parser->token->klass == TK_BRACE_OPEN) {
-    parser_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    parser_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     parser_decl->kind = AST_parserDeclaration;
     parser_decl->line_no = parser->token->line_no;
     parser_decl->column_no = parser->token->column_no;
@@ -1358,7 +1358,7 @@ static Ast* parse_parserLocalElements(Parser* parser)
   Ast* elems, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  elems = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  elems = (Ast*)parser->storage->malloc(sizeof(Ast));
   elems->kind = AST_parserLocalElements;
   elems->line_no = parser->token->line_no;
   elems->column_no = parser->token->column_no;
@@ -1378,7 +1378,7 @@ static Ast* parse_parserLocalElement(Parser* parser)
   Ast* local_element, *type_ref;
 
   if (token_is_parserLocalElement(parser->token)) {
-    local_element = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    local_element = (Ast*)parser->storage->malloc(sizeof(Ast));
     local_element->kind = AST_parserLocalElement;
     local_element->line_no = parser->token->line_no;
     local_element->column_no = parser->token->column_no;
@@ -1408,11 +1408,11 @@ static Ast* parse_parserTypeDeclaration(Parser* parser)
 
   if (parser->token->klass == TK_PARSER) {
     next_token(parser);
-    parser_proto = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    parser_proto = (Ast*)parser->storage->malloc(sizeof(Ast));
     parser_proto->kind = AST_parserTypeDeclaration;
     parser_proto->line_no = parser->token->line_no; 
     parser_proto->column_no = parser->token->column_no;
-    method_protos = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    method_protos = (Ast*)parser->storage->malloc(sizeof(Ast));
     method_protos->kind = AST_methodPrototypes;
     method_protos->line_no = parser_proto->line_no;
     method_protos->column_no = parser_proto->column_no;
@@ -1444,7 +1444,7 @@ static Ast* parse_parserStates(Parser* parser)
   Ast* states, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  states = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  states = (Ast*)parser->storage->malloc(sizeof(Ast));
   states->kind = AST_parserStates;
   states->line_no = parser->token->line_no;
   states->column_no = parser->token->column_no;
@@ -1465,7 +1465,7 @@ static Ast* parse_parserState(Parser* parser)
 
   if (parser->token->klass == TK_STATE) {
     next_token(parser);
-    state = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    state = (Ast*)parser->storage->malloc(sizeof(Ast));
     state->kind = AST_parserState;
     state->line_no = parser->token->line_no;
     state->column_no = parser->token->column_no;
@@ -1492,7 +1492,7 @@ static Ast* parse_parserStatements(Parser* parser)
   Ast* stmts, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  stmts = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  stmts = (Ast*)parser->storage->malloc(sizeof(Ast));
   stmts->kind = AST_parserStatements;
   stmts->line_no = parser->token->line_no;
   stmts->column_no = parser->token->column_no;
@@ -1512,7 +1512,7 @@ static Ast* parse_parserStatement(Parser* parser)
   Ast* parser_stmt, *type_ref;
 
   if (token_is_parserStatement(parser->token)) {
-    parser_stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    parser_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     parser_stmt->kind = AST_parserStatement;
     parser_stmt->line_no = parser->token->line_no;
     parser_stmt->column_no = parser->token->column_no;
@@ -1535,7 +1535,7 @@ static Ast* parse_parserStatement(Parser* parser)
       parser_stmt->parserStatement.stmt = parse_variableDeclaration(parser, 0);
       return parser_stmt;
     } else if (parser->token->klass == TK_SEMICOLON) {
-      Ast* stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      Ast* stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
       stmt->kind = AST_emptyStatement;
       stmt->line_no = parser->token->line_no;
       stmt->column_no = parser->token->column_no;
@@ -1555,7 +1555,7 @@ static Ast* parse_parserBlockStatement(Parser* parser)
 
   if (parser->token->klass == TK_BRACE_OPEN) {
     next_token(parser);
-    stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     stmt->kind = AST_parserBlockStatement;
     stmt->line_no = parser->token->line_no;
     stmt->column_no = parser->token->column_no;
@@ -1577,7 +1577,7 @@ static Ast* parse_transitionStatement(Parser* parser)
 
   if (parser->token->klass == TK_TRANSITION) {
     next_token(parser);
-    transition = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    transition = (Ast*)parser->storage->malloc(sizeof(Ast));
     transition->kind = AST_transitionStatement;
     transition->line_no = parser->token->line_no;
     transition->column_no = parser->token->column_no;
@@ -1594,7 +1594,7 @@ static Ast* parse_stateExpression(Parser* parser)
   Ast* state_expr;
 
   if (token_is_name(parser->token) || parser->token->klass == TK_SELECT) {
-    state_expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    state_expr = (Ast*)parser->storage->malloc(sizeof(Ast));
     state_expr->kind = AST_stateExpression;
     state_expr->line_no = parser->token->line_no;
     state_expr->column_no = parser->token->column_no;
@@ -1621,7 +1621,7 @@ static Ast* parse_selectExpression(Parser* parser)
 
   if (parser->token->klass == TK_SELECT) {
     next_token(parser);
-    select_expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    select_expr = (Ast*)parser->storage->malloc(sizeof(Ast));
     select_expr->kind = AST_selectExpression;
     select_expr->line_no = parser->token->line_no;
     select_expr->column_no = parser->token->column_no;
@@ -1655,7 +1655,7 @@ static Ast* parse_selectCaseList(Parser* parser)
   Ast* cases, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  cases = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  cases = (Ast*)parser->storage->malloc(sizeof(Ast));
   cases->kind = AST_selectCaseList;
   cases->line_no = parser->token->line_no;
   cases->column_no = parser->token->column_no;
@@ -1675,7 +1675,7 @@ static Ast* parse_selectCase(Parser* parser)
   Ast* select_case;
 
   if (token_is_keysetExpression(parser->token)) {
-    select_case = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    select_case = (Ast*)parser->storage->malloc(sizeof(Ast));
     select_case->kind = AST_selectCase;
     select_case->line_no = parser->token->line_no;
     select_case->column_no = parser->token->column_no;
@@ -1704,7 +1704,7 @@ static Ast* parse_keysetExpression(Parser *parser)
   Ast* keyset_expr;
 
   if (parser->token->klass == TK_PARENTH_OPEN || token_is_simpleKeysetExpression(parser->token)) {
-    keyset_expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    keyset_expr = (Ast*)parser->storage->malloc(sizeof(Ast));
     keyset_expr->kind = AST_keysetExpression;
     keyset_expr->line_no = parser->token->line_no;
     keyset_expr->column_no = parser->token->column_no;
@@ -1727,7 +1727,7 @@ static Ast* parse_tupleKeysetExpression(Parser* parser)
 
   if (parser->token->klass == TK_PARENTH_OPEN) {
     next_token(parser);
-    tuple_keyset = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    tuple_keyset = (Ast*)parser->storage->malloc(sizeof(Ast));
     tuple_keyset->kind = AST_tupleKeysetExpression;
     tuple_keyset->line_no = parser->token->line_no;
     tuple_keyset->column_no = parser->token->column_no;
@@ -1748,7 +1748,7 @@ static Ast* parse_simpleExpressionList(Parser* parser)
   Ast* exprs, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  exprs = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  exprs = (Ast*)parser->storage->malloc(sizeof(Ast));
   exprs->kind = AST_simpleExpressionList;
   exprs->line_no = parser->token->line_no;
   exprs->column_no = parser->token->column_no;
@@ -1769,7 +1769,7 @@ static Ast* parse_simpleKeysetExpression(Parser* parser)
   Ast* simple_keyset, *default_keyset, *dontcare_keyset;
 
   if (token_is_simpleKeysetExpression(parser->token)) {
-    simple_keyset = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    simple_keyset = (Ast*)parser->storage->malloc(sizeof(Ast));
     simple_keyset->kind = AST_simpleKeysetExpression;
     simple_keyset->line_no = parser->token->line_no;
     simple_keyset->column_no = parser->token->column_no;
@@ -1778,7 +1778,7 @@ static Ast* parse_simpleKeysetExpression(Parser* parser)
       return simple_keyset;
     } else if (parser->token->klass == TK_DEFAULT) {
       next_token(parser);
-      default_keyset = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      default_keyset = (Ast*)parser->storage->malloc(sizeof(Ast));
       default_keyset->kind = AST_default;
       default_keyset->line_no = parser->token->line_no;
       default_keyset->column_no = parser->token->column_no;
@@ -1786,7 +1786,7 @@ static Ast* parse_simpleKeysetExpression(Parser* parser)
       return simple_keyset;
     } else if (parser->token->klass == TK_DONTCARE) {
       next_token(parser);
-      dontcare_keyset = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      dontcare_keyset = (Ast*)parser->storage->malloc(sizeof(Ast));
       dontcare_keyset->kind = AST_dontcare;
       dontcare_keyset->line_no = parser->token->line_no;
       dontcare_keyset->column_no = parser->token->column_no;
@@ -1806,7 +1806,7 @@ static Ast* parse_controlDeclaration(Parser* parser, Ast* control_proto)
   Ast* control_decl;
 
   if (parser->token->klass == TK_PARENTH_OPEN || parser->token->klass == TK_BRACE_OPEN) {
-    control_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    control_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     control_decl->kind = AST_controlDeclaration;
     control_decl->line_no = parser->token->line_no;
     control_decl->column_no = parser->token->column_no;
@@ -1839,11 +1839,11 @@ static Ast* parse_controlTypeDeclaration(Parser* parser)
 
   if (parser->token->klass == TK_CONTROL) {
     next_token(parser);
-    control_proto = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    control_proto = (Ast*)parser->storage->malloc(sizeof(Ast));
     control_proto->kind = AST_controlTypeDeclaration;
     control_proto->line_no = parser->token->line_no;
     control_proto->column_no = parser->token->column_no;
-    method_protos = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    method_protos = (Ast*)parser->storage->malloc(sizeof(Ast));
     method_protos->kind = AST_methodPrototypes;
     method_protos->line_no = control_proto->line_no;
     method_protos->column_no = control_proto->column_no;
@@ -1875,7 +1875,7 @@ static Ast* parse_controlLocalDeclaration(Parser* parser)
   Ast* local_decl, *type_ref;
 
   if (token_is_controlLocalDeclaration(parser->token)) {
-    local_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    local_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     local_decl->kind = AST_controlLocalDeclaration;
     local_decl->line_no = parser->token->line_no;
     local_decl->column_no = parser->token->column_no;
@@ -1910,7 +1910,7 @@ static Ast* parse_controlLocalDeclarations(Parser* parser)
   Ast* decls, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  decls = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  decls = (Ast*)parser->storage->malloc(sizeof(Ast));
   decls->kind = AST_controlLocalDeclarations;
   decls->line_no = parser->token->line_no;
   decls->column_no = parser->token->column_no;
@@ -1935,7 +1935,7 @@ static Ast* parse_externDeclaration(Parser* parser)
 
   if (parser->token->klass == TK_EXTERN) {
     next_token(parser);
-    extern_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    extern_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     extern_decl->kind = AST_externDeclaration;
     extern_decl->line_no = parser->token->line_no;
     extern_decl->column_no = parser->token->column_no;
@@ -1957,7 +1957,7 @@ static Ast* parse_externDeclaration(Parser* parser)
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
       return extern_decl;
     } else {
-      extern_type = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      extern_type = (Ast*)parser->storage->malloc(sizeof(Ast));
       extern_type->kind = AST_externTypeDeclaration;
       extern_type->line_no = parser->token->line_no;
       extern_type->column_no = parser->token->column_no;
@@ -1987,7 +1987,7 @@ static Ast* parse_methodPrototypes(Parser* parser)
   Ast* protos, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  protos = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  protos = (Ast*)parser->storage->malloc(sizeof(Ast));
   protos->kind = AST_methodPrototypes;
   protos->line_no = parser->token->line_no;
   protos->column_no = parser->token->column_no;
@@ -2008,7 +2008,7 @@ static Ast* parse_functionPrototype(Parser* parser, Ast* return_type)
   Ast* name;
 
   if (token_is_typeOrVoid(parser->token) || return_type) {
-    func_proto = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    func_proto = (Ast*)parser->storage->malloc(sizeof(Ast));
     func_proto->kind = AST_functionPrototype;
     func_proto->line_no = parser->token->line_no;
     func_proto->column_no = parser->token->column_no;
@@ -2019,7 +2019,7 @@ static Ast* parse_functionPrototype(Parser* parser, Ast* return_type)
       if (return_type->kind == AST_name) {
         name = return_type;
         parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
-        type_ref = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+        type_ref = (Ast*)parser->storage->malloc(sizeof(Ast));
         type_ref->kind = AST_typeRef;
         type_ref->line_no = parser->token->line_no;
         type_ref->column_no = parser->token->column_no;
@@ -2055,7 +2055,7 @@ static Ast* parse_methodPrototype(Parser* parser)
   if (token_is_methodPrototype(parser->token)) {
     if (parser->token->klass == TK_TYPE_IDENTIFIER && peek_token(parser)->klass == TK_PARENTH_OPEN) {
       /* Constructor */
-      func_proto = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      func_proto = (Ast*)parser->storage->malloc(sizeof(Ast));
       func_proto->kind = AST_functionPrototype;
       func_proto->line_no = parser->token->line_no;
       func_proto->column_no = parser->token->column_no;
@@ -2096,7 +2096,7 @@ static Ast* parse_typeRef(Parser* parser)
   Ast* type_ref;
 
   if (token_is_typeRef(parser->token)) {
-    type_ref = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    type_ref = (Ast*)parser->storage->malloc(sizeof(Ast));
     type_ref->kind = AST_typeRef;
     type_ref->line_no = parser->token->line_no;
     type_ref->column_no = parser->token->column_no;
@@ -2138,7 +2138,7 @@ static Ast* parse_typeName(Parser* parser)
   Ast* type_name;
 
   if (parser->token->klass == TK_TYPE_IDENTIFIER) {
-    type_name = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    type_name = (Ast*)parser->storage->malloc(sizeof(Ast));
     type_name->kind = AST_name;
     type_name->line_no = parser->token->line_no;
     type_name->column_no = parser->token->column_no;
@@ -2156,7 +2156,7 @@ static Ast* parse_tupleType(Parser* parser)
   Ast* tuple;
 
   if (parser->token->klass == TK_TUPLE) {
-    tuple = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    tuple = (Ast*)parser->storage->malloc(sizeof(Ast));
     tuple->kind = AST_tupleType;
     tuple->line_no = parser->token->line_no;
     tuple->column_no = parser->token->column_no;
@@ -2183,12 +2183,12 @@ static Ast* parse_headerStackType(Parser* parser, Ast* named_type)
 
   if (parser->token->klass == TK_BRACKET_OPEN) {
     next_token(parser);
-    type_ref = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    type_ref = (Ast*)parser->storage->malloc(sizeof(Ast));
     type_ref->kind = AST_typeRef;
     type_ref->line_no = named_type->line_no;
     type_ref->column_no = named_type->column_no;
     type_ref->typeRef.type = named_type;
-    type = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    type = (Ast*)parser->storage->malloc(sizeof(Ast));
     type->kind = AST_headerStackType;
     type->line_no = named_type->line_no;
     type->column_no = named_type->column_no;
@@ -2213,12 +2213,12 @@ static Ast* parse_baseType(Parser* parser)
   Ast* type_name, *type;
 
   if (token_is_baseType(parser->token)) {
-    type_name = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    type_name = (Ast*)parser->storage->malloc(sizeof(Ast));
     type_name->kind = AST_name;
     type_name->line_no = parser->token->line_no;
     type_name->column_no = parser->token->column_no;
     if (parser->token->klass == TK_BOOL) {
-      type = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      type = (Ast*)parser->storage->malloc(sizeof(Ast));
       type->kind = AST_baseTypeBoolean;
       type->line_no = parser->token->line_no;
       type->column_no = parser->token->column_no;
@@ -2227,7 +2227,7 @@ static Ast* parse_baseType(Parser* parser)
       next_token(parser);
       return type;
     } else if (parser->token->klass == TK_INT) {
-      type = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      type = (Ast*)parser->storage->malloc(sizeof(Ast));
       type->kind = AST_baseTypeInteger;
       type->line_no = parser->token->line_no;
       type->column_no = parser->token->column_no;
@@ -2244,7 +2244,7 @@ static Ast* parse_baseType(Parser* parser)
       }
       return type;
     } else if (parser->token->klass == TK_BIT) {
-      type = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      type = (Ast*)parser->storage->malloc(sizeof(Ast));
       type->kind = AST_baseTypeBit;
       type->line_no = parser->token->line_no;
       type->column_no = parser->token->column_no;
@@ -2261,7 +2261,7 @@ static Ast* parse_baseType(Parser* parser)
       }
       return type;
     } else if (parser->token->klass == TK_VARBIT) {
-      type = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      type = (Ast*)parser->storage->malloc(sizeof(Ast));
       type->kind = AST_baseTypeVarbit;
       type->line_no = parser->token->line_no;
       type->column_no = parser->token->column_no;
@@ -2279,7 +2279,7 @@ static Ast* parse_baseType(Parser* parser)
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
       return type;
     } else if (parser->token->klass == TK_STRING) {
-      type = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      type = (Ast*)parser->storage->malloc(sizeof(Ast));
       type->kind = AST_baseTypeString;
       type->line_no = parser->token->line_no;
       type->column_no = parser->token->column_no;
@@ -2288,7 +2288,7 @@ static Ast* parse_baseType(Parser* parser)
       next_token(parser);
       return type;
     } else if (parser->token->klass == TK_VOID) {
-      type = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      type = (Ast*)parser->storage->malloc(sizeof(Ast));
       type->kind = AST_baseTypeVoid;
       type->line_no = parser->token->line_no;
       type->column_no = parser->token->column_no;
@@ -2297,7 +2297,7 @@ static Ast* parse_baseType(Parser* parser)
       next_token(parser);
       return type;
     } else if (parser->token->klass == TK_ERROR) {
-      type = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      type = (Ast*)parser->storage->malloc(sizeof(Ast));
       type->kind = AST_baseTypeError;
       type->line_no = parser->token->line_no;
       type->column_no = parser->token->column_no;
@@ -2316,7 +2316,7 @@ static Ast* parse_integerTypeSize(Parser* parser)
 {
   Ast* type_size;
 
-  type_size = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  type_size = (Ast*)parser->storage->malloc(sizeof(Ast));
   type_size->kind = AST_integerTypeSize;
   type_size->line_no = parser->token->line_no;
   type_size->column_no = parser->token->column_no;
@@ -2344,7 +2344,7 @@ static Ast* parse_typeOrVoid(Parser* parser)
     } else if (parser->token->klass == TK_VOID) {
       return parse_baseType(parser);
     } else if (parser->token->klass == TK_IDENTIFIER) {
-      name = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      name = (Ast*)parser->storage->malloc(sizeof(Ast));
       name->kind = AST_name;
       name->line_no = parser->token->line_no;
       name->column_no = parser->token->column_no;
@@ -2363,13 +2363,13 @@ static Ast* parse_realTypeArg(Parser* parser)
   Ast* type_arg, *dontcare_arg;
 
   if (token_is_realTypeArg(parser->token)) {
-    type_arg = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    type_arg = (Ast*)parser->storage->malloc(sizeof(Ast));
     type_arg->kind = AST_realTypeArg;
     type_arg->line_no = parser->token->line_no;
     type_arg->column_no = parser->token->column_no;
     if (parser->token->klass == TK_DONTCARE) {
       next_token(parser);
-      dontcare_arg = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      dontcare_arg = (Ast*)parser->storage->malloc(sizeof(Ast));
       dontcare_arg->kind = AST_dontcare;
       dontcare_arg->line_no = parser->token->line_no;
       dontcare_arg->column_no = parser->token->column_no;
@@ -2390,13 +2390,13 @@ static Ast* parse_typeArg(Parser* parser)
   Ast* type_arg, *dontcare_arg;
 
   if (token_is_typeArg(parser->token)) {
-    type_arg = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    type_arg = (Ast*)parser->storage->malloc(sizeof(Ast));
     type_arg->kind = AST_typeArg;
     type_arg->line_no = parser->token->line_no;
     type_arg->column_no = parser->token->column_no;
     if (parser->token->klass == TK_DONTCARE) {
       next_token(parser);
-      dontcare_arg = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      dontcare_arg = (Ast*)parser->storage->malloc(sizeof(Ast));
       dontcare_arg->kind = AST_dontcare;
       dontcare_arg->line_no = parser->token->line_no;
       dontcare_arg->column_no = parser->token->column_no;
@@ -2420,7 +2420,7 @@ static Ast* parse_typeArgumentList(Parser* parser)
   Ast* args, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  args = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  args = (Ast*)parser->storage->malloc(sizeof(Ast));
   args->kind = AST_typeArgumentList;
   args->line_no = parser->token->line_no;
   args->column_no = parser->token->column_no;
@@ -2441,7 +2441,7 @@ static Ast* parse_typeDeclaration(Parser* parser)
   Ast* type_decl;
 
   if (token_is_typeDeclaration(parser->token)) {
-    type_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    type_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     type_decl->kind = AST_typeDeclaration;
     type_decl->line_no = parser->token->line_no;
     type_decl->column_no = parser->token->column_no;
@@ -2476,7 +2476,7 @@ static Ast* parse_derivedTypeDeclaration(Parser* parser)
   Ast* type_decl;
 
   if (token_is_derivedTypeDeclaration(parser->token)) {
-    type_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    type_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     type_decl->kind = AST_derivedTypeDeclaration;
     type_decl->line_no = parser->token->line_no;
     type_decl->column_no = parser->token->column_no;
@@ -2506,7 +2506,7 @@ static Ast* parse_headerTypeDeclaration(Parser* parser)
 
   if (parser->token->klass == TK_HEADER) {
     next_token(parser);
-    header_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    header_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     header_decl->kind = AST_headerTypeDeclaration;
     header_decl->line_no = parser->token->line_no;
     header_decl->column_no = parser->token->column_no;
@@ -2539,7 +2539,7 @@ static Ast* parse_headerUnionDeclaration(Parser* parser)
 
   if (parser->token->klass == TK_UNION) {
     next_token(parser);
-    union_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    union_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     union_decl->kind = AST_headerUnionDeclaration;
     union_decl->line_no = parser->token->line_no;
     union_decl->column_no = parser->token->column_no;
@@ -2572,7 +2572,7 @@ static Ast* parse_structTypeDeclaration(Parser* parser)
 
   if (parser->token->klass == TK_STRUCT) {
     next_token(parser);
-    struct_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    struct_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     struct_decl->kind = AST_structTypeDeclaration;
     struct_decl->line_no = parser->token->line_no;
     struct_decl->column_no = parser->token->column_no;
@@ -2603,7 +2603,7 @@ static Ast* parse_structFieldList(Parser* parser)
   Ast* fields, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  fields = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  fields = (Ast*)parser->storage->malloc(sizeof(Ast));
   fields->kind = AST_structFieldList;
   fields->line_no = parser->token->line_no;
   fields->column_no = parser->token->column_no;
@@ -2621,7 +2621,7 @@ static Ast* parse_structFieldList(Parser* parser)
 static Ast* parse_structField(Parser* parser)
 {
   if (token_is_structField(parser->token)) {
-    Ast* field = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    Ast* field = (Ast*)parser->storage->malloc(sizeof(Ast));
     field->kind = AST_structField;
     field->line_no = parser->token->line_no;
     field->column_no = parser->token->column_no;
@@ -2648,7 +2648,7 @@ static Ast* parse_enumDeclaration(Parser* parser)
 
   if (parser->token->klass == TK_ENUM) {
     next_token(parser);
-    enum_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    enum_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     enum_decl->kind = AST_enumDeclaration;
     enum_decl->line_no = parser->token->line_no;
     enum_decl->column_no = parser->token->column_no;
@@ -2698,7 +2698,7 @@ static Ast* parse_errorDeclaration(Parser* parser)
 
   if (parser->token->klass == TK_ERROR) {
     next_token(parser);
-    error_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    error_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     error_decl->kind = AST_errorDeclaration;
     error_decl->line_no = parser->token->line_no;
     error_decl->column_no = parser->token->column_no;
@@ -2730,7 +2730,7 @@ static Ast* parse_matchKindDeclaration(Parser* parser)
 
   if (parser->token->klass == TK_MATCH_KIND) {
     next_token(parser);
-    match_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    match_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     match_decl->kind = AST_matchKindDeclaration;
     match_decl->line_no = parser->token->line_no;
     match_decl->column_no = parser->token->column_no;
@@ -2758,7 +2758,7 @@ static Ast* parse_identifierList(Parser* parser)
   Ast* ids, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  ids = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  ids = (Ast*)parser->storage->malloc(sizeof(Ast));
   ids->kind = AST_identifierList;
   ids->line_no = parser->token->line_no;
   ids->column_no = parser->token->column_no;
@@ -2779,7 +2779,7 @@ static Ast* parse_specifiedIdentifierList(Parser* parser)
   Ast* ids, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  ids = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  ids = (Ast*)parser->storage->malloc(sizeof(Ast));
   ids->kind = AST_specifiedIdentifierList;
   ids->line_no = parser->token->line_no;
   ids->column_no = parser->token->column_no;
@@ -2800,7 +2800,7 @@ static Ast* parse_specifiedIdentifier(Parser* parser)
   Ast* id;
 
   if (token_is_specifiedIdentifier(parser->token)) {
-    id = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    id = (Ast*)parser->storage->malloc(sizeof(Ast));
     id->kind = AST_specifiedIdentifier;
     id->line_no = parser->token->line_no;
     id->column_no = parser->token->column_no;
@@ -2827,7 +2827,7 @@ static Ast* parse_typedefDeclaration(Parser* parser)
   if (parser->token->klass == TK_TYPEDEF) {
     next_token(parser);
     if (token_is_typeRef(parser->token) || token_is_derivedTypeDeclaration(parser->token)) {
-      type_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      type_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
       type_decl->kind = AST_typedefDeclaration;
       type_decl->line_no = parser->token->line_no;
       type_decl->column_no = parser->token->column_no;
@@ -2865,7 +2865,7 @@ static Ast* parse_assignmentOrMethodCallStatement(Parser* parser)
     lvalue = parse_lvalue(parser);
     if (parser->token->klass == TK_PARENTH_OPEN) {
       next_token(parser);
-      stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
       stmt->kind = AST_functionCall;
       stmt->line_no = parser->token->line_no;
       stmt->column_no = parser->token->column_no;
@@ -2882,7 +2882,7 @@ static Ast* parse_assignmentOrMethodCallStatement(Parser* parser)
       return stmt;
     } else if (parser->token->klass == TK_EQUAL) {
       next_token(parser);
-      stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
       stmt->kind = AST_assignmentStatement;
       stmt->line_no = parser->token->line_no;
       stmt->column_no = parser->token->column_no;
@@ -2907,7 +2907,7 @@ static Ast* parse_returnStatement(Parser* parser)
 
   if (parser->token->klass == TK_RETURN) {
     next_token(parser);
-    return_stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    return_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     return_stmt->kind = AST_returnStatement;
     return_stmt->line_no = parser->token->line_no;
     return_stmt->column_no = parser->token->column_no;
@@ -2930,7 +2930,7 @@ static Ast* parse_exitStatement(Parser* parser)
 
   if (parser->token->klass == TK_EXIT) {
     next_token(parser);
-    exit_stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    exit_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     exit_stmt->kind = AST_exitStatement;
     exit_stmt->line_no = parser->token->line_no;
     exit_stmt->column_no = parser->token->column_no;
@@ -2951,7 +2951,7 @@ static Ast* parse_conditionalStatement(Parser* parser)
 
   if (parser->token->klass == TK_IF) {
     next_token(parser);
-    if_stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    if_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     if_stmt->kind = AST_conditionalStatement;
     if_stmt->line_no = parser->token->line_no;
     if_stmt->column_no = parser->token->column_no;
@@ -2990,7 +2990,7 @@ static Ast* parse_directApplication(Parser* parser, Ast* type_name)
   Ast* apply_stmt;
 
   if (token_is_typeName(parser->token) || type_name) {
-    apply_stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    apply_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     apply_stmt->kind = AST_directApplication;
     apply_stmt->line_no = parser->token->line_no;
     apply_stmt->column_no = parser->token->column_no;
@@ -3028,7 +3028,7 @@ static Ast* parse_statement(Parser* parser, Ast* type_name)
   Ast* stmt, *empty_stmt;
 
   if (token_is_statement(parser->token)) {
-    stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     stmt->kind = AST_statement;
     stmt->line_no = parser->token->line_no;
     stmt->column_no = parser->token->column_no;
@@ -3042,7 +3042,7 @@ static Ast* parse_statement(Parser* parser, Ast* type_name)
       stmt->statement.stmt = parse_conditionalStatement(parser);
       return stmt;
     } else if (parser->token->klass == TK_SEMICOLON) {
-      empty_stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      empty_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
       empty_stmt->kind = AST_emptyStatement;
       empty_stmt->line_no = parser->token->line_no;
       empty_stmt->column_no = parser->token->column_no;
@@ -3074,7 +3074,7 @@ static Ast* parse_blockStatement(Parser* parser)
 
   if (parser->token->klass == TK_BRACE_OPEN) {
     next_token(parser);
-    block_stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    block_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     block_stmt->kind = AST_blockStatement;
     block_stmt->line_no = parser->token->line_no;
     block_stmt->column_no = parser->token->column_no;
@@ -3095,7 +3095,7 @@ static Ast* parse_statementOrDeclList(Parser* parser)
   Ast* stmts, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  stmts = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  stmts = (Ast*)parser->storage->malloc(sizeof(Ast));
   stmts->kind = AST_statementOrDeclList;
   stmts->line_no = parser->token->line_no;
   stmts->column_no = parser->token->column_no;
@@ -3116,7 +3116,7 @@ static Ast* parse_switchStatement(Parser* parser)
 
   if (parser->token->klass == TK_SWITCH) {
     next_token(parser);
-    stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     stmt->kind = AST_switchStatement;
     stmt->line_no = parser->token->line_no;
     stmt->column_no = parser->token->column_no;
@@ -3150,7 +3150,7 @@ static Ast* parse_switchCases(Parser* parser)
   Ast* cases, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  cases = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  cases = (Ast*)parser->storage->malloc(sizeof(Ast));
   cases->kind = AST_switchCases;
   cases->line_no = parser->token->line_no;
   cases->column_no = parser->token->column_no;
@@ -3170,7 +3170,7 @@ static Ast* parse_switchCase(Parser* parser)
   Ast* switch_case;
 
   if (token_is_switchLabel(parser->token)) {
-    switch_case = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    switch_case = (Ast*)parser->storage->malloc(sizeof(Ast));
     switch_case->kind = AST_switchCase;
     switch_case->line_no = parser->token->line_no;
     switch_case->column_no = parser->token->column_no;
@@ -3194,7 +3194,7 @@ static Ast* parse_switchLabel(Parser* parser)
   Ast* switch_label, *default_label;
 
   if (token_is_switchLabel(parser->token)) {
-    switch_label = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    switch_label = (Ast*)parser->storage->malloc(sizeof(Ast));
     switch_label->kind = AST_switchLabel;
     switch_label->line_no = parser->token->line_no;
     switch_label->column_no = parser->token->column_no;
@@ -3203,7 +3203,7 @@ static Ast* parse_switchLabel(Parser* parser)
       return switch_label;
     } else if (parser->token->klass == TK_DEFAULT) {
       next_token(parser);
-      default_label = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      default_label = (Ast*)parser->storage->malloc(sizeof(Ast));
       default_label->kind = AST_default;
       default_label->line_no = parser->token->line_no;
       default_label->column_no = parser->token->column_no;
@@ -3221,7 +3221,7 @@ static Ast* parse_statementOrDeclaration(Parser* parser)
   Ast* stmt, *type_ref;
 
   if (token_is_statementOrDeclaration(parser->token)) {
-    stmt = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     stmt->kind = AST_statementOrDeclaration;
     stmt->line_no = parser->token->line_no;
     stmt->column_no = parser->token->column_no;
@@ -3258,12 +3258,12 @@ static Ast* parse_tableDeclaration(Parser* parser)
 
   if (parser->token->klass == TK_TABLE) {
     next_token(parser);
-    table = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    table = (Ast*)parser->storage->malloc(sizeof(Ast));
     table->kind = AST_tableDeclaration;
     table->line_no = parser->token->line_no;
     table->column_no = parser->token->column_no;
     table->tableDeclaration.name = parse_name(parser);
-    method_protos = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    method_protos = (Ast*)parser->storage->malloc(sizeof(Ast));
     method_protos->kind = AST_methodPrototypes;
     method_protos->line_no = table->line_no;
     method_protos->column_no = table->column_no;
@@ -3292,7 +3292,7 @@ static Ast* parse_tablePropertyList(Parser* parser)
   Ast* props, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  props = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  props = (Ast*)parser->storage->malloc(sizeof(Ast));
   props->kind = AST_tablePropertyList;
   props->line_no = parser->token->line_no;
   props->column_no = parser->token->column_no;
@@ -3321,13 +3321,13 @@ static Ast* parse_tableProperty(Parser* parser)
       is_const = 1;
     }
 #endif
-    table_prop = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    table_prop = (Ast*)parser->storage->malloc(sizeof(Ast));
     table_prop->kind = AST_tableProperty;
     table_prop->line_no = parser->token->line_no;
     table_prop->column_no = parser->token->column_no;
     if (parser->token->klass == TK_KEY) {
       next_token(parser);
-      prop = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      prop = (Ast*)parser->storage->malloc(sizeof(Ast));
       prop->kind = AST_keyProperty;
       prop->line_no = parser->token->line_no;
       prop->column_no = parser->token->column_no;
@@ -3348,7 +3348,7 @@ static Ast* parse_tableProperty(Parser* parser)
       return table_prop;
     } else if (parser->token->klass == TK_ACTIONS) {
       next_token(parser);
-      prop = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      prop = (Ast*)parser->storage->malloc(sizeof(Ast));
       prop->kind = AST_actionsProperty;
       prop->line_no = parser->token->line_no;
       prop->column_no = parser->token->column_no;
@@ -3371,7 +3371,7 @@ static Ast* parse_tableProperty(Parser* parser)
 #if 0
     else if (parser->token->klass == TK_ENTRIES) {
       next_token(parser);
-      prop = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      prop = (Ast*)malloc(parser->storage, sizeof(Ast));
       prop->kind = AST_entriesProperty;
       prop->line_no = parser->token->line_no;
       prop->column_no = parser->token->column_no;
@@ -3395,7 +3395,7 @@ static Ast* parse_tableProperty(Parser* parser)
       return table_prop;
     }
     else if (token_is_nonTableKwName(parser->token)) {
-      prop = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      prop = (Ast*)malloc(parser->storage, sizeof(Ast));
       prop->kind = AST_simpleProperty;
       prop->line_no = parser->token->line_no;
       prop->column_no = parser->token->column_no;
@@ -3428,7 +3428,7 @@ static Ast* parse_keyElementList(Parser* parser)
   Ast* elems, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  elems = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  elems = (Ast*)parser->storage->malloc(sizeof(Ast));
   elems->kind = AST_keyElementList;
   elems->line_no = parser->token->line_no;
   elems->column_no = parser->token->column_no;
@@ -3448,7 +3448,7 @@ static Ast* parse_keyElement(Parser* parser)
   Ast* key_elem;
 
   if (token_is_expression(parser->token)) {
-    key_elem = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    key_elem = (Ast*)parser->storage->malloc(sizeof(Ast));
     key_elem->kind = AST_keyElement;
     key_elem->line_no = parser->token->line_no;
     key_elem->column_no = parser->token->column_no;
@@ -3474,7 +3474,7 @@ static Ast* parse_actionList(Parser* parser)
   Ast* actions, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  actions = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  actions = (Ast*)parser->storage->malloc(sizeof(Ast));
   actions->kind = AST_actionList;
   actions->line_no = parser->token->line_no;
   actions->column_no = parser->token->column_no;
@@ -3502,7 +3502,7 @@ static Ast* parse_actionRef(Parser* parser)
   Ast* action_ref;
 
   if (token_is_nonTypeName(parser->token)) {
-    action_ref = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    action_ref = (Ast*)parser->storage->malloc(sizeof(Ast));
     action_ref->kind = AST_actionRef;
     action_ref->line_no = parser->token->line_no;
     action_ref->column_no = parser->token->column_no;
@@ -3533,7 +3533,7 @@ static Ast* parse_entriesList(Parser* parser)
   Ast* entries, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  entries = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  entries = (Ast*)malloc(parser->storage, sizeof(Ast));
   entries->kind = AST_entriesList;
   entries->line_no = parser->token->line_no;
   entries->column_no = parser->token->column_no;
@@ -3553,7 +3553,7 @@ static Ast* parse_entry(Parser* parser)
   Ast* entry;
 
   if (token_is_keysetExpression(parser->token)) {
-    entry = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    entry = (Ast*)malloc(parser->storage, sizeof(Ast));
     entry->kind = AST_entry;
     entry->line_no = parser->token->line_no;
     entry->column_no = parser->token->column_no;
@@ -3581,7 +3581,7 @@ static Ast* parse_actionDeclaration(Parser* parser)
 
   if (parser->token->klass == TK_ACTION) {
     next_token(parser);
-    action_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    action_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     action_decl->kind = AST_actionDeclaration;
     action_decl->line_no = parser->token->line_no;
     action_decl->column_no = parser->token->column_no;
@@ -3621,7 +3621,7 @@ static Ast* parse_variableDeclaration(Parser* parser, Ast* type_ref)
     is_const = 1;
   }
   if (token_is_typeRef(parser->token) || type_ref) {
-    var_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    var_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     var_decl->kind = AST_variableDeclaration;
     var_decl->line_no = parser->token->line_no;
     var_decl->column_no = parser->token->column_no;
@@ -3653,7 +3653,7 @@ static Ast* parse_functionDeclaration(Parser* parser, Ast* type_ref)
   Ast* func_decl;
 
   if (token_is_typeOrVoid(parser->token)) {
-    func_decl = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    func_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     func_decl->kind = AST_functionDeclaration;
     func_decl->line_no = parser->token->line_no;
     func_decl->column_no = parser->token->column_no;
@@ -3674,7 +3674,7 @@ static Ast* parse_argumentList(Parser* parser)
   Ast* args, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  args = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  args = (Ast*)parser->storage->malloc(sizeof(Ast));
   args->kind = AST_argumentList;
   args->line_no = parser->token->line_no;
   args->column_no = parser->token->column_no;
@@ -3695,7 +3695,7 @@ static Ast* parse_argument(Parser* parser)
   Ast* arg, *dontcare_arg;
 
   if (token_is_argument(parser->token)) {
-    arg = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    arg = (Ast*)parser->storage->malloc(sizeof(Ast));
     arg->kind = AST_argument;
     arg->line_no = parser->token->line_no;
     arg->column_no = parser->token->column_no;
@@ -3704,7 +3704,7 @@ static Ast* parse_argument(Parser* parser)
       return arg;
     } else if (parser->token->klass == TK_DONTCARE) {
       next_token(parser);
-      dontcare_arg = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      dontcare_arg = (Ast*)parser->storage->malloc(sizeof(Ast));
       dontcare_arg->kind = AST_dontcare;
       dontcare_arg->line_no = parser->token->line_no;
       dontcare_arg->column_no = parser->token->column_no;
@@ -3722,7 +3722,7 @@ static Ast* parse_expressionList(Parser* parser)
   Ast* exprs, *ast;
   AstTreeCtor tree_ctor = {0};
   
-  exprs = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+  exprs = (Ast*)parser->storage->malloc(sizeof(Ast));
   exprs->kind = AST_expressionList;
   exprs->line_no = parser->token->line_no;
   exprs->column_no = parser->token->column_no;
@@ -3743,7 +3743,7 @@ static Ast* parse_lvalue(Parser* parser)
   Ast* lvalue, *expr;
 
   if (token_is_lvalue(parser->token)) {
-    lvalue = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    lvalue = (Ast*)parser->storage->malloc(sizeof(Ast));
     lvalue->kind = AST_lvalueExpression;
     lvalue->line_no = parser->token->line_no;
     lvalue->column_no = parser->token->column_no;
@@ -3751,7 +3751,7 @@ static Ast* parse_lvalue(Parser* parser)
     while(parser->token->klass == TK_DOT || parser->token->klass == TK_BRACKET_OPEN) {
       if (parser->token->klass == TK_DOT) {
         next_token(parser);
-        expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+        expr = (Ast*)parser->storage->malloc(sizeof(Ast));
         expr->kind = AST_memberSelector;
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
@@ -3760,7 +3760,7 @@ static Ast* parse_lvalue(Parser* parser)
           expr->memberSelector.name = parse_name(parser);
         } else error("%s:%d:%d: error: name was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
-        lvalue = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+        lvalue = (Ast*)parser->storage->malloc(sizeof(Ast));
         lvalue->kind = AST_lvalueExpression;
         lvalue->line_no = parser->token->line_no;
         lvalue->column_no = parser->token->column_no;
@@ -3768,7 +3768,7 @@ static Ast* parse_lvalue(Parser* parser)
       }
       else if (parser->token->klass == TK_BRACKET_OPEN) {
         next_token(parser);
-        expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+        expr = (Ast*)parser->storage->malloc(sizeof(Ast));
         expr->kind = AST_arraySubscript;
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
@@ -3778,7 +3778,7 @@ static Ast* parse_lvalue(Parser* parser)
           next_token(parser);
         } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
-        lvalue = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+        lvalue = (Ast*)parser->storage->malloc(sizeof(Ast));
         lvalue->kind = AST_lvalueExpression;
         lvalue->line_no = parser->token->line_no;
         lvalue->column_no = parser->token->column_no;
@@ -3802,7 +3802,7 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
       if (parser->token->klass == TK_DOT) {
         next_token(parser);
         Ast* expr;
-        expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+        expr = (Ast*)parser->storage->malloc(sizeof(Ast));
         expr->kind = AST_memberSelector;
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
@@ -3811,14 +3811,14 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
           expr->memberSelector.name = parse_nonTypeName(parser);
         } else error("%s:%d:%d: error: non-type name was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
-        primary = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+        primary = (Ast*)parser->storage->malloc(sizeof(Ast));
         primary->kind = AST_expression;
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
       } else if (parser->token->klass == TK_BRACKET_OPEN) {
         next_token(parser);
-        expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+        expr = (Ast*)parser->storage->malloc(sizeof(Ast));
         expr->kind = AST_arraySubscript;
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
@@ -3828,14 +3828,14 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
           next_token(parser);
         } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
-        primary = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+        primary = (Ast*)parser->storage->malloc(sizeof(Ast));
         primary->kind = AST_expression;
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
       } else if (parser->token->klass == TK_PARENTH_OPEN) {
         next_token(parser);
-        expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+        expr = (Ast*)parser->storage->malloc(sizeof(Ast));
         expr->kind = AST_functionCall;
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
@@ -3845,20 +3845,20 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
           next_token(parser);
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
-        primary = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+        primary = (Ast*)parser->storage->malloc(sizeof(Ast));
         primary->kind = AST_expression;
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
       } else if (parser->token->klass == TK_EQUAL) {
         next_token(parser);
-        expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+        expr = (Ast*)parser->storage->malloc(sizeof(Ast));
         expr->kind = AST_assignmentStatement;
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
         expr->assignmentStatement.lhs_expr = primary;
         expr->assignmentStatement.rhs_expr = parse_expression(parser, 1);
-        primary = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+        primary = (Ast*)parser->storage->malloc(sizeof(Ast));
         primary->kind = AST_expression;
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
@@ -3866,7 +3866,7 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
       } else if (token_is_binaryOperator(parser->token)){
         int priority = operator_priority(parser->token);
         if (priority >= priority_threshold) {
-          expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+          expr = (Ast*)parser->storage->malloc(sizeof(Ast));
           expr->kind = AST_binaryExpression;
           expr->line_no = parser->token->line_no;
           expr->column_no = parser->token->column_no;
@@ -3875,7 +3875,7 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
           expr->binaryExpression.strname = parser->token->lexeme;
           next_token(parser);
           expr->binaryExpression.right_operand = parse_expression(parser, priority + 1);
-          primary = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+          primary = (Ast*)parser->storage->malloc(sizeof(Ast));
           primary->kind = AST_expression;
           primary->line_no = expr->line_no;
           primary->column_no = expr->column_no;
@@ -3895,7 +3895,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
   Ast* primary, *expr;
 
   if (token_is_expression(parser->token)) {
-    primary = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    primary = (Ast*)parser->storage->malloc(sizeof(Ast));
     primary->kind = AST_expression;
     primary->line_no = parser->token->line_no;
     primary->column_no = parser->token->column_no;
@@ -3941,7 +3941,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
         return primary;
       } else if (token_is_typeRef(parser->token)) {
-        expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+        expr = (Ast*)parser->storage->malloc(sizeof(Ast));
         expr->kind = AST_castExpression;
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
@@ -3965,7 +3965,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
       assert(0);
     } else if (parser->token->klass == TK_EXCLAMATION) {
       next_token(parser);
-      expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      expr = (Ast*)parser->storage->malloc(sizeof(Ast));
       expr->kind = AST_unaryExpression;
       expr->line_no = parser->token->line_no;
       expr->column_no = parser->token->column_no;
@@ -3976,7 +3976,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
       return primary;
     } else if (parser->token->klass == TK_TILDA) {
       next_token(parser);
-      expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      expr = (Ast*)parser->storage->malloc(sizeof(Ast));
       expr->kind = AST_unaryExpression;
       expr->line_no = parser->token->line_no;
       expr->column_no = parser->token->column_no;
@@ -3987,7 +3987,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
       return primary;
     } else if (parser->token->klass == TK_UNARY_MINUS) {
       next_token(parser);
-      expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      expr = (Ast*)parser->storage->malloc(sizeof(Ast));
       expr->kind = AST_unaryExpression;
       expr->line_no = parser->token->line_no;
       expr->column_no = parser->token->column_no;
@@ -4001,7 +4001,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
       return primary;
     } else if (parser->token->klass == TK_ERROR) {
       next_token(parser);
-      expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+      expr = (Ast*)parser->storage->malloc(sizeof(Ast));
       expr->kind = AST_name;
       expr->line_no = parser->token->line_no;
       expr->column_no = parser->token->column_no;
@@ -4021,7 +4021,7 @@ static Ast* parse_indexExpression(Parser* parser)
   Ast* index_expr;
 
   if (token_is_expression(parser->token)) {
-    index_expr = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    index_expr = (Ast*)parser->storage->malloc(sizeof(Ast));
     index_expr->kind = AST_indexExpression;
     index_expr->line_no = parser->token->line_no;
     index_expr->column_no = parser->token->column_no;
@@ -4045,7 +4045,7 @@ static Ast* parse_integer(Parser* parser)
   Ast* int_literal;
 
   if (parser->token->klass == TK_INTEGER_LITERAL) {
-    int_literal = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    int_literal = (Ast*)parser->storage->malloc(sizeof(Ast));
     int_literal->kind = AST_integerLiteral;
     int_literal->line_no = parser->token->line_no;
     int_literal->column_no = parser->token->column_no;
@@ -4065,7 +4065,7 @@ static Ast* parse_boolean(Parser* parser)
   Ast* bool_literal;
 
   if (parser->token->klass == TK_TRUE || parser->token->klass == TK_FALSE) {
-    bool_literal = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    bool_literal = (Ast*)parser->storage->malloc(sizeof(Ast));
     bool_literal->kind = AST_booleanLiteral;
     bool_literal->line_no = parser->token->line_no;
     bool_literal->column_no = parser->token->column_no;
@@ -4083,7 +4083,7 @@ static Ast* parse_string(Parser* parser)
   Ast* string_literal;
 
   if (parser->token->klass == TK_STRING_LITERAL) {
-    string_literal = (Ast*)arena_malloc(parser->storage, sizeof(Ast));
+    string_literal = (Ast*)parser->storage->malloc(sizeof(Ast));
     string_literal->kind = AST_stringLiteral;
     string_literal->line_no = parser->token->line_no;
     string_literal->column_no = parser->token->column_no;

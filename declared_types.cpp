@@ -191,7 +191,7 @@ static void define_builtin_types(TypeChecker* checker)
     params_ty = (Type*)array_append(checker->type_array, sizeof(Type));
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
-    params_ty->product.members = (Type**)arena_malloc(checker->storage, params_ty->product.count * sizeof(Type*));
+    params_ty->product.members = (Type**)checker->storage->malloc(params_ty->product.count * sizeof(Type*));
     params_ty->product.members[0] = checker->root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
     params_ty->product.members[1] = checker->root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
@@ -206,7 +206,7 @@ static void define_builtin_types(TypeChecker* checker)
     params_ty = (Type*)array_append(checker->type_array, sizeof(Type));
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
-    params_ty->product.members = (Type**)arena_malloc(checker->storage, params_ty->product.count * sizeof(Type*));
+    params_ty->product.members = (Type**)checker->storage->malloc(params_ty->product.count * sizeof(Type*));
     params_ty->product.members[0] = checker->root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
     params_ty->product.members[1] = checker->root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
@@ -221,7 +221,7 @@ static void define_builtin_types(TypeChecker* checker)
     params_ty = (Type*)array_append(checker->type_array, sizeof(Type));
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
-    params_ty->product.members = (Type**)arena_malloc(checker->storage, params_ty->product.count * sizeof(Type*));
+    params_ty->product.members = (Type**)checker->storage->malloc(params_ty->product.count * sizeof(Type*));
     params_ty->product.members[0] = checker->root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
     params_ty->product.members[1] = checker->root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
@@ -236,7 +236,7 @@ static void define_builtin_types(TypeChecker* checker)
     params_ty = (Type*)array_append(checker->type_array, sizeof(Type));
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
-    params_ty->product.members = (Type**)arena_malloc(checker->storage, params_ty->product.count * sizeof(Type*));
+    params_ty->product.members = (Type**)checker->storage->malloc(params_ty->product.count * sizeof(Type*));
     params_ty->product.members[0] = checker->root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
     params_ty->product.members[1] = checker->root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
@@ -476,7 +476,7 @@ void declared_types(TypeChecker* checker)
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  checker->type_env = (Map*)arena_malloc(checker->storage, sizeof(Map));
+  checker->type_env = (Map*)checker->storage->malloc(sizeof(Map));
   checker->type_env->storage = checker->storage;
   checker->type_equiv_pairs = array_create(checker->storage, sizeof(Type), 2);
 
@@ -605,7 +605,7 @@ static void visit_parameterList(TypeChecker* checker, Ast* params)
     params_ty->product.count += 1;
   }
   if (params_ty->product.count > 0) {
-    params_ty->product.members = (Type**)arena_malloc(checker->storage, params_ty->product.count * sizeof(Type*));
+    params_ty->product.members = (Type**)checker->storage->malloc(params_ty->product.count * sizeof(Type*));
   }
   i = 0;
   for (ast = params->tree.first_child;
@@ -970,7 +970,7 @@ static void visit_externTypeDeclaration(TypeChecker* checker, Ast* type_decl)
     }
   }
   if (ctors_ty->product.count > 0) {
-    ctors_ty->product.members = (Type**)arena_malloc(checker->storage, ctors_ty->product.count * sizeof(Type*));
+    ctors_ty->product.members = (Type**)checker->storage->malloc(ctors_ty->product.count * sizeof(Type*));
   }
   for (int i = 0; i < methods_ty->product.count; i++) {
     if (cstr_match(methods_ty->product.members[i]->strname, name->name.strname)) {
@@ -998,7 +998,7 @@ static void visit_methodPrototypes(TypeChecker* checker, Ast* protos, Type* ctor
     methods_ty->product.count += 1;
   }
   if (methods_ty->product.count > 0) {
-    methods_ty->product.members = (Type**)arena_malloc(checker->storage, methods_ty->product.count * sizeof(Type*));
+    methods_ty->product.members = (Type**)checker->storage->malloc(methods_ty->product.count * sizeof(Type*));
   }
   i = 0;
   for (ast = protos->tree.first_child;
@@ -1211,7 +1211,7 @@ static void visit_typeArgumentList(TypeChecker* checker, Ast* args)
     args_ty->product.count += 1;
   }
   if (args_ty->product.count > 0) {
-    args_ty->product.members = (Type**)arena_malloc(checker->storage, args_ty->product.count * sizeof(Type*));
+    args_ty->product.members = (Type**)checker->storage->malloc(args_ty->product.count * sizeof(Type*));
   }
   i = 0;
   for (ast = args->tree.first_child;
@@ -1334,7 +1334,7 @@ static void visit_structFieldList(TypeChecker* checker, Ast* fields)
     fields_ty->product.count += 1;
   }
   if (fields_ty->product.count > 0) {
-    fields_ty->product.members = (Type**)arena_malloc(checker->storage, fields_ty->product.count * sizeof(Type*));
+    fields_ty->product.members = (Type**)checker->storage->malloc(fields_ty->product.count * sizeof(Type*));
   }
   i = 0;
   for (ast = fields->tree.first_child;
@@ -1393,7 +1393,7 @@ static void visit_errorDeclaration(TypeChecker* checker, Ast* error_decl)
   fields_ty = error_ty->enum_.fields;
   if (error_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = error_ty->enum_.field_count;
-    fields_ty->product.members = (Type**)arena_malloc(checker->storage, fields_ty->product.count * sizeof(Type*));
+    fields_ty->product.members = (Type**)checker->storage->malloc(fields_ty->product.count * sizeof(Type*));
   }
   visit_identifierList(checker, error_decl->errorDeclaration.fields, error_ty,
       error_ty->enum_.fields, &error_ty->enum_.i);
@@ -1408,7 +1408,7 @@ static void visit_matchKindDeclaration(TypeChecker* checker, Ast* match_decl)
   fields_ty = match_kind_ty->enum_.fields;
   if (match_kind_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = match_kind_ty->enum_.field_count;
-    fields_ty->product.members = (Type**)arena_malloc(checker->storage, fields_ty->product.count * sizeof(Type*));
+    fields_ty->product.members = (Type**)checker->storage->malloc(fields_ty->product.count * sizeof(Type*));
   }
   visit_identifierList(checker, match_decl->matchKindDeclaration.fields, match_kind_ty,
       match_kind_ty->enum_.fields, &match_kind_ty->enum_.i);
@@ -1455,7 +1455,7 @@ static void visit_specifiedIdentifierList(TypeChecker* checker, Ast* ident_list,
     idents_ty->product.count += 1;
   }
   if (idents_ty->product.count > 0) {
-    idents_ty->product.members = (Type**)arena_malloc(checker->storage, idents_ty->product.count * sizeof(Type*));
+    idents_ty->product.members = (Type**)checker->storage->malloc(idents_ty->product.count * sizeof(Type*));
   }
   i = 0;
   for (ast = ident_list->tree.first_child;

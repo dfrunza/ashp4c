@@ -78,7 +78,7 @@ static char* lexeme_to_cstring(Arena* storage, Lexeme* lexeme)
   char* string;
 
   len = lexeme_len(lexeme);
-  string = (char*)arena_malloc(storage, (len + 1)*sizeof(char));   // +1 the NULL terminator
+  string = (char*)storage->malloc((len + 1)*sizeof(char));   // +1 the NULL terminator
   lexeme_copy(string, lexeme);
   string[len] = '\0';
   return string;

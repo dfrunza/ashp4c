@@ -34,10 +34,11 @@ typedef struct Arena {
   PageBlock* owned_pages;
   void* memory_avail;
   void* memory_limit;
+
+  static void reserve_memory(int amount);
+  void* malloc(uint32_t size);
 } Arena;
 
-void reserve_memory(int amount);
-void* arena_malloc(Arena* arena, uint32_t size);
 void arena_free(Arena* arena);
 
 /**

@@ -424,7 +424,7 @@ static void visit_simpleKeysetExpression(TypeChecker* checker, Ast* simple_expr,
     simple_ty->ty_former = TypeEnum::PRODUCT;
     simple_ty->ast = simple_expr;
     simple_ty->product.count = 1;
-    simple_ty->product.members = (Type**)arena_malloc(checker->storage, simple_ty->product.count * sizeof(Type*));
+    simple_ty->product.members = (Type**)checker->storage->malloc(simple_ty->product.count * sizeof(Type*));
     simple_ty->product.members[0] = (Type*)map_lookup(checker->type_env, simple_expr->simpleKeysetExpression.expr, 0);
     map_insert(checker->type_env, simple_expr, simple_ty, 0);
   }
@@ -446,7 +446,7 @@ static void visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list, Typ
     list_ty->product.count += 1;
   }
   if (list_ty->product.count > 0) {
-    list_ty->product.members = (Type**)arena_malloc(checker->storage, list_ty->product.count * sizeof(Type*));
+    list_ty->product.members = (Type**)checker->storage->malloc(list_ty->product.count * sizeof(Type*));
   }
   i = 0;
   for (ast = expr_list->tree.first_child;
@@ -1171,7 +1171,7 @@ static void visit_expressionList(TypeChecker* checker, Ast* expr_list, Type* req
     list_ty->product.count += 1;
   }
   if (list_ty->product.count > 0) {
-    list_ty->product.members = (Type**)arena_malloc(checker->storage, list_ty->product.count * sizeof(Type*));
+    list_ty->product.members = (Type**)checker->storage->malloc(list_ty->product.count * sizeof(Type*));
   }
   i = 0;
   for (ast = expr_list->tree.first_child;

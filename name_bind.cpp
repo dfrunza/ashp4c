@@ -180,7 +180,7 @@ static void define_builtin_names(NameBinder* name_binder)
   Type* ty;
 
   for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
-    name = (Ast*)arena_malloc(name_binder->storage, sizeof(Ast));
+    name = (Ast*)name_binder->storage->malloc(sizeof(Ast));
     name->kind = AST_name;
     name->name.strname = builtin_names[i].strname;
     name_decl = name_binder->root_scope->bind(name_binder->storage, name->name.strname, builtin_names[i].ns);
@@ -253,7 +253,7 @@ char* NameSpace_to_string(enum NameSpace ns)
 void name_bind(NameBinder* name_binder)
 {
   name_binder->current_scope = name_binder->root_scope;
-  name_binder->decl_map = (Map*)arena_malloc(name_binder->storage, sizeof(Map));
+  name_binder->decl_map = (Map*)name_binder->storage->malloc(sizeof(Map));
   name_binder->decl_map->storage = name_binder->storage;
   name_binder->type_array = (Array*)array_create(name_binder->storage, sizeof(Type), 5);
   define_builtin_names(name_binder);

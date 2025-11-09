@@ -140,7 +140,7 @@ static void visit_dontcare(ScopeBuilder* scope_builder, Ast* dontcare);
 void scope_hierarchy(ScopeBuilder* scope_builder)
 {
   scope_builder->current_scope = scope_builder->root_scope;
-  scope_builder->scope_map = (Map*)arena_malloc(scope_builder->storage, sizeof(Map));
+  scope_builder->scope_map = (Map*)scope_builder->storage->malloc(sizeof(Map));
   scope_builder->scope_map->storage = scope_builder->storage;
   visit_p4program(scope_builder, scope_builder->p4program);
   assert(scope_builder->current_scope == scope_builder->root_scope);

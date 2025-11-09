@@ -13,12 +13,12 @@
 static int page_size = 0;
 static int total_page_count = 0;
 static void* page_memory_start = 0;
-static Arena storage = {0};
+static Arena storage = {};
 static PageBlock* first_block = 0;
 static PageBlock* block_freelist_head = 0;
 static PageBlock* recycled_block_structs = 0;
 
-void reserve_memory(int amount)
+void Arena::reserve_memory(int amount)
 {
   page_size = getpagesize();
   total_page_count = ceil(amount / page_size);
@@ -153,7 +153,7 @@ static PageBlock* get_new_block_struct()
   if (block) {
     recycled_block_structs = block->next_block;
   } else {
-    block = (PageBlock*)arena_malloc(&storage, sizeof(PageBlock));
+    block = (PageBlock*)storage.malloc(sizeof(PageBlock));
   }
   memset(block, 0, sizeof(PageBlock));
   return block;
@@ -194,17 +194,17 @@ static void arena_grow(Arena* arena, uint32_t size)
   arena->owned_pages = block_insert_and_coalesce(arena->owned_pages, alloc_block);
 }
 
-void* arena_malloc(Arena* arena, uint32_t size)
+void* Arena::malloc(uint32_t size)
 {
   assert(size > 0);
   uint8_t* user_memory;
 
-  user_memory = (uint8_t*)arena->memory_avail;
-  if (user_memory + size >= (uint8_t*)arena->memory_limit) {
-    arena_grow(arena, size);
-    user_memory = (uint8_t*)arena->memory_avail;
+  user_memory = (uint8_t*)this->memory_avail;
+  if (user_memory + size >= (uint8_t*)this->memory_limit) {
+    arena_grow(this, size);
+    user_memory = (uint8_t*)this->memory_avail;
   }
-  arena->memory_avail = user_memory + size;
+  this->memory_avail = user_memory + size;
   if (ZMEM_ON_ALLOC) {
     memset(user_memory, 0, size);
   }

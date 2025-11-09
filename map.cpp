@@ -20,7 +20,7 @@ static MapEntry* insert_entry(Map* map, MapEntry** branch, MapEntry* entry,
     void* key, void* value, bool return_if_found)
 {
   if (!entry) {
-    entry = (MapEntry*)arena_malloc(map->storage, sizeof(MapEntry));
+    entry = (MapEntry*)map->storage->malloc(sizeof(MapEntry));
     *branch = entry;
     entry->key = key;
     entry->value = value;

@@ -17,7 +17,7 @@ void array_extend(Array* array, int elem_size)
     exit(1);
   }
   segment_capacity = 16 * (1 << last_segment);
-  array->data.segments[last_segment] = arena_malloc(array->storage, elem_size * segment_capacity);
+  array->data.segments[last_segment] = array->storage->malloc(elem_size * segment_capacity);
   array->capacity = 16 * ((1 << (last_segment + 1)) - 1);
 }
 
@@ -27,7 +27,7 @@ Array* array_create(Arena* storage, int elem_size, int segment_count)
   assert(segment_count >= 1 && segment_count <= 16);
   Array* array;
 
-  array = (Array*)arena_malloc(storage, sizeof(Array) + sizeof(void*) * segment_count);
+  array = (Array*)storage->malloc(sizeof(Array) + sizeof(void*) * segment_count);
   array->storage = storage;
   array_init(array->storage, array, elem_size, segment_count);
   return array;
@@ -42,7 +42,7 @@ void array_init(Arena* storage, Array* array, int elem_size, int segment_count)
   array->elem_count = 0;
   array->capacity = 16;
   array->data.segment_count = segment_count;
-  array->data.segments[0] = arena_malloc(array->storage, 16 * elem_size);
+  array->data.segments[0] = array->storage->malloc(16 * elem_size);
 }
 
 void* segment_locate_cell(SegmentTable* data, int i, int elem_size)
