@@ -233,14 +233,14 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 2:
       {
-        token->klass = TK_END_OF_INPUT;
+        token->klass = TokenClass::END_OF_INPUT;
         token->lexeme = "<end-of-input>";
         lexer->state = 0;
       } break;
 
       case 3:
       {
-        token->klass = TK_UNKNOWN;
+        token->klass = TokenClass::UNKNOWN;
         token->lexeme = "<unknown>";
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -249,7 +249,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 4:
       {
-        token->klass = TK_LEXICAL_ERROR;
+        token->klass = TokenClass::LEXICAL_ERROR;
         token->lexeme = "<error>";
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -258,7 +258,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 100:
       {
-        token->klass = TK_SEMICOLON;
+        token->klass = TokenClass::SEMICOLON;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -269,12 +269,12 @@ static void next_token(Lexer* lexer, Token* token)
       {
         if (char_lookahead(lexer, 1) == '=') {
           char_advance(lexer, 1);
-          token->klass = TK_ANGLE_OPEN_EQUAL;
+          token->klass = TokenClass::ANGLE_OPEN_EQUAL;
         } else if (char_lookahead(lexer, 1) == '<') {
           char_advance(lexer, 1);
-          token->klass = TK_DOUBLE_ANGLE_OPEN;
+          token->klass = TokenClass::DOUBLE_ANGLE_OPEN;
         } else {
-          token->klass = TK_ANGLE_OPEN;
+          token->klass = TokenClass::ANGLE_OPEN;
         }
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
@@ -286,12 +286,12 @@ static void next_token(Lexer* lexer, Token* token)
       {
         if (char_lookahead(lexer, 1) == '=') {
           char_advance(lexer, 1);
-          token->klass = TK_ANGLE_CLOSE_EQUAL;
+          token->klass = TokenClass::ANGLE_CLOSE_EQUAL;
         } else if (char_lookahead(lexer, 1) == '>') {
           char_advance(lexer, 1);
-          token->klass = TK_DOUBLE_ANGLE_CLOSE;
+          token->klass = TokenClass::DOUBLE_ANGLE_CLOSE;
         } else {
-          token->klass = TK_ANGLE_CLOSE;
+          token->klass = TokenClass::ANGLE_CLOSE;
         }
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
@@ -305,7 +305,7 @@ static void next_token(Lexer* lexer, Token* token)
         if (cstr_is_letter(cc) || cstr_is_digit(cc, 10) || cc == '_') {
           lexer->state = 500;
         } else {
-          token->klass = TK_DONTCARE;
+          token->klass = TokenClass::DONTCARE;
           token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
           token->column_no = lexer->lexeme->start - lexer->line_start + 1;
           lexeme_advance(lexer);
@@ -315,7 +315,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 104:
       {
-        token->klass = TK_COLON;
+        token->klass = TokenClass::COLON;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -324,7 +324,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 105:
       {
-        token->klass = TK_PARENTH_OPEN;
+        token->klass = TokenClass::PARENTH_OPEN;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -334,7 +334,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 106:
       {
-        token->klass = TK_PARENTH_CLOSE;
+        token->klass = TokenClass::PARENTH_CLOSE;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -343,7 +343,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 107:
       {
-        token->klass = TK_DOT;
+        token->klass = TokenClass::DOT;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -352,7 +352,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 108:
       {
-        token->klass = TK_BRACE_OPEN;
+        token->klass = TokenClass::BRACE_OPEN;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -361,7 +361,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 109:
       {
-        token->klass = TK_BRACE_CLOSE;
+        token->klass = TokenClass::BRACE_CLOSE;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -370,7 +370,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 110:
       {
-        token->klass = TK_BRACKET_OPEN;
+        token->klass = TokenClass::BRACKET_OPEN;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -379,7 +379,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 111:
       {
-        token->klass = TK_BRACKET_CLOSE;
+        token->klass = TokenClass::BRACKET_CLOSE;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -388,7 +388,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 112:
       {
-        token->klass = TK_COMMA;
+        token->klass = TokenClass::COMMA;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -398,10 +398,10 @@ static void next_token(Lexer* lexer, Token* token)
       case 113:
       {
         prev_token = (Token*)lexer->tokens->get(lexer->tokens->elem_count - 1, sizeof(Token));
-        if (prev_token->klass == TK_PARENTH_OPEN) {
-          token->klass = TK_UNARY_MINUS;
+        if (prev_token->klass == TokenClass::PARENTH_OPEN) {
+          token->klass = TokenClass::UNARY_MINUS;
         } else {
-          token->klass = TK_MINUS;
+          token->klass = TokenClass::MINUS;
         }
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
@@ -411,7 +411,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 114:
       {
-        token->klass = TK_PLUS;
+        token->klass = TokenClass::PLUS;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -420,7 +420,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 115:
       {
-        token->klass = TK_STAR;
+        token->klass = TokenClass::STAR;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -435,7 +435,7 @@ static void next_token(Lexer* lexer, Token* token)
         } else if (char_lookahead(lexer, 1) == '/') {
           lexer->state = 311;
         } else {
-          token->klass = TK_SLASH;
+          token->klass = TokenClass::SLASH;
           token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
           token->column_no = lexer->lexeme->start - lexer->line_start + 1;
           lexeme_advance(lexer);
@@ -447,9 +447,9 @@ static void next_token(Lexer* lexer, Token* token)
       {
         if (char_lookahead(lexer, 1) == '=') {
           char_advance(lexer, 1);
-          token->klass = TK_DOUBLE_EQUAL;
+          token->klass = TokenClass::DOUBLE_EQUAL;
         } else {
-          token->klass = TK_EQUAL;
+          token->klass = TokenClass::EQUAL;
         }
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
@@ -461,9 +461,9 @@ static void next_token(Lexer* lexer, Token* token)
       {
         if (char_lookahead(lexer, 1) == '=') {
           char_advance(lexer, 1);
-          token->klass = TK_EXCLAMATION_EQUAL;
+          token->klass = TokenClass::EXCLAMATION_EQUAL;
         } else {
-          token->klass = TK_EXCLAMATION;
+          token->klass = TokenClass::EXCLAMATION;
         }
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
@@ -477,12 +477,12 @@ static void next_token(Lexer* lexer, Token* token)
           char_advance(lexer, 1);
           if (char_lookahead(lexer, 1) == '&') {
             char_advance(lexer, 1);
-            token->klass = TK_TRIPLE_AMPERSAND;
+            token->klass = TokenClass::TRIPLE_AMPERSAND;
           } else {
-            token->klass = TK_DOUBLE_AMPERSAND;
+            token->klass = TokenClass::DOUBLE_AMPERSAND;
           }
         } else {
-          token->klass = TK_AMPERSAND;
+          token->klass = TokenClass::AMPERSAND;
         }
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
@@ -494,9 +494,9 @@ static void next_token(Lexer* lexer, Token* token)
       {
         if (char_lookahead(lexer, 1) == '|') {
           char_advance(lexer, 1);
-          token->klass = TK_DOUBLE_PIPE;
+          token->klass = TokenClass::DOUBLE_PIPE;
         } else {
-          token->klass = TK_PIPE;
+          token->klass = TokenClass::PIPE;
         }
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
@@ -506,7 +506,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 121:
       {
-        token->klass = TK_CIRCUMFLEX;
+        token->klass = TokenClass::CIRCUMFLEX;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -515,7 +515,7 @@ static void next_token(Lexer* lexer, Token* token)
 
       case 122:
       {
-        token->klass = TK_TILDA;
+        token->klass = TokenClass::TILDA;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -534,7 +534,7 @@ static void next_token(Lexer* lexer, Token* token)
           }
         } while (c != '"');
 
-        token->klass = TK_STRING_LITERAL;
+        token->klass = TokenClass::STRING_LITERAL;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -570,7 +570,7 @@ static void next_token(Lexer* lexer, Token* token)
 
         if (char_lookahead(lexer, 1) == '/') {
           char_advance(lexer, 1);
-          token->klass = TK_COMMENT;
+          token->klass = TokenClass::COMMENT;
           token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
           lexeme_advance(lexer);
           lexer->line_start = lexer->lexeme->start;
@@ -587,7 +587,7 @@ static void next_token(Lexer* lexer, Token* token)
         } while (c != '\n' && c != '\r');
 
         lexer->line_no += 1;
-        token->klass = TK_COMMENT;
+        token->klass = TokenClass::COMMENT;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         lexeme_advance(lexer);
         lexer->line_start = lexer->lexeme->start;
@@ -624,7 +624,7 @@ static void next_token(Lexer* lexer, Token* token)
           c = char_advance(lexer, 1);
         } while (cstr_is_digit(c, 10));
         if (c == 'w' || c == 's') {
-          token->klass = TK_INTEGER_LITERAL;
+          token->klass = TokenClass::INTEGER_LITERAL;
           if (c == 's') {
             token->integer.is_signed = 1;
           }
@@ -635,7 +635,7 @@ static void next_token(Lexer* lexer, Token* token)
         } else {
           char_retract(lexer);
           lexer->lexeme[1].end = lexer->lexeme->end;
-          token->klass = TK_INTEGER_LITERAL;
+          token->klass = TokenClass::INTEGER_LITERAL;
           token->integer.is_signed = 1;
           token_install_integer(lexer, token, &lexer->lexeme[1], 10);
           token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
@@ -655,7 +655,7 @@ static void next_token(Lexer* lexer, Token* token)
         } while (cstr_is_digit(c, 16) || c == '_');
         char_retract(lexer);
         lexer->lexeme[1].end = lexer->lexeme->end;
-        token->klass = TK_INTEGER_LITERAL;
+        token->klass = TokenClass::INTEGER_LITERAL;
         token->integer.is_signed = 1;
         token_install_integer(lexer, token, &lexer->lexeme[1], 16);
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
@@ -674,7 +674,7 @@ static void next_token(Lexer* lexer, Token* token)
         } while (cstr_is_digit(c, 8) || c == '_');
         char_retract(lexer);
         lexer->lexeme[1].end = lexer->lexeme->end;
-        token->klass = TK_INTEGER_LITERAL;
+        token->klass = TokenClass::INTEGER_LITERAL;
         token->integer.is_signed = 1;
         token_install_integer(lexer, token, &lexer->lexeme[1], 8);
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
@@ -693,7 +693,7 @@ static void next_token(Lexer* lexer, Token* token)
         } while (cstr_is_digit(c, 2) || c == '_');
         char_retract(lexer);
         lexer->lexeme[1].end = lexer->lexeme->end;
-        token->klass = TK_INTEGER_LITERAL;
+        token->klass = TokenClass::INTEGER_LITERAL;
         token->integer.is_signed = 1;
         token_install_integer(lexer, token, &lexer->lexeme[1], 2);
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
@@ -797,7 +797,7 @@ static void next_token(Lexer* lexer, Token* token)
           c = char_advance(lexer, 1);
         } while (cstr_is_letter(c) || cstr_is_digit(c, 10) || c == '_');
         char_retract(lexer);
-        token->klass = TK_IDENTIFIER;
+        token->klass = TokenClass::IDENTIFIER;
         token->lexeme = lexeme_to_cstring(lexer->storage, lexer->lexeme);
         token->column_no = lexer->lexeme->start - lexer->line_start + 1;
         lexeme_advance(lexer);
@@ -820,16 +820,16 @@ tokenize(Lexer* lexer, SourceText* source_text)
   lexer->line_start = lexer->text;
   lexer->line_no = 1;
 
-  token.klass = TK_START_OF_INPUT;
+  token.klass = TokenClass::START_OF_INPUT;
   lexer->tokens = Array::create(lexer->storage, sizeof(Token), 7);
   *(Token*)lexer->tokens->append(sizeof(Token)) = token;
 
   next_token(lexer, &token);
   *(Token*)lexer->tokens->append(sizeof(Token)) = token;
-  while (token.klass != TK_END_OF_INPUT) {
-    if (token.klass == TK_UNKNOWN) {
+  while (token.klass != TokenClass::END_OF_INPUT) {
+    if (token.klass == TokenClass::UNKNOWN) {
       error("%s:%d:%d: error: unknown token.", lexer->filename, token.line_no, token.column_no);
-    } else if (token.klass == TK_LEXICAL_ERROR) {
+    } else if (token.klass == TokenClass::LEXICAL_ERROR) {
       error("%s:%d:%d: error: lexical error.", lexer->filename, token.line_no, token.column_no);
     }
     next_token(lexer, &token);

@@ -134,45 +134,45 @@ static Ast* parse_string(Parser* parser);
 static void define_keywords(Parser* parser, Scope* scope)
 {
   struct Keyword keywords[] = {
-    {"action",  TK_ACTION},
-    {"actions", TK_ACTIONS},
-    {"entries", TK_ENTRIES},
-    {"enum",    TK_ENUM},
-    {"in",      TK_IN},
-    {"package", TK_PACKAGE},
-    {"select",  TK_SELECT},
-    {"switch",  TK_SWITCH},
-    {"tuple",   TK_TUPLE},
-    {"control", TK_CONTROL},
-    {"error",   TK_ERROR},
-    {"header",  TK_HEADER},
-    {"inout",   TK_INOUT},
-    {"parser",  TK_PARSER},
-    {"state",   TK_STATE},
-    {"table",   TK_TABLE},
-    {"key",     TK_KEY},
-    {"typedef", TK_TYPEDEF},
-    {"default", TK_DEFAULT},
-    {"extern",  TK_EXTERN},
-    {"out",     TK_OUT},
-    {"else",    TK_ELSE},
-    {"exit",    TK_EXIT},
-    {"if",      TK_IF},
-    {"return",  TK_RETURN},
-    {"struct",  TK_STRUCT},
-    {"apply",   TK_APPLY},
-    {"const",   TK_CONST},
-    {"bool",    TK_BOOL},
-    {"true",    TK_TRUE},
-    {"false",   TK_FALSE},
-    {"void",    TK_VOID},
-    {"int",     TK_INT},
-    {"bit",     TK_BIT},
-    {"varbit",  TK_VARBIT},
-    {"string",  TK_STRING},
-    {"match_kind",   TK_MATCH_KIND},
-    {"transition",   TK_TRANSITION},
-    {"header_union", TK_UNION},
+    {"action",  TokenClass::ACTION},
+    {"actions", TokenClass::ACTIONS},
+    {"entries", TokenClass::ENTRIES},
+    {"enum",    TokenClass::ENUM},
+    {"in",      TokenClass::IN},
+    {"package", TokenClass::PACKAGE},
+    {"select",  TokenClass::SELECT},
+    {"switch",  TokenClass::SWITCH},
+    {"tuple",   TokenClass::TUPLE},
+    {"control", TokenClass::CONTROL},
+    {"error",   TokenClass::ERROR},
+    {"header",  TokenClass::HEADER},
+    {"inout",   TokenClass::INOUT},
+    {"parser",  TokenClass::PARSER},
+    {"state",   TokenClass::STATE},
+    {"table",   TokenClass::TABLE},
+    {"key",     TokenClass::KEY},
+    {"typedef", TokenClass::TYPEDEF},
+    {"default", TokenClass::DEFAULT},
+    {"extern",  TokenClass::EXTERN},
+    {"out",     TokenClass::OUT},
+    {"else",    TokenClass::ELSE},
+    {"exit",    TokenClass::EXIT},
+    {"if",      TokenClass::IF},
+    {"return",  TokenClass::RETURN},
+    {"struct",  TokenClass::STRUCT},
+    {"apply",   TokenClass::APPLY},
+    {"const",   TokenClass::CONST},
+    {"bool",    TokenClass::BOOL},
+    {"true",    TokenClass::TRUE},
+    {"false",   TokenClass::FALSE},
+    {"void",    TokenClass::VOID},
+    {"int",     TokenClass::INT},
+    {"bit",     TokenClass::BIT},
+    {"varbit",  TokenClass::VARBIT},
+    {"string",  TokenClass::STRING},
+    {"match_kind",   TokenClass::MATCH_KIND},
+    {"transition",   TokenClass::TRANSITION},
+    {"header_union", TokenClass::UNION},
   };
   NameDeclaration* name_decl;
 
@@ -191,10 +191,10 @@ static Token* next_token(Parser* parser)
   parser->prev_token = parser->token;
   parser->prev_token_at = parser->token_at;
   parser->token = (Token*)parser->tokens->get(++parser->token_at, sizeof(Token));
-  while (parser->token->klass == TK_COMMENT) {
+  while (parser->token->klass == TokenClass::COMMENT) {
     parser->token = (Token*)parser->tokens->get(++parser->token_at, sizeof(Token));
   }
-  if (parser->token->klass == TK_IDENTIFIER) {
+  if (parser->token->klass == TokenClass::IDENTIFIER) {
     name_entry = parser->current_scope->lookup(parser->token->lexeme, NameSpace::KEYWORD | NameSpace::TYPE);
     name_decl = name_entry->ns[(int)NameSpace::KEYWORD >> 1];
     if (name_decl) {
@@ -203,7 +203,7 @@ static Token* next_token(Parser* parser)
     }
     name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
     if (name_decl) {
-      parser->token->klass = TK_TYPE_IDENTIFIER;
+      parser->token->klass = TokenClass::TYPE_IDENTIFIER;
       return parser->token;
     }
   }
@@ -224,46 +224,46 @@ static Token* peek_token(Parser* parser)
 
 static bool token_is_nonTypeName(Token* token)
 {
-  bool result = token->klass == TK_IDENTIFIER || token->klass == TK_APPLY || token->klass == TK_KEY
-    || token->klass == TK_ACTIONS || token->klass == TK_STATE || token->klass == TK_ENTRIES;
+  bool result = token->klass == TokenClass::IDENTIFIER || token->klass == TokenClass::APPLY || token->klass == TokenClass::KEY
+    || token->klass == TokenClass::ACTIONS || token->klass == TokenClass::STATE || token->klass == TokenClass::ENTRIES;
   return result;
 }
 
 static bool token_is_name(Token* token)
 {
-  bool result = token_is_nonTypeName(token) || token->klass == TK_TYPE_IDENTIFIER;
+  bool result = token_is_nonTypeName(token) || token->klass == TokenClass::TYPE_IDENTIFIER;
   return result;
 }
 
 static bool token_is_typeName(Token* token)
 {
-  return token->klass == TK_TYPE_IDENTIFIER;
+  return token->klass == TokenClass::TYPE_IDENTIFIER;
 }
 
 static bool token_is_nonTableKwName(Token* token)
 {
-  bool result = token->klass == TK_IDENTIFIER || token->klass == TK_TYPE_IDENTIFIER
-    || token->klass == TK_APPLY || token->klass == TK_STATE;
+  bool result = token->klass == TokenClass::IDENTIFIER || token->klass == TokenClass::TYPE_IDENTIFIER
+    || token->klass == TokenClass::APPLY || token->klass == TokenClass::STATE;
   return result;
 }
 
 static bool token_is_baseType(Token* token)
 {
-  bool result = token->klass == TK_BOOL || token->klass == TK_ERROR || token->klass == TK_INT
-    || token->klass == TK_BIT || token->klass == TK_VARBIT || token->klass == TK_STRING
-    || token->klass == TK_VOID;
+  bool result = token->klass == TokenClass::BOOL || token->klass == TokenClass::ERROR || token->klass == TokenClass::INT
+    || token->klass == TokenClass::BIT || token->klass == TokenClass::VARBIT || token->klass == TokenClass::STRING
+    || token->klass == TokenClass::VOID;
   return result;
 }
 
 static bool token_is_typeRef(Token* token)
 {
-  bool result = token_is_baseType(token) || token->klass == TK_TYPE_IDENTIFIER || token->klass == TK_TUPLE;
+  bool result = token_is_baseType(token) || token->klass == TokenClass::TYPE_IDENTIFIER || token->klass == TokenClass::TUPLE;
   return result;
 }
 
 static bool token_is_direction(Token* token)
 {
-  bool result = token->klass == TK_IN || token->klass == TK_OUT || token->klass == TK_INOUT;
+  bool result = token->klass == TokenClass::IN || token->klass == TokenClass::OUT || token->klass == TokenClass::INOUT;
   return result;
 }
 
@@ -275,41 +275,41 @@ static bool token_is_parameter(Token* token)
 
 static bool token_is_derivedTypeDeclaration(Token* token)
 {
-  bool result = token->klass == TK_HEADER || token->klass == TK_UNION || token->klass == TK_STRUCT
-    || token->klass == TK_ENUM;
+  bool result = token->klass == TokenClass::HEADER || token->klass == TokenClass::UNION || token->klass == TokenClass::STRUCT
+    || token->klass == TokenClass::ENUM;
   return result;
 }
 
 static bool token_is_typeDeclaration(Token* token)
 {
-  bool result = token_is_derivedTypeDeclaration(token) || token->klass == TK_TYPEDEF
-    || token->klass == TK_PARSER || token->klass == TK_CONTROL || token->klass == TK_PACKAGE;
+  bool result = token_is_derivedTypeDeclaration(token) || token->klass == TokenClass::TYPEDEF
+    || token->klass == TokenClass::PARSER || token->klass == TokenClass::CONTROL || token->klass == TokenClass::PACKAGE;
   return result;
 }
 
 static bool token_is_typeArg(Token* token)
 {
-  bool result = token->klass == TK_DONTCARE || token_is_typeRef(token) || token_is_nonTypeName(token);
+  bool result = token->klass == TokenClass::DONTCARE || token_is_typeRef(token) || token_is_nonTypeName(token);
   return result;
 }
 
 static bool token_is_typeOrVoid(Token* token)
 {
-  bool result = token_is_typeRef(token) || token->klass == TK_VOID || token->klass == TK_IDENTIFIER;
+  bool result = token_is_typeRef(token) || token->klass == TokenClass::VOID || token->klass == TokenClass::IDENTIFIER;
   return result;
 }
 
 static bool token_is_actionRef(Token* token)
 {
-  bool result = token_is_nonTypeName(token) || token->klass == TK_PARENTH_OPEN;
+  bool result = token_is_nonTypeName(token) || token->klass == TokenClass::PARENTH_OPEN;
   return result;
 }
 
 static bool token_is_tableProperty(Token* token)
 {
-  bool result = token->klass == TK_KEY || token->klass == TK_ACTIONS;
+  bool result = token->klass == TokenClass::KEY || token->klass == TokenClass::ACTIONS;
 #if 0
-    || token->klass == TK_CONST || token->klass == TK_ENTRIES
+    || token->klass == TokenClass::CONST || token->klass == TokenClass::ENTRIES
     || token_is_nonTableKwName(token);
 #endif
   return result;
@@ -317,17 +317,17 @@ static bool token_is_tableProperty(Token* token)
 
 static bool token_is_switchLabel(Token* token)
 {
-  bool result = token_is_name(token) || token->klass == TK_DEFAULT;
+  bool result = token_is_name(token) || token->klass == TokenClass::DEFAULT;
   return result;
 }
 
 static bool token_is_expressionPrimary(Token* token)
 {
-  bool result = token->klass == TK_INTEGER_LITERAL || token->klass == TK_TRUE || token->klass == TK_FALSE
-    || token->klass == TK_STRING_LITERAL || token_is_nonTypeName(token)
-    || token->klass == TK_BRACE_OPEN || token->klass == TK_PARENTH_OPEN || token->klass == TK_EXCLAMATION
-    || token->klass == TK_TILDA || token->klass == TK_UNARY_MINUS || token_is_typeName(token)
-    || token->klass == TK_ERROR || token->klass == TK_TYPE_IDENTIFIER;
+  bool result = token->klass == TokenClass::INTEGER_LITERAL || token->klass == TokenClass::TRUE || token->klass == TokenClass::FALSE
+    || token->klass == TokenClass::STRING_LITERAL || token_is_nonTypeName(token)
+    || token->klass == TokenClass::BRACE_OPEN || token->klass == TokenClass::PARENTH_OPEN || token->klass == TokenClass::EXCLAMATION
+    || token->klass == TokenClass::TILDA || token->klass == TokenClass::UNARY_MINUS || token_is_typeName(token)
+    || token->klass == TokenClass::ERROR || token->klass == TokenClass::TYPE_IDENTIFIER;
   return result;
 }
 
@@ -338,7 +338,7 @@ static bool token_is_expression(Token* token)
 
 static bool token_is_methodPrototype(Token* token)
 {
-  return token_is_typeOrVoid(token) || token->klass == TK_TYPE_IDENTIFIER;
+  return token_is_typeOrVoid(token) || token->klass == TokenClass::TYPE_IDENTIFIER;
 }
 
 static bool token_is_structField(Token* token)
@@ -354,68 +354,68 @@ static bool token_is_specifiedIdentifier(Token* token)
 
 static bool token_is_declaration(Token* token)
 {
-  bool result = token->klass == TK_CONST || token->klass == TK_EXTERN || token->klass == TK_ACTION
-    || token->klass == TK_PARSER || token_is_typeDeclaration(token) || token->klass == TK_CONTROL
-    || token_is_typeRef(token) || token->klass == TK_ERROR || token->klass == TK_MATCH_KIND
+  bool result = token->klass == TokenClass::CONST || token->klass == TokenClass::EXTERN || token->klass == TokenClass::ACTION
+    || token->klass == TokenClass::PARSER || token_is_typeDeclaration(token) || token->klass == TokenClass::CONTROL
+    || token_is_typeRef(token) || token->klass == TokenClass::ERROR || token->klass == TokenClass::MATCH_KIND
     || token_is_typeOrVoid(token);
   return result;
 }
 
 static bool token_is_lvalue(Token* token)
 {
-  bool result = token_is_nonTypeName(token) || (token->klass == TK_DOT);
+  bool result = token_is_nonTypeName(token) || (token->klass == TokenClass::DOT);
   return result;
 }
 
 static bool token_is_assignmentOrMethodCallStatement(Token* token)
 {
-  bool result = token_is_lvalue(token) || token->klass == TK_PARENTH_OPEN || token->klass == TK_ANGLE_OPEN
-    || token->klass == TK_EQUAL;
+  bool result = token_is_lvalue(token) || token->klass == TokenClass::PARENTH_OPEN || token->klass == TokenClass::ANGLE_OPEN
+    || token->klass == TokenClass::EQUAL;
   return result;
 }
 
 static bool token_is_statement(Token* token)
 {
-  bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token) || token->klass == TK_IF
-    || token->klass == TK_SEMICOLON || token->klass == TK_BRACE_OPEN || token->klass == TK_EXIT
-    || token->klass == TK_RETURN || token->klass == TK_SWITCH;
+  bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token) || token->klass == TokenClass::IF
+    || token->klass == TokenClass::SEMICOLON || token->klass == TokenClass::BRACE_OPEN || token->klass == TokenClass::EXIT
+    || token->klass == TokenClass::RETURN || token->klass == TokenClass::SWITCH;
   return result;
 }
 
 static bool token_is_statementOrDeclaration(Token* token)
 {
-  bool result = token_is_typeRef(token) || token->klass == TK_CONST || token_is_statement(token);
+  bool result = token_is_typeRef(token) || token->klass == TokenClass::CONST || token_is_statement(token);
   return result;
 }
 
 static bool token_is_argument(Token* token)
 {
-  bool result = token_is_expression(token) || token_is_name(token) || token->klass == TK_DONTCARE;
+  bool result = token_is_expression(token) || token_is_name(token) || token->klass == TokenClass::DONTCARE;
   return result;
 }
 
 static bool token_is_parserLocalElement(Token* token)
 {
-  bool result = token->klass == TK_CONST || token_is_typeRef(token);
+  bool result = token->klass == TokenClass::CONST || token_is_typeRef(token);
   return result;
 }
 
 static bool token_is_parserStatement(Token* token)
 {
   bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token)
-    || token->klass == TK_BRACE_OPEN || token->klass == TK_CONST || token_is_typeRef(token)
-    || token->klass == TK_SEMICOLON;
+    || token->klass == TokenClass::BRACE_OPEN || token->klass == TokenClass::CONST || token_is_typeRef(token)
+    || token->klass == TokenClass::SEMICOLON;
   return result;
 }
 
 static bool token_is_simpleKeysetExpression(Token* token) {
-  bool result = token_is_expression(token) || token->klass == TK_DEFAULT || token->klass == TK_DONTCARE;
+  bool result = token_is_expression(token) || token->klass == TokenClass::DEFAULT || token->klass == TokenClass::DONTCARE;
   return result;
 }
 
 static bool token_is_keysetExpression(Token* token)
 {
-  bool result = token->klass == TK_TUPLE || token_is_simpleKeysetExpression(token);
+  bool result = token->klass == TokenClass::TUPLE || token_is_simpleKeysetExpression(token);
   return result;
 }
 
@@ -426,63 +426,63 @@ static bool token_is_selectCase(Token* token)
 
 static bool token_is_controlLocalDeclaration(Token* token)
 {
-  bool result = token->klass == TK_CONST || token->klass == TK_ACTION
-    || token->klass == TK_TABLE || token_is_typeRef(token) || token_is_typeRef(token);
+  bool result = token->klass == TokenClass::CONST || token->klass == TokenClass::ACTION
+    || token->klass == TokenClass::TABLE || token_is_typeRef(token) || token_is_typeRef(token);
   return result;
 }
 
 static bool token_is_realTypeArg(Token* token)
 {
-  bool result = token->klass == TK_DONTCARE|| token_is_typeRef(token);
+  bool result = token->klass == TokenClass::DONTCARE|| token_is_typeRef(token);
   return result;
 }
 
 static bool token_is_binaryOperator(Token* token)
 {
-  bool result = token->klass == TK_STAR || token->klass == TK_SLASH
-    || token->klass == TK_PLUS || token->klass == TK_MINUS
-    || token->klass == TK_ANGLE_OPEN_EQUAL || token->klass == TK_ANGLE_CLOSE_EQUAL
-    || token->klass == TK_ANGLE_OPEN || token->klass == TK_ANGLE_CLOSE
-    || token->klass == TK_EXCLAMATION_EQUAL || token->klass == TK_DOUBLE_EQUAL
-    || token->klass == TK_DOUBLE_PIPE || token->klass == TK_DOUBLE_AMPERSAND
-    || token->klass == TK_PIPE || token->klass == TK_AMPERSAND
-    || token->klass == TK_CIRCUMFLEX || token->klass == TK_DOUBLE_ANGLE_OPEN
-    || token->klass == TK_DOUBLE_ANGLE_CLOSE || token->klass == TK_TRIPLE_AMPERSAND
-    || token->klass == TK_EQUAL;
+  bool result = token->klass == TokenClass::STAR || token->klass == TokenClass::SLASH
+    || token->klass == TokenClass::PLUS || token->klass == TokenClass::MINUS
+    || token->klass == TokenClass::ANGLE_OPEN_EQUAL || token->klass == TokenClass::ANGLE_CLOSE_EQUAL
+    || token->klass == TokenClass::ANGLE_OPEN || token->klass == TokenClass::ANGLE_CLOSE
+    || token->klass == TokenClass::EXCLAMATION_EQUAL || token->klass == TokenClass::DOUBLE_EQUAL
+    || token->klass == TokenClass::DOUBLE_PIPE || token->klass == TokenClass::DOUBLE_AMPERSAND
+    || token->klass == TokenClass::PIPE || token->klass == TokenClass::AMPERSAND
+    || token->klass == TokenClass::CIRCUMFLEX || token->klass == TokenClass::DOUBLE_ANGLE_OPEN
+    || token->klass == TokenClass::DOUBLE_ANGLE_CLOSE || token->klass == TokenClass::TRIPLE_AMPERSAND
+    || token->klass == TokenClass::EQUAL;
   return result;
 }
 
 static bool token_is_exprOperator(Token* token)
 {
-  bool result = token_is_binaryOperator(token) || token->klass == TK_DOT
-    || token->klass == TK_BRACKET_OPEN || token->klass == TK_PARENTH_OPEN
-    || token->klass == TK_ANGLE_OPEN;
+  bool result = token_is_binaryOperator(token) || token->klass == TokenClass::DOT
+    || token->klass == TokenClass::BRACKET_OPEN || token->klass == TokenClass::PARENTH_OPEN
+    || token->klass == TokenClass::ANGLE_OPEN;
   return result;
 }
 
 static int operator_priority(Token* token)
 {
-  if (token->klass == TK_DOUBLE_AMPERSAND || token->klass == TK_DOUBLE_PIPE) {
+  if (token->klass == TokenClass::DOUBLE_AMPERSAND || token->klass == TokenClass::DOUBLE_PIPE) {
     /* Logical AND, OR */
     return 1;
-  } else if (token->klass == TK_DOUBLE_EQUAL || token->klass == TK_EXCLAMATION_EQUAL
-      || token->klass == TK_ANGLE_OPEN /* < */ || token->klass == TK_ANGLE_CLOSE /* > */
-      || token->klass == TK_ANGLE_OPEN_EQUAL /* <= */ || token->klass == TK_ANGLE_CLOSE_EQUAL /* >= */) {
+  } else if (token->klass == TokenClass::DOUBLE_EQUAL || token->klass == TokenClass::EXCLAMATION_EQUAL
+      || token->klass == TokenClass::ANGLE_OPEN /* < */ || token->klass == TokenClass::ANGLE_CLOSE /* > */
+      || token->klass == TokenClass::ANGLE_OPEN_EQUAL /* <= */ || token->klass == TokenClass::ANGLE_CLOSE_EQUAL /* >= */) {
     /* Relational ops  */
     return 2;
   }
-  else if (token->klass == TK_PLUS || token->klass == TK_MINUS
-           || token->klass == TK_AMPERSAND || token->klass == TK_PIPE
-           || token->klass == TK_CIRCUMFLEX || token->klass == TK_DOUBLE_ANGLE_OPEN /* << */
-           || token->klass == TK_DOUBLE_ANGLE_CLOSE /* >> */) {
+  else if (token->klass == TokenClass::PLUS || token->klass == TokenClass::MINUS
+           || token->klass == TokenClass::AMPERSAND || token->klass == TokenClass::PIPE
+           || token->klass == TokenClass::CIRCUMFLEX || token->klass == TokenClass::DOUBLE_ANGLE_OPEN /* << */
+           || token->klass == TokenClass::DOUBLE_ANGLE_CLOSE /* >> */) {
     /* Addition and subtraction; bitwise ops */
     return 3;
   }
-  else if (token->klass == TK_STAR || token->klass == TK_SLASH) {
+  else if (token->klass == TokenClass::STAR || token->klass == TokenClass::SLASH) {
     /* Multiplication and division */
     return 4;
   }
-  else if (token->klass == TK_TRIPLE_AMPERSAND) {
+  else if (token->klass == TokenClass::TRIPLE_AMPERSAND) {
     /* Mask */
     return 5;
   }
@@ -493,42 +493,42 @@ static int operator_priority(Token* token)
 static enum AstOperator token_to_binop(Token* token)
 {
   switch (token->klass) {
-    case TK_DOUBLE_AMPERSAND:
-      return OP_AND;
-    case TK_DOUBLE_PIPE:
-      return OP_OR;
-    case TK_DOUBLE_EQUAL:
-      return OP_EQ;
-    case TK_EXCLAMATION_EQUAL:
-      return OP_NEQ;
-    case TK_ANGLE_OPEN:
-      return OP_LESS;
-    case TK_ANGLE_CLOSE:
-      return OP_GREAT;
-    case TK_ANGLE_OPEN_EQUAL:
-      return OP_LESS_EQ;
-    case TK_ANGLE_CLOSE_EQUAL:
-      return OP_GREAT_EQ;
-    case TK_PLUS:
-      return OP_ADD;
-    case TK_MINUS:
-      return OP_SUB;
-    case TK_STAR:
-      return OP_MUL;
-    case TK_SLASH:
-      return OP_DIV;
-    case TK_AMPERSAND:
-      return OP_BITW_AND;
-    case TK_PIPE:
-      return OP_BITW_OR;
-    case TK_CIRCUMFLEX:
-      return OP_BITW_XOR;
-    case TK_DOUBLE_ANGLE_OPEN:
-      return OP_BITW_SHL;
-    case TK_DOUBLE_ANGLE_CLOSE:
-      return OP_BITW_SHR;
-    case TK_TRIPLE_AMPERSAND:
-      return OP_MASK;
+    case TokenClass::DOUBLE_AMPERSAND:
+      return AstOperator::AND;
+    case TokenClass::DOUBLE_PIPE:
+      return AstOperator::OR;
+    case TokenClass::DOUBLE_EQUAL:
+      return AstOperator::EQ;
+    case TokenClass::EXCLAMATION_EQUAL:
+      return AstOperator::NEQ;
+    case TokenClass::ANGLE_OPEN:
+      return AstOperator::LESS;
+    case TokenClass::ANGLE_CLOSE:
+      return AstOperator::GREAT;
+    case TokenClass::ANGLE_OPEN_EQUAL:
+      return AstOperator::LESS_EQ;
+    case TokenClass::ANGLE_CLOSE_EQUAL:
+      return AstOperator::GREAT_EQ;
+    case TokenClass::PLUS:
+      return AstOperator::ADD;
+    case TokenClass::MINUS:
+      return AstOperator::SUB;
+    case TokenClass::STAR:
+      return AstOperator::MUL;
+    case TokenClass::SLASH:
+      return AstOperator::DIV;
+    case TokenClass::AMPERSAND:
+      return AstOperator::BITW_AND;
+    case TokenClass::PIPE:
+      return AstOperator::BITW_OR;
+    case TokenClass::CIRCUMFLEX:
+      return AstOperator::BITW_XOR;
+    case TokenClass::DOUBLE_ANGLE_OPEN:
+      return AstOperator::BITW_SHL;
+    case TokenClass::DOUBLE_ANGLE_CLOSE:
+      return AstOperator::BITW_SHR;
+    case TokenClass::TRIPLE_AMPERSAND:
+      return AstOperator::MASK;
     default: return (AstOperator)0;
   }
 }
@@ -1028,14 +1028,14 @@ static Ast* parse_p4program(Parser* parser)
   p4program->kind = AST_p4program;
   p4program->line_no = parser->token->line_no;
   p4program->column_no = parser->token->column_no;
-  while (parser->token->klass == TK_SEMICOLON) {
+  while (parser->token->klass == TokenClass::SEMICOLON) {
     next_token(parser); /* empty declaration */
   }
   scope = Scope::create(parser->storage, 6);
   parser->current_scope = scope->push(parser->current_scope);
   p4program->p4program.decl_list = parse_declarationList(parser);
   parser->current_scope = parser->current_scope->pop();
-  if (parser->token->klass != TK_END_OF_INPUT) {
+  if (parser->token->klass != TokenClass::END_OF_INPUT) {
     error("%s:%d:%d: error: unexpected token `%s`.",
           parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
   }
@@ -1054,11 +1054,11 @@ static Ast* parse_declarationList(Parser* parser)
   if (token_is_declaration(parser->token)) {
     ast = parse_declaration(parser);
     ast_tree_append_node(&decls->tree, &tree_ctor, &ast->tree);
-    while (token_is_declaration(parser->token) || parser->token->klass == TK_SEMICOLON) {
+    while (token_is_declaration(parser->token) || parser->token->klass == TokenClass::SEMICOLON) {
       if (token_is_declaration(parser->token)) {
         ast = parse_declaration(parser);
         ast_tree_append_node(&decls->tree, &tree_ctor, &ast->tree);
-      } else if (parser->token->klass == TK_SEMICOLON) {
+      } else if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser); /* empty declaration */
       }
     }
@@ -1075,26 +1075,26 @@ static Ast* parse_declaration(Parser* parser)
     decl->kind = AST_declaration;
     decl->line_no = parser->token->line_no;
     decl->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_CONST) {
+    if (parser->token->klass == TokenClass::CONST) {
       decl->declaration.decl = parse_variableDeclaration(parser, 0);
       return decl;
-    } else if (parser->token->klass == TK_EXTERN) {
+    } else if (parser->token->klass == TokenClass::EXTERN) {
       decl->declaration.decl = parse_externDeclaration(parser);
       return decl;
-    } else if (parser->token->klass == TK_ACTION) {
+    } else if (parser->token->klass == TokenClass::ACTION) {
       decl->declaration.decl = parse_actionDeclaration(parser);
       return decl;
-    } else if (parser->token->klass == TK_PARSER) {
+    } else if (parser->token->klass == TokenClass::PARSER) {
       decl->declaration.decl = parse_typeDeclaration(parser);
-      if (parser->token->klass == TK_SEMICOLON) {
+      if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else {
         decl->declaration.decl = parse_parserDeclaration(parser, decl->declaration.decl);
       }
       return decl;
-    } else if (parser->token->klass == TK_CONTROL) {
+    } else if (parser->token->klass == TokenClass::CONTROL) {
       decl->declaration.decl = parse_typeDeclaration(parser);
-      if (parser->token->klass == TK_SEMICOLON) {
+      if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else {
         decl->declaration.decl = parse_controlDeclaration(parser, decl->declaration.decl);
@@ -1103,15 +1103,15 @@ static Ast* parse_declaration(Parser* parser)
     } else if (token_is_typeDeclaration(parser->token)) {
       decl->declaration.decl = parse_typeDeclaration(parser);
       return decl;
-    } else if (parser->token->klass == TK_ERROR) {
+    } else if (parser->token->klass == TokenClass::ERROR) {
       decl->declaration.decl = parse_errorDeclaration(parser);
       return decl;
-    } else if (parser->token->klass == TK_MATCH_KIND) {
+    } else if (parser->token->klass == TokenClass::MATCH_KIND) {
       decl->declaration.decl = parse_matchKindDeclaration(parser);
       return decl;
     } else if (token_is_typeRef(parser->token)) {
       Ast* type_ref = parse_typeRef(parser);
-      if (parser->token->klass == TK_PARENTH_OPEN) {
+      if (parser->token->klass == TokenClass::PARENTH_OPEN) {
         decl->declaration.decl = parse_instantiation(parser, type_ref);
         return decl;
       } else if (token_is_name(parser->token)) {
@@ -1155,7 +1155,7 @@ static Ast* parse_name(Parser* parser)
   if (token_is_name(parser->token)) {
     if (token_is_nonTypeName(parser->token)) {
       return parse_nonTypeName(parser);
-    } else if (parser->token->klass == TK_TYPE_IDENTIFIER) {
+    } else if (parser->token->klass == TokenClass::TYPE_IDENTIFIER) {
       type_name = (Ast*)parser->storage->malloc(sizeof(Ast));
       type_name->kind = AST_name;
       type_name->line_no = parser->token->line_no;
@@ -1182,7 +1182,7 @@ static Ast* parse_parameterList(Parser* parser)
   if (token_is_parameter(parser->token)) {
     ast = parse_parameter(parser);
     ast_tree_append_node(&params->tree, &tree_ctor, &ast->tree);
-    while (parser->token->klass == TK_COMMA) {
+    while (parser->token->klass == TokenClass::COMMA) {
       next_token(parser);
       ast = parse_parameter(parser);
       ast_tree_append_node(&params->tree, &tree_ctor, &ast->tree);
@@ -1204,7 +1204,7 @@ static Ast* parse_parameter(Parser* parser)
     param->parameter.type = parse_typeRef(parser);
     if (token_is_name(parser->token)) {
       param->parameter.name = parse_name(parser);
-      if (parser->token->klass == TK_EQUAL) {
+      if (parser->token->klass == TokenClass::EQUAL) {
         next_token(parser);
         if (token_is_expression(parser->token)) {
           param->parameter.init_expr = parse_expression(parser, 1);
@@ -1223,13 +1223,13 @@ static Ast* parse_parameter(Parser* parser)
 static enum ParamDirection parse_direction(Parser* parser)
 {
   if (token_is_direction(parser->token)) {
-    if (parser->token->klass == TK_IN) {
+    if (parser->token->klass == TokenClass::IN) {
       next_token(parser);
       return ParamDirection::IN;
-    } else if (parser->token->klass == TK_OUT) {
+    } else if (parser->token->klass == TokenClass::OUT) {
       next_token(parser);
       return ParamDirection::OUT;
-    } else if (parser->token->klass == TK_INOUT) {
+    } else if (parser->token->klass == TokenClass::INOUT) {
       next_token(parser);
       return ParamDirection::IN | ParamDirection::OUT;
     } else assert(0);
@@ -1241,7 +1241,7 @@ static Ast* parse_packageTypeDeclaration(Parser* parser)
 {
   Ast* package_decl, *name;
 
-  if (parser->token->klass == TK_PACKAGE) {
+  if (parser->token->klass == TokenClass::PACKAGE) {
     next_token(parser);
     package_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     package_decl->kind = AST_packageTypeDeclaration;
@@ -1251,10 +1251,10 @@ static Ast* parse_packageTypeDeclaration(Parser* parser)
       name = parse_name(parser);
       parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       package_decl->packageTypeDeclaration.name = name;
-      if (parser->token->klass == TK_PARENTH_OPEN) {
+      if (parser->token->klass == TokenClass::PARENTH_OPEN) {
         next_token(parser);
         package_decl->packageTypeDeclaration.params = parse_parameterList(parser);
-        if (parser->token->klass == TK_PARENTH_CLOSE) {
+        if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -1279,14 +1279,14 @@ static Ast* parse_instantiation(Parser* parser, Ast* type_ref)
     inst_stmt->line_no = parser->token->line_no;
     inst_stmt->column_no = parser->token->column_no;
     inst_stmt->instantiation.type = type_ref ? type_ref : parse_typeRef(parser);
-    if (parser->token->klass == TK_PARENTH_OPEN) {
+    if (parser->token->klass == TokenClass::PARENTH_OPEN) {
       next_token(parser);
       inst_stmt->instantiation.args = parse_argumentList(parser);
-      if (parser->token->klass == TK_PARENTH_CLOSE) {
+      if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
         next_token(parser);
         if (token_is_name(parser->token)) {
           inst_stmt->instantiation.name = parse_name(parser);
-          if (parser->token->klass == TK_SEMICOLON) {
+          if (parser->token->klass == TokenClass::SEMICOLON) {
             next_token(parser);
           } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                        parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -1309,10 +1309,10 @@ static Ast* parse_constructorParameters(Parser* parser)
 {
    Ast* params;
 
-  if (parser->token->klass == TK_PARENTH_OPEN) {
+  if (parser->token->klass == TokenClass::PARENTH_OPEN) {
     next_token(parser);
     params = parse_parameterList(parser);
-    if (parser->token->klass == TK_PARENTH_CLOSE) {
+    if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
       next_token(parser);
     } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                  parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -1326,21 +1326,21 @@ static Ast* parse_parserDeclaration(Parser* parser, Ast* parser_proto)
 {
   Ast* parser_decl;
 
-  if (parser->token->klass == TK_PARENTH_OPEN || parser->token->klass == TK_BRACE_OPEN) {
+  if (parser->token->klass == TokenClass::PARENTH_OPEN || parser->token->klass == TokenClass::BRACE_OPEN) {
     parser_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     parser_decl->kind = AST_parserDeclaration;
     parser_decl->line_no = parser->token->line_no;
     parser_decl->column_no = parser->token->column_no;
     parser_decl->parserDeclaration.proto = parser_proto;
     parser_decl->parserDeclaration.ctor_params = parse_constructorParameters(parser);
-    if (parser->token->klass == TK_BRACE_OPEN) {
+    if (parser->token->klass == TokenClass::BRACE_OPEN) {
       next_token(parser);
       parser_decl->parserDeclaration.local_elements = parse_parserLocalElements(parser);
-      if (parser->token->klass == TK_STATE) {
+      if (parser->token->klass == TokenClass::STATE) {
         parser_decl->parserDeclaration.states = parse_parserStates(parser);
       } else error("%s:%d:%d: error: `state` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
-      if (parser->token->klass == TK_BRACE_CLOSE) {
+      if (parser->token->klass == TokenClass::BRACE_CLOSE) {
         next_token(parser);
       } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -1382,12 +1382,12 @@ static Ast* parse_parserLocalElement(Parser* parser)
     local_element->kind = AST_parserLocalElement;
     local_element->line_no = parser->token->line_no;
     local_element->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_CONST) {
+    if (parser->token->klass == TokenClass::CONST) {
       local_element->parserLocalElement.element = parse_variableDeclaration(parser, 0);
       return local_element;
     } else if (token_is_typeRef(parser->token)) {
       type_ref = parse_typeRef(parser);
-      if (parser->token->klass == TK_PARENTH_OPEN) {
+      if (parser->token->klass == TokenClass::PARENTH_OPEN) {
         local_element->parserLocalElement.element = parse_instantiation(parser, type_ref);
         return local_element;
       } else if (token_is_name(parser->token)) {
@@ -1406,7 +1406,7 @@ static Ast* parse_parserTypeDeclaration(Parser* parser)
 {
   Ast* parser_proto, *name, *method_protos;
 
-  if (parser->token->klass == TK_PARSER) {
+  if (parser->token->klass == TokenClass::PARSER) {
     next_token(parser);
     parser_proto = (Ast*)parser->storage->malloc(sizeof(Ast));
     parser_proto->kind = AST_parserTypeDeclaration;
@@ -1421,10 +1421,10 @@ static Ast* parse_parserTypeDeclaration(Parser* parser)
       name = parse_name(parser);
       parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       parser_proto->parserTypeDeclaration.name = name;
-      if (parser->token->klass == TK_PARENTH_OPEN) {
+      if (parser->token->klass == TokenClass::PARENTH_OPEN) {
         next_token(parser);
         parser_proto->parserTypeDeclaration.params = parse_parameterList(parser);
-        if (parser->token->klass == TK_PARENTH_CLOSE) {
+        if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -1448,10 +1448,10 @@ static Ast* parse_parserStates(Parser* parser)
   states->kind = AST_parserStates;
   states->line_no = parser->token->line_no;
   states->column_no = parser->token->column_no;
-  if (parser->token->klass == TK_STATE) {
+  if (parser->token->klass == TokenClass::STATE) {
     ast = parse_parserState(parser);
     ast_tree_append_node(&states->tree, &tree_ctor, &ast->tree);
-    while (parser->token->klass == TK_STATE) {
+    while (parser->token->klass == TokenClass::STATE) {
       ast = parse_parserState(parser);
       ast_tree_append_node(&states->tree, &tree_ctor, &ast->tree);
     }
@@ -1463,18 +1463,18 @@ static Ast* parse_parserState(Parser* parser)
 {
   Ast* state;
 
-  if (parser->token->klass == TK_STATE) {
+  if (parser->token->klass == TokenClass::STATE) {
     next_token(parser);
     state = (Ast*)parser->storage->malloc(sizeof(Ast));
     state->kind = AST_parserState;
     state->line_no = parser->token->line_no;
     state->column_no = parser->token->column_no;
     state->parserState.name = parse_name(parser);
-    if (parser->token->klass == TK_BRACE_OPEN) {
+    if (parser->token->klass == TokenClass::BRACE_OPEN) {
       next_token(parser);
       state->parserState.stmt_list = parse_parserStatements(parser);
       state->parserState.transition_stmt = parse_transitionStatement(parser);
-      if (parser->token->klass == TK_BRACE_CLOSE) {
+      if (parser->token->klass == TokenClass::BRACE_CLOSE) {
         next_token(parser);
       } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -1528,13 +1528,13 @@ static Ast* parse_parserStatement(Parser* parser)
     } else if (token_is_assignmentOrMethodCallStatement(parser->token)) {
       parser_stmt->parserStatement.stmt = parse_assignmentOrMethodCallStatement(parser);
       return parser_stmt;
-    } else if (parser->token->klass == TK_BRACE_OPEN) {
+    } else if (parser->token->klass == TokenClass::BRACE_OPEN) {
       parser_stmt->parserStatement.stmt = parse_parserBlockStatement(parser);
       return parser_stmt;
-    } else if (parser->token->klass == TK_CONST) {
+    } else if (parser->token->klass == TokenClass::CONST) {
       parser_stmt->parserStatement.stmt = parse_variableDeclaration(parser, 0);
       return parser_stmt;
-    } else if (parser->token->klass == TK_SEMICOLON) {
+    } else if (parser->token->klass == TokenClass::SEMICOLON) {
       Ast* stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
       stmt->kind = AST_emptyStatement;
       stmt->line_no = parser->token->line_no;
@@ -1553,14 +1553,14 @@ static Ast* parse_parserBlockStatement(Parser* parser)
 {
   Ast* stmt;
 
-  if (parser->token->klass == TK_BRACE_OPEN) {
+  if (parser->token->klass == TokenClass::BRACE_OPEN) {
     next_token(parser);
     stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     stmt->kind = AST_parserBlockStatement;
     stmt->line_no = parser->token->line_no;
     stmt->column_no = parser->token->column_no;
     stmt->parserBlockStatement.stmt_list = parse_parserStatements(parser);
-    if (parser->token->klass == TK_BRACE_CLOSE) {
+    if (parser->token->klass == TokenClass::BRACE_CLOSE) {
       next_token(parser);
     } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                  parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -1575,7 +1575,7 @@ static Ast* parse_transitionStatement(Parser* parser)
 {
   Ast* transition;
 
-  if (parser->token->klass == TK_TRANSITION) {
+  if (parser->token->klass == TokenClass::TRANSITION) {
     next_token(parser);
     transition = (Ast*)parser->storage->malloc(sizeof(Ast));
     transition->kind = AST_transitionStatement;
@@ -1593,19 +1593,19 @@ static Ast* parse_stateExpression(Parser* parser)
 {
   Ast* state_expr;
 
-  if (token_is_name(parser->token) || parser->token->klass == TK_SELECT) {
+  if (token_is_name(parser->token) || parser->token->klass == TokenClass::SELECT) {
     state_expr = (Ast*)parser->storage->malloc(sizeof(Ast));
     state_expr->kind = AST_stateExpression;
     state_expr->line_no = parser->token->line_no;
     state_expr->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
       state_expr->stateExpression.expr = parse_name(parser);
-      if (parser->token->klass == TK_SEMICOLON) {
+      if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                   parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
       return state_expr;
-    } else if (parser->token->klass == TK_SELECT) {
+    } else if (parser->token->klass == TokenClass::SELECT) {
       state_expr->stateExpression.expr = parse_selectExpression(parser);
       return state_expr;
     } else assert(0);
@@ -1619,21 +1619,21 @@ static Ast* parse_selectExpression(Parser* parser)
 {
   Ast* select_expr;
 
-  if (parser->token->klass == TK_SELECT) {
+  if (parser->token->klass == TokenClass::SELECT) {
     next_token(parser);
     select_expr = (Ast*)parser->storage->malloc(sizeof(Ast));
     select_expr->kind = AST_selectExpression;
     select_expr->line_no = parser->token->line_no;
     select_expr->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_PARENTH_OPEN) {
+    if (parser->token->klass == TokenClass::PARENTH_OPEN) {
       next_token(parser);
       select_expr->selectExpression.expr_list = parse_expressionList(parser);
-      if (parser->token->klass == TK_PARENTH_CLOSE) {
+      if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
         next_token(parser);
-        if (parser->token->klass == TK_BRACE_OPEN) {
+        if (parser->token->klass == TokenClass::BRACE_OPEN) {
           next_token(parser);
           select_expr->selectExpression.case_list = parse_selectCaseList(parser);
-          if (parser->token->klass == TK_BRACE_CLOSE) {
+          if (parser->token->klass == TokenClass::BRACE_CLOSE) {
             next_token(parser);
           } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                        parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -1680,11 +1680,11 @@ static Ast* parse_selectCase(Parser* parser)
     select_case->line_no = parser->token->line_no;
     select_case->column_no = parser->token->column_no;
     select_case->selectCase.keyset_expr = parse_keysetExpression(parser);
-    if (parser->token->klass == TK_COLON) {
+    if (parser->token->klass == TokenClass::COLON) {
       next_token(parser);
       if (token_is_name(parser->token)) {
         select_case->selectCase.name = parse_name(parser);
-        if (parser->token->klass == TK_SEMICOLON) {
+        if (parser->token->klass == TokenClass::SEMICOLON) {
           next_token(parser);
         } else error("%s:%d:%d: error: `;` expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -1703,12 +1703,12 @@ static Ast* parse_keysetExpression(Parser *parser)
 {
   Ast* keyset_expr;
 
-  if (parser->token->klass == TK_PARENTH_OPEN || token_is_simpleKeysetExpression(parser->token)) {
+  if (parser->token->klass == TokenClass::PARENTH_OPEN || token_is_simpleKeysetExpression(parser->token)) {
     keyset_expr = (Ast*)parser->storage->malloc(sizeof(Ast));
     keyset_expr->kind = AST_keysetExpression;
     keyset_expr->line_no = parser->token->line_no;
     keyset_expr->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_PARENTH_OPEN) {
+    if (parser->token->klass == TokenClass::PARENTH_OPEN) {
       keyset_expr->keysetExpression.expr = parse_tupleKeysetExpression(parser);
       return keyset_expr;
     } else if (token_is_simpleKeysetExpression(parser->token)) {
@@ -1725,14 +1725,14 @@ static Ast* parse_tupleKeysetExpression(Parser* parser)
 {
   Ast* tuple_keyset;
 
-  if (parser->token->klass == TK_PARENTH_OPEN) {
+  if (parser->token->klass == TokenClass::PARENTH_OPEN) {
     next_token(parser);
     tuple_keyset = (Ast*)parser->storage->malloc(sizeof(Ast));
     tuple_keyset->kind = AST_tupleKeysetExpression;
     tuple_keyset->line_no = parser->token->line_no;
     tuple_keyset->column_no = parser->token->column_no;
     tuple_keyset->tupleKeysetExpression.expr_list = parse_simpleExpressionList(parser);
-    if (parser->token->klass == TK_PARENTH_CLOSE) {
+    if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
       next_token(parser);
     } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                  parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -1755,7 +1755,7 @@ static Ast* parse_simpleExpressionList(Parser* parser)
   if (token_is_expression(parser->token)) {
     ast = parse_simpleKeysetExpression(parser);
     ast_tree_append_node(&exprs->tree, &tree_ctor, &ast->tree);
-    while (parser->token->klass == TK_COMMA) {
+    while (parser->token->klass == TokenClass::COMMA) {
       next_token(parser);
       ast = parse_simpleKeysetExpression(parser);
       ast_tree_append_node(&exprs->tree, &tree_ctor, &ast->tree);
@@ -1776,7 +1776,7 @@ static Ast* parse_simpleKeysetExpression(Parser* parser)
     if (token_is_expression(parser->token)) {
       simple_keyset->simpleKeysetExpression.expr = parse_expression(parser, 1);
       return simple_keyset;
-    } else if (parser->token->klass == TK_DEFAULT) {
+    } else if (parser->token->klass == TokenClass::DEFAULT) {
       next_token(parser);
       default_keyset = (Ast*)parser->storage->malloc(sizeof(Ast));
       default_keyset->kind = AST_default;
@@ -1784,7 +1784,7 @@ static Ast* parse_simpleKeysetExpression(Parser* parser)
       default_keyset->column_no = parser->token->column_no;
       simple_keyset->simpleKeysetExpression.expr = default_keyset;
       return simple_keyset;
-    } else if (parser->token->klass == TK_DONTCARE) {
+    } else if (parser->token->klass == TokenClass::DONTCARE) {
       next_token(parser);
       dontcare_keyset = (Ast*)parser->storage->malloc(sizeof(Ast));
       dontcare_keyset->kind = AST_dontcare;
@@ -1805,20 +1805,20 @@ static Ast* parse_controlDeclaration(Parser* parser, Ast* control_proto)
 {
   Ast* control_decl;
 
-  if (parser->token->klass == TK_PARENTH_OPEN || parser->token->klass == TK_BRACE_OPEN) {
+  if (parser->token->klass == TokenClass::PARENTH_OPEN || parser->token->klass == TokenClass::BRACE_OPEN) {
     control_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     control_decl->kind = AST_controlDeclaration;
     control_decl->line_no = parser->token->line_no;
     control_decl->column_no = parser->token->column_no;
     control_decl->controlDeclaration.proto = control_proto;
     control_decl->controlDeclaration.ctor_params = parse_constructorParameters(parser);
-    if (parser->token->klass == TK_BRACE_OPEN) {
+    if (parser->token->klass == TokenClass::BRACE_OPEN) {
       next_token(parser);
       control_decl->controlDeclaration.local_decls = parse_controlLocalDeclarations(parser);
-      if (parser->token->klass == TK_APPLY) {
+      if (parser->token->klass == TokenClass::APPLY) {
         next_token(parser);
         control_decl->controlDeclaration.apply_stmt = parse_blockStatement(parser);
-        if (parser->token->klass == TK_BRACE_CLOSE) {
+        if (parser->token->klass == TokenClass::BRACE_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -1837,7 +1837,7 @@ static Ast* parse_controlTypeDeclaration(Parser* parser)
 {
   Ast* control_proto, *name, *method_protos;
 
-  if (parser->token->klass == TK_CONTROL) {
+  if (parser->token->klass == TokenClass::CONTROL) {
     next_token(parser);
     control_proto = (Ast*)parser->storage->malloc(sizeof(Ast));
     control_proto->kind = AST_controlTypeDeclaration;
@@ -1852,10 +1852,10 @@ static Ast* parse_controlTypeDeclaration(Parser* parser)
       name = parse_name(parser);
       parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       control_proto->controlTypeDeclaration.name = name;
-      if (parser->token->klass == TK_PARENTH_OPEN) {
+      if (parser->token->klass == TokenClass::PARENTH_OPEN) {
         next_token(parser);
         control_proto->controlTypeDeclaration.params = parse_parameterList(parser);
-        if (parser->token->klass == TK_PARENTH_CLOSE) {
+        if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -1879,18 +1879,18 @@ static Ast* parse_controlLocalDeclaration(Parser* parser)
     local_decl->kind = AST_controlLocalDeclaration;
     local_decl->line_no = parser->token->line_no;
     local_decl->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_CONST) {
+    if (parser->token->klass == TokenClass::CONST) {
       local_decl->controlLocalDeclaration.decl = parse_variableDeclaration(parser, 0);
       return local_decl;
-    } else if (parser->token->klass == TK_ACTION) {
+    } else if (parser->token->klass == TokenClass::ACTION) {
       local_decl->controlLocalDeclaration.decl = parse_actionDeclaration(parser);
       return local_decl;
-    } else if (parser->token->klass == TK_TABLE) {
+    } else if (parser->token->klass == TokenClass::TABLE) {
       local_decl->controlLocalDeclaration.decl = parse_tableDeclaration(parser);
       return local_decl;
     } else if (token_is_typeRef(parser->token)) {
       type_ref = parse_typeRef(parser);
-      if (parser->token->klass == TK_PARENTH_OPEN) {
+      if (parser->token->klass == TokenClass::PARENTH_OPEN) {
         local_decl->controlLocalDeclaration.decl = parse_instantiation(parser, type_ref);
         return local_decl;
       } else if (token_is_name(parser->token)) {
@@ -1933,7 +1933,7 @@ static Ast* parse_externDeclaration(Parser* parser)
   bool is_function_type = 0;
   Ast* name;
 
-  if (parser->token->klass == TK_EXTERN) {
+  if (parser->token->klass == TokenClass::EXTERN) {
     next_token(parser);
     extern_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     extern_decl->kind = AST_externDeclaration;
@@ -1951,7 +1951,7 @@ static Ast* parse_externDeclaration(Parser* parser)
 
     if (is_function_type) {
       extern_decl->externDeclaration.decl = parse_functionPrototype(parser, 0);
-      if (parser->token->klass == TK_SEMICOLON) {
+      if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -1964,10 +1964,10 @@ static Ast* parse_externDeclaration(Parser* parser)
       extern_type->externTypeDeclaration.name = parse_nonTypeName(parser);
       name = extern_type->externTypeDeclaration.name;
       parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
-      if (parser->token->klass == TK_BRACE_OPEN) {
+      if (parser->token->klass == TokenClass::BRACE_OPEN) {
         next_token(parser);
         extern_type->externTypeDeclaration.method_protos = parse_methodPrototypes(parser);
-        if (parser->token->klass == TK_BRACE_CLOSE) {
+        if (parser->token->klass == TokenClass::BRACE_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2030,10 +2030,10 @@ static Ast* parse_functionPrototype(Parser* parser, Ast* return_type)
     }
     if (token_is_name(parser->token)) {
       func_proto->functionPrototype.name = parse_name(parser);
-      if (parser->token->klass == TK_PARENTH_OPEN) {
+      if (parser->token->klass == TokenClass::PARENTH_OPEN) {
         next_token(parser);
         func_proto->functionPrototype.params = parse_parameterList(parser);
-        if (parser->token->klass == TK_PARENTH_CLOSE) {
+        if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2053,30 +2053,30 @@ static Ast* parse_methodPrototype(Parser* parser)
   Ast* func_proto;
 
   if (token_is_methodPrototype(parser->token)) {
-    if (parser->token->klass == TK_TYPE_IDENTIFIER && peek_token(parser)->klass == TK_PARENTH_OPEN) {
+    if (parser->token->klass == TokenClass::TYPE_IDENTIFIER && peek_token(parser)->klass == TokenClass::PARENTH_OPEN) {
       /* Constructor */
       func_proto = (Ast*)parser->storage->malloc(sizeof(Ast));
       func_proto->kind = AST_functionPrototype;
       func_proto->line_no = parser->token->line_no;
       func_proto->column_no = parser->token->column_no;
       func_proto->functionPrototype.name = parse_name(parser);
-      if (parser->token->klass == TK_PARENTH_OPEN) {
+      if (parser->token->klass == TokenClass::PARENTH_OPEN) {
         next_token(parser);
         func_proto->functionPrototype.params = parse_parameterList(parser);
-        if (parser->token->klass == TK_PARENTH_CLOSE) {
+        if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
       } else error("%s:%d:%d: error: `(` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
-      if (parser->token->klass == TK_SEMICOLON) {
+      if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
       return func_proto;
     } else if (token_is_typeOrVoid(parser->token)) {
       func_proto = parse_functionPrototype(parser, 0);
-      if (parser->token->klass == TK_SEMICOLON) {
+      if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2106,7 +2106,7 @@ static Ast* parse_typeRef(Parser* parser)
     } else if (token_is_typeName(parser->token)) {
       type_ref->typeRef.type = parse_namedType(parser);
       return type_ref;
-    } else if (parser->token->klass == TK_TUPLE) {
+    } else if (parser->token->klass == TokenClass::TUPLE) {
       type_ref->typeRef.type = parse_tupleType(parser);
       return type_ref;
     } else assert(0);
@@ -2122,7 +2122,7 @@ static Ast* parse_namedType(Parser* parser)
 
   if (token_is_typeName(parser->token)) {
     named_type = parse_typeName(parser);
-    if (parser->token->klass == TK_BRACKET_OPEN) {
+    if (parser->token->klass == TokenClass::BRACKET_OPEN) {
       named_type = parse_headerStackType(parser, named_type);
       return named_type;
     }
@@ -2137,7 +2137,7 @@ static Ast* parse_typeName(Parser* parser)
 {
   Ast* type_name;
 
-  if (parser->token->klass == TK_TYPE_IDENTIFIER) {
+  if (parser->token->klass == TokenClass::TYPE_IDENTIFIER) {
     type_name = (Ast*)parser->storage->malloc(sizeof(Ast));
     type_name->kind = AST_name;
     type_name->line_no = parser->token->line_no;
@@ -2155,16 +2155,16 @@ static Ast* parse_tupleType(Parser* parser)
 {
   Ast* tuple;
 
-  if (parser->token->klass == TK_TUPLE) {
+  if (parser->token->klass == TokenClass::TUPLE) {
     tuple = (Ast*)parser->storage->malloc(sizeof(Ast));
     tuple->kind = AST_tupleType;
     tuple->line_no = parser->token->line_no;
     tuple->column_no = parser->token->column_no;
     next_token(parser);
-    if (parser->token->klass == TK_ANGLE_OPEN) {
+    if (parser->token->klass == TokenClass::ANGLE_OPEN) {
       next_token(parser);
       tuple->tupleType.type_args = parse_typeArgumentList(parser);
-      if (parser->token->klass == TK_ANGLE_CLOSE) {
+      if (parser->token->klass == TokenClass::ANGLE_CLOSE) {
         next_token(parser);
       } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2181,7 +2181,7 @@ static Ast* parse_headerStackType(Parser* parser, Ast* named_type)
 {
   Ast* type_ref, *type;
 
-  if (parser->token->klass == TK_BRACKET_OPEN) {
+  if (parser->token->klass == TokenClass::BRACKET_OPEN) {
     next_token(parser);
     type_ref = (Ast*)parser->storage->malloc(sizeof(Ast));
     type_ref->kind = AST_typeRef;
@@ -2195,7 +2195,7 @@ static Ast* parse_headerStackType(Parser* parser, Ast* named_type)
     type->headerStackType.type = type_ref;
     if (token_is_expression(parser->token)) {
       type->headerStackType.stack_expr = parse_expression(parser, 1);
-      if (parser->token->klass == TK_BRACKET_CLOSE) {
+      if (parser->token->klass == TokenClass::BRACKET_CLOSE) {
         next_token(parser);
       } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2217,7 +2217,7 @@ static Ast* parse_baseType(Parser* parser)
     type_name->kind = AST_name;
     type_name->line_no = parser->token->line_no;
     type_name->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_BOOL) {
+    if (parser->token->klass == TokenClass::BOOL) {
       type = (Ast*)parser->storage->malloc(sizeof(Ast));
       type->kind = AST_baseTypeBoolean;
       type->line_no = parser->token->line_no;
@@ -2226,7 +2226,7 @@ static Ast* parse_baseType(Parser* parser)
       type->baseTypeBoolean.name = type_name;
       next_token(parser);
       return type;
-    } else if (parser->token->klass == TK_INT) {
+    } else if (parser->token->klass == TokenClass::INT) {
       type = (Ast*)parser->storage->malloc(sizeof(Ast));
       type->kind = AST_baseTypeInteger;
       type->line_no = parser->token->line_no;
@@ -2234,16 +2234,16 @@ static Ast* parse_baseType(Parser* parser)
       type_name->name.strname = parser->token->lexeme;
       type->baseTypeInteger.name = type_name;
       next_token(parser);
-      if (parser->token->klass == TK_ANGLE_OPEN) {
+      if (parser->token->klass == TokenClass::ANGLE_OPEN) {
         next_token(parser);
         type->baseTypeInteger.size = parse_integerTypeSize(parser);
-        if (parser->token->klass == TK_ANGLE_CLOSE) {
+        if (parser->token->klass == TokenClass::ANGLE_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
       }
       return type;
-    } else if (parser->token->klass == TK_BIT) {
+    } else if (parser->token->klass == TokenClass::BIT) {
       type = (Ast*)parser->storage->malloc(sizeof(Ast));
       type->kind = AST_baseTypeBit;
       type->line_no = parser->token->line_no;
@@ -2251,16 +2251,16 @@ static Ast* parse_baseType(Parser* parser)
       type_name->name.strname = parser->token->lexeme;
       type->baseTypeBit.name = type_name;
       next_token(parser);
-      if (parser->token->klass == TK_ANGLE_OPEN) {
+      if (parser->token->klass == TokenClass::ANGLE_OPEN) {
         next_token(parser);
         type->baseTypeBit.size = parse_integerTypeSize(parser);
-        if (parser->token->klass == TK_ANGLE_CLOSE) {
+        if (parser->token->klass == TokenClass::ANGLE_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
       }
       return type;
-    } else if (parser->token->klass == TK_VARBIT) {
+    } else if (parser->token->klass == TokenClass::VARBIT) {
       type = (Ast*)parser->storage->malloc(sizeof(Ast));
       type->kind = AST_baseTypeVarbit;
       type->line_no = parser->token->line_no;
@@ -2268,17 +2268,17 @@ static Ast* parse_baseType(Parser* parser)
       type_name->name.strname = parser->token->lexeme;
       type->baseTypeVarbit.name = type_name;
       next_token(parser);
-      if (parser->token->klass == TK_ANGLE_OPEN) {
+      if (parser->token->klass == TokenClass::ANGLE_OPEN) {
         next_token(parser);
         type->baseTypeVarbit.size = parse_integerTypeSize(parser);
-        if (parser->token->klass == TK_ANGLE_CLOSE) {
+        if (parser->token->klass == TokenClass::ANGLE_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
       } else error("%s:%d:%d: error: '<' was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
       return type;
-    } else if (parser->token->klass == TK_STRING) {
+    } else if (parser->token->klass == TokenClass::STRING) {
       type = (Ast*)parser->storage->malloc(sizeof(Ast));
       type->kind = AST_baseTypeString;
       type->line_no = parser->token->line_no;
@@ -2287,7 +2287,7 @@ static Ast* parse_baseType(Parser* parser)
       type->baseTypeString.name = type_name;
       next_token(parser);
       return type;
-    } else if (parser->token->klass == TK_VOID) {
+    } else if (parser->token->klass == TokenClass::VOID) {
       type = (Ast*)parser->storage->malloc(sizeof(Ast));
       type->kind = AST_baseTypeVoid;
       type->line_no = parser->token->line_no;
@@ -2296,7 +2296,7 @@ static Ast* parse_baseType(Parser* parser)
       type->baseTypeVoid.name = type_name;
       next_token(parser);
       return type;
-    } else if (parser->token->klass == TK_ERROR) {
+    } else if (parser->token->klass == TokenClass::ERROR) {
       type = (Ast*)parser->storage->malloc(sizeof(Ast));
       type->kind = AST_baseTypeError;
       type->line_no = parser->token->line_no;
@@ -2320,9 +2320,9 @@ static Ast* parse_integerTypeSize(Parser* parser)
   type_size->kind = AST_integerTypeSize;
   type_size->line_no = parser->token->line_no;
   type_size->column_no = parser->token->column_no;
-  if (parser->token->klass == TK_INTEGER_LITERAL) {
+  if (parser->token->klass == TokenClass::INTEGER_LITERAL) {
     type_size->integerTypeSize.size = parse_integer(parser);
-  } else if (parser->token->klass == TK_PARENTH_OPEN) {
+  } else if (parser->token->klass == TokenClass::PARENTH_OPEN) {
 #if 0
     type_size->size = parse_expression(parser, 1);
 #endif
@@ -2341,9 +2341,9 @@ static Ast* parse_typeOrVoid(Parser* parser)
     if (token_is_typeRef(parser->token)) {
       type = parse_typeRef(parser);
       return type;
-    } else if (parser->token->klass == TK_VOID) {
+    } else if (parser->token->klass == TokenClass::VOID) {
       return parse_baseType(parser);
-    } else if (parser->token->klass == TK_IDENTIFIER) {
+    } else if (parser->token->klass == TokenClass::IDENTIFIER) {
       name = (Ast*)parser->storage->malloc(sizeof(Ast));
       name->kind = AST_name;
       name->line_no = parser->token->line_no;
@@ -2367,7 +2367,7 @@ static Ast* parse_realTypeArg(Parser* parser)
     type_arg->kind = AST_realTypeArg;
     type_arg->line_no = parser->token->line_no;
     type_arg->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_DONTCARE) {
+    if (parser->token->klass == TokenClass::DONTCARE) {
       next_token(parser);
       dontcare_arg = (Ast*)parser->storage->malloc(sizeof(Ast));
       dontcare_arg->kind = AST_dontcare;
@@ -2394,7 +2394,7 @@ static Ast* parse_typeArg(Parser* parser)
     type_arg->kind = AST_typeArg;
     type_arg->line_no = parser->token->line_no;
     type_arg->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_DONTCARE) {
+    if (parser->token->klass == TokenClass::DONTCARE) {
       next_token(parser);
       dontcare_arg = (Ast*)parser->storage->malloc(sizeof(Ast));
       dontcare_arg->kind = AST_dontcare;
@@ -2427,7 +2427,7 @@ static Ast* parse_typeArgumentList(Parser* parser)
   if (token_is_typeArg(parser->token)) {
     ast = parse_typeArg(parser);
     ast_tree_append_node(&args->tree, &tree_ctor, &ast->tree);
-    while (parser->token->klass == TK_COMMA) {
+    while (parser->token->klass == TokenClass::COMMA) {
       next_token(parser);
       ast = parse_typeArg(parser);
       ast_tree_append_node(&args->tree, &tree_ctor, &ast->tree);
@@ -2448,18 +2448,18 @@ static Ast* parse_typeDeclaration(Parser* parser)
     if (token_is_derivedTypeDeclaration(parser->token)) {
       type_decl->typeDeclaration.decl = parse_derivedTypeDeclaration(parser);
       return type_decl;
-    } else if (parser->token->klass == TK_TYPEDEF) {
+    } else if (parser->token->klass == TokenClass::TYPEDEF) {
       type_decl->typeDeclaration.decl = parse_typedefDeclaration(parser);
       return type_decl;
-    } else if (parser->token->klass == TK_PARSER) {
+    } else if (parser->token->klass == TokenClass::PARSER) {
       type_decl->typeDeclaration.decl = parse_parserTypeDeclaration(parser);
       return type_decl;
-    } else if (parser->token->klass == TK_CONTROL) {
+    } else if (parser->token->klass == TokenClass::CONTROL) {
       type_decl->typeDeclaration.decl = parse_controlTypeDeclaration(parser);
       return type_decl;
-    } else if (parser->token->klass == TK_PACKAGE) {
+    } else if (parser->token->klass == TokenClass::PACKAGE) {
       type_decl->typeDeclaration.decl = parse_packageTypeDeclaration(parser);
-      if (parser->token->klass == TK_SEMICOLON) {
+      if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else error("%s:%d:%d: error: `;` expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2480,16 +2480,16 @@ static Ast* parse_derivedTypeDeclaration(Parser* parser)
     type_decl->kind = AST_derivedTypeDeclaration;
     type_decl->line_no = parser->token->line_no;
     type_decl->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_HEADER) {
+    if (parser->token->klass == TokenClass::HEADER) {
       type_decl->derivedTypeDeclaration.decl = parse_headerTypeDeclaration(parser);
       return type_decl;
-    } else if (parser->token->klass == TK_UNION) {
+    } else if (parser->token->klass == TokenClass::UNION) {
       type_decl->derivedTypeDeclaration.decl = parse_headerUnionDeclaration(parser);
       return type_decl;
-    } else if (parser->token->klass == TK_STRUCT) {
+    } else if (parser->token->klass == TokenClass::STRUCT) {
       type_decl->derivedTypeDeclaration.decl = parse_structTypeDeclaration(parser);
       return type_decl;
-    } else if (parser->token->klass == TK_ENUM) {
+    } else if (parser->token->klass == TokenClass::ENUM) {
       type_decl->derivedTypeDeclaration.decl = parse_enumDeclaration(parser);
       return type_decl;
     } else assert(0);
@@ -2504,7 +2504,7 @@ static Ast* parse_headerTypeDeclaration(Parser* parser)
   Ast* header_decl;
   Ast* name;
 
-  if (parser->token->klass == TK_HEADER) {
+  if (parser->token->klass == TokenClass::HEADER) {
     next_token(parser);
     header_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     header_decl->kind = AST_headerTypeDeclaration;
@@ -2514,10 +2514,10 @@ static Ast* parse_headerTypeDeclaration(Parser* parser)
       name = parse_name(parser);
       parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       header_decl->headerTypeDeclaration.name = name;
-      if (parser->token->klass == TK_BRACE_OPEN) {
+      if (parser->token->klass == TokenClass::BRACE_OPEN) {
         next_token(parser);
         header_decl->headerTypeDeclaration.fields = parse_structFieldList(parser);
-        if (parser->token->klass == TK_BRACE_CLOSE) {
+        if (parser->token->klass == TokenClass::BRACE_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2537,7 +2537,7 @@ static Ast* parse_headerUnionDeclaration(Parser* parser)
   Ast* union_decl;
   Ast* name;
 
-  if (parser->token->klass == TK_UNION) {
+  if (parser->token->klass == TokenClass::UNION) {
     next_token(parser);
     union_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     union_decl->kind = AST_headerUnionDeclaration;
@@ -2547,10 +2547,10 @@ static Ast* parse_headerUnionDeclaration(Parser* parser)
       name = parse_name(parser);
       parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       union_decl->headerUnionDeclaration.name = name;
-      if (parser->token->klass == TK_BRACE_OPEN) {
+      if (parser->token->klass == TokenClass::BRACE_OPEN) {
         next_token(parser);
         union_decl->headerUnionDeclaration.fields = parse_structFieldList(parser);
-        if (parser->token->klass == TK_BRACE_CLOSE) {
+        if (parser->token->klass == TokenClass::BRACE_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2570,7 +2570,7 @@ static Ast* parse_structTypeDeclaration(Parser* parser)
   Ast* struct_decl;
   Ast* name;
 
-  if (parser->token->klass == TK_STRUCT) {
+  if (parser->token->klass == TokenClass::STRUCT) {
     next_token(parser);
     struct_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     struct_decl->kind = AST_structTypeDeclaration;
@@ -2580,10 +2580,10 @@ static Ast* parse_structTypeDeclaration(Parser* parser)
       name = parse_name(parser);
       parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       struct_decl->structTypeDeclaration.name = name;
-      if (parser->token->klass == TK_BRACE_OPEN) {
+      if (parser->token->klass == TokenClass::BRACE_OPEN) {
         next_token(parser);
         struct_decl->structTypeDeclaration.fields = parse_structFieldList(parser);
-        if (parser->token->klass == TK_BRACE_CLOSE) {
+        if (parser->token->klass == TokenClass::BRACE_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2628,7 +2628,7 @@ static Ast* parse_structField(Parser* parser)
     field->structField.type = parse_typeRef(parser);
     if (token_is_name(parser->token)) {
       field->structField.name = parse_name(parser);
-      if (parser->token->klass == TK_SEMICOLON) {
+      if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2646,19 +2646,19 @@ static Ast* parse_enumDeclaration(Parser* parser)
   Ast* enum_decl;
   Ast* name;
 
-  if (parser->token->klass == TK_ENUM) {
+  if (parser->token->klass == TokenClass::ENUM) {
     next_token(parser);
     enum_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     enum_decl->kind = AST_enumDeclaration;
     enum_decl->line_no = parser->token->line_no;
     enum_decl->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_BIT) {
+    if (parser->token->klass == TokenClass::BIT) {
       next_token(parser);
-      if (parser->token->klass == TK_ANGLE_OPEN) {
+      if (parser->token->klass == TokenClass::ANGLE_OPEN) {
         next_token(parser);
-        if (parser->token->klass == TK_INTEGER_LITERAL) {
+        if (parser->token->klass == TokenClass::INTEGER_LITERAL) {
           enum_decl->enumDeclaration.type_size = parse_integer(parser);
-          if (parser->token->klass == TK_ANGLE_CLOSE) {
+          if (parser->token->klass == TokenClass::ANGLE_CLOSE) {
             next_token(parser);
           } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
                        parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2671,11 +2671,11 @@ static Ast* parse_enumDeclaration(Parser* parser)
       name = parse_name(parser);
       parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
       enum_decl->enumDeclaration.name = name;
-      if (parser->token->klass == TK_BRACE_OPEN) {
+      if (parser->token->klass == TokenClass::BRACE_OPEN) {
         next_token(parser);
         if (token_is_specifiedIdentifier(parser->token)) {
           enum_decl->enumDeclaration.fields = parse_specifiedIdentifierList(parser);
-          if (parser->token->klass == TK_BRACE_CLOSE) {
+          if (parser->token->klass == TokenClass::BRACE_CLOSE) {
             next_token(parser);
           } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                        parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2696,20 +2696,20 @@ static Ast* parse_errorDeclaration(Parser* parser)
 {
   Ast* error_decl;
 
-  if (parser->token->klass == TK_ERROR) {
+  if (parser->token->klass == TokenClass::ERROR) {
     next_token(parser);
     error_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     error_decl->kind = AST_errorDeclaration;
     error_decl->line_no = parser->token->line_no;
     error_decl->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_BRACE_OPEN) {
+    if (parser->token->klass == TokenClass::BRACE_OPEN) {
       next_token(parser);
       if (token_is_name(parser->token)) {
         if (token_is_name(parser->token)) {
           error_decl->errorDeclaration.fields = parse_identifierList(parser);
         } else error("%s:%d:%d: error: name was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
-        if (parser->token->klass == TK_BRACE_CLOSE) {
+        if (parser->token->klass == TokenClass::BRACE_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2728,17 +2728,17 @@ static Ast* parse_matchKindDeclaration(Parser* parser)
 {
   Ast* match_decl;
 
-  if (parser->token->klass == TK_MATCH_KIND) {
+  if (parser->token->klass == TokenClass::MATCH_KIND) {
     next_token(parser);
     match_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     match_decl->kind = AST_matchKindDeclaration;
     match_decl->line_no = parser->token->line_no;
     match_decl->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_BRACE_OPEN) {
+    if (parser->token->klass == TokenClass::BRACE_OPEN) {
       next_token(parser);
       if (token_is_name(parser->token)) {
         match_decl->matchKindDeclaration.fields = parse_identifierList(parser);
-        if (parser->token->klass == TK_BRACE_CLOSE) {
+        if (parser->token->klass == TokenClass::BRACE_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2765,7 +2765,7 @@ static Ast* parse_identifierList(Parser* parser)
   if (token_is_name(parser->token)) {
     ast = parse_name(parser);
     ast_tree_append_node(&ids->tree, &tree_ctor, &ast->tree);
-    while (parser->token->klass == TK_COMMA) {
+    while (parser->token->klass == TokenClass::COMMA) {
       next_token(parser);
       ast = parse_name(parser);
       ast_tree_append_node(&ids->tree, &tree_ctor, &ast->tree);
@@ -2786,7 +2786,7 @@ static Ast* parse_specifiedIdentifierList(Parser* parser)
   if (token_is_specifiedIdentifier(parser->token)) {
     ast = parse_specifiedIdentifier(parser);
     ast_tree_append_node(&ids->tree, &tree_ctor, &ast->tree);
-    while (parser->token->klass == TK_COMMA) {
+    while (parser->token->klass == TokenClass::COMMA) {
       next_token(parser);
       ast = parse_specifiedIdentifier(parser);
       ast_tree_append_node(&ids->tree, &tree_ctor, &ast->tree);
@@ -2805,7 +2805,7 @@ static Ast* parse_specifiedIdentifier(Parser* parser)
     id->line_no = parser->token->line_no;
     id->column_no = parser->token->column_no;
     id->specifiedIdentifier.name = parse_name(parser);
-    if (parser->token->klass == TK_EQUAL) {
+    if (parser->token->klass == TokenClass::EQUAL) {
       next_token(parser);
       if (token_is_expression(parser->token)) {
         id->specifiedIdentifier.init_expr = parse_expression(parser, 1);
@@ -2824,7 +2824,7 @@ static Ast* parse_typedefDeclaration(Parser* parser)
   Ast* type_decl;
   Ast* name;
 
-  if (parser->token->klass == TK_TYPEDEF) {
+  if (parser->token->klass == TokenClass::TYPEDEF) {
     next_token(parser);
     if (token_is_typeRef(parser->token) || token_is_derivedTypeDeclaration(parser->token)) {
       type_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
@@ -2840,7 +2840,7 @@ static Ast* parse_typedefDeclaration(Parser* parser)
         name = parse_name(parser);
         parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
         type_decl->typedefDeclaration.name = name;
-        if (parser->token->klass == TK_SEMICOLON) {
+        if (parser->token->klass == TokenClass::SEMICOLON) {
           next_token(parser);
         } else error("%s:%d:%d: error: `;` expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2863,7 +2863,7 @@ static Ast* parse_assignmentOrMethodCallStatement(Parser* parser)
 
   if (token_is_lvalue(parser->token)) {
     lvalue = parse_lvalue(parser);
-    if (parser->token->klass == TK_PARENTH_OPEN) {
+    if (parser->token->klass == TokenClass::PARENTH_OPEN) {
       next_token(parser);
       stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
       stmt->kind = AST_functionCall;
@@ -2871,16 +2871,16 @@ static Ast* parse_assignmentOrMethodCallStatement(Parser* parser)
       stmt->column_no = parser->token->column_no;
       stmt->functionCall.lhs_expr = lvalue;
       stmt->functionCall.args = parse_argumentList(parser);
-      if (parser->token->klass == TK_PARENTH_CLOSE) {
+      if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
         next_token(parser);
       } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
-      if (parser->token->klass == TK_SEMICOLON) {
+      if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else error("%s:%d:%d: error: `;` expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
       return stmt;
-    } else if (parser->token->klass == TK_EQUAL) {
+    } else if (parser->token->klass == TokenClass::EQUAL) {
       next_token(parser);
       stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
       stmt->kind = AST_assignmentStatement;
@@ -2888,7 +2888,7 @@ static Ast* parse_assignmentOrMethodCallStatement(Parser* parser)
       stmt->column_no = parser->token->column_no;
       stmt->assignmentStatement.lhs_expr = lvalue;
       stmt->assignmentStatement.rhs_expr = parse_expression(parser, 1);
-      if (parser->token->klass == TK_SEMICOLON) {
+      if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else error("%s:%d:%d: error: `;` expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2905,7 +2905,7 @@ static Ast* parse_returnStatement(Parser* parser)
 {
   Ast* return_stmt;
 
-  if (parser->token->klass == TK_RETURN) {
+  if (parser->token->klass == TokenClass::RETURN) {
     next_token(parser);
     return_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     return_stmt->kind = AST_returnStatement;
@@ -2913,7 +2913,7 @@ static Ast* parse_returnStatement(Parser* parser)
     return_stmt->column_no = parser->token->column_no;
     if (token_is_expression(parser->token))
       return_stmt->returnStatement.expr = parse_expression(parser, 1);
-    if (parser->token->klass == TK_SEMICOLON) {
+    if (parser->token->klass == TokenClass::SEMICOLON) {
       next_token(parser);
     } else error("%s:%d:%d: error: `;` expected, got `%s`.",
                  parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2928,13 +2928,13 @@ static Ast* parse_exitStatement(Parser* parser)
 {
   Ast* exit_stmt;
 
-  if (parser->token->klass == TK_EXIT) {
+  if (parser->token->klass == TokenClass::EXIT) {
     next_token(parser);
     exit_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     exit_stmt->kind = AST_exitStatement;
     exit_stmt->line_no = parser->token->line_no;
     exit_stmt->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_SEMICOLON) {
+    if (parser->token->klass == TokenClass::SEMICOLON) {
       next_token(parser);
     } else error("%s:%d:%d: error: `;` expected, got `%s`.",
                  parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -2949,21 +2949,21 @@ static Ast* parse_conditionalStatement(Parser* parser)
 {
   Ast* if_stmt;
 
-  if (parser->token->klass == TK_IF) {
+  if (parser->token->klass == TokenClass::IF) {
     next_token(parser);
     if_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     if_stmt->kind = AST_conditionalStatement;
     if_stmt->line_no = parser->token->line_no;
     if_stmt->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_PARENTH_OPEN) {
+    if (parser->token->klass == TokenClass::PARENTH_OPEN) {
       next_token(parser);
       if (token_is_expression(parser->token)) {
         if_stmt->conditionalStatement.cond_expr = parse_expression(parser, 1);
-        if (parser->token->klass == TK_PARENTH_CLOSE) {
+        if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
           next_token(parser);
           if (token_is_statement(parser->token)) {
             if_stmt->conditionalStatement.stmt = parse_statement(parser, 0);
-            if (parser->token->klass == TK_ELSE) {
+            if (parser->token->klass == TokenClass::ELSE) {
               next_token(parser);
               if (token_is_statement(parser->token)) {
                 if_stmt->conditionalStatement.else_stmt = parse_statement(parser, 0);
@@ -2995,16 +2995,16 @@ static Ast* parse_directApplication(Parser* parser, Ast* type_name)
     apply_stmt->line_no = parser->token->line_no;
     apply_stmt->column_no = parser->token->column_no;
     apply_stmt->directApplication.name = type_name ? type_name : parse_typeName(parser);
-    if (parser->token->klass == TK_DOT) {
+    if (parser->token->klass == TokenClass::DOT) {
       next_token(parser);
-      if (parser->token->klass == TK_APPLY) {
+      if (parser->token->klass == TokenClass::APPLY) {
         next_token(parser);
-        if (parser->token->klass == TK_PARENTH_OPEN) {
+        if (parser->token->klass == TokenClass::PARENTH_OPEN) {
           next_token(parser);
           apply_stmt->directApplication.args = parse_argumentList(parser);
-          if (parser->token->klass == TK_PARENTH_CLOSE) {
+          if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
             next_token(parser);
-            if (parser->token->klass == TK_SEMICOLON) {
+            if (parser->token->klass == TokenClass::SEMICOLON) {
               next_token(parser);
             } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                          parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3038,10 +3038,10 @@ static Ast* parse_statement(Parser* parser, Ast* type_name)
     } else if (token_is_assignmentOrMethodCallStatement(parser->token)) {
       stmt->statement.stmt = parse_assignmentOrMethodCallStatement(parser);
       return stmt;
-    } else if (parser->token->klass == TK_IF) {
+    } else if (parser->token->klass == TokenClass::IF) {
       stmt->statement.stmt = parse_conditionalStatement(parser);
       return stmt;
-    } else if (parser->token->klass == TK_SEMICOLON) {
+    } else if (parser->token->klass == TokenClass::SEMICOLON) {
       empty_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
       empty_stmt->kind = AST_emptyStatement;
       empty_stmt->line_no = parser->token->line_no;
@@ -3049,16 +3049,16 @@ static Ast* parse_statement(Parser* parser, Ast* type_name)
       stmt->statement.stmt = empty_stmt;
       next_token(parser);
       return stmt;
-    } else if (parser->token->klass == TK_BRACE_OPEN) {
+    } else if (parser->token->klass == TokenClass::BRACE_OPEN) {
       stmt->statement.stmt = parse_blockStatement(parser);
       return stmt;
-    } else if (parser->token->klass == TK_EXIT) {
+    } else if (parser->token->klass == TokenClass::EXIT) {
       stmt->statement.stmt = parse_exitStatement(parser);
       return stmt;
-    } else if (parser->token->klass == TK_RETURN) {
+    } else if (parser->token->klass == TokenClass::RETURN) {
       stmt->statement.stmt = parse_returnStatement(parser);
       return stmt;
-    } else if (parser->token->klass == TK_SWITCH) {
+    } else if (parser->token->klass == TokenClass::SWITCH) {
       stmt->statement.stmt = parse_switchStatement(parser);
       return stmt;
     }
@@ -3072,14 +3072,14 @@ static Ast* parse_blockStatement(Parser* parser)
 {
   Ast* block_stmt;
 
-  if (parser->token->klass == TK_BRACE_OPEN) {
+  if (parser->token->klass == TokenClass::BRACE_OPEN) {
     next_token(parser);
     block_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     block_stmt->kind = AST_blockStatement;
     block_stmt->line_no = parser->token->line_no;
     block_stmt->column_no = parser->token->column_no;
     block_stmt->blockStatement.stmt_list = parse_statementOrDeclList(parser);
-    if (parser->token->klass == TK_BRACE_CLOSE) {
+    if (parser->token->klass == TokenClass::BRACE_CLOSE) {
       next_token(parser);
     } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                  parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3114,21 +3114,21 @@ static Ast* parse_switchStatement(Parser* parser)
 {
   Ast* stmt;
 
-  if (parser->token->klass == TK_SWITCH) {
+  if (parser->token->klass == TokenClass::SWITCH) {
     next_token(parser);
     stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
     stmt->kind = AST_switchStatement;
     stmt->line_no = parser->token->line_no;
     stmt->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_PARENTH_OPEN) {
+    if (parser->token->klass == TokenClass::PARENTH_OPEN) {
       next_token(parser);
       stmt->switchStatement.expr = parse_expression(parser, 1);
-      if (parser->token->klass == TK_PARENTH_CLOSE) {
+      if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
         next_token(parser);
-        if (parser->token->klass == TK_BRACE_OPEN) {
+        if (parser->token->klass == TokenClass::BRACE_OPEN) {
           next_token(parser);
           stmt->switchStatement.switch_cases = parse_switchCases(parser);
-          if (parser->token->klass == TK_BRACE_CLOSE) {
+          if (parser->token->klass == TokenClass::BRACE_CLOSE) {
             next_token(parser);
           } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                        parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3175,9 +3175,9 @@ static Ast* parse_switchCase(Parser* parser)
     switch_case->line_no = parser->token->line_no;
     switch_case->column_no = parser->token->column_no;
     switch_case->switchCase.label = parse_switchLabel(parser);
-    if (parser->token->klass == TK_COLON) {
+    if (parser->token->klass == TokenClass::COLON) {
       next_token(parser);
-      if (parser->token->klass == TK_BRACE_OPEN) {
+      if (parser->token->klass == TokenClass::BRACE_OPEN) {
         switch_case->switchCase.stmt = parse_blockStatement(parser);
       }
     } else error("%s:%d:%d: error: `:` was expected, got `%s`.",
@@ -3201,7 +3201,7 @@ static Ast* parse_switchLabel(Parser* parser)
     if (token_is_name(parser->token)) {
       switch_label->switchLabel.label = parse_name(parser);
       return switch_label;
-    } else if (parser->token->klass == TK_DEFAULT) {
+    } else if (parser->token->klass == TokenClass::DEFAULT) {
       next_token(parser);
       default_label = (Ast*)parser->storage->malloc(sizeof(Ast));
       default_label->kind = AST_default;
@@ -3227,7 +3227,7 @@ static Ast* parse_statementOrDeclaration(Parser* parser)
     stmt->column_no = parser->token->column_no;
     if (token_is_typeRef(parser->token)) {
       type_ref = parse_typeRef(parser);
-      if (parser->token->klass == TK_PARENTH_OPEN) {
+      if (parser->token->klass == TokenClass::PARENTH_OPEN) {
         stmt->statementOrDeclaration.stmt = parse_instantiation(parser, type_ref);
         return stmt;
       } else if (token_is_name(parser->token)) {
@@ -3240,7 +3240,7 @@ static Ast* parse_statementOrDeclaration(Parser* parser)
     } else if (token_is_statement(parser->token)) {
       stmt->statementOrDeclaration.stmt = parse_statement(parser, 0);
       return stmt;
-    } else if (parser->token->klass == TK_CONST) {
+    } else if (parser->token->klass == TokenClass::CONST) {
       stmt->statementOrDeclaration.stmt = parse_variableDeclaration(parser, 0);
       return stmt;
     } else assert(0);
@@ -3256,7 +3256,7 @@ static Ast* parse_tableDeclaration(Parser* parser)
 {
   Ast* table, *method_protos;
 
-  if (parser->token->klass == TK_TABLE) {
+  if (parser->token->klass == TokenClass::TABLE) {
     next_token(parser);
     table = (Ast*)parser->storage->malloc(sizeof(Ast));
     table->kind = AST_tableDeclaration;
@@ -3268,13 +3268,13 @@ static Ast* parse_tableDeclaration(Parser* parser)
     method_protos->line_no = table->line_no;
     method_protos->column_no = table->column_no;
     table->tableDeclaration.method_protos = method_protos;
-    if (parser->token->klass == TK_BRACE_OPEN) {
+    if (parser->token->klass == TokenClass::BRACE_OPEN) {
       next_token(parser);
       if (token_is_tableProperty(parser->token)) {
         table->tableDeclaration.prop_list = parse_tablePropertyList(parser);
       } else error("%s:%d:%d: error: table property was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
-      if (parser->token->klass == TK_BRACE_CLOSE) {
+      if (parser->token->klass == TokenClass::BRACE_CLOSE) {
         next_token(parser);
       } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3316,7 +3316,7 @@ static Ast* parse_tableProperty(Parser* parser)
 
   if (token_is_tableProperty(parser->token)) {
 #if 0
-    if (parser->token->klass == TK_CONST) {
+    if (parser->token->klass == TokenClass::CONST) {
       next_token(parser);
       is_const = 1;
     }
@@ -3325,18 +3325,18 @@ static Ast* parse_tableProperty(Parser* parser)
     table_prop->kind = AST_tableProperty;
     table_prop->line_no = parser->token->line_no;
     table_prop->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_KEY) {
+    if (parser->token->klass == TokenClass::KEY) {
       next_token(parser);
       prop = (Ast*)parser->storage->malloc(sizeof(Ast));
       prop->kind = AST_keyProperty;
       prop->line_no = parser->token->line_no;
       prop->column_no = parser->token->column_no;
-      if (parser->token->klass == TK_EQUAL) {
+      if (parser->token->klass == TokenClass::EQUAL) {
         next_token(parser);
-        if (parser->token->klass == TK_BRACE_OPEN) {
+        if (parser->token->klass == TokenClass::BRACE_OPEN) {
           next_token(parser);
           prop->keyProperty.keyelem_list = parse_keyElementList(parser);
-          if (parser->token->klass == TK_BRACE_CLOSE) {
+          if (parser->token->klass == TokenClass::BRACE_CLOSE) {
             next_token(parser);
           } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                        parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3346,18 +3346,18 @@ static Ast* parse_tableProperty(Parser* parser)
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
       table_prop->tableProperty.prop = prop;
       return table_prop;
-    } else if (parser->token->klass == TK_ACTIONS) {
+    } else if (parser->token->klass == TokenClass::ACTIONS) {
       next_token(parser);
       prop = (Ast*)parser->storage->malloc(sizeof(Ast));
       prop->kind = AST_actionsProperty;
       prop->line_no = parser->token->line_no;
       prop->column_no = parser->token->column_no;
-      if (parser->token->klass == TK_EQUAL) {
+      if (parser->token->klass == TokenClass::EQUAL) {
         next_token(parser);
-        if (parser->token->klass == TK_BRACE_OPEN) {
+        if (parser->token->klass == TokenClass::BRACE_OPEN) {
           next_token(parser);
           prop->actionsProperty.action_list = parse_actionList(parser);
-          if (parser->token->klass == TK_BRACE_CLOSE) {
+          if (parser->token->klass == TokenClass::BRACE_CLOSE) {
             next_token(parser);
           } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                        parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3369,21 +3369,21 @@ static Ast* parse_tableProperty(Parser* parser)
       return table_prop;
     }
 #if 0
-    else if (parser->token->klass == TK_ENTRIES) {
+    else if (parser->token->klass == TokenClass::ENTRIES) {
       next_token(parser);
       prop = (Ast*)malloc(parser->storage, sizeof(Ast));
       prop->kind = AST_entriesProperty;
       prop->line_no = parser->token->line_no;
       prop->column_no = parser->token->column_no;
-      if (parser->token->klass == TK_EQUAL) {
+      if (parser->token->klass == TokenClass::EQUAL) {
         next_token(parser);
-        if (parser->token->klass == TK_BRACE_OPEN) {
+        if (parser->token->klass == TokenClass::BRACE_OPEN) {
           next_token(parser);
           if (token_is_keysetExpression(parser->token)) {
             prop->entriesProperty.entries_list = parse_entriesList(parser);
           } else error("%s:%d:%d: error: keyset expression was expected, got `%s`.",
                        parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
-          if (parser->token->klass == TK_BRACE_CLOSE) {
+          if (parser->token->klass == TokenClass::BRACE_CLOSE) {
             next_token(parser);
           } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                        parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3401,10 +3401,10 @@ static Ast* parse_tableProperty(Parser* parser)
       prop->column_no = parser->token->column_no;
       prop->simpleProperty.is_const = is_const;
       prop->simpleProperty.name = parse_name(parser);
-      if (parser->token->klass == TK_EQUAL) {
+      if (parser->token->klass == TokenClass::EQUAL) {
         next_token(parser);
         prop->simpleProperty.init_expr = parse_expression(parser, 1);
-        if (parser->token->klass == TK_SEMICOLON) {
+        if (parser->token->klass == TokenClass::SEMICOLON) {
           next_token(parser);
         } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3453,10 +3453,10 @@ static Ast* parse_keyElement(Parser* parser)
     key_elem->line_no = parser->token->line_no;
     key_elem->column_no = parser->token->column_no;
     key_elem->keyElement.expr = parse_expression(parser, 1);
-    if (parser->token->klass == TK_COLON) {
+    if (parser->token->klass == TokenClass::COLON) {
       next_token(parser);
       key_elem->keyElement.match = parse_name(parser);
-      if (parser->token->klass == TK_SEMICOLON) {
+      if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3481,14 +3481,14 @@ static Ast* parse_actionList(Parser* parser)
   if (token_is_actionRef(parser->token)) {
     ast = parse_actionRef(parser);
     ast_tree_append_node(&actions->tree, &tree_ctor, &ast->tree);
-    if (parser->token->klass == TK_SEMICOLON) {
+    if (parser->token->klass == TokenClass::SEMICOLON) {
       next_token(parser);
     } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                  parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
     while (token_is_actionRef(parser->token)) {
       ast = parse_actionRef(parser);
       ast_tree_append_node(&actions->tree, &tree_ctor, &ast->tree);
-      if (parser->token->klass == TK_SEMICOLON) {
+      if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3507,15 +3507,15 @@ static Ast* parse_actionRef(Parser* parser)
     action_ref->line_no = parser->token->line_no;
     action_ref->column_no = parser->token->column_no;
     action_ref->actionRef.name = parse_nonTypeName(parser);
-    if (parser->token->klass == TK_PARENTH_OPEN) {
+    if (parser->token->klass == TokenClass::PARENTH_OPEN) {
       next_token(parser);
       if (token_is_argument(parser->token)) {
         action_ref->actionRef.args = parse_argumentList(parser);
-        if (parser->token->klass == TK_PARENTH_CLOSE) {
+        if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
-      } else if (parser->token->klass == TK_PARENTH_CLOSE) {
+      } else if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
         next_token(parser);
       } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3558,10 +3558,10 @@ static Ast* parse_entry(Parser* parser)
     entry->line_no = parser->token->line_no;
     entry->column_no = parser->token->column_no;
     entry->entry.keyset = parse_keysetExpression(parser);
-    if (parser->token->klass == TK_COLON) {
+    if (parser->token->klass == TokenClass::COLON) {
       next_token(parser);
       entry->entry.action = parse_actionRef(parser);
-      if (parser->token->klass == TK_SEMICOLON) {
+      if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3579,7 +3579,7 @@ static Ast* parse_actionDeclaration(Parser* parser)
 {
   Ast* action_decl;
 
-  if (parser->token->klass == TK_ACTION) {
+  if (parser->token->klass == TokenClass::ACTION) {
     next_token(parser);
     action_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
     action_decl->kind = AST_actionDeclaration;
@@ -3587,12 +3587,12 @@ static Ast* parse_actionDeclaration(Parser* parser)
     action_decl->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
       action_decl->actionDeclaration.name = parse_name(parser);
-      if (parser->token->klass == TK_PARENTH_OPEN) {
+      if (parser->token->klass == TokenClass::PARENTH_OPEN) {
         next_token(parser);
         action_decl->actionDeclaration.params = parse_parameterList(parser);
-        if (parser->token->klass == TK_PARENTH_CLOSE) {
+        if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
           next_token(parser);
-          if (parser->token->klass == TK_BRACE_OPEN) {
+          if (parser->token->klass == TokenClass::BRACE_OPEN) {
             action_decl->actionDeclaration.stmt = parse_blockStatement(parser);
           } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
                        parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3616,7 +3616,7 @@ static Ast* parse_variableDeclaration(Parser* parser, Ast* type_ref)
   bool is_const = 0;
   Ast* var_decl;
 
-  if (parser->token->klass == TK_CONST) {
+  if (parser->token->klass == TokenClass::CONST) {
     next_token(parser);
     is_const = 1;
   }
@@ -3628,11 +3628,11 @@ static Ast* parse_variableDeclaration(Parser* parser, Ast* type_ref)
     var_decl->variableDeclaration.type = type_ref ? type_ref : parse_typeRef(parser);
     if (token_is_name(parser->token)) {
       var_decl->variableDeclaration.name = parse_name(parser);
-      if (parser->token->klass == TK_EQUAL) {
+      if (parser->token->klass == TokenClass::EQUAL) {
         next_token(parser);
         var_decl->variableDeclaration.init_expr = parse_expression(parser, 1);
       }
-      if (parser->token->klass == TK_SEMICOLON) {
+      if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3658,7 +3658,7 @@ static Ast* parse_functionDeclaration(Parser* parser, Ast* type_ref)
     func_decl->line_no = parser->token->line_no;
     func_decl->column_no = parser->token->column_no;
     func_decl->functionDeclaration.proto = parse_functionPrototype(parser, type_ref);
-    if (parser->token->klass == TK_BRACE_OPEN) {
+    if (parser->token->klass == TokenClass::BRACE_OPEN) {
       func_decl->functionDeclaration.stmt = parse_blockStatement(parser);
     } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
                  parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3681,7 +3681,7 @@ static Ast* parse_argumentList(Parser* parser)
   if (token_is_argument(parser->token)) {
     ast = parse_argument(parser);
     ast_tree_append_node(&args->tree, &tree_ctor, &ast->tree);
-    while (parser->token->klass == TK_COMMA) {
+    while (parser->token->klass == TokenClass::COMMA) {
       next_token(parser);
       ast = parse_argument(parser);
       ast_tree_append_node(&args->tree, &tree_ctor, &ast->tree);
@@ -3702,7 +3702,7 @@ static Ast* parse_argument(Parser* parser)
     if (token_is_expression(parser->token)) {
       arg->argument.arg = parse_expression(parser, 1);
       return arg;
-    } else if (parser->token->klass == TK_DONTCARE) {
+    } else if (parser->token->klass == TokenClass::DONTCARE) {
       next_token(parser);
       dontcare_arg = (Ast*)parser->storage->malloc(sizeof(Ast));
       dontcare_arg->kind = AST_dontcare;
@@ -3729,7 +3729,7 @@ static Ast* parse_expressionList(Parser* parser)
   if (token_is_expression(parser->token)) {
     ast = parse_expression(parser, 1);
     ast_tree_append_node(&exprs->tree, &tree_ctor, &ast->tree);
-    while (parser->token->klass == TK_COMMA) {
+    while (parser->token->klass == TokenClass::COMMA) {
       next_token(parser);
       ast = parse_expression(parser, 1);
       ast_tree_append_node(&exprs->tree, &tree_ctor, &ast->tree);
@@ -3748,8 +3748,8 @@ static Ast* parse_lvalue(Parser* parser)
     lvalue->line_no = parser->token->line_no;
     lvalue->column_no = parser->token->column_no;
     lvalue->lvalueExpression.expr = parse_nonTypeName(parser);
-    while(parser->token->klass == TK_DOT || parser->token->klass == TK_BRACKET_OPEN) {
-      if (parser->token->klass == TK_DOT) {
+    while(parser->token->klass == TokenClass::DOT || parser->token->klass == TokenClass::BRACKET_OPEN) {
+      if (parser->token->klass == TokenClass::DOT) {
         next_token(parser);
         expr = (Ast*)parser->storage->malloc(sizeof(Ast));
         expr->kind = AST_memberSelector;
@@ -3766,7 +3766,7 @@ static Ast* parse_lvalue(Parser* parser)
         lvalue->column_no = parser->token->column_no;
         lvalue->lvalueExpression.expr = expr;
       }
-      else if (parser->token->klass == TK_BRACKET_OPEN) {
+      else if (parser->token->klass == TokenClass::BRACKET_OPEN) {
         next_token(parser);
         expr = (Ast*)parser->storage->malloc(sizeof(Ast));
         expr->kind = AST_arraySubscript;
@@ -3774,7 +3774,7 @@ static Ast* parse_lvalue(Parser* parser)
         expr->column_no = parser->token->column_no;
         expr->arraySubscript.lhs_expr = lvalue;
         expr->arraySubscript.index_expr = parse_indexExpression(parser);
-        if (parser->token->klass == TK_BRACKET_CLOSE) {
+        if (parser->token->klass == TokenClass::BRACKET_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3799,7 +3799,7 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
   if (token_is_expression(parser->token)) {
     primary = parse_expressionPrimary(parser);
     while (token_is_exprOperator(parser->token)) {
-      if (parser->token->klass == TK_DOT) {
+      if (parser->token->klass == TokenClass::DOT) {
         next_token(parser);
         Ast* expr;
         expr = (Ast*)parser->storage->malloc(sizeof(Ast));
@@ -3816,7 +3816,7 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
-      } else if (parser->token->klass == TK_BRACKET_OPEN) {
+      } else if (parser->token->klass == TokenClass::BRACKET_OPEN) {
         next_token(parser);
         expr = (Ast*)parser->storage->malloc(sizeof(Ast));
         expr->kind = AST_arraySubscript;
@@ -3824,7 +3824,7 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
         expr->column_no = parser->token->column_no;
         expr->arraySubscript.lhs_expr = primary;
         expr->arraySubscript.index_expr = parse_indexExpression(parser);
-        if (parser->token->klass == TK_BRACKET_CLOSE) {
+        if (parser->token->klass == TokenClass::BRACKET_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3833,7 +3833,7 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
-      } else if (parser->token->klass == TK_PARENTH_OPEN) {
+      } else if (parser->token->klass == TokenClass::PARENTH_OPEN) {
         next_token(parser);
         expr = (Ast*)parser->storage->malloc(sizeof(Ast));
         expr->kind = AST_functionCall;
@@ -3841,7 +3841,7 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
         expr->column_no = parser->token->column_no;
         expr->functionCall.lhs_expr = primary;
         expr->functionCall.args = parse_argumentList(parser);
-        if (parser->token->klass == TK_PARENTH_CLOSE) {
+        if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3850,7 +3850,7 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
-      } else if (parser->token->klass == TK_EQUAL) {
+      } else if (parser->token->klass == TokenClass::EQUAL) {
         next_token(parser);
         expr = (Ast*)parser->storage->malloc(sizeof(Ast));
         expr->kind = AST_assignmentStatement;
@@ -3899,21 +3899,21 @@ static Ast* parse_expressionPrimary(Parser* parser)
     primary->kind = AST_expression;
     primary->line_no = parser->token->line_no;
     primary->column_no = parser->token->column_no;
-    if (parser->token->klass == TK_INTEGER_LITERAL) {
+    if (parser->token->klass == TokenClass::INTEGER_LITERAL) {
       primary->expression.expr = parse_integer(parser);
       return primary;
-    } else if (parser->token->klass == TK_TRUE || parser->token->klass == TK_FALSE) {
+    } else if (parser->token->klass == TokenClass::TRUE || parser->token->klass == TokenClass::FALSE) {
       primary->expression.expr = parse_boolean(parser);
       return primary;
-    } else if (parser->token->klass == TK_STRING_LITERAL) {
+    } else if (parser->token->klass == TokenClass::STRING_LITERAL) {
       primary->expression.expr = parse_string(parser);
       return primary;
-    } else if (parser->token->klass == TK_DOT) {
+    } else if (parser->token->klass == TokenClass::DOT) {
       next_token(parser);
-      if (parser->token->klass == TK_IDENTIFIER) {
+      if (parser->token->klass == TokenClass::IDENTIFIER) {
         primary->expression.expr = parse_nonTypeName(parser);
         return primary;
-      } else if (parser->token->klass == TK_TYPE_IDENTIFIER) {
+      } else if (parser->token->klass == TokenClass::TYPE_IDENTIFIER) {
         primary->expression.expr = parse_typeName(parser);
         return primary;
       } else error("%s:%d:%d: error: unexpected token `%s`.",
@@ -3922,20 +3922,20 @@ static Ast* parse_expressionPrimary(Parser* parser)
     } else if (token_is_nonTypeName(parser->token)) {
       primary->expression.expr = parse_nonTypeName(parser);
       return primary;
-    } else if (parser->token->klass == TK_BRACE_OPEN) {
+    } else if (parser->token->klass == TokenClass::BRACE_OPEN) {
       next_token(parser);
       primary->expression.expr = parse_expressionList(parser);
-      if (parser->token->klass == TK_BRACE_CLOSE) {
+      if (parser->token->klass == TokenClass::BRACE_CLOSE) {
         next_token(parser);
       } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
       return primary;
-    } else if (parser->token->klass == TK_PARENTH_OPEN) {
+    } else if (parser->token->klass == TokenClass::PARENTH_OPEN) {
       next_token(parser);
-      if (parser->token->klass == TK_TYPE_IDENTIFIER && peek_token(parser)->klass == TK_DOT) {
+      if (parser->token->klass == TokenClass::TYPE_IDENTIFIER && peek_token(parser)->klass == TokenClass::DOT) {
         /* (<typeName>.<name>) */
         primary->expression.expr = parse_expression(parser, 1);
-        if (parser->token->klass == TK_PARENTH_CLOSE) {
+        if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3946,7 +3946,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
         expr->castExpression.type = parse_typeRef(parser);
-        if (parser->token->klass == TK_PARENTH_CLOSE) {
+        if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
           next_token(parser);
           expr->castExpression.expr = parse_expression(parser, 10);
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
@@ -3955,7 +3955,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
         return primary;
       } else if (token_is_expression(parser->token)) {
         primary->expression.expr = parse_expression(parser, 1);
-        if (parser->token->klass == TK_PARENTH_CLOSE) {
+        if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
           next_token(parser);
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
@@ -3963,35 +3963,35 @@ static Ast* parse_expressionPrimary(Parser* parser)
       } else error("%s:%d:%d: error: expression was expected, got `%s`.",
                    parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
       assert(0);
-    } else if (parser->token->klass == TK_EXCLAMATION) {
+    } else if (parser->token->klass == TokenClass::EXCLAMATION) {
       next_token(parser);
       expr = (Ast*)parser->storage->malloc(sizeof(Ast));
       expr->kind = AST_unaryExpression;
       expr->line_no = parser->token->line_no;
       expr->column_no = parser->token->column_no;
-      expr->unaryExpression.op = OP_NOT;
+      expr->unaryExpression.op = AstOperator::NOT;
       expr->unaryExpression.strname = parser->token->lexeme;
       expr->unaryExpression.operand = parse_expression(parser, 1);
       primary->expression.expr = expr;
       return primary;
-    } else if (parser->token->klass == TK_TILDA) {
+    } else if (parser->token->klass == TokenClass::TILDA) {
       next_token(parser);
       expr = (Ast*)parser->storage->malloc(sizeof(Ast));
       expr->kind = AST_unaryExpression;
       expr->line_no = parser->token->line_no;
       expr->column_no = parser->token->column_no;
-      expr->unaryExpression.op = OP_BITW_NOT;
+      expr->unaryExpression.op = AstOperator::BITW_NOT;
       expr->unaryExpression.strname = parser->token->lexeme;
       expr->unaryExpression.operand = parse_expression(parser, 1);
       primary->expression.expr = expr;
       return primary;
-    } else if (parser->token->klass == TK_UNARY_MINUS) {
+    } else if (parser->token->klass == TokenClass::UNARY_MINUS) {
       next_token(parser);
       expr = (Ast*)parser->storage->malloc(sizeof(Ast));
       expr->kind = AST_unaryExpression;
       expr->line_no = parser->token->line_no;
       expr->column_no = parser->token->column_no;
-      expr->unaryExpression.op = OP_NEG;
+      expr->unaryExpression.op = AstOperator::NEG;
       expr->unaryExpression.strname = parser->token->lexeme;
       expr->unaryExpression.operand = parse_expression(parser, 1);
       primary->expression.expr = expr;
@@ -3999,7 +3999,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
     } else if (token_is_typeName(parser->token)) {
       primary->expression.expr = parse_typeName(parser);
       return primary;
-    } else if (parser->token->klass == TK_ERROR) {
+    } else if (parser->token->klass == TokenClass::ERROR) {
       next_token(parser);
       expr = (Ast*)parser->storage->malloc(sizeof(Ast));
       expr->kind = AST_name;
@@ -4026,7 +4026,7 @@ static Ast* parse_indexExpression(Parser* parser)
     index_expr->line_no = parser->token->line_no;
     index_expr->column_no = parser->token->column_no;
     index_expr->indexExpression.start_index = parse_expression(parser, 1);
-    if (parser->token->klass == TK_COLON) {
+    if (parser->token->klass == TokenClass::COLON) {
       next_token(parser);
       if (token_is_expression(parser->token)) {
         index_expr->indexExpression.end_index = parse_expression(parser, 1);
@@ -4044,7 +4044,7 @@ static Ast* parse_integer(Parser* parser)
 {
   Ast* int_literal;
 
-  if (parser->token->klass == TK_INTEGER_LITERAL) {
+  if (parser->token->klass == TokenClass::INTEGER_LITERAL) {
     int_literal = (Ast*)parser->storage->malloc(sizeof(Ast));
     int_literal->kind = AST_integerLiteral;
     int_literal->line_no = parser->token->line_no;
@@ -4064,12 +4064,12 @@ static Ast* parse_boolean(Parser* parser)
 {
   Ast* bool_literal;
 
-  if (parser->token->klass == TK_TRUE || parser->token->klass == TK_FALSE) {
+  if (parser->token->klass == TokenClass::TRUE || parser->token->klass == TokenClass::FALSE) {
     bool_literal = (Ast*)parser->storage->malloc(sizeof(Ast));
     bool_literal->kind = AST_booleanLiteral;
     bool_literal->line_no = parser->token->line_no;
     bool_literal->column_no = parser->token->column_no;
-    bool_literal->booleanLiteral.value = (parser->token->klass == TK_TRUE);
+    bool_literal->booleanLiteral.value = (parser->token->klass == TokenClass::TRUE);
     next_token(parser);
     return bool_literal;
   } else error("%s:%d:%d: error: boolean was expected, got `%s`.",
@@ -4082,7 +4082,7 @@ static Ast* parse_string(Parser* parser)
 {
   Ast* string_literal;
 
-  if (parser->token->klass == TK_STRING_LITERAL) {
+  if (parser->token->klass == TokenClass::STRING_LITERAL) {
     string_literal = (Ast*)parser->storage->malloc(sizeof(Ast));
     string_literal->kind = AST_stringLiteral;
     string_literal->line_no = parser->token->line_no;
