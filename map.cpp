@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "foundation.h"
 
-static MapEntry* search_entry(MapEntry* entry, void* key)
+MapEntry* Map::search_entry(MapEntry* entry, void* key)
 {
   if (!entry) {
     return 0;
@@ -16,26 +16,26 @@ static MapEntry* search_entry(MapEntry* entry, void* key)
   return 0;
 }
 
-MapEntry* insert_entry(Map* map, MapEntry** branch, MapEntry* entry,
+MapEntry* Map::insert_entry(MapEntry** branch, MapEntry* entry,
     void* key, void* value, bool return_if_found)
 {
   if (!entry) {
-    entry = (MapEntry*)map->storage->malloc(sizeof(MapEntry));
+    entry = (MapEntry*)this->storage->malloc(sizeof(MapEntry));
     *branch = entry;
     entry->key = key;
     entry->value = value;
     entry->left_branch = 0;
     entry->right_branch = 0;
-    entry->next = map->first;
-    map->first = entry;
+    entry->next = this->first;
+    this->first = entry;
     return entry;
   } else if (entry->key == key) {
     if (return_if_found) { return entry; } else { return 0; }
   } else if (key < entry->key) {
-    return insert_entry(map, &entry->left_branch, entry->left_branch,
+    return this->insert_entry(&entry->left_branch, entry->left_branch,
                 key, value, return_if_found);
   } else {
-    return insert_entry(map, &entry->right_branch, entry->right_branch,
+    return this->insert_entry(&entry->right_branch, entry->right_branch,
                 key, value, return_if_found);
   }
   assert(0);
@@ -56,7 +56,7 @@ void* Map::lookup(void* key, MapEntry** entry)
 
 MapEntry* Map::insert(void* key, void* value, bool return_if_found)
 {
-  return insert_entry(this, &this->root, this->root, key, value, return_if_found);
+  return this->insert_entry(&this->root, this->root, key, value, return_if_found);
 }
 
 int Map::count()

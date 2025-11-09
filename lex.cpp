@@ -808,8 +808,7 @@ static void next_token(Lexer* lexer, Token* token)
   token->line_no = lexer->line_no;
 }
 
-void
-tokenize(Lexer* lexer, SourceText* source_text)
+void tokenize(Lexer* lexer, SourceText* source_text)
 {
   Token token = {};
 

@@ -127,6 +127,9 @@ typedef struct Map {
   MapEntry* first;
   MapEntry* root;
 
+  MapEntry* search_entry(MapEntry* entry, void* key);
+  MapEntry* insert_entry(MapEntry** branch, MapEntry* entry,
+     void* key, void* value, bool return_if_found);
   MapEntry* insert(void* key, void* value, bool return_if_found);
   void* lookup(void* key, MapEntry** entry);
   int count();
