@@ -1039,6 +1039,11 @@ typedef struct TypeChecker {
   Array* type_equiv_pairs;
   Map* type_env;
   Map* potype_map;
+
+  bool match_type(PotentialType* potential_types, Type* required_ty);
+  bool match_params(PotentialType* potential_args, Type* params_ty);
+  void collect_matching_member(PotentialType* tau, Type* product_ty,
+        char* strname, PotentialType* potential_args);
 } TypeChecker;
 
 bool type_equiv(TypeChecker* checker, Type* u, Type* v);

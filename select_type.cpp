@@ -203,7 +203,7 @@ static void visit_name(TypeChecker* checker, Ast* name, Type* required_ty)
         checker->source_file, name->line_no, name->column_no);
   }
   if (required_ty) {
-    if (!match_type(checker, name_tau, required_ty)) {
+    if (!checker->match_type(name_tau, required_ty)) {
       error("%s:%d:%d: error: failed type check.",
           checker->source_file, name->line_no, name->column_no);
     } else {
@@ -849,7 +849,7 @@ static void visit_functionCall(TypeChecker* checker, Ast* func_call, Type* requi
         checker->source_file, func_call->line_no, func_call->column_no);
   }
   if (required_ty) {
-    if (!match_type(checker, func_tau, required_ty)) {
+    if (!checker->match_type(func_tau, required_ty)) {
       error("%s:%d:%d: error: failed type check.",
             checker->source_file, func_call->line_no, func_call->column_no);
     } else {
@@ -1270,7 +1270,7 @@ static void visit_binaryExpression(TypeChecker* checker, Ast* binary_expr, Type*
         checker->source_file, binary_expr->line_no, binary_expr->column_no);
   }
   if (required_ty) {
-    if (!match_type(checker, op_tau, required_ty)) {
+    if (!checker->match_type(op_tau, required_ty)) {
       error("%s:%d:%d: error: failed type check.",
             checker->source_file, binary_expr->line_no, binary_expr->column_no);
     } else {
@@ -1300,7 +1300,7 @@ static void visit_memberSelector(TypeChecker* checker, Ast* selector, Type* requ
         checker->source_file, selector->line_no, selector->column_no);
   }
   if (required_ty) {
-    if (!match_type(checker, selector_tau, required_ty)) {
+    if (!checker->match_type(selector_tau, required_ty)) {
       error("%s:%d:%d: error: failed type check.",
             checker->source_file, selector->line_no, selector->column_no);
     } else {
