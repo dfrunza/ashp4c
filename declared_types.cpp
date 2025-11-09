@@ -530,13 +530,13 @@ void declared_types(TypeChecker* checker)
 
 static void visit_p4program(TypeChecker* checker, Ast* p4program)
 {
-  assert(p4program->kind == AST_p4program);
+  assert(p4program->kind == AstEnum::p4program);
   visit_declarationList(checker, p4program->p4program.decl_list);
 }
 
 static void visit_declarationList(TypeChecker* checker, Ast* decl_list)
 {
-  assert(decl_list->kind == AST_declarationList);
+  assert(decl_list->kind == AstEnum::declarationList);
   AstTree* ast;
 
   for (ast = decl_list->tree.first_child;
@@ -547,37 +547,37 @@ static void visit_declarationList(TypeChecker* checker, Ast* decl_list)
 
 static void visit_declaration(TypeChecker* checker, Ast* decl)
 {
-  assert(decl->kind == AST_declaration);
-  if (decl->declaration.decl->kind == AST_variableDeclaration) {
+  assert(decl->kind == AstEnum::declaration);
+  if (decl->declaration.decl->kind == AstEnum::variableDeclaration) {
     visit_variableDeclaration(checker, decl->declaration.decl);
-  } else if (decl->declaration.decl->kind == AST_externDeclaration) {
+  } else if (decl->declaration.decl->kind == AstEnum::externDeclaration) {
     visit_externDeclaration(checker, decl->declaration.decl);
-  } else if (decl->declaration.decl->kind == AST_actionDeclaration) {
+  } else if (decl->declaration.decl->kind == AstEnum::actionDeclaration) {
     visit_actionDeclaration(checker, decl->declaration.decl);
-  } else if (decl->declaration.decl->kind == AST_functionDeclaration) {
+  } else if (decl->declaration.decl->kind == AstEnum::functionDeclaration) {
     visit_functionDeclaration(checker, decl->declaration.decl);
-  } else if (decl->declaration.decl->kind == AST_parserDeclaration) {
+  } else if (decl->declaration.decl->kind == AstEnum::parserDeclaration) {
     visit_parserDeclaration(checker, decl->declaration.decl);
-  } else if (decl->declaration.decl->kind == AST_parserTypeDeclaration) {
+  } else if (decl->declaration.decl->kind == AstEnum::parserTypeDeclaration) {
     visit_parserTypeDeclaration(checker, decl->declaration.decl);
-  } else if (decl->declaration.decl->kind == AST_controlDeclaration) {
+  } else if (decl->declaration.decl->kind == AstEnum::controlDeclaration) {
     visit_controlDeclaration(checker, decl->declaration.decl);
-  } else if (decl->declaration.decl->kind == AST_controlTypeDeclaration) {
+  } else if (decl->declaration.decl->kind == AstEnum::controlTypeDeclaration) {
     visit_controlTypeDeclaration(checker, decl->declaration.decl);
-  } else if (decl->declaration.decl->kind == AST_typeDeclaration) {
+  } else if (decl->declaration.decl->kind == AstEnum::typeDeclaration) {
     visit_typeDeclaration(checker, decl->declaration.decl);
-  } else if (decl->declaration.decl->kind == AST_errorDeclaration) {
+  } else if (decl->declaration.decl->kind == AstEnum::errorDeclaration) {
     visit_errorDeclaration(checker, decl->declaration.decl);
-  } else if (decl->declaration.decl->kind == AST_matchKindDeclaration) {
+  } else if (decl->declaration.decl->kind == AstEnum::matchKindDeclaration) {
     visit_matchKindDeclaration(checker, decl->declaration.decl);
-  } else if (decl->declaration.decl->kind == AST_instantiation) {
+  } else if (decl->declaration.decl->kind == AstEnum::instantiation) {
     visit_instantiation(checker, decl->declaration.decl);
   } else assert(0);
 }
 
 static void visit_name(TypeChecker* checker, Ast* name)
 {
-  assert(name->kind == AST_name);
+  assert(name->kind == AstEnum::name);
   Type* name_ty;
 
   name_ty = (Type*)checker->type_array->append(sizeof(Type));
@@ -591,7 +591,7 @@ static void visit_name(TypeChecker* checker, Ast* name)
 
 static void visit_parameterList(TypeChecker* checker, Ast* params)
 {
-  assert(params->kind == AST_parameterList);
+  assert(params->kind == AstEnum::parameterList);
   AstTree* ast;
   Type* params_ty;
   int i;
@@ -619,7 +619,7 @@ static void visit_parameterList(TypeChecker* checker, Ast* params)
 
 static void visit_parameter(TypeChecker* checker, Ast* param)
 {
-  assert(param->kind == AST_parameter);
+  assert(param->kind == AstEnum::parameter);
   NameDeclaration* name_decl;
   Type* param_ty;
 
@@ -635,7 +635,7 @@ static void visit_parameter(TypeChecker* checker, Ast* param)
 
 static void visit_packageTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 {
-  assert(type_decl->kind == AST_packageTypeDeclaration);
+  assert(type_decl->kind == AstEnum::packageTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
   Type* package_ty;
@@ -654,7 +654,7 @@ static void visit_packageTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 
 static void visit_instantiation(TypeChecker* checker, Ast* inst)
 {
-  assert(inst->kind == AST_instantiation);
+  assert(inst->kind == AstEnum::instantiation);
   Type* inst_ty;
   NameDeclaration* name_decl;
 
@@ -670,7 +670,7 @@ static void visit_instantiation(TypeChecker* checker, Ast* inst)
 
 static void visit_parserDeclaration(TypeChecker* checker, Ast* parser_decl)
 {
-  assert(parser_decl->kind == AST_parserDeclaration);
+  assert(parser_decl->kind == AstEnum::parserDeclaration);
   Type* parser_ty;
 
   visit_typeDeclaration(checker, parser_decl->parserDeclaration.proto);
@@ -685,7 +685,7 @@ static void visit_parserDeclaration(TypeChecker* checker, Ast* parser_decl)
 
 static void visit_parserTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 {
-  assert(type_decl->kind == AST_parserTypeDeclaration);
+  assert(type_decl->kind == AstEnum::parserTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
   Type* parser_ty, *methods_ty;
@@ -707,7 +707,7 @@ static void visit_parserTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 
 static void visit_parserLocalElements(TypeChecker* checker, Ast* local_elements)
 {
-  assert(local_elements->kind == AST_parserLocalElements);
+  assert(local_elements->kind == AstEnum::parserLocalElements);
   AstTree* ast;
 
   for (ast = local_elements->tree.first_child;
@@ -718,17 +718,17 @@ static void visit_parserLocalElements(TypeChecker* checker, Ast* local_elements)
 
 static void visit_parserLocalElement(TypeChecker* checker, Ast* local_element)
 {
-  assert(local_element->kind == AST_parserLocalElement);
-  if (local_element->parserLocalElement.element->kind == AST_variableDeclaration) {
+  assert(local_element->kind == AstEnum::parserLocalElement);
+  if (local_element->parserLocalElement.element->kind == AstEnum::variableDeclaration) {
     visit_variableDeclaration(checker, local_element->parserLocalElement.element);
-  } else if (local_element->parserLocalElement.element->kind == AST_instantiation) {
+  } else if (local_element->parserLocalElement.element->kind == AstEnum::instantiation) {
     visit_instantiation(checker, local_element->parserLocalElement.element);
   } else assert(0);
 }
 
 static void visit_parserStates(TypeChecker* checker, Ast* states)
 {
-  assert(states->kind == AST_parserStates);
+  assert(states->kind == AstEnum::parserStates);
   AstTree* ast;
 
   for (ast = states->tree.first_child;
@@ -739,7 +739,7 @@ static void visit_parserStates(TypeChecker* checker, Ast* states)
 
 static void visit_parserState(TypeChecker* checker, Ast* state)
 {
-  assert(state->kind == AST_parserState);
+  assert(state->kind == AstEnum::parserState);
   Ast* name;
   NameDeclaration* name_decl;
   Type* state_ty;
@@ -758,7 +758,7 @@ static void visit_parserState(TypeChecker* checker, Ast* state)
 
 static void visit_parserStatements(TypeChecker* checker, Ast* stmts)
 {
-  assert(stmts->kind == AST_parserStatements);
+  assert(stmts->kind == AstEnum::parserStatements);
   AstTree* ast;
 
   for (ast = stmts->tree.first_child;
@@ -769,54 +769,54 @@ static void visit_parserStatements(TypeChecker* checker, Ast* stmts)
 
 static void visit_parserStatement(TypeChecker* checker, Ast* stmt)
 {
-  assert(stmt->kind == AST_parserStatement);
-  if (stmt->parserStatement.stmt->kind == AST_assignmentStatement) {
+  assert(stmt->kind == AstEnum::parserStatement);
+  if (stmt->parserStatement.stmt->kind == AstEnum::assignmentStatement) {
     visit_assignmentStatement(checker, stmt->parserStatement.stmt);
-  } else if (stmt->parserStatement.stmt->kind == AST_functionCall) {
+  } else if (stmt->parserStatement.stmt->kind == AstEnum::functionCall) {
     visit_functionCall(checker, stmt->parserStatement.stmt);
-  } else if (stmt->parserStatement.stmt->kind == AST_directApplication) {
+  } else if (stmt->parserStatement.stmt->kind == AstEnum::directApplication) {
     visit_directApplication(checker, stmt->parserStatement.stmt);
-  } else if (stmt->parserStatement.stmt->kind == AST_parserBlockStatement) {
+  } else if (stmt->parserStatement.stmt->kind == AstEnum::parserBlockStatement) {
     visit_parserBlockStatement(checker, stmt->parserStatement.stmt);
-  } else if (stmt->parserStatement.stmt->kind == AST_variableDeclaration) {
+  } else if (stmt->parserStatement.stmt->kind == AstEnum::variableDeclaration) {
     visit_variableDeclaration(checker, stmt->parserStatement.stmt);
-  } else if (stmt->parserStatement.stmt->kind == AST_emptyStatement) {
+  } else if (stmt->parserStatement.stmt->kind == AstEnum::emptyStatement) {
     ;
   } else assert(0);
 }
 
 static void visit_parserBlockStatement(TypeChecker* checker, Ast* block_stmt)
 {
-  assert(block_stmt->kind == AST_parserBlockStatement);
+  assert(block_stmt->kind == AstEnum::parserBlockStatement);
   visit_parserStatements(checker, block_stmt->parserBlockStatement.stmt_list);
 }
 
 static void visit_transitionStatement(TypeChecker* checker, Ast* transition_stmt)
 {
-  assert(transition_stmt->kind == AST_transitionStatement);
+  assert(transition_stmt->kind == AstEnum::transitionStatement);
   visit_stateExpression(checker, transition_stmt->transitionStatement.stmt);
 }
 
 static void visit_stateExpression(TypeChecker* checker, Ast* state_expr)
 {
-  assert(state_expr->kind == AST_stateExpression);
-  if (state_expr->stateExpression.expr->kind == AST_name) {
+  assert(state_expr->kind == AstEnum::stateExpression);
+  if (state_expr->stateExpression.expr->kind == AstEnum::name) {
     ;
-  } else if (state_expr->stateExpression.expr->kind == AST_selectExpression) {
+  } else if (state_expr->stateExpression.expr->kind == AstEnum::selectExpression) {
     visit_selectExpression(checker, state_expr->stateExpression.expr);
   } else assert(0);
 }
 
 static void visit_selectExpression(TypeChecker* checker, Ast* select_expr)
 {
-  assert(select_expr->kind == AST_selectExpression);
+  assert(select_expr->kind == AstEnum::selectExpression);
   visit_expressionList(checker, select_expr->selectExpression.expr_list);
   visit_selectCaseList(checker, select_expr->selectExpression.case_list);
 }
 
 static void visit_selectCaseList(TypeChecker* checker, Ast* case_list)
 {
-  assert(case_list->kind == AST_selectCaseList);
+  assert(case_list->kind == AstEnum::selectCaseList);
   AstTree* ast;
 
   for (ast = case_list->tree.first_child;
@@ -827,41 +827,41 @@ static void visit_selectCaseList(TypeChecker* checker, Ast* case_list)
 
 static void visit_selectCase(TypeChecker* checker, Ast* select_case)
 {
-  assert(select_case->kind == AST_selectCase);
+  assert(select_case->kind == AstEnum::selectCase);
   visit_keysetExpression(checker, select_case->selectCase.keyset_expr);
 }
 
 static void visit_keysetExpression(TypeChecker* checker, Ast* keyset_expr)
 {
-  assert(keyset_expr->kind == AST_keysetExpression);
-  if (keyset_expr->keysetExpression.expr->kind == AST_tupleKeysetExpression) {
+  assert(keyset_expr->kind == AstEnum::keysetExpression);
+  if (keyset_expr->keysetExpression.expr->kind == AstEnum::tupleKeysetExpression) {
     visit_tupleKeysetExpression(checker, keyset_expr->keysetExpression.expr);
-  } else if (keyset_expr->keysetExpression.expr->kind == AST_simpleKeysetExpression) {
+  } else if (keyset_expr->keysetExpression.expr->kind == AstEnum::simpleKeysetExpression) {
     visit_simpleKeysetExpression(checker, keyset_expr->keysetExpression.expr);
   } else assert(0);
 }
 
 static void visit_tupleKeysetExpression(TypeChecker* checker, Ast* tuple_expr)
 {
-  assert(tuple_expr->kind == AST_tupleKeysetExpression);
+  assert(tuple_expr->kind == AstEnum::tupleKeysetExpression);
   visit_simpleExpressionList(checker, tuple_expr->tupleKeysetExpression.expr_list);
 }
 
 static void visit_simpleKeysetExpression(TypeChecker* checker, Ast* simple_expr)
 {
-  assert(simple_expr->kind == AST_simpleKeysetExpression);
-  if (simple_expr->simpleKeysetExpression.expr->kind == AST_expression) {
+  assert(simple_expr->kind == AstEnum::simpleKeysetExpression);
+  if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::expression) {
     visit_expression(checker, simple_expr->simpleKeysetExpression.expr);
-  } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_default) {
+  } else if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::default_) {
     visit_default(checker, simple_expr->simpleKeysetExpression.expr);
-  } else if (simple_expr->simpleKeysetExpression.expr->kind == AST_dontcare) {
+  } else if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::dontcare) {
     visit_dontcare(checker, simple_expr->simpleKeysetExpression.expr);
   } else assert(0);
 }
 
 static void visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list)
 {
-  assert(expr_list->kind == AST_simpleExpressionList);
+  assert(expr_list->kind == AstEnum::simpleExpressionList);
   AstTree* ast;
 
   for (ast = expr_list->tree.first_child;
@@ -873,7 +873,7 @@ static void visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list)
 /** CONTROL **/
 
 static void visit_controlDeclaration(TypeChecker* checker, Ast* control_decl) {
-  assert(control_decl->kind == AST_controlDeclaration);
+  assert(control_decl->kind == AstEnum::controlDeclaration);
   Type* control_ty;
 
   visit_typeDeclaration(checker, control_decl->controlDeclaration.proto);
@@ -888,7 +888,7 @@ static void visit_controlDeclaration(TypeChecker* checker, Ast* control_decl) {
 
 static void visit_controlTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 {
-  assert(type_decl->kind == AST_controlTypeDeclaration);
+  assert(type_decl->kind == AstEnum::controlTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
   Type* control_ty, *methods_ty;
@@ -910,7 +910,7 @@ static void visit_controlTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 
 static void visit_controlLocalDeclarations(TypeChecker* checker, Ast* local_decls)
 {
-  assert(local_decls->kind == AST_controlLocalDeclarations);
+  assert(local_decls->kind == AstEnum::controlLocalDeclarations);
   AstTree* ast;
 
   for (ast = local_decls->tree.first_child;
@@ -921,14 +921,14 @@ static void visit_controlLocalDeclarations(TypeChecker* checker, Ast* local_decl
 
 static void visit_controlLocalDeclaration(TypeChecker* checker, Ast* local_decl)
 {
-  assert(local_decl->kind == AST_controlLocalDeclaration);
-  if (local_decl->controlLocalDeclaration.decl->kind == AST_variableDeclaration) {
+  assert(local_decl->kind == AstEnum::controlLocalDeclaration);
+  if (local_decl->controlLocalDeclaration.decl->kind == AstEnum::variableDeclaration) {
     visit_variableDeclaration(checker, local_decl->controlLocalDeclaration.decl);
-  } else if (local_decl->controlLocalDeclaration.decl->kind == AST_actionDeclaration) {
+  } else if (local_decl->controlLocalDeclaration.decl->kind == AstEnum::actionDeclaration) {
     visit_actionDeclaration(checker, local_decl->controlLocalDeclaration.decl);
-  } else if (local_decl->controlLocalDeclaration.decl->kind == AST_tableDeclaration) {
+  } else if (local_decl->controlLocalDeclaration.decl->kind == AstEnum::tableDeclaration) {
     visit_tableDeclaration(checker, local_decl->controlLocalDeclaration.decl);
-  } else if (local_decl->controlLocalDeclaration.decl->kind == AST_instantiation) {
+  } else if (local_decl->controlLocalDeclaration.decl->kind == AstEnum::instantiation) {
     visit_instantiation(checker, local_decl->controlLocalDeclaration.decl);
   } else assert(0);
 }
@@ -937,17 +937,17 @@ static void visit_controlLocalDeclaration(TypeChecker* checker, Ast* local_decl)
 
 static void visit_externDeclaration(TypeChecker* checker, Ast* extern_decl)
 {
-  assert(extern_decl->kind == AST_externDeclaration);
-  if (extern_decl->externDeclaration.decl->kind == AST_externTypeDeclaration) {
+  assert(extern_decl->kind == AstEnum::externDeclaration);
+  if (extern_decl->externDeclaration.decl->kind == AstEnum::externTypeDeclaration) {
     visit_externTypeDeclaration(checker, extern_decl->externDeclaration.decl);
-  } else if (extern_decl->externDeclaration.decl->kind == AST_functionPrototype) {
+  } else if (extern_decl->externDeclaration.decl->kind == AstEnum::functionPrototype) {
     visit_functionPrototype(checker, extern_decl->externDeclaration.decl, 0, 0);
   } else assert(0);
 }
 
 static void visit_externTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 {
-  assert(type_decl->kind == AST_externTypeDeclaration);
+  assert(type_decl->kind == AstEnum::externTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
   Type* extern_ty, *methods_ty, *ctors_ty;
@@ -984,7 +984,7 @@ static void visit_externTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 
 static void visit_methodPrototypes(TypeChecker* checker, Ast* protos, Type* ctor_ty, char* ctor_strname)
 {
-  assert(protos->kind == AST_methodPrototypes);
+  assert(protos->kind == AstEnum::methodPrototypes);
   AstTree* ast;
   Type* methods_ty;
   int i;
@@ -1012,7 +1012,7 @@ static void visit_methodPrototypes(TypeChecker* checker, Ast* protos, Type* ctor
 
 static void visit_functionPrototype(TypeChecker* checker, Ast* func_proto, Type* ctor_ty, char* ctor_strname)
 {
-  assert(func_proto->kind == AST_functionPrototype);
+  assert(func_proto->kind == AstEnum::functionPrototype);
   Ast* name, *return_type;
   NameDeclaration* name_decl;
   Type* func_ty;
@@ -1042,28 +1042,28 @@ static void visit_functionPrototype(TypeChecker* checker, Ast* func_proto, Type*
 
 static void visit_typeRef(TypeChecker* checker, Ast* type_ref)
 {
-  assert(type_ref->kind == AST_typeRef);
+  assert(type_ref->kind == AstEnum::typeRef);
   Type* ref_ty;
 
-  if (type_ref->typeRef.type->kind == AST_baseTypeBoolean) {
+  if (type_ref->typeRef.type->kind == AstEnum::baseTypeBoolean) {
     visit_baseTypeBoolean(checker, type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_baseTypeInteger) {
+  } else if (type_ref->typeRef.type->kind == AstEnum::baseTypeInteger) {
     visit_baseTypeInteger(checker, type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_baseTypeBit) {
+  } else if (type_ref->typeRef.type->kind == AstEnum::baseTypeBit) {
     visit_baseTypeBit(checker, type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_baseTypeVarbit) {
+  } else if (type_ref->typeRef.type->kind == AstEnum::baseTypeVarbit) {
     visit_baseTypeVarbit(checker, type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_baseTypeString) {
+  } else if (type_ref->typeRef.type->kind == AstEnum::baseTypeString) {
     visit_baseTypeString(checker, type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_baseTypeVoid) {
+  } else if (type_ref->typeRef.type->kind == AstEnum::baseTypeVoid) {
     visit_baseTypeVoid(checker, type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_baseTypeError) {
+  } else if (type_ref->typeRef.type->kind == AstEnum::baseTypeError) {
     visit_baseTypeError(checker, type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_name) {
+  } else if (type_ref->typeRef.type->kind == AstEnum::name) {
     visit_name(checker, type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_headerStackType) {
+  } else if (type_ref->typeRef.type->kind == AstEnum::headerStackType) {
     visit_headerStackType(checker, type_ref->typeRef.type);
-  } else if (type_ref->typeRef.type->kind == AST_tupleType) {
+  } else if (type_ref->typeRef.type->kind == AstEnum::tupleType) {
     visit_tupleType(checker, type_ref->typeRef.type);
   } else assert(0);
   ref_ty = (Type*)checker->type_env->lookup(type_ref->typeRef.type, 0);
@@ -1072,7 +1072,7 @@ static void visit_typeRef(TypeChecker* checker, Ast* type_ref)
 
 static void visit_tupleType(TypeChecker* checker, Ast* type_decl)
 {
-  assert(type_decl->kind == AST_tupleType);
+  assert(type_decl->kind == AstEnum::tupleType);
   Type* tuple_ty;
 
   visit_typeArgumentList(checker, type_decl->tupleType.type_args);
@@ -1082,7 +1082,7 @@ static void visit_tupleType(TypeChecker* checker, Ast* type_decl)
 
 static void visit_headerStackType(TypeChecker* checker, Ast* type_decl)
 {
-  assert(type_decl->kind == AST_headerStackType);
+  assert(type_decl->kind == AstEnum::headerStackType);
   Type* stack_ty;
 
   visit_typeRef(checker, type_decl->headerStackType.type);
@@ -1096,7 +1096,7 @@ static void visit_headerStackType(TypeChecker* checker, Ast* type_decl)
 
 static void visit_baseTypeBoolean(TypeChecker* checker, Ast* bool_type)
 {
-  assert(bool_type->kind == AST_baseTypeBoolean);
+  assert(bool_type->kind == AstEnum::baseTypeBoolean);
   NameDeclaration* name_decl;
 
   name_decl = (NameDeclaration*)checker->decl_map->lookup(bool_type, 0);
@@ -1105,7 +1105,7 @@ static void visit_baseTypeBoolean(TypeChecker* checker, Ast* bool_type)
 
 static void visit_baseTypeInteger(TypeChecker* checker, Ast* int_type)
 {
-  assert(int_type->kind == AST_baseTypeInteger);
+  assert(int_type->kind == AstEnum::baseTypeInteger);
   NameDeclaration* name_decl;
 
   if (int_type->baseTypeInteger.size) {
@@ -1117,7 +1117,7 @@ static void visit_baseTypeInteger(TypeChecker* checker, Ast* int_type)
 
 static void visit_baseTypeBit(TypeChecker* checker, Ast* bit_type)
 {
-  assert(bit_type->kind == AST_baseTypeBit);
+  assert(bit_type->kind == AstEnum::baseTypeBit);
   NameDeclaration* name_decl;
 
   if (bit_type->baseTypeBit.size) {
@@ -1129,7 +1129,7 @@ static void visit_baseTypeBit(TypeChecker* checker, Ast* bit_type)
 
 static void visit_baseTypeVarbit(TypeChecker* checker, Ast* varbit_type)
 {
-  assert(varbit_type->kind == AST_baseTypeVarbit);
+  assert(varbit_type->kind == AstEnum::baseTypeVarbit);
   NameDeclaration* name_decl;
 
   visit_integerTypeSize(checker, varbit_type->baseTypeVarbit.size);
@@ -1139,7 +1139,7 @@ static void visit_baseTypeVarbit(TypeChecker* checker, Ast* varbit_type)
 
 static void visit_baseTypeString(TypeChecker* checker, Ast* str_type)
 {
-  assert(str_type->kind == AST_baseTypeString);
+  assert(str_type->kind == AstEnum::baseTypeString);
   NameDeclaration* name_decl;
 
   name_decl = (NameDeclaration*)checker->decl_map->lookup(str_type, 0);
@@ -1148,7 +1148,7 @@ static void visit_baseTypeString(TypeChecker* checker, Ast* str_type)
 
 static void visit_baseTypeVoid(TypeChecker* checker, Ast* void_type)
 {
-  assert(void_type->kind == AST_baseTypeVoid);
+  assert(void_type->kind == AstEnum::baseTypeVoid);
   NameDeclaration* name_decl;
 
   name_decl = (NameDeclaration*)checker->decl_map->lookup(void_type, 0);
@@ -1157,7 +1157,7 @@ static void visit_baseTypeVoid(TypeChecker* checker, Ast* void_type)
 
 static void visit_baseTypeError(TypeChecker* checker, Ast* error_type)
 {
-  assert(error_type->kind == AST_baseTypeError);
+  assert(error_type->kind == AstEnum::baseTypeError);
   NameDeclaration* name_decl;
 
   name_decl = (NameDeclaration*)checker->decl_map->lookup(error_type, 0);
@@ -1166,29 +1166,29 @@ static void visit_baseTypeError(TypeChecker* checker, Ast* error_type)
 
 static void visit_integerTypeSize(TypeChecker* checker, Ast* type_size)
 {
-  assert(type_size->kind == AST_integerTypeSize);
+  assert(type_size->kind == AstEnum::integerTypeSize);
 }
 
 static void visit_realTypeArg(TypeChecker* checker, Ast* type_arg)
 {
-  assert(type_arg->kind == AST_realTypeArg);
-  if (type_arg->realTypeArg.arg->kind == AST_typeRef) {
+  assert(type_arg->kind == AstEnum::realTypeArg);
+  if (type_arg->realTypeArg.arg->kind == AstEnum::typeRef) {
     visit_typeRef(checker, type_arg->realTypeArg.arg);
-  } else if (type_arg->realTypeArg.arg->kind == AST_dontcare) {
+  } else if (type_arg->realTypeArg.arg->kind == AstEnum::dontcare) {
     visit_dontcare(checker, type_arg->realTypeArg.arg);
   } else assert(0);
 }
 
 static void visit_typeArg(TypeChecker* checker, Ast* type_arg)
 {
-  assert(type_arg->kind == AST_typeArg);
+  assert(type_arg->kind == AstEnum::typeArg);
   Type* arg_ty;
 
-  if (type_arg->typeArg.arg->kind == AST_typeRef) {
+  if (type_arg->typeArg.arg->kind == AstEnum::typeRef) {
     visit_typeRef(checker, type_arg->typeArg.arg);
-  } else if (type_arg->typeArg.arg->kind == AST_name) {
+  } else if (type_arg->typeArg.arg->kind == AstEnum::name) {
     visit_name(checker, type_arg->typeArg.arg);
-  } else if (type_arg->typeArg.arg->kind == AST_dontcare) {
+  } else if (type_arg->typeArg.arg->kind == AstEnum::dontcare) {
     visit_dontcare(checker, type_arg->typeArg.arg);
   } else assert(0);
   arg_ty = (Type*)checker->type_env->lookup(type_arg->typeArg.arg, 0);
@@ -1197,7 +1197,7 @@ static void visit_typeArg(TypeChecker* checker, Ast* type_arg)
 
 static void visit_typeArgumentList(TypeChecker* checker, Ast* args)
 {
-  assert(args->kind == AST_typeArgumentList);
+  assert(args->kind == AstEnum::typeArgumentList);
   AstTree* ast;
   Type* args_ty;
   int i;
@@ -1225,18 +1225,18 @@ static void visit_typeArgumentList(TypeChecker* checker, Ast* args)
 
 static void visit_typeDeclaration(TypeChecker* checker, Ast* type_decl)
 {
-  assert(type_decl->kind == AST_typeDeclaration);
+  assert(type_decl->kind == AstEnum::typeDeclaration);
   Type* decl_ty;
 
-  if (type_decl->typeDeclaration.decl->kind == AST_derivedTypeDeclaration) {
+  if (type_decl->typeDeclaration.decl->kind == AstEnum::derivedTypeDeclaration) {
     visit_derivedTypeDeclaration(checker, type_decl->typeDeclaration.decl);
-  } else if (type_decl->typeDeclaration.decl->kind == AST_typedefDeclaration) {
+  } else if (type_decl->typeDeclaration.decl->kind == AstEnum::typedefDeclaration) {
     visit_typedefDeclaration(checker, type_decl->typeDeclaration.decl);
-  } else if (type_decl->typeDeclaration.decl->kind == AST_parserTypeDeclaration) {
+  } else if (type_decl->typeDeclaration.decl->kind == AstEnum::parserTypeDeclaration) {
     visit_parserTypeDeclaration(checker, type_decl->typeDeclaration.decl);
-  } else if (type_decl->typeDeclaration.decl->kind == AST_controlTypeDeclaration) {
+  } else if (type_decl->typeDeclaration.decl->kind == AstEnum::controlTypeDeclaration) {
     visit_controlTypeDeclaration(checker, type_decl->typeDeclaration.decl);
-  } else if (type_decl->typeDeclaration.decl->kind == AST_packageTypeDeclaration) {
+  } else if (type_decl->typeDeclaration.decl->kind == AstEnum::packageTypeDeclaration) {
     visit_packageTypeDeclaration(checker, type_decl->typeDeclaration.decl);
   } else assert(0);
   decl_ty = (Type*)checker->type_env->lookup(type_decl->typeDeclaration.decl, 0);
@@ -1245,16 +1245,16 @@ static void visit_typeDeclaration(TypeChecker* checker, Ast* type_decl)
 
 static void visit_derivedTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 {
-  assert(type_decl->kind == AST_derivedTypeDeclaration);
+  assert(type_decl->kind == AstEnum::derivedTypeDeclaration);
   Type* decl_ty;
 
-  if (type_decl->derivedTypeDeclaration.decl->kind == AST_headerTypeDeclaration) {
+  if (type_decl->derivedTypeDeclaration.decl->kind == AstEnum::headerTypeDeclaration) {
     visit_headerTypeDeclaration(checker, type_decl->derivedTypeDeclaration.decl);
-  } else if (type_decl->derivedTypeDeclaration.decl->kind == AST_headerUnionDeclaration) {
+  } else if (type_decl->derivedTypeDeclaration.decl->kind == AstEnum::headerUnionDeclaration) {
     visit_headerUnionDeclaration(checker, type_decl->derivedTypeDeclaration.decl);
-  } else if (type_decl->derivedTypeDeclaration.decl->kind == AST_structTypeDeclaration) {
+  } else if (type_decl->derivedTypeDeclaration.decl->kind == AstEnum::structTypeDeclaration) {
     visit_structTypeDeclaration(checker, type_decl->derivedTypeDeclaration.decl);
-  } else if (type_decl->derivedTypeDeclaration.decl->kind == AST_enumDeclaration) {
+  } else if (type_decl->derivedTypeDeclaration.decl->kind == AstEnum::enumDeclaration) {
     visit_enumDeclaration(checker, type_decl->derivedTypeDeclaration.decl);
   } else assert(0);
   decl_ty = (Type*)checker->type_env->lookup(type_decl->derivedTypeDeclaration.decl, 0);
@@ -1263,7 +1263,7 @@ static void visit_derivedTypeDeclaration(TypeChecker* checker, Ast* type_decl)
 
 static void visit_headerTypeDeclaration(TypeChecker* checker, Ast* header_decl)
 {
-  assert(header_decl->kind == AST_headerTypeDeclaration);
+  assert(header_decl->kind == AstEnum::headerTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
   Type* header_ty;
@@ -1282,7 +1282,7 @@ static void visit_headerTypeDeclaration(TypeChecker* checker, Ast* header_decl)
 
 static void visit_headerUnionDeclaration(TypeChecker* checker, Ast* union_decl)
 {
-  assert(union_decl->kind == AST_headerUnionDeclaration);
+  assert(union_decl->kind == AstEnum::headerUnionDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
   Type* union_ty;
@@ -1301,7 +1301,7 @@ static void visit_headerUnionDeclaration(TypeChecker* checker, Ast* union_decl)
 
 static void visit_structTypeDeclaration(TypeChecker* checker, Ast* struct_decl)
 {
-  assert(struct_decl->kind == AST_structTypeDeclaration);
+  assert(struct_decl->kind == AstEnum::structTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
   Type* struct_ty;
@@ -1320,7 +1320,7 @@ static void visit_structTypeDeclaration(TypeChecker* checker, Ast* struct_decl)
 
 static void visit_structFieldList(TypeChecker* checker, Ast* fields)
 {
-  assert(fields->kind == AST_structFieldList);
+  assert(fields->kind == AstEnum::structFieldList);
   AstTree* ast;
   Type* fields_ty;
   int i;
@@ -1348,7 +1348,7 @@ static void visit_structFieldList(TypeChecker* checker, Ast* fields)
 
 static void visit_structField(TypeChecker* checker, Ast* field)
 {
-  assert(field->kind == AST_structField);
+  assert(field->kind == AstEnum::structField);
   Ast* name;
   NameDeclaration* name_decl;
   Type* field_ty;
@@ -1367,7 +1367,7 @@ static void visit_structField(TypeChecker* checker, Ast* field)
 
 static void visit_enumDeclaration(TypeChecker* checker, Ast* enum_decl)
 {
-  assert(enum_decl->kind == AST_enumDeclaration);
+  assert(enum_decl->kind == AstEnum::enumDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
   Type* enum_ty;
@@ -1386,7 +1386,7 @@ static void visit_enumDeclaration(TypeChecker* checker, Ast* enum_decl)
 
 static void visit_errorDeclaration(TypeChecker* checker, Ast* error_decl)
 {
-  assert(error_decl->kind == AST_errorDeclaration);
+  assert(error_decl->kind == AstEnum::errorDeclaration);
   Type* error_ty, *fields_ty;
 
   error_ty = checker->root_scope->builtin_lookup("error", NameSpace::TYPE)->type;
@@ -1401,7 +1401,7 @@ static void visit_errorDeclaration(TypeChecker* checker, Ast* error_decl)
 
 static void visit_matchKindDeclaration(TypeChecker* checker, Ast* match_decl)
 {
-  assert(match_decl->kind == AST_matchKindDeclaration);
+  assert(match_decl->kind == AstEnum::matchKindDeclaration);
   Type* match_kind_ty, *fields_ty;
 
   match_kind_ty = checker->root_scope->builtin_lookup("match_kind", NameSpace::TYPE)->type;
@@ -1416,7 +1416,7 @@ static void visit_matchKindDeclaration(TypeChecker* checker, Ast* match_decl)
 
 static void visit_identifierList(TypeChecker* checker, Ast* ident_list, Type* enum_ty, Type* idents_ty, int* i)
 {
-  assert(ident_list->kind == AST_identifierList);
+  assert(ident_list->kind == AstEnum::identifierList);
   AstTree* ast;
   NameDeclaration* name_decl;
   Type* name_ty;
@@ -1441,7 +1441,7 @@ static void visit_identifierList(TypeChecker* checker, Ast* ident_list, Type* en
 
 static void visit_specifiedIdentifierList(TypeChecker* checker, Ast* ident_list, Type* enum_ty)
 {
-  assert(ident_list->kind == AST_specifiedIdentifierList);
+  assert(ident_list->kind == AstEnum::specifiedIdentifierList);
   AstTree* ast;
   Type* idents_ty;
   int i;
@@ -1469,7 +1469,7 @@ static void visit_specifiedIdentifierList(TypeChecker* checker, Ast* ident_list,
 
 static void visit_specifiedIdentifier(TypeChecker* checker, Ast* ident, Type* enum_ty)
 {
-  assert(ident->kind == AST_specifiedIdentifier);
+  assert(ident->kind == AstEnum::specifiedIdentifier);
   Ast* name;
   NameDeclaration* name_decl;
   Type* ident_ty;
@@ -1487,14 +1487,14 @@ static void visit_specifiedIdentifier(TypeChecker* checker, Ast* ident, Type* en
 
 static void visit_typedefDeclaration(TypeChecker* checker, Ast* typedef_decl)
 {
-  assert(typedef_decl->kind == AST_typedefDeclaration);
+  assert(typedef_decl->kind == AstEnum::typedefDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
   Type* typedef_ty;
 
-  if (typedef_decl->typedefDeclaration.type_ref->kind == AST_typeRef) {
+  if (typedef_decl->typedefDeclaration.type_ref->kind == AstEnum::typeRef) {
     visit_typeRef(checker, typedef_decl->typedefDeclaration.type_ref);
-  } else if (typedef_decl->typedefDeclaration.type_ref->kind == AST_derivedTypeDeclaration) {
+  } else if (typedef_decl->typedefDeclaration.type_ref->kind == AstEnum::derivedTypeDeclaration) {
     visit_derivedTypeDeclaration(checker, typedef_decl->typedefDeclaration.type_ref);
   } else assert(0);
   name = typedef_decl->typedefDeclaration.name;
@@ -1512,10 +1512,10 @@ static void visit_typedefDeclaration(TypeChecker* checker, Ast* typedef_decl)
 
 static void visit_assignmentStatement(TypeChecker* checker, Ast* assign_stmt)
 {
-  assert(assign_stmt->kind == AST_assignmentStatement);
-  if (assign_stmt->assignmentStatement.lhs_expr->kind == AST_expression) {
+  assert(assign_stmt->kind == AstEnum::assignmentStatement);
+  if (assign_stmt->assignmentStatement.lhs_expr->kind == AstEnum::expression) {
     visit_expression(checker, assign_stmt->assignmentStatement.lhs_expr);
-  } else if (assign_stmt->assignmentStatement.lhs_expr->kind == AST_lvalueExpression) {
+  } else if (assign_stmt->assignmentStatement.lhs_expr->kind == AstEnum::lvalueExpression) {
     visit_lvalueExpression(checker, assign_stmt->assignmentStatement.lhs_expr);
   } else assert(0);
   visit_expression(checker, assign_stmt->assignmentStatement.rhs_expr);
@@ -1523,10 +1523,10 @@ static void visit_assignmentStatement(TypeChecker* checker, Ast* assign_stmt)
 
 static void visit_functionCall(TypeChecker* checker, Ast* func_call)
 {
-  assert(func_call->kind == AST_functionCall);
-  if (func_call->functionCall.lhs_expr->kind == AST_expression) {
+  assert(func_call->kind == AstEnum::functionCall);
+  if (func_call->functionCall.lhs_expr->kind == AstEnum::expression) {
     visit_expression(checker, func_call->functionCall.lhs_expr);
-  } else if (func_call->functionCall.lhs_expr->kind == AST_lvalueExpression) {
+  } else if (func_call->functionCall.lhs_expr->kind == AstEnum::lvalueExpression) {
     visit_lvalueExpression(checker, func_call->functionCall.lhs_expr);
   } else assert(0);
   visit_argumentList(checker, func_call->functionCall.args);
@@ -1534,7 +1534,7 @@ static void visit_functionCall(TypeChecker* checker, Ast* func_call)
 
 static void visit_returnStatement(TypeChecker* checker, Ast* return_stmt)
 {
-  assert(return_stmt->kind == AST_returnStatement);
+  assert(return_stmt->kind == AstEnum::returnStatement);
   if (return_stmt->returnStatement.expr) {
     visit_expression(checker, return_stmt->returnStatement.expr);
   }
@@ -1542,12 +1542,12 @@ static void visit_returnStatement(TypeChecker* checker, Ast* return_stmt)
 
 static void visit_exitStatement(TypeChecker* checker, Ast* exit_stmt)
 {
-  assert(exit_stmt->kind == AST_exitStatement);
+  assert(exit_stmt->kind == AstEnum::exitStatement);
 }
 
 static void visit_conditionalStatement(TypeChecker* checker, Ast* cond_stmt)
 {
-  assert(cond_stmt->kind == AST_conditionalStatement);
+  assert(cond_stmt->kind == AstEnum::conditionalStatement);
   visit_expression(checker, cond_stmt->conditionalStatement.cond_expr);
   visit_statement(checker, cond_stmt->conditionalStatement.stmt);
   if (cond_stmt->conditionalStatement.else_stmt) {
@@ -1557,8 +1557,8 @@ static void visit_conditionalStatement(TypeChecker* checker, Ast* cond_stmt)
 
 static void visit_directApplication(TypeChecker* checker, Ast* applic_stmt)
 {
-  assert(applic_stmt->kind == AST_directApplication);
-  if (applic_stmt->directApplication.name->kind == AST_typeRef) {
+  assert(applic_stmt->kind == AstEnum::directApplication);
+  if (applic_stmt->directApplication.name->kind == AstEnum::typeRef) {
     visit_typeRef(checker, applic_stmt->directApplication.name);
   } else assert(0);
   visit_argumentList(checker, applic_stmt->directApplication.args);
@@ -1566,37 +1566,37 @@ static void visit_directApplication(TypeChecker* checker, Ast* applic_stmt)
 
 static void visit_statement(TypeChecker* checker, Ast* stmt)
 {
-  assert(stmt->kind == AST_statement);
-  if (stmt->statement.stmt->kind == AST_assignmentStatement) {
+  assert(stmt->kind == AstEnum::statement);
+  if (stmt->statement.stmt->kind == AstEnum::assignmentStatement) {
     visit_assignmentStatement(checker, stmt->statement.stmt);
-  } else if (stmt->statement.stmt->kind == AST_functionCall) {
+  } else if (stmt->statement.stmt->kind == AstEnum::functionCall) {
     visit_functionCall(checker, stmt->statement.stmt);
-  } else if (stmt->statement.stmt->kind == AST_directApplication) {
+  } else if (stmt->statement.stmt->kind == AstEnum::directApplication) {
     visit_directApplication(checker, stmt->statement.stmt);
-  } else if (stmt->statement.stmt->kind == AST_conditionalStatement) {
+  } else if (stmt->statement.stmt->kind == AstEnum::conditionalStatement) {
     visit_conditionalStatement(checker, stmt->statement.stmt);
-  } else if (stmt->statement.stmt->kind == AST_emptyStatement) {
+  } else if (stmt->statement.stmt->kind == AstEnum::emptyStatement) {
     ;
-  } else if (stmt->statement.stmt->kind == AST_blockStatement) {
+  } else if (stmt->statement.stmt->kind == AstEnum::blockStatement) {
     visit_blockStatement(checker, stmt->statement.stmt);
-  } else if (stmt->statement.stmt->kind == AST_exitStatement) {
+  } else if (stmt->statement.stmt->kind == AstEnum::exitStatement) {
     visit_exitStatement(checker, stmt->statement.stmt);
-  } else if (stmt->statement.stmt->kind == AST_returnStatement) {
+  } else if (stmt->statement.stmt->kind == AstEnum::returnStatement) {
     visit_returnStatement(checker, stmt->statement.stmt);
-  } else if (stmt->statement.stmt->kind == AST_switchStatement) {
+  } else if (stmt->statement.stmt->kind == AstEnum::switchStatement) {
     visit_switchStatement(checker, stmt->statement.stmt);
   } else assert(0);
 }
 
 static void visit_blockStatement(TypeChecker* checker, Ast* block_stmt)
 {
-  assert(block_stmt->kind == AST_blockStatement);
+  assert(block_stmt->kind == AstEnum::blockStatement);
   visit_statementOrDeclList(checker, block_stmt->blockStatement.stmt_list);
 }
 
 static void visit_statementOrDeclList(TypeChecker* checker, Ast* stmt_list)
 {
-  assert(stmt_list->kind == AST_statementOrDeclList);
+  assert(stmt_list->kind == AstEnum::statementOrDeclList);
   AstTree* ast;
 
   for (ast = stmt_list->tree.first_child;
@@ -1607,14 +1607,14 @@ static void visit_statementOrDeclList(TypeChecker* checker, Ast* stmt_list)
 
 static void visit_switchStatement(TypeChecker* checker, Ast* switch_stmt)
 {
-  assert(switch_stmt->kind == AST_switchStatement);
+  assert(switch_stmt->kind == AstEnum::switchStatement);
   visit_expression(checker, switch_stmt->switchStatement.expr);
   visit_switchCases(checker, switch_stmt->switchStatement.switch_cases);
 }
 
 static void visit_switchCases(TypeChecker* checker, Ast* switch_cases)
 {
-  assert(switch_cases->kind == AST_switchCases);
+  assert(switch_cases->kind == AstEnum::switchCases);
   AstTree* ast;
 
   for (ast = switch_cases->tree.first_child;
@@ -1625,7 +1625,7 @@ static void visit_switchCases(TypeChecker* checker, Ast* switch_cases)
 
 static void visit_switchCase(TypeChecker* checker, Ast* switch_case)
 {
-  assert(switch_case->kind == AST_switchCase);
+  assert(switch_case->kind == AstEnum::switchCase);
   visit_switchLabel(checker, switch_case->switchCase.label);
   if (switch_case->switchCase.stmt) {
     visit_blockStatement(checker, switch_case->switchCase.stmt);
@@ -1634,22 +1634,22 @@ static void visit_switchCase(TypeChecker* checker, Ast* switch_case)
 
 static void visit_switchLabel(TypeChecker* checker, Ast* label)
 {
-  assert(label->kind == AST_switchLabel);
-  if (label->switchLabel.label->kind == AST_name) {
+  assert(label->kind == AstEnum::switchLabel);
+  if (label->switchLabel.label->kind == AstEnum::name) {
     ;
-  } else if (label->switchLabel.label->kind == AST_default) {
+  } else if (label->switchLabel.label->kind == AstEnum::default_) {
     visit_default(checker, label->switchLabel.label);
   } else assert(0);
 }
 
 static void visit_statementOrDeclaration(TypeChecker* checker, Ast* stmt)
 {
-  assert(stmt->kind == AST_statementOrDeclaration);
-  if (stmt->statementOrDeclaration.stmt->kind == AST_variableDeclaration) {
+  assert(stmt->kind == AstEnum::statementOrDeclaration);
+  if (stmt->statementOrDeclaration.stmt->kind == AstEnum::variableDeclaration) {
     visit_variableDeclaration(checker, stmt->statementOrDeclaration.stmt);
-  } else if (stmt->statementOrDeclaration.stmt->kind == AST_statement) {
+  } else if (stmt->statementOrDeclaration.stmt->kind == AstEnum::statement) {
     visit_statement(checker, stmt->statementOrDeclaration.stmt);
-  } else if (stmt->statementOrDeclaration.stmt->kind == AST_instantiation) {
+  } else if (stmt->statementOrDeclaration.stmt->kind == AstEnum::instantiation) {
     visit_instantiation(checker, stmt->statementOrDeclaration.stmt);
   } else assert(0);
 }
@@ -1658,7 +1658,7 @@ static void visit_statementOrDeclaration(TypeChecker* checker, Ast* stmt)
 
 static void visit_tableDeclaration(TypeChecker* checker, Ast* table_decl)
 {
-  assert(table_decl->kind == AST_tableDeclaration);
+  assert(table_decl->kind == AstEnum::tableDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
   Type* table_ty, *methods_ty;
@@ -1679,7 +1679,7 @@ static void visit_tableDeclaration(TypeChecker* checker, Ast* table_decl)
 
 static void visit_tablePropertyList(TypeChecker* checker, Ast* prop_list)
 {
-  assert(prop_list->kind == AST_tablePropertyList);
+  assert(prop_list->kind == AstEnum::tablePropertyList);
   AstTree* ast;
 
   for (ast = prop_list->tree.first_child;
@@ -1690,16 +1690,16 @@ static void visit_tablePropertyList(TypeChecker* checker, Ast* prop_list)
 
 static void visit_tableProperty(TypeChecker* checker, Ast* table_prop)
 {
-  assert(table_prop->kind == AST_tableProperty);
-  if (table_prop->tableProperty.prop->kind == AST_keyProperty) {
+  assert(table_prop->kind == AstEnum::tableProperty);
+  if (table_prop->tableProperty.prop->kind == AstEnum::keyProperty) {
     visit_keyProperty(checker, table_prop->tableProperty.prop);
-  } else if (table_prop->tableProperty.prop->kind == AST_actionsProperty) {
+  } else if (table_prop->tableProperty.prop->kind == AstEnum::actionsProperty) {
     visit_actionsProperty(checker, table_prop->tableProperty.prop);
   }
 #if 0
-  else if (table_prop->tableProperty.prop->kind == AST_entriesProperty) {
+  else if (table_prop->tableProperty.prop->kind == AstEnum::entriesProperty) {
     visit_entriesProperty(checker, table_prop->tableProperty.prop);
-  } else if (table_prop->tableProperty.prop->kind == AST_simpleProperty) {
+  } else if (table_prop->tableProperty.prop->kind == AstEnum::simpleProperty) {
     visit_simpleProperty(checker, table_prop->tableProperty.prop);
   }
 #endif  
@@ -1708,13 +1708,13 @@ static void visit_tableProperty(TypeChecker* checker, Ast* table_prop)
 
 static void visit_keyProperty(TypeChecker* checker, Ast* key_prop)
 {
-  assert(key_prop->kind == AST_keyProperty);
+  assert(key_prop->kind == AstEnum::keyProperty);
   visit_keyElementList(checker, key_prop->keyProperty.keyelem_list);
 }
 
 static void visit_keyElementList(TypeChecker* checker, Ast* element_list)
 {
-  assert(element_list->kind == AST_keyElementList);
+  assert(element_list->kind == AstEnum::keyElementList);
   AstTree* ast;
 
   for (ast = element_list->tree.first_child;
@@ -1725,19 +1725,19 @@ static void visit_keyElementList(TypeChecker* checker, Ast* element_list)
 
 static void visit_keyElement(TypeChecker* checker, Ast* element)
 {
-  assert(element->kind == AST_keyElement);
+  assert(element->kind == AstEnum::keyElement);
   visit_expression(checker, element->keyElement.expr);
 }
 
 static void visit_actionsProperty(TypeChecker* checker, Ast* actions_prop)
 {
-  assert(actions_prop->kind == AST_actionsProperty);
+  assert(actions_prop->kind == AstEnum::actionsProperty);
   visit_actionList(checker, actions_prop->actionsProperty.action_list);
 }
 
 static void visit_actionList(TypeChecker* checker, Ast* action_list)
 {
-  assert(action_list->kind == AST_actionList);
+  assert(action_list->kind == AstEnum::actionList);
   AstTree* ast;
 
   for (ast = action_list->tree.first_child;
@@ -1748,7 +1748,7 @@ static void visit_actionList(TypeChecker* checker, Ast* action_list)
 
 static void visit_actionRef(TypeChecker* checker, Ast* action_ref)
 {
-  assert(action_ref->kind == AST_actionRef);
+  assert(action_ref->kind == AstEnum::actionRef);
   if (action_ref->actionRef.args) {
     visit_argumentList(checker, action_ref->actionRef.args);
   }
@@ -1757,13 +1757,13 @@ static void visit_actionRef(TypeChecker* checker, Ast* action_ref)
 #if 0
 static void visit_entriesProperty(TypeChecker* checker, Ast* entries_prop)
 {
-  assert(entries_prop->kind == AST_entriesProperty);
+  assert(entries_prop->kind == AstEnum::entriesProperty);
   visit_entriesList(checker, entries_prop->entriesProperty.entries_list);
 }
 
 static void visit_entriesList(TypeChecker* checker, Ast* entries_list)
 {
-  assert(entries_list->kind == AST_entriesList);
+  assert(entries_list->kind == AstEnum::entriesList);
   AstTree* ast;
 
   for (ast = entries_list->tree.first_child;
@@ -1774,21 +1774,21 @@ static void visit_entriesList(TypeChecker* checker, Ast* entries_list)
 
 static void visit_entry(TypeChecker* checker, Ast* entry)
 {
-  assert(entry->kind == AST_entry);
+  assert(entry->kind == AstEnum::entry);
   visit_keysetExpression(checker, entry->entry.keyset);
   visit_actionRef(checker, entry->entry.action);
 }
 
 static void visit_simpleProperty(TypeChecker* checker, Ast* simple_prop)
 {
-  assert(simple_prop->kind == AST_simpleProperty);
+  assert(simple_prop->kind == AstEnum::simpleProperty);
   visit_expression(checker, simple_prop->simpleProperty.init_expr);
 }
 #endif
 
 static void visit_actionDeclaration(TypeChecker* checker, Ast* action_decl)
 {
-  assert(action_decl->kind == AST_actionDeclaration);
+  assert(action_decl->kind == AstEnum::actionDeclaration);
   NameDeclaration* name_decl;
   Ast* name;
   Type* action_ty;
@@ -1811,7 +1811,7 @@ static void visit_actionDeclaration(TypeChecker* checker, Ast* action_decl)
 
 static void visit_variableDeclaration(TypeChecker* checker, Ast* var_decl)
 {
-  assert(var_decl->kind == AST_variableDeclaration);
+  assert(var_decl->kind == AstEnum::variableDeclaration);
   NameDeclaration* name_decl;
   Type* var_ty;
 
@@ -1829,14 +1829,14 @@ static void visit_variableDeclaration(TypeChecker* checker, Ast* var_decl)
 
 static void visit_functionDeclaration(TypeChecker* checker, Ast* func_decl)
 {
-  assert(func_decl->kind == AST_functionDeclaration);
+  assert(func_decl->kind == AstEnum::functionDeclaration);
   visit_functionPrototype(checker, func_decl->functionDeclaration.proto, 0, 0);
   visit_blockStatement(checker, func_decl->functionDeclaration.stmt);
 }
 
 static void visit_argumentList(TypeChecker* checker, Ast* args)
 {
-  assert(args->kind == AST_argumentList);
+  assert(args->kind == AstEnum::argumentList);
   AstTree* ast;
 
   for (ast = args->tree.first_child;
@@ -1847,15 +1847,15 @@ static void visit_argumentList(TypeChecker* checker, Ast* args)
 
 static void visit_argument(TypeChecker* checker, Ast* arg)
 {
-  assert(arg->kind == AST_argument);
-  if (arg->argument.arg->kind == AST_expression) {
+  assert(arg->kind == AstEnum::argument);
+  if (arg->argument.arg->kind == AstEnum::expression) {
     visit_expression(checker, arg->argument.arg);
   } else assert(0);
 }
 
 static void visit_expressionList(TypeChecker* checker, Ast* expr_list)
 {
-  assert(expr_list->kind == AST_expressionList);
+  assert(expr_list->kind == AstEnum::expressionList);
   AstTree* ast;
 
   for (ast = expr_list->tree.first_child;
@@ -1866,84 +1866,84 @@ static void visit_expressionList(TypeChecker* checker, Ast* expr_list)
 
 static void visit_lvalueExpression(TypeChecker* checker, Ast* lvalue_expr)
 {
-  assert(lvalue_expr->kind == AST_lvalueExpression);
-  if (lvalue_expr->lvalueExpression.expr->kind == AST_name) {
+  assert(lvalue_expr->kind == AstEnum::lvalueExpression);
+  if (lvalue_expr->lvalueExpression.expr->kind == AstEnum::name) {
     ;
-  } else if (lvalue_expr->lvalueExpression.expr->kind == AST_memberSelector) {
+  } else if (lvalue_expr->lvalueExpression.expr->kind == AstEnum::memberSelector) {
     visit_memberSelector(checker, lvalue_expr->lvalueExpression.expr);
-  } else if (lvalue_expr->lvalueExpression.expr->kind == AST_arraySubscript) {
+  } else if (lvalue_expr->lvalueExpression.expr->kind == AstEnum::arraySubscript) {
     visit_arraySubscript(checker, lvalue_expr->lvalueExpression.expr);
   } else assert(0);
 }
 
 static void visit_expression(TypeChecker* checker, Ast* expr)
 {
-  assert(expr->kind == AST_expression);
-  if (expr->expression.expr->kind == AST_expression) {
+  assert(expr->kind == AstEnum::expression);
+  if (expr->expression.expr->kind == AstEnum::expression) {
     visit_expression(checker, expr->expression.expr);
-  } else if (expr->expression.expr->kind == AST_booleanLiteral) {
+  } else if (expr->expression.expr->kind == AstEnum::booleanLiteral) {
     visit_booleanLiteral(checker, expr->expression.expr);
-  } else if (expr->expression.expr->kind == AST_integerLiteral) {
+  } else if (expr->expression.expr->kind == AstEnum::integerLiteral) {
     visit_integerLiteral(checker, expr->expression.expr);
-  } else if (expr->expression.expr->kind == AST_stringLiteral) {
+  } else if (expr->expression.expr->kind == AstEnum::stringLiteral) {
     visit_stringLiteral(checker, expr->expression.expr);
-  } else if (expr->expression.expr->kind == AST_name) {
+  } else if (expr->expression.expr->kind == AstEnum::name) {
     ;
-  } else if (expr->expression.expr->kind == AST_expressionList) {
+  } else if (expr->expression.expr->kind == AstEnum::expressionList) {
     visit_expressionList(checker, expr->expression.expr);
-  } else if (expr->expression.expr->kind == AST_castExpression) {
+  } else if (expr->expression.expr->kind == AstEnum::castExpression) {
     visit_castExpression(checker, expr->expression.expr);
-  } else if (expr->expression.expr->kind == AST_unaryExpression) {
+  } else if (expr->expression.expr->kind == AstEnum::unaryExpression) {
     visit_unaryExpression(checker, expr->expression.expr);
-  } else if (expr->expression.expr->kind == AST_binaryExpression) {
+  } else if (expr->expression.expr->kind == AstEnum::binaryExpression) {
     visit_binaryExpression(checker, expr->expression.expr);
-  } else if (expr->expression.expr->kind == AST_memberSelector) {
+  } else if (expr->expression.expr->kind == AstEnum::memberSelector) {
     visit_memberSelector(checker, expr->expression.expr);
-  } else if (expr->expression.expr->kind == AST_arraySubscript) {
+  } else if (expr->expression.expr->kind == AstEnum::arraySubscript) {
     visit_arraySubscript(checker, expr->expression.expr);
-  } else if (expr->expression.expr->kind == AST_functionCall) {
+  } else if (expr->expression.expr->kind == AstEnum::functionCall) {
     visit_functionCall(checker, expr->expression.expr);
-  } else if (expr->expression.expr->kind == AST_assignmentStatement) {
+  } else if (expr->expression.expr->kind == AstEnum::assignmentStatement) {
     visit_assignmentStatement(checker, expr->expression.expr);
   } else assert(0);
 }
 
 static void visit_castExpression(TypeChecker* checker, Ast* cast_expr)
 {
-  assert(cast_expr->kind == AST_castExpression);
+  assert(cast_expr->kind == AstEnum::castExpression);
   visit_typeRef(checker, cast_expr->castExpression.type);
   visit_expression(checker, cast_expr->castExpression.expr);
 }
 
 static void visit_unaryExpression(TypeChecker* checker, Ast* unary_expr)
 {
-  assert(unary_expr->kind == AST_unaryExpression);
+  assert(unary_expr->kind == AstEnum::unaryExpression);
   visit_expression(checker, unary_expr->unaryExpression.operand);
 }
 
 static void visit_binaryExpression(TypeChecker* checker, Ast* binary_expr)
 {
-  assert(binary_expr->kind == AST_binaryExpression);
+  assert(binary_expr->kind == AstEnum::binaryExpression);
   visit_expression(checker, binary_expr->binaryExpression.left_operand);
   visit_expression(checker, binary_expr->binaryExpression.right_operand);
 }
 
 static void visit_memberSelector(TypeChecker* checker, Ast* selector)
 {
-  assert(selector->kind == AST_memberSelector);
-  if (selector->memberSelector.lhs_expr->kind == AST_expression) {
+  assert(selector->kind == AstEnum::memberSelector);
+  if (selector->memberSelector.lhs_expr->kind == AstEnum::expression) {
     visit_expression(checker, selector->memberSelector.lhs_expr);
-  } else if (selector->memberSelector.lhs_expr->kind == AST_lvalueExpression) {
+  } else if (selector->memberSelector.lhs_expr->kind == AstEnum::lvalueExpression) {
     visit_lvalueExpression(checker, selector->memberSelector.lhs_expr);
   } else assert(0);
 }
 
 static void visit_arraySubscript(TypeChecker* checker, Ast* subscript)
 {
-  assert(subscript->kind == AST_arraySubscript);
-  if (subscript->arraySubscript.lhs_expr->kind == AST_expression) {
+  assert(subscript->kind == AstEnum::arraySubscript);
+  if (subscript->arraySubscript.lhs_expr->kind == AstEnum::expression) {
     visit_expression(checker, subscript->arraySubscript.lhs_expr);
-  } else if (subscript->arraySubscript.lhs_expr->kind == AST_lvalueExpression) {
+  } else if (subscript->arraySubscript.lhs_expr->kind == AstEnum::lvalueExpression) {
     visit_lvalueExpression(checker, subscript->arraySubscript.lhs_expr);
   } else assert(0);
   visit_indexExpression(checker, subscript->arraySubscript.index_expr);
@@ -1951,7 +1951,7 @@ static void visit_arraySubscript(TypeChecker* checker, Ast* subscript)
 
 static void visit_indexExpression(TypeChecker* checker, Ast* index_expr)
 {
-  assert(index_expr->kind == AST_indexExpression);
+  assert(index_expr->kind == AstEnum::indexExpression);
   Type* ty;
 
   visit_expression(checker, index_expr->indexExpression.start_index);
@@ -1964,7 +1964,7 @@ static void visit_indexExpression(TypeChecker* checker, Ast* index_expr)
 
 static void visit_booleanLiteral(TypeChecker* checker, Ast* bool_literal)
 {
-  assert(bool_literal->kind == AST_booleanLiteral);
+  assert(bool_literal->kind == AstEnum::booleanLiteral);
   Type* ty;
 
   ty = checker->root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
@@ -1973,7 +1973,7 @@ static void visit_booleanLiteral(TypeChecker* checker, Ast* bool_literal)
 
 static void visit_integerLiteral(TypeChecker* checker, Ast* int_literal)
 {
-  assert(int_literal->kind == AST_integerLiteral);
+  assert(int_literal->kind == AstEnum::integerLiteral);
   Type* ty;
 
   ty = checker->root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
@@ -1982,7 +1982,7 @@ static void visit_integerLiteral(TypeChecker* checker, Ast* int_literal)
 
 static void visit_stringLiteral(TypeChecker* checker, Ast* str_literal)
 {
-  assert(str_literal->kind == AST_stringLiteral);
+  assert(str_literal->kind == AstEnum::stringLiteral);
   Type* ty;
 
   ty = checker->root_scope->builtin_lookup("string", NameSpace::TYPE)->type;
@@ -1991,7 +1991,7 @@ static void visit_stringLiteral(TypeChecker* checker, Ast* str_literal)
 
 static void visit_default(TypeChecker* checker, Ast* default_)
 {
-  assert(default_->kind == AST_default);
+  assert(default_->kind == AstEnum::default_);
   Type* ty;
 
   ty = checker->root_scope->builtin_lookup("_", NameSpace::TYPE)->type;
@@ -2000,7 +2000,7 @@ static void visit_default(TypeChecker* checker, Ast* default_)
 
 static void visit_dontcare(TypeChecker* checker, Ast* dontcare)
 {
-  assert(dontcare->kind == AST_dontcare);
+  assert(dontcare->kind == AstEnum::dontcare);
   Type* ty;
 
   ty = checker->root_scope->builtin_lookup("_", NameSpace::TYPE)->type;

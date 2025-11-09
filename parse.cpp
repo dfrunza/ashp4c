@@ -536,138 +536,138 @@ static enum AstOperator token_to_binop(Token* token)
 char* AstEnum_to_string(enum AstEnum ast)
 {
   switch (ast) {
-    case AST_none: return "AST_none";
+    case AstEnum::none: return "none";
 
     /** PROGRAM **/
 
-    case AST_p4program: return "AST_p4program";
-    case AST_declarationList: return "AST_declarationList";
-    case AST_declaration: return "AST_declaration";
-    case AST_name: return "AST_name";
-    case AST_parameterList: return "AST_parameterList";
-    case AST_parameter: return "AST_parameter";
-    case AST_paramDirection: return "AST_paramDirection";
-    case AST_packageTypeDeclaration: return "AST_packageTypeDeclaration";
-    case AST_instantiation: return "AST_instantiation";
+    case AstEnum::p4program: return "p4program";
+    case AstEnum::declarationList: return "declarationList";
+    case AstEnum::declaration: return "declaration";
+    case AstEnum::name: return "name";
+    case AstEnum::parameterList: return "parameterList";
+    case AstEnum::parameter: return "parameter";
+    case AstEnum::paramDirection: return "paramDirection";
+    case AstEnum::packageTypeDeclaration: return "packageTypeDeclaration";
+    case AstEnum::instantiation: return "instantiation";
 
     /** PARSER **/
 
-    case AST_parserDeclaration: return "AST_parserDeclaration";
-    case AST_parserTypeDeclaration: return "AST_parserTypeDeclaration";
-    case AST_parserLocalElements: return "AST_parserLocalElements";
-    case AST_parserLocalElement: return "AST_parserLocalElement";
-    case AST_parserStates: return "AST_parserStates";
-    case AST_parserState: return "AST_parserState";
-    case AST_parserStatements: return "AST_parserStatements";
-    case AST_parserStatement: return "AST_parserStatement";
-    case AST_parserBlockStatement: return "AST_parserBlockStatement";
-    case AST_transitionStatement: return "AST_transitionStatement";
-    case AST_stateExpression: return "AST_stateExpression";
-    case AST_selectExpression: return "AST_selectExpression";
-    case AST_selectCaseList: return "AST_selectCaseList";
-    case AST_selectCase: return "AST_selectCase";
-    case AST_keysetExpression: return "AST_keysetExpression";
-    case AST_tupleKeysetExpression: return "AST_tupleKeysetExpression";
-    case AST_simpleKeysetExpression: return "AST_simpleKeysetExpression";
-    case AST_simpleExpressionList: return "AST_simpleExpressionList";
+    case AstEnum::parserDeclaration: return "parserDeclaration";
+    case AstEnum::parserTypeDeclaration: return "parserTypeDeclaration";
+    case AstEnum::parserLocalElements: return "parserLocalElements";
+    case AstEnum::parserLocalElement: return "parserLocalElement";
+    case AstEnum::parserStates: return "parserStates";
+    case AstEnum::parserState: return "parserState";
+    case AstEnum::parserStatements: return "parserStatements";
+    case AstEnum::parserStatement: return "parserStatement";
+    case AstEnum::parserBlockStatement: return "parserBlockStatement";
+    case AstEnum::transitionStatement: return "transitionStatement";
+    case AstEnum::stateExpression: return "stateExpression";
+    case AstEnum::selectExpression: return "selectExpression";
+    case AstEnum::selectCaseList: return "selectCaseList";
+    case AstEnum::selectCase: return "selectCase";
+    case AstEnum::keysetExpression: return "keysetExpression";
+    case AstEnum::tupleKeysetExpression: return "tupleKeysetExpression";
+    case AstEnum::simpleKeysetExpression: return "simpleKeysetExpression";
+    case AstEnum::simpleExpressionList: return "simpleExpressionList";
 
     /** CONTROL **/
 
-    case AST_controlDeclaration: return "AST_controlDeclaration";
-    case AST_controlTypeDeclaration: return "AST_controlTypeDeclaration";
-    case AST_controlLocalDeclarations: return "AST_controlLocalDeclarations";
-    case AST_controlLocalDeclaration: return "AST_controlLocalDeclaration";
+    case AstEnum::controlDeclaration: return "controlDeclaration";
+    case AstEnum::controlTypeDeclaration: return "controlTypeDeclaration";
+    case AstEnum::controlLocalDeclarations: return "controlLocalDeclarations";
+    case AstEnum::controlLocalDeclaration: return "controlLocalDeclaration";
 
     /** TYPES **/
 
-    case AST_typeRef: return "AST_typeRef";
-    case AST_tupleType: return "AST_tupleType";
-    case AST_headerStackType: return "AST_headerStackType";
-    case AST_baseTypeBoolean: return "AST_baseTypeBoolean";
-    case AST_baseTypeInteger: return "AST_baseTypeInteger";
-    case AST_baseTypeBit: return "AST_baseTypeBit";
-    case AST_baseTypeVarbit: return "AST_baseTypeVarbit";
-    case AST_baseTypeString: return "AST_baseTypeString";
-    case AST_baseTypeVoid: return "AST_baseTypeVoid";
-    case AST_baseTypeError: return "AST_baseTypeError";
-    case AST_integerTypeSize: return "AST_integerTypeSize";
-    case AST_realTypeArg: return "AST_realTypeArg";
-    case AST_typeArg: return "AST_typeArg";
-    case AST_typeArgumentList: return "AST_typeArgumentList";
-    case AST_typeDeclaration: return "AST_typeDeclaration";
-    case AST_derivedTypeDeclaration: return "AST_derivedTypeDeclaration";
-    case AST_headerTypeDeclaration: return "AST_headerTypeDeclaration";
-    case AST_headerUnionDeclaration: return "AST_headerUnionDeclaration";
-    case AST_structTypeDeclaration: return "AST_structTypeDeclaration";
-    case AST_structFieldList: return "AST_structFieldList";
-    case AST_structField: return "AST_structField";
-    case AST_enumDeclaration: return "AST_enumDeclaration";
-    case AST_errorDeclaration: return "AST_errorDeclaration";
-    case AST_matchKindDeclaration: return "AST_matchKindDeclaration";
-    case AST_identifierList: return "AST_identifierList";
-    case AST_specifiedIdentifierList: return "AST_specifiedIdentifierList";
-    case AST_specifiedIdentifier: return "AST_specifiedIdentifier";
-    case AST_typedefDeclaration: return "AST_typedefDeclaration";
+    case AstEnum::typeRef: return "typeRef";
+    case AstEnum::tupleType: return "tupleType";
+    case AstEnum::headerStackType: return "headerStackType";
+    case AstEnum::baseTypeBoolean: return "baseTypeBoolean";
+    case AstEnum::baseTypeInteger: return "baseTypeInteger";
+    case AstEnum::baseTypeBit: return "baseTypeBit";
+    case AstEnum::baseTypeVarbit: return "baseTypeVarbit";
+    case AstEnum::baseTypeString: return "baseTypeString";
+    case AstEnum::baseTypeVoid: return "baseTypeVoid";
+    case AstEnum::baseTypeError: return "baseTypeError";
+    case AstEnum::integerTypeSize: return "integerTypeSize";
+    case AstEnum::realTypeArg: return "realTypeArg";
+    case AstEnum::typeArg: return "typeArg";
+    case AstEnum::typeArgumentList: return "typeArgumentList";
+    case AstEnum::typeDeclaration: return "typeDeclaration";
+    case AstEnum::derivedTypeDeclaration: return "derivedTypeDeclaration";
+    case AstEnum::headerTypeDeclaration: return "headerTypeDeclaration";
+    case AstEnum::headerUnionDeclaration: return "headerUnionDeclaration";
+    case AstEnum::structTypeDeclaration: return "structTypeDeclaration";
+    case AstEnum::structFieldList: return "structFieldList";
+    case AstEnum::structField: return "structField";
+    case AstEnum::enumDeclaration: return "enumDeclaration";
+    case AstEnum::errorDeclaration: return "errorDeclaration";
+    case AstEnum::matchKindDeclaration: return "matchKindDeclaration";
+    case AstEnum::identifierList: return "identifierList";
+    case AstEnum::specifiedIdentifierList: return "specifiedIdentifierList";
+    case AstEnum::specifiedIdentifier: return "specifiedIdentifier";
+    case AstEnum::typedefDeclaration: return "typedefDeclaration";
 
     /** STATEMENTS **/
 
-    case AST_assignmentStatement: return "AST_assignmentStatement";
-    case AST_emptyStatement: return "AST_emptyStatement";
-    case AST_returnStatement: return "AST_returnStatement";
-    case AST_exitStatement: return "AST_exitStatement";
-    case AST_conditionalStatement: return "AST_conditionalStatement";
-    case AST_directApplication: return "AST_directApplication";
-    case AST_statement: return "AST_statement";
-    case AST_blockStatement: return "AST_blockStatement";
-    case AST_statementOrDeclaration: return "AST_statementOrDeclaration";
-    case AST_statementOrDeclList: return "AST_statementOrDeclList";
-    case AST_switchStatement: return "AST_switchStatement";
-    case AST_switchCases: return "AST_switchCases";
-    case AST_switchCase: return "AST_switchCase";
-    case AST_switchLabel: return "AST_switchLabel";
+    case AstEnum::assignmentStatement: return "assignmentStatement";
+    case AstEnum::emptyStatement: return "emptyStatement";
+    case AstEnum::returnStatement: return "returnStatement";
+    case AstEnum::exitStatement: return "exitStatement";
+    case AstEnum::conditionalStatement: return "conditionalStatement";
+    case AstEnum::directApplication: return "directApplication";
+    case AstEnum::statement: return "statement";
+    case AstEnum::blockStatement: return "blockStatement";
+    case AstEnum::statementOrDeclaration: return "statementOrDeclaration";
+    case AstEnum::statementOrDeclList: return "statementOrDeclList";
+    case AstEnum::switchStatement: return "switchStatement";
+    case AstEnum::switchCases: return "switchCases";
+    case AstEnum::switchCase: return "switchCase";
+    case AstEnum::switchLabel: return "switchLabel";
 
     /** TABLES **/
 
-    case AST_tableDeclaration: return "AST_tableDeclaration";
-    case AST_tablePropertyList: return "AST_tablePropertyList";
-    case AST_tableProperty: return "AST_tableProperty";
-    case AST_keyProperty: return "AST_keyProperty";
-    case AST_keyElementList: return "AST_keyElementList";
-    case AST_keyElement: return "AST_keyElement";
-    case AST_actionsProperty: return "AST_actionsProperty";
-    case AST_actionList: return "AST_actionList";
-    case AST_actionRef: return "AST_actionRef";
+    case AstEnum::tableDeclaration: return "tableDeclaration";
+    case AstEnum::tablePropertyList: return "tablePropertyList";
+    case AstEnum::tableProperty: return "tableProperty";
+    case AstEnum::keyProperty: return "keyProperty";
+    case AstEnum::keyElementList: return "keyElementList";
+    case AstEnum::keyElement: return "keyElement";
+    case AstEnum::actionsProperty: return "actionsProperty";
+    case AstEnum::actionList: return "actionList";
+    case AstEnum::actionRef: return "actionRef";
 #if 0
-    case AST_entriesProperty: return "AST_entriesProperty";
-    case AST_entriesList: return "AST_entriesList";
-    case AST_entry: return "AST_entry";
-    case AST_simpleProperty: return "AST_simpleProperty";
+    case AstEnum::entriesProperty: return "entriesProperty";
+    case AstEnum::entriesList: return "entriesList";
+    case AstEnum::entry: return "entry";
+    case AstEnum::simpleProperty: return "simpleProperty";
 #endif
-    case AST_actionDeclaration: return "AST_actionDeclaration";
+    case AstEnum::actionDeclaration: return "actionDeclaration";
 
     /** VARIABLES **/
 
-    case AST_variableDeclaration: return "AST_variableDeclaration";
+    case AstEnum::variableDeclaration: return "variableDeclaration";
 
     /** EXPRESSIONS **/
 
-    case AST_functionDeclaration: return "AST_functionDeclaration";
-    case AST_argumentList: return "AST_argumentList";
-    case AST_argument: return "AST_argument";
-    case AST_expressionList: return "AST_expressionList";
-    case AST_expression: return "AST_expression";
-    case AST_lvalueExpression: return "AST_lvalueExpression";
-    case AST_binaryExpression: return "AST_binaryExpression";
-    case AST_unaryExpression: return "AST_unaryExpression";
-    case AST_functionCall: return "AST_functionCall";
-    case AST_memberSelector: return "";
-    case AST_castExpression: return "AST_castExpression";
-    case AST_arraySubscript: return "AST_arraySubscript";
-    case AST_indexExpression: return "AST_indexExpression";
-    case AST_integerLiteral: return "AST_integerLiteral";
-    case AST_stringLiteral: return "AST_stringLiteral";
-    case AST_dontcare: return "AST_dontcare";
-    case AST_default: return "AST_default";
+    case AstEnum::functionDeclaration: return "functionDeclaration";
+    case AstEnum::argumentList: return "argumentList";
+    case AstEnum::argument: return "argument";
+    case AstEnum::expressionList: return "expressionList";
+    case AstEnum::expression: return "expression";
+    case AstEnum::lvalueExpression: return "lvalueExpression";
+    case AstEnum::binaryExpression: return "binaryExpression";
+    case AstEnum::unaryExpression: return "unaryExpression";
+    case AstEnum::functionCall: return "functionCall";
+    case AstEnum::memberSelector: return "memberSelector";
+    case AstEnum::castExpression: return "castExpression";
+    case AstEnum::arraySubscript: return "arraySubscript";
+    case AstEnum::indexExpression: return "indexExpression";
+    case AstEnum::integerLiteral: return "integerLiteral";
+    case AstEnum::stringLiteral: return "stringLiteral";
+    case AstEnum::dontcare: return "dontcare";
+    case AstEnum::default_: return "default";
 
     default: return "?";
   }
@@ -694,310 +694,310 @@ Ast* Ast::clone(Arena* storage)
   }
 
   /** PROGRAM **/
-  if (this->kind == AST_p4program) {
+  if (this->kind == AstEnum::p4program) {
     clone->p4program.decl_list = this->p4program.decl_list->clone(storage);
-  } else if (this->kind == AST_declarationList) {
+  } else if (this->kind == AstEnum::declarationList) {
     ;
-  } else if (this->kind == AST_declaration) {
+  } else if (this->kind == AstEnum::declaration) {
     clone->declaration.decl = this->declaration.decl->clone(storage);
-  } else if (this->kind == AST_name) {
+  } else if (this->kind == AstEnum::name) {
     clone->name.strname = this->name.strname;
-  } else if (this->kind == AST_parameterList) {
+  } else if (this->kind == AstEnum::parameterList) {
     ;
-  } else if (this->kind == AST_parameter) {
+  } else if (this->kind == AstEnum::parameter) {
     clone->parameter.direction = this->parameter.direction;
     clone->parameter.name = this->parameter.name->clone(storage);
     clone->parameter.type = this->parameter.type->clone(storage);
     clone->parameter.init_expr = this->parameter.init_expr->clone(storage);
-  } else if (this->kind == AST_packageTypeDeclaration) {
+  } else if (this->kind == AstEnum::packageTypeDeclaration) {
     clone->packageTypeDeclaration.name = this->packageTypeDeclaration.name->clone(storage);
     clone->packageTypeDeclaration.params = this->packageTypeDeclaration.params->clone(storage);
-  } else if (this->kind == AST_instantiation) {
+  } else if (this->kind == AstEnum::instantiation) {
     clone->instantiation.name = this->instantiation.name->clone(storage);
     clone->instantiation.type = this->instantiation.type->clone(storage);
     clone->instantiation.args = this->instantiation.args->clone(storage);
   }
   /** PARSER **/
-  else if (this->kind == AST_parserDeclaration) {
+  else if (this->kind == AstEnum::parserDeclaration) {
     clone->parserDeclaration.proto = this->parserDeclaration.proto->clone(storage);
     clone->parserDeclaration.ctor_params = this->parserDeclaration.ctor_params->clone(storage);
     clone->parserDeclaration.local_elements = this->parserDeclaration.local_elements->clone(storage);
     clone->parserDeclaration.states = this->parserDeclaration.states->clone(storage);
-  } else if (this->kind == AST_parserTypeDeclaration) {
+  } else if (this->kind == AstEnum::parserTypeDeclaration) {
     clone->parserTypeDeclaration.name = this->parserTypeDeclaration.name->clone(storage);
     clone->parserTypeDeclaration.params = this->parserTypeDeclaration.params->clone(storage);
     clone->parserTypeDeclaration.method_protos = this->parserTypeDeclaration.method_protos->clone(storage);
-  } else if (this->kind == AST_parserLocalElements) {
+  } else if (this->kind == AstEnum::parserLocalElements) {
     ;
-  } else if (this->kind == AST_parserLocalElement) {
+  } else if (this->kind == AstEnum::parserLocalElement) {
     clone->parserLocalElement.element = this->parserLocalElement.element->clone(storage);
-  } else if (this->kind == AST_parserStates) {
+  } else if (this->kind == AstEnum::parserStates) {
     ;
-  } else if (this->kind == AST_parserState) {
+  } else if (this->kind == AstEnum::parserState) {
     clone->parserState.name = this->parserState.name->clone(storage);
     clone->parserState.stmt_list = this->parserState.stmt_list->clone(storage);
     clone->parserState.transition_stmt = this->parserState.transition_stmt->clone(storage);
-  } else if (this->kind == AST_parserStatements) {
+  } else if (this->kind == AstEnum::parserStatements) {
     ;
-  } else if (this->kind == AST_parserStatement) {
+  } else if (this->kind == AstEnum::parserStatement) {
     clone->parserStatement.stmt = this->parserStatement.stmt->clone(storage);
-  } else if (this->kind == AST_parserBlockStatement) {
+  } else if (this->kind == AstEnum::parserBlockStatement) {
     clone->parserBlockStatement.stmt_list = this->parserBlockStatement.stmt_list->clone(storage);
-  } else if (this->kind == AST_transitionStatement) {
+  } else if (this->kind == AstEnum::transitionStatement) {
     clone->transitionStatement.stmt = this->transitionStatement.stmt->clone(storage);
-  } else if (this->kind == AST_stateExpression) {
+  } else if (this->kind == AstEnum::stateExpression) {
     clone->stateExpression.expr = this->stateExpression.expr->clone(storage);
-  } else if (this->kind == AST_selectExpression) {
+  } else if (this->kind == AstEnum::selectExpression) {
     clone->selectExpression.expr_list = this->selectExpression.expr_list->clone(storage);
     clone->selectExpression.case_list = this->selectExpression.case_list->clone(storage);
-  } else if (this->kind == AST_selectCaseList) {
+  } else if (this->kind == AstEnum::selectCaseList) {
     ;
-  } else if (this->kind == AST_selectCase) {
+  } else if (this->kind == AstEnum::selectCase) {
     clone->selectCase.keyset_expr = this->selectCase.keyset_expr->clone(storage);
     clone->selectCase.name = this->selectCase.name->clone(storage);
-  } else if (this->kind == AST_keysetExpression) {
+  } else if (this->kind == AstEnum::keysetExpression) {
     clone->keysetExpression.expr = this->keysetExpression.expr->clone(storage);
-  } else if (this->kind == AST_tupleKeysetExpression) {
+  } else if (this->kind == AstEnum::tupleKeysetExpression) {
     clone->tupleKeysetExpression.expr_list = this->tupleKeysetExpression.expr_list->clone(storage);
-  } else if (this->kind == AST_simpleKeysetExpression) {
+  } else if (this->kind == AstEnum::simpleKeysetExpression) {
     clone->simpleKeysetExpression.expr = this->simpleKeysetExpression.expr->clone(storage);
-  } else if (this->kind == AST_simpleExpressionList) {
+  } else if (this->kind == AstEnum::simpleExpressionList) {
     ;
-  } else if (this->kind == AST_typeRef) {
+  } else if (this->kind == AstEnum::typeRef) {
     clone->typeRef.type = this->typeRef.type->clone(storage);
-  } else if (this->kind == AST_tupleType) {
+  } else if (this->kind == AstEnum::tupleType) {
     clone->tupleType.type_args = this->tupleType.type_args->clone(storage);
   }
   /** CONTROL **/
-  else if (this->kind == AST_controlDeclaration) {
+  else if (this->kind == AstEnum::controlDeclaration) {
     clone->controlDeclaration.proto = this->controlDeclaration.proto->clone(storage);
     clone->controlDeclaration.ctor_params = this->controlDeclaration.ctor_params->clone(storage);
     clone->controlDeclaration.local_decls = this->controlDeclaration.local_decls->clone(storage);
     clone->controlDeclaration.apply_stmt = this->controlDeclaration.apply_stmt->clone(storage);
-  } else if (this->kind == AST_controlTypeDeclaration) {
+  } else if (this->kind == AstEnum::controlTypeDeclaration) {
     clone->controlTypeDeclaration.name = this->controlTypeDeclaration.name->clone(storage);
     clone->controlTypeDeclaration.params = this->controlTypeDeclaration.params->clone(storage);
     clone->controlTypeDeclaration.method_protos = this->controlTypeDeclaration.params->clone(storage);
-  } else if (this->kind == AST_controlLocalDeclarations) {
+  } else if (this->kind == AstEnum::controlLocalDeclarations) {
     ;
-  } else if (this->kind == AST_controlLocalDeclaration) {
+  } else if (this->kind == AstEnum::controlLocalDeclaration) {
     clone->controlLocalDeclaration.decl = this->controlLocalDeclaration.decl->clone(storage);
   }
   /** EXTERN **/
-  else if (this->kind == AST_externDeclaration) {
+  else if (this->kind == AstEnum::externDeclaration) {
     clone->externDeclaration.decl = this->externDeclaration.decl->clone(storage);
-  } else if (this->kind == AST_externTypeDeclaration) {
+  } else if (this->kind == AstEnum::externTypeDeclaration) {
     clone->externTypeDeclaration.name = this->externTypeDeclaration.name->clone(storage);
     clone->externTypeDeclaration.method_protos = this->externTypeDeclaration.method_protos->clone(storage);
-  } else if (this->kind == AST_methodPrototypes) {
+  } else if (this->kind == AstEnum::methodPrototypes) {
     ;
-  } else if (this->kind == AST_functionPrototype) {
+  } else if (this->kind == AstEnum::functionPrototype) {
     clone->functionPrototype.return_type = this->functionPrototype.return_type->clone(storage);
     clone->functionPrototype.name = this->functionPrototype.name->clone(storage);
     clone->functionPrototype.params = this->functionPrototype.params->clone(storage);
   }
   /** TYPES **/
-  else if (this->kind == AST_typeRef) {
+  else if (this->kind == AstEnum::typeRef) {
     clone->typeRef.type = this->typeRef.type->clone(storage);
-  } else if (this->kind == AST_tupleType) {
+  } else if (this->kind == AstEnum::tupleType) {
     clone->tupleType.type_args = this->tupleType.type_args->clone(storage);
-  } else if (this->kind == AST_headerStackType) {
+  } else if (this->kind == AstEnum::headerStackType) {
     clone->headerStackType.type = this->headerStackType.type->clone(storage);
     clone->headerStackType.stack_expr = this->headerStackType.stack_expr->clone(storage);
-  } else if (this->kind == AST_baseTypeBoolean) {
+  } else if (this->kind == AstEnum::baseTypeBoolean) {
     clone->baseTypeBoolean.name = this->baseTypeBoolean.name->clone(storage);
-  } else if (this->kind == AST_baseTypeInteger) {
+  } else if (this->kind == AstEnum::baseTypeInteger) {
     clone->baseTypeInteger.name = this->baseTypeInteger.name->clone(storage);
     clone->baseTypeInteger.size = this->baseTypeInteger.size->clone(storage);
-  } else if (this->kind == AST_baseTypeBit) {
+  } else if (this->kind == AstEnum::baseTypeBit) {
     clone->baseTypeBit.name = this->baseTypeBit.name->clone(storage);
     clone->baseTypeBit.size = this->baseTypeBit.size->clone(storage);
-  } else if (this->kind == AST_baseTypeBit) {
+  } else if (this->kind == AstEnum::baseTypeBit) {
     clone->baseTypeBit.name = this->baseTypeBit.name->clone(storage);
     clone->baseTypeBit.size = this->baseTypeBit.size->clone(storage);
-  } else if (this->kind == AST_baseTypeString) {
+  } else if (this->kind == AstEnum::baseTypeString) {
     clone->baseTypeString.name = this->baseTypeString.name->clone(storage);
-  } else if (this->kind == AST_baseTypeVoid) {
+  } else if (this->kind == AstEnum::baseTypeVoid) {
     clone->baseTypeVoid.name = this->baseTypeVoid.name->clone(storage);
-  } else if (this->kind == AST_baseTypeError) {
+  } else if (this->kind == AstEnum::baseTypeError) {
     clone->baseTypeError.name = this->baseTypeError.name->clone(storage);
-  } else if (this->kind == AST_integerTypeSize) {
+  } else if (this->kind == AstEnum::integerTypeSize) {
     clone->integerTypeSize.size = this->integerTypeSize.size->clone(storage);
-  } else if (this->kind == AST_realTypeArg) {
+  } else if (this->kind == AstEnum::realTypeArg) {
     clone->realTypeArg.arg = this->realTypeArg.arg->clone(storage);
-  } else if (this->kind == AST_typeArg) {
+  } else if (this->kind == AstEnum::typeArg) {
     clone->typeArg.arg = this->typeArg.arg->clone(storage);
-  } else if (this->kind == AST_typeArgumentList) {
+  } else if (this->kind == AstEnum::typeArgumentList) {
     ;
-  } else if (this->kind == AST_typeDeclaration) {
+  } else if (this->kind == AstEnum::typeDeclaration) {
     clone->typeDeclaration.decl = this->typeDeclaration.decl->clone(storage);
-  } else if (this->kind == AST_derivedTypeDeclaration) {
+  } else if (this->kind == AstEnum::derivedTypeDeclaration) {
     clone->derivedTypeDeclaration.decl = this->derivedTypeDeclaration.decl->clone(storage);
-  } else if (this->kind == AST_headerTypeDeclaration) {
+  } else if (this->kind == AstEnum::headerTypeDeclaration) {
     clone->headerTypeDeclaration.name = this->headerTypeDeclaration.name->clone(storage);
     clone->headerTypeDeclaration.fields = this->headerTypeDeclaration.fields->clone(storage);
-  } else if (this->kind == AST_headerUnionDeclaration) {
+  } else if (this->kind == AstEnum::headerUnionDeclaration) {
     clone->headerUnionDeclaration.name = this->headerUnionDeclaration.name->clone(storage);
     clone->headerUnionDeclaration.fields = this->headerUnionDeclaration.fields->clone(storage);
-  } else if (this->kind == AST_structTypeDeclaration) {
+  } else if (this->kind == AstEnum::structTypeDeclaration) {
     clone->structTypeDeclaration.name = this->structTypeDeclaration.name->clone(storage);
     clone->structTypeDeclaration.fields = this->structTypeDeclaration.fields->clone(storage);
-  } else if (this->kind == AST_structFieldList) {
+  } else if (this->kind == AstEnum::structFieldList) {
     ;
-  } else if (this->kind == AST_structField) {
+  } else if (this->kind == AstEnum::structField) {
     clone->structField.type = this->structField.type->clone(storage);
     clone->structField.name = this->structField.name->clone(storage);
-  } else if (this->kind == AST_enumDeclaration) {
+  } else if (this->kind == AstEnum::enumDeclaration) {
     clone->enumDeclaration.type_size = this->enumDeclaration.type_size->clone(storage);
     clone->enumDeclaration.name = this->enumDeclaration.name->clone(storage);
     clone->enumDeclaration.fields = this->enumDeclaration.fields->clone(storage);
-  } else if (this->kind == AST_errorDeclaration) {
+  } else if (this->kind == AstEnum::errorDeclaration) {
     clone->errorDeclaration.fields = this->errorDeclaration.fields->clone(storage);
-  } else if (this->kind == AST_matchKindDeclaration) {
+  } else if (this->kind == AstEnum::matchKindDeclaration) {
     clone->matchKindDeclaration.fields = this->matchKindDeclaration.fields->clone(storage);
-  } else if (this->kind == AST_matchKindDeclaration) {
+  } else if (this->kind == AstEnum::matchKindDeclaration) {
     ;
-  } else if (this->kind == AST_specifiedIdentifierList) {
+  } else if (this->kind == AstEnum::specifiedIdentifierList) {
     ;
-  } else if (this->kind == AST_specifiedIdentifier) {
+  } else if (this->kind == AstEnum::specifiedIdentifier) {
     clone->specifiedIdentifier.name = this->specifiedIdentifier.name->clone(storage);
     clone->specifiedIdentifier.init_expr = this->specifiedIdentifier.init_expr->clone(storage);
-  } else if (this->kind == AST_typedefDeclaration) {
+  } else if (this->kind == AstEnum::typedefDeclaration) {
     clone->typedefDeclaration.type_ref = this->typedefDeclaration.type_ref->clone(storage);
     clone->typedefDeclaration.name = this->typedefDeclaration.name->clone(storage);
   }
   /** STATEMENTS **/
-  else if (this->kind == AST_assignmentStatement) {
+  else if (this->kind == AstEnum::assignmentStatement) {
     clone->assignmentStatement.lhs_expr = this->assignmentStatement.lhs_expr->clone(storage);
     clone->assignmentStatement.rhs_expr = this->assignmentStatement.rhs_expr->clone(storage);
-  } else if (this->kind == AST_emptyStatement) {
+  } else if (this->kind == AstEnum::emptyStatement) {
     ;
-  } else if (this->kind == AST_returnStatement) {
+  } else if (this->kind == AstEnum::returnStatement) {
     clone->returnStatement.expr = this->returnStatement.expr->clone(storage);
-  } else if (this->kind == AST_returnStatement) {
+  } else if (this->kind == AstEnum::returnStatement) {
     ;
-  } else if (this->kind == AST_conditionalStatement) {
+  } else if (this->kind == AstEnum::conditionalStatement) {
     clone->conditionalStatement.cond_expr = this->conditionalStatement.cond_expr->clone(storage);
     clone->conditionalStatement.stmt = this->conditionalStatement.stmt->clone(storage);
     clone->conditionalStatement.else_stmt = this->conditionalStatement.else_stmt->clone(storage);
-  } else if (this->kind == AST_directApplication) {
+  } else if (this->kind == AstEnum::directApplication) {
     clone->directApplication.name = this->directApplication.name->clone(storage);
     clone->directApplication.args = this->directApplication.args->clone(storage);
-  } else if (this->kind == AST_statement) {
+  } else if (this->kind == AstEnum::statement) {
     clone->statement.stmt = this->statement.stmt->clone(storage);
-  } else if (this->kind == AST_blockStatement) {
+  } else if (this->kind == AstEnum::blockStatement) {
     clone->blockStatement.stmt_list = this->blockStatement.stmt_list->clone(storage);
-  } else if (this->kind == AST_statementOrDeclaration) {
+  } else if (this->kind == AstEnum::statementOrDeclaration) {
     clone->statementOrDeclaration.stmt = this->statementOrDeclaration.stmt->clone(storage);
-  } else if (this->kind == AST_statementOrDeclList) {
+  } else if (this->kind == AstEnum::statementOrDeclList) {
     ;
-  } else if (this->kind == AST_switchStatement) {
+  } else if (this->kind == AstEnum::switchStatement) {
     clone->switchStatement.expr = this->switchStatement.expr->clone(storage);
     clone->switchStatement.switch_cases = this->switchStatement.switch_cases->clone(storage);
-  } else if (this->kind == AST_switchCases) {
+  } else if (this->kind == AstEnum::switchCases) {
     ;
-  } else if (this->kind == AST_switchCase) {
+  } else if (this->kind == AstEnum::switchCase) {
     clone->switchCase.label = this->switchCase.label->clone(storage);
     clone->switchCase.stmt = this->switchCase.stmt->clone(storage);
-  } else if (this->kind == AST_switchLabel) {
+  } else if (this->kind == AstEnum::switchLabel) {
     clone->switchLabel.label = this->switchLabel.label->clone(storage);
   }
   /** TABLES **/
-  else if (this->kind == AST_tableDeclaration) {
+  else if (this->kind == AstEnum::tableDeclaration) {
     clone->tableDeclaration.name = this->tableDeclaration.name->clone(storage);
     clone->tableDeclaration.prop_list = this->tableDeclaration.prop_list->clone(storage);
-  } else if (this->kind == AST_tablePropertyList) {
+  } else if (this->kind == AstEnum::tablePropertyList) {
     ;
-  } else if (this->kind == AST_tableProperty) {
+  } else if (this->kind == AstEnum::tableProperty) {
     clone->tableProperty.prop = this->tableProperty.prop->clone(storage);
-  } else if (this->kind == AST_keyProperty) {
+  } else if (this->kind == AstEnum::keyProperty) {
     clone->keyProperty.keyelem_list = this->keyProperty.keyelem_list->clone(storage);
-  } else if (this->kind == AST_keyElementList) {
+  } else if (this->kind == AstEnum::keyElementList) {
     ;
-  } else if (this->kind == AST_keyElement) {
+  } else if (this->kind == AstEnum::keyElement) {
     clone->keyElement.expr = this->keyElement.expr->clone(storage);
     clone->keyElement.match = this->keyElement.match->clone(storage);
-  } else if (this->kind == AST_actionsProperty) {
+  } else if (this->kind == AstEnum::actionsProperty) {
     clone->actionsProperty.action_list = this->actionsProperty.action_list->clone(storage);
-  } else if (this->kind == AST_actionList) {
+  } else if (this->kind == AstEnum::actionList) {
     ;
-  } else if (this->kind == AST_actionRef) {
+  } else if (this->kind == AstEnum::actionRef) {
     clone->actionRef.name = this->actionRef.name->clone(storage);
     clone->actionRef.args = this->actionRef.args->clone(storage);
   }
 #if 0
-  else if (this->kind == AST_entriesProperty) {
+  else if (this->kind == AstEnum::entriesProperty) {
     clone->entriesProperty.entries_list = this->entriesProperty.entries_list->clone(storage);
-  } else if (this->kind == AST_entriesList) {
+  } else if (this->kind == AstEnum::entriesList) {
     ;
-  } else if (this->kind == AST_entry) {
+  } else if (this->kind == AstEnum::entry) {
     clone->entry.keyset = this->entry.keyset->clone(storage);
     clone->entry.action = this->entry.action->clone(storage);
-  } else if (this->kind == AST_simpleProperty) {
+  } else if (this->kind == AstEnum::simpleProperty) {
     clone->simpleProperty.name = this->simpleProperty.name->clone(storage);
     clone->simpleProperty.init_expr = this->simpleProperty.init_expr->clone(storage);
     clone->simpleProperty.is_const = this->simpleProperty.is_const;
   }
 #endif
-  else if (this->kind == AST_actionDeclaration) {
+  else if (this->kind == AstEnum::actionDeclaration) {
     clone->actionDeclaration.name = this->actionDeclaration.name->clone(storage);
     clone->actionDeclaration.params = this->actionDeclaration.params->clone(storage);
     clone->actionDeclaration.stmt = this->actionDeclaration.stmt->clone(storage);
   }
   /** VARIABLES **/
-  else if (this->kind == AST_variableDeclaration) {
+  else if (this->kind == AstEnum::variableDeclaration) {
     clone->variableDeclaration.type = this->variableDeclaration.type->clone(storage);
     clone->variableDeclaration.name = this->variableDeclaration.name->clone(storage);
     clone->variableDeclaration.init_expr = this->variableDeclaration.init_expr->clone(storage);
     clone->variableDeclaration.is_const = this->variableDeclaration.is_const;
   }
   /** EXPRESSIONS **/
-  else if (this->kind == AST_functionDeclaration) {
+  else if (this->kind == AstEnum::functionDeclaration) {
     clone->functionDeclaration.proto = this->functionDeclaration.proto->clone(storage);
     clone->functionDeclaration.stmt = this->functionDeclaration.stmt->clone(storage);
-  } else if (this->kind == AST_argumentList) {
+  } else if (this->kind == AstEnum::argumentList) {
     ;
-  } else if (this->kind == AST_argument) {
+  } else if (this->kind == AstEnum::argument) {
     clone->argument.arg = this->argument.arg->clone(storage);
-  } else if (this->kind == AST_expressionList) {
+  } else if (this->kind == AstEnum::expressionList) {
     ;
-  } else if (this->kind == AST_expression) {
+  } else if (this->kind == AstEnum::expression) {
     clone->expression.expr = this->expression.expr->clone(storage);
-  } else if (this->kind == AST_lvalueExpression) {
+  } else if (this->kind == AstEnum::lvalueExpression) {
     clone->lvalueExpression.expr = this->lvalueExpression.expr->clone(storage);
-  } else if (this->kind == AST_binaryExpression) {
+  } else if (this->kind == AstEnum::binaryExpression) {
     clone->binaryExpression.op = this->binaryExpression.op;
     clone->binaryExpression.strname = this->binaryExpression.strname;
     clone->binaryExpression.left_operand = this->binaryExpression.left_operand->clone(storage);
     clone->binaryExpression.right_operand = this->binaryExpression.right_operand->clone(storage);
-  } else if (this->kind == AST_unaryExpression) {
+  } else if (this->kind == AstEnum::unaryExpression) {
     clone->unaryExpression.op = this->unaryExpression.op;
     clone->unaryExpression.strname = this->unaryExpression.strname;
     clone->unaryExpression.operand = this->unaryExpression.operand->clone(storage);
-  } else if (this->kind == AST_functionCall) {
+  } else if (this->kind == AstEnum::functionCall) {
     clone->functionCall.lhs_expr = this->functionCall.lhs_expr->clone(storage);
     clone->functionCall.args = this->functionCall.args->clone(storage);
-  } else if (this->kind == AST_memberSelector) {
+  } else if (this->kind == AstEnum::memberSelector) {
     clone->memberSelector.lhs_expr = this->memberSelector.lhs_expr->clone(storage);
     clone->memberSelector.name = this->memberSelector.name->clone(storage);
-  } else if (this->kind == AST_castExpression) {
+  } else if (this->kind == AstEnum::castExpression) {
     clone->castExpression.type = this->castExpression.type->clone(storage);
     clone->castExpression.expr = this->castExpression.expr->clone(storage);
-  } else if (this->kind == AST_arraySubscript) {
+  } else if (this->kind == AstEnum::arraySubscript) {
     clone->arraySubscript.lhs_expr = this->arraySubscript.lhs_expr->clone(storage);
     clone->arraySubscript.index_expr = this->arraySubscript.index_expr->clone(storage);
-  } else if (this->kind == AST_indexExpression) {
+  } else if (this->kind == AstEnum::indexExpression) {
     clone->indexExpression.start_index = this->indexExpression.start_index->clone(storage);
     clone->indexExpression.end_index = this->indexExpression.end_index->clone(storage);
-  } else if (this->kind == AST_integerLiteral) {
+  } else if (this->kind == AstEnum::integerLiteral) {
     clone->integerLiteral.is_signed = this->integerLiteral.is_signed;
     clone->integerLiteral.value = this->integerLiteral.value;
     clone->integerLiteral.width = this->integerLiteral.width;
-  } else if (this->kind == AST_booleanLiteral) {
+  } else if (this->kind == AstEnum::booleanLiteral) {
     clone->booleanLiteral.value = this->booleanLiteral.value;
-  } else if (this->kind == AST_stringLiteral) {
+  } else if (this->kind == AstEnum::stringLiteral) {
     clone->stringLiteral.value = this->stringLiteral.value;
-  } else if (this->kind == AST_default || this->kind == AST_dontcare) {
+  } else if (this->kind == AstEnum::default_ || this->kind == AstEnum::dontcare) {
     ;
   }
   else assert(0);
@@ -1025,7 +1025,7 @@ static Ast* parse_p4program(Parser* parser)
   Scope* scope;
 
   p4program = (Ast*)parser->storage->malloc(sizeof(Ast));
-  p4program->kind = AST_p4program;
+  p4program->kind = AstEnum::p4program;
   p4program->line_no = parser->token->line_no;
   p4program->column_no = parser->token->column_no;
   while (parser->token->klass == TokenClass::SEMICOLON) {
@@ -1048,7 +1048,7 @@ static Ast* parse_declarationList(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   decls = (Ast*)parser->storage->malloc(sizeof(Ast));
-  decls->kind = AST_declarationList;
+  decls->kind = AstEnum::declarationList;
   decls->line_no = parser->token->line_no;
   decls->column_no = parser->token->column_no;
   if (token_is_declaration(parser->token)) {
@@ -1072,7 +1072,7 @@ static Ast* parse_declaration(Parser* parser)
 
   if (token_is_declaration(parser->token)) {
     decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    decl->kind = AST_declaration;
+    decl->kind = AstEnum::declaration;
     decl->line_no = parser->token->line_no;
     decl->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::CONST) {
@@ -1136,7 +1136,7 @@ static Ast* parse_nonTypeName(Parser* parser)
 
   if (token_is_nonTypeName(parser->token)) {
     name = (Ast*)parser->storage->malloc(sizeof(Ast));
-    name->kind = AST_name;
+    name->kind = AstEnum::name;
     name->line_no = parser->token->line_no;
     name->column_no = parser->token->column_no;
     name->name.strname = parser->token->lexeme;
@@ -1157,7 +1157,7 @@ static Ast* parse_name(Parser* parser)
       return parse_nonTypeName(parser);
     } else if (parser->token->klass == TokenClass::TYPE_IDENTIFIER) {
       type_name = (Ast*)parser->storage->malloc(sizeof(Ast));
-      type_name->kind = AST_name;
+      type_name->kind = AstEnum::name;
       type_name->line_no = parser->token->line_no;
       type_name->column_no = parser->token->column_no;
       type_name->name.strname = parser->token->lexeme;
@@ -1176,7 +1176,7 @@ static Ast* parse_parameterList(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   params = (Ast*)parser->storage->malloc(sizeof(Ast));
-  params->kind = AST_parameterList;
+  params->kind = AstEnum::parameterList;
   params->line_no = parser->token->line_no;
   params->column_no = parser->token->column_no;
   if (token_is_parameter(parser->token)) {
@@ -1197,7 +1197,7 @@ static Ast* parse_parameter(Parser* parser)
 
   if (token_is_parameter(parser->token)) {
     param = (Ast*)parser->storage->malloc(sizeof(Ast));
-    param->kind = AST_parameter;
+    param->kind = AstEnum::parameter;
     param->line_no = parser->token->line_no;
     param->column_no = parser->token->column_no;
     param->parameter.direction = parse_direction(parser);
@@ -1244,7 +1244,7 @@ static Ast* parse_packageTypeDeclaration(Parser* parser)
   if (parser->token->klass == TokenClass::PACKAGE) {
     next_token(parser);
     package_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    package_decl->kind = AST_packageTypeDeclaration;
+    package_decl->kind = AstEnum::packageTypeDeclaration;
     package_decl->line_no = parser->token->line_no;
     package_decl->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
@@ -1275,7 +1275,7 @@ static Ast* parse_instantiation(Parser* parser, Ast* type_ref)
 
   if (token_is_typeRef(parser->token) || type_ref) {
     inst_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-    inst_stmt->kind = AST_instantiation;
+    inst_stmt->kind = AstEnum::instantiation;
     inst_stmt->line_no = parser->token->line_no;
     inst_stmt->column_no = parser->token->column_no;
     inst_stmt->instantiation.type = type_ref ? type_ref : parse_typeRef(parser);
@@ -1328,7 +1328,7 @@ static Ast* parse_parserDeclaration(Parser* parser, Ast* parser_proto)
 
   if (parser->token->klass == TokenClass::PARENTH_OPEN || parser->token->klass == TokenClass::BRACE_OPEN) {
     parser_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    parser_decl->kind = AST_parserDeclaration;
+    parser_decl->kind = AstEnum::parserDeclaration;
     parser_decl->line_no = parser->token->line_no;
     parser_decl->column_no = parser->token->column_no;
     parser_decl->parserDeclaration.proto = parser_proto;
@@ -1359,7 +1359,7 @@ static Ast* parse_parserLocalElements(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   elems = (Ast*)parser->storage->malloc(sizeof(Ast));
-  elems->kind = AST_parserLocalElements;
+  elems->kind = AstEnum::parserLocalElements;
   elems->line_no = parser->token->line_no;
   elems->column_no = parser->token->column_no;
   if (token_is_parserLocalElement(parser->token)) {
@@ -1379,7 +1379,7 @@ static Ast* parse_parserLocalElement(Parser* parser)
 
   if (token_is_parserLocalElement(parser->token)) {
     local_element = (Ast*)parser->storage->malloc(sizeof(Ast));
-    local_element->kind = AST_parserLocalElement;
+    local_element->kind = AstEnum::parserLocalElement;
     local_element->line_no = parser->token->line_no;
     local_element->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::CONST) {
@@ -1409,11 +1409,11 @@ static Ast* parse_parserTypeDeclaration(Parser* parser)
   if (parser->token->klass == TokenClass::PARSER) {
     next_token(parser);
     parser_proto = (Ast*)parser->storage->malloc(sizeof(Ast));
-    parser_proto->kind = AST_parserTypeDeclaration;
+    parser_proto->kind = AstEnum::parserTypeDeclaration;
     parser_proto->line_no = parser->token->line_no; 
     parser_proto->column_no = parser->token->column_no;
     method_protos = (Ast*)parser->storage->malloc(sizeof(Ast));
-    method_protos->kind = AST_methodPrototypes;
+    method_protos->kind = AstEnum::methodPrototypes;
     method_protos->line_no = parser_proto->line_no;
     method_protos->column_no = parser_proto->column_no;
     parser_proto->parserTypeDeclaration.method_protos = method_protos;
@@ -1445,7 +1445,7 @@ static Ast* parse_parserStates(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   states = (Ast*)parser->storage->malloc(sizeof(Ast));
-  states->kind = AST_parserStates;
+  states->kind = AstEnum::parserStates;
   states->line_no = parser->token->line_no;
   states->column_no = parser->token->column_no;
   if (parser->token->klass == TokenClass::STATE) {
@@ -1466,7 +1466,7 @@ static Ast* parse_parserState(Parser* parser)
   if (parser->token->klass == TokenClass::STATE) {
     next_token(parser);
     state = (Ast*)parser->storage->malloc(sizeof(Ast));
-    state->kind = AST_parserState;
+    state->kind = AstEnum::parserState;
     state->line_no = parser->token->line_no;
     state->column_no = parser->token->column_no;
     state->parserState.name = parse_name(parser);
@@ -1493,7 +1493,7 @@ static Ast* parse_parserStatements(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   stmts = (Ast*)parser->storage->malloc(sizeof(Ast));
-  stmts->kind = AST_parserStatements;
+  stmts->kind = AstEnum::parserStatements;
   stmts->line_no = parser->token->line_no;
   stmts->column_no = parser->token->column_no;
   if (token_is_parserStatement(parser->token)) {
@@ -1513,7 +1513,7 @@ static Ast* parse_parserStatement(Parser* parser)
 
   if (token_is_parserStatement(parser->token)) {
     parser_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-    parser_stmt->kind = AST_parserStatement;
+    parser_stmt->kind = AstEnum::parserStatement;
     parser_stmt->line_no = parser->token->line_no;
     parser_stmt->column_no = parser->token->column_no;
     if (token_is_typeRef(parser->token)) {
@@ -1536,7 +1536,7 @@ static Ast* parse_parserStatement(Parser* parser)
       return parser_stmt;
     } else if (parser->token->klass == TokenClass::SEMICOLON) {
       Ast* stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-      stmt->kind = AST_emptyStatement;
+      stmt->kind = AstEnum::emptyStatement;
       stmt->line_no = parser->token->line_no;
       stmt->column_no = parser->token->column_no;
       parser_stmt->parserStatement.stmt = stmt;
@@ -1556,7 +1556,7 @@ static Ast* parse_parserBlockStatement(Parser* parser)
   if (parser->token->klass == TokenClass::BRACE_OPEN) {
     next_token(parser);
     stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-    stmt->kind = AST_parserBlockStatement;
+    stmt->kind = AstEnum::parserBlockStatement;
     stmt->line_no = parser->token->line_no;
     stmt->column_no = parser->token->column_no;
     stmt->parserBlockStatement.stmt_list = parse_parserStatements(parser);
@@ -1578,7 +1578,7 @@ static Ast* parse_transitionStatement(Parser* parser)
   if (parser->token->klass == TokenClass::TRANSITION) {
     next_token(parser);
     transition = (Ast*)parser->storage->malloc(sizeof(Ast));
-    transition->kind = AST_transitionStatement;
+    transition->kind = AstEnum::transitionStatement;
     transition->line_no = parser->token->line_no;
     transition->column_no = parser->token->column_no;
     transition->transitionStatement.stmt = parse_stateExpression(parser);
@@ -1595,7 +1595,7 @@ static Ast* parse_stateExpression(Parser* parser)
 
   if (token_is_name(parser->token) || parser->token->klass == TokenClass::SELECT) {
     state_expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-    state_expr->kind = AST_stateExpression;
+    state_expr->kind = AstEnum::stateExpression;
     state_expr->line_no = parser->token->line_no;
     state_expr->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
@@ -1622,7 +1622,7 @@ static Ast* parse_selectExpression(Parser* parser)
   if (parser->token->klass == TokenClass::SELECT) {
     next_token(parser);
     select_expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-    select_expr->kind = AST_selectExpression;
+    select_expr->kind = AstEnum::selectExpression;
     select_expr->line_no = parser->token->line_no;
     select_expr->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::PARENTH_OPEN) {
@@ -1656,7 +1656,7 @@ static Ast* parse_selectCaseList(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   cases = (Ast*)parser->storage->malloc(sizeof(Ast));
-  cases->kind = AST_selectCaseList;
+  cases->kind = AstEnum::selectCaseList;
   cases->line_no = parser->token->line_no;
   cases->column_no = parser->token->column_no;
   if (token_is_selectCase(parser->token)) {
@@ -1676,7 +1676,7 @@ static Ast* parse_selectCase(Parser* parser)
 
   if (token_is_keysetExpression(parser->token)) {
     select_case = (Ast*)parser->storage->malloc(sizeof(Ast));
-    select_case->kind = AST_selectCase;
+    select_case->kind = AstEnum::selectCase;
     select_case->line_no = parser->token->line_no;
     select_case->column_no = parser->token->column_no;
     select_case->selectCase.keyset_expr = parse_keysetExpression(parser);
@@ -1705,7 +1705,7 @@ static Ast* parse_keysetExpression(Parser *parser)
 
   if (parser->token->klass == TokenClass::PARENTH_OPEN || token_is_simpleKeysetExpression(parser->token)) {
     keyset_expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-    keyset_expr->kind = AST_keysetExpression;
+    keyset_expr->kind = AstEnum::keysetExpression;
     keyset_expr->line_no = parser->token->line_no;
     keyset_expr->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::PARENTH_OPEN) {
@@ -1728,7 +1728,7 @@ static Ast* parse_tupleKeysetExpression(Parser* parser)
   if (parser->token->klass == TokenClass::PARENTH_OPEN) {
     next_token(parser);
     tuple_keyset = (Ast*)parser->storage->malloc(sizeof(Ast));
-    tuple_keyset->kind = AST_tupleKeysetExpression;
+    tuple_keyset->kind = AstEnum::tupleKeysetExpression;
     tuple_keyset->line_no = parser->token->line_no;
     tuple_keyset->column_no = parser->token->column_no;
     tuple_keyset->tupleKeysetExpression.expr_list = parse_simpleExpressionList(parser);
@@ -1749,7 +1749,7 @@ static Ast* parse_simpleExpressionList(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   exprs = (Ast*)parser->storage->malloc(sizeof(Ast));
-  exprs->kind = AST_simpleExpressionList;
+  exprs->kind = AstEnum::simpleExpressionList;
   exprs->line_no = parser->token->line_no;
   exprs->column_no = parser->token->column_no;
   if (token_is_expression(parser->token)) {
@@ -1770,7 +1770,7 @@ static Ast* parse_simpleKeysetExpression(Parser* parser)
 
   if (token_is_simpleKeysetExpression(parser->token)) {
     simple_keyset = (Ast*)parser->storage->malloc(sizeof(Ast));
-    simple_keyset->kind = AST_simpleKeysetExpression;
+    simple_keyset->kind = AstEnum::simpleKeysetExpression;
     simple_keyset->line_no = parser->token->line_no;
     simple_keyset->column_no = parser->token->column_no;
     if (token_is_expression(parser->token)) {
@@ -1779,7 +1779,7 @@ static Ast* parse_simpleKeysetExpression(Parser* parser)
     } else if (parser->token->klass == TokenClass::DEFAULT) {
       next_token(parser);
       default_keyset = (Ast*)parser->storage->malloc(sizeof(Ast));
-      default_keyset->kind = AST_default;
+      default_keyset->kind = AstEnum::default_;
       default_keyset->line_no = parser->token->line_no;
       default_keyset->column_no = parser->token->column_no;
       simple_keyset->simpleKeysetExpression.expr = default_keyset;
@@ -1787,7 +1787,7 @@ static Ast* parse_simpleKeysetExpression(Parser* parser)
     } else if (parser->token->klass == TokenClass::DONTCARE) {
       next_token(parser);
       dontcare_keyset = (Ast*)parser->storage->malloc(sizeof(Ast));
-      dontcare_keyset->kind = AST_dontcare;
+      dontcare_keyset->kind = AstEnum::dontcare;
       dontcare_keyset->line_no = parser->token->line_no;
       dontcare_keyset->column_no = parser->token->column_no;
       simple_keyset->simpleKeysetExpression.expr = dontcare_keyset;
@@ -1807,7 +1807,7 @@ static Ast* parse_controlDeclaration(Parser* parser, Ast* control_proto)
 
   if (parser->token->klass == TokenClass::PARENTH_OPEN || parser->token->klass == TokenClass::BRACE_OPEN) {
     control_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    control_decl->kind = AST_controlDeclaration;
+    control_decl->kind = AstEnum::controlDeclaration;
     control_decl->line_no = parser->token->line_no;
     control_decl->column_no = parser->token->column_no;
     control_decl->controlDeclaration.proto = control_proto;
@@ -1840,11 +1840,11 @@ static Ast* parse_controlTypeDeclaration(Parser* parser)
   if (parser->token->klass == TokenClass::CONTROL) {
     next_token(parser);
     control_proto = (Ast*)parser->storage->malloc(sizeof(Ast));
-    control_proto->kind = AST_controlTypeDeclaration;
+    control_proto->kind = AstEnum::controlTypeDeclaration;
     control_proto->line_no = parser->token->line_no;
     control_proto->column_no = parser->token->column_no;
     method_protos = (Ast*)parser->storage->malloc(sizeof(Ast));
-    method_protos->kind = AST_methodPrototypes;
+    method_protos->kind = AstEnum::methodPrototypes;
     method_protos->line_no = control_proto->line_no;
     method_protos->column_no = control_proto->column_no;
     control_proto->controlTypeDeclaration.method_protos = method_protos;
@@ -1876,7 +1876,7 @@ static Ast* parse_controlLocalDeclaration(Parser* parser)
 
   if (token_is_controlLocalDeclaration(parser->token)) {
     local_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    local_decl->kind = AST_controlLocalDeclaration;
+    local_decl->kind = AstEnum::controlLocalDeclaration;
     local_decl->line_no = parser->token->line_no;
     local_decl->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::CONST) {
@@ -1911,7 +1911,7 @@ static Ast* parse_controlLocalDeclarations(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   decls = (Ast*)parser->storage->malloc(sizeof(Ast));
-  decls->kind = AST_controlLocalDeclarations;
+  decls->kind = AstEnum::controlLocalDeclarations;
   decls->line_no = parser->token->line_no;
   decls->column_no = parser->token->column_no;
   if (token_is_controlLocalDeclaration(parser->token)) {
@@ -1936,7 +1936,7 @@ static Ast* parse_externDeclaration(Parser* parser)
   if (parser->token->klass == TokenClass::EXTERN) {
     next_token(parser);
     extern_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    extern_decl->kind = AST_externDeclaration;
+    extern_decl->kind = AstEnum::externDeclaration;
     extern_decl->line_no = parser->token->line_no;
     extern_decl->column_no = parser->token->column_no;
 
@@ -1958,7 +1958,7 @@ static Ast* parse_externDeclaration(Parser* parser)
       return extern_decl;
     } else {
       extern_type = (Ast*)parser->storage->malloc(sizeof(Ast));
-      extern_type->kind = AST_externTypeDeclaration;
+      extern_type->kind = AstEnum::externTypeDeclaration;
       extern_type->line_no = parser->token->line_no;
       extern_type->column_no = parser->token->column_no;
       extern_type->externTypeDeclaration.name = parse_nonTypeName(parser);
@@ -1988,7 +1988,7 @@ static Ast* parse_methodPrototypes(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   protos = (Ast*)parser->storage->malloc(sizeof(Ast));
-  protos->kind = AST_methodPrototypes;
+  protos->kind = AstEnum::methodPrototypes;
   protos->line_no = parser->token->line_no;
   protos->column_no = parser->token->column_no;
   if (token_is_methodPrototype(parser->token)) {
@@ -2009,18 +2009,18 @@ static Ast* parse_functionPrototype(Parser* parser, Ast* return_type)
 
   if (token_is_typeOrVoid(parser->token) || return_type) {
     func_proto = (Ast*)parser->storage->malloc(sizeof(Ast));
-    func_proto->kind = AST_functionPrototype;
+    func_proto->kind = AstEnum::functionPrototype;
     func_proto->line_no = parser->token->line_no;
     func_proto->column_no = parser->token->column_no;
     if (return_type) {
       func_proto->functionPrototype.return_type = return_type;
     } else {
       return_type = parse_typeOrVoid(parser);
-      if (return_type->kind == AST_name) {
+      if (return_type->kind == AstEnum::name) {
         name = return_type;
         parser->current_scope->bind(parser->storage, name->name.strname, NameSpace::TYPE);
         type_ref = (Ast*)parser->storage->malloc(sizeof(Ast));
-        type_ref->kind = AST_typeRef;
+        type_ref->kind = AstEnum::typeRef;
         type_ref->line_no = parser->token->line_no;
         type_ref->column_no = parser->token->column_no;
         type_ref->typeRef.type = name;
@@ -2056,7 +2056,7 @@ static Ast* parse_methodPrototype(Parser* parser)
     if (parser->token->klass == TokenClass::TYPE_IDENTIFIER && peek_token(parser)->klass == TokenClass::PARENTH_OPEN) {
       /* Constructor */
       func_proto = (Ast*)parser->storage->malloc(sizeof(Ast));
-      func_proto->kind = AST_functionPrototype;
+      func_proto->kind = AstEnum::functionPrototype;
       func_proto->line_no = parser->token->line_no;
       func_proto->column_no = parser->token->column_no;
       func_proto->functionPrototype.name = parse_name(parser);
@@ -2097,7 +2097,7 @@ static Ast* parse_typeRef(Parser* parser)
 
   if (token_is_typeRef(parser->token)) {
     type_ref = (Ast*)parser->storage->malloc(sizeof(Ast));
-    type_ref->kind = AST_typeRef;
+    type_ref->kind = AstEnum::typeRef;
     type_ref->line_no = parser->token->line_no;
     type_ref->column_no = parser->token->column_no;
     if (token_is_baseType(parser->token)) {
@@ -2139,7 +2139,7 @@ static Ast* parse_typeName(Parser* parser)
 
   if (parser->token->klass == TokenClass::TYPE_IDENTIFIER) {
     type_name = (Ast*)parser->storage->malloc(sizeof(Ast));
-    type_name->kind = AST_name;
+    type_name->kind = AstEnum::name;
     type_name->line_no = parser->token->line_no;
     type_name->column_no = parser->token->column_no;
     type_name->name.strname = parser->token->lexeme;
@@ -2157,7 +2157,7 @@ static Ast* parse_tupleType(Parser* parser)
 
   if (parser->token->klass == TokenClass::TUPLE) {
     tuple = (Ast*)parser->storage->malloc(sizeof(Ast));
-    tuple->kind = AST_tupleType;
+    tuple->kind = AstEnum::tupleType;
     tuple->line_no = parser->token->line_no;
     tuple->column_no = parser->token->column_no;
     next_token(parser);
@@ -2184,12 +2184,12 @@ static Ast* parse_headerStackType(Parser* parser, Ast* named_type)
   if (parser->token->klass == TokenClass::BRACKET_OPEN) {
     next_token(parser);
     type_ref = (Ast*)parser->storage->malloc(sizeof(Ast));
-    type_ref->kind = AST_typeRef;
+    type_ref->kind = AstEnum::typeRef;
     type_ref->line_no = named_type->line_no;
     type_ref->column_no = named_type->column_no;
     type_ref->typeRef.type = named_type;
     type = (Ast*)parser->storage->malloc(sizeof(Ast));
-    type->kind = AST_headerStackType;
+    type->kind = AstEnum::headerStackType;
     type->line_no = named_type->line_no;
     type->column_no = named_type->column_no;
     type->headerStackType.type = type_ref;
@@ -2214,12 +2214,12 @@ static Ast* parse_baseType(Parser* parser)
 
   if (token_is_baseType(parser->token)) {
     type_name = (Ast*)parser->storage->malloc(sizeof(Ast));
-    type_name->kind = AST_name;
+    type_name->kind = AstEnum::name;
     type_name->line_no = parser->token->line_no;
     type_name->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::BOOL) {
       type = (Ast*)parser->storage->malloc(sizeof(Ast));
-      type->kind = AST_baseTypeBoolean;
+      type->kind = AstEnum::baseTypeBoolean;
       type->line_no = parser->token->line_no;
       type->column_no = parser->token->column_no;
       type_name->name.strname = parser->token->lexeme;
@@ -2228,7 +2228,7 @@ static Ast* parse_baseType(Parser* parser)
       return type;
     } else if (parser->token->klass == TokenClass::INT) {
       type = (Ast*)parser->storage->malloc(sizeof(Ast));
-      type->kind = AST_baseTypeInteger;
+      type->kind = AstEnum::baseTypeInteger;
       type->line_no = parser->token->line_no;
       type->column_no = parser->token->column_no;
       type_name->name.strname = parser->token->lexeme;
@@ -2245,7 +2245,7 @@ static Ast* parse_baseType(Parser* parser)
       return type;
     } else if (parser->token->klass == TokenClass::BIT) {
       type = (Ast*)parser->storage->malloc(sizeof(Ast));
-      type->kind = AST_baseTypeBit;
+      type->kind = AstEnum::baseTypeBit;
       type->line_no = parser->token->line_no;
       type->column_no = parser->token->column_no;
       type_name->name.strname = parser->token->lexeme;
@@ -2262,7 +2262,7 @@ static Ast* parse_baseType(Parser* parser)
       return type;
     } else if (parser->token->klass == TokenClass::VARBIT) {
       type = (Ast*)parser->storage->malloc(sizeof(Ast));
-      type->kind = AST_baseTypeVarbit;
+      type->kind = AstEnum::baseTypeVarbit;
       type->line_no = parser->token->line_no;
       type->column_no = parser->token->column_no;
       type_name->name.strname = parser->token->lexeme;
@@ -2280,7 +2280,7 @@ static Ast* parse_baseType(Parser* parser)
       return type;
     } else if (parser->token->klass == TokenClass::STRING) {
       type = (Ast*)parser->storage->malloc(sizeof(Ast));
-      type->kind = AST_baseTypeString;
+      type->kind = AstEnum::baseTypeString;
       type->line_no = parser->token->line_no;
       type->column_no = parser->token->column_no;
       type_name->name.strname = parser->token->lexeme;
@@ -2289,7 +2289,7 @@ static Ast* parse_baseType(Parser* parser)
       return type;
     } else if (parser->token->klass == TokenClass::VOID) {
       type = (Ast*)parser->storage->malloc(sizeof(Ast));
-      type->kind = AST_baseTypeVoid;
+      type->kind = AstEnum::baseTypeVoid;
       type->line_no = parser->token->line_no;
       type->column_no = parser->token->column_no;
       type_name->name.strname = parser->token->lexeme;
@@ -2298,7 +2298,7 @@ static Ast* parse_baseType(Parser* parser)
       return type;
     } else if (parser->token->klass == TokenClass::ERROR) {
       type = (Ast*)parser->storage->malloc(sizeof(Ast));
-      type->kind = AST_baseTypeError;
+      type->kind = AstEnum::baseTypeError;
       type->line_no = parser->token->line_no;
       type->column_no = parser->token->column_no;
       type_name->name.strname = parser->token->lexeme;
@@ -2317,7 +2317,7 @@ static Ast* parse_integerTypeSize(Parser* parser)
   Ast* type_size;
 
   type_size = (Ast*)parser->storage->malloc(sizeof(Ast));
-  type_size->kind = AST_integerTypeSize;
+  type_size->kind = AstEnum::integerTypeSize;
   type_size->line_no = parser->token->line_no;
   type_size->column_no = parser->token->column_no;
   if (parser->token->klass == TokenClass::INTEGER_LITERAL) {
@@ -2345,7 +2345,7 @@ static Ast* parse_typeOrVoid(Parser* parser)
       return parse_baseType(parser);
     } else if (parser->token->klass == TokenClass::IDENTIFIER) {
       name = (Ast*)parser->storage->malloc(sizeof(Ast));
-      name->kind = AST_name;
+      name->kind = AstEnum::name;
       name->line_no = parser->token->line_no;
       name->column_no = parser->token->column_no;
       name->name.strname = parser->token->lexeme;
@@ -2364,13 +2364,13 @@ static Ast* parse_realTypeArg(Parser* parser)
 
   if (token_is_realTypeArg(parser->token)) {
     type_arg = (Ast*)parser->storage->malloc(sizeof(Ast));
-    type_arg->kind = AST_realTypeArg;
+    type_arg->kind = AstEnum::realTypeArg;
     type_arg->line_no = parser->token->line_no;
     type_arg->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::DONTCARE) {
       next_token(parser);
       dontcare_arg = (Ast*)parser->storage->malloc(sizeof(Ast));
-      dontcare_arg->kind = AST_dontcare;
+      dontcare_arg->kind = AstEnum::dontcare;
       dontcare_arg->line_no = parser->token->line_no;
       dontcare_arg->column_no = parser->token->column_no;
       type_arg->realTypeArg.arg = dontcare_arg;
@@ -2391,13 +2391,13 @@ static Ast* parse_typeArg(Parser* parser)
 
   if (token_is_typeArg(parser->token)) {
     type_arg = (Ast*)parser->storage->malloc(sizeof(Ast));
-    type_arg->kind = AST_typeArg;
+    type_arg->kind = AstEnum::typeArg;
     type_arg->line_no = parser->token->line_no;
     type_arg->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::DONTCARE) {
       next_token(parser);
       dontcare_arg = (Ast*)parser->storage->malloc(sizeof(Ast));
-      dontcare_arg->kind = AST_dontcare;
+      dontcare_arg->kind = AstEnum::dontcare;
       dontcare_arg->line_no = parser->token->line_no;
       dontcare_arg->column_no = parser->token->column_no;
       type_arg->typeArg.arg = dontcare_arg;
@@ -2421,7 +2421,7 @@ static Ast* parse_typeArgumentList(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   args = (Ast*)parser->storage->malloc(sizeof(Ast));
-  args->kind = AST_typeArgumentList;
+  args->kind = AstEnum::typeArgumentList;
   args->line_no = parser->token->line_no;
   args->column_no = parser->token->column_no;
   if (token_is_typeArg(parser->token)) {
@@ -2442,7 +2442,7 @@ static Ast* parse_typeDeclaration(Parser* parser)
 
   if (token_is_typeDeclaration(parser->token)) {
     type_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    type_decl->kind = AST_typeDeclaration;
+    type_decl->kind = AstEnum::typeDeclaration;
     type_decl->line_no = parser->token->line_no;
     type_decl->column_no = parser->token->column_no;
     if (token_is_derivedTypeDeclaration(parser->token)) {
@@ -2477,7 +2477,7 @@ static Ast* parse_derivedTypeDeclaration(Parser* parser)
 
   if (token_is_derivedTypeDeclaration(parser->token)) {
     type_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    type_decl->kind = AST_derivedTypeDeclaration;
+    type_decl->kind = AstEnum::derivedTypeDeclaration;
     type_decl->line_no = parser->token->line_no;
     type_decl->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::HEADER) {
@@ -2507,7 +2507,7 @@ static Ast* parse_headerTypeDeclaration(Parser* parser)
   if (parser->token->klass == TokenClass::HEADER) {
     next_token(parser);
     header_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    header_decl->kind = AST_headerTypeDeclaration;
+    header_decl->kind = AstEnum::headerTypeDeclaration;
     header_decl->line_no = parser->token->line_no;
     header_decl->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
@@ -2540,7 +2540,7 @@ static Ast* parse_headerUnionDeclaration(Parser* parser)
   if (parser->token->klass == TokenClass::UNION) {
     next_token(parser);
     union_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    union_decl->kind = AST_headerUnionDeclaration;
+    union_decl->kind = AstEnum::headerUnionDeclaration;
     union_decl->line_no = parser->token->line_no;
     union_decl->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
@@ -2573,7 +2573,7 @@ static Ast* parse_structTypeDeclaration(Parser* parser)
   if (parser->token->klass == TokenClass::STRUCT) {
     next_token(parser);
     struct_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    struct_decl->kind = AST_structTypeDeclaration;
+    struct_decl->kind = AstEnum::structTypeDeclaration;
     struct_decl->line_no = parser->token->line_no;
     struct_decl->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
@@ -2604,7 +2604,7 @@ static Ast* parse_structFieldList(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   fields = (Ast*)parser->storage->malloc(sizeof(Ast));
-  fields->kind = AST_structFieldList;
+  fields->kind = AstEnum::structFieldList;
   fields->line_no = parser->token->line_no;
   fields->column_no = parser->token->column_no;
   if (token_is_structField(parser->token)) {
@@ -2622,7 +2622,7 @@ static Ast* parse_structField(Parser* parser)
 {
   if (token_is_structField(parser->token)) {
     Ast* field = (Ast*)parser->storage->malloc(sizeof(Ast));
-    field->kind = AST_structField;
+    field->kind = AstEnum::structField;
     field->line_no = parser->token->line_no;
     field->column_no = parser->token->column_no;
     field->structField.type = parse_typeRef(parser);
@@ -2649,7 +2649,7 @@ static Ast* parse_enumDeclaration(Parser* parser)
   if (parser->token->klass == TokenClass::ENUM) {
     next_token(parser);
     enum_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    enum_decl->kind = AST_enumDeclaration;
+    enum_decl->kind = AstEnum::enumDeclaration;
     enum_decl->line_no = parser->token->line_no;
     enum_decl->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::BIT) {
@@ -2699,7 +2699,7 @@ static Ast* parse_errorDeclaration(Parser* parser)
   if (parser->token->klass == TokenClass::ERROR) {
     next_token(parser);
     error_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    error_decl->kind = AST_errorDeclaration;
+    error_decl->kind = AstEnum::errorDeclaration;
     error_decl->line_no = parser->token->line_no;
     error_decl->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::BRACE_OPEN) {
@@ -2731,7 +2731,7 @@ static Ast* parse_matchKindDeclaration(Parser* parser)
   if (parser->token->klass == TokenClass::MATCH_KIND) {
     next_token(parser);
     match_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    match_decl->kind = AST_matchKindDeclaration;
+    match_decl->kind = AstEnum::matchKindDeclaration;
     match_decl->line_no = parser->token->line_no;
     match_decl->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::BRACE_OPEN) {
@@ -2759,7 +2759,7 @@ static Ast* parse_identifierList(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   ids = (Ast*)parser->storage->malloc(sizeof(Ast));
-  ids->kind = AST_identifierList;
+  ids->kind = AstEnum::identifierList;
   ids->line_no = parser->token->line_no;
   ids->column_no = parser->token->column_no;
   if (token_is_name(parser->token)) {
@@ -2780,7 +2780,7 @@ static Ast* parse_specifiedIdentifierList(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   ids = (Ast*)parser->storage->malloc(sizeof(Ast));
-  ids->kind = AST_specifiedIdentifierList;
+  ids->kind = AstEnum::specifiedIdentifierList;
   ids->line_no = parser->token->line_no;
   ids->column_no = parser->token->column_no;
   if (token_is_specifiedIdentifier(parser->token)) {
@@ -2801,7 +2801,7 @@ static Ast* parse_specifiedIdentifier(Parser* parser)
 
   if (token_is_specifiedIdentifier(parser->token)) {
     id = (Ast*)parser->storage->malloc(sizeof(Ast));
-    id->kind = AST_specifiedIdentifier;
+    id->kind = AstEnum::specifiedIdentifier;
     id->line_no = parser->token->line_no;
     id->column_no = parser->token->column_no;
     id->specifiedIdentifier.name = parse_name(parser);
@@ -2828,7 +2828,7 @@ static Ast* parse_typedefDeclaration(Parser* parser)
     next_token(parser);
     if (token_is_typeRef(parser->token) || token_is_derivedTypeDeclaration(parser->token)) {
       type_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-      type_decl->kind = AST_typedefDeclaration;
+      type_decl->kind = AstEnum::typedefDeclaration;
       type_decl->line_no = parser->token->line_no;
       type_decl->column_no = parser->token->column_no;
       if (token_is_typeRef(parser->token)) {
@@ -2866,7 +2866,7 @@ static Ast* parse_assignmentOrMethodCallStatement(Parser* parser)
     if (parser->token->klass == TokenClass::PARENTH_OPEN) {
       next_token(parser);
       stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-      stmt->kind = AST_functionCall;
+      stmt->kind = AstEnum::functionCall;
       stmt->line_no = parser->token->line_no;
       stmt->column_no = parser->token->column_no;
       stmt->functionCall.lhs_expr = lvalue;
@@ -2883,7 +2883,7 @@ static Ast* parse_assignmentOrMethodCallStatement(Parser* parser)
     } else if (parser->token->klass == TokenClass::EQUAL) {
       next_token(parser);
       stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-      stmt->kind = AST_assignmentStatement;
+      stmt->kind = AstEnum::assignmentStatement;
       stmt->line_no = parser->token->line_no;
       stmt->column_no = parser->token->column_no;
       stmt->assignmentStatement.lhs_expr = lvalue;
@@ -2908,7 +2908,7 @@ static Ast* parse_returnStatement(Parser* parser)
   if (parser->token->klass == TokenClass::RETURN) {
     next_token(parser);
     return_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-    return_stmt->kind = AST_returnStatement;
+    return_stmt->kind = AstEnum::returnStatement;
     return_stmt->line_no = parser->token->line_no;
     return_stmt->column_no = parser->token->column_no;
     if (token_is_expression(parser->token))
@@ -2931,7 +2931,7 @@ static Ast* parse_exitStatement(Parser* parser)
   if (parser->token->klass == TokenClass::EXIT) {
     next_token(parser);
     exit_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-    exit_stmt->kind = AST_exitStatement;
+    exit_stmt->kind = AstEnum::exitStatement;
     exit_stmt->line_no = parser->token->line_no;
     exit_stmt->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::SEMICOLON) {
@@ -2952,7 +2952,7 @@ static Ast* parse_conditionalStatement(Parser* parser)
   if (parser->token->klass == TokenClass::IF) {
     next_token(parser);
     if_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-    if_stmt->kind = AST_conditionalStatement;
+    if_stmt->kind = AstEnum::conditionalStatement;
     if_stmt->line_no = parser->token->line_no;
     if_stmt->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::PARENTH_OPEN) {
@@ -2991,7 +2991,7 @@ static Ast* parse_directApplication(Parser* parser, Ast* type_name)
 
   if (token_is_typeName(parser->token) || type_name) {
     apply_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-    apply_stmt->kind = AST_directApplication;
+    apply_stmt->kind = AstEnum::directApplication;
     apply_stmt->line_no = parser->token->line_no;
     apply_stmt->column_no = parser->token->column_no;
     apply_stmt->directApplication.name = type_name ? type_name : parse_typeName(parser);
@@ -3029,7 +3029,7 @@ static Ast* parse_statement(Parser* parser, Ast* type_name)
 
   if (token_is_statement(parser->token)) {
     stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-    stmt->kind = AST_statement;
+    stmt->kind = AstEnum::statement;
     stmt->line_no = parser->token->line_no;
     stmt->column_no = parser->token->column_no;
     if (token_is_typeName(parser->token) || type_name) {
@@ -3043,7 +3043,7 @@ static Ast* parse_statement(Parser* parser, Ast* type_name)
       return stmt;
     } else if (parser->token->klass == TokenClass::SEMICOLON) {
       empty_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-      empty_stmt->kind = AST_emptyStatement;
+      empty_stmt->kind = AstEnum::emptyStatement;
       empty_stmt->line_no = parser->token->line_no;
       empty_stmt->column_no = parser->token->column_no;
       stmt->statement.stmt = empty_stmt;
@@ -3075,7 +3075,7 @@ static Ast* parse_blockStatement(Parser* parser)
   if (parser->token->klass == TokenClass::BRACE_OPEN) {
     next_token(parser);
     block_stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-    block_stmt->kind = AST_blockStatement;
+    block_stmt->kind = AstEnum::blockStatement;
     block_stmt->line_no = parser->token->line_no;
     block_stmt->column_no = parser->token->column_no;
     block_stmt->blockStatement.stmt_list = parse_statementOrDeclList(parser);
@@ -3096,7 +3096,7 @@ static Ast* parse_statementOrDeclList(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   stmts = (Ast*)parser->storage->malloc(sizeof(Ast));
-  stmts->kind = AST_statementOrDeclList;
+  stmts->kind = AstEnum::statementOrDeclList;
   stmts->line_no = parser->token->line_no;
   stmts->column_no = parser->token->column_no;
   if (token_is_statementOrDeclaration(parser->token)) {
@@ -3117,7 +3117,7 @@ static Ast* parse_switchStatement(Parser* parser)
   if (parser->token->klass == TokenClass::SWITCH) {
     next_token(parser);
     stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-    stmt->kind = AST_switchStatement;
+    stmt->kind = AstEnum::switchStatement;
     stmt->line_no = parser->token->line_no;
     stmt->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::PARENTH_OPEN) {
@@ -3151,7 +3151,7 @@ static Ast* parse_switchCases(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   cases = (Ast*)parser->storage->malloc(sizeof(Ast));
-  cases->kind = AST_switchCases;
+  cases->kind = AstEnum::switchCases;
   cases->line_no = parser->token->line_no;
   cases->column_no = parser->token->column_no;
   if (token_is_switchLabel(parser->token)) {
@@ -3171,7 +3171,7 @@ static Ast* parse_switchCase(Parser* parser)
 
   if (token_is_switchLabel(parser->token)) {
     switch_case = (Ast*)parser->storage->malloc(sizeof(Ast));
-    switch_case->kind = AST_switchCase;
+    switch_case->kind = AstEnum::switchCase;
     switch_case->line_no = parser->token->line_no;
     switch_case->column_no = parser->token->column_no;
     switch_case->switchCase.label = parse_switchLabel(parser);
@@ -3195,7 +3195,7 @@ static Ast* parse_switchLabel(Parser* parser)
 
   if (token_is_switchLabel(parser->token)) {
     switch_label = (Ast*)parser->storage->malloc(sizeof(Ast));
-    switch_label->kind = AST_switchLabel;
+    switch_label->kind = AstEnum::switchLabel;
     switch_label->line_no = parser->token->line_no;
     switch_label->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
@@ -3204,7 +3204,7 @@ static Ast* parse_switchLabel(Parser* parser)
     } else if (parser->token->klass == TokenClass::DEFAULT) {
       next_token(parser);
       default_label = (Ast*)parser->storage->malloc(sizeof(Ast));
-      default_label->kind = AST_default;
+      default_label->kind = AstEnum::default_;
       default_label->line_no = parser->token->line_no;
       default_label->column_no = parser->token->column_no;
       switch_label->switchLabel.label = default_label;
@@ -3222,7 +3222,7 @@ static Ast* parse_statementOrDeclaration(Parser* parser)
 
   if (token_is_statementOrDeclaration(parser->token)) {
     stmt = (Ast*)parser->storage->malloc(sizeof(Ast));
-    stmt->kind = AST_statementOrDeclaration;
+    stmt->kind = AstEnum::statementOrDeclaration;
     stmt->line_no = parser->token->line_no;
     stmt->column_no = parser->token->column_no;
     if (token_is_typeRef(parser->token)) {
@@ -3259,12 +3259,12 @@ static Ast* parse_tableDeclaration(Parser* parser)
   if (parser->token->klass == TokenClass::TABLE) {
     next_token(parser);
     table = (Ast*)parser->storage->malloc(sizeof(Ast));
-    table->kind = AST_tableDeclaration;
+    table->kind = AstEnum::tableDeclaration;
     table->line_no = parser->token->line_no;
     table->column_no = parser->token->column_no;
     table->tableDeclaration.name = parse_name(parser);
     method_protos = (Ast*)parser->storage->malloc(sizeof(Ast));
-    method_protos->kind = AST_methodPrototypes;
+    method_protos->kind = AstEnum::methodPrototypes;
     method_protos->line_no = table->line_no;
     method_protos->column_no = table->column_no;
     table->tableDeclaration.method_protos = method_protos;
@@ -3293,7 +3293,7 @@ static Ast* parse_tablePropertyList(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   props = (Ast*)parser->storage->malloc(sizeof(Ast));
-  props->kind = AST_tablePropertyList;
+  props->kind = AstEnum::tablePropertyList;
   props->line_no = parser->token->line_no;
   props->column_no = parser->token->column_no;
   if (token_is_tableProperty(parser->token)) {
@@ -3322,13 +3322,13 @@ static Ast* parse_tableProperty(Parser* parser)
     }
 #endif
     table_prop = (Ast*)parser->storage->malloc(sizeof(Ast));
-    table_prop->kind = AST_tableProperty;
+    table_prop->kind = AstEnum::tableProperty;
     table_prop->line_no = parser->token->line_no;
     table_prop->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::KEY) {
       next_token(parser);
       prop = (Ast*)parser->storage->malloc(sizeof(Ast));
-      prop->kind = AST_keyProperty;
+      prop->kind = AstEnum::keyProperty;
       prop->line_no = parser->token->line_no;
       prop->column_no = parser->token->column_no;
       if (parser->token->klass == TokenClass::EQUAL) {
@@ -3349,7 +3349,7 @@ static Ast* parse_tableProperty(Parser* parser)
     } else if (parser->token->klass == TokenClass::ACTIONS) {
       next_token(parser);
       prop = (Ast*)parser->storage->malloc(sizeof(Ast));
-      prop->kind = AST_actionsProperty;
+      prop->kind = AstEnum::actionsProperty;
       prop->line_no = parser->token->line_no;
       prop->column_no = parser->token->column_no;
       if (parser->token->klass == TokenClass::EQUAL) {
@@ -3372,7 +3372,7 @@ static Ast* parse_tableProperty(Parser* parser)
     else if (parser->token->klass == TokenClass::ENTRIES) {
       next_token(parser);
       prop = (Ast*)malloc(parser->storage, sizeof(Ast));
-      prop->kind = AST_entriesProperty;
+      prop->kind = AstEnum::entriesProperty;
       prop->line_no = parser->token->line_no;
       prop->column_no = parser->token->column_no;
       if (parser->token->klass == TokenClass::EQUAL) {
@@ -3396,7 +3396,7 @@ static Ast* parse_tableProperty(Parser* parser)
     }
     else if (token_is_nonTableKwName(parser->token)) {
       prop = (Ast*)malloc(parser->storage, sizeof(Ast));
-      prop->kind = AST_simpleProperty;
+      prop->kind = AstEnum::simpleProperty;
       prop->line_no = parser->token->line_no;
       prop->column_no = parser->token->column_no;
       prop->simpleProperty.is_const = is_const;
@@ -3429,7 +3429,7 @@ static Ast* parse_keyElementList(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   elems = (Ast*)parser->storage->malloc(sizeof(Ast));
-  elems->kind = AST_keyElementList;
+  elems->kind = AstEnum::keyElementList;
   elems->line_no = parser->token->line_no;
   elems->column_no = parser->token->column_no;
   if (token_is_expression(parser->token)) {
@@ -3449,7 +3449,7 @@ static Ast* parse_keyElement(Parser* parser)
 
   if (token_is_expression(parser->token)) {
     key_elem = (Ast*)parser->storage->malloc(sizeof(Ast));
-    key_elem->kind = AST_keyElement;
+    key_elem->kind = AstEnum::keyElement;
     key_elem->line_no = parser->token->line_no;
     key_elem->column_no = parser->token->column_no;
     key_elem->keyElement.expr = parse_expression(parser, 1);
@@ -3475,7 +3475,7 @@ static Ast* parse_actionList(Parser* parser)
   AstTreeCtor tree_ctor = {};
 
   actions = (Ast*)parser->storage->malloc(sizeof(Ast));
-  actions->kind = AST_actionList;
+  actions->kind = AstEnum::actionList;
   actions->line_no = parser->token->line_no;
   actions->column_no = parser->token->column_no;
   if (token_is_actionRef(parser->token)) {
@@ -3503,7 +3503,7 @@ static Ast* parse_actionRef(Parser* parser)
 
   if (token_is_nonTypeName(parser->token)) {
     action_ref = (Ast*)parser->storage->malloc(sizeof(Ast));
-    action_ref->kind = AST_actionRef;
+    action_ref->kind = AstEnum::actionRef;
     action_ref->line_no = parser->token->line_no;
     action_ref->column_no = parser->token->column_no;
     action_ref->actionRef.name = parse_nonTypeName(parser);
@@ -3534,7 +3534,7 @@ static Ast* parse_entriesList(Parser* parser)
   AstTreeCtor tree_ctor = {0};
 
   entries = (Ast*)malloc(parser->storage, sizeof(Ast));
-  entries->kind = AST_entriesList;
+  entries->kind = AstEnum::entriesList;
   entries->line_no = parser->token->line_no;
   entries->column_no = parser->token->column_no;
   if (token_is_keysetExpression(parser->token)) {
@@ -3554,7 +3554,7 @@ static Ast* parse_entry(Parser* parser)
 
   if (token_is_keysetExpression(parser->token)) {
     entry = (Ast*)malloc(parser->storage, sizeof(Ast));
-    entry->kind = AST_entry;
+    entry->kind = AstEnum::entry;
     entry->line_no = parser->token->line_no;
     entry->column_no = parser->token->column_no;
     entry->entry.keyset = parse_keysetExpression(parser);
@@ -3582,7 +3582,7 @@ static Ast* parse_actionDeclaration(Parser* parser)
   if (parser->token->klass == TokenClass::ACTION) {
     next_token(parser);
     action_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    action_decl->kind = AST_actionDeclaration;
+    action_decl->kind = AstEnum::actionDeclaration;
     action_decl->line_no = parser->token->line_no;
     action_decl->column_no = parser->token->column_no;
     if (token_is_name(parser->token)) {
@@ -3622,7 +3622,7 @@ static Ast* parse_variableDeclaration(Parser* parser, Ast* type_ref)
   }
   if (token_is_typeRef(parser->token) || type_ref) {
     var_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    var_decl->kind = AST_variableDeclaration;
+    var_decl->kind = AstEnum::variableDeclaration;
     var_decl->line_no = parser->token->line_no;
     var_decl->column_no = parser->token->column_no;
     var_decl->variableDeclaration.type = type_ref ? type_ref : parse_typeRef(parser);
@@ -3654,7 +3654,7 @@ static Ast* parse_functionDeclaration(Parser* parser, Ast* type_ref)
 
   if (token_is_typeOrVoid(parser->token)) {
     func_decl = (Ast*)parser->storage->malloc(sizeof(Ast));
-    func_decl->kind = AST_functionDeclaration;
+    func_decl->kind = AstEnum::functionDeclaration;
     func_decl->line_no = parser->token->line_no;
     func_decl->column_no = parser->token->column_no;
     func_decl->functionDeclaration.proto = parse_functionPrototype(parser, type_ref);
@@ -3675,7 +3675,7 @@ static Ast* parse_argumentList(Parser* parser)
   AstTreeCtor tree_ctor = {0};
 
   args = (Ast*)parser->storage->malloc(sizeof(Ast));
-  args->kind = AST_argumentList;
+  args->kind = AstEnum::argumentList;
   args->line_no = parser->token->line_no;
   args->column_no = parser->token->column_no;
   if (token_is_argument(parser->token)) {
@@ -3696,7 +3696,7 @@ static Ast* parse_argument(Parser* parser)
 
   if (token_is_argument(parser->token)) {
     arg = (Ast*)parser->storage->malloc(sizeof(Ast));
-    arg->kind = AST_argument;
+    arg->kind = AstEnum::argument;
     arg->line_no = parser->token->line_no;
     arg->column_no = parser->token->column_no;
     if (token_is_expression(parser->token)) {
@@ -3705,7 +3705,7 @@ static Ast* parse_argument(Parser* parser)
     } else if (parser->token->klass == TokenClass::DONTCARE) {
       next_token(parser);
       dontcare_arg = (Ast*)parser->storage->malloc(sizeof(Ast));
-      dontcare_arg->kind = AST_dontcare;
+      dontcare_arg->kind = AstEnum::dontcare;
       dontcare_arg->line_no = parser->token->line_no;
       dontcare_arg->column_no = parser->token->column_no;
       arg->argument.arg = dontcare_arg;
@@ -3723,7 +3723,7 @@ static Ast* parse_expressionList(Parser* parser)
   AstTreeCtor tree_ctor = {0};
   
   exprs = (Ast*)parser->storage->malloc(sizeof(Ast));
-  exprs->kind = AST_expressionList;
+  exprs->kind = AstEnum::expressionList;
   exprs->line_no = parser->token->line_no;
   exprs->column_no = parser->token->column_no;
   if (token_is_expression(parser->token)) {
@@ -3744,7 +3744,7 @@ static Ast* parse_lvalue(Parser* parser)
 
   if (token_is_lvalue(parser->token)) {
     lvalue = (Ast*)parser->storage->malloc(sizeof(Ast));
-    lvalue->kind = AST_lvalueExpression;
+    lvalue->kind = AstEnum::lvalueExpression;
     lvalue->line_no = parser->token->line_no;
     lvalue->column_no = parser->token->column_no;
     lvalue->lvalueExpression.expr = parse_nonTypeName(parser);
@@ -3752,7 +3752,7 @@ static Ast* parse_lvalue(Parser* parser)
       if (parser->token->klass == TokenClass::DOT) {
         next_token(parser);
         expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-        expr->kind = AST_memberSelector;
+        expr->kind = AstEnum::memberSelector;
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
         expr->memberSelector.lhs_expr = lvalue;
@@ -3761,7 +3761,7 @@ static Ast* parse_lvalue(Parser* parser)
         } else error("%s:%d:%d: error: name was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
         lvalue = (Ast*)parser->storage->malloc(sizeof(Ast));
-        lvalue->kind = AST_lvalueExpression;
+        lvalue->kind = AstEnum::lvalueExpression;
         lvalue->line_no = parser->token->line_no;
         lvalue->column_no = parser->token->column_no;
         lvalue->lvalueExpression.expr = expr;
@@ -3769,7 +3769,7 @@ static Ast* parse_lvalue(Parser* parser)
       else if (parser->token->klass == TokenClass::BRACKET_OPEN) {
         next_token(parser);
         expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-        expr->kind = AST_arraySubscript;
+        expr->kind = AstEnum::arraySubscript;
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
         expr->arraySubscript.lhs_expr = lvalue;
@@ -3779,7 +3779,7 @@ static Ast* parse_lvalue(Parser* parser)
         } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
         lvalue = (Ast*)parser->storage->malloc(sizeof(Ast));
-        lvalue->kind = AST_lvalueExpression;
+        lvalue->kind = AstEnum::lvalueExpression;
         lvalue->line_no = parser->token->line_no;
         lvalue->column_no = parser->token->column_no;
         lvalue->lvalueExpression.expr = expr;
@@ -3803,7 +3803,7 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
         next_token(parser);
         Ast* expr;
         expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-        expr->kind = AST_memberSelector;
+        expr->kind = AstEnum::memberSelector;
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
         expr->memberSelector.lhs_expr = primary;
@@ -3812,14 +3812,14 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
         } else error("%s:%d:%d: error: non-type name was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
         primary = (Ast*)parser->storage->malloc(sizeof(Ast));
-        primary->kind = AST_expression;
+        primary->kind = AstEnum::expression;
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
       } else if (parser->token->klass == TokenClass::BRACKET_OPEN) {
         next_token(parser);
         expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-        expr->kind = AST_arraySubscript;
+        expr->kind = AstEnum::arraySubscript;
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
         expr->arraySubscript.lhs_expr = primary;
@@ -3829,14 +3829,14 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
         } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
         primary = (Ast*)parser->storage->malloc(sizeof(Ast));
-        primary->kind = AST_expression;
+        primary->kind = AstEnum::expression;
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
       } else if (parser->token->klass == TokenClass::PARENTH_OPEN) {
         next_token(parser);
         expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-        expr->kind = AST_functionCall;
+        expr->kind = AstEnum::functionCall;
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
         expr->functionCall.lhs_expr = primary;
@@ -3846,20 +3846,20 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
         primary = (Ast*)parser->storage->malloc(sizeof(Ast));
-        primary->kind = AST_expression;
+        primary->kind = AstEnum::expression;
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
       } else if (parser->token->klass == TokenClass::EQUAL) {
         next_token(parser);
         expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-        expr->kind = AST_assignmentStatement;
+        expr->kind = AstEnum::assignmentStatement;
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
         expr->assignmentStatement.lhs_expr = primary;
         expr->assignmentStatement.rhs_expr = parse_expression(parser, 1);
         primary = (Ast*)parser->storage->malloc(sizeof(Ast));
-        primary->kind = AST_expression;
+        primary->kind = AstEnum::expression;
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
@@ -3867,7 +3867,7 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
         int priority = operator_priority(parser->token);
         if (priority >= priority_threshold) {
           expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-          expr->kind = AST_binaryExpression;
+          expr->kind = AstEnum::binaryExpression;
           expr->line_no = parser->token->line_no;
           expr->column_no = parser->token->column_no;
           expr->binaryExpression.left_operand = primary;
@@ -3876,7 +3876,7 @@ static Ast* parse_expression(Parser* parser, int priority_threshold)
           next_token(parser);
           expr->binaryExpression.right_operand = parse_expression(parser, priority + 1);
           primary = (Ast*)parser->storage->malloc(sizeof(Ast));
-          primary->kind = AST_expression;
+          primary->kind = AstEnum::expression;
           primary->line_no = expr->line_no;
           primary->column_no = expr->column_no;
           primary->expression.expr = expr;
@@ -3896,7 +3896,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
 
   if (token_is_expression(parser->token)) {
     primary = (Ast*)parser->storage->malloc(sizeof(Ast));
-    primary->kind = AST_expression;
+    primary->kind = AstEnum::expression;
     primary->line_no = parser->token->line_no;
     primary->column_no = parser->token->column_no;
     if (parser->token->klass == TokenClass::INTEGER_LITERAL) {
@@ -3942,7 +3942,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
         return primary;
       } else if (token_is_typeRef(parser->token)) {
         expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-        expr->kind = AST_castExpression;
+        expr->kind = AstEnum::castExpression;
         expr->line_no = parser->token->line_no;
         expr->column_no = parser->token->column_no;
         expr->castExpression.type = parse_typeRef(parser);
@@ -3966,7 +3966,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
     } else if (parser->token->klass == TokenClass::EXCLAMATION) {
       next_token(parser);
       expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-      expr->kind = AST_unaryExpression;
+      expr->kind = AstEnum::unaryExpression;
       expr->line_no = parser->token->line_no;
       expr->column_no = parser->token->column_no;
       expr->unaryExpression.op = AstOperator::NOT;
@@ -3977,7 +3977,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
     } else if (parser->token->klass == TokenClass::TILDA) {
       next_token(parser);
       expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-      expr->kind = AST_unaryExpression;
+      expr->kind = AstEnum::unaryExpression;
       expr->line_no = parser->token->line_no;
       expr->column_no = parser->token->column_no;
       expr->unaryExpression.op = AstOperator::BITW_NOT;
@@ -3988,7 +3988,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
     } else if (parser->token->klass == TokenClass::UNARY_MINUS) {
       next_token(parser);
       expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-      expr->kind = AST_unaryExpression;
+      expr->kind = AstEnum::unaryExpression;
       expr->line_no = parser->token->line_no;
       expr->column_no = parser->token->column_no;
       expr->unaryExpression.op = AstOperator::NEG;
@@ -4002,7 +4002,7 @@ static Ast* parse_expressionPrimary(Parser* parser)
     } else if (parser->token->klass == TokenClass::ERROR) {
       next_token(parser);
       expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-      expr->kind = AST_name;
+      expr->kind = AstEnum::name;
       expr->line_no = parser->token->line_no;
       expr->column_no = parser->token->column_no;
       expr->name.strname = "error";
@@ -4022,7 +4022,7 @@ static Ast* parse_indexExpression(Parser* parser)
 
   if (token_is_expression(parser->token)) {
     index_expr = (Ast*)parser->storage->malloc(sizeof(Ast));
-    index_expr->kind = AST_indexExpression;
+    index_expr->kind = AstEnum::indexExpression;
     index_expr->line_no = parser->token->line_no;
     index_expr->column_no = parser->token->column_no;
     index_expr->indexExpression.start_index = parse_expression(parser, 1);
@@ -4046,7 +4046,7 @@ static Ast* parse_integer(Parser* parser)
 
   if (parser->token->klass == TokenClass::INTEGER_LITERAL) {
     int_literal = (Ast*)parser->storage->malloc(sizeof(Ast));
-    int_literal->kind = AST_integerLiteral;
+    int_literal->kind = AstEnum::integerLiteral;
     int_literal->line_no = parser->token->line_no;
     int_literal->column_no = parser->token->column_no;
     int_literal->integerLiteral.is_signed = parser->token->integer.is_signed;
@@ -4066,7 +4066,7 @@ static Ast* parse_boolean(Parser* parser)
 
   if (parser->token->klass == TokenClass::TRUE || parser->token->klass == TokenClass::FALSE) {
     bool_literal = (Ast*)parser->storage->malloc(sizeof(Ast));
-    bool_literal->kind = AST_booleanLiteral;
+    bool_literal->kind = AstEnum::booleanLiteral;
     bool_literal->line_no = parser->token->line_no;
     bool_literal->column_no = parser->token->column_no;
     bool_literal->booleanLiteral.value = (parser->token->klass == TokenClass::TRUE);
@@ -4084,7 +4084,7 @@ static Ast* parse_string(Parser* parser)
 
   if (parser->token->klass == TokenClass::STRING_LITERAL) {
     string_literal = (Ast*)parser->storage->malloc(sizeof(Ast));
-    string_literal->kind = AST_stringLiteral;
+    string_literal->kind = AstEnum::stringLiteral;
     string_literal->line_no = parser->token->line_no;
     string_literal->column_no = parser->token->column_no;
     string_literal->stringLiteral.value = parser->token->lexeme;
