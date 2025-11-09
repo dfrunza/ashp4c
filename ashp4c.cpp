@@ -93,14 +93,14 @@ static CmdlineArg* parse_cmdline_args(Arena* storage, int arg_count, char* args[
 int main(int arg_count, char* args[])
 {
   CmdlineArg* cmdline_arg, *filename;
-  Arena storage = {0}, scratch_storage = {0};
-  SourceText source_text = {0};
-  Lexer lexer = {0};
-  Parser parser = {0};
-  BuiltinMethodBuilder method_builder = {0};
-  ScopeBuilder scope_builder = {0};
-  NameBinder name_binder = {0};
-  TypeChecker type_checker = {0};
+  Arena storage = {}, scratch_storage = {};
+  SourceText source_text = {};
+  Lexer lexer = {};
+  Parser parser = {};
+  BuiltinMethodBuilder method_builder = {};
+  ScopeBuilder scope_builder = {};
+  NameBinder name_binder = {};
+  TypeChecker type_checker = {};
 
   Arena::reserve_memory(500*KILOBYTE);
 

@@ -7,6 +7,6 @@ typedef struct AstTree {
 
 typedef struct AstTreeCtor {
   AstTree* last_sibling;
-} AstTreeCtor;
 
-void ast_tree_append_node(AstTree* tree, AstTreeCtor* ctor, AstTree* node);
+  void ast_tree_append_node(AstTree* tree, AstTree* node);
+} AstTreeCtor;

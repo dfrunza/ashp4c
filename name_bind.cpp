@@ -210,7 +210,7 @@ void Debug_scope_decls(Scope* scope)
   NameEntry* name_entry;
   NameDeclaration* decl;
   int count = 0;
-  StrmapCursor it = {0};
+  StrmapCursor it = {};
   StrmapEntry* he;
   enum NameSpace ns[] = {NameSpace::VAR, NameSpace::TYPE, NameSpace::KEYWORD};
 

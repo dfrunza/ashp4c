@@ -55,7 +55,7 @@ void Strmap::init(Arena* storage, int segment_count)
 static void strmap_grow(Strmap* strmap)
 {
   int last_segment;
-  StrmapCursor it = {0};
+  StrmapCursor it = {};
   StrmapEntry* first_entry, *last_entry;
   StrmapEntry* entry, *next_entry;
   StrmapEntry** segment, **entry_slot;
@@ -128,7 +128,7 @@ void* Strmap::lookup(char* key, StrmapEntry** entry_/*out*/, StrmapBucket* bucke
 StrmapEntry* Strmap::insert(char* key, void* value, bool return_if_found)
 {
   StrmapEntry* entry;
-  StrmapBucket bucket = {0};
+  StrmapBucket bucket = {};
  
   this->lookup(key, &entry, &bucket);
   if (entry) {

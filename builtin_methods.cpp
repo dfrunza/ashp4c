@@ -251,7 +251,7 @@ static void visit_parserTypeDeclaration(BuiltinMethodBuilder* builder, Ast* type
   assert(type_decl->kind == AST_parserTypeDeclaration);
   Ast* type_ref, *return_type, *method, *name;
   Ast* method_protos;
-  AstTreeCtor tree_ctor = {0};
+  AstTreeCtor tree_ctor = {};
 
   return_type = (Ast*)builder->storage->malloc(sizeof(Ast));
   return_type->kind = AST_baseTypeVoid;
@@ -270,7 +270,7 @@ static void visit_parserTypeDeclaration(BuiltinMethodBuilder* builder, Ast* type
   name->name.strname = "apply";
   method->functionPrototype.name = name;
   method_protos = type_decl->parserTypeDeclaration.method_protos;
-  ast_tree_append_node(&method_protos->tree, &tree_ctor, &method->tree);
+  tree_ctor.ast_tree_append_node(&method_protos->tree, &method->tree);
 }
 
 static void visit_parserLocalElements(BuiltinMethodBuilder* builder, Ast* local_elements)
@@ -446,7 +446,7 @@ static void visit_controlTypeDeclaration(BuiltinMethodBuilder* builder, Ast* typ
   assert(type_decl->kind == AST_controlTypeDeclaration);
   Ast* type_ref, *return_type, *method, *name;
   Ast* method_protos;
-  AstTreeCtor tree_ctor = {0};
+  AstTreeCtor tree_ctor = {};
 
   return_type = (Ast*)builder->storage->malloc(sizeof(Ast));
   return_type->kind = AST_baseTypeVoid;
@@ -465,7 +465,7 @@ static void visit_controlTypeDeclaration(BuiltinMethodBuilder* builder, Ast* typ
   name->name.strname = "apply";
   method->functionPrototype.name = name;
   method_protos = type_decl->controlTypeDeclaration.method_protos;
-  ast_tree_append_node(&method_protos->tree, &tree_ctor, &method->tree);
+  tree_ctor.ast_tree_append_node(&method_protos->tree, &method->tree);
 }
 
 static void visit_controlLocalDeclarations(BuiltinMethodBuilder* builder, Ast* local_decls)
@@ -946,7 +946,7 @@ static void visit_tableDeclaration(BuiltinMethodBuilder* builder, Ast* table_dec
   assert(table_decl->kind == AST_tableDeclaration);
   Ast* type_ref, *return_type, *method, *name;
   Ast* method_protos, *params;
-  AstTreeCtor tree_ctor = {0};
+  AstTreeCtor tree_ctor = {};
 
   return_type = (Ast*)builder->storage->malloc(sizeof(Ast));
   return_type->kind = AST_baseTypeVoid;
@@ -969,7 +969,7 @@ static void visit_tableDeclaration(BuiltinMethodBuilder* builder, Ast* table_dec
   name->name.strname = "apply";
   method->functionPrototype.name = name;
   method_protos = table_decl->tableDeclaration.method_protos;
-  ast_tree_append_node(&method_protos->tree, &tree_ctor, &method->tree);
+  tree_ctor.ast_tree_append_node(&method_protos->tree, &method->tree);
 }
 
 static void visit_tablePropertyList(BuiltinMethodBuilder* builder, Ast* prop_list)

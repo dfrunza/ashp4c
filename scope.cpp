@@ -2,7 +2,7 @@
 #include "foundation.h"
 #include "frontend.h"
 
-static NameEntry NULL_ENTRY = {0};
+static NameEntry NULL_ENTRY = {};
 
 Scope* Scope::create(Arena* storage, int segment_count)
 {
