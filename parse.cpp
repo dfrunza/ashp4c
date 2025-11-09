@@ -1053,11 +1053,11 @@ static Ast* parse_declarationList(Parser* parser)
   decls->column_no = parser->token->column_no;
   if (token_is_declaration(parser->token)) {
     ast = parse_declaration(parser);
-    tree_ctor.ast_tree_append_node(&decls->tree, &ast->tree);
+    tree_ctor.append_node(&decls->tree, &ast->tree);
     while (token_is_declaration(parser->token) || parser->token->klass == TokenClass::SEMICOLON) {
       if (token_is_declaration(parser->token)) {
         ast = parse_declaration(parser);
-        tree_ctor.ast_tree_append_node(&decls->tree, &ast->tree);
+        tree_ctor.append_node(&decls->tree, &ast->tree);
       } else if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser); /* empty declaration */
       }
@@ -1181,11 +1181,11 @@ static Ast* parse_parameterList(Parser* parser)
   params->column_no = parser->token->column_no;
   if (token_is_parameter(parser->token)) {
     ast = parse_parameter(parser);
-    tree_ctor.ast_tree_append_node(&params->tree, &ast->tree);
+    tree_ctor.append_node(&params->tree, &ast->tree);
     while (parser->token->klass == TokenClass::COMMA) {
       next_token(parser);
       ast = parse_parameter(parser);
-      tree_ctor.ast_tree_append_node(&params->tree, &ast->tree);
+      tree_ctor.append_node(&params->tree, &ast->tree);
     }
   }
   return params;
@@ -1364,10 +1364,10 @@ static Ast* parse_parserLocalElements(Parser* parser)
   elems->column_no = parser->token->column_no;
   if (token_is_parserLocalElement(parser->token)) {
     ast = parse_parserLocalElement(parser);
-    tree_ctor.ast_tree_append_node(&elems->tree, &ast->tree);
+    tree_ctor.append_node(&elems->tree, &ast->tree);
     while (token_is_parserLocalElement(parser->token)) {
       ast = parse_parserLocalElement(parser);
-      tree_ctor.ast_tree_append_node(&elems->tree, &ast->tree);
+      tree_ctor.append_node(&elems->tree, &ast->tree);
     }
   }
   return elems;
@@ -1450,10 +1450,10 @@ static Ast* parse_parserStates(Parser* parser)
   states->column_no = parser->token->column_no;
   if (parser->token->klass == TokenClass::STATE) {
     ast = parse_parserState(parser);
-    tree_ctor.ast_tree_append_node(&states->tree, &ast->tree);
+    tree_ctor.append_node(&states->tree, &ast->tree);
     while (parser->token->klass == TokenClass::STATE) {
       ast = parse_parserState(parser);
-      tree_ctor.ast_tree_append_node(&states->tree, &ast->tree);
+      tree_ctor.append_node(&states->tree, &ast->tree);
     }
   }
   return states;
@@ -1498,10 +1498,10 @@ static Ast* parse_parserStatements(Parser* parser)
   stmts->column_no = parser->token->column_no;
   if (token_is_parserStatement(parser->token)) {
     ast = parse_parserStatement(parser);
-    tree_ctor.ast_tree_append_node(&stmts->tree, &ast->tree);
+    tree_ctor.append_node(&stmts->tree, &ast->tree);
     while (token_is_parserStatement(parser->token)) {
       ast = parse_parserStatement(parser);
-      tree_ctor.ast_tree_append_node(&stmts->tree, &ast->tree);
+      tree_ctor.append_node(&stmts->tree, &ast->tree);
     }
   }
   return stmts;
@@ -1661,10 +1661,10 @@ static Ast* parse_selectCaseList(Parser* parser)
   cases->column_no = parser->token->column_no;
   if (token_is_selectCase(parser->token)) {
     ast = parse_selectCase(parser);
-    tree_ctor.ast_tree_append_node(&cases->tree, &ast->tree);
+    tree_ctor.append_node(&cases->tree, &ast->tree);
     while (token_is_selectCase(parser->token)) {
       ast = parse_selectCase(parser);
-      tree_ctor.ast_tree_append_node(&cases->tree, &ast->tree);
+      tree_ctor.append_node(&cases->tree, &ast->tree);
     }
   }
   return cases;
@@ -1754,11 +1754,11 @@ static Ast* parse_simpleExpressionList(Parser* parser)
   exprs->column_no = parser->token->column_no;
   if (token_is_expression(parser->token)) {
     ast = parse_simpleKeysetExpression(parser);
-    tree_ctor.ast_tree_append_node(&exprs->tree, &ast->tree);
+    tree_ctor.append_node(&exprs->tree, &ast->tree);
     while (parser->token->klass == TokenClass::COMMA) {
       next_token(parser);
       ast = parse_simpleKeysetExpression(parser);
-      tree_ctor.ast_tree_append_node(&exprs->tree, &ast->tree);
+      tree_ctor.append_node(&exprs->tree, &ast->tree);
     }
   }
   return exprs;
@@ -1916,10 +1916,10 @@ static Ast* parse_controlLocalDeclarations(Parser* parser)
   decls->column_no = parser->token->column_no;
   if (token_is_controlLocalDeclaration(parser->token)) {
     ast = parse_controlLocalDeclaration(parser);
-    tree_ctor.ast_tree_append_node(&decls->tree, &ast->tree);
+    tree_ctor.append_node(&decls->tree, &ast->tree);
     while (token_is_controlLocalDeclaration(parser->token)) {
       ast = parse_controlLocalDeclaration(parser);
-      tree_ctor.ast_tree_append_node(&decls->tree, &ast->tree);
+      tree_ctor.append_node(&decls->tree, &ast->tree);
     }
   }
   return decls;
@@ -1993,10 +1993,10 @@ static Ast* parse_methodPrototypes(Parser* parser)
   protos->column_no = parser->token->column_no;
   if (token_is_methodPrototype(parser->token)) {
     ast = parse_methodPrototype(parser);
-    tree_ctor.ast_tree_append_node(&protos->tree, &ast->tree);
+    tree_ctor.append_node(&protos->tree, &ast->tree);
     while (token_is_methodPrototype(parser->token)) {
       ast = parse_methodPrototype(parser);
-      tree_ctor.ast_tree_append_node(&protos->tree, &ast->tree);
+      tree_ctor.append_node(&protos->tree, &ast->tree);
     }
   }
   return protos;
@@ -2426,11 +2426,11 @@ static Ast* parse_typeArgumentList(Parser* parser)
   args->column_no = parser->token->column_no;
   if (token_is_typeArg(parser->token)) {
     ast = parse_typeArg(parser);
-    tree_ctor.ast_tree_append_node(&args->tree, &ast->tree);
+    tree_ctor.append_node(&args->tree, &ast->tree);
     while (parser->token->klass == TokenClass::COMMA) {
       next_token(parser);
       ast = parse_typeArg(parser);
-      tree_ctor.ast_tree_append_node(&args->tree, &ast->tree);
+      tree_ctor.append_node(&args->tree, &ast->tree);
     }
   }
   return args;
@@ -2609,10 +2609,10 @@ static Ast* parse_structFieldList(Parser* parser)
   fields->column_no = parser->token->column_no;
   if (token_is_structField(parser->token)) {
     ast = parse_structField(parser);
-    tree_ctor.ast_tree_append_node(&fields->tree, &ast->tree);
+    tree_ctor.append_node(&fields->tree, &ast->tree);
     while (token_is_structField(parser->token)) {
       ast = parse_structField(parser);
-      tree_ctor.ast_tree_append_node(&fields->tree, &ast->tree);
+      tree_ctor.append_node(&fields->tree, &ast->tree);
     }
   }
   return fields;
@@ -2764,11 +2764,11 @@ static Ast* parse_identifierList(Parser* parser)
   ids->column_no = parser->token->column_no;
   if (token_is_name(parser->token)) {
     ast = parse_name(parser);
-    tree_ctor.ast_tree_append_node(&ids->tree, &ast->tree);
+    tree_ctor.append_node(&ids->tree, &ast->tree);
     while (parser->token->klass == TokenClass::COMMA) {
       next_token(parser);
       ast = parse_name(parser);
-      tree_ctor.ast_tree_append_node(&ids->tree, &ast->tree);
+      tree_ctor.append_node(&ids->tree, &ast->tree);
     }
   }
   return ids;
@@ -2785,11 +2785,11 @@ static Ast* parse_specifiedIdentifierList(Parser* parser)
   ids->column_no = parser->token->column_no;
   if (token_is_specifiedIdentifier(parser->token)) {
     ast = parse_specifiedIdentifier(parser);
-    tree_ctor.ast_tree_append_node(&ids->tree, &ast->tree);
+    tree_ctor.append_node(&ids->tree, &ast->tree);
     while (parser->token->klass == TokenClass::COMMA) {
       next_token(parser);
       ast = parse_specifiedIdentifier(parser);
-      tree_ctor.ast_tree_append_node(&ids->tree, &ast->tree);
+      tree_ctor.append_node(&ids->tree, &ast->tree);
     }
   }
   return ids;
@@ -3101,10 +3101,10 @@ static Ast* parse_statementOrDeclList(Parser* parser)
   stmts->column_no = parser->token->column_no;
   if (token_is_statementOrDeclaration(parser->token)) {
     ast = parse_statementOrDeclaration(parser);
-    tree_ctor.ast_tree_append_node(&stmts->tree, &ast->tree);
+    tree_ctor.append_node(&stmts->tree, &ast->tree);
     while (token_is_statementOrDeclaration(parser->token)) {
       ast = parse_statementOrDeclaration(parser);
-      tree_ctor.ast_tree_append_node(&stmts->tree, &ast->tree);
+      tree_ctor.append_node(&stmts->tree, &ast->tree);
     }
   }
   return stmts;
@@ -3156,10 +3156,10 @@ static Ast* parse_switchCases(Parser* parser)
   cases->column_no = parser->token->column_no;
   if (token_is_switchLabel(parser->token)) {
     ast = parse_switchCase(parser);
-    tree_ctor.ast_tree_append_node(&cases->tree, &ast->tree);
+    tree_ctor.append_node(&cases->tree, &ast->tree);
     while (token_is_switchLabel(parser->token)) {
       ast = parse_switchCase(parser);
-      tree_ctor.ast_tree_append_node(&cases->tree, &ast->tree);
+      tree_ctor.append_node(&cases->tree, &ast->tree);
     }
   }
   return cases;
@@ -3298,10 +3298,10 @@ static Ast* parse_tablePropertyList(Parser* parser)
   props->column_no = parser->token->column_no;
   if (token_is_tableProperty(parser->token)) {
     ast = parse_tableProperty(parser);
-    tree_ctor.ast_tree_append_node(&props->tree, &ast->tree);
+    tree_ctor.append_node(&props->tree, &ast->tree);
     while (token_is_tableProperty(parser->token)) {
       ast = parse_tableProperty(parser);
-      tree_ctor.ast_tree_append_node(&props->tree, &ast->tree);
+      tree_ctor.append_node(&props->tree, &ast->tree);
     }
   }
   return props;
@@ -3434,10 +3434,10 @@ static Ast* parse_keyElementList(Parser* parser)
   elems->column_no = parser->token->column_no;
   if (token_is_expression(parser->token)) {
     ast = parse_keyElement(parser);
-    tree_ctor.ast_tree_append_node(&elems->tree, &ast->tree);
+    tree_ctor.append_node(&elems->tree, &ast->tree);
     while (token_is_expression(parser->token)) {
       ast = parse_keyElement(parser);
-      tree_ctor.ast_tree_append_node(&elems->tree, &ast->tree);
+      tree_ctor.append_node(&elems->tree, &ast->tree);
     }
   }
   return elems;
@@ -3480,14 +3480,14 @@ static Ast* parse_actionList(Parser* parser)
   actions->column_no = parser->token->column_no;
   if (token_is_actionRef(parser->token)) {
     ast = parse_actionRef(parser);
-    tree_ctor.ast_tree_append_node(&actions->tree, &ast->tree);
+    tree_ctor.append_node(&actions->tree, &ast->tree);
     if (parser->token->klass == TokenClass::SEMICOLON) {
       next_token(parser);
     } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                  parser->source_file, parser->token->line_no, parser->token->column_no, parser->token->lexeme);
     while (token_is_actionRef(parser->token)) {
       ast = parse_actionRef(parser);
-      tree_ctor.ast_tree_append_node(&actions->tree, &ast->tree);
+      tree_ctor.append_node(&actions->tree, &ast->tree);
       if (parser->token->klass == TokenClass::SEMICOLON) {
         next_token(parser);
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
@@ -3539,10 +3539,10 @@ static Ast* parse_entriesList(Parser* parser)
   entries->column_no = parser->token->column_no;
   if (token_is_keysetExpression(parser->token)) {
     ast = parse_entry(parser);
-    tree_ctor.ast_tree_append_node(&entries->tree, &ast->tree);
+    tree_ctor.append_node(&entries->tree, &ast->tree);
     while (token_is_keysetExpression(parser->token)) {
       ast = parse_entry(parser);
-      tree_ctor.ast_tree_append_node(&entries->tree, &ast->tree);
+      tree_ctor.append_node(&entries->tree, &ast->tree);
     }
   }
   return entries;
@@ -3680,11 +3680,11 @@ static Ast* parse_argumentList(Parser* parser)
   args->column_no = parser->token->column_no;
   if (token_is_argument(parser->token)) {
     ast = parse_argument(parser);
-    tree_ctor.ast_tree_append_node(&args->tree, &ast->tree);
+    tree_ctor.append_node(&args->tree, &ast->tree);
     while (parser->token->klass == TokenClass::COMMA) {
       next_token(parser);
       ast = parse_argument(parser);
-      tree_ctor.ast_tree_append_node(&args->tree, &ast->tree);
+      tree_ctor.append_node(&args->tree, &ast->tree);
     }
   }
   return args;
@@ -3728,11 +3728,11 @@ static Ast* parse_expressionList(Parser* parser)
   exprs->column_no = parser->token->column_no;
   if (token_is_expression(parser->token)) {
     ast = parse_expression(parser, 1);
-    tree_ctor.ast_tree_append_node(&exprs->tree, &ast->tree);
+    tree_ctor.append_node(&exprs->tree, &ast->tree);
     while (parser->token->klass == TokenClass::COMMA) {
       next_token(parser);
       ast = parse_expression(parser, 1);
-      tree_ctor.ast_tree_append_node(&exprs->tree, &ast->tree);
+      tree_ctor.append_node(&exprs->tree, &ast->tree);
     }
   }
   return exprs;

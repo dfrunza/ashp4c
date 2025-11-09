@@ -270,7 +270,7 @@ static void visit_parserTypeDeclaration(BuiltinMethodBuilder* builder, Ast* type
   name->name.strname = "apply";
   method->functionPrototype.name = name;
   method_protos = type_decl->parserTypeDeclaration.method_protos;
-  tree_ctor.ast_tree_append_node(&method_protos->tree, &method->tree);
+  tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 
 static void visit_parserLocalElements(BuiltinMethodBuilder* builder, Ast* local_elements)
@@ -465,7 +465,7 @@ static void visit_controlTypeDeclaration(BuiltinMethodBuilder* builder, Ast* typ
   name->name.strname = "apply";
   method->functionPrototype.name = name;
   method_protos = type_decl->controlTypeDeclaration.method_protos;
-  tree_ctor.ast_tree_append_node(&method_protos->tree, &method->tree);
+  tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 
 static void visit_controlLocalDeclarations(BuiltinMethodBuilder* builder, Ast* local_decls)
@@ -969,7 +969,7 @@ static void visit_tableDeclaration(BuiltinMethodBuilder* builder, Ast* table_dec
   name->name.strname = "apply";
   method->functionPrototype.name = name;
   method_protos = table_decl->tableDeclaration.method_protos;
-  tree_ctor.ast_tree_append_node(&method_protos->tree, &method->tree);
+  tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 
 static void visit_tablePropertyList(BuiltinMethodBuilder* builder, Ast* prop_list)
