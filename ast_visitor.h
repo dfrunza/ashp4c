@@ -8,136 +8,136 @@ typedef struct AstVisitor {
 
   /** PROGRAM **/
 
-  void* (*visit_p4program)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_declarationList)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_declaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_name)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_parameterList)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_parameter)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_packageTypeDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_instantiation)(struct AstVisitor* visitor, Ast* ast);
+  void* visit_p4program(Ast* ast);
+  void* visit_declarationList(Ast* ast);
+  void* visit_declaration(Ast* ast);
+  void* visit_name(Ast* ast);
+  void* visit_parameterList(Ast* ast);
+  void* visit_parameter(Ast* ast);
+  void* visit_packageTypeDeclaration(Ast* ast);
+  void* visit_instantiation(Ast* ast);
 
   /** PARSER **/
 
-  void* (*visit_parserDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_parserTypeDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_parserLocalElements)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_parserLocalElement)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_parserStates)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_parserState)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_parserStatements)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_parserStatement)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_parserBlockStatement)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_transitionStatement)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_stateExpression)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_selectExpression)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_selectCaseList)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_selectCase)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_keysetExpression)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_tupleKeysetExpression)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_simpleKeysetExpression)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_simpleExpressionList)(struct AstVisitor* visitor, Ast* ast);
+  void* visit_parserDeclaration(Ast* ast);
+  void* visit_parserTypeDeclaration(Ast* ast);
+  void* visit_parserLocalElements(Ast* ast);
+  void* visit_parserLocalElement(Ast* ast);
+  void* visit_parserStates(Ast* ast);
+  void* visit_parserState(Ast* ast);
+  void* visit_parserStatements(Ast* ast);
+  void* visit_parserStatement(Ast* ast);
+  void* visit_parserBlockStatement(Ast* ast);
+  void* visit_transitionStatement(Ast* ast);
+  void* visit_stateExpression(Ast* ast);
+  void* visit_selectExpression(Ast* ast);
+  void* visit_selectCaseList(Ast* ast);
+  void* visit_selectCase(Ast* ast);
+  void* visit_keysetExpression(Ast* ast);
+  void* visit_tupleKeysetExpression(Ast* ast);
+  void* visit_simpleKeysetExpression(Ast* ast);
+  void* visit_simpleExpressionList(Ast* ast);
 
   /** CONTROL **/
 
-  void* (*visit_controlDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_controlTypeDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_controlLocalDeclarations)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_controlLocalDeclaration)(struct AstVisitor* visitor, Ast* ast);
+  void* visit_controlDeclaration(Ast* ast);
+  void* visit_controlTypeDeclaration(Ast* ast);
+  void* visit_controlLocalDeclarations(Ast* ast);
+  void* visit_controlLocalDeclaration(Ast* ast);
 
   /** EXTERN **/
 
-  void* (*visit_externDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_externTypeDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_methodPrototypes)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_functionPrototype)(struct AstVisitor* visitor, Ast* ast);
+  void* visit_externDeclaration(Ast* ast);
+  void* visit_externTypeDeclaration(Ast* ast);
+  void* visit_methodPrototypes(Ast* ast);
+  void* visit_functionPrototype(Ast* ast);
 
   /** TYPES **/
 
-  void* (*visit_typeRef)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_tupleType)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_headerStackType)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_baseTypeBoolean)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_baseTypeInteger)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_baseTypeBit)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_baseTypeVarbit)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_baseTypeString)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_baseTypeVoid)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_baseTypeError)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_integerTypeSize)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_realTypeArg)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_typeArg)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_typeArgumentList)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_typeDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_derivedTypeDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_headerTypeDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_headerUnionDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_structTypeDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_structFieldList)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_structField)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_enumDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_errorDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_matchKindDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_identifierList)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_specifiedIdentifierList)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_specifiedIdentifier)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_typedefDeclaration)(struct AstVisitor* visitor, Ast* ast);
+  void* visit_typeRef(Ast* ast);
+  void* visit_tupleType(Ast* ast);
+  void* visit_headerStackType(Ast* ast);
+  void* visit_baseTypeBoolean(Ast* ast);
+  void* visit_baseTypeInteger(Ast* ast);
+  void* visit_baseTypeBit(Ast* ast);
+  void* visit_baseTypeVarbit(Ast* ast);
+  void* visit_baseTypeString(Ast* ast);
+  void* visit_baseTypeVoid(Ast* ast);
+  void* visit_baseTypeError(Ast* ast);
+  void* visit_integerTypeSize(Ast* ast);
+  void* visit_realTypeArg(Ast* ast);
+  void* visit_typeArg(Ast* ast);
+  void* visit_typeArgumentList(Ast* ast);
+  void* visit_typeDeclaration(Ast* ast);
+  void* visit_derivedTypeDeclaration(Ast* ast);
+  void* visit_headerTypeDeclaration(Ast* ast);
+  void* visit_headerUnionDeclaration(Ast* ast);
+  void* visit_structTypeDeclaration(Ast* ast);
+  void* visit_structFieldList(Ast* ast);
+  void* visit_structField(Ast* ast);
+  void* visit_enumDeclaration(Ast* ast);
+  void* visit_errorDeclaration(Ast* ast);
+  void* visit_matchKindDeclaration(Ast* ast);
+  void* visit_identifierList(Ast* ast);
+  void* visit_specifiedIdentifierList(Ast* ast);
+  void* visit_specifiedIdentifier(Ast* ast);
+  void* visit_typedefDeclaration(Ast* ast);
 
   /** STATEMENTS **/
 
-  void* (*visit_assignmentStatement)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_functionCall)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_returnStatement)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_exitStatement)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_conditionalStatement)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_directApplication)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_statement)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_blockStatement)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_statementOrDeclList)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_switchStatement)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_switchCases)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_switchCase)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_switchLabel)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_statementOrDeclaration)(struct AstVisitor* visitor, Ast* ast);
+  void* visit_assignmentStatement(Ast* ast);
+  void* visit_functionCall(Ast* ast);
+  void* visit_returnStatement(Ast* ast);
+  void* visit_exitStatement(Ast* ast);
+  void* visit_conditionalStatement(Ast* ast);
+  void* visit_directApplication(Ast* ast);
+  void* visit_statement(Ast* ast);
+  void* visit_blockStatement(Ast* ast);
+  void* visit_statementOrDeclList(Ast* ast);
+  void* visit_switchStatement(Ast* ast);
+  void* visit_switchCases(Ast* ast);
+  void* visit_switchCase(Ast* ast);
+  void* visit_switchLabel(Ast* ast);
+  void* visit_statementOrDeclaration(Ast* ast);
 
   /** TABLES **/
 
-  void* (*visit_tableDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_tablePropertyList)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_tableProperty)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_keyProperty)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_keyElementList)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_keyElement)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_actionsProperty)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_actionList)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_actionRef)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_entriesProperty)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_entriesList)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_entry)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_simpleProperty)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_actionDeclaration)(struct AstVisitor* visitor, Ast* ast);
+  void* visit_tableDeclaration(Ast* ast);
+  void* visit_tablePropertyList(Ast* ast);
+  void* visit_tableProperty(Ast* ast);
+  void* visit_keyProperty(Ast* ast);
+  void* visit_keyElementList(Ast* ast);
+  void* visit_keyElement(Ast* ast);
+  void* visit_actionsProperty(Ast* ast);
+  void* visit_actionList(Ast* ast);
+  void* visit_actionRef(Ast* ast);
+  void* visit_entriesProperty(Ast* ast);
+  void* visit_entriesList(Ast* ast);
+  void* visit_entry(Ast* ast);
+  void* visit_simpleProperty(Ast* ast);
+  void* visit_actionDeclaration(Ast* ast);
 
   /** VARIABLES **/
 
-  void* (*visit_variableDeclaration)(struct AstVisitor* visitor, Ast* ast);
+  void* visit_variableDeclaration(Ast* ast);
 
   /** EXPRESSIONS **/
 
-  void* (*visit_functionDeclaration)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_argumentList)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_argument)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_expressionList)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_lvalueExpression)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_expression)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_castExpression)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_unaryExpression)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_binaryExpression)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_memberSelector)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_arraySubscript)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_indexExpression)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_booleanLiteral)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_integerLiteral)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_stringLiteral)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_default)(struct AstVisitor* visitor, Ast* ast);
-  void* (*visit_dontcare)(struct AstVisitor* visitor, Ast* ast);
+  void* visit_functionDeclaration(Ast* ast);
+  void* visit_argumentList(Ast* ast);
+  void* visit_argument(Ast* ast);
+  void* visit_expressionList(Ast* ast);
+  void* visit_lvalueExpression(Ast* ast);
+  void* visit_expression(Ast* ast);
+  void* visit_castExpression(Ast* ast);
+  void* visit_unaryExpression(Ast* ast);
+  void* visit_binaryExpression(Ast* ast);
+  void* visit_memberSelector(Ast* ast);
+  void* visit_arraySubscript(Ast* ast);
+  void* visit_indexExpression(Ast* ast);
+  void* visit_booleanLiteral(Ast* ast);
+  void* visit_integerLiteral(Ast* ast);
+  void* visit_stringLiteral(Ast* ast);
+  void* visit_default(Ast* ast);
+  void* visit_dontcare(Ast* ast);
 } AstVisitor;
