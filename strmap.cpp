@@ -52,7 +52,7 @@ void Strmap::init(Arena* storage, int segment_count)
   memset(this->entries.segments[0], 0, sizeof(StrmapEntry*) * 16);
 }
 
-static void strmap_grow(Strmap* strmap)
+void Strmap::grow()
 {
   int last_segment;
   StrmapCursor it = {};
@@ -63,12 +63,12 @@ static void strmap_grow(Strmap* strmap)
   int segment_capacity; 
   uint32_t h;
 
-  last_segment = floor(log2(strmap->capacity/16 + 1));
-  if (last_segment >= strmap->entries.segment_count) {
+  last_segment = floor(log2(this->capacity/16 + 1));
+  if (last_segment >= this->entries.segment_count) {
     printf("\nMaximum capacity has been reached.\n");
     exit(1);
   }
-  it.begin(strmap);
+  it.begin(this);
   first_entry = it.next();
   last_entry = first_entry;
   entry_count = first_entry ? 1 : 0;
@@ -78,21 +78,21 @@ static void strmap_grow(Strmap* strmap)
     last_entry = entry;
     entry_count += 1;
   }
-  assert(entry_count == strmap->entry_count);
+  assert(entry_count == this->entry_count);
   segment_capacity = 16 * (1 << last_segment);
-  strmap->entries.segments[last_segment] = strmap->storage->malloc(sizeof(StrmapEntry*) * segment_capacity);
-  strmap->capacity = 16 * ((1 << (last_segment + 1)) - 1);
+  this->entries.segments[last_segment] = this->storage->malloc(sizeof(StrmapEntry*) * segment_capacity);
+  this->capacity = 16 * ((1 << (last_segment + 1)) - 1);
   for (int i = 0; i <= last_segment; i++) {
     segment_capacity = 16 * (1 << i);
     for (int j = 0; j < segment_capacity; j ++) {
-      segment = (StrmapEntry**)strmap->entries.segments[i];
+      segment = (StrmapEntry**)this->entries.segments[i];
       segment[j] = 0;
     }
   }
   for (entry = first_entry; entry != 0; ) {
     next_entry = entry->next_entry;
-    h = hash_key(entry->key, 4 + (last_segment + 1), strmap->capacity);
-    entry_slot = (StrmapEntry**)strmap->entries.locate_cell(h, sizeof(StrmapEntry*));
+    h = hash_key(entry->key, 4 + (last_segment + 1), this->capacity);
+    entry_slot = (StrmapEntry**)this->entries.locate_cell(h, sizeof(StrmapEntry*));
     entry->next_entry = *entry_slot;
     *entry_slot = entry;
     entry = next_entry;
@@ -136,7 +136,7 @@ StrmapEntry* Strmap::insert(char* key, void* value, bool return_if_found)
   }
 
   if (this->entry_count >= this->capacity) {
-    strmap_grow(this);
+    this->grow();
     bucket.last_segment = floor(log2(this->capacity/16));
     bucket.h = hash_key(key, 4 + (bucket.last_segment + 1), this->capacity);
     bucket.entry_slot = (StrmapEntry**)this->entries.locate_cell(bucket.h, sizeof(StrmapEntry*));

@@ -101,6 +101,7 @@ typedef struct Strmap {
 
   static Strmap* create(Arena* storage, int segment_count);
   void init(Arena* storage, int segment_count);
+  void grow();
   void* lookup(char* key, StrmapEntry** entry, StrmapBucket* bucket);
   StrmapEntry* insert(char* key, void* value, bool return_if_found);
 } Strmap;
