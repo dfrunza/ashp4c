@@ -157,7 +157,7 @@ static void visit_p4program(ScopeBuilder* scope_builder, Ast* p4program)
   scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, p4program, scope_builder->current_scope, 0);
+  m = scope_builder->scope_map->insert(p4program, scope_builder->current_scope, 0);
   assert(m);
   visit_declarationList(scope_builder, p4program->p4program.decl_list);
   scope_builder->current_scope = prev_scope;
@@ -205,8 +205,8 @@ static void visit_declaration(ScopeBuilder* scope_builder, Ast* decl)
   } else if (decl->declaration.decl->kind == AST_instantiation) {
     visit_instantiation(scope_builder, decl->declaration.decl);
   } else assert(0);
-  scope = (Scope*)(Scope*)map_lookup(scope_builder->scope_map, decl->declaration.decl, 0);
-  m = map_insert(scope_builder->scope_map, decl, scope, 0);
+  scope = (Scope*)scope_builder->scope_map->lookup(decl->declaration.decl, 0);
+  m = scope_builder->scope_map->insert(decl, scope, 0);
   assert(m);
 }
 
@@ -244,7 +244,7 @@ static void visit_packageTypeDeclaration(ScopeBuilder* scope_builder, Ast* type_
   scope = Scope::create(scope_builder->storage, 2);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, type_decl, scope_builder->current_scope, 0);
+  m = scope_builder->scope_map->insert(type_decl, scope_builder->current_scope, 0);
   assert(m);
   visit_parameterList(scope_builder, type_decl->packageTypeDeclaration.params);
   scope_builder->current_scope = prev_scope;
@@ -267,8 +267,8 @@ static void visit_parserDeclaration(ScopeBuilder* scope_builder, Ast* parser_dec
 
   visit_typeDeclaration(scope_builder, parser_decl->parserDeclaration.proto);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = (Scope*)map_lookup(scope_builder->scope_map, parser_decl->parserDeclaration.proto, 0);
-  m = map_insert(scope_builder->scope_map, parser_decl, scope_builder->current_scope, 0);
+  scope_builder->current_scope = (Scope*)scope_builder->scope_map->lookup(parser_decl->parserDeclaration.proto, 0);
+  m = scope_builder->scope_map->insert(parser_decl, scope_builder->current_scope, 0);
   assert(m);
   if (parser_decl->parserDeclaration.ctor_params) {
     visit_parameterList(scope_builder, parser_decl->parserDeclaration.ctor_params);
@@ -287,7 +287,7 @@ static void visit_parserTypeDeclaration(ScopeBuilder* scope_builder, Ast* type_d
   scope = Scope::create(scope_builder->storage, 2);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, type_decl, scope_builder->current_scope, 0);
+  m = scope_builder->scope_map->insert(type_decl, scope_builder->current_scope, 0);
   assert(m);
   visit_parameterList(scope_builder, type_decl->parserTypeDeclaration.params);
   visit_methodPrototypes(scope_builder, type_decl->parserTypeDeclaration.method_protos);
@@ -335,7 +335,7 @@ static void visit_parserState(ScopeBuilder* scope_builder, Ast* state)
   scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, state, scope_builder->current_scope, 0);
+  m = scope_builder->scope_map->insert(state, scope_builder->current_scope, 0);
   assert(m);
   visit_parserStatements(scope_builder, state->parserState.stmt_list);
   visit_transitionStatement(scope_builder, state->parserState.transition_stmt);
@@ -381,7 +381,7 @@ static void visit_parserBlockStatement(ScopeBuilder* scope_builder, Ast* block_s
   scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, block_stmt, scope_builder->current_scope, 0);
+  m = scope_builder->scope_map->insert(block_stmt, scope_builder->current_scope, 0);
   assert(m);
   visit_parserStatements(scope_builder, block_stmt->parserBlockStatement.stmt_list);
   scope_builder->current_scope = prev_scope;
@@ -476,8 +476,8 @@ static void visit_controlDeclaration(ScopeBuilder* scope_builder, Ast* control_d
 
   visit_typeDeclaration(scope_builder, control_decl->controlDeclaration.proto);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = (Scope*)map_lookup(scope_builder->scope_map, control_decl->controlDeclaration.proto, 0);
-  m = map_insert(scope_builder->scope_map, control_decl, scope_builder->current_scope, 0);
+  scope_builder->current_scope = (Scope*)scope_builder->scope_map->lookup(control_decl->controlDeclaration.proto, 0);
+  m = scope_builder->scope_map->insert(control_decl, scope_builder->current_scope, 0);
   assert(m);
   if (control_decl->controlDeclaration.ctor_params) {
     visit_parameterList(scope_builder, control_decl->controlDeclaration.ctor_params);
@@ -496,7 +496,7 @@ static void visit_controlTypeDeclaration(ScopeBuilder* scope_builder, Ast* type_
   scope = Scope::create(scope_builder->storage, 2);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, type_decl, scope, 0);
+  m = scope_builder->scope_map->insert(type_decl, scope, 0);
   assert(m);
   visit_parameterList(scope_builder, type_decl->controlTypeDeclaration.params);
   visit_methodPrototypes(scope_builder, type_decl->controlTypeDeclaration.method_protos);
@@ -541,8 +541,8 @@ static void visit_externDeclaration(ScopeBuilder* scope_builder, Ast* extern_dec
   } else if (extern_decl->externDeclaration.decl->kind == AST_functionPrototype) {
     visit_functionPrototype(scope_builder, extern_decl->externDeclaration.decl);
   } else assert(0);
-  scope = (Scope*)map_lookup(scope_builder->scope_map, extern_decl->externDeclaration.decl, 0);
-  m = map_insert(scope_builder->scope_map, extern_decl, scope, 0);
+  scope = (Scope*)scope_builder->scope_map->lookup(extern_decl->externDeclaration.decl, 0);
+  m = scope_builder->scope_map->insert(extern_decl, scope, 0);
   assert(m);
 }
 
@@ -555,7 +555,7 @@ static void visit_externTypeDeclaration(ScopeBuilder* scope_builder, Ast* type_d
   scope = Scope::create(scope_builder->storage, 2);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, type_decl, scope_builder->current_scope, 0);
+  m = scope_builder->scope_map->insert(type_decl, scope_builder->current_scope, 0);
   assert(m);
   visit_methodPrototypes(scope_builder, type_decl->externTypeDeclaration.method_protos);
   scope_builder->current_scope = prev_scope;
@@ -584,7 +584,7 @@ static void visit_functionPrototype(ScopeBuilder* scope_builder, Ast* func_proto
   scope = Scope::create(scope_builder->storage, 2);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, func_proto, scope_builder->current_scope, 0);
+  m = scope_builder->scope_map->insert(func_proto, scope_builder->current_scope, 0);
   assert(m);
   visit_parameterList(scope_builder, func_proto->functionPrototype.params);
   scope_builder->current_scope = prev_scope;
@@ -728,8 +728,8 @@ static void visit_typeDeclaration(ScopeBuilder* scope_builder, Ast* type_decl)
   } else if (type_decl->typeDeclaration.decl->kind == AST_packageTypeDeclaration) {
     visit_packageTypeDeclaration(scope_builder, type_decl->typeDeclaration.decl);
   } else assert(0);
-  scope = (Scope*)map_lookup(scope_builder->scope_map, type_decl->typeDeclaration.decl, 0);
-  m = map_insert(scope_builder->scope_map, type_decl, scope, 0);
+  scope = (Scope*)scope_builder->scope_map->lookup(type_decl->typeDeclaration.decl, 0);
+  m = scope_builder->scope_map->insert(type_decl, scope, 0);
   assert(m);
 }
 
@@ -748,8 +748,8 @@ static void visit_derivedTypeDeclaration(ScopeBuilder* scope_builder, Ast* type_
   } else if (type_decl->derivedTypeDeclaration.decl->kind == AST_enumDeclaration) {
     visit_enumDeclaration(scope_builder, type_decl->derivedTypeDeclaration.decl);
   } else assert(0);
-  scope = (Scope*)map_lookup(scope_builder->scope_map, type_decl->derivedTypeDeclaration.decl, 0);
-  m = map_insert(scope_builder->scope_map, type_decl, scope, 0);
+  scope = (Scope*)scope_builder->scope_map->lookup(type_decl->derivedTypeDeclaration.decl, 0);
+  m = scope_builder->scope_map->insert(type_decl, scope, 0);
   assert(m);
 }
 
@@ -762,7 +762,7 @@ static void visit_headerTypeDeclaration(ScopeBuilder* scope_builder, Ast* header
   scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, header_decl, scope, 0);
+  m = scope_builder->scope_map->insert(header_decl, scope, 0);
   assert(m);
   visit_structFieldList(scope_builder, header_decl->headerTypeDeclaration.fields);
   scope_builder->current_scope = prev_scope;
@@ -777,7 +777,7 @@ static void visit_headerUnionDeclaration(ScopeBuilder* scope_builder, Ast* union
   scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, union_decl, scope, 0);
+  m = scope_builder->scope_map->insert(union_decl, scope, 0);
   assert(m);
   visit_structFieldList(scope_builder, union_decl->headerUnionDeclaration.fields);
   scope_builder->current_scope = prev_scope;
@@ -792,7 +792,7 @@ static void visit_structTypeDeclaration(ScopeBuilder* scope_builder, Ast* struct
   scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, struct_decl, scope, 0);
+  m = scope_builder->scope_map->insert(struct_decl, scope, 0);
   assert(m);
   visit_structFieldList(scope_builder, struct_decl->structTypeDeclaration.fields);
   scope_builder->current_scope = prev_scope;
@@ -824,7 +824,7 @@ static void visit_enumDeclaration(ScopeBuilder* scope_builder, Ast* enum_decl)
   scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, enum_decl, scope, 0);
+  m = scope_builder->scope_map->insert(enum_decl, scope, 0);
   assert(m);
   visit_specifiedIdentifierList(scope_builder, enum_decl->enumDeclaration.fields);
   scope_builder->current_scope = prev_scope;
@@ -839,7 +839,7 @@ static void visit_errorDeclaration(ScopeBuilder* scope_builder, Ast* error_decl)
   scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, error_decl, scope, 0);
+  m = scope_builder->scope_map->insert(error_decl, scope, 0);
   assert(m);
   visit_identifierList(scope_builder, error_decl->errorDeclaration.fields);
   scope_builder->current_scope = prev_scope;
@@ -854,7 +854,7 @@ static void visit_matchKindDeclaration(ScopeBuilder* scope_builder, Ast* match_d
   scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, match_decl, scope, 0);
+  m = scope_builder->scope_map->insert(match_decl, scope, 0);
   assert(m);
   visit_identifierList(scope_builder, match_decl->matchKindDeclaration.fields);
   scope_builder->current_scope = prev_scope;
@@ -978,7 +978,7 @@ static void visit_statement(ScopeBuilder* scope_builder, Ast* stmt)
     scope = Scope::create(scope_builder->storage, 3);
     prev_scope = scope_builder->current_scope;
     scope_builder->current_scope = scope->push(scope_builder->current_scope);
-    m = map_insert(scope_builder->scope_map, stmt, scope_builder->current_scope, 0);
+    m = scope_builder->scope_map->insert(stmt, scope_builder->current_scope, 0);
     assert(m);
     visit_blockStatement(scope_builder, stmt->statement.stmt);
     scope_builder->current_scope = prev_scope;
@@ -1068,7 +1068,7 @@ static void visit_tableDeclaration(ScopeBuilder* scope_builder, Ast* table_decl)
   scope = Scope::create(scope_builder->storage, 3);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, table_decl, scope, 0);
+  m = scope_builder->scope_map->insert(table_decl, scope, 0);
   assert(m);
   visit_tablePropertyList(scope_builder, table_decl->tableDeclaration.prop_list);
   visit_methodPrototypes(scope_builder, table_decl->tableDeclaration.method_protos);
@@ -1193,7 +1193,7 @@ static void visit_actionDeclaration(ScopeBuilder* scope_builder, Ast* action_dec
   scope = Scope::create(scope_builder->storage, 2);
   prev_scope = scope_builder->current_scope;
   scope_builder->current_scope = scope->push(scope_builder->current_scope);
-  m = map_insert(scope_builder->scope_map, action_decl, scope_builder->current_scope, 0);
+  m = scope_builder->scope_map->insert(action_decl, scope_builder->current_scope, 0);
   assert(m);
   visit_parameterList(scope_builder, action_decl->actionDeclaration.params);
   visit_blockStatement(scope_builder, action_decl->actionDeclaration.stmt);
@@ -1221,8 +1221,8 @@ static void visit_functionDeclaration(ScopeBuilder* scope_builder, Ast* func_dec
 
   visit_functionPrototype(scope_builder, func_decl->functionDeclaration.proto);
   prev_scope = scope_builder->current_scope;
-  scope_builder->current_scope = (Scope*)map_lookup(scope_builder->scope_map, func_decl->functionDeclaration.proto, 0);
-  m = map_insert(scope_builder->scope_map, func_decl, scope_builder->current_scope, 0);
+  scope_builder->current_scope = (Scope*)scope_builder->scope_map->lookup(func_decl->functionDeclaration.proto, 0);
+  m = scope_builder->scope_map->insert(func_decl, scope_builder->current_scope, 0);
   assert(m);
   visit_blockStatement(scope_builder, func_decl->functionDeclaration.stmt);
   scope_builder->current_scope = prev_scope;

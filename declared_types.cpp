@@ -171,18 +171,18 @@ static void define_builtin_types(TypeChecker* checker)
   for (int i = 0; i < sizeof(base_types)/sizeof(base_types[0]); i++) {
     name_entry = checker->root_scope->lookup(base_types[i], NameSpace::TYPE);
     name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
-    map_insert(checker->type_env, name_decl->ast, name_decl->type, 0);
+    checker->type_env->insert(name_decl->ast, name_decl->type, 0);
   }
 
   ast = checker->root_scope->builtin_lookup("accept", NameSpace::VAR)->ast;
   ty = (Type*)checker->type_array->append(sizeof(Type));
   ty->ty_former = TypeEnum::STATE;
-  map_insert(checker->type_env, ast, ty, 0);
+  checker->type_env->insert(ast, ty, 0);
 
   ast = checker->root_scope->builtin_lookup("reject", NameSpace::VAR)->ast;
   ty = (Type*)checker->type_array->append(sizeof(Type));
   ty->ty_former = TypeEnum::STATE;
-  map_insert(checker->type_env, ast, ty, 0);
+  checker->type_env->insert(ast, ty, 0);
 
   for (int i = 0; i < sizeof(arithmetic_ops)/sizeof(arithmetic_ops[0]); i++) {
     ty = (Type*)checker->type_array->append(sizeof(Type));
@@ -489,7 +489,7 @@ void declared_types(TypeChecker* checker)
       name_entry = ty->nameref.scope->lookup(name->name.strname, NameSpace::TYPE);
       name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
       if (name_decl) {
-        ref_ty = (Type*)map_lookup(checker->type_env, name_decl->ast, 0);
+        ref_ty = (Type*)checker->type_env->lookup(name_decl->ast, 0);
         assert(ref_ty);
         name_decl->type = ref_ty;
         ty->ty_former = TypeEnum::TYPE;
@@ -585,8 +585,8 @@ static void visit_name(TypeChecker* checker, Ast* name)
   name_ty->strname = name->name.strname;
   name_ty->ast = name;
   name_ty->nameref.name = name;
-  name_ty->nameref.scope = (Scope*)map_lookup(checker->scope_map, name, 0);
-  map_insert(checker->type_env, name, name_ty, 0);
+  name_ty->nameref.scope = (Scope*)checker->scope_map->lookup(name, 0);
+  checker->type_env->insert(name, name_ty, 0);
 }
 
 static void visit_parameterList(TypeChecker* checker, Ast* params)
@@ -610,11 +610,11 @@ static void visit_parameterList(TypeChecker* checker, Ast* params)
   i = 0;
   for (ast = params->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    params_ty->product.members[i] = (Type*)map_lookup(checker->type_env, container_of(ast, Ast, tree), 0);
+    params_ty->product.members[i] = (Type*)checker->type_env->lookup(container_of(ast, Ast, tree), 0);
     i += 1;
   }
   assert(i == params_ty->product.count);
-  map_insert(checker->type_env, params, params_ty, 0);
+  checker->type_env->insert(params, params_ty, 0);
 }
 
 static void visit_parameter(TypeChecker* checker, Ast* param)
@@ -624,12 +624,12 @@ static void visit_parameter(TypeChecker* checker, Ast* param)
   Type* param_ty;
 
   visit_typeRef(checker, param->parameter.type);
-  param_ty = (Type*)map_lookup(checker->type_env, param->parameter.type, 0);
-  map_insert(checker->type_env, param, param_ty, 0);
+  param_ty = (Type*)checker->type_env->lookup(param->parameter.type, 0);
+  checker->type_env->insert(param, param_ty, 0);
   if (param->parameter.init_expr) {
     visit_expression(checker, param->parameter.init_expr);
   }
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, param, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(param, 0);
   name_decl->type = param_ty;
 }
 
@@ -646,9 +646,9 @@ static void visit_packageTypeDeclaration(TypeChecker* checker, Ast* type_decl)
   package_ty->ty_former = TypeEnum::PACKAGE;
   package_ty->strname = name->name.strname;
   package_ty->ast = type_decl;
-  package_ty->package.params = (Type*)map_lookup(checker->type_env, type_decl->packageTypeDeclaration.params, 0);
-  map_insert(checker->type_env, type_decl, package_ty, 0);
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, type_decl, 0);
+  package_ty->package.params = (Type*)checker->type_env->lookup(type_decl->packageTypeDeclaration.params, 0);
+  checker->type_env->insert(type_decl, package_ty, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(type_decl, 0);
   name_decl->type = package_ty;
 }
 
@@ -660,9 +660,9 @@ static void visit_instantiation(TypeChecker* checker, Ast* inst)
 
   visit_typeRef(checker, inst->instantiation.type);
   visit_argumentList(checker, inst->instantiation.args);
-  inst_ty = (Type*)map_lookup(checker->type_env, inst->instantiation.type, 0);
-  map_insert(checker->type_env, inst, inst_ty, 0);
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, inst, 0);
+  inst_ty = (Type*)checker->type_env->lookup(inst->instantiation.type, 0);
+  checker->type_env->insert(inst, inst_ty, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(inst, 0);
   name_decl->type = inst_ty;
 }
 
@@ -676,8 +676,8 @@ static void visit_parserDeclaration(TypeChecker* checker, Ast* parser_decl)
   visit_typeDeclaration(checker, parser_decl->parserDeclaration.proto);
   if (parser_decl->parserDeclaration.ctor_params) {
     visit_parameterList(checker, parser_decl->parserDeclaration.ctor_params);
-    parser_ty = (Type*)map_lookup(checker->type_env, parser_decl->parserDeclaration.proto, 0);
-    parser_ty->parser.ctor_params = (Type*)map_lookup(checker->type_env, parser_decl->parserDeclaration.ctor_params, 0);
+    parser_ty = (Type*)checker->type_env->lookup(parser_decl->parserDeclaration.proto, 0);
+    parser_ty->parser.ctor_params = (Type*)checker->type_env->lookup(parser_decl->parserDeclaration.ctor_params, 0);
   }
   visit_parserLocalElements(checker, parser_decl->parserDeclaration.local_elements);
   visit_parserStates(checker, parser_decl->parserDeclaration.states);
@@ -696,12 +696,12 @@ static void visit_parserTypeDeclaration(TypeChecker* checker, Ast* type_decl)
   parser_ty->ty_former = TypeEnum::PARSER;
   parser_ty->strname = name->name.strname;
   parser_ty->ast = type_decl;
-  parser_ty->parser.params = (Type*)map_lookup(checker->type_env, type_decl->parserTypeDeclaration.params, 0);
-  map_insert(checker->type_env, type_decl, parser_ty, 0);
+  parser_ty->parser.params = (Type*)checker->type_env->lookup(type_decl->parserTypeDeclaration.params, 0);
+  checker->type_env->insert(type_decl, parser_ty, 0);
   visit_methodPrototypes(checker, type_decl->parserTypeDeclaration.method_protos, 0, 0);
-  methods_ty = (Type*)map_lookup(checker->type_env, type_decl->parserTypeDeclaration.method_protos, 0);
+  methods_ty = (Type*)checker->type_env->lookup(type_decl->parserTypeDeclaration.method_protos, 0);
   parser_ty->parser.methods = methods_ty;
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, type_decl, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(type_decl, 0);
   name_decl->type = parser_ty;
 }
 
@@ -751,8 +751,8 @@ static void visit_parserState(TypeChecker* checker, Ast* state)
   state_ty->ast = state;
   visit_parserStatements(checker, state->parserState.stmt_list);
   visit_transitionStatement(checker, state->parserState.transition_stmt);
-  map_insert(checker->type_env, state, state_ty, 0);
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, state, 0);
+  checker->type_env->insert(state, state_ty, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(state, 0);
   name_decl->type = state_ty;
 }
 
@@ -879,8 +879,8 @@ static void visit_controlDeclaration(TypeChecker* checker, Ast* control_decl) {
   visit_typeDeclaration(checker, control_decl->controlDeclaration.proto);
   if (control_decl->controlDeclaration.ctor_params) {
     visit_parameterList(checker, control_decl->controlDeclaration.ctor_params);
-    control_ty = (Type*)map_lookup(checker->type_env, control_decl->controlDeclaration.proto, 0);
-    control_ty->control.ctor_params = (Type*)map_lookup(checker->type_env, control_decl->controlDeclaration.ctor_params, 0);
+    control_ty = (Type*)checker->type_env->lookup(control_decl->controlDeclaration.proto, 0);
+    control_ty->control.ctor_params = (Type*)checker->type_env->lookup(control_decl->controlDeclaration.ctor_params, 0);
   }
   visit_controlLocalDeclarations(checker, control_decl->controlDeclaration.local_decls);
   visit_blockStatement(checker, control_decl->controlDeclaration.apply_stmt);
@@ -899,12 +899,12 @@ static void visit_controlTypeDeclaration(TypeChecker* checker, Ast* type_decl)
   control_ty->ty_former = TypeEnum::CONTROL;
   control_ty->strname = name->name.strname;
   control_ty->ast = type_decl;
-  control_ty->control.params = (Type*)map_lookup(checker->type_env, type_decl->packageTypeDeclaration.params, 0);
-  map_insert(checker->type_env, type_decl, control_ty, 0);
+  control_ty->control.params = (Type*)checker->type_env->lookup(type_decl->packageTypeDeclaration.params, 0);
+  checker->type_env->insert(type_decl, control_ty, 0);
   visit_methodPrototypes(checker, type_decl->controlTypeDeclaration.method_protos, 0, 0);
-  methods_ty = (Type*)map_lookup(checker->type_env, type_decl->controlTypeDeclaration.method_protos, 0);
+  methods_ty = (Type*)checker->type_env->lookup(type_decl->controlTypeDeclaration.method_protos, 0);
   control_ty->control.methods = methods_ty;
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, type_decl, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(type_decl, 0);
   name_decl->type = control_ty;
 }
 
@@ -957,9 +957,9 @@ static void visit_externTypeDeclaration(TypeChecker* checker, Ast* type_decl)
   extern_ty->ty_former = TypeEnum::EXTERN;
   extern_ty->strname = name->name.strname;
   extern_ty->ast = type_decl;
-  map_insert(checker->type_env, type_decl, extern_ty, 0);
+  checker->type_env->insert(type_decl, extern_ty, 0);
   visit_methodPrototypes(checker, type_decl->externTypeDeclaration.method_protos, extern_ty, name->name.strname);
-  methods_ty = (Type*)map_lookup(checker->type_env, type_decl->externTypeDeclaration.method_protos, 0);
+  methods_ty = (Type*)checker->type_env->lookup(type_decl->externTypeDeclaration.method_protos, 0);
   extern_ty->extern_.methods = methods_ty;
   ctors_ty = (Type*)checker->type_array->append(sizeof(Type));
   ctors_ty->ty_former = TypeEnum::PRODUCT;
@@ -978,7 +978,7 @@ static void visit_externTypeDeclaration(TypeChecker* checker, Ast* type_decl)
     }
   }
   extern_ty->extern_.ctors = ctors_ty;
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, type_decl, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(type_decl, 0);
   name_decl->type = extern_ty;
 }
 
@@ -1003,11 +1003,11 @@ static void visit_methodPrototypes(TypeChecker* checker, Ast* protos, Type* ctor
   i = 0;
   for (ast = protos->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    methods_ty->product.members[i] = (Type*)map_lookup(checker->type_env, container_of(ast, Ast, tree), 0);
+    methods_ty->product.members[i] = (Type*)checker->type_env->lookup(container_of(ast, Ast, tree), 0);
     i += 1;
   }
   assert(i == methods_ty->product.count);
-  map_insert(checker->type_env, protos, methods_ty, 0);
+  checker->type_env->insert(protos, methods_ty, 0);
 }
 
 static void visit_functionPrototype(TypeChecker* checker, Ast* func_proto, Type* ctor_ty, char* ctor_strname)
@@ -1026,15 +1026,15 @@ static void visit_functionPrototype(TypeChecker* checker, Ast* func_proto, Type*
   func_ty->ty_former = TypeEnum::FUNCTION;
   func_ty->strname = name->name.strname;
   func_ty->ast = func_proto;
-  func_ty->function.params = (Type*)map_lookup(checker->type_env, func_proto->functionPrototype.params, 0);
-  map_insert(checker->type_env, func_proto, func_ty, 0);
+  func_ty->function.params = (Type*)checker->type_env->lookup(func_proto->functionPrototype.params, 0);
+  checker->type_env->insert(func_proto, func_ty, 0);
   return_type = func_proto->functionPrototype.return_type;
   if (return_type) {
-    func_ty->function.return_ = (Type*)map_lookup(checker->type_env, return_type, 0);
+    func_ty->function.return_ = (Type*)checker->type_env->lookup(return_type, 0);
   } else if (cstr_match(name->name.strname, ctor_strname)) {
     func_ty->function.return_ = ctor_ty;
   } else assert(0);
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, func_proto, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(func_proto, 0);
   name_decl->type = func_ty;
 }
 
@@ -1066,8 +1066,8 @@ static void visit_typeRef(TypeChecker* checker, Ast* type_ref)
   } else if (type_ref->typeRef.type->kind == AST_tupleType) {
     visit_tupleType(checker, type_ref->typeRef.type);
   } else assert(0);
-  ref_ty = (Type*)map_lookup(checker->type_env, type_ref->typeRef.type, 0);
-  map_insert(checker->type_env, type_ref, ref_ty, 0);
+  ref_ty = (Type*)checker->type_env->lookup(type_ref->typeRef.type, 0);
+  checker->type_env->insert(type_ref, ref_ty, 0);
 }
 
 static void visit_tupleType(TypeChecker* checker, Ast* type_decl)
@@ -1076,8 +1076,8 @@ static void visit_tupleType(TypeChecker* checker, Ast* type_decl)
   Type* tuple_ty;
 
   visit_typeArgumentList(checker, type_decl->tupleType.type_args);
-  tuple_ty = (Type*)map_lookup(checker->type_env, type_decl->tupleType.type_args, 0);
-  map_insert(checker->type_env, type_decl, tuple_ty, 0);
+  tuple_ty = (Type*)checker->type_env->lookup(type_decl->tupleType.type_args, 0);
+  checker->type_env->insert(type_decl, tuple_ty, 0);
 }
 
 static void visit_headerStackType(TypeChecker* checker, Ast* type_decl)
@@ -1090,8 +1090,8 @@ static void visit_headerStackType(TypeChecker* checker, Ast* type_decl)
   stack_ty = (Type*)checker->type_array->append(sizeof(Type));
   stack_ty->ty_former = TypeEnum::STACK;
   stack_ty->ast = type_decl;
-  map_insert(checker->type_env, type_decl, stack_ty, 0);
-  stack_ty->header_stack.element = (Type*)map_lookup(checker->type_env, type_decl->headerStackType.type, 0);
+  checker->type_env->insert(type_decl, stack_ty, 0);
+  stack_ty->header_stack.element = (Type*)checker->type_env->lookup(type_decl->headerStackType.type, 0);
 }
 
 static void visit_baseTypeBoolean(TypeChecker* checker, Ast* bool_type)
@@ -1099,8 +1099,8 @@ static void visit_baseTypeBoolean(TypeChecker* checker, Ast* bool_type)
   assert(bool_type->kind == AST_baseTypeBoolean);
   NameDeclaration* name_decl;
 
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, bool_type, 0);
-  map_insert(checker->type_env, bool_type, name_decl->type, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(bool_type, 0);
+  checker->type_env->insert(bool_type, name_decl->type, 0);
 }
 
 static void visit_baseTypeInteger(TypeChecker* checker, Ast* int_type)
@@ -1111,8 +1111,8 @@ static void visit_baseTypeInteger(TypeChecker* checker, Ast* int_type)
   if (int_type->baseTypeInteger.size) {
     visit_integerTypeSize(checker, int_type->baseTypeInteger.size);
   }
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, int_type, 0);
-  map_insert(checker->type_env, int_type, name_decl->type, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(int_type, 0);
+  checker->type_env->insert(int_type, name_decl->type, 0);
 }
 
 static void visit_baseTypeBit(TypeChecker* checker, Ast* bit_type)
@@ -1123,8 +1123,8 @@ static void visit_baseTypeBit(TypeChecker* checker, Ast* bit_type)
   if (bit_type->baseTypeBit.size) {
     visit_integerTypeSize(checker, bit_type->baseTypeBit.size);
   }
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, bit_type, 0);
-  map_insert(checker->type_env, bit_type, name_decl->type, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(bit_type, 0);
+  checker->type_env->insert(bit_type, name_decl->type, 0);
 }
 
 static void visit_baseTypeVarbit(TypeChecker* checker, Ast* varbit_type)
@@ -1133,8 +1133,8 @@ static void visit_baseTypeVarbit(TypeChecker* checker, Ast* varbit_type)
   NameDeclaration* name_decl;
 
   visit_integerTypeSize(checker, varbit_type->baseTypeVarbit.size);
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, varbit_type, 0);
-  map_insert(checker->type_env, varbit_type, name_decl->type, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(varbit_type, 0);
+  checker->type_env->insert(varbit_type, name_decl->type, 0);
 }
 
 static void visit_baseTypeString(TypeChecker* checker, Ast* str_type)
@@ -1142,8 +1142,8 @@ static void visit_baseTypeString(TypeChecker* checker, Ast* str_type)
   assert(str_type->kind == AST_baseTypeString);
   NameDeclaration* name_decl;
 
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, str_type, 0);
-  map_insert(checker->type_env, str_type, name_decl->type, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(str_type, 0);
+  checker->type_env->insert(str_type, name_decl->type, 0);
 }
 
 static void visit_baseTypeVoid(TypeChecker* checker, Ast* void_type)
@@ -1151,8 +1151,8 @@ static void visit_baseTypeVoid(TypeChecker* checker, Ast* void_type)
   assert(void_type->kind == AST_baseTypeVoid);
   NameDeclaration* name_decl;
 
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, void_type, 0);
-  map_insert(checker->type_env, void_type, name_decl->type, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(void_type, 0);
+  checker->type_env->insert(void_type, name_decl->type, 0);
 }
 
 static void visit_baseTypeError(TypeChecker* checker, Ast* error_type)
@@ -1160,8 +1160,8 @@ static void visit_baseTypeError(TypeChecker* checker, Ast* error_type)
   assert(error_type->kind == AST_baseTypeError);
   NameDeclaration* name_decl;
 
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, error_type, 0);
-  map_insert(checker->type_env, error_type, name_decl->type, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(error_type, 0);
+  checker->type_env->insert(error_type, name_decl->type, 0);
 }
 
 static void visit_integerTypeSize(TypeChecker* checker, Ast* type_size)
@@ -1191,8 +1191,8 @@ static void visit_typeArg(TypeChecker* checker, Ast* type_arg)
   } else if (type_arg->typeArg.arg->kind == AST_dontcare) {
     visit_dontcare(checker, type_arg->typeArg.arg);
   } else assert(0);
-  arg_ty = (Type*)map_lookup(checker->type_env, type_arg->typeArg.arg, 0);
-  map_insert(checker->type_env, type_arg, arg_ty, 0);
+  arg_ty = (Type*)checker->type_env->lookup(type_arg->typeArg.arg, 0);
+  checker->type_env->insert(type_arg, arg_ty, 0);
 }
 
 static void visit_typeArgumentList(TypeChecker* checker, Ast* args)
@@ -1216,11 +1216,11 @@ static void visit_typeArgumentList(TypeChecker* checker, Ast* args)
   i = 0;
   for (ast = args->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    args_ty->product.members[i] = (Type*)map_lookup(checker->type_env, container_of(ast, Ast, tree), 0);
+    args_ty->product.members[i] = (Type*)checker->type_env->lookup(container_of(ast, Ast, tree), 0);
     i += 1;
   }
   assert(i == args_ty->product.count);
-  map_insert(checker->type_env, args, args_ty, 0);
+  checker->type_env->insert(args, args_ty, 0);
 }
 
 static void visit_typeDeclaration(TypeChecker* checker, Ast* type_decl)
@@ -1239,8 +1239,8 @@ static void visit_typeDeclaration(TypeChecker* checker, Ast* type_decl)
   } else if (type_decl->typeDeclaration.decl->kind == AST_packageTypeDeclaration) {
     visit_packageTypeDeclaration(checker, type_decl->typeDeclaration.decl);
   } else assert(0);
-  decl_ty = (Type*)map_lookup(checker->type_env, type_decl->typeDeclaration.decl, 0);
-  map_insert(checker->type_env, type_decl, decl_ty, 0);
+  decl_ty = (Type*)checker->type_env->lookup(type_decl->typeDeclaration.decl, 0);
+  checker->type_env->insert(type_decl, decl_ty, 0);
 }
 
 static void visit_derivedTypeDeclaration(TypeChecker* checker, Ast* type_decl)
@@ -1257,8 +1257,8 @@ static void visit_derivedTypeDeclaration(TypeChecker* checker, Ast* type_decl)
   } else if (type_decl->derivedTypeDeclaration.decl->kind == AST_enumDeclaration) {
     visit_enumDeclaration(checker, type_decl->derivedTypeDeclaration.decl);
   } else assert(0);
-  decl_ty = (Type*)map_lookup(checker->type_env, type_decl->derivedTypeDeclaration.decl, 0);
-  map_insert(checker->type_env, type_decl, decl_ty, 0);
+  decl_ty = (Type*)checker->type_env->lookup(type_decl->derivedTypeDeclaration.decl, 0);
+  checker->type_env->insert(type_decl, decl_ty, 0);
 }
 
 static void visit_headerTypeDeclaration(TypeChecker* checker, Ast* header_decl)
@@ -1274,9 +1274,9 @@ static void visit_headerTypeDeclaration(TypeChecker* checker, Ast* header_decl)
   header_ty->ty_former = TypeEnum::HEADER;
   header_ty->strname = name->name.strname;
   header_ty->ast = header_decl;
-  map_insert(checker->type_env, header_decl, header_ty, 0);
-  header_ty->struct_.fields = (Type*)map_lookup(checker->type_env, header_decl->headerTypeDeclaration.fields, 0);
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, header_decl, 0);
+  checker->type_env->insert(header_decl, header_ty, 0);
+  header_ty->struct_.fields = (Type*)checker->type_env->lookup(header_decl->headerTypeDeclaration.fields, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(header_decl, 0);
   name_decl->type = header_ty;
 }
 
@@ -1293,9 +1293,9 @@ static void visit_headerUnionDeclaration(TypeChecker* checker, Ast* union_decl)
   union_ty->ty_former = TypeEnum::UNION;
   union_ty->strname = name->name.strname;
   union_ty->ast = union_decl;
-  map_insert(checker->type_env, union_decl, union_ty, 0);
-  union_ty->struct_.fields = (Type*)map_lookup(checker->type_env, union_decl->headerUnionDeclaration.fields, 0);
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, union_decl, 0);
+  checker->type_env->insert(union_decl, union_ty, 0);
+  union_ty->struct_.fields = (Type*)checker->type_env->lookup(union_decl->headerUnionDeclaration.fields, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(union_decl, 0);
   name_decl->type = union_ty;
 }
 
@@ -1312,9 +1312,9 @@ static void visit_structTypeDeclaration(TypeChecker* checker, Ast* struct_decl)
   struct_ty->ty_former = TypeEnum::STRUCT;
   struct_ty->strname = name->name.strname;
   struct_ty->ast = struct_decl;
-  map_insert(checker->type_env, struct_decl, struct_ty, 0);
-  struct_ty->struct_.fields = (Type*)map_lookup(checker->type_env, struct_decl->structTypeDeclaration.fields, 0);
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, struct_decl, 0);
+  checker->type_env->insert(struct_decl, struct_ty, 0);
+  struct_ty->struct_.fields = (Type*)checker->type_env->lookup(struct_decl->structTypeDeclaration.fields, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(struct_decl, 0);
   name_decl->type = struct_ty;
 }
 
@@ -1339,11 +1339,11 @@ static void visit_structFieldList(TypeChecker* checker, Ast* fields)
   i = 0;
   for (ast = fields->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    fields_ty->product.members[i] = (Type*)map_lookup(checker->type_env, container_of(ast, Ast, tree), 0);
+    fields_ty->product.members[i] = (Type*)checker->type_env->lookup(container_of(ast, Ast, tree), 0);
     i += 1;
   }
   assert(i == fields_ty->product.count);
-  map_insert(checker->type_env, fields, fields_ty, 0);
+  checker->type_env->insert(fields, fields_ty, 0);
 }
 
 static void visit_structField(TypeChecker* checker, Ast* field)
@@ -1359,9 +1359,9 @@ static void visit_structField(TypeChecker* checker, Ast* field)
   field_ty->ty_former = TypeEnum::FIELD;
   field_ty->strname = name->name.strname;
   field_ty->ast = field;
-  field_ty->field.type = (Type*)map_lookup(checker->type_env, field->structField.type, 0);
-  map_insert(checker->type_env, field, field_ty, 0);
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, field, 0);
+  field_ty->field.type = (Type*)checker->type_env->lookup(field->structField.type, 0);
+  checker->type_env->insert(field, field_ty, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(field, 0);
   name_decl->type = field_ty;
 }
 
@@ -1377,10 +1377,10 @@ static void visit_enumDeclaration(TypeChecker* checker, Ast* enum_decl)
   enum_ty->ty_former = TypeEnum::ENUM;
   enum_ty->strname = name->name.strname;
   enum_ty->ast = enum_decl;
-  map_insert(checker->type_env, enum_decl, enum_ty, 0);
+  checker->type_env->insert(enum_decl, enum_ty, 0);
   visit_specifiedIdentifierList(checker, enum_decl->enumDeclaration.fields, enum_ty);
-  enum_ty->enum_.fields = (Type*)map_lookup(checker->type_env, enum_decl->enumDeclaration.fields, 0);
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, enum_decl, 0);
+  enum_ty->enum_.fields = (Type*)checker->type_env->lookup(enum_decl->enumDeclaration.fields, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(enum_decl, 0);
   name_decl->type = enum_ty;
 }
 
@@ -1430,10 +1430,10 @@ static void visit_identifierList(TypeChecker* checker, Ast* ident_list, Type* en
     name_ty->strname = container_of(ast, Ast, tree)->name.strname;
     name_ty->ast = container_of(ast, Ast, tree);
     name_ty->field.type = enum_ty;
-    map_insert(checker->type_env, ast, name_ty, 0);
-    name_decl = (NameDeclaration*)map_lookup(checker->decl_map, container_of(ast, Ast, tree), 0);
+    checker->type_env->insert(ast, name_ty, 0);
+    name_decl = (NameDeclaration*)checker->decl_map->lookup(container_of(ast, Ast, tree), 0);
     name_decl->type = name_ty;
-    idents_ty->product.members[j] = (Type*)map_lookup(checker->type_env, container_of(ast, Ast, tree), 0);
+    idents_ty->product.members[j] = (Type*)checker->type_env->lookup(container_of(ast, Ast, tree), 0);
     j += 1;
   }
   *i = j;
@@ -1460,11 +1460,11 @@ static void visit_specifiedIdentifierList(TypeChecker* checker, Ast* ident_list,
   i = 0;
   for (ast = ident_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    idents_ty->product.members[i] = (Type*)map_lookup(checker->type_env, container_of(ast, Ast, tree), 0);
+    idents_ty->product.members[i] = (Type*)checker->type_env->lookup(container_of(ast, Ast, tree), 0);
     i += 1;
   }
   assert(i == idents_ty->product.count);
-  map_insert(checker->type_env, ident_list, idents_ty, 0);
+  checker->type_env->insert(ident_list, idents_ty, 0);
 }
 
 static void visit_specifiedIdentifier(TypeChecker* checker, Ast* ident, Type* enum_ty)
@@ -1480,8 +1480,8 @@ static void visit_specifiedIdentifier(TypeChecker* checker, Ast* ident, Type* en
   ident_ty->strname = name->name.strname;
   ident_ty->ast = ident;
   ident_ty->field.type = enum_ty;
-  map_insert(checker->type_env, ident, ident_ty, 0);
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, ident, 0);
+  checker->type_env->insert(ident, ident_ty, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(ident, 0);
   name_decl->type = ident_ty;
 }
 
@@ -1502,9 +1502,9 @@ static void visit_typedefDeclaration(TypeChecker* checker, Ast* typedef_decl)
   typedef_ty->ty_former = TypeEnum::TYPEDEF;
   typedef_ty->strname = name->name.strname;
   typedef_ty->ast = typedef_decl;
-  map_insert(checker->type_env, typedef_decl, typedef_ty, 0);
-  typedef_ty->typedef_.ref = (Type*)map_lookup(checker->type_env, typedef_decl->typedefDeclaration.type_ref, 0);
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, typedef_decl, 0);
+  checker->type_env->insert(typedef_decl, typedef_ty, 0);
+  typedef_ty->typedef_.ref = (Type*)checker->type_env->lookup(typedef_decl->typedefDeclaration.type_ref, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(typedef_decl, 0);
   name_decl->type = typedef_ty;
 }
 
@@ -1669,11 +1669,11 @@ static void visit_tableDeclaration(TypeChecker* checker, Ast* table_decl)
   table_ty->ty_former = TypeEnum::TABLE;
   table_ty->strname = name->name.strname;
   table_ty->ast = table_decl;
-  map_insert(checker->type_env, table_decl, table_ty, 0);
+  checker->type_env->insert(table_decl, table_ty, 0);
   visit_methodPrototypes(checker, table_decl->tableDeclaration.method_protos, 0, 0);
-  methods_ty = (Type*)map_lookup(checker->type_env, table_decl->tableDeclaration.method_protos, 0);
+  methods_ty = (Type*)checker->type_env->lookup(table_decl->tableDeclaration.method_protos, 0);
   table_ty->table.methods = methods_ty;
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, table_decl, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(table_decl, 0);
   name_decl->type = table_ty;
 }
 
@@ -1800,10 +1800,10 @@ static void visit_actionDeclaration(TypeChecker* checker, Ast* action_decl)
   action_ty->ty_former = TypeEnum::FUNCTION;
   action_ty->strname = name->name.strname;
   action_ty->ast = action_decl;
-  action_ty->function.params = (Type*)map_lookup(checker->type_env, action_decl->actionDeclaration.params, 0);
-  map_insert(checker->type_env, action_decl, action_ty, 0);
+  action_ty->function.params = (Type*)checker->type_env->lookup(action_decl->actionDeclaration.params, 0);
+  checker->type_env->insert(action_decl, action_ty, 0);
   action_ty->function.return_ = checker->root_scope->builtin_lookup("void", NameSpace::TYPE)->type;
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, action_decl, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(action_decl, 0);
   name_decl->type = action_ty;
 }
 
@@ -1819,9 +1819,9 @@ static void visit_variableDeclaration(TypeChecker* checker, Ast* var_decl)
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(checker, var_decl->variableDeclaration.init_expr);
   }
-  var_ty = (Type*)map_lookup(checker->type_env, var_decl->variableDeclaration.type, 0);
-  map_insert(checker->type_env, var_decl, var_ty, 0);
-  name_decl = (NameDeclaration*)map_lookup(checker->decl_map, var_decl, 0);
+  var_ty = (Type*)checker->type_env->lookup(var_decl->variableDeclaration.type, 0);
+  checker->type_env->insert(var_decl, var_ty, 0);
+  name_decl = (NameDeclaration*)checker->decl_map->lookup(var_decl, 0);
   name_decl->type = var_ty;
 }
 
@@ -1959,7 +1959,7 @@ static void visit_indexExpression(TypeChecker* checker, Ast* index_expr)
     visit_expression(checker, index_expr->indexExpression.end_index);
   }
   ty = checker->root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
-  map_insert(checker->type_env, index_expr, ty, 0);
+  checker->type_env->insert(index_expr, ty, 0);
 }
 
 static void visit_booleanLiteral(TypeChecker* checker, Ast* bool_literal)
@@ -1968,7 +1968,7 @@ static void visit_booleanLiteral(TypeChecker* checker, Ast* bool_literal)
   Type* ty;
 
   ty = checker->root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
-  map_insert(checker->type_env, bool_literal, ty, 0);
+  checker->type_env->insert(bool_literal, ty, 0);
 }
 
 static void visit_integerLiteral(TypeChecker* checker, Ast* int_literal)
@@ -1977,7 +1977,7 @@ static void visit_integerLiteral(TypeChecker* checker, Ast* int_literal)
   Type* ty;
 
   ty = checker->root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
-  map_insert(checker->type_env, int_literal, ty, 0);
+  checker->type_env->insert(int_literal, ty, 0);
 }
 
 static void visit_stringLiteral(TypeChecker* checker, Ast* str_literal)
@@ -1986,7 +1986,7 @@ static void visit_stringLiteral(TypeChecker* checker, Ast* str_literal)
   Type* ty;
 
   ty = checker->root_scope->builtin_lookup("string", NameSpace::TYPE)->type;
-  map_insert(checker->type_env, str_literal, ty, 0);
+  checker->type_env->insert(str_literal, ty, 0);
 }
 
 static void visit_default(TypeChecker* checker, Ast* default_)
@@ -1995,7 +1995,7 @@ static void visit_default(TypeChecker* checker, Ast* default_)
   Type* ty;
 
   ty = checker->root_scope->builtin_lookup("_", NameSpace::TYPE)->type;
-  map_insert(checker->type_env, default_, ty, 0);
+  checker->type_env->insert(default_, ty, 0);
 }
 
 static void visit_dontcare(TypeChecker* checker, Ast* dontcare)
@@ -2004,6 +2004,6 @@ static void visit_dontcare(TypeChecker* checker, Ast* dontcare)
   Type* ty;
 
   ty = checker->root_scope->builtin_lookup("_", NameSpace::TYPE)->type;
-  map_insert(checker->type_env, dontcare, ty, 0);
+  checker->type_env->insert(dontcare, ty, 0);
 }
 

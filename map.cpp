@@ -16,7 +16,7 @@ static MapEntry* search_entry(MapEntry* entry, void* key)
   return 0;
 }
 
-static MapEntry* insert_entry(Map* map, MapEntry** branch, MapEntry* entry,
+MapEntry* insert_entry(Map* map, MapEntry** branch, MapEntry* entry,
     void* key, void* value, bool return_if_found)
 {
   if (!entry) {
@@ -42,30 +42,29 @@ static MapEntry* insert_entry(Map* map, MapEntry** branch, MapEntry* entry,
   return 0;
 }
 
-void* map_lookup(Map* map, void* key, MapEntry** entry)
+void* Map::lookup(void* key, MapEntry** entry)
 {
   MapEntry* m;
   void* value;
 
-  m = search_entry(map->root, key);
+  m = search_entry(this->root, key);
   value = 0;
   if (m) { value = m->value; }
   if (entry) { *entry = m; }
   return value;
 }
 
-MapEntry* map_insert(Map* map, void* key, void* value, bool return_if_found)
+MapEntry* Map::insert(void* key, void* value, bool return_if_found)
 {
-  return insert_entry(map, &map->root, map->root, key, value, return_if_found);
+  return insert_entry(this, &this->root, this->root, key, value, return_if_found);
 }
 
-int
-map_count(Map* map)
+int Map::count()
 {
   int c = 0;
   MapEntry* m;
 
-  for (m = map->first; m != 0; m = m->next) {
+  for (m = this->first; m != 0; m = m->next) {
     c += 1;
   }
   return c;

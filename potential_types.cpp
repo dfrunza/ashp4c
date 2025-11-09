@@ -177,10 +177,10 @@ static void collect_matching_member(TypeChecker* checker, PotentialType* tau, Ty
     if (cstr_match(member_ty->strname, strname)) {
       if (member_ty->ty_former == TypeEnum::FUNCTION) {
         if (match_params(checker, potential_args, member_ty->function.params)) {
-          map_insert(&tau->set.members, member_ty, 0, 1);
+          tau->set.members.insert(member_ty, 0, 1);
         }
       } else {
-        map_insert(&tau->set.members, member_ty, 0, 1);
+        tau->set.members.insert(member_ty, 0, 1);
       }
     }
   }
@@ -275,18 +275,18 @@ static void visit_name(TypeChecker* checker, Ast* name, PotentialType* potential
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, name, tau, 0);
-  scope = (Scope*)map_lookup(checker->scope_map, name, 0);
+  checker->potype_map->insert(name, tau, 0);
+  scope = (Scope*)checker->scope_map->lookup(name, 0);
   name_entry = scope->lookup(name->name.strname, NameSpace::VAR | NameSpace::TYPE);
   name_decl = name_entry->ns[(int)NameSpace::VAR >> 1];
   if (name_decl) {
-    ty = (Type*)map_lookup(checker->type_env, name_decl->ast, 0);
+    ty = (Type*)checker->type_env->lookup(name_decl->ast, 0);
     *(Type**)name_ty->append(sizeof(Type*)) = ty->actual_type();
     assert(!name_decl->next_in_scope);
   }
   name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
   for(; name_decl != 0; name_decl = name_decl->next_in_scope) {
-    ty = (Type*)map_lookup(checker->type_env, name_decl->ast, 0);
+    ty = (Type*)checker->type_env->lookup(name_decl->ast, 0);
     *(Type**)name_ty->append(sizeof(Type*)) = ty->actual_type();
   }
   for (int i = 0; i < name_ty->elem_count; i++) {
@@ -294,27 +294,27 @@ static void visit_name(TypeChecker* checker, Ast* name, PotentialType* potential
     if (potential_args) {
       if (ty->ty_former == TypeEnum::FUNCTION) {
         if (match_params(checker, potential_args, ty->function.params)) {
-          map_insert(&tau->set.members, ty, 0, 0);
+          tau->set.members.insert(ty, 0, 0);
         }
       } else if (ty->ty_former == TypeEnum::PARSER) {
         if (match_params(checker, potential_args, ty->parser.ctor_params)) {
-          map_insert(&tau->set.members, ty, 0, 0);
+          tau->set.members.insert(ty, 0, 0);
         }
       } else if (ty->ty_former == TypeEnum::CONTROL) {
         if (match_params(checker, potential_args, ty->control.ctor_params)) {
-          map_insert(&tau->set.members, ty, 0, 0);
+          tau->set.members.insert(ty, 0, 0);
         }
       } else if (ty->ty_former == TypeEnum::EXTERN) {
         ctors_ty = ty->extern_.ctors;
         for (int j = 0; j < ctors_ty->product.count; j++) {
           ty = ctors_ty->product.members[j];
           if (match_params(checker, potential_args, ty->function.params)) {
-            map_insert(&tau->set.members, ty, 0, 0);
+            tau->set.members.insert(ty, 0, 0);
           }
         }
       } else assert(0);
     } else {
-      map_insert(&tau->set.members, ty, 0, 0);
+      tau->set.members.insert(ty, 0, 0);
     }
   }
 }
@@ -354,11 +354,11 @@ static void visit_instantiation(TypeChecker* checker, Ast* inst)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, inst, tau, 0);
+  checker->potype_map->insert(inst, tau, 0);
   visit_typeRef(checker, inst->instantiation.type);
   visit_argumentList(checker, inst->instantiation.args);
-  inst_ty = (Type*)map_lookup(checker->type_env, inst, 0);
-  map_insert(&tau->set.members, inst_ty->actual_type(), 0, 1);
+  inst_ty = (Type*)checker->type_env->lookup(inst, 0);
+  tau->set.members.insert(inst_ty->actual_type(), 0, 1);
 }
 
 /** PARSER **/
@@ -471,8 +471,8 @@ static void visit_stateExpression(TypeChecker* checker, Ast* state_expr)
   } else if (state_expr->stateExpression.expr->kind == AST_selectExpression) {
     visit_selectExpression(checker, state_expr->stateExpression.expr);
   } else assert(0);
-  tau = (PotentialType*)map_lookup(checker->potype_map, state_expr->stateExpression.expr, 0);
-  map_insert(checker->potype_map, state_expr, tau, 0);
+  tau = (PotentialType*)checker->potype_map->lookup(state_expr->stateExpression.expr, 0);
+  checker->potype_map->insert(state_expr, tau, 0);
 }
 
 static void visit_selectExpression(TypeChecker* checker, Ast* select_expr)
@@ -492,7 +492,7 @@ static void visit_selectCaseList(TypeChecker* checker, Ast* case_list)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::PRODUCT;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, case_list, tau, 0);
+  checker->potype_map->insert(case_list, tau, 0);
   for (ast = case_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_selectCase(checker, container_of(ast, Ast, tree));
@@ -504,7 +504,7 @@ static void visit_selectCaseList(TypeChecker* checker, Ast* case_list)
   i = 0;
   for (ast = case_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    tau_case = (PotentialType*)map_lookup(checker->potype_map, container_of(ast, Ast, tree), 0);
+    tau_case = (PotentialType*)checker->potype_map->lookup(container_of(ast, Ast, tree), 0);
     tau->product.members[i] = tau_case;
     i += 1;
   }
@@ -518,8 +518,8 @@ static void visit_selectCase(TypeChecker* checker, Ast* select_case)
 
   visit_keysetExpression(checker, select_case->selectCase.keyset_expr);
   visit_name(checker, select_case->selectCase.name, 0);
-  tau = (PotentialType*)map_lookup(checker->potype_map, select_case->selectCase.name, 0);
-  map_insert(checker->potype_map, select_case, tau, 0);
+  tau = (PotentialType*)checker->potype_map->lookup(select_case->selectCase.name, 0);
+  checker->potype_map->insert(select_case, tau, 0);
 }
 
 static void visit_keysetExpression(TypeChecker* checker, Ast* keyset_expr)
@@ -532,8 +532,8 @@ static void visit_keysetExpression(TypeChecker* checker, Ast* keyset_expr)
   } else if (keyset_expr->keysetExpression.expr->kind == AST_simpleKeysetExpression) {
     visit_simpleKeysetExpression(checker, keyset_expr->keysetExpression.expr);
   } else assert(0);
-  tau = (PotentialType*)map_lookup(checker->potype_map, keyset_expr->keysetExpression.expr, 0);
-  map_insert(checker->potype_map, keyset_expr, tau, 0);
+  tau = (PotentialType*)checker->potype_map->lookup(keyset_expr->keysetExpression.expr, 0);
+  checker->potype_map->insert(keyset_expr, tau, 0);
 }
 
 static void visit_tupleKeysetExpression(TypeChecker* checker, Ast* tuple_expr)
@@ -542,8 +542,8 @@ static void visit_tupleKeysetExpression(TypeChecker* checker, Ast* tuple_expr)
   PotentialType* tau;
 
   visit_simpleExpressionList(checker, tuple_expr->tupleKeysetExpression.expr_list);
-  tau = (PotentialType*)map_lookup(checker->potype_map, tuple_expr->tupleKeysetExpression.expr_list, 0);
-  map_insert(checker->potype_map, tuple_expr, tau, 0);
+  tau = (PotentialType*)checker->potype_map->lookup(tuple_expr->tupleKeysetExpression.expr_list, 0);
+  checker->potype_map->insert(tuple_expr, tau, 0);
 }
 
 static void visit_simpleKeysetExpression(TypeChecker* checker, Ast* simple_expr)
@@ -563,8 +563,8 @@ static void visit_simpleKeysetExpression(TypeChecker* checker, Ast* simple_expr)
   tau->set.members.storage = checker->storage;
   tau->product.count = 1;
   tau->product.members = (PotentialType**)checker->storage->malloc(tau->product.count * sizeof(PotentialType*));
-  tau->product.members[0] = (PotentialType*)map_lookup(checker->potype_map, simple_expr->simpleKeysetExpression.expr, 0);
-  map_insert(checker->potype_map, simple_expr, tau, 0);
+  tau->product.members[0] = (PotentialType*)checker->potype_map->lookup(simple_expr->simpleKeysetExpression.expr, 0);
+  checker->potype_map->insert(simple_expr, tau, 0);
 }
 
 static void visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list)
@@ -577,7 +577,7 @@ static void visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::PRODUCT;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, expr_list, tau, 0);
+  checker->potype_map->insert(expr_list, tau, 0);
   for (ast = expr_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_simpleKeysetExpression(checker, container_of(ast, Ast, tree));
@@ -589,7 +589,7 @@ static void visit_simpleExpressionList(TypeChecker* checker, Ast* expr_list)
   i = 0;
   for (ast = expr_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    tau_expr = (PotentialType*)map_lookup(checker->potype_map, container_of(ast, Ast, tree), 0);
+    tau_expr = (PotentialType*)checker->potype_map->lookup(container_of(ast, Ast, tree), 0);
     tau->product.members[i] = tau_expr;
     i += 1;
   }
@@ -707,8 +707,8 @@ static void visit_typeRef(TypeChecker* checker, Ast* type_ref)
   } else if (type_ref->typeRef.type->kind == AST_tupleType) {
     visit_tupleType(checker, type_ref->typeRef.type);
   } else assert(0);
-  tau = (PotentialType*)map_lookup(checker->potype_map, type_ref->typeRef.type, 0);
-  map_insert(checker->potype_map, type_ref, tau, 0);
+  tau = (PotentialType*)checker->potype_map->lookup(type_ref->typeRef.type, 0);
+  checker->potype_map->insert(type_ref, tau, 0);
 }
 
 static void visit_tupleType(TypeChecker* checker, Ast* type_decl)
@@ -717,8 +717,8 @@ static void visit_tupleType(TypeChecker* checker, Ast* type_decl)
   PotentialType* tau;
 
   visit_typeArgumentList(checker, type_decl->tupleType.type_args);
-  tau = (PotentialType*)map_lookup(checker->potype_map, type_decl->tupleType.type_args, 0);
-  map_insert(checker->potype_map, type_decl, tau, 0);
+  tau = (PotentialType*)checker->potype_map->lookup(type_decl->tupleType.type_args, 0);
+  checker->potype_map->insert(type_decl, tau, 0);
 }
 
 static void visit_headerStackType(TypeChecker* checker, Ast* type_decl)
@@ -731,8 +731,8 @@ static void visit_headerStackType(TypeChecker* checker, Ast* type_decl)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, type_decl, tau, 0);
-  map_insert(&tau->set.members, map_lookup(checker->type_env, type_decl, 0), 0, 0);
+  checker->potype_map->insert(type_decl, tau, 0);
+  tau->set.members.insert(checker->type_env->lookup(type_decl, 0), 0, 0);
 }
 
 static void visit_baseTypeBoolean(TypeChecker* checker, Ast* bool_type)
@@ -743,8 +743,8 @@ static void visit_baseTypeBoolean(TypeChecker* checker, Ast* bool_type)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, bool_type, tau, 0);
-  map_insert(&tau->set.members, map_lookup(checker->type_env, bool_type, 0), 0, 0);
+  checker->potype_map->insert(bool_type, tau, 0);
+  tau->set.members.insert(checker->type_env->lookup(bool_type, 0), 0, 0);
 }
 
 static void visit_baseTypeInteger(TypeChecker* checker, Ast* int_type)
@@ -758,8 +758,8 @@ static void visit_baseTypeInteger(TypeChecker* checker, Ast* int_type)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, int_type, tau, 0);
-  map_insert(&tau->set.members, map_lookup(checker->type_env, int_type, 0), 0, 0);
+  checker->potype_map->insert(int_type, tau, 0);
+  tau->set.members.insert(checker->type_env->lookup(int_type, 0), 0, 0);
 }
 
 static void visit_baseTypeBit(TypeChecker* checker, Ast* bit_type)
@@ -773,8 +773,8 @@ static void visit_baseTypeBit(TypeChecker* checker, Ast* bit_type)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, bit_type, tau, 0);
-  map_insert(&tau->set.members, map_lookup(checker->type_env, bit_type, 0), 0, 0);
+  checker->potype_map->insert(bit_type, tau, 0);
+  tau->set.members.insert(checker->type_env->lookup(bit_type, 0), 0, 0);
 }
 
 static void visit_baseTypeVarbit(TypeChecker* checker, Ast* varbit_type)
@@ -786,8 +786,8 @@ static void visit_baseTypeVarbit(TypeChecker* checker, Ast* varbit_type)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, varbit_type, tau, 0);
-  map_insert(&tau->set.members, map_lookup(checker->type_env, varbit_type, 0), 0, 0);
+  checker->potype_map->insert(varbit_type, tau, 0);
+  tau->set.members.insert(checker->type_env->lookup(varbit_type, 0), 0, 0);
 }
 
 static void visit_baseTypeString(TypeChecker* checker, Ast* str_type)
@@ -798,8 +798,8 @@ static void visit_baseTypeString(TypeChecker* checker, Ast* str_type)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, str_type, tau, 0);
-  map_insert(&tau->set.members, map_lookup(checker->type_env, str_type, 0), 0, 0);
+  checker->potype_map->insert(str_type, tau, 0);
+  tau->set.members.insert(checker->type_env->lookup(str_type, 0), 0, 0);
 }
 
 static void visit_baseTypeVoid(TypeChecker* checker, Ast* void_type)
@@ -810,8 +810,8 @@ static void visit_baseTypeVoid(TypeChecker* checker, Ast* void_type)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, void_type, tau, 0);
-  map_insert(&tau->set.members, map_lookup(checker->type_env, void_type, 0), 0, 0);
+  checker->potype_map->insert(void_type, tau, 0);
+  tau->set.members.insert(checker->type_env->lookup(void_type, 0), 0, 0);
 }
 
 static void visit_baseTypeError(TypeChecker* checker, Ast* error_type)
@@ -822,8 +822,8 @@ static void visit_baseTypeError(TypeChecker* checker, Ast* error_type)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, error_type, tau, 0);
-  map_insert(&tau->set.members, map_lookup(checker->type_env, error_type, 0), 0, 0);
+  checker->potype_map->insert(error_type, tau, 0);
+  tau->set.members.insert(checker->type_env->lookup(error_type, 0), 0, 0);
 }
 
 static void visit_integerTypeSize(TypeChecker* checker, Ast* type_size)
@@ -834,8 +834,8 @@ static void visit_integerTypeSize(TypeChecker* checker, Ast* type_size)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, type_size, tau, 0);
-  map_insert(&tau->set.members, map_lookup(checker->type_env, type_size, 0), 0, 0);
+  checker->potype_map->insert(type_size, tau, 0);
+  tau->set.members.insert(checker->type_env->lookup(type_size, 0), 0, 0);
 }
 
 static void visit_realTypeArg(TypeChecker* checker, Ast* type_arg)
@@ -1007,14 +1007,14 @@ static void visit_functionCall(TypeChecker* checker, Ast* func_call)
   PotentialType* tau, *args_tau;
 
   visit_argumentList(checker, func_call->functionCall.args);
-  args_tau = (PotentialType*)map_lookup(checker->potype_map, func_call->functionCall.args, 0);
+  args_tau = (PotentialType*)checker->potype_map->lookup(func_call->functionCall.args, 0);
   if (func_call->functionCall.lhs_expr->kind == AST_expression) {
     visit_expression(checker, func_call->functionCall.lhs_expr, args_tau);
   } else if (func_call->functionCall.lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression(checker, func_call->functionCall.lhs_expr, args_tau);
   } else assert(0);
-  tau = (PotentialType*)map_lookup(checker->potype_map, func_call->functionCall.lhs_expr, 0);
-  map_insert(checker->potype_map, func_call, tau, 0);
+  tau = (PotentialType*)checker->potype_map->lookup(func_call->functionCall.lhs_expr, 0);
+  checker->potype_map->insert(func_call, tau, 0);
 }
 
 static void visit_returnStatement(TypeChecker* checker, Ast* return_stmt)
@@ -1280,12 +1280,12 @@ static void visit_variableDeclaration(TypeChecker* checker, Ast* var_decl)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, var_decl, tau, 0);
+  checker->potype_map->insert(var_decl, tau, 0);
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(checker, var_decl->variableDeclaration.init_expr, 0);
   }
-  var_ty = (Type*)map_lookup(checker->type_env, var_decl, 0);
-  map_insert(&tau->set.members, var_ty->actual_type(), 0, 1);
+  var_ty = (Type*)checker->type_env->lookup(var_decl, 0);
+  tau->set.members.insert(var_ty->actual_type(), 0, 1);
 }
 
 /** EXPRESSIONS **/
@@ -1307,7 +1307,7 @@ static void visit_argumentList(TypeChecker* checker, Ast* args)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::PRODUCT;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, args, tau, 0);
+  checker->potype_map->insert(args, tau, 0);
   for (ast = args->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_argument(checker, container_of(ast, Ast, tree));
@@ -1319,7 +1319,7 @@ static void visit_argumentList(TypeChecker* checker, Ast* args)
   i = 0;
   for (ast = args->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    tau_arg = (PotentialType*)map_lookup(checker->potype_map, container_of(ast, Ast, tree), 0);
+    tau_arg = (PotentialType*)checker->potype_map->lookup(container_of(ast, Ast, tree), 0);
     tau->product.members[i] = tau_arg;
     i += 1;
   }
@@ -1336,8 +1336,8 @@ static void visit_argument(TypeChecker* checker, Ast* arg)
   } else if (arg->argument.arg->kind == AST_dontcare) {
     visit_dontcare(checker, arg->argument.arg);
   } else assert(0);
-  tau = (PotentialType*)map_lookup(checker->potype_map, arg->argument.arg, 0);
-  map_insert(checker->potype_map, arg, tau, 0);
+  tau = (PotentialType*)checker->potype_map->lookup(arg->argument.arg, 0);
+  checker->potype_map->insert(arg, tau, 0);
 }
 
 static void visit_expressionList(TypeChecker* checker, Ast* expr_list)
@@ -1350,7 +1350,7 @@ static void visit_expressionList(TypeChecker* checker, Ast* expr_list)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::PRODUCT;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, expr_list, tau, 0);
+  checker->potype_map->insert(expr_list, tau, 0);
   for (ast = expr_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
     visit_expression(checker, container_of(ast, Ast, tree), 0);
@@ -1362,7 +1362,7 @@ static void visit_expressionList(TypeChecker* checker, Ast* expr_list)
   i = 0;
   for (ast = expr_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    tau_expr = (PotentialType*)map_lookup(checker->potype_map, container_of(ast, Ast, tree), 0);
+    tau_expr = (PotentialType*)checker->potype_map->lookup(container_of(ast, Ast, tree), 0);
     tau->product.members[i] = tau_expr;
     i += 1;
   }
@@ -1381,8 +1381,8 @@ static void visit_lvalueExpression(TypeChecker* checker, Ast* lvalue_expr, Poten
   } else if (lvalue_expr->lvalueExpression.expr->kind == AST_arraySubscript) {
     visit_arraySubscript(checker, lvalue_expr->lvalueExpression.expr);
   } else assert(0);
-  tau = (PotentialType*)map_lookup(checker->potype_map, lvalue_expr->lvalueExpression.expr, 0);
-  map_insert(checker->potype_map, lvalue_expr, tau, 0);
+  tau = (PotentialType*)checker->potype_map->lookup(lvalue_expr->lvalueExpression.expr, 0);
+  checker->potype_map->insert(lvalue_expr, tau, 0);
 }
 
 static void visit_expression(TypeChecker* checker, Ast* expr, PotentialType* potential_args)
@@ -1417,8 +1417,8 @@ static void visit_expression(TypeChecker* checker, Ast* expr, PotentialType* pot
   } else if (expr->expression.expr->kind == AST_assignmentStatement) {
     visit_assignmentStatement(checker, expr->expression.expr);
   } else assert(0);
-  tau = (PotentialType*)map_lookup(checker->potype_map, expr->expression.expr, 0);
-  map_insert(checker->potype_map, expr, tau, 0);
+  tau = (PotentialType*)checker->potype_map->lookup(expr->expression.expr, 0);
+  checker->potype_map->insert(expr, tau, 0);
 }
 
 static void visit_castExpression(TypeChecker* checker, Ast* cast_expr)
@@ -1428,8 +1428,8 @@ static void visit_castExpression(TypeChecker* checker, Ast* cast_expr)
 
   visit_typeRef(checker, cast_expr->castExpression.type);
   visit_expression(checker, cast_expr->castExpression.expr, 0);
-  tau = (PotentialType*)map_lookup(checker->potype_map, cast_expr->castExpression.type, 0);
-  map_insert(checker->potype_map, cast_expr, tau, 0);
+  tau = (PotentialType*)checker->potype_map->lookup(cast_expr->castExpression.type, 0);
+  checker->potype_map->insert(cast_expr, tau, 0);
 }
 
 static void visit_unaryExpression(TypeChecker* checker, Ast* unary_expr)
@@ -1451,17 +1451,17 @@ static void visit_binaryExpression(TypeChecker* checker, Ast* binary_expr)
   potential_args.product.members = member_args;
   visit_expression(checker, binary_expr->binaryExpression.left_operand, 0);
   visit_expression(checker, binary_expr->binaryExpression.right_operand, 0);
-  potential_args.product.members[0] = (PotentialType*)map_lookup(checker->potype_map, binary_expr->binaryExpression.left_operand, 0);
-  potential_args.product.members[1] = (PotentialType*)map_lookup(checker->potype_map, binary_expr->binaryExpression.right_operand, 0);
+  potential_args.product.members[0] = (PotentialType*)checker->potype_map->lookup(binary_expr->binaryExpression.left_operand, 0);
+  potential_args.product.members[1] = (PotentialType*)checker->potype_map->lookup(binary_expr->binaryExpression.right_operand, 0);
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, binary_expr, tau, 0);
+  checker->potype_map->insert(binary_expr, tau, 0);
   name_decl = checker->root_scope->builtin_lookup(binary_expr->binaryExpression.strname, NameSpace::TYPE);
   for (; name_decl != 0; name_decl = name_decl->next_in_scope) {
     ty = name_decl->type;
     if (match_params(checker, &potential_args, ty->function.params)) {
-      map_insert(&tau->set.members, ty, 0, 0);
+      tau->set.members.insert(ty, 0, 0);
     }
   }
 }
@@ -1477,14 +1477,14 @@ static void visit_memberSelector(TypeChecker* checker, Ast* selector, PotentialT
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, selector, tau, 0);
+  checker->potype_map->insert(selector, tau, 0);
   if (selector->memberSelector.lhs_expr->kind == AST_expression) {
     visit_expression(checker, selector->memberSelector.lhs_expr, 0);
   } else if (selector->memberSelector.lhs_expr->kind == AST_lvalueExpression) {
     visit_lvalueExpression(checker, selector->memberSelector.lhs_expr, 0);
   } else assert(0);
   name = selector->memberSelector.name;
-  tau_lhs = (PotentialType*)map_lookup(checker->potype_map, selector->memberSelector.lhs_expr, 0);
+  tau_lhs = (PotentialType*)checker->potype_map->lookup(selector->memberSelector.lhs_expr, 0);
   for (m = tau_lhs->set.members.first; m != 0; m = m->next) {
     lhs_ty = ((Type*)m->key)->effective_type();
     if (lhs_ty->ty_former == TypeEnum::EXTERN) {
@@ -1516,8 +1516,8 @@ static void visit_arraySubscript(TypeChecker* checker, Ast* subscript)
     visit_lvalueExpression(checker, subscript->arraySubscript.lhs_expr, 0);
   } else assert(0);
   visit_indexExpression(checker, subscript->arraySubscript.index_expr);
-  tau = (PotentialType*)map_lookup(checker->potype_map, subscript->arraySubscript.lhs_expr, 0);
-  map_insert(checker->potype_map, subscript, tau, 0);
+  tau = (PotentialType*)checker->potype_map->lookup(subscript->arraySubscript.lhs_expr, 0);
+  checker->potype_map->insert(subscript, tau, 0);
 }
 
 static void visit_indexExpression(TypeChecker* checker, Ast* index_expr)
@@ -1532,8 +1532,8 @@ static void visit_indexExpression(TypeChecker* checker, Ast* index_expr)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, index_expr, tau, 0);
-  map_insert(&tau->set.members, (Type*)map_lookup(checker->type_env, index_expr, 0), 0, 0);
+  checker->potype_map->insert(index_expr, tau, 0);
+  tau->set.members.insert((Type*)checker->type_env->lookup(index_expr, 0), 0, 0);
 }
 
 static void visit_booleanLiteral(TypeChecker* checker, Ast* bool_literal)
@@ -1544,8 +1544,8 @@ static void visit_booleanLiteral(TypeChecker* checker, Ast* bool_literal)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, bool_literal, tau, 0);
-  map_insert(&tau->set.members, (Type*)map_lookup(checker->type_env, bool_literal, 0), 0, 0);
+  checker->potype_map->insert(bool_literal, tau, 0);
+  tau->set.members.insert((Type*)checker->type_env->lookup(bool_literal, 0), 0, 0);
 }
 
 static void visit_integerLiteral(TypeChecker* checker, Ast* int_literal)
@@ -1556,8 +1556,8 @@ static void visit_integerLiteral(TypeChecker* checker, Ast* int_literal)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, int_literal, tau, 0);
-  map_insert(&tau->set.members, (Type*)map_lookup(checker->type_env, int_literal, 0), 0, 0);
+  checker->potype_map->insert(int_literal, tau, 0);
+  tau->set.members.insert((Type*)checker->type_env->lookup(int_literal, 0), 0, 0);
 }
 
 static void visit_stringLiteral(TypeChecker* checker, Ast* str_literal)
@@ -1568,8 +1568,8 @@ static void visit_stringLiteral(TypeChecker* checker, Ast* str_literal)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, str_literal, tau, 0);
-  map_insert(&tau->set.members, (Type*)map_lookup(checker->type_env, str_literal, 0), 0, 0);
+  checker->potype_map->insert(str_literal, tau, 0);
+  tau->set.members.insert((Type*)checker->type_env->lookup(str_literal, 0), 0, 0);
 }
 
 static void visit_default(TypeChecker* checker, Ast* default_)
@@ -1580,8 +1580,8 @@ static void visit_default(TypeChecker* checker, Ast* default_)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, default_, tau, 0);
-  map_insert(&tau->set.members, (Type*)map_lookup(checker->type_env, default_, 0), 0, 0);
+  checker->potype_map->insert(default_, tau, 0);
+  tau->set.members.insert((Type*)checker->type_env->lookup(default_, 0), 0, 0);
 }
 
 static void visit_dontcare(TypeChecker* checker, Ast* dontcare)
@@ -1592,6 +1592,6 @@ static void visit_dontcare(TypeChecker* checker, Ast* dontcare)
   tau = (PotentialType*)checker->storage->malloc(sizeof(PotentialType));
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = checker->storage;
-  map_insert(checker->potype_map, dontcare, tau, 0);
-  map_insert(&tau->set.members, (Type*)map_lookup(checker->type_env, dontcare, 0), 0, 0);
+  checker->potype_map->insert(dontcare, tau, 0);
+  tau->set.members.insert((Type*)checker->type_env->lookup(dontcare, 0), 0, 0);
 }
