@@ -92,7 +92,7 @@ static void strmap_grow(Strmap* strmap)
   for (entry = first_entry; entry != 0; ) {
     next_entry = entry->next_entry;
     h = hash_key(entry->key, 4 + (last_segment + 1), strmap->capacity);
-    entry_slot = (StrmapEntry**)segment_locate_cell(&strmap->entries, h, sizeof(StrmapEntry*));
+    entry_slot = (StrmapEntry**)strmap->entries.locate_cell(h, sizeof(StrmapEntry*));
     entry->next_entry = *entry_slot;
     *entry_slot = entry;
     entry = next_entry;
@@ -107,7 +107,7 @@ void* Strmap::lookup(char* key, StrmapEntry** entry_/*out*/, StrmapBucket* bucke
 
   last_segment = floor(log2(this->capacity/16));
   h = hash_key(key, 4 + (last_segment + 1), this->capacity);
-  entry_slot = (StrmapEntry**)segment_locate_cell(&this->entries, h, sizeof(StrmapEntry*));
+  entry_slot = (StrmapEntry**)this->entries.locate_cell(h, sizeof(StrmapEntry*));
   entry = *entry_slot;
   while (entry) {
     if (cstr_match(entry->key, key)) {
@@ -139,7 +139,7 @@ StrmapEntry* Strmap::insert(char* key, void* value, bool return_if_found)
     strmap_grow(this);
     bucket.last_segment = floor(log2(this->capacity/16));
     bucket.h = hash_key(key, 4 + (bucket.last_segment + 1), this->capacity);
-    bucket.entry_slot = (StrmapEntry**)segment_locate_cell(&this->entries, bucket.h, sizeof(StrmapEntry*));
+    bucket.entry_slot = (StrmapEntry**)this->entries.locate_cell(bucket.h, sizeof(StrmapEntry*));
   }
   entry = (StrmapEntry*)this->storage->malloc(sizeof(StrmapEntry));
   entry->key = key;
@@ -174,7 +174,7 @@ StrmapEntry* StrmapCursor::next()
   }
   this->i++;
   while (this->i < strmap->capacity) {
-    entry_slot = (StrmapEntry**)segment_locate_cell(&strmap->entries, this->i, sizeof(StrmapEntry*));
+    entry_slot = (StrmapEntry**)strmap->entries.locate_cell(this->i, sizeof(StrmapEntry*));
     entry = *entry_slot;
     if (entry) {
       this->entry = entry;
@@ -195,7 +195,7 @@ void Debug_strmap_occupancy(Strmap* strmap)
       max_bucket_length = 0;
 
   for (int i = 0; i < strmap->capacity; i++) {
-    entry_slot = (StrmapEntry**)segment_locate_cell(&strmap->entries, i, sizeof(StrmapEntry*));
+    entry_slot = (StrmapEntry**)strmap->entries.locate_cell(i, sizeof(StrmapEntry*));
     entry = *entry_slot;
     entry_count = 0;
     if (entry) {

@@ -4,6 +4,18 @@
 #include <math.h>
 #include "foundation.h"
 
+void* SegmentTable::locate_cell(int i, int elem_size)
+{
+  assert(elem_size > 0);
+  int segment_index, elem_offset;
+  void* elem_slot;
+
+  segment_index = floor(log2(i/16 + 1));
+  elem_offset = i - 16 * ((1 << segment_index) - 1);
+  elem_slot = this->segments[segment_index] + elem_offset * elem_size;
+  return elem_slot;
+}
+
 void Array::extend(int elem_size)
 {
   assert(elem_size > 0);
@@ -45,25 +57,13 @@ void Array::init(Arena* storage, int elem_size, int segment_count)
   this->data.segments[0] = this->storage->malloc(16 * elem_size);
 }
 
-void* segment_locate_cell(SegmentTable* data, int i, int elem_size)
-{
-  assert(elem_size > 0);
-  int segment_index, elem_offset;
-  void* elem_slot;
-
-  segment_index = floor(log2(i/16 + 1));
-  elem_offset = i - 16 * ((1 << segment_index) - 1);
-  elem_slot = data->segments[segment_index] + elem_offset * elem_size;
-  return elem_slot;
-}
-
 void* Array::get(int i, int elem_size)
 {
   assert(elem_size > 0);
   assert(i >= 0 && i < this->elem_count);
   void* elem_slot;
 
-  elem_slot = segment_locate_cell(&this->data, i, elem_size);
+  elem_slot = this->data.locate_cell(i, elem_size);
   return elem_slot;
 }
 
@@ -75,7 +75,7 @@ void* Array::append(int elem_size)
   if (this->elem_count >= this->capacity) {
     this->extend(elem_size);
   }
-  elem_slot = segment_locate_cell(&this->data, this->elem_count, elem_size);
+  elem_slot = this->data.locate_cell(this->elem_count, elem_size);
   this->elem_count += 1;
   return elem_slot;
 }

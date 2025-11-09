@@ -64,6 +64,8 @@ typedef struct Arena {
 typedef struct SegmentTable {
   int segment_count;
   void* segments[];
+
+  void* locate_cell(int i, int elem_size);
 } SegmentTable;
 
 typedef struct Array {
@@ -78,8 +80,6 @@ typedef struct Array {
   void* get(int i, int elem_size);
   void* append(int elem_size);
 } Array;
-
-void* segment_locate_cell(SegmentTable* data, int i, int elem_size);
 
 typedef struct StrmapEntry {
   char* key;
