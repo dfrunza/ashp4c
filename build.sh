@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# -std=gnu99  ...  Access to the GCC extension 'Referring to a Type with typeof'.
-
 CC=""
-CC="$CC -g3 -std=c++11 -ggdb -fpermissive -fms-extensions -ffreestanding"
-CC="$CC -Wno-pointer-arith -Wno-sign-compare -Wno-nonnull-compare -Winline -Wno-write-strings -Wno-unused-function -Wreturn-type -Wall"
+CC="$CC -g3 -std=c++11 -ggdb -fpermissive -fms-extensions"
+CC="$CC -Wno-pointer-arith -Wno-sign-compare -Wno-nonnull-compare -Winline -Wno-write-strings"
+CC="$CC -Wno-format -Wno-unused-function -Wreturn-type -Wall"
 
 g++ $CC -o ashp4c \
   ashp4c.cpp basic.cpp arena.cpp array.cpp strmap.cpp map.cpp \
