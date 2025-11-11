@@ -17,6 +17,18 @@ static PageBlock* first_block = 0;
 static PageBlock* block_freelist_head = 0;
 static PageBlock* recycled_block_structs = 0;
 
+enum class BlockStitch : int {
+  NONE  = 0,
+  LEFT  = 1 << 1,
+  RIGHT = 1 << 2,
+};
+inline BlockStitch operator | (BlockStitch lhs, BlockStitch rhs) {
+  return (BlockStitch)((int)lhs | (int)rhs);
+}
+inline BlockStitch operator & (BlockStitch lhs, BlockStitch rhs) {
+  return (BlockStitch)((int)lhs & (int)rhs);
+}
+
 void Arena::reserve_memory(int amount)
 {
   page_size = getpagesize();
@@ -73,11 +85,7 @@ static PageBlock* block_insert_and_coalesce(PageBlock* block_list, PageBlock* ne
   PageBlock* merged_list;
   PageBlock* left_neighbour = 0, *right_neighbour = 0;
   PageBlock* p;
-  enum class Stitch : uint8_t {
-    NONE  = 0,
-    LEFT  = 1 << 1,
-    RIGHT = 1 << 2,
-  } stitch_op;
+  enum BlockStitch stitch_op;
 
   if (!block_list) {
     return new_block;
@@ -109,27 +117,27 @@ static PageBlock* block_insert_and_coalesce(PageBlock* block_list, PageBlock* ne
   }
 
   /* Coalesce adjacent blocks. */
-  stitch_op = Stitch::NONE;
+  stitch_op = BlockStitch::NONE;
   if (left_neighbour && (left_neighbour->memory_end == new_block->memory_begin)) {
-    stitch_op = (Stitch)((int)stitch_op | (int)Stitch::LEFT);
+    stitch_op = (stitch_op | BlockStitch::LEFT);
   }
   if (right_neighbour && (right_neighbour->memory_begin == new_block->memory_end)) {
-    stitch_op = (Stitch)((int)stitch_op | (int)Stitch::RIGHT);
+    stitch_op = (stitch_op | BlockStitch::RIGHT);
   }
-  if (stitch_op == (Stitch)((int)Stitch::LEFT | (int)Stitch::RIGHT)) {
+  if (stitch_op == (BlockStitch::LEFT | BlockStitch::RIGHT)) {
     left_neighbour->memory_end = right_neighbour->memory_end;
     left_neighbour->next_block = right_neighbour->next_block;
     if (right_neighbour->next_block) {
       right_neighbour->next_block->prev_block = left_neighbour;
     }
     recycle_block_struct(right_neighbour);
-  } else if (stitch_op == Stitch::LEFT) {
+  } else if (stitch_op == BlockStitch::LEFT) {
     left_neighbour->memory_end = new_block->memory_end;
     left_neighbour->next_block = right_neighbour;
     if (right_neighbour) {
       right_neighbour->prev_block = left_neighbour;
     }
-  } else if (stitch_op == Stitch::RIGHT) {
+  } else if (stitch_op == BlockStitch::RIGHT) {
     right_neighbour->memory_begin = new_block->memory_begin;
     right_neighbour->prev_block = left_neighbour;
     if (left_neighbour) {
@@ -138,7 +146,7 @@ static PageBlock* block_insert_and_coalesce(PageBlock* block_list, PageBlock* ne
       merged_list = right_neighbour;
     }
   }
-  if (stitch_op != Stitch::NONE) {
+  if (stitch_op != BlockStitch::NONE) {
     recycle_block_struct(new_block);
   }
   return merged_list;

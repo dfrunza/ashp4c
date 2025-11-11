@@ -280,7 +280,7 @@ enum class AstEnum {
 };
 char* AstEnum_to_string(enum AstEnum ast);
 
-enum class AstOperator : uint16_t {
+enum class AstOperator : int {
   NONE = 0,
 
   /* Arithmetic */
@@ -318,7 +318,7 @@ enum class AstOperator : uint16_t {
   MASK,
 };
 
-enum class ParamDirection : uint8_t {
+enum class ParamDirection : int {
   NONE = 0,
   IN   = 1 << 1,
   OUT  = 1 << 2,
@@ -836,7 +836,7 @@ struct Ast {
 struct NameEntry;
 struct NameDeclaration;
 
-enum class NameSpace : uint8_t {
+enum class NameSpace : int {
   VAR     = 1 << 0,
   TYPE    = 1 << 1,
   KEYWORD = 1 << 2,
@@ -898,7 +898,7 @@ struct NameBinder {
   Array* type_array;
 };
 
-enum class TypeEnum : uint16_t {
+enum class TypeEnum : int {
   NONE = 0,
   VOID,
   BOOL,
@@ -1007,7 +1007,7 @@ struct Type {
   Type* effective_type();
 };
 
-enum class PotentialTypeEnum : uint8_t {
+enum class PotentialTypeEnum : int {
   NONE = 0,
   SET,
   PRODUCT,
