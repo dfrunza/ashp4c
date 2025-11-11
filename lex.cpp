@@ -1,5 +1,4 @@
 #include <memory.h>
-#include <stdint.h>
 #include "foundation.h"
 #include "frontend.h"
 

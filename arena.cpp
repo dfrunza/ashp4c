@@ -1,7 +1,6 @@
 #include <memory.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include "ashp4c.h"
 
@@ -97,6 +96,7 @@ int main(int arg_count, char* args[])
   SourceText source_text = {};
   Lexer lexer = {};
   Parser parser = {};
+  DryPass drypass = {};
   BuiltinMethodBuilder method_builder = {};
   ScopeBuilder scope_builder = {};
   NameBinder name_binder = {};
@@ -123,7 +123,7 @@ int main(int arg_count, char* args[])
   parse(&parser);
   scratch_storage.free();
 
-  drypass(parser.p4program);
+  drypass.do_pass(parser.p4program);
 
   method_builder.storage = &storage;
   builtin_methods(&method_builder, parser.p4program);

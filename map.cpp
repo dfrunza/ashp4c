@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "foundation.h"
 
 MapEntry* Map::search_entry(MapEntry* entry, void* key)

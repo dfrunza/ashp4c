@@ -1,8 +1,14 @@
+#pragma once
+#include "foundation.h"
 #include "frontend.h"
+#include "ast_visitor.h"
+
+struct DryPass : AstVisitor {
+  void do_pass(Ast* ast);
+};
 
 void tokenize(Lexer* lexer, SourceText* source_text);
 void parse(Parser* parser);
-void drypass(Ast* ast);
 void builtin_methods(BuiltinMethodBuilder* builder, Ast* ast);
 void scope_hierarchy(ScopeBuilder* scope_builder);
 void name_bind(NameBinder* name_binder);
