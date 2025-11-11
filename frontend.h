@@ -2,12 +2,12 @@
 #include "foundation.h"
 #include "ast_tree.h"
 
-typedef struct SourceText {
+struct SourceText {
   Arena* storage;
   char* text;
   int text_size;
   char* filename;
-} SourceText;
+};
 
 enum class TokenClass {
   NONE = 0,
@@ -103,7 +103,7 @@ enum class TokenClass {
   LEXICAL_ERROR,
 };
 
-typedef struct Token {
+struct Token {
   enum TokenClass klass;
   char* lexeme;
   int line_no;
@@ -117,14 +117,14 @@ typedef struct Token {
     } integer;
     char* str;
   };
-} Token;
+};
 
-typedef struct Lexeme {
+struct Lexeme {
   char* start;
   char* end;
-} Lexeme;
+};
 
-typedef struct Lexer {
+struct Lexer {
   Arena* storage;
   char*  text;
   int    text_size;
@@ -134,7 +134,7 @@ typedef struct Lexer {
   int    state;
   Lexeme lexeme[2];
   Array* tokens;
-} Lexer;
+};
 
 enum class AstEnum {
   none = 0,
@@ -330,7 +330,7 @@ inline ParamDirection operator & (ParamDirection lhs, ParamDirection rhs) {
     return (ParamDirection)((int)lhs & (int)rhs);
 }
 
-typedef struct Ast {
+struct Ast {
   enum AstEnum kind;
   int line_no;
   int column_no;
@@ -831,7 +831,7 @@ typedef struct Ast {
   };
 
   Ast* clone(Arena* storage);
-} Ast;
+};
 
 struct NameEntry;
 struct NameDeclaration;
@@ -850,7 +850,7 @@ inline NameSpace operator & (NameSpace lhs, NameSpace rhs) {
 }
 char* NameSpace_to_string(enum NameSpace ns);
 
-typedef struct Scope {
+struct Scope {
   int scope_level;
   struct Scope* parent_scope;
   Strmap name_table;
@@ -861,9 +861,9 @@ typedef struct Scope {
   NameEntry* lookup(char* name, enum NameSpace ns);
   NameDeclaration* builtin_lookup(char* strname, enum NameSpace ns);
   NameDeclaration* bind(Arena* storage, char* strname, enum NameSpace ns);
-} Scope;
+};
 
-typedef struct Parser {
+struct Parser {
   Arena* storage;
   Ast* p4program;
   char* source_file;
@@ -874,21 +874,21 @@ typedef struct Parser {
   Token* prev_token;
   Scope* current_scope;
   Scope* root_scope;
-} Parser;
+};
 
-typedef struct BuiltinMethodBuilder {
+struct BuiltinMethodBuilder {
   Arena* storage;
-} BuiltinMethodBuilder;
+};
 
-typedef struct ScopeBuilder {
+struct ScopeBuilder {
   Arena* storage;
   Ast* p4program;
   Scope* root_scope;
   Scope* current_scope;
   Map* scope_map;
-} ScopeBuilder;
+};
 
-typedef struct NameBinder {
+struct NameBinder {
   Arena* storage;
   Ast* p4program;
   Scope* root_scope;
@@ -896,7 +896,7 @@ typedef struct NameBinder {
   Map* scope_map;
   Map* decl_map;
   Array* type_array;
-} NameBinder;
+};
 
 enum class TypeEnum : uint16_t {
   NONE = 0,
@@ -930,7 +930,7 @@ enum class TypeEnum : uint16_t {
 };
 char* TypeEnum_to_string(enum TypeEnum type);
 
-typedef struct Type {
+struct Type {
   enum TypeEnum ty_former;
   char* strname;
   Ast* ast;
@@ -1005,7 +1005,7 @@ typedef struct Type {
 
   Type* actual_type();
   Type* effective_type();
-} Type;
+};
 
 enum class PotentialTypeEnum : uint8_t {
   NONE = 0,
@@ -1013,7 +1013,7 @@ enum class PotentialTypeEnum : uint8_t {
   PRODUCT,
 };
 
-typedef struct PotentialType {
+struct PotentialType {
   enum PotentialTypeEnum kind;
 
   union {
@@ -1026,9 +1026,9 @@ typedef struct PotentialType {
       int count;
     } product;
   };
-} PotentialType;
+};
 
-typedef struct TypeChecker {
+struct TypeChecker {
   Arena* storage;
   Ast* p4program;
   char* source_file;
@@ -1044,13 +1044,13 @@ typedef struct TypeChecker {
   bool match_params(PotentialType* potential_args, Type* params_ty);
   void collect_matching_member(PotentialType* tau, Type* product_ty,
         char* strname, PotentialType* potential_args);
-} TypeChecker;
+};
 
 bool type_equiv(TypeChecker* checker, Type* u, Type* v);
 bool match_type(TypeChecker* checker, PotentialType* potential_types, Type* required_ty);
 bool match_params(TypeChecker* checker, PotentialType* potential_args, Type* params_ty);
 
-typedef struct NameDeclaration {
+struct NameDeclaration {
   char* strname;
   struct NameDeclaration* next_in_scope;
 
@@ -1060,8 +1060,8 @@ typedef struct NameDeclaration {
   };
 
   Type* type;
-} NameDeclaration;
+};
 
-typedef struct NameEntry {
+struct NameEntry {
   NameDeclaration* ns[NameSpace_COUNT];
-} NameEntry;
+};

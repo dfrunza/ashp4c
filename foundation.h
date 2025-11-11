@@ -23,14 +23,14 @@ bool cstr_start_with(char* str, char* prefix);
 bool cstr_match(char* str_a, char* str_b);
 void cstr_print_substr(char* begin_char, char* end_char);
 
-typedef struct PageBlock {
+struct PageBlock {
   struct PageBlock* next_block;
   struct PageBlock* prev_block;
   uint8_t* memory_begin;
   uint8_t* memory_end;
-} PageBlock;
+};
 
-typedef struct Arena {
+struct Arena {
   PageBlock* owned_pages;
   void* memory_avail;
   void* memory_limit;
@@ -39,7 +39,7 @@ typedef struct Arena {
   void* malloc(uint32_t size);
   void free();
   void grow(uint32_t size);
-} Arena;
+};
 
 /**
  * n  ...  segment count
@@ -61,14 +61,14 @@ typedef struct Arena {
  * C(n) = (2^n - 1)*16
  **/
 
-typedef struct SegmentTable {
+struct SegmentTable {
   int segment_count;
   void* segments[];
 
   void* locate_cell(int i, int elem_size);
-} SegmentTable;
+};
 
-typedef struct Array {
+struct Array {
   Arena* storage; 
   int elem_count;
   int capacity;
@@ -79,21 +79,21 @@ typedef struct Array {
   void extend(int elem_size);
   void* get(int i, int elem_size);
   void* append(int elem_size);
-} Array;
+};
 
-typedef struct StrmapEntry {
+struct StrmapEntry {
   char* key;
   void* value;
   struct StrmapEntry* next_entry;
-} StrmapEntry;
+};
 
-typedef struct StrmapBucket {
+struct StrmapBucket {
   uint32_t h;
   StrmapEntry** entry_slot;
   int last_segment;
-} StrmapBucket;
+};
 
-typedef struct Strmap {
+struct Strmap {
   Arena* storage;
   int entry_count;
   int capacity;
@@ -104,26 +104,26 @@ typedef struct Strmap {
   void grow();
   void* lookup(char* key, StrmapEntry** entry, StrmapBucket* bucket);
   StrmapEntry* insert(char* key, void* value, bool return_if_found);
-} Strmap;
+};
 
-typedef struct StrmapCursor {
+struct StrmapCursor {
   Strmap* strmap;
   int i;
   StrmapEntry* entry;
 
   void begin(Strmap* strmap);
   StrmapEntry* next();
-} StrmapCursor;
+};
 
-typedef struct MapEntry {
+struct MapEntry {
   struct MapEntry* next;
   struct MapEntry* left_branch;
   struct MapEntry* right_branch;
   void* key;
   void* value;
-} MapEntry;
+};
 
-typedef struct Map {
+struct Map {
   Arena* storage; 
   MapEntry* first;
   MapEntry* root;
@@ -134,4 +134,4 @@ typedef struct Map {
   MapEntry* insert(void* key, void* value, bool return_if_found);
   void* lookup(void* key, MapEntry** entry);
   int count();
-} Map;
+};

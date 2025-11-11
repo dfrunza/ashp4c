@@ -3,11 +3,11 @@
 #include <stdlib.h>
 #include "ashp4c.h"
 
-typedef struct CmdlineArg {
+struct CmdlineArg {
   char* name;
   char* value;
   struct CmdlineArg* next_arg;
-} CmdlineArg;
+};
 
 static void read_source(SourceText* source_text, char* filename)
 {

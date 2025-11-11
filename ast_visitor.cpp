@@ -1165,6 +1165,3 @@ void* AstVisitor::visit_dontcare(Ast* dontcare)
   assert(dontcare->kind == AstEnum::dontcare);
   return 0;
 }
-
-void ast_visitor_init(AstVisitor* visitor)
-{ }

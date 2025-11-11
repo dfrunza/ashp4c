@@ -4,7 +4,7 @@
 #include "foundation.h"
 #include "frontend.h"
 
-typedef struct AstVisitor {
+struct AstVisitor {
 
   /** PROGRAM **/
 
