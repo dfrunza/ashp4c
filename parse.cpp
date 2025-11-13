@@ -59,306 +59,305 @@ static void define_keywords(Parser* parser, Scope* scope)
 
 Token* Parser::next_token()
 {
-  assert(token_at < tokens->elem_count);
+  assert(this->token_at < this->tokens->elem_count);
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  prev_token = token;
-  prev_token_at = token_at;
-  token = (Token*)tokens->get(++token_at, sizeof(Token));
-  while (token->klass == TokenClass::COMMENT) {
-    token = (Token*)tokens->get(++token_at, sizeof(Token));
+  this->prev_token = this->token;
+  this->prev_token_at = this->token_at;
+  this->token = (Token*)this->tokens->get(++this->token_at, sizeof(Token));
+  while (this->token->klass == TokenClass::COMMENT) {
+    this->token = (Token*)this->tokens->get(++this->token_at, sizeof(Token));
   }
-  if (token->klass == TokenClass::IDENTIFIER) {
-    name_entry = current_scope->lookup(token->lexeme, NameSpace::KEYWORD | NameSpace::TYPE);
+  if (this->token->klass == TokenClass::IDENTIFIER) {
+    name_entry = this->current_scope->lookup(this->token->lexeme, NameSpace::KEYWORD | NameSpace::TYPE);
     name_decl = name_entry->ns[(int)NameSpace::KEYWORD >> 1];
     if (name_decl) {
-      token->klass = name_decl->token_class;
-      return token;
+      this->token->klass = name_decl->token_class;
+      return this->token;
     }
     name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
     if (name_decl) {
-      token->klass = TokenClass::TYPE_IDENTIFIER;
-      return token;
+      this->token->klass = TokenClass::TYPE_IDENTIFIER;
+      return this->token;
     }
   }
-  return token;
+  return this->token;
 }
 
 Token* Parser::peek_token()
 {
   Token* peek_token;
 
-  prev_token = token;
-  prev_token_at = token_at;
-  peek_token = next_token();
-  token = prev_token;
-  token_at = prev_token_at;
+  this->prev_token = this->token;
+  this->prev_token_at = this->token_at;
+  peek_token = this->next_token();
+  this->token = this->prev_token;
+  this->token_at = this->prev_token_at;
   return peek_token;
 }
 
-bool Token::token_is_nonTypeName()
+static bool token_is_nonTypeName(Token* token)
 {
-  bool result = klass == TokenClass::IDENTIFIER || klass == TokenClass::APPLY || klass == TokenClass::KEY
-    || klass == TokenClass::ACTIONS || klass == TokenClass::STATE || klass == TokenClass::ENTRIES;
+  bool result = token->klass == TokenClass::IDENTIFIER || token->klass == TokenClass::APPLY || token->klass == TokenClass::KEY
+    || token->klass == TokenClass::ACTIONS || token->klass == TokenClass::STATE || token->klass == TokenClass::ENTRIES;
   return result;
 }
 
-bool Token::token_is_name()
+static bool token_is_name(Token* token)
 {
-  bool result = token_is_nonTypeName() || klass == TokenClass::TYPE_IDENTIFIER;
+  bool result = token_is_nonTypeName(token) || token->klass == TokenClass::TYPE_IDENTIFIER;
   return result;
 }
 
-bool Token::token_is_typeName()
+static bool token_is_typeName(Token* token)
 {
-  return klass == TokenClass::TYPE_IDENTIFIER;
+  return token->klass == TokenClass::TYPE_IDENTIFIER;
 }
 
-bool Token::token_is_nonTableKwName()
+static bool token_is_nonTableKwName(Token* token)
 {
-  bool result = klass == TokenClass::IDENTIFIER || klass == TokenClass::TYPE_IDENTIFIER
-    || klass == TokenClass::APPLY || klass == TokenClass::STATE;
+  bool result = token->klass == TokenClass::IDENTIFIER || token->klass == TokenClass::TYPE_IDENTIFIER
+    || token->klass == TokenClass::APPLY || token->klass == TokenClass::STATE;
   return result;
 }
 
-bool Token::token_is_baseType()
+static bool token_is_baseType(Token* token)
 {
-  bool result = klass == TokenClass::BOOL || klass == TokenClass::ERROR || klass == TokenClass::INT
-    || klass == TokenClass::BIT || klass == TokenClass::VARBIT || klass == TokenClass::STRING
-    || klass == TokenClass::VOID;
+  bool result = token->klass == TokenClass::BOOL || token->klass == TokenClass::ERROR || token->klass == TokenClass::INT
+    || token->klass == TokenClass::BIT || token->klass == TokenClass::VARBIT || token->klass == TokenClass::STRING
+    || token->klass == TokenClass::VOID;
   return result;
 }
 
-bool Token::token_is_typeRef()
+static bool token_is_typeRef(Token* token)
 {
-  bool result = token_is_baseType() || klass == TokenClass::TYPE_IDENTIFIER || klass == TokenClass::TUPLE;
+  bool result = token_is_baseType(token) || token->klass == TokenClass::TYPE_IDENTIFIER || token->klass == TokenClass::TUPLE;
   return result;
 }
 
-bool Token::token_is_direction()
+static bool token_is_direction(Token* token)
 {
-  bool result = klass == TokenClass::IN || klass == TokenClass::OUT || klass == TokenClass::INOUT;
+  bool result = token->klass == TokenClass::IN || token->klass == TokenClass::OUT || token->klass == TokenClass::INOUT;
   return result;
 }
 
-bool Token::token_is_parameter()
+static bool token_is_parameter(Token* token)
 {
-  bool result = token_is_direction() || token_is_typeRef();
+  bool result = token_is_direction(token) || token_is_typeRef(token);
   return result;
 }
 
-bool Token::token_is_derivedTypeDeclaration()
+static bool token_is_derivedTypeDeclaration(Token* token)
 {
-  bool result = klass == TokenClass::HEADER || klass == TokenClass::UNION || klass == TokenClass::STRUCT
-    || klass == TokenClass::ENUM;
+  bool result = token->klass == TokenClass::HEADER || token->klass == TokenClass::UNION || token->klass == TokenClass::STRUCT
+    || token->klass == TokenClass::ENUM;
   return result;
 }
 
-bool Token::token_is_typeDeclaration()
+static bool token_is_typeDeclaration(Token* token)
 {
-  bool result = token_is_derivedTypeDeclaration() || klass == TokenClass::TYPEDEF
-    || klass == TokenClass::PARSER || klass == TokenClass::CONTROL || klass == TokenClass::PACKAGE;
+  bool result = token_is_derivedTypeDeclaration(token) || token->klass == TokenClass::TYPEDEF
+    || token->klass == TokenClass::PARSER || token->klass == TokenClass::CONTROL || token->klass == TokenClass::PACKAGE;
   return result;
 }
 
-bool Token::token_is_typeArg()
+static bool token_is_typeArg(Token* token)
 {
-  bool result = klass == TokenClass::DONTCARE || token_is_typeRef() || token_is_nonTypeName();
+  bool result = token->klass == TokenClass::DONTCARE || token_is_typeRef(token) || token_is_nonTypeName(token);
   return result;
 }
 
-bool Token::token_is_typeOrVoid()
+static bool token_is_typeOrVoid(Token* token)
 {
-  bool result = token_is_typeRef() || klass == TokenClass::VOID || klass == TokenClass::IDENTIFIER;
+  bool result = token_is_typeRef(token) || token->klass == TokenClass::VOID || token->klass == TokenClass::IDENTIFIER;
   return result;
 }
 
-bool Token::token_is_actionRef()
+static bool token_is_actionRef(Token* token)
 {
-  bool result = token_is_nonTypeName() || klass == TokenClass::PARENTH_OPEN;
+  bool result = token_is_nonTypeName(token) || token->klass == TokenClass::PARENTH_OPEN;
   return result;
 }
 
-bool Token::token_is_tableProperty()
+static bool token_is_tableProperty(Token* token)
 {
-  bool result = klass == TokenClass::KEY || klass == TokenClass::ACTIONS;
+  bool result = token->klass == TokenClass::KEY || token->klass == TokenClass::ACTIONS;
 #if 0
-    || klass == TokenClass::CONST || klass == TokenClass::ENTRIES
+    || token->klass == TokenClass::CONST || token->klass == TokenClass::ENTRIES
     || token_is_nonTableKwName(token);
 #endif
   return result;
 }
 
-bool Token::token_is_switchLabel()
+static bool token_is_switchLabel(Token* token)
 {
-  bool result = token_is_name() || klass == TokenClass::DEFAULT;
+  bool result = token_is_name(token) || token->klass == TokenClass::DEFAULT;
   return result;
 }
 
-bool Token::token_is_expressionPrimary()
+static bool token_is_expressionPrimary(Token* token)
 {
-  bool result = klass == TokenClass::INTEGER_LITERAL || klass == TokenClass::TRUE || klass == TokenClass::FALSE
-    || klass == TokenClass::STRING_LITERAL || token_is_nonTypeName()
-    || klass == TokenClass::BRACE_OPEN || klass == TokenClass::PARENTH_OPEN || klass == TokenClass::EXCLAMATION
-    || klass == TokenClass::TILDA || klass == TokenClass::UNARY_MINUS || token_is_typeName()
-    || klass == TokenClass::ERROR || klass == TokenClass::TYPE_IDENTIFIER;
+  bool result = token->klass == TokenClass::INTEGER_LITERAL || token->klass == TokenClass::TRUE || token->klass == TokenClass::FALSE
+    || token->klass == TokenClass::STRING_LITERAL || token_is_nonTypeName(token)
+    || token->klass == TokenClass::BRACE_OPEN || token->klass == TokenClass::PARENTH_OPEN || token->klass == TokenClass::EXCLAMATION
+    || token->klass == TokenClass::TILDA || token->klass == TokenClass::UNARY_MINUS || token_is_typeName(token)
+    || token->klass == TokenClass::ERROR || token->klass == TokenClass::TYPE_IDENTIFIER;
   return result;
 }
 
-bool Token::token_is_expression()
+static bool token_is_expression(Token* token)
 {
-  return token_is_expressionPrimary();
+  return token_is_expressionPrimary(token);
 }
 
-bool Token::token_is_methodPrototype()
+static bool token_is_methodPrototype(Token* token)
 {
-  return token_is_typeOrVoid() || klass == TokenClass::TYPE_IDENTIFIER;
+  return token_is_typeOrVoid(token) || token->klass == TokenClass::TYPE_IDENTIFIER;
 }
 
-bool Token::token_is_structField()
+static bool token_is_structField(Token* token)
 {
-  bool result = token_is_typeRef();
+  bool result = token_is_typeRef(token);
   return result;
 }
 
-bool Token::token_is_specifiedIdentifier()
+static bool token_is_specifiedIdentifier(Token* token)
 {
-  return token_is_name();
+  return token_is_name(token);
 }
 
-bool Token::token_is_declaration()
+static bool token_is_declaration(Token* token)
 {
-  bool result = klass == TokenClass::CONST || klass == TokenClass::EXTERN || klass == TokenClass::ACTION
-    || klass == TokenClass::PARSER || token_is_typeDeclaration() || klass == TokenClass::CONTROL
-    || token_is_typeRef() || klass == TokenClass::ERROR || klass == TokenClass::MATCH_KIND
-    || token_is_typeOrVoid();
+  bool result = token->klass == TokenClass::CONST || token->klass == TokenClass::EXTERN || token->klass == TokenClass::ACTION
+    || token->klass == TokenClass::PARSER || token_is_typeDeclaration(token) || token->klass == TokenClass::CONTROL
+    || token_is_typeRef(token) || token->klass == TokenClass::ERROR || token->klass == TokenClass::MATCH_KIND
+    || token_is_typeOrVoid(token);
   return result;
 }
 
-bool Token::token_is_lvalue()
+static bool token_is_lvalue(Token* token)
 {
-  bool result = token_is_nonTypeName() || (klass == TokenClass::DOT);
+  bool result = token_is_nonTypeName(token) || (token->klass == TokenClass::DOT);
   return result;
 }
 
-bool Token::token_is_assignmentOrMethodCallStatement()
+static bool token_is_assignmentOrMethodCallStatement(Token* token)
 {
-  bool result = token_is_lvalue() || klass == TokenClass::PARENTH_OPEN || klass == TokenClass::ANGLE_OPEN
-    || klass == TokenClass::EQUAL;
+  bool result = token_is_lvalue(token) || token->klass == TokenClass::PARENTH_OPEN || token->klass == TokenClass::ANGLE_OPEN
+    || token->klass == TokenClass::EQUAL;
   return result;
 }
 
-bool Token::token_is_statement()
+static bool token_is_statement(Token* token)
 {
-  bool result = token_is_assignmentOrMethodCallStatement() || token_is_typeName() || klass == TokenClass::IF
-    || klass == TokenClass::SEMICOLON || klass == TokenClass::BRACE_OPEN || klass == TokenClass::EXIT
-    || klass == TokenClass::RETURN || klass == TokenClass::SWITCH;
+  bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token) || token->klass == TokenClass::IF
+    || token->klass == TokenClass::SEMICOLON || token->klass == TokenClass::BRACE_OPEN || token->klass == TokenClass::EXIT
+    || token->klass == TokenClass::RETURN || token->klass == TokenClass::SWITCH;
   return result;
 }
 
-bool Token::token_is_statementOrDeclaration()
+static bool token_is_statementOrDeclaration(Token* token)
 {
-  bool result = token_is_typeRef() || klass == TokenClass::CONST || token_is_statement();
+  bool result = token_is_typeRef(token) || token->klass == TokenClass::CONST || token_is_statement(token);
   return result;
 }
 
-bool Token::token_is_argument()
+static bool token_is_argument(Token* token)
 {
-  bool result = token_is_expression() || token_is_name() || klass == TokenClass::DONTCARE;
+  bool result = token_is_expression(token) || token_is_name(token) || token->klass == TokenClass::DONTCARE;
   return result;
 }
 
-bool Token::token_is_parserLocalElement()
+static bool token_is_parserLocalElement(Token* token)
 {
-  bool result = klass == TokenClass::CONST || token_is_typeRef();
+  bool result = token->klass == TokenClass::CONST || token_is_typeRef(token);
   return result;
 }
 
-bool Token::token_is_parserStatement()
+static bool token_is_parserStatement(Token* token)
 {
-  bool result = token_is_assignmentOrMethodCallStatement() || token_is_typeName()
-    || klass == TokenClass::BRACE_OPEN || klass == TokenClass::CONST || token_is_typeRef()
-    || klass == TokenClass::SEMICOLON;
+  bool result = token_is_assignmentOrMethodCallStatement(token) || token_is_typeName(token)
+    || token->klass == TokenClass::BRACE_OPEN || token->klass == TokenClass::CONST || token_is_typeRef(token)
+    || token->klass == TokenClass::SEMICOLON;
   return result;
 }
 
-bool Token::token_is_simpleKeysetExpression()
-{
-  bool result = token_is_expression() || klass == TokenClass::DEFAULT || klass == TokenClass::DONTCARE;
+static bool token_is_simpleKeysetExpression(Token* token) {
+  bool result = token_is_expression(token) || token->klass == TokenClass::DEFAULT || token->klass == TokenClass::DONTCARE;
   return result;
 }
 
-bool Token::token_is_keysetExpression()
+static bool token_is_keysetExpression(Token* token)
 {
-  bool result = klass == TokenClass::TUPLE || token_is_simpleKeysetExpression();
+  bool result = token->klass == TokenClass::TUPLE || token_is_simpleKeysetExpression(token);
   return result;
 }
 
-bool Token::token_is_selectCase()
+static bool token_is_selectCase(Token* token)
 {
-  return token_is_keysetExpression();
+  return token_is_keysetExpression(token);
 }
 
-bool Token::token_is_controlLocalDeclaration()
+static bool token_is_controlLocalDeclaration(Token* token)
 {
-  bool result = klass == TokenClass::CONST || klass == TokenClass::ACTION
-    || klass == TokenClass::TABLE || token_is_typeRef() || token_is_typeRef();
+  bool result = token->klass == TokenClass::CONST || token->klass == TokenClass::ACTION
+    || token->klass == TokenClass::TABLE || token_is_typeRef(token) || token_is_typeRef(token);
   return result;
 }
 
-bool Token::token_is_realTypeArg()
+static bool token_is_realTypeArg(Token* token)
 {
-  bool result = klass == TokenClass::DONTCARE|| token_is_typeRef();
+  bool result = token->klass == TokenClass::DONTCARE|| token_is_typeRef(token);
   return result;
 }
 
-bool Token::token_is_binaryOperator()
+static bool token_is_binaryOperator(Token* token)
 {
-  bool result = klass == TokenClass::STAR || klass == TokenClass::SLASH
-    || klass == TokenClass::PLUS || klass == TokenClass::MINUS
-    || klass == TokenClass::ANGLE_OPEN_EQUAL || klass == TokenClass::ANGLE_CLOSE_EQUAL
-    || klass == TokenClass::ANGLE_OPEN || klass == TokenClass::ANGLE_CLOSE
-    || klass == TokenClass::EXCLAMATION_EQUAL || klass == TokenClass::DOUBLE_EQUAL
-    || klass == TokenClass::DOUBLE_PIPE || klass == TokenClass::DOUBLE_AMPERSAND
-    || klass == TokenClass::PIPE || klass == TokenClass::AMPERSAND
-    || klass == TokenClass::CIRCUMFLEX || klass == TokenClass::DOUBLE_ANGLE_OPEN
-    || klass == TokenClass::DOUBLE_ANGLE_CLOSE || klass == TokenClass::TRIPLE_AMPERSAND
-    || klass == TokenClass::EQUAL;
+  bool result = token->klass == TokenClass::STAR || token->klass == TokenClass::SLASH
+    || token->klass == TokenClass::PLUS || token->klass == TokenClass::MINUS
+    || token->klass == TokenClass::ANGLE_OPEN_EQUAL || token->klass == TokenClass::ANGLE_CLOSE_EQUAL
+    || token->klass == TokenClass::ANGLE_OPEN || token->klass == TokenClass::ANGLE_CLOSE
+    || token->klass == TokenClass::EXCLAMATION_EQUAL || token->klass == TokenClass::DOUBLE_EQUAL
+    || token->klass == TokenClass::DOUBLE_PIPE || token->klass == TokenClass::DOUBLE_AMPERSAND
+    || token->klass == TokenClass::PIPE || token->klass == TokenClass::AMPERSAND
+    || token->klass == TokenClass::CIRCUMFLEX || token->klass == TokenClass::DOUBLE_ANGLE_OPEN
+    || token->klass == TokenClass::DOUBLE_ANGLE_CLOSE || token->klass == TokenClass::TRIPLE_AMPERSAND
+    || token->klass == TokenClass::EQUAL;
   return result;
 }
 
-bool Token::token_is_exprOperator()
+static bool token_is_exprOperator(Token* token)
 {
-  bool result = token_is_binaryOperator() || klass == TokenClass::DOT
-    || klass == TokenClass::BRACKET_OPEN || klass == TokenClass::PARENTH_OPEN
-    || klass == TokenClass::ANGLE_OPEN;
+  bool result = token_is_binaryOperator(token) || token->klass == TokenClass::DOT
+    || token->klass == TokenClass::BRACKET_OPEN || token->klass == TokenClass::PARENTH_OPEN
+    || token->klass == TokenClass::ANGLE_OPEN;
   return result;
 }
 
-int Token::operator_priority()
+static int operator_priority(Token* token)
 {
-  if (klass == TokenClass::DOUBLE_AMPERSAND || klass == TokenClass::DOUBLE_PIPE) {
+  if (token->klass == TokenClass::DOUBLE_AMPERSAND || token->klass == TokenClass::DOUBLE_PIPE) {
     /* Logical AND, OR */
     return 1;
-  } else if (klass == TokenClass::DOUBLE_EQUAL || klass == TokenClass::EXCLAMATION_EQUAL
-      || klass == TokenClass::ANGLE_OPEN /* < */ || klass == TokenClass::ANGLE_CLOSE /* > */
-      || klass == TokenClass::ANGLE_OPEN_EQUAL /* <= */ || klass == TokenClass::ANGLE_CLOSE_EQUAL /* >= */) {
+  } else if (token->klass == TokenClass::DOUBLE_EQUAL || token->klass == TokenClass::EXCLAMATION_EQUAL
+      || token->klass == TokenClass::ANGLE_OPEN /* < */ || token->klass == TokenClass::ANGLE_CLOSE /* > */
+      || token->klass == TokenClass::ANGLE_OPEN_EQUAL /* <= */ || token->klass == TokenClass::ANGLE_CLOSE_EQUAL /* >= */) {
     /* Relational ops  */
     return 2;
   }
-  else if (klass == TokenClass::PLUS || klass == TokenClass::MINUS
-           || klass == TokenClass::AMPERSAND || klass == TokenClass::PIPE
-           || klass == TokenClass::CIRCUMFLEX || klass == TokenClass::DOUBLE_ANGLE_OPEN /* << */
-           || klass == TokenClass::DOUBLE_ANGLE_CLOSE /* >> */) {
+  else if (token->klass == TokenClass::PLUS || token->klass == TokenClass::MINUS
+           || token->klass == TokenClass::AMPERSAND || token->klass == TokenClass::PIPE
+           || token->klass == TokenClass::CIRCUMFLEX || token->klass == TokenClass::DOUBLE_ANGLE_OPEN /* << */
+           || token->klass == TokenClass::DOUBLE_ANGLE_CLOSE /* >> */) {
     /* Addition and subtraction; bitwise ops */
     return 3;
   }
-  else if (klass == TokenClass::STAR || klass == TokenClass::SLASH) {
+  else if (token->klass == TokenClass::STAR || token->klass == TokenClass::SLASH) {
     /* Multiplication and division */
     return 4;
   }
-  else if (klass == TokenClass::TRIPLE_AMPERSAND) {
+  else if (token->klass == TokenClass::TRIPLE_AMPERSAND) {
     /* Mask */
     return 5;
   }
@@ -557,323 +556,323 @@ Ast* Ast::clone(Arena* storage)
 
   if (this == 0) return (Ast*)0;
   clone = (Ast*)storage->malloc(sizeof(Ast));
-  clone->kind = kind;
-  clone->line_no = line_no;
-  clone->column_no = column_no;
-  if (tree.first_child) {
-    child_clone = container_of(tree.first_child, Ast, tree)->clone(storage);
+  clone->kind = this->kind;
+  clone->line_no = this->line_no;
+  clone->column_no = this->column_no;
+  if (this->tree.first_child) {
+    child_clone = container_of(this->tree.first_child, Ast, tree)->clone(storage);
     clone->tree.first_child = &child_clone->tree;
   }
-  if (tree.right_sibling) {
-    sibling_clone = container_of(tree.right_sibling, Ast, tree)->clone(storage);
+  if (this->tree.right_sibling) {
+    sibling_clone = container_of(this->tree.right_sibling, Ast, tree)->clone(storage);
     clone->tree.right_sibling = &sibling_clone->tree;
   }
 
   /** PROGRAM **/
-  if (kind == AstEnum::p4program) {
-    clone->p4program.decl_list = p4program.decl_list->clone(storage);
-  } else if (kind == AstEnum::declarationList) {
+  if (this->kind == AstEnum::p4program) {
+    clone->p4program.decl_list = this->p4program.decl_list->clone(storage);
+  } else if (this->kind == AstEnum::declarationList) {
     ;
-  } else if (kind == AstEnum::declaration) {
-    clone->declaration.decl = declaration.decl->clone(storage);
-  } else if (kind == AstEnum::name) {
-    clone->name.strname = name.strname;
-  } else if (kind == AstEnum::parameterList) {
+  } else if (this->kind == AstEnum::declaration) {
+    clone->declaration.decl = this->declaration.decl->clone(storage);
+  } else if (this->kind == AstEnum::name) {
+    clone->name.strname = this->name.strname;
+  } else if (this->kind == AstEnum::parameterList) {
     ;
-  } else if (kind == AstEnum::parameter) {
-    clone->parameter.direction = parameter.direction;
-    clone->parameter.name = parameter.name->clone(storage);
-    clone->parameter.type = parameter.type->clone(storage);
-    clone->parameter.init_expr = parameter.init_expr->clone(storage);
-  } else if (kind == AstEnum::packageTypeDeclaration) {
-    clone->packageTypeDeclaration.name = packageTypeDeclaration.name->clone(storage);
-    clone->packageTypeDeclaration.params = packageTypeDeclaration.params->clone(storage);
-  } else if (kind == AstEnum::instantiation) {
-    clone->instantiation.name = instantiation.name->clone(storage);
-    clone->instantiation.type = instantiation.type->clone(storage);
-    clone->instantiation.args = instantiation.args->clone(storage);
+  } else if (this->kind == AstEnum::parameter) {
+    clone->parameter.direction = this->parameter.direction;
+    clone->parameter.name = this->parameter.name->clone(storage);
+    clone->parameter.type = this->parameter.type->clone(storage);
+    clone->parameter.init_expr = this->parameter.init_expr->clone(storage);
+  } else if (this->kind == AstEnum::packageTypeDeclaration) {
+    clone->packageTypeDeclaration.name = this->packageTypeDeclaration.name->clone(storage);
+    clone->packageTypeDeclaration.params = this->packageTypeDeclaration.params->clone(storage);
+  } else if (this->kind == AstEnum::instantiation) {
+    clone->instantiation.name = this->instantiation.name->clone(storage);
+    clone->instantiation.type = this->instantiation.type->clone(storage);
+    clone->instantiation.args = this->instantiation.args->clone(storage);
   }
   /** PARSER **/
-  else if (kind == AstEnum::parserDeclaration) {
-    clone->parserDeclaration.proto = parserDeclaration.proto->clone(storage);
-    clone->parserDeclaration.ctor_params = parserDeclaration.ctor_params->clone(storage);
-    clone->parserDeclaration.local_elements = parserDeclaration.local_elements->clone(storage);
-    clone->parserDeclaration.states = parserDeclaration.states->clone(storage);
-  } else if (kind == AstEnum::parserTypeDeclaration) {
-    clone->parserTypeDeclaration.name = parserTypeDeclaration.name->clone(storage);
-    clone->parserTypeDeclaration.params = parserTypeDeclaration.params->clone(storage);
-    clone->parserTypeDeclaration.method_protos = parserTypeDeclaration.method_protos->clone(storage);
-  } else if (kind == AstEnum::parserLocalElements) {
+  else if (this->kind == AstEnum::parserDeclaration) {
+    clone->parserDeclaration.proto = this->parserDeclaration.proto->clone(storage);
+    clone->parserDeclaration.ctor_params = this->parserDeclaration.ctor_params->clone(storage);
+    clone->parserDeclaration.local_elements = this->parserDeclaration.local_elements->clone(storage);
+    clone->parserDeclaration.states = this->parserDeclaration.states->clone(storage);
+  } else if (this->kind == AstEnum::parserTypeDeclaration) {
+    clone->parserTypeDeclaration.name = this->parserTypeDeclaration.name->clone(storage);
+    clone->parserTypeDeclaration.params = this->parserTypeDeclaration.params->clone(storage);
+    clone->parserTypeDeclaration.method_protos = this->parserTypeDeclaration.method_protos->clone(storage);
+  } else if (this->kind == AstEnum::parserLocalElements) {
     ;
-  } else if (kind == AstEnum::parserLocalElement) {
-    clone->parserLocalElement.element = parserLocalElement.element->clone(storage);
-  } else if (kind == AstEnum::parserStates) {
+  } else if (this->kind == AstEnum::parserLocalElement) {
+    clone->parserLocalElement.element = this->parserLocalElement.element->clone(storage);
+  } else if (this->kind == AstEnum::parserStates) {
     ;
-  } else if (kind == AstEnum::parserState) {
-    clone->parserState.name = parserState.name->clone(storage);
-    clone->parserState.stmt_list = parserState.stmt_list->clone(storage);
-    clone->parserState.transition_stmt = parserState.transition_stmt->clone(storage);
-  } else if (kind == AstEnum::parserStatements) {
+  } else if (this->kind == AstEnum::parserState) {
+    clone->parserState.name = this->parserState.name->clone(storage);
+    clone->parserState.stmt_list = this->parserState.stmt_list->clone(storage);
+    clone->parserState.transition_stmt = this->parserState.transition_stmt->clone(storage);
+  } else if (this->kind == AstEnum::parserStatements) {
     ;
-  } else if (kind == AstEnum::parserStatement) {
-    clone->parserStatement.stmt = parserStatement.stmt->clone(storage);
-  } else if (kind == AstEnum::parserBlockStatement) {
-    clone->parserBlockStatement.stmt_list = parserBlockStatement.stmt_list->clone(storage);
-  } else if (kind == AstEnum::transitionStatement) {
-    clone->transitionStatement.stmt = transitionStatement.stmt->clone(storage);
-  } else if (kind == AstEnum::stateExpression) {
-    clone->stateExpression.expr = stateExpression.expr->clone(storage);
-  } else if (kind == AstEnum::selectExpression) {
-    clone->selectExpression.expr_list = selectExpression.expr_list->clone(storage);
-    clone->selectExpression.case_list = selectExpression.case_list->clone(storage);
-  } else if (kind == AstEnum::selectCaseList) {
+  } else if (this->kind == AstEnum::parserStatement) {
+    clone->parserStatement.stmt = this->parserStatement.stmt->clone(storage);
+  } else if (this->kind == AstEnum::parserBlockStatement) {
+    clone->parserBlockStatement.stmt_list = this->parserBlockStatement.stmt_list->clone(storage);
+  } else if (this->kind == AstEnum::transitionStatement) {
+    clone->transitionStatement.stmt = this->transitionStatement.stmt->clone(storage);
+  } else if (this->kind == AstEnum::stateExpression) {
+    clone->stateExpression.expr = this->stateExpression.expr->clone(storage);
+  } else if (this->kind == AstEnum::selectExpression) {
+    clone->selectExpression.expr_list = this->selectExpression.expr_list->clone(storage);
+    clone->selectExpression.case_list = this->selectExpression.case_list->clone(storage);
+  } else if (this->kind == AstEnum::selectCaseList) {
     ;
-  } else if (kind == AstEnum::selectCase) {
-    clone->selectCase.keyset_expr = selectCase.keyset_expr->clone(storage);
-    clone->selectCase.name = selectCase.name->clone(storage);
-  } else if (kind == AstEnum::keysetExpression) {
-    clone->keysetExpression.expr = keysetExpression.expr->clone(storage);
-  } else if (kind == AstEnum::tupleKeysetExpression) {
-    clone->tupleKeysetExpression.expr_list = tupleKeysetExpression.expr_list->clone(storage);
-  } else if (kind == AstEnum::simpleKeysetExpression) {
-    clone->simpleKeysetExpression.expr = simpleKeysetExpression.expr->clone(storage);
-  } else if (kind == AstEnum::simpleExpressionList) {
+  } else if (this->kind == AstEnum::selectCase) {
+    clone->selectCase.keyset_expr = this->selectCase.keyset_expr->clone(storage);
+    clone->selectCase.name = this->selectCase.name->clone(storage);
+  } else if (this->kind == AstEnum::keysetExpression) {
+    clone->keysetExpression.expr = this->keysetExpression.expr->clone(storage);
+  } else if (this->kind == AstEnum::tupleKeysetExpression) {
+    clone->tupleKeysetExpression.expr_list = this->tupleKeysetExpression.expr_list->clone(storage);
+  } else if (this->kind == AstEnum::simpleKeysetExpression) {
+    clone->simpleKeysetExpression.expr = this->simpleKeysetExpression.expr->clone(storage);
+  } else if (this->kind == AstEnum::simpleExpressionList) {
     ;
-  } else if (kind == AstEnum::typeRef) {
-    clone->typeRef.type = typeRef.type->clone(storage);
-  } else if (kind == AstEnum::tupleType) {
-    clone->tupleType.type_args = tupleType.type_args->clone(storage);
+  } else if (this->kind == AstEnum::typeRef) {
+    clone->typeRef.type = this->typeRef.type->clone(storage);
+  } else if (this->kind == AstEnum::tupleType) {
+    clone->tupleType.type_args = this->tupleType.type_args->clone(storage);
   }
   /** CONTROL **/
-  else if (kind == AstEnum::controlDeclaration) {
-    clone->controlDeclaration.proto = controlDeclaration.proto->clone(storage);
-    clone->controlDeclaration.ctor_params = controlDeclaration.ctor_params->clone(storage);
-    clone->controlDeclaration.local_decls = controlDeclaration.local_decls->clone(storage);
-    clone->controlDeclaration.apply_stmt = controlDeclaration.apply_stmt->clone(storage);
-  } else if (kind == AstEnum::controlTypeDeclaration) {
-    clone->controlTypeDeclaration.name = controlTypeDeclaration.name->clone(storage);
-    clone->controlTypeDeclaration.params = controlTypeDeclaration.params->clone(storage);
-    clone->controlTypeDeclaration.method_protos = controlTypeDeclaration.params->clone(storage);
-  } else if (kind == AstEnum::controlLocalDeclarations) {
+  else if (this->kind == AstEnum::controlDeclaration) {
+    clone->controlDeclaration.proto = this->controlDeclaration.proto->clone(storage);
+    clone->controlDeclaration.ctor_params = this->controlDeclaration.ctor_params->clone(storage);
+    clone->controlDeclaration.local_decls = this->controlDeclaration.local_decls->clone(storage);
+    clone->controlDeclaration.apply_stmt = this->controlDeclaration.apply_stmt->clone(storage);
+  } else if (this->kind == AstEnum::controlTypeDeclaration) {
+    clone->controlTypeDeclaration.name = this->controlTypeDeclaration.name->clone(storage);
+    clone->controlTypeDeclaration.params = this->controlTypeDeclaration.params->clone(storage);
+    clone->controlTypeDeclaration.method_protos = this->controlTypeDeclaration.params->clone(storage);
+  } else if (this->kind == AstEnum::controlLocalDeclarations) {
     ;
-  } else if (kind == AstEnum::controlLocalDeclaration) {
-    clone->controlLocalDeclaration.decl = controlLocalDeclaration.decl->clone(storage);
+  } else if (this->kind == AstEnum::controlLocalDeclaration) {
+    clone->controlLocalDeclaration.decl = this->controlLocalDeclaration.decl->clone(storage);
   }
   /** EXTERN **/
-  else if (kind == AstEnum::externDeclaration) {
-    clone->externDeclaration.decl = externDeclaration.decl->clone(storage);
-  } else if (kind == AstEnum::externTypeDeclaration) {
-    clone->externTypeDeclaration.name = externTypeDeclaration.name->clone(storage);
-    clone->externTypeDeclaration.method_protos = externTypeDeclaration.method_protos->clone(storage);
-  } else if (kind == AstEnum::methodPrototypes) {
+  else if (this->kind == AstEnum::externDeclaration) {
+    clone->externDeclaration.decl = this->externDeclaration.decl->clone(storage);
+  } else if (this->kind == AstEnum::externTypeDeclaration) {
+    clone->externTypeDeclaration.name = this->externTypeDeclaration.name->clone(storage);
+    clone->externTypeDeclaration.method_protos = this->externTypeDeclaration.method_protos->clone(storage);
+  } else if (this->kind == AstEnum::methodPrototypes) {
     ;
-  } else if (kind == AstEnum::functionPrototype) {
-    clone->functionPrototype.return_type = functionPrototype.return_type->clone(storage);
-    clone->functionPrototype.name = functionPrototype.name->clone(storage);
-    clone->functionPrototype.params = functionPrototype.params->clone(storage);
+  } else if (this->kind == AstEnum::functionPrototype) {
+    clone->functionPrototype.return_type = this->functionPrototype.return_type->clone(storage);
+    clone->functionPrototype.name = this->functionPrototype.name->clone(storage);
+    clone->functionPrototype.params = this->functionPrototype.params->clone(storage);
   }
   /** TYPES **/
-  else if (kind == AstEnum::typeRef) {
-    clone->typeRef.type = typeRef.type->clone(storage);
-  } else if (kind == AstEnum::tupleType) {
-    clone->tupleType.type_args = tupleType.type_args->clone(storage);
-  } else if (kind == AstEnum::headerStackType) {
-    clone->headerStackType.type = headerStackType.type->clone(storage);
-    clone->headerStackType.stack_expr = headerStackType.stack_expr->clone(storage);
-  } else if (kind == AstEnum::baseTypeBoolean) {
-    clone->baseTypeBoolean.name = baseTypeBoolean.name->clone(storage);
-  } else if (kind == AstEnum::baseTypeInteger) {
-    clone->baseTypeInteger.name = baseTypeInteger.name->clone(storage);
-    clone->baseTypeInteger.size = baseTypeInteger.size->clone(storage);
-  } else if (kind == AstEnum::baseTypeBit) {
-    clone->baseTypeBit.name = baseTypeBit.name->clone(storage);
-    clone->baseTypeBit.size = baseTypeBit.size->clone(storage);
-  } else if (kind == AstEnum::baseTypeBit) {
-    clone->baseTypeBit.name = baseTypeBit.name->clone(storage);
-    clone->baseTypeBit.size = baseTypeBit.size->clone(storage);
-  } else if (kind == AstEnum::baseTypeString) {
-    clone->baseTypeString.name = baseTypeString.name->clone(storage);
-  } else if (kind == AstEnum::baseTypeVoid) {
-    clone->baseTypeVoid.name = baseTypeVoid.name->clone(storage);
-  } else if (kind == AstEnum::baseTypeError) {
-    clone->baseTypeError.name = baseTypeError.name->clone(storage);
-  } else if (kind == AstEnum::integerTypeSize) {
-    clone->integerTypeSize.size = integerTypeSize.size->clone(storage);
-  } else if (kind == AstEnum::realTypeArg) {
-    clone->realTypeArg.arg = realTypeArg.arg->clone(storage);
-  } else if (kind == AstEnum::typeArg) {
-    clone->typeArg.arg = typeArg.arg->clone(storage);
-  } else if (kind == AstEnum::typeArgumentList) {
+  else if (this->kind == AstEnum::typeRef) {
+    clone->typeRef.type = this->typeRef.type->clone(storage);
+  } else if (this->kind == AstEnum::tupleType) {
+    clone->tupleType.type_args = this->tupleType.type_args->clone(storage);
+  } else if (this->kind == AstEnum::headerStackType) {
+    clone->headerStackType.type = this->headerStackType.type->clone(storage);
+    clone->headerStackType.stack_expr = this->headerStackType.stack_expr->clone(storage);
+  } else if (this->kind == AstEnum::baseTypeBoolean) {
+    clone->baseTypeBoolean.name = this->baseTypeBoolean.name->clone(storage);
+  } else if (this->kind == AstEnum::baseTypeInteger) {
+    clone->baseTypeInteger.name = this->baseTypeInteger.name->clone(storage);
+    clone->baseTypeInteger.size = this->baseTypeInteger.size->clone(storage);
+  } else if (this->kind == AstEnum::baseTypeBit) {
+    clone->baseTypeBit.name = this->baseTypeBit.name->clone(storage);
+    clone->baseTypeBit.size = this->baseTypeBit.size->clone(storage);
+  } else if (this->kind == AstEnum::baseTypeBit) {
+    clone->baseTypeBit.name = this->baseTypeBit.name->clone(storage);
+    clone->baseTypeBit.size = this->baseTypeBit.size->clone(storage);
+  } else if (this->kind == AstEnum::baseTypeString) {
+    clone->baseTypeString.name = this->baseTypeString.name->clone(storage);
+  } else if (this->kind == AstEnum::baseTypeVoid) {
+    clone->baseTypeVoid.name = this->baseTypeVoid.name->clone(storage);
+  } else if (this->kind == AstEnum::baseTypeError) {
+    clone->baseTypeError.name = this->baseTypeError.name->clone(storage);
+  } else if (this->kind == AstEnum::integerTypeSize) {
+    clone->integerTypeSize.size = this->integerTypeSize.size->clone(storage);
+  } else if (this->kind == AstEnum::realTypeArg) {
+    clone->realTypeArg.arg = this->realTypeArg.arg->clone(storage);
+  } else if (this->kind == AstEnum::typeArg) {
+    clone->typeArg.arg = this->typeArg.arg->clone(storage);
+  } else if (this->kind == AstEnum::typeArgumentList) {
     ;
-  } else if (kind == AstEnum::typeDeclaration) {
-    clone->typeDeclaration.decl = typeDeclaration.decl->clone(storage);
-  } else if (kind == AstEnum::derivedTypeDeclaration) {
-    clone->derivedTypeDeclaration.decl = derivedTypeDeclaration.decl->clone(storage);
-  } else if (kind == AstEnum::headerTypeDeclaration) {
-    clone->headerTypeDeclaration.name = headerTypeDeclaration.name->clone(storage);
-    clone->headerTypeDeclaration.fields = headerTypeDeclaration.fields->clone(storage);
-  } else if (kind == AstEnum::headerUnionDeclaration) {
-    clone->headerUnionDeclaration.name = headerUnionDeclaration.name->clone(storage);
-    clone->headerUnionDeclaration.fields = headerUnionDeclaration.fields->clone(storage);
-  } else if (kind == AstEnum::structTypeDeclaration) {
-    clone->structTypeDeclaration.name = structTypeDeclaration.name->clone(storage);
-    clone->structTypeDeclaration.fields = structTypeDeclaration.fields->clone(storage);
-  } else if (kind == AstEnum::structFieldList) {
+  } else if (this->kind == AstEnum::typeDeclaration) {
+    clone->typeDeclaration.decl = this->typeDeclaration.decl->clone(storage);
+  } else if (this->kind == AstEnum::derivedTypeDeclaration) {
+    clone->derivedTypeDeclaration.decl = this->derivedTypeDeclaration.decl->clone(storage);
+  } else if (this->kind == AstEnum::headerTypeDeclaration) {
+    clone->headerTypeDeclaration.name = this->headerTypeDeclaration.name->clone(storage);
+    clone->headerTypeDeclaration.fields = this->headerTypeDeclaration.fields->clone(storage);
+  } else if (this->kind == AstEnum::headerUnionDeclaration) {
+    clone->headerUnionDeclaration.name = this->headerUnionDeclaration.name->clone(storage);
+    clone->headerUnionDeclaration.fields = this->headerUnionDeclaration.fields->clone(storage);
+  } else if (this->kind == AstEnum::structTypeDeclaration) {
+    clone->structTypeDeclaration.name = this->structTypeDeclaration.name->clone(storage);
+    clone->structTypeDeclaration.fields = this->structTypeDeclaration.fields->clone(storage);
+  } else if (this->kind == AstEnum::structFieldList) {
     ;
-  } else if (kind == AstEnum::structField) {
-    clone->structField.type = structField.type->clone(storage);
-    clone->structField.name = structField.name->clone(storage);
-  } else if (kind == AstEnum::enumDeclaration) {
-    clone->enumDeclaration.type_size = enumDeclaration.type_size->clone(storage);
-    clone->enumDeclaration.name = enumDeclaration.name->clone(storage);
-    clone->enumDeclaration.fields = enumDeclaration.fields->clone(storage);
-  } else if (kind == AstEnum::errorDeclaration) {
-    clone->errorDeclaration.fields = errorDeclaration.fields->clone(storage);
-  } else if (kind == AstEnum::matchKindDeclaration) {
-    clone->matchKindDeclaration.fields = matchKindDeclaration.fields->clone(storage);
-  } else if (kind == AstEnum::matchKindDeclaration) {
+  } else if (this->kind == AstEnum::structField) {
+    clone->structField.type = this->structField.type->clone(storage);
+    clone->structField.name = this->structField.name->clone(storage);
+  } else if (this->kind == AstEnum::enumDeclaration) {
+    clone->enumDeclaration.type_size = this->enumDeclaration.type_size->clone(storage);
+    clone->enumDeclaration.name = this->enumDeclaration.name->clone(storage);
+    clone->enumDeclaration.fields = this->enumDeclaration.fields->clone(storage);
+  } else if (this->kind == AstEnum::errorDeclaration) {
+    clone->errorDeclaration.fields = this->errorDeclaration.fields->clone(storage);
+  } else if (this->kind == AstEnum::matchKindDeclaration) {
+    clone->matchKindDeclaration.fields = this->matchKindDeclaration.fields->clone(storage);
+  } else if (this->kind == AstEnum::matchKindDeclaration) {
     ;
-  } else if (kind == AstEnum::specifiedIdentifierList) {
+  } else if (this->kind == AstEnum::specifiedIdentifierList) {
     ;
-  } else if (kind == AstEnum::specifiedIdentifier) {
-    clone->specifiedIdentifier.name = specifiedIdentifier.name->clone(storage);
-    clone->specifiedIdentifier.init_expr = specifiedIdentifier.init_expr->clone(storage);
-  } else if (kind == AstEnum::typedefDeclaration) {
-    clone->typedefDeclaration.type_ref = typedefDeclaration.type_ref->clone(storage);
-    clone->typedefDeclaration.name = typedefDeclaration.name->clone(storage);
+  } else if (this->kind == AstEnum::specifiedIdentifier) {
+    clone->specifiedIdentifier.name = this->specifiedIdentifier.name->clone(storage);
+    clone->specifiedIdentifier.init_expr = this->specifiedIdentifier.init_expr->clone(storage);
+  } else if (this->kind == AstEnum::typedefDeclaration) {
+    clone->typedefDeclaration.type_ref = this->typedefDeclaration.type_ref->clone(storage);
+    clone->typedefDeclaration.name = this->typedefDeclaration.name->clone(storage);
   }
   /** STATEMENTS **/
-  else if (kind == AstEnum::assignmentStatement) {
-    clone->assignmentStatement.lhs_expr = assignmentStatement.lhs_expr->clone(storage);
-    clone->assignmentStatement.rhs_expr = assignmentStatement.rhs_expr->clone(storage);
-  } else if (kind == AstEnum::emptyStatement) {
+  else if (this->kind == AstEnum::assignmentStatement) {
+    clone->assignmentStatement.lhs_expr = this->assignmentStatement.lhs_expr->clone(storage);
+    clone->assignmentStatement.rhs_expr = this->assignmentStatement.rhs_expr->clone(storage);
+  } else if (this->kind == AstEnum::emptyStatement) {
     ;
-  } else if (kind == AstEnum::returnStatement) {
-    clone->returnStatement.expr = returnStatement.expr->clone(storage);
-  } else if (kind == AstEnum::returnStatement) {
+  } else if (this->kind == AstEnum::returnStatement) {
+    clone->returnStatement.expr = this->returnStatement.expr->clone(storage);
+  } else if (this->kind == AstEnum::returnStatement) {
     ;
-  } else if (kind == AstEnum::conditionalStatement) {
-    clone->conditionalStatement.cond_expr = conditionalStatement.cond_expr->clone(storage);
-    clone->conditionalStatement.stmt = conditionalStatement.stmt->clone(storage);
-    clone->conditionalStatement.else_stmt = conditionalStatement.else_stmt->clone(storage);
-  } else if (kind == AstEnum::directApplication) {
-    clone->directApplication.name = directApplication.name->clone(storage);
-    clone->directApplication.args = directApplication.args->clone(storage);
-  } else if (kind == AstEnum::statement) {
-    clone->statement.stmt = statement.stmt->clone(storage);
-  } else if (kind == AstEnum::blockStatement) {
-    clone->blockStatement.stmt_list = blockStatement.stmt_list->clone(storage);
-  } else if (kind == AstEnum::statementOrDeclaration) {
-    clone->statementOrDeclaration.stmt = statementOrDeclaration.stmt->clone(storage);
-  } else if (kind == AstEnum::statementOrDeclList) {
+  } else if (this->kind == AstEnum::conditionalStatement) {
+    clone->conditionalStatement.cond_expr = this->conditionalStatement.cond_expr->clone(storage);
+    clone->conditionalStatement.stmt = this->conditionalStatement.stmt->clone(storage);
+    clone->conditionalStatement.else_stmt = this->conditionalStatement.else_stmt->clone(storage);
+  } else if (this->kind == AstEnum::directApplication) {
+    clone->directApplication.name = this->directApplication.name->clone(storage);
+    clone->directApplication.args = this->directApplication.args->clone(storage);
+  } else if (this->kind == AstEnum::statement) {
+    clone->statement.stmt = this->statement.stmt->clone(storage);
+  } else if (this->kind == AstEnum::blockStatement) {
+    clone->blockStatement.stmt_list = this->blockStatement.stmt_list->clone(storage);
+  } else if (this->kind == AstEnum::statementOrDeclaration) {
+    clone->statementOrDeclaration.stmt = this->statementOrDeclaration.stmt->clone(storage);
+  } else if (this->kind == AstEnum::statementOrDeclList) {
     ;
-  } else if (kind == AstEnum::switchStatement) {
-    clone->switchStatement.expr = switchStatement.expr->clone(storage);
-    clone->switchStatement.switch_cases = switchStatement.switch_cases->clone(storage);
-  } else if (kind == AstEnum::switchCases) {
+  } else if (this->kind == AstEnum::switchStatement) {
+    clone->switchStatement.expr = this->switchStatement.expr->clone(storage);
+    clone->switchStatement.switch_cases = this->switchStatement.switch_cases->clone(storage);
+  } else if (this->kind == AstEnum::switchCases) {
     ;
-  } else if (kind == AstEnum::switchCase) {
-    clone->switchCase.label = switchCase.label->clone(storage);
-    clone->switchCase.stmt = switchCase.stmt->clone(storage);
-  } else if (kind == AstEnum::switchLabel) {
-    clone->switchLabel.label = switchLabel.label->clone(storage);
+  } else if (this->kind == AstEnum::switchCase) {
+    clone->switchCase.label = this->switchCase.label->clone(storage);
+    clone->switchCase.stmt = this->switchCase.stmt->clone(storage);
+  } else if (this->kind == AstEnum::switchLabel) {
+    clone->switchLabel.label = this->switchLabel.label->clone(storage);
   }
   /** TABLES **/
-  else if (kind == AstEnum::tableDeclaration) {
-    clone->tableDeclaration.name = tableDeclaration.name->clone(storage);
-    clone->tableDeclaration.prop_list = tableDeclaration.prop_list->clone(storage);
-  } else if (kind == AstEnum::tablePropertyList) {
+  else if (this->kind == AstEnum::tableDeclaration) {
+    clone->tableDeclaration.name = this->tableDeclaration.name->clone(storage);
+    clone->tableDeclaration.prop_list = this->tableDeclaration.prop_list->clone(storage);
+  } else if (this->kind == AstEnum::tablePropertyList) {
     ;
-  } else if (kind == AstEnum::tableProperty) {
-    clone->tableProperty.prop = tableProperty.prop->clone(storage);
-  } else if (kind == AstEnum::keyProperty) {
-    clone->keyProperty.keyelem_list = keyProperty.keyelem_list->clone(storage);
-  } else if (kind == AstEnum::keyElementList) {
+  } else if (this->kind == AstEnum::tableProperty) {
+    clone->tableProperty.prop = this->tableProperty.prop->clone(storage);
+  } else if (this->kind == AstEnum::keyProperty) {
+    clone->keyProperty.keyelem_list = this->keyProperty.keyelem_list->clone(storage);
+  } else if (this->kind == AstEnum::keyElementList) {
     ;
-  } else if (kind == AstEnum::keyElement) {
-    clone->keyElement.expr = keyElement.expr->clone(storage);
-    clone->keyElement.match = keyElement.match->clone(storage);
-  } else if (kind == AstEnum::actionsProperty) {
-    clone->actionsProperty.action_list = actionsProperty.action_list->clone(storage);
-  } else if (kind == AstEnum::actionList) {
+  } else if (this->kind == AstEnum::keyElement) {
+    clone->keyElement.expr = this->keyElement.expr->clone(storage);
+    clone->keyElement.match = this->keyElement.match->clone(storage);
+  } else if (this->kind == AstEnum::actionsProperty) {
+    clone->actionsProperty.action_list = this->actionsProperty.action_list->clone(storage);
+  } else if (this->kind == AstEnum::actionList) {
     ;
-  } else if (kind == AstEnum::actionRef) {
-    clone->actionRef.name = actionRef.name->clone(storage);
-    clone->actionRef.args = actionRef.args->clone(storage);
+  } else if (this->kind == AstEnum::actionRef) {
+    clone->actionRef.name = this->actionRef.name->clone(storage);
+    clone->actionRef.args = this->actionRef.args->clone(storage);
   }
 #if 0
-  else if (kind == AstEnum::entriesProperty) {
-    clone->entriesProperty.entries_list = entriesProperty.entries_list->clone(storage);
-  } else if (kind == AstEnum::entriesList) {
+  else if (this->kind == AstEnum::entriesProperty) {
+    clone->entriesProperty.entries_list = this->entriesProperty.entries_list->clone(storage);
+  } else if (this->kind == AstEnum::entriesList) {
     ;
-  } else if (kind == AstEnum::entry) {
-    clone->entry.keyset = entry.keyset->clone(storage);
-    clone->entry.action = entry.action->clone(storage);
-  } else if (kind == AstEnum::simpleProperty) {
-    clone->simpleProperty.name = simpleProperty.name->clone(storage);
-    clone->simpleProperty.init_expr = simpleProperty.init_expr->clone(storage);
-    clone->simpleProperty.is_const = simpleProperty.is_const;
+  } else if (this->kind == AstEnum::entry) {
+    clone->entry.keyset = this->entry.keyset->clone(storage);
+    clone->entry.action = this->entry.action->clone(storage);
+  } else if (this->kind == AstEnum::simpleProperty) {
+    clone->simpleProperty.name = this->simpleProperty.name->clone(storage);
+    clone->simpleProperty.init_expr = this->simpleProperty.init_expr->clone(storage);
+    clone->simpleProperty.is_const = this->simpleProperty.is_const;
   }
 #endif
-  else if (kind == AstEnum::actionDeclaration) {
-    clone->actionDeclaration.name = actionDeclaration.name->clone(storage);
-    clone->actionDeclaration.params = actionDeclaration.params->clone(storage);
-    clone->actionDeclaration.stmt = actionDeclaration.stmt->clone(storage);
+  else if (this->kind == AstEnum::actionDeclaration) {
+    clone->actionDeclaration.name = this->actionDeclaration.name->clone(storage);
+    clone->actionDeclaration.params = this->actionDeclaration.params->clone(storage);
+    clone->actionDeclaration.stmt = this->actionDeclaration.stmt->clone(storage);
   }
   /** VARIABLES **/
-  else if (kind == AstEnum::variableDeclaration) {
-    clone->variableDeclaration.type = variableDeclaration.type->clone(storage);
-    clone->variableDeclaration.name = variableDeclaration.name->clone(storage);
-    clone->variableDeclaration.init_expr = variableDeclaration.init_expr->clone(storage);
-    clone->variableDeclaration.is_const = variableDeclaration.is_const;
+  else if (this->kind == AstEnum::variableDeclaration) {
+    clone->variableDeclaration.type = this->variableDeclaration.type->clone(storage);
+    clone->variableDeclaration.name = this->variableDeclaration.name->clone(storage);
+    clone->variableDeclaration.init_expr = this->variableDeclaration.init_expr->clone(storage);
+    clone->variableDeclaration.is_const = this->variableDeclaration.is_const;
   }
   /** EXPRESSIONS **/
-  else if (kind == AstEnum::functionDeclaration) {
-    clone->functionDeclaration.proto = functionDeclaration.proto->clone(storage);
-    clone->functionDeclaration.stmt = functionDeclaration.stmt->clone(storage);
-  } else if (kind == AstEnum::argumentList) {
+  else if (this->kind == AstEnum::functionDeclaration) {
+    clone->functionDeclaration.proto = this->functionDeclaration.proto->clone(storage);
+    clone->functionDeclaration.stmt = this->functionDeclaration.stmt->clone(storage);
+  } else if (this->kind == AstEnum::argumentList) {
     ;
-  } else if (kind == AstEnum::argument) {
-    clone->argument.arg = argument.arg->clone(storage);
-  } else if (kind == AstEnum::expressionList) {
+  } else if (this->kind == AstEnum::argument) {
+    clone->argument.arg = this->argument.arg->clone(storage);
+  } else if (this->kind == AstEnum::expressionList) {
     ;
-  } else if (kind == AstEnum::expression) {
-    clone->expression.expr = expression.expr->clone(storage);
-  } else if (kind == AstEnum::lvalueExpression) {
-    clone->lvalueExpression.expr = lvalueExpression.expr->clone(storage);
-  } else if (kind == AstEnum::binaryExpression) {
-    clone->binaryExpression.op = binaryExpression.op;
-    clone->binaryExpression.strname = binaryExpression.strname;
-    clone->binaryExpression.left_operand = binaryExpression.left_operand->clone(storage);
-    clone->binaryExpression.right_operand = binaryExpression.right_operand->clone(storage);
-  } else if (kind == AstEnum::unaryExpression) {
-    clone->unaryExpression.op = unaryExpression.op;
-    clone->unaryExpression.strname = unaryExpression.strname;
-    clone->unaryExpression.operand = unaryExpression.operand->clone(storage);
-  } else if (kind == AstEnum::functionCall) {
-    clone->functionCall.lhs_expr = functionCall.lhs_expr->clone(storage);
-    clone->functionCall.args = functionCall.args->clone(storage);
-  } else if (kind == AstEnum::memberSelector) {
-    clone->memberSelector.lhs_expr = memberSelector.lhs_expr->clone(storage);
-    clone->memberSelector.name = memberSelector.name->clone(storage);
-  } else if (kind == AstEnum::castExpression) {
-    clone->castExpression.type = castExpression.type->clone(storage);
-    clone->castExpression.expr = castExpression.expr->clone(storage);
-  } else if (kind == AstEnum::arraySubscript) {
-    clone->arraySubscript.lhs_expr = arraySubscript.lhs_expr->clone(storage);
-    clone->arraySubscript.index_expr = arraySubscript.index_expr->clone(storage);
-  } else if (kind == AstEnum::indexExpression) {
-    clone->indexExpression.start_index = indexExpression.start_index->clone(storage);
-    clone->indexExpression.end_index = indexExpression.end_index->clone(storage);
-  } else if (kind == AstEnum::integerLiteral) {
-    clone->integerLiteral.is_signed = integerLiteral.is_signed;
-    clone->integerLiteral.value = integerLiteral.value;
-    clone->integerLiteral.width = integerLiteral.width;
-  } else if (kind == AstEnum::booleanLiteral) {
-    clone->booleanLiteral.value = booleanLiteral.value;
-  } else if (kind == AstEnum::stringLiteral) {
-    clone->stringLiteral.value = stringLiteral.value;
-  } else if (kind == AstEnum::default_ || kind == AstEnum::dontcare) {
+  } else if (this->kind == AstEnum::expression) {
+    clone->expression.expr = this->expression.expr->clone(storage);
+  } else if (this->kind == AstEnum::lvalueExpression) {
+    clone->lvalueExpression.expr = this->lvalueExpression.expr->clone(storage);
+  } else if (this->kind == AstEnum::binaryExpression) {
+    clone->binaryExpression.op = this->binaryExpression.op;
+    clone->binaryExpression.strname = this->binaryExpression.strname;
+    clone->binaryExpression.left_operand = this->binaryExpression.left_operand->clone(storage);
+    clone->binaryExpression.right_operand = this->binaryExpression.right_operand->clone(storage);
+  } else if (this->kind == AstEnum::unaryExpression) {
+    clone->unaryExpression.op = this->unaryExpression.op;
+    clone->unaryExpression.strname = this->unaryExpression.strname;
+    clone->unaryExpression.operand = this->unaryExpression.operand->clone(storage);
+  } else if (this->kind == AstEnum::functionCall) {
+    clone->functionCall.lhs_expr = this->functionCall.lhs_expr->clone(storage);
+    clone->functionCall.args = this->functionCall.args->clone(storage);
+  } else if (this->kind == AstEnum::memberSelector) {
+    clone->memberSelector.lhs_expr = this->memberSelector.lhs_expr->clone(storage);
+    clone->memberSelector.name = this->memberSelector.name->clone(storage);
+  } else if (this->kind == AstEnum::castExpression) {
+    clone->castExpression.type = this->castExpression.type->clone(storage);
+    clone->castExpression.expr = this->castExpression.expr->clone(storage);
+  } else if (this->kind == AstEnum::arraySubscript) {
+    clone->arraySubscript.lhs_expr = this->arraySubscript.lhs_expr->clone(storage);
+    clone->arraySubscript.index_expr = this->arraySubscript.index_expr->clone(storage);
+  } else if (this->kind == AstEnum::indexExpression) {
+    clone->indexExpression.start_index = this->indexExpression.start_index->clone(storage);
+    clone->indexExpression.end_index = this->indexExpression.end_index->clone(storage);
+  } else if (this->kind == AstEnum::integerLiteral) {
+    clone->integerLiteral.is_signed = this->integerLiteral.is_signed;
+    clone->integerLiteral.value = this->integerLiteral.value;
+    clone->integerLiteral.width = this->integerLiteral.width;
+  } else if (this->kind == AstEnum::booleanLiteral) {
+    clone->booleanLiteral.value = this->booleanLiteral.value;
+  } else if (this->kind == AstEnum::stringLiteral) {
+    clone->stringLiteral.value = this->stringLiteral.value;
+  } else if (this->kind == AstEnum::default_ || this->kind == AstEnum::dontcare) {
     ;
   }
   else assert(0);
@@ -889,7 +888,7 @@ void Parser::parse()
   this->token_at = 0;
   this->token = (Token*)this->tokens->get(this->token_at, sizeof(Token));
   this->next_token();
-  this->p4program = parse_p4program();
+  this->p4program = parse_p4program(parser);
   assert(this->current_scope == this->root_scope);
 }
 
@@ -909,7 +908,7 @@ Ast* Parser::parse_p4program()
   }
   scope = Scope::create(this->storage, 6);
   this->current_scope = scope->push(this->current_scope);
-  p4program->p4program.decl_list = parse_declarationList();
+  p4program->p4program.decl_list = parse_declarationList(parser);
   this->current_scope = this->current_scope->pop();
   if (this->token->klass != TokenClass::END_OF_INPUT) {
     error("%s:%d:%d: error: unexpected token `%s`.",
@@ -927,12 +926,12 @@ Ast* Parser::parse_declarationList()
   decls->kind = AstEnum::declarationList;
   decls->line_no = this->token->line_no;
   decls->column_no = this->token->column_no;
-  if (this->token->token_is_declaration()) {
-    ast = parse_declaration();
+  if (token_is_declaration(this->token)) {
+    ast = parse_declaration(parser);
     tree_ctor.append_node(&decls->tree, &ast->tree);
-    while (this->token->token_is_declaration() || this->token->klass == TokenClass::SEMICOLON) {
-      if (this->token->token_is_declaration()) {
-        ast = parse_declaration();
+    while (token_is_declaration(this->token) || this->token->klass == TokenClass::SEMICOLON) {
+      if (token_is_declaration(this->token)) {
+        ast = parse_declaration(parser);
         tree_ctor.append_node(&decls->tree, &ast->tree);
       } else if (this->token->klass == TokenClass::SEMICOLON) {
         this->next_token(); /* empty declaration */
@@ -946,58 +945,58 @@ Ast* Parser::parse_declaration()
 {
   Ast* decl;
 
-  if (this->token->token_is_declaration()) {
+  if (token_is_declaration(this->token)) {
     decl = (Ast*)this->storage->malloc(sizeof(Ast));
     decl->kind = AstEnum::declaration;
     decl->line_no = this->token->line_no;
     decl->column_no = this->token->column_no;
     if (this->token->klass == TokenClass::CONST) {
-      decl->declaration.decl = parse_variableDeclaration(0);
+      decl->declaration.decl = parse_variableDeclaration(parser, 0);
       return decl;
     } else if (this->token->klass == TokenClass::EXTERN) {
-      decl->declaration.decl = parse_externDeclaration();
+      decl->declaration.decl = parse_externDeclaration(parser);
       return decl;
     } else if (this->token->klass == TokenClass::ACTION) {
-      decl->declaration.decl = parse_actionDeclaration();
+      decl->declaration.decl = parse_actionDeclaration(parser);
       return decl;
     } else if (this->token->klass == TokenClass::PARSER) {
-      decl->declaration.decl = parse_typeDeclaration();
+      decl->declaration.decl = parse_typeDeclaration(parser);
       if (this->token->klass == TokenClass::SEMICOLON) {
         this->next_token();
       } else {
-        decl->declaration.decl = parse_parserDeclaration(decl->declaration.decl);
+        decl->declaration.decl = parse_parserDeclaration(parser, decl->declaration.decl);
       }
       return decl;
     } else if (this->token->klass == TokenClass::CONTROL) {
-      decl->declaration.decl = parse_typeDeclaration();
+      decl->declaration.decl = parse_typeDeclaration(parser);
       if (this->token->klass == TokenClass::SEMICOLON) {
         this->next_token();
       } else {
-        decl->declaration.decl = parse_controlDeclaration(decl->declaration.decl);
+        decl->declaration.decl = parse_controlDeclaration(parser, decl->declaration.decl);
       }
       return decl;
-    } else if (this->token->token_is_typeDeclaration()) {
-      decl->declaration.decl = parse_typeDeclaration();
+    } else if (token_is_typeDeclaration(this->token)) {
+      decl->declaration.decl = parse_typeDeclaration(parser);
       return decl;
     } else if (this->token->klass == TokenClass::ERROR) {
-      decl->declaration.decl = parse_errorDeclaration();
+      decl->declaration.decl = parse_errorDeclaration(parser);
       return decl;
     } else if (this->token->klass == TokenClass::MATCH_KIND) {
-      decl->declaration.decl = parse_matchKindDeclaration();
+      decl->declaration.decl = parse_matchKindDeclaration(parser);
       return decl;
-    } else if (this->token->token_is_typeRef()) {
-      Ast* type_ref = parse_typeRef();
+    } else if (token_is_typeRef(this->token)) {
+      Ast* type_ref = parse_typeRef(parser);
       if (this->token->klass == TokenClass::PARENTH_OPEN) {
-        decl->declaration.decl = parse_instantiation(type_ref);
+        decl->declaration.decl = parse_instantiation(parser, type_ref);
         return decl;
-      } else if (this->token->token_is_name()) {
-        decl->declaration.decl = parse_functionDeclaration(type_ref);
+      } else if (token_is_name(this->token)) {
+        decl->declaration.decl = parse_functionDeclaration(parser, type_ref);
         return decl;
       } else error("%s:%d:%d: error: unexpected token `%s`.",
                    this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
       assert(0);
-    } else if (this->token->token_is_typeOrVoid()) {
-      decl->declaration.decl = parse_functionDeclaration(this->parse_typeRef());
+    } else if (token_is_typeOrVoid(this->token)) {
+      decl->declaration.decl = parse_functionDeclaration(parser, parse_typeRef(parser));
       return decl;
     } else assert(0);
   } else error("%s:%d:%d: error: top-level declaration was expected, got `%s`.",
@@ -1010,7 +1009,7 @@ Ast* Parser::parse_nonTypeName()
 {
   Ast* name;
 
-  if (this->token->token_is_nonTypeName()) {
+  if (token_is_nonTypeName(this->token)) {
     name = (Ast*)this->storage->malloc(sizeof(Ast));
     name->kind = AstEnum::name;
     name->line_no = this->token->line_no;
@@ -1028,9 +1027,9 @@ Ast* Parser::parse_name()
 {
   Ast* type_name;
 
-  if (this->token->token_is_name()) {
-    if (this->token->token_is_nonTypeName()) {
-      return parse_nonTypeName();
+  if (token_is_name(this->token)) {
+    if (token_is_nonTypeName(this->token)) {
+      return parse_nonTypeName(parser);
     } else if (this->token->klass == TokenClass::TYPE_IDENTIFIER) {
       type_name = (Ast*)this->storage->malloc(sizeof(Ast));
       type_name->kind = AstEnum::name;
@@ -1055,12 +1054,12 @@ Ast* Parser::parse_parameterList()
   params->kind = AstEnum::parameterList;
   params->line_no = this->token->line_no;
   params->column_no = this->token->column_no;
-  if (this->token->token_is_parameter()) {
-    ast = parse_parameter();
+  if (token_is_parameter(this->token)) {
+    ast = parse_parameter(parser);
     tree_ctor.append_node(&params->tree, &ast->tree);
     while (this->token->klass == TokenClass::COMMA) {
       this->next_token();
-      ast = parse_parameter();
+      ast = parse_parameter(parser);
       tree_ctor.append_node(&params->tree, &ast->tree);
     }
   }
@@ -1071,19 +1070,19 @@ Ast* Parser::parse_parameter()
 {
   Ast* param;
 
-  if (this->token->token_is_parameter()) {
+  if (token_is_parameter(this->token)) {
     param = (Ast*)this->storage->malloc(sizeof(Ast));
     param->kind = AstEnum::parameter;
     param->line_no = this->token->line_no;
     param->column_no = this->token->column_no;
-    param->parameter.direction = parse_direction();
-    param->parameter.type = parse_typeRef();
-    if (this->token->token_is_name()) {
-      param->parameter.name = parse_name();
+    param->parameter.direction = parse_direction(parser);
+    param->parameter.type = parse_typeRef(parser);
+    if (token_is_name(this->token)) {
+      param->parameter.name = parse_name(parser);
       if (this->token->klass == TokenClass::EQUAL) {
         this->next_token();
-        if (this->token->token_is_expression()) {
-          param->parameter.init_expr = parse_expression(1);
+        if (token_is_expression(this->token)) {
+          param->parameter.init_expr = parse_expression(parser, 1);
         } else error("%s:%d:%d: error: expression was expected, got `%s`.",
                      this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
       }
@@ -1096,9 +1095,9 @@ Ast* Parser::parse_parameter()
   return 0;
 }
 
-enum ParamDirection Parser::parse_direction()
+static enum ParamDirection parse_direction()
 {
-  if (this->token->token_is_direction()) {
+  if (token_is_direction(this->token)) {
     if (this->token->klass == TokenClass::IN) {
       this->next_token();
       return ParamDirection::IN;
@@ -1123,13 +1122,13 @@ Ast* Parser::parse_packageTypeDeclaration()
     package_decl->kind = AstEnum::packageTypeDeclaration;
     package_decl->line_no = this->token->line_no;
     package_decl->column_no = this->token->column_no;
-    if (this->token->token_is_name()) {
-      name = parse_name();
+    if (token_is_name(this->token)) {
+      name = parse_name(parser);
       this->current_scope->bind(this->storage, name->name.strname, NameSpace::TYPE);
       package_decl->packageTypeDeclaration.name = name;
       if (this->token->klass == TokenClass::PARENTH_OPEN) {
         this->next_token();
-        package_decl->packageTypeDeclaration.params = parse_parameterList();
+        package_decl->packageTypeDeclaration.params = parse_parameterList(parser);
         if (this->token->klass == TokenClass::PARENTH_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
@@ -1149,19 +1148,19 @@ Ast* Parser::parse_instantiation(Ast* type_ref)
 {
   Ast* inst_stmt;
 
-  if (this->token->token_is_typeRef() || type_ref) {
+  if (token_is_typeRef(this->token) || type_ref) {
     inst_stmt = (Ast*)this->storage->malloc(sizeof(Ast));
     inst_stmt->kind = AstEnum::instantiation;
     inst_stmt->line_no = this->token->line_no;
     inst_stmt->column_no = this->token->column_no;
-    inst_stmt->instantiation.type = type_ref ? type_ref : parse_typeRef();
+    inst_stmt->instantiation.type = type_ref ? type_ref : parse_typeRef(parser);
     if (this->token->klass == TokenClass::PARENTH_OPEN) {
       this->next_token();
-      inst_stmt->instantiation.args = parse_argumentList();
+      inst_stmt->instantiation.args = parse_argumentList(parser);
       if (this->token->klass == TokenClass::PARENTH_CLOSE) {
         this->next_token();
-        if (this->token->token_is_name()) {
-          inst_stmt->instantiation.name = parse_name();
+        if (token_is_name(this->token)) {
+          inst_stmt->instantiation.name = parse_name(parser);
           if (this->token->klass == TokenClass::SEMICOLON) {
             this->next_token();
           } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
@@ -1187,7 +1186,7 @@ Ast* Parser::parse_constructorParameters()
 
   if (this->token->klass == TokenClass::PARENTH_OPEN) {
     this->next_token();
-    params = parse_parameterList();
+    params = parse_parameterList(parser);
     if (this->token->klass == TokenClass::PARENTH_CLOSE) {
       this->next_token();
     } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
@@ -1208,12 +1207,12 @@ Ast* Parser::parse_parserDeclaration(Ast* parser_proto)
     parser_decl->line_no = this->token->line_no;
     parser_decl->column_no = this->token->column_no;
     parser_decl->parserDeclaration.proto = parser_proto;
-    parser_decl->parserDeclaration.ctor_params = parse_constructorParameters();
+    parser_decl->parserDeclaration.ctor_params = parse_constructorParameters(parser);
     if (this->token->klass == TokenClass::BRACE_OPEN) {
       this->next_token();
-      parser_decl->parserDeclaration.local_elements = parse_parserLocalElements();
+      parser_decl->parserDeclaration.local_elements = parse_parserLocalElements(parser);
       if (this->token->klass == TokenClass::STATE) {
-        parser_decl->parserDeclaration.states = parse_parserStates();
+        parser_decl->parserDeclaration.states = parse_parserStates(parser);
       } else error("%s:%d:%d: error: `state` was expected, got `%s`.",
                    this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
       if (this->token->klass == TokenClass::BRACE_CLOSE) {
@@ -1238,11 +1237,11 @@ Ast* Parser::parse_parserLocalElements()
   elems->kind = AstEnum::parserLocalElements;
   elems->line_no = this->token->line_no;
   elems->column_no = this->token->column_no;
-  if (this->token->token_is_parserLocalElement()) {
-    ast = parse_parserLocalElement();
+  if (token_is_parserLocalElement(this->token)) {
+    ast = parse_parserLocalElement(parser);
     tree_ctor.append_node(&elems->tree, &ast->tree);
-    while (this->token->token_is_parserLocalElement()) {
-      ast = parse_parserLocalElement();
+    while (token_is_parserLocalElement(this->token)) {
+      ast = parse_parserLocalElement(parser);
       tree_ctor.append_node(&elems->tree, &ast->tree);
     }
   }
@@ -1253,21 +1252,21 @@ Ast* Parser::parse_parserLocalElement()
 {
   Ast* local_element, *type_ref;
 
-  if (this->token->token_is_parserLocalElement()) {
+  if (token_is_parserLocalElement(this->token)) {
     local_element = (Ast*)this->storage->malloc(sizeof(Ast));
     local_element->kind = AstEnum::parserLocalElement;
     local_element->line_no = this->token->line_no;
     local_element->column_no = this->token->column_no;
     if (this->token->klass == TokenClass::CONST) {
-      local_element->parserLocalElement.element = parse_variableDeclaration(0);
+      local_element->parserLocalElement.element = parse_variableDeclaration(parser, 0);
       return local_element;
-    } else if (this->token->token_is_typeRef()) {
-      type_ref = parse_typeRef();
+    } else if (token_is_typeRef(this->token)) {
+      type_ref = parse_typeRef(parser);
       if (this->token->klass == TokenClass::PARENTH_OPEN) {
-        local_element->parserLocalElement.element = parse_instantiation(type_ref);
+        local_element->parserLocalElement.element = parse_instantiation(parser, type_ref);
         return local_element;
-      } else if (this->token->token_is_name()) {
-        local_element->parserLocalElement.element = parse_variableDeclaration(type_ref);
+      } else if (token_is_name(this->token)) {
+        local_element->parserLocalElement.element = parse_variableDeclaration(parser, type_ref);
         return local_element;
       } else error("%s:%d:%d: error: unexpected token `%s`.",
                    this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
@@ -1293,13 +1292,13 @@ Ast* Parser::parse_parserTypeDeclaration()
     method_protos->line_no = parser_proto->line_no;
     method_protos->column_no = parser_proto->column_no;
     parser_proto->parserTypeDeclaration.method_protos = method_protos;
-    if (this->token->token_is_name()) {
-      name = parse_name();
+    if (token_is_name(this->token)) {
+      name = parse_name(parser);
       this->current_scope->bind(this->storage, name->name.strname, NameSpace::TYPE);
       parser_proto->parserTypeDeclaration.name = name;
       if (this->token->klass == TokenClass::PARENTH_OPEN) {
         this->next_token();
-        parser_proto->parserTypeDeclaration.params = parse_parameterList();
+        parser_proto->parserTypeDeclaration.params = parse_parameterList(parser);
         if (this->token->klass == TokenClass::PARENTH_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
@@ -1325,10 +1324,10 @@ Ast* Parser::parse_parserStates()
   states->line_no = this->token->line_no;
   states->column_no = this->token->column_no;
   if (this->token->klass == TokenClass::STATE) {
-    ast = parse_parserState();
+    ast = parse_parserState(parser);
     tree_ctor.append_node(&states->tree, &ast->tree);
     while (this->token->klass == TokenClass::STATE) {
-      ast = parse_parserState();
+      ast = parse_parserState(parser);
       tree_ctor.append_node(&states->tree, &ast->tree);
     }
   }
@@ -1345,11 +1344,11 @@ Ast* Parser::parse_parserState()
     state->kind = AstEnum::parserState;
     state->line_no = this->token->line_no;
     state->column_no = this->token->column_no;
-    state->parserState.name = parse_name();
+    state->parserState.name = parse_name(parser);
     if (this->token->klass == TokenClass::BRACE_OPEN) {
       this->next_token();
-      state->parserState.stmt_list = parse_parserStatements();
-      state->parserState.transition_stmt = parse_transitionStatement();
+      state->parserState.stmt_list = parse_parserStatements(parser);
+      state->parserState.transition_stmt = parse_transitionStatement(parser);
       if (this->token->klass == TokenClass::BRACE_CLOSE) {
         this->next_token();
       } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -1372,11 +1371,11 @@ Ast* Parser::parse_parserStatements()
   stmts->kind = AstEnum::parserStatements;
   stmts->line_no = this->token->line_no;
   stmts->column_no = this->token->column_no;
-  if (this->token->token_is_parserStatement()) {
-    ast = parse_parserStatement();
+  if (token_is_parserStatement(this->token)) {
+    ast = parse_parserStatement(parser);
     tree_ctor.append_node(&stmts->tree, &ast->tree);
-    while (this->token->token_is_parserStatement()) {
-      ast = parse_parserStatement();
+    while (token_is_parserStatement(this->token)) {
+      ast = parse_parserStatement(parser);
       tree_ctor.append_node(&stmts->tree, &ast->tree);
     }
   }
@@ -1387,28 +1386,28 @@ Ast* Parser::parse_parserStatement()
 {
   Ast* parser_stmt, *type_ref;
 
-  if (this->token->token_is_parserStatement()) {
+  if (token_is_parserStatement(this->token)) {
     parser_stmt = (Ast*)this->storage->malloc(sizeof(Ast));
     parser_stmt->kind = AstEnum::parserStatement;
     parser_stmt->line_no = this->token->line_no;
     parser_stmt->column_no = this->token->column_no;
-    if (this->token->token_is_typeRef()) {
-      type_ref = parse_typeRef();
-      if (this->token->token_is_name()) {
-        parser_stmt->parserStatement.stmt = parse_variableDeclaration(type_ref);
+    if (token_is_typeRef(this->token)) {
+      type_ref = parse_typeRef(parser);
+      if (token_is_name(this->token)) {
+        parser_stmt->parserStatement.stmt = parse_variableDeclaration(parser, type_ref);
         return parser_stmt;
       } else {
-        parser_stmt->parserStatement.stmt = parse_directApplication(type_ref);
+        parser_stmt->parserStatement.stmt = parse_directApplication(parser, type_ref);
         return parser_stmt;
       }
-    } else if (this->token->token_is_assignmentOrMethodCallStatement()) {
-      parser_stmt->parserStatement.stmt = parse_assignmentOrMethodCallStatement();
+    } else if (token_is_assignmentOrMethodCallStatement(this->token)) {
+      parser_stmt->parserStatement.stmt = parse_assignmentOrMethodCallStatement(parser);
       return parser_stmt;
     } else if (this->token->klass == TokenClass::BRACE_OPEN) {
-      parser_stmt->parserStatement.stmt = parse_parserBlockStatement();
+      parser_stmt->parserStatement.stmt = parse_parserBlockStatement(parser);
       return parser_stmt;
     } else if (this->token->klass == TokenClass::CONST) {
-      parser_stmt->parserStatement.stmt = parse_variableDeclaration(0);
+      parser_stmt->parserStatement.stmt = parse_variableDeclaration(parser, 0);
       return parser_stmt;
     } else if (this->token->klass == TokenClass::SEMICOLON) {
       Ast* stmt = (Ast*)this->storage->malloc(sizeof(Ast));
@@ -1435,7 +1434,7 @@ Ast* Parser::parse_parserBlockStatement()
     stmt->kind = AstEnum::parserBlockStatement;
     stmt->line_no = this->token->line_no;
     stmt->column_no = this->token->column_no;
-    stmt->parserBlockStatement.stmt_list = parse_parserStatements();
+    stmt->parserBlockStatement.stmt_list = parse_parserStatements(parser);
     if (this->token->klass == TokenClass::BRACE_CLOSE) {
       this->next_token();
     } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -1457,7 +1456,7 @@ Ast* Parser::parse_transitionStatement()
     transition->kind = AstEnum::transitionStatement;
     transition->line_no = this->token->line_no;
     transition->column_no = this->token->column_no;
-    transition->transitionStatement.stmt = parse_stateExpression();
+    transition->transitionStatement.stmt = parse_stateExpression(parser);
     return transition;
   } else error("%s:%d:%d: error: `transition` was expected, got `%s`.",
                this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
@@ -1469,20 +1468,20 @@ Ast* Parser::parse_stateExpression()
 {
   Ast* state_expr;
 
-  if (this->token->token_is_name() || this->token->klass == TokenClass::SELECT) {
+  if (token_is_name(this->token) || this->token->klass == TokenClass::SELECT) {
     state_expr = (Ast*)this->storage->malloc(sizeof(Ast));
     state_expr->kind = AstEnum::stateExpression;
     state_expr->line_no = this->token->line_no;
     state_expr->column_no = this->token->column_no;
-    if (this->token->token_is_name()) {
-      state_expr->stateExpression.expr = parse_name();
+    if (token_is_name(this->token)) {
+      state_expr->stateExpression.expr = parse_name(parser);
       if (this->token->klass == TokenClass::SEMICOLON) {
         this->next_token();
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                   this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
       return state_expr;
     } else if (this->token->klass == TokenClass::SELECT) {
-      state_expr->stateExpression.expr = parse_selectExpression();
+      state_expr->stateExpression.expr = parse_selectExpression(parser);
       return state_expr;
     } else assert(0);
   } else error("%s:%d:%d: error: state expression was expected, got `%s`.",
@@ -1503,12 +1502,12 @@ Ast* Parser::parse_selectExpression()
     select_expr->column_no = this->token->column_no;
     if (this->token->klass == TokenClass::PARENTH_OPEN) {
       this->next_token();
-      select_expr->selectExpression.expr_list = parse_expressionList();
+      select_expr->selectExpression.expr_list = parse_expressionList(parser);
       if (this->token->klass == TokenClass::PARENTH_CLOSE) {
         this->next_token();
         if (this->token->klass == TokenClass::BRACE_OPEN) {
           this->next_token();
-          select_expr->selectExpression.case_list = parse_selectCaseList();
+          select_expr->selectExpression.case_list = parse_selectCaseList(parser);
           if (this->token->klass == TokenClass::BRACE_CLOSE) {
             this->next_token();
           } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -1535,11 +1534,11 @@ Ast* Parser::parse_selectCaseList()
   cases->kind = AstEnum::selectCaseList;
   cases->line_no = this->token->line_no;
   cases->column_no = this->token->column_no;
-  if (this->token->token_is_selectCase()) {
-    ast = parse_selectCase();
+  if (token_is_selectCase(this->token)) {
+    ast = parse_selectCase(parser);
     tree_ctor.append_node(&cases->tree, &ast->tree);
-    while (this->token->token_is_selectCase()) {
-      ast = parse_selectCase();
+    while (token_is_selectCase(this->token)) {
+      ast = parse_selectCase(parser);
       tree_ctor.append_node(&cases->tree, &ast->tree);
     }
   }
@@ -1550,16 +1549,16 @@ Ast* Parser::parse_selectCase()
 {
   Ast* select_case;
 
-  if (this->token->token_is_keysetExpression()) {
+  if (token_is_keysetExpression(this->token)) {
     select_case = (Ast*)this->storage->malloc(sizeof(Ast));
     select_case->kind = AstEnum::selectCase;
     select_case->line_no = this->token->line_no;
     select_case->column_no = this->token->column_no;
-    select_case->selectCase.keyset_expr = parse_keysetExpression();
+    select_case->selectCase.keyset_expr = parse_keysetExpression(parser);
     if (this->token->klass == TokenClass::COLON) {
       this->next_token();
-      if (this->token->token_is_name()) {
-        select_case->selectCase.name = parse_name();
+      if (token_is_name(this->token)) {
+        select_case->selectCase.name = parse_name(parser);
         if (this->token->klass == TokenClass::SEMICOLON) {
           this->next_token();
         } else error("%s:%d:%d: error: `;` expected, got `%s`.",
@@ -1575,20 +1574,20 @@ Ast* Parser::parse_selectCase()
   return 0;
 }
 
-Ast* Parser::parse_keysetExpression()
+Ast* Parser::parse_keysetExpression(Parser *parser)
 {
   Ast* keyset_expr;
 
-  if (this->token->klass == TokenClass::PARENTH_OPEN || this->token->token_is_simpleKeysetExpression()) {
+  if (this->token->klass == TokenClass::PARENTH_OPEN || token_is_simpleKeysetExpression(this->token)) {
     keyset_expr = (Ast*)this->storage->malloc(sizeof(Ast));
     keyset_expr->kind = AstEnum::keysetExpression;
     keyset_expr->line_no = this->token->line_no;
     keyset_expr->column_no = this->token->column_no;
     if (this->token->klass == TokenClass::PARENTH_OPEN) {
-      keyset_expr->keysetExpression.expr = parse_tupleKeysetExpression();
+      keyset_expr->keysetExpression.expr = parse_tupleKeysetExpression(parser);
       return keyset_expr;
-    } else if (this->token->token_is_simpleKeysetExpression()) {
-      keyset_expr->keysetExpression.expr = parse_simpleKeysetExpression();
+    } else if (token_is_simpleKeysetExpression(this->token)) {
+      keyset_expr->keysetExpression.expr = parse_simpleKeysetExpression(parser);
       return keyset_expr;
     } else assert(0);
   } else error("%s:%d:%d: error: keyset expression was expected, got `%s`.",
@@ -1607,7 +1606,7 @@ Ast* Parser::parse_tupleKeysetExpression()
     tuple_keyset->kind = AstEnum::tupleKeysetExpression;
     tuple_keyset->line_no = this->token->line_no;
     tuple_keyset->column_no = this->token->column_no;
-    tuple_keyset->tupleKeysetExpression.expr_list = parse_simpleExpressionList();
+    tuple_keyset->tupleKeysetExpression.expr_list = parse_simpleExpressionList(parser);
     if (this->token->klass == TokenClass::PARENTH_CLOSE) {
       this->next_token();
     } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
@@ -1628,12 +1627,12 @@ Ast* Parser::parse_simpleExpressionList()
   exprs->kind = AstEnum::simpleExpressionList;
   exprs->line_no = this->token->line_no;
   exprs->column_no = this->token->column_no;
-  if (this->token->token_is_expression()) {
-    ast = parse_simpleKeysetExpression();
+  if (token_is_expression(this->token)) {
+    ast = parse_simpleKeysetExpression(parser);
     tree_ctor.append_node(&exprs->tree, &ast->tree);
     while (this->token->klass == TokenClass::COMMA) {
       this->next_token();
-      ast = parse_simpleKeysetExpression();
+      ast = parse_simpleKeysetExpression(parser);
       tree_ctor.append_node(&exprs->tree, &ast->tree);
     }
   }
@@ -1644,13 +1643,13 @@ Ast* Parser::parse_simpleKeysetExpression()
 {
   Ast* simple_keyset, *default_keyset, *dontcare_keyset;
 
-  if (this->token->token_is_simpleKeysetExpression()) {
+  if (token_is_simpleKeysetExpression(this->token)) {
     simple_keyset = (Ast*)this->storage->malloc(sizeof(Ast));
     simple_keyset->kind = AstEnum::simpleKeysetExpression;
     simple_keyset->line_no = this->token->line_no;
     simple_keyset->column_no = this->token->column_no;
-    if (this->token->token_is_expression()) {
-      simple_keyset->simpleKeysetExpression.expr = parse_expression(1);
+    if (token_is_expression(this->token)) {
+      simple_keyset->simpleKeysetExpression.expr = parse_expression(parser, 1);
       return simple_keyset;
     } else if (this->token->klass == TokenClass::DEFAULT) {
       this->next_token();
@@ -1687,13 +1686,13 @@ Ast* Parser::parse_controlDeclaration(Ast* control_proto)
     control_decl->line_no = this->token->line_no;
     control_decl->column_no = this->token->column_no;
     control_decl->controlDeclaration.proto = control_proto;
-    control_decl->controlDeclaration.ctor_params = parse_constructorParameters();
+    control_decl->controlDeclaration.ctor_params = parse_constructorParameters(parser);
     if (this->token->klass == TokenClass::BRACE_OPEN) {
       this->next_token();
-      control_decl->controlDeclaration.local_decls = parse_controlLocalDeclarations();
+      control_decl->controlDeclaration.local_decls = parse_controlLocalDeclarations(parser);
       if (this->token->klass == TokenClass::APPLY) {
         this->next_token();
-        control_decl->controlDeclaration.apply_stmt = parse_blockStatement();
+        control_decl->controlDeclaration.apply_stmt = parse_blockStatement(parser);
         if (this->token->klass == TokenClass::BRACE_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -1724,13 +1723,13 @@ Ast* Parser::parse_controlTypeDeclaration()
     method_protos->line_no = control_proto->line_no;
     method_protos->column_no = control_proto->column_no;
     control_proto->controlTypeDeclaration.method_protos = method_protos;
-    if (this->token->token_is_name()) {
-      name = parse_name();
+    if (token_is_name(this->token)) {
+      name = parse_name(parser);
       this->current_scope->bind(this->storage, name->name.strname, NameSpace::TYPE);
       control_proto->controlTypeDeclaration.name = name;
       if (this->token->klass == TokenClass::PARENTH_OPEN) {
         this->next_token();
-        control_proto->controlTypeDeclaration.params = parse_parameterList();
+        control_proto->controlTypeDeclaration.params = parse_parameterList(parser);
         if (this->token->klass == TokenClass::PARENTH_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
@@ -1750,27 +1749,27 @@ Ast* Parser::parse_controlLocalDeclaration()
 {
   Ast* local_decl, *type_ref;
 
-  if (this->token->token_is_controlLocalDeclaration()) {
+  if (token_is_controlLocalDeclaration(this->token)) {
     local_decl = (Ast*)this->storage->malloc(sizeof(Ast));
     local_decl->kind = AstEnum::controlLocalDeclaration;
     local_decl->line_no = this->token->line_no;
     local_decl->column_no = this->token->column_no;
     if (this->token->klass == TokenClass::CONST) {
-      local_decl->controlLocalDeclaration.decl = parse_variableDeclaration(0);
+      local_decl->controlLocalDeclaration.decl = parse_variableDeclaration(parser, 0);
       return local_decl;
     } else if (this->token->klass == TokenClass::ACTION) {
-      local_decl->controlLocalDeclaration.decl = parse_actionDeclaration();
+      local_decl->controlLocalDeclaration.decl = parse_actionDeclaration(parser);
       return local_decl;
     } else if (this->token->klass == TokenClass::TABLE) {
-      local_decl->controlLocalDeclaration.decl = parse_tableDeclaration();
+      local_decl->controlLocalDeclaration.decl = parse_tableDeclaration(parser);
       return local_decl;
-    } else if (this->token->token_is_typeRef()) {
-      type_ref = parse_typeRef();
+    } else if (token_is_typeRef(this->token)) {
+      type_ref = parse_typeRef(parser);
       if (this->token->klass == TokenClass::PARENTH_OPEN) {
-        local_decl->controlLocalDeclaration.decl = parse_instantiation(type_ref);
+        local_decl->controlLocalDeclaration.decl = parse_instantiation(parser, type_ref);
         return local_decl;
-      } else if (this->token->token_is_name()) {
-        local_decl->controlLocalDeclaration.decl = parse_variableDeclaration(type_ref);
+      } else if (token_is_name(this->token)) {
+        local_decl->controlLocalDeclaration.decl = parse_variableDeclaration(parser, type_ref);
         return local_decl;
       } else error("%s:%d:%d: error: unexpected token `%s`.",
                    this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
@@ -1790,11 +1789,11 @@ Ast* Parser::parse_controlLocalDeclarations()
   decls->kind = AstEnum::controlLocalDeclarations;
   decls->line_no = this->token->line_no;
   decls->column_no = this->token->column_no;
-  if (this->token->token_is_controlLocalDeclaration()) {
-    ast = parse_controlLocalDeclaration();
+  if (token_is_controlLocalDeclaration(this->token)) {
+    ast = parse_controlLocalDeclaration(parser);
     tree_ctor.append_node(&decls->tree, &ast->tree);
-    while (this->token->token_is_controlLocalDeclaration()) {
-      ast = parse_controlLocalDeclaration();
+    while (token_is_controlLocalDeclaration(this->token)) {
+      ast = parse_controlLocalDeclaration(parser);
       tree_ctor.append_node(&decls->tree, &ast->tree);
     }
   }
@@ -1816,17 +1815,17 @@ Ast* Parser::parse_externDeclaration()
     extern_decl->line_no = this->token->line_no;
     extern_decl->column_no = this->token->column_no;
 
-    if (this->token->token_is_typeOrVoid() && this->token->token_is_nonTypeName()) {
-      is_function_type = this->token->token_is_typeOrVoid() && this->peek_token()->token_is_name();
-    } else if (this->token->token_is_typeOrVoid()) {
+    if (token_is_typeOrVoid(this->token) && token_is_nonTypeName(this->token)) {
+      is_function_type = token_is_typeOrVoid(this->token) && token_is_name(this->peek_token());
+    } else if (token_is_typeOrVoid(this->token)) {
       is_function_type = 1;
-    } else if (this->token->token_is_nonTypeName()) {
+    } else if (token_is_nonTypeName(this->token)) {
       is_function_type = 0;
     } else error("%s:%d:%d: error: extern declaration was expected, got `%s`.",
                  this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
 
     if (is_function_type) {
-      extern_decl->externDeclaration.decl = parse_functionPrototype(0);
+      extern_decl->externDeclaration.decl = parse_functionPrototype(parser, 0);
       if (this->token->klass == TokenClass::SEMICOLON) {
         this->next_token();
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
@@ -1837,12 +1836,12 @@ Ast* Parser::parse_externDeclaration()
       extern_type->kind = AstEnum::externTypeDeclaration;
       extern_type->line_no = this->token->line_no;
       extern_type->column_no = this->token->column_no;
-      extern_type->externTypeDeclaration.name = parse_nonTypeName();
+      extern_type->externTypeDeclaration.name = parse_nonTypeName(parser);
       name = extern_type->externTypeDeclaration.name;
       this->current_scope->bind(this->storage, name->name.strname, NameSpace::TYPE);
       if (this->token->klass == TokenClass::BRACE_OPEN) {
         this->next_token();
-        extern_type->externTypeDeclaration.method_protos = parse_methodPrototypes();
+        extern_type->externTypeDeclaration.method_protos = parse_methodPrototypes(parser);
         if (this->token->klass == TokenClass::BRACE_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -1867,11 +1866,11 @@ Ast* Parser::parse_methodPrototypes()
   protos->kind = AstEnum::methodPrototypes;
   protos->line_no = this->token->line_no;
   protos->column_no = this->token->column_no;
-  if (this->token->token_is_methodPrototype()) {
-    ast = parse_methodPrototype();
+  if (token_is_methodPrototype(this->token)) {
+    ast = parse_methodPrototype(parser);
     tree_ctor.append_node(&protos->tree, &ast->tree);
-    while (this->token->token_is_methodPrototype()) {
-      ast = parse_methodPrototype();
+    while (token_is_methodPrototype(this->token)) {
+      ast = parse_methodPrototype(parser);
       tree_ctor.append_node(&protos->tree, &ast->tree);
     }
   }
@@ -1883,7 +1882,7 @@ Ast* Parser::parse_functionPrototype(Ast* return_type)
   Ast* func_proto, *type_ref;
   Ast* name;
 
-  if (this->token->token_is_typeOrVoid() || return_type) {
+  if (token_is_typeOrVoid(this->token) || return_type) {
     func_proto = (Ast*)this->storage->malloc(sizeof(Ast));
     func_proto->kind = AstEnum::functionPrototype;
     func_proto->line_no = this->token->line_no;
@@ -1891,7 +1890,7 @@ Ast* Parser::parse_functionPrototype(Ast* return_type)
     if (return_type) {
       func_proto->functionPrototype.return_type = return_type;
     } else {
-      return_type = parse_typeOrVoid();
+      return_type = parse_typeOrVoid(parser);
       if (return_type->kind == AstEnum::name) {
         name = return_type;
         this->current_scope->bind(this->storage, name->name.strname, NameSpace::TYPE);
@@ -1904,11 +1903,11 @@ Ast* Parser::parse_functionPrototype(Ast* return_type)
       }
       func_proto->functionPrototype.return_type = return_type;
     }
-    if (this->token->token_is_name()) {
-      func_proto->functionPrototype.name = parse_name();
+    if (token_is_name(this->token)) {
+      func_proto->functionPrototype.name = parse_name(parser);
       if (this->token->klass == TokenClass::PARENTH_OPEN) {
         this->next_token();
-        func_proto->functionPrototype.params = parse_parameterList();
+        func_proto->functionPrototype.params = parse_parameterList(parser);
         if (this->token->klass == TokenClass::PARENTH_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
@@ -1928,17 +1927,17 @@ Ast* Parser::parse_methodPrototype()
 {
   Ast* func_proto;
 
-  if (this->token->token_is_methodPrototype()) {
+  if (token_is_methodPrototype(this->token)) {
     if (this->token->klass == TokenClass::TYPE_IDENTIFIER && this->peek_token()->klass == TokenClass::PARENTH_OPEN) {
       /* Constructor */
       func_proto = (Ast*)this->storage->malloc(sizeof(Ast));
       func_proto->kind = AstEnum::functionPrototype;
       func_proto->line_no = this->token->line_no;
       func_proto->column_no = this->token->column_no;
-      func_proto->functionPrototype.name = parse_name();
+      func_proto->functionPrototype.name = parse_name(parser);
       if (this->token->klass == TokenClass::PARENTH_OPEN) {
         this->next_token();
-        func_proto->functionPrototype.params = parse_parameterList();
+        func_proto->functionPrototype.params = parse_parameterList(parser);
         if (this->token->klass == TokenClass::PARENTH_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
@@ -1950,8 +1949,8 @@ Ast* Parser::parse_methodPrototype()
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                    this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
       return func_proto;
-    } else if (this->token->token_is_typeOrVoid()) {
-      func_proto = parse_functionPrototype(0);
+    } else if (token_is_typeOrVoid(this->token)) {
+      func_proto = parse_functionPrototype(parser, 0);
       if (this->token->klass == TokenClass::SEMICOLON) {
         this->next_token();
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
@@ -1971,19 +1970,19 @@ Ast* Parser::parse_typeRef()
 {
   Ast* type_ref;
 
-  if (this->token->token_is_typeRef()) {
+  if (token_is_typeRef(this->token)) {
     type_ref = (Ast*)this->storage->malloc(sizeof(Ast));
     type_ref->kind = AstEnum::typeRef;
     type_ref->line_no = this->token->line_no;
     type_ref->column_no = this->token->column_no;
-    if (this->token->token_is_baseType()) {
-      type_ref->typeRef.type = parse_baseType();
+    if (token_is_baseType(this->token)) {
+      type_ref->typeRef.type = parse_baseType(parser);
       return type_ref;
-    } else if (this->token->token_is_typeName()) {
-      type_ref->typeRef.type = parse_namedType();
+    } else if (token_is_typeName(this->token)) {
+      type_ref->typeRef.type = parse_namedType(parser);
       return type_ref;
     } else if (this->token->klass == TokenClass::TUPLE) {
-      type_ref->typeRef.type = parse_tupleType();
+      type_ref->typeRef.type = parse_tupleType(parser);
       return type_ref;
     } else assert(0);
   } else error("%s:%d:%d: error: type was expected, got `%s`.",
@@ -1996,10 +1995,10 @@ Ast* Parser::parse_namedType()
 {
   Ast* named_type;
 
-  if (this->token->token_is_typeName()) {
-    named_type = parse_typeName();
+  if (token_is_typeName(this->token)) {
+    named_type = parse_typeName(parser);
     if (this->token->klass == TokenClass::BRACKET_OPEN) {
-      named_type = parse_headerStackType(named_type);
+      named_type = parse_headerStackType(parser, named_type);
       return named_type;
     }
     return named_type;
@@ -2039,7 +2038,7 @@ Ast* Parser::parse_tupleType()
     this->next_token();
     if (this->token->klass == TokenClass::ANGLE_OPEN) {
       this->next_token();
-      tuple->tupleType.type_args = parse_typeArgumentList();
+      tuple->tupleType.type_args = parse_typeArgumentList(parser);
       if (this->token->klass == TokenClass::ANGLE_CLOSE) {
         this->next_token();
       } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
@@ -2069,8 +2068,8 @@ Ast* Parser::parse_headerStackType(Ast* named_type)
     type->line_no = named_type->line_no;
     type->column_no = named_type->column_no;
     type->headerStackType.type = type_ref;
-    if (this->token->token_is_expression()) {
-      type->headerStackType.stack_expr = parse_expression(1);
+    if (token_is_expression(this->token)) {
+      type->headerStackType.stack_expr = parse_expression(parser, 1);
       if (this->token->klass == TokenClass::BRACKET_CLOSE) {
         this->next_token();
       } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
@@ -2088,7 +2087,7 @@ Ast* Parser::parse_baseType()
 {
   Ast* type_name, *type;
 
-  if (this->token->token_is_baseType()) {
+  if (token_is_baseType(this->token)) {
     type_name = (Ast*)this->storage->malloc(sizeof(Ast));
     type_name->kind = AstEnum::name;
     type_name->line_no = this->token->line_no;
@@ -2112,7 +2111,7 @@ Ast* Parser::parse_baseType()
       this->next_token();
       if (this->token->klass == TokenClass::ANGLE_OPEN) {
         this->next_token();
-        type->baseTypeInteger.size = parse_integerTypeSize();
+        type->baseTypeInteger.size = parse_integerTypeSize(parser);
         if (this->token->klass == TokenClass::ANGLE_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
@@ -2129,7 +2128,7 @@ Ast* Parser::parse_baseType()
       this->next_token();
       if (this->token->klass == TokenClass::ANGLE_OPEN) {
         this->next_token();
-        type->baseTypeBit.size = parse_integerTypeSize();
+        type->baseTypeBit.size = parse_integerTypeSize(parser);
         if (this->token->klass == TokenClass::ANGLE_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
@@ -2146,7 +2145,7 @@ Ast* Parser::parse_baseType()
       this->next_token();
       if (this->token->klass == TokenClass::ANGLE_OPEN) {
         this->next_token();
-        type->baseTypeVarbit.size = parse_integerTypeSize();
+        type->baseTypeVarbit.size = parse_integerTypeSize(parser);
         if (this->token->klass == TokenClass::ANGLE_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
@@ -2197,10 +2196,10 @@ Ast* Parser::parse_integerTypeSize()
   type_size->line_no = this->token->line_no;
   type_size->column_no = this->token->column_no;
   if (this->token->klass == TokenClass::INTEGER_LITERAL) {
-    type_size->integerTypeSize.size = parse_integer();
+    type_size->integerTypeSize.size = parse_integer(parser);
   } else if (this->token->klass == TokenClass::PARENTH_OPEN) {
 #if 0
-    type_size->size = parse_expression(, 1);
+    type_size->size = parse_expression(parser, 1);
 #endif
     error("%s:%d:%d: error: integer was expected, got `%s`.",
           this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
@@ -2213,12 +2212,12 @@ Ast* Parser::parse_typeOrVoid()
 {
   Ast* type, *name;
 
-  if (this->token->token_is_typeOrVoid()) {
-    if (this->token->token_is_typeRef()) {
-      type = parse_typeRef();
+  if (token_is_typeOrVoid(this->token)) {
+    if (token_is_typeRef(this->token)) {
+      type = parse_typeRef(parser);
       return type;
     } else if (this->token->klass == TokenClass::VOID) {
-      return parse_baseType();
+      return parse_baseType(parser);
     } else if (this->token->klass == TokenClass::IDENTIFIER) {
       name = (Ast*)this->storage->malloc(sizeof(Ast));
       name->kind = AstEnum::name;
@@ -2238,7 +2237,7 @@ Ast* Parser::parse_realTypeArg()
 {
   Ast* type_arg, *dontcare_arg;
 
-  if (this->token->token_is_realTypeArg()) {
+  if (token_is_realTypeArg(this->token)) {
     type_arg = (Ast*)this->storage->malloc(sizeof(Ast));
     type_arg->kind = AstEnum::realTypeArg;
     type_arg->line_no = this->token->line_no;
@@ -2251,8 +2250,8 @@ Ast* Parser::parse_realTypeArg()
       dontcare_arg->column_no = this->token->column_no;
       type_arg->realTypeArg.arg = dontcare_arg;
       return type_arg;
-    } else if (this->token->token_is_typeRef()) {
-      type_arg->realTypeArg.arg = parse_typeRef();
+    } else if (token_is_typeRef(this->token)) {
+      type_arg->realTypeArg.arg = parse_typeRef(parser);
       return type_arg;
     } else assert(0);
   } else error("%s:%d:%d: error: type argument was expected, got `%s`.",
@@ -2265,7 +2264,7 @@ Ast* Parser::parse_typeArg()
 {
   Ast* type_arg, *dontcare_arg;
 
-  if (this->token->token_is_typeArg()) {
+  if (token_is_typeArg(this->token)) {
     type_arg = (Ast*)this->storage->malloc(sizeof(Ast));
     type_arg->kind = AstEnum::typeArg;
     type_arg->line_no = this->token->line_no;
@@ -2278,11 +2277,11 @@ Ast* Parser::parse_typeArg()
       dontcare_arg->column_no = this->token->column_no;
       type_arg->typeArg.arg = dontcare_arg;
       return type_arg;
-    } else if (this->token->token_is_typeRef()) {
-      type_arg->typeArg.arg = parse_typeRef();
+    } else if (token_is_typeRef(this->token)) {
+      type_arg->typeArg.arg = parse_typeRef(parser);
       return type_arg;
-    } else if (this->token->token_is_nonTypeName()) {
-      type_arg->typeArg.arg = parse_nonTypeName();
+    } else if (token_is_nonTypeName(this->token)) {
+      type_arg->typeArg.arg = parse_nonTypeName(parser);
       return type_arg;
     } else assert(0);
   } else error("%s:%d:%d: error: type argument was expected, got `%s`.",
@@ -2300,12 +2299,12 @@ Ast* Parser::parse_typeArgumentList()
   args->kind = AstEnum::typeArgumentList;
   args->line_no = this->token->line_no;
   args->column_no = this->token->column_no;
-  if (this->token->token_is_typeArg()) {
-    ast = parse_typeArg();
+  if (token_is_typeArg(this->token)) {
+    ast = parse_typeArg(parser);
     tree_ctor.append_node(&args->tree, &ast->tree);
     while (this->token->klass == TokenClass::COMMA) {
       this->next_token();
-      ast = parse_typeArg();
+      ast = parse_typeArg(parser);
       tree_ctor.append_node(&args->tree, &ast->tree);
     }
   }
@@ -2316,25 +2315,25 @@ Ast* Parser::parse_typeDeclaration()
 {
   Ast* type_decl;
 
-  if (this->token->token_is_typeDeclaration()) {
+  if (token_is_typeDeclaration(this->token)) {
     type_decl = (Ast*)this->storage->malloc(sizeof(Ast));
     type_decl->kind = AstEnum::typeDeclaration;
     type_decl->line_no = this->token->line_no;
     type_decl->column_no = this->token->column_no;
-    if (this->token->token_is_derivedTypeDeclaration()) {
-      type_decl->typeDeclaration.decl = parse_derivedTypeDeclaration();
+    if (token_is_derivedTypeDeclaration(this->token)) {
+      type_decl->typeDeclaration.decl = parse_derivedTypeDeclaration(parser);
       return type_decl;
     } else if (this->token->klass == TokenClass::TYPEDEF) {
-      type_decl->typeDeclaration.decl = parse_typedefDeclaration();
+      type_decl->typeDeclaration.decl = parse_typedefDeclaration(parser);
       return type_decl;
     } else if (this->token->klass == TokenClass::PARSER) {
-      type_decl->typeDeclaration.decl = parse_parserTypeDeclaration();
+      type_decl->typeDeclaration.decl = parse_parserTypeDeclaration(parser);
       return type_decl;
     } else if (this->token->klass == TokenClass::CONTROL) {
-      type_decl->typeDeclaration.decl = parse_controlTypeDeclaration();
+      type_decl->typeDeclaration.decl = parse_controlTypeDeclaration(parser);
       return type_decl;
     } else if (this->token->klass == TokenClass::PACKAGE) {
-      type_decl->typeDeclaration.decl = parse_packageTypeDeclaration();
+      type_decl->typeDeclaration.decl = parse_packageTypeDeclaration(parser);
       if (this->token->klass == TokenClass::SEMICOLON) {
         this->next_token();
       } else error("%s:%d:%d: error: `;` expected, got `%s`.",
@@ -2351,22 +2350,22 @@ Ast* Parser::parse_derivedTypeDeclaration()
 {
   Ast* type_decl;
 
-  if (this->token->token_is_derivedTypeDeclaration()) {
+  if (token_is_derivedTypeDeclaration(this->token)) {
     type_decl = (Ast*)this->storage->malloc(sizeof(Ast));
     type_decl->kind = AstEnum::derivedTypeDeclaration;
     type_decl->line_no = this->token->line_no;
     type_decl->column_no = this->token->column_no;
     if (this->token->klass == TokenClass::HEADER) {
-      type_decl->derivedTypeDeclaration.decl = parse_headerTypeDeclaration();
+      type_decl->derivedTypeDeclaration.decl = parse_headerTypeDeclaration(parser);
       return type_decl;
     } else if (this->token->klass == TokenClass::UNION) {
-      type_decl->derivedTypeDeclaration.decl = parse_headerUnionDeclaration();
+      type_decl->derivedTypeDeclaration.decl = parse_headerUnionDeclaration(parser);
       return type_decl;
     } else if (this->token->klass == TokenClass::STRUCT) {
-      type_decl->derivedTypeDeclaration.decl = parse_structTypeDeclaration();
+      type_decl->derivedTypeDeclaration.decl = parse_structTypeDeclaration(parser);
       return type_decl;
     } else if (this->token->klass == TokenClass::ENUM) {
-      type_decl->derivedTypeDeclaration.decl = parse_enumDeclaration();
+      type_decl->derivedTypeDeclaration.decl = parse_enumDeclaration(parser);
       return type_decl;
     } else assert(0);
   } else error("%s:%d:%d: error: structure declaration was expected, got `%s`.",
@@ -2386,13 +2385,13 @@ Ast* Parser::parse_headerTypeDeclaration()
     header_decl->kind = AstEnum::headerTypeDeclaration;
     header_decl->line_no = this->token->line_no;
     header_decl->column_no = this->token->column_no;
-    if (this->token->token_is_name()) {
-      name = parse_name();
+    if (token_is_name(this->token)) {
+      name = parse_name(parser);
       this->current_scope->bind(this->storage, name->name.strname, NameSpace::TYPE);
       header_decl->headerTypeDeclaration.name = name;
       if (this->token->klass == TokenClass::BRACE_OPEN) {
         this->next_token();
-        header_decl->headerTypeDeclaration.fields = parse_structFieldList();
+        header_decl->headerTypeDeclaration.fields = parse_structFieldList(parser);
         if (this->token->klass == TokenClass::BRACE_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -2419,13 +2418,13 @@ Ast* Parser::parse_headerUnionDeclaration()
     union_decl->kind = AstEnum::headerUnionDeclaration;
     union_decl->line_no = this->token->line_no;
     union_decl->column_no = this->token->column_no;
-    if (this->token->token_is_name()) {
-      name = parse_name();
+    if (token_is_name(this->token)) {
+      name = parse_name(parser);
       this->current_scope->bind(this->storage, name->name.strname, NameSpace::TYPE);
       union_decl->headerUnionDeclaration.name = name;
       if (this->token->klass == TokenClass::BRACE_OPEN) {
         this->next_token();
-        union_decl->headerUnionDeclaration.fields = parse_structFieldList();
+        union_decl->headerUnionDeclaration.fields = parse_structFieldList(parser);
         if (this->token->klass == TokenClass::BRACE_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -2452,13 +2451,13 @@ Ast* Parser::parse_structTypeDeclaration()
     struct_decl->kind = AstEnum::structTypeDeclaration;
     struct_decl->line_no = this->token->line_no;
     struct_decl->column_no = this->token->column_no;
-    if (this->token->token_is_name()) {
-      name = parse_name();
+    if (token_is_name(this->token)) {
+      name = parse_name(parser);
       this->current_scope->bind(this->storage, name->name.strname, NameSpace::TYPE);
       struct_decl->structTypeDeclaration.name = name;
       if (this->token->klass == TokenClass::BRACE_OPEN) {
         this->next_token();
-        struct_decl->structTypeDeclaration.fields = parse_structFieldList();
+        struct_decl->structTypeDeclaration.fields = parse_structFieldList(parser);
         if (this->token->klass == TokenClass::BRACE_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -2483,11 +2482,11 @@ Ast* Parser::parse_structFieldList()
   fields->kind = AstEnum::structFieldList;
   fields->line_no = this->token->line_no;
   fields->column_no = this->token->column_no;
-  if (this->token->token_is_structField()) {
-    ast = parse_structField();
+  if (token_is_structField(this->token)) {
+    ast = parse_structField(parser);
     tree_ctor.append_node(&fields->tree, &ast->tree);
-    while (this->token->token_is_structField()) {
-      ast = parse_structField();
+    while (token_is_structField(this->token)) {
+      ast = parse_structField(parser);
       tree_ctor.append_node(&fields->tree, &ast->tree);
     }
   }
@@ -2496,14 +2495,14 @@ Ast* Parser::parse_structFieldList()
 
 Ast* Parser::parse_structField()
 {
-  if (this->token->token_is_structField()) {
+  if (token_is_structField(this->token)) {
     Ast* field = (Ast*)this->storage->malloc(sizeof(Ast));
     field->kind = AstEnum::structField;
     field->line_no = this->token->line_no;
     field->column_no = this->token->column_no;
-    field->structField.type = parse_typeRef();
-    if (this->token->token_is_name()) {
-      field->structField.name = parse_name();
+    field->structField.type = parse_typeRef(parser);
+    if (token_is_name(this->token)) {
+      field->structField.name = parse_name(parser);
       if (this->token->klass == TokenClass::SEMICOLON) {
         this->next_token();
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
@@ -2533,7 +2532,7 @@ Ast* Parser::parse_enumDeclaration()
       if (this->token->klass == TokenClass::ANGLE_OPEN) {
         this->next_token();
         if (this->token->klass == TokenClass::INTEGER_LITERAL) {
-          enum_decl->enumDeclaration.type_size = parse_integer();
+          enum_decl->enumDeclaration.type_size = parse_integer(parser);
           if (this->token->klass == TokenClass::ANGLE_CLOSE) {
             this->next_token();
           } else error("%s:%d:%d: error: `>` was expected, got `%s`.",
@@ -2543,14 +2542,14 @@ Ast* Parser::parse_enumDeclaration()
       } else error("%s:%d:%d: error: `<` was expected, got `%s`.",
                    this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
     }
-    if (this->token->token_is_name()) {
-      name = parse_name();
+    if (token_is_name(this->token)) {
+      name = parse_name(parser);
       this->current_scope->bind(this->storage, name->name.strname, NameSpace::TYPE);
       enum_decl->enumDeclaration.name = name;
       if (this->token->klass == TokenClass::BRACE_OPEN) {
         this->next_token();
-        if (this->token->token_is_specifiedIdentifier()) {
-          enum_decl->enumDeclaration.fields = parse_specifiedIdentifierList();
+        if (token_is_specifiedIdentifier(this->token)) {
+          enum_decl->enumDeclaration.fields = parse_specifiedIdentifierList(parser);
           if (this->token->klass == TokenClass::BRACE_CLOSE) {
             this->next_token();
           } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -2580,9 +2579,9 @@ Ast* Parser::parse_errorDeclaration()
     error_decl->column_no = this->token->column_no;
     if (this->token->klass == TokenClass::BRACE_OPEN) {
       this->next_token();
-      if (this->token->token_is_name()) {
-        if (this->token->token_is_name()) {
-          error_decl->errorDeclaration.fields = parse_identifierList();
+      if (token_is_name(this->token)) {
+        if (token_is_name(this->token)) {
+          error_decl->errorDeclaration.fields = parse_identifierList(parser);
         } else error("%s:%d:%d: error: name was expected, got `%s`.",
                      this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
         if (this->token->klass == TokenClass::BRACE_CLOSE) {
@@ -2612,8 +2611,8 @@ Ast* Parser::parse_matchKindDeclaration()
     match_decl->column_no = this->token->column_no;
     if (this->token->klass == TokenClass::BRACE_OPEN) {
       this->next_token();
-      if (this->token->token_is_name()) {
-        match_decl->matchKindDeclaration.fields = parse_identifierList();
+      if (token_is_name(this->token)) {
+        match_decl->matchKindDeclaration.fields = parse_identifierList(parser);
         if (this->token->klass == TokenClass::BRACE_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -2638,12 +2637,12 @@ Ast* Parser::parse_identifierList()
   ids->kind = AstEnum::identifierList;
   ids->line_no = this->token->line_no;
   ids->column_no = this->token->column_no;
-  if (this->token->token_is_name()) {
-    ast = parse_name();
+  if (token_is_name(this->token)) {
+    ast = parse_name(parser);
     tree_ctor.append_node(&ids->tree, &ast->tree);
     while (this->token->klass == TokenClass::COMMA) {
       this->next_token();
-      ast = parse_name();
+      ast = parse_name(parser);
       tree_ctor.append_node(&ids->tree, &ast->tree);
     }
   }
@@ -2659,12 +2658,12 @@ Ast* Parser::parse_specifiedIdentifierList()
   ids->kind = AstEnum::specifiedIdentifierList;
   ids->line_no = this->token->line_no;
   ids->column_no = this->token->column_no;
-  if (this->token->token_is_specifiedIdentifier()) {
-    ast = parse_specifiedIdentifier();
+  if (token_is_specifiedIdentifier(this->token)) {
+    ast = parse_specifiedIdentifier(parser);
     tree_ctor.append_node(&ids->tree, &ast->tree);
     while (this->token->klass == TokenClass::COMMA) {
       this->next_token();
-      ast = parse_specifiedIdentifier();
+      ast = parse_specifiedIdentifier(parser);
       tree_ctor.append_node(&ids->tree, &ast->tree);
     }
   }
@@ -2675,16 +2674,16 @@ Ast* Parser::parse_specifiedIdentifier()
 {
   Ast* id;
 
-  if (this->token->token_is_specifiedIdentifier()) {
+  if (token_is_specifiedIdentifier(this->token)) {
     id = (Ast*)this->storage->malloc(sizeof(Ast));
     id->kind = AstEnum::specifiedIdentifier;
     id->line_no = this->token->line_no;
     id->column_no = this->token->column_no;
-    id->specifiedIdentifier.name = parse_name();
+    id->specifiedIdentifier.name = parse_name(parser);
     if (this->token->klass == TokenClass::EQUAL) {
       this->next_token();
-      if (this->token->token_is_expression()) {
-        id->specifiedIdentifier.init_expr = parse_expression(1);
+      if (token_is_expression(this->token)) {
+        id->specifiedIdentifier.init_expr = parse_expression(parser, 1);
       } else error("%s:%d:%d: error: expression was expected, got `%s`.",
                    this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
     }
@@ -2702,18 +2701,18 @@ Ast* Parser::parse_typedefDeclaration()
 
   if (this->token->klass == TokenClass::TYPEDEF) {
     this->next_token();
-    if (this->token->token_is_typeRef() || this->token->token_is_derivedTypeDeclaration()) {
+    if (token_is_typeRef(this->token) || token_is_derivedTypeDeclaration(this->token)) {
       type_decl = (Ast*)this->storage->malloc(sizeof(Ast));
       type_decl->kind = AstEnum::typedefDeclaration;
       type_decl->line_no = this->token->line_no;
       type_decl->column_no = this->token->column_no;
-      if (this->token->token_is_typeRef()) {
-        type_decl->typedefDeclaration.type_ref = parse_typeRef();
-      } else if (this->token->token_is_derivedTypeDeclaration()) {
-        type_decl->typedefDeclaration.type_ref = parse_derivedTypeDeclaration();
+      if (token_is_typeRef(this->token)) {
+        type_decl->typedefDeclaration.type_ref = parse_typeRef(parser);
+      } else if (token_is_derivedTypeDeclaration(this->token)) {
+        type_decl->typedefDeclaration.type_ref = parse_derivedTypeDeclaration(parser);
       } else assert(0);
-      if (this->token->token_is_name()) {
-        name = parse_name();
+      if (token_is_name(this->token)) {
+        name = parse_name(parser);
         this->current_scope->bind(this->storage, name->name.strname, NameSpace::TYPE);
         type_decl->typedefDeclaration.name = name;
         if (this->token->klass == TokenClass::SEMICOLON) {
@@ -2737,8 +2736,8 @@ Ast* Parser::parse_assignmentOrMethodCallStatement()
 {
   Ast* lvalue, *stmt; 
 
-  if (this->token->token_is_lvalue()) {
-    lvalue = parse_lvalue();
+  if (token_is_lvalue(this->token)) {
+    lvalue = parse_lvalue(parser);
     if (this->token->klass == TokenClass::PARENTH_OPEN) {
       this->next_token();
       stmt = (Ast*)this->storage->malloc(sizeof(Ast));
@@ -2746,7 +2745,7 @@ Ast* Parser::parse_assignmentOrMethodCallStatement()
       stmt->line_no = this->token->line_no;
       stmt->column_no = this->token->column_no;
       stmt->functionCall.lhs_expr = lvalue;
-      stmt->functionCall.args = parse_argumentList();
+      stmt->functionCall.args = parse_argumentList(parser);
       if (this->token->klass == TokenClass::PARENTH_CLOSE) {
         this->next_token();
       } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
@@ -2763,7 +2762,7 @@ Ast* Parser::parse_assignmentOrMethodCallStatement()
       stmt->line_no = this->token->line_no;
       stmt->column_no = this->token->column_no;
       stmt->assignmentStatement.lhs_expr = lvalue;
-      stmt->assignmentStatement.rhs_expr = parse_expression(1);
+      stmt->assignmentStatement.rhs_expr = parse_expression(parser, 1);
       if (this->token->klass == TokenClass::SEMICOLON) {
         this->next_token();
       } else error("%s:%d:%d: error: `;` expected, got `%s`.",
@@ -2787,8 +2786,8 @@ Ast* Parser::parse_returnStatement()
     return_stmt->kind = AstEnum::returnStatement;
     return_stmt->line_no = this->token->line_no;
     return_stmt->column_no = this->token->column_no;
-    if (this->token->token_is_expression())
-      return_stmt->returnStatement.expr = parse_expression(1);
+    if (token_is_expression(this->token))
+      return_stmt->returnStatement.expr = parse_expression(parser, 1);
     if (this->token->klass == TokenClass::SEMICOLON) {
       this->next_token();
     } else error("%s:%d:%d: error: `;` expected, got `%s`.",
@@ -2833,16 +2832,16 @@ Ast* Parser::parse_conditionalStatement()
     if_stmt->column_no = this->token->column_no;
     if (this->token->klass == TokenClass::PARENTH_OPEN) {
       this->next_token();
-      if (this->token->token_is_expression()) {
-        if_stmt->conditionalStatement.cond_expr = parse_expression(1);
+      if (token_is_expression(this->token)) {
+        if_stmt->conditionalStatement.cond_expr = parse_expression(parser, 1);
         if (this->token->klass == TokenClass::PARENTH_CLOSE) {
           this->next_token();
-          if (this->token->token_is_statement()) {
-            if_stmt->conditionalStatement.stmt = parse_statement(0);
+          if (token_is_statement(this->token)) {
+            if_stmt->conditionalStatement.stmt = parse_statement(parser, 0);
             if (this->token->klass == TokenClass::ELSE) {
               this->next_token();
-              if (this->token->token_is_statement()) {
-                if_stmt->conditionalStatement.else_stmt = parse_statement(0);
+              if (token_is_statement(this->token)) {
+                if_stmt->conditionalStatement.else_stmt = parse_statement(parser, 0);
               } else error("%s:%d:%d: error: statement was expected, got `%s`.",
                            this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
             }
@@ -2865,19 +2864,19 @@ Ast* Parser::parse_directApplication(Ast* type_name)
 {
   Ast* apply_stmt;
 
-  if (this->token->token_is_typeName() || type_name) {
+  if (token_is_typeName(this->token) || type_name) {
     apply_stmt = (Ast*)this->storage->malloc(sizeof(Ast));
     apply_stmt->kind = AstEnum::directApplication;
     apply_stmt->line_no = this->token->line_no;
     apply_stmt->column_no = this->token->column_no;
-    apply_stmt->directApplication.name = type_name ? type_name : parse_typeName();
+    apply_stmt->directApplication.name = type_name ? type_name : parse_typeName(parser);
     if (this->token->klass == TokenClass::DOT) {
       this->next_token();
       if (this->token->klass == TokenClass::APPLY) {
         this->next_token();
         if (this->token->klass == TokenClass::PARENTH_OPEN) {
           this->next_token();
-          apply_stmt->directApplication.args = parse_argumentList();
+          apply_stmt->directApplication.args = parse_argumentList(parser);
           if (this->token->klass == TokenClass::PARENTH_CLOSE) {
             this->next_token();
             if (this->token->klass == TokenClass::SEMICOLON) {
@@ -2903,19 +2902,19 @@ Ast* Parser::parse_statement(Ast* type_name)
 {
   Ast* stmt, *empty_stmt;
 
-  if (this->token->token_is_statement()) {
+  if (token_is_statement(this->token)) {
     stmt = (Ast*)this->storage->malloc(sizeof(Ast));
     stmt->kind = AstEnum::statement;
     stmt->line_no = this->token->line_no;
     stmt->column_no = this->token->column_no;
-    if (this->token->token_is_typeName() || type_name) {
-      stmt->statement.stmt = parse_directApplication(type_name);
+    if (token_is_typeName(this->token) || type_name) {
+      stmt->statement.stmt = parse_directApplication(parser, type_name);
       return stmt;
-    } else if (this->token->token_is_assignmentOrMethodCallStatement()) {
-      stmt->statement.stmt = parse_assignmentOrMethodCallStatement();
+    } else if (token_is_assignmentOrMethodCallStatement(this->token)) {
+      stmt->statement.stmt = parse_assignmentOrMethodCallStatement(parser);
       return stmt;
     } else if (this->token->klass == TokenClass::IF) {
-      stmt->statement.stmt = parse_conditionalStatement();
+      stmt->statement.stmt = parse_conditionalStatement(parser);
       return stmt;
     } else if (this->token->klass == TokenClass::SEMICOLON) {
       empty_stmt = (Ast*)this->storage->malloc(sizeof(Ast));
@@ -2926,16 +2925,16 @@ Ast* Parser::parse_statement(Ast* type_name)
       this->next_token();
       return stmt;
     } else if (this->token->klass == TokenClass::BRACE_OPEN) {
-      stmt->statement.stmt = parse_blockStatement();
+      stmt->statement.stmt = parse_blockStatement(parser);
       return stmt;
     } else if (this->token->klass == TokenClass::EXIT) {
-      stmt->statement.stmt = parse_exitStatement();
+      stmt->statement.stmt = parse_exitStatement(parser);
       return stmt;
     } else if (this->token->klass == TokenClass::RETURN) {
-      stmt->statement.stmt = parse_returnStatement();
+      stmt->statement.stmt = parse_returnStatement(parser);
       return stmt;
     } else if (this->token->klass == TokenClass::SWITCH) {
-      stmt->statement.stmt = parse_switchStatement();
+      stmt->statement.stmt = parse_switchStatement(parser);
       return stmt;
     }
   } else error("%s:%d:%d: error: statement was expected, got `%s`.",
@@ -2954,7 +2953,7 @@ Ast* Parser::parse_blockStatement()
     block_stmt->kind = AstEnum::blockStatement;
     block_stmt->line_no = this->token->line_no;
     block_stmt->column_no = this->token->column_no;
-    block_stmt->blockStatement.stmt_list = parse_statementOrDeclList();
+    block_stmt->blockStatement.stmt_list = parse_statementOrDeclList(parser);
     if (this->token->klass == TokenClass::BRACE_CLOSE) {
       this->next_token();
     } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -2975,11 +2974,11 @@ Ast* Parser::parse_statementOrDeclList()
   stmts->kind = AstEnum::statementOrDeclList;
   stmts->line_no = this->token->line_no;
   stmts->column_no = this->token->column_no;
-  if (this->token->token_is_statementOrDeclaration()) {
-    ast = parse_statementOrDeclaration();
+  if (token_is_statementOrDeclaration(this->token)) {
+    ast = parse_statementOrDeclaration(parser);
     tree_ctor.append_node(&stmts->tree, &ast->tree);
-    while (this->token->token_is_statementOrDeclaration()) {
-      ast = parse_statementOrDeclaration();
+    while (token_is_statementOrDeclaration(this->token)) {
+      ast = parse_statementOrDeclaration(parser);
       tree_ctor.append_node(&stmts->tree, &ast->tree);
     }
   }
@@ -2998,12 +2997,12 @@ Ast* Parser::parse_switchStatement()
     stmt->column_no = this->token->column_no;
     if (this->token->klass == TokenClass::PARENTH_OPEN) {
       this->next_token();
-      stmt->switchStatement.expr = parse_expression(1);
+      stmt->switchStatement.expr = parse_expression(parser, 1);
       if (this->token->klass == TokenClass::PARENTH_CLOSE) {
         this->next_token();
         if (this->token->klass == TokenClass::BRACE_OPEN) {
           this->next_token();
-          stmt->switchStatement.switch_cases = parse_switchCases();
+          stmt->switchStatement.switch_cases = parse_switchCases(parser);
           if (this->token->klass == TokenClass::BRACE_CLOSE) {
             this->next_token();
           } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -3030,11 +3029,11 @@ Ast* Parser::parse_switchCases()
   cases->kind = AstEnum::switchCases;
   cases->line_no = this->token->line_no;
   cases->column_no = this->token->column_no;
-  if (this->token->token_is_switchLabel()) {
-    ast = parse_switchCase();
+  if (token_is_switchLabel(this->token)) {
+    ast = parse_switchCase(parser);
     tree_ctor.append_node(&cases->tree, &ast->tree);
-    while (this->token->token_is_switchLabel()) {
-      ast = parse_switchCase();
+    while (token_is_switchLabel(this->token)) {
+      ast = parse_switchCase(parser);
       tree_ctor.append_node(&cases->tree, &ast->tree);
     }
   }
@@ -3045,16 +3044,16 @@ Ast* Parser::parse_switchCase()
 {
   Ast* switch_case;
 
-  if (this->token->token_is_switchLabel()) {
+  if (token_is_switchLabel(this->token)) {
     switch_case = (Ast*)this->storage->malloc(sizeof(Ast));
     switch_case->kind = AstEnum::switchCase;
     switch_case->line_no = this->token->line_no;
     switch_case->column_no = this->token->column_no;
-    switch_case->switchCase.label = parse_switchLabel();
+    switch_case->switchCase.label = parse_switchLabel(parser);
     if (this->token->klass == TokenClass::COLON) {
       this->next_token();
       if (this->token->klass == TokenClass::BRACE_OPEN) {
-        switch_case->switchCase.stmt = parse_blockStatement();
+        switch_case->switchCase.stmt = parse_blockStatement(parser);
       }
     } else error("%s:%d:%d: error: `:` was expected, got `%s`.",
                  this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
@@ -3069,13 +3068,13 @@ Ast* Parser::parse_switchLabel()
 {
   Ast* switch_label, *default_label;
 
-  if (this->token->token_is_switchLabel()) {
+  if (token_is_switchLabel(this->token)) {
     switch_label = (Ast*)this->storage->malloc(sizeof(Ast));
     switch_label->kind = AstEnum::switchLabel;
     switch_label->line_no = this->token->line_no;
     switch_label->column_no = this->token->column_no;
-    if (this->token->token_is_name()) {
-      switch_label->switchLabel.label = parse_name();
+    if (token_is_name(this->token)) {
+      switch_label->switchLabel.label = parse_name(parser);
       return switch_label;
     } else if (this->token->klass == TokenClass::DEFAULT) {
       this->next_token();
@@ -3096,28 +3095,28 @@ Ast* Parser::parse_statementOrDeclaration()
 {
   Ast* stmt, *type_ref;
 
-  if (this->token->token_is_statementOrDeclaration()) {
+  if (token_is_statementOrDeclaration(this->token)) {
     stmt = (Ast*)this->storage->malloc(sizeof(Ast));
     stmt->kind = AstEnum::statementOrDeclaration;
     stmt->line_no = this->token->line_no;
     stmt->column_no = this->token->column_no;
-    if (this->token->token_is_typeRef()) {
-      type_ref = parse_typeRef();
+    if (token_is_typeRef(this->token)) {
+      type_ref = parse_typeRef(parser);
       if (this->token->klass == TokenClass::PARENTH_OPEN) {
-        stmt->statementOrDeclaration.stmt = parse_instantiation(type_ref);
+        stmt->statementOrDeclaration.stmt = parse_instantiation(parser, type_ref);
         return stmt;
-      } else if (this->token->token_is_name()) {
-        stmt->statementOrDeclaration.stmt = parse_variableDeclaration(type_ref);
+      } else if (token_is_name(this->token)) {
+        stmt->statementOrDeclaration.stmt = parse_variableDeclaration(parser, type_ref);
         return stmt;
       } else {
-        stmt->statementOrDeclaration.stmt = parse_statement(type_ref);
+        stmt->statementOrDeclaration.stmt = parse_statement(parser, type_ref);
         return stmt;
       }
-    } else if (this->token->token_is_statement()) {
-      stmt->statementOrDeclaration.stmt = parse_statement(0);
+    } else if (token_is_statement(this->token)) {
+      stmt->statementOrDeclaration.stmt = parse_statement(parser, 0);
       return stmt;
     } else if (this->token->klass == TokenClass::CONST) {
-      stmt->statementOrDeclaration.stmt = parse_variableDeclaration(0);
+      stmt->statementOrDeclaration.stmt = parse_variableDeclaration(parser, 0);
       return stmt;
     } else assert(0);
     assert(0);
@@ -3138,7 +3137,7 @@ Ast* Parser::parse_tableDeclaration()
     table->kind = AstEnum::tableDeclaration;
     table->line_no = this->token->line_no;
     table->column_no = this->token->column_no;
-    table->tableDeclaration.name = parse_name();
+    table->tableDeclaration.name = parse_name(parser);
     method_protos = (Ast*)this->storage->malloc(sizeof(Ast));
     method_protos->kind = AstEnum::methodPrototypes;
     method_protos->line_no = table->line_no;
@@ -3146,8 +3145,8 @@ Ast* Parser::parse_tableDeclaration()
     table->tableDeclaration.method_protos = method_protos;
     if (this->token->klass == TokenClass::BRACE_OPEN) {
       this->next_token();
-      if (this->token->token_is_tableProperty()) {
-        table->tableDeclaration.prop_list = parse_tablePropertyList();
+      if (token_is_tableProperty(this->token)) {
+        table->tableDeclaration.prop_list = parse_tablePropertyList(parser);
       } else error("%s:%d:%d: error: table property was expected, got `%s`.",
                    this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
       if (this->token->klass == TokenClass::BRACE_CLOSE) {
@@ -3172,11 +3171,11 @@ Ast* Parser::parse_tablePropertyList()
   props->kind = AstEnum::tablePropertyList;
   props->line_no = this->token->line_no;
   props->column_no = this->token->column_no;
-  if (this->token->token_is_tableProperty()) {
-    ast = parse_tableProperty();
+  if (token_is_tableProperty(this->token)) {
+    ast = parse_tableProperty(parser);
     tree_ctor.append_node(&props->tree, &ast->tree);
-    while (this->token->token_is_tableProperty()) {
-      ast = parse_tableProperty();
+    while (token_is_tableProperty(this->token)) {
+      ast = parse_tableProperty(parser);
       tree_ctor.append_node(&props->tree, &ast->tree);
     }
   }
@@ -3190,7 +3189,7 @@ Ast* Parser::parse_tableProperty()
 #endif
   Ast* table_prop, *prop;
 
-  if (this->token->token_is_tableProperty()) {
+  if (token_is_tableProperty(this->token)) {
 #if 0
     if (this->token->klass == TokenClass::CONST) {
       this->next_token();
@@ -3211,7 +3210,7 @@ Ast* Parser::parse_tableProperty()
         this->next_token();
         if (this->token->klass == TokenClass::BRACE_OPEN) {
           this->next_token();
-          prop->keyProperty.keyelem_list = parse_keyElementList();
+          prop->keyProperty.keyelem_list = parse_keyElementList(parser);
           if (this->token->klass == TokenClass::BRACE_CLOSE) {
             this->next_token();
           } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -3232,7 +3231,7 @@ Ast* Parser::parse_tableProperty()
         this->next_token();
         if (this->token->klass == TokenClass::BRACE_OPEN) {
           this->next_token();
-          prop->actionsProperty.action_list = parse_actionList();
+          prop->actionsProperty.action_list = parse_actionList(parser);
           if (this->token->klass == TokenClass::BRACE_CLOSE) {
             this->next_token();
           } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -3256,7 +3255,7 @@ Ast* Parser::parse_tableProperty()
         if (this->token->klass == TokenClass::BRACE_OPEN) {
           this->next_token();
           if (token_is_keysetExpression(this->token)) {
-            prop->entriesProperty.entries_list = parse_entriesList();
+            prop->entriesProperty.entries_list = parse_entriesList(parser);
           } else error("%s:%d:%d: error: keyset expression was expected, got `%s`.",
                        this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
           if (this->token->klass == TokenClass::BRACE_CLOSE) {
@@ -3276,10 +3275,10 @@ Ast* Parser::parse_tableProperty()
       prop->line_no = this->token->line_no;
       prop->column_no = this->token->column_no;
       prop->simpleProperty.is_const = is_const;
-      prop->simpleProperty.name = parse_name();
+      prop->simpleProperty.name = parse_name(parser);
       if (this->token->klass == TokenClass::EQUAL) {
         this->next_token();
-        prop->simpleProperty.init_expr = parse_expression(1);
+        prop->simpleProperty.init_expr = parse_expression(parser, 1);
         if (this->token->klass == TokenClass::SEMICOLON) {
           this->next_token();
         } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
@@ -3308,11 +3307,11 @@ Ast* Parser::parse_keyElementList()
   elems->kind = AstEnum::keyElementList;
   elems->line_no = this->token->line_no;
   elems->column_no = this->token->column_no;
-  if (this->token->token_is_expression()) {
-    ast = parse_keyElement();
+  if (token_is_expression(this->token)) {
+    ast = parse_keyElement(parser);
     tree_ctor.append_node(&elems->tree, &ast->tree);
-    while (this->token->token_is_expression()) {
-      ast = parse_keyElement();
+    while (token_is_expression(this->token)) {
+      ast = parse_keyElement(parser);
       tree_ctor.append_node(&elems->tree, &ast->tree);
     }
   }
@@ -3323,15 +3322,15 @@ Ast* Parser::parse_keyElement()
 {
   Ast* key_elem;
 
-  if (this->token->token_is_expression()) {
+  if (token_is_expression(this->token)) {
     key_elem = (Ast*)this->storage->malloc(sizeof(Ast));
     key_elem->kind = AstEnum::keyElement;
     key_elem->line_no = this->token->line_no;
     key_elem->column_no = this->token->column_no;
-    key_elem->keyElement.expr = parse_expression(1);
+    key_elem->keyElement.expr = parse_expression(parser, 1);
     if (this->token->klass == TokenClass::COLON) {
       this->next_token();
-      key_elem->keyElement.match = parse_name();
+      key_elem->keyElement.match = parse_name(parser);
       if (this->token->klass == TokenClass::SEMICOLON) {
         this->next_token();
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
@@ -3354,15 +3353,15 @@ Ast* Parser::parse_actionList()
   actions->kind = AstEnum::actionList;
   actions->line_no = this->token->line_no;
   actions->column_no = this->token->column_no;
-  if (this->token->token_is_actionRef()) {
-    ast = parse_actionRef();
+  if (token_is_actionRef(this->token)) {
+    ast = parse_actionRef(parser);
     tree_ctor.append_node(&actions->tree, &ast->tree);
     if (this->token->klass == TokenClass::SEMICOLON) {
       this->next_token();
     } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                  this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
-    while (this->token->token_is_actionRef()) {
-      ast = parse_actionRef();
+    while (token_is_actionRef(this->token)) {
+      ast = parse_actionRef(parser);
       tree_ctor.append_node(&actions->tree, &ast->tree);
       if (this->token->klass == TokenClass::SEMICOLON) {
         this->next_token();
@@ -3377,16 +3376,16 @@ Ast* Parser::parse_actionRef()
 {
   Ast* action_ref;
 
-  if (this->token->token_is_nonTypeName()) {
+  if (token_is_nonTypeName(this->token)) {
     action_ref = (Ast*)this->storage->malloc(sizeof(Ast));
     action_ref->kind = AstEnum::actionRef;
     action_ref->line_no = this->token->line_no;
     action_ref->column_no = this->token->column_no;
-    action_ref->actionRef.name = parse_nonTypeName();
+    action_ref->actionRef.name = parse_nonTypeName(parser);
     if (this->token->klass == TokenClass::PARENTH_OPEN) {
       this->next_token();
-      if (this->token->token_is_argument()) {
-        action_ref->actionRef.args = parse_argumentList();
+      if (token_is_argument(this->token)) {
+        action_ref->actionRef.args = parse_argumentList(parser);
         if (this->token->klass == TokenClass::PARENTH_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
@@ -3414,10 +3413,10 @@ Ast* Parser::parse_entriesList()
   entries->line_no = this->token->line_no;
   entries->column_no = this->token->column_no;
   if (token_is_keysetExpression(this->token)) {
-    ast = parse_entry();
+    ast = parse_entry(parser);
     tree_ctor.append_node(&entries->tree, &ast->tree);
     while (token_is_keysetExpression(this->token)) {
-      ast = parse_entry();
+      ast = parse_entry(parser);
       tree_ctor.append_node(&entries->tree, &ast->tree);
     }
   }
@@ -3433,10 +3432,10 @@ Ast* Parser::parse_entry()
     entry->kind = AstEnum::entry;
     entry->line_no = this->token->line_no;
     entry->column_no = this->token->column_no;
-    entry->entry.keyset = parse_keysetExpression();
+    entry->entry.keyset = parse_keysetExpression(parser);
     if (this->token->klass == TokenClass::COLON) {
       this->next_token();
-      entry->entry.action = parse_actionRef();
+      entry->entry.action = parse_actionRef(parser);
       if (this->token->klass == TokenClass::SEMICOLON) {
         this->next_token();
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
@@ -3461,15 +3460,15 @@ Ast* Parser::parse_actionDeclaration()
     action_decl->kind = AstEnum::actionDeclaration;
     action_decl->line_no = this->token->line_no;
     action_decl->column_no = this->token->column_no;
-    if (this->token->token_is_name()) {
-      action_decl->actionDeclaration.name = parse_name();
+    if (token_is_name(this->token)) {
+      action_decl->actionDeclaration.name = parse_name(parser);
       if (this->token->klass == TokenClass::PARENTH_OPEN) {
         this->next_token();
-        action_decl->actionDeclaration.params = parse_parameterList();
+        action_decl->actionDeclaration.params = parse_parameterList(parser);
         if (this->token->klass == TokenClass::PARENTH_CLOSE) {
           this->next_token();
           if (this->token->klass == TokenClass::BRACE_OPEN) {
-            action_decl->actionDeclaration.stmt = parse_blockStatement();
+            action_decl->actionDeclaration.stmt = parse_blockStatement(parser);
           } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
                        this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
         } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -3496,17 +3495,17 @@ Ast* Parser::parse_variableDeclaration(Ast* type_ref)
     this->next_token();
     is_const = 1;
   }
-  if (this->token->token_is_typeRef() || type_ref) {
+  if (token_is_typeRef(this->token) || type_ref) {
     var_decl = (Ast*)this->storage->malloc(sizeof(Ast));
     var_decl->kind = AstEnum::variableDeclaration;
     var_decl->line_no = this->token->line_no;
     var_decl->column_no = this->token->column_no;
-    var_decl->variableDeclaration.type = type_ref ? type_ref : parse_typeRef();
-    if (this->token->token_is_name()) {
-      var_decl->variableDeclaration.name = parse_name();
+    var_decl->variableDeclaration.type = type_ref ? type_ref : parse_typeRef(parser);
+    if (token_is_name(this->token)) {
+      var_decl->variableDeclaration.name = parse_name(parser);
       if (this->token->klass == TokenClass::EQUAL) {
         this->next_token();
-        var_decl->variableDeclaration.init_expr = parse_expression(1);
+        var_decl->variableDeclaration.init_expr = parse_expression(parser, 1);
       }
       if (this->token->klass == TokenClass::SEMICOLON) {
         this->next_token();
@@ -3528,14 +3527,14 @@ Ast* Parser::parse_functionDeclaration(Ast* type_ref)
 {
   Ast* func_decl;
 
-  if (this->token->token_is_typeOrVoid()) {
+  if (token_is_typeOrVoid(this->token)) {
     func_decl = (Ast*)this->storage->malloc(sizeof(Ast));
     func_decl->kind = AstEnum::functionDeclaration;
     func_decl->line_no = this->token->line_no;
     func_decl->column_no = this->token->column_no;
-    func_decl->functionDeclaration.proto = parse_functionPrototype(type_ref);
+    func_decl->functionDeclaration.proto = parse_functionPrototype(parser, type_ref);
     if (this->token->klass == TokenClass::BRACE_OPEN) {
-      func_decl->functionDeclaration.stmt = parse_blockStatement();
+      func_decl->functionDeclaration.stmt = parse_blockStatement(parser);
     } else error("%s:%d:%d: error: `{` was expected, got `%s`.",
                  this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
     return func_decl;
@@ -3554,12 +3553,12 @@ Ast* Parser::parse_argumentList()
   args->kind = AstEnum::argumentList;
   args->line_no = this->token->line_no;
   args->column_no = this->token->column_no;
-  if (this->token->token_is_argument()) {
-    ast = parse_argument();
+  if (token_is_argument(this->token)) {
+    ast = parse_argument(parser);
     tree_ctor.append_node(&args->tree, &ast->tree);
     while (this->token->klass == TokenClass::COMMA) {
       this->next_token();
-      ast = parse_argument();
+      ast = parse_argument(parser);
       tree_ctor.append_node(&args->tree, &ast->tree);
     }
   }
@@ -3570,13 +3569,13 @@ Ast* Parser::parse_argument()
 {
   Ast* arg, *dontcare_arg;
 
-  if (this->token->token_is_argument()) {
+  if (token_is_argument(this->token)) {
     arg = (Ast*)this->storage->malloc(sizeof(Ast));
     arg->kind = AstEnum::argument;
     arg->line_no = this->token->line_no;
     arg->column_no = this->token->column_no;
-    if (this->token->token_is_expression()) {
-      arg->argument.arg = parse_expression(1);
+    if (token_is_expression(this->token)) {
+      arg->argument.arg = parse_expression(parser, 1);
       return arg;
     } else if (this->token->klass == TokenClass::DONTCARE) {
       this->next_token();
@@ -3602,12 +3601,12 @@ Ast* Parser::parse_expressionList()
   exprs->kind = AstEnum::expressionList;
   exprs->line_no = this->token->line_no;
   exprs->column_no = this->token->column_no;
-  if (this->token->token_is_expression()) {
-    ast = parse_expression(1);
+  if (token_is_expression(this->token)) {
+    ast = parse_expression(parser, 1);
     tree_ctor.append_node(&exprs->tree, &ast->tree);
     while (this->token->klass == TokenClass::COMMA) {
       this->next_token();
-      ast = parse_expression(1);
+      ast = parse_expression(parser, 1);
       tree_ctor.append_node(&exprs->tree, &ast->tree);
     }
   }
@@ -3618,12 +3617,12 @@ Ast* Parser::parse_lvalue()
 {
   Ast* lvalue, *expr;
 
-  if (this->token->token_is_lvalue()) {
+  if (token_is_lvalue(this->token)) {
     lvalue = (Ast*)this->storage->malloc(sizeof(Ast));
     lvalue->kind = AstEnum::lvalueExpression;
     lvalue->line_no = this->token->line_no;
     lvalue->column_no = this->token->column_no;
-    lvalue->lvalueExpression.expr = parse_nonTypeName();
+    lvalue->lvalueExpression.expr = parse_nonTypeName(parser);
     while(this->token->klass == TokenClass::DOT || this->token->klass == TokenClass::BRACKET_OPEN) {
       if (this->token->klass == TokenClass::DOT) {
         this->next_token();
@@ -3632,8 +3631,8 @@ Ast* Parser::parse_lvalue()
         expr->line_no = this->token->line_no;
         expr->column_no = this->token->column_no;
         expr->memberSelector.lhs_expr = lvalue;
-        if (this->token->token_is_name()) {
-          expr->memberSelector.name = parse_name();
+        if (token_is_name(this->token)) {
+          expr->memberSelector.name = parse_name(parser);
         } else error("%s:%d:%d: error: name was expected, got `%s`.",
                      this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
         lvalue = (Ast*)this->storage->malloc(sizeof(Ast));
@@ -3649,7 +3648,7 @@ Ast* Parser::parse_lvalue()
         expr->line_no = this->token->line_no;
         expr->column_no = this->token->column_no;
         expr->arraySubscript.lhs_expr = lvalue;
-        expr->arraySubscript.index_expr = parse_indexExpression();
+        expr->arraySubscript.index_expr = parse_indexExpression(parser);
         if (this->token->klass == TokenClass::BRACKET_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
@@ -3672,9 +3671,9 @@ Ast* Parser::parse_expression(int priority_threshold)
 {
   Ast* primary, *expr;
 
-  if (this->token->token_is_expression()) {
-    primary = parse_expressionPrimary();
-    while (this->token->token_is_exprOperator()) {
+  if (token_is_expression(this->token)) {
+    primary = parse_expressionPrimary(parser);
+    while (token_is_exprOperator(this->token)) {
       if (this->token->klass == TokenClass::DOT) {
         this->next_token();
         Ast* expr;
@@ -3683,8 +3682,8 @@ Ast* Parser::parse_expression(int priority_threshold)
         expr->line_no = this->token->line_no;
         expr->column_no = this->token->column_no;
         expr->memberSelector.lhs_expr = primary;
-        if (this->token->token_is_nonTypeName()) {
-          expr->memberSelector.name = parse_nonTypeName();
+        if (token_is_nonTypeName(this->token)) {
+          expr->memberSelector.name = parse_nonTypeName(parser);
         } else error("%s:%d:%d: error: non-type name was expected, got `%s`.",
                      this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
         primary = (Ast*)this->storage->malloc(sizeof(Ast));
@@ -3699,7 +3698,7 @@ Ast* Parser::parse_expression(int priority_threshold)
         expr->line_no = this->token->line_no;
         expr->column_no = this->token->column_no;
         expr->arraySubscript.lhs_expr = primary;
-        expr->arraySubscript.index_expr = parse_indexExpression();
+        expr->arraySubscript.index_expr = parse_indexExpression(parser);
         if (this->token->klass == TokenClass::BRACKET_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
@@ -3716,8 +3715,8 @@ Ast* Parser::parse_expression(int priority_threshold)
         expr->line_no = this->token->line_no;
         expr->column_no = this->token->column_no;
         expr->functionCall.lhs_expr = primary;
-        expr->functionCall.args = parse_argumentList();
-        if (this->token->klass == TokenClass::PARENTH_CLOSE) {
+        expr->functionCall.args = parse_argumentList(parser);
+        if (parser->token->klass == TokenClass::PARENTH_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
@@ -3733,14 +3732,14 @@ Ast* Parser::parse_expression(int priority_threshold)
         expr->line_no = this->token->line_no;
         expr->column_no = this->token->column_no;
         expr->assignmentStatement.lhs_expr = primary;
-        expr->assignmentStatement.rhs_expr = parse_expression(1);
+        expr->assignmentStatement.rhs_expr = parse_expression(parser, 1);
         primary = (Ast*)this->storage->malloc(sizeof(Ast));
         primary->kind = AstEnum::expression;
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
-      } else if (this->token->token_is_binaryOperator()){
-        int priority = this->token->operator_priority();
+      } else if (token_is_binaryOperator(this->token)){
+        int priority = operator_priority(this->token);
         if (priority >= priority_threshold) {
           expr = (Ast*)this->storage->malloc(sizeof(Ast));
           expr->kind = AstEnum::binaryExpression;
@@ -3750,7 +3749,7 @@ Ast* Parser::parse_expression(int priority_threshold)
           expr->binaryExpression.op = token_to_binop(this->token);
           expr->binaryExpression.strname = this->token->lexeme;
           this->next_token();
-          expr->binaryExpression.right_operand = parse_expression(priority + 1);
+          expr->binaryExpression.right_operand = parse_expression(parser, priority + 1);
           primary = (Ast*)this->storage->malloc(sizeof(Ast));
           primary->kind = AstEnum::expression;
           primary->line_no = expr->line_no;
@@ -3770,37 +3769,37 @@ Ast* Parser::parse_expressionPrimary()
 {
   Ast* primary, *expr;
 
-  if (this->token->token_is_expression()) {
+  if (token_is_expression(this->token)) {
     primary = (Ast*)this->storage->malloc(sizeof(Ast));
     primary->kind = AstEnum::expression;
     primary->line_no = this->token->line_no;
     primary->column_no = this->token->column_no;
     if (this->token->klass == TokenClass::INTEGER_LITERAL) {
-      primary->expression.expr = parse_integer();
+      primary->expression.expr = parse_integer(parser);
       return primary;
     } else if (this->token->klass == TokenClass::TRUE || this->token->klass == TokenClass::FALSE) {
-      primary->expression.expr = parse_boolean();
+      primary->expression.expr = parse_boolean(parser);
       return primary;
     } else if (this->token->klass == TokenClass::STRING_LITERAL) {
-      primary->expression.expr = parse_string();
+      primary->expression.expr = parse_string(parser);
       return primary;
     } else if (this->token->klass == TokenClass::DOT) {
       this->next_token();
       if (this->token->klass == TokenClass::IDENTIFIER) {
-        primary->expression.expr = parse_nonTypeName();
+        primary->expression.expr = parse_nonTypeName(parser);
         return primary;
       } else if (this->token->klass == TokenClass::TYPE_IDENTIFIER) {
-        primary->expression.expr = parse_typeName();
+        primary->expression.expr = parse_typeName(parser);
         return primary;
       } else error("%s:%d:%d: error: unexpected token `%s`.",
                    this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
       assert(0);
-    } else if (this->token->token_is_nonTypeName()) {
-      primary->expression.expr = parse_nonTypeName();
+    } else if (token_is_nonTypeName(this->token)) {
+      primary->expression.expr = parse_nonTypeName(parser);
       return primary;
     } else if (this->token->klass == TokenClass::BRACE_OPEN) {
       this->next_token();
-      primary->expression.expr = parse_expressionList();
+      primary->expression.expr = parse_expressionList(parser);
       if (this->token->klass == TokenClass::BRACE_CLOSE) {
         this->next_token();
       } else error("%s:%d:%d: error: `}` was expected, got `%s`.",
@@ -3810,27 +3809,27 @@ Ast* Parser::parse_expressionPrimary()
       this->next_token();
       if (this->token->klass == TokenClass::TYPE_IDENTIFIER && this->peek_token()->klass == TokenClass::DOT) {
         /* (<typeName>.<name>) */
-        primary->expression.expr = parse_expression(1);
+        primary->expression.expr = parse_expression(parser, 1);
         if (this->token->klass == TokenClass::PARENTH_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
         return primary;
-      } else if (this->token->token_is_typeRef()) {
+      } else if (token_is_typeRef(this->token)) {
         expr = (Ast*)this->storage->malloc(sizeof(Ast));
         expr->kind = AstEnum::castExpression;
         expr->line_no = this->token->line_no;
         expr->column_no = this->token->column_no;
-        expr->castExpression.type = parse_typeRef();
+        expr->castExpression.type = parse_typeRef(parser);
         if (this->token->klass == TokenClass::PARENTH_CLOSE) {
           this->next_token();
-          expr->castExpression.expr = parse_expression(10);
+          expr->castExpression.expr = parse_expression(parser, 10);
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
         primary->expression.expr = expr;
         return primary;
-      } else if (this->token->token_is_expression()) {
-        primary->expression.expr = parse_expression(1);
+      } else if (token_is_expression(this->token)) {
+        primary->expression.expr = parse_expression(parser, 1);
         if (this->token->klass == TokenClass::PARENTH_CLOSE) {
           this->next_token();
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
@@ -3847,7 +3846,7 @@ Ast* Parser::parse_expressionPrimary()
       expr->column_no = this->token->column_no;
       expr->unaryExpression.op = AstOperator::NOT;
       expr->unaryExpression.strname = this->token->lexeme;
-      expr->unaryExpression.operand = parse_expression(1);
+      expr->unaryExpression.operand = parse_expression(parser, 1);
       primary->expression.expr = expr;
       return primary;
     } else if (this->token->klass == TokenClass::TILDA) {
@@ -3858,7 +3857,7 @@ Ast* Parser::parse_expressionPrimary()
       expr->column_no = this->token->column_no;
       expr->unaryExpression.op = AstOperator::BITW_NOT;
       expr->unaryExpression.strname = this->token->lexeme;
-      expr->unaryExpression.operand = parse_expression(1);
+      expr->unaryExpression.operand = parse_expression(parser, 1);
       primary->expression.expr = expr;
       return primary;
     } else if (this->token->klass == TokenClass::UNARY_MINUS) {
@@ -3869,11 +3868,11 @@ Ast* Parser::parse_expressionPrimary()
       expr->column_no = this->token->column_no;
       expr->unaryExpression.op = AstOperator::NEG;
       expr->unaryExpression.strname = this->token->lexeme;
-      expr->unaryExpression.operand = parse_expression(1);
+      expr->unaryExpression.operand = parse_expression(parser, 1);
       primary->expression.expr = expr;
       return primary;
-    } else if (this->token->token_is_typeName()) {
-      primary->expression.expr = parse_typeName();
+    } else if (token_is_typeName(this->token)) {
+      primary->expression.expr = parse_typeName(parser);
       return primary;
     } else if (this->token->klass == TokenClass::ERROR) {
       this->next_token();
@@ -3896,16 +3895,16 @@ Ast* Parser::parse_indexExpression()
 {
   Ast* index_expr;
 
-  if (this->token->token_is_expression()) {
+  if (token_is_expression(this->token)) {
     index_expr = (Ast*)this->storage->malloc(sizeof(Ast));
     index_expr->kind = AstEnum::indexExpression;
     index_expr->line_no = this->token->line_no;
     index_expr->column_no = this->token->column_no;
-    index_expr->indexExpression.start_index = parse_expression(1);
+    index_expr->indexExpression.start_index = parse_expression(parser, 1);
     if (this->token->klass == TokenClass::COLON) {
       this->next_token();
-      if (this->token->token_is_expression()) {
-        index_expr->indexExpression.end_index = parse_expression(1);
+      if (token_is_expression(this->token)) {
+        index_expr->indexExpression.end_index = parse_expression(parser, 1);
       } else error("%s:%d:%d: error: expression was expected, got `%s`.",
                    this->source_file, this->token->line_no, this->token->column_no, this->token->lexeme);
     }

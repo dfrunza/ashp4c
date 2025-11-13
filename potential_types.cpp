@@ -165,6 +165,7 @@ bool TypeChecker::match_params(PotentialType* potential_args, Type* params_ty)
   return (i == params_ty->product.count);
 }
 
+
 void TypeChecker::collect_matching_member(PotentialType* tau, Type* product_ty,
     char* strname, PotentialType* potential_args)
 {
