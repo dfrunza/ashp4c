@@ -367,8 +367,8 @@ bool type_equiv(TypeChecker* checker, Type* left, Type* right)
 Type* Type::actual_type()
 {
   if (!this) { return 0; }
-  if (ty_former == TypeEnum::TYPE) {
-    return type.type;
+  if (this->ty_former == TypeEnum::TYPE) {
+    return this->type.type;
   }
   return this;
 }
@@ -377,14 +377,14 @@ Type* Type::effective_type()
 {
   Type* applied_ty;
 
-  applied_ty = actual_type();
+  applied_ty = this->actual_type();
   if (!applied_ty) { return 0; }
-  if (ty_former == TypeEnum::FUNCTION) {
-    return function.return_->actual_type();
-  } else if (ty_former == TypeEnum::FIELD) {
-    return field.type->actual_type();
-  } else if (ty_former == TypeEnum::STACK) {
-    return header_stack.element->actual_type();
+  if (this->ty_former == TypeEnum::FUNCTION) {
+    return this->function.return_->actual_type();
+  } else if (this->ty_former == TypeEnum::FIELD) {
+    return this->field.type->actual_type();
+  } else if (this->ty_former == TypeEnum::STACK) {
+    return this->header_stack.element->actual_type();
   }
   return applied_ty;
 }

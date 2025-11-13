@@ -5,9 +5,9 @@ void AstTreeCtor::append_node(AstTree* tree, AstTree* node) {
 
   first_child = tree->first_child;
   if (first_child) {
-    last_sibling->right_sibling = node;
+    this->last_sibling->right_sibling = node;
   } else {
     tree->first_child = node;
   }
-  last_sibling = node;
+  this->last_sibling = node;
 }

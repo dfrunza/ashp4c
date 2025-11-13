@@ -159,7 +159,7 @@ bool TypeChecker::match_params(PotentialType* potential_args, Type* params_ty)
 
   if (params_ty->product.count != potential_args->product.count) return 0;
   for (i = 0; i < params_ty->product.count; i++) {
-    if (!match_type(potential_args->product.members[i],
+    if (!this->match_type(potential_args->product.members[i],
                     params_ty->product.members[i])) break;
   }
   return (i == params_ty->product.count);
@@ -174,7 +174,7 @@ void TypeChecker::collect_matching_member(PotentialType* tau, Type* product_ty,
     member_ty = product_ty->product.members[i];
     if (cstr_match(member_ty->strname, strname)) {
       if (member_ty->ty_former == TypeEnum::FUNCTION) {
-        if (match_params(potential_args, member_ty->function.params)) {
+        if (this->match_params(potential_args, member_ty->function.params)) {
           tau->set.members.insert(member_ty, 0, 1);
         }
       } else {

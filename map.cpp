@@ -19,22 +19,22 @@ MapEntry* Map::insert_entry(MapEntry** branch, MapEntry* entry,
     void* key, void* value, bool return_if_found)
 {
   if (!entry) {
-    entry = (MapEntry*)storage->malloc(sizeof(MapEntry));
+    entry = (MapEntry*)this->storage->malloc(sizeof(MapEntry));
     *branch = entry;
     entry->key = key;
     entry->value = value;
     entry->left_branch = 0;
     entry->right_branch = 0;
-    entry->next = first;
-    first = entry;
+    entry->next = this->first;
+    this->first = entry;
     return entry;
   } else if (entry->key == key) {
     if (return_if_found) { return entry; } else { return 0; }
   } else if (key < entry->key) {
-    return insert_entry(&entry->left_branch, entry->left_branch,
+    return this->insert_entry(&entry->left_branch, entry->left_branch,
                 key, value, return_if_found);
   } else {
-    return insert_entry(&entry->right_branch, entry->right_branch,
+    return this->insert_entry(&entry->right_branch, entry->right_branch,
                 key, value, return_if_found);
   }
   assert(0);
@@ -46,7 +46,7 @@ void* Map::lookup(void* key, MapEntry** entry)
   MapEntry* m;
   void* value;
 
-  m = search_entry(root, key);
+  m = search_entry(this->root, key);
   value = 0;
   if (m) { value = m->value; }
   if (entry) { *entry = m; }
@@ -55,7 +55,7 @@ void* Map::lookup(void* key, MapEntry** entry)
 
 MapEntry* Map::insert(void* key, void* value, bool return_if_found)
 {
-  return insert_entry(&root, root, key, value, return_if_found);
+  return this->insert_entry(&this->root, this->root, key, value, return_if_found);
 }
 
 int Map::count()
@@ -63,7 +63,7 @@ int Map::count()
   int c = 0;
   MapEntry* m;
 
-  for (m = first; m != 0; m = m->next) {
+  for (m = this->first; m != 0; m = m->next) {
     c += 1;
   }
   return c;
