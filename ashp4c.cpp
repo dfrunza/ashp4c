@@ -120,7 +120,7 @@ int main(int arg_count, char* args[])
   parser.storage = &storage;
   parser.source_file = source_text.filename;
   parser.tokens = lexer.tokens;
-  parse(&parser);
+  parser.parse();
   scratch_storage.free();
 
   drypass.do_pass(parser.p4program);
