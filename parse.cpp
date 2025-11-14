@@ -680,323 +680,323 @@ Ast* Ast::clone(Arena* storage)
 
   if (this == 0) return (Ast*)0;
   clone = (Ast*)storage->malloc(sizeof(Ast));
-  clone->kind = this->kind;
-  clone->line_no = this->line_no;
-  clone->column_no = this->column_no;
-  if (this->tree.first_child) {
-    child_clone = container_of(this->tree.first_child, Ast, tree)->clone(storage);
+  clone->kind = kind;
+  clone->line_no = line_no;
+  clone->column_no = column_no;
+  if (tree.first_child) {
+    child_clone = container_of(tree.first_child, Ast, tree)->clone(storage);
     clone->tree.first_child = &child_clone->tree;
   }
-  if (this->tree.right_sibling) {
-    sibling_clone = container_of(this->tree.right_sibling, Ast, tree)->clone(storage);
+  if (tree.right_sibling) {
+    sibling_clone = container_of(tree.right_sibling, Ast, tree)->clone(storage);
     clone->tree.right_sibling = &sibling_clone->tree;
   }
 
   /** PROGRAM **/
-  if (this->kind == AstEnum::p4program) {
-    clone->p4program.decl_list = this->p4program.decl_list->clone(storage);
-  } else if (this->kind == AstEnum::declarationList) {
+  if (kind == AstEnum::p4program) {
+    clone->p4program.decl_list = p4program.decl_list->clone(storage);
+  } else if (kind == AstEnum::declarationList) {
     ;
-  } else if (this->kind == AstEnum::declaration) {
-    clone->declaration.decl = this->declaration.decl->clone(storage);
-  } else if (this->kind == AstEnum::name) {
-    clone->name.strname = this->name.strname;
-  } else if (this->kind == AstEnum::parameterList) {
+  } else if (kind == AstEnum::declaration) {
+    clone->declaration.decl = declaration.decl->clone(storage);
+  } else if (kind == AstEnum::name) {
+    clone->name.strname = name.strname;
+  } else if (kind == AstEnum::parameterList) {
     ;
-  } else if (this->kind == AstEnum::parameter) {
-    clone->parameter.direction = this->parameter.direction;
-    clone->parameter.name = this->parameter.name->clone(storage);
-    clone->parameter.type = this->parameter.type->clone(storage);
-    clone->parameter.init_expr = this->parameter.init_expr->clone(storage);
-  } else if (this->kind == AstEnum::packageTypeDeclaration) {
-    clone->packageTypeDeclaration.name = this->packageTypeDeclaration.name->clone(storage);
-    clone->packageTypeDeclaration.params = this->packageTypeDeclaration.params->clone(storage);
-  } else if (this->kind == AstEnum::instantiation) {
-    clone->instantiation.name = this->instantiation.name->clone(storage);
-    clone->instantiation.type = this->instantiation.type->clone(storage);
-    clone->instantiation.args = this->instantiation.args->clone(storage);
+  } else if (kind == AstEnum::parameter) {
+    clone->parameter.direction = parameter.direction;
+    clone->parameter.name = parameter.name->clone(storage);
+    clone->parameter.type = parameter.type->clone(storage);
+    clone->parameter.init_expr = parameter.init_expr->clone(storage);
+  } else if (kind == AstEnum::packageTypeDeclaration) {
+    clone->packageTypeDeclaration.name = packageTypeDeclaration.name->clone(storage);
+    clone->packageTypeDeclaration.params = packageTypeDeclaration.params->clone(storage);
+  } else if (kind == AstEnum::instantiation) {
+    clone->instantiation.name = instantiation.name->clone(storage);
+    clone->instantiation.type = instantiation.type->clone(storage);
+    clone->instantiation.args = instantiation.args->clone(storage);
   }
   /** PARSER **/
-  else if (this->kind == AstEnum::parserDeclaration) {
-    clone->parserDeclaration.proto = this->parserDeclaration.proto->clone(storage);
-    clone->parserDeclaration.ctor_params = this->parserDeclaration.ctor_params->clone(storage);
-    clone->parserDeclaration.local_elements = this->parserDeclaration.local_elements->clone(storage);
-    clone->parserDeclaration.states = this->parserDeclaration.states->clone(storage);
-  } else if (this->kind == AstEnum::parserTypeDeclaration) {
-    clone->parserTypeDeclaration.name = this->parserTypeDeclaration.name->clone(storage);
-    clone->parserTypeDeclaration.params = this->parserTypeDeclaration.params->clone(storage);
-    clone->parserTypeDeclaration.method_protos = this->parserTypeDeclaration.method_protos->clone(storage);
-  } else if (this->kind == AstEnum::parserLocalElements) {
+  else if (kind == AstEnum::parserDeclaration) {
+    clone->parserDeclaration.proto = parserDeclaration.proto->clone(storage);
+    clone->parserDeclaration.ctor_params = parserDeclaration.ctor_params->clone(storage);
+    clone->parserDeclaration.local_elements = parserDeclaration.local_elements->clone(storage);
+    clone->parserDeclaration.states = parserDeclaration.states->clone(storage);
+  } else if (kind == AstEnum::parserTypeDeclaration) {
+    clone->parserTypeDeclaration.name = parserTypeDeclaration.name->clone(storage);
+    clone->parserTypeDeclaration.params = parserTypeDeclaration.params->clone(storage);
+    clone->parserTypeDeclaration.method_protos = parserTypeDeclaration.method_protos->clone(storage);
+  } else if (kind == AstEnum::parserLocalElements) {
     ;
-  } else if (this->kind == AstEnum::parserLocalElement) {
-    clone->parserLocalElement.element = this->parserLocalElement.element->clone(storage);
-  } else if (this->kind == AstEnum::parserStates) {
+  } else if (kind == AstEnum::parserLocalElement) {
+    clone->parserLocalElement.element = parserLocalElement.element->clone(storage);
+  } else if (kind == AstEnum::parserStates) {
     ;
-  } else if (this->kind == AstEnum::parserState) {
-    clone->parserState.name = this->parserState.name->clone(storage);
-    clone->parserState.stmt_list = this->parserState.stmt_list->clone(storage);
-    clone->parserState.transition_stmt = this->parserState.transition_stmt->clone(storage);
-  } else if (this->kind == AstEnum::parserStatements) {
+  } else if (kind == AstEnum::parserState) {
+    clone->parserState.name = parserState.name->clone(storage);
+    clone->parserState.stmt_list = parserState.stmt_list->clone(storage);
+    clone->parserState.transition_stmt = parserState.transition_stmt->clone(storage);
+  } else if (kind == AstEnum::parserStatements) {
     ;
-  } else if (this->kind == AstEnum::parserStatement) {
-    clone->parserStatement.stmt = this->parserStatement.stmt->clone(storage);
-  } else if (this->kind == AstEnum::parserBlockStatement) {
-    clone->parserBlockStatement.stmt_list = this->parserBlockStatement.stmt_list->clone(storage);
-  } else if (this->kind == AstEnum::transitionStatement) {
-    clone->transitionStatement.stmt = this->transitionStatement.stmt->clone(storage);
-  } else if (this->kind == AstEnum::stateExpression) {
-    clone->stateExpression.expr = this->stateExpression.expr->clone(storage);
-  } else if (this->kind == AstEnum::selectExpression) {
-    clone->selectExpression.expr_list = this->selectExpression.expr_list->clone(storage);
-    clone->selectExpression.case_list = this->selectExpression.case_list->clone(storage);
-  } else if (this->kind == AstEnum::selectCaseList) {
+  } else if (kind == AstEnum::parserStatement) {
+    clone->parserStatement.stmt = parserStatement.stmt->clone(storage);
+  } else if (kind == AstEnum::parserBlockStatement) {
+    clone->parserBlockStatement.stmt_list = parserBlockStatement.stmt_list->clone(storage);
+  } else if (kind == AstEnum::transitionStatement) {
+    clone->transitionStatement.stmt = transitionStatement.stmt->clone(storage);
+  } else if (kind == AstEnum::stateExpression) {
+    clone->stateExpression.expr = stateExpression.expr->clone(storage);
+  } else if (kind == AstEnum::selectExpression) {
+    clone->selectExpression.expr_list = selectExpression.expr_list->clone(storage);
+    clone->selectExpression.case_list = selectExpression.case_list->clone(storage);
+  } else if (kind == AstEnum::selectCaseList) {
     ;
-  } else if (this->kind == AstEnum::selectCase) {
-    clone->selectCase.keyset_expr = this->selectCase.keyset_expr->clone(storage);
-    clone->selectCase.name = this->selectCase.name->clone(storage);
-  } else if (this->kind == AstEnum::keysetExpression) {
-    clone->keysetExpression.expr = this->keysetExpression.expr->clone(storage);
-  } else if (this->kind == AstEnum::tupleKeysetExpression) {
-    clone->tupleKeysetExpression.expr_list = this->tupleKeysetExpression.expr_list->clone(storage);
-  } else if (this->kind == AstEnum::simpleKeysetExpression) {
-    clone->simpleKeysetExpression.expr = this->simpleKeysetExpression.expr->clone(storage);
-  } else if (this->kind == AstEnum::simpleExpressionList) {
+  } else if (kind == AstEnum::selectCase) {
+    clone->selectCase.keyset_expr = selectCase.keyset_expr->clone(storage);
+    clone->selectCase.name = selectCase.name->clone(storage);
+  } else if (kind == AstEnum::keysetExpression) {
+    clone->keysetExpression.expr = keysetExpression.expr->clone(storage);
+  } else if (kind == AstEnum::tupleKeysetExpression) {
+    clone->tupleKeysetExpression.expr_list = tupleKeysetExpression.expr_list->clone(storage);
+  } else if (kind == AstEnum::simpleKeysetExpression) {
+    clone->simpleKeysetExpression.expr = simpleKeysetExpression.expr->clone(storage);
+  } else if (kind == AstEnum::simpleExpressionList) {
     ;
-  } else if (this->kind == AstEnum::typeRef) {
-    clone->typeRef.type = this->typeRef.type->clone(storage);
-  } else if (this->kind == AstEnum::tupleType) {
-    clone->tupleType.type_args = this->tupleType.type_args->clone(storage);
+  } else if (kind == AstEnum::typeRef) {
+    clone->typeRef.type = typeRef.type->clone(storage);
+  } else if (kind == AstEnum::tupleType) {
+    clone->tupleType.type_args = tupleType.type_args->clone(storage);
   }
   /** CONTROL **/
-  else if (this->kind == AstEnum::controlDeclaration) {
-    clone->controlDeclaration.proto = this->controlDeclaration.proto->clone(storage);
-    clone->controlDeclaration.ctor_params = this->controlDeclaration.ctor_params->clone(storage);
-    clone->controlDeclaration.local_decls = this->controlDeclaration.local_decls->clone(storage);
-    clone->controlDeclaration.apply_stmt = this->controlDeclaration.apply_stmt->clone(storage);
-  } else if (this->kind == AstEnum::controlTypeDeclaration) {
-    clone->controlTypeDeclaration.name = this->controlTypeDeclaration.name->clone(storage);
-    clone->controlTypeDeclaration.params = this->controlTypeDeclaration.params->clone(storage);
-    clone->controlTypeDeclaration.method_protos = this->controlTypeDeclaration.params->clone(storage);
-  } else if (this->kind == AstEnum::controlLocalDeclarations) {
+  else if (kind == AstEnum::controlDeclaration) {
+    clone->controlDeclaration.proto = controlDeclaration.proto->clone(storage);
+    clone->controlDeclaration.ctor_params = controlDeclaration.ctor_params->clone(storage);
+    clone->controlDeclaration.local_decls = controlDeclaration.local_decls->clone(storage);
+    clone->controlDeclaration.apply_stmt = controlDeclaration.apply_stmt->clone(storage);
+  } else if (kind == AstEnum::controlTypeDeclaration) {
+    clone->controlTypeDeclaration.name = controlTypeDeclaration.name->clone(storage);
+    clone->controlTypeDeclaration.params = controlTypeDeclaration.params->clone(storage);
+    clone->controlTypeDeclaration.method_protos = controlTypeDeclaration.params->clone(storage);
+  } else if (kind == AstEnum::controlLocalDeclarations) {
     ;
-  } else if (this->kind == AstEnum::controlLocalDeclaration) {
-    clone->controlLocalDeclaration.decl = this->controlLocalDeclaration.decl->clone(storage);
+  } else if (kind == AstEnum::controlLocalDeclaration) {
+    clone->controlLocalDeclaration.decl = controlLocalDeclaration.decl->clone(storage);
   }
   /** EXTERN **/
-  else if (this->kind == AstEnum::externDeclaration) {
-    clone->externDeclaration.decl = this->externDeclaration.decl->clone(storage);
-  } else if (this->kind == AstEnum::externTypeDeclaration) {
-    clone->externTypeDeclaration.name = this->externTypeDeclaration.name->clone(storage);
-    clone->externTypeDeclaration.method_protos = this->externTypeDeclaration.method_protos->clone(storage);
-  } else if (this->kind == AstEnum::methodPrototypes) {
+  else if (kind == AstEnum::externDeclaration) {
+    clone->externDeclaration.decl = externDeclaration.decl->clone(storage);
+  } else if (kind == AstEnum::externTypeDeclaration) {
+    clone->externTypeDeclaration.name = externTypeDeclaration.name->clone(storage);
+    clone->externTypeDeclaration.method_protos = externTypeDeclaration.method_protos->clone(storage);
+  } else if (kind == AstEnum::methodPrototypes) {
     ;
-  } else if (this->kind == AstEnum::functionPrototype) {
-    clone->functionPrototype.return_type = this->functionPrototype.return_type->clone(storage);
-    clone->functionPrototype.name = this->functionPrototype.name->clone(storage);
-    clone->functionPrototype.params = this->functionPrototype.params->clone(storage);
+  } else if (kind == AstEnum::functionPrototype) {
+    clone->functionPrototype.return_type = functionPrototype.return_type->clone(storage);
+    clone->functionPrototype.name = functionPrototype.name->clone(storage);
+    clone->functionPrototype.params = functionPrototype.params->clone(storage);
   }
   /** TYPES **/
-  else if (this->kind == AstEnum::typeRef) {
-    clone->typeRef.type = this->typeRef.type->clone(storage);
-  } else if (this->kind == AstEnum::tupleType) {
-    clone->tupleType.type_args = this->tupleType.type_args->clone(storage);
-  } else if (this->kind == AstEnum::headerStackType) {
-    clone->headerStackType.type = this->headerStackType.type->clone(storage);
-    clone->headerStackType.stack_expr = this->headerStackType.stack_expr->clone(storage);
-  } else if (this->kind == AstEnum::baseTypeBoolean) {
-    clone->baseTypeBoolean.name = this->baseTypeBoolean.name->clone(storage);
-  } else if (this->kind == AstEnum::baseTypeInteger) {
-    clone->baseTypeInteger.name = this->baseTypeInteger.name->clone(storage);
-    clone->baseTypeInteger.size = this->baseTypeInteger.size->clone(storage);
-  } else if (this->kind == AstEnum::baseTypeBit) {
-    clone->baseTypeBit.name = this->baseTypeBit.name->clone(storage);
-    clone->baseTypeBit.size = this->baseTypeBit.size->clone(storage);
-  } else if (this->kind == AstEnum::baseTypeBit) {
-    clone->baseTypeBit.name = this->baseTypeBit.name->clone(storage);
-    clone->baseTypeBit.size = this->baseTypeBit.size->clone(storage);
-  } else if (this->kind == AstEnum::baseTypeString) {
-    clone->baseTypeString.name = this->baseTypeString.name->clone(storage);
-  } else if (this->kind == AstEnum::baseTypeVoid) {
-    clone->baseTypeVoid.name = this->baseTypeVoid.name->clone(storage);
-  } else if (this->kind == AstEnum::baseTypeError) {
-    clone->baseTypeError.name = this->baseTypeError.name->clone(storage);
-  } else if (this->kind == AstEnum::integerTypeSize) {
-    clone->integerTypeSize.size = this->integerTypeSize.size->clone(storage);
-  } else if (this->kind == AstEnum::realTypeArg) {
-    clone->realTypeArg.arg = this->realTypeArg.arg->clone(storage);
-  } else if (this->kind == AstEnum::typeArg) {
-    clone->typeArg.arg = this->typeArg.arg->clone(storage);
-  } else if (this->kind == AstEnum::typeArgumentList) {
+  else if (kind == AstEnum::typeRef) {
+    clone->typeRef.type = typeRef.type->clone(storage);
+  } else if (kind == AstEnum::tupleType) {
+    clone->tupleType.type_args = tupleType.type_args->clone(storage);
+  } else if (kind == AstEnum::headerStackType) {
+    clone->headerStackType.type = headerStackType.type->clone(storage);
+    clone->headerStackType.stack_expr = headerStackType.stack_expr->clone(storage);
+  } else if (kind == AstEnum::baseTypeBoolean) {
+    clone->baseTypeBoolean.name = baseTypeBoolean.name->clone(storage);
+  } else if (kind == AstEnum::baseTypeInteger) {
+    clone->baseTypeInteger.name = baseTypeInteger.name->clone(storage);
+    clone->baseTypeInteger.size = baseTypeInteger.size->clone(storage);
+  } else if (kind == AstEnum::baseTypeBit) {
+    clone->baseTypeBit.name = baseTypeBit.name->clone(storage);
+    clone->baseTypeBit.size = baseTypeBit.size->clone(storage);
+  } else if (kind == AstEnum::baseTypeBit) {
+    clone->baseTypeBit.name = baseTypeBit.name->clone(storage);
+    clone->baseTypeBit.size = baseTypeBit.size->clone(storage);
+  } else if (kind == AstEnum::baseTypeString) {
+    clone->baseTypeString.name = baseTypeString.name->clone(storage);
+  } else if (kind == AstEnum::baseTypeVoid) {
+    clone->baseTypeVoid.name = baseTypeVoid.name->clone(storage);
+  } else if (kind == AstEnum::baseTypeError) {
+    clone->baseTypeError.name = baseTypeError.name->clone(storage);
+  } else if (kind == AstEnum::integerTypeSize) {
+    clone->integerTypeSize.size = integerTypeSize.size->clone(storage);
+  } else if (kind == AstEnum::realTypeArg) {
+    clone->realTypeArg.arg = realTypeArg.arg->clone(storage);
+  } else if (kind == AstEnum::typeArg) {
+    clone->typeArg.arg = typeArg.arg->clone(storage);
+  } else if (kind == AstEnum::typeArgumentList) {
     ;
-  } else if (this->kind == AstEnum::typeDeclaration) {
-    clone->typeDeclaration.decl = this->typeDeclaration.decl->clone(storage);
-  } else if (this->kind == AstEnum::derivedTypeDeclaration) {
-    clone->derivedTypeDeclaration.decl = this->derivedTypeDeclaration.decl->clone(storage);
-  } else if (this->kind == AstEnum::headerTypeDeclaration) {
-    clone->headerTypeDeclaration.name = this->headerTypeDeclaration.name->clone(storage);
-    clone->headerTypeDeclaration.fields = this->headerTypeDeclaration.fields->clone(storage);
-  } else if (this->kind == AstEnum::headerUnionDeclaration) {
-    clone->headerUnionDeclaration.name = this->headerUnionDeclaration.name->clone(storage);
-    clone->headerUnionDeclaration.fields = this->headerUnionDeclaration.fields->clone(storage);
-  } else if (this->kind == AstEnum::structTypeDeclaration) {
-    clone->structTypeDeclaration.name = this->structTypeDeclaration.name->clone(storage);
-    clone->structTypeDeclaration.fields = this->structTypeDeclaration.fields->clone(storage);
-  } else if (this->kind == AstEnum::structFieldList) {
+  } else if (kind == AstEnum::typeDeclaration) {
+    clone->typeDeclaration.decl = typeDeclaration.decl->clone(storage);
+  } else if (kind == AstEnum::derivedTypeDeclaration) {
+    clone->derivedTypeDeclaration.decl = derivedTypeDeclaration.decl->clone(storage);
+  } else if (kind == AstEnum::headerTypeDeclaration) {
+    clone->headerTypeDeclaration.name = headerTypeDeclaration.name->clone(storage);
+    clone->headerTypeDeclaration.fields = headerTypeDeclaration.fields->clone(storage);
+  } else if (kind == AstEnum::headerUnionDeclaration) {
+    clone->headerUnionDeclaration.name = headerUnionDeclaration.name->clone(storage);
+    clone->headerUnionDeclaration.fields = headerUnionDeclaration.fields->clone(storage);
+  } else if (kind == AstEnum::structTypeDeclaration) {
+    clone->structTypeDeclaration.name = structTypeDeclaration.name->clone(storage);
+    clone->structTypeDeclaration.fields = structTypeDeclaration.fields->clone(storage);
+  } else if (kind == AstEnum::structFieldList) {
     ;
-  } else if (this->kind == AstEnum::structField) {
-    clone->structField.type = this->structField.type->clone(storage);
-    clone->structField.name = this->structField.name->clone(storage);
-  } else if (this->kind == AstEnum::enumDeclaration) {
-    clone->enumDeclaration.type_size = this->enumDeclaration.type_size->clone(storage);
-    clone->enumDeclaration.name = this->enumDeclaration.name->clone(storage);
-    clone->enumDeclaration.fields = this->enumDeclaration.fields->clone(storage);
-  } else if (this->kind == AstEnum::errorDeclaration) {
-    clone->errorDeclaration.fields = this->errorDeclaration.fields->clone(storage);
-  } else if (this->kind == AstEnum::matchKindDeclaration) {
-    clone->matchKindDeclaration.fields = this->matchKindDeclaration.fields->clone(storage);
-  } else if (this->kind == AstEnum::matchKindDeclaration) {
+  } else if (kind == AstEnum::structField) {
+    clone->structField.type = structField.type->clone(storage);
+    clone->structField.name = structField.name->clone(storage);
+  } else if (kind == AstEnum::enumDeclaration) {
+    clone->enumDeclaration.type_size = enumDeclaration.type_size->clone(storage);
+    clone->enumDeclaration.name = enumDeclaration.name->clone(storage);
+    clone->enumDeclaration.fields = enumDeclaration.fields->clone(storage);
+  } else if (kind == AstEnum::errorDeclaration) {
+    clone->errorDeclaration.fields = errorDeclaration.fields->clone(storage);
+  } else if (kind == AstEnum::matchKindDeclaration) {
+    clone->matchKindDeclaration.fields = matchKindDeclaration.fields->clone(storage);
+  } else if (kind == AstEnum::matchKindDeclaration) {
     ;
-  } else if (this->kind == AstEnum::specifiedIdentifierList) {
+  } else if (kind == AstEnum::specifiedIdentifierList) {
     ;
-  } else if (this->kind == AstEnum::specifiedIdentifier) {
-    clone->specifiedIdentifier.name = this->specifiedIdentifier.name->clone(storage);
-    clone->specifiedIdentifier.init_expr = this->specifiedIdentifier.init_expr->clone(storage);
-  } else if (this->kind == AstEnum::typedefDeclaration) {
-    clone->typedefDeclaration.type_ref = this->typedefDeclaration.type_ref->clone(storage);
-    clone->typedefDeclaration.name = this->typedefDeclaration.name->clone(storage);
+  } else if (kind == AstEnum::specifiedIdentifier) {
+    clone->specifiedIdentifier.name = specifiedIdentifier.name->clone(storage);
+    clone->specifiedIdentifier.init_expr = specifiedIdentifier.init_expr->clone(storage);
+  } else if (kind == AstEnum::typedefDeclaration) {
+    clone->typedefDeclaration.type_ref = typedefDeclaration.type_ref->clone(storage);
+    clone->typedefDeclaration.name = typedefDeclaration.name->clone(storage);
   }
   /** STATEMENTS **/
-  else if (this->kind == AstEnum::assignmentStatement) {
-    clone->assignmentStatement.lhs_expr = this->assignmentStatement.lhs_expr->clone(storage);
-    clone->assignmentStatement.rhs_expr = this->assignmentStatement.rhs_expr->clone(storage);
-  } else if (this->kind == AstEnum::emptyStatement) {
+  else if (kind == AstEnum::assignmentStatement) {
+    clone->assignmentStatement.lhs_expr = assignmentStatement.lhs_expr->clone(storage);
+    clone->assignmentStatement.rhs_expr = assignmentStatement.rhs_expr->clone(storage);
+  } else if (kind == AstEnum::emptyStatement) {
     ;
-  } else if (this->kind == AstEnum::returnStatement) {
-    clone->returnStatement.expr = this->returnStatement.expr->clone(storage);
-  } else if (this->kind == AstEnum::returnStatement) {
+  } else if (kind == AstEnum::returnStatement) {
+    clone->returnStatement.expr = returnStatement.expr->clone(storage);
+  } else if (kind == AstEnum::returnStatement) {
     ;
-  } else if (this->kind == AstEnum::conditionalStatement) {
-    clone->conditionalStatement.cond_expr = this->conditionalStatement.cond_expr->clone(storage);
-    clone->conditionalStatement.stmt = this->conditionalStatement.stmt->clone(storage);
-    clone->conditionalStatement.else_stmt = this->conditionalStatement.else_stmt->clone(storage);
-  } else if (this->kind == AstEnum::directApplication) {
-    clone->directApplication.name = this->directApplication.name->clone(storage);
-    clone->directApplication.args = this->directApplication.args->clone(storage);
-  } else if (this->kind == AstEnum::statement) {
-    clone->statement.stmt = this->statement.stmt->clone(storage);
-  } else if (this->kind == AstEnum::blockStatement) {
-    clone->blockStatement.stmt_list = this->blockStatement.stmt_list->clone(storage);
-  } else if (this->kind == AstEnum::statementOrDeclaration) {
-    clone->statementOrDeclaration.stmt = this->statementOrDeclaration.stmt->clone(storage);
-  } else if (this->kind == AstEnum::statementOrDeclList) {
+  } else if (kind == AstEnum::conditionalStatement) {
+    clone->conditionalStatement.cond_expr = conditionalStatement.cond_expr->clone(storage);
+    clone->conditionalStatement.stmt = conditionalStatement.stmt->clone(storage);
+    clone->conditionalStatement.else_stmt = conditionalStatement.else_stmt->clone(storage);
+  } else if (kind == AstEnum::directApplication) {
+    clone->directApplication.name = directApplication.name->clone(storage);
+    clone->directApplication.args = directApplication.args->clone(storage);
+  } else if (kind == AstEnum::statement) {
+    clone->statement.stmt = statement.stmt->clone(storage);
+  } else if (kind == AstEnum::blockStatement) {
+    clone->blockStatement.stmt_list = blockStatement.stmt_list->clone(storage);
+  } else if (kind == AstEnum::statementOrDeclaration) {
+    clone->statementOrDeclaration.stmt = statementOrDeclaration.stmt->clone(storage);
+  } else if (kind == AstEnum::statementOrDeclList) {
     ;
-  } else if (this->kind == AstEnum::switchStatement) {
-    clone->switchStatement.expr = this->switchStatement.expr->clone(storage);
-    clone->switchStatement.switch_cases = this->switchStatement.switch_cases->clone(storage);
-  } else if (this->kind == AstEnum::switchCases) {
+  } else if (kind == AstEnum::switchStatement) {
+    clone->switchStatement.expr = switchStatement.expr->clone(storage);
+    clone->switchStatement.switch_cases = switchStatement.switch_cases->clone(storage);
+  } else if (kind == AstEnum::switchCases) {
     ;
-  } else if (this->kind == AstEnum::switchCase) {
-    clone->switchCase.label = this->switchCase.label->clone(storage);
-    clone->switchCase.stmt = this->switchCase.stmt->clone(storage);
-  } else if (this->kind == AstEnum::switchLabel) {
-    clone->switchLabel.label = this->switchLabel.label->clone(storage);
+  } else if (kind == AstEnum::switchCase) {
+    clone->switchCase.label = switchCase.label->clone(storage);
+    clone->switchCase.stmt = switchCase.stmt->clone(storage);
+  } else if (kind == AstEnum::switchLabel) {
+    clone->switchLabel.label = switchLabel.label->clone(storage);
   }
   /** TABLES **/
-  else if (this->kind == AstEnum::tableDeclaration) {
-    clone->tableDeclaration.name = this->tableDeclaration.name->clone(storage);
-    clone->tableDeclaration.prop_list = this->tableDeclaration.prop_list->clone(storage);
-  } else if (this->kind == AstEnum::tablePropertyList) {
+  else if (kind == AstEnum::tableDeclaration) {
+    clone->tableDeclaration.name = tableDeclaration.name->clone(storage);
+    clone->tableDeclaration.prop_list = tableDeclaration.prop_list->clone(storage);
+  } else if (kind == AstEnum::tablePropertyList) {
     ;
-  } else if (this->kind == AstEnum::tableProperty) {
-    clone->tableProperty.prop = this->tableProperty.prop->clone(storage);
-  } else if (this->kind == AstEnum::keyProperty) {
-    clone->keyProperty.keyelem_list = this->keyProperty.keyelem_list->clone(storage);
-  } else if (this->kind == AstEnum::keyElementList) {
+  } else if (kind == AstEnum::tableProperty) {
+    clone->tableProperty.prop = tableProperty.prop->clone(storage);
+  } else if (kind == AstEnum::keyProperty) {
+    clone->keyProperty.keyelem_list = keyProperty.keyelem_list->clone(storage);
+  } else if (kind == AstEnum::keyElementList) {
     ;
-  } else if (this->kind == AstEnum::keyElement) {
-    clone->keyElement.expr = this->keyElement.expr->clone(storage);
-    clone->keyElement.match = this->keyElement.match->clone(storage);
-  } else if (this->kind == AstEnum::actionsProperty) {
-    clone->actionsProperty.action_list = this->actionsProperty.action_list->clone(storage);
-  } else if (this->kind == AstEnum::actionList) {
+  } else if (kind == AstEnum::keyElement) {
+    clone->keyElement.expr = keyElement.expr->clone(storage);
+    clone->keyElement.match = keyElement.match->clone(storage);
+  } else if (kind == AstEnum::actionsProperty) {
+    clone->actionsProperty.action_list = actionsProperty.action_list->clone(storage);
+  } else if (kind == AstEnum::actionList) {
     ;
-  } else if (this->kind == AstEnum::actionRef) {
-    clone->actionRef.name = this->actionRef.name->clone(storage);
-    clone->actionRef.args = this->actionRef.args->clone(storage);
+  } else if (kind == AstEnum::actionRef) {
+    clone->actionRef.name = actionRef.name->clone(storage);
+    clone->actionRef.args = actionRef.args->clone(storage);
   }
 #if 0
-  else if (this->kind == AstEnum::entriesProperty) {
-    clone->entriesProperty.entries_list = this->entriesProperty.entries_list->clone(storage);
-  } else if (this->kind == AstEnum::entriesList) {
+  else if (kind == AstEnum::entriesProperty) {
+    clone->entriesProperty.entries_list = entriesProperty.entries_list->clone(storage);
+  } else if (kind == AstEnum::entriesList) {
     ;
-  } else if (this->kind == AstEnum::entry) {
-    clone->entry.keyset = this->entry.keyset->clone(storage);
-    clone->entry.action = this->entry.action->clone(storage);
-  } else if (this->kind == AstEnum::simpleProperty) {
-    clone->simpleProperty.name = this->simpleProperty.name->clone(storage);
-    clone->simpleProperty.init_expr = this->simpleProperty.init_expr->clone(storage);
-    clone->simpleProperty.is_const = this->simpleProperty.is_const;
+  } else if (kind == AstEnum::entry) {
+    clone->entry.keyset = entry.keyset->clone(storage);
+    clone->entry.action = entry.action->clone(storage);
+  } else if (kind == AstEnum::simpleProperty) {
+    clone->simpleProperty.name = simpleProperty.name->clone(storage);
+    clone->simpleProperty.init_expr = simpleProperty.init_expr->clone(storage);
+    clone->simpleProperty.is_const = simpleProperty.is_const;
   }
 #endif
-  else if (this->kind == AstEnum::actionDeclaration) {
-    clone->actionDeclaration.name = this->actionDeclaration.name->clone(storage);
-    clone->actionDeclaration.params = this->actionDeclaration.params->clone(storage);
-    clone->actionDeclaration.stmt = this->actionDeclaration.stmt->clone(storage);
+  else if (kind == AstEnum::actionDeclaration) {
+    clone->actionDeclaration.name = actionDeclaration.name->clone(storage);
+    clone->actionDeclaration.params = actionDeclaration.params->clone(storage);
+    clone->actionDeclaration.stmt = actionDeclaration.stmt->clone(storage);
   }
   /** VARIABLES **/
-  else if (this->kind == AstEnum::variableDeclaration) {
-    clone->variableDeclaration.type = this->variableDeclaration.type->clone(storage);
-    clone->variableDeclaration.name = this->variableDeclaration.name->clone(storage);
-    clone->variableDeclaration.init_expr = this->variableDeclaration.init_expr->clone(storage);
-    clone->variableDeclaration.is_const = this->variableDeclaration.is_const;
+  else if (kind == AstEnum::variableDeclaration) {
+    clone->variableDeclaration.type = variableDeclaration.type->clone(storage);
+    clone->variableDeclaration.name = variableDeclaration.name->clone(storage);
+    clone->variableDeclaration.init_expr = variableDeclaration.init_expr->clone(storage);
+    clone->variableDeclaration.is_const = variableDeclaration.is_const;
   }
   /** EXPRESSIONS **/
-  else if (this->kind == AstEnum::functionDeclaration) {
-    clone->functionDeclaration.proto = this->functionDeclaration.proto->clone(storage);
-    clone->functionDeclaration.stmt = this->functionDeclaration.stmt->clone(storage);
-  } else if (this->kind == AstEnum::argumentList) {
+  else if (kind == AstEnum::functionDeclaration) {
+    clone->functionDeclaration.proto = functionDeclaration.proto->clone(storage);
+    clone->functionDeclaration.stmt = functionDeclaration.stmt->clone(storage);
+  } else if (kind == AstEnum::argumentList) {
     ;
-  } else if (this->kind == AstEnum::argument) {
-    clone->argument.arg = this->argument.arg->clone(storage);
-  } else if (this->kind == AstEnum::expressionList) {
+  } else if (kind == AstEnum::argument) {
+    clone->argument.arg = argument.arg->clone(storage);
+  } else if (kind == AstEnum::expressionList) {
     ;
-  } else if (this->kind == AstEnum::expression) {
-    clone->expression.expr = this->expression.expr->clone(storage);
-  } else if (this->kind == AstEnum::lvalueExpression) {
-    clone->lvalueExpression.expr = this->lvalueExpression.expr->clone(storage);
-  } else if (this->kind == AstEnum::binaryExpression) {
-    clone->binaryExpression.op = this->binaryExpression.op;
-    clone->binaryExpression.strname = this->binaryExpression.strname;
-    clone->binaryExpression.left_operand = this->binaryExpression.left_operand->clone(storage);
-    clone->binaryExpression.right_operand = this->binaryExpression.right_operand->clone(storage);
-  } else if (this->kind == AstEnum::unaryExpression) {
-    clone->unaryExpression.op = this->unaryExpression.op;
-    clone->unaryExpression.strname = this->unaryExpression.strname;
-    clone->unaryExpression.operand = this->unaryExpression.operand->clone(storage);
-  } else if (this->kind == AstEnum::functionCall) {
-    clone->functionCall.lhs_expr = this->functionCall.lhs_expr->clone(storage);
-    clone->functionCall.args = this->functionCall.args->clone(storage);
-  } else if (this->kind == AstEnum::memberSelector) {
-    clone->memberSelector.lhs_expr = this->memberSelector.lhs_expr->clone(storage);
-    clone->memberSelector.name = this->memberSelector.name->clone(storage);
-  } else if (this->kind == AstEnum::castExpression) {
-    clone->castExpression.type = this->castExpression.type->clone(storage);
-    clone->castExpression.expr = this->castExpression.expr->clone(storage);
-  } else if (this->kind == AstEnum::arraySubscript) {
-    clone->arraySubscript.lhs_expr = this->arraySubscript.lhs_expr->clone(storage);
-    clone->arraySubscript.index_expr = this->arraySubscript.index_expr->clone(storage);
-  } else if (this->kind == AstEnum::indexExpression) {
-    clone->indexExpression.start_index = this->indexExpression.start_index->clone(storage);
-    clone->indexExpression.end_index = this->indexExpression.end_index->clone(storage);
-  } else if (this->kind == AstEnum::integerLiteral) {
-    clone->integerLiteral.is_signed = this->integerLiteral.is_signed;
-    clone->integerLiteral.value = this->integerLiteral.value;
-    clone->integerLiteral.width = this->integerLiteral.width;
-  } else if (this->kind == AstEnum::booleanLiteral) {
-    clone->booleanLiteral.value = this->booleanLiteral.value;
-  } else if (this->kind == AstEnum::stringLiteral) {
-    clone->stringLiteral.value = this->stringLiteral.value;
-  } else if (this->kind == AstEnum::default_ || this->kind == AstEnum::dontcare) {
+  } else if (kind == AstEnum::expression) {
+    clone->expression.expr = expression.expr->clone(storage);
+  } else if (kind == AstEnum::lvalueExpression) {
+    clone->lvalueExpression.expr = lvalueExpression.expr->clone(storage);
+  } else if (kind == AstEnum::binaryExpression) {
+    clone->binaryExpression.op = binaryExpression.op;
+    clone->binaryExpression.strname = binaryExpression.strname;
+    clone->binaryExpression.left_operand = binaryExpression.left_operand->clone(storage);
+    clone->binaryExpression.right_operand = binaryExpression.right_operand->clone(storage);
+  } else if (kind == AstEnum::unaryExpression) {
+    clone->unaryExpression.op = unaryExpression.op;
+    clone->unaryExpression.strname = unaryExpression.strname;
+    clone->unaryExpression.operand = unaryExpression.operand->clone(storage);
+  } else if (kind == AstEnum::functionCall) {
+    clone->functionCall.lhs_expr = functionCall.lhs_expr->clone(storage);
+    clone->functionCall.args = functionCall.args->clone(storage);
+  } else if (kind == AstEnum::memberSelector) {
+    clone->memberSelector.lhs_expr = memberSelector.lhs_expr->clone(storage);
+    clone->memberSelector.name = memberSelector.name->clone(storage);
+  } else if (kind == AstEnum::castExpression) {
+    clone->castExpression.type = castExpression.type->clone(storage);
+    clone->castExpression.expr = castExpression.expr->clone(storage);
+  } else if (kind == AstEnum::arraySubscript) {
+    clone->arraySubscript.lhs_expr = arraySubscript.lhs_expr->clone(storage);
+    clone->arraySubscript.index_expr = arraySubscript.index_expr->clone(storage);
+  } else if (kind == AstEnum::indexExpression) {
+    clone->indexExpression.start_index = indexExpression.start_index->clone(storage);
+    clone->indexExpression.end_index = indexExpression.end_index->clone(storage);
+  } else if (kind == AstEnum::integerLiteral) {
+    clone->integerLiteral.is_signed = integerLiteral.is_signed;
+    clone->integerLiteral.value = integerLiteral.value;
+    clone->integerLiteral.width = integerLiteral.width;
+  } else if (kind == AstEnum::booleanLiteral) {
+    clone->booleanLiteral.value = booleanLiteral.value;
+  } else if (kind == AstEnum::stringLiteral) {
+    clone->stringLiteral.value = stringLiteral.value;
+  } else if (kind == AstEnum::default_ || kind == AstEnum::dontcare) {
     ;
   }
   else assert(0);

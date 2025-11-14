@@ -15,14 +15,14 @@ Scope* Scope::create(Arena* storage, int segment_count)
 
 Scope* Scope::push(Scope* parent_scope)
 {
-  this->scope_level = parent_scope->scope_level + 1;
+  scope_level = parent_scope->scope_level + 1;
   this->parent_scope = parent_scope;
   return this;
 }
 
 Scope* Scope::pop()
 {
-  return this->parent_scope;
+  return parent_scope;
 }
 
 NameEntry* Scope::lookup(char* strname, enum NameSpace ns)
@@ -50,7 +50,7 @@ NameDeclaration* Scope::builtin_lookup(char* strname, enum NameSpace ns)
   NameEntry* name_entry;
   assert (ns == NameSpace::VAR || ns == NameSpace::TYPE);
 
-  name_entry = this->lookup(strname, ns);
+  name_entry = lookup(strname, ns);
   return name_entry->ns[(int)ns >> 1];
 }
 
@@ -63,7 +63,7 @@ NameDeclaration* Scope::bind(Arena* storage, char*strname, enum NameSpace ns)
 
   name_decl = (NameDeclaration*)storage->malloc(sizeof(NameDeclaration));
   name_decl->strname = strname;
-  he = this->name_table.insert(strname, 0, 1);
+  he = name_table.insert(strname, 0, 1);
   if (he->value == 0) {
     he->value = storage->malloc(sizeof(NameEntry));
   }
