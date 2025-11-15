@@ -137,7 +137,7 @@ int main(int arg_count, char* args[])
   name_binder.p4program = parser.p4program;
   name_binder.root_scope = scope_builder.root_scope;
   name_binder.scope_map = scope_builder.scope_map;
-  name_bind(&name_binder);
+  name_binder.name_bind();
 
   type_checker.storage = &storage;
   type_checker.source_file = source_text.filename;

@@ -12,142 +12,7 @@ struct BuiltinType {
   enum TypeEnum ty_former;
 };
 
-/** PROGRAM **/
-
-static void visit_p4program(NameBinder* name_binder, Ast* p4program);
-static void visit_declarationList(NameBinder* name_binder, Ast* decl_list);
-static void visit_declaration(NameBinder* name_binder, Ast* decl);
-static void visit_name(NameBinder* name_binder, Ast* name);
-static void visit_parameterList(NameBinder* name_binder, Ast* params);
-static void visit_parameter(NameBinder* name_binder, Ast* param);
-static void visit_packageTypeDeclaration(NameBinder* name_binder, Ast* type_decl);
-static void visit_instantiation(NameBinder* name_binder, Ast* inst);
-
-/** PARSER **/
-
-static void visit_parserDeclaration(NameBinder* name_binder, Ast* parser_decl);
-static void visit_parserTypeDeclaration(NameBinder* name_binder, Ast* type_decl);
-static void visit_parserLocalElements(NameBinder* name_binder, Ast* local_elements);
-static void visit_parserLocalElement(NameBinder* name_binder, Ast* local_element);
-static void visit_parserStates(NameBinder* name_binder, Ast* states);
-static void visit_parserState(NameBinder* name_binder, Ast* state);
-static void visit_parserStatements(NameBinder* name_binder, Ast* stmts);
-static void visit_parserStatement(NameBinder* name_binder, Ast* stmt);
-static void visit_parserBlockStatement(NameBinder* name_binder, Ast* block_stmt);
-static void visit_transitionStatement(NameBinder* name_binder, Ast* transition_stmt);
-static void visit_stateExpression(NameBinder* name_binder, Ast* state_expr);
-static void visit_selectExpression(NameBinder* name_binder, Ast* select_expr);
-static void visit_selectCaseList(NameBinder* name_binder, Ast* case_list);
-static void visit_selectCase(NameBinder* name_binder, Ast* select_case);
-static void visit_keysetExpression(NameBinder* name_binder, Ast* keyset_expr);
-static void visit_tupleKeysetExpression(NameBinder* name_binder, Ast* tuple_expr);
-static void visit_simpleKeysetExpression(NameBinder* name_binder, Ast* simple_expr);
-static void visit_simpleExpressionList(NameBinder* name_binder, Ast* expr_list);
-
-/** CONTROL **/
-
-static void visit_controlDeclaration(NameBinder* name_binder, Ast* control_decl);
-static void visit_controlTypeDeclaration(NameBinder* name_binder, Ast* type_decl);
-static void visit_controlLocalDeclarations(NameBinder* name_binder, Ast* local_decls);
-static void visit_controlLocalDeclaration(NameBinder* name_binder, Ast* local_decl);
-
-/** EXTERN **/
-
-static void visit_externDeclaration(NameBinder* name_binder, Ast* extern_decl);
-static void visit_externTypeDeclaration(NameBinder* name_binder, Ast* type_decl);
-static void visit_methodPrototypes(NameBinder* name_binder, Ast* protos, NameDeclaration* name_decl);
-static void visit_functionPrototype(NameBinder* name_binder, Ast* func_proto);
-
-/** TYPES **/
-
-static void visit_typeRef(NameBinder* name_binder, Ast* type_ref);
-static void visit_tupleType(NameBinder* name_binder, Ast* type);
-static void visit_headerStackType(NameBinder* name_binder, Ast* type_decl);
-static void visit_baseTypeBoolean(NameBinder* name_binder, Ast* bool_type);
-static void visit_baseTypeInteger(NameBinder* name_binder, Ast* int_type);
-static void visit_baseTypeBit(NameBinder* name_binder, Ast* bit_type);
-static void visit_baseTypeVarbit(NameBinder* name_binder, Ast* varbit_type);
-static void visit_baseTypeString(NameBinder* name_binder, Ast* str_type);
-static void visit_baseTypeVoid(NameBinder* name_binder, Ast* void_type);
-static void visit_baseTypeError(NameBinder* name_binder, Ast* error_type);
-static void visit_integerTypeSize(NameBinder* name_binder, Ast* type_size);
-static void visit_realTypeArg(NameBinder* name_binder, Ast* type_arg);
-static void visit_typeArg(NameBinder* name_binder, Ast* type_arg);
-static void visit_typeArgumentList(NameBinder* name_binder, Ast* arg_list);
-static void visit_typeDeclaration(NameBinder* name_binder, Ast* type_decl);
-static void visit_derivedTypeDeclaration(NameBinder* name_binder, Ast* type_decl);
-static void visit_headerTypeDeclaration(NameBinder* name_binder, Ast* header_decl);
-static void visit_headerUnionDeclaration(NameBinder* name_binder, Ast* union_decl);
-static void visit_structTypeDeclaration(NameBinder* name_binder, Ast* struct_decl);
-static void visit_structFieldList(NameBinder* name_binder, Ast* field_list, NameDeclaration* name_decl);
-static void visit_structField(NameBinder* name_binder, Ast* field);
-static void visit_enumDeclaration(NameBinder* name_binder, Ast* enum_decl);
-static void visit_errorDeclaration(NameBinder* name_binder, Ast* error_decl);
-static void visit_matchKindDeclaration(NameBinder* name_binder, Ast* match_decl);
-static int  visit_identifierList(NameBinder* name_binder, Ast* ident_list);
-static void visit_specifiedIdentifierList(NameBinder* name_binder, Ast* ident_list, NameDeclaration* name_decl);
-static void visit_specifiedIdentifier(NameBinder* name_binder, Ast* ident);
-static void visit_typedefDeclaration(NameBinder* name_binder, Ast* typedef_decl);
-
-/** STATEMENTS **/
-
-static void visit_assignmentStatement(NameBinder* name_binder, Ast* assign_stmt);
-static void visit_functionCall(NameBinder* name_binder, Ast* func_call);
-static void visit_returnStatement(NameBinder* name_binder, Ast* return_stmt);
-static void visit_exitStatement(NameBinder* name_binder, Ast* exit_stmt);
-static void visit_conditionalStatement(NameBinder* name_binder, Ast* cond_stmt);
-static void visit_directApplication(NameBinder* name_binder, Ast* applic_stmt);
-static void visit_statement(NameBinder* name_binder, Ast* stmt);
-static void visit_blockStatement(NameBinder* name_binder, Ast* block_stmt);
-static void visit_statementOrDeclList(NameBinder* name_binder, Ast* stmt_list);
-static void visit_switchStatement(NameBinder* name_binder, Ast* switch_stmt);
-static void visit_switchCases(NameBinder* name_binder, Ast* switch_cases);
-static void visit_switchCase(NameBinder* name_binder, Ast* switch_case);
-static void visit_switchLabel(NameBinder* name_binder, Ast* label);
-static void visit_statementOrDeclaration(NameBinder* name_binder, Ast* stmt);
-
-/** TABLES **/
-
-static void visit_tableDeclaration(NameBinder* name_binder, Ast* table_decl);
-static void visit_tablePropertyList(NameBinder* name_binder, Ast* prop_list);
-static void visit_tableProperty(NameBinder* name_binder, Ast* table_prop);
-static void visit_keyProperty(NameBinder* name_binder, Ast* key_prop);
-static void visit_keyElementList(NameBinder* name_binder, Ast* element_list);
-static void visit_keyElement(NameBinder* name_binder, Ast* element);
-static void visit_actionsProperty(NameBinder* name_binder, Ast* actions_prop);
-static void visit_actionList(NameBinder* name_binder, Ast* action_list);
-static void visit_actionRef(NameBinder* name_binder, Ast* action_ref);
-static void visit_entriesProperty(NameBinder* name_binder, Ast* entries_prop);
-static void visit_entriesList(NameBinder* name_binder, Ast* entries_list);
-static void visit_entry(NameBinder* name_binder, Ast* entry);
-static void visit_simpleProperty(NameBinder* name_binder, Ast* simple_prop);
-static void visit_actionDeclaration(NameBinder* name_binder, Ast* action_decl);
-
-/** VARIABLES **/
-
-static void visit_variableDeclaration(NameBinder* name_binder, Ast* var_decl);
-
-/** EXPRESSIONS **/
-
-static void visit_functionDeclaration(NameBinder* name_binder, Ast* func_decl);
-static void visit_argumentList(NameBinder* name_binder, Ast* arg_list);
-static void visit_argument(NameBinder* name_binder, Ast* arg);
-static void visit_expressionList(NameBinder* name_binder, Ast* expr_list);
-static void visit_lvalueExpression(NameBinder* name_binder, Ast* lvalue_expr);
-static void visit_expression(NameBinder* name_binder, Ast* expr);
-static void visit_castExpression(NameBinder* name_binder, Ast* cast_expr);
-static void visit_unaryExpression(NameBinder* name_binder, Ast* unary_expr);
-static void visit_binaryExpression(NameBinder* name_binder, Ast* binary_expr);
-static void visit_memberSelector(NameBinder* name_binder, Ast* selector);
-static void visit_arraySubscript(NameBinder* name_binder, Ast* subscript);
-static void visit_indexExpression(NameBinder* name_binder, Ast* index_expr);
-static void visit_booleanLiteral(NameBinder* name_binder, Ast* bool_literal);
-static void visit_integerLiteral(NameBinder* name_binder, Ast* int_literal);
-static void visit_stringLiteral(NameBinder* name_binder, Ast* str_literal);
-static void visit_default(NameBinder* name_binder, Ast* default_);
-static void visit_dontcare(NameBinder* name_binder, Ast* dontcare);
-
-static void define_builtin_names(NameBinder* name_binder)
+void define_builtin_names(NameBinder* name_binder)
 {
   struct BuiltinName builtin_names[] = {
     {"void",   NameSpace::TYPE},
@@ -249,210 +114,209 @@ char* NameSpace_to_string(enum NameSpace ns)
   return 0;
 }
 
-void name_bind(NameBinder* name_binder)
+void NameBinder::name_bind()
 {
-  name_binder->current_scope = name_binder->root_scope;
-  name_binder->decl_map = (Map*)name_binder->storage->malloc(sizeof(Map));
-  name_binder->decl_map->storage = name_binder->storage;
-  name_binder->type_array = (Array*)Array::create(name_binder->storage, sizeof(Type), 5);
-  define_builtin_names(name_binder);
-  visit_p4program(name_binder, name_binder->p4program);
-  assert(name_binder->current_scope == name_binder->root_scope);
+  current_scope = root_scope;
+  decl_map = (Map*)storage->malloc(sizeof(Map));
+  decl_map->storage = storage;
+  type_array = (Array*)Array::create(storage, sizeof(Type), 5);
+  define_builtin_names(this);
+  visit_p4program(p4program);
+  assert(current_scope == root_scope);
 }
 
 /** PROGRAM **/
 
-static void visit_p4program(NameBinder* name_binder, Ast* p4program)
+void NameBinder::visit_p4program(Ast* p4program)
 {
   assert(p4program->kind == AstEnum::p4program);
   Scope* prev_scope;
 
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(p4program, 0);
-  visit_declarationList(name_binder, p4program->p4program.decl_list);
-  name_binder->current_scope = prev_scope;
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(p4program, 0);
+  visit_declarationList(p4program->p4program.decl_list);
+  current_scope = prev_scope;
 }
 
-static void
-visit_declarationList(NameBinder* name_binder, Ast* decl_list)
+void NameBinder::visit_declarationList(Ast* decl_list)
 {
   assert(decl_list->kind == AstEnum::declarationList);
   AstTree* ast;
 
   for (ast = decl_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_declaration(name_binder, container_of(ast, Ast, tree));
+    visit_declaration(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_declaration(NameBinder* name_binder, Ast* decl)
+void NameBinder::visit_declaration(Ast* decl)
 {
   assert(decl->kind == AstEnum::declaration);
   if (decl->declaration.decl->kind == AstEnum::variableDeclaration) {
-    visit_variableDeclaration(name_binder, decl->declaration.decl);
+    visit_variableDeclaration(decl->declaration.decl);
   } else if (decl->declaration.decl->kind == AstEnum::externDeclaration) {
-    visit_externDeclaration(name_binder, decl->declaration.decl);
+    visit_externDeclaration(decl->declaration.decl);
   } else if (decl->declaration.decl->kind == AstEnum::actionDeclaration) {
-    visit_actionDeclaration(name_binder, decl->declaration.decl);
+    visit_actionDeclaration(decl->declaration.decl);
   } else if (decl->declaration.decl->kind == AstEnum::functionDeclaration) {
-    visit_functionDeclaration(name_binder, decl->declaration.decl);
+    visit_functionDeclaration(decl->declaration.decl);
   } else if (decl->declaration.decl->kind == AstEnum::parserDeclaration) {
-    visit_parserDeclaration(name_binder, decl->declaration.decl);
+    visit_parserDeclaration(decl->declaration.decl);
   } else if (decl->declaration.decl->kind == AstEnum::parserTypeDeclaration) {
-    visit_parserTypeDeclaration(name_binder, decl->declaration.decl);
+    visit_parserTypeDeclaration(decl->declaration.decl);
   } else if (decl->declaration.decl->kind == AstEnum::controlDeclaration) {
-    visit_controlDeclaration(name_binder, decl->declaration.decl);
+    visit_controlDeclaration(decl->declaration.decl);
   } else if (decl->declaration.decl->kind == AstEnum::controlTypeDeclaration) {
-    visit_controlTypeDeclaration(name_binder, decl->declaration.decl);
+    visit_controlTypeDeclaration(decl->declaration.decl);
   } else if (decl->declaration.decl->kind == AstEnum::typeDeclaration) {
-    visit_typeDeclaration(name_binder, decl->declaration.decl);
+    visit_typeDeclaration(decl->declaration.decl);
   } else if (decl->declaration.decl->kind == AstEnum::errorDeclaration) {
-    visit_errorDeclaration(name_binder, decl->declaration.decl);
+    visit_errorDeclaration(decl->declaration.decl);
   } else if (decl->declaration.decl->kind == AstEnum::matchKindDeclaration) {
-    visit_matchKindDeclaration(name_binder, decl->declaration.decl);
+    visit_matchKindDeclaration(decl->declaration.decl);
   } else if (decl->declaration.decl->kind == AstEnum::instantiation) {
-    visit_instantiation(name_binder, decl->declaration.decl);
+    visit_instantiation(decl->declaration.decl);
   } else assert(0);
 }
 
-static void visit_name(NameBinder* name_binder, Ast* name)
+void NameBinder::visit_name(Ast* name)
 {
   MapEntry* m;
   assert(name->kind == AstEnum::name);
-  m = name_binder->scope_map->insert(name, name_binder->current_scope, 0);
+  m = scope_map->insert(name, current_scope, 0);
   assert(m);
 }
 
-static void visit_parameterList(NameBinder* name_binder, Ast* params)
+void NameBinder::visit_parameterList(Ast* params)
 {
   assert(params->kind == AstEnum::parameterList);
   AstTree* ast;
 
   for (ast = params->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_parameter(name_binder, container_of(ast, Ast, tree));
+    visit_parameter(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_parameter(NameBinder* name_binder, Ast* param)
+void NameBinder::visit_parameter(Ast* param)
 {
   assert(param->kind == AstEnum::parameter);
   Ast* name;
   NameDeclaration* name_decl;
 
-  visit_typeRef(name_binder, param->parameter.type);
-  visit_name(name_binder, param->parameter.name);
+  visit_typeRef(param->parameter.type);
+  visit_name(param->parameter.name);
   name = param->parameter.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::VAR);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::VAR);
   name_decl->ast = param;
-  name_binder->decl_map->insert(param, name_decl, 0);
+  decl_map->insert(param, name_decl, 0);
   if (param->parameter.init_expr) {
-    visit_expression(name_binder, param->parameter.init_expr);
+    visit_expression(param->parameter.init_expr);
   }
 }
 
-static void visit_packageTypeDeclaration(NameBinder* name_binder, Ast* type_decl)
+void NameBinder::visit_packageTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::packageTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
   Scope* prev_scope;
 
-  visit_name(name_binder, type_decl->packageTypeDeclaration.name);
+  visit_name(type_decl->packageTypeDeclaration.name);
   name = type_decl->packageTypeDeclaration.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = type_decl;
-  name_binder->decl_map->insert(type_decl, name_decl, 0);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(type_decl, 0);
-  visit_parameterList(name_binder, type_decl->packageTypeDeclaration.params);
-  name_binder->current_scope = prev_scope;
+  decl_map->insert(type_decl, name_decl, 0);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(type_decl, 0);
+  visit_parameterList(type_decl->packageTypeDeclaration.params);
+  current_scope = prev_scope;
 }
 
-static void visit_instantiation(NameBinder* name_binder, Ast* inst)
+void NameBinder::visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AstEnum::instantiation);
   Ast* name;
   NameDeclaration* name_decl;
 
-  visit_typeRef(name_binder, inst->instantiation.type);
-  visit_argumentList(name_binder, inst->instantiation.args);
+  visit_typeRef(inst->instantiation.type);
+  visit_argumentList(inst->instantiation.args);
   name = inst->instantiation.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::VAR);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::VAR);
   name_decl->ast = inst;
-  name_binder->decl_map->insert(inst, name_decl, 0);
+  decl_map->insert(inst, name_decl, 0);
 }
 
 /** PARSER **/
 
-static void visit_parserDeclaration(NameBinder* name_binder, Ast* parser_decl)
+void NameBinder::visit_parserDeclaration(Ast* parser_decl)
 {
   assert(parser_decl->kind == AstEnum::parserDeclaration);
   Scope* prev_scope;
 
-  visit_typeDeclaration(name_binder, parser_decl->parserDeclaration.proto);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(parser_decl, 0);
+  visit_typeDeclaration(parser_decl->parserDeclaration.proto);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(parser_decl, 0);
   if (parser_decl->parserDeclaration.ctor_params) {
-    visit_parameterList(name_binder, parser_decl->parserDeclaration.ctor_params);
+    visit_parameterList(parser_decl->parserDeclaration.ctor_params);
   }
-  visit_parserLocalElements(name_binder, parser_decl->parserDeclaration.local_elements);
-  visit_parserStates(name_binder, parser_decl->parserDeclaration.states);
-  name_binder->current_scope = prev_scope;
+  visit_parserLocalElements(parser_decl->parserDeclaration.local_elements);
+  visit_parserStates(parser_decl->parserDeclaration.states);
+  current_scope = prev_scope;
 }
 
-static void visit_parserTypeDeclaration(NameBinder* name_binder, Ast* type_decl)
+void NameBinder::visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::parserTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
   Scope* prev_scope;
 
-  visit_name(name_binder, type_decl->parserTypeDeclaration.name);
+  visit_name(type_decl->parserTypeDeclaration.name);
   name = type_decl->parserTypeDeclaration.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = type_decl;
-  name_binder->decl_map->insert(type_decl, name_decl, 0);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(type_decl, 0);
-  visit_parameterList(name_binder, type_decl->parserTypeDeclaration.params);
-  visit_methodPrototypes(name_binder, type_decl->parserTypeDeclaration.method_protos, name_decl);
-  name_binder->current_scope = prev_scope;
+  decl_map->insert(type_decl, name_decl, 0);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(type_decl, 0);
+  visit_parameterList(type_decl->parserTypeDeclaration.params);
+  visit_methodPrototypes(type_decl->parserTypeDeclaration.method_protos, name_decl);
+  current_scope = prev_scope;
 }
 
-static void visit_parserLocalElements(NameBinder* name_binder, Ast* local_elements)
+void NameBinder::visit_parserLocalElements(Ast* local_elements)
 {
   assert(local_elements->kind == AstEnum::parserLocalElements);
   AstTree* ast;
 
   for (ast = local_elements->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_parserLocalElement(name_binder, container_of(ast, Ast, tree));
+    visit_parserLocalElement(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_parserLocalElement(NameBinder* name_binder, Ast* local_element)
+void NameBinder::visit_parserLocalElement(Ast* local_element)
 {
   assert(local_element->kind == AstEnum::parserLocalElement);
   if (local_element->parserLocalElement.element->kind == AstEnum::variableDeclaration) {
-    visit_variableDeclaration(name_binder, local_element->parserLocalElement.element);
+    visit_variableDeclaration(local_element->parserLocalElement.element);
   } else if (local_element->parserLocalElement.element->kind == AstEnum::instantiation) {
-    visit_instantiation(name_binder, local_element->parserLocalElement.element);
+    visit_instantiation(local_element->parserLocalElement.element);
   } else assert(0);
 }
 
-static void visit_parserStates(NameBinder* name_binder, Ast* states)
+void NameBinder::visit_parserStates(Ast* states)
 {
   assert(states->kind == AstEnum::parserStates);
   AstTree* ast;
 
   for (ast = states->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_parserState(name_binder, container_of(ast, Ast, tree));
+    visit_parserState(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_parserState(NameBinder* name_binder, Ast* state)
+void NameBinder::visit_parserState(Ast* state)
 {
   assert(state->kind == AstEnum::parserState);
   Ast* name;
@@ -460,212 +324,212 @@ static void visit_parserState(NameBinder* name_binder, Ast* state)
   Scope* prev_scope;
 
   name = state->parserState.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::VAR);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::VAR);
   name_decl->ast = state;
-  name_binder->decl_map->insert(state, name_decl, 0);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(state, 0);
-  visit_parserStatements(name_binder, state->parserState.stmt_list);
-  visit_transitionStatement(name_binder, state->parserState.transition_stmt);
-  name_binder->current_scope = prev_scope;
+  decl_map->insert(state, name_decl, 0);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(state, 0);
+  visit_parserStatements(state->parserState.stmt_list);
+  visit_transitionStatement(state->parserState.transition_stmt);
+  current_scope = prev_scope;
 }
 
-static void visit_parserStatements(NameBinder* name_binder, Ast* stmts)
+void NameBinder::visit_parserStatements(Ast* stmts)
 {
   assert(stmts->kind == AstEnum::parserStatements);
   AstTree* ast;
 
   for (ast = stmts->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_parserStatement(name_binder, container_of(ast, Ast, tree));
+    visit_parserStatement(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_parserStatement(NameBinder* name_binder, Ast* stmt)
+void NameBinder::visit_parserStatement(Ast* stmt)
 {
   assert(stmt->kind == AstEnum::parserStatement);
 
   if (stmt->parserStatement.stmt->kind == AstEnum::assignmentStatement) {
-    visit_assignmentStatement(name_binder, stmt->parserStatement.stmt);
+    visit_assignmentStatement(stmt->parserStatement.stmt);
   } else if (stmt->parserStatement.stmt->kind == AstEnum::functionCall) {
-    visit_functionCall(name_binder, stmt->parserStatement.stmt);
+    visit_functionCall(stmt->parserStatement.stmt);
   } else if (stmt->parserStatement.stmt->kind == AstEnum::directApplication) {
-    visit_directApplication(name_binder, stmt->parserStatement.stmt);
+    visit_directApplication(stmt->parserStatement.stmt);
   } else if (stmt->parserStatement.stmt->kind == AstEnum::parserBlockStatement) {
-    visit_parserBlockStatement(name_binder, stmt->parserStatement.stmt);
+    visit_parserBlockStatement(stmt->parserStatement.stmt);
   } else if (stmt->parserStatement.stmt->kind == AstEnum::variableDeclaration) {
-    visit_variableDeclaration(name_binder, stmt->parserStatement.stmt);
+    visit_variableDeclaration(stmt->parserStatement.stmt);
   } else if (stmt->parserStatement.stmt->kind == AstEnum::emptyStatement) {
     ;
   } else assert(0);
 }
 
-static void visit_parserBlockStatement(NameBinder* name_binder, Ast* block_stmt)
+void NameBinder::visit_parserBlockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AstEnum::parserBlockStatement);
   Scope* prev_scope;
 
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(block_stmt, 0);
-  visit_parserStatements(name_binder, block_stmt->parserBlockStatement.stmt_list);
-  name_binder->current_scope = prev_scope;
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(block_stmt, 0);
+  visit_parserStatements(block_stmt->parserBlockStatement.stmt_list);
+  current_scope = prev_scope;
 }
 
-static void visit_transitionStatement(NameBinder* name_binder, Ast* transition_stmt)
+void NameBinder::visit_transitionStatement(Ast* transition_stmt)
 {
   assert(transition_stmt->kind == AstEnum::transitionStatement);
-  visit_stateExpression(name_binder, transition_stmt->transitionStatement.stmt);
+  visit_stateExpression(transition_stmt->transitionStatement.stmt);
 }
 
-static void visit_stateExpression(NameBinder* name_binder, Ast* state_expr)
+void NameBinder::visit_stateExpression(Ast* state_expr)
 {
   assert(state_expr->kind == AstEnum::stateExpression);
   if (state_expr->stateExpression.expr->kind == AstEnum::name) {
-    visit_name(name_binder, state_expr->stateExpression.expr);
+    visit_name(state_expr->stateExpression.expr);
   } else if (state_expr->stateExpression.expr->kind == AstEnum::selectExpression) {
-    visit_selectExpression(name_binder, state_expr->stateExpression.expr);
+    visit_selectExpression(state_expr->stateExpression.expr);
   } else assert(0);
 }
 
-static void visit_selectExpression(NameBinder* name_binder, Ast* select_expr)
+void NameBinder::visit_selectExpression(Ast* select_expr)
 {
   assert(select_expr->kind == AstEnum::selectExpression);
-  visit_expressionList(name_binder, select_expr->selectExpression.expr_list);
-  visit_selectCaseList(name_binder, select_expr->selectExpression.case_list);
+  visit_expressionList(select_expr->selectExpression.expr_list);
+  visit_selectCaseList(select_expr->selectExpression.case_list);
 }
 
-static void visit_selectCaseList(NameBinder* name_binder, Ast* case_list)
+void NameBinder::visit_selectCaseList(Ast* case_list)
 {
   assert(case_list->kind == AstEnum::selectCaseList);
   AstTree* ast;
 
   for (ast = case_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_selectCase(name_binder, container_of(ast, Ast, tree));
+    visit_selectCase(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_selectCase(NameBinder* name_binder, Ast* select_case)
+void NameBinder::visit_selectCase(Ast* select_case)
 {
   assert(select_case->kind == AstEnum::selectCase);
-  visit_keysetExpression(name_binder, select_case->selectCase.keyset_expr);
-  visit_name(name_binder, select_case->selectCase.name);
+  visit_keysetExpression(select_case->selectCase.keyset_expr);
+  visit_name(select_case->selectCase.name);
 }
 
-static void visit_keysetExpression(NameBinder* name_binder, Ast* keyset_expr)
+void NameBinder::visit_keysetExpression(Ast* keyset_expr)
 {
   assert(keyset_expr->kind == AstEnum::keysetExpression);
   if (keyset_expr->keysetExpression.expr->kind == AstEnum::tupleKeysetExpression) {
-    visit_tupleKeysetExpression(name_binder, keyset_expr->keysetExpression.expr);
+    visit_tupleKeysetExpression(keyset_expr->keysetExpression.expr);
   } else if (keyset_expr->keysetExpression.expr->kind == AstEnum::simpleKeysetExpression) {
-    visit_simpleKeysetExpression(name_binder, keyset_expr->keysetExpression.expr);
+    visit_simpleKeysetExpression(keyset_expr->keysetExpression.expr);
   } else assert(0);
 }
 
-static void visit_tupleKeysetExpression(NameBinder* name_binder, Ast* tuple_expr)
+void NameBinder::visit_tupleKeysetExpression(Ast* tuple_expr)
 {
   assert(tuple_expr->kind == AstEnum::tupleKeysetExpression);
-  visit_simpleExpressionList(name_binder, tuple_expr->tupleKeysetExpression.expr_list);
+  visit_simpleExpressionList(tuple_expr->tupleKeysetExpression.expr_list);
 }
 
-static void visit_simpleKeysetExpression(NameBinder* name_binder, Ast* simple_expr)
+void NameBinder::visit_simpleKeysetExpression(Ast* simple_expr)
 {
   assert(simple_expr->kind == AstEnum::simpleKeysetExpression);
   if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::expression) {
-    visit_expression(name_binder, simple_expr->simpleKeysetExpression.expr);
+    visit_expression(simple_expr->simpleKeysetExpression.expr);
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::default_) {
-    visit_default(name_binder, simple_expr->simpleKeysetExpression.expr);
+    visit_default(simple_expr->simpleKeysetExpression.expr);
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::dontcare) {
-    visit_dontcare(name_binder, simple_expr->simpleKeysetExpression.expr);
+    visit_dontcare(simple_expr->simpleKeysetExpression.expr);
   } else assert(0);
 }
 
-static void visit_simpleExpressionList(NameBinder* name_binder, Ast* expr_list)
+void NameBinder::visit_simpleExpressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::simpleExpressionList);
   AstTree* ast;
 
   for (ast = expr_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_simpleKeysetExpression(name_binder, container_of(ast, Ast, tree));
+    visit_simpleKeysetExpression(container_of(ast, Ast, tree));
   }
 }
 
 /** CONTROL **/
 
-static void visit_controlDeclaration(NameBinder* name_binder, Ast* control_decl)
+void NameBinder::visit_controlDeclaration(Ast* control_decl)
 {
   assert(control_decl->kind == AstEnum::controlDeclaration);
   Scope* prev_scope;
 
-  visit_typeDeclaration(name_binder, control_decl->controlDeclaration.proto);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(control_decl, 0);
+  visit_typeDeclaration(control_decl->controlDeclaration.proto);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(control_decl, 0);
   if (control_decl->controlDeclaration.ctor_params) {
-    visit_parameterList(name_binder, control_decl->controlDeclaration.ctor_params);
+    visit_parameterList(control_decl->controlDeclaration.ctor_params);
   }
-  visit_controlLocalDeclarations(name_binder, control_decl->controlDeclaration.local_decls);
-  visit_blockStatement(name_binder, control_decl->controlDeclaration.apply_stmt);
-  name_binder->current_scope = prev_scope;
+  visit_controlLocalDeclarations(control_decl->controlDeclaration.local_decls);
+  visit_blockStatement(control_decl->controlDeclaration.apply_stmt);
+  current_scope = prev_scope;
 }
 
-static void visit_controlTypeDeclaration(NameBinder* name_binder, Ast* type_decl)
+void NameBinder::visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::controlTypeDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
   Scope* prev_scope;
 
-  visit_name(name_binder, type_decl->controlTypeDeclaration.name);
+  visit_name(type_decl->controlTypeDeclaration.name);
   name = type_decl->controlTypeDeclaration.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = type_decl;
-  name_binder->decl_map->insert(type_decl, name_decl, 0);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(type_decl, 0);
-  visit_parameterList(name_binder, type_decl->controlTypeDeclaration.params);
-  visit_methodPrototypes(name_binder, type_decl->controlTypeDeclaration.method_protos, name_decl);
-  name_binder->current_scope = prev_scope;
+  decl_map->insert(type_decl, name_decl, 0);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(type_decl, 0);
+  visit_parameterList(type_decl->controlTypeDeclaration.params);
+  visit_methodPrototypes(type_decl->controlTypeDeclaration.method_protos, name_decl);
+  current_scope = prev_scope;
 }
 
-static void visit_controlLocalDeclarations(NameBinder* name_binder, Ast* local_decls)
+void NameBinder::visit_controlLocalDeclarations(Ast* local_decls)
 {
   assert(local_decls->kind == AstEnum::controlLocalDeclarations);
   AstTree* ast;
 
   for (ast = local_decls->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_controlLocalDeclaration(name_binder, container_of(ast, Ast, tree));
+    visit_controlLocalDeclaration(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_controlLocalDeclaration(NameBinder* name_binder, Ast* local_decl)
+void NameBinder::visit_controlLocalDeclaration(Ast* local_decl)
 {
   assert(local_decl->kind == AstEnum::controlLocalDeclaration);
   if (local_decl->controlLocalDeclaration.decl->kind == AstEnum::variableDeclaration) {
-    visit_variableDeclaration(name_binder, local_decl->controlLocalDeclaration.decl);
+    visit_variableDeclaration(local_decl->controlLocalDeclaration.decl);
   } else if (local_decl->controlLocalDeclaration.decl->kind == AstEnum::actionDeclaration) {
-    visit_actionDeclaration(name_binder, local_decl->controlLocalDeclaration.decl);
+    visit_actionDeclaration(local_decl->controlLocalDeclaration.decl);
   } else if (local_decl->controlLocalDeclaration.decl->kind == AstEnum::tableDeclaration) {
-    visit_tableDeclaration(name_binder, local_decl->controlLocalDeclaration.decl);
+    visit_tableDeclaration(local_decl->controlLocalDeclaration.decl);
   } else if (local_decl->controlLocalDeclaration.decl->kind == AstEnum::instantiation) {
-    visit_instantiation(name_binder, local_decl->controlLocalDeclaration.decl);
+    visit_instantiation(local_decl->controlLocalDeclaration.decl);
   } else assert(0);
 }
 
 /** EXTERN **/
 
-static void visit_externDeclaration(NameBinder* name_binder, Ast* extern_decl)
+void NameBinder::visit_externDeclaration(Ast* extern_decl)
 {
   assert(extern_decl->kind == AstEnum::externDeclaration);
   if (extern_decl->externDeclaration.decl->kind == AstEnum::externTypeDeclaration) {
-    visit_externTypeDeclaration(name_binder, extern_decl->externDeclaration.decl);
+    visit_externTypeDeclaration(extern_decl->externDeclaration.decl);
   } else if (extern_decl->externDeclaration.decl->kind == AstEnum::functionPrototype) {
-    visit_functionPrototype(name_binder, extern_decl->externDeclaration.decl);
+    visit_functionPrototype(extern_decl->externDeclaration.decl);
   } else assert(0);
 }
 
-static void visit_externTypeDeclaration(NameBinder* name_binder, Ast* type_decl)
+void NameBinder::visit_externTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::externTypeDeclaration);
   Ast* name;
@@ -673,241 +537,241 @@ static void visit_externTypeDeclaration(NameBinder* name_binder, Ast* type_decl)
   Scope* prev_scope;
 
   name = type_decl->externTypeDeclaration.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = type_decl;
-  name_binder->decl_map->insert(type_decl, name_decl, 0);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(type_decl, 0);
-  visit_methodPrototypes(name_binder, type_decl->externTypeDeclaration.method_protos, name_decl);
-  name_binder->current_scope = prev_scope;
+  decl_map->insert(type_decl, name_decl, 0);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(type_decl, 0);
+  visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos, name_decl);
+  current_scope = prev_scope;
 }
 
-static void visit_methodPrototypes(NameBinder* name_binder, Ast* protos, NameDeclaration* name_decl)
+void NameBinder::visit_methodPrototypes(Ast* protos, NameDeclaration* name_decl)
 {
   assert(protos->kind == AstEnum::methodPrototypes);
   AstTree* ast;
 
   for (ast = protos->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_functionPrototype(name_binder, container_of(ast, Ast, tree));
+    visit_functionPrototype(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_functionPrototype(NameBinder* name_binder, Ast* func_proto)
+void NameBinder::visit_functionPrototype(Ast* func_proto)
 {
   assert(func_proto->kind == AstEnum::functionPrototype);
   Ast* name;
   NameDeclaration* name_decl;
   Scope* prev_scope;
 
-  visit_name(name_binder, func_proto->functionPrototype.name);
+  visit_name(func_proto->functionPrototype.name);
   name = func_proto->functionPrototype.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = func_proto;
-  name_binder->decl_map->insert(func_proto, name_decl, 0);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(func_proto, 0);
+  decl_map->insert(func_proto, name_decl, 0);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(func_proto, 0);
   if (func_proto->functionPrototype.return_type) {
-    visit_typeRef(name_binder, func_proto->functionPrototype.return_type);
+    visit_typeRef(func_proto->functionPrototype.return_type);
   }
-  visit_parameterList(name_binder, func_proto->functionPrototype.params);
-  name_binder->current_scope = prev_scope;
+  visit_parameterList(func_proto->functionPrototype.params);
+  current_scope = prev_scope;
 }
 
 /** TYPES **/
 
-static void visit_typeRef(NameBinder* name_binder, Ast* type_ref)
+void NameBinder::visit_typeRef(Ast* type_ref)
 {
   assert(type_ref->kind == AstEnum::typeRef);
   if (type_ref->typeRef.type->kind == AstEnum::baseTypeBoolean) {
-    visit_baseTypeBoolean(name_binder, type_ref->typeRef.type);
+    visit_baseTypeBoolean(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AstEnum::baseTypeInteger) {
-    visit_baseTypeInteger(name_binder, type_ref->typeRef.type);
+    visit_baseTypeInteger(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AstEnum::baseTypeBit) {
-    visit_baseTypeBit(name_binder, type_ref->typeRef.type);
+    visit_baseTypeBit(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AstEnum::baseTypeVarbit) {
-    visit_baseTypeVarbit(name_binder, type_ref->typeRef.type);
+    visit_baseTypeVarbit(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AstEnum::baseTypeString) {
-    visit_baseTypeString(name_binder, type_ref->typeRef.type);
+    visit_baseTypeString(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AstEnum::baseTypeVoid) {
-    visit_baseTypeVoid(name_binder, type_ref->typeRef.type);
+    visit_baseTypeVoid(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AstEnum::baseTypeError) {
-    visit_baseTypeError(name_binder, type_ref->typeRef.type);
+    visit_baseTypeError(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AstEnum::name) {
-    visit_name(name_binder, type_ref->typeRef.type);
+    visit_name(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AstEnum::headerStackType) {
-    visit_headerStackType(name_binder, type_ref->typeRef.type);
+    visit_headerStackType(type_ref->typeRef.type);
   } else if (type_ref->typeRef.type->kind == AstEnum::tupleType) {
-    visit_tupleType(name_binder, type_ref->typeRef.type);
+    visit_tupleType(type_ref->typeRef.type);
   } else assert(0);
 }
 
-static void visit_tupleType(NameBinder* name_binder, Ast* type_decl)
+void NameBinder::visit_tupleType(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::tupleType);
-  visit_typeArgumentList(name_binder, type_decl->tupleType.type_args);
+  visit_typeArgumentList(type_decl->tupleType.type_args);
 }
 
-static void visit_headerStackType(NameBinder* name_binder, Ast* type_decl)
+void NameBinder::visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::headerStackType);
-  visit_typeRef(name_binder, type_decl->headerStackType.type);
-  visit_expression(name_binder, type_decl->headerStackType.stack_expr);
+  visit_typeRef(type_decl->headerStackType.type);
+  visit_expression(type_decl->headerStackType.stack_expr);
 }
 
-static void visit_baseTypeBoolean(NameBinder* name_binder, Ast* bool_type)
+void NameBinder::visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AstEnum::baseTypeBoolean);
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_entry = name_binder->root_scope->lookup("bool", NameSpace::TYPE);
+  name_entry = root_scope->lookup("bool", NameSpace::TYPE);
   name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
-  name_binder->decl_map->insert(bool_type, name_decl, 0);
+  decl_map->insert(bool_type, name_decl, 0);
 }
 
-static void visit_baseTypeInteger(NameBinder* name_binder, Ast* int_type)
+void NameBinder::visit_baseTypeInteger(Ast* int_type)
 {
   assert(int_type->kind == AstEnum::baseTypeInteger);
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
   if (int_type->baseTypeInteger.size) {
-    visit_integerTypeSize(name_binder, int_type->baseTypeInteger.size);
+    visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
-  name_entry = name_binder->root_scope->lookup("int", NameSpace::TYPE);
+  name_entry = root_scope->lookup("int", NameSpace::TYPE);
   name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
-  name_binder->decl_map->insert(int_type, name_decl, 0);
+  decl_map->insert(int_type, name_decl, 0);
 }
 
-static void visit_baseTypeBit(NameBinder* name_binder, Ast* bit_type)
+void NameBinder::visit_baseTypeBit(Ast* bit_type)
 {
   assert(bit_type->kind == AstEnum::baseTypeBit);
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
   if (bit_type->baseTypeBit.size) {
-    visit_integerTypeSize(name_binder, bit_type->baseTypeBit.size);
+    visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
-  name_entry = name_binder->root_scope->lookup("bit", NameSpace::TYPE);
+  name_entry = root_scope->lookup("bit", NameSpace::TYPE);
   name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
-  name_binder->decl_map->insert(bit_type, name_decl, 0);
+  decl_map->insert(bit_type, name_decl, 0);
 }
 
-static void visit_baseTypeVarbit(NameBinder* name_binder, Ast* varbit_type)
+void NameBinder::visit_baseTypeVarbit(Ast* varbit_type)
 {
   assert(varbit_type->kind == AstEnum::baseTypeVarbit);
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  visit_integerTypeSize(name_binder, varbit_type->baseTypeVarbit.size);
-  name_entry = name_binder->root_scope->lookup("varbit", NameSpace::TYPE);
+  visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
+  name_entry = root_scope->lookup("varbit", NameSpace::TYPE);
   name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
-  name_binder->decl_map->insert(varbit_type, name_decl, 0);
+  decl_map->insert(varbit_type, name_decl, 0);
 }
 
-static void visit_baseTypeString(NameBinder* name_binder, Ast* str_type)
+void NameBinder::visit_baseTypeString(Ast* str_type)
 {
   assert(str_type->kind == AstEnum::baseTypeString);
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_entry = name_binder->root_scope->lookup("string", NameSpace::TYPE);
+  name_entry = root_scope->lookup("string", NameSpace::TYPE);
   name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
-  name_binder->decl_map->insert(str_type, name_decl, 0);
+  decl_map->insert(str_type, name_decl, 0);
 }
 
-static void visit_baseTypeVoid(NameBinder* name_binder, Ast* void_type)
+void NameBinder::visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AstEnum::baseTypeVoid);
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_entry = name_binder->root_scope->lookup("void", NameSpace::TYPE);
+  name_entry = root_scope->lookup("void", NameSpace::TYPE);
   name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
-  name_binder->decl_map->insert(void_type, name_decl, 0);
+  decl_map->insert(void_type, name_decl, 0);
 }
 
-static void visit_baseTypeError(NameBinder* name_binder, Ast* error_type)
+void NameBinder::visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AstEnum::baseTypeError);
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  name_entry = name_binder->root_scope->lookup("error", NameSpace::TYPE);
+  name_entry = root_scope->lookup("error", NameSpace::TYPE);
   name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
-  name_binder->decl_map->insert(error_type, name_decl, 0);
+  decl_map->insert(error_type, name_decl, 0);
 }
 
-static void visit_integerTypeSize(NameBinder* name_binder, Ast* type_size)
+void NameBinder::visit_integerTypeSize(Ast* type_size)
 {
   assert(type_size->kind == AstEnum::integerTypeSize);
 }
 
-static void visit_realTypeArg(NameBinder* name_binder, Ast* type_arg)
+void NameBinder::visit_realTypeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AstEnum::realTypeArg);
   if (type_arg->realTypeArg.arg->kind == AstEnum::typeRef) {
-    visit_typeRef(name_binder, type_arg->realTypeArg.arg);
+    visit_typeRef(type_arg->realTypeArg.arg);
   } else if (type_arg->realTypeArg.arg->kind == AstEnum::dontcare) {
-    visit_dontcare(name_binder, type_arg->realTypeArg.arg);
+    visit_dontcare(type_arg->realTypeArg.arg);
   } else assert(0);
 }
 
-static void visit_typeArg(NameBinder* name_binder, Ast* type_arg)
+void NameBinder::visit_typeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AstEnum::typeArg);
   if (type_arg->typeArg.arg->kind == AstEnum::typeRef) {
-    visit_typeRef(name_binder, type_arg->typeArg.arg);
+    visit_typeRef(type_arg->typeArg.arg);
   } else if (type_arg->typeArg.arg->kind == AstEnum::name) {
-    visit_name(name_binder, type_arg->typeArg.arg);
+    visit_name(type_arg->typeArg.arg);
   } else if (type_arg->typeArg.arg->kind == AstEnum::dontcare) {
-    visit_dontcare(name_binder, type_arg->typeArg.arg);
+    visit_dontcare(type_arg->typeArg.arg);
   } else assert(0);
 }
 
-static void visit_typeArgumentList(NameBinder* name_binder, Ast* arg_list)
+void NameBinder::visit_typeArgumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AstEnum::typeArgumentList);
   AstTree* ast;
 
   for (ast = arg_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_typeArg(name_binder, container_of(ast, Ast, tree));
+    visit_typeArg(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_typeDeclaration(NameBinder* name_binder, Ast* type_decl)
+void NameBinder::visit_typeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::typeDeclaration);
   if (type_decl->typeDeclaration.decl->kind == AstEnum::derivedTypeDeclaration) {
-    visit_derivedTypeDeclaration(name_binder, type_decl->typeDeclaration.decl);
+    visit_derivedTypeDeclaration(type_decl->typeDeclaration.decl);
   } else if (type_decl->typeDeclaration.decl->kind == AstEnum::typedefDeclaration) {
-    visit_typedefDeclaration(name_binder, type_decl->typeDeclaration.decl);
+    visit_typedefDeclaration(type_decl->typeDeclaration.decl);
   } else if (type_decl->typeDeclaration.decl->kind == AstEnum::parserTypeDeclaration) {
-    visit_parserTypeDeclaration(name_binder, type_decl->typeDeclaration.decl);
+    visit_parserTypeDeclaration(type_decl->typeDeclaration.decl);
   } else if (type_decl->typeDeclaration.decl->kind == AstEnum::controlTypeDeclaration) {
-    visit_controlTypeDeclaration(name_binder, type_decl->typeDeclaration.decl);
+    visit_controlTypeDeclaration(type_decl->typeDeclaration.decl);
   } else if (type_decl->typeDeclaration.decl->kind == AstEnum::packageTypeDeclaration) {
-    visit_packageTypeDeclaration(name_binder, type_decl->typeDeclaration.decl);
+    visit_packageTypeDeclaration(type_decl->typeDeclaration.decl);
   } else assert(0);
 }
 
-static void visit_derivedTypeDeclaration(NameBinder* name_binder, Ast* type_decl)
+void NameBinder::visit_derivedTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::derivedTypeDeclaration);
   if (type_decl->derivedTypeDeclaration.decl->kind == AstEnum::headerTypeDeclaration) {
-    visit_headerTypeDeclaration(name_binder, type_decl->derivedTypeDeclaration.decl);
+    visit_headerTypeDeclaration(type_decl->derivedTypeDeclaration.decl);
   } else if (type_decl->derivedTypeDeclaration.decl->kind == AstEnum::headerUnionDeclaration) {
-    visit_headerUnionDeclaration(name_binder, type_decl->derivedTypeDeclaration.decl);
+    visit_headerUnionDeclaration(type_decl->derivedTypeDeclaration.decl);
   } else if (type_decl->derivedTypeDeclaration.decl->kind == AstEnum::structTypeDeclaration) {
-    visit_structTypeDeclaration(name_binder, type_decl->derivedTypeDeclaration.decl);
+    visit_structTypeDeclaration(type_decl->derivedTypeDeclaration.decl);
   } else if (type_decl->derivedTypeDeclaration.decl->kind == AstEnum::enumDeclaration) {
-    visit_enumDeclaration(name_binder, type_decl->derivedTypeDeclaration.decl);
+    visit_enumDeclaration(type_decl->derivedTypeDeclaration.decl);
   } else assert(0);
 }
 
-static void visit_headerTypeDeclaration(NameBinder* name_binder, Ast* header_decl)
+void NameBinder::visit_headerTypeDeclaration(Ast* header_decl)
 {
   assert(header_decl->kind == AstEnum::headerTypeDeclaration);
   Ast* name;
@@ -915,16 +779,16 @@ static void visit_headerTypeDeclaration(NameBinder* name_binder, Ast* header_dec
   Scope* prev_scope;
 
   name = header_decl->headerTypeDeclaration.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = header_decl;
-  name_binder->decl_map->insert(header_decl, name_decl, 0);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(header_decl, 0);
-  visit_structFieldList(name_binder, header_decl->headerTypeDeclaration.fields, name_decl);
-  name_binder->current_scope = prev_scope;
+  decl_map->insert(header_decl, name_decl, 0);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(header_decl, 0);
+  visit_structFieldList(header_decl->headerTypeDeclaration.fields, name_decl);
+  current_scope = prev_scope;
 }
 
-static void visit_headerUnionDeclaration(NameBinder* name_binder, Ast* union_decl)
+void NameBinder::visit_headerUnionDeclaration(Ast* union_decl)
 {
   assert(union_decl->kind == AstEnum::headerUnionDeclaration);
   Ast* name;
@@ -932,16 +796,16 @@ static void visit_headerUnionDeclaration(NameBinder* name_binder, Ast* union_dec
   Scope* prev_scope;
 
   name = union_decl->headerUnionDeclaration.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = union_decl;
-  name_binder->decl_map->insert(union_decl, name_decl, 0);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(union_decl, 0);
-  visit_structFieldList(name_binder, union_decl->headerUnionDeclaration.fields, name_decl);
-  name_binder->current_scope = prev_scope;
+  decl_map->insert(union_decl, name_decl, 0);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(union_decl, 0);
+  visit_structFieldList(union_decl->headerUnionDeclaration.fields, name_decl);
+  current_scope = prev_scope;
 }
 
-static void visit_structTypeDeclaration(NameBinder* name_binder, Ast* struct_decl)
+void NameBinder::visit_structTypeDeclaration(Ast* struct_decl)
 {
   assert(struct_decl->kind == AstEnum::structTypeDeclaration);
   Ast* name;
@@ -949,40 +813,40 @@ static void visit_structTypeDeclaration(NameBinder* name_binder, Ast* struct_dec
   Scope* prev_scope;
 
   name = struct_decl->structTypeDeclaration.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = struct_decl;
-  name_binder->decl_map->insert(struct_decl, name_decl, 0);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(struct_decl, 0);
-  visit_structFieldList(name_binder, struct_decl->structTypeDeclaration.fields, name_decl);
-  name_binder->current_scope = prev_scope;
+  decl_map->insert(struct_decl, name_decl, 0);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(struct_decl, 0);
+  visit_structFieldList(struct_decl->structTypeDeclaration.fields, name_decl);
+  current_scope = prev_scope;
 }
 
-static void visit_structFieldList(NameBinder* name_binder, Ast* field_list, NameDeclaration* name_decl)
+void NameBinder::visit_structFieldList(Ast* field_list, NameDeclaration* name_decl)
 {
   assert(field_list->kind == AstEnum::structFieldList);
   AstTree* ast;
 
   for (ast = field_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_structField(name_binder, container_of(ast, Ast, tree));
+    visit_structField(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_structField(NameBinder* name_binder, Ast* field)
+void NameBinder::visit_structField(Ast* field)
 {
   assert(field->kind == AstEnum::structField);
   Ast* name;
   NameDeclaration* name_decl;
 
-  visit_typeRef(name_binder, field->structField.type);
+  visit_typeRef(field->structField.type);
   name = field->structField.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = field;
-  name_binder->decl_map->insert(field, name_decl, 0);
+  decl_map->insert(field, name_decl, 0);
 }
 
-static void visit_enumDeclaration(NameBinder* name_binder, Ast* enum_decl)
+void NameBinder::visit_enumDeclaration(Ast* enum_decl)
 {
   assert(enum_decl->kind == AstEnum::enumDeclaration);
   Ast* name;
@@ -990,16 +854,16 @@ static void visit_enumDeclaration(NameBinder* name_binder, Ast* enum_decl)
   Scope* prev_scope;
 
   name = enum_decl->enumDeclaration.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = enum_decl;
-  name_binder->decl_map->insert(enum_decl, name_decl, 0);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(enum_decl, 0);
-  visit_specifiedIdentifierList(name_binder, enum_decl->enumDeclaration.fields, name_decl);
-  name_binder->current_scope = prev_scope;
+  decl_map->insert(enum_decl, name_decl, 0);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(enum_decl, 0);
+  visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields, name_decl);
+  current_scope = prev_scope;
 }
 
-static void visit_errorDeclaration(NameBinder* name_binder, Ast* error_decl)
+void NameBinder::visit_errorDeclaration(Ast* error_decl)
 {
   assert(error_decl->kind == AstEnum::errorDeclaration);
   Scope* prev_scope;
@@ -1007,17 +871,17 @@ static void visit_errorDeclaration(NameBinder* name_binder, Ast* error_decl)
   NameDeclaration* name_decl;
   Type* error_ty;
 
-  name_entry = name_binder->root_scope->lookup("error", NameSpace::TYPE);
+  name_entry = root_scope->lookup("error", NameSpace::TYPE);
   name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
   error_ty = name_decl->type;
-  name_binder->decl_map->insert(error_decl, name_decl, 0);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(error_decl, 0);
-  error_ty->enum_.field_count += visit_identifierList(name_binder, error_decl->errorDeclaration.fields);
-  name_binder->current_scope = prev_scope;
+  decl_map->insert(error_decl, name_decl, 0);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(error_decl, 0);
+  error_ty->enum_.field_count += visit_identifierList(error_decl->errorDeclaration.fields);
+  current_scope = prev_scope;
 }
 
-static void visit_matchKindDeclaration(NameBinder* name_binder, Ast* match_decl)
+void NameBinder::visit_matchKindDeclaration(Ast* match_decl)
 {
   assert(match_decl->kind == AstEnum::matchKindDeclaration);
   Scope* prev_scope;
@@ -1025,17 +889,17 @@ static void visit_matchKindDeclaration(NameBinder* name_binder, Ast* match_decl)
   NameDeclaration* name_decl;
   Type* match_kind_ty;
 
-  name_entry = name_binder->root_scope->lookup("match_kind", NameSpace::TYPE);
+  name_entry = root_scope->lookup("match_kind", NameSpace::TYPE);
   name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
   match_kind_ty = name_decl->type;
-  name_binder->decl_map->insert(match_decl, name_decl, 0);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(match_decl, 0);
-  match_kind_ty->enum_.field_count += visit_identifierList(name_binder, match_decl->matchKindDeclaration.fields);
-  name_binder->current_scope = prev_scope;
+  decl_map->insert(match_decl, name_decl, 0);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(match_decl, 0);
+  match_kind_ty->enum_.field_count += visit_identifierList(match_decl->matchKindDeclaration.fields);
+  current_scope = prev_scope;
 }
 
-static int visit_identifierList(NameBinder* name_binder, Ast* ident_list)
+int NameBinder::visit_identifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AstEnum::identifierList);
   Ast* name;
@@ -1046,213 +910,213 @@ static int visit_identifierList(NameBinder* name_binder, Ast* ident_list)
   for (ast = ident_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
     name = container_of(ast, Ast, tree);
-    name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+    name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
     name_decl->ast = name;
-    name_binder->decl_map->insert(name, name_decl, 0);
+    decl_map->insert(name, name_decl, 0);
     count += 1;
   }
   return count;
 }
 
-static void visit_specifiedIdentifierList(NameBinder* name_binder, Ast* ident_list, NameDeclaration* name_decl)
+void NameBinder::visit_specifiedIdentifierList(Ast* ident_list, NameDeclaration* name_decl)
 {
   assert(ident_list->kind == AstEnum::specifiedIdentifierList);
   AstTree* ast;
 
   for (ast = ident_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_specifiedIdentifier(name_binder, container_of(ast, Ast, tree));
+    visit_specifiedIdentifier(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_specifiedIdentifier(NameBinder* name_binder, Ast* ident)
+void NameBinder::visit_specifiedIdentifier(Ast* ident)
 {
   assert(ident->kind == AstEnum::specifiedIdentifier);
   Ast* name;
   NameDeclaration* name_decl;
 
   name = ident->specifiedIdentifier.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = ident;
-  name_binder->decl_map->insert(ident, name_decl, 0);
+  decl_map->insert(ident, name_decl, 0);
   if (ident->specifiedIdentifier.init_expr) {
-    visit_expression(name_binder, ident->specifiedIdentifier.init_expr);
+    visit_expression(ident->specifiedIdentifier.init_expr);
   }
 }
 
-static void visit_typedefDeclaration(NameBinder* name_binder, Ast* typedef_decl)
+void NameBinder::visit_typedefDeclaration(Ast* typedef_decl)
 {
   assert(typedef_decl->kind == AstEnum::typedefDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
 
   if (typedef_decl->typedefDeclaration.type_ref->kind == AstEnum::typeRef) {
-    visit_typeRef(name_binder, typedef_decl->typedefDeclaration.type_ref);
+    visit_typeRef(typedef_decl->typedefDeclaration.type_ref);
   } else if (typedef_decl->typedefDeclaration.type_ref->kind == AstEnum::derivedTypeDeclaration) {
-    visit_derivedTypeDeclaration(name_binder, typedef_decl->typedefDeclaration.type_ref);
+    visit_derivedTypeDeclaration(typedef_decl->typedefDeclaration.type_ref);
   } else assert(0);
   name = typedef_decl->typedefDeclaration.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = typedef_decl;
-  name_binder->decl_map->insert(typedef_decl, name_decl, 0);
+  decl_map->insert(typedef_decl, name_decl, 0);
 }
 
 /** STATEMENTS **/
 
-static void visit_assignmentStatement(NameBinder* name_binder, Ast* assign_stmt)
+void NameBinder::visit_assignmentStatement(Ast* assign_stmt)
 {
   assert(assign_stmt->kind == AstEnum::assignmentStatement);
   if (assign_stmt->assignmentStatement.lhs_expr->kind == AstEnum::expression) {
-    visit_expression(name_binder, assign_stmt->assignmentStatement.lhs_expr);
+    visit_expression(assign_stmt->assignmentStatement.lhs_expr);
   } else if (assign_stmt->assignmentStatement.lhs_expr->kind == AstEnum::lvalueExpression) {
-    visit_lvalueExpression(name_binder, assign_stmt->assignmentStatement.lhs_expr);
+    visit_lvalueExpression(assign_stmt->assignmentStatement.lhs_expr);
   } else assert(0);
-  visit_expression(name_binder, assign_stmt->assignmentStatement.rhs_expr);
+  visit_expression(assign_stmt->assignmentStatement.rhs_expr);
 }
 
-static void visit_functionCall(NameBinder* name_binder, Ast* func_call)
+void NameBinder::visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AstEnum::functionCall);
   if (func_call->functionCall.lhs_expr->kind == AstEnum::expression) {
-    visit_expression(name_binder, func_call->functionCall.lhs_expr);
+    visit_expression(func_call->functionCall.lhs_expr);
   } else if (func_call->functionCall.lhs_expr->kind == AstEnum::lvalueExpression) {
-    visit_lvalueExpression(name_binder, func_call->functionCall.lhs_expr);
+    visit_lvalueExpression(func_call->functionCall.lhs_expr);
   } else assert(0);
-  visit_argumentList(name_binder, func_call->functionCall.args);
+  visit_argumentList(func_call->functionCall.args);
 }
 
-static void visit_returnStatement(NameBinder* name_binder, Ast* return_stmt)
+void NameBinder::visit_returnStatement(Ast* return_stmt)
 {
   assert(return_stmt->kind == AstEnum::returnStatement);
   if (return_stmt->returnStatement.expr) {
-    visit_expression(name_binder, return_stmt->returnStatement.expr);
+    visit_expression(return_stmt->returnStatement.expr);
   }
 }
 
-static void visit_exitStatement(NameBinder* name_binder, Ast* exit_stmt)
+void NameBinder::visit_exitStatement(Ast* exit_stmt)
 {
   assert(exit_stmt->kind == AstEnum::exitStatement);
 }
 
-static void visit_conditionalStatement(NameBinder* name_binder, Ast* cond_stmt)
+void NameBinder::visit_conditionalStatement(Ast* cond_stmt)
 {
   assert(cond_stmt->kind == AstEnum::conditionalStatement);
-  visit_expression(name_binder, cond_stmt->conditionalStatement.cond_expr);
-  visit_statement(name_binder, cond_stmt->conditionalStatement.stmt);
+  visit_expression(cond_stmt->conditionalStatement.cond_expr);
+  visit_statement(cond_stmt->conditionalStatement.stmt);
   if (cond_stmt->conditionalStatement.else_stmt) {
-    visit_statement(name_binder, cond_stmt->conditionalStatement.else_stmt);
+    visit_statement(cond_stmt->conditionalStatement.else_stmt);
   }
 }
 
-static void visit_directApplication(NameBinder* name_binder, Ast* applic_stmt)
+void NameBinder::visit_directApplication(Ast* applic_stmt)
 {
   assert(applic_stmt->kind == AstEnum::directApplication);
   if (applic_stmt->directApplication.name->kind == AstEnum::name) {
-    visit_name(name_binder, applic_stmt->directApplication.name);
+    visit_name(applic_stmt->directApplication.name);
   } else if (applic_stmt->directApplication.name->kind == AstEnum::typeRef) {
-    visit_typeRef(name_binder, applic_stmt->directApplication.name);
+    visit_typeRef(applic_stmt->directApplication.name);
   } else assert(0);
-  visit_argumentList(name_binder, applic_stmt->directApplication.args);
+  visit_argumentList(applic_stmt->directApplication.args);
 }
 
-static void visit_statement(NameBinder* name_binder, Ast* stmt)
+void NameBinder::visit_statement(Ast* stmt)
 {
   assert(stmt->kind == AstEnum::statement);
   Scope* prev_scope;
 
   if (stmt->statement.stmt->kind == AstEnum::assignmentStatement) {
-    visit_assignmentStatement(name_binder, stmt->statement.stmt);
+    visit_assignmentStatement(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AstEnum::functionCall) {
-    visit_functionCall(name_binder, stmt->statement.stmt);
+    visit_functionCall(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AstEnum::directApplication) {
-    visit_directApplication(name_binder, stmt->statement.stmt);
+    visit_directApplication(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AstEnum::conditionalStatement) {
-    visit_conditionalStatement(name_binder, stmt->statement.stmt);
+    visit_conditionalStatement(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AstEnum::emptyStatement) {
     ;
   } else if (stmt->statement.stmt->kind == AstEnum::blockStatement) {
-    prev_scope = name_binder->current_scope;
-    name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(stmt, 0);
-    visit_blockStatement(name_binder, stmt->statement.stmt);
-    name_binder->current_scope = prev_scope;
+    prev_scope = current_scope;
+    current_scope = (Scope*)scope_map->lookup(stmt, 0);
+    visit_blockStatement(stmt->statement.stmt);
+    current_scope = prev_scope;
   } else if (stmt->statement.stmt->kind == AstEnum::exitStatement) {
-    visit_exitStatement(name_binder, stmt->statement.stmt);
+    visit_exitStatement(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AstEnum::returnStatement) {
-    visit_returnStatement(name_binder, stmt->statement.stmt);
+    visit_returnStatement(stmt->statement.stmt);
   } else if (stmt->statement.stmt->kind == AstEnum::switchStatement) {
-    visit_switchStatement(name_binder, stmt->statement.stmt);
+    visit_switchStatement(stmt->statement.stmt);
   } else assert(0);
 }
 
-static void visit_blockStatement(NameBinder* name_binder, Ast* block_stmt)
+void NameBinder::visit_blockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AstEnum::blockStatement);
-  visit_statementOrDeclList(name_binder, block_stmt->blockStatement.stmt_list);
+  visit_statementOrDeclList(block_stmt->blockStatement.stmt_list);
 }
 
-static void visit_statementOrDeclList(NameBinder* name_binder, Ast* stmt_list)
+void NameBinder::visit_statementOrDeclList(Ast* stmt_list)
 {
   assert(stmt_list->kind == AstEnum::statementOrDeclList);
   AstTree* ast;
 
   for (ast = stmt_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_statementOrDeclaration(name_binder, container_of(ast, Ast, tree));
+    visit_statementOrDeclaration(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_switchStatement(NameBinder* name_binder, Ast* switch_stmt)
+void NameBinder::visit_switchStatement(Ast* switch_stmt)
 {
   assert(switch_stmt->kind == AstEnum::switchStatement);
-  visit_expression(name_binder, switch_stmt->switchStatement.expr);
-  visit_switchCases(name_binder, switch_stmt->switchStatement.switch_cases);
+  visit_expression(switch_stmt->switchStatement.expr);
+  visit_switchCases(switch_stmt->switchStatement.switch_cases);
 }
 
-static void visit_switchCases(NameBinder* name_binder, Ast* switch_cases)
+void NameBinder::visit_switchCases(Ast* switch_cases)
 {
   assert(switch_cases->kind == AstEnum::switchCases);
   AstTree* ast;
 
   for (ast = switch_cases->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_switchCase(name_binder, container_of(ast, Ast, tree));
+    visit_switchCase(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_switchCase(NameBinder* name_binder, Ast* switch_case)
+void NameBinder::visit_switchCase(Ast* switch_case)
 {
   assert(switch_case->kind == AstEnum::switchCase);
-  visit_switchLabel(name_binder, switch_case->switchCase.label);
+  visit_switchLabel(switch_case->switchCase.label);
   if (switch_case->switchCase.stmt) {
-    visit_blockStatement(name_binder, switch_case->switchCase.stmt);
+    visit_blockStatement(switch_case->switchCase.stmt);
   }
 }
 
-static void visit_switchLabel(NameBinder* name_binder, Ast* label)
+void NameBinder::visit_switchLabel(Ast* label)
 {
   assert(label->kind == AstEnum::switchLabel);
   if (label->switchLabel.label->kind == AstEnum::name) {
-    visit_name(name_binder, label->switchLabel.label);
+    visit_name(label->switchLabel.label);
   } else if (label->switchLabel.label->kind == AstEnum::default_) {
-    visit_default(name_binder, label->switchLabel.label);
+    visit_default(label->switchLabel.label);
   } else assert(0);
 }
 
-static void visit_statementOrDeclaration(NameBinder* name_binder, Ast* stmt)
+void NameBinder::visit_statementOrDeclaration(Ast* stmt)
 {
   assert(stmt->kind == AstEnum::statementOrDeclaration);
   if (stmt->statementOrDeclaration.stmt->kind == AstEnum::variableDeclaration) {
-    visit_variableDeclaration(name_binder, stmt->statementOrDeclaration.stmt);
+    visit_variableDeclaration(stmt->statementOrDeclaration.stmt);
   } else if (stmt->statementOrDeclaration.stmt->kind == AstEnum::statement) {
-    visit_statement(name_binder, stmt->statementOrDeclaration.stmt);
+    visit_statement(stmt->statementOrDeclaration.stmt);
   } else if (stmt->statementOrDeclaration.stmt->kind == AstEnum::instantiation) {
-    visit_instantiation(name_binder, stmt->statementOrDeclaration.stmt);
+    visit_instantiation(stmt->statementOrDeclaration.stmt);
   } else assert(0);
 }
 
 /** TABLES **/
 
-static void visit_tableDeclaration(NameBinder* name_binder, Ast* table_decl)
+void NameBinder::visit_tableDeclaration(Ast* table_decl)
 {
   assert(table_decl->kind == AstEnum::tableDeclaration);
   Ast* name;
@@ -1260,34 +1124,34 @@ static void visit_tableDeclaration(NameBinder* name_binder, Ast* table_decl)
   Scope* prev_scope;
 
   name = table_decl->tableDeclaration.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = table_decl;
-  name_binder->decl_map->insert(table_decl, name_decl, 0);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(table_decl, 0);
-  visit_tablePropertyList(name_binder, table_decl->tableDeclaration.prop_list);
-  visit_methodPrototypes(name_binder, table_decl->tableDeclaration.method_protos, name_decl);
-  name_binder->current_scope = prev_scope;
+  decl_map->insert(table_decl, name_decl, 0);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(table_decl, 0);
+  visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
+  visit_methodPrototypes(table_decl->tableDeclaration.method_protos, name_decl);
+  current_scope = prev_scope;
 }
 
-static void visit_tablePropertyList(NameBinder* name_binder, Ast* prop_list)
+void NameBinder::visit_tablePropertyList(Ast* prop_list)
 {
   assert(prop_list->kind == AstEnum::tablePropertyList);
   AstTree* ast;
 
   for (ast = prop_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_tableProperty(name_binder, container_of(ast, Ast, tree));
+    visit_tableProperty(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_tableProperty(NameBinder* name_binder, Ast* table_prop)
+void NameBinder::visit_tableProperty(Ast* table_prop)
 {
   assert(table_prop->kind == AstEnum::tableProperty);
   if (table_prop->tableProperty.prop->kind == AstEnum::keyProperty) {
-    visit_keyProperty(name_binder, table_prop->tableProperty.prop);
+    visit_keyProperty(table_prop->tableProperty.prop);
   } else if (table_prop->tableProperty.prop->kind == AstEnum::actionsProperty) {
-    visit_actionsProperty(name_binder, table_prop->tableProperty.prop);
+    visit_actionsProperty(table_prop->tableProperty.prop);
   }
 #if 0
   else if (table_prop->tableProperty.prop->kind == AstEnum::entriesProperty) {
@@ -1299,69 +1163,69 @@ static void visit_tableProperty(NameBinder* name_binder, Ast* table_prop)
   else assert(0);
 }
 
-static void visit_keyProperty(NameBinder* name_binder, Ast* key_prop)
+void NameBinder::visit_keyProperty(Ast* key_prop)
 {
   assert(key_prop->kind == AstEnum::keyProperty);
-  visit_keyElementList(name_binder, key_prop->keyProperty.keyelem_list);
+  visit_keyElementList(key_prop->keyProperty.keyelem_list);
 }
 
-static void visit_keyElementList(NameBinder* name_binder, Ast* element_list)
+void NameBinder::visit_keyElementList(Ast* element_list)
 {
   assert(element_list->kind == AstEnum::keyElementList);
   AstTree* ast;
 
   for (ast = element_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_keyElement(name_binder, container_of(ast, Ast, tree));
+    visit_keyElement(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_keyElement(NameBinder* name_binder, Ast* element)
+void NameBinder::visit_keyElement(Ast* element)
 {
   assert(element->kind == AstEnum::keyElement);
   Scope* prev_scope;
 
-  visit_expression(name_binder, element->keyElement.expr);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = name_binder->root_scope;
-  visit_name(name_binder, element->keyElement.match);
-  name_binder->current_scope = prev_scope;
+  visit_expression(element->keyElement.expr);
+  prev_scope = current_scope;
+  current_scope = root_scope;
+  visit_name(element->keyElement.match);
+  current_scope = prev_scope;
 }
 
-static void visit_actionsProperty(NameBinder* name_binder, Ast* actions_prop)
+void NameBinder::visit_actionsProperty(Ast* actions_prop)
 {
   assert(actions_prop->kind == AstEnum::actionsProperty);
-  visit_actionList(name_binder, actions_prop->actionsProperty.action_list);
+  visit_actionList(actions_prop->actionsProperty.action_list);
 }
 
-static void visit_actionList(NameBinder* name_binder, Ast* action_list)
+void NameBinder::visit_actionList(Ast* action_list)
 {
   assert(action_list->kind == AstEnum::actionList);
   AstTree* ast;
 
   for (ast = action_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_actionRef(name_binder, container_of(ast, Ast, tree));
+    visit_actionRef(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_actionRef(NameBinder* name_binder, Ast* action_ref)
+void NameBinder::visit_actionRef(Ast* action_ref)
 {
   assert(action_ref->kind == AstEnum::actionRef);
-  visit_name(name_binder, action_ref->actionRef.name);
+  visit_name(action_ref->actionRef.name);
   if (action_ref->actionRef.args) {
-    visit_argumentList(name_binder, action_ref->actionRef.args);
+    visit_argumentList(action_ref->actionRef.args);
   }
 }
 
 #if 0
-static void visit_entriesProperty(NameBinder* name_binder, Ast* entries_prop)
+void NameBinder::visit_entriesProperty(Ast* entries_prop)
 {
   assert(entries_prop->kind == AstEnum::entriesProperty);
   visit_entriesList(name_binder, entries_prop->entriesProperty.entries_list);
 }
 
-static void visit_entriesList(NameBinder* name_binder, Ast* entries_list)
+void NameBinder::visit_entriesList(Ast* entries_list)
 {
   assert(entries_list->kind == AstEnum::entriesList);
   AstTree* ast;
@@ -1372,28 +1236,28 @@ static void visit_entriesList(NameBinder* name_binder, Ast* entries_list)
   }
 }
 
-static void visit_entry(NameBinder* name_binder, Ast* entry)
+void NameBinder::visit_entry(Ast* entry)
 {
   assert(entry->kind == AstEnum::entry);
   visit_keysetExpression(name_binder, entry->entry.keyset);
   visit_actionRef(name_binder, entry->entry.action);
 }
 
-static void visit_simpleProperty(NameBinder* name_binder, Ast* simple_prop)
+void NameBinder::visit_simpleProperty(Ast* simple_prop)
 {
   assert(simple_prop->kind == AstEnum::simpleProperty);
   Ast* name;
   NameDeclaration* name_decl;
 
   name = simple_prop->simpleProperty.name;
-  name_decl = bind(name_binder->storage, name_binder->current_scope, name->name.strname, TYPE);
+  name_decl = bind(storage, current_scope, name->name.strname, TYPE);
   name_decl->ast = simple_prop;
-  name_binder->decl_map->insert(simple_prop, name_decl, 0);
+  decl_map->insert(simple_prop, name_decl, 0);
   visit_expression(name_binder, simple_prop->simpleProperty.init_expr);
 }
 #endif
 
-static void visit_actionDeclaration(NameBinder* name_binder, Ast* action_decl)
+void NameBinder::visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AstEnum::actionDeclaration);
   Ast* name;
@@ -1401,197 +1265,197 @@ static void visit_actionDeclaration(NameBinder* name_binder, Ast* action_decl)
   Scope* prev_scope;
 
   name = action_decl->actionDeclaration.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = action_decl;
-  name_binder->decl_map->insert(action_decl, name_decl, 0);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(action_decl, 0);
-  visit_parameterList(name_binder, action_decl->actionDeclaration.params);
-  visit_blockStatement(name_binder, action_decl->actionDeclaration.stmt);
-  name_binder->current_scope = prev_scope;
+  decl_map->insert(action_decl, name_decl, 0);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(action_decl, 0);
+  visit_parameterList(action_decl->actionDeclaration.params);
+  visit_blockStatement(action_decl->actionDeclaration.stmt);
+  current_scope = prev_scope;
 }
 
 /** VARIABLES **/
 
-static void visit_variableDeclaration(NameBinder* name_binder, Ast* var_decl)
+void NameBinder::visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AstEnum::variableDeclaration);
   Ast* name;
   NameDeclaration* name_decl;
 
-  visit_typeRef(name_binder, var_decl->variableDeclaration.type);
-  visit_name(name_binder, var_decl->variableDeclaration.name);
+  visit_typeRef(var_decl->variableDeclaration.type);
+  visit_name(var_decl->variableDeclaration.name);
   name = var_decl->variableDeclaration.name;
-  name_decl = name_binder->current_scope->bind(name_binder->storage, name->name.strname, NameSpace::TYPE);
+  name_decl = current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
   name_decl->ast = var_decl;
-  name_binder->decl_map->insert(var_decl, name_decl, 0);
+  decl_map->insert(var_decl, name_decl, 0);
   if (var_decl->variableDeclaration.init_expr) {
-    visit_expression(name_binder, var_decl->variableDeclaration.init_expr);
+    visit_expression(var_decl->variableDeclaration.init_expr);
   }
 }
 
 /** EXPRESSIONS **/
 
-static void visit_functionDeclaration(NameBinder* name_binder, Ast* func_decl)
+void NameBinder::visit_functionDeclaration(Ast* func_decl)
 {
   assert(func_decl->kind == AstEnum::functionDeclaration);
   Scope* prev_scope;
 
-  visit_functionPrototype(name_binder, func_decl->functionDeclaration.proto);
-  prev_scope = name_binder->current_scope;
-  name_binder->current_scope = (Scope*)name_binder->scope_map->lookup(func_decl, 0);
-  visit_blockStatement(name_binder, func_decl->functionDeclaration.stmt);
-  name_binder->current_scope = prev_scope;
+  visit_functionPrototype(func_decl->functionDeclaration.proto);
+  prev_scope = current_scope;
+  current_scope = (Scope*)scope_map->lookup(func_decl, 0);
+  visit_blockStatement(func_decl->functionDeclaration.stmt);
+  current_scope = prev_scope;
 }
 
-static void visit_argumentList(NameBinder* name_binder, Ast* arg_list)
+void NameBinder::visit_argumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AstEnum::argumentList);
   AstTree* ast;
 
   for (ast = arg_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_argument(name_binder, container_of(ast, Ast, tree));
+    visit_argument(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_argument(NameBinder* name_binder, Ast* arg)
+void NameBinder::visit_argument(Ast* arg)
 {
   assert(arg->kind == AstEnum::argument);
   if (arg->argument.arg->kind == AstEnum::expression) {
-    visit_expression(name_binder, arg->argument.arg);
+    visit_expression(arg->argument.arg);
   } else if (arg->argument.arg->kind == AstEnum::dontcare) {
-    visit_dontcare(name_binder, arg->argument.arg);
+    visit_dontcare(arg->argument.arg);
   } else assert(0);
 }
 
-static void visit_expressionList(NameBinder* name_binder, Ast* expr_list)
+void NameBinder::visit_expressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::expressionList);
   AstTree* ast;
 
   for (ast = expr_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_expression(name_binder, container_of(ast, Ast, tree));
+    visit_expression(container_of(ast, Ast, tree));
   }
 }
 
-static void visit_lvalueExpression(NameBinder* name_binder, Ast* lvalue_expr)
+void NameBinder::visit_lvalueExpression(Ast* lvalue_expr)
 {
   assert(lvalue_expr->kind == AstEnum::lvalueExpression);
   if (lvalue_expr->lvalueExpression.expr->kind == AstEnum::name) {
-    visit_name(name_binder, lvalue_expr->lvalueExpression.expr);
+    visit_name(lvalue_expr->lvalueExpression.expr);
   } else if (lvalue_expr->lvalueExpression.expr->kind == AstEnum::memberSelector) {
-    visit_memberSelector(name_binder, lvalue_expr->lvalueExpression.expr);
+    visit_memberSelector(lvalue_expr->lvalueExpression.expr);
   } else if (lvalue_expr->lvalueExpression.expr->kind == AstEnum::arraySubscript) {
-    visit_arraySubscript(name_binder, lvalue_expr->lvalueExpression.expr);
+    visit_arraySubscript(lvalue_expr->lvalueExpression.expr);
   } else assert(0);
 }
 
-static void visit_expression(NameBinder* name_binder, Ast* expr)
+void NameBinder::visit_expression(Ast* expr)
 {
   assert(expr->kind == AstEnum::expression);
   if (expr->expression.expr->kind == AstEnum::expression) {
-    visit_expression(name_binder, expr->expression.expr);
+    visit_expression(expr->expression.expr);
   } else if (expr->expression.expr->kind == AstEnum::booleanLiteral) {
-    visit_booleanLiteral(name_binder, expr->expression.expr);
+    visit_booleanLiteral(expr->expression.expr);
   } else if (expr->expression.expr->kind == AstEnum::integerLiteral) {
-    visit_integerLiteral(name_binder, expr->expression.expr);
+    visit_integerLiteral(expr->expression.expr);
   } else if (expr->expression.expr->kind == AstEnum::stringLiteral) {
-    visit_stringLiteral(name_binder, expr->expression.expr);
+    visit_stringLiteral(expr->expression.expr);
   } else if (expr->expression.expr->kind == AstEnum::name) {
-    visit_name(name_binder, expr->expression.expr);
+    visit_name(expr->expression.expr);
   } else if (expr->expression.expr->kind == AstEnum::expressionList) {
-    visit_expressionList(name_binder, expr->expression.expr);
+    visit_expressionList(expr->expression.expr);
   } else if (expr->expression.expr->kind == AstEnum::castExpression) {
-    visit_castExpression(name_binder, expr->expression.expr);
+    visit_castExpression(expr->expression.expr);
   } else if (expr->expression.expr->kind == AstEnum::unaryExpression) {
-    visit_unaryExpression(name_binder, expr->expression.expr);
+    visit_unaryExpression(expr->expression.expr);
   } else if (expr->expression.expr->kind == AstEnum::binaryExpression) {
-    visit_binaryExpression(name_binder, expr->expression.expr);
+    visit_binaryExpression(expr->expression.expr);
   } else if (expr->expression.expr->kind == AstEnum::memberSelector) {
-    visit_memberSelector(name_binder, expr->expression.expr);
+    visit_memberSelector(expr->expression.expr);
   } else if (expr->expression.expr->kind == AstEnum::arraySubscript) {
-    visit_arraySubscript(name_binder, expr->expression.expr);
+    visit_arraySubscript(expr->expression.expr);
   } else if (expr->expression.expr->kind == AstEnum::functionCall) {
-    visit_functionCall(name_binder, expr->expression.expr);
+    visit_functionCall(expr->expression.expr);
   } else if (expr->expression.expr->kind == AstEnum::assignmentStatement) {
-    visit_assignmentStatement(name_binder, expr->expression.expr);
+    visit_assignmentStatement(expr->expression.expr);
   } else assert(0);
 }
 
-static void visit_castExpression(NameBinder* name_binder, Ast* cast_expr)
+void NameBinder::visit_castExpression(Ast* cast_expr)
 {
   assert(cast_expr->kind == AstEnum::castExpression);
-  visit_typeRef(name_binder, cast_expr->castExpression.type);
-  visit_expression(name_binder, cast_expr->castExpression.expr);
+  visit_typeRef(cast_expr->castExpression.type);
+  visit_expression(cast_expr->castExpression.expr);
 }
 
-static void visit_unaryExpression(NameBinder* name_binder, Ast* unary_expr)
+void NameBinder::visit_unaryExpression(Ast* unary_expr)
 {
   assert(unary_expr->kind == AstEnum::unaryExpression);
-  visit_expression(name_binder, unary_expr->unaryExpression.operand);
+  visit_expression(unary_expr->unaryExpression.operand);
 }
 
-static void visit_binaryExpression(NameBinder* name_binder, Ast* binary_expr)
+void NameBinder::visit_binaryExpression(Ast* binary_expr)
 {
   assert(binary_expr->kind == AstEnum::binaryExpression);
-  visit_expression(name_binder, binary_expr->binaryExpression.left_operand);
-  visit_expression(name_binder, binary_expr->binaryExpression.right_operand);
+  visit_expression(binary_expr->binaryExpression.left_operand);
+  visit_expression(binary_expr->binaryExpression.right_operand);
 }
 
-static void visit_memberSelector(NameBinder* name_binder, Ast* selector)
+void NameBinder::visit_memberSelector(Ast* selector)
 {
   assert(selector->kind == AstEnum::memberSelector);
   if (selector->memberSelector.lhs_expr->kind == AstEnum::expression) {
-    visit_expression(name_binder, selector->memberSelector.lhs_expr);
+    visit_expression(selector->memberSelector.lhs_expr);
   } else if (selector->memberSelector.lhs_expr->kind == AstEnum::lvalueExpression) {
-    visit_lvalueExpression(name_binder, selector->memberSelector.lhs_expr);
+    visit_lvalueExpression(selector->memberSelector.lhs_expr);
   } else assert(0);
-  visit_name(name_binder, selector->memberSelector.name);
+  visit_name(selector->memberSelector.name);
 }
 
-static void visit_arraySubscript(NameBinder* name_binder, Ast* subscript)
+void NameBinder::visit_arraySubscript(Ast* subscript)
 {
   assert(subscript->kind == AstEnum::arraySubscript);
   if (subscript->arraySubscript.lhs_expr->kind == AstEnum::expression) {
-    visit_expression(name_binder, subscript->arraySubscript.lhs_expr);
+    visit_expression(subscript->arraySubscript.lhs_expr);
   } else if (subscript->arraySubscript.lhs_expr->kind == AstEnum::lvalueExpression) {
-    visit_lvalueExpression(name_binder, subscript->arraySubscript.lhs_expr);
+    visit_lvalueExpression(subscript->arraySubscript.lhs_expr);
   } else assert(0);
-  visit_indexExpression(name_binder, subscript->arraySubscript.index_expr);
+  visit_indexExpression(subscript->arraySubscript.index_expr);
 }
 
-static void visit_indexExpression(NameBinder* name_binder, Ast* index_expr)
+void NameBinder::visit_indexExpression(Ast* index_expr)
 {
   assert(index_expr->kind == AstEnum::indexExpression);
-  visit_expression(name_binder, index_expr->indexExpression.start_index);
+  visit_expression(index_expr->indexExpression.start_index);
   if (index_expr->indexExpression.end_index) {
-    visit_expression(name_binder, index_expr->indexExpression.end_index);
+    visit_expression(index_expr->indexExpression.end_index);
   }
 }
 
-static void visit_booleanLiteral(NameBinder* name_binder, Ast* bool_literal)
+void NameBinder::visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AstEnum::booleanLiteral);
 }
 
-static void visit_integerLiteral(NameBinder* name_binder, Ast* int_literal)
+void NameBinder::visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AstEnum::integerLiteral);
 }
 
-static void visit_stringLiteral(NameBinder* name_binder, Ast* str_literal)
+void NameBinder::visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AstEnum::stringLiteral);
 }
 
-static void visit_default(NameBinder* name_binder, Ast* default_)
+void NameBinder::visit_default(Ast* default_)
 {
   assert(default_->kind == AstEnum::default_);
 }
 
-static void visit_dontcare(NameBinder* name_binder, Ast* dontcare)
+void NameBinder::visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AstEnum::dontcare);
 }
