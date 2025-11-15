@@ -1000,6 +1000,8 @@ struct Parser {
   Ast* parse_string();
 
   void parse();
+  Token* next_token();
+  Token* peek_token();
 };
 
 struct BuiltinMethodBuilder {
