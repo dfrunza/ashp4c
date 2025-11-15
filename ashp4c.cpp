@@ -101,6 +101,7 @@ int main(int arg_count, char* args[])
   ScopeBuilder scope_builder = {};
   NameBinder name_binder = {};
   TypeChecker type_checker = {};
+  DeclaredTypesPass declared_types = {};
 
   Arena::reserve_memory(500*KILOBYTE);
 
@@ -146,7 +147,11 @@ int main(int arg_count, char* args[])
   type_checker.type_array = name_binder.type_array;
   type_checker.scope_map = scope_builder.scope_map;
   type_checker.decl_map = name_binder.decl_map;
-  declared_types(&type_checker);
+
+  *(TypeChecker*)&declared_types = type_checker;
+  declared_types.declared_types();
+  type_checker = *(TypeChecker*)&declared_types;
+
   potential_types(&type_checker);
   select_type(&type_checker);
   storage.free();
