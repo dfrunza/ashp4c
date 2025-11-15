@@ -1002,6 +1002,7 @@ struct Parser {
   void parse();
   Token* next_token();
   Token* peek_token();
+  void define_keywords(Scope* scope);
 };
 
 struct BuiltinMethodBuilder {

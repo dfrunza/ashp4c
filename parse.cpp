@@ -6,7 +6,7 @@ struct Keyword {
   enum TokenClass token_class;
 };
 
-static void define_keywords(Parser* parser, Scope* scope)
+void Parser::define_keywords(Scope* scope)
 {
   struct Keyword keywords[] = {
     {"action",  TokenClass::ACTION},
@@ -52,7 +52,7 @@ static void define_keywords(Parser* parser, Scope* scope)
   NameDeclaration* name_decl;
 
   for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
-    name_decl = scope->bind(parser->storage, keywords[i].strname, NameSpace::KEYWORD);
+    name_decl = scope->bind(storage, keywords[i].strname, NameSpace::KEYWORD);
     name_decl->token_class = keywords[i].token_class;
   }
 }
@@ -884,7 +884,7 @@ void Parser::parse()
   root_scope = Scope::create(storage, 5);
   current_scope = root_scope;
 
-  define_keywords(this, root_scope);
+  define_keywords(root_scope);
   token_at = 0;
   token = (Token*)tokens->get(token_at, sizeof(Token));
   next_token();
