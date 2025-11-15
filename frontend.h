@@ -117,6 +117,42 @@ struct Token {
     } integer;
     char* str;
   };
+
+  bool token_is_nonTypeName();
+  bool token_is_name();
+  bool token_is_typeName();
+  bool token_is_nonTableKwName();
+  bool token_is_baseType();
+  bool token_is_typeRef();
+  bool token_is_direction();
+  bool token_is_parameter();
+  bool token_is_derivedTypeDeclaration();
+  bool token_is_typeDeclaration();
+  bool token_is_typeArg();
+  bool token_is_typeOrVoid();
+  bool token_is_actionRef();
+  bool token_is_tableProperty();
+  bool token_is_switchLabel();
+  bool token_is_expressionPrimary();
+  bool token_is_expression();
+  bool token_is_methodPrototype();
+  bool token_is_structField();
+  bool token_is_specifiedIdentifier();
+  bool token_is_declaration();
+  bool token_is_lvalue();
+  bool token_is_assignmentOrMethodCallStatement();
+  bool token_is_statement();
+  bool token_is_statementOrDeclaration();
+  bool token_is_argument();
+  bool token_is_parserLocalElement();
+  bool token_is_parserStatement();
+  bool token_is_simpleKeysetExpression();
+  bool token_is_keysetExpression();
+  bool token_is_selectCase();
+  bool token_is_controlLocalDeclaration();
+  bool token_is_realTypeArg();
+  bool token_is_binaryOperator();
+  bool token_is_exprOperator();
 };
 
 struct Lexeme {
