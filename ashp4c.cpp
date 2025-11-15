@@ -131,7 +131,7 @@ int main(int arg_count, char* args[])
   scope_builder.storage = &storage;
   scope_builder.root_scope = parser.root_scope;
   scope_builder.p4program = parser.p4program;
-  scope_hierarchy(&scope_builder);
+  scope_builder.scope_hierarchy();
 
   name_binder.storage = &storage;
   name_binder.p4program = parser.p4program;
