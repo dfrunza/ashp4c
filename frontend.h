@@ -168,8 +168,17 @@ struct Lexer {
   int    line_no;
   char*  line_start;
   int    state;
+  Token  token;
   Lexeme lexeme[2];
   Array* tokens;
+
+  char char_lookahead(int pos);
+  char char_advance(int pos);
+  char char_retract();
+  void lexeme_advance();
+  void token_install_integer(Token* token, Lexeme* lexeme, int base);
+  void next_token(Token* token);
+  void tokenize(SourceText* source_text);
 };
 
 enum class AstEnum {

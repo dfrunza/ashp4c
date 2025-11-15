@@ -115,7 +115,7 @@ int main(int arg_count, char* args[])
   read_source(&source_text, filename->value);
 
   lexer.storage = &storage;
-  tokenize(&lexer, &source_text);
+  lexer.tokenize(&source_text);
 
   parser.storage = &storage;
   parser.source_file = source_text.filename;
