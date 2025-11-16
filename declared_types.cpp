@@ -110,7 +110,7 @@ static void define_builtin_types(TypeChecker* checker)
   }
 }
 
-static bool structural_type_equiv(TypeChecker* checker, Type* left, Type* right)
+bool TypeChecker::structural_type_equiv(Type* left, Type* right)
 {
   Type* type_pair;
   int i;
@@ -125,8 +125,8 @@ static bool structural_type_equiv(TypeChecker* checker, Type* left, Type* right)
   right = right->actual_type();
   if (left == right) return 1;
 
-  for (i = 0; i < checker->type_equiv_pairs->elem_count; i++) {
-    type_pair = (Type*)checker->type_equiv_pairs->get(i, sizeof(Type));
+  for (i = 0; i < type_equiv_pairs->elem_count; i++) {
+    type_pair = (Type*)type_equiv_pairs->get(i, sizeof(Type));
     assert(type_pair->ty_former == TypeEnum::TUPLE);
     if ((left == type_pair->tuple.left || left == type_pair->tuple.right) &&
         (right == type_pair->tuple.left || right == type_pair->tuple.right)) {
@@ -134,7 +134,7 @@ static bool structural_type_equiv(TypeChecker* checker, Type* left, Type* right)
     }
   }
 
-  type_pair = (Type*)checker->type_equiv_pairs->append(sizeof(Type));
+  type_pair = (Type*)type_equiv_pairs->append(sizeof(Type));
   type_pair->ty_former = TypeEnum::TUPLE;
   type_pair->tuple.left = left;
   type_pair->tuple.right = right;
@@ -169,7 +169,7 @@ static bool structural_type_equiv(TypeChecker* checker, Type* left, Type* right)
         return 0;
       }
       for (int i = 0; i < left->product.count; i++) {
-        if (!structural_type_equiv(checker, left->product.members[i], left->product.members[i])) {
+        if (!structural_type_equiv(left->product.members[i], left->product.members[i])) {
           return 0;
         }
       }
@@ -178,10 +178,10 @@ static bool structural_type_equiv(TypeChecker* checker, Type* left, Type* right)
     return 0;
   } else if (left->ty_former == TypeEnum::FUNCTION) {
     if (right->ty_former == left->ty_former) {
-      if (!structural_type_equiv(checker, left->function.return_, right->function.return_)) {
+      if (!structural_type_equiv(left->function.return_, right->function.return_)) {
         return 0;
       }
-      if (!structural_type_equiv(checker, left->function.params, right->function.params)) {
+      if (!structural_type_equiv(left->function.params, right->function.params)) {
         return 0;
       }
       return 1;
@@ -189,32 +189,32 @@ static bool structural_type_equiv(TypeChecker* checker, Type* left, Type* right)
     return 0;
   } else if (left->ty_former == TypeEnum::PACKAGE) {
     if (right->ty_former == left->ty_former) {
-      return structural_type_equiv(checker, left->package.params, right->package.params);
+      return structural_type_equiv(left->package.params, right->package.params);
     }
     return 0;
   } else if (left->ty_former == TypeEnum::PARSER) {
     if (right->ty_former == left->ty_former) {
-      return structural_type_equiv(checker, left->parser.params, right->parser.params);
+      return structural_type_equiv(left->parser.params, right->parser.params);
     }
     return 0;
   } else if (left->ty_former == TypeEnum::CONTROL) {
     if (right->ty_former == left->ty_former) {
-      return structural_type_equiv(checker, left->control.params, right->control.params);
+      return structural_type_equiv(left->control.params, right->control.params);
     }
     return 0;
   } else if (left->ty_former == TypeEnum::STRUCT) {
     if (right->ty_former == left->ty_former) {
-      return structural_type_equiv(checker, left->struct_.fields, right->struct_.fields);
+      return structural_type_equiv(left->struct_.fields, right->struct_.fields);
     }
     return 0;
   } else if (left->ty_former == TypeEnum::HEADER) {
     if (right->ty_former == left->ty_former) {
-      return structural_type_equiv(checker, left->struct_.fields, right->struct_.fields);
+      return structural_type_equiv(left->struct_.fields, right->struct_.fields);
     }
     return 0;
   } else if (left->ty_former == TypeEnum::STACK) {
     if (right->ty_former == left->ty_former) {
-      return structural_type_equiv(checker, left->header_stack.element, right->header_stack.element);
+      return structural_type_equiv(left->header_stack.element, right->header_stack.element);
     }
     return 0;
   } else assert(0);
@@ -226,7 +226,7 @@ static bool structural_type_equiv(TypeChecker* checker, Type* left, Type* right)
 bool TypeChecker::type_equiv(Type* left, Type* right)
 {
   this->type_equiv_pairs->elem_count = 0;
-  return structural_type_equiv(this, left, right);
+  return structural_type_equiv(left, right);
 }
 
 Type* Type::actual_type()

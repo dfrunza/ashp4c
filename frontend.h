@@ -1508,6 +1508,7 @@ struct TypeChecker {
   bool match_params(PotentialType* potential_args, Type* params_ty);
   void collect_matching_member(PotentialType* tau, Type* product_ty,
         char* strname, PotentialType* potential_args);
+  bool structural_type_equiv(Type* left, Type* right);
   bool type_equiv(Type* u, Type* v);
 };
 
