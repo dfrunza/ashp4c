@@ -67,7 +67,7 @@ void SelectTypePass::visit_name(Ast* name, Type* required_ty)
         source_file, name->line_no, name->column_no);
   }
   if (required_ty) {
-    if (!match_type(name_tau, required_ty)) {
+    if (!type_checker->match_type(name_tau, required_ty)) {
       error("%s:%d:%d: error: failed type check.",
           source_file, name->line_no, name->column_no);
     } else {
@@ -713,7 +713,7 @@ void SelectTypePass::visit_functionCall(Ast* func_call, Type* required_ty)
         source_file, func_call->line_no, func_call->column_no);
   }
   if (required_ty) {
-    if (!match_type(func_tau, required_ty)) {
+    if (!type_checker->match_type(func_tau, required_ty)) {
       error("%s:%d:%d: error: failed type check.",
             source_file, func_call->line_no, func_call->column_no);
     } else {
@@ -1134,7 +1134,7 @@ void SelectTypePass::visit_binaryExpression(Ast* binary_expr, Type* required_ty)
         source_file, binary_expr->line_no, binary_expr->column_no);
   }
   if (required_ty) {
-    if (!match_type(op_tau, required_ty)) {
+    if (!type_checker->match_type(op_tau, required_ty)) {
       error("%s:%d:%d: error: failed type check.",
             source_file, binary_expr->line_no, binary_expr->column_no);
     } else {
@@ -1164,7 +1164,7 @@ void SelectTypePass::visit_memberSelector(Ast* selector, Type* required_ty)
         source_file, selector->line_no, selector->column_no);
   }
   if (required_ty) {
-    if (!match_type(selector_tau, required_ty)) {
+    if (!type_checker->match_type(selector_tau, required_ty)) {
       error("%s:%d:%d: error: failed type check.",
             source_file, selector->line_no, selector->column_no);
     } else {

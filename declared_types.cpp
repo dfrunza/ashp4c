@@ -2,7 +2,7 @@
 #include "foundation.h"
 #include "frontend.h"
 
-static void define_builtin_types(TypeChecker* checker)
+void DeclaredTypesPass::define_builtin_types()
 {
   char* base_types[] = {
     "void",
@@ -33,79 +33,79 @@ static void define_builtin_types(TypeChecker* checker)
   Type* ty, *params_ty;
 
   for (int i = 0; i < sizeof(base_types)/sizeof(base_types[0]); i++) {
-    name_entry = checker->root_scope->lookup(base_types[i], NameSpace::TYPE);
+    name_entry = root_scope->lookup(base_types[i], NameSpace::TYPE);
     name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
-    checker->type_env->insert(name_decl->ast, name_decl->type, 0);
+    type_env->insert(name_decl->ast, name_decl->type, 0);
   }
 
-  ast = checker->root_scope->builtin_lookup("accept", NameSpace::VAR)->ast;
-  ty = (Type*)checker->type_array->append(sizeof(Type));
+  ast = root_scope->builtin_lookup("accept", NameSpace::VAR)->ast;
+  ty = (Type*)type_array->append(sizeof(Type));
   ty->ty_former = TypeEnum::STATE;
-  checker->type_env->insert(ast, ty, 0);
+  type_env->insert(ast, ty, 0);
 
-  ast = checker->root_scope->builtin_lookup("reject", NameSpace::VAR)->ast;
-  ty = (Type*)checker->type_array->append(sizeof(Type));
+  ast = root_scope->builtin_lookup("reject", NameSpace::VAR)->ast;
+  ty = (Type*)type_array->append(sizeof(Type));
   ty->ty_former = TypeEnum::STATE;
-  checker->type_env->insert(ast, ty, 0);
+  type_env->insert(ast, ty, 0);
 
   for (int i = 0; i < sizeof(arithmetic_ops)/sizeof(arithmetic_ops[0]); i++) {
-    ty = (Type*)checker->type_array->append(sizeof(Type));
+    ty = (Type*)type_array->append(sizeof(Type));
     ty->strname = arithmetic_ops[i];
     ty->ty_former = TypeEnum::FUNCTION;
-    params_ty = (Type*)checker->type_array->append(sizeof(Type));
+    params_ty = (Type*)type_array->append(sizeof(Type));
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
-    params_ty->product.members = (Type**)checker->storage->malloc(params_ty->product.count * sizeof(Type*));
-    params_ty->product.members[0] = checker->root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
-    params_ty->product.members[1] = checker->root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
+    params_ty->product.members = (Type**)storage->malloc(params_ty->product.count * sizeof(Type*));
+    params_ty->product.members[0] = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
+    params_ty->product.members[1] = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = checker->root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
-    name_decl = checker->root_scope->bind(checker->storage, ty->strname, NameSpace::TYPE);
+    ty->function.return_ = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
+    name_decl = root_scope->bind(storage, ty->strname, NameSpace::TYPE);
     name_decl->type = ty;
   }
   for (int i = 0; i < sizeof(logical_ops)/sizeof(logical_ops[0]); i++) {
-    ty = (Type*)checker->type_array->append(sizeof(Type));
+    ty = (Type*)type_array->append(sizeof(Type));
     ty->strname = logical_ops[i];
     ty->ty_former = TypeEnum::FUNCTION;
-    params_ty = (Type*)checker->type_array->append(sizeof(Type));
+    params_ty = (Type*)type_array->append(sizeof(Type));
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
-    params_ty->product.members = (Type**)checker->storage->malloc(params_ty->product.count * sizeof(Type*));
-    params_ty->product.members[0] = checker->root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
-    params_ty->product.members[1] = checker->root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
+    params_ty->product.members = (Type**)storage->malloc(params_ty->product.count * sizeof(Type*));
+    params_ty->product.members[0] = root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
+    params_ty->product.members[1] = root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = checker->root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
-    name_decl = checker->root_scope->bind(checker->storage, ty->strname, NameSpace::TYPE);
+    ty->function.return_ = root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
+    name_decl = root_scope->bind(storage, ty->strname, NameSpace::TYPE);
     name_decl->type = ty;
   }
   for (int i = 0; i < sizeof(relational_ops)/sizeof(relational_ops[0]); i++) {
-    ty = (Type*)checker->type_array->append(sizeof(Type));
+    ty = (Type*)type_array->append(sizeof(Type));
     ty->strname = relational_ops[i];
     ty->ty_former = TypeEnum::FUNCTION;
-    params_ty = (Type*)checker->type_array->append(sizeof(Type));
+    params_ty = (Type*)type_array->append(sizeof(Type));
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
-    params_ty->product.members = (Type**)checker->storage->malloc(params_ty->product.count * sizeof(Type*));
-    params_ty->product.members[0] = checker->root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
-    params_ty->product.members[1] = checker->root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
+    params_ty->product.members = (Type**)storage->malloc(params_ty->product.count * sizeof(Type*));
+    params_ty->product.members[0] = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
+    params_ty->product.members[1] = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = checker->root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
-    name_decl = checker->root_scope->bind(checker->storage, ty->strname, NameSpace::TYPE);
+    ty->function.return_ = root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
+    name_decl = root_scope->bind(storage, ty->strname, NameSpace::TYPE);
     name_decl->type = ty;
   }
   for (int i = 0; i < sizeof(bitwise_ops)/sizeof(bitwise_ops[0]); i++) {
-    ty = (Type*)checker->type_array->append(sizeof(Type));
+    ty = (Type*)type_array->append(sizeof(Type));
     ty->strname = bitwise_ops[i];
     ty->ty_former = TypeEnum::FUNCTION;
-    params_ty = (Type*)checker->type_array->append(sizeof(Type));
+    params_ty = (Type*)type_array->append(sizeof(Type));
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
-    params_ty->product.members = (Type**)checker->storage->malloc(params_ty->product.count * sizeof(Type*));
-    params_ty->product.members[0] = checker->root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
-    params_ty->product.members[1] = checker->root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
+    params_ty->product.members = (Type**)storage->malloc(params_ty->product.count * sizeof(Type*));
+    params_ty->product.members[0] = root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
+    params_ty->product.members[1] = root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = checker->root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
-    name_decl = checker->root_scope->bind(checker->storage, ty->strname, NameSpace::TYPE);
+    ty->function.return_ = root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
+    name_decl = root_scope->bind(storage, ty->strname, NameSpace::TYPE);
     name_decl->type = ty;
   }
 }
@@ -344,7 +344,7 @@ void DeclaredTypesPass::declared_types()
   type_env->storage = storage;
   type_equiv_pairs = Array::create(storage, sizeof(Type), 2);
 
-  define_builtin_types(this);
+  define_builtin_types();
   visit_p4program(p4program);
   for (int i = 0; i < type_array->elem_count; i++) {
     ty = (Type*)type_array->get(i, sizeof(Type));

@@ -1512,7 +1512,16 @@ struct TypeChecker {
   bool type_equiv(Type* u, Type* v);
 };
 
-struct DeclaredTypesPass : TypeChecker {
+struct DeclaredTypesPass {
+  Arena* storage;
+  char* source_file;
+  Ast* p4program;
+  Scope* root_scope;
+  Map* scope_map;
+  Map* decl_map;
+  Array* type_array;
+  Array* type_equiv_pairs;
+  Map* type_env;
 
 /** PROGRAM **/
 
@@ -1649,10 +1658,21 @@ struct DeclaredTypesPass : TypeChecker {
   void visit_default(Ast* default_);
   void visit_dontcare(Ast* dontcare);
 
+  void define_builtin_types();
   void declared_types();
 };
 
-struct PotentialTypesPass : TypeChecker {
+struct PotentialTypesPass {
+  Arena* storage;
+  char* source_file;
+  Ast* p4program;
+  Scope* root_scope;
+  Map* scope_map;
+  Map* decl_map;
+  Array* type_array;
+  Map* type_env;
+  TypeChecker* type_checker;
+  Map* potype_map;
 
 /** PROGRAM **/
 
@@ -1792,7 +1812,17 @@ struct PotentialTypesPass : TypeChecker {
   void potential_types();
 };
 
-struct SelectTypePass : TypeChecker {
+struct SelectTypePass {
+  Arena* storage;
+  char* source_file;
+  Ast* p4program;
+  Scope* root_scope;
+  Map* scope_map;
+  Map* decl_map;
+  Array* type_array;
+  Map* type_env;
+  TypeChecker* type_checker;
+  Map* potype_map;
 
 /** PROGRAM **/
 

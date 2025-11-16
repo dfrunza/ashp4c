@@ -142,6 +142,15 @@ int main(int arg_count, char* args[])
   name_binder.scope_map = scope_builder.scope_map;
   name_binder.name_bind();
 
+  declared_types.storage = &storage;
+  declared_types.source_file = source_text.filename;
+  declared_types.p4program = parser.p4program;
+  declared_types.root_scope = parser.root_scope;
+  declared_types.scope_map = scope_builder.scope_map;
+  declared_types.decl_map = name_binder.decl_map;
+  declared_types.type_array = name_binder.type_array;
+  declared_types.declared_types();
+
   type_checker.storage = &storage;
   type_checker.source_file = source_text.filename;
   type_checker.p4program = parser.p4program;
@@ -149,18 +158,31 @@ int main(int arg_count, char* args[])
   type_checker.type_array = name_binder.type_array;
   type_checker.scope_map = scope_builder.scope_map;
   type_checker.decl_map = name_binder.decl_map;
+  type_checker.type_equiv_pairs = declared_types.type_equiv_pairs;
+  type_checker.type_env = declared_types.type_env;
 
-  *(TypeChecker*)&declared_types = type_checker;
-  declared_types.declared_types();
-  type_checker = *(TypeChecker*)&declared_types;
-
-  *(TypeChecker*)&potential_types = type_checker;
+  potential_types.storage = &storage;
+  potential_types.source_file = source_text.filename;
+  potential_types.p4program = parser.p4program;
+  potential_types.root_scope = parser.root_scope;
+  potential_types.scope_map = scope_builder.scope_map;
+  potential_types.decl_map = name_binder.decl_map;
+  potential_types.type_array = name_binder.type_array;
+  potential_types.type_env = declared_types.type_env;
+  potential_types.type_checker = &type_checker;
   potential_types.potential_types();
-  type_checker = *(TypeChecker*)&potential_types;
 
-  *(TypeChecker*)&select_type = type_checker;
+  select_type.storage = &storage;
+  select_type.source_file = source_text.filename;
+  select_type.p4program = parser.p4program;
+  select_type.root_scope = parser.root_scope;
+  select_type.type_array = name_binder.type_array;
+  select_type.scope_map = scope_builder.scope_map;
+  select_type.decl_map = name_binder.decl_map;
+  select_type.type_env = declared_types.type_env;
+  select_type.potype_map = potential_types.potype_map;
+  select_type.type_checker = &type_checker;
   select_type.select_type();
-  type_checker = *(TypeChecker*)&select_type;
 
   storage.free();
   return 0;
