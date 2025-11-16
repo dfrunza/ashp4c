@@ -103,6 +103,7 @@ int main(int arg_count, char* args[])
   TypeChecker type_checker = {};
   DeclaredTypesPass declared_types = {};
   PotentialTypesPass potential_types = {};
+  SelectTypePass select_type = {};
 
   Arena::reserve_memory(500*KILOBYTE);
 
@@ -157,9 +158,11 @@ int main(int arg_count, char* args[])
   potential_types.potential_types();
   type_checker = *(TypeChecker*)&potential_types;
 
-  select_type(&type_checker);
-  storage.free();
+  *(TypeChecker*)&select_type = type_checker;
+  select_type.select_type();
+  type_checker = *(TypeChecker*)&select_type;
 
+  storage.free();
   return 0;
 }
 
