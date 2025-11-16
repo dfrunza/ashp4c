@@ -223,10 +223,10 @@ static bool structural_type_equiv(TypeChecker* checker, Type* left, Type* right)
   return 0;
 }
 
-bool type_equiv(TypeChecker* checker, Type* left, Type* right)
+bool TypeChecker::type_equiv(Type* left, Type* right)
 {
-  checker->type_equiv_pairs->elem_count = 0;
-  return structural_type_equiv(checker, left, right);
+  this->type_equiv_pairs->elem_count = 0;
+  return structural_type_equiv(this, left, right);
 }
 
 Type* Type::actual_type()

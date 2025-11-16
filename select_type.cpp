@@ -428,7 +428,7 @@ void SelectTypePass::visit_typeRef(Ast* type_ref, Type* required_ty)
   } else assert(0);
   ref_ty = (Type*)type_env->lookup(type_ref->typeRef.type, 0);
   if (required_ty) {
-    if (!type_equiv((TypeChecker*)this, ref_ty, required_ty)) {
+    if (!((TypeChecker*)this)->type_equiv(ref_ty, required_ty)) {
       error("%s:%d:%d: error: failed type check.",
           source_file, type_ref->line_no, type_ref->column_no);
     }

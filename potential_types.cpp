@@ -11,7 +11,7 @@ bool TypeChecker::match_type(PotentialType* potential_types, Type* required_ty)
   i = 0;
   for (m = potential_types->set.members.first; m != 0; m = m->next) {
     ty = ((Type*)m->key)->effective_type();
-    if (type_equiv(this, ty, required_ty->actual_type())) {
+    if (((TypeChecker*)this)->type_equiv(ty, required_ty->actual_type())) {
       i += 1;
     }
   }
