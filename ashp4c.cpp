@@ -151,15 +151,7 @@ int main(int arg_count, char* args[])
   declared_types.type_array = name_binder.type_array;
   declared_types.declared_types();
 
-  type_checker.storage = &storage;
-  type_checker.source_file = source_text.filename;
-  type_checker.p4program = parser.p4program;
-  type_checker.root_scope = parser.root_scope;
-  type_checker.type_array = name_binder.type_array;
-  type_checker.scope_map = scope_builder.scope_map;
-  type_checker.decl_map = name_binder.decl_map;
   type_checker.type_equiv_pairs = declared_types.type_equiv_pairs;
-  type_checker.type_env = declared_types.type_env;
 
   potential_types.storage = &storage;
   potential_types.source_file = source_text.filename;

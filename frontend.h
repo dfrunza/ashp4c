@@ -1493,16 +1493,7 @@ struct NameEntry {
 };
 
 struct TypeChecker {
-  Arena* storage;
-  Ast* p4program;
-  char* source_file;
-  Scope* root_scope;
-  Map* scope_map;
-  Map* decl_map;
-  Array* type_array;
   Array* type_equiv_pairs;
-  Map* type_env;
-  Map* potype_map;
 
   bool match_type(PotentialType* potential_types, Type* required_ty);
   bool match_params(PotentialType* potential_args, Type* params_ty);
