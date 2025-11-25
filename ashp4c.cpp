@@ -96,11 +96,11 @@ int main(int arg_count, char* args[])
   SourceText source_text = {};
   Lexer lexer = {};
   Parser parser = {};
+  TypeChecker type_checker = {};
   DryPass drypass = {};
   BuiltinMethodBuilder method_builder = {};
   ScopeBuilder scope_builder = {};
   NameBinder name_binder = {};
-  TypeChecker type_checker = {};
   DeclaredTypesPass declared_types = {};
   PotentialTypesPass potential_types = {};
   SelectTypePass select_type = {};
@@ -129,7 +129,7 @@ int main(int arg_count, char* args[])
   drypass.do_pass(parser.p4program);
 
   method_builder.storage = &storage;
-  builtin_methods(&method_builder, parser.p4program);
+  method_builder.builtin_methods(parser.p4program);
 
   scope_builder.storage = &storage;
   scope_builder.root_scope = parser.root_scope;
