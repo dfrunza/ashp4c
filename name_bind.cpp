@@ -53,7 +53,7 @@ void define_builtin_names(NameBinder* name_binder)
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     name_entry = name_binder->root_scope->lookup(builtin_types[i].strname, NameSpace::TYPE);
     name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
-    ty = (Type*)name_binder->type_array->append(sizeof(Type));
+    ty = (Type*)name_binder->type_array->append();
     ty->ty_former = builtin_types[i].ty_former;
     ty->strname = name_decl->strname;
     ty->ast = name_decl->ast;
@@ -61,11 +61,11 @@ void define_builtin_names(NameBinder* name_binder)
   }
 
   ty = name_binder->root_scope->builtin_lookup("error", NameSpace::TYPE)->type;
-  ty->enum_.fields = (Type*)name_binder->type_array->append(sizeof(Type));
+  ty->enum_.fields = (Type*)name_binder->type_array->append();
   ty->enum_.fields->ty_former = TypeEnum::PRODUCT;
 
   ty = name_binder->root_scope->builtin_lookup("match_kind", NameSpace::TYPE)->type;
-  ty->enum_.fields = (Type*)name_binder->type_array->append(sizeof(Type));
+  ty->enum_.fields = (Type*)name_binder->type_array->append();
   ty->enum_.fields->ty_former = TypeEnum::PRODUCT;
 }
 

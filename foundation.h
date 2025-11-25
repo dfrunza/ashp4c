@@ -72,14 +72,15 @@ struct SegmentTable {
 struct Array {
   Arena* storage; 
   int elem_count;
+  int elem_size;
   int capacity;
   SegmentTable data;
 
   static Array* create(Arena* storage, int elem_size, int segment_count);
   void init(Arena* storage, int elem_size, int segment_count);
-  void extend(int elem_size);
-  void* get(int i, int elem_size);
-  void* append(int elem_size);
+  void extend();
+  void* get(int i);
+  void* append();
 };
 
 struct StrmapEntry {

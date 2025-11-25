@@ -16,7 +16,7 @@ void* SegmentTable::locate_cell(int i, int elem_size)
   return elem_slot;
 }
 
-void Array::extend(int elem_size)
+void Array::extend()
 {
   assert(elem_size > 0);
   assert(elem_count >= capacity);
@@ -52,12 +52,13 @@ void Array::init(Arena* storage, int elem_size, int segment_count)
 
   storage = storage;
   elem_count = 0;
+  this->elem_size = elem_size;
   capacity = 16;
   data.segment_count = segment_count;
   data.segments[0] = storage->malloc(16 * elem_size);
 }
 
-void* Array::get(int i, int elem_size)
+void* Array::get(int i)
 {
   assert(elem_size > 0);
   assert(i >= 0 && i < elem_count);
@@ -67,13 +68,13 @@ void* Array::get(int i, int elem_size)
   return elem_slot;
 }
 
-void* Array::append(int elem_size)
+void* Array::append()
 {
   assert(elem_size > 0);
   void* elem_slot;
 
   if (elem_count >= capacity) {
-    extend(elem_size);
+    extend();
   }
   elem_slot = data.locate_cell(elem_count, elem_size);
   elem_count += 1;

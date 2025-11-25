@@ -365,8 +365,8 @@ enum class AstOperator : int {
 
 enum class ParamDirection : int {
   NONE = 0,
-  IN   = 1 << 1,
-  OUT  = 1 << 2,
+  IN = 1 << 1,
+  OUT = 1 << 2,
 };
 inline ParamDirection operator | (ParamDirection lhs, ParamDirection rhs) {
     return (ParamDirection)((int)lhs | (int)rhs);
@@ -383,7 +383,7 @@ struct Ast {
 
   union {
 
-    /** PROGRAM **/
+  /** PROGRAM **/
 
     struct {
       struct Ast* decl_list;
@@ -421,7 +421,7 @@ struct Ast {
       struct Ast* args;
     } instantiation;
 
-    /** PARSER **/
+  /** PARSER **/
 
     struct {
       struct Ast* proto;
@@ -499,7 +499,7 @@ struct Ast {
     struct {
     } simpleExpressionList;
 
-    /** CONTROL **/
+  /** CONTROL **/
 
     struct {
       struct Ast* proto;
@@ -521,7 +521,7 @@ struct Ast {
       struct Ast* decl;
     } controlLocalDeclaration;
 
-    /** EXTERN **/
+  /** EXTERN **/
 
     struct {
       struct Ast* decl;
@@ -541,7 +541,7 @@ struct Ast {
       struct Ast* params;
     } functionPrototype;
 
-    /** TYPES **/
+  /** TYPES **/
 
     struct {
       struct Ast* type;
@@ -663,7 +663,7 @@ struct Ast {
       struct Ast* name;
     } typedefDeclaration;
 
-    /** STATEMENTS **/
+  /** STATEMENTS **/
 
     struct {
       struct Ast* lhs_expr;
@@ -725,7 +725,7 @@ struct Ast {
       struct Ast* stmt;
     } statementOrDeclaration;
 
-    /** TABLES **/
+  /** TABLES **/
 
     struct {
       struct Ast* name;
@@ -790,7 +790,7 @@ struct Ast {
       struct Ast* stmt;
     } actionDeclaration;
 
-    /** VARIABLES **/
+  /** VARIABLES **/
 
     struct {
       struct Ast* type;
@@ -799,7 +799,7 @@ struct Ast {
       bool is_const;
     } variableDeclaration;
 
-    /** EXPRESSIONS **/
+  /** EXPRESSIONS **/
 
     struct {
       struct Ast* proto;
@@ -882,8 +882,8 @@ struct NameEntry;
 struct NameDeclaration;
 
 enum class NameSpace : int {
-  VAR     = 1 << 0,
-  TYPE    = 1 << 1,
+  VAR = 1 << 0,
+  TYPE = 1 << 1,
   KEYWORD = 1 << 2,
 };
 #define NameSpace_COUNT 3

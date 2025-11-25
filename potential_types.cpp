@@ -144,16 +144,16 @@ void PotentialTypesPass::visit_name(Ast* name, PotentialType* potential_args)
   name_decl = name_entry->ns[(int)NameSpace::VAR >> 1];
   if (name_decl) {
     ty = (Type*)type_env->lookup(name_decl->ast, 0);
-    *(Type**)name_ty->append(sizeof(Type*)) = ty->actual_type();
+    *(Type**)name_ty->append() = ty->actual_type();
     assert(!name_decl->next_in_scope);
   }
   name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
   for(; name_decl != 0; name_decl = name_decl->next_in_scope) {
     ty = (Type*)type_env->lookup(name_decl->ast, 0);
-    *(Type**)name_ty->append(sizeof(Type*)) = ty->actual_type();
+    *(Type**)name_ty->append() = ty->actual_type();
   }
   for (int i = 0; i < name_ty->elem_count; i++) {
-    ty = *(Type**)name_ty->get(i, sizeof(Type*));
+    ty = *(Type**)name_ty->get(i);
     if (potential_args) {
       if (ty->ty_former == TypeEnum::FUNCTION) {
         if (type_checker->match_params(potential_args, ty->function.params)) {
