@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "basic.h"
 #include "cstring.h"
-#include "foundation.h"
 #include "frontend.h"
 
 bool TypeChecker::match_type(PotentialType* potential_types, Type* required_ty)

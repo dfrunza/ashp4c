@@ -1,3 +1,5 @@
+#pragma once
+
 namespace cstring {
   bool is_letter(char c);
   bool is_digit(char c, int base);

@@ -4,7 +4,7 @@
 #include <math.h>
 #include "basic.h"
 #include "cstring.h"
-#include "foundation.h"
+#include "strmap.h"
 
 static const uint32_t P = 257, Q = 4294967029;
 static const uint32_t SIGMA = 2654435769;

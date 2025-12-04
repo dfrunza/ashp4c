@@ -1,5 +1,4 @@
 #include "basic.h"
-#include "foundation.h"
 #include "frontend.h"
 
 static NameEntry NULL_ENTRY = {};

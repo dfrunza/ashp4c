@@ -1,5 +1,6 @@
 #pragma once
-#include "foundation.h"
+#include "strmap.h"
+#include "map.h"
 #include "ast_tree.h"
 
 struct SourceText {

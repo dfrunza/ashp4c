@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "basic.h"
-#include "foundation.h"
+#include "array.h"
 
 void* SegmentTable::locate_cell(int i, int elem_size)
 {

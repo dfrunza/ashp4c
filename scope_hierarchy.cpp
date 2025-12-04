@@ -1,5 +1,4 @@
 #include "basic.h"
-#include "foundation.h"
 #include "frontend.h"
 
 void ScopeHierarchyPass::do_pass()

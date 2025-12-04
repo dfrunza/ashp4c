@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "basic.h"
-#include "foundation.h"
 #include "frontend.h"
 
 struct BuiltinName {

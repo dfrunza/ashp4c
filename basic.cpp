@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include "foundation.h"
 
 void assert_(char* message, char* file, int line)
 {

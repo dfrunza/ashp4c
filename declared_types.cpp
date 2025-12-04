@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "basic.h"
 #include "cstring.h"
-#include "foundation.h"
 #include "frontend.h"
 
 void DeclaredTypesPass::define_builtin_types()
