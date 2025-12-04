@@ -58,7 +58,7 @@ void Arena::reserve_memory(int amount)
   storage.memory_limit = first_block->memory_end;
 }
 
-static PageBlock* find_block_first_fit(int requested_memory_amount)
+PageBlock* PageBlock::find_block_first_fit(int requested_memory_amount)
 {
   PageBlock* result = 0;
   PageBlock* b;
@@ -74,25 +74,25 @@ static PageBlock* find_block_first_fit(int requested_memory_amount)
   return result;
 }
 
-static void recycle_block_struct(PageBlock* block)
+void PageBlock::recycle_block_struct()
 {
-  memset(block, 0, sizeof(PageBlock));
-  block->next_block = recycled_block_structs;
-  recycled_block_structs = block;
+  memset(this, 0, sizeof(PageBlock));
+  next_block = recycled_block_structs;
+  recycled_block_structs = this;
 }
 
-static PageBlock* block_insert_and_coalesce(PageBlock* block_list, PageBlock* new_block)
+PageBlock* PageBlock::block_insert_and_coalesce(PageBlock* new_block)
 {
   PageBlock* merged_list;
   PageBlock* left_neighbour = 0, *right_neighbour = 0;
   PageBlock* p;
   enum BlockStitch stitch_op;
 
-  if (!block_list) {
+  if (!this) {
     return new_block;
   }
-  merged_list = block_list;
-  p = block_list;
+  merged_list = this;
+  p = this;
   while (p) {
     /* Find the left neighbour of 'new_block' in the ordered list of blocks. */
     if (p->memory_begin <= new_block->memory_begin) {
@@ -111,8 +111,8 @@ static PageBlock* block_insert_and_coalesce(PageBlock* block_list, PageBlock* ne
       right_neighbour->prev_block = new_block;
     }
   } else {
-    new_block->next_block = block_list;
-    block_list->prev_block = new_block;
+    new_block->next_block = this;
+    prev_block = new_block;
     right_neighbour = new_block->next_block;
     merged_list = new_block;
   }
@@ -131,7 +131,7 @@ static PageBlock* block_insert_and_coalesce(PageBlock* block_list, PageBlock* ne
     if (right_neighbour->next_block) {
       right_neighbour->next_block->prev_block = left_neighbour;
     }
-    recycle_block_struct(right_neighbour);
+    right_neighbour->recycle_block_struct();
   } else if (stitch_op == BlockStitch::LEFT) {
     left_neighbour->memory_end = new_block->memory_end;
     left_neighbour->next_block = right_neighbour;
@@ -148,12 +148,12 @@ static PageBlock* block_insert_and_coalesce(PageBlock* block_list, PageBlock* ne
     }
   }
   if (stitch_op != BlockStitch::NONE) {
-    recycle_block_struct(new_block);
+    new_block->recycle_block_struct();
   }
   return merged_list;
 }
 
-static PageBlock* get_new_block_struct()
+PageBlock* PageBlock::get_new_block_struct()
 {
   PageBlock* block;
 
@@ -173,7 +173,7 @@ void Arena::grow(uint32_t size)
   uint8_t* alloc_memory_begin = 0, *alloc_memory_end = 0;
   int size_in_page_multiples;
 
-  free_block = find_block_first_fit(size);
+  free_block = PageBlock::find_block_first_fit(size);
   if (!free_block) {
     printf("\nOut of memory.\n");
     exit(1);
@@ -196,10 +196,10 @@ void Arena::grow(uint32_t size)
   memory_avail = alloc_memory_begin;
   memory_limit = alloc_memory_end;
 
-  alloc_block = get_new_block_struct();
+  alloc_block = PageBlock::get_new_block_struct();
   alloc_block->memory_begin = alloc_memory_begin;
   alloc_block->memory_end = alloc_memory_end;
-  owned_pages = block_insert_and_coalesce(owned_pages, alloc_block);
+  owned_pages = owned_pages->block_insert_and_coalesce(alloc_block);
 }
 
 void* Arena::malloc(uint32_t size)
@@ -233,7 +233,7 @@ void Arena::free()
       exit(1);
     }
     next_block = p->next_block;
-    block_freelist_head = block_insert_and_coalesce(block_freelist_head, p);
+    block_freelist_head = block_freelist_head->block_insert_and_coalesce(p);
     p = next_block;
   }
   memset(this, 0, sizeof(Arena));
