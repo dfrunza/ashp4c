@@ -129,18 +129,18 @@ int main(int arg_count, char* args[])
   drypass.do_pass(parser.p4program);
 
   method_builder.storage = &storage;
-  method_builder.builtin_methods(parser.p4program);
+  method_builder.do_pass(parser.p4program);
 
   scope_builder.storage = &storage;
   scope_builder.root_scope = parser.root_scope;
   scope_builder.p4program = parser.p4program;
-  scope_builder.scope_hierarchy();
+  scope_builder.do_pass();
 
   name_binder.storage = &storage;
   name_binder.p4program = parser.p4program;
   name_binder.root_scope = scope_builder.root_scope;
   name_binder.scope_map = scope_builder.scope_map;
-  name_binder.name_bind();
+  name_binder.do_pass();
 
   declared_types.storage = &storage;
   declared_types.source_file = source_text.filename;
@@ -149,7 +149,7 @@ int main(int arg_count, char* args[])
   declared_types.scope_map = scope_builder.scope_map;
   declared_types.decl_map = name_binder.decl_map;
   declared_types.type_array = name_binder.type_array;
-  declared_types.declared_types();
+  declared_types.do_pass();
 
   type_checker.type_equiv_pairs = declared_types.type_equiv_pairs;
 
@@ -162,7 +162,7 @@ int main(int arg_count, char* args[])
   potential_types.type_array = name_binder.type_array;
   potential_types.type_env = declared_types.type_env;
   potential_types.type_checker = &type_checker;
-  potential_types.potential_types();
+  potential_types.do_pass();
 
   select_type.storage = &storage;
   select_type.source_file = source_text.filename;
@@ -174,7 +174,7 @@ int main(int arg_count, char* args[])
   select_type.type_env = declared_types.type_env;
   select_type.potype_map = potential_types.potype_map;
   select_type.type_checker = &type_checker;
-  select_type.select_type();
+  select_type.do_pass();
 
   storage.free();
   return 0;

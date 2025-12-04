@@ -333,7 +333,7 @@ void Debug_print_type_array(Array* type_array)
   }
 }
 
-void DeclaredTypesPass::declared_types()
+void DeclaredTypesPass::do_pass()
 {
   Ast* name;
   Type* ref_ty, *ty;

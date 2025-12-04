@@ -1,7 +1,7 @@
 #include "foundation.h"
 #include "frontend.h"
 
-void ScopeBuilder::scope_hierarchy()
+void ScopeBuilder::do_pass()
 {
   current_scope = root_scope;
   scope_map = (Map*)storage->malloc(sizeof(Map));

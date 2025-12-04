@@ -67,7 +67,7 @@ static void Debug_print_potential_types(PotentialType* tau)
   }
 }
 
-void PotentialTypesPass::potential_types()
+void PotentialTypesPass::do_pass()
 {
   potype_map = (Map*)storage->malloc(sizeof(Map));
   potype_map->storage = storage;

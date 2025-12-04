@@ -12,7 +12,7 @@ struct BuiltinType {
   enum TypeEnum ty_former;
 };
 
-void define_builtin_names(NameBinder* name_binder)
+void NameBinder::define_builtin_names()
 {
   struct BuiltinName builtin_names[] = {
     {"void",   NameSpace::TYPE},
@@ -44,28 +44,28 @@ void define_builtin_names(NameBinder* name_binder)
   Type* ty;
 
   for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
-    name = (Ast*)name_binder->storage->malloc(sizeof(Ast));
+    name = (Ast*)storage->malloc(sizeof(Ast));
     name->kind = AstEnum::name;
     name->name.strname = builtin_names[i].strname;
-    name_decl = name_binder->root_scope->bind(name_binder->storage, name->name.strname, builtin_names[i].ns);
+    name_decl = root_scope->bind(storage, name->name.strname, builtin_names[i].ns);
     name_decl->ast = name;
   }
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
-    name_entry = name_binder->root_scope->lookup(builtin_types[i].strname, NameSpace::TYPE);
+    name_entry = root_scope->lookup(builtin_types[i].strname, NameSpace::TYPE);
     name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
-    ty = (Type*)name_binder->type_array->append();
+    ty = (Type*)type_array->append();
     ty->ty_former = builtin_types[i].ty_former;
     ty->strname = name_decl->strname;
     ty->ast = name_decl->ast;
     name_decl->type = ty;
   }
 
-  ty = name_binder->root_scope->builtin_lookup("error", NameSpace::TYPE)->type;
-  ty->enum_.fields = (Type*)name_binder->type_array->append();
+  ty = root_scope->builtin_lookup("error", NameSpace::TYPE)->type;
+  ty->enum_.fields = (Type*)type_array->append();
   ty->enum_.fields->ty_former = TypeEnum::PRODUCT;
 
-  ty = name_binder->root_scope->builtin_lookup("match_kind", NameSpace::TYPE)->type;
-  ty->enum_.fields = (Type*)name_binder->type_array->append();
+  ty = root_scope->builtin_lookup("match_kind", NameSpace::TYPE)->type;
+  ty->enum_.fields = (Type*)type_array->append();
   ty->enum_.fields->ty_former = TypeEnum::PRODUCT;
 }
 
@@ -114,13 +114,13 @@ char* NameSpace_to_string(enum NameSpace ns)
   return 0;
 }
 
-void NameBinder::name_bind()
+void NameBinder::do_pass()
 {
   current_scope = root_scope;
   decl_map = (Map*)storage->malloc(sizeof(Map));
   decl_map->storage = storage;
   type_array = (Array*)Array::create(storage, sizeof(Type), 5);
-  define_builtin_names(this);
+  define_builtin_names();
   visit_p4program(p4program);
   assert(current_scope == root_scope);
 }

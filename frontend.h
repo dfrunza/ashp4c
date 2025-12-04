@@ -1188,7 +1188,7 @@ struct BuiltinMethodBuilder {
   void visit_default(Ast* default_);
   void visit_dontcare(Ast* dontcare);
 
-  void builtin_methods(Ast* ast);
+  void do_pass(Ast* ast);
 };
 
 struct ScopeBuilder {
@@ -1333,7 +1333,7 @@ struct ScopeBuilder {
   void visit_default(Ast* default_);
   void visit_dontcare(Ast* dontcare);
 
-  void scope_hierarchy();
+  void do_pass();
 };
 
 struct NameBinder {
@@ -1480,7 +1480,8 @@ struct NameBinder {
   void visit_default(Ast* default_);
   void visit_dontcare(Ast* dontcare);
 
-  void name_bind();
+  void define_builtin_names();
+  void do_pass();
 };
 
 enum class TypeEnum : int {
@@ -1787,7 +1788,7 @@ struct DeclaredTypesPass {
   void visit_dontcare(Ast* dontcare);
 
   void define_builtin_types();
-  void declared_types();
+  void do_pass();
 };
 
 struct PotentialTypesPass {
@@ -1937,7 +1938,7 @@ struct PotentialTypesPass {
   void visit_default(Ast* default_);
   void visit_dontcare(Ast* dontcare);
 
-  void potential_types();
+  void do_pass();
 };
 
 struct SelectTypePass {
@@ -2087,5 +2088,5 @@ struct SelectTypePass {
   void visit_default(Ast* default_);
   void visit_dontcare(Ast* dontcare);
 
-  void select_type();
+  void do_pass();
 };

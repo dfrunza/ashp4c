@@ -1,7 +1,7 @@
 #include "foundation.h"
 #include "frontend.h"
 
-void SelectTypePass::select_type()
+void SelectTypePass::do_pass()
 {
   visit_p4program(p4program);
 }

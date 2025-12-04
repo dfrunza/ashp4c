@@ -1,7 +1,7 @@
 #include "foundation.h"
 #include "frontend.h"
 
-void BuiltinMethodBuilder::builtin_methods(Ast* ast)
+void BuiltinMethodBuilder::do_pass(Ast* ast)
 {
   visit_p4program(ast);
 }
