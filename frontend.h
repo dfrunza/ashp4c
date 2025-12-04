@@ -7,6 +7,8 @@ struct SourceText {
   char* text;
   int text_size;
   char* filename;
+
+  void read_source(char* filename);
 };
 
 enum class TokenClass {
@@ -1050,7 +1052,7 @@ struct Parser {
   void define_keywords(Scope* scope);
 };
 
-struct BuiltinMethodBuilder {
+struct BuiltinMethodsPass {
   Arena* storage;
 
 /** PROGRAM **/
@@ -1191,7 +1193,7 @@ struct BuiltinMethodBuilder {
   void do_pass(Ast* ast);
 };
 
-struct ScopeBuilder {
+struct ScopeHierarchyPass {
   Arena* storage;
   Ast* p4program;
   Scope* root_scope;
@@ -1336,7 +1338,7 @@ struct ScopeBuilder {
   void do_pass();
 };
 
-struct NameBinder {
+struct NameBindingPass {
   Arena* storage;
   Ast* p4program;
   Scope* root_scope;

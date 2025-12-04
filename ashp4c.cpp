@@ -1,14 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ashp4c.h"
+#include "command_line.cpp"
 
-struct CmdlineArg {
-  char* name;
-  char* value;
-  struct CmdlineArg* next_arg;
-};
-
-static void read_source(SourceText* source_text, char* filename)
+void SourceText::read_source(char* filename)
 {
   FILE* f_stream;
   char* text;
@@ -20,94 +15,34 @@ static void read_source(SourceText* source_text, char* filename)
   fseek(f_stream, 0, SEEK_END);
   int text_size = ftell(f_stream);
   fseek(f_stream, 0, SEEK_SET);
-  text = (char*)source_text->storage->malloc((text_size + 1)*sizeof(char));
+  text = (char*)storage->malloc((text_size + 1)*sizeof(char));
   fread(text, sizeof(char), text_size, f_stream);
   text[text_size] = '\0';
   fclose(f_stream);
-  source_text->text = text;
-  source_text->text_size = text_size;
-  source_text->filename = filename;
-}
-
-static CmdlineArg* find_unnamed_arg(CmdlineArg* args)
-{
-  CmdlineArg* unnamed_arg = 0;
-  CmdlineArg* arg;
-  
-  arg = args;
-  while (arg) {
-    if (!arg->name) {
-      unnamed_arg = arg;
-      break;
-    }
-    arg = arg->next_arg;
-  }
-  return unnamed_arg;
-}
-
-#if 0
-static CmdlineArg* find_named_arg(char* name, CmdlineArg* args)
-{
-  CmdlineArg* named_arg = 0;
-  CmdlineArg* arg = args;
-  while (arg) {
-    if (arg->name && cstr_match(name, arg->name)) {
-      named_arg = arg;
-      break;
-    }
-    arg = arg->next_arg;
-  }
-  return named_arg;
-}
-#endif
-
-static CmdlineArg* parse_cmdline_args(Arena* storage, int arg_count, char* args[])
-{
-  CmdlineArg* arg_list = 0;
-  CmdlineArg *prev_arg, *cmdline_arg;
-  CmdlineArg sentinel_arg = {};
-  char* raw_arg;
-
-  if (arg_count <= 1) {
-    return arg_list;
-  }
-  prev_arg = &sentinel_arg;
-  int i = 1;
-  while (i < arg_count) {
-    cmdline_arg = (CmdlineArg*)storage->malloc(sizeof(CmdlineArg));
-    if (cstr_start_with(args[i], "-")) {
-      raw_arg = args[i] + 1;  /* skip the `-` prefix */
-      cmdline_arg->name = raw_arg;
-    } else {
-      cmdline_arg->value = args[i];
-    }
-    prev_arg->next_arg = cmdline_arg;
-    prev_arg = cmdline_arg;
-    i += 1;
-  }
-  arg_list = sentinel_arg.next_arg;
-  return arg_list;
+  text = text;
+  text_size = text_size;
+  filename = filename;
 }
 
 int main(int arg_count, char* args[])
 {
-  CmdlineArg* cmdline_arg, *filename;
+  CommandLineArg* cmdline_arg, *filename;
   Arena storage = {}, scratch_storage = {};
   SourceText source_text = {};
   Lexer lexer = {};
   Parser parser = {};
   TypeChecker type_checker = {};
   DryPass drypass = {};
-  BuiltinMethodBuilder method_builder = {};
-  ScopeBuilder scope_builder = {};
-  NameBinder name_binder = {};
+  BuiltinMethodsPass builtin_methods = {};
+  ScopeHierarchyPass scope_hierarchy = {};
+  NameBindingPass name_binding = {};
   DeclaredTypesPass declared_types = {};
   PotentialTypesPass potential_types = {};
   SelectTypePass select_type = {};
 
   Arena::reserve_memory(500*KILOBYTE);
 
-  cmdline_arg = parse_cmdline_args(&storage, arg_count, args);
+  cmdline_arg = CommandLineArg::parse_cmdline_args(&storage, arg_count, args);
   filename = find_unnamed_arg(cmdline_arg);
   if (!filename) {
     printf("<filename> is required.\n");
@@ -115,7 +50,7 @@ int main(int arg_count, char* args[])
   }
 
   source_text.storage = &scratch_storage;
-  read_source(&source_text, filename->value);
+  source_text.read_source(filename->value);
 
   lexer.storage = &storage;
   lexer.tokenize(&source_text);
@@ -128,27 +63,27 @@ int main(int arg_count, char* args[])
 
   drypass.do_pass(parser.p4program);
 
-  method_builder.storage = &storage;
-  method_builder.do_pass(parser.p4program);
+  builtin_methods.storage = &storage;
+  builtin_methods.do_pass(parser.p4program);
 
-  scope_builder.storage = &storage;
-  scope_builder.root_scope = parser.root_scope;
-  scope_builder.p4program = parser.p4program;
-  scope_builder.do_pass();
+  scope_hierarchy.storage = &storage;
+  scope_hierarchy.root_scope = parser.root_scope;
+  scope_hierarchy.p4program = parser.p4program;
+  scope_hierarchy.do_pass();
 
-  name_binder.storage = &storage;
-  name_binder.p4program = parser.p4program;
-  name_binder.root_scope = scope_builder.root_scope;
-  name_binder.scope_map = scope_builder.scope_map;
-  name_binder.do_pass();
+  name_binding.storage = &storage;
+  name_binding.p4program = parser.p4program;
+  name_binding.root_scope = scope_hierarchy.root_scope;
+  name_binding.scope_map = scope_hierarchy.scope_map;
+  name_binding.do_pass();
 
   declared_types.storage = &storage;
   declared_types.source_file = source_text.filename;
   declared_types.p4program = parser.p4program;
   declared_types.root_scope = parser.root_scope;
-  declared_types.scope_map = scope_builder.scope_map;
-  declared_types.decl_map = name_binder.decl_map;
-  declared_types.type_array = name_binder.type_array;
+  declared_types.scope_map = scope_hierarchy.scope_map;
+  declared_types.decl_map = name_binding.decl_map;
+  declared_types.type_array = name_binding.type_array;
   declared_types.do_pass();
 
   type_checker.type_equiv_pairs = declared_types.type_equiv_pairs;
@@ -157,9 +92,9 @@ int main(int arg_count, char* args[])
   potential_types.source_file = source_text.filename;
   potential_types.p4program = parser.p4program;
   potential_types.root_scope = parser.root_scope;
-  potential_types.scope_map = scope_builder.scope_map;
-  potential_types.decl_map = name_binder.decl_map;
-  potential_types.type_array = name_binder.type_array;
+  potential_types.scope_map = scope_hierarchy.scope_map;
+  potential_types.decl_map = name_binding.decl_map;
+  potential_types.type_array = name_binding.type_array;
   potential_types.type_env = declared_types.type_env;
   potential_types.type_checker = &type_checker;
   potential_types.do_pass();
@@ -168,9 +103,9 @@ int main(int arg_count, char* args[])
   select_type.source_file = source_text.filename;
   select_type.p4program = parser.p4program;
   select_type.root_scope = parser.root_scope;
-  select_type.type_array = name_binder.type_array;
-  select_type.scope_map = scope_builder.scope_map;
-  select_type.decl_map = name_binder.decl_map;
+  select_type.type_array = name_binding.type_array;
+  select_type.scope_map = scope_hierarchy.scope_map;
+  select_type.decl_map = name_binding.decl_map;
   select_type.type_env = declared_types.type_env;
   select_type.potype_map = potential_types.potype_map;
   select_type.type_checker = &type_checker;

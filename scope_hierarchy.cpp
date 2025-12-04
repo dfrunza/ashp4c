@@ -1,7 +1,7 @@
 #include "foundation.h"
 #include "frontend.h"
 
-void ScopeBuilder::do_pass()
+void ScopeHierarchyPass::do_pass()
 {
   current_scope = root_scope;
   scope_map = (Map*)storage->malloc(sizeof(Map));
@@ -12,7 +12,7 @@ void ScopeBuilder::do_pass()
 
 /** PROGRAM **/
 
-void ScopeBuilder::visit_p4program(Ast* p4program)
+void ScopeHierarchyPass::visit_p4program(Ast* p4program)
 {
   assert(p4program->kind == AstEnum::p4program);
   Scope* scope, *prev_scope;
@@ -27,7 +27,7 @@ void ScopeBuilder::visit_p4program(Ast* p4program)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_declarationList(Ast* decl_list)
+void ScopeHierarchyPass::visit_declarationList(Ast* decl_list)
 {
   assert(decl_list->kind == AstEnum::declarationList);
   AstTree* ast;
@@ -38,7 +38,7 @@ void ScopeBuilder::visit_declarationList(Ast* decl_list)
   }
 }
 
-void ScopeBuilder::visit_declaration(Ast* decl)
+void ScopeHierarchyPass::visit_declaration(Ast* decl)
 {
   assert(decl->kind == AstEnum::declaration);
   Scope* scope;
@@ -74,12 +74,12 @@ void ScopeBuilder::visit_declaration(Ast* decl)
   assert(m);
 }
 
-void ScopeBuilder::visit_name(Ast* name)
+void ScopeHierarchyPass::visit_name(Ast* name)
 {
   assert(name->kind == AstEnum::name);
 }
 
-void ScopeBuilder::visit_parameterList(Ast* params)
+void ScopeHierarchyPass::visit_parameterList(Ast* params)
 {
   assert(params->kind == AstEnum::parameterList);
   AstTree* ast;
@@ -90,7 +90,7 @@ void ScopeBuilder::visit_parameterList(Ast* params)
   }
 }
 
-void ScopeBuilder::visit_parameter(Ast* param)
+void ScopeHierarchyPass::visit_parameter(Ast* param)
 {
   assert(param->kind == AstEnum::parameter);
   visit_typeRef(param->parameter.type);
@@ -99,7 +99,7 @@ void ScopeBuilder::visit_parameter(Ast* param)
   }
 }
 
-void ScopeBuilder::visit_packageTypeDeclaration(Ast* type_decl)
+void ScopeHierarchyPass::visit_packageTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::packageTypeDeclaration);
   Scope* scope, *prev_scope;
@@ -114,7 +114,7 @@ void ScopeBuilder::visit_packageTypeDeclaration(Ast* type_decl)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_instantiation(Ast* inst)
+void ScopeHierarchyPass::visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AstEnum::instantiation);
   visit_typeRef(inst->instantiation.type);
@@ -123,7 +123,7 @@ void ScopeBuilder::visit_instantiation(Ast* inst)
 
 /** PARSER **/
 
-void ScopeBuilder::visit_parserDeclaration(Ast* parser_decl)
+void ScopeHierarchyPass::visit_parserDeclaration(Ast* parser_decl)
 {
   assert(parser_decl->kind == AstEnum::parserDeclaration);
   Scope* prev_scope;
@@ -142,7 +142,7 @@ void ScopeBuilder::visit_parserDeclaration(Ast* parser_decl)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_parserTypeDeclaration(Ast* type_decl)
+void ScopeHierarchyPass::visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::parserTypeDeclaration);
   Scope* scope, *prev_scope;
@@ -158,7 +158,7 @@ void ScopeBuilder::visit_parserTypeDeclaration(Ast* type_decl)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_parserLocalElements(Ast* local_elements)
+void ScopeHierarchyPass::visit_parserLocalElements(Ast* local_elements)
 {
   assert(local_elements->kind == AstEnum::parserLocalElements);
   AstTree* ast;
@@ -169,7 +169,7 @@ void ScopeBuilder::visit_parserLocalElements(Ast* local_elements)
   }
 }
 
-void ScopeBuilder::visit_parserLocalElement(Ast* local_element)
+void ScopeHierarchyPass::visit_parserLocalElement(Ast* local_element)
 {
   assert(local_element->kind == AstEnum::parserLocalElement);
   if (local_element->parserLocalElement.element->kind == AstEnum::variableDeclaration) {
@@ -179,7 +179,7 @@ void ScopeBuilder::visit_parserLocalElement(Ast* local_element)
   } else assert(0);
 }
 
-void ScopeBuilder::visit_parserStates(Ast* states)
+void ScopeHierarchyPass::visit_parserStates(Ast* states)
 {
   assert(states->kind == AstEnum::parserStates);
   AstTree* ast;
@@ -190,7 +190,7 @@ void ScopeBuilder::visit_parserStates(Ast* states)
   }
 }
 
-void ScopeBuilder::visit_parserState(Ast* state)
+void ScopeHierarchyPass::visit_parserState(Ast* state)
 {
   assert(state->kind == AstEnum::parserState);
   Scope* scope, *prev_scope;
@@ -206,7 +206,7 @@ void ScopeBuilder::visit_parserState(Ast* state)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_parserStatements(Ast* stmts)
+void ScopeHierarchyPass::visit_parserStatements(Ast* stmts)
 {
   assert(stmts->kind == AstEnum::parserStatements);
   AstTree* ast;
@@ -217,7 +217,7 @@ void ScopeBuilder::visit_parserStatements(Ast* stmts)
   }
 }
 
-void ScopeBuilder::visit_parserStatement(Ast* stmt)
+void ScopeHierarchyPass::visit_parserStatement(Ast* stmt)
 {
   assert(stmt->kind == AstEnum::parserStatement);
 
@@ -236,7 +236,7 @@ void ScopeBuilder::visit_parserStatement(Ast* stmt)
   } else assert(0);
 }
 
-void ScopeBuilder::visit_parserBlockStatement(Ast* block_stmt)
+void ScopeHierarchyPass::visit_parserBlockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AstEnum::parserBlockStatement);
   Scope* scope, *prev_scope;
@@ -251,13 +251,13 @@ void ScopeBuilder::visit_parserBlockStatement(Ast* block_stmt)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_transitionStatement(Ast* transition_stmt)
+void ScopeHierarchyPass::visit_transitionStatement(Ast* transition_stmt)
 {
   assert(transition_stmt->kind == AstEnum::transitionStatement);
   visit_stateExpression(transition_stmt->transitionStatement.stmt);
 }
 
-void ScopeBuilder::visit_stateExpression(Ast* state_expr)
+void ScopeHierarchyPass::visit_stateExpression(Ast* state_expr)
 {
   assert(state_expr->kind == AstEnum::stateExpression);
   if (state_expr->stateExpression.expr->kind == AstEnum::name) {
@@ -267,14 +267,14 @@ void ScopeBuilder::visit_stateExpression(Ast* state_expr)
   } else assert(0);
 }
 
-void ScopeBuilder::visit_selectExpression(Ast* select_expr)
+void ScopeHierarchyPass::visit_selectExpression(Ast* select_expr)
 {
   assert(select_expr->kind == AstEnum::selectExpression);
   visit_expressionList(select_expr->selectExpression.expr_list);
   visit_selectCaseList(select_expr->selectExpression.case_list);
 }
 
-void ScopeBuilder::visit_selectCaseList(Ast* case_list)
+void ScopeHierarchyPass::visit_selectCaseList(Ast* case_list)
 {
   assert(case_list->kind == AstEnum::selectCaseList);
   AstTree* ast;
@@ -285,13 +285,13 @@ void ScopeBuilder::visit_selectCaseList(Ast* case_list)
   }
 }
 
-void ScopeBuilder::visit_selectCase(Ast* select_case)
+void ScopeHierarchyPass::visit_selectCase(Ast* select_case)
 {
   assert(select_case->kind == AstEnum::selectCase);
   visit_keysetExpression(select_case->selectCase.keyset_expr);
 }
 
-void ScopeBuilder::visit_keysetExpression(Ast* keyset_expr)
+void ScopeHierarchyPass::visit_keysetExpression(Ast* keyset_expr)
 {
   assert(keyset_expr->kind == AstEnum::keysetExpression);
   if (keyset_expr->keysetExpression.expr->kind == AstEnum::tupleKeysetExpression) {
@@ -301,13 +301,13 @@ void ScopeBuilder::visit_keysetExpression(Ast* keyset_expr)
   } else assert(0);
 }
 
-void ScopeBuilder::visit_tupleKeysetExpression(Ast* tuple_expr)
+void ScopeHierarchyPass::visit_tupleKeysetExpression(Ast* tuple_expr)
 {
   assert(tuple_expr->kind == AstEnum::tupleKeysetExpression);
   visit_simpleExpressionList(tuple_expr->tupleKeysetExpression.expr_list);
 }
 
-void ScopeBuilder::visit_simpleKeysetExpression(Ast* simple_expr)
+void ScopeHierarchyPass::visit_simpleKeysetExpression(Ast* simple_expr)
 {
   assert(simple_expr->kind == AstEnum::simpleKeysetExpression);
   if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::expression) {
@@ -319,7 +319,7 @@ void ScopeBuilder::visit_simpleKeysetExpression(Ast* simple_expr)
   } else assert(0);
 }
 
-void ScopeBuilder::visit_simpleExpressionList(Ast* expr_list)
+void ScopeHierarchyPass::visit_simpleExpressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::simpleExpressionList);
   AstTree* ast;
@@ -332,7 +332,7 @@ void ScopeBuilder::visit_simpleExpressionList(Ast* expr_list)
 
 /** CONTROL **/
 
-void ScopeBuilder::visit_controlDeclaration(Ast* control_decl)
+void ScopeHierarchyPass::visit_controlDeclaration(Ast* control_decl)
 {
   assert(control_decl->kind == AstEnum::controlDeclaration);
   Scope* prev_scope;
@@ -351,7 +351,7 @@ void ScopeBuilder::visit_controlDeclaration(Ast* control_decl)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_controlTypeDeclaration(Ast* type_decl)
+void ScopeHierarchyPass::visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::controlTypeDeclaration);
   Scope* scope, *prev_scope;
@@ -367,7 +367,7 @@ void ScopeBuilder::visit_controlTypeDeclaration(Ast* type_decl)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_controlLocalDeclarations(Ast* local_decls)
+void ScopeHierarchyPass::visit_controlLocalDeclarations(Ast* local_decls)
 {
   assert(local_decls->kind == AstEnum::controlLocalDeclarations);
   AstTree* ast;
@@ -378,7 +378,7 @@ void ScopeBuilder::visit_controlLocalDeclarations(Ast* local_decls)
   }
 }
 
-void ScopeBuilder::visit_controlLocalDeclaration(Ast* local_decl)
+void ScopeHierarchyPass::visit_controlLocalDeclaration(Ast* local_decl)
 {
   assert(local_decl->kind == AstEnum::controlLocalDeclaration);
   if (local_decl->controlLocalDeclaration.decl->kind == AstEnum::variableDeclaration) {
@@ -394,7 +394,7 @@ void ScopeBuilder::visit_controlLocalDeclaration(Ast* local_decl)
 
 /** EXTERN **/
 
-void ScopeBuilder::visit_externDeclaration(Ast* extern_decl)
+void ScopeHierarchyPass::visit_externDeclaration(Ast* extern_decl)
 {
   assert(extern_decl->kind == AstEnum::externDeclaration);
   Scope* scope;
@@ -410,7 +410,7 @@ void ScopeBuilder::visit_externDeclaration(Ast* extern_decl)
   assert(m);
 }
 
-void ScopeBuilder::visit_externTypeDeclaration(Ast* type_decl)
+void ScopeHierarchyPass::visit_externTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::externTypeDeclaration);
   Scope* scope, *prev_scope;
@@ -425,7 +425,7 @@ void ScopeBuilder::visit_externTypeDeclaration(Ast* type_decl)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_methodPrototypes(Ast* protos)
+void ScopeHierarchyPass::visit_methodPrototypes(Ast* protos)
 {
   assert(protos->kind == AstEnum::methodPrototypes);
   AstTree* ast;
@@ -436,7 +436,7 @@ void ScopeBuilder::visit_methodPrototypes(Ast* protos)
   }
 }
 
-void ScopeBuilder::visit_functionPrototype(Ast* func_proto)
+void ScopeHierarchyPass::visit_functionPrototype(Ast* func_proto)
 {
   assert(func_proto->kind == AstEnum::functionPrototype);
   Scope* scope, *prev_scope;
@@ -456,7 +456,7 @@ void ScopeBuilder::visit_functionPrototype(Ast* func_proto)
 
 /** TYPES **/
 
-void ScopeBuilder::visit_typeRef(Ast* type_ref)
+void ScopeHierarchyPass::visit_typeRef(Ast* type_ref)
 {
   assert(type_ref->kind == AstEnum::typeRef);
   if (type_ref->typeRef.type->kind == AstEnum::baseTypeBoolean) {
@@ -482,25 +482,25 @@ void ScopeBuilder::visit_typeRef(Ast* type_ref)
   } else assert(0);
 }
 
-void ScopeBuilder::visit_tupleType(Ast* type_decl)
+void ScopeHierarchyPass::visit_tupleType(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::tupleType);
   visit_typeArgumentList(type_decl->tupleType.type_args);
 }
 
-void ScopeBuilder::visit_headerStackType(Ast* type_decl)
+void ScopeHierarchyPass::visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::headerStackType);
   visit_typeRef(type_decl->headerStackType.type);
   visit_expression(type_decl->headerStackType.stack_expr);
 }
 
-void ScopeBuilder::visit_baseTypeBoolean(Ast* bool_type)
+void ScopeHierarchyPass::visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AstEnum::baseTypeBoolean);
 }
 
-void ScopeBuilder::visit_baseTypeInteger(Ast* int_type)
+void ScopeHierarchyPass::visit_baseTypeInteger(Ast* int_type)
 {
   assert(int_type->kind == AstEnum::baseTypeInteger);
   if (int_type->baseTypeInteger.size) {
@@ -508,7 +508,7 @@ void ScopeBuilder::visit_baseTypeInteger(Ast* int_type)
   }
 }
 
-void ScopeBuilder::visit_baseTypeBit(Ast* bit_type)
+void ScopeHierarchyPass::visit_baseTypeBit(Ast* bit_type)
 {
   assert(bit_type->kind == AstEnum::baseTypeBit);
   if (bit_type->baseTypeBit.size) {
@@ -516,33 +516,33 @@ void ScopeBuilder::visit_baseTypeBit(Ast* bit_type)
   }
 }
 
-void ScopeBuilder::visit_baseTypeVarbit(Ast* varbit_type)
+void ScopeHierarchyPass::visit_baseTypeVarbit(Ast* varbit_type)
 {
   assert(varbit_type->kind == AstEnum::baseTypeVarbit);
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
 }
 
-void ScopeBuilder::visit_baseTypeString(Ast* str_type)
+void ScopeHierarchyPass::visit_baseTypeString(Ast* str_type)
 {
   assert(str_type->kind == AstEnum::baseTypeString);
 }
 
-void ScopeBuilder::visit_baseTypeVoid(Ast* void_type)
+void ScopeHierarchyPass::visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AstEnum::baseTypeVoid);
 }
 
-void ScopeBuilder::visit_baseTypeError(Ast* error_type)
+void ScopeHierarchyPass::visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AstEnum::baseTypeError);
 }
 
-void ScopeBuilder::visit_integerTypeSize(Ast* type_size)
+void ScopeHierarchyPass::visit_integerTypeSize(Ast* type_size)
 {
   assert(type_size->kind == AstEnum::integerTypeSize);
 }
 
-void ScopeBuilder::visit_realTypeArg(Ast* type_arg)
+void ScopeHierarchyPass::visit_realTypeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AstEnum::realTypeArg);
   if (type_arg->realTypeArg.arg->kind == AstEnum::typeRef) {
@@ -552,7 +552,7 @@ void ScopeBuilder::visit_realTypeArg(Ast* type_arg)
   } else assert(0);
 }
 
-void ScopeBuilder::visit_typeArg(Ast* type_arg)
+void ScopeHierarchyPass::visit_typeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AstEnum::typeArg);
   if (type_arg->typeArg.arg->kind == AstEnum::typeRef) {
@@ -564,7 +564,7 @@ void ScopeBuilder::visit_typeArg(Ast* type_arg)
   } else assert(0);
 }
 
-void ScopeBuilder::visit_typeArgumentList(Ast* arg_list)
+void ScopeHierarchyPass::visit_typeArgumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AstEnum::typeArgumentList);
   AstTree* ast;
@@ -575,7 +575,7 @@ void ScopeBuilder::visit_typeArgumentList(Ast* arg_list)
   }
 }
 
-void ScopeBuilder::visit_typeDeclaration(Ast* type_decl)
+void ScopeHierarchyPass::visit_typeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::typeDeclaration);
   Scope* scope;
@@ -597,7 +597,7 @@ void ScopeBuilder::visit_typeDeclaration(Ast* type_decl)
   assert(m);
 }
 
-void ScopeBuilder::visit_derivedTypeDeclaration(Ast* type_decl)
+void ScopeHierarchyPass::visit_derivedTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::derivedTypeDeclaration);
   Scope* scope;
@@ -617,7 +617,7 @@ void ScopeBuilder::visit_derivedTypeDeclaration(Ast* type_decl)
   assert(m);
 }
 
-void ScopeBuilder::visit_headerTypeDeclaration(Ast* header_decl)
+void ScopeHierarchyPass::visit_headerTypeDeclaration(Ast* header_decl)
 {
   assert(header_decl->kind == AstEnum::headerTypeDeclaration);
   Scope* scope, *prev_scope;
@@ -632,7 +632,7 @@ void ScopeBuilder::visit_headerTypeDeclaration(Ast* header_decl)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_headerUnionDeclaration(Ast* union_decl)
+void ScopeHierarchyPass::visit_headerUnionDeclaration(Ast* union_decl)
 {
   assert(union_decl->kind == AstEnum::headerUnionDeclaration);
   Scope* scope, *prev_scope;
@@ -647,7 +647,7 @@ void ScopeBuilder::visit_headerUnionDeclaration(Ast* union_decl)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_structTypeDeclaration(Ast* struct_decl)
+void ScopeHierarchyPass::visit_structTypeDeclaration(Ast* struct_decl)
 {
   assert(struct_decl->kind == AstEnum::structTypeDeclaration);
   Scope* scope, *prev_scope;
@@ -662,7 +662,7 @@ void ScopeBuilder::visit_structTypeDeclaration(Ast* struct_decl)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_structFieldList(Ast* field_list)
+void ScopeHierarchyPass::visit_structFieldList(Ast* field_list)
 {
   assert(field_list->kind == AstEnum::structFieldList);
   AstTree* ast;
@@ -673,13 +673,13 @@ void ScopeBuilder::visit_structFieldList(Ast* field_list)
   }
 }
 
-void ScopeBuilder::visit_structField(Ast* field)
+void ScopeHierarchyPass::visit_structField(Ast* field)
 {
   assert(field->kind == AstEnum::structField);
   visit_typeRef(field->structField.type);
 }
 
-void ScopeBuilder::visit_enumDeclaration(Ast* enum_decl)
+void ScopeHierarchyPass::visit_enumDeclaration(Ast* enum_decl)
 {
   assert(enum_decl->kind == AstEnum::enumDeclaration);
   Scope* scope, *prev_scope;
@@ -694,7 +694,7 @@ void ScopeBuilder::visit_enumDeclaration(Ast* enum_decl)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_errorDeclaration(Ast* error_decl)
+void ScopeHierarchyPass::visit_errorDeclaration(Ast* error_decl)
 {
   assert(error_decl->kind == AstEnum::errorDeclaration);
   Scope* scope, *prev_scope;
@@ -709,7 +709,7 @@ void ScopeBuilder::visit_errorDeclaration(Ast* error_decl)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_matchKindDeclaration(Ast* match_decl)
+void ScopeHierarchyPass::visit_matchKindDeclaration(Ast* match_decl)
 {
   assert(match_decl->kind == AstEnum::matchKindDeclaration);
   Scope* scope, *prev_scope;
@@ -724,7 +724,7 @@ void ScopeBuilder::visit_matchKindDeclaration(Ast* match_decl)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_identifierList(Ast* ident_list)
+void ScopeHierarchyPass::visit_identifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AstEnum::identifierList);
   AstTree* ast;
@@ -735,7 +735,7 @@ void ScopeBuilder::visit_identifierList(Ast* ident_list)
   }
 }
 
-void ScopeBuilder::visit_specifiedIdentifierList(Ast* ident_list)
+void ScopeHierarchyPass::visit_specifiedIdentifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AstEnum::specifiedIdentifierList);
   AstTree* ast;
@@ -746,7 +746,7 @@ void ScopeBuilder::visit_specifiedIdentifierList(Ast* ident_list)
   }
 }
 
-void ScopeBuilder::visit_specifiedIdentifier(Ast* ident)
+void ScopeHierarchyPass::visit_specifiedIdentifier(Ast* ident)
 {
   assert(ident->kind == AstEnum::specifiedIdentifier);
   if (ident->specifiedIdentifier.init_expr) {
@@ -754,7 +754,7 @@ void ScopeBuilder::visit_specifiedIdentifier(Ast* ident)
   }
 }
 
-void ScopeBuilder::visit_typedefDeclaration(Ast* typedef_decl)
+void ScopeHierarchyPass::visit_typedefDeclaration(Ast* typedef_decl)
 {
   assert(typedef_decl->kind == AstEnum::typedefDeclaration);
   if (typedef_decl->typedefDeclaration.type_ref->kind == AstEnum::typeRef) {
@@ -766,7 +766,7 @@ void ScopeBuilder::visit_typedefDeclaration(Ast* typedef_decl)
 
 /** STATEMENTS **/
 
-void ScopeBuilder::visit_assignmentStatement(Ast* assign_stmt)
+void ScopeHierarchyPass::visit_assignmentStatement(Ast* assign_stmt)
 {
   assert(assign_stmt->kind == AstEnum::assignmentStatement);
   if (assign_stmt->assignmentStatement.lhs_expr->kind == AstEnum::expression) {
@@ -777,7 +777,7 @@ void ScopeBuilder::visit_assignmentStatement(Ast* assign_stmt)
   visit_expression(assign_stmt->assignmentStatement.rhs_expr);
 }
 
-void ScopeBuilder::visit_functionCall(Ast* func_call)
+void ScopeHierarchyPass::visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AstEnum::functionCall);
   if (func_call->functionCall.lhs_expr->kind == AstEnum::expression) {
@@ -788,7 +788,7 @@ void ScopeBuilder::visit_functionCall(Ast* func_call)
   visit_argumentList(func_call->functionCall.args);
 }
 
-void ScopeBuilder::visit_returnStatement(Ast* return_stmt)
+void ScopeHierarchyPass::visit_returnStatement(Ast* return_stmt)
 {
   assert(return_stmt->kind == AstEnum::returnStatement);
   if (return_stmt->returnStatement.expr) {
@@ -796,12 +796,12 @@ void ScopeBuilder::visit_returnStatement(Ast* return_stmt)
   }
 }
 
-void ScopeBuilder::visit_exitStatement(Ast* exit_stmt)
+void ScopeHierarchyPass::visit_exitStatement(Ast* exit_stmt)
 {
   assert(exit_stmt->kind == AstEnum::exitStatement);
 }
 
-void ScopeBuilder::visit_conditionalStatement(Ast* cond_stmt)
+void ScopeHierarchyPass::visit_conditionalStatement(Ast* cond_stmt)
 {
   assert(cond_stmt->kind == AstEnum::conditionalStatement);
   visit_expression(cond_stmt->conditionalStatement.cond_expr);
@@ -811,7 +811,7 @@ void ScopeBuilder::visit_conditionalStatement(Ast* cond_stmt)
   }
 }
 
-void ScopeBuilder::visit_directApplication(Ast* applic_stmt)
+void ScopeHierarchyPass::visit_directApplication(Ast* applic_stmt)
 {
   assert(applic_stmt->kind == AstEnum::directApplication);
   if (applic_stmt->directApplication.name->kind == AstEnum::name) {
@@ -822,7 +822,7 @@ void ScopeBuilder::visit_directApplication(Ast* applic_stmt)
   visit_argumentList(applic_stmt->directApplication.args);
 }
 
-void ScopeBuilder::visit_statement(Ast* stmt)
+void ScopeHierarchyPass::visit_statement(Ast* stmt)
 {
   assert(stmt->kind == AstEnum::statement);
   Scope* scope, *prev_scope;
@@ -855,13 +855,13 @@ void ScopeBuilder::visit_statement(Ast* stmt)
   } else assert(0);
 }
 
-void ScopeBuilder::visit_blockStatement(Ast* block_stmt)
+void ScopeHierarchyPass::visit_blockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AstEnum::blockStatement);
   visit_statementOrDeclList(block_stmt->blockStatement.stmt_list);
 }
 
-void ScopeBuilder::visit_statementOrDeclList(Ast* stmt_list)
+void ScopeHierarchyPass::visit_statementOrDeclList(Ast* stmt_list)
 {
   assert(stmt_list->kind == AstEnum::statementOrDeclList);
   AstTree* ast;
@@ -872,14 +872,14 @@ void ScopeBuilder::visit_statementOrDeclList(Ast* stmt_list)
   }
 }
 
-void ScopeBuilder::visit_switchStatement(Ast* switch_stmt)
+void ScopeHierarchyPass::visit_switchStatement(Ast* switch_stmt)
 {
   assert(switch_stmt->kind == AstEnum::switchStatement);
   visit_expression(switch_stmt->switchStatement.expr);
   visit_switchCases(switch_stmt->switchStatement.switch_cases);
 }
 
-void ScopeBuilder::visit_switchCases(Ast* switch_cases)
+void ScopeHierarchyPass::visit_switchCases(Ast* switch_cases)
 {
   assert(switch_cases->kind == AstEnum::switchCases);
   AstTree* ast;
@@ -890,7 +890,7 @@ void ScopeBuilder::visit_switchCases(Ast* switch_cases)
   }
 }
 
-void ScopeBuilder::visit_switchCase(Ast* switch_case)
+void ScopeHierarchyPass::visit_switchCase(Ast* switch_case)
 {
   assert(switch_case->kind == AstEnum::switchCase);
   visit_switchLabel(switch_case->switchCase.label);
@@ -899,7 +899,7 @@ void ScopeBuilder::visit_switchCase(Ast* switch_case)
   }
 }
 
-void ScopeBuilder::visit_switchLabel(Ast* label)
+void ScopeHierarchyPass::visit_switchLabel(Ast* label)
 {
   assert(label->kind == AstEnum::switchLabel);
   if (label->switchLabel.label->kind == AstEnum::name) {
@@ -909,7 +909,7 @@ void ScopeBuilder::visit_switchLabel(Ast* label)
   } else assert(0);
 }
 
-void ScopeBuilder::visit_statementOrDeclaration(Ast* stmt)
+void ScopeHierarchyPass::visit_statementOrDeclaration(Ast* stmt)
 {
   assert(stmt->kind == AstEnum::statementOrDeclaration);
   if (stmt->statementOrDeclaration.stmt->kind == AstEnum::variableDeclaration) {
@@ -923,7 +923,7 @@ void ScopeBuilder::visit_statementOrDeclaration(Ast* stmt)
 
 /** TABLES **/
 
-void ScopeBuilder::visit_tableDeclaration(Ast* table_decl)
+void ScopeHierarchyPass::visit_tableDeclaration(Ast* table_decl)
 {
   assert(table_decl->kind == AstEnum::tableDeclaration);
   Scope* scope, *prev_scope;
@@ -939,7 +939,7 @@ void ScopeBuilder::visit_tableDeclaration(Ast* table_decl)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_tablePropertyList(Ast* prop_list)
+void ScopeHierarchyPass::visit_tablePropertyList(Ast* prop_list)
 {
   assert(prop_list->kind == AstEnum::tablePropertyList);
   AstTree* ast;
@@ -950,7 +950,7 @@ void ScopeBuilder::visit_tablePropertyList(Ast* prop_list)
   }
 }
 
-void ScopeBuilder::visit_tableProperty(Ast* table_prop)
+void ScopeHierarchyPass::visit_tableProperty(Ast* table_prop)
 {
   assert(table_prop->kind == AstEnum::tableProperty);
   if (table_prop->tableProperty.prop->kind == AstEnum::keyProperty) {
@@ -968,13 +968,13 @@ void ScopeBuilder::visit_tableProperty(Ast* table_prop)
   else assert(0);
 }
 
-void ScopeBuilder::visit_keyProperty(Ast* key_prop)
+void ScopeHierarchyPass::visit_keyProperty(Ast* key_prop)
 {
   assert(key_prop->kind == AstEnum::keyProperty);
   visit_keyElementList(key_prop->keyProperty.keyelem_list);
 }
 
-void ScopeBuilder::visit_keyElementList(Ast* element_list)
+void ScopeHierarchyPass::visit_keyElementList(Ast* element_list)
 {
   assert(element_list->kind == AstEnum::keyElementList);
   AstTree* ast;
@@ -985,19 +985,19 @@ void ScopeBuilder::visit_keyElementList(Ast* element_list)
   }
 }
 
-void ScopeBuilder::visit_keyElement(Ast* element)
+void ScopeHierarchyPass::visit_keyElement(Ast* element)
 {
   assert(element->kind == AstEnum::keyElement);
   visit_expression(element->keyElement.expr);
 }
 
-void ScopeBuilder::visit_actionsProperty(Ast* actions_prop)
+void ScopeHierarchyPass::visit_actionsProperty(Ast* actions_prop)
 {
   assert(actions_prop->kind == AstEnum::actionsProperty);
   visit_actionList(actions_prop->actionsProperty.action_list);
 }
 
-void ScopeBuilder::visit_actionList(Ast* action_list)
+void ScopeHierarchyPass::visit_actionList(Ast* action_list)
 {
   assert(action_list->kind == AstEnum::actionList);
   AstTree* ast;
@@ -1008,7 +1008,7 @@ void ScopeBuilder::visit_actionList(Ast* action_list)
   }
 }
 
-void ScopeBuilder::visit_actionRef(Ast* action_ref)
+void ScopeHierarchyPass::visit_actionRef(Ast* action_ref)
 {
   assert(action_ref->kind == AstEnum::actionRef);
   if (action_ref->actionRef.args) {
@@ -1017,13 +1017,13 @@ void ScopeBuilder::visit_actionRef(Ast* action_ref)
 }
 
 #if 0
-void ScopeBuilder::visit_entriesProperty(Ast* entries_prop)
+void ScopeHierarchyPass::visit_entriesProperty(Ast* entries_prop)
 {
   assert(entries_prop->kind == AstEnum::entriesProperty);
   visit_entriesList(scope_builder, entries_prop->entriesProperty.entries_list);
 }
 
-void ScopeBuilder::visit_entriesList(Ast* entries_list)
+void ScopeHierarchyPass::visit_entriesList(Ast* entries_list)
 {
   assert(entries_list->kind == AstEnum::entriesList);
   AstTree* ast;
@@ -1034,21 +1034,21 @@ void ScopeBuilder::visit_entriesList(Ast* entries_list)
   }
 }
 
-void ScopeBuilder::visit_entry(Ast* entry)
+void ScopeHierarchyPass::visit_entry(Ast* entry)
 {
   assert(entry->kind == AstEnum::entry);
   visit_keysetExpression(scope_builder, entry->entry.keyset);
   visit_actionRef(scope_builder, entry->entry.action);
 }
 
-void ScopeBuilder::visit_simpleProperty(Ast* simple_prop)
+void ScopeHierarchyPass::visit_simpleProperty(Ast* simple_prop)
 {
   assert(simple_prop->kind == AstEnum::simpleProperty);
   visit_expression(scope_builder, simple_prop->simpleProperty.init_expr);
 }
 #endif
 
-void ScopeBuilder::visit_actionDeclaration(Ast* action_decl)
+void ScopeHierarchyPass::visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AstEnum::actionDeclaration);
   Scope* scope, *prev_scope;
@@ -1066,7 +1066,7 @@ void ScopeBuilder::visit_actionDeclaration(Ast* action_decl)
 
 /** VARIABLES **/
 
-void ScopeBuilder::visit_variableDeclaration(Ast* var_decl)
+void ScopeHierarchyPass::visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AstEnum::variableDeclaration);
   visit_typeRef(var_decl->variableDeclaration.type);
@@ -1077,7 +1077,7 @@ void ScopeBuilder::visit_variableDeclaration(Ast* var_decl)
 
 /** EXPRESSIONS **/
 
-void ScopeBuilder::visit_functionDeclaration(Ast* func_decl)
+void ScopeHierarchyPass::visit_functionDeclaration(Ast* func_decl)
 {
   assert(func_decl->kind == AstEnum::functionDeclaration);
   Scope* prev_scope;
@@ -1092,7 +1092,7 @@ void ScopeBuilder::visit_functionDeclaration(Ast* func_decl)
   current_scope = prev_scope;
 }
 
-void ScopeBuilder::visit_argumentList(Ast* arg_list)
+void ScopeHierarchyPass::visit_argumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AstEnum::argumentList);
   AstTree* ast;
@@ -1103,7 +1103,7 @@ void ScopeBuilder::visit_argumentList(Ast* arg_list)
   }
 }
 
-void ScopeBuilder::visit_argument(Ast* arg)
+void ScopeHierarchyPass::visit_argument(Ast* arg)
 {
   assert(arg->kind == AstEnum::argument);
   if (arg->argument.arg->kind == AstEnum::expression) {
@@ -1113,7 +1113,7 @@ void ScopeBuilder::visit_argument(Ast* arg)
   } else assert(0);
 }
 
-void ScopeBuilder::visit_expressionList(Ast* expr_list)
+void ScopeHierarchyPass::visit_expressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::expressionList);
   AstTree* ast;
@@ -1124,7 +1124,7 @@ void ScopeBuilder::visit_expressionList(Ast* expr_list)
   }
 }
 
-void ScopeBuilder::visit_lvalueExpression(Ast* lvalue_expr)
+void ScopeHierarchyPass::visit_lvalueExpression(Ast* lvalue_expr)
 {
   assert(lvalue_expr->kind == AstEnum::lvalueExpression);
   if (lvalue_expr->lvalueExpression.expr->kind == AstEnum::name) {
@@ -1136,7 +1136,7 @@ void ScopeBuilder::visit_lvalueExpression(Ast* lvalue_expr)
   } else assert(0);
 }
 
-void ScopeBuilder::visit_expression(Ast* expr)
+void ScopeHierarchyPass::visit_expression(Ast* expr)
 {
   assert(expr->kind == AstEnum::expression);
   if (expr->expression.expr->kind == AstEnum::expression) {
@@ -1168,27 +1168,27 @@ void ScopeBuilder::visit_expression(Ast* expr)
   } else assert(0);
 }
 
-void ScopeBuilder::visit_castExpression(Ast* cast_expr)
+void ScopeHierarchyPass::visit_castExpression(Ast* cast_expr)
 {
   assert(cast_expr->kind == AstEnum::castExpression);
   visit_typeRef(cast_expr->castExpression.type);
   visit_expression(cast_expr->castExpression.expr);
 }
 
-void ScopeBuilder::visit_unaryExpression(Ast* unary_expr)
+void ScopeHierarchyPass::visit_unaryExpression(Ast* unary_expr)
 {
   assert(unary_expr->kind == AstEnum::unaryExpression);
   visit_expression(unary_expr->unaryExpression.operand);
 }
 
-void ScopeBuilder::visit_binaryExpression(Ast* binary_expr)
+void ScopeHierarchyPass::visit_binaryExpression(Ast* binary_expr)
 {
   assert(binary_expr->kind == AstEnum::binaryExpression);
   visit_expression(binary_expr->binaryExpression.left_operand);
   visit_expression(binary_expr->binaryExpression.right_operand);
 }
 
-void ScopeBuilder::visit_memberSelector(Ast* selector)
+void ScopeHierarchyPass::visit_memberSelector(Ast* selector)
 {
   assert(selector->kind == AstEnum::memberSelector);
   if (selector->memberSelector.lhs_expr->kind == AstEnum::expression) {
@@ -1198,7 +1198,7 @@ void ScopeBuilder::visit_memberSelector(Ast* selector)
   } else assert(0);
 }
 
-void ScopeBuilder::visit_arraySubscript(Ast* subscript)
+void ScopeHierarchyPass::visit_arraySubscript(Ast* subscript)
 {
   assert(subscript->kind == AstEnum::arraySubscript);
   if (subscript->arraySubscript.lhs_expr->kind == AstEnum::expression) {
@@ -1209,7 +1209,7 @@ void ScopeBuilder::visit_arraySubscript(Ast* subscript)
   visit_indexExpression(subscript->arraySubscript.index_expr);
 }
 
-void ScopeBuilder::visit_indexExpression(Ast* index_expr)
+void ScopeHierarchyPass::visit_indexExpression(Ast* index_expr)
 {
   assert(index_expr->kind == AstEnum::indexExpression);
   visit_expression(index_expr->indexExpression.start_index);
@@ -1218,27 +1218,27 @@ void ScopeBuilder::visit_indexExpression(Ast* index_expr)
   }
 }
 
-void ScopeBuilder::visit_booleanLiteral(Ast* bool_literal)
+void ScopeHierarchyPass::visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AstEnum::booleanLiteral);
 }
 
-void ScopeBuilder::visit_integerLiteral(Ast* int_literal)
+void ScopeHierarchyPass::visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AstEnum::integerLiteral);
 }
 
-void ScopeBuilder::visit_stringLiteral(Ast* str_literal)
+void ScopeHierarchyPass::visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AstEnum::stringLiteral);
 }
 
-void ScopeBuilder::visit_default(Ast* default_)
+void ScopeHierarchyPass::visit_default(Ast* default_)
 {
   assert(default_->kind == AstEnum::default_);
 }
 
-void ScopeBuilder::visit_dontcare(Ast* dontcare)
+void ScopeHierarchyPass::visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AstEnum::dontcare);
 }

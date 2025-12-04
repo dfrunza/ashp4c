@@ -1,20 +1,20 @@
 #include "foundation.h"
 #include "frontend.h"
 
-void BuiltinMethodBuilder::do_pass(Ast* ast)
+void BuiltinMethodsPass::do_pass(Ast* ast)
 {
   visit_p4program(ast);
 }
 
 /** PROGRAM **/
 
-void BuiltinMethodBuilder::visit_p4program(Ast* p4program)
+void BuiltinMethodsPass::visit_p4program(Ast* p4program)
 {
   assert(p4program->kind == AstEnum::p4program);
   visit_declarationList(p4program->p4program.decl_list);
 }
 
-void BuiltinMethodBuilder::visit_declarationList(Ast* decl_list)
+void BuiltinMethodsPass::visit_declarationList(Ast* decl_list)
 {
   assert(decl_list->kind == AstEnum::declarationList);
   AstTree* ast;
@@ -25,7 +25,7 @@ void BuiltinMethodBuilder::visit_declarationList(Ast* decl_list)
   }
 }
 
-void BuiltinMethodBuilder::visit_declaration(Ast* decl)
+void BuiltinMethodsPass::visit_declaration(Ast* decl)
 {
   assert(decl->kind == AstEnum::declaration);
   if (decl->declaration.decl->kind == AstEnum::variableDeclaration) {
@@ -55,12 +55,12 @@ void BuiltinMethodBuilder::visit_declaration(Ast* decl)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_name(Ast* name)
+void BuiltinMethodsPass::visit_name(Ast* name)
 {
   assert(name->kind == AstEnum::name);
 }
 
-void BuiltinMethodBuilder::visit_parameterList(Ast* params)
+void BuiltinMethodsPass::visit_parameterList(Ast* params)
 {
   assert(params->kind == AstEnum::parameterList);
   AstTree* ast;
@@ -71,7 +71,7 @@ void BuiltinMethodBuilder::visit_parameterList(Ast* params)
   }
 }
 
-void BuiltinMethodBuilder::visit_parameter(Ast* param)
+void BuiltinMethodsPass::visit_parameter(Ast* param)
 {
   assert(param->kind == AstEnum::parameter);
   visit_typeRef(param->parameter.type);
@@ -81,14 +81,14 @@ void BuiltinMethodBuilder::visit_parameter(Ast* param)
   }
 }
 
-void BuiltinMethodBuilder::visit_packageTypeDeclaration(Ast* type_decl)
+void BuiltinMethodsPass::visit_packageTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::packageTypeDeclaration);
   visit_name(type_decl->packageTypeDeclaration.name);
   visit_parameterList(type_decl->packageTypeDeclaration.params);
 }
 
-void BuiltinMethodBuilder::visit_instantiation(Ast* inst)
+void BuiltinMethodsPass::visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AstEnum::instantiation);
   visit_typeRef(inst->instantiation.type);
@@ -98,7 +98,7 @@ void BuiltinMethodBuilder::visit_instantiation(Ast* inst)
 
 /** PARSER **/
 
-void BuiltinMethodBuilder::visit_parserDeclaration(Ast* parser_decl)
+void BuiltinMethodsPass::visit_parserDeclaration(Ast* parser_decl)
 {
   assert(parser_decl->kind == AstEnum::parserDeclaration);
   visit_typeDeclaration(parser_decl->parserDeclaration.proto);
@@ -109,7 +109,7 @@ void BuiltinMethodBuilder::visit_parserDeclaration(Ast* parser_decl)
   visit_parserStates(parser_decl->parserDeclaration.states);
 }
 
-void BuiltinMethodBuilder::visit_parserTypeDeclaration(Ast* type_decl)
+void BuiltinMethodsPass::visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::parserTypeDeclaration);
   Ast* type_ref, *return_type, *method, *name;
@@ -136,7 +136,7 @@ void BuiltinMethodBuilder::visit_parserTypeDeclaration(Ast* type_decl)
   tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 
-void BuiltinMethodBuilder::visit_parserLocalElements(Ast* local_elements)
+void BuiltinMethodsPass::visit_parserLocalElements(Ast* local_elements)
 {
   assert(local_elements->kind == AstEnum::parserLocalElements);
   AstTree* ast;
@@ -147,7 +147,7 @@ void BuiltinMethodBuilder::visit_parserLocalElements(Ast* local_elements)
   }
 }
 
-void BuiltinMethodBuilder::visit_parserLocalElement(Ast* local_element)
+void BuiltinMethodsPass::visit_parserLocalElement(Ast* local_element)
 {
   assert(local_element->kind == AstEnum::parserLocalElement);
   if (local_element->parserLocalElement.element->kind == AstEnum::variableDeclaration) {
@@ -157,7 +157,7 @@ void BuiltinMethodBuilder::visit_parserLocalElement(Ast* local_element)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_parserStates(Ast* states)
+void BuiltinMethodsPass::visit_parserStates(Ast* states)
 {
   assert(states->kind == AstEnum::parserStates);
   AstTree* ast;
@@ -168,7 +168,7 @@ void BuiltinMethodBuilder::visit_parserStates(Ast* states)
   }
 }
 
-void BuiltinMethodBuilder::visit_parserState(Ast* state)
+void BuiltinMethodsPass::visit_parserState(Ast* state)
 {
   assert(state->kind == AstEnum::parserState);
   visit_name(state->parserState.name);
@@ -176,7 +176,7 @@ void BuiltinMethodBuilder::visit_parserState(Ast* state)
   visit_transitionStatement(state->parserState.transition_stmt);
 }
 
-void BuiltinMethodBuilder::visit_parserStatements(Ast* stmts)
+void BuiltinMethodsPass::visit_parserStatements(Ast* stmts)
 {
   assert(stmts->kind == AstEnum::parserStatements);
   AstTree* ast;
@@ -187,7 +187,7 @@ void BuiltinMethodBuilder::visit_parserStatements(Ast* stmts)
   }
 }
 
-void BuiltinMethodBuilder::visit_parserStatement(Ast* stmt)
+void BuiltinMethodsPass::visit_parserStatement(Ast* stmt)
 {
   assert(stmt->kind == AstEnum::parserStatement);
   if (stmt->parserStatement.stmt->kind == AstEnum::assignmentStatement) {
@@ -205,19 +205,19 @@ void BuiltinMethodBuilder::visit_parserStatement(Ast* stmt)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_parserBlockStatement(Ast* block_stmt)
+void BuiltinMethodsPass::visit_parserBlockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AstEnum::parserBlockStatement);
   visit_parserStatements(block_stmt->parserBlockStatement.stmt_list);
 }
 
-void BuiltinMethodBuilder::visit_transitionStatement(Ast* transition_stmt)
+void BuiltinMethodsPass::visit_transitionStatement(Ast* transition_stmt)
 {
   assert(transition_stmt->kind == AstEnum::transitionStatement);
   visit_stateExpression(transition_stmt->transitionStatement.stmt);
 }
 
-void BuiltinMethodBuilder::visit_stateExpression(Ast* state_expr)
+void BuiltinMethodsPass::visit_stateExpression(Ast* state_expr)
 {
   assert(state_expr->kind == AstEnum::stateExpression);
   if (state_expr->stateExpression.expr->kind == AstEnum::name) {
@@ -227,14 +227,14 @@ void BuiltinMethodBuilder::visit_stateExpression(Ast* state_expr)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_selectExpression(Ast* select_expr)
+void BuiltinMethodsPass::visit_selectExpression(Ast* select_expr)
 {
   assert(select_expr->kind == AstEnum::selectExpression);
   visit_expressionList(select_expr->selectExpression.expr_list);
   visit_selectCaseList(select_expr->selectExpression.case_list);
 }
 
-void BuiltinMethodBuilder::visit_selectCaseList(Ast* case_list)
+void BuiltinMethodsPass::visit_selectCaseList(Ast* case_list)
 {
   assert(case_list->kind == AstEnum::selectCaseList);
   AstTree* ast;
@@ -245,14 +245,14 @@ void BuiltinMethodBuilder::visit_selectCaseList(Ast* case_list)
   }
 }
 
-void BuiltinMethodBuilder::visit_selectCase(Ast* select_case)
+void BuiltinMethodsPass::visit_selectCase(Ast* select_case)
 {
   assert(select_case->kind == AstEnum::selectCase);
   visit_keysetExpression(select_case->selectCase.keyset_expr);
   visit_name(select_case->selectCase.name);
 }
 
-void BuiltinMethodBuilder::visit_keysetExpression(Ast* keyset_expr)
+void BuiltinMethodsPass::visit_keysetExpression(Ast* keyset_expr)
 {
   assert(keyset_expr->kind == AstEnum::keysetExpression);
   if (keyset_expr->keysetExpression.expr->kind == AstEnum::tupleKeysetExpression) {
@@ -262,13 +262,13 @@ void BuiltinMethodBuilder::visit_keysetExpression(Ast* keyset_expr)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_tupleKeysetExpression(Ast* tuple_expr)
+void BuiltinMethodsPass::visit_tupleKeysetExpression(Ast* tuple_expr)
 {
   assert(tuple_expr->kind == AstEnum::tupleKeysetExpression);
   visit_simpleExpressionList(tuple_expr->tupleKeysetExpression.expr_list);
 }
 
-void BuiltinMethodBuilder::visit_simpleKeysetExpression(Ast* simple_expr)
+void BuiltinMethodsPass::visit_simpleKeysetExpression(Ast* simple_expr)
 {
   assert(simple_expr->kind == AstEnum::simpleKeysetExpression);
   if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::expression) {
@@ -280,7 +280,7 @@ void BuiltinMethodBuilder::visit_simpleKeysetExpression(Ast* simple_expr)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_simpleExpressionList(Ast* expr_list)
+void BuiltinMethodsPass::visit_simpleExpressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::simpleExpressionList);
   AstTree* ast;
@@ -293,7 +293,7 @@ void BuiltinMethodBuilder::visit_simpleExpressionList(Ast* expr_list)
 
 /** CONTROL **/
 
-void BuiltinMethodBuilder::visit_controlDeclaration(Ast* control_decl)
+void BuiltinMethodsPass::visit_controlDeclaration(Ast* control_decl)
 {
   assert(control_decl->kind == AstEnum::controlDeclaration);
   visit_typeDeclaration(control_decl->controlDeclaration.proto);
@@ -304,7 +304,7 @@ void BuiltinMethodBuilder::visit_controlDeclaration(Ast* control_decl)
   visit_blockStatement(control_decl->controlDeclaration.apply_stmt);
 }
 
-void BuiltinMethodBuilder::visit_controlTypeDeclaration(Ast* type_decl)
+void BuiltinMethodsPass::visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::controlTypeDeclaration);
   Ast* type_ref, *return_type, *method, *name;
@@ -331,7 +331,7 @@ void BuiltinMethodBuilder::visit_controlTypeDeclaration(Ast* type_decl)
   tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 
-void BuiltinMethodBuilder::visit_controlLocalDeclarations(Ast* local_decls)
+void BuiltinMethodsPass::visit_controlLocalDeclarations(Ast* local_decls)
 {
   assert(local_decls->kind == AstEnum::controlLocalDeclarations);
   AstTree* ast;
@@ -342,7 +342,7 @@ void BuiltinMethodBuilder::visit_controlLocalDeclarations(Ast* local_decls)
   }
 }
 
-void BuiltinMethodBuilder::visit_controlLocalDeclaration(Ast* local_decl)
+void BuiltinMethodsPass::visit_controlLocalDeclaration(Ast* local_decl)
 {
   assert(local_decl->kind == AstEnum::controlLocalDeclaration);
   if (local_decl->controlLocalDeclaration.decl->kind == AstEnum::variableDeclaration) {
@@ -358,7 +358,7 @@ void BuiltinMethodBuilder::visit_controlLocalDeclaration(Ast* local_decl)
 
 /** EXTERN **/
 
-void BuiltinMethodBuilder::visit_externDeclaration(Ast* extern_decl)
+void BuiltinMethodsPass::visit_externDeclaration(Ast* extern_decl)
 {
   assert(extern_decl->kind == AstEnum::externDeclaration);
   if (extern_decl->externDeclaration.decl->kind == AstEnum::externTypeDeclaration) {
@@ -368,14 +368,14 @@ void BuiltinMethodBuilder::visit_externDeclaration(Ast* extern_decl)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_externTypeDeclaration(Ast* type_decl)
+void BuiltinMethodsPass::visit_externTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::externTypeDeclaration);
   visit_name(type_decl->externTypeDeclaration.name);
   visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos);
 }
 
-void BuiltinMethodBuilder::visit_methodPrototypes(Ast* protos)
+void BuiltinMethodsPass::visit_methodPrototypes(Ast* protos)
 {
   assert(protos->kind == AstEnum::methodPrototypes);
   AstTree* ast;
@@ -386,7 +386,7 @@ void BuiltinMethodBuilder::visit_methodPrototypes(Ast* protos)
   }
 }
 
-void BuiltinMethodBuilder::visit_functionPrototype(Ast* func_proto)
+void BuiltinMethodsPass::visit_functionPrototype(Ast* func_proto)
 {
   assert(func_proto->kind == AstEnum::functionPrototype);
   if (func_proto->functionPrototype.return_type) {
@@ -398,7 +398,7 @@ void BuiltinMethodBuilder::visit_functionPrototype(Ast* func_proto)
 
 /** TYPES **/
 
-void BuiltinMethodBuilder::visit_typeRef(Ast* type_ref)
+void BuiltinMethodsPass::visit_typeRef(Ast* type_ref)
 {
   assert(type_ref->kind == AstEnum::typeRef);
   if (type_ref->typeRef.type->kind == AstEnum::baseTypeBoolean) {
@@ -424,26 +424,26 @@ void BuiltinMethodBuilder::visit_typeRef(Ast* type_ref)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_tupleType(Ast* type_decl)
+void BuiltinMethodsPass::visit_tupleType(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::tupleType);
   visit_typeArgumentList(type_decl->tupleType.type_args);
 }
 
-void BuiltinMethodBuilder::visit_headerStackType(Ast* type_decl)
+void BuiltinMethodsPass::visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::headerStackType);
   visit_typeRef(type_decl->headerStackType.type);
   visit_expression(type_decl->headerStackType.stack_expr);
 }
 
-void BuiltinMethodBuilder::visit_baseTypeBoolean(Ast* bool_type)
+void BuiltinMethodsPass::visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AstEnum::baseTypeBoolean);
   visit_name(bool_type->baseTypeBoolean.name);
 }
 
-void BuiltinMethodBuilder::visit_baseTypeInteger(Ast* int_type)
+void BuiltinMethodsPass::visit_baseTypeInteger(Ast* int_type)
 {
   assert(int_type->kind == AstEnum::baseTypeInteger);
   visit_name(int_type->baseTypeInteger.name);
@@ -452,7 +452,7 @@ void BuiltinMethodBuilder::visit_baseTypeInteger(Ast* int_type)
   }
 }
 
-void BuiltinMethodBuilder::visit_baseTypeBit(Ast* bit_type)
+void BuiltinMethodsPass::visit_baseTypeBit(Ast* bit_type)
 {
   assert(bit_type->kind == AstEnum::baseTypeBit);
   visit_name(bit_type->baseTypeBit.name);
@@ -461,37 +461,37 @@ void BuiltinMethodBuilder::visit_baseTypeBit(Ast* bit_type)
   }
 }
 
-void BuiltinMethodBuilder::visit_baseTypeVarbit(Ast* varbit_type)
+void BuiltinMethodsPass::visit_baseTypeVarbit(Ast* varbit_type)
 {
   assert(varbit_type->kind == AstEnum::baseTypeVarbit);
   visit_name(varbit_type->baseTypeVarbit.name);
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
 }
 
-void BuiltinMethodBuilder::visit_baseTypeString(Ast* str_type)
+void BuiltinMethodsPass::visit_baseTypeString(Ast* str_type)
 {
   assert(str_type->kind == AstEnum::baseTypeString);
   visit_name(str_type->baseTypeString.name);
 }
 
-void BuiltinMethodBuilder::visit_baseTypeVoid(Ast* void_type)
+void BuiltinMethodsPass::visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AstEnum::baseTypeVoid);
   visit_name(void_type->baseTypeVoid.name);
 }
 
-void BuiltinMethodBuilder::visit_baseTypeError(Ast* error_type)
+void BuiltinMethodsPass::visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AstEnum::baseTypeError);
   visit_name(error_type->baseTypeError.name);
 }
 
-void BuiltinMethodBuilder::visit_integerTypeSize(Ast* type_size)
+void BuiltinMethodsPass::visit_integerTypeSize(Ast* type_size)
 {
   assert(type_size->kind == AstEnum::integerTypeSize);
 }
 
-void BuiltinMethodBuilder::visit_realTypeArg(Ast* type_arg)
+void BuiltinMethodsPass::visit_realTypeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AstEnum::realTypeArg);
   if (type_arg->realTypeArg.arg->kind == AstEnum::typeRef) {
@@ -501,7 +501,7 @@ void BuiltinMethodBuilder::visit_realTypeArg(Ast* type_arg)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_typeArg(Ast* type_arg)
+void BuiltinMethodsPass::visit_typeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AstEnum::typeArg);
   if (type_arg->typeArg.arg->kind == AstEnum::typeRef) {
@@ -513,7 +513,7 @@ void BuiltinMethodBuilder::visit_typeArg(Ast* type_arg)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_typeArgumentList(Ast* arg_list)
+void BuiltinMethodsPass::visit_typeArgumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AstEnum::typeArgumentList);
   AstTree* ast;
@@ -524,7 +524,7 @@ void BuiltinMethodBuilder::visit_typeArgumentList(Ast* arg_list)
   }
 }
 
-void BuiltinMethodBuilder::visit_typeDeclaration(Ast* type_decl)
+void BuiltinMethodsPass::visit_typeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::typeDeclaration);
   if (type_decl->typeDeclaration.decl->kind == AstEnum::derivedTypeDeclaration) {
@@ -540,7 +540,7 @@ void BuiltinMethodBuilder::visit_typeDeclaration(Ast* type_decl)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_derivedTypeDeclaration(Ast* type_decl)
+void BuiltinMethodsPass::visit_derivedTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::derivedTypeDeclaration);
   if (type_decl->derivedTypeDeclaration.decl->kind == AstEnum::headerTypeDeclaration) {
@@ -554,28 +554,28 @@ void BuiltinMethodBuilder::visit_derivedTypeDeclaration(Ast* type_decl)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_headerTypeDeclaration(Ast* header_decl)
+void BuiltinMethodsPass::visit_headerTypeDeclaration(Ast* header_decl)
 {
   assert(header_decl->kind == AstEnum::headerTypeDeclaration);
   visit_name(header_decl->headerTypeDeclaration.name);
   visit_structFieldList(header_decl->headerTypeDeclaration.fields);
 }
 
-void BuiltinMethodBuilder::visit_headerUnionDeclaration(Ast* union_decl)
+void BuiltinMethodsPass::visit_headerUnionDeclaration(Ast* union_decl)
 {
   assert(union_decl->kind == AstEnum::headerUnionDeclaration);
   visit_name(union_decl->headerUnionDeclaration.name);
   visit_structFieldList(union_decl->headerUnionDeclaration.fields);
 }
 
-void BuiltinMethodBuilder::visit_structTypeDeclaration(Ast* struct_decl)
+void BuiltinMethodsPass::visit_structTypeDeclaration(Ast* struct_decl)
 {
   assert(struct_decl->kind == AstEnum::structTypeDeclaration);
   visit_name(struct_decl->structTypeDeclaration.name);
   visit_structFieldList(struct_decl->structTypeDeclaration.fields);
 }
 
-void BuiltinMethodBuilder::visit_structFieldList(Ast* field_list)
+void BuiltinMethodsPass::visit_structFieldList(Ast* field_list)
 {
   assert(field_list->kind == AstEnum::structFieldList);
   AstTree* ast;
@@ -586,33 +586,33 @@ void BuiltinMethodBuilder::visit_structFieldList(Ast* field_list)
   }
 }
 
-void BuiltinMethodBuilder::visit_structField(Ast* field)
+void BuiltinMethodsPass::visit_structField(Ast* field)
 {
   assert(field->kind == AstEnum::structField);
   visit_typeRef(field->structField.type);
   visit_name(field->structField.name);
 }
 
-void BuiltinMethodBuilder::visit_enumDeclaration(Ast* enum_decl)
+void BuiltinMethodsPass::visit_enumDeclaration(Ast* enum_decl)
 {
   assert(enum_decl->kind == AstEnum::enumDeclaration);
   visit_name(enum_decl->enumDeclaration.name);
   visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
 }
 
-void BuiltinMethodBuilder::visit_errorDeclaration(Ast* error_decl)
+void BuiltinMethodsPass::visit_errorDeclaration(Ast* error_decl)
 {
   assert(error_decl->kind == AstEnum::errorDeclaration);
   visit_identifierList(error_decl->errorDeclaration.fields);
 }
 
-void BuiltinMethodBuilder::visit_matchKindDeclaration(Ast* match_decl)
+void BuiltinMethodsPass::visit_matchKindDeclaration(Ast* match_decl)
 {
   assert(match_decl->kind == AstEnum::matchKindDeclaration);
   visit_identifierList(match_decl->matchKindDeclaration.fields);
 }
 
-void BuiltinMethodBuilder::visit_identifierList(Ast* ident_list)
+void BuiltinMethodsPass::visit_identifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AstEnum::identifierList);
   AstTree* ast;
@@ -623,7 +623,7 @@ void BuiltinMethodBuilder::visit_identifierList(Ast* ident_list)
   }
 }
 
-void BuiltinMethodBuilder::visit_specifiedIdentifierList(Ast* ident_list)
+void BuiltinMethodsPass::visit_specifiedIdentifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AstEnum::specifiedIdentifierList);
   AstTree* ast;
@@ -634,7 +634,7 @@ void BuiltinMethodBuilder::visit_specifiedIdentifierList(Ast* ident_list)
   }
 }
 
-void BuiltinMethodBuilder::visit_specifiedIdentifier(Ast* ident)
+void BuiltinMethodsPass::visit_specifiedIdentifier(Ast* ident)
 {
   assert(ident->kind == AstEnum::specifiedIdentifier);
   visit_name(ident->specifiedIdentifier.name);
@@ -643,7 +643,7 @@ void BuiltinMethodBuilder::visit_specifiedIdentifier(Ast* ident)
   }
 }
 
-void BuiltinMethodBuilder::visit_typedefDeclaration(Ast* typedef_decl)
+void BuiltinMethodsPass::visit_typedefDeclaration(Ast* typedef_decl)
 {
   assert(typedef_decl->kind == AstEnum::typedefDeclaration);
   if (typedef_decl->typedefDeclaration.type_ref->kind == AstEnum::typeRef) {
@@ -656,7 +656,7 @@ void BuiltinMethodBuilder::visit_typedefDeclaration(Ast* typedef_decl)
 
 /** STATEMENTS **/
 
-void BuiltinMethodBuilder::visit_assignmentStatement(Ast* assign_stmt)
+void BuiltinMethodsPass::visit_assignmentStatement(Ast* assign_stmt)
 {
   assert(assign_stmt->kind == AstEnum::assignmentStatement);
   if (assign_stmt->assignmentStatement.lhs_expr->kind == AstEnum::expression) {
@@ -667,7 +667,7 @@ void BuiltinMethodBuilder::visit_assignmentStatement(Ast* assign_stmt)
   visit_expression(assign_stmt->assignmentStatement.rhs_expr);
 }
 
-void BuiltinMethodBuilder::visit_functionCall(Ast* func_call)
+void BuiltinMethodsPass::visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AstEnum::functionCall);
   if (func_call->functionCall.lhs_expr->kind == AstEnum::expression) {
@@ -678,7 +678,7 @@ void BuiltinMethodBuilder::visit_functionCall(Ast* func_call)
   visit_argumentList(func_call->functionCall.args);
 }
 
-void BuiltinMethodBuilder::visit_returnStatement(Ast* return_stmt)
+void BuiltinMethodsPass::visit_returnStatement(Ast* return_stmt)
 {
   assert(return_stmt->kind == AstEnum::returnStatement);
   if (return_stmt->returnStatement.expr) {
@@ -686,12 +686,12 @@ void BuiltinMethodBuilder::visit_returnStatement(Ast* return_stmt)
   }
 }
 
-void BuiltinMethodBuilder::visit_exitStatement(Ast* exit_stmt)
+void BuiltinMethodsPass::visit_exitStatement(Ast* exit_stmt)
 {
   assert(exit_stmt->kind == AstEnum::exitStatement);
 }
 
-void BuiltinMethodBuilder::visit_conditionalStatement(Ast* cond_stmt)
+void BuiltinMethodsPass::visit_conditionalStatement(Ast* cond_stmt)
 {
   assert(cond_stmt->kind == AstEnum::conditionalStatement);
   visit_expression(cond_stmt->conditionalStatement.cond_expr);
@@ -701,7 +701,7 @@ void BuiltinMethodBuilder::visit_conditionalStatement(Ast* cond_stmt)
   }
 }
 
-void BuiltinMethodBuilder::visit_directApplication(Ast* applic_stmt)
+void BuiltinMethodsPass::visit_directApplication(Ast* applic_stmt)
 {
   assert(applic_stmt->kind == AstEnum::directApplication);
   if (applic_stmt->directApplication.name->kind == AstEnum::name) {
@@ -712,7 +712,7 @@ void BuiltinMethodBuilder::visit_directApplication(Ast* applic_stmt)
   visit_argumentList(applic_stmt->directApplication.args);
 }
 
-void BuiltinMethodBuilder::visit_statement(Ast* stmt)
+void BuiltinMethodsPass::visit_statement(Ast* stmt)
 {
   assert(stmt->kind == AstEnum::statement);
   if (stmt->statement.stmt->kind == AstEnum::assignmentStatement) {
@@ -736,13 +736,13 @@ void BuiltinMethodBuilder::visit_statement(Ast* stmt)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_blockStatement(Ast* block_stmt)
+void BuiltinMethodsPass::visit_blockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AstEnum::blockStatement);
   visit_statementOrDeclList(block_stmt->blockStatement.stmt_list);
 }
 
-void BuiltinMethodBuilder::visit_statementOrDeclList(Ast* stmt_list)
+void BuiltinMethodsPass::visit_statementOrDeclList(Ast* stmt_list)
 {
   assert(stmt_list->kind == AstEnum::statementOrDeclList);
   AstTree* ast;
@@ -753,14 +753,14 @@ void BuiltinMethodBuilder::visit_statementOrDeclList(Ast* stmt_list)
   }
 }
 
-void BuiltinMethodBuilder::visit_switchStatement(Ast* switch_stmt)
+void BuiltinMethodsPass::visit_switchStatement(Ast* switch_stmt)
 {
   assert(switch_stmt->kind == AstEnum::switchStatement);
   visit_expression(switch_stmt->switchStatement.expr);
   visit_switchCases(switch_stmt->switchStatement.switch_cases);
 }
 
-void BuiltinMethodBuilder::visit_switchCases(Ast* switch_cases)
+void BuiltinMethodsPass::visit_switchCases(Ast* switch_cases)
 {
   assert(switch_cases->kind == AstEnum::switchCases);
   AstTree* ast;
@@ -771,7 +771,7 @@ void BuiltinMethodBuilder::visit_switchCases(Ast* switch_cases)
   }
 }
 
-void BuiltinMethodBuilder::visit_switchCase(Ast* switch_case)
+void BuiltinMethodsPass::visit_switchCase(Ast* switch_case)
 {
   assert(switch_case->kind == AstEnum::switchCase);
   visit_switchLabel(switch_case->switchCase.label);
@@ -780,7 +780,7 @@ void BuiltinMethodBuilder::visit_switchCase(Ast* switch_case)
   }
 }
 
-void BuiltinMethodBuilder::visit_switchLabel(Ast* label)
+void BuiltinMethodsPass::visit_switchLabel(Ast* label)
 {
   assert(label->kind == AstEnum::switchLabel);
   if (label->switchLabel.label->kind == AstEnum::name) {
@@ -790,7 +790,7 @@ void BuiltinMethodBuilder::visit_switchLabel(Ast* label)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_statementOrDeclaration(Ast* stmt)
+void BuiltinMethodsPass::visit_statementOrDeclaration(Ast* stmt)
 {
   assert(stmt->kind == AstEnum::statementOrDeclaration);
   if (stmt->statementOrDeclaration.stmt->kind == AstEnum::variableDeclaration) {
@@ -804,7 +804,7 @@ void BuiltinMethodBuilder::visit_statementOrDeclaration(Ast* stmt)
 
 /** TABLES **/
 
-void BuiltinMethodBuilder::visit_tableDeclaration(Ast* table_decl)
+void BuiltinMethodsPass::visit_tableDeclaration(Ast* table_decl)
 {
   assert(table_decl->kind == AstEnum::tableDeclaration);
   Ast* type_ref, *return_type, *method, *name;
@@ -835,7 +835,7 @@ void BuiltinMethodBuilder::visit_tableDeclaration(Ast* table_decl)
   tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 
-void BuiltinMethodBuilder::visit_tablePropertyList(Ast* prop_list)
+void BuiltinMethodsPass::visit_tablePropertyList(Ast* prop_list)
 {
   assert(prop_list->kind == AstEnum::tablePropertyList);
   AstTree* ast;
@@ -846,7 +846,7 @@ void BuiltinMethodBuilder::visit_tablePropertyList(Ast* prop_list)
   }
 }
 
-void BuiltinMethodBuilder::visit_tableProperty(Ast* table_prop)
+void BuiltinMethodsPass::visit_tableProperty(Ast* table_prop)
 {
   assert(table_prop->kind == AstEnum::tableProperty);
   if (table_prop->tableProperty.prop->kind == AstEnum::keyProperty) {
@@ -864,13 +864,13 @@ void BuiltinMethodBuilder::visit_tableProperty(Ast* table_prop)
   else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_keyProperty(Ast* key_prop)
+void BuiltinMethodsPass::visit_keyProperty(Ast* key_prop)
 {
   assert(key_prop->kind == AstEnum::keyProperty);
   visit_keyElementList(key_prop->keyProperty.keyelem_list);
 }
 
-void BuiltinMethodBuilder::visit_keyElementList(Ast* element_list)
+void BuiltinMethodsPass::visit_keyElementList(Ast* element_list)
 {
   assert(element_list->kind == AstEnum::keyElementList);
   AstTree* ast;
@@ -881,20 +881,20 @@ void BuiltinMethodBuilder::visit_keyElementList(Ast* element_list)
   }
 }
 
-void BuiltinMethodBuilder::visit_keyElement(Ast* element)
+void BuiltinMethodsPass::visit_keyElement(Ast* element)
 {
   assert(element->kind == AstEnum::keyElement);
   visit_expression(element->keyElement.expr);
   visit_name(element->keyElement.match);
 }
 
-void BuiltinMethodBuilder::visit_actionsProperty(Ast* actions_prop)
+void BuiltinMethodsPass::visit_actionsProperty(Ast* actions_prop)
 {
   assert(actions_prop->kind == AstEnum::actionsProperty);
   visit_actionList(actions_prop->actionsProperty.action_list);
 }
 
-void BuiltinMethodBuilder::visit_actionList(Ast* action_list)
+void BuiltinMethodsPass::visit_actionList(Ast* action_list)
 {
   assert(action_list->kind == AstEnum::actionList);
   AstTree* ast;
@@ -905,7 +905,7 @@ void BuiltinMethodBuilder::visit_actionList(Ast* action_list)
   }
 }
 
-void BuiltinMethodBuilder::visit_actionRef(Ast* action_ref)
+void BuiltinMethodsPass::visit_actionRef(Ast* action_ref)
 {
   assert(action_ref->kind == AstEnum::actionRef);
   visit_name(action_ref->actionRef.name);
@@ -915,13 +915,13 @@ void BuiltinMethodBuilder::visit_actionRef(Ast* action_ref)
 }
 
 #if 0
-void BuiltinMethodBuilder::visit_entriesProperty(Ast* entries_prop)
+void BuiltinMethodsPass::visit_entriesProperty(Ast* entries_prop)
 {
   assert(entries_prop->kind == AstEnum::entriesProperty);
   visit_entriesList(entries_prop->entriesProperty.entries_list);
 }
 
-void BuiltinMethodBuilder::visit_entriesList(Ast* entries_list)
+void BuiltinMethodsPass::visit_entriesList(Ast* entries_list)
 {
   assert(entries_list->kind == AstEnum::entriesList);
   AstTree* ast;
@@ -932,14 +932,14 @@ void BuiltinMethodBuilder::visit_entriesList(Ast* entries_list)
   }
 }
 
-void BuiltinMethodBuilder::visit_entry(Ast* entry)
+void BuiltinMethodsPass::visit_entry(Ast* entry)
 {
   assert(entry->kind == AstEnum::entry);
   visit_keysetExpression(entry->entry.keyset);
   visit_actionRef(entry->entry.action);
 }
 
-void BuiltinMethodBuilder::visit_simpleProperty(Ast* simple_prop)
+void BuiltinMethodsPass::visit_simpleProperty(Ast* simple_prop)
 {
   assert(simple_prop->kind == AstEnum::simpleProperty);
   visit_name(simple_prop->simpleProperty.name);
@@ -947,7 +947,7 @@ void BuiltinMethodBuilder::visit_simpleProperty(Ast* simple_prop)
 }
 #endif
 
-void BuiltinMethodBuilder::visit_actionDeclaration(Ast* action_decl)
+void BuiltinMethodsPass::visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AstEnum::actionDeclaration);
   visit_name(action_decl->actionDeclaration.name);
@@ -957,7 +957,7 @@ void BuiltinMethodBuilder::visit_actionDeclaration(Ast* action_decl)
 
 /** VARIABLES **/
 
-void BuiltinMethodBuilder::visit_variableDeclaration(Ast* var_decl)
+void BuiltinMethodsPass::visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AstEnum::variableDeclaration);
   visit_typeRef(var_decl->variableDeclaration.type);
@@ -969,14 +969,14 @@ void BuiltinMethodBuilder::visit_variableDeclaration(Ast* var_decl)
 
 /** EXPRESSIONS **/
 
-void BuiltinMethodBuilder::visit_functionDeclaration(Ast* func_decl)
+void BuiltinMethodsPass::visit_functionDeclaration(Ast* func_decl)
 {
   assert(func_decl->kind == AstEnum::functionDeclaration);
   visit_functionPrototype(func_decl->functionDeclaration.proto);
   visit_blockStatement(func_decl->functionDeclaration.stmt);
 }
 
-void BuiltinMethodBuilder::visit_argumentList(Ast* arg_list)
+void BuiltinMethodsPass::visit_argumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AstEnum::argumentList);
   AstTree* ast;
@@ -987,7 +987,7 @@ void BuiltinMethodBuilder::visit_argumentList(Ast* arg_list)
   }
 }
 
-void BuiltinMethodBuilder::visit_argument(Ast* arg)
+void BuiltinMethodsPass::visit_argument(Ast* arg)
 {
   assert(arg->kind == AstEnum::argument);
   if (arg->argument.arg->kind == AstEnum::expression) {
@@ -997,7 +997,7 @@ void BuiltinMethodBuilder::visit_argument(Ast* arg)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_expressionList(Ast* expr_list)
+void BuiltinMethodsPass::visit_expressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::expressionList);
   AstTree* ast;
@@ -1008,7 +1008,7 @@ void BuiltinMethodBuilder::visit_expressionList(Ast* expr_list)
   }
 }
 
-void BuiltinMethodBuilder::visit_lvalueExpression(Ast* lvalue_expr)
+void BuiltinMethodsPass::visit_lvalueExpression(Ast* lvalue_expr)
 {
   assert(lvalue_expr->kind == AstEnum::lvalueExpression);
   if (lvalue_expr->lvalueExpression.expr->kind == AstEnum::name) {
@@ -1020,7 +1020,7 @@ void BuiltinMethodBuilder::visit_lvalueExpression(Ast* lvalue_expr)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_expression(Ast* expr)
+void BuiltinMethodsPass::visit_expression(Ast* expr)
 {
   assert(expr->kind == AstEnum::expression);
   if (expr->expression.expr->kind == AstEnum::expression) {
@@ -1052,27 +1052,27 @@ void BuiltinMethodBuilder::visit_expression(Ast* expr)
   } else assert(0);
 }
 
-void BuiltinMethodBuilder::visit_castExpression(Ast* cast_expr)
+void BuiltinMethodsPass::visit_castExpression(Ast* cast_expr)
 {
   assert(cast_expr->kind == AstEnum::castExpression);
   visit_typeRef(cast_expr->castExpression.type);
   visit_expression(cast_expr->castExpression.expr);
 }
 
-void BuiltinMethodBuilder::visit_unaryExpression(Ast* unary_expr)
+void BuiltinMethodsPass::visit_unaryExpression(Ast* unary_expr)
 {
   assert(unary_expr->kind == AstEnum::unaryExpression);
   visit_expression(unary_expr->unaryExpression.operand);
 }
 
-void BuiltinMethodBuilder::visit_binaryExpression(Ast* binary_expr)
+void BuiltinMethodsPass::visit_binaryExpression(Ast* binary_expr)
 {
   assert(binary_expr->kind == AstEnum::binaryExpression);
   visit_expression(binary_expr->binaryExpression.left_operand);
   visit_expression(binary_expr->binaryExpression.right_operand);
 }
 
-void BuiltinMethodBuilder::visit_memberSelector(Ast* selector)
+void BuiltinMethodsPass::visit_memberSelector(Ast* selector)
 {
   assert(selector->kind == AstEnum::memberSelector);
   if (selector->memberSelector.lhs_expr->kind == AstEnum::expression) {
@@ -1083,7 +1083,7 @@ void BuiltinMethodBuilder::visit_memberSelector(Ast* selector)
   visit_name(selector->memberSelector.name);
 }
 
-void BuiltinMethodBuilder::visit_arraySubscript(Ast* subscript)
+void BuiltinMethodsPass::visit_arraySubscript(Ast* subscript)
 {
   assert(subscript->kind == AstEnum::arraySubscript);
   if (subscript->arraySubscript.lhs_expr->kind == AstEnum::expression) {
@@ -1094,7 +1094,7 @@ void BuiltinMethodBuilder::visit_arraySubscript(Ast* subscript)
   visit_indexExpression(subscript->arraySubscript.index_expr);
 }
 
-void BuiltinMethodBuilder::visit_indexExpression(Ast* index_expr)
+void BuiltinMethodsPass::visit_indexExpression(Ast* index_expr)
 {
   assert(index_expr->kind == AstEnum::indexExpression);
   visit_expression(index_expr->indexExpression.start_index);
@@ -1103,27 +1103,27 @@ void BuiltinMethodBuilder::visit_indexExpression(Ast* index_expr)
   }
 }
 
-void BuiltinMethodBuilder::visit_booleanLiteral(Ast* bool_literal)
+void BuiltinMethodsPass::visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AstEnum::booleanLiteral);
 }
 
-void BuiltinMethodBuilder::visit_integerLiteral(Ast* int_literal)
+void BuiltinMethodsPass::visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AstEnum::integerLiteral);
 }
 
-void BuiltinMethodBuilder::visit_stringLiteral(Ast* str_literal)
+void BuiltinMethodsPass::visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AstEnum::stringLiteral);
 }
 
-void BuiltinMethodBuilder::visit_default(Ast* default_)
+void BuiltinMethodsPass::visit_default(Ast* default_)
 {
   assert(default_->kind == AstEnum::default_);
 }
 
-void BuiltinMethodBuilder::visit_dontcare(Ast* dontcare)
+void BuiltinMethodsPass::visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AstEnum::dontcare);
 }
