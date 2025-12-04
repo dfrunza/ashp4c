@@ -25,7 +25,6 @@ void SourceText::read_source(char* filename)
   this->filename = filename;
 }
 
-
 char Lexer::char_lookahead(int pos)
 {
   char* char_pos;
