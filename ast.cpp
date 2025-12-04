@@ -1,4 +1,4 @@
-#include "ast_tree.h"
+#include "ast.h"
 
 void AstTreeCtor::append_node(AstTree* tree, AstTree* node) {
   AstTree* first_child;

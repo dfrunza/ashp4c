@@ -1,6 +1,6 @@
 #pragma once
 #include "arena.h"
-#include "ast_tree.h"
+#include "ast.h"
 
 enum class AstEnum {
   none = 0,
@@ -195,6 +195,17 @@ inline ParamDirection operator | (ParamDirection lhs, ParamDirection rhs) {
 inline ParamDirection operator & (ParamDirection lhs, ParamDirection rhs) {
   return (ParamDirection)((int)lhs & (int)rhs);
 }
+
+struct AstTree {
+  AstTree* first_child;
+  AstTree* right_sibling;
+};
+
+struct AstTreeCtor {
+  AstTree* last_sibling;
+
+  void append_node(AstTree* tree, AstTree* node);
+};
 
 struct Ast {
   enum AstEnum kind;

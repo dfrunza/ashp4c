@@ -1,5 +1,5 @@
 #pragma once
-#include "parse.h"
+#include "ast.h"
 
 enum class TypeEnum : int {
   NONE = 0,

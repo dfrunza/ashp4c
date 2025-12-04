@@ -2,12 +2,12 @@
 #include "strmap.h"
 #include "map.h"
 #include "lex.h"
-#include "parse.h"
+#include "ast.h"
 #include "namespace.h"
 #include "scope.h"
 #include "type.h"
 #include "type_checker.h"
-#include "ast_tree.h"
+#include "ast.h"
 
 struct Parser {
   Arena* storage;
