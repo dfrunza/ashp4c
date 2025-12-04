@@ -52,7 +52,7 @@ void Parser::define_keywords(Scope* scope)
   NameDeclaration* name_decl;
 
   for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
-    name_decl = scope->bind(storage, keywords[i].strname, NameSpace::KEYWORD);
+    name_decl = scope->bind_name(storage, keywords[i].strname, NameSpace::KEYWORD);
     name_decl->token_class = keywords[i].token_class;
   }
 }
@@ -415,7 +415,7 @@ Ast* Parser::parse_packageTypeDeclaration()
     package_decl->column_no = token->column_no;
     if (token->token_is_name()) {
       name = parse_name();
-      current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
+      current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       package_decl->packageTypeDeclaration.name = name;
       if (token->klass == TokenClass::PARENTH_OPEN) {
         next_token();
@@ -585,7 +585,7 @@ Ast* Parser::parse_parserTypeDeclaration()
     parser_proto->parserTypeDeclaration.method_protos = method_protos;
     if (token->token_is_name()) {
       name = parse_name();
-      current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
+      current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       parser_proto->parserTypeDeclaration.name = name;
       if (token->klass == TokenClass::PARENTH_OPEN) {
         next_token();
@@ -1016,7 +1016,7 @@ Ast* Parser::parse_controlTypeDeclaration()
     control_proto->controlTypeDeclaration.method_protos = method_protos;
     if (token->token_is_name()) {
       name = parse_name();
-      current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
+      current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       control_proto->controlTypeDeclaration.name = name;
       if (token->klass == TokenClass::PARENTH_OPEN) {
         next_token();
@@ -1129,7 +1129,7 @@ Ast* Parser::parse_externDeclaration()
       extern_type->column_no = token->column_no;
       extern_type->externTypeDeclaration.name = parse_nonTypeName();
       name = extern_type->externTypeDeclaration.name;
-      current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
+      current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       if (token->klass == TokenClass::BRACE_OPEN) {
         next_token();
         extern_type->externTypeDeclaration.method_protos = parse_methodPrototypes();
@@ -1184,7 +1184,7 @@ Ast* Parser::parse_functionPrototype(Ast* return_type)
       return_type = parse_typeOrVoid();
       if (return_type->kind == AstEnum::name) {
         name = return_type;
-        current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
+        current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
         type_ref = (Ast*)storage->malloc(sizeof(Ast));
         type_ref->kind = AstEnum::typeRef;
         type_ref->line_no = token->line_no;
@@ -1678,7 +1678,7 @@ Ast* Parser::parse_headerTypeDeclaration()
     header_decl->column_no = token->column_no;
     if (token->token_is_name()) {
       name = parse_name();
-      current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
+      current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       header_decl->headerTypeDeclaration.name = name;
       if (token->klass == TokenClass::BRACE_OPEN) {
         next_token();
@@ -1711,7 +1711,7 @@ Ast* Parser::parse_headerUnionDeclaration()
     union_decl->column_no = token->column_no;
     if (token->token_is_name()) {
       name = parse_name();
-      current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
+      current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       union_decl->headerUnionDeclaration.name = name;
       if (token->klass == TokenClass::BRACE_OPEN) {
         next_token();
@@ -1744,7 +1744,7 @@ Ast* Parser::parse_structTypeDeclaration()
     struct_decl->column_no = token->column_no;
     if (token->token_is_name()) {
       name = parse_name();
-      current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
+      current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       struct_decl->structTypeDeclaration.name = name;
       if (token->klass == TokenClass::BRACE_OPEN) {
         next_token();
@@ -1835,7 +1835,7 @@ Ast* Parser::parse_enumDeclaration()
     }
     if (token->token_is_name()) {
       name = parse_name();
-      current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
+      current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       enum_decl->enumDeclaration.name = name;
       if (token->klass == TokenClass::BRACE_OPEN) {
         next_token();
@@ -2004,7 +2004,7 @@ Ast* Parser::parse_typedefDeclaration()
       } else assert(0);
       if (token->token_is_name()) {
         name = parse_name();
-        current_scope->bind(storage, name->name.strname, NameSpace::TYPE);
+        current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
         type_decl->typedefDeclaration.name = name;
         if (token->klass == TokenClass::SEMICOLON) {
           next_token();

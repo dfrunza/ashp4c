@@ -25,7 +25,7 @@ void SourceText::read_source(char* filename)
   this->filename = filename;
 }
 
-char Lexer::char_lookahead(int pos)
+char Lexer::lookahead_char(int pos)
 {
   char* char_pos;
 
@@ -34,7 +34,7 @@ char Lexer::char_lookahead(int pos)
   return *char_pos;
 }
 
-char Lexer::char_advance(int pos)
+char Lexer::advance_char(int pos)
 {
   char* char_pos;
 
@@ -44,7 +44,7 @@ char Lexer::char_advance(int pos)
   return *char_pos;
 }
 
-char Lexer::char_retract()
+char Lexer::retract_char()
 {
   char result;
 
@@ -53,7 +53,7 @@ char Lexer::char_retract()
   return result;
 }
 
-void Lexer::lexeme_advance()
+void Lexer::advance_lexeme()
 {
   lexeme->start = ++lexeme->end;
   assert(lexeme->start <= (text + text_size));
@@ -176,18 +176,18 @@ void Lexer::next_token(Token* token)
   memset(token, 0, sizeof(Token));
   state = 1;
   while (state) {
-    c = char_lookahead(0);
+    c = lookahead_char(0);
     switch (state) {
       default: assert(0);
 
       case 1:
       {
         if (c == ' ' || c == '\t' || c == '\n' || c == '\r') {
-          lexeme_advance();
+          advance_lexeme();
           if (c == '\n' || c == '\r') {
-            cc = char_lookahead(0);
+            cc = lookahead_char(0);
             if (c + cc == '\n' + '\r') {
-              lexeme_advance();
+              advance_lexeme();
             }
             line_no += 1;
             line_start = lexeme->start;
@@ -265,7 +265,7 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::UNKNOWN;
         token->lexeme = "<unknown>";
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -274,7 +274,7 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::LEXICAL_ERROR;
         token->lexeme = "<error>";
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -283,54 +283,54 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::SEMICOLON;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
       case 101:
       {
-        if (char_lookahead(1) == '=') {
-          char_advance(1);
+        if (lookahead_char(1) == '=') {
+          advance_char(1);
           token->klass = TokenClass::ANGLE_OPEN_EQUAL;
-        } else if (char_lookahead(1) == '<') {
-          char_advance(1);
+        } else if (lookahead_char(1) == '<') {
+          advance_char(1);
           token->klass = TokenClass::DOUBLE_ANGLE_OPEN;
         } else {
           token->klass = TokenClass::ANGLE_OPEN;
         }
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
       case 102:
       {
-        if (char_lookahead(1) == '=') {
-          char_advance(1);
+        if (lookahead_char(1) == '=') {
+          advance_char(1);
           token->klass = TokenClass::ANGLE_CLOSE_EQUAL;
-        } else if (char_lookahead(1) == '>') {
-          char_advance(1);
+        } else if (lookahead_char(1) == '>') {
+          advance_char(1);
           token->klass = TokenClass::DOUBLE_ANGLE_CLOSE;
         } else {
           token->klass = TokenClass::ANGLE_CLOSE;
         }
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
       case 103:
       {
-        cc = char_lookahead(1);
+        cc = lookahead_char(1);
         if (cstring::is_letter(cc) || cstring::is_digit(cc, 10) || cc == '_') {
           state = 500;
         } else {
           token->klass = TokenClass::DONTCARE;
           token->lexeme = lexeme->to_cstring(storage);
           token->column_no = lexeme->start - line_start + 1;
-          lexeme_advance();
+          advance_lexeme();
           state = 0;
         }
       } break;
@@ -340,7 +340,7 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::COLON;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -349,7 +349,7 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::PARENTH_OPEN;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       }
       break;
@@ -359,7 +359,7 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::PARENTH_CLOSE;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -368,7 +368,7 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::DOT;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -377,7 +377,7 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::BRACE_OPEN;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -386,7 +386,7 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::BRACE_CLOSE;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -395,7 +395,7 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::BRACKET_OPEN;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -404,7 +404,7 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::BRACKET_CLOSE;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -413,7 +413,7 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::COMMA;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -427,7 +427,7 @@ void Lexer::next_token(Token* token)
         }
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -436,7 +436,7 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::PLUS;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -445,60 +445,60 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::STAR;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
       case 116:
       {
-        if (char_lookahead(1) == '*') {
-          char_advance(1);
+        if (lookahead_char(1) == '*') {
+          advance_char(1);
           state = 310;
-        } else if (char_lookahead(1) == '/') {
+        } else if (lookahead_char(1) == '/') {
           state = 311;
         } else {
           token->klass = TokenClass::SLASH;
           token->lexeme = lexeme->to_cstring(storage);
           token->column_no = lexeme->start - line_start + 1;
-          lexeme_advance();
+          advance_lexeme();
           state = 0;
         }
       } break;
 
       case 117:
       {
-        if (char_lookahead(1) == '=') {
-          char_advance(1);
+        if (lookahead_char(1) == '=') {
+          advance_char(1);
           token->klass = TokenClass::DOUBLE_EQUAL;
         } else {
           token->klass = TokenClass::EQUAL;
         }
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
       case 118:
       {
-        if (char_lookahead(1) == '=') {
-          char_advance(1);
+        if (lookahead_char(1) == '=') {
+          advance_char(1);
           token->klass = TokenClass::EXCLAMATION_EQUAL;
         } else {
           token->klass = TokenClass::EXCLAMATION;
         }
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
       case 119:
       {
-        if (char_lookahead(1) == '&') {
-          char_advance(1);
-          if (char_lookahead(1) == '&') {
-            char_advance(1);
+        if (lookahead_char(1) == '&') {
+          advance_char(1);
+          if (lookahead_char(1) == '&') {
+            advance_char(1);
             token->klass = TokenClass::TRIPLE_AMPERSAND;
           } else {
             token->klass = TokenClass::DOUBLE_AMPERSAND;
@@ -508,21 +508,21 @@ void Lexer::next_token(Token* token)
         }
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
       case 120:
       {
-        if (char_lookahead(1) == '|') {
-          char_advance(1);
+        if (lookahead_char(1) == '|') {
+          advance_char(1);
           token->klass = TokenClass::DOUBLE_PIPE;
         } else {
           token->klass = TokenClass::PIPE;
         }
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -531,7 +531,7 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::CIRCUMFLEX;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -540,14 +540,14 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::TILDA;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
       case 200:
       {
         do {
-          c = char_advance(1);
+          c = advance_char(1);
           if (c == '\\') {
             state = 201;
             break;
@@ -559,13 +559,13 @@ void Lexer::next_token(Token* token)
         token->klass = TokenClass::STRING_LITERAL;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
       case 201:
       {
-        c = char_advance(1);
+        c = advance_char(1);
         if (c == '\n' || c == '\r') {
           line_no += 1;
           line_start = lexeme->start;
@@ -580,21 +580,21 @@ void Lexer::next_token(Token* token)
       case 310:
       {
         do {
-          c = char_advance(1);
+          c = advance_char(1);
           if (c == '\n' || c == '\r') {
-            char cc = char_lookahead(1);
+            char cc = lookahead_char(1);
             if (c + cc == '\n' + '\r') {
-              c = char_advance(1);
+              c = advance_char(1);
             }
             line_no += 1;
           }
         } while (c != '*');
 
-        if (char_lookahead(1) == '/') {
-          char_advance(1);
+        if (lookahead_char(1) == '/') {
+          advance_char(1);
           token->klass = TokenClass::COMMENT;
           token->lexeme = lexeme->to_cstring(storage);
-          lexeme_advance();
+          advance_lexeme();
           line_start = lexeme->start;
           state = 0;
         } else {
@@ -605,13 +605,13 @@ void Lexer::next_token(Token* token)
       case 311:
       {
         do {
-          c = char_advance(1);
+          c = advance_char(1);
         } while (c != '\n' && c != '\r');
 
         line_no += 1;
         token->klass = TokenClass::COMMENT;
         token->lexeme = lexeme->to_cstring(storage);
-        lexeme_advance();
+        advance_lexeme();
         line_start = lexeme->start;
         state = 0;
       } break;
@@ -619,18 +619,18 @@ void Lexer::next_token(Token* token)
       case 400:
       {
         if (c == '0') {
-          c = char_lookahead(1);
+          c = lookahead_char(1);
           if (c == 'x' || c == 'X') {
             state = 402;
-            char_advance(2);
+            advance_char(2);
             break;
           } else if (c == 'o' || c == 'O') {
             state = 403;
-            char_advance(2);
+            advance_char(2);
             break;
           } else if (c == 'b' || c == 'B') {
             state = 404;
-            char_advance(2);
+            advance_char(2);
             break;
           }
         }
@@ -643,7 +643,7 @@ void Lexer::next_token(Token* token)
         // ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
-          c = char_advance(1);
+          c = advance_char(1);
         } while (cstring::is_digit(c, 10));
         if (c == 'w' || c == 's') {
           token->klass = TokenClass::INTEGER_LITERAL;
@@ -652,17 +652,17 @@ void Lexer::next_token(Token* token)
           }
           lexeme[1].end = lexeme->end - 1;  // omit w|s
           token->integer.width = parse_integer(lexeme[1].to_cstring(storage), 10);
-          char_advance(1);
+          advance_char(1);
           state = 405;
         } else {
-          char_retract();
+          retract_char();
           lexeme[1].end = lexeme->end;
           token->klass = TokenClass::INTEGER_LITERAL;
           token->integer.is_signed = 1;
           token_install_integer(token, &lexeme[1], 10);
           token->lexeme = lexeme->to_cstring(storage);
           token->column_no = lexeme->start - line_start + 1;
-          lexeme_advance();
+          advance_lexeme();
           state = 0;
         }
       } break;
@@ -673,16 +673,16 @@ void Lexer::next_token(Token* token)
         //   ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
-          c = char_advance(1);
+          c = advance_char(1);
         } while (cstring::is_digit(c, 16) || c == '_');
-        char_retract();
+        retract_char();
         lexeme[1].end = lexeme->end;
         token->klass = TokenClass::INTEGER_LITERAL;
         token->integer.is_signed = 1;
         token_install_integer(token, &lexeme[1], 16);
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -692,16 +692,16 @@ void Lexer::next_token(Token* token)
         //   ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
-          c = char_advance(1);
+          c = advance_char(1);
         } while (cstring::is_digit(c, 8) || c == '_');
-        char_retract();
+        retract_char();
         lexeme[1].end = lexeme->end;
         token->klass = TokenClass::INTEGER_LITERAL;
         token->integer.is_signed = 1;
         token_install_integer(token, &lexeme[1], 8);
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -711,34 +711,34 @@ void Lexer::next_token(Token* token)
         //   ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
-          c = char_advance(1);
+          c = advance_char(1);
         } while (cstring::is_digit(c, 2) || c == '_');
-        char_retract();
+        retract_char();
         lexeme[1].end = lexeme->end;
         token->klass = TokenClass::INTEGER_LITERAL;
         token->integer.is_signed = 1;
         token_install_integer(token, &lexeme[1], 2);
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
       case 405:
       {
         if (c == '0') {
-          c = char_lookahead(1);
+          c = lookahead_char(1);
           if (c == 'x' || c == 'X') {
             state = 406;
-            char_advance(2);
+            advance_char(2);
             break;
           } else if (c == 'o' || c == 'O') {
             state = 407;
-            char_advance(2);
+            advance_char(2);
             break;
           } else if (c == 'b' || c == 'B') {
             state = 408;
-            char_advance(2);
+            advance_char(2);
             break;
           }
         }
@@ -751,14 +751,14 @@ void Lexer::next_token(Token* token)
         //          ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
-          c = char_advance(1);
+          c = advance_char(1);
         } while (cstring::is_digit(c, 16) || c == '_');
-        char_retract();
+        retract_char();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 16);
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -768,14 +768,14 @@ void Lexer::next_token(Token* token)
         //          ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
-          c = char_advance(1);
+          c = advance_char(1);
         } while (cstring::is_digit(c, 8) || c == '_');
-        char_retract();
+        retract_char();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 8);
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -785,14 +785,14 @@ void Lexer::next_token(Token* token)
         //          ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
-          c = char_advance(1);
+          c = advance_char(1);
         } while (cstring::is_digit(c, 2) || c == '_');
-        char_retract();
+        retract_char();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 2);
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
@@ -802,27 +802,27 @@ void Lexer::next_token(Token* token)
         //        ^^
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
-          c = char_advance(1);
+          c = advance_char(1);
         } while (cstring::is_digit(c, 10));
-        char_retract();
+        retract_char();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 10);
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
 
       case 500:
       {
         do {
-          c = char_advance(1);
+          c = advance_char(1);
         } while (cstring::is_letter(c) || cstring::is_digit(c, 10) || c == '_');
-        char_retract();
+        retract_char();
         token->klass = TokenClass::IDENTIFIER;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
-        lexeme_advance();
+        advance_lexeme();
         state = 0;
       } break;
     }

@@ -26,6 +26,7 @@ struct Strmap {
   void grow();
   void* lookup(char* key, StrmapEntry** entry, StrmapBucket* bucket);
   StrmapEntry* insert(char* key, void* value, bool return_if_found);
+  void DEBUG_occupancy();
 };
 
 struct StrmapCursor {
@@ -36,4 +37,3 @@ struct StrmapCursor {
   void begin(Strmap* strmap);
   StrmapEntry* next();
 };
-

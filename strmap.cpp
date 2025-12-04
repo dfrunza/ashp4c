@@ -186,7 +186,7 @@ StrmapEntry* StrmapCursor::next()
   return entry;
 }
 
-void Debug_strmap_occupancy(Strmap* strmap)
+void Strmap::DEBUG_occupancy()
 {
   StrmapEntry** entry_slot;
   StrmapEntry* entry;
@@ -195,8 +195,8 @@ void Debug_strmap_occupancy(Strmap* strmap)
       entry_count = 0,
       max_bucket_length = 0;
 
-  for (int i = 0; i < strmap->capacity; i++) {
-    entry_slot = (StrmapEntry**)strmap->entries.locate_cell(i, sizeof(StrmapEntry*));
+  for (int i = 0; i < capacity; i++) {
+    entry_slot = (StrmapEntry**)entries.locate_cell(i, sizeof(StrmapEntry*));
     entry = *entry_slot;
     entry_count = 0;
     if (entry) {

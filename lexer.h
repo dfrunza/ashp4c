@@ -23,20 +23,20 @@ struct Lexeme {
 
 struct Lexer {
   Arena* storage;
-  char*  text;
-  int    text_size;
-  char*  filename;
-  int    line_no;
-  char*  line_start;
-  int    state;
-  Token  token;
+  char* text;
+  int text_size;
+  char* filename;
+  int line_no;
+  char* line_start;
+  int state;
+  Token token;
   Lexeme lexeme[2];
   Array* tokens;
 
-  char char_lookahead(int pos);
-  char char_advance(int pos);
-  char char_retract();
-  void lexeme_advance();
+  char lookahead_char(int pos);
+  char advance_char(int pos);
+  char retract_char();
+  void advance_lexeme();
   void token_install_integer(Token* token, Lexeme* lexeme, int base);
   void next_token(Token* token);
   void tokenize(SourceText* source_text);

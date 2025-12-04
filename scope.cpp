@@ -55,7 +55,7 @@ NameDeclaration* Scope::builtin_lookup(char* strname, enum NameSpace ns)
   return name_entry->ns[(int)ns >> 1];
 }
 
-NameDeclaration* Scope::bind(Arena* storage, char*strname, enum NameSpace ns)
+NameDeclaration* Scope::bind_name(Arena* storage, char* strname, enum NameSpace ns)
 {
   assert((int)ns > 0);
   NameDeclaration* name_decl;

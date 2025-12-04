@@ -50,7 +50,7 @@ void TypeChecker::collect_matching_member(PotentialType* tau, Type* product_ty,
   }
 }
 
-static void Debug_print_potential_types(PotentialType* tau)
+static void DEBUG_print_potential_types(PotentialType* tau)
 {
   MapEntry* m;
   Type* ty;

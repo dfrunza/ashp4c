@@ -12,5 +12,5 @@ struct Scope {
   Scope* pop();
   NameEntry* lookup(char* name, enum NameSpace ns);
   NameDeclaration* builtin_lookup(char* strname, enum NameSpace ns);
-  NameDeclaration* bind(Arena* storage, char* strname, enum NameSpace ns);
+  NameDeclaration* bind_name(Arena* storage, char* strname, enum NameSpace ns);
 };
