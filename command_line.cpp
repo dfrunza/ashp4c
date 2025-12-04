@@ -39,7 +39,7 @@ CommandLineArg* CommandLineArg::parse_cmdline_args(Arena* storage, int arg_count
   int i = 1;
   while (i < arg_count) {
     cmdline_arg = (CommandLineArg*)storage->malloc(sizeof(CommandLineArg));
-    if (cstr_start_with(args[i], "-")) {
+    if (cstring::start_with(args[i], "-")) {
       raw_arg = args[i] + 1;  /* skip the `-` prefix */
       cmdline_arg->name = raw_arg;
     } else {
@@ -58,7 +58,7 @@ CommandLineArg* CommandLineArg::find_named_arg(char* name, CommandLineArg* args)
   CommandLineArg* named_arg = 0;
   CommandLineArg* arg = args;
   while (arg) {
-    if (arg->name && cstr_match(name, arg->name)) {
+    if (arg->name && cstring::match(name, arg->name)) {
       named_arg = arg;
       break;
     }

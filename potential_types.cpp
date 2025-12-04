@@ -39,7 +39,7 @@ void TypeChecker::collect_matching_member(PotentialType* tau, Type* product_ty,
 
   for (int i = 0; i < product_ty->product.count; i++) {
     member_ty = product_ty->product.members[i];
-    if (cstr_match(member_ty->strname, strname)) {
+    if (cstring::match(member_ty->strname, strname)) {
       if (member_ty->ty_former == TypeEnum::FUNCTION) {
         if (match_params(potential_args, member_ty->function.params)) {
           tau->set.members.insert(member_ty, 0, 1);

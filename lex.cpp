@@ -109,12 +109,12 @@ static int parse_integer(char* str, int base)
   char c;
 
   c = *str++;
-  assert(cstr_is_digit(c, base) || c == '_');
+  assert(cstring::is_digit(c, base) || c == '_');
   if (c != '_') {
     result = digit_to_integer(c, base);
   }
   for (c = *str++; c != '\0'; c = *str++) {
-    if (cstr_is_digit(c, base)) {
+    if (cstring::is_digit(c, base)) {
       result = result*base + digit_to_integer(c, base);
     } else if (c == '_') {
       continue;
@@ -128,7 +128,7 @@ void Lexer::token_install_integer(Token* token, Lexeme* lexeme, int base)
   char* string;
 
   string = lexeme_to_cstring(storage, lexeme);
-  if (cstr_is_digit(*string, base) || *string == '_') {
+  if (cstring::is_digit(*string, base) || *string == '_') {
     token->integer.value = parse_integer(string, base);
   } else {
     if (base == 10) {
@@ -221,9 +221,9 @@ void Lexer::next_token(Token* token)
           state = 122;
         } else if (c == '"') {
           state = 200;
-        } else if (cstr_is_digit(c, 10)) {
+        } else if (cstring::is_digit(c, 10)) {
           state = 400;
-        } else if (cstr_is_letter(c)) {
+        } else if (cstring::is_letter(c)) {
           state = 500;
         } else if (c == '\0') {
           state = 2;
@@ -303,7 +303,7 @@ void Lexer::next_token(Token* token)
       case 103:
       {
         cc = char_lookahead(1);
-        if (cstr_is_letter(cc) || cstr_is_digit(cc, 10) || cc == '_') {
+        if (cstring::is_letter(cc) || cstring::is_digit(cc, 10) || cc == '_') {
           state = 500;
         } else {
           token->klass = TokenClass::DONTCARE;
@@ -623,7 +623,7 @@ void Lexer::next_token(Token* token)
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
           c = char_advance(1);
-        } while (cstr_is_digit(c, 10));
+        } while (cstring::is_digit(c, 10));
         if (c == 'w' || c == 's') {
           token->klass = TokenClass::INTEGER_LITERAL;
           if (c == 's') {
@@ -653,7 +653,7 @@ void Lexer::next_token(Token* token)
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
           c = char_advance(1);
-        } while (cstr_is_digit(c, 16) || c == '_');
+        } while (cstring::is_digit(c, 16) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
         token->klass = TokenClass::INTEGER_LITERAL;
@@ -672,7 +672,7 @@ void Lexer::next_token(Token* token)
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
           c = char_advance(1);
-        } while (cstr_is_digit(c, 8) || c == '_');
+        } while (cstring::is_digit(c, 8) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
         token->klass = TokenClass::INTEGER_LITERAL;
@@ -691,7 +691,7 @@ void Lexer::next_token(Token* token)
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
           c = char_advance(1);
-        } while (cstr_is_digit(c, 2) || c == '_');
+        } while (cstring::is_digit(c, 2) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
         token->klass = TokenClass::INTEGER_LITERAL;
@@ -731,7 +731,7 @@ void Lexer::next_token(Token* token)
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
           c = char_advance(1);
-        } while (cstr_is_digit(c, 16) || c == '_');
+        } while (cstring::is_digit(c, 16) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 16);
@@ -748,7 +748,7 @@ void Lexer::next_token(Token* token)
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
           c = char_advance(1);
-        } while (cstr_is_digit(c, 8) || c == '_');
+        } while (cstring::is_digit(c, 8) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 8);
@@ -765,7 +765,7 @@ void Lexer::next_token(Token* token)
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
           c = char_advance(1);
-        } while (cstr_is_digit(c, 2) || c == '_');
+        } while (cstring::is_digit(c, 2) || c == '_');
         char_retract();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 2);
@@ -782,7 +782,7 @@ void Lexer::next_token(Token* token)
         lexeme[1].start = lexeme[1].end = lexeme->end;
         do {
           c = char_advance(1);
-        } while (cstr_is_digit(c, 10));
+        } while (cstring::is_digit(c, 10));
         char_retract();
         lexeme[1].end = lexeme->end;
         token_install_integer(token, &lexeme[1], 10);
@@ -796,7 +796,7 @@ void Lexer::next_token(Token* token)
       {
         do {
           c = char_advance(1);
-        } while (cstr_is_letter(c) || cstr_is_digit(c, 10) || c == '_');
+        } while (cstring::is_letter(c) || cstring::is_digit(c, 10) || c == '_');
         char_retract();
         token->klass = TokenClass::IDENTIFIER;
         token->lexeme = lexeme_to_cstring(storage, lexeme);

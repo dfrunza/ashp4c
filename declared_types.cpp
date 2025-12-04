@@ -152,17 +152,17 @@ bool TypeChecker::structural_type_equiv(Type* left, Type* right)
     return 1;
   } else if (left->ty_former == TypeEnum::ENUM) {
     if (right->ty_former == left->ty_former) {
-      return cstr_match(left->strname, right->strname);
+      return cstring::match(left->strname, right->strname);
     }
     return 0;
   } else if (left->ty_former == TypeEnum::EXTERN) {
     if (right->ty_former == left->ty_former) {
-      return cstr_match(left->strname, right->strname);
+      return cstring::match(left->strname, right->strname);
     }
     return 0;
   } else if (left->ty_former == TypeEnum::TABLE) {
     if (right->ty_former == left->ty_former) {
-      return cstr_match(left->strname, right->strname);
+      return cstring::match(left->strname, right->strname);
     }
     return 0;
   } else if (left->ty_former == TypeEnum::PRODUCT) {
@@ -831,7 +831,7 @@ void DeclaredTypesPass::visit_externTypeDeclaration(Ast* type_decl)
   ctors_ty->ty_former = TypeEnum::PRODUCT;
   ctors_ty->ast = type_decl;
   for (int i = 0; i < methods_ty->product.count; i++) {
-    if (cstr_match(methods_ty->product.members[i]->strname, name->name.strname)) {
+    if (cstring::match(methods_ty->product.members[i]->strname, name->name.strname)) {
       ctors_ty->product.count += 1;
     }
   }
@@ -839,7 +839,7 @@ void DeclaredTypesPass::visit_externTypeDeclaration(Ast* type_decl)
     ctors_ty->product.members = (Type**)storage->malloc(ctors_ty->product.count * sizeof(Type*));
   }
   for (int i = 0; i < methods_ty->product.count; i++) {
-    if (cstr_match(methods_ty->product.members[i]->strname, name->name.strname)) {
+    if (cstring::match(methods_ty->product.members[i]->strname, name->name.strname)) {
       ctors_ty->product.members[i] = methods_ty->product.members[i];
     }
   }
@@ -897,7 +897,7 @@ void DeclaredTypesPass::visit_functionPrototype(Ast* func_proto, Type* ctor_ty, 
   return_type = func_proto->functionPrototype.return_type;
   if (return_type) {
     func_ty->function.return_ = (Type*)type_env->lookup(return_type, 0);
-  } else if (cstr_match(name->name.strname, ctor_strname)) {
+  } else if (cstring::match(name->name.strname, ctor_strname)) {
     func_ty->function.return_ = ctor_ty;
   } else assert(0);
   name_decl = (NameDeclaration*)decl_map->lookup(func_proto, 0);

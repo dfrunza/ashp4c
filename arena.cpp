@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "basic.h"
 #include "foundation.h"
 
 #define ZMEM_ON_FREE  0

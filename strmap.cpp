@@ -111,7 +111,7 @@ void* Strmap::lookup(char* key, StrmapEntry** entry_/*out*/, StrmapBucket* bucke
   entry_slot = (StrmapEntry**)entries.locate_cell(h, sizeof(StrmapEntry*));
   entry = *entry_slot;
   while (entry) {
-    if (cstr_match(entry->key, key)) {
+    if (cstring::match(entry->key, key)) {
       break;
     }
     entry = entry->next_entry;
