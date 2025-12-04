@@ -101,19 +101,6 @@ void DEBUG_scope_decls(Scope* scope)
   printf("\nTotal names: %d\n", count);
 }
 
-char* NameSpace_to_string(enum NameSpace ns)
-{
-  switch (ns) {
-    case NameSpace::VAR: return "VAR";
-    case NameSpace::TYPE: return "TYPE";
-    case NameSpace::KEYWORD: return "KEYWORD";
-
-    default: return "?";
-  }
-  assert(0);
-  return 0;
-}
-
 void NameBindingPass::do_pass()
 {
   current_scope = root_scope;
