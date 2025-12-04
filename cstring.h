@@ -1,0 +1,10 @@
+bool cstr_is_letter(char c);
+bool cstr_is_digit(char c, int base);
+bool cstr_is_ascii_printable(char c);
+bool cstr_is_whitespace(char c);
+int cstr_len(char* str);
+char* cstr_copy(char* dest_str, char* src_str);
+void cstr_copy_substr(char* dest_str, char* begin_char, char* end_char);
+bool cstr_start_with(char* str, char* prefix);
+bool cstr_match(char* str_a, char* str_b);
+void cstr_print_substr(char* begin_char, char* end_char);

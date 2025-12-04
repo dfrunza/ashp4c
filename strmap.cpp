@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <math.h>
+#include "basic.h"
+#include "cstring.h"
 #include "foundation.h"
 
 static const uint32_t P = 257, Q = 4294967029;

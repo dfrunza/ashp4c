@@ -2,28 +2,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define KILOBYTE 1024
-#define MEGABYTE 1024*KILOBYTE
-
-void assert_(char* message, char* file, int line);
-#define assert(expr) do { if(!(expr)) assert_(#expr, __FILE__, __LINE__); } while(0)
-void error_(char* file, int line, char* message, ...);
-#define error(msg, ...) error_(__FILE__, __LINE__, (msg), ## __VA_ARGS__)
-/* macro define offsetof(type, field) ( (int) (((type*)0)->field) ) */
-#define container_of(member_ptr, container_type, member_name) \
-    ( (container_type*)((char*)member_ptr - offsetof(container_type, member_name)) )
-
-bool cstr_is_letter(char c);
-bool cstr_is_digit(char c, int base);
-bool cstr_is_ascii_printable(char c);
-bool cstr_is_whitespace(char c);
-int cstr_len(char* str);
-char* cstr_copy(char* dest_str, char* src_str);
-void cstr_copy_substr(char* dest_str, char* begin_char, char* end_char);
-bool cstr_start_with(char* str, char* prefix);
-bool cstr_match(char* str_a, char* str_b);
-void cstr_print_substr(char* begin_char, char* end_char);
-
 struct PageBlock {
   struct PageBlock* next_block;
   struct PageBlock* prev_block;

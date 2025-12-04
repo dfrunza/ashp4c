@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "ashp4c.h"
+#include "basic.h"
+#include "cstring.h"
 #include "command_line.cpp"
+#include "ashp4c.h"
 
 void SourceText::read_source(char* filename)
 {
@@ -19,9 +21,9 @@ void SourceText::read_source(char* filename)
   fread(text, sizeof(char), text_size, f_stream);
   text[text_size] = '\0';
   fclose(f_stream);
-  text = text;
-  text_size = text_size;
-  filename = filename;
+  this->text = text;
+  this->text_size = text_size;
+  this->filename = filename;
 }
 
 int main(int arg_count, char* args[])
