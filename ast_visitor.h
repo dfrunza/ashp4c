@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stdio.h>
-#include "frontend.h"
+#include <ast.h>
 
 struct AstVisitor {
 

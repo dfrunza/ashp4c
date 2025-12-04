@@ -1,5 +1,6 @@
 #pragma once
-#include "type.h"
+#include <lexer.h>
+#include <type.h>
 
 struct NameEntry;
 struct NameDeclaration;

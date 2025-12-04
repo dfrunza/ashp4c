@@ -1,6 +1,6 @@
 #pragma once
-#include "arena.h"
-#include "array.h"
+#include <arena.h>
+#include <array.h>
 
 struct SourceText {
   Arena* storage;

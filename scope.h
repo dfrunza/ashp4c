@@ -1,5 +1,6 @@
 #pragma once
-#include "namespace.h"
+#include <namespace.h>
+#include <strmap.h>
 
 struct Scope {
   int scope_level;

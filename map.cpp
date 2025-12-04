@@ -1,5 +1,5 @@
-#include "basic.h"
-#include "map.h"
+#include <basic.h>
+#include <map.h>
 
 MapEntry* Map::search_entry(MapEntry* entry, void* key)
 {

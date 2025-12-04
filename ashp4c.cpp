@@ -1,30 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "basic.h"
-#include "cstring.h"
-#include "command_line.cpp"
-#include "ashp4c.h"
-
-void SourceText::read_source(char* filename)
-{
-  FILE* f_stream;
-  char* text;
-
-  f_stream = fopen(filename, "rb");
-  if (!f_stream) {
-    error("Could not open file '%s'.", filename);
-  }
-  fseek(f_stream, 0, SEEK_END);
-  int text_size = ftell(f_stream);
-  fseek(f_stream, 0, SEEK_SET);
-  text = (char*)storage->malloc((text_size + 1)*sizeof(char));
-  fread(text, sizeof(char), text_size, f_stream);
-  text[text_size] = '\0';
-  fclose(f_stream);
-  this->text = text;
-  this->text_size = text_size;
-  this->filename = filename;
-}
+#include <basic.h>
+#include <command_line.h>
+#include <parser.h>
+#include <passes/drypass.h>
+#include <passes/builtin_methods.h>
+#include <passes/scope_hierarchy.h>
+#include <passes/name_binding.h>
+#include <passes/declared_type.h>
+#include <passes/potential_type.h>
+#include <passes/select_type.h>
 
 int main(int arg_count, char* args[])
 {
@@ -38,14 +23,14 @@ int main(int arg_count, char* args[])
   BuiltinMethodsPass builtin_methods = {};
   ScopeHierarchyPass scope_hierarchy = {};
   NameBindingPass name_binding = {};
-  DeclaredTypesPass declared_types = {};
-  PotentialTypesPass potential_types = {};
+  DeclaredTypePass declared_types = {};
+  PotentialTypePass potential_types = {};
   SelectTypePass select_type = {};
 
   Arena::reserve_memory(500*KILOBYTE);
 
   cmdline_arg = CommandLineArg::parse_cmdline_args(&storage, arg_count, args);
-  filename = find_unnamed_arg(cmdline_arg);
+  filename = cmdline_arg->find_unnamed_arg();
   if (!filename) {
     printf("<filename> is required.\n");
     exit(1);

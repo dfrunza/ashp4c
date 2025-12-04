@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "arena.h"
-#include "basic.h"
+#include <arena.h>
+#include <basic.h>
 
 #define ZMEM_ON_FREE  0
 #define ZMEM_ON_ALLOC 1

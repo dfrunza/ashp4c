@@ -1,5 +1,5 @@
-#include "frontend.h"
-#include "ashp4c.h"
+#include <ast.h>
+#include <passes/drypass.h>
 
 void DryPass::do_pass(Ast* ast)
 {

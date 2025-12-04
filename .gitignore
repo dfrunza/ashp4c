@@ -1,5 +1,4 @@
-.vimprj/indexer_files_tags/tags
+CMakeLists.txt
 .idea/
-build/*
+cmake-build-debug/*
 testdata/*.json
-ashp4c

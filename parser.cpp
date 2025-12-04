@@ -1,5 +1,5 @@
-#include "basic.h"
-#include "frontend.h"
+#include <basic.h>
+#include <parser.h>
 
 struct Keyword {
   char* strname;

@@ -1,9 +1,10 @@
 #include <stdio.h>
-#include "basic.h"
-#include "cstring.h"
-#include "frontend.h"
+#include <basic.h>
+#include <cstring.h>
+#include <type_checker.h>
+#include <passes/declared_type.h>
 
-void DeclaredTypesPass::define_builtin_types()
+void DeclaredTypePass::define_builtin_types()
 {
   char* base_types[] = {
     "void",
@@ -334,7 +335,7 @@ void Debug_print_type_array(Array* type_array)
   }
 }
 
-void DeclaredTypesPass::do_pass()
+void DeclaredTypePass::do_pass()
 {
   Ast* name;
   Type* ref_ty, *ty;
@@ -393,13 +394,13 @@ void DeclaredTypesPass::do_pass()
 
 /** PROGRAM **/
 
-void DeclaredTypesPass::visit_p4program(Ast* p4program)
+void DeclaredTypePass::visit_p4program(Ast* p4program)
 {
   assert(p4program->kind == AstEnum::p4program);
   visit_declarationList(p4program->p4program.decl_list);
 }
 
-void DeclaredTypesPass::visit_declarationList(Ast* decl_list)
+void DeclaredTypePass::visit_declarationList(Ast* decl_list)
 {
   assert(decl_list->kind == AstEnum::declarationList);
   AstTree* ast;
@@ -410,7 +411,7 @@ void DeclaredTypesPass::visit_declarationList(Ast* decl_list)
   }
 }
 
-void DeclaredTypesPass::visit_declaration(Ast* decl)
+void DeclaredTypePass::visit_declaration(Ast* decl)
 {
   assert(decl->kind == AstEnum::declaration);
   if (decl->declaration.decl->kind == AstEnum::variableDeclaration) {
@@ -440,7 +441,7 @@ void DeclaredTypesPass::visit_declaration(Ast* decl)
   } else assert(0);
 }
 
-void DeclaredTypesPass::visit_name(Ast* name)
+void DeclaredTypePass::visit_name(Ast* name)
 {
   assert(name->kind == AstEnum::name);
   Type* name_ty;
@@ -454,7 +455,7 @@ void DeclaredTypesPass::visit_name(Ast* name)
   type_env->insert(name, name_ty, 0);
 }
 
-void DeclaredTypesPass::visit_parameterList(Ast* params)
+void DeclaredTypePass::visit_parameterList(Ast* params)
 {
   assert(params->kind == AstEnum::parameterList);
   AstTree* ast;
@@ -482,7 +483,7 @@ void DeclaredTypesPass::visit_parameterList(Ast* params)
   type_env->insert(params, params_ty, 0);
 }
 
-void DeclaredTypesPass::visit_parameter(Ast* param)
+void DeclaredTypePass::visit_parameter(Ast* param)
 {
   assert(param->kind == AstEnum::parameter);
   NameDeclaration* name_decl;
@@ -498,7 +499,7 @@ void DeclaredTypesPass::visit_parameter(Ast* param)
   name_decl->type = param_ty;
 }
 
-void DeclaredTypesPass::visit_packageTypeDeclaration(Ast* type_decl)
+void DeclaredTypePass::visit_packageTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::packageTypeDeclaration);
   Ast* name;
@@ -517,7 +518,7 @@ void DeclaredTypesPass::visit_packageTypeDeclaration(Ast* type_decl)
   name_decl->type = package_ty;
 }
 
-void DeclaredTypesPass::visit_instantiation(Ast* inst)
+void DeclaredTypePass::visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AstEnum::instantiation);
   Type* inst_ty;
@@ -533,7 +534,7 @@ void DeclaredTypesPass::visit_instantiation(Ast* inst)
 
 /** PARSER **/
 
-void DeclaredTypesPass::visit_parserDeclaration(Ast* parser_decl)
+void DeclaredTypePass::visit_parserDeclaration(Ast* parser_decl)
 {
   assert(parser_decl->kind == AstEnum::parserDeclaration);
   Type* parser_ty;
@@ -548,7 +549,7 @@ void DeclaredTypesPass::visit_parserDeclaration(Ast* parser_decl)
   visit_parserStates(parser_decl->parserDeclaration.states);
 }
 
-void DeclaredTypesPass::visit_parserTypeDeclaration(Ast* type_decl)
+void DeclaredTypePass::visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::parserTypeDeclaration);
   Ast* name;
@@ -570,7 +571,7 @@ void DeclaredTypesPass::visit_parserTypeDeclaration(Ast* type_decl)
   name_decl->type = parser_ty;
 }
 
-void DeclaredTypesPass::visit_parserLocalElements(Ast* local_elements)
+void DeclaredTypePass::visit_parserLocalElements(Ast* local_elements)
 {
   assert(local_elements->kind == AstEnum::parserLocalElements);
   AstTree* ast;
@@ -581,7 +582,7 @@ void DeclaredTypesPass::visit_parserLocalElements(Ast* local_elements)
   }
 }
 
-void DeclaredTypesPass::visit_parserLocalElement(Ast* local_element)
+void DeclaredTypePass::visit_parserLocalElement(Ast* local_element)
 {
   assert(local_element->kind == AstEnum::parserLocalElement);
   if (local_element->parserLocalElement.element->kind == AstEnum::variableDeclaration) {
@@ -591,7 +592,7 @@ void DeclaredTypesPass::visit_parserLocalElement(Ast* local_element)
   } else assert(0);
 }
 
-void DeclaredTypesPass::visit_parserStates(Ast* states)
+void DeclaredTypePass::visit_parserStates(Ast* states)
 {
   assert(states->kind == AstEnum::parserStates);
   AstTree* ast;
@@ -602,7 +603,7 @@ void DeclaredTypesPass::visit_parserStates(Ast* states)
   }
 }
 
-void DeclaredTypesPass::visit_parserState(Ast* state)
+void DeclaredTypePass::visit_parserState(Ast* state)
 {
   assert(state->kind == AstEnum::parserState);
   Ast* name;
@@ -621,7 +622,7 @@ void DeclaredTypesPass::visit_parserState(Ast* state)
   name_decl->type = state_ty;
 }
 
-void DeclaredTypesPass::visit_parserStatements(Ast* stmts)
+void DeclaredTypePass::visit_parserStatements(Ast* stmts)
 {
   assert(stmts->kind == AstEnum::parserStatements);
   AstTree* ast;
@@ -632,7 +633,7 @@ void DeclaredTypesPass::visit_parserStatements(Ast* stmts)
   }
 }
 
-void DeclaredTypesPass::visit_parserStatement(Ast* stmt)
+void DeclaredTypePass::visit_parserStatement(Ast* stmt)
 {
   assert(stmt->kind == AstEnum::parserStatement);
   if (stmt->parserStatement.stmt->kind == AstEnum::assignmentStatement) {
@@ -650,19 +651,19 @@ void DeclaredTypesPass::visit_parserStatement(Ast* stmt)
   } else assert(0);
 }
 
-void DeclaredTypesPass::visit_parserBlockStatement(Ast* block_stmt)
+void DeclaredTypePass::visit_parserBlockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AstEnum::parserBlockStatement);
   visit_parserStatements(block_stmt->parserBlockStatement.stmt_list);
 }
 
-void DeclaredTypesPass::visit_transitionStatement(Ast* transition_stmt)
+void DeclaredTypePass::visit_transitionStatement(Ast* transition_stmt)
 {
   assert(transition_stmt->kind == AstEnum::transitionStatement);
   visit_stateExpression(transition_stmt->transitionStatement.stmt);
 }
 
-void DeclaredTypesPass::visit_stateExpression(Ast* state_expr)
+void DeclaredTypePass::visit_stateExpression(Ast* state_expr)
 {
   assert(state_expr->kind == AstEnum::stateExpression);
   if (state_expr->stateExpression.expr->kind == AstEnum::name) {
@@ -672,14 +673,14 @@ void DeclaredTypesPass::visit_stateExpression(Ast* state_expr)
   } else assert(0);
 }
 
-void DeclaredTypesPass::visit_selectExpression(Ast* select_expr)
+void DeclaredTypePass::visit_selectExpression(Ast* select_expr)
 {
   assert(select_expr->kind == AstEnum::selectExpression);
   visit_expressionList(select_expr->selectExpression.expr_list);
   visit_selectCaseList(select_expr->selectExpression.case_list);
 }
 
-void DeclaredTypesPass::visit_selectCaseList(Ast* case_list)
+void DeclaredTypePass::visit_selectCaseList(Ast* case_list)
 {
   assert(case_list->kind == AstEnum::selectCaseList);
   AstTree* ast;
@@ -690,13 +691,13 @@ void DeclaredTypesPass::visit_selectCaseList(Ast* case_list)
   }
 }
 
-void DeclaredTypesPass::visit_selectCase(Ast* select_case)
+void DeclaredTypePass::visit_selectCase(Ast* select_case)
 {
   assert(select_case->kind == AstEnum::selectCase);
   visit_keysetExpression(select_case->selectCase.keyset_expr);
 }
 
-void DeclaredTypesPass::visit_keysetExpression(Ast* keyset_expr)
+void DeclaredTypePass::visit_keysetExpression(Ast* keyset_expr)
 {
   assert(keyset_expr->kind == AstEnum::keysetExpression);
   if (keyset_expr->keysetExpression.expr->kind == AstEnum::tupleKeysetExpression) {
@@ -706,13 +707,13 @@ void DeclaredTypesPass::visit_keysetExpression(Ast* keyset_expr)
   } else assert(0);
 }
 
-void DeclaredTypesPass::visit_tupleKeysetExpression(Ast* tuple_expr)
+void DeclaredTypePass::visit_tupleKeysetExpression(Ast* tuple_expr)
 {
   assert(tuple_expr->kind == AstEnum::tupleKeysetExpression);
   visit_simpleExpressionList(tuple_expr->tupleKeysetExpression.expr_list);
 }
 
-void DeclaredTypesPass::visit_simpleKeysetExpression(Ast* simple_expr)
+void DeclaredTypePass::visit_simpleKeysetExpression(Ast* simple_expr)
 {
   assert(simple_expr->kind == AstEnum::simpleKeysetExpression);
   if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::expression) {
@@ -724,7 +725,7 @@ void DeclaredTypesPass::visit_simpleKeysetExpression(Ast* simple_expr)
   } else assert(0);
 }
 
-void DeclaredTypesPass::visit_simpleExpressionList(Ast* expr_list)
+void DeclaredTypePass::visit_simpleExpressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::simpleExpressionList);
   AstTree* ast;
@@ -737,7 +738,7 @@ void DeclaredTypesPass::visit_simpleExpressionList(Ast* expr_list)
 
 /** CONTROL **/
 
-void DeclaredTypesPass::visit_controlDeclaration(Ast* control_decl) {
+void DeclaredTypePass::visit_controlDeclaration(Ast* control_decl) {
   assert(control_decl->kind == AstEnum::controlDeclaration);
   Type* control_ty;
 
@@ -751,7 +752,7 @@ void DeclaredTypesPass::visit_controlDeclaration(Ast* control_decl) {
   visit_blockStatement(control_decl->controlDeclaration.apply_stmt);
 }
 
-void DeclaredTypesPass::visit_controlTypeDeclaration(Ast* type_decl)
+void DeclaredTypePass::visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::controlTypeDeclaration);
   Ast* name;
@@ -773,7 +774,7 @@ void DeclaredTypesPass::visit_controlTypeDeclaration(Ast* type_decl)
   name_decl->type = control_ty;
 }
 
-void DeclaredTypesPass::visit_controlLocalDeclarations(Ast* local_decls)
+void DeclaredTypePass::visit_controlLocalDeclarations(Ast* local_decls)
 {
   assert(local_decls->kind == AstEnum::controlLocalDeclarations);
   AstTree* ast;
@@ -784,7 +785,7 @@ void DeclaredTypesPass::visit_controlLocalDeclarations(Ast* local_decls)
   }
 }
 
-void DeclaredTypesPass::visit_controlLocalDeclaration(Ast* local_decl)
+void DeclaredTypePass::visit_controlLocalDeclaration(Ast* local_decl)
 {
   assert(local_decl->kind == AstEnum::controlLocalDeclaration);
   if (local_decl->controlLocalDeclaration.decl->kind == AstEnum::variableDeclaration) {
@@ -800,7 +801,7 @@ void DeclaredTypesPass::visit_controlLocalDeclaration(Ast* local_decl)
 
 /** EXTERN **/
 
-void DeclaredTypesPass::visit_externDeclaration(Ast* extern_decl)
+void DeclaredTypePass::visit_externDeclaration(Ast* extern_decl)
 {
   assert(extern_decl->kind == AstEnum::externDeclaration);
   if (extern_decl->externDeclaration.decl->kind == AstEnum::externTypeDeclaration) {
@@ -810,7 +811,7 @@ void DeclaredTypesPass::visit_externDeclaration(Ast* extern_decl)
   } else assert(0);
 }
 
-void DeclaredTypesPass::visit_externTypeDeclaration(Ast* type_decl)
+void DeclaredTypePass::visit_externTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::externTypeDeclaration);
   Ast* name;
@@ -847,7 +848,7 @@ void DeclaredTypesPass::visit_externTypeDeclaration(Ast* type_decl)
   name_decl->type = extern_ty;
 }
 
-void DeclaredTypesPass::visit_methodPrototypes(Ast* protos, Type* ctor_ty, char* ctor_strname)
+void DeclaredTypePass::visit_methodPrototypes(Ast* protos, Type* ctor_ty, char* ctor_strname)
 {
   assert(protos->kind == AstEnum::methodPrototypes);
   AstTree* ast;
@@ -875,7 +876,7 @@ void DeclaredTypesPass::visit_methodPrototypes(Ast* protos, Type* ctor_ty, char*
   type_env->insert(protos, methods_ty, 0);
 }
 
-void DeclaredTypesPass::visit_functionPrototype(Ast* func_proto, Type* ctor_ty, char* ctor_strname)
+void DeclaredTypePass::visit_functionPrototype(Ast* func_proto, Type* ctor_ty, char* ctor_strname)
 {
   assert(func_proto->kind == AstEnum::functionPrototype);
   Ast* name, *return_type;
@@ -905,7 +906,7 @@ void DeclaredTypesPass::visit_functionPrototype(Ast* func_proto, Type* ctor_ty, 
 
 /** TYPES **/
 
-void DeclaredTypesPass::visit_typeRef(Ast* type_ref)
+void DeclaredTypePass::visit_typeRef(Ast* type_ref)
 {
   assert(type_ref->kind == AstEnum::typeRef);
   Type* ref_ty;
@@ -935,7 +936,7 @@ void DeclaredTypesPass::visit_typeRef(Ast* type_ref)
   type_env->insert(type_ref, ref_ty, 0);
 }
 
-void DeclaredTypesPass::visit_tupleType(Ast* type_decl)
+void DeclaredTypePass::visit_tupleType(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::tupleType);
   Type* tuple_ty;
@@ -945,7 +946,7 @@ void DeclaredTypesPass::visit_tupleType(Ast* type_decl)
   type_env->insert(type_decl, tuple_ty, 0);
 }
 
-void DeclaredTypesPass::visit_headerStackType(Ast* type_decl)
+void DeclaredTypePass::visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::headerStackType);
   Type* stack_ty;
@@ -959,7 +960,7 @@ void DeclaredTypesPass::visit_headerStackType(Ast* type_decl)
   stack_ty->header_stack.element = (Type*)type_env->lookup(type_decl->headerStackType.type, 0);
 }
 
-void DeclaredTypesPass::visit_baseTypeBoolean(Ast* bool_type)
+void DeclaredTypePass::visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AstEnum::baseTypeBoolean);
   NameDeclaration* name_decl;
@@ -968,7 +969,7 @@ void DeclaredTypesPass::visit_baseTypeBoolean(Ast* bool_type)
   type_env->insert(bool_type, name_decl->type, 0);
 }
 
-void DeclaredTypesPass::visit_baseTypeInteger(Ast* int_type)
+void DeclaredTypePass::visit_baseTypeInteger(Ast* int_type)
 {
   assert(int_type->kind == AstEnum::baseTypeInteger);
   NameDeclaration* name_decl;
@@ -980,7 +981,7 @@ void DeclaredTypesPass::visit_baseTypeInteger(Ast* int_type)
   type_env->insert(int_type, name_decl->type, 0);
 }
 
-void DeclaredTypesPass::visit_baseTypeBit(Ast* bit_type)
+void DeclaredTypePass::visit_baseTypeBit(Ast* bit_type)
 {
   assert(bit_type->kind == AstEnum::baseTypeBit);
   NameDeclaration* name_decl;
@@ -992,7 +993,7 @@ void DeclaredTypesPass::visit_baseTypeBit(Ast* bit_type)
   type_env->insert(bit_type, name_decl->type, 0);
 }
 
-void DeclaredTypesPass::visit_baseTypeVarbit(Ast* varbit_type)
+void DeclaredTypePass::visit_baseTypeVarbit(Ast* varbit_type)
 {
   assert(varbit_type->kind == AstEnum::baseTypeVarbit);
   NameDeclaration* name_decl;
@@ -1002,7 +1003,7 @@ void DeclaredTypesPass::visit_baseTypeVarbit(Ast* varbit_type)
   type_env->insert(varbit_type, name_decl->type, 0);
 }
 
-void DeclaredTypesPass::visit_baseTypeString(Ast* str_type)
+void DeclaredTypePass::visit_baseTypeString(Ast* str_type)
 {
   assert(str_type->kind == AstEnum::baseTypeString);
   NameDeclaration* name_decl;
@@ -1011,7 +1012,7 @@ void DeclaredTypesPass::visit_baseTypeString(Ast* str_type)
   type_env->insert(str_type, name_decl->type, 0);
 }
 
-void DeclaredTypesPass::visit_baseTypeVoid(Ast* void_type)
+void DeclaredTypePass::visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AstEnum::baseTypeVoid);
   NameDeclaration* name_decl;
@@ -1020,7 +1021,7 @@ void DeclaredTypesPass::visit_baseTypeVoid(Ast* void_type)
   type_env->insert(void_type, name_decl->type, 0);
 }
 
-void DeclaredTypesPass::visit_baseTypeError(Ast* error_type)
+void DeclaredTypePass::visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AstEnum::baseTypeError);
   NameDeclaration* name_decl;
@@ -1029,12 +1030,12 @@ void DeclaredTypesPass::visit_baseTypeError(Ast* error_type)
   type_env->insert(error_type, name_decl->type, 0);
 }
 
-void DeclaredTypesPass::visit_integerTypeSize(Ast* type_size)
+void DeclaredTypePass::visit_integerTypeSize(Ast* type_size)
 {
   assert(type_size->kind == AstEnum::integerTypeSize);
 }
 
-void DeclaredTypesPass::visit_realTypeArg(Ast* type_arg)
+void DeclaredTypePass::visit_realTypeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AstEnum::realTypeArg);
   if (type_arg->realTypeArg.arg->kind == AstEnum::typeRef) {
@@ -1044,7 +1045,7 @@ void DeclaredTypesPass::visit_realTypeArg(Ast* type_arg)
   } else assert(0);
 }
 
-void DeclaredTypesPass::visit_typeArg(Ast* type_arg)
+void DeclaredTypePass::visit_typeArg(Ast* type_arg)
 {
   assert(type_arg->kind == AstEnum::typeArg);
   Type* arg_ty;
@@ -1060,7 +1061,7 @@ void DeclaredTypesPass::visit_typeArg(Ast* type_arg)
   type_env->insert(type_arg, arg_ty, 0);
 }
 
-void DeclaredTypesPass::visit_typeArgumentList(Ast* args)
+void DeclaredTypePass::visit_typeArgumentList(Ast* args)
 {
   assert(args->kind == AstEnum::typeArgumentList);
   AstTree* ast;
@@ -1088,7 +1089,7 @@ void DeclaredTypesPass::visit_typeArgumentList(Ast* args)
   type_env->insert(args, args_ty, 0);
 }
 
-void DeclaredTypesPass::visit_typeDeclaration(Ast* type_decl)
+void DeclaredTypePass::visit_typeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::typeDeclaration);
   Type* decl_ty;
@@ -1108,7 +1109,7 @@ void DeclaredTypesPass::visit_typeDeclaration(Ast* type_decl)
   type_env->insert(type_decl, decl_ty, 0);
 }
 
-void DeclaredTypesPass::visit_derivedTypeDeclaration(Ast* type_decl)
+void DeclaredTypePass::visit_derivedTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::derivedTypeDeclaration);
   Type* decl_ty;
@@ -1126,7 +1127,7 @@ void DeclaredTypesPass::visit_derivedTypeDeclaration(Ast* type_decl)
   type_env->insert(type_decl, decl_ty, 0);
 }
 
-void DeclaredTypesPass::visit_headerTypeDeclaration(Ast* header_decl)
+void DeclaredTypePass::visit_headerTypeDeclaration(Ast* header_decl)
 {
   assert(header_decl->kind == AstEnum::headerTypeDeclaration);
   Ast* name;
@@ -1145,7 +1146,7 @@ void DeclaredTypesPass::visit_headerTypeDeclaration(Ast* header_decl)
   name_decl->type = header_ty;
 }
 
-void DeclaredTypesPass::visit_headerUnionDeclaration(Ast* union_decl)
+void DeclaredTypePass::visit_headerUnionDeclaration(Ast* union_decl)
 {
   assert(union_decl->kind == AstEnum::headerUnionDeclaration);
   Ast* name;
@@ -1164,7 +1165,7 @@ void DeclaredTypesPass::visit_headerUnionDeclaration(Ast* union_decl)
   name_decl->type = union_ty;
 }
 
-void DeclaredTypesPass::visit_structTypeDeclaration(Ast* struct_decl)
+void DeclaredTypePass::visit_structTypeDeclaration(Ast* struct_decl)
 {
   assert(struct_decl->kind == AstEnum::structTypeDeclaration);
   Ast* name;
@@ -1183,7 +1184,7 @@ void DeclaredTypesPass::visit_structTypeDeclaration(Ast* struct_decl)
   name_decl->type = struct_ty;
 }
 
-void DeclaredTypesPass::visit_structFieldList(Ast* fields)
+void DeclaredTypePass::visit_structFieldList(Ast* fields)
 {
   assert(fields->kind == AstEnum::structFieldList);
   AstTree* ast;
@@ -1211,7 +1212,7 @@ void DeclaredTypesPass::visit_structFieldList(Ast* fields)
   type_env->insert(fields, fields_ty, 0);
 }
 
-void DeclaredTypesPass::visit_structField(Ast* field)
+void DeclaredTypePass::visit_structField(Ast* field)
 {
   assert(field->kind == AstEnum::structField);
   Ast* name;
@@ -1230,7 +1231,7 @@ void DeclaredTypesPass::visit_structField(Ast* field)
   name_decl->type = field_ty;
 }
 
-void DeclaredTypesPass::visit_enumDeclaration(Ast* enum_decl)
+void DeclaredTypePass::visit_enumDeclaration(Ast* enum_decl)
 {
   assert(enum_decl->kind == AstEnum::enumDeclaration);
   Ast* name;
@@ -1249,7 +1250,7 @@ void DeclaredTypesPass::visit_enumDeclaration(Ast* enum_decl)
   name_decl->type = enum_ty;
 }
 
-void DeclaredTypesPass::visit_errorDeclaration(Ast* error_decl)
+void DeclaredTypePass::visit_errorDeclaration(Ast* error_decl)
 {
   assert(error_decl->kind == AstEnum::errorDeclaration);
   Type* error_ty, *fields_ty;
@@ -1264,7 +1265,7 @@ void DeclaredTypesPass::visit_errorDeclaration(Ast* error_decl)
       error_ty->enum_.fields, &error_ty->enum_.i);
 }
 
-void DeclaredTypesPass::visit_matchKindDeclaration(Ast* match_decl)
+void DeclaredTypePass::visit_matchKindDeclaration(Ast* match_decl)
 {
   assert(match_decl->kind == AstEnum::matchKindDeclaration);
   Type* match_kind_ty, *fields_ty;
@@ -1279,7 +1280,7 @@ void DeclaredTypesPass::visit_matchKindDeclaration(Ast* match_decl)
       match_kind_ty->enum_.fields, &match_kind_ty->enum_.i);
 }
 
-void DeclaredTypesPass::visit_identifierList(Ast* ident_list, Type* enum_ty, Type* idents_ty, int* i)
+void DeclaredTypePass::visit_identifierList(Ast* ident_list, Type* enum_ty, Type* idents_ty, int* i)
 {
   assert(ident_list->kind == AstEnum::identifierList);
   AstTree* ast;
@@ -1304,7 +1305,7 @@ void DeclaredTypesPass::visit_identifierList(Ast* ident_list, Type* enum_ty, Typ
   *i = j;
 }
 
-void DeclaredTypesPass::visit_specifiedIdentifierList(Ast* ident_list, Type* enum_ty)
+void DeclaredTypePass::visit_specifiedIdentifierList(Ast* ident_list, Type* enum_ty)
 {
   assert(ident_list->kind == AstEnum::specifiedIdentifierList);
   AstTree* ast;
@@ -1332,7 +1333,7 @@ void DeclaredTypesPass::visit_specifiedIdentifierList(Ast* ident_list, Type* enu
   type_env->insert(ident_list, idents_ty, 0);
 }
 
-void DeclaredTypesPass::visit_specifiedIdentifier(Ast* ident, Type* enum_ty)
+void DeclaredTypePass::visit_specifiedIdentifier(Ast* ident, Type* enum_ty)
 {
   assert(ident->kind == AstEnum::specifiedIdentifier);
   Ast* name;
@@ -1350,7 +1351,7 @@ void DeclaredTypesPass::visit_specifiedIdentifier(Ast* ident, Type* enum_ty)
   name_decl->type = ident_ty;
 }
 
-void DeclaredTypesPass::visit_typedefDeclaration(Ast* typedef_decl)
+void DeclaredTypePass::visit_typedefDeclaration(Ast* typedef_decl)
 {
   assert(typedef_decl->kind == AstEnum::typedefDeclaration);
   Ast* name;
@@ -1375,7 +1376,7 @@ void DeclaredTypesPass::visit_typedefDeclaration(Ast* typedef_decl)
 
 /** STATEMENTS **/
 
-void DeclaredTypesPass::visit_assignmentStatement(Ast* assign_stmt)
+void DeclaredTypePass::visit_assignmentStatement(Ast* assign_stmt)
 {
   assert(assign_stmt->kind == AstEnum::assignmentStatement);
   if (assign_stmt->assignmentStatement.lhs_expr->kind == AstEnum::expression) {
@@ -1386,7 +1387,7 @@ void DeclaredTypesPass::visit_assignmentStatement(Ast* assign_stmt)
   visit_expression(assign_stmt->assignmentStatement.rhs_expr);
 }
 
-void DeclaredTypesPass::visit_functionCall(Ast* func_call)
+void DeclaredTypePass::visit_functionCall(Ast* func_call)
 {
   assert(func_call->kind == AstEnum::functionCall);
   if (func_call->functionCall.lhs_expr->kind == AstEnum::expression) {
@@ -1397,7 +1398,7 @@ void DeclaredTypesPass::visit_functionCall(Ast* func_call)
   visit_argumentList(func_call->functionCall.args);
 }
 
-void DeclaredTypesPass::visit_returnStatement(Ast* return_stmt)
+void DeclaredTypePass::visit_returnStatement(Ast* return_stmt)
 {
   assert(return_stmt->kind == AstEnum::returnStatement);
   if (return_stmt->returnStatement.expr) {
@@ -1405,12 +1406,12 @@ void DeclaredTypesPass::visit_returnStatement(Ast* return_stmt)
   }
 }
 
-void DeclaredTypesPass::visit_exitStatement(Ast* exit_stmt)
+void DeclaredTypePass::visit_exitStatement(Ast* exit_stmt)
 {
   assert(exit_stmt->kind == AstEnum::exitStatement);
 }
 
-void DeclaredTypesPass::visit_conditionalStatement(Ast* cond_stmt)
+void DeclaredTypePass::visit_conditionalStatement(Ast* cond_stmt)
 {
   assert(cond_stmt->kind == AstEnum::conditionalStatement);
   visit_expression(cond_stmt->conditionalStatement.cond_expr);
@@ -1420,7 +1421,7 @@ void DeclaredTypesPass::visit_conditionalStatement(Ast* cond_stmt)
   }
 }
 
-void DeclaredTypesPass::visit_directApplication(Ast* applic_stmt)
+void DeclaredTypePass::visit_directApplication(Ast* applic_stmt)
 {
   assert(applic_stmt->kind == AstEnum::directApplication);
   if (applic_stmt->directApplication.name->kind == AstEnum::typeRef) {
@@ -1429,7 +1430,7 @@ void DeclaredTypesPass::visit_directApplication(Ast* applic_stmt)
   visit_argumentList(applic_stmt->directApplication.args);
 }
 
-void DeclaredTypesPass::visit_statement(Ast* stmt)
+void DeclaredTypePass::visit_statement(Ast* stmt)
 {
   assert(stmt->kind == AstEnum::statement);
   if (stmt->statement.stmt->kind == AstEnum::assignmentStatement) {
@@ -1453,13 +1454,13 @@ void DeclaredTypesPass::visit_statement(Ast* stmt)
   } else assert(0);
 }
 
-void DeclaredTypesPass::visit_blockStatement(Ast* block_stmt)
+void DeclaredTypePass::visit_blockStatement(Ast* block_stmt)
 {
   assert(block_stmt->kind == AstEnum::blockStatement);
   visit_statementOrDeclList(block_stmt->blockStatement.stmt_list);
 }
 
-void DeclaredTypesPass::visit_statementOrDeclList(Ast* stmt_list)
+void DeclaredTypePass::visit_statementOrDeclList(Ast* stmt_list)
 {
   assert(stmt_list->kind == AstEnum::statementOrDeclList);
   AstTree* ast;
@@ -1470,14 +1471,14 @@ void DeclaredTypesPass::visit_statementOrDeclList(Ast* stmt_list)
   }
 }
 
-void DeclaredTypesPass::visit_switchStatement(Ast* switch_stmt)
+void DeclaredTypePass::visit_switchStatement(Ast* switch_stmt)
 {
   assert(switch_stmt->kind == AstEnum::switchStatement);
   visit_expression(switch_stmt->switchStatement.expr);
   visit_switchCases(switch_stmt->switchStatement.switch_cases);
 }
 
-void DeclaredTypesPass::visit_switchCases(Ast* switch_cases)
+void DeclaredTypePass::visit_switchCases(Ast* switch_cases)
 {
   assert(switch_cases->kind == AstEnum::switchCases);
   AstTree* ast;
@@ -1488,7 +1489,7 @@ void DeclaredTypesPass::visit_switchCases(Ast* switch_cases)
   }
 }
 
-void DeclaredTypesPass::visit_switchCase(Ast* switch_case)
+void DeclaredTypePass::visit_switchCase(Ast* switch_case)
 {
   assert(switch_case->kind == AstEnum::switchCase);
   visit_switchLabel(switch_case->switchCase.label);
@@ -1497,7 +1498,7 @@ void DeclaredTypesPass::visit_switchCase(Ast* switch_case)
   }
 }
 
-void DeclaredTypesPass::visit_switchLabel(Ast* label)
+void DeclaredTypePass::visit_switchLabel(Ast* label)
 {
   assert(label->kind == AstEnum::switchLabel);
   if (label->switchLabel.label->kind == AstEnum::name) {
@@ -1507,7 +1508,7 @@ void DeclaredTypesPass::visit_switchLabel(Ast* label)
   } else assert(0);
 }
 
-void DeclaredTypesPass::visit_statementOrDeclaration(Ast* stmt)
+void DeclaredTypePass::visit_statementOrDeclaration(Ast* stmt)
 {
   assert(stmt->kind == AstEnum::statementOrDeclaration);
   if (stmt->statementOrDeclaration.stmt->kind == AstEnum::variableDeclaration) {
@@ -1521,7 +1522,7 @@ void DeclaredTypesPass::visit_statementOrDeclaration(Ast* stmt)
 
 /** TABLES **/
 
-void DeclaredTypesPass::visit_tableDeclaration(Ast* table_decl)
+void DeclaredTypePass::visit_tableDeclaration(Ast* table_decl)
 {
   assert(table_decl->kind == AstEnum::tableDeclaration);
   Ast* name;
@@ -1542,7 +1543,7 @@ void DeclaredTypesPass::visit_tableDeclaration(Ast* table_decl)
   name_decl->type = table_ty;
 }
 
-void DeclaredTypesPass::visit_tablePropertyList(Ast* prop_list)
+void DeclaredTypePass::visit_tablePropertyList(Ast* prop_list)
 {
   assert(prop_list->kind == AstEnum::tablePropertyList);
   AstTree* ast;
@@ -1553,7 +1554,7 @@ void DeclaredTypesPass::visit_tablePropertyList(Ast* prop_list)
   }
 }
 
-void DeclaredTypesPass::visit_tableProperty(Ast* table_prop)
+void DeclaredTypePass::visit_tableProperty(Ast* table_prop)
 {
   assert(table_prop->kind == AstEnum::tableProperty);
   if (table_prop->tableProperty.prop->kind == AstEnum::keyProperty) {
@@ -1571,13 +1572,13 @@ void DeclaredTypesPass::visit_tableProperty(Ast* table_prop)
   else assert(0);
 }
 
-void DeclaredTypesPass::visit_keyProperty(Ast* key_prop)
+void DeclaredTypePass::visit_keyProperty(Ast* key_prop)
 {
   assert(key_prop->kind == AstEnum::keyProperty);
   visit_keyElementList(key_prop->keyProperty.keyelem_list);
 }
 
-void DeclaredTypesPass::visit_keyElementList(Ast* element_list)
+void DeclaredTypePass::visit_keyElementList(Ast* element_list)
 {
   assert(element_list->kind == AstEnum::keyElementList);
   AstTree* ast;
@@ -1588,19 +1589,19 @@ void DeclaredTypesPass::visit_keyElementList(Ast* element_list)
   }
 }
 
-void DeclaredTypesPass::visit_keyElement(Ast* element)
+void DeclaredTypePass::visit_keyElement(Ast* element)
 {
   assert(element->kind == AstEnum::keyElement);
   visit_expression(element->keyElement.expr);
 }
 
-void DeclaredTypesPass::visit_actionsProperty(Ast* actions_prop)
+void DeclaredTypePass::visit_actionsProperty(Ast* actions_prop)
 {
   assert(actions_prop->kind == AstEnum::actionsProperty);
   visit_actionList(actions_prop->actionsProperty.action_list);
 }
 
-void DeclaredTypesPass::visit_actionList(Ast* action_list)
+void DeclaredTypePass::visit_actionList(Ast* action_list)
 {
   assert(action_list->kind == AstEnum::actionList);
   AstTree* ast;
@@ -1611,7 +1612,7 @@ void DeclaredTypesPass::visit_actionList(Ast* action_list)
   }
 }
 
-void DeclaredTypesPass::visit_actionRef(Ast* action_ref)
+void DeclaredTypePass::visit_actionRef(Ast* action_ref)
 {
   assert(action_ref->kind == AstEnum::actionRef);
   if (action_ref->actionRef.args) {
@@ -1620,13 +1621,13 @@ void DeclaredTypesPass::visit_actionRef(Ast* action_ref)
 }
 
 #if 0
-void DeclaredTypesPass::visit_entriesProperty(Ast* entries_prop)
+void DeclaredTypePass::visit_entriesProperty(Ast* entries_prop)
 {
   assert(entries_prop->kind == AstEnum::entriesProperty);
   visit_entriesList(checker, entries_prop->entriesProperty.entries_list);
 }
 
-void DeclaredTypesPass::visit_entriesList(Ast* entries_list)
+void DeclaredTypePass::visit_entriesList(Ast* entries_list)
 {
   assert(entries_list->kind == AstEnum::entriesList);
   AstTree* ast;
@@ -1637,21 +1638,21 @@ void DeclaredTypesPass::visit_entriesList(Ast* entries_list)
   }
 }
 
-void DeclaredTypesPass::visit_entry(Ast* entry)
+void DeclaredTypePass::visit_entry(Ast* entry)
 {
   assert(entry->kind == AstEnum::entry);
   visit_keysetExpression(checker, entry->entry.keyset);
   visit_actionRef(checker, entry->entry.action);
 }
 
-void DeclaredTypesPass::visit_simpleProperty(Ast* simple_prop)
+void DeclaredTypePass::visit_simpleProperty(Ast* simple_prop)
 {
   assert(simple_prop->kind == AstEnum::simpleProperty);
   visit_expression(checker, simple_prop->simpleProperty.init_expr);
 }
 #endif
 
-void DeclaredTypesPass::visit_actionDeclaration(Ast* action_decl)
+void DeclaredTypePass::visit_actionDeclaration(Ast* action_decl)
 {
   assert(action_decl->kind == AstEnum::actionDeclaration);
   NameDeclaration* name_decl;
@@ -1674,7 +1675,7 @@ void DeclaredTypesPass::visit_actionDeclaration(Ast* action_decl)
 
 /** VARIABLES **/
 
-void DeclaredTypesPass::visit_variableDeclaration(Ast* var_decl)
+void DeclaredTypePass::visit_variableDeclaration(Ast* var_decl)
 {
   assert(var_decl->kind == AstEnum::variableDeclaration);
   NameDeclaration* name_decl;
@@ -1692,14 +1693,14 @@ void DeclaredTypesPass::visit_variableDeclaration(Ast* var_decl)
 
 /** EXPRESSIONS **/
 
-void DeclaredTypesPass::visit_functionDeclaration(Ast* func_decl)
+void DeclaredTypePass::visit_functionDeclaration(Ast* func_decl)
 {
   assert(func_decl->kind == AstEnum::functionDeclaration);
   visit_functionPrototype(func_decl->functionDeclaration.proto, 0, 0);
   visit_blockStatement(func_decl->functionDeclaration.stmt);
 }
 
-void DeclaredTypesPass::visit_argumentList(Ast* args)
+void DeclaredTypePass::visit_argumentList(Ast* args)
 {
   assert(args->kind == AstEnum::argumentList);
   AstTree* ast;
@@ -1710,7 +1711,7 @@ void DeclaredTypesPass::visit_argumentList(Ast* args)
   }
 }
 
-void DeclaredTypesPass::visit_argument(Ast* arg)
+void DeclaredTypePass::visit_argument(Ast* arg)
 {
   assert(arg->kind == AstEnum::argument);
   if (arg->argument.arg->kind == AstEnum::expression) {
@@ -1718,7 +1719,7 @@ void DeclaredTypesPass::visit_argument(Ast* arg)
   } else assert(0);
 }
 
-void DeclaredTypesPass::visit_expressionList(Ast* expr_list)
+void DeclaredTypePass::visit_expressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::expressionList);
   AstTree* ast;
@@ -1729,7 +1730,7 @@ void DeclaredTypesPass::visit_expressionList(Ast* expr_list)
   }
 }
 
-void DeclaredTypesPass::visit_lvalueExpression(Ast* lvalue_expr)
+void DeclaredTypePass::visit_lvalueExpression(Ast* lvalue_expr)
 {
   assert(lvalue_expr->kind == AstEnum::lvalueExpression);
   if (lvalue_expr->lvalueExpression.expr->kind == AstEnum::name) {
@@ -1741,7 +1742,7 @@ void DeclaredTypesPass::visit_lvalueExpression(Ast* lvalue_expr)
   } else assert(0);
 }
 
-void DeclaredTypesPass::visit_expression(Ast* expr)
+void DeclaredTypePass::visit_expression(Ast* expr)
 {
   assert(expr->kind == AstEnum::expression);
   if (expr->expression.expr->kind == AstEnum::expression) {
@@ -1773,27 +1774,27 @@ void DeclaredTypesPass::visit_expression(Ast* expr)
   } else assert(0);
 }
 
-void DeclaredTypesPass::visit_castExpression(Ast* cast_expr)
+void DeclaredTypePass::visit_castExpression(Ast* cast_expr)
 {
   assert(cast_expr->kind == AstEnum::castExpression);
   visit_typeRef(cast_expr->castExpression.type);
   visit_expression(cast_expr->castExpression.expr);
 }
 
-void DeclaredTypesPass::visit_unaryExpression(Ast* unary_expr)
+void DeclaredTypePass::visit_unaryExpression(Ast* unary_expr)
 {
   assert(unary_expr->kind == AstEnum::unaryExpression);
   visit_expression(unary_expr->unaryExpression.operand);
 }
 
-void DeclaredTypesPass::visit_binaryExpression(Ast* binary_expr)
+void DeclaredTypePass::visit_binaryExpression(Ast* binary_expr)
 {
   assert(binary_expr->kind == AstEnum::binaryExpression);
   visit_expression(binary_expr->binaryExpression.left_operand);
   visit_expression(binary_expr->binaryExpression.right_operand);
 }
 
-void DeclaredTypesPass::visit_memberSelector(Ast* selector)
+void DeclaredTypePass::visit_memberSelector(Ast* selector)
 {
   assert(selector->kind == AstEnum::memberSelector);
   if (selector->memberSelector.lhs_expr->kind == AstEnum::expression) {
@@ -1803,7 +1804,7 @@ void DeclaredTypesPass::visit_memberSelector(Ast* selector)
   } else assert(0);
 }
 
-void DeclaredTypesPass::visit_arraySubscript(Ast* subscript)
+void DeclaredTypePass::visit_arraySubscript(Ast* subscript)
 {
   assert(subscript->kind == AstEnum::arraySubscript);
   if (subscript->arraySubscript.lhs_expr->kind == AstEnum::expression) {
@@ -1814,7 +1815,7 @@ void DeclaredTypesPass::visit_arraySubscript(Ast* subscript)
   visit_indexExpression(subscript->arraySubscript.index_expr);
 }
 
-void DeclaredTypesPass::visit_indexExpression(Ast* index_expr)
+void DeclaredTypePass::visit_indexExpression(Ast* index_expr)
 {
   assert(index_expr->kind == AstEnum::indexExpression);
   Type* ty;
@@ -1827,7 +1828,7 @@ void DeclaredTypesPass::visit_indexExpression(Ast* index_expr)
   type_env->insert(index_expr, ty, 0);
 }
 
-void DeclaredTypesPass::visit_booleanLiteral(Ast* bool_literal)
+void DeclaredTypePass::visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AstEnum::booleanLiteral);
   Type* ty;
@@ -1836,7 +1837,7 @@ void DeclaredTypesPass::visit_booleanLiteral(Ast* bool_literal)
   type_env->insert(bool_literal, ty, 0);
 }
 
-void DeclaredTypesPass::visit_integerLiteral(Ast* int_literal)
+void DeclaredTypePass::visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AstEnum::integerLiteral);
   Type* ty;
@@ -1845,7 +1846,7 @@ void DeclaredTypesPass::visit_integerLiteral(Ast* int_literal)
   type_env->insert(int_literal, ty, 0);
 }
 
-void DeclaredTypesPass::visit_stringLiteral(Ast* str_literal)
+void DeclaredTypePass::visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AstEnum::stringLiteral);
   Type* ty;
@@ -1854,7 +1855,7 @@ void DeclaredTypesPass::visit_stringLiteral(Ast* str_literal)
   type_env->insert(str_literal, ty, 0);
 }
 
-void DeclaredTypesPass::visit_default(Ast* default_)
+void DeclaredTypePass::visit_default(Ast* default_)
 {
   assert(default_->kind == AstEnum::default_);
   Type* ty;
@@ -1863,7 +1864,7 @@ void DeclaredTypesPass::visit_default(Ast* default_)
   type_env->insert(default_, ty, 0);
 }
 
-void DeclaredTypesPass::visit_dontcare(Ast* dontcare)
+void DeclaredTypePass::visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AstEnum::dontcare);
   Type* ty;

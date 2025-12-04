@@ -1,8 +1,30 @@
 #include <memory.h>
-#include "basic.h"
-#include "cstring.h"
-#include "lex.h"
-#include "frontend.h"
+#include <stdio.h>
+#include <basic.h>
+#include <cstring.h>
+#include <lexer.h>
+
+void SourceText::read_source(char* filename)
+{
+  FILE* f_stream;
+  char* text;
+
+  f_stream = fopen(filename, "rb");
+  if (!f_stream) {
+    error("Could not open file '%s'.", filename);
+  }
+  fseek(f_stream, 0, SEEK_END);
+  int text_size = ftell(f_stream);
+  fseek(f_stream, 0, SEEK_SET);
+  text = (char*)storage->malloc((text_size + 1)*sizeof(char));
+  fread(text, sizeof(char), text_size, f_stream);
+  text[text_size] = '\0';
+  fclose(f_stream);
+  this->text = text;
+  this->text_size = text_size;
+  this->filename = filename;
+}
+
 
 char Lexer::char_lookahead(int pos)
 {

@@ -1,5 +1,6 @@
-#include "basic.h"
-#include "frontend.h"
+#include <basic.h>
+#include <namespace.h>
+#include <scope.h>
 
 static NameEntry NULL_ENTRY = {};
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "arena.h"
+#include <arena.h>
 
 struct MapEntry {
   MapEntry* next;
