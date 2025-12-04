@@ -1,6 +1,7 @@
 #include <memory.h>
 #include "basic.h"
 #include "cstring.h"
+#include "lex.h"
 #include "frontend.h"
 
 char Lexer::char_lookahead(int pos)
