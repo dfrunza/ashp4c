@@ -15,6 +15,10 @@ struct SourceText {
 struct Lexeme {
   char* start;
   char* end;
+
+  void lexeme_copy(char* dest);
+  int lexeme_len();
+  char* lexeme_to_cstring(Arena* storage);
 };
 
 struct Lexer {

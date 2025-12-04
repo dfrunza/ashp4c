@@ -16,7 +16,7 @@ struct PotentialType {
     } set;
 
     struct {
-      struct PotentialType** members;
+      PotentialType** members;
       int count;
     } product;
   };

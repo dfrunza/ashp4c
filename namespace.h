@@ -21,7 +21,7 @@ char* NameSpace_to_string(enum NameSpace ns);
 
 struct NameDeclaration {
   char* strname;
-  struct NameDeclaration* next_in_scope;
+  NameDeclaration* next_in_scope;
 
   union {
     Ast* ast;
