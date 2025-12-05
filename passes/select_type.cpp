@@ -447,7 +447,7 @@ void SelectTypePass::visit_headerStackType(Ast* type_decl)
   assert(type_decl->kind == AstEnum::headerStackType);
   Type* index_ty;
 
-  index_ty = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
+  index_ty = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
   visit_expression(type_decl->headerStackType.stack_expr, index_ty);
 }
 
@@ -456,7 +456,7 @@ void SelectTypePass::visit_baseTypeBoolean(Ast* bool_type)
   assert(bool_type->kind == AstEnum::baseTypeBoolean);
   Type* bool_ty;
 
-  bool_ty = root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
+  bool_ty = root_scope->lookup_builtin("bool", NameSpace::TYPE)->type;
   type_env->insert(bool_type, bool_ty, 0);
 }
 
@@ -468,7 +468,7 @@ void SelectTypePass::visit_baseTypeInteger(Ast* int_type)
   if (int_type->baseTypeInteger.size) {
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
-  int_ty = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
+  int_ty = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
   type_env->insert(int_type, int_ty, 0);
 }
 
@@ -480,7 +480,7 @@ void SelectTypePass::visit_baseTypeBit(Ast* bit_type)
   if (bit_type->baseTypeBit.size) {
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
-  bit_ty = root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
+  bit_ty = root_scope->lookup_builtin("bit", NameSpace::TYPE)->type;
   type_env->insert(bit_type, bit_ty, 0);
 }
 
@@ -489,7 +489,7 @@ void SelectTypePass::visit_baseTypeVarbit(Ast* varbit_type)
   assert(varbit_type->kind == AstEnum::baseTypeVarbit);
   Type* varbit_ty;
 
-  varbit_ty = root_scope->builtin_lookup("varbit", NameSpace::TYPE)->type;
+  varbit_ty = root_scope->lookup_builtin("varbit", NameSpace::TYPE)->type;
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
   type_env->insert(varbit_type, varbit_ty, 0);
 }
@@ -499,7 +499,7 @@ void SelectTypePass::visit_baseTypeString(Ast* string_type)
   assert(string_type->kind == AstEnum::baseTypeString);
   Type* string_ty;
 
-  string_ty = root_scope->builtin_lookup("string", NameSpace::TYPE)->type;
+  string_ty = root_scope->lookup_builtin("string", NameSpace::TYPE)->type;
   type_env->insert(string_type, string_ty, 0);
 }
 
@@ -508,7 +508,7 @@ void SelectTypePass::visit_baseTypeVoid(Ast* void_type)
   assert(void_type->kind == AstEnum::baseTypeVoid);
   Type* void_ty;
 
-  void_ty = root_scope->builtin_lookup("void", NameSpace::TYPE)->type;
+  void_ty = root_scope->lookup_builtin("void", NameSpace::TYPE)->type;
   type_env->insert(void_type, void_ty, 0);
 }
 
@@ -517,7 +517,7 @@ void SelectTypePass::visit_baseTypeError(Ast* error_type)
   assert(error_type->kind == AstEnum::baseTypeError);
   Type* error_ty;
 
-  error_ty = root_scope->builtin_lookup("error", NameSpace::TYPE)->type;
+  error_ty = root_scope->lookup_builtin("error", NameSpace::TYPE)->type;
   type_env->insert(error_type, error_ty, 0);
 }
 

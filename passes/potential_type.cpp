@@ -1273,7 +1273,7 @@ void PotentialTypePass::visit_binaryExpression(Ast* binary_expr)
   tau->kind = PotentialTypeEnum::SET;
   tau->set.members.storage = storage;
   potype_map->insert(binary_expr, tau, 0);
-  name_decl = root_scope->builtin_lookup(binary_expr->binaryExpression.strname, NameSpace::TYPE);
+  name_decl = root_scope->lookup_builtin(binary_expr->binaryExpression.strname, NameSpace::TYPE);
   for (; name_decl != 0; name_decl = name_decl->next_in_scope) {
     ty = name_decl->type;
     if (type_checker->match_params(&potential_args, ty->function.params)) {

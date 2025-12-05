@@ -47,7 +47,7 @@ NameEntry* Scope::lookup(char* strname, enum NameSpace ns)
   return &NULL_ENTRY;
 }
 
-NameDeclaration* Scope::builtin_lookup(char* strname, enum NameSpace ns)
+NameDeclaration* Scope::lookup_builtin(char* strname, enum NameSpace ns)
 {
   NameEntry* name_entry;
   assert (ns == NameSpace::VAR || ns == NameSpace::TYPE);

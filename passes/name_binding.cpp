@@ -60,11 +60,11 @@ void NameBindingPass::define_builtin_names()
     name_decl->type = ty;
   }
 
-  ty = root_scope->builtin_lookup("error", NameSpace::TYPE)->type;
+  ty = root_scope->lookup_builtin("error", NameSpace::TYPE)->type;
   ty->enum_.fields = (Type*)type_array->append();
   ty->enum_.fields->ty_former = TypeEnum::PRODUCT;
 
-  ty = root_scope->builtin_lookup("match_kind", NameSpace::TYPE)->type;
+  ty = root_scope->lookup_builtin("match_kind", NameSpace::TYPE)->type;
   ty->enum_.fields = (Type*)type_array->append();
   ty->enum_.fields->ty_former = TypeEnum::PRODUCT;
 }

@@ -40,12 +40,12 @@ void DeclaredTypePass::define_builtin_types()
     type_env->insert(name_decl->ast, name_decl->type, 0);
   }
 
-  ast = root_scope->builtin_lookup("accept", NameSpace::VAR)->ast;
+  ast = root_scope->lookup_builtin("accept", NameSpace::VAR)->ast;
   ty = (Type*)type_array->append();
   ty->ty_former = TypeEnum::STATE;
   type_env->insert(ast, ty, 0);
 
-  ast = root_scope->builtin_lookup("reject", NameSpace::VAR)->ast;
+  ast = root_scope->lookup_builtin("reject", NameSpace::VAR)->ast;
   ty = (Type*)type_array->append();
   ty->ty_former = TypeEnum::STATE;
   type_env->insert(ast, ty, 0);
@@ -58,10 +58,10 @@ void DeclaredTypePass::define_builtin_types()
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
     params_ty->product.members = storage->allocate<Type *>(params_ty->product.count);
-    params_ty->product.members[0] = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
-    params_ty->product.members[1] = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
+    params_ty->product.members[0] = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
+    params_ty->product.members[1] = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
+    ty->function.return_ = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
     name_decl = root_scope->bind_name(storage, ty->strname, NameSpace::TYPE);
     name_decl->type = ty;
   }
@@ -73,10 +73,10 @@ void DeclaredTypePass::define_builtin_types()
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
     params_ty->product.members = storage->allocate<Type *>(params_ty->product.count);
-    params_ty->product.members[0] = root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
-    params_ty->product.members[1] = root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
+    params_ty->product.members[0] = root_scope->lookup_builtin("bool", NameSpace::TYPE)->type;
+    params_ty->product.members[1] = root_scope->lookup_builtin("bool", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
+    ty->function.return_ = root_scope->lookup_builtin("bool", NameSpace::TYPE)->type;
     name_decl = root_scope->bind_name(storage, ty->strname, NameSpace::TYPE);
     name_decl->type = ty;
   }
@@ -88,10 +88,10 @@ void DeclaredTypePass::define_builtin_types()
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
     params_ty->product.members = storage->allocate<Type *>(params_ty->product.count);
-    params_ty->product.members[0] = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
-    params_ty->product.members[1] = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
+    params_ty->product.members[0] = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
+    params_ty->product.members[1] = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
+    ty->function.return_ = root_scope->lookup_builtin("bool", NameSpace::TYPE)->type;
     name_decl = root_scope->bind_name(storage, ty->strname, NameSpace::TYPE);
     name_decl->type = ty;
   }
@@ -103,10 +103,10 @@ void DeclaredTypePass::define_builtin_types()
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
     params_ty->product.members = storage->allocate<Type *>(params_ty->product.count);
-    params_ty->product.members[0] = root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
-    params_ty->product.members[1] = root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
+    params_ty->product.members[0] = root_scope->lookup_builtin("bit", NameSpace::TYPE)->type;
+    params_ty->product.members[1] = root_scope->lookup_builtin("bit", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
+    ty->function.return_ = root_scope->lookup_builtin("bit", NameSpace::TYPE)->type;
     name_decl = root_scope->bind_name(storage, ty->strname, NameSpace::TYPE);
     name_decl->type = ty;
   }
@@ -1073,7 +1073,7 @@ void DeclaredTypePass::visit_errorDeclaration(Ast* error_decl)
   assert(error_decl->kind == AstEnum::errorDeclaration);
   Type* error_ty, *fields_ty;
 
-  error_ty = root_scope->builtin_lookup("error", NameSpace::TYPE)->type;
+  error_ty = root_scope->lookup_builtin("error", NameSpace::TYPE)->type;
   fields_ty = error_ty->enum_.fields;
   if (error_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = error_ty->enum_.field_count;
@@ -1088,7 +1088,7 @@ void DeclaredTypePass::visit_matchKindDeclaration(Ast* match_decl)
   assert(match_decl->kind == AstEnum::matchKindDeclaration);
   Type* match_kind_ty, *fields_ty;
 
-  match_kind_ty = root_scope->builtin_lookup("match_kind", NameSpace::TYPE)->type;
+  match_kind_ty = root_scope->lookup_builtin("match_kind", NameSpace::TYPE)->type;
   fields_ty = match_kind_ty->enum_.fields;
   if (match_kind_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = match_kind_ty->enum_.field_count;
@@ -1486,7 +1486,7 @@ void DeclaredTypePass::visit_actionDeclaration(Ast* action_decl)
   action_ty->ast = action_decl;
   action_ty->function.params = (Type*)type_env->lookup(action_decl->actionDeclaration.params, 0);
   type_env->insert(action_decl, action_ty, 0);
-  action_ty->function.return_ = root_scope->builtin_lookup("void", NameSpace::TYPE)->type;
+  action_ty->function.return_ = root_scope->lookup_builtin("void", NameSpace::TYPE)->type;
   name_decl = (NameDeclaration*)decl_map->lookup(action_decl, 0);
   name_decl->type = action_ty;
 }
@@ -1642,7 +1642,7 @@ void DeclaredTypePass::visit_indexExpression(Ast* index_expr)
   if (index_expr->indexExpression.end_index) {
     visit_expression(index_expr->indexExpression.end_index);
   }
-  ty = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
+  ty = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
   type_env->insert(index_expr, ty, 0);
 }
 
@@ -1651,7 +1651,7 @@ void DeclaredTypePass::visit_booleanLiteral(Ast* bool_literal)
   assert(bool_literal->kind == AstEnum::booleanLiteral);
   Type* ty;
 
-  ty = root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
+  ty = root_scope->lookup_builtin("bool", NameSpace::TYPE)->type;
   type_env->insert(bool_literal, ty, 0);
 }
 
@@ -1660,7 +1660,7 @@ void DeclaredTypePass::visit_integerLiteral(Ast* int_literal)
   assert(int_literal->kind == AstEnum::integerLiteral);
   Type* ty;
 
-  ty = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
+  ty = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
   type_env->insert(int_literal, ty, 0);
 }
 
@@ -1669,7 +1669,7 @@ void DeclaredTypePass::visit_stringLiteral(Ast* str_literal)
   assert(str_literal->kind == AstEnum::stringLiteral);
   Type* ty;
 
-  ty = root_scope->builtin_lookup("string", NameSpace::TYPE)->type;
+  ty = root_scope->lookup_builtin("string", NameSpace::TYPE)->type;
   type_env->insert(str_literal, ty, 0);
 }
 
@@ -1678,7 +1678,7 @@ void DeclaredTypePass::visit_default(Ast* default_)
   assert(default_->kind == AstEnum::default_);
   Type* ty;
 
-  ty = root_scope->builtin_lookup("_", NameSpace::TYPE)->type;
+  ty = root_scope->lookup_builtin("_", NameSpace::TYPE)->type;
   type_env->insert(default_, ty, 0);
 }
 
@@ -1687,7 +1687,7 @@ void DeclaredTypePass::visit_dontcare(Ast* dontcare)
   assert(dontcare->kind == AstEnum::dontcare);
   Type* ty;
 
-  ty = root_scope->builtin_lookup("_", NameSpace::TYPE)->type;
+  ty = root_scope->lookup_builtin("_", NameSpace::TYPE)->type;
   type_env->insert(dontcare, ty, 0);
 }
 
