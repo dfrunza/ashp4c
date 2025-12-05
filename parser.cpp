@@ -217,11 +217,11 @@ Ast* Parser::parse_declarationList()
   decls->kind = AstEnum::declarationList;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
-  if (token->token_is_declaration()) {
+  if (token->is_declaration()) {
     ast = parse_declaration();
     tree_ctor.append_node(&decls->tree, &ast->tree);
-    while (token->token_is_declaration() || token->klass == TokenClass::SEMICOLON) {
-      if (token->token_is_declaration()) {
+    while (token->is_declaration() || token->klass == TokenClass::SEMICOLON) {
+      if (token->is_declaration()) {
         ast = parse_declaration();
         tree_ctor.append_node(&decls->tree, &ast->tree);
       } else if (token->klass == TokenClass::SEMICOLON) {
@@ -236,7 +236,7 @@ Ast* Parser::parse_declaration()
 {
   Ast* decl;
 
-  if (token->token_is_declaration()) {
+  if (token->is_declaration()) {
     decl = storage->allocate<Ast>();
     decl->kind = AstEnum::declaration;
     decl->line_no = token->line_no;
@@ -266,7 +266,7 @@ Ast* Parser::parse_declaration()
         decl->declaration.decl = parse_controlDeclaration(decl->declaration.decl);
       }
       return decl;
-    } else if (token->token_is_typeDeclaration()) {
+    } else if (token->is_typeDeclaration()) {
       decl->declaration.decl = parse_typeDeclaration();
       return decl;
     } else if (token->klass == TokenClass::ERROR) {
@@ -275,18 +275,18 @@ Ast* Parser::parse_declaration()
     } else if (token->klass == TokenClass::MATCH_KIND) {
       decl->declaration.decl = parse_matchKindDeclaration();
       return decl;
-    } else if (token->token_is_typeRef()) {
+    } else if (token->is_typeRef()) {
       Ast* type_ref = parse_typeRef();
       if (token->klass == TokenClass::PARENTH_OPEN) {
         decl->declaration.decl = parse_instantiation(type_ref);
         return decl;
-      } else if (token->token_is_name()) {
+      } else if (token->is_name()) {
         decl->declaration.decl = parse_functionDeclaration(type_ref);
         return decl;
       } else error("%s:%d:%d: error: unexpected token `%s`.",
                    source_file, token->line_no, token->column_no, token->lexeme);
       assert(0);
-    } else if (token->token_is_typeOrVoid()) {
+    } else if (token->is_typeOrVoid()) {
       decl->declaration.decl = parse_functionDeclaration(parse_typeRef());
       return decl;
     } else assert(0);
@@ -300,7 +300,7 @@ Ast* Parser::parse_nonTypeName()
 {
   Ast* name;
 
-  if (token->token_is_nonTypeName()) {
+  if (token->is_nonTypeName()) {
     name = storage->allocate<Ast>();
     name->kind = AstEnum::name;
     name->line_no = token->line_no;
@@ -318,8 +318,8 @@ Ast* Parser::parse_name()
 {
   Ast* type_name;
 
-  if (token->token_is_name()) {
-    if (token->token_is_nonTypeName()) {
+  if (token->is_name()) {
+    if (token->is_nonTypeName()) {
       return parse_nonTypeName();
     } else if (token->klass == TokenClass::TYPE_IDENTIFIER) {
       type_name = storage->allocate<Ast>();
@@ -345,7 +345,7 @@ Ast* Parser::parse_parameterList()
   params->kind = AstEnum::parameterList;
   params->line_no = token->line_no;
   params->column_no = token->column_no;
-  if (token->token_is_parameter()) {
+  if (token->is_parameter()) {
     ast = parse_parameter();
     tree_ctor.append_node(&params->tree, &ast->tree);
     while (token->klass == TokenClass::COMMA) {
@@ -361,18 +361,18 @@ Ast* Parser::parse_parameter()
 {
   Ast* param;
 
-  if (token->token_is_parameter()) {
+  if (token->is_parameter()) {
     param = storage->allocate<Ast>();
     param->kind = AstEnum::parameter;
     param->line_no = token->line_no;
     param->column_no = token->column_no;
     param->parameter.direction = parse_direction();
     param->parameter.type = parse_typeRef();
-    if (token->token_is_name()) {
+    if (token->is_name()) {
       param->parameter.name = parse_name();
       if (token->klass == TokenClass::EQUAL) {
         next_token();
-        if (token->token_is_expression()) {
+        if (token->is_expression()) {
           param->parameter.init_expr = parse_expression(1);
         } else error("%s:%d:%d: error: expression was expected, got `%s`.",
                      source_file, token->line_no, token->column_no, token->lexeme);
@@ -388,7 +388,7 @@ Ast* Parser::parse_parameter()
 
 enum ParamDirection Parser::parse_direction()
 {
-  if (token->token_is_direction()) {
+  if (token->is_direction()) {
     if (token->klass == TokenClass::IN) {
       next_token();
       return ParamDirection::IN;
@@ -413,7 +413,7 @@ Ast* Parser::parse_packageTypeDeclaration()
     package_decl->kind = AstEnum::packageTypeDeclaration;
     package_decl->line_no = token->line_no;
     package_decl->column_no = token->column_no;
-    if (token->token_is_name()) {
+    if (token->is_name()) {
       name = parse_name();
       current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       package_decl->packageTypeDeclaration.name = name;
@@ -439,7 +439,7 @@ Ast* Parser::parse_instantiation(Ast* type_ref)
 {
   Ast* inst_stmt;
 
-  if (token->token_is_typeRef() || type_ref) {
+  if (token->is_typeRef() || type_ref) {
     inst_stmt = storage->allocate<Ast>();
     inst_stmt->kind = AstEnum::instantiation;
     inst_stmt->line_no = token->line_no;
@@ -450,7 +450,7 @@ Ast* Parser::parse_instantiation(Ast* type_ref)
       inst_stmt->instantiation.args = parse_argumentList();
       if (token->klass == TokenClass::PARENTH_CLOSE) {
         next_token();
-        if (token->token_is_name()) {
+        if (token->is_name()) {
           inst_stmt->instantiation.name = parse_name();
           if (token->klass == TokenClass::SEMICOLON) {
             next_token();
@@ -528,10 +528,10 @@ Ast* Parser::parse_parserLocalElements()
   elems->kind = AstEnum::parserLocalElements;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
-  if (token->token_is_parserLocalElement()) {
+  if (token->is_parserLocalElement()) {
     ast = parse_parserLocalElement();
     tree_ctor.append_node(&elems->tree, &ast->tree);
-    while (token->token_is_parserLocalElement()) {
+    while (token->is_parserLocalElement()) {
       ast = parse_parserLocalElement();
       tree_ctor.append_node(&elems->tree, &ast->tree);
     }
@@ -543,7 +543,7 @@ Ast* Parser::parse_parserLocalElement()
 {
   Ast* local_element, *type_ref;
 
-  if (token->token_is_parserLocalElement()) {
+  if (token->is_parserLocalElement()) {
     local_element = storage->allocate<Ast>();
     local_element->kind = AstEnum::parserLocalElement;
     local_element->line_no = token->line_no;
@@ -551,12 +551,12 @@ Ast* Parser::parse_parserLocalElement()
     if (token->klass == TokenClass::CONST) {
       local_element->parserLocalElement.element = parse_variableDeclaration(0);
       return local_element;
-    } else if (token->token_is_typeRef()) {
+    } else if (token->is_typeRef()) {
       type_ref = parse_typeRef();
       if (token->klass == TokenClass::PARENTH_OPEN) {
         local_element->parserLocalElement.element = parse_instantiation(type_ref);
         return local_element;
-      } else if (token->token_is_name()) {
+      } else if (token->is_name()) {
         local_element->parserLocalElement.element = parse_variableDeclaration(type_ref);
         return local_element;
       } else error("%s:%d:%d: error: unexpected token `%s`.",
@@ -583,7 +583,7 @@ Ast* Parser::parse_parserTypeDeclaration()
     method_protos->line_no = parser_proto->line_no;
     method_protos->column_no = parser_proto->column_no;
     parser_proto->parserTypeDeclaration.method_protos = method_protos;
-    if (token->token_is_name()) {
+    if (token->is_name()) {
       name = parse_name();
       current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       parser_proto->parserTypeDeclaration.name = name;
@@ -662,10 +662,10 @@ Ast* Parser::parse_parserStatements()
   stmts->kind = AstEnum::parserStatements;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
-  if (token->token_is_parserStatement()) {
+  if (token->is_parserStatement()) {
     ast = parse_parserStatement();
     tree_ctor.append_node(&stmts->tree, &ast->tree);
-    while (token->token_is_parserStatement()) {
+    while (token->is_parserStatement()) {
       ast = parse_parserStatement();
       tree_ctor.append_node(&stmts->tree, &ast->tree);
     }
@@ -677,21 +677,21 @@ Ast* Parser::parse_parserStatement()
 {
   Ast* parser_stmt, *type_ref;
 
-  if (token->token_is_parserStatement()) {
+  if (token->is_parserStatement()) {
     parser_stmt = storage->allocate<Ast>();
     parser_stmt->kind = AstEnum::parserStatement;
     parser_stmt->line_no = token->line_no;
     parser_stmt->column_no = token->column_no;
-    if (token->token_is_typeRef()) {
+    if (token->is_typeRef()) {
       type_ref = parse_typeRef();
-      if (token->token_is_name()) {
+      if (token->is_name()) {
         parser_stmt->parserStatement.stmt = parse_variableDeclaration(type_ref);
         return parser_stmt;
       } else {
         parser_stmt->parserStatement.stmt = parse_directApplication(type_ref);
         return parser_stmt;
       }
-    } else if (token->token_is_assignmentOrMethodCallStatement()) {
+    } else if (token->is_assignmentOrMethodCallStatement()) {
       parser_stmt->parserStatement.stmt = parse_assignmentOrMethodCallStatement();
       return parser_stmt;
     } else if (token->klass == TokenClass::BRACE_OPEN) {
@@ -759,12 +759,12 @@ Ast* Parser::parse_stateExpression()
 {
   Ast* state_expr;
 
-  if (token->token_is_name() || token->klass == TokenClass::SELECT) {
+  if (token->is_name() || token->klass == TokenClass::SELECT) {
     state_expr = storage->allocate<Ast>();
     state_expr->kind = AstEnum::stateExpression;
     state_expr->line_no = token->line_no;
     state_expr->column_no = token->column_no;
-    if (token->token_is_name()) {
+    if (token->is_name()) {
       state_expr->stateExpression.expr = parse_name();
       if (token->klass == TokenClass::SEMICOLON) {
         next_token();
@@ -825,10 +825,10 @@ Ast* Parser::parse_selectCaseList()
   cases->kind = AstEnum::selectCaseList;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
-  if (token->token_is_selectCase()) {
+  if (token->is_selectCase()) {
     ast = parse_selectCase();
     tree_ctor.append_node(&cases->tree, &ast->tree);
-    while (token->token_is_selectCase()) {
+    while (token->is_selectCase()) {
       ast = parse_selectCase();
       tree_ctor.append_node(&cases->tree, &ast->tree);
     }
@@ -840,7 +840,7 @@ Ast* Parser::parse_selectCase()
 {
   Ast* select_case;
 
-  if (token->token_is_keysetExpression()) {
+  if (token->is_keysetExpression()) {
     select_case = storage->allocate<Ast>();
     select_case->kind = AstEnum::selectCase;
     select_case->line_no = token->line_no;
@@ -848,7 +848,7 @@ Ast* Parser::parse_selectCase()
     select_case->selectCase.keyset_expr = parse_keysetExpression();
     if (token->klass == TokenClass::COLON) {
       next_token();
-      if (token->token_is_name()) {
+      if (token->is_name()) {
         select_case->selectCase.name = parse_name();
         if (token->klass == TokenClass::SEMICOLON) {
           next_token();
@@ -869,7 +869,7 @@ Ast* Parser::parse_keysetExpression()
 {
   Ast* keyset_expr;
 
-  if (token->klass == TokenClass::PARENTH_OPEN || token->token_is_simpleKeysetExpression()) {
+  if (token->klass == TokenClass::PARENTH_OPEN || token->is_simpleKeysetExpression()) {
     keyset_expr = storage->allocate<Ast>();
     keyset_expr->kind = AstEnum::keysetExpression;
     keyset_expr->line_no = token->line_no;
@@ -877,7 +877,7 @@ Ast* Parser::parse_keysetExpression()
     if (token->klass == TokenClass::PARENTH_OPEN) {
       keyset_expr->keysetExpression.expr = parse_tupleKeysetExpression();
       return keyset_expr;
-    } else if (token->token_is_simpleKeysetExpression()) {
+    } else if (token->is_simpleKeysetExpression()) {
       keyset_expr->keysetExpression.expr = parse_simpleKeysetExpression();
       return keyset_expr;
     } else assert(0);
@@ -918,7 +918,7 @@ Ast* Parser::parse_simpleExpressionList()
   exprs->kind = AstEnum::simpleExpressionList;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
-  if (token->token_is_expression()) {
+  if (token->is_expression()) {
     ast = parse_simpleKeysetExpression();
     tree_ctor.append_node(&exprs->tree, &ast->tree);
     while (token->klass == TokenClass::COMMA) {
@@ -934,12 +934,12 @@ Ast* Parser::parse_simpleKeysetExpression()
 {
   Ast* simple_keyset, *default_keyset, *dontcare_keyset;
 
-  if (token->token_is_simpleKeysetExpression()) {
+  if (token->is_simpleKeysetExpression()) {
     simple_keyset = storage->allocate<Ast>();
     simple_keyset->kind = AstEnum::simpleKeysetExpression;
     simple_keyset->line_no = token->line_no;
     simple_keyset->column_no = token->column_no;
-    if (token->token_is_expression()) {
+    if (token->is_expression()) {
       simple_keyset->simpleKeysetExpression.expr = parse_expression(1);
       return simple_keyset;
     } else if (token->klass == TokenClass::DEFAULT) {
@@ -1014,7 +1014,7 @@ Ast* Parser::parse_controlTypeDeclaration()
     method_protos->line_no = control_proto->line_no;
     method_protos->column_no = control_proto->column_no;
     control_proto->controlTypeDeclaration.method_protos = method_protos;
-    if (token->token_is_name()) {
+    if (token->is_name()) {
       name = parse_name();
       current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       control_proto->controlTypeDeclaration.name = name;
@@ -1040,7 +1040,7 @@ Ast* Parser::parse_controlLocalDeclaration()
 {
   Ast* local_decl, *type_ref;
 
-  if (token->token_is_controlLocalDeclaration()) {
+  if (token->is_controlLocalDeclaration()) {
     local_decl = storage->allocate<Ast>();
     local_decl->kind = AstEnum::controlLocalDeclaration;
     local_decl->line_no = token->line_no;
@@ -1054,12 +1054,12 @@ Ast* Parser::parse_controlLocalDeclaration()
     } else if (token->klass == TokenClass::TABLE) {
       local_decl->controlLocalDeclaration.decl = parse_tableDeclaration();
       return local_decl;
-    } else if (token->token_is_typeRef()) {
+    } else if (token->is_typeRef()) {
       type_ref = parse_typeRef();
       if (token->klass == TokenClass::PARENTH_OPEN) {
         local_decl->controlLocalDeclaration.decl = parse_instantiation(type_ref);
         return local_decl;
-      } else if (token->token_is_name()) {
+      } else if (token->is_name()) {
         local_decl->controlLocalDeclaration.decl = parse_variableDeclaration(type_ref);
         return local_decl;
       } else error("%s:%d:%d: error: unexpected token `%s`.",
@@ -1080,10 +1080,10 @@ Ast* Parser::parse_controlLocalDeclarations()
   decls->kind = AstEnum::controlLocalDeclarations;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
-  if (token->token_is_controlLocalDeclaration()) {
+  if (token->is_controlLocalDeclaration()) {
     ast = parse_controlLocalDeclaration();
     tree_ctor.append_node(&decls->tree, &ast->tree);
-    while (token->token_is_controlLocalDeclaration()) {
+    while (token->is_controlLocalDeclaration()) {
       ast = parse_controlLocalDeclaration();
       tree_ctor.append_node(&decls->tree, &ast->tree);
     }
@@ -1106,11 +1106,11 @@ Ast* Parser::parse_externDeclaration()
     extern_decl->line_no = token->line_no;
     extern_decl->column_no = token->column_no;
 
-    if (token->token_is_typeOrVoid() && token->token_is_nonTypeName()) {
-      is_function_type = token->token_is_typeOrVoid() && peek_token()->token_is_name();
-    } else if (token->token_is_typeOrVoid()) {
+    if (token->is_typeOrVoid() && token->is_nonTypeName()) {
+      is_function_type = token->is_typeOrVoid() && peek_token()->is_name();
+    } else if (token->is_typeOrVoid()) {
       is_function_type = 1;
-    } else if (token->token_is_nonTypeName()) {
+    } else if (token->is_nonTypeName()) {
       is_function_type = 0;
     } else error("%s:%d:%d: error: extern declaration was expected, got `%s`.",
                  source_file, token->line_no, token->column_no, token->lexeme);
@@ -1157,10 +1157,10 @@ Ast* Parser::parse_methodPrototypes()
   protos->kind = AstEnum::methodPrototypes;
   protos->line_no = token->line_no;
   protos->column_no = token->column_no;
-  if (token->token_is_methodPrototype()) {
+  if (token->is_methodPrototype()) {
     ast = parse_methodPrototype();
     tree_ctor.append_node(&protos->tree, &ast->tree);
-    while (token->token_is_methodPrototype()) {
+    while (token->is_methodPrototype()) {
       ast = parse_methodPrototype();
       tree_ctor.append_node(&protos->tree, &ast->tree);
     }
@@ -1173,7 +1173,7 @@ Ast* Parser::parse_functionPrototype(Ast* return_type)
   Ast* func_proto, *type_ref;
   Ast* name;
 
-  if (token->token_is_typeOrVoid() || return_type) {
+  if (token->is_typeOrVoid() || return_type) {
     func_proto = storage->allocate<Ast>();
     func_proto->kind = AstEnum::functionPrototype;
     func_proto->line_no = token->line_no;
@@ -1194,7 +1194,7 @@ Ast* Parser::parse_functionPrototype(Ast* return_type)
       }
       func_proto->functionPrototype.return_type = return_type;
     }
-    if (token->token_is_name()) {
+    if (token->is_name()) {
       func_proto->functionPrototype.name = parse_name();
       if (token->klass == TokenClass::PARENTH_OPEN) {
         next_token();
@@ -1218,7 +1218,7 @@ Ast* Parser::parse_methodPrototype()
 {
   Ast* func_proto;
 
-  if (token->token_is_methodPrototype()) {
+  if (token->is_methodPrototype()) {
     if (token->klass == TokenClass::TYPE_IDENTIFIER && peek_token()->klass == TokenClass::PARENTH_OPEN) {
       /* Constructor */
       func_proto = storage->allocate<Ast>();
@@ -1240,7 +1240,7 @@ Ast* Parser::parse_methodPrototype()
       } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                    source_file, token->line_no, token->column_no, token->lexeme);
       return func_proto;
-    } else if (token->token_is_typeOrVoid()) {
+    } else if (token->is_typeOrVoid()) {
       func_proto = parse_functionPrototype(0);
       if (token->klass == TokenClass::SEMICOLON) {
         next_token();
@@ -1261,15 +1261,15 @@ Ast* Parser::parse_typeRef()
 {
   Ast* type_ref;
 
-  if (token->token_is_typeRef()) {
+  if (token->is_typeRef()) {
     type_ref = storage->allocate<Ast>();
     type_ref->kind = AstEnum::typeRef;
     type_ref->line_no = token->line_no;
     type_ref->column_no = token->column_no;
-    if (token->token_is_baseType()) {
+    if (token->is_baseType()) {
       type_ref->typeRef.type = parse_baseType();
       return type_ref;
-    } else if (token->token_is_typeName()) {
+    } else if (token->is_typeName()) {
       type_ref->typeRef.type = parse_namedType();
       return type_ref;
     } else if (token->klass == TokenClass::TUPLE) {
@@ -1286,7 +1286,7 @@ Ast* Parser::parse_namedType()
 {
   Ast* named_type;
 
-  if (token->token_is_typeName()) {
+  if (token->is_typeName()) {
     named_type = parse_typeName();
     if (token->klass == TokenClass::BRACKET_OPEN) {
       named_type = parse_headerStackType(named_type);
@@ -1359,7 +1359,7 @@ Ast* Parser::parse_headerStackType(Ast* named_type)
     type->line_no = named_type->line_no;
     type->column_no = named_type->column_no;
     type->headerStackType.type = type_ref;
-    if (token->token_is_expression()) {
+    if (token->is_expression()) {
       type->headerStackType.stack_expr = parse_expression(1);
       if (token->klass == TokenClass::BRACKET_CLOSE) {
         next_token();
@@ -1378,7 +1378,7 @@ Ast* Parser::parse_baseType()
 {
   Ast* type_name, *type;
 
-  if (token->token_is_baseType()) {
+  if (token->is_baseType()) {
     type_name = storage->allocate<Ast>();
     type_name->kind = AstEnum::name;
     type_name->line_no = token->line_no;
@@ -1503,8 +1503,8 @@ Ast* Parser::parse_typeOrVoid()
 {
   Ast* type, *name;
 
-  if (token->token_is_typeOrVoid()) {
-    if (token->token_is_typeRef()) {
+  if (token->is_typeOrVoid()) {
+    if (token->is_typeRef()) {
       type = parse_typeRef();
       return type;
     } else if (token->klass == TokenClass::VOID) {
@@ -1528,7 +1528,7 @@ Ast* Parser::parse_realTypeArg()
 {
   Ast* type_arg, *dontcare_arg;
 
-  if (token->token_is_realTypeArg()) {
+  if (token->is_realTypeArg()) {
     type_arg = storage->allocate<Ast>();
     type_arg->kind = AstEnum::realTypeArg;
     type_arg->line_no = token->line_no;
@@ -1541,7 +1541,7 @@ Ast* Parser::parse_realTypeArg()
       dontcare_arg->column_no = token->column_no;
       type_arg->realTypeArg.arg = dontcare_arg;
       return type_arg;
-    } else if (token->token_is_typeRef()) {
+    } else if (token->is_typeRef()) {
       type_arg->realTypeArg.arg = parse_typeRef();
       return type_arg;
     } else assert(0);
@@ -1555,7 +1555,7 @@ Ast* Parser::parse_typeArg()
 {
   Ast* type_arg, *dontcare_arg;
 
-  if (token->token_is_typeArg()) {
+  if (token->is_typeArg()) {
     type_arg = storage->allocate<Ast>();
     type_arg->kind = AstEnum::typeArg;
     type_arg->line_no = token->line_no;
@@ -1568,10 +1568,10 @@ Ast* Parser::parse_typeArg()
       dontcare_arg->column_no = token->column_no;
       type_arg->typeArg.arg = dontcare_arg;
       return type_arg;
-    } else if (token->token_is_typeRef()) {
+    } else if (token->is_typeRef()) {
       type_arg->typeArg.arg = parse_typeRef();
       return type_arg;
-    } else if (token->token_is_nonTypeName()) {
+    } else if (token->is_nonTypeName()) {
       type_arg->typeArg.arg = parse_nonTypeName();
       return type_arg;
     } else assert(0);
@@ -1590,7 +1590,7 @@ Ast* Parser::parse_typeArgumentList()
   args->kind = AstEnum::typeArgumentList;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
-  if (token->token_is_typeArg()) {
+  if (token->is_typeArg()) {
     ast = parse_typeArg();
     tree_ctor.append_node(&args->tree, &ast->tree);
     while (token->klass == TokenClass::COMMA) {
@@ -1606,12 +1606,12 @@ Ast* Parser::parse_typeDeclaration()
 {
   Ast* type_decl;
 
-  if (token->token_is_typeDeclaration()) {
+  if (token->is_typeDeclaration()) {
     type_decl = storage->allocate<Ast>();
     type_decl->kind = AstEnum::typeDeclaration;
     type_decl->line_no = token->line_no;
     type_decl->column_no = token->column_no;
-    if (token->token_is_derivedTypeDeclaration()) {
+    if (token->is_derivedTypeDeclaration()) {
       type_decl->typeDeclaration.decl = parse_derivedTypeDeclaration();
       return type_decl;
     } else if (token->klass == TokenClass::TYPEDEF) {
@@ -1641,7 +1641,7 @@ Ast* Parser::parse_derivedTypeDeclaration()
 {
   Ast* type_decl;
 
-  if (token->token_is_derivedTypeDeclaration()) {
+  if (token->is_derivedTypeDeclaration()) {
     type_decl = storage->allocate<Ast>();
     type_decl->kind = AstEnum::derivedTypeDeclaration;
     type_decl->line_no = token->line_no;
@@ -1676,7 +1676,7 @@ Ast* Parser::parse_headerTypeDeclaration()
     header_decl->kind = AstEnum::headerTypeDeclaration;
     header_decl->line_no = token->line_no;
     header_decl->column_no = token->column_no;
-    if (token->token_is_name()) {
+    if (token->is_name()) {
       name = parse_name();
       current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       header_decl->headerTypeDeclaration.name = name;
@@ -1709,7 +1709,7 @@ Ast* Parser::parse_headerUnionDeclaration()
     union_decl->kind = AstEnum::headerUnionDeclaration;
     union_decl->line_no = token->line_no;
     union_decl->column_no = token->column_no;
-    if (token->token_is_name()) {
+    if (token->is_name()) {
       name = parse_name();
       current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       union_decl->headerUnionDeclaration.name = name;
@@ -1742,7 +1742,7 @@ Ast* Parser::parse_structTypeDeclaration()
     struct_decl->kind = AstEnum::structTypeDeclaration;
     struct_decl->line_no = token->line_no;
     struct_decl->column_no = token->column_no;
-    if (token->token_is_name()) {
+    if (token->is_name()) {
       name = parse_name();
       current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       struct_decl->structTypeDeclaration.name = name;
@@ -1773,10 +1773,10 @@ Ast* Parser::parse_structFieldList()
   fields->kind = AstEnum::structFieldList;
   fields->line_no = token->line_no;
   fields->column_no = token->column_no;
-  if (token->token_is_structField()) {
+  if (token->is_structField()) {
     ast = parse_structField();
     tree_ctor.append_node(&fields->tree, &ast->tree);
-    while (token->token_is_structField()) {
+    while (token->is_structField()) {
       ast = parse_structField();
       tree_ctor.append_node(&fields->tree, &ast->tree);
     }
@@ -1786,13 +1786,13 @@ Ast* Parser::parse_structFieldList()
 
 Ast* Parser::parse_structField()
 {
-  if (token->token_is_structField()) {
+  if (token->is_structField()) {
     Ast* field = storage->allocate<Ast>();
     field->kind = AstEnum::structField;
     field->line_no = token->line_no;
     field->column_no = token->column_no;
     field->structField.type = parse_typeRef();
-    if (token->token_is_name()) {
+    if (token->is_name()) {
       field->structField.name = parse_name();
       if (token->klass == TokenClass::SEMICOLON) {
         next_token();
@@ -1833,13 +1833,13 @@ Ast* Parser::parse_enumDeclaration()
       } else error("%s:%d:%d: error: `<` was expected, got `%s`.",
                    source_file, token->line_no, token->column_no, token->lexeme);
     }
-    if (token->token_is_name()) {
+    if (token->is_name()) {
       name = parse_name();
       current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
       enum_decl->enumDeclaration.name = name;
       if (token->klass == TokenClass::BRACE_OPEN) {
         next_token();
-        if (token->token_is_specifiedIdentifier()) {
+        if (token->is_specifiedIdentifier()) {
           enum_decl->enumDeclaration.fields = parse_specifiedIdentifierList();
           if (token->klass == TokenClass::BRACE_CLOSE) {
             next_token();
@@ -1870,8 +1870,8 @@ Ast* Parser::parse_errorDeclaration()
     error_decl->column_no = token->column_no;
     if (token->klass == TokenClass::BRACE_OPEN) {
       next_token();
-      if (token->token_is_name()) {
-        if (token->token_is_name()) {
+      if (token->is_name()) {
+        if (token->is_name()) {
           error_decl->errorDeclaration.fields = parse_identifierList();
         } else error("%s:%d:%d: error: name was expected, got `%s`.",
                      source_file, token->line_no, token->column_no, token->lexeme);
@@ -1902,7 +1902,7 @@ Ast* Parser::parse_matchKindDeclaration()
     match_decl->column_no = token->column_no;
     if (token->klass == TokenClass::BRACE_OPEN) {
       next_token();
-      if (token->token_is_name()) {
+      if (token->is_name()) {
         match_decl->matchKindDeclaration.fields = parse_identifierList();
         if (token->klass == TokenClass::BRACE_CLOSE) {
           next_token();
@@ -1928,7 +1928,7 @@ Ast* Parser::parse_identifierList()
   ids->kind = AstEnum::identifierList;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
-  if (token->token_is_name()) {
+  if (token->is_name()) {
     ast = parse_name();
     tree_ctor.append_node(&ids->tree, &ast->tree);
     while (token->klass == TokenClass::COMMA) {
@@ -1949,7 +1949,7 @@ Ast* Parser::parse_specifiedIdentifierList()
   ids->kind = AstEnum::specifiedIdentifierList;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
-  if (token->token_is_specifiedIdentifier()) {
+  if (token->is_specifiedIdentifier()) {
     ast = parse_specifiedIdentifier();
     tree_ctor.append_node(&ids->tree, &ast->tree);
     while (token->klass == TokenClass::COMMA) {
@@ -1965,7 +1965,7 @@ Ast* Parser::parse_specifiedIdentifier()
 {
   Ast* id;
 
-  if (token->token_is_specifiedIdentifier()) {
+  if (token->is_specifiedIdentifier()) {
     id = storage->allocate<Ast>();
     id->kind = AstEnum::specifiedIdentifier;
     id->line_no = token->line_no;
@@ -1973,7 +1973,7 @@ Ast* Parser::parse_specifiedIdentifier()
     id->specifiedIdentifier.name = parse_name();
     if (token->klass == TokenClass::EQUAL) {
       next_token();
-      if (token->token_is_expression()) {
+      if (token->is_expression()) {
         id->specifiedIdentifier.init_expr = parse_expression(1);
       } else error("%s:%d:%d: error: expression was expected, got `%s`.",
                    source_file, token->line_no, token->column_no, token->lexeme);
@@ -1992,17 +1992,17 @@ Ast* Parser::parse_typedefDeclaration()
 
   if (token->klass == TokenClass::TYPEDEF) {
     next_token();
-    if (token->token_is_typeRef() || token->token_is_derivedTypeDeclaration()) {
+    if (token->is_typeRef() || token->is_derivedTypeDeclaration()) {
       type_decl = storage->allocate<Ast>();
       type_decl->kind = AstEnum::typedefDeclaration;
       type_decl->line_no = token->line_no;
       type_decl->column_no = token->column_no;
-      if (token->token_is_typeRef()) {
+      if (token->is_typeRef()) {
         type_decl->typedefDeclaration.type_ref = parse_typeRef();
-      } else if (token->token_is_derivedTypeDeclaration()) {
+      } else if (token->is_derivedTypeDeclaration()) {
         type_decl->typedefDeclaration.type_ref = parse_derivedTypeDeclaration();
       } else assert(0);
-      if (token->token_is_name()) {
+      if (token->is_name()) {
         name = parse_name();
         current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
         type_decl->typedefDeclaration.name = name;
@@ -2027,7 +2027,7 @@ Ast* Parser::parse_assignmentOrMethodCallStatement()
 {
   Ast* lvalue, *stmt; 
 
-  if (token->token_is_lvalue()) {
+  if (token->is_lvalue()) {
     lvalue = parse_lvalue();
     if (token->klass == TokenClass::PARENTH_OPEN) {
       next_token();
@@ -2077,7 +2077,7 @@ Ast* Parser::parse_returnStatement()
     return_stmt->kind = AstEnum::returnStatement;
     return_stmt->line_no = token->line_no;
     return_stmt->column_no = token->column_no;
-    if (token->token_is_expression())
+    if (token->is_expression())
       return_stmt->returnStatement.expr = parse_expression(1);
     if (token->klass == TokenClass::SEMICOLON) {
       next_token();
@@ -2123,15 +2123,15 @@ Ast* Parser::parse_conditionalStatement()
     if_stmt->column_no = token->column_no;
     if (token->klass == TokenClass::PARENTH_OPEN) {
       next_token();
-      if (token->token_is_expression()) {
+      if (token->is_expression()) {
         if_stmt->conditionalStatement.cond_expr = parse_expression(1);
         if (token->klass == TokenClass::PARENTH_CLOSE) {
           next_token();
-          if (token->token_is_statement()) {
+          if (token->is_statement()) {
             if_stmt->conditionalStatement.stmt = parse_statement(0);
             if (token->klass == TokenClass::ELSE) {
               next_token();
-              if (token->token_is_statement()) {
+              if (token->is_statement()) {
                 if_stmt->conditionalStatement.else_stmt = parse_statement(0);
               } else error("%s:%d:%d: error: statement was expected, got `%s`.",
                            source_file, token->line_no, token->column_no, token->lexeme);
@@ -2155,7 +2155,7 @@ Ast* Parser::parse_directApplication(Ast* type_name)
 {
   Ast* apply_stmt;
 
-  if (token->token_is_typeName() || type_name) {
+  if (token->is_typeName() || type_name) {
     apply_stmt = storage->allocate<Ast>();
     apply_stmt->kind = AstEnum::directApplication;
     apply_stmt->line_no = token->line_no;
@@ -2193,15 +2193,15 @@ Ast* Parser::parse_statement(Ast* type_name)
 {
   Ast* stmt, *empty_stmt;
 
-  if (token->token_is_statement()) {
+  if (token->is_statement()) {
     stmt = storage->allocate<Ast>();
     stmt->kind = AstEnum::statement;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
-    if (token->token_is_typeName() || type_name) {
+    if (token->is_typeName() || type_name) {
       stmt->statement.stmt = parse_directApplication(type_name);
       return stmt;
-    } else if (token->token_is_assignmentOrMethodCallStatement()) {
+    } else if (token->is_assignmentOrMethodCallStatement()) {
       stmt->statement.stmt = parse_assignmentOrMethodCallStatement();
       return stmt;
     } else if (token->klass == TokenClass::IF) {
@@ -2265,10 +2265,10 @@ Ast* Parser::parse_statementOrDeclList()
   stmts->kind = AstEnum::statementOrDeclList;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
-  if (token->token_is_statementOrDeclaration()) {
+  if (token->is_statementOrDeclaration()) {
     ast = parse_statementOrDeclaration();
     tree_ctor.append_node(&stmts->tree, &ast->tree);
-    while (token->token_is_statementOrDeclaration()) {
+    while (token->is_statementOrDeclaration()) {
       ast = parse_statementOrDeclaration();
       tree_ctor.append_node(&stmts->tree, &ast->tree);
     }
@@ -2320,10 +2320,10 @@ Ast* Parser::parse_switchCases()
   cases->kind = AstEnum::switchCases;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
-  if (token->token_is_switchLabel()) {
+  if (token->is_switchLabel()) {
     ast = parse_switchCase();
     tree_ctor.append_node(&cases->tree, &ast->tree);
-    while (token->token_is_switchLabel()) {
+    while (token->is_switchLabel()) {
       ast = parse_switchCase();
       tree_ctor.append_node(&cases->tree, &ast->tree);
     }
@@ -2335,7 +2335,7 @@ Ast* Parser::parse_switchCase()
 {
   Ast* switch_case;
 
-  if (token->token_is_switchLabel()) {
+  if (token->is_switchLabel()) {
     switch_case = storage->allocate<Ast>();
     switch_case->kind = AstEnum::switchCase;
     switch_case->line_no = token->line_no;
@@ -2359,12 +2359,12 @@ Ast* Parser::parse_switchLabel()
 {
   Ast* switch_label, *default_label;
 
-  if (token->token_is_switchLabel()) {
+  if (token->is_switchLabel()) {
     switch_label = storage->allocate<Ast>();
     switch_label->kind = AstEnum::switchLabel;
     switch_label->line_no = token->line_no;
     switch_label->column_no = token->column_no;
-    if (token->token_is_name()) {
+    if (token->is_name()) {
       switch_label->switchLabel.label = parse_name();
       return switch_label;
     } else if (token->klass == TokenClass::DEFAULT) {
@@ -2386,24 +2386,24 @@ Ast* Parser::parse_statementOrDeclaration()
 {
   Ast* stmt, *type_ref;
 
-  if (token->token_is_statementOrDeclaration()) {
+  if (token->is_statementOrDeclaration()) {
     stmt = storage->allocate<Ast>();
     stmt->kind = AstEnum::statementOrDeclaration;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
-    if (token->token_is_typeRef()) {
+    if (token->is_typeRef()) {
       type_ref = parse_typeRef();
       if (token->klass == TokenClass::PARENTH_OPEN) {
         stmt->statementOrDeclaration.stmt = parse_instantiation(type_ref);
         return stmt;
-      } else if (token->token_is_name()) {
+      } else if (token->is_name()) {
         stmt->statementOrDeclaration.stmt = parse_variableDeclaration(type_ref);
         return stmt;
       } else {
         stmt->statementOrDeclaration.stmt = parse_statement(type_ref);
         return stmt;
       }
-    } else if (token->token_is_statement()) {
+    } else if (token->is_statement()) {
       stmt->statementOrDeclaration.stmt = parse_statement(0);
       return stmt;
     } else if (token->klass == TokenClass::CONST) {
@@ -2436,7 +2436,7 @@ Ast* Parser::parse_tableDeclaration()
     table->tableDeclaration.method_protos = method_protos;
     if (token->klass == TokenClass::BRACE_OPEN) {
       next_token();
-      if (token->token_is_tableProperty()) {
+      if (token->is_tableProperty()) {
         table->tableDeclaration.prop_list = parse_tablePropertyList();
       } else error("%s:%d:%d: error: table property was expected, got `%s`.",
                    source_file, token->line_no, token->column_no, token->lexeme);
@@ -2462,10 +2462,10 @@ Ast* Parser::parse_tablePropertyList()
   props->kind = AstEnum::tablePropertyList;
   props->line_no = token->line_no;
   props->column_no = token->column_no;
-  if (token->token_is_tableProperty()) {
+  if (token->is_tableProperty()) {
     ast = parse_tableProperty();
     tree_ctor.append_node(&props->tree, &ast->tree);
-    while (token->token_is_tableProperty()) {
+    while (token->is_tableProperty()) {
       ast = parse_tableProperty();
       tree_ctor.append_node(&props->tree, &ast->tree);
     }
@@ -2480,7 +2480,7 @@ Ast* Parser::parse_tableProperty()
 #endif
   Ast* table_prop, *prop;
 
-  if (token->token_is_tableProperty()) {
+  if (token->is_tableProperty()) {
 #if 0
     if (token->klass == TokenClass::CONST) {
       next_token();
@@ -2598,10 +2598,10 @@ Ast* Parser::parse_keyElementList()
   elems->kind = AstEnum::keyElementList;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
-  if (token->token_is_expression()) {
+  if (token->is_expression()) {
     ast = parse_keyElement();
     tree_ctor.append_node(&elems->tree, &ast->tree);
-    while (token->token_is_expression()) {
+    while (token->is_expression()) {
       ast = parse_keyElement();
       tree_ctor.append_node(&elems->tree, &ast->tree);
     }
@@ -2613,7 +2613,7 @@ Ast* Parser::parse_keyElement()
 {
   Ast* key_elem;
 
-  if (token->token_is_expression()) {
+  if (token->is_expression()) {
     key_elem = storage->allocate<Ast>();
     key_elem->kind = AstEnum::keyElement;
     key_elem->line_no = token->line_no;
@@ -2644,14 +2644,14 @@ Ast* Parser::parse_actionList()
   actions->kind = AstEnum::actionList;
   actions->line_no = token->line_no;
   actions->column_no = token->column_no;
-  if (token->token_is_actionRef()) {
+  if (token->is_actionRef()) {
     ast = parse_actionRef();
     tree_ctor.append_node(&actions->tree, &ast->tree);
     if (token->klass == TokenClass::SEMICOLON) {
       next_token();
     } else error("%s:%d:%d: error: `;` was expected, got `%s`.",
                  source_file, token->line_no, token->column_no, token->lexeme);
-    while (token->token_is_actionRef()) {
+    while (token->is_actionRef()) {
       ast = parse_actionRef();
       tree_ctor.append_node(&actions->tree, &ast->tree);
       if (token->klass == TokenClass::SEMICOLON) {
@@ -2667,7 +2667,7 @@ Ast* Parser::parse_actionRef()
 {
   Ast* action_ref;
 
-  if (token->token_is_nonTypeName()) {
+  if (token->is_nonTypeName()) {
     action_ref = storage->allocate<Ast>();
     action_ref->kind = AstEnum::actionRef;
     action_ref->line_no = token->line_no;
@@ -2675,7 +2675,7 @@ Ast* Parser::parse_actionRef()
     action_ref->actionRef.name = parse_nonTypeName();
     if (token->klass == TokenClass::PARENTH_OPEN) {
       next_token();
-      if (token->token_is_argument()) {
+      if (token->is_argument()) {
         action_ref->actionRef.args = parse_argumentList();
         if (token->klass == TokenClass::PARENTH_CLOSE) {
           next_token();
@@ -2751,7 +2751,7 @@ Ast* Parser::parse_actionDeclaration()
     action_decl->kind = AstEnum::actionDeclaration;
     action_decl->line_no = token->line_no;
     action_decl->column_no = token->column_no;
-    if (token->token_is_name()) {
+    if (token->is_name()) {
       action_decl->actionDeclaration.name = parse_name();
       if (token->klass == TokenClass::PARENTH_OPEN) {
         next_token();
@@ -2786,13 +2786,13 @@ Ast* Parser::parse_variableDeclaration(Ast* type_ref)
     next_token();
     is_const = 1;
   }
-  if (token->token_is_typeRef() || type_ref) {
+  if (token->is_typeRef() || type_ref) {
     var_decl = storage->allocate<Ast>();
     var_decl->kind = AstEnum::variableDeclaration;
     var_decl->line_no = token->line_no;
     var_decl->column_no = token->column_no;
     var_decl->variableDeclaration.type = type_ref ? type_ref : parse_typeRef();
-    if (token->token_is_name()) {
+    if (token->is_name()) {
       var_decl->variableDeclaration.name = parse_name();
       if (token->klass == TokenClass::EQUAL) {
         next_token();
@@ -2818,7 +2818,7 @@ Ast* Parser::parse_functionDeclaration(Ast* type_ref)
 {
   Ast* func_decl;
 
-  if (token->token_is_typeOrVoid()) {
+  if (token->is_typeOrVoid()) {
     func_decl = storage->allocate<Ast>();
     func_decl->kind = AstEnum::functionDeclaration;
     func_decl->line_no = token->line_no;
@@ -2844,7 +2844,7 @@ Ast* Parser::parse_argumentList()
   args->kind = AstEnum::argumentList;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
-  if (token->token_is_argument()) {
+  if (token->is_argument()) {
     ast = parse_argument();
     tree_ctor.append_node(&args->tree, &ast->tree);
     while (token->klass == TokenClass::COMMA) {
@@ -2860,12 +2860,12 @@ Ast* Parser::parse_argument()
 {
   Ast* arg, *dontcare_arg;
 
-  if (token->token_is_argument()) {
+  if (token->is_argument()) {
     arg = storage->allocate<Ast>();
     arg->kind = AstEnum::argument;
     arg->line_no = token->line_no;
     arg->column_no = token->column_no;
-    if (token->token_is_expression()) {
+    if (token->is_expression()) {
       arg->argument.arg = parse_expression(1);
       return arg;
     } else if (token->klass == TokenClass::DONTCARE) {
@@ -2892,7 +2892,7 @@ Ast* Parser::parse_expressionList()
   exprs->kind = AstEnum::expressionList;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
-  if (token->token_is_expression()) {
+  if (token->is_expression()) {
     ast = parse_expression(1);
     tree_ctor.append_node(&exprs->tree, &ast->tree);
     while (token->klass == TokenClass::COMMA) {
@@ -2908,7 +2908,7 @@ Ast* Parser::parse_lvalue()
 {
   Ast* lvalue, *expr;
 
-  if (token->token_is_lvalue()) {
+  if (token->is_lvalue()) {
     lvalue = storage->allocate<Ast>();
     lvalue->kind = AstEnum::lvalueExpression;
     lvalue->line_no = token->line_no;
@@ -2922,7 +2922,7 @@ Ast* Parser::parse_lvalue()
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
         expr->memberSelector.lhs_expr = lvalue;
-        if (token->token_is_name()) {
+        if (token->is_name()) {
           expr->memberSelector.name = parse_name();
         } else error("%s:%d:%d: error: name was expected, got `%s`.",
                      source_file, token->line_no, token->column_no, token->lexeme);
@@ -2962,9 +2962,9 @@ Ast* Parser::parse_expression(int priority_threshold)
 {
   Ast* primary, *expr;
 
-  if (token->token_is_expression()) {
+  if (token->is_expression()) {
     primary = parse_expressionPrimary();
-    while (token->token_is_exprOperator()) {
+    while (token->is_exprOperator()) {
       if (token->klass == TokenClass::DOT) {
         next_token();
         Ast* expr;
@@ -2973,7 +2973,7 @@ Ast* Parser::parse_expression(int priority_threshold)
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
         expr->memberSelector.lhs_expr = primary;
-        if (token->token_is_nonTypeName()) {
+        if (token->is_nonTypeName()) {
           expr->memberSelector.name = parse_nonTypeName();
         } else error("%s:%d:%d: error: non-type name was expected, got `%s`.",
                      source_file, token->line_no, token->column_no, token->lexeme);
@@ -3029,7 +3029,7 @@ Ast* Parser::parse_expression(int priority_threshold)
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
-      } else if (token->token_is_binaryOperator()){
+      } else if (token->is_binaryOperator()){
         int priority = operator_priority(token);
         if (priority >= priority_threshold) {
           expr = storage->allocate<Ast>();
@@ -3060,7 +3060,7 @@ Ast* Parser::parse_expressionPrimary()
 {
   Ast* primary, *expr;
 
-  if (token->token_is_expression()) {
+  if (token->is_expression()) {
     primary = storage->allocate<Ast>();
     primary->kind = AstEnum::expression;
     primary->line_no = token->line_no;
@@ -3085,7 +3085,7 @@ Ast* Parser::parse_expressionPrimary()
       } else error("%s:%d:%d: error: unexpected token `%s`.",
                    source_file, token->line_no, token->column_no, token->lexeme);
       assert(0);
-    } else if (token->token_is_nonTypeName()) {
+    } else if (token->is_nonTypeName()) {
       primary->expression.expr = parse_nonTypeName();
       return primary;
     } else if (token->klass == TokenClass::BRACE_OPEN) {
@@ -3106,7 +3106,7 @@ Ast* Parser::parse_expressionPrimary()
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      source_file, token->line_no, token->column_no, token->lexeme);
         return primary;
-      } else if (token->token_is_typeRef()) {
+      } else if (token->is_typeRef()) {
         expr = storage->allocate<Ast>();
         expr->kind = AstEnum::castExpression;
         expr->line_no = token->line_no;
@@ -3119,7 +3119,7 @@ Ast* Parser::parse_expressionPrimary()
                      source_file, token->line_no, token->column_no, token->lexeme);
         primary->expression.expr = expr;
         return primary;
-      } else if (token->token_is_expression()) {
+      } else if (token->is_expression()) {
         primary->expression.expr = parse_expression(1);
         if (token->klass == TokenClass::PARENTH_CLOSE) {
           next_token();
@@ -3162,7 +3162,7 @@ Ast* Parser::parse_expressionPrimary()
       expr->unaryExpression.operand = parse_expression(1);
       primary->expression.expr = expr;
       return primary;
-    } else if (token->token_is_typeName()) {
+    } else if (token->is_typeName()) {
       primary->expression.expr = parse_typeName();
       return primary;
     } else if (token->klass == TokenClass::ERROR) {
@@ -3186,7 +3186,7 @@ Ast* Parser::parse_indexExpression()
 {
   Ast* index_expr;
 
-  if (token->token_is_expression()) {
+  if (token->is_expression()) {
     index_expr = storage->allocate<Ast>();
     index_expr->kind = AstEnum::indexExpression;
     index_expr->line_no = token->line_no;
@@ -3194,7 +3194,7 @@ Ast* Parser::parse_indexExpression()
     index_expr->indexExpression.start_index = parse_expression(1);
     if (token->klass == TokenClass::COLON) {
       next_token();
-      if (token->token_is_expression()) {
+      if (token->is_expression()) {
         index_expr->indexExpression.end_index = parse_expression(1);
       } else error("%s:%d:%d: error: expression was expected, got `%s`.",
                    source_file, token->line_no, token->column_no, token->lexeme);
