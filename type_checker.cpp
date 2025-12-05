@@ -10,8 +10,8 @@ bool TypeChecker::match_type(PotentialType* potential_types, Type* required_ty)
 
   i = 0;
   for (m = potential_types->set.members.first; m != 0; m = m->next) {
-    ty = ((Type*)m->key)->effective_type();
-    if (((TypeChecker*)this)->type_equiv(ty, required_ty->actual_type())) {
+    ty = m->key->effective_type();
+    if (type_equiv(ty, required_ty->actual_type())) {
       i += 1;
     }
   }
@@ -65,7 +65,7 @@ bool TypeChecker::structural_type_equiv(Type* left, Type* right)
   if (left == right) return 1;
 
   for (i = 0; i < type_equiv_pairs->elem_count; i++) {
-    type_pair = (Type*)type_equiv_pairs->get(i);
+    type_pair = type_equiv_pairs->get(i);
     assert(type_pair->ty_former == TypeEnum::TUPLE);
     if ((left == type_pair->tuple.left || left == type_pair->tuple.right) &&
         (right == type_pair->tuple.left || right == type_pair->tuple.right)) {

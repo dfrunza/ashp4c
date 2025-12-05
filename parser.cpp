@@ -65,9 +65,9 @@ Token* Parser::next_token()
 
   prev_token = token;
   prev_token_at = token_at;
-  token = (Token*)tokens->get(++token_at);
+  token = tokens->get(++token_at);
   while (token->klass == TokenClass::COMMENT) {
-    token = (Token*)tokens->get(++token_at);
+    token = tokens->get(++token_at);
   }
   if (token->klass == TokenClass::IDENTIFIER) {
     name_entry = current_scope->lookup(token->lexeme, NameSpace::KEYWORD | NameSpace::TYPE);
@@ -177,7 +177,7 @@ void Parser::parse()
 
   define_keywords(root_scope);
   token_at = 0;
-  token = (Token*)tokens->get(token_at);
+  token = tokens->get(token_at);
   next_token();
   p4program = parse_p4program();
   assert(current_scope == root_scope);

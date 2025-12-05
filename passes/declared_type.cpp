@@ -141,7 +141,7 @@ void DEBUG_print_type_array(Array<Type>* type_array)
   int i;
 
   for (i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)type_array->get(i);
+    ty = type_array->get(i);
     ty = ty->actual_type();
 
     if (ty->strname) {
@@ -166,7 +166,7 @@ void DeclaredTypePass::do_pass()
   define_builtin_types();
   visit_p4program(p4program);
   for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)type_array->get(i);
+    ty = type_array->get(i);
     if (ty->ty_former == TypeEnum::NAMEREF) {
       name = ty->nameref.name;
       name_entry = ty->nameref.scope->lookup(name->name.strname, NameSpace::TYPE);
@@ -186,7 +186,7 @@ void DeclaredTypePass::do_pass()
     }
   }
   for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)type_array->get(i);
+    ty = type_array->get(i);
     if (ty->ty_former == TypeEnum::TYPEDEF) {
       ref_ty = ty->typedef_.ref->actual_type();
       while (ref_ty->ty_former == TypeEnum::TYPEDEF) {
@@ -197,7 +197,7 @@ void DeclaredTypePass::do_pass()
     }
   }
   for (int i = 0; i < type_array->elem_count; i++) {
-    ty = (Type*)type_array->get(i);
+    ty = type_array->get(i);
     if (ty->ty_former == TypeEnum::TYPE) {
       ref_ty = ty->type.type->actual_type();
       while (ref_ty->ty_former == TypeEnum::TYPE) {

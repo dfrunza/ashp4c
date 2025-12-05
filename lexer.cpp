@@ -419,7 +419,7 @@ void Lexer::next_token(Token* token)
 
       case 113:
       {
-        prev_token = (Token*)tokens->get(tokens->elem_count - 1);
+        prev_token = tokens->get(tokens->elem_count - 1);
         if (prev_token->klass == TokenClass::PARENTH_OPEN) {
           token->klass = TokenClass::UNARY_MINUS;
         } else {
