@@ -940,7 +940,7 @@ void DeclaredTypePass::visit_derivedTypeDeclaration(Ast* type_decl)
   } else if (type_decl->derivedTypeDeclaration.decl->kind == AstEnum::enumDeclaration) {
     visit_enumDeclaration(type_decl->derivedTypeDeclaration.decl);
   } else assert(0);
-  decl_ty = (Type*)type_env->lookup(type_decl->derivedTypeDeclaration.decl, 0);
+  decl_ty = type_env->lookup(type_decl->derivedTypeDeclaration.decl, 0);
   type_env->insert(type_decl, decl_ty, 0);
 }
 

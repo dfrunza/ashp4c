@@ -10,7 +10,7 @@ static void DEBUG_print_potential_types(PotentialType* tau)
 
   i = 0;
   for (m = tau->set.members.first; m != 0; m = m->next) {
-    ty = (Type*)m->key;
+    ty = m->key;
     if (ty->strname) {
       printf("  [%d] 0x%x %s %s\n", i, ty, TypeEnum_to_string(ty->ty_former), ty->strname);
     } else {
@@ -1302,7 +1302,7 @@ void PotentialTypePass::visit_memberSelector(Ast* selector, PotentialType* poten
   name = selector->memberSelector.name;
   tau_lhs = potype_map->lookup(selector->memberSelector.lhs_expr, 0);
   for (m = tau_lhs->set.members.first; m != 0; m = m->next) {
-    lhs_ty = ((Type*)m->key)->effective_type();
+    lhs_ty = m->key->effective_type();
     if (lhs_ty->ty_former == TypeEnum::EXTERN) {
       type_checker->collect_matching_member(tau, lhs_ty->extern_.methods, name->name.strname, potential_args);
     } else if (lhs_ty->ty_former == TypeEnum::ENUM ||

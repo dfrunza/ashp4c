@@ -109,7 +109,7 @@ struct Strmap {
     for (int i = 0; i <= last_segment; i++) {
       segment_capacity = 16 * (1 << i);
       for (int j = 0; j < segment_capacity; j ++) {
-        segment = (StrmapEntry<V>**)entries.segments[i];
+        segment = entries.segments[i];
         segment[j] = 0;
       }
     }

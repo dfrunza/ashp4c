@@ -71,11 +71,11 @@ void SelectTypePass::visit_name(Ast* name, Type* required_ty)
       error("%s:%d:%d: error: failed type check.",
           source_file, name->line_no, name->column_no);
     } else {
-      name_ty = (Type*)name_tau->set.members.first->key;
+      name_ty = name_tau->set.members.first->key;
       type_env->insert(name, name_ty->effective_type(), 0);
     }
   } else {
-      name_ty = (Type*)name_tau->set.members.first->key;
+      name_ty = name_tau->set.members.first->key;
       type_env->insert(name, name_ty->effective_type(), 0);
   }
 }
@@ -717,11 +717,11 @@ void SelectTypePass::visit_functionCall(Ast* func_call, Type* required_ty)
       error("%s:%d:%d: error: failed type check.",
             source_file, func_call->line_no, func_call->column_no);
     } else {
-      func_ty = (Type*)func_tau->set.members.first->key;
+      func_ty = func_tau->set.members.first->key;
       type_env->insert(func_call, func_ty->effective_type(), 0);
     }
   } else {
-    func_ty = (Type*)func_tau->set.members.first->key;
+    func_ty = func_tau->set.members.first->key;
     type_env->insert(func_call, func_ty->effective_type(), 0);
   }
 }
@@ -1138,11 +1138,11 @@ void SelectTypePass::visit_binaryExpression(Ast* binary_expr, Type* required_ty)
       error("%s:%d:%d: error: failed type check.",
             source_file, binary_expr->line_no, binary_expr->column_no);
     } else {
-      op_ty = (Type*)op_tau->set.members.first->key;
+      op_ty = op_tau->set.members.first->key;
       type_env->insert(binary_expr, op_ty->effective_type(), 0);
     }
   } else {
-    op_ty = (Type*)op_tau->set.members.first->key;
+    op_ty = op_tau->set.members.first->key;
     type_env->insert(binary_expr, op_ty->effective_type(), 0);
   }
 }
@@ -1168,11 +1168,11 @@ void SelectTypePass::visit_memberSelector(Ast* selector, Type* required_ty)
       error("%s:%d:%d: error: failed type check.",
             source_file, selector->line_no, selector->column_no);
     } else {
-      selector_ty = (Type*)selector_tau->set.members.first->key;
+      selector_ty = selector_tau->set.members.first->key;
       type_env->insert(selector, selector_ty->effective_type(), 0);
     }
   } else {
-    selector_ty = (Type*)selector_tau->set.members.first->key;
+    selector_ty = selector_tau->set.members.first->key;
     type_env->insert(selector, selector_ty->effective_type(), 0);
   }
 }
