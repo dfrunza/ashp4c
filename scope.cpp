@@ -69,7 +69,7 @@ NameDeclaration* Scope::bind_name(Arena* storage, char* strname, enum NameSpace 
   if (he->value == 0) {
     he->value = storage->allocate<NameEntry>();
   }
-  name_entry = (NameEntry*)he->value;
+  name_entry = he->value;
   name_decl->next_in_scope = name_entry->ns[(int)ns >> 1];
   name_entry->ns[(int)ns >> 1] = name_decl;
   return name_decl;

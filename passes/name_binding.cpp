@@ -82,7 +82,7 @@ void DEBUG_scope_decls(Scope* scope)
   printf("Names in scope 0x%x\n\n", scope);
   he = it.next();
   while (he) {
-    name_entry = (NameEntry*)he->value;
+    name_entry = he->value;
     for (int i = 0; i < sizeof(ns)/sizeof(ns[0]); i++) {
       decl = name_entry->ns[(int)ns[i] >> 1];
       while (decl) {

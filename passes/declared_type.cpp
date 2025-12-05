@@ -112,17 +112,16 @@ void DeclaredTypePass::define_builtin_types()
   }
 }
 
-void DEBUG_print_type_env(Map<Type, void>* env)
+void DEBUG_print_type_env(Map<Ast, Type>* env)
 {
   Ast* ast;
-  MapEntry<Type, void>* m;
+  MapEntry<Ast, Type>* m;
   Type* ty;
   int i;
 
   i = 0;
   for (m = env->first; m != 0; m = m->next) {
-    ast = (Ast*)m->key;
-    ty = (Type*)m->value;
+    ast = m->key; ty = m->value;
     if (ty->strname) {
       printf("[%d] 0x%x %s ... %d:%d\n", i, ty, ty->strname, ast->line_no, ast->column_no);
     } else {
