@@ -19,13 +19,13 @@ struct Arena {
   void* memory_limit;
 
   static void reserve_memory(int amount);
-  void* _malloc(uint32_t size);
+  void* allocate_block(uint32_t size);
   void free();
   void grow(uint32_t size);
 
-  template<class T> T* malloc(int count = 1)
+  template<typename T> T* allocate(int count = 1)
   {
-    T* t = (T*)_malloc(sizeof(T) * count);
+    T* t = (T*) allocate_block(sizeof(T) * count);
     return t;
   }
 };

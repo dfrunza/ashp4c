@@ -190,7 +190,7 @@ Ast* Parser::parse_p4program()
   Ast* p4program;
   Scope* scope;
 
-  p4program = storage->malloc<Ast>();
+  p4program = storage->allocate<Ast>();
   p4program->kind = AstEnum::p4program;
   p4program->line_no = token->line_no;
   p4program->column_no = token->column_no;
@@ -213,7 +213,7 @@ Ast* Parser::parse_declarationList()
   Ast* decls, *ast;
   AstTreeCtor tree_ctor = {};
 
-  decls = storage->malloc<Ast>();
+  decls = storage->allocate<Ast>();
   decls->kind = AstEnum::declarationList;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
@@ -237,7 +237,7 @@ Ast* Parser::parse_declaration()
   Ast* decl;
 
   if (token->token_is_declaration()) {
-    decl = storage->malloc<Ast>();
+    decl = storage->allocate<Ast>();
     decl->kind = AstEnum::declaration;
     decl->line_no = token->line_no;
     decl->column_no = token->column_no;
@@ -301,7 +301,7 @@ Ast* Parser::parse_nonTypeName()
   Ast* name;
 
   if (token->token_is_nonTypeName()) {
-    name = storage->malloc<Ast>();
+    name = storage->allocate<Ast>();
     name->kind = AstEnum::name;
     name->line_no = token->line_no;
     name->column_no = token->column_no;
@@ -322,7 +322,7 @@ Ast* Parser::parse_name()
     if (token->token_is_nonTypeName()) {
       return parse_nonTypeName();
     } else if (token->klass == TokenClass::TYPE_IDENTIFIER) {
-      type_name = storage->malloc<Ast>();
+      type_name = storage->allocate<Ast>();
       type_name->kind = AstEnum::name;
       type_name->line_no = token->line_no;
       type_name->column_no = token->column_no;
@@ -341,7 +341,7 @@ Ast* Parser::parse_parameterList()
   Ast* params, *ast;
   AstTreeCtor tree_ctor = {};
 
-  params = storage->malloc<Ast>();
+  params = storage->allocate<Ast>();
   params->kind = AstEnum::parameterList;
   params->line_no = token->line_no;
   params->column_no = token->column_no;
@@ -362,7 +362,7 @@ Ast* Parser::parse_parameter()
   Ast* param;
 
   if (token->token_is_parameter()) {
-    param = storage->malloc<Ast>();
+    param = storage->allocate<Ast>();
     param->kind = AstEnum::parameter;
     param->line_no = token->line_no;
     param->column_no = token->column_no;
@@ -409,7 +409,7 @@ Ast* Parser::parse_packageTypeDeclaration()
 
   if (token->klass == TokenClass::PACKAGE) {
     next_token();
-    package_decl = storage->malloc<Ast>();
+    package_decl = storage->allocate<Ast>();
     package_decl->kind = AstEnum::packageTypeDeclaration;
     package_decl->line_no = token->line_no;
     package_decl->column_no = token->column_no;
@@ -440,7 +440,7 @@ Ast* Parser::parse_instantiation(Ast* type_ref)
   Ast* inst_stmt;
 
   if (token->token_is_typeRef() || type_ref) {
-    inst_stmt = storage->malloc<Ast>();
+    inst_stmt = storage->allocate<Ast>();
     inst_stmt->kind = AstEnum::instantiation;
     inst_stmt->line_no = token->line_no;
     inst_stmt->column_no = token->column_no;
@@ -493,7 +493,7 @@ Ast* Parser::parse_parserDeclaration(Ast* parser_proto)
   Ast* parser_decl;
 
   if (token->klass == TokenClass::PARENTH_OPEN || token->klass == TokenClass::BRACE_OPEN) {
-    parser_decl = storage->malloc<Ast>();
+    parser_decl = storage->allocate<Ast>();
     parser_decl->kind = AstEnum::parserDeclaration;
     parser_decl->line_no = token->line_no;
     parser_decl->column_no = token->column_no;
@@ -524,7 +524,7 @@ Ast* Parser::parse_parserLocalElements()
   Ast* elems, *ast;
   AstTreeCtor tree_ctor = {};
 
-  elems = storage->malloc<Ast>();
+  elems = storage->allocate<Ast>();
   elems->kind = AstEnum::parserLocalElements;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
@@ -544,7 +544,7 @@ Ast* Parser::parse_parserLocalElement()
   Ast* local_element, *type_ref;
 
   if (token->token_is_parserLocalElement()) {
-    local_element = storage->malloc<Ast>();
+    local_element = storage->allocate<Ast>();
     local_element->kind = AstEnum::parserLocalElement;
     local_element->line_no = token->line_no;
     local_element->column_no = token->column_no;
@@ -574,11 +574,11 @@ Ast* Parser::parse_parserTypeDeclaration()
 
   if (token->klass == TokenClass::PARSER) {
     next_token();
-    parser_proto = storage->malloc<Ast>();
+    parser_proto = storage->allocate<Ast>();
     parser_proto->kind = AstEnum::parserTypeDeclaration;
     parser_proto->line_no = token->line_no;
     parser_proto->column_no = token->column_no;
-    method_protos = storage->malloc<Ast>();
+    method_protos = storage->allocate<Ast>();
     method_protos->kind = AstEnum::methodPrototypes;
     method_protos->line_no = parser_proto->line_no;
     method_protos->column_no = parser_proto->column_no;
@@ -610,7 +610,7 @@ Ast* Parser::parse_parserStates()
   Ast* states, *ast;
   AstTreeCtor tree_ctor = {};
 
-  states = storage->malloc<Ast>();
+  states = storage->allocate<Ast>();
   states->kind = AstEnum::parserStates;
   states->line_no = token->line_no;
   states->column_no = token->column_no;
@@ -631,7 +631,7 @@ Ast* Parser::parse_parserState()
 
   if (token->klass == TokenClass::STATE) {
     next_token();
-    state = storage->malloc<Ast>();
+    state = storage->allocate<Ast>();
     state->kind = AstEnum::parserState;
     state->line_no = token->line_no;
     state->column_no = token->column_no;
@@ -658,7 +658,7 @@ Ast* Parser::parse_parserStatements()
   Ast* stmts, *ast;
   AstTreeCtor tree_ctor = {};
 
-  stmts = storage->malloc<Ast>();
+  stmts = storage->allocate<Ast>();
   stmts->kind = AstEnum::parserStatements;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
@@ -678,7 +678,7 @@ Ast* Parser::parse_parserStatement()
   Ast* parser_stmt, *type_ref;
 
   if (token->token_is_parserStatement()) {
-    parser_stmt = storage->malloc<Ast>();
+    parser_stmt = storage->allocate<Ast>();
     parser_stmt->kind = AstEnum::parserStatement;
     parser_stmt->line_no = token->line_no;
     parser_stmt->column_no = token->column_no;
@@ -701,7 +701,7 @@ Ast* Parser::parse_parserStatement()
       parser_stmt->parserStatement.stmt = parse_variableDeclaration(0);
       return parser_stmt;
     } else if (token->klass == TokenClass::SEMICOLON) {
-      Ast* stmt = storage->malloc<Ast>();
+      Ast* stmt = storage->allocate<Ast>();
       stmt->kind = AstEnum::emptyStatement;
       stmt->line_no = token->line_no;
       stmt->column_no = token->column_no;
@@ -721,7 +721,7 @@ Ast* Parser::parse_parserBlockStatement()
 
   if (token->klass == TokenClass::BRACE_OPEN) {
     next_token();
-    stmt = storage->malloc<Ast>();
+    stmt = storage->allocate<Ast>();
     stmt->kind = AstEnum::parserBlockStatement;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
@@ -743,7 +743,7 @@ Ast* Parser::parse_transitionStatement()
 
   if (token->klass == TokenClass::TRANSITION) {
     next_token();
-    transition = storage->malloc<Ast>();
+    transition = storage->allocate<Ast>();
     transition->kind = AstEnum::transitionStatement;
     transition->line_no = token->line_no;
     transition->column_no = token->column_no;
@@ -760,7 +760,7 @@ Ast* Parser::parse_stateExpression()
   Ast* state_expr;
 
   if (token->token_is_name() || token->klass == TokenClass::SELECT) {
-    state_expr = storage->malloc<Ast>();
+    state_expr = storage->allocate<Ast>();
     state_expr->kind = AstEnum::stateExpression;
     state_expr->line_no = token->line_no;
     state_expr->column_no = token->column_no;
@@ -787,7 +787,7 @@ Ast* Parser::parse_selectExpression()
 
   if (token->klass == TokenClass::SELECT) {
     next_token();
-    select_expr = storage->malloc<Ast>();
+    select_expr = storage->allocate<Ast>();
     select_expr->kind = AstEnum::selectExpression;
     select_expr->line_no = token->line_no;
     select_expr->column_no = token->column_no;
@@ -821,7 +821,7 @@ Ast* Parser::parse_selectCaseList()
   Ast* cases, *ast;
   AstTreeCtor tree_ctor = {};
 
-  cases = storage->malloc<Ast>();
+  cases = storage->allocate<Ast>();
   cases->kind = AstEnum::selectCaseList;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
@@ -841,7 +841,7 @@ Ast* Parser::parse_selectCase()
   Ast* select_case;
 
   if (token->token_is_keysetExpression()) {
-    select_case = storage->malloc<Ast>();
+    select_case = storage->allocate<Ast>();
     select_case->kind = AstEnum::selectCase;
     select_case->line_no = token->line_no;
     select_case->column_no = token->column_no;
@@ -870,7 +870,7 @@ Ast* Parser::parse_keysetExpression()
   Ast* keyset_expr;
 
   if (token->klass == TokenClass::PARENTH_OPEN || token->token_is_simpleKeysetExpression()) {
-    keyset_expr = storage->malloc<Ast>();
+    keyset_expr = storage->allocate<Ast>();
     keyset_expr->kind = AstEnum::keysetExpression;
     keyset_expr->line_no = token->line_no;
     keyset_expr->column_no = token->column_no;
@@ -893,7 +893,7 @@ Ast* Parser::parse_tupleKeysetExpression()
 
   if (token->klass == TokenClass::PARENTH_OPEN) {
     next_token();
-    tuple_keyset = storage->malloc<Ast>();
+    tuple_keyset = storage->allocate<Ast>();
     tuple_keyset->kind = AstEnum::tupleKeysetExpression;
     tuple_keyset->line_no = token->line_no;
     tuple_keyset->column_no = token->column_no;
@@ -914,7 +914,7 @@ Ast* Parser::parse_simpleExpressionList()
   Ast* exprs, *ast;
   AstTreeCtor tree_ctor = {};
 
-  exprs = storage->malloc<Ast>();
+  exprs = storage->allocate<Ast>();
   exprs->kind = AstEnum::simpleExpressionList;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
@@ -935,7 +935,7 @@ Ast* Parser::parse_simpleKeysetExpression()
   Ast* simple_keyset, *default_keyset, *dontcare_keyset;
 
   if (token->token_is_simpleKeysetExpression()) {
-    simple_keyset = storage->malloc<Ast>();
+    simple_keyset = storage->allocate<Ast>();
     simple_keyset->kind = AstEnum::simpleKeysetExpression;
     simple_keyset->line_no = token->line_no;
     simple_keyset->column_no = token->column_no;
@@ -944,7 +944,7 @@ Ast* Parser::parse_simpleKeysetExpression()
       return simple_keyset;
     } else if (token->klass == TokenClass::DEFAULT) {
       next_token();
-      default_keyset = storage->malloc<Ast>();
+      default_keyset = storage->allocate<Ast>();
       default_keyset->kind = AstEnum::default_;
       default_keyset->line_no = token->line_no;
       default_keyset->column_no = token->column_no;
@@ -952,7 +952,7 @@ Ast* Parser::parse_simpleKeysetExpression()
       return simple_keyset;
     } else if (token->klass == TokenClass::DONTCARE) {
       next_token();
-      dontcare_keyset = storage->malloc<Ast>();
+      dontcare_keyset = storage->allocate<Ast>();
       dontcare_keyset->kind = AstEnum::dontcare;
       dontcare_keyset->line_no = token->line_no;
       dontcare_keyset->column_no = token->column_no;
@@ -972,7 +972,7 @@ Ast* Parser::parse_controlDeclaration(Ast* control_proto)
   Ast* control_decl;
 
   if (token->klass == TokenClass::PARENTH_OPEN || token->klass == TokenClass::BRACE_OPEN) {
-    control_decl = storage->malloc<Ast>();
+    control_decl = storage->allocate<Ast>();
     control_decl->kind = AstEnum::controlDeclaration;
     control_decl->line_no = token->line_no;
     control_decl->column_no = token->column_no;
@@ -1005,11 +1005,11 @@ Ast* Parser::parse_controlTypeDeclaration()
 
   if (token->klass == TokenClass::CONTROL) {
     next_token();
-    control_proto = storage->malloc<Ast>();
+    control_proto = storage->allocate<Ast>();
     control_proto->kind = AstEnum::controlTypeDeclaration;
     control_proto->line_no = token->line_no;
     control_proto->column_no = token->column_no;
-    method_protos = storage->malloc<Ast>();
+    method_protos = storage->allocate<Ast>();
     method_protos->kind = AstEnum::methodPrototypes;
     method_protos->line_no = control_proto->line_no;
     method_protos->column_no = control_proto->column_no;
@@ -1041,7 +1041,7 @@ Ast* Parser::parse_controlLocalDeclaration()
   Ast* local_decl, *type_ref;
 
   if (token->token_is_controlLocalDeclaration()) {
-    local_decl = storage->malloc<Ast>();
+    local_decl = storage->allocate<Ast>();
     local_decl->kind = AstEnum::controlLocalDeclaration;
     local_decl->line_no = token->line_no;
     local_decl->column_no = token->column_no;
@@ -1076,7 +1076,7 @@ Ast* Parser::parse_controlLocalDeclarations()
   Ast* decls, *ast;
   AstTreeCtor tree_ctor = {};
 
-  decls = storage->malloc<Ast>();
+  decls = storage->allocate<Ast>();
   decls->kind = AstEnum::controlLocalDeclarations;
   decls->line_no = token->line_no;
   decls->column_no = token->column_no;
@@ -1101,7 +1101,7 @@ Ast* Parser::parse_externDeclaration()
 
   if (token->klass == TokenClass::EXTERN) {
     next_token();
-    extern_decl = storage->malloc<Ast>();
+    extern_decl = storage->allocate<Ast>();
     extern_decl->kind = AstEnum::externDeclaration;
     extern_decl->line_no = token->line_no;
     extern_decl->column_no = token->column_no;
@@ -1123,7 +1123,7 @@ Ast* Parser::parse_externDeclaration()
                    source_file, token->line_no, token->column_no, token->lexeme);
       return extern_decl;
     } else {
-      extern_type = storage->malloc<Ast>();
+      extern_type = storage->allocate<Ast>();
       extern_type->kind = AstEnum::externTypeDeclaration;
       extern_type->line_no = token->line_no;
       extern_type->column_no = token->column_no;
@@ -1153,7 +1153,7 @@ Ast* Parser::parse_methodPrototypes()
   Ast* protos, *ast;
   AstTreeCtor tree_ctor = {};
 
-  protos = storage->malloc<Ast>();
+  protos = storage->allocate<Ast>();
   protos->kind = AstEnum::methodPrototypes;
   protos->line_no = token->line_no;
   protos->column_no = token->column_no;
@@ -1174,7 +1174,7 @@ Ast* Parser::parse_functionPrototype(Ast* return_type)
   Ast* name;
 
   if (token->token_is_typeOrVoid() || return_type) {
-    func_proto = storage->malloc<Ast>();
+    func_proto = storage->allocate<Ast>();
     func_proto->kind = AstEnum::functionPrototype;
     func_proto->line_no = token->line_no;
     func_proto->column_no = token->column_no;
@@ -1185,7 +1185,7 @@ Ast* Parser::parse_functionPrototype(Ast* return_type)
       if (return_type->kind == AstEnum::name) {
         name = return_type;
         current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
-        type_ref = storage->malloc<Ast>();
+        type_ref = storage->allocate<Ast>();
         type_ref->kind = AstEnum::typeRef;
         type_ref->line_no = token->line_no;
         type_ref->column_no = token->column_no;
@@ -1221,7 +1221,7 @@ Ast* Parser::parse_methodPrototype()
   if (token->token_is_methodPrototype()) {
     if (token->klass == TokenClass::TYPE_IDENTIFIER && peek_token()->klass == TokenClass::PARENTH_OPEN) {
       /* Constructor */
-      func_proto = storage->malloc<Ast>();
+      func_proto = storage->allocate<Ast>();
       func_proto->kind = AstEnum::functionPrototype;
       func_proto->line_no = token->line_no;
       func_proto->column_no = token->column_no;
@@ -1262,7 +1262,7 @@ Ast* Parser::parse_typeRef()
   Ast* type_ref;
 
   if (token->token_is_typeRef()) {
-    type_ref = storage->malloc<Ast>();
+    type_ref = storage->allocate<Ast>();
     type_ref->kind = AstEnum::typeRef;
     type_ref->line_no = token->line_no;
     type_ref->column_no = token->column_no;
@@ -1304,7 +1304,7 @@ Ast* Parser::parse_typeName()
   Ast* type_name;
 
   if (token->klass == TokenClass::TYPE_IDENTIFIER) {
-    type_name = storage->malloc<Ast>();
+    type_name = storage->allocate<Ast>();
     type_name->kind = AstEnum::name;
     type_name->line_no = token->line_no;
     type_name->column_no = token->column_no;
@@ -1322,7 +1322,7 @@ Ast* Parser::parse_tupleType()
   Ast* tuple;
 
   if (token->klass == TokenClass::TUPLE) {
-    tuple = storage->malloc<Ast>();
+    tuple = storage->allocate<Ast>();
     tuple->kind = AstEnum::tupleType;
     tuple->line_no = token->line_no;
     tuple->column_no = token->column_no;
@@ -1349,12 +1349,12 @@ Ast* Parser::parse_headerStackType(Ast* named_type)
 
   if (token->klass == TokenClass::BRACKET_OPEN) {
     next_token();
-    type_ref = storage->malloc<Ast>();
+    type_ref = storage->allocate<Ast>();
     type_ref->kind = AstEnum::typeRef;
     type_ref->line_no = named_type->line_no;
     type_ref->column_no = named_type->column_no;
     type_ref->typeRef.type = named_type;
-    type = storage->malloc<Ast>();
+    type = storage->allocate<Ast>();
     type->kind = AstEnum::headerStackType;
     type->line_no = named_type->line_no;
     type->column_no = named_type->column_no;
@@ -1379,12 +1379,12 @@ Ast* Parser::parse_baseType()
   Ast* type_name, *type;
 
   if (token->token_is_baseType()) {
-    type_name = storage->malloc<Ast>();
+    type_name = storage->allocate<Ast>();
     type_name->kind = AstEnum::name;
     type_name->line_no = token->line_no;
     type_name->column_no = token->column_no;
     if (token->klass == TokenClass::BOOL) {
-      type = storage->malloc<Ast>();
+      type = storage->allocate<Ast>();
       type->kind = AstEnum::baseTypeBoolean;
       type->line_no = token->line_no;
       type->column_no = token->column_no;
@@ -1393,7 +1393,7 @@ Ast* Parser::parse_baseType()
       next_token();
       return type;
     } else if (token->klass == TokenClass::INT) {
-      type = storage->malloc<Ast>();
+      type = storage->allocate<Ast>();
       type->kind = AstEnum::baseTypeInteger;
       type->line_no = token->line_no;
       type->column_no = token->column_no;
@@ -1410,7 +1410,7 @@ Ast* Parser::parse_baseType()
       }
       return type;
     } else if (token->klass == TokenClass::BIT) {
-      type = storage->malloc<Ast>();
+      type = storage->allocate<Ast>();
       type->kind = AstEnum::baseTypeBit;
       type->line_no = token->line_no;
       type->column_no = token->column_no;
@@ -1427,7 +1427,7 @@ Ast* Parser::parse_baseType()
       }
       return type;
     } else if (token->klass == TokenClass::VARBIT) {
-      type = storage->malloc<Ast>();
+      type = storage->allocate<Ast>();
       type->kind = AstEnum::baseTypeVarbit;
       type->line_no = token->line_no;
       type->column_no = token->column_no;
@@ -1445,7 +1445,7 @@ Ast* Parser::parse_baseType()
                    source_file, token->line_no, token->column_no, token->lexeme);
       return type;
     } else if (token->klass == TokenClass::STRING) {
-      type = storage->malloc<Ast>();
+      type = storage->allocate<Ast>();
       type->kind = AstEnum::baseTypeString;
       type->line_no = token->line_no;
       type->column_no = token->column_no;
@@ -1454,7 +1454,7 @@ Ast* Parser::parse_baseType()
       next_token();
       return type;
     } else if (token->klass == TokenClass::VOID) {
-      type = storage->malloc<Ast>();
+      type = storage->allocate<Ast>();
       type->kind = AstEnum::baseTypeVoid;
       type->line_no = token->line_no;
       type->column_no = token->column_no;
@@ -1463,7 +1463,7 @@ Ast* Parser::parse_baseType()
       next_token();
       return type;
     } else if (token->klass == TokenClass::ERROR) {
-      type = storage->malloc<Ast>();
+      type = storage->allocate<Ast>();
       type->kind = AstEnum::baseTypeError;
       type->line_no = token->line_no;
       type->column_no = token->column_no;
@@ -1482,7 +1482,7 @@ Ast* Parser::parse_integerTypeSize()
 {
   Ast* type_size;
 
-  type_size = storage->malloc<Ast>();
+  type_size = storage->allocate<Ast>();
   type_size->kind = AstEnum::integerTypeSize;
   type_size->line_no = token->line_no;
   type_size->column_no = token->column_no;
@@ -1510,7 +1510,7 @@ Ast* Parser::parse_typeOrVoid()
     } else if (token->klass == TokenClass::VOID) {
       return parse_baseType();
     } else if (token->klass == TokenClass::IDENTIFIER) {
-      name = storage->malloc<Ast>();
+      name = storage->allocate<Ast>();
       name->kind = AstEnum::name;
       name->line_no = token->line_no;
       name->column_no = token->column_no;
@@ -1529,13 +1529,13 @@ Ast* Parser::parse_realTypeArg()
   Ast* type_arg, *dontcare_arg;
 
   if (token->token_is_realTypeArg()) {
-    type_arg = storage->malloc<Ast>();
+    type_arg = storage->allocate<Ast>();
     type_arg->kind = AstEnum::realTypeArg;
     type_arg->line_no = token->line_no;
     type_arg->column_no = token->column_no;
     if (token->klass == TokenClass::DONTCARE) {
       next_token();
-      dontcare_arg = storage->malloc<Ast>();
+      dontcare_arg = storage->allocate<Ast>();
       dontcare_arg->kind = AstEnum::dontcare;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
@@ -1556,13 +1556,13 @@ Ast* Parser::parse_typeArg()
   Ast* type_arg, *dontcare_arg;
 
   if (token->token_is_typeArg()) {
-    type_arg = storage->malloc<Ast>();
+    type_arg = storage->allocate<Ast>();
     type_arg->kind = AstEnum::typeArg;
     type_arg->line_no = token->line_no;
     type_arg->column_no = token->column_no;
     if (token->klass == TokenClass::DONTCARE) {
       next_token();
-      dontcare_arg = storage->malloc<Ast>();
+      dontcare_arg = storage->allocate<Ast>();
       dontcare_arg->kind = AstEnum::dontcare;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
@@ -1586,7 +1586,7 @@ Ast* Parser::parse_typeArgumentList()
   Ast* args, *ast;
   AstTreeCtor tree_ctor = {};
 
-  args = storage->malloc<Ast>();
+  args = storage->allocate<Ast>();
   args->kind = AstEnum::typeArgumentList;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
@@ -1607,7 +1607,7 @@ Ast* Parser::parse_typeDeclaration()
   Ast* type_decl;
 
   if (token->token_is_typeDeclaration()) {
-    type_decl = storage->malloc<Ast>();
+    type_decl = storage->allocate<Ast>();
     type_decl->kind = AstEnum::typeDeclaration;
     type_decl->line_no = token->line_no;
     type_decl->column_no = token->column_no;
@@ -1642,7 +1642,7 @@ Ast* Parser::parse_derivedTypeDeclaration()
   Ast* type_decl;
 
   if (token->token_is_derivedTypeDeclaration()) {
-    type_decl = storage->malloc<Ast>();
+    type_decl = storage->allocate<Ast>();
     type_decl->kind = AstEnum::derivedTypeDeclaration;
     type_decl->line_no = token->line_no;
     type_decl->column_no = token->column_no;
@@ -1672,7 +1672,7 @@ Ast* Parser::parse_headerTypeDeclaration()
 
   if (token->klass == TokenClass::HEADER) {
     next_token();
-    header_decl = storage->malloc<Ast>();
+    header_decl = storage->allocate<Ast>();
     header_decl->kind = AstEnum::headerTypeDeclaration;
     header_decl->line_no = token->line_no;
     header_decl->column_no = token->column_no;
@@ -1705,7 +1705,7 @@ Ast* Parser::parse_headerUnionDeclaration()
 
   if (token->klass == TokenClass::UNION) {
     next_token();
-    union_decl = storage->malloc<Ast>();
+    union_decl = storage->allocate<Ast>();
     union_decl->kind = AstEnum::headerUnionDeclaration;
     union_decl->line_no = token->line_no;
     union_decl->column_no = token->column_no;
@@ -1738,7 +1738,7 @@ Ast* Parser::parse_structTypeDeclaration()
 
   if (token->klass == TokenClass::STRUCT) {
     next_token();
-    struct_decl = storage->malloc<Ast>();
+    struct_decl = storage->allocate<Ast>();
     struct_decl->kind = AstEnum::structTypeDeclaration;
     struct_decl->line_no = token->line_no;
     struct_decl->column_no = token->column_no;
@@ -1769,7 +1769,7 @@ Ast* Parser::parse_structFieldList()
   Ast* fields, *ast;
   AstTreeCtor tree_ctor = {};
 
-  fields = storage->malloc<Ast>();
+  fields = storage->allocate<Ast>();
   fields->kind = AstEnum::structFieldList;
   fields->line_no = token->line_no;
   fields->column_no = token->column_no;
@@ -1787,7 +1787,7 @@ Ast* Parser::parse_structFieldList()
 Ast* Parser::parse_structField()
 {
   if (token->token_is_structField()) {
-    Ast* field = storage->malloc<Ast>();
+    Ast* field = storage->allocate<Ast>();
     field->kind = AstEnum::structField;
     field->line_no = token->line_no;
     field->column_no = token->column_no;
@@ -1814,7 +1814,7 @@ Ast* Parser::parse_enumDeclaration()
 
   if (token->klass == TokenClass::ENUM) {
     next_token();
-    enum_decl = storage->malloc<Ast>();
+    enum_decl = storage->allocate<Ast>();
     enum_decl->kind = AstEnum::enumDeclaration;
     enum_decl->line_no = token->line_no;
     enum_decl->column_no = token->column_no;
@@ -1864,7 +1864,7 @@ Ast* Parser::parse_errorDeclaration()
 
   if (token->klass == TokenClass::ERROR) {
     next_token();
-    error_decl = storage->malloc<Ast>();
+    error_decl = storage->allocate<Ast>();
     error_decl->kind = AstEnum::errorDeclaration;
     error_decl->line_no = token->line_no;
     error_decl->column_no = token->column_no;
@@ -1896,7 +1896,7 @@ Ast* Parser::parse_matchKindDeclaration()
 
   if (token->klass == TokenClass::MATCH_KIND) {
     next_token();
-    match_decl = storage->malloc<Ast>();
+    match_decl = storage->allocate<Ast>();
     match_decl->kind = AstEnum::matchKindDeclaration;
     match_decl->line_no = token->line_no;
     match_decl->column_no = token->column_no;
@@ -1924,7 +1924,7 @@ Ast* Parser::parse_identifierList()
   Ast* ids, *ast;
   AstTreeCtor tree_ctor = {};
 
-  ids = storage->malloc<Ast>();
+  ids = storage->allocate<Ast>();
   ids->kind = AstEnum::identifierList;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
@@ -1945,7 +1945,7 @@ Ast* Parser::parse_specifiedIdentifierList()
   Ast* ids, *ast;
   AstTreeCtor tree_ctor = {};
 
-  ids = storage->malloc<Ast>();
+  ids = storage->allocate<Ast>();
   ids->kind = AstEnum::specifiedIdentifierList;
   ids->line_no = token->line_no;
   ids->column_no = token->column_no;
@@ -1966,7 +1966,7 @@ Ast* Parser::parse_specifiedIdentifier()
   Ast* id;
 
   if (token->token_is_specifiedIdentifier()) {
-    id = storage->malloc<Ast>();
+    id = storage->allocate<Ast>();
     id->kind = AstEnum::specifiedIdentifier;
     id->line_no = token->line_no;
     id->column_no = token->column_no;
@@ -1993,7 +1993,7 @@ Ast* Parser::parse_typedefDeclaration()
   if (token->klass == TokenClass::TYPEDEF) {
     next_token();
     if (token->token_is_typeRef() || token->token_is_derivedTypeDeclaration()) {
-      type_decl = storage->malloc<Ast>();
+      type_decl = storage->allocate<Ast>();
       type_decl->kind = AstEnum::typedefDeclaration;
       type_decl->line_no = token->line_no;
       type_decl->column_no = token->column_no;
@@ -2031,7 +2031,7 @@ Ast* Parser::parse_assignmentOrMethodCallStatement()
     lvalue = parse_lvalue();
     if (token->klass == TokenClass::PARENTH_OPEN) {
       next_token();
-      stmt = storage->malloc<Ast>();
+      stmt = storage->allocate<Ast>();
       stmt->kind = AstEnum::functionCall;
       stmt->line_no = token->line_no;
       stmt->column_no = token->column_no;
@@ -2048,7 +2048,7 @@ Ast* Parser::parse_assignmentOrMethodCallStatement()
       return stmt;
     } else if (token->klass == TokenClass::EQUAL) {
       next_token();
-      stmt = storage->malloc<Ast>();
+      stmt = storage->allocate<Ast>();
       stmt->kind = AstEnum::assignmentStatement;
       stmt->line_no = token->line_no;
       stmt->column_no = token->column_no;
@@ -2073,7 +2073,7 @@ Ast* Parser::parse_returnStatement()
 
   if (token->klass == TokenClass::RETURN) {
     next_token();
-    return_stmt = storage->malloc<Ast>();
+    return_stmt = storage->allocate<Ast>();
     return_stmt->kind = AstEnum::returnStatement;
     return_stmt->line_no = token->line_no;
     return_stmt->column_no = token->column_no;
@@ -2096,7 +2096,7 @@ Ast* Parser::parse_exitStatement()
 
   if (token->klass == TokenClass::EXIT) {
     next_token();
-    exit_stmt = storage->malloc<Ast>();
+    exit_stmt = storage->allocate<Ast>();
     exit_stmt->kind = AstEnum::exitStatement;
     exit_stmt->line_no = token->line_no;
     exit_stmt->column_no = token->column_no;
@@ -2117,7 +2117,7 @@ Ast* Parser::parse_conditionalStatement()
 
   if (token->klass == TokenClass::IF) {
     next_token();
-    if_stmt = storage->malloc<Ast>();
+    if_stmt = storage->allocate<Ast>();
     if_stmt->kind = AstEnum::conditionalStatement;
     if_stmt->line_no = token->line_no;
     if_stmt->column_no = token->column_no;
@@ -2156,7 +2156,7 @@ Ast* Parser::parse_directApplication(Ast* type_name)
   Ast* apply_stmt;
 
   if (token->token_is_typeName() || type_name) {
-    apply_stmt = storage->malloc<Ast>();
+    apply_stmt = storage->allocate<Ast>();
     apply_stmt->kind = AstEnum::directApplication;
     apply_stmt->line_no = token->line_no;
     apply_stmt->column_no = token->column_no;
@@ -2194,7 +2194,7 @@ Ast* Parser::parse_statement(Ast* type_name)
   Ast* stmt, *empty_stmt;
 
   if (token->token_is_statement()) {
-    stmt = storage->malloc<Ast>();
+    stmt = storage->allocate<Ast>();
     stmt->kind = AstEnum::statement;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
@@ -2208,7 +2208,7 @@ Ast* Parser::parse_statement(Ast* type_name)
       stmt->statement.stmt = parse_conditionalStatement();
       return stmt;
     } else if (token->klass == TokenClass::SEMICOLON) {
-      empty_stmt = storage->malloc<Ast>();
+      empty_stmt = storage->allocate<Ast>();
       empty_stmt->kind = AstEnum::emptyStatement;
       empty_stmt->line_no = token->line_no;
       empty_stmt->column_no = token->column_no;
@@ -2240,7 +2240,7 @@ Ast* Parser::parse_blockStatement()
 
   if (token->klass == TokenClass::BRACE_OPEN) {
     next_token();
-    block_stmt = storage->malloc<Ast>();
+    block_stmt = storage->allocate<Ast>();
     block_stmt->kind = AstEnum::blockStatement;
     block_stmt->line_no = token->line_no;
     block_stmt->column_no = token->column_no;
@@ -2261,7 +2261,7 @@ Ast* Parser::parse_statementOrDeclList()
   Ast* stmts, *ast;
   AstTreeCtor tree_ctor = {};
 
-  stmts = storage->malloc<Ast>();
+  stmts = storage->allocate<Ast>();
   stmts->kind = AstEnum::statementOrDeclList;
   stmts->line_no = token->line_no;
   stmts->column_no = token->column_no;
@@ -2282,7 +2282,7 @@ Ast* Parser::parse_switchStatement()
 
   if (token->klass == TokenClass::SWITCH) {
     next_token();
-    stmt = storage->malloc<Ast>();
+    stmt = storage->allocate<Ast>();
     stmt->kind = AstEnum::switchStatement;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
@@ -2316,7 +2316,7 @@ Ast* Parser::parse_switchCases()
   Ast* cases, *ast;
   AstTreeCtor tree_ctor = {};
 
-  cases = storage->malloc<Ast>();
+  cases = storage->allocate<Ast>();
   cases->kind = AstEnum::switchCases;
   cases->line_no = token->line_no;
   cases->column_no = token->column_no;
@@ -2336,7 +2336,7 @@ Ast* Parser::parse_switchCase()
   Ast* switch_case;
 
   if (token->token_is_switchLabel()) {
-    switch_case = storage->malloc<Ast>();
+    switch_case = storage->allocate<Ast>();
     switch_case->kind = AstEnum::switchCase;
     switch_case->line_no = token->line_no;
     switch_case->column_no = token->column_no;
@@ -2360,7 +2360,7 @@ Ast* Parser::parse_switchLabel()
   Ast* switch_label, *default_label;
 
   if (token->token_is_switchLabel()) {
-    switch_label = storage->malloc<Ast>();
+    switch_label = storage->allocate<Ast>();
     switch_label->kind = AstEnum::switchLabel;
     switch_label->line_no = token->line_no;
     switch_label->column_no = token->column_no;
@@ -2369,7 +2369,7 @@ Ast* Parser::parse_switchLabel()
       return switch_label;
     } else if (token->klass == TokenClass::DEFAULT) {
       next_token();
-      default_label = storage->malloc<Ast>();
+      default_label = storage->allocate<Ast>();
       default_label->kind = AstEnum::default_;
       default_label->line_no = token->line_no;
       default_label->column_no = token->column_no;
@@ -2387,7 +2387,7 @@ Ast* Parser::parse_statementOrDeclaration()
   Ast* stmt, *type_ref;
 
   if (token->token_is_statementOrDeclaration()) {
-    stmt = storage->malloc<Ast>();
+    stmt = storage->allocate<Ast>();
     stmt->kind = AstEnum::statementOrDeclaration;
     stmt->line_no = token->line_no;
     stmt->column_no = token->column_no;
@@ -2424,12 +2424,12 @@ Ast* Parser::parse_tableDeclaration()
 
   if (token->klass == TokenClass::TABLE) {
     next_token();
-    table = storage->malloc<Ast>();
+    table = storage->allocate<Ast>();
     table->kind = AstEnum::tableDeclaration;
     table->line_no = token->line_no;
     table->column_no = token->column_no;
     table->tableDeclaration.name = parse_name();
-    method_protos = storage->malloc<Ast>();
+    method_protos = storage->allocate<Ast>();
     method_protos->kind = AstEnum::methodPrototypes;
     method_protos->line_no = table->line_no;
     method_protos->column_no = table->column_no;
@@ -2458,7 +2458,7 @@ Ast* Parser::parse_tablePropertyList()
   Ast* props, *ast;
   AstTreeCtor tree_ctor = {};
 
-  props = storage->malloc<Ast>();
+  props = storage->allocate<Ast>();
   props->kind = AstEnum::tablePropertyList;
   props->line_no = token->line_no;
   props->column_no = token->column_no;
@@ -2487,13 +2487,13 @@ Ast* Parser::parse_tableProperty()
       is_const = 1;
     }
 #endif
-    table_prop = storage->malloc<Ast>();
+    table_prop = storage->allocate<Ast>();
     table_prop->kind = AstEnum::tableProperty;
     table_prop->line_no = token->line_no;
     table_prop->column_no = token->column_no;
     if (token->klass == TokenClass::KEY) {
       next_token();
-      prop = storage->malloc<Ast>();
+      prop = storage->allocate<Ast>();
       prop->kind = AstEnum::keyProperty;
       prop->line_no = token->line_no;
       prop->column_no = token->column_no;
@@ -2514,7 +2514,7 @@ Ast* Parser::parse_tableProperty()
       return table_prop;
     } else if (token->klass == TokenClass::ACTIONS) {
       next_token();
-      prop = storage->malloc<Ast>();
+      prop = storage->allocate<Ast>();
       prop->kind = AstEnum::actionsProperty;
       prop->line_no = token->line_no;
       prop->column_no = token->column_no;
@@ -2594,7 +2594,7 @@ Ast* Parser::parse_keyElementList()
   Ast* elems, *ast;
   AstTreeCtor tree_ctor = {};
 
-  elems = storage->malloc<Ast>();
+  elems = storage->allocate<Ast>();
   elems->kind = AstEnum::keyElementList;
   elems->line_no = token->line_no;
   elems->column_no = token->column_no;
@@ -2614,7 +2614,7 @@ Ast* Parser::parse_keyElement()
   Ast* key_elem;
 
   if (token->token_is_expression()) {
-    key_elem = storage->malloc<Ast>();
+    key_elem = storage->allocate<Ast>();
     key_elem->kind = AstEnum::keyElement;
     key_elem->line_no = token->line_no;
     key_elem->column_no = token->column_no;
@@ -2640,7 +2640,7 @@ Ast* Parser::parse_actionList()
   Ast* actions, *ast;
   AstTreeCtor tree_ctor = {};
 
-  actions = storage->malloc<Ast>();
+  actions = storage->allocate<Ast>();
   actions->kind = AstEnum::actionList;
   actions->line_no = token->line_no;
   actions->column_no = token->column_no;
@@ -2668,7 +2668,7 @@ Ast* Parser::parse_actionRef()
   Ast* action_ref;
 
   if (token->token_is_nonTypeName()) {
-    action_ref = storage->malloc<Ast>();
+    action_ref = storage->allocate<Ast>();
     action_ref->kind = AstEnum::actionRef;
     action_ref->line_no = token->line_no;
     action_ref->column_no = token->column_no;
@@ -2747,7 +2747,7 @@ Ast* Parser::parse_actionDeclaration()
 
   if (token->klass == TokenClass::ACTION) {
     next_token();
-    action_decl = storage->malloc<Ast>();
+    action_decl = storage->allocate<Ast>();
     action_decl->kind = AstEnum::actionDeclaration;
     action_decl->line_no = token->line_no;
     action_decl->column_no = token->column_no;
@@ -2787,7 +2787,7 @@ Ast* Parser::parse_variableDeclaration(Ast* type_ref)
     is_const = 1;
   }
   if (token->token_is_typeRef() || type_ref) {
-    var_decl = storage->malloc<Ast>();
+    var_decl = storage->allocate<Ast>();
     var_decl->kind = AstEnum::variableDeclaration;
     var_decl->line_no = token->line_no;
     var_decl->column_no = token->column_no;
@@ -2819,7 +2819,7 @@ Ast* Parser::parse_functionDeclaration(Ast* type_ref)
   Ast* func_decl;
 
   if (token->token_is_typeOrVoid()) {
-    func_decl = storage->malloc<Ast>();
+    func_decl = storage->allocate<Ast>();
     func_decl->kind = AstEnum::functionDeclaration;
     func_decl->line_no = token->line_no;
     func_decl->column_no = token->column_no;
@@ -2840,7 +2840,7 @@ Ast* Parser::parse_argumentList()
   Ast* args, *ast;
   AstTreeCtor tree_ctor = {0};
 
-  args = storage->malloc<Ast>();
+  args = storage->allocate<Ast>();
   args->kind = AstEnum::argumentList;
   args->line_no = token->line_no;
   args->column_no = token->column_no;
@@ -2861,7 +2861,7 @@ Ast* Parser::parse_argument()
   Ast* arg, *dontcare_arg;
 
   if (token->token_is_argument()) {
-    arg = storage->malloc<Ast>();
+    arg = storage->allocate<Ast>();
     arg->kind = AstEnum::argument;
     arg->line_no = token->line_no;
     arg->column_no = token->column_no;
@@ -2870,7 +2870,7 @@ Ast* Parser::parse_argument()
       return arg;
     } else if (token->klass == TokenClass::DONTCARE) {
       next_token();
-      dontcare_arg = storage->malloc<Ast>();
+      dontcare_arg = storage->allocate<Ast>();
       dontcare_arg->kind = AstEnum::dontcare;
       dontcare_arg->line_no = token->line_no;
       dontcare_arg->column_no = token->column_no;
@@ -2888,7 +2888,7 @@ Ast* Parser::parse_expressionList()
   Ast* exprs, *ast;
   AstTreeCtor tree_ctor = {0};
   
-  exprs = storage->malloc<Ast>();
+  exprs = storage->allocate<Ast>();
   exprs->kind = AstEnum::expressionList;
   exprs->line_no = token->line_no;
   exprs->column_no = token->column_no;
@@ -2909,7 +2909,7 @@ Ast* Parser::parse_lvalue()
   Ast* lvalue, *expr;
 
   if (token->token_is_lvalue()) {
-    lvalue = storage->malloc<Ast>();
+    lvalue = storage->allocate<Ast>();
     lvalue->kind = AstEnum::lvalueExpression;
     lvalue->line_no = token->line_no;
     lvalue->column_no = token->column_no;
@@ -2917,7 +2917,7 @@ Ast* Parser::parse_lvalue()
     while(token->klass == TokenClass::DOT || token->klass == TokenClass::BRACKET_OPEN) {
       if (token->klass == TokenClass::DOT) {
         next_token();
-        expr = storage->malloc<Ast>();
+        expr = storage->allocate<Ast>();
         expr->kind = AstEnum::memberSelector;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
@@ -2926,7 +2926,7 @@ Ast* Parser::parse_lvalue()
           expr->memberSelector.name = parse_name();
         } else error("%s:%d:%d: error: name was expected, got `%s`.",
                      source_file, token->line_no, token->column_no, token->lexeme);
-        lvalue = storage->malloc<Ast>();
+        lvalue = storage->allocate<Ast>();
         lvalue->kind = AstEnum::lvalueExpression;
         lvalue->line_no = token->line_no;
         lvalue->column_no = token->column_no;
@@ -2934,7 +2934,7 @@ Ast* Parser::parse_lvalue()
       }
       else if (token->klass == TokenClass::BRACKET_OPEN) {
         next_token();
-        expr = storage->malloc<Ast>();
+        expr = storage->allocate<Ast>();
         expr->kind = AstEnum::arraySubscript;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
@@ -2944,7 +2944,7 @@ Ast* Parser::parse_lvalue()
           next_token();
         } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
                      source_file, token->line_no, token->column_no, token->lexeme);
-        lvalue = storage->malloc<Ast>();
+        lvalue = storage->allocate<Ast>();
         lvalue->kind = AstEnum::lvalueExpression;
         lvalue->line_no = token->line_no;
         lvalue->column_no = token->column_no;
@@ -2968,7 +2968,7 @@ Ast* Parser::parse_expression(int priority_threshold)
       if (token->klass == TokenClass::DOT) {
         next_token();
         Ast* expr;
-        expr = storage->malloc<Ast>();
+        expr = storage->allocate<Ast>();
         expr->kind = AstEnum::memberSelector;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
@@ -2977,14 +2977,14 @@ Ast* Parser::parse_expression(int priority_threshold)
           expr->memberSelector.name = parse_nonTypeName();
         } else error("%s:%d:%d: error: non-type name was expected, got `%s`.",
                      source_file, token->line_no, token->column_no, token->lexeme);
-        primary = storage->malloc<Ast>();
+        primary = storage->allocate<Ast>();
         primary->kind = AstEnum::expression;
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
       } else if (token->klass == TokenClass::BRACKET_OPEN) {
         next_token();
-        expr = storage->malloc<Ast>();
+        expr = storage->allocate<Ast>();
         expr->kind = AstEnum::arraySubscript;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
@@ -2994,14 +2994,14 @@ Ast* Parser::parse_expression(int priority_threshold)
           next_token();
         } else error("%s:%d:%d: error: `]` was expected, got `%s`.",
                      source_file, token->line_no, token->column_no, token->lexeme);
-        primary = storage->malloc<Ast>();
+        primary = storage->allocate<Ast>();
         primary->kind = AstEnum::expression;
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
       } else if (token->klass == TokenClass::PARENTH_OPEN) {
         next_token();
-        expr = storage->malloc<Ast>();
+        expr = storage->allocate<Ast>();
         expr->kind = AstEnum::functionCall;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
@@ -3011,20 +3011,20 @@ Ast* Parser::parse_expression(int priority_threshold)
           next_token();
         } else error("%s:%d:%d: error: `)` was expected, got `%s`.",
                      source_file, token->line_no, token->column_no, token->lexeme);
-        primary = storage->malloc<Ast>();
+        primary = storage->allocate<Ast>();
         primary->kind = AstEnum::expression;
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
         primary->expression.expr = expr;
       } else if (token->klass == TokenClass::EQUAL) {
         next_token();
-        expr = storage->malloc<Ast>();
+        expr = storage->allocate<Ast>();
         expr->kind = AstEnum::assignmentStatement;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
         expr->assignmentStatement.lhs_expr = primary;
         expr->assignmentStatement.rhs_expr = parse_expression(1);
-        primary = storage->malloc<Ast>();
+        primary = storage->allocate<Ast>();
         primary->kind = AstEnum::expression;
         primary->line_no = expr->line_no;
         primary->column_no = expr->column_no;
@@ -3032,7 +3032,7 @@ Ast* Parser::parse_expression(int priority_threshold)
       } else if (token->token_is_binaryOperator()){
         int priority = operator_priority(token);
         if (priority >= priority_threshold) {
-          expr = storage->malloc<Ast>();
+          expr = storage->allocate<Ast>();
           expr->kind = AstEnum::binaryExpression;
           expr->line_no = token->line_no;
           expr->column_no = token->column_no;
@@ -3041,7 +3041,7 @@ Ast* Parser::parse_expression(int priority_threshold)
           expr->binaryExpression.strname = token->lexeme;
           next_token();
           expr->binaryExpression.right_operand = parse_expression(priority + 1);
-          primary = storage->malloc<Ast>();
+          primary = storage->allocate<Ast>();
           primary->kind = AstEnum::expression;
           primary->line_no = expr->line_no;
           primary->column_no = expr->column_no;
@@ -3061,7 +3061,7 @@ Ast* Parser::parse_expressionPrimary()
   Ast* primary, *expr;
 
   if (token->token_is_expression()) {
-    primary = storage->malloc<Ast>();
+    primary = storage->allocate<Ast>();
     primary->kind = AstEnum::expression;
     primary->line_no = token->line_no;
     primary->column_no = token->column_no;
@@ -3107,7 +3107,7 @@ Ast* Parser::parse_expressionPrimary()
                      source_file, token->line_no, token->column_no, token->lexeme);
         return primary;
       } else if (token->token_is_typeRef()) {
-        expr = storage->malloc<Ast>();
+        expr = storage->allocate<Ast>();
         expr->kind = AstEnum::castExpression;
         expr->line_no = token->line_no;
         expr->column_no = token->column_no;
@@ -3131,7 +3131,7 @@ Ast* Parser::parse_expressionPrimary()
       assert(0);
     } else if (token->klass == TokenClass::EXCLAMATION) {
       next_token();
-      expr = storage->malloc<Ast>();
+      expr = storage->allocate<Ast>();
       expr->kind = AstEnum::unaryExpression;
       expr->line_no = token->line_no;
       expr->column_no = token->column_no;
@@ -3142,7 +3142,7 @@ Ast* Parser::parse_expressionPrimary()
       return primary;
     } else if (token->klass == TokenClass::TILDA) {
       next_token();
-      expr = storage->malloc<Ast>();
+      expr = storage->allocate<Ast>();
       expr->kind = AstEnum::unaryExpression;
       expr->line_no = token->line_no;
       expr->column_no = token->column_no;
@@ -3153,7 +3153,7 @@ Ast* Parser::parse_expressionPrimary()
       return primary;
     } else if (token->klass == TokenClass::UNARY_MINUS) {
       next_token();
-      expr = storage->malloc<Ast>();
+      expr = storage->allocate<Ast>();
       expr->kind = AstEnum::unaryExpression;
       expr->line_no = token->line_no;
       expr->column_no = token->column_no;
@@ -3167,7 +3167,7 @@ Ast* Parser::parse_expressionPrimary()
       return primary;
     } else if (token->klass == TokenClass::ERROR) {
       next_token();
-      expr = storage->malloc<Ast>();
+      expr = storage->allocate<Ast>();
       expr->kind = AstEnum::name;
       expr->line_no = token->line_no;
       expr->column_no = token->column_no;
@@ -3187,7 +3187,7 @@ Ast* Parser::parse_indexExpression()
   Ast* index_expr;
 
   if (token->token_is_expression()) {
-    index_expr = storage->malloc<Ast>();
+    index_expr = storage->allocate<Ast>();
     index_expr->kind = AstEnum::indexExpression;
     index_expr->line_no = token->line_no;
     index_expr->column_no = token->column_no;
@@ -3211,7 +3211,7 @@ Ast* Parser::parse_integer()
   Ast* int_literal;
 
   if (token->klass == TokenClass::INTEGER_LITERAL) {
-    int_literal = storage->malloc<Ast>();
+    int_literal = storage->allocate<Ast>();
     int_literal->kind = AstEnum::integerLiteral;
     int_literal->line_no = token->line_no;
     int_literal->column_no = token->column_no;
@@ -3231,7 +3231,7 @@ Ast* Parser::parse_boolean()
   Ast* bool_literal;
 
   if (token->klass == TokenClass::TRUE || token->klass == TokenClass::FALSE) {
-    bool_literal = storage->malloc<Ast>();
+    bool_literal = storage->allocate<Ast>();
     bool_literal->kind = AstEnum::booleanLiteral;
     bool_literal->line_no = token->line_no;
     bool_literal->column_no = token->column_no;
@@ -3249,7 +3249,7 @@ Ast* Parser::parse_string()
   Ast* string_literal;
 
   if (token->klass == TokenClass::STRING_LITERAL) {
-    string_literal = storage->malloc<Ast>();
+    string_literal = storage->allocate<Ast>();
     string_literal->kind = AstEnum::stringLiteral;
     string_literal->line_no = token->line_no;
     string_literal->column_no = token->column_no;

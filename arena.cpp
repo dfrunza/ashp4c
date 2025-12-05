@@ -161,7 +161,7 @@ PageBlock* PageBlock::get_new_block_struct()
   if (block) {
     recycled_block_structs = block->next_block;
   } else {
-    block = storage.malloc<PageBlock>();
+    block = storage.allocate<PageBlock>();
   }
   memset(block, 0, sizeof(PageBlock));
   return block;
@@ -202,7 +202,7 @@ void Arena::grow(uint32_t size)
   owned_pages = owned_pages->block_insert_and_coalesce(alloc_block);
 }
 
-void* Arena::_malloc(uint32_t size)
+void* Arena::allocate_block(uint32_t size)
 {
   assert(size > 0);
   uint8_t* user_memory;

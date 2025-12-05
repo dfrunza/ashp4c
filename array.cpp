@@ -30,7 +30,7 @@ void Array::extend()
     exit(1);
   }
   segment_capacity = 16 * (1 << last_segment);
-  data.segments[last_segment] = storage->malloc<uint8_t>(elem_size * segment_capacity);
+  data.segments[last_segment] = storage->allocate<uint8_t>(elem_size * segment_capacity);
   capacity = 16 * ((1 << (last_segment + 1)) - 1);
 }
 
@@ -40,8 +40,8 @@ Array* Array::create(Arena* storage, int elem_size, int segment_count)
   assert(segment_count >= 1 && segment_count <= 16);
   Array* array;
 
-  array = storage->malloc<Array>();
-  storage->malloc<void*>(segment_count);
+  array = storage->allocate<Array>();
+  storage->allocate<void *>(segment_count);
   array->storage = storage;
   array->init(array->storage, elem_size, segment_count);
   return array;
@@ -57,7 +57,7 @@ void Array::init(Arena* storage, int elem_size, int segment_count)
   this->elem_size = elem_size;
   capacity = 16;
   data.segment_count = segment_count;
-  data.segments[0] = storage->malloc<uint8_t>(16 * elem_size);
+  data.segments[0] = storage->allocate<uint8_t>(16 * elem_size);
 }
 
 void* Array::get(int i)

@@ -35,8 +35,8 @@ Strmap* Strmap::create(Arena* storage, int segment_count)
   assert(segment_count >= 1 && segment_count <= 16);
   Strmap* strmap;
 
-  strmap = storage->malloc<Strmap>();
-  storage->malloc<StrmapEntry*>(segment_count);
+  strmap = storage->allocate<Strmap>();
+  storage->allocate<StrmapEntry *>(segment_count);
   strmap->storage = storage;
   strmap->init(strmap->storage, segment_count);
   return strmap;
@@ -50,7 +50,7 @@ void Strmap::init(Arena* storage, int segment_count)
   entry_count = 0;
   capacity = 16;
   entries.segment_count = segment_count;
-  entries.segments[0] = storage->malloc<StrmapEntry>(16);
+  entries.segments[0] = storage->allocate<StrmapEntry>(16);
   memset(entries.segments[0], 0, sizeof(StrmapEntry*) * 16);
 }
 
@@ -82,7 +82,7 @@ void Strmap::grow()
   }
   assert(entry_count == entry_count);
   segment_capacity = 16 * (1 << last_segment);
-  entries.segments[last_segment] = storage->malloc<StrmapEntry*>(segment_capacity);
+  entries.segments[last_segment] = storage->allocate<StrmapEntry *>(segment_capacity);
   capacity = 16 * ((1 << (last_segment + 1)) - 1);
   for (int i = 0; i <= last_segment; i++) {
     segment_capacity = 16 * (1 << i);
@@ -143,7 +143,7 @@ StrmapEntry* Strmap::insert(char* key, void* value, bool return_if_found)
     bucket.h = hash_key(key, 4 + (bucket.last_segment + 1), capacity);
     bucket.entry_slot = (StrmapEntry**)entries.locate_cell(bucket.h, sizeof(StrmapEntry*));
   }
-  entry = storage->malloc<StrmapEntry>();
+  entry = storage->allocate<StrmapEntry>();
   entry->key = key;
   entry->value = value;
   entry->next_entry = *bucket.entry_slot;

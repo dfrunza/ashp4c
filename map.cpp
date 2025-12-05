@@ -20,7 +20,7 @@ MapEntry* Map::insert_entry(MapEntry** branch, MapEntry* entry,
     void* key, void* value, bool return_if_found)
 {
   if (!entry) {
-    entry = storage->malloc<MapEntry>();
+    entry = storage->allocate<MapEntry>();
     *branch = entry;
     entry->key = key;
     entry->value = value;

@@ -148,7 +148,7 @@ Ast* Ast::clone(Arena* storage)
   Ast* clone, *sibling_clone, *child_clone;
 
   if (this == 0) return (Ast*)0;
-  clone = storage->malloc<Ast>();
+  clone = storage->allocate<Ast>();
   clone->kind = kind;
   clone->line_no = line_no;
   clone->column_no = column_no;
