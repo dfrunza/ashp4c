@@ -1,14 +1,11 @@
-#include <memory.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <memory.h>
 #include <math.h>
-#include <arena.h>
 #include <basic.h>
-
-#define ZMEM_ON_FREE  0
-#define ZMEM_ON_ALLOC 1
+#include <arena.h>
 
 static int page_size = 0;
 static int total_page_count = 0;
@@ -200,23 +197,6 @@ void Arena::grow(uint32_t size)
   alloc_block->memory_begin = alloc_memory_begin;
   alloc_block->memory_end = alloc_memory_end;
   owned_pages = owned_pages->block_insert_and_coalesce(alloc_block);
-}
-
-void* Arena::_allocate(uint32_t size)
-{
-  assert(size > 0);
-  uint8_t* user_memory;
-
-  user_memory = (uint8_t*)memory_avail;
-  if (user_memory + size >= (uint8_t*)memory_limit) {
-    grow(size);
-    user_memory = (uint8_t*)memory_avail;
-  }
-  memory_avail = user_memory + size;
-  if (ZMEM_ON_ALLOC) {
-    memset(user_memory, 0, size);
-  }
-  return user_memory;
 }
 
 void Arena::free()

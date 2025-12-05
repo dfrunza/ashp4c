@@ -1,5 +1,10 @@
 #pragma once
 #include <stdint.h>
+#include <memory.h>
+#include <basic.h>
+
+#define ZMEM_ON_FREE  0
+#define ZMEM_ON_ALLOC 1
 
 struct PageBlock {
   PageBlock* next_block;
@@ -19,13 +24,26 @@ struct Arena {
   void* memory_limit;
 
   static void reserve_memory(int amount);
-  void* _allocate(uint32_t size);
   void free();
   void grow(uint32_t size);
 
-  template<class T> T* allocate(int count = 1)
+  template<class T>
+  T* allocate(int count = 1)
   {
-    T* t = (T*) _allocate(sizeof(T) * count);
-    return t;
+    assert(count > 0);
+    uint8_t* user_memory;
+    int size;
+
+    user_memory = (uint8_t*)memory_avail;
+    size = sizeof(T) * count;
+    if (user_memory + size >= (uint8_t*)memory_limit) {
+      grow(size);
+      user_memory = (uint8_t*)memory_avail;
+    }
+    memory_avail = user_memory + size;
+    if (ZMEM_ON_ALLOC) {
+      memset(user_memory, 0, size);
+    }
+    return (T*) user_memory;
   }
 };
