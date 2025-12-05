@@ -96,7 +96,7 @@ struct Array {
     void* elem_slot;
 
     elem_slot = data.locate_cell(i, sizeof(T));
-    return elem_slot;
+    return (T*) elem_slot;
   }
 
   T* append()
@@ -108,6 +108,6 @@ struct Array {
     }
     elem_slot = data.locate_cell(elem_count, sizeof(T));
     elem_count += 1;
-    return elem_slot;
+    return (T*) elem_slot;
   }
 };

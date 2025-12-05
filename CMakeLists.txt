@@ -34,7 +34,6 @@ add_executable(ashp4c
         parser.h
         scope.cpp
         scope.h
-        strmap.cpp
         strmap.h
         type.cpp
         type.h
@@ -50,4 +49,5 @@ add_executable(ashp4c
         passes/potential_type.h
         passes/scope_hierarchy.cpp
         passes/scope_hierarchy.h
-        passes/select_type.cpp namespace.cpp)
+        passes/select_type.cpp
+        namespace.cpp)

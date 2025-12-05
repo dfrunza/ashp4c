@@ -1,39 +1,252 @@
 #pragma once
 #include <stdint.h>
+#include <memory.h>
+#include <cstring.h>
 #include <arena.h>
 #include <array.h>
 
+static const uint32_t P = 257, Q = 4294967029;
+static const uint32_t SIGMA = 2654435769;
+
+static uint32_t hash_string(char* string, uint32_t m)
+{
+  assert(m > 0 && m <= 32);
+  uint32_t K = 0, h;
+  uint64_t KxSigma;
+
+  for (uint8_t* s = (uint8_t*)string; (*s); s++) {
+    K = (P * K + (*s)) % Q;
+  }
+  KxSigma = (uint64_t)K * (uint64_t)SIGMA;
+  h = ((uint32_t)KxSigma) >> (32 - m);  /* 0 <= h < 2^m */
+  return h;
+}
+
+static uint32_t hash_key(char* key, int m, int capacity)
+{
+  uint32_t h;
+  h = hash_string(key, m) % capacity;
+  return h;
+}
+
+template<class V>
 struct StrmapEntry {
   char* key;
-  void* value;
+  V* value;
   StrmapEntry* next_entry;
 };
 
+template<class V>
 struct StrmapBucket {
   uint32_t h;
-  StrmapEntry** entry_slot;
+  StrmapEntry<V>** entry_slot;
   int last_segment;
 };
 
+template<class V> struct StrmapCursor;
+
+template<class V>
 struct Strmap {
   Arena* storage;
   int entry_count;
   int capacity;
   SegmentTable entries;
 
-  static Strmap* create(Arena* storage, int segment_count);
-  void init(Arena* storage, int segment_count);
-  void grow();
-  void* lookup(char* key, StrmapEntry** entry, StrmapBucket* bucket);
-  StrmapEntry* insert(char* key, void* value, bool return_if_found);
-  void DEBUG_occupancy();
+  Strmap* create(Arena* storage, int segment_count)
+  {
+    assert(segment_count >= 1 && segment_count <= 16);
+    Strmap* strmap;
+
+    strmap = storage->allocate<Strmap>();
+    storage->allocate<StrmapEntry<V> *>(segment_count);
+    strmap->storage = storage;
+    strmap->init(strmap->storage, segment_count);
+    return strmap;
+  }
+
+  void init(Arena* storage, int segment_count = 1)
+  {
+    assert(segment_count >= 1);
+
+    this->storage = storage;
+    entry_count = 0;
+    capacity = 16;
+    entries.segment_count = segment_count;
+    entries.segments[0] = storage->allocate<StrmapEntry<V>>(16);
+    memset(entries.segments[0], 0, sizeof(StrmapEntry<V>*) * 16);
+  }
+
+  void grow()
+  {
+    int last_segment;
+    StrmapCursor<V> it = {};
+    StrmapEntry<V>* first_entry, *last_entry;
+    StrmapEntry<V>* entry, *next_entry;
+    StrmapEntry<V>** segment, **entry_slot;
+    int entry_count;
+    int segment_capacity;
+    uint32_t h;
+
+    last_segment = floor(log2(capacity/16 + 1));
+    if (last_segment >= entries.segment_count) {
+      printf("\nMaximum capacity has been reached.\n");
+      exit(1);
+    }
+    it.begin(this);
+    first_entry = it.next();
+    last_entry = first_entry;
+    entry_count = first_entry ? 1 : 0;
+    for (entry = it.next();
+         entry != 0; entry = it.next()) {
+      last_entry->next_entry = entry;
+      last_entry = entry;
+      entry_count += 1;
+    }
+    assert(entry_count == this->entry_count);
+    segment_capacity = 16 * (1 << last_segment);
+    entries.segments[last_segment] = storage->allocate<StrmapEntry<V> *>(segment_capacity);
+    capacity = 16 * ((1 << (last_segment + 1)) - 1);
+    for (int i = 0; i <= last_segment; i++) {
+      segment_capacity = 16 * (1 << i);
+      for (int j = 0; j < segment_capacity; j ++) {
+        segment = (StrmapEntry<V>**)entries.segments[i];
+        segment[j] = 0;
+      }
+    }
+    for (entry = first_entry; entry != 0; ) {
+      next_entry = entry->next_entry;
+      h = hash_key(entry->key, 4 + (last_segment + 1), capacity);
+      entry_slot = (StrmapEntry<V>**)entries.locate_cell(h, sizeof(StrmapEntry<V>*));
+      entry->next_entry = *entry_slot;
+      *entry_slot = entry;
+      entry = next_entry;
+    }
+  }
+
+  V* lookup(char* key, StrmapEntry<V>** entry_/*out*/, StrmapBucket<V>* bucket/*out*/)
+  {
+    int last_segment;
+    StrmapEntry<V>** entry_slot, *entry;
+    uint32_t h;
+
+    last_segment = floor(log2(capacity/16));
+    h = hash_key(key, 4 + (last_segment + 1), capacity);
+    entry_slot = (StrmapEntry<V>**)entries.locate_cell(h, sizeof(StrmapEntry<V>*));
+    entry = *entry_slot;
+    while (entry) {
+      if (cstring::match(entry->key, key)) {
+        break;
+      }
+      entry = entry->next_entry;
+    }
+    if (entry_) { *entry_ = entry; }
+    if (bucket) {
+      bucket->h = h;
+      bucket->entry_slot = entry_slot;
+      bucket->last_segment = last_segment;
+    }
+    if (entry) { return entry->value; }
+    return 0;
+  }
+
+  StrmapEntry<V>* insert(char* key, V* value, bool return_if_found)
+  {
+    StrmapEntry<V>* entry;
+    StrmapBucket<V> bucket = {};
+
+    lookup(key, &entry, &bucket);
+    if (entry) {
+      if (return_if_found) { return entry; } else { return 0; }
+    }
+
+    if (entry_count >= capacity) {
+      grow();
+      bucket.last_segment = floor(log2(capacity/16));
+      bucket.h = hash_key(key, 4 + (bucket.last_segment + 1), capacity);
+      bucket.entry_slot = (StrmapEntry<V>**)entries.locate_cell(bucket.h, sizeof(StrmapEntry<V>*));
+    }
+    entry = storage->allocate<StrmapEntry<V>>();
+    entry->key = key;
+    entry->value = value;
+    entry->next_entry = *bucket.entry_slot;
+    *bucket.entry_slot = entry;
+    entry_count += 1;
+    return entry;
+  }
+
+  void DEBUG_occupancy()
+  {
+    StrmapEntry<V>** entry_slot;
+    StrmapEntry<V>* entry;
+    int empty_buckets = 0;
+    int total_entry_count = 0,
+        entry_count = 0,
+        max_bucket_length = 0;
+
+    for (int i = 0; i < capacity; i++) {
+      entry_slot = entries.locate_cell(i, sizeof(StrmapEntry<V>*));
+      entry = *entry_slot;
+      entry_count = 0;
+      if (entry) {
+        while (entry) {
+          entry_count += 1;
+          entry = entry->next_entry;
+        }
+        if (entry_count > max_bucket_length) {
+          max_bucket_length = entry_count;
+        }
+      } else {
+        empty_buckets += 1;
+      }
+      total_entry_count += entry_count;
+      printf("[%d] -> %d\n", i, entry_count);
+    }
+    printf(
+      "Entry count: %d\n" \
+      "Empty buckets: %d\n" \
+      "Max. bucket length: %d\n", total_entry_count, empty_buckets, max_bucket_length
+    );
+  }
 };
 
+template<class V>
 struct StrmapCursor {
-  Strmap* strmap;
+  Strmap<V>* strmap;
+  StrmapEntry<V>* entry;
   int i;
-  StrmapEntry* entry;
 
-  void begin(Strmap* strmap);
-  StrmapEntry* next();
+  void begin(Strmap<V>* strmap)
+  {
+    this->strmap = strmap;
+    i = -1;
+    entry = 0;
+  }
+
+  StrmapEntry<V>* next()
+  {
+    Strmap<V>* strmap;
+    StrmapEntry<V>* entry = 0;
+    StrmapEntry<V>** entry_slot;
+
+    strmap = this->strmap;
+    entry = this->entry;
+    if (entry) {
+      entry = entry->next_entry;
+      if (entry) {
+        this->entry = entry;
+        return this->entry;
+      }
+    }
+    i++;
+    while (i < strmap->capacity) {
+      entry_slot = (StrmapEntry<V>**)strmap->entries.locate_cell(i, sizeof(StrmapEntry<V>*));
+      entry = *entry_slot;
+      if (entry) {
+        this->entry = entry;
+        break;
+      }
+      i++;
+    }
+    return entry;
+  }
 };

@@ -10,7 +10,7 @@ Scope* Scope::create(Arena* storage, int segment_count)
   Scope* scope;
 
   scope = storage->allocate<Scope>();
-  storage->allocate<StrmapEntry *>(segment_count);
+  storage->allocate<StrmapEntry<NameEntry>*>(segment_count);
   scope->name_table.init(storage, segment_count);
   return scope;
 }
@@ -61,11 +61,11 @@ NameDeclaration* Scope::bind_name(Arena* storage, char* strname, enum NameSpace 
   assert((int)ns > 0);
   NameDeclaration* name_decl;
   NameEntry* name_entry;
-  StrmapEntry* he;
+  StrmapEntry<NameEntry>* he;
 
   name_decl = storage->allocate<NameDeclaration>();
   name_decl->strname = strname;
-  he = name_table.insert(strname, 0, 1);
+  he = name_table.insert(strname, (NameEntry*)0, 1);
   if (he->value == 0) {
     he->value = storage->allocate<NameEntry>();
   }

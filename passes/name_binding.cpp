@@ -74,8 +74,8 @@ void DEBUG_scope_decls(Scope* scope)
   NameEntry* name_entry;
   NameDeclaration* decl;
   int count = 0;
-  StrmapCursor it = {};
-  StrmapEntry* he;
+  StrmapCursor<NameEntry> it = {};
+  StrmapEntry<NameEntry>* he;
   enum NameSpace ns[] = {NameSpace::VAR, NameSpace::TYPE, NameSpace::KEYWORD};
 
   it.begin(&scope->name_table);
