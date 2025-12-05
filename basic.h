@@ -1,5 +1,6 @@
 #pragma once
 #include <stddef.h>
+#include <stdint.h>
 
 #define KILOBYTE 1024
 #define MEGABYTE 1024 * KILOBYTE
@@ -10,5 +11,12 @@ void assert_(char* message, char* file, int line);
 void error_(char* file, int line, char* message, ...);
 #define error(msg, ...) error_(__FILE__, __LINE__, (msg), ## __VA_ARGS__)
 
-#define container_of(member_ptr, container_type, member_name) \
-    ( (container_type*)((char*)member_ptr - offsetof(container_type, member_name)) )
+template<class T, class M>
+static inline constexpr ptrdiff_t offset_of(const M T::*member) {
+    return reinterpret_cast<ptrdiff_t>( &( reinterpret_cast<T*>(0)->*member ) );
+}
+
+template<class T, class M>
+static inline constexpr T* owner_of(M *ptr, const M T::*member) {
+    return reinterpret_cast<T*>( reinterpret_cast<intptr_t>(ptr) - offset_of(member) );
+}
