@@ -136,7 +136,7 @@ void DEBUG_print_type_env(Map* env)
   }
 }
 
-void DEBUG_print_type_array(Array* type_array)
+void DEBUG_print_type_array(Array<Type>* type_array)
 {
   Type* ty;
   int i;
@@ -162,7 +162,7 @@ void DeclaredTypePass::do_pass()
 
   type_env = storage->allocate<Map>();
   type_env->storage = storage;
-  type_equiv_pairs = Array::create(storage, sizeof(Type), 2);
+  type_equiv_pairs = Array<Type>::create(storage, 2);
 
   define_builtin_types();
   visit_p4program(p4program);

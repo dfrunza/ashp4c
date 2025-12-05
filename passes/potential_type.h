@@ -14,7 +14,7 @@ struct PotentialTypePass {
   Scope* root_scope;
   Map* scope_map;
   Map* decl_map;
-  Array* type_array;
+  Array<Type>* type_array;
   Map* type_env;
   TypeChecker* type_checker;
   Map* potype_map;

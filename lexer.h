@@ -31,7 +31,7 @@ struct Lexer {
   int state;
   Token token;
   Lexeme lexeme[2];
-  Array* tokens;
+  Array<Token>* tokens;
 
   char lookahead_char(int pos);
   char advance_char(int pos);

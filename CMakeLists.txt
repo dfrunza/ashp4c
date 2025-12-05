@@ -13,7 +13,6 @@ include_directories(.)
 add_executable(ashp4c
         arena.cpp
         arena.h
-        array.cpp
         array.h
         ashp4c.cpp
         ast.cpp

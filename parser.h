@@ -8,7 +8,7 @@ struct Parser {
   Arena* storage;
   Ast* p4program;
   char* source_file;
-  Array* tokens;
+  Array<Token>* tokens;
   int token_at;
   int prev_token_at;
   Token* token;

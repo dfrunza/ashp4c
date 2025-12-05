@@ -4,7 +4,7 @@
 #include <potential_type.h>
 
 struct TypeChecker {
-  Array* type_equiv_pairs;
+  Array<Type>* type_equiv_pairs;
 
   bool match_type(PotentialType* potential_types, Type* required_ty);
   bool match_params(PotentialType* potential_args, Type* params_ty);

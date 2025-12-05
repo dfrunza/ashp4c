@@ -106,7 +106,7 @@ void NameBindingPass::do_pass()
   current_scope = root_scope;
   decl_map = storage->allocate<Map>();
   decl_map->storage = storage;
-  type_array = (Array*)Array::create(storage, sizeof(Type), 5);
+  type_array = Array<Type>::create(storage, 5);
   define_builtin_names();
   visit_p4program(p4program);
   assert(current_scope == root_scope);

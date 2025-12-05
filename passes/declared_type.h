@@ -11,8 +11,8 @@ struct DeclaredTypePass {
   Scope* root_scope;
   Map* scope_map;
   Map* decl_map;
-  Array* type_array;
-  Array* type_equiv_pairs;
+  Array<Type>* type_array;
+  Array<Type>* type_equiv_pairs;
   Map* type_env;
 
 /** PROGRAM **/

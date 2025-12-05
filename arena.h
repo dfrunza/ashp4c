@@ -23,7 +23,7 @@ struct Arena {
   void free();
   void grow(uint32_t size);
 
-  template<typename T> T* allocate(int count = 1)
+  template<class T> T* allocate(int count = 1)
   {
     T* t = (T*) _allocate(sizeof(T) * count);
     return t;
