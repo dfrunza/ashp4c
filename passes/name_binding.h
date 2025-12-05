@@ -10,8 +10,8 @@ struct NameBindingPass {
   Ast* p4program;
   Scope* root_scope;
   Scope* current_scope;
-  Map* scope_map;
-  Map* decl_map;
+  Map<Ast, Scope>* scope_map;
+  Map<Ast, NameDeclaration>* decl_map;
   Array<Type>* type_array;
 
 /** PROGRAM **/

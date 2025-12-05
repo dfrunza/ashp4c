@@ -12,7 +12,7 @@ struct PotentialType {
 
   union {
     struct {
-      Map members;
+      Map<Type, void> members;
     } set;
 
     struct {

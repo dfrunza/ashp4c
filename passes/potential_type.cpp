@@ -4,7 +4,7 @@
 
 static void DEBUG_print_potential_types(PotentialType* tau)
 {
-  MapEntry* m;
+  MapEntry<Type, void>* m;
   Type* ty;
   int i;
 
@@ -22,7 +22,7 @@ static void DEBUG_print_potential_types(PotentialType* tau)
 
 void PotentialTypePass::do_pass()
 {
-  potype_map = storage->allocate<Map>();
+  potype_map = storage->allocate<Map<Ast, PotentialType>>();
   potype_map->storage = storage;
   visit_p4program(p4program);
 }
@@ -1287,7 +1287,7 @@ void PotentialTypePass::visit_memberSelector(Ast* selector, PotentialType* poten
   assert(selector->kind == AstEnum::memberSelector);
   Ast* name;
   PotentialType* tau, *tau_lhs;
-  MapEntry* m;
+  MapEntry<Type, void>* m;
   Type* lhs_ty;
 
   tau = storage->allocate<PotentialType>();

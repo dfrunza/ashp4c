@@ -112,10 +112,10 @@ void DeclaredTypePass::define_builtin_types()
   }
 }
 
-void DEBUG_print_type_env(Map* env)
+void DEBUG_print_type_env(Map<Type, void>* env)
 {
   Ast* ast;
-  MapEntry* m;
+  MapEntry<Type, void>* m;
   Type* ty;
   int i;
 
@@ -160,7 +160,7 @@ void DeclaredTypePass::do_pass()
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  type_env = storage->allocate<Map>();
+  type_env = storage->allocate<Map<Ast, Type>>();
   type_env->storage = storage;
   type_equiv_pairs = Array<Type>::create(storage, 2);
 
@@ -1114,7 +1114,7 @@ void DeclaredTypePass::visit_identifierList(Ast* ident_list, Type* enum_ty, Type
     name_ty->strname = container_of(ast, Ast, tree)->name.strname;
     name_ty->ast = container_of(ast, Ast, tree);
     name_ty->field.type = enum_ty;
-    type_env->insert(ast, name_ty, 0);
+    type_env->insert(container_of(ast, Ast, tree), name_ty, 0);
     name_decl = (NameDeclaration*)decl_map->lookup(container_of(ast, Ast, tree), 0);
     name_decl->type = name_ty;
     idents_ty->product.members[j] = (Type*)type_env->lookup(container_of(ast, Ast, tree), 0);

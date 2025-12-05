@@ -9,11 +9,11 @@ struct DeclaredTypePass {
   char* source_file;
   Ast* p4program;
   Scope* root_scope;
-  Map* scope_map;
-  Map* decl_map;
+  Map<Ast, Scope>* scope_map;
+  Map<Ast, NameDeclaration>* decl_map;
   Array<Type>* type_array;
   Array<Type>* type_equiv_pairs;
-  Map* type_env;
+  Map<Ast, Type>* type_env;
 
 /** PROGRAM **/
 

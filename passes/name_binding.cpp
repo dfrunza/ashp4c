@@ -104,7 +104,7 @@ void DEBUG_scope_decls(Scope* scope)
 void NameBindingPass::do_pass()
 {
   current_scope = root_scope;
-  decl_map = storage->allocate<Map>();
+  decl_map = storage->allocate<Map<Ast, NameDeclaration>>();
   decl_map->storage = storage;
   type_array = Array<Type>::create(storage, 5);
   define_builtin_names();
@@ -168,7 +168,7 @@ void NameBindingPass::visit_declaration(Ast* decl)
 
 void NameBindingPass::visit_name(Ast* name)
 {
-  MapEntry* m;
+  MapEntry<Ast, Scope>* m;
   assert(name->kind == AstEnum::name);
   m = scope_map->insert(name, current_scope, 0);
   assert(m);

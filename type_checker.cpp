@@ -5,7 +5,7 @@
 bool TypeChecker::match_type(PotentialType* potential_types, Type* required_ty)
 {
   Type* ty;
-  MapEntry* m;
+  MapEntry<Type, void>* m;
   int i;
 
   i = 0;

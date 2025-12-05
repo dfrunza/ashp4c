@@ -28,7 +28,6 @@ add_executable(ashp4c
         token.h
         lexer.cpp
         lexer.h
-        map.cpp
         map.h
         namespace.h
         parser.cpp

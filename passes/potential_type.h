@@ -12,12 +12,12 @@ struct PotentialTypePass {
   char* source_file;
   Ast* p4program;
   Scope* root_scope;
-  Map* scope_map;
-  Map* decl_map;
+  Map<Ast, Scope>* scope_map;
+  Map<Ast, NameDeclaration>* decl_map;
   Array<Type>* type_array;
-  Map* type_env;
+  Map<Ast, Type>* type_env;
   TypeChecker* type_checker;
-  Map* potype_map;
+  Map<Ast, PotentialType>* potype_map;
 
 /** PROGRAM **/
 
