@@ -843,10 +843,10 @@ void Lexer::tokenize(SourceText* source_text)
 
   token.klass = TokenClass::START_OF_INPUT;
   tokens = Array<Token>::create(storage, 7);
-  *(Token*)tokens->append() = token;
+  *tokens->append() = token;
 
   next_token(&token);
-  *(Token*)tokens->append() = token;
+  *tokens->append() = token;
   while (token.klass != TokenClass::END_OF_INPUT) {
     if (token.klass == TokenClass::UNKNOWN) {
       error("%s:%d:%d: error: unknown token.", filename, token.line_no, token.column_no);
@@ -854,7 +854,7 @@ void Lexer::tokenize(SourceText* source_text)
       error("%s:%d:%d: error: lexical error.", filename, token.line_no, token.column_no);
     }
     next_token(&token);
-    *(Token*)tokens->append() = token;
+    *tokens->append() = token;
   }
 }
 

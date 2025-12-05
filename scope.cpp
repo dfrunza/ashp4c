@@ -34,7 +34,7 @@ NameEntry* Scope::lookup(char* strname, enum NameSpace ns)
 
   scope = this;
   while (scope) {
-    name_entry = (NameEntry*)scope->name_table.lookup(strname, 0, 0);
+    name_entry = scope->name_table.lookup(strname, 0, 0);
     if (name_entry) {
       if ((ns & NameSpace::VAR) != (NameSpace)0 && name_entry->ns[(int)NameSpace::VAR >> 1]) break;
       if ((ns & NameSpace::TYPE) != (NameSpace)0 && name_entry->ns[(int)NameSpace::TYPE >> 1]) break;

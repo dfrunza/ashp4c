@@ -73,7 +73,7 @@ bool TypeChecker::structural_type_equiv(Type* left, Type* right)
     }
   }
 
-  type_pair = (Type*)type_equiv_pairs->append();
+  type_pair = type_equiv_pairs->append();
   type_pair->ty_former = TypeEnum::TUPLE;
   type_pair->tuple.left = left;
   type_pair->tuple.right = right;

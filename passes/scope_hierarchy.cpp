@@ -69,7 +69,7 @@ void ScopeHierarchyPass::visit_declaration(Ast* decl)
   } else if (decl->declaration.decl->kind == AstEnum::instantiation) {
     visit_instantiation(decl->declaration.decl);
   } else assert(0);
-  scope = (Scope*)scope_map->lookup(decl->declaration.decl, 0);
+  scope = scope_map->lookup(decl->declaration.decl, 0);
   m = scope_map->insert(decl, scope, 0);
   assert(m);
 }
@@ -131,7 +131,7 @@ void ScopeHierarchyPass::visit_parserDeclaration(Ast* parser_decl)
 
   visit_typeDeclaration(parser_decl->parserDeclaration.proto);
   prev_scope = current_scope;
-  current_scope = (Scope*)scope_map->lookup(parser_decl->parserDeclaration.proto, 0);
+  current_scope = scope_map->lookup(parser_decl->parserDeclaration.proto, 0);
   m = scope_map->insert(parser_decl, current_scope, 0);
   assert(m);
   if (parser_decl->parserDeclaration.ctor_params) {
@@ -340,7 +340,7 @@ void ScopeHierarchyPass::visit_controlDeclaration(Ast* control_decl)
 
   visit_typeDeclaration(control_decl->controlDeclaration.proto);
   prev_scope = current_scope;
-  current_scope = (Scope*)scope_map->lookup(control_decl->controlDeclaration.proto, 0);
+  current_scope = scope_map->lookup(control_decl->controlDeclaration.proto, 0);
   m = scope_map->insert(control_decl, current_scope, 0);
   assert(m);
   if (control_decl->controlDeclaration.ctor_params) {
@@ -405,7 +405,7 @@ void ScopeHierarchyPass::visit_externDeclaration(Ast* extern_decl)
   } else if (extern_decl->externDeclaration.decl->kind == AstEnum::functionPrototype) {
     visit_functionPrototype(extern_decl->externDeclaration.decl);
   } else assert(0);
-  scope = (Scope*)scope_map->lookup(extern_decl->externDeclaration.decl, 0);
+  scope = scope_map->lookup(extern_decl->externDeclaration.decl, 0);
   m = scope_map->insert(extern_decl, scope, 0);
   assert(m);
 }
@@ -592,7 +592,7 @@ void ScopeHierarchyPass::visit_typeDeclaration(Ast* type_decl)
   } else if (type_decl->typeDeclaration.decl->kind == AstEnum::packageTypeDeclaration) {
     visit_packageTypeDeclaration(type_decl->typeDeclaration.decl);
   } else assert(0);
-  scope = (Scope*)scope_map->lookup(type_decl->typeDeclaration.decl, 0);
+  scope = scope_map->lookup(type_decl->typeDeclaration.decl, 0);
   m = scope_map->insert(type_decl, scope, 0);
   assert(m);
 }
@@ -612,7 +612,7 @@ void ScopeHierarchyPass::visit_derivedTypeDeclaration(Ast* type_decl)
   } else if (type_decl->derivedTypeDeclaration.decl->kind == AstEnum::enumDeclaration) {
     visit_enumDeclaration(type_decl->derivedTypeDeclaration.decl);
   } else assert(0);
-  scope = (Scope*)scope_map->lookup(type_decl->derivedTypeDeclaration.decl, 0);
+  scope = scope_map->lookup(type_decl->derivedTypeDeclaration.decl, 0);
   m = scope_map->insert(type_decl, scope, 0);
   assert(m);
 }
@@ -1085,7 +1085,7 @@ void ScopeHierarchyPass::visit_functionDeclaration(Ast* func_decl)
 
   visit_functionPrototype(func_decl->functionDeclaration.proto);
   prev_scope = current_scope;
-  current_scope = (Scope*)scope_map->lookup(func_decl->functionDeclaration.proto, 0);
+  current_scope = scope_map->lookup(func_decl->functionDeclaration.proto, 0);
   m = scope_map->insert(func_decl, current_scope, 0);
   assert(m);
   visit_blockStatement(func_decl->functionDeclaration.stmt);
