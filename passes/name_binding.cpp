@@ -44,7 +44,7 @@ void NameBindingPass::define_builtin_names()
   Type* ty;
 
   for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
-    name = (Ast*)storage->malloc(sizeof(Ast));
+    name = storage->malloc<Ast>();
     name->kind = AstEnum::name;
     name->name.strname = builtin_names[i].strname;
     name_decl = root_scope->bind_name(storage, name->name.strname, builtin_names[i].ns);
@@ -104,7 +104,7 @@ void DEBUG_scope_decls(Scope* scope)
 void NameBindingPass::do_pass()
 {
   current_scope = root_scope;
-  decl_map = (Map*)storage->malloc(sizeof(Map));
+  decl_map = storage->malloc<Map>();
   decl_map->storage = storage;
   type_array = (Array*)Array::create(storage, sizeof(Type), 5);
   define_builtin_names();

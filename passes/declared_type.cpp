@@ -57,7 +57,7 @@ void DeclaredTypePass::define_builtin_types()
     params_ty = (Type*)type_array->append();
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
-    params_ty->product.members = (Type**)storage->malloc(params_ty->product.count * sizeof(Type*));
+    params_ty->product.members = storage->malloc<Type*>(params_ty->product.count);
     params_ty->product.members[0] = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
     params_ty->product.members[1] = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
@@ -72,7 +72,7 @@ void DeclaredTypePass::define_builtin_types()
     params_ty = (Type*)type_array->append();
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
-    params_ty->product.members = (Type**)storage->malloc(params_ty->product.count * sizeof(Type*));
+    params_ty->product.members = storage->malloc<Type*>(params_ty->product.count);
     params_ty->product.members[0] = root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
     params_ty->product.members[1] = root_scope->builtin_lookup("bool", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
@@ -87,7 +87,7 @@ void DeclaredTypePass::define_builtin_types()
     params_ty = (Type*)type_array->append();
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
-    params_ty->product.members = (Type**)storage->malloc(params_ty->product.count * sizeof(Type*));
+    params_ty->product.members = storage->malloc<Type*>(params_ty->product.count);
     params_ty->product.members[0] = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
     params_ty->product.members[1] = root_scope->builtin_lookup("int", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
@@ -102,7 +102,7 @@ void DeclaredTypePass::define_builtin_types()
     params_ty = (Type*)type_array->append();
     params_ty->ty_former = TypeEnum::PRODUCT;
     params_ty->product.count = 2;
-    params_ty->product.members = (Type**)storage->malloc(params_ty->product.count * sizeof(Type*));
+    params_ty->product.members = storage->malloc<Type*>(params_ty->product.count);
     params_ty->product.members[0] = root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
     params_ty->product.members[1] = root_scope->builtin_lookup("bit", NameSpace::TYPE)->type;
     ty->function.params = params_ty;
@@ -160,7 +160,7 @@ void DeclaredTypePass::do_pass()
   NameEntry* name_entry;
   NameDeclaration* name_decl;
 
-  type_env = (Map*)storage->malloc(sizeof(Map));
+  type_env = storage->malloc<Map>();
   type_env->storage = storage;
   type_equiv_pairs = Array::create(storage, sizeof(Type), 2);
 
@@ -289,7 +289,7 @@ void DeclaredTypePass::visit_parameterList(Ast* params)
     params_ty->product.count += 1;
   }
   if (params_ty->product.count > 0) {
-    params_ty->product.members = (Type**)storage->malloc(params_ty->product.count * sizeof(Type*));
+    params_ty->product.members = storage->malloc<Type*>(params_ty->product.count);
   }
   i = 0;
   for (ast = params->tree.first_child;
@@ -654,7 +654,7 @@ void DeclaredTypePass::visit_externTypeDeclaration(Ast* type_decl)
     }
   }
   if (ctors_ty->product.count > 0) {
-    ctors_ty->product.members = (Type**)storage->malloc(ctors_ty->product.count * sizeof(Type*));
+    ctors_ty->product.members = storage->malloc<Type*>(ctors_ty->product.count);
   }
   for (int i = 0; i < methods_ty->product.count; i++) {
     if (cstring::match(methods_ty->product.members[i]->strname, name->name.strname)) {
@@ -682,7 +682,7 @@ void DeclaredTypePass::visit_methodPrototypes(Ast* protos, Type* ctor_ty, char* 
     methods_ty->product.count += 1;
   }
   if (methods_ty->product.count > 0) {
-    methods_ty->product.members = (Type**)storage->malloc(methods_ty->product.count * sizeof(Type*));
+    methods_ty->product.members = storage->malloc<Type*>(methods_ty->product.count);
   }
   i = 0;
   for (ast = protos->tree.first_child;
@@ -895,7 +895,7 @@ void DeclaredTypePass::visit_typeArgumentList(Ast* args)
     args_ty->product.count += 1;
   }
   if (args_ty->product.count > 0) {
-    args_ty->product.members = (Type**)storage->malloc(args_ty->product.count * sizeof(Type*));
+    args_ty->product.members = storage->malloc<Type*>(args_ty->product.count);
   }
   i = 0;
   for (ast = args->tree.first_child;
@@ -1018,7 +1018,7 @@ void DeclaredTypePass::visit_structFieldList(Ast* fields)
     fields_ty->product.count += 1;
   }
   if (fields_ty->product.count > 0) {
-    fields_ty->product.members = (Type**)storage->malloc(fields_ty->product.count * sizeof(Type*));
+    fields_ty->product.members = storage->malloc<Type*>(fields_ty->product.count);
   }
   i = 0;
   for (ast = fields->tree.first_child;
@@ -1077,7 +1077,7 @@ void DeclaredTypePass::visit_errorDeclaration(Ast* error_decl)
   fields_ty = error_ty->enum_.fields;
   if (error_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = error_ty->enum_.field_count;
-    fields_ty->product.members = (Type**)storage->malloc(fields_ty->product.count * sizeof(Type*));
+    fields_ty->product.members = storage->malloc<Type*>(fields_ty->product.count);
   }
   visit_identifierList(error_decl->errorDeclaration.fields, error_ty,
       error_ty->enum_.fields, &error_ty->enum_.i);
@@ -1092,7 +1092,7 @@ void DeclaredTypePass::visit_matchKindDeclaration(Ast* match_decl)
   fields_ty = match_kind_ty->enum_.fields;
   if (match_kind_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = match_kind_ty->enum_.field_count;
-    fields_ty->product.members = (Type**)storage->malloc(fields_ty->product.count * sizeof(Type*));
+    fields_ty->product.members = storage->malloc<Type*>(fields_ty->product.count);
   }
   visit_identifierList(match_decl->matchKindDeclaration.fields, match_kind_ty,
       match_kind_ty->enum_.fields, &match_kind_ty->enum_.i);
@@ -1139,7 +1139,7 @@ void DeclaredTypePass::visit_specifiedIdentifierList(Ast* ident_list, Type* enum
     idents_ty->product.count += 1;
   }
   if (idents_ty->product.count > 0) {
-    idents_ty->product.members = (Type**)storage->malloc(idents_ty->product.count * sizeof(Type*));
+    idents_ty->product.members = storage->malloc<Type*>(idents_ty->product.count);
   }
   i = 0;
   for (ast = ident_list->tree.first_child;

@@ -16,7 +16,7 @@ void SourceText::read_source(char* filename)
   fseek(f_stream, 0, SEEK_END);
   int text_size = ftell(f_stream);
   fseek(f_stream, 0, SEEK_SET);
-  text = (char*)storage->malloc((text_size + 1)*sizeof(char));
+  text = storage->malloc<char>(text_size + 1);
   fread(text, sizeof(char), text_size, f_stream);
   text[text_size] = '\0';
   fclose(f_stream);
@@ -100,7 +100,7 @@ char* Lexeme::to_cstring(Arena* storage)
   char* string;
 
   len = this->len();
-  string = (char*)storage->malloc((len + 1)*sizeof(char));   // +1 the NULL terminator
+  string = storage->malloc<char>(len + 1);  // +1 the NULL terminator
   copy_to(string);
   string[len] = '\0';
   return string;
