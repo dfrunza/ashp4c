@@ -13,11 +13,11 @@ void* AstVisitor::visit_p4program(Ast* p4program)
 void* AstVisitor::visit_declarationList(Ast* decl_list)
 {
   assert(decl_list->kind == AstEnum::declarationList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = decl_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_declaration(owner_of(ast, &Ast::tree));
+    visit_declaration(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -62,11 +62,11 @@ void* AstVisitor::visit_name(Ast* name)
 void* AstVisitor::visit_parameterList(Ast* params)
 {
   assert(params->kind == AstEnum::parameterList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = params->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_parameter(owner_of(ast, &Ast::tree));
+    visit_parameter(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -124,11 +124,11 @@ void* AstVisitor::visit_parserTypeDeclaration(Ast* type_decl)
 void* AstVisitor::visit_parserLocalElements(Ast* local_elements)
 {
   assert(local_elements->kind == AstEnum::parserLocalElements);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = local_elements->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_parserLocalElement(owner_of(ast, &Ast::tree));
+    visit_parserLocalElement(ast->owner( &Ast::tree));
   }
   return 0;
 }
@@ -147,11 +147,11 @@ void* AstVisitor::visit_parserLocalElement(Ast* local_element)
 void* AstVisitor::visit_parserStates(Ast* states)
 {
   assert(states->kind == AstEnum::parserStates);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = states->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_parserState(owner_of(ast, &Ast::tree));
+    visit_parserState(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -168,11 +168,11 @@ void* AstVisitor::visit_parserState(Ast* state)
 void* AstVisitor::visit_parserStatements(Ast* stmts)
 {
   assert(stmts->kind == AstEnum::parserStatements);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = stmts->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_parserStatement(owner_of(ast, &Ast::tree));
+    visit_parserStatement(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -232,11 +232,11 @@ void* AstVisitor::visit_selectExpression(Ast* select_expr)
 void* AstVisitor::visit_selectCaseList(Ast* case_list)
 {
   assert(case_list->kind == AstEnum::selectCaseList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = case_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_selectCase(owner_of(ast, &Ast::tree));
+    visit_selectCase(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -283,11 +283,11 @@ void* AstVisitor::visit_simpleKeysetExpression(Ast* simple_expr)
 void* AstVisitor::visit_simpleExpressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::simpleExpressionList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = expr_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_simpleKeysetExpression(owner_of(ast, &Ast::tree));
+    visit_simpleKeysetExpression(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -317,11 +317,11 @@ void* AstVisitor::visit_controlTypeDeclaration(Ast* type_decl)
 void* AstVisitor::visit_controlLocalDeclarations(Ast* local_decls)
 {
   assert(local_decls->kind == AstEnum::controlLocalDeclarations);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = local_decls->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_controlLocalDeclaration(owner_of(ast, &Ast::tree));
+    visit_controlLocalDeclaration(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -365,11 +365,11 @@ void* AstVisitor::visit_externTypeDeclaration(Ast* type_decl)
 void* AstVisitor::visit_methodPrototypes(Ast* protos)
 {
   assert(protos->kind == AstEnum::methodPrototypes);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = protos->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_functionPrototype(owner_of(ast, &Ast::tree));
+    visit_functionPrototype(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -518,11 +518,11 @@ void* AstVisitor::visit_typeArg(Ast* type_arg)
 void* AstVisitor::visit_typeArgumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AstEnum::typeArgumentList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = arg_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_typeArg(owner_of(ast, &Ast::tree));
+    visit_typeArg(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -586,11 +586,11 @@ void* AstVisitor::visit_structTypeDeclaration(Ast* struct_decl)
 void* AstVisitor::visit_structFieldList(Ast* field_list)
 {
   assert(field_list->kind == AstEnum::structFieldList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = field_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_structField(owner_of(ast, &Ast::tree));
+    visit_structField(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -628,11 +628,11 @@ void* AstVisitor::visit_matchKindDeclaration(Ast* match_decl)
 void* AstVisitor::visit_identifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AstEnum::identifierList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = ident_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_name(owner_of(ast, &Ast::tree));
+    visit_name(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -640,11 +640,11 @@ void* AstVisitor::visit_identifierList(Ast* ident_list)
 void* AstVisitor::visit_specifiedIdentifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AstEnum::specifiedIdentifierList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = ident_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_specifiedIdentifier(owner_of(ast, &Ast::tree));
+    visit_specifiedIdentifier(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -770,11 +770,11 @@ void* AstVisitor::visit_blockStatement(Ast* block_stmt)
 void* AstVisitor::visit_statementOrDeclList(Ast* stmt_list)
 {
   assert(stmt_list->kind == AstEnum::statementOrDeclList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = stmt_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_statementOrDeclaration(owner_of(ast, &Ast::tree));
+    visit_statementOrDeclaration(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -790,11 +790,11 @@ void* AstVisitor::visit_switchStatement(Ast* switch_stmt)
 void* AstVisitor::visit_switchCases(Ast* switch_cases)
 {
   assert(switch_cases->kind == AstEnum::switchCases);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = switch_cases->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_switchCase(owner_of(ast, &Ast::tree));
+    visit_switchCase(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -846,11 +846,11 @@ void* AstVisitor::visit_tableDeclaration(Ast* table_decl)
 void* AstVisitor::visit_tablePropertyList(Ast* prop_list)
 {
   assert(prop_list->kind == AstEnum::tablePropertyList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = prop_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_tableProperty(owner_of(ast, &Ast::tree));
+    visit_tableProperty(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -884,11 +884,11 @@ void* AstVisitor::visit_keyProperty(Ast* key_prop)
 void* AstVisitor::visit_keyElementList(Ast* element_list)
 {
   assert(element_list->kind == AstEnum::keyElementList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = element_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_keyElement(owner_of(ast, &Ast::tree));
+    visit_keyElement(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -911,11 +911,11 @@ void* AstVisitor::visit_actionsProperty(Ast* actions_prop)
 void* AstVisitor::visit_actionList(Ast* action_list)
 {
   assert(action_list->kind == AstEnum::actionList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = action_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_actionRef(owner_of(ast, &Ast::tree));
+    visit_actionRef(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -941,11 +941,11 @@ void* AstVisitor::visit_entriesProperty(Ast* entries_prop)
 void* AstVisitor::visit_entriesList(Ast* entries_list)
 {
   assert(entries_list->kind == AstEnum::entriesList);
-  AstTree* ast;
+  AstTree<Ast>* ast;
 
   for (ast = entries_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_entry(owner_of(ast, &Ast::tree));
+    visit_entry(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -1002,11 +1002,11 @@ void* AstVisitor::visit_functionDeclaration(Ast* func_decl)
 void* AstVisitor::visit_argumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AstEnum::argumentList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = arg_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_argument(owner_of(ast, &Ast::tree));
+    visit_argument(ast->owner(&Ast::tree));
   }
   return 0;
 }
@@ -1025,11 +1025,11 @@ void* AstVisitor::visit_argument(Ast* arg)
 void* AstVisitor::visit_expressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::expressionList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = expr_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_expression(owner_of(ast, &Ast::tree));
+    visit_expression(ast->owner(&Ast::tree));
   }
   return 0;
 }

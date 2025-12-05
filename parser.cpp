@@ -211,7 +211,7 @@ Ast* Parser::parse_p4program()
 Ast* Parser::parse_declarationList()
 {
   Ast* decls, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   decls = storage->allocate<Ast>();
   decls->kind = AstEnum::declarationList;
@@ -339,7 +339,7 @@ Ast* Parser::parse_name()
 Ast* Parser::parse_parameterList()
 {
   Ast* params, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   params = storage->allocate<Ast>();
   params->kind = AstEnum::parameterList;
@@ -522,7 +522,7 @@ Ast* Parser::parse_parserDeclaration(Ast* parser_proto)
 Ast* Parser::parse_parserLocalElements()
 {
   Ast* elems, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   elems = storage->allocate<Ast>();
   elems->kind = AstEnum::parserLocalElements;
@@ -608,7 +608,7 @@ Ast* Parser::parse_parserTypeDeclaration()
 Ast* Parser::parse_parserStates()
 {
   Ast* states, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   states = storage->allocate<Ast>();
   states->kind = AstEnum::parserStates;
@@ -656,7 +656,7 @@ Ast* Parser::parse_parserState()
 Ast* Parser::parse_parserStatements()
 {
   Ast* stmts, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   stmts = storage->allocate<Ast>();
   stmts->kind = AstEnum::parserStatements;
@@ -819,7 +819,7 @@ Ast* Parser::parse_selectExpression()
 Ast* Parser::parse_selectCaseList()
 {
   Ast* cases, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   cases = storage->allocate<Ast>();
   cases->kind = AstEnum::selectCaseList;
@@ -912,7 +912,7 @@ Ast* Parser::parse_tupleKeysetExpression()
 Ast* Parser::parse_simpleExpressionList()
 {
   Ast* exprs, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   exprs = storage->allocate<Ast>();
   exprs->kind = AstEnum::simpleExpressionList;
@@ -1074,7 +1074,7 @@ Ast* Parser::parse_controlLocalDeclaration()
 Ast* Parser::parse_controlLocalDeclarations()
 {
   Ast* decls, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   decls = storage->allocate<Ast>();
   decls->kind = AstEnum::controlLocalDeclarations;
@@ -1151,7 +1151,7 @@ Ast* Parser::parse_externDeclaration()
 Ast* Parser::parse_methodPrototypes()
 {
   Ast* protos, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   protos = storage->allocate<Ast>();
   protos->kind = AstEnum::methodPrototypes;
@@ -1584,7 +1584,7 @@ Ast* Parser::parse_typeArg()
 Ast* Parser::parse_typeArgumentList()
 {
   Ast* args, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   args = storage->allocate<Ast>();
   args->kind = AstEnum::typeArgumentList;
@@ -1767,7 +1767,7 @@ Ast* Parser::parse_structTypeDeclaration()
 Ast* Parser::parse_structFieldList()
 {
   Ast* fields, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   fields = storage->allocate<Ast>();
   fields->kind = AstEnum::structFieldList;
@@ -1922,7 +1922,7 @@ Ast* Parser::parse_matchKindDeclaration()
 Ast* Parser::parse_identifierList()
 {
   Ast* ids, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   ids = storage->allocate<Ast>();
   ids->kind = AstEnum::identifierList;
@@ -1943,7 +1943,7 @@ Ast* Parser::parse_identifierList()
 Ast* Parser::parse_specifiedIdentifierList()
 {
   Ast* ids, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   ids = storage->allocate<Ast>();
   ids->kind = AstEnum::specifiedIdentifierList;
@@ -2259,7 +2259,7 @@ Ast* Parser::parse_blockStatement()
 Ast* Parser::parse_statementOrDeclList()
 {
   Ast* stmts, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   stmts = storage->allocate<Ast>();
   stmts->kind = AstEnum::statementOrDeclList;
@@ -2314,7 +2314,7 @@ Ast* Parser::parse_switchStatement()
 Ast* Parser::parse_switchCases()
 {
   Ast* cases, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   cases = storage->allocate<Ast>();
   cases->kind = AstEnum::switchCases;
@@ -2456,7 +2456,7 @@ Ast* Parser::parse_tableDeclaration()
 Ast* Parser::parse_tablePropertyList()
 {
   Ast* props, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   props = storage->allocate<Ast>();
   props->kind = AstEnum::tablePropertyList;
@@ -2592,7 +2592,7 @@ Ast* Parser::parse_tableProperty()
 Ast* Parser::parse_keyElementList()
 {
   Ast* elems, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   elems = storage->allocate<Ast>();
   elems->kind = AstEnum::keyElementList;
@@ -2638,7 +2638,7 @@ Ast* Parser::parse_keyElement()
 Ast* Parser::parse_actionList()
 {
   Ast* actions, *ast;
-  TreeCtor tree_ctor = {};
+  TreeCtor<Ast> tree_ctor = {};
 
   actions = storage->allocate<Ast>();
   actions->kind = AstEnum::actionList;
@@ -2697,7 +2697,7 @@ Ast* Parser::parse_actionRef()
 Ast* Parser::parse_entriesList()
 {
   Ast* entries, *ast;
-  AstTreeCtor tree_ctor = {0};
+  TreeCtor<Ast> tree_ctor = {0};
 
   entries = (Ast*)storage->malloc(sizeof(Ast));
   entries->kind = AstEnum::entriesList;
@@ -2838,7 +2838,7 @@ Ast* Parser::parse_functionDeclaration(Ast* type_ref)
 Ast* Parser::parse_argumentList()
 {
   Ast* args, *ast;
-  TreeCtor tree_ctor = {0};
+  TreeCtor<Ast> tree_ctor = {0};
 
   args = storage->allocate<Ast>();
   args->kind = AstEnum::argumentList;
@@ -2886,7 +2886,7 @@ Ast* Parser::parse_argument()
 Ast* Parser::parse_expressionList()
 {
   Ast* exprs, *ast;
-  TreeCtor tree_ctor = {0};
+  TreeCtor<Ast> tree_ctor = {0};
   
   exprs = storage->allocate<Ast>();
   exprs->kind = AstEnum::expressionList;

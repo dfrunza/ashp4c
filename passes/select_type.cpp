@@ -17,11 +17,11 @@ void SelectTypePass::visit_p4program(Ast* p4program)
 void SelectTypePass::visit_declarationList(Ast* decl_list)
 {
   assert(decl_list->kind == AstEnum::declarationList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = decl_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
-    visit_declaration(owner_of(ast, &Ast::tree));
+    visit_declaration(ast->owner(&Ast::tree));
   }
 }
 
@@ -83,7 +83,7 @@ void SelectTypePass::visit_name(Ast* name, Type* required_ty)
 void SelectTypePass::visit_parameterList(Ast* params)
 {
   assert(params->kind == AstEnum::parameterList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = params->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -128,7 +128,7 @@ void SelectTypePass::visit_parserTypeDeclaration(Ast* type_decl)
 void SelectTypePass::visit_parserLocalElements(Ast* local_elements)
 {
   assert(local_elements->kind == AstEnum::parserLocalElements);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = local_elements->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -149,7 +149,7 @@ void SelectTypePass::visit_parserLocalElement(Ast* local_element)
 void SelectTypePass::visit_parserStates(Ast* states)
 {
   assert(states->kind == AstEnum::parserStates);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = states->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -167,7 +167,7 @@ void SelectTypePass::visit_parserState(Ast* state)
 void SelectTypePass::visit_parserStatements(Ast* stmts)
 {
   assert(stmts->kind == AstEnum::parserStatements);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = stmts->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -228,7 +228,7 @@ void SelectTypePass::visit_selectExpression(Ast* select_expr)
 void SelectTypePass::visit_selectCaseList(Ast* case_list, Type* required_ty)
 {
   assert(case_list->kind == AstEnum::selectCaseList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = case_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -297,7 +297,7 @@ void SelectTypePass::visit_simpleKeysetExpression(Ast* simple_expr, Type* requir
 void SelectTypePass::visit_simpleExpressionList(Ast* expr_list, Type* required_ty)
 {
   assert(expr_list->kind == AstEnum::simpleExpressionList);
-  Tree* ast;
+  Tree<Ast>* ast;
   Type* list_ty;
   int i;
 
@@ -343,7 +343,7 @@ void SelectTypePass::visit_controlTypeDeclaration(Ast* type_decl)
 void SelectTypePass::visit_controlLocalDeclarations(Ast* local_decls)
 {
   assert(local_decls->kind == AstEnum::controlLocalDeclarations);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = local_decls->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -385,7 +385,7 @@ void SelectTypePass::visit_externTypeDeclaration(Ast* type_decl)
 void SelectTypePass::visit_methodPrototypes(Ast* protos)
 {
   assert(protos->kind == AstEnum::methodPrototypes);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = protos->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -551,7 +551,7 @@ void SelectTypePass::visit_typeArg(Ast* type_arg)
 void SelectTypePass::visit_typeArgumentList(Ast* args)
 {
   assert(args->kind == AstEnum::typeArgumentList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = args->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -611,7 +611,7 @@ void SelectTypePass::visit_structTypeDeclaration(Ast* struct_decl)
 void SelectTypePass::visit_structFieldList(Ast* fields)
 {
   assert(fields->kind == AstEnum::structFieldList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = fields->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -648,7 +648,7 @@ void SelectTypePass::visit_identifierList(Ast* ident_list)
 void SelectTypePass::visit_specifiedIdentifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AstEnum::specifiedIdentifierList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = ident_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -793,7 +793,7 @@ void SelectTypePass::visit_blockStatement(Ast* block_stmt)
 void SelectTypePass::visit_statementOrDeclList(Ast* stmt_list)
 {
   assert(stmt_list->kind == AstEnum::statementOrDeclList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = stmt_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -811,7 +811,7 @@ void SelectTypePass::visit_switchStatement(Ast* switch_stmt)
 void SelectTypePass::visit_switchCases(Ast* switch_cases)
 {
   assert(switch_cases->kind == AstEnum::switchCases);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = switch_cases->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -861,7 +861,7 @@ void SelectTypePass::visit_tableDeclaration(Ast* table_decl)
 void SelectTypePass::visit_tablePropertyList(Ast* prop_list)
 {
   assert(prop_list->kind == AstEnum::tablePropertyList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = prop_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -896,7 +896,7 @@ void SelectTypePass::visit_keyProperty(Ast* key_prop)
 void SelectTypePass::visit_keyElementList(Ast* element_list)
 {
   assert(element_list->kind == AstEnum::keyElementList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = element_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -919,7 +919,7 @@ void SelectTypePass::visit_actionsProperty(Ast* actions_prop)
 void SelectTypePass::visit_actionList(Ast* action_list)
 {
   assert(action_list->kind == AstEnum::actionList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = action_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -946,7 +946,7 @@ void SelectTypePass::visit_entriesProperty(Ast* entries_prop)
 void SelectTypePass::visit_entriesList(Ast* entries_list)
 {
   assert(entries_list->kind == AstEnum::entriesList);
-  AstTree* ast;
+  AstTree<Ast>* ast;
 
   for (ast = entries_list->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -996,7 +996,7 @@ void SelectTypePass::visit_functionDeclaration(Ast* func_decl)
 void SelectTypePass::visit_argumentList(Ast* args, Type* required_ty)
 {
   assert(args->kind == AstEnum::argumentList);
-  Tree* ast;
+  Tree<Ast>* ast;
 
   for (ast = args->tree.first_child;
        ast != 0; ast = ast->right_sibling) {
@@ -1022,7 +1022,7 @@ void SelectTypePass::visit_argument(Ast* arg, Type* required_ty)
 void SelectTypePass::visit_expressionList(Ast* expr_list, Type* required_ty)
 {
   assert(expr_list->kind == AstEnum::expressionList);
-  Tree* ast;
+  Tree<Ast>* ast;
   Type* list_ty;
   int i;
 

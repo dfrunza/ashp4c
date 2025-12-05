@@ -196,22 +196,40 @@ inline ParamDirection operator & (ParamDirection lhs, ParamDirection rhs) {
   return (ParamDirection)((int)lhs & (int)rhs);
 }
 
+template<class T>
 struct Tree {
   Tree* first_child;
   Tree* right_sibling;
+
+  T* owner(const Tree T::*member)
+  {
+    T* o = owner_of(this, member);
+    return o;
+  }
 };
 
+template<class T>
 struct TreeCtor {
-  Tree* last_sibling;
+  Tree<T>* last_sibling;
 
-  void append_node(Tree* tree, Tree* node);
+  void append_node(Tree<T>* tree, Tree<T>* node) {
+      Tree<T>* first_child;
+
+      first_child = tree->first_child;
+      if (first_child) {
+          last_sibling->right_sibling = node;
+      } else {
+          tree->first_child = node;
+      }
+      last_sibling = node;
+  }
 };
 
 struct Ast {
   enum AstEnum kind;
   int line_no;
   int column_no;
-  Tree tree;
+  Tree<Ast> tree;
 
   union {
 

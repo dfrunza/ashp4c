@@ -153,11 +153,11 @@ Ast* Ast::clone(Arena* storage)
   clone->line_no = line_no;
   clone->column_no = column_no;
   if (tree.first_child) {
-    child_clone = owner_of(tree.first_child, &Ast::tree)->clone(storage);
+    child_clone = tree.first_child->owner(&Ast::tree)->clone(storage);
     clone->tree.first_child = &child_clone->tree;
   }
   if (tree.right_sibling) {
-    sibling_clone = owner_of(tree.right_sibling, &Ast::tree)->clone(storage);
+    sibling_clone = tree.right_sibling->owner(&Ast::tree)->clone(storage);
     clone->tree.right_sibling = &sibling_clone->tree;
   }
 
@@ -470,16 +470,4 @@ Ast* Ast::clone(Arena* storage)
   }
   else assert(0);
   return clone;
-}
-
-void TreeCtor::append_node(Tree* tree, Tree* node) {
-  Tree* first_child;
-
-  first_child = tree->first_child;
-  if (first_child) {
-    last_sibling->right_sibling = node;
-  } else {
-    tree->first_child = node;
-  }
-  last_sibling = node;
 }
