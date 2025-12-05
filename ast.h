@@ -196,22 +196,22 @@ inline ParamDirection operator & (ParamDirection lhs, ParamDirection rhs) {
   return (ParamDirection)((int)lhs & (int)rhs);
 }
 
-struct AstTree {
-  AstTree* first_child;
-  AstTree* right_sibling;
+struct Tree {
+  Tree* first_child;
+  Tree* right_sibling;
 };
 
-struct AstTreeCtor {
-  AstTree* last_sibling;
+struct TreeCtor {
+  Tree* last_sibling;
 
-  void append_node(AstTree* tree, AstTree* node);
+  void append_node(Tree* tree, Tree* node);
 };
 
 struct Ast {
   enum AstEnum kind;
   int line_no;
   int column_no;
-  AstTree tree;
+  Tree tree;
 
   union {
 

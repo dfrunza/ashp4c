@@ -472,8 +472,8 @@ Ast* Ast::clone(Arena* storage)
   return clone;
 }
 
-void AstTreeCtor::append_node(AstTree* tree, AstTree* node) {
-  AstTree* first_child;
+void TreeCtor::append_node(Tree* tree, Tree* node) {
+  Tree* first_child;
 
   first_child = tree->first_child;
   if (first_child) {
