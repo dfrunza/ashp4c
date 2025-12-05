@@ -86,7 +86,7 @@ void PotentialTypePass::visit_name(Ast* name, PotentialType* potential_args)
   Type* ty, *ctors_ty;
   static Array<Type>* name_ty;
 
-  if (!name_ty) name_ty = Array<Type>::create(storage);
+  if (!name_ty) name_ty = Array<Type>::create(storage, 1);
   name_ty->elem_count = 0;
   tau = storage->allocate<PotentialType>();
   tau->kind = PotentialTypeEnum::SET;

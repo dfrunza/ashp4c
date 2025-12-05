@@ -9,7 +9,7 @@
 
 /**
  * n  ...  segment count
- * C  ...  capacity (max. nr. of elements)
+ * C  ...  capacity
  *
  * n |  C
  * --+-----
@@ -27,19 +27,19 @@
  * C(n) = (2^n - 1)*16
  **/
 
+template<class T>
 struct SegmentTable {
   int segment_count;
-  void* segments[];
+  T* segments[];
 
-  void* locate_cell(int i, int elem_size)
+  T* locate_cell(int i)
   {
-    assert(elem_size > 0);
     int segment_index, elem_offset;
-    void* elem_slot;
+    T* elem_slot;
 
     segment_index = floor(log2(i/16 + 1));
     elem_offset = i - 16 * ((1 << segment_index) - 1);
-    elem_slot = (uint8_t*)segments[segment_index] + elem_offset * elem_size;
+    elem_slot = segments[segment_index] + elem_offset;
     return elem_slot;
   }
 };
@@ -49,15 +49,15 @@ struct Array {
   Arena* storage;
   int elem_count;
   int capacity;
-  SegmentTable data;
+  SegmentTable<T> data;
 
-  static Array* create(Arena* storage, int segment_count = 1)
+  static Array* create(Arena* storage, int segment_count)
   {
     assert(segment_count >= 1 && segment_count <= 16);
     Array* array;
 
     array = storage->allocate<Array>();
-    storage->allocate<void *>(segment_count);
+    storage->allocate<T**>(segment_count);
     array->storage = storage;
     array->init(array->storage, segment_count);
     return array;
@@ -93,21 +93,21 @@ struct Array {
   T* get(int i)
   {
     assert(i >= 0 && i < elem_count);
-    void* elem_slot;
+    T* elem_slot;
 
-    elem_slot = data.locate_cell(i, sizeof(T));
-    return (T*) elem_slot;
+    elem_slot = data.locate_cell(i);
+    return elem_slot;
   }
 
   T* append()
   {
-    void* elem_slot;
+    T* elem_slot;
 
     if (elem_count >= capacity) {
       extend();
     }
-    elem_slot = data.locate_cell(elem_count, sizeof(T));
+    elem_slot = data.locate_cell(elem_count);
     elem_count += 1;
-    return (T*) elem_slot;
+    return elem_slot;
   }
 };
