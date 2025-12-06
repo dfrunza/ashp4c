@@ -128,11 +128,11 @@ void NameBindingPass::visit_p4program(Ast* p4program)
 void NameBindingPass::visit_declarationList(Ast* decl_list)
 {
   assert(decl_list->kind == AstEnum::declarationList);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = decl_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_declaration(ast->owner(&Ast::tree));
+  for (tree = decl_list->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_declaration(tree->owner(&Ast::tree));
   }
 }
 
@@ -177,11 +177,11 @@ void NameBindingPass::visit_name(Ast* name)
 void NameBindingPass::visit_parameterList(Ast* params)
 {
   assert(params->kind == AstEnum::parameterList);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = params->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_parameter(ast->owner(&Ast::tree));
+  for (tree = params->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_parameter(tree->owner(&Ast::tree));
   }
 }
 
@@ -274,11 +274,11 @@ void NameBindingPass::visit_parserTypeDeclaration(Ast* type_decl)
 void NameBindingPass::visit_parserLocalElements(Ast* local_elements)
 {
   assert(local_elements->kind == AstEnum::parserLocalElements);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = local_elements->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_parserLocalElement(ast->owner(&Ast::tree));
+  for (tree = local_elements->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_parserLocalElement(tree->owner(&Ast::tree));
   }
 }
 
@@ -295,11 +295,11 @@ void NameBindingPass::visit_parserLocalElement(Ast* local_element)
 void NameBindingPass::visit_parserStates(Ast* states)
 {
   assert(states->kind == AstEnum::parserStates);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = states->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_parserState(ast->owner(&Ast::tree));
+  for (tree = states->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_parserState(tree->owner(&Ast::tree));
   }
 }
 
@@ -324,11 +324,11 @@ void NameBindingPass::visit_parserState(Ast* state)
 void NameBindingPass::visit_parserStatements(Ast* stmts)
 {
   assert(stmts->kind == AstEnum::parserStatements);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = stmts->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_parserStatement(ast->owner(&Ast::tree));
+  for (tree = stmts->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_parserStatement(tree->owner(&Ast::tree));
   }
 }
 
@@ -388,11 +388,11 @@ void NameBindingPass::visit_selectExpression(Ast* select_expr)
 void NameBindingPass::visit_selectCaseList(Ast* case_list)
 {
   assert(case_list->kind == AstEnum::selectCaseList);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = case_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_selectCase(ast->owner(&Ast::tree));
+  for (tree = case_list->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_selectCase(tree->owner(&Ast::tree));
   }
 }
 
@@ -434,11 +434,11 @@ void NameBindingPass::visit_simpleKeysetExpression(Ast* simple_expr)
 void NameBindingPass::visit_simpleExpressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::simpleExpressionList);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = expr_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_simpleKeysetExpression(ast->owner(&Ast::tree));
+  for (tree = expr_list->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_simpleKeysetExpression(tree->owner(&Ast::tree));
   }
 }
 
@@ -482,11 +482,11 @@ void NameBindingPass::visit_controlTypeDeclaration(Ast* type_decl)
 void NameBindingPass::visit_controlLocalDeclarations(Ast* local_decls)
 {
   assert(local_decls->kind == AstEnum::controlLocalDeclarations);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = local_decls->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_controlLocalDeclaration(ast->owner(&Ast::tree));
+  for (tree = local_decls->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_controlLocalDeclaration(tree->owner(&Ast::tree));
   }
 }
 
@@ -536,11 +536,11 @@ void NameBindingPass::visit_externTypeDeclaration(Ast* type_decl)
 void NameBindingPass::visit_methodPrototypes(Ast* protos, NameDeclaration* name_decl)
 {
   assert(protos->kind == AstEnum::methodPrototypes);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = protos->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_functionPrototype(ast->owner(&Ast::tree));
+  for (tree = protos->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_functionPrototype(tree->owner(&Ast::tree));
   }
 }
 
@@ -720,11 +720,11 @@ void NameBindingPass::visit_typeArg(Ast* type_arg)
 void NameBindingPass::visit_typeArgumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AstEnum::typeArgumentList);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = arg_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_typeArg(ast->owner(&Ast::tree));
+  for (tree = arg_list->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_typeArg(tree->owner(&Ast::tree));
   }
 }
 
@@ -812,11 +812,11 @@ void NameBindingPass::visit_structTypeDeclaration(Ast* struct_decl)
 void NameBindingPass::visit_structFieldList(Ast* field_list, NameDeclaration* name_decl)
 {
   assert(field_list->kind == AstEnum::structFieldList);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = field_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_structField(ast->owner(&Ast::tree));
+  for (tree = field_list->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_structField(tree->owner(&Ast::tree));
   }
 }
 
@@ -890,13 +890,13 @@ int NameBindingPass::visit_identifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AstEnum::identifierList);
   Ast* name;
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
   NameDeclaration* name_decl;
   int count = 0;
 
-  for (ast = ident_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    name = ast->owner(&Ast::tree);
+  for (tree = ident_list->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    name = tree->owner(&Ast::tree);
     name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
     name_decl->ast = name;
     decl_map->insert(name, name_decl, 0);
@@ -908,11 +908,11 @@ int NameBindingPass::visit_identifierList(Ast* ident_list)
 void NameBindingPass::visit_specifiedIdentifierList(Ast* ident_list, NameDeclaration* name_decl)
 {
   assert(ident_list->kind == AstEnum::specifiedIdentifierList);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = ident_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_specifiedIdentifier(ast->owner(&Ast::tree));
+  for (tree = ident_list->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_specifiedIdentifier(tree->owner(&Ast::tree));
   }
 }
 
@@ -1044,11 +1044,11 @@ void NameBindingPass::visit_blockStatement(Ast* block_stmt)
 void NameBindingPass::visit_statementOrDeclList(Ast* stmt_list)
 {
   assert(stmt_list->kind == AstEnum::statementOrDeclList);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = stmt_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_statementOrDeclaration(ast->owner(&Ast::tree));
+  for (tree = stmt_list->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_statementOrDeclaration(tree->owner(&Ast::tree));
   }
 }
 
@@ -1062,11 +1062,11 @@ void NameBindingPass::visit_switchStatement(Ast* switch_stmt)
 void NameBindingPass::visit_switchCases(Ast* switch_cases)
 {
   assert(switch_cases->kind == AstEnum::switchCases);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = switch_cases->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_switchCase(ast->owner(&Ast::tree));
+  for (tree = switch_cases->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_switchCase(tree->owner(&Ast::tree));
   }
 }
 
@@ -1124,11 +1124,11 @@ void NameBindingPass::visit_tableDeclaration(Ast* table_decl)
 void NameBindingPass::visit_tablePropertyList(Ast* prop_list)
 {
   assert(prop_list->kind == AstEnum::tablePropertyList);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = prop_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_tableProperty(ast->owner(&Ast::tree));
+  for (tree = prop_list->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_tableProperty(tree->owner(&Ast::tree));
   }
 }
 
@@ -1159,11 +1159,11 @@ void NameBindingPass::visit_keyProperty(Ast* key_prop)
 void NameBindingPass::visit_keyElementList(Ast* element_list)
 {
   assert(element_list->kind == AstEnum::keyElementList);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = element_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_keyElement(ast->owner(&Ast::tree));
+  for (tree = element_list->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_keyElement(tree->owner(&Ast::tree));
   }
 }
 
@@ -1188,11 +1188,11 @@ void NameBindingPass::visit_actionsProperty(Ast* actions_prop)
 void NameBindingPass::visit_actionList(Ast* action_list)
 {
   assert(action_list->kind == AstEnum::actionList);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = action_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_actionRef(ast->owner(&Ast::tree));
+  for (tree = action_list->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_actionRef(tree->owner(&Ast::tree));
   }
 }
 
@@ -1298,11 +1298,11 @@ void NameBindingPass::visit_functionDeclaration(Ast* func_decl)
 void NameBindingPass::visit_argumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AstEnum::argumentList);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = arg_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_argument(ast->owner(&Ast::tree));
+  for (tree = arg_list->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_argument(tree->owner(&Ast::tree));
   }
 }
 
@@ -1319,11 +1319,11 @@ void NameBindingPass::visit_argument(Ast* arg)
 void NameBindingPass::visit_expressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::expressionList);
-  Tree<Ast>* ast;
+  Tree<Ast>* tree;
 
-  for (ast = expr_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_expression(ast->owner(&Ast::tree));
+  for (tree = expr_list->tree.first_child;
+       tree != 0; tree = tree->right_sibling) {
+    visit_expression(tree->owner(&Ast::tree));
   }
 }
 
