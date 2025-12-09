@@ -43,7 +43,7 @@ struct StrmapBucket {
   int last_segment;
 };
 
-template<class V> struct StrmapCursor;
+template<class V> struct StrmapIterator;
 
 template<class V>
 struct Strmap {
@@ -79,7 +79,7 @@ struct Strmap {
   void grow()
   {
     int last_segment;
-    StrmapCursor<V> it = {};
+    StrmapIterator<V> it = {};
     StrmapEntry<V>* first_entry, *last_entry;
     StrmapEntry<V>* entry, *next_entry;
     StrmapEntry<V>** segment, **entry_slot;
@@ -210,7 +210,7 @@ struct Strmap {
 };
 
 template<class V>
-struct StrmapCursor {
+struct StrmapIterator {
   Strmap<V>* strmap;
   StrmapEntry<V>* entry;
   int i;
