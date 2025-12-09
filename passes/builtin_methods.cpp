@@ -22,7 +22,7 @@ void BuiltinMethodsPass::visit_declarationList(Ast* decl_list)
 
   for (tree = decl_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_declaration(tree->owner(&Ast::tree));
+    visit_declaration(Ast::from_tree(tree));
   }
 }
 
@@ -68,7 +68,7 @@ void BuiltinMethodsPass::visit_parameterList(Ast* params)
 
   for (tree = params->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_parameter(tree->owner(&Ast::tree));
+    visit_parameter(Ast::from_tree(tree));
   }
 }
 
@@ -144,7 +144,7 @@ void BuiltinMethodsPass::visit_parserLocalElements(Ast* local_elements)
 
   for (tree = local_elements->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_parserLocalElement(tree->owner(&Ast::tree));
+    visit_parserLocalElement(Ast::from_tree(tree));
   }
 }
 
@@ -165,7 +165,7 @@ void BuiltinMethodsPass::visit_parserStates(Ast* states)
 
   for (tree = states->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_parserState(tree->owner(&Ast::tree));
+    visit_parserState(Ast::from_tree(tree));
   }
 }
 
@@ -184,7 +184,7 @@ void BuiltinMethodsPass::visit_parserStatements(Ast* stmts)
 
   for (tree = stmts->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_parserStatement(tree->owner(&Ast::tree));
+    visit_parserStatement(Ast::from_tree(tree));
   }
 }
 
@@ -242,7 +242,7 @@ void BuiltinMethodsPass::visit_selectCaseList(Ast* case_list)
 
   for (tree = case_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_selectCase(tree->owner(&Ast::tree));
+    visit_selectCase(Ast::from_tree(tree));
   }
 }
 
@@ -288,7 +288,7 @@ void BuiltinMethodsPass::visit_simpleExpressionList(Ast* expr_list)
 
   for (tree = expr_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_simpleKeysetExpression(tree->owner(&Ast::tree));
+    visit_simpleKeysetExpression(Ast::from_tree(tree));
   }
 }
 
@@ -339,7 +339,7 @@ void BuiltinMethodsPass::visit_controlLocalDeclarations(Ast* local_decls)
 
   for (tree = local_decls->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_controlLocalDeclaration(tree->owner(&Ast::tree));
+    visit_controlLocalDeclaration(Ast::from_tree(tree));
   }
 }
 
@@ -383,7 +383,7 @@ void BuiltinMethodsPass::visit_methodPrototypes(Ast* protos)
 
   for (tree = protos->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_functionPrototype(tree->owner(&Ast::tree));
+    visit_functionPrototype(Ast::from_tree(tree));
   }
 }
 
@@ -521,7 +521,7 @@ void BuiltinMethodsPass::visit_typeArgumentList(Ast* arg_list)
 
   for (tree = arg_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_typeArg(tree->owner(&Ast::tree));
+    visit_typeArg(Ast::from_tree(tree));
   }
 }
 
@@ -583,7 +583,7 @@ void BuiltinMethodsPass::visit_structFieldList(Ast* field_list)
 
   for (tree = field_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_structField(tree->owner(&Ast::tree));
+    visit_structField(Ast::from_tree(tree));
   }
 }
 
@@ -620,7 +620,7 @@ void BuiltinMethodsPass::visit_identifierList(Ast* ident_list)
 
   for (tree = ident_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_name(tree->owner(&Ast::tree));
+    visit_name(Ast::from_tree(tree));
   }
 }
 
@@ -631,7 +631,7 @@ void BuiltinMethodsPass::visit_specifiedIdentifierList(Ast* ident_list)
 
   for (tree = ident_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_specifiedIdentifier(tree->owner(&Ast::tree));
+    visit_specifiedIdentifier(Ast::from_tree(tree));
   }
 }
 
@@ -750,7 +750,7 @@ void BuiltinMethodsPass::visit_statementOrDeclList(Ast* stmt_list)
 
   for (tree = stmt_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_statementOrDeclaration(tree->owner(&Ast::tree));
+    visit_statementOrDeclaration(Ast::from_tree(tree));
   }
 }
 
@@ -768,7 +768,7 @@ void BuiltinMethodsPass::visit_switchCases(Ast* switch_cases)
 
   for (tree = switch_cases->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_switchCase(tree->owner(&Ast::tree));
+    visit_switchCase(Ast::from_tree(tree));
   }
 }
 
@@ -843,7 +843,7 @@ void BuiltinMethodsPass::visit_tablePropertyList(Ast* prop_list)
 
   for (tree = prop_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_tableProperty(tree->owner(&Ast::tree));
+    visit_tableProperty(Ast::from_tree(tree));
   }
 }
 
@@ -878,7 +878,7 @@ void BuiltinMethodsPass::visit_keyElementList(Ast* element_list)
 
   for (tree = element_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_keyElement(tree->owner(&Ast::tree));
+    visit_keyElement(Ast::from_tree(tree));
   }
 }
 
@@ -902,7 +902,7 @@ void BuiltinMethodsPass::visit_actionList(Ast* action_list)
 
   for (tree = action_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_actionRef(tree->owner(&Ast::tree));
+    visit_actionRef(Ast::from_tree(tree));
   }
 }
 
@@ -914,39 +914,6 @@ void BuiltinMethodsPass::visit_actionRef(Ast* action_ref)
     visit_argumentList(action_ref->actionRef.args);
   }
 }
-
-#if 0
-void BuiltinMethodsPass::visit_entriesProperty(Ast* entries_prop)
-{
-  assert(entries_prop->kind == AstEnum::entriesProperty);
-  visit_entriesList(entries_prop->entriesProperty.entries_list);
-}
-
-void BuiltinMethodsPass::visit_entriesList(Ast* entries_list)
-{
-  assert(entries_list->kind == AstEnum::entriesList);
-  AstTree<Ast>* ast;
-
-  for (ast = entries_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_entry(ast->owner(&Ast::tree));
-  }
-}
-
-void BuiltinMethodsPass::visit_entry(Ast* entry)
-{
-  assert(entry->kind == AstEnum::entry);
-  visit_keysetExpression(entry->entry.keyset);
-  visit_actionRef(entry->entry.action);
-}
-
-void BuiltinMethodsPass::visit_simpleProperty(Ast* simple_prop)
-{
-  assert(simple_prop->kind == AstEnum::simpleProperty);
-  visit_name(simple_prop->simpleProperty.name);
-  visit_expression(simple_prop->simpleProperty.init_expr);
-}
-#endif
 
 void BuiltinMethodsPass::visit_actionDeclaration(Ast* action_decl)
 {
@@ -984,7 +951,7 @@ void BuiltinMethodsPass::visit_argumentList(Ast* arg_list)
 
   for (tree = arg_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_argument(tree->owner(&Ast::tree));
+    visit_argument(Ast::from_tree(tree));
   }
 }
 
@@ -1005,7 +972,7 @@ void BuiltinMethodsPass::visit_expressionList(Ast* expr_list)
 
   for (tree = expr_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_expression(tree->owner(&Ast::tree));
+    visit_expression(Ast::from_tree(tree));
   }
 }
 

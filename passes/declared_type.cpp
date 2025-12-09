@@ -224,7 +224,7 @@ void DeclaredTypePass::visit_declarationList(Ast* decl_list)
 
   for (tree = decl_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_declaration(tree->owner(&Ast::tree));
+    visit_declaration(Ast::from_tree(tree));
   }
 }
 
@@ -284,7 +284,7 @@ void DeclaredTypePass::visit_parameterList(Ast* params)
   params_ty->ast = params;
   for (tree = params->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_parameter(tree->owner(&Ast::tree));
+    visit_parameter(Ast::from_tree(tree));
     params_ty->product.count += 1;
   }
   if (params_ty->product.count > 0) {
@@ -293,7 +293,7 @@ void DeclaredTypePass::visit_parameterList(Ast* params)
   i = 0;
   for (tree = params->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    params_ty->product.members[i] = type_env->lookup(tree->owner(&Ast::tree), 0);
+    params_ty->product.members[i] = type_env->lookup(Ast::from_tree(tree), 0);
     i += 1;
   }
   assert(i == params_ty->product.count);
@@ -395,7 +395,7 @@ void DeclaredTypePass::visit_parserLocalElements(Ast* local_elements)
 
   for (tree = local_elements->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_parserLocalElement(tree->owner(&Ast::tree));
+    visit_parserLocalElement(Ast::from_tree(tree));
   }
 }
 
@@ -416,7 +416,7 @@ void DeclaredTypePass::visit_parserStates(Ast* states)
 
   for (tree = states->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_parserState(tree->owner(&Ast::tree));
+    visit_parserState(Ast::from_tree(tree));
   }
 }
 
@@ -446,7 +446,7 @@ void DeclaredTypePass::visit_parserStatements(Ast* stmts)
 
   for (tree = stmts->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_parserStatement(tree->owner(&Ast::tree));
+    visit_parserStatement(Ast::from_tree(tree));
   }
 }
 
@@ -504,7 +504,7 @@ void DeclaredTypePass::visit_selectCaseList(Ast* case_list)
 
   for (tree = case_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_selectCase(tree->owner(&Ast::tree));
+    visit_selectCase(Ast::from_tree(tree));
   }
 }
 
@@ -549,7 +549,7 @@ void DeclaredTypePass::visit_simpleExpressionList(Ast* expr_list)
 
   for (tree = expr_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_simpleKeysetExpression(tree->owner(&Ast::tree));
+    visit_simpleKeysetExpression(Ast::from_tree(tree));
   }
 }
 
@@ -598,7 +598,7 @@ void DeclaredTypePass::visit_controlLocalDeclarations(Ast* local_decls)
 
   for (tree = local_decls->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_controlLocalDeclaration(tree->owner(&Ast::tree));
+    visit_controlLocalDeclaration(Ast::from_tree(tree));
   }
 }
 
@@ -677,7 +677,7 @@ void DeclaredTypePass::visit_methodPrototypes(Ast* protos, Type* ctor_ty, char* 
   methods_ty->ast = protos;
   for (tree = protos->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_functionPrototype(tree->owner(&Ast::tree), ctor_ty, ctor_strname);
+    visit_functionPrototype(Ast::from_tree(tree), ctor_ty, ctor_strname);
     methods_ty->product.count += 1;
   }
   if (methods_ty->product.count > 0) {
@@ -686,7 +686,7 @@ void DeclaredTypePass::visit_methodPrototypes(Ast* protos, Type* ctor_ty, char* 
   i = 0;
   for (tree = protos->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    methods_ty->product.members[i] = type_env->lookup(tree->owner(&Ast::tree), 0);
+    methods_ty->product.members[i] = type_env->lookup(Ast::from_tree(tree), 0);
     i += 1;
   }
   assert(i == methods_ty->product.count);
@@ -890,7 +890,7 @@ void DeclaredTypePass::visit_typeArgumentList(Ast* args)
   args_ty->ast = args;
   for (tree = args->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_typeArg(tree->owner(&Ast::tree));
+    visit_typeArg(Ast::from_tree(tree));
     args_ty->product.count += 1;
   }
   if (args_ty->product.count > 0) {
@@ -899,7 +899,7 @@ void DeclaredTypePass::visit_typeArgumentList(Ast* args)
   i = 0;
   for (tree = args->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    args_ty->product.members[i] = type_env->lookup(tree->owner(&Ast::tree), 0);
+    args_ty->product.members[i] = type_env->lookup(Ast::from_tree(tree), 0);
     i += 1;
   }
   assert(i == args_ty->product.count);
@@ -1013,7 +1013,7 @@ void DeclaredTypePass::visit_structFieldList(Ast* fields)
   fields_ty->ast = fields;
   for (tree = fields->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_structField(tree->owner(&Ast::tree));
+    visit_structField(Ast::from_tree(tree));
     fields_ty->product.count += 1;
   }
   if (fields_ty->product.count > 0) {
@@ -1022,7 +1022,7 @@ void DeclaredTypePass::visit_structFieldList(Ast* fields)
   i = 0;
   for (tree = fields->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    fields_ty->product.members[i] = type_env->lookup(tree->owner(&Ast::tree), 0);
+    fields_ty->product.members[i] = type_env->lookup(Ast::from_tree(tree), 0);
     i += 1;
   }
   assert(i == fields_ty->product.count);
@@ -1110,13 +1110,13 @@ void DeclaredTypePass::visit_identifierList(Ast* ident_list, Type* enum_ty, Type
        tree != 0; tree = tree->right_sibling) {
     name_ty = type_array->append();
     name_ty->ty_former = TypeEnum::FIELD;
-    name_ty->strname = tree->owner(&Ast::tree)->name.strname;
-    name_ty->ast = tree->owner(&Ast::tree);
+    name_ty->strname = Ast::from_tree(tree)->name.strname;
+    name_ty->ast = Ast::from_tree(tree);
     name_ty->field.type = enum_ty;
-    type_env->insert(tree->owner(&Ast::tree), name_ty, 0);
-    name_decl = decl_map->lookup(tree->owner(&Ast::tree), 0);
+    type_env->insert(Ast::from_tree(tree), name_ty, 0);
+    name_decl = decl_map->lookup(Ast::from_tree(tree), 0);
     name_decl->type = name_ty;
-    idents_ty->product.members[j] = type_env->lookup(tree->owner(&Ast::tree), 0);
+    idents_ty->product.members[j] = type_env->lookup(Ast::from_tree(tree), 0);
     j += 1;
   }
   *i = j;
@@ -1134,7 +1134,7 @@ void DeclaredTypePass::visit_specifiedIdentifierList(Ast* ident_list, Type* enum
   idents_ty->ast = ident_list;
   for (tree = ident_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_specifiedIdentifier(tree->owner(&Ast::tree), enum_ty);
+    visit_specifiedIdentifier(Ast::from_tree(tree), enum_ty);
     idents_ty->product.count += 1;
   }
   if (idents_ty->product.count > 0) {
@@ -1143,7 +1143,7 @@ void DeclaredTypePass::visit_specifiedIdentifierList(Ast* ident_list, Type* enum
   i = 0;
   for (tree = ident_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    idents_ty->product.members[i] = type_env->lookup(tree->owner(&Ast::tree), 0);
+    idents_ty->product.members[i] = type_env->lookup(Ast::from_tree(tree), 0);
     i += 1;
   }
   assert(i == idents_ty->product.count);
@@ -1284,7 +1284,7 @@ void DeclaredTypePass::visit_statementOrDeclList(Ast* stmt_list)
 
   for (tree = stmt_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_statementOrDeclaration(tree->owner(&Ast::tree));
+    visit_statementOrDeclaration(Ast::from_tree(tree));
   }
 }
 
@@ -1302,7 +1302,7 @@ void DeclaredTypePass::visit_switchCases(Ast* switch_cases)
 
   for (tree = switch_cases->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_switchCase(tree->owner(&Ast::tree));
+    visit_switchCase(Ast::from_tree(tree));
   }
 }
 
@@ -1367,7 +1367,7 @@ void DeclaredTypePass::visit_tablePropertyList(Ast* prop_list)
 
   for (tree = prop_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_tableProperty(tree->owner(&Ast::tree));
+    visit_tableProperty(Ast::from_tree(tree));
   }
 }
 
@@ -1402,7 +1402,7 @@ void DeclaredTypePass::visit_keyElementList(Ast* element_list)
 
   for (tree = element_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_keyElement(tree->owner(&Ast::tree));
+    visit_keyElement(Ast::from_tree(tree));
   }
 }
 
@@ -1425,7 +1425,7 @@ void DeclaredTypePass::visit_actionList(Ast* action_list)
 
   for (tree = action_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_actionRef(tree->owner(&Ast::tree));
+    visit_actionRef(Ast::from_tree(tree));
   }
 }
 
@@ -1436,38 +1436,6 @@ void DeclaredTypePass::visit_actionRef(Ast* action_ref)
     visit_argumentList(action_ref->actionRef.args);
   }
 }
-
-#if 0
-void DeclaredTypePass::visit_entriesProperty(Ast* entries_prop)
-{
-  assert(entries_prop->kind == AstEnum::entriesProperty);
-  visit_entriesList(checker, entries_prop->entriesProperty.entries_list);
-}
-
-void DeclaredTypePass::visit_entriesList(Ast* entries_list)
-{
-  assert(entries_list->kind == AstEnum::entriesList);
-  AstTree<Ast>* ast;
-
-  for (ast = entries_list->tree.first_child;
-       ast != 0; ast = ast->right_sibling) {
-    visit_entry(checker, ast->owner(&Ast::tree));
-  }
-}
-
-void DeclaredTypePass::visit_entry(Ast* entry)
-{
-  assert(entry->kind == AstEnum::entry);
-  visit_keysetExpression(checker, entry->entry.keyset);
-  visit_actionRef(checker, entry->entry.action);
-}
-
-void DeclaredTypePass::visit_simpleProperty(Ast* simple_prop)
-{
-  assert(simple_prop->kind == AstEnum::simpleProperty);
-  visit_expression(checker, simple_prop->simpleProperty.init_expr);
-}
-#endif
 
 void DeclaredTypePass::visit_actionDeclaration(Ast* action_decl)
 {
@@ -1524,7 +1492,7 @@ void DeclaredTypePass::visit_argumentList(Ast* args)
 
   for (tree = args->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_argument(tree->owner(&Ast::tree));
+    visit_argument(Ast::from_tree(tree));
   }
 }
 
@@ -1543,7 +1511,7 @@ void DeclaredTypePass::visit_expressionList(Ast* expr_list)
 
   for (tree = expr_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_expression(tree->owner(&Ast::tree));
+    visit_expression(Ast::from_tree(tree));
   }
 }
 
