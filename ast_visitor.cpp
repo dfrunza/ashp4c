@@ -17,7 +17,7 @@ void* AstVisitor::visit_declarationList(Ast* decl_list)
 
   for (tree = decl_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_declaration(Ast::from_tree(tree));
+    visit_declaration(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -66,7 +66,7 @@ void* AstVisitor::visit_parameterList(Ast* params)
 
   for (tree = params->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_parameter(Ast::from_tree(tree));
+    visit_parameter(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -128,7 +128,7 @@ void* AstVisitor::visit_parserLocalElements(Ast* local_elements)
 
   for (tree = local_elements->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_parserLocalElement(Ast::from_tree(tree));
+    visit_parserLocalElement(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -151,7 +151,7 @@ void* AstVisitor::visit_parserStates(Ast* states)
 
   for (tree = states->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_parserState(Ast::from_tree(tree));
+    visit_parserState(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -172,7 +172,7 @@ void* AstVisitor::visit_parserStatements(Ast* stmts)
 
   for (tree = stmts->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_parserStatement(Ast::from_tree(tree));
+    visit_parserStatement(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -236,7 +236,7 @@ void* AstVisitor::visit_selectCaseList(Ast* case_list)
 
   for (tree = case_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_selectCase(Ast::from_tree(tree));
+    visit_selectCase(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -287,7 +287,7 @@ void* AstVisitor::visit_simpleExpressionList(Ast* expr_list)
 
   for (tree = expr_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_simpleKeysetExpression(Ast::from_tree(tree));
+    visit_simpleKeysetExpression(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -321,7 +321,7 @@ void* AstVisitor::visit_controlLocalDeclarations(Ast* local_decls)
 
   for (tree = local_decls->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_controlLocalDeclaration(Ast::from_tree(tree));
+    visit_controlLocalDeclaration(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -369,7 +369,7 @@ void* AstVisitor::visit_methodPrototypes(Ast* protos)
 
   for (tree = protos->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_functionPrototype(Ast::from_tree(tree));
+    visit_functionPrototype(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -522,7 +522,7 @@ void* AstVisitor::visit_typeArgumentList(Ast* arg_list)
 
   for (tree = arg_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_typeArg(Ast::from_tree(tree));
+    visit_typeArg(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -590,7 +590,7 @@ void* AstVisitor::visit_structFieldList(Ast* field_list)
 
   for (tree = field_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_structField(Ast::from_tree(tree));
+    visit_structField(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -632,7 +632,7 @@ void* AstVisitor::visit_identifierList(Ast* ident_list)
 
   for (tree = ident_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_name(Ast::from_tree(tree));
+    visit_name(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -644,7 +644,7 @@ void* AstVisitor::visit_specifiedIdentifierList(Ast* ident_list)
 
   for (tree = ident_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_specifiedIdentifier(Ast::from_tree(tree));
+    visit_specifiedIdentifier(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -774,7 +774,7 @@ void* AstVisitor::visit_statementOrDeclList(Ast* stmt_list)
 
   for (tree = stmt_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_statementOrDeclaration(Ast::from_tree(tree));
+    visit_statementOrDeclaration(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -794,7 +794,7 @@ void* AstVisitor::visit_switchCases(Ast* switch_cases)
 
   for (tree = switch_cases->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_switchCase(Ast::from_tree(tree));
+    visit_switchCase(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -850,7 +850,7 @@ void* AstVisitor::visit_tablePropertyList(Ast* prop_list)
 
   for (tree = prop_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_tableProperty(Ast::from_tree(tree));
+    visit_tableProperty(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -888,7 +888,7 @@ void* AstVisitor::visit_keyElementList(Ast* element_list)
 
   for (tree = element_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_keyElement(Ast::from_tree(tree));
+    visit_keyElement(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -915,7 +915,7 @@ void* AstVisitor::visit_actionList(Ast* action_list)
 
   for (tree = action_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_actionRef(Ast::from_tree(tree));
+    visit_actionRef(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -969,7 +969,7 @@ void* AstVisitor::visit_argumentList(Ast* arg_list)
 
   for (tree = arg_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_argument(Ast::from_tree(tree));
+    visit_argument(Ast::owner_of(tree));
   }
   return 0;
 }
@@ -992,7 +992,7 @@ void* AstVisitor::visit_expressionList(Ast* expr_list)
 
   for (tree = expr_list->tree.first_child;
        tree != 0; tree = tree->right_sibling) {
-    visit_expression(Ast::from_tree(tree));
+    visit_expression(Ast::owner_of(tree));
   }
   return 0;
 }

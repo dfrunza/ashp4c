@@ -727,7 +727,7 @@ struct Ast {
 
   Ast* clone(Arena* storage);
 
-  static inline Ast* from_tree(Tree<Ast>* tree)
+  static inline Ast* owner_of(Tree<Ast>* tree)
   {
     return tree->owner_of(&Ast::tree);
   }
