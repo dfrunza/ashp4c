@@ -225,6 +225,25 @@ struct TreeCtor {
   }
 };
 
+template<class T>
+struct TreeIterator {
+  Tree<T>* tree;
+
+  void begin(Tree<T>* root)
+  {
+    this->tree = root->first_child;
+  }
+
+  Tree<T>* next()
+  {
+    Tree<T>* result = this->tree;
+    if (this->tree) {
+      this->tree = tree->right_sibling;
+    }
+    return result;
+  }
+};
+
 struct Ast {
   enum AstEnum kind;
   int line_no;

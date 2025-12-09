@@ -78,12 +78,14 @@ struct Strmap {
 
   void grow()
   {
+    StrmapIterator<V> it = {};
+
     int last_segment = floor(log2(capacity/16 + 1));
     if (last_segment >= entries.segment_count) {
       printf("\nMaximum capacity has been reached.\n");
       exit(1);
     }
-    StrmapIterator<V> it(this);
+    it.begin(this);
     StrmapEntry<V>* first_entry = it.next();
     StrmapEntry<V>* last_entry = first_entry;
     int entry_count = first_entry ? 1 : 0;
@@ -206,7 +208,7 @@ struct StrmapIterator {
   StrmapEntry<V>* entry;
   int i;
 
-  StrmapIterator(Strmap<V>* strmap)
+  void begin(Strmap<V>* strmap)
   {
     this->strmap = strmap;
     i = -1;

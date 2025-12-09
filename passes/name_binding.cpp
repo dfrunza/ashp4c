@@ -75,9 +75,10 @@ void DEBUG_scope_decls(Scope* scope)
   NameDeclaration* decl;
   int count = 0;
   enum NameSpace ns[] = {NameSpace::VAR, NameSpace::TYPE, NameSpace::KEYWORD};
+  StrmapIterator<NameEntry> it = {};
 
   printf("Names in scope 0x%x\n\n", scope);
-  StrmapIterator<NameEntry> it(&scope->name_table);
+  it.begin(&scope->name_table);
   StrmapEntry<NameEntry>* he = it.next();
   while (he) {
     name_entry = he->value;
