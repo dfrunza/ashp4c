@@ -201,9 +201,9 @@ struct Tree {
   Tree* first_child;
   Tree* right_sibling;
 
-  T* owner(const Tree T::*member)
+  T* owner_of(const Tree T::*member)
   {
-    T* o = owner_of(this, member);
+    T* o = ::owner_of(this, member);
     return o;
   }
 };
@@ -729,6 +729,6 @@ struct Ast {
 
   static inline Ast* from_tree(Tree<Ast>* tree)
   {
-    return tree->owner(&Ast::tree);
+    return tree->owner_of(&Ast::tree);
   }
 };
