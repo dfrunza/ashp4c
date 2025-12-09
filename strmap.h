@@ -78,45 +78,36 @@ struct Strmap {
 
   void grow()
   {
-    int last_segment;
-    StrmapIterator<V> it = {};
-    StrmapEntry<V>* first_entry, *last_entry;
-    StrmapEntry<V>* entry, *next_entry;
-    StrmapEntry<V>** segment, **entry_slot;
-    int entry_count;
-    int segment_capacity;
-    uint32_t h;
-
-    last_segment = floor(log2(capacity/16 + 1));
+    int last_segment = floor(log2(capacity/16 + 1));
     if (last_segment >= entries.segment_count) {
       printf("\nMaximum capacity has been reached.\n");
       exit(1);
     }
-    it.begin(this);
-    first_entry = it.next();
-    last_entry = first_entry;
-    entry_count = first_entry ? 1 : 0;
-    for (entry = it.next();
+    StrmapIterator<V> it(this);
+    StrmapEntry<V>* first_entry = it.next();
+    StrmapEntry<V>* last_entry = first_entry;
+    int entry_count = first_entry ? 1 : 0;
+    for (StrmapEntry<V>* entry = it.next();
          entry != 0; entry = it.next()) {
       last_entry->next_entry = entry;
       last_entry = entry;
       entry_count += 1;
     }
     assert(entry_count == this->entry_count);
-    segment_capacity = 16 * (1 << last_segment);
+    int segment_capacity = 16 * (1 << last_segment);
     entries.segments[last_segment] = storage->allocate<StrmapEntry<V>*>(segment_capacity);
     capacity = 16 * ((1 << (last_segment + 1)) - 1);
     for (int i = 0; i <= last_segment; i++) {
       segment_capacity = 16 * (1 << i);
       for (int j = 0; j < segment_capacity; j ++) {
-        segment = entries.segments[i];
+        StrmapEntry<V>** segment = entries.segments[i];
         segment[j] = 0;
       }
     }
-    for (entry = first_entry; entry != 0; ) {
-      next_entry = entry->next_entry;
-      h = hash_key(entry->key, 4 + (last_segment + 1), capacity);
-      entry_slot = entries.locate_cell(h);
+    for (StrmapEntry<V>* entry = first_entry; entry != 0; ) {
+      StrmapEntry<V>* next_entry = entry->next_entry;
+      uint32_t h = hash_key(entry->key, 4 + (last_segment + 1), capacity);
+      StrmapEntry<V>** entry_slot = entries.locate_cell(h);
       entry->next_entry = *entry_slot;
       *entry_slot = entry;
       entry = next_entry;
@@ -215,7 +206,7 @@ struct StrmapIterator {
   StrmapEntry<V>* entry;
   int i;
 
-  void begin(Strmap<V>* strmap)
+  StrmapIterator(Strmap<V>* strmap)
   {
     this->strmap = strmap;
     i = -1;
