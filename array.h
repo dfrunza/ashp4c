@@ -34,12 +34,9 @@ struct SegmentTable {
 
   T* locate_cell(int i)
   {
-    int segment_index, elem_offset;
-    T* elem_slot;
-
-    segment_index = floor(log2(i/16 + 1));
-    elem_offset = i - 16 * ((1 << segment_index) - 1);
-    elem_slot = segments[segment_index] + elem_offset;
+    int segment_index = floor(log2(i/16 + 1));
+    int elem_offset = i - 16 * ((1 << segment_index) - 1);
+    T* elem_slot = segments[segment_index] + elem_offset;
     return elem_slot;
   }
 };
@@ -54,9 +51,8 @@ struct Array {
   static Array* create(Arena* storage, int segment_count)
   {
     assert(segment_count >= 1 && segment_count <= 16);
-    Array* array;
 
-    array = storage->allocate<Array>();
+    Array* array = storage->allocate<Array>();
     storage->allocate<T**>(segment_count);
     array->storage = storage;
     array->init(array->storage, segment_count);
@@ -77,15 +73,13 @@ struct Array {
   void extend()
   {
     assert(elem_count >= capacity);
-    int last_segment;
-    int segment_capacity;
 
-    last_segment = floor(log2(capacity/16 + 1));
+    int last_segment = floor(log2(capacity/16 + 1));
     if (last_segment >= data.segment_count) {
       printf("\nMaximum array capacity has been reached.\n");
       exit(1);
     }
-    segment_capacity = 16 * (1 << last_segment);
+    int segment_capacity = 16 * (1 << last_segment);
     data.segments[last_segment] = storage->allocate<T>(segment_capacity);
     capacity = 16 * ((1 << (last_segment + 1)) - 1);
   }
@@ -93,20 +87,18 @@ struct Array {
   T* get(int i)
   {
     assert(i >= 0 && i < elem_count);
-    T* elem_slot;
 
-    elem_slot = data.locate_cell(i);
+    T* elem_slot = data.locate_cell(i);
     return elem_slot;
   }
 
   T* append()
   {
-    T* elem_slot;
 
     if (elem_count >= capacity) {
       extend();
     }
-    elem_slot = data.locate_cell(elem_count);
+    T* elem_slot = data.locate_cell(elem_count);
     elem_count += 1;
     return elem_slot;
   }

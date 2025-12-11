@@ -31,11 +31,9 @@ struct Arena {
   T* allocate(int count = 1)
   {
     assert(count > 0);
-    uint8_t* user_memory;
-    int size;
 
-    user_memory = (uint8_t*)memory_avail;
-    size = sizeof(T) * count;
+    uint8_t* user_memory = (uint8_t*)memory_avail;
+    int size = sizeof(T) * count;
     if (user_memory + size >= (uint8_t*)memory_limit) {
       grow(size);
       user_memory = (uint8_t*)memory_avail;

@@ -11,21 +11,19 @@ static const uint32_t SIGMA = 2654435769;
 static uint32_t hash_string(char* string, uint32_t m)
 {
   assert(m > 0 && m <= 32);
-  uint32_t K = 0, h;
-  uint64_t KxSigma;
 
+  uint32_t K = 0;
   for (uint8_t* s = (uint8_t*)string; (*s); s++) {
     K = (P * K + (*s)) % Q;
   }
-  KxSigma = (uint64_t)K * (uint64_t)SIGMA;
-  h = ((uint32_t)KxSigma) >> (32 - m);  /* 0 <= h < 2^m */
+  uint64_t KxSigma = (uint64_t)K * (uint64_t)SIGMA;
+  uint32_t h = ((uint32_t)KxSigma) >> (32 - m);  /* 0 <= h < 2^m */
   return h;
 }
 
 static uint32_t hash_key(char* key, int m, int capacity)
 {
-  uint32_t h;
-  h = hash_string(key, m) % capacity;
+  uint32_t h = hash_string(key, m) % capacity;
   return h;
 }
 
@@ -55,9 +53,8 @@ struct Strmap {
   Strmap* create(Arena* storage, int segment_count)
   {
     assert(segment_count >= 1 && segment_count <= 16);
-    Strmap* strmap;
 
-    strmap = storage->allocate<Strmap>();
+    Strmap* strmap = storage->allocate<Strmap>();
     storage->allocate<StrmapEntry<V>*>(segment_count);
     strmap->storage = storage;
     strmap->init(strmap->storage, segment_count);
@@ -78,13 +75,12 @@ struct Strmap {
 
   void grow()
   {
-    StrmapIterator<V> it = {};
-
     int last_segment = floor(log2(capacity/16 + 1));
     if (last_segment >= entries.segment_count) {
       printf("\nMaximum capacity has been reached.\n");
       exit(1);
     }
+    StrmapIterator<V> it = {};
     it.begin(this);
     StrmapEntry<V>* first_entry = it.next();
     StrmapEntry<V>* last_entry = first_entry;
@@ -118,14 +114,11 @@ struct Strmap {
 
   V* lookup(char* key, StrmapEntry<V>** entry_/*out*/, StrmapBucket<V>* bucket/*out*/)
   {
-    int last_segment;
-    StrmapEntry<V>** entry_slot, *entry;
-    uint32_t h;
 
-    last_segment = floor(log2(capacity/16));
-    h = hash_key(key, 4 + (last_segment + 1), capacity);
-    entry_slot = entries.locate_cell(h);
-    entry = *entry_slot;
+    int last_segment = floor(log2(capacity/16));
+    uint32_t h = hash_key(key, 4 + (last_segment + 1), capacity);
+    StrmapEntry<V>** entry_slot = entries.locate_cell(h);
+    StrmapEntry<V>*entry = *entry_slot;
     while (entry) {
       if (cstring::match(entry->key, key)) {
         break;
@@ -169,16 +162,14 @@ struct Strmap {
 
   void DEBUG_occupancy()
   {
-    StrmapEntry<V>** entry_slot;
-    StrmapEntry<V>* entry;
     int empty_buckets = 0;
     int total_entry_count = 0,
         entry_count = 0,
         max_bucket_length = 0;
 
     for (int i = 0; i < capacity; i++) {
-      entry_slot = entries.locate_cell(i);
-      entry = *entry_slot;
+      StrmapEntry<V>** entry_slot = entries.locate_cell(i);
+      StrmapEntry<V>* entry = *entry_slot;
       entry_count = 0;
       if (entry) {
         while (entry) {
@@ -217,12 +208,8 @@ struct StrmapIterator {
 
   StrmapEntry<V>* next()
   {
-    Strmap<V>* strmap;
-    StrmapEntry<V>* entry = 0;
-    StrmapEntry<V>** entry_slot;
-
-    strmap = this->strmap;
-    entry = this->entry;
+    Strmap<V>* strmap = this->strmap;
+    StrmapEntry<V>* entry = this->entry;
     if (entry) {
       entry = entry->next_entry;
       if (entry) {
@@ -232,7 +219,7 @@ struct StrmapIterator {
     }
     i++;
     while (i < strmap->capacity) {
-      entry_slot = strmap->entries.locate_cell(i);
+      StrmapEntry<V>** entry_slot = strmap->entries.locate_cell(i);
       entry = *entry_slot;
       if (entry) {
         this->entry = entry;

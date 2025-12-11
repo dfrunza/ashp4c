@@ -50,9 +50,7 @@ Type* Type::actual_type()
 
 Type* Type::effective_type()
 {
-  Type* applied_ty;
-
-  applied_ty = actual_type();
+  Type* applied_ty = actual_type();
   if (!applied_ty) { return 0; }
   if (ty_former == TypeEnum::FUNCTION) {
     return function.return_->actual_type();

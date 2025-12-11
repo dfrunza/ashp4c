@@ -213,9 +213,7 @@ struct TreeCtor {
   Tree<T>* last_sibling;
 
   void append_node(Tree<T>* tree, Tree<T>* node) {
-      Tree<T>* first_child;
-
-      first_child = tree->first_child;
+      Tree<T>* first_child = tree->first_child;
       if (first_child) {
           last_sibling->right_sibling = node;
       } else {

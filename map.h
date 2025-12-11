@@ -59,11 +59,9 @@ struct Map {
 
   V* lookup(K* key, MapEntry<K,V>** entry)
   {
-    MapEntry<K,V>* m;
-    V* value;
 
-    m = search_entry(root, key);
-    value = 0;
+    MapEntry<K,V>* m = search_entry(root, key);
+    V* value = 0;
     if (m) { value = m->value; }
     if (entry) { *entry = m; }
     return value;
@@ -77,9 +75,7 @@ struct Map {
   int count()
   {
     int c = 0;
-    MapEntry<K,V>* m;
-
-    for (m = first; m != 0; m = m->next) {
+    for (MapEntry<K,V>*  m = first; m != 0; m = m->next) {
       c += 1;
     }
     return c;

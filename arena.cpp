@@ -80,16 +80,14 @@ void PageBlock::recycle_block_struct()
 
 PageBlock* PageBlock::block_insert_and_coalesce(PageBlock* new_block)
 {
-  PageBlock* merged_list;
-  PageBlock* left_neighbour = 0, *right_neighbour = 0;
-  PageBlock* p;
-  enum BlockStitch stitch_op;
-
   if (!this) {
     return new_block;
   }
-  merged_list = this;
-  p = this;
+
+  PageBlock* left_neighbour = 0, *right_neighbour = 0;
+  PageBlock* merged_list = this;
+  PageBlock* p = this;
+
   while (p) {
     /* Find the left neighbour of 'new_block' in the ordered list of blocks. */
     if (p->memory_begin <= new_block->memory_begin) {
@@ -98,6 +96,7 @@ PageBlock* PageBlock::block_insert_and_coalesce(PageBlock* new_block)
     }
     p = p->next_block;
   }
+
   /* Insert the 'new_block' into the list. */
   if (left_neighbour) {
     right_neighbour = left_neighbour->next_block;
@@ -115,7 +114,7 @@ PageBlock* PageBlock::block_insert_and_coalesce(PageBlock* new_block)
   }
 
   /* Coalesce adjacent blocks. */
-  stitch_op = BlockStitch::NONE;
+  enum BlockStitch stitch_op = BlockStitch::NONE;
   if (left_neighbour && (left_neighbour->memory_end == new_block->memory_begin)) {
     stitch_op = (stitch_op | BlockStitch::LEFT);
   }

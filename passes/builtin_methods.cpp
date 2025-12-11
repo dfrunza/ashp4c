@@ -113,27 +113,28 @@ void BuiltinMethodsPass::visit_parserDeclaration(Ast* parser_decl)
 void BuiltinMethodsPass::visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::parserTypeDeclaration);
-  Ast* type_ref, *return_type, *method, *name;
-  Ast* method_protos;
-  TreeCtor<Ast> tree_ctor = {};
-
-  return_type = storage->allocate<Ast>();
+  Ast* return_type = storage->allocate<Ast>();
   return_type->kind = AstEnum::baseTypeVoid;
   return_type->name.strname = "void";
-  type_ref = storage->allocate<Ast>();
+
+  Ast* type_ref = storage->allocate<Ast>();
   type_ref->kind = AstEnum::typeRef;
   type_ref->typeRef.type = return_type;
-  method = storage->allocate<Ast>();
+
+  Ast* method = storage->allocate<Ast>();
   method->kind = AstEnum::functionPrototype;
   method->line_no = type_decl->line_no;
   method->column_no = type_decl->column_no;
   method->functionPrototype.return_type = type_ref;
   method->functionPrototype.params = type_decl->parserTypeDeclaration.params->clone(storage);
-  name = storage->allocate<Ast>();
+
+  Ast* name = storage->allocate<Ast>();
   name->kind = AstEnum::name;
   name->name.strname = "apply";
   method->functionPrototype.name = name;
-  method_protos = type_decl->parserTypeDeclaration.method_protos;
+
+  Ast* method_protos = type_decl->parserTypeDeclaration.method_protos;
+  TreeCtor<Ast> tree_ctor = {};
   tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 
@@ -308,27 +309,29 @@ void BuiltinMethodsPass::visit_controlDeclaration(Ast* control_decl)
 void BuiltinMethodsPass::visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::controlTypeDeclaration);
-  Ast* type_ref, *return_type, *method, *name;
-  Ast* method_protos;
-  TreeCtor<Ast> tree_ctor = {};
 
-  return_type = storage->allocate<Ast>();
+  Ast* return_type = storage->allocate<Ast>();
   return_type->kind = AstEnum::baseTypeVoid;
   return_type->name.strname = "void";
-  type_ref = storage->allocate<Ast>();
+
+  Ast* type_ref = storage->allocate<Ast>();
   type_ref->kind = AstEnum::typeRef;
   type_ref->typeRef.type = return_type;
-  method = storage->allocate<Ast>();
+
+  Ast* method = storage->allocate<Ast>();
   method->kind = AstEnum::functionPrototype;
   method->line_no = type_decl->line_no;
   method->column_no = type_decl->column_no;
   method->functionPrototype.return_type = type_ref;
   method->functionPrototype.params = type_decl->controlTypeDeclaration.params->clone(storage);
-  name = storage->allocate<Ast>();
+
+  Ast* name = storage->allocate<Ast>();
   name->kind = AstEnum::name;
   name->name.strname = "apply";
   method->functionPrototype.name = name;
-  method_protos = type_decl->controlTypeDeclaration.method_protos;
+
+  Ast* method_protos = type_decl->controlTypeDeclaration.method_protos;
+  TreeCtor<Ast> tree_ctor = {};
   tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 
@@ -808,31 +811,34 @@ void BuiltinMethodsPass::visit_statementOrDeclaration(Ast* stmt)
 void BuiltinMethodsPass::visit_tableDeclaration(Ast* table_decl)
 {
   assert(table_decl->kind == AstEnum::tableDeclaration);
-  Ast* type_ref, *return_type, *method, *name;
-  Ast* method_protos, *params;
-  TreeCtor<Ast> tree_ctor = {};
 
-  return_type = storage->allocate<Ast>();
+  Ast* return_type = storage->allocate<Ast>();
   return_type->kind = AstEnum::baseTypeVoid;
   return_type->name.strname = "void";
-  type_ref = storage->allocate<Ast>();
+
+  Ast* type_ref = storage->allocate<Ast>();
   type_ref->kind = AstEnum::typeRef;
   type_ref->typeRef.type = return_type;
-  method = storage->allocate<Ast>();
+
+  Ast* method = storage->allocate<Ast>();
   method->kind = AstEnum::functionPrototype;
   method->line_no = table_decl->line_no;
   method->column_no = table_decl->column_no;
   method->functionPrototype.return_type = type_ref;
-  params = storage->allocate<Ast>();
+
+  Ast* params = storage->allocate<Ast>();
   params->kind = AstEnum::parameterList;
   params->line_no = table_decl->line_no;
   params->column_no = table_decl->column_no;
   method->functionPrototype.params = params;
-  name = storage->allocate<Ast>();
+
+  Ast* name = storage->allocate<Ast>();
   name->kind = AstEnum::name;
   name->name.strname = "apply";
   method->functionPrototype.name = name;
-  method_protos = table_decl->tableDeclaration.method_protos;
+
+  Ast* method_protos = table_decl->tableDeclaration.method_protos;
+  TreeCtor<Ast> tree_ctor = {};
   tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 

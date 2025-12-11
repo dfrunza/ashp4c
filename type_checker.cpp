@@ -4,13 +4,9 @@
 
 bool TypeChecker::match_type(PotentialType* potential_types, Type* required_ty)
 {
-  Type* ty;
-  MapEntry<Type, void>* m;
-  int i;
-
-  i = 0;
-  for (m = potential_types->set.members.first; m != 0; m = m->next) {
-    ty = m->key->effective_type();
+  int i = 0;
+  for (MapEntry<Type, void>* m = potential_types->set.members.first; m != 0; m = m->next) {
+    Type* ty = m->key->effective_type();
     if (type_equiv(ty, required_ty->actual_type())) {
       i += 1;
     }
@@ -20,8 +16,7 @@ bool TypeChecker::match_type(PotentialType* potential_types, Type* required_ty)
 
 bool TypeChecker::match_params(PotentialType* potential_args, Type* params_ty)
 {
-  int i;
-
+  int i = 0;
   if (params_ty->product.count != potential_args->product.count) return 0;
   for (i = 0; i < params_ty->product.count; i++) {
     if (!match_type(potential_args->product.members[i],
@@ -33,10 +28,8 @@ bool TypeChecker::match_params(PotentialType* potential_args, Type* params_ty)
 void TypeChecker::collect_matching_member(PotentialType* tau, Type* product_ty,
                                           char* strname, PotentialType* potential_args)
 {
-  Type* member_ty;
-
   for (int i = 0; i < product_ty->product.count; i++) {
-    member_ty = product_ty->product.members[i];
+    Type* member_ty = product_ty->product.members[i];
     if (cstring::match(member_ty->strname, strname)) {
       if (member_ty->ty_former == TypeEnum::FUNCTION) {
         if (match_params(potential_args, member_ty->function.params)) {

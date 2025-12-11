@@ -13,57 +13,53 @@
 
 int main(int arg_count, char* args[])
 {
-  CommandLineArg* cmdline_arg, *filename;
   Arena storage = {}, scratch_storage = {};
-  SourceText source_text = {};
-  Lexer lexer = {};
-  Parser parser = {};
-  TypeChecker type_checker = {};
-  DryPass drypass = {};
-  BuiltinMethodsPass builtin_methods = {};
-  ScopeHierarchyPass scope_hierarchy = {};
-  NameBindingPass name_binding = {};
-  DeclaredTypePass declared_types = {};
-  PotentialTypePass potential_types = {};
-  SelectTypePass select_type = {};
 
   Arena::reserve_memory(500*KILOBYTE);
 
-  cmdline_arg = CommandLineArg::parse_cmdline_args(&storage, arg_count, args);
-  filename = cmdline_arg->find_unnamed_arg();
+  CommandLineArg* cmdline_arg = CommandLineArg::parse_cmdline_args(&storage, arg_count, args);
+  CommandLineArg* filename = cmdline_arg->find_unnamed_arg();
   if (!filename) {
     printf("<filename> is required.\n");
     exit(1);
   }
 
+  SourceText source_text = {};
   source_text.storage = &scratch_storage;
   source_text.read_source(filename->value);
 
+  Lexer lexer = {};
   lexer.storage = &storage;
   lexer.tokenize(&source_text);
 
+  Parser parser = {};
   parser.storage = &storage;
   parser.source_file = source_text.filename;
   parser.tokens = lexer.tokens;
   parser.parse();
   scratch_storage.free();
 
+  DryPass drypass = {};
   drypass.do_pass(parser.p4program);
 
+  BuiltinMethodsPass builtin_methods = {};
   builtin_methods.storage = &storage;
   builtin_methods.do_pass(parser.p4program);
 
+  ScopeHierarchyPass scope_hierarchy = {};
   scope_hierarchy.storage = &storage;
   scope_hierarchy.root_scope = parser.root_scope;
   scope_hierarchy.p4program = parser.p4program;
   scope_hierarchy.do_pass();
 
+  NameBindingPass name_binding = {};
   name_binding.storage = &storage;
   name_binding.p4program = parser.p4program;
   name_binding.root_scope = scope_hierarchy.root_scope;
   name_binding.scope_map = scope_hierarchy.scope_map;
   name_binding.do_pass();
 
+  DeclaredTypePass declared_types = {};
   declared_types.storage = &storage;
   declared_types.source_file = source_text.filename;
   declared_types.p4program = parser.p4program;
@@ -73,8 +69,10 @@ int main(int arg_count, char* args[])
   declared_types.type_array = name_binding.type_array;
   declared_types.do_pass();
 
+  TypeChecker type_checker = {};
   type_checker.type_equiv_pairs = declared_types.type_equiv_pairs;
 
+  PotentialTypePass potential_types = {};
   potential_types.storage = &storage;
   potential_types.source_file = source_text.filename;
   potential_types.p4program = parser.p4program;
@@ -86,6 +84,7 @@ int main(int arg_count, char* args[])
   potential_types.type_checker = &type_checker;
   potential_types.do_pass();
 
+  SelectTypePass select_type = {};
   select_type.storage = &storage;
   select_type.source_file = source_text.filename;
   select_type.p4program = parser.p4program;

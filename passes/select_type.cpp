@@ -58,10 +58,8 @@ void SelectTypePass::visit_declaration(Ast* decl)
 void SelectTypePass::visit_name(Ast* name, Type* required_ty)
 {
   assert(name->kind == AstEnum::name);
-  PotentialType* name_tau;
-  Type* name_ty;
 
-  name_tau = potype_map->lookup(name, 0);
+  PotentialType* name_tau = potype_map->lookup(name, 0);
   if (name_tau->set.members.count() != 1) {
     error("%s:%d:%d: error: failed type check.",
         source_file, name->line_no, name->column_no);
@@ -71,11 +69,11 @@ void SelectTypePass::visit_name(Ast* name, Type* required_ty)
       error("%s:%d:%d: error: failed type check.",
           source_file, name->line_no, name->column_no);
     } else {
-      name_ty = name_tau->set.members.first->key;
+      Type* name_ty = name_tau->set.members.first->key;
       type_env->insert(name, name_ty->effective_type(), 0);
     }
   } else {
-      name_ty = name_tau->set.members.first->key;
+      Type* name_ty = name_tau->set.members.first->key;
       type_env->insert(name, name_ty->effective_type(), 0);
   }
 }
@@ -218,10 +216,9 @@ void SelectTypePass::visit_stateExpression(Ast* state_expr)
 void SelectTypePass::visit_selectExpression(Ast* select_expr)
 {
   assert(select_expr->kind == AstEnum::selectExpression);
-  Type* list_ty;
 
   visit_expressionList(select_expr->selectExpression.expr_list, 0);
-  list_ty = type_env->lookup(select_expr->selectExpression.expr_list, 0);
+  Type* list_ty = type_env->lookup(select_expr->selectExpression.expr_list, 0);
   visit_selectCaseList(select_expr->selectExpression.case_list, list_ty);
 }
 
@@ -246,14 +243,13 @@ void SelectTypePass::visit_selectCase(Ast* select_case, Type* required_ty)
 void SelectTypePass::visit_keysetExpression(Ast* keyset_expr, Type* required_ty)
 {
   assert(keyset_expr->kind == AstEnum::keysetExpression);
-  Type* keyset_ty;
 
   if (keyset_expr->keysetExpression.expr->kind == AstEnum::tupleKeysetExpression) {
     visit_tupleKeysetExpression(keyset_expr->keysetExpression.expr, required_ty);
   } else if (keyset_expr->keysetExpression.expr->kind == AstEnum::simpleKeysetExpression) {
     visit_simpleKeysetExpression(keyset_expr->keysetExpression.expr, required_ty);
   } else assert(0);
-  keyset_ty = type_env->lookup(keyset_expr->keysetExpression.expr, 0);
+  Type* keyset_ty = type_env->lookup(keyset_expr->keysetExpression.expr, 0);
   assert(keyset_ty);
   type_env->insert(keyset_expr, keyset_ty, 0);
 }
@@ -261,17 +257,15 @@ void SelectTypePass::visit_keysetExpression(Ast* keyset_expr, Type* required_ty)
 void SelectTypePass::visit_tupleKeysetExpression(Ast* tuple_expr, Type* required_ty)
 {
   assert(tuple_expr->kind == AstEnum::tupleKeysetExpression);
-  Type* tuple_ty;
 
   visit_simpleExpressionList(tuple_expr->tupleKeysetExpression.expr_list, required_ty);
-  tuple_ty = type_env->lookup(tuple_expr->tupleKeysetExpression.expr_list, 0);
+  Type* tuple_ty = type_env->lookup(tuple_expr->tupleKeysetExpression.expr_list, 0);
   type_env->insert(tuple_expr, tuple_ty, 0);
 }
 
 void SelectTypePass::visit_simpleKeysetExpression(Ast* simple_expr, Type* required_ty)
 {
   assert(simple_expr->kind == AstEnum::simpleKeysetExpression);
-  Type* simple_ty;
 
   if (required_ty->product.count != 1) {
     error("%s:%d:%d: error: failed type check.",
@@ -284,7 +278,7 @@ void SelectTypePass::visit_simpleKeysetExpression(Ast* simple_expr, Type* requir
     } else if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::dontcare) {
       visit_dontcare(simple_expr->simpleKeysetExpression.expr);
     } else assert(0);
-    simple_ty = type_array->append();
+    Type* simple_ty = type_array->append();
     simple_ty->ty_former = TypeEnum::PRODUCT;
     simple_ty->ast = simple_expr;
     simple_ty->product.count = 1;
@@ -297,11 +291,9 @@ void SelectTypePass::visit_simpleKeysetExpression(Ast* simple_expr, Type* requir
 void SelectTypePass::visit_simpleExpressionList(Ast* expr_list, Type* required_ty)
 {
   assert(expr_list->kind == AstEnum::simpleExpressionList);
-  Type* list_ty;
-  int i;
   TreeIterator<Ast> it = {};
 
-  list_ty = type_array->append();
+  Type* list_ty = type_array->append();
   list_ty->ty_former = TypeEnum::PRODUCT;
   list_ty->ast = expr_list;
 
@@ -315,7 +307,7 @@ void SelectTypePass::visit_simpleExpressionList(Ast* expr_list, Type* required_t
     list_ty->product.members = storage->allocate<Type *>(list_ty->product.count);
   }
 
-  i = 0;
+  int i = 0;
   it.begin(&expr_list->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -407,7 +399,6 @@ void SelectTypePass::visit_functionPrototype(Ast* func_proto)
 void SelectTypePass::visit_typeRef(Ast* type_ref, Type* required_ty)
 {
   assert(type_ref->kind == AstEnum::typeRef);
-  Type* ref_ty;
 
   if (type_ref->typeRef.type->kind == AstEnum::baseTypeBoolean) {
     visit_baseTypeBoolean(type_ref->typeRef.type);
@@ -430,7 +421,7 @@ void SelectTypePass::visit_typeRef(Ast* type_ref, Type* required_ty)
   } else if (type_ref->typeRef.type->kind == AstEnum::tupleType) {
     visit_tupleType(type_ref->typeRef.type);
   } else assert(0);
-  ref_ty = type_env->lookup(type_ref->typeRef.type, 0);
+  Type* ref_ty = type_env->lookup(type_ref->typeRef.type, 0);
   if (required_ty) {
     if (!type_checker->type_equiv(ref_ty, required_ty)) {
       error("%s:%d:%d: error: failed type check.",
@@ -449,51 +440,46 @@ void SelectTypePass::visit_tupleType(Ast* type_decl)
 void SelectTypePass::visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::headerStackType);
-  Type* index_ty;
 
-  index_ty = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
+  Type* index_ty = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
   visit_expression(type_decl->headerStackType.stack_expr, index_ty);
 }
 
 void SelectTypePass::visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AstEnum::baseTypeBoolean);
-  Type* bool_ty;
 
-  bool_ty = root_scope->lookup_builtin("bool", NameSpace::TYPE)->type;
+  Type* bool_ty = root_scope->lookup_builtin("bool", NameSpace::TYPE)->type;
   type_env->insert(bool_type, bool_ty, 0);
 }
 
 void SelectTypePass::visit_baseTypeInteger(Ast* int_type)
 {
   assert(int_type->kind == AstEnum::baseTypeInteger);
-  Type* int_ty;
 
   if (int_type->baseTypeInteger.size) {
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
-  int_ty = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
+  Type* int_ty = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
   type_env->insert(int_type, int_ty, 0);
 }
 
 void SelectTypePass::visit_baseTypeBit(Ast* bit_type)
 {
   assert(bit_type->kind == AstEnum::baseTypeBit);
-  Type* bit_ty;
 
   if (bit_type->baseTypeBit.size) {
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
-  bit_ty = root_scope->lookup_builtin("bit", NameSpace::TYPE)->type;
+  Type* bit_ty = root_scope->lookup_builtin("bit", NameSpace::TYPE)->type;
   type_env->insert(bit_type, bit_ty, 0);
 }
 
 void SelectTypePass::visit_baseTypeVarbit(Ast* varbit_type)
 {
   assert(varbit_type->kind == AstEnum::baseTypeVarbit);
-  Type* varbit_ty;
 
-  varbit_ty = root_scope->lookup_builtin("varbit", NameSpace::TYPE)->type;
+  Type* varbit_ty = root_scope->lookup_builtin("varbit", NameSpace::TYPE)->type;
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
   type_env->insert(varbit_type, varbit_ty, 0);
 }
@@ -501,27 +487,24 @@ void SelectTypePass::visit_baseTypeVarbit(Ast* varbit_type)
 void SelectTypePass::visit_baseTypeString(Ast* string_type)
 {
   assert(string_type->kind == AstEnum::baseTypeString);
-  Type* string_ty;
 
-  string_ty = root_scope->lookup_builtin("string", NameSpace::TYPE)->type;
+  Type* string_ty = root_scope->lookup_builtin("string", NameSpace::TYPE)->type;
   type_env->insert(string_type, string_ty, 0);
 }
 
 void SelectTypePass::visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AstEnum::baseTypeVoid);
-  Type* void_ty;
 
-  void_ty = root_scope->lookup_builtin("void", NameSpace::TYPE)->type;
+  Type* void_ty = root_scope->lookup_builtin("void", NameSpace::TYPE)->type;
   type_env->insert(void_type, void_ty, 0);
 }
 
 void SelectTypePass::visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AstEnum::baseTypeError);
-  Type* error_ty;
 
-  error_ty = root_scope->lookup_builtin("error", NameSpace::TYPE)->type;
+  Type* error_ty = root_scope->lookup_builtin("error", NameSpace::TYPE)->type;
   type_env->insert(error_type, error_ty, 0);
 }
 
@@ -582,7 +565,6 @@ void SelectTypePass::visit_typeDeclaration(Ast* type_decl)
 void SelectTypePass::visit_derivedTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::derivedTypeDeclaration);
-  Type* decl_ty;
 
   if (type_decl->derivedTypeDeclaration.decl->kind == AstEnum::headerTypeDeclaration) {
     visit_headerTypeDeclaration(type_decl->derivedTypeDeclaration.decl);
@@ -593,7 +575,7 @@ void SelectTypePass::visit_derivedTypeDeclaration(Ast* type_decl)
   } else if (type_decl->derivedTypeDeclaration.decl->kind == AstEnum::enumDeclaration) {
     visit_enumDeclaration(type_decl->derivedTypeDeclaration.decl);
   } else assert(0);
-  decl_ty = type_env->lookup(type_decl->derivedTypeDeclaration.decl, 0);
+  Type* decl_ty = type_env->lookup(type_decl->derivedTypeDeclaration.decl, 0);
   type_env->insert(type_decl, decl_ty, 0);
 }
 
@@ -671,14 +653,13 @@ void SelectTypePass::visit_specifiedIdentifier(Ast* ident)
 void SelectTypePass::visit_typedefDeclaration(Ast* typedef_decl, Type* required_ty)
 {
   assert(typedef_decl->kind == AstEnum::typedefDeclaration);
-  Type* ref_ty;
 
   if (typedef_decl->typedefDeclaration.type_ref->kind == AstEnum::typeRef) {
     visit_typeRef(typedef_decl->typedefDeclaration.type_ref, required_ty);
   } else if (typedef_decl->typedefDeclaration.type_ref->kind == AstEnum::derivedTypeDeclaration) {
     visit_derivedTypeDeclaration(typedef_decl->typedefDeclaration.type_ref);
   } else assert(0);
-  ref_ty = type_env->lookup(typedef_decl->typedefDeclaration.type_ref, 0);
+  Type* ref_ty = type_env->lookup(typedef_decl->typedefDeclaration.type_ref, 0);
   type_env->insert(typedef_decl, ref_ty, 0);
 }
 
@@ -687,14 +668,13 @@ void SelectTypePass::visit_typedefDeclaration(Ast* typedef_decl, Type* required_
 void SelectTypePass::visit_assignmentStatement(Ast* assign_stmt)
 {
   assert(assign_stmt->kind == AstEnum::assignmentStatement);
-  Type* lhs_ty;
 
   if (assign_stmt->assignmentStatement.lhs_expr->kind == AstEnum::expression) {
     visit_expression(assign_stmt->assignmentStatement.lhs_expr, 0);
   } else if (assign_stmt->assignmentStatement.lhs_expr->kind == AstEnum::lvalueExpression) {
     visit_lvalueExpression(assign_stmt->assignmentStatement.lhs_expr, 0);
   } else assert(0);
-  lhs_ty = type_env->lookup(assign_stmt->assignmentStatement.lhs_expr, 0);
+  Type* lhs_ty = type_env->lookup(assign_stmt->assignmentStatement.lhs_expr, 0);
   assert(lhs_ty);
   visit_expression(assign_stmt->assignmentStatement.rhs_expr, lhs_ty);
 }
@@ -702,8 +682,6 @@ void SelectTypePass::visit_assignmentStatement(Ast* assign_stmt)
 void SelectTypePass::visit_functionCall(Ast* func_call, Type* required_ty)
 {
   assert(func_call->kind == AstEnum::functionCall);
-  PotentialType* func_tau;
-  Type* func_ty;
 
   if (func_call->functionCall.lhs_expr->kind == AstEnum::expression) {
     visit_expression(func_call->functionCall.lhs_expr, required_ty);
@@ -711,7 +689,7 @@ void SelectTypePass::visit_functionCall(Ast* func_call, Type* required_ty)
     visit_lvalueExpression(func_call->functionCall.lhs_expr, required_ty);
   } else assert(0);
   visit_argumentList(func_call->functionCall.args, 0);
-  func_tau = potype_map->lookup(func_call, 0);
+  PotentialType* func_tau = potype_map->lookup(func_call, 0);
   if (func_tau->set.members.count() != 1) {
     error("%s:%d:%d: error: failed type check.",
         source_file, func_call->line_no, func_call->column_no);
@@ -721,11 +699,11 @@ void SelectTypePass::visit_functionCall(Ast* func_call, Type* required_ty)
       error("%s:%d:%d: error: failed type check.",
             source_file, func_call->line_no, func_call->column_no);
     } else {
-      func_ty = func_tau->set.members.first->key;
+      Type* func_ty = func_tau->set.members.first->key;
       type_env->insert(func_call, func_ty->effective_type(), 0);
     }
   } else {
-    func_ty = func_tau->set.members.first->key;
+    Type* func_ty = func_tau->set.members.first->key;
     type_env->insert(func_call, func_ty->effective_type(), 0);
   }
 }
@@ -979,14 +957,13 @@ void SelectTypePass::visit_argumentList(Ast* args, Type* required_ty)
 void SelectTypePass::visit_argument(Ast* arg, Type* required_ty)
 {
   assert(arg->kind == AstEnum::argument);
-  Type* arg_ty;
 
   if (arg->argument.arg->kind == AstEnum::expression) {
     visit_expression(arg->argument.arg, required_ty);
   } else if (arg->argument.arg->kind == AstEnum::dontcare) {
     visit_dontcare(arg->argument.arg);
   } else assert(0);
-  arg_ty = type_env->lookup(arg->argument.arg, 0);
+  Type* arg_ty = type_env->lookup(arg->argument.arg, 0);
   assert(arg_ty);
   type_env->insert(arg, arg_ty, 0);
 }
@@ -994,11 +971,9 @@ void SelectTypePass::visit_argument(Ast* arg, Type* required_ty)
 void SelectTypePass::visit_expressionList(Ast* expr_list, Type* required_ty)
 {
   assert(expr_list->kind == AstEnum::expressionList);
-  Type* list_ty;
-  int i;
   TreeIterator<Ast> it = {};
 
-  list_ty = type_array->append();
+  Type* list_ty = type_array->append();
   list_ty->ty_former = TypeEnum::PRODUCT;
   list_ty->ast = expr_list;
 
@@ -1012,7 +987,7 @@ void SelectTypePass::visit_expressionList(Ast* expr_list, Type* required_ty)
     list_ty->product.members = storage->allocate<Type *>(list_ty->product.count);
   }
 
-  i = 0;
+  int i = 0;
   it.begin(&expr_list->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -1026,7 +1001,6 @@ void SelectTypePass::visit_expressionList(Ast* expr_list, Type* required_ty)
 void SelectTypePass::visit_lvalueExpression(Ast* lvalue_expr, Type* required_ty)
 {
   assert(lvalue_expr->kind == AstEnum::lvalueExpression);
-  Type* expr_ty;
 
   if (lvalue_expr->lvalueExpression.expr->kind == AstEnum::name) {
     visit_name(lvalue_expr->lvalueExpression.expr, required_ty);
@@ -1035,7 +1009,7 @@ void SelectTypePass::visit_lvalueExpression(Ast* lvalue_expr, Type* required_ty)
   } else if (lvalue_expr->lvalueExpression.expr->kind == AstEnum::arraySubscript) {
     visit_arraySubscript(lvalue_expr->lvalueExpression.expr);
   } else assert(0);
-  expr_ty = type_env->lookup(lvalue_expr->lvalueExpression.expr, 0);
+  Type* expr_ty = type_env->lookup(lvalue_expr->lvalueExpression.expr, 0);
   assert(expr_ty);
   type_env->insert(lvalue_expr, expr_ty, 0);
 }
@@ -1043,7 +1017,6 @@ void SelectTypePass::visit_lvalueExpression(Ast* lvalue_expr, Type* required_ty)
 void SelectTypePass::visit_expression(Ast* expr, Type* required_ty)
 {
   assert(expr->kind == AstEnum::expression);
-  Type* expr_ty;
 
   if (expr->expression.expr->kind == AstEnum::expression) {
     visit_expression(expr->expression.expr, required_ty);
@@ -1072,21 +1045,18 @@ void SelectTypePass::visit_expression(Ast* expr, Type* required_ty)
   } else if (expr->expression.expr->kind == AstEnum::assignmentStatement) {
     visit_assignmentStatement(expr->expression.expr);
   } else assert(0);
-  expr_ty = type_env->lookup(expr->expression.expr, 0);
-  if (!expr_ty) {
-    assert(expr_ty);
-  }
+  Type* expr_ty = type_env->lookup(expr->expression.expr, 0);
+  assert(expr_ty);
   type_env->insert(expr, expr_ty, 0);
 }
 
 void SelectTypePass::visit_castExpression(Ast* cast_expr, Type* required_ty)
 {
   assert(cast_expr->kind == AstEnum::castExpression);
-  Type* cast_ty;
 
   visit_typeRef(cast_expr->castExpression.type, required_ty);
   visit_expression(cast_expr->castExpression.expr, 0);
-  cast_ty = type_env->lookup(cast_expr->castExpression.type, 0);
+  Type* cast_ty = type_env->lookup(cast_expr->castExpression.type, 0);
   type_env->insert(cast_expr, cast_ty, 0);
 }
 
@@ -1099,12 +1069,10 @@ void SelectTypePass::visit_unaryExpression(Ast* unary_expr, Type* required_ty)
 void SelectTypePass::visit_binaryExpression(Ast* binary_expr, Type* required_ty)
 {
   assert(binary_expr->kind == AstEnum::binaryExpression);
-  PotentialType* op_tau;
-  Type* op_ty;
 
   visit_expression(binary_expr->binaryExpression.left_operand, required_ty);
   visit_expression(binary_expr->binaryExpression.right_operand, required_ty);
-  op_tau = potype_map->lookup(binary_expr, 0);
+  PotentialType* op_tau = potype_map->lookup(binary_expr, 0);
   if (op_tau->set.members.count() != 1) {
     error("%s:%d:%d: error: failed type check.",
         source_file, binary_expr->line_no, binary_expr->column_no);
@@ -1114,11 +1082,11 @@ void SelectTypePass::visit_binaryExpression(Ast* binary_expr, Type* required_ty)
       error("%s:%d:%d: error: failed type check.",
             source_file, binary_expr->line_no, binary_expr->column_no);
     } else {
-      op_ty = op_tau->set.members.first->key;
+      Type* op_ty = op_tau->set.members.first->key;
       type_env->insert(binary_expr, op_ty->effective_type(), 0);
     }
   } else {
-    op_ty = op_tau->set.members.first->key;
+    Type* op_ty = op_tau->set.members.first->key;
     type_env->insert(binary_expr, op_ty->effective_type(), 0);
   }
 }
@@ -1126,15 +1094,13 @@ void SelectTypePass::visit_binaryExpression(Ast* binary_expr, Type* required_ty)
 void SelectTypePass::visit_memberSelector(Ast* selector, Type* required_ty)
 {
   assert(selector->kind == AstEnum::memberSelector);
-  PotentialType* selector_tau;
-  Type* selector_ty;
 
   if (selector->memberSelector.lhs_expr->kind == AstEnum::expression) {
     visit_expression(selector->memberSelector.lhs_expr, 0);
   } else if (selector->memberSelector.lhs_expr->kind == AstEnum::lvalueExpression) {
     visit_lvalueExpression(selector->memberSelector.lhs_expr, 0);
   } else assert(0);
-  selector_tau = potype_map->lookup(selector, 0);
+  PotentialType* selector_tau = potype_map->lookup(selector, 0);
   if (selector_tau->set.members.count() != 1) {
     error("%s:%d:%d: error: failed type check.",
         source_file, selector->line_no, selector->column_no);
@@ -1144,11 +1110,11 @@ void SelectTypePass::visit_memberSelector(Ast* selector, Type* required_ty)
       error("%s:%d:%d: error: failed type check.",
             source_file, selector->line_no, selector->column_no);
     } else {
-      selector_ty = selector_tau->set.members.first->key;
+      Type* selector_ty = selector_tau->set.members.first->key;
       type_env->insert(selector, selector_ty->effective_type(), 0);
     }
   } else {
-    selector_ty = selector_tau->set.members.first->key;
+    Type* selector_ty = selector_tau->set.members.first->key;
     type_env->insert(selector, selector_ty->effective_type(), 0);
   }
 }
@@ -1156,7 +1122,6 @@ void SelectTypePass::visit_memberSelector(Ast* selector, Type* required_ty)
 void SelectTypePass::visit_arraySubscript(Ast* subscript)
 {
   assert(subscript->kind == AstEnum::arraySubscript);
-  Type* lhs_ty;
 
   if (subscript->arraySubscript.lhs_expr->kind == AstEnum::expression) {
     visit_expression(subscript->arraySubscript.lhs_expr, 0);
@@ -1164,7 +1129,7 @@ void SelectTypePass::visit_arraySubscript(Ast* subscript)
     visit_lvalueExpression(subscript->arraySubscript.lhs_expr, 0);
   } else assert(0);
   visit_indexExpression(subscript->arraySubscript.index_expr);
-  lhs_ty = type_env->lookup(subscript->arraySubscript.lhs_expr, 0);
+  Type* lhs_ty = type_env->lookup(subscript->arraySubscript.lhs_expr, 0);
   type_env->insert(subscript, lhs_ty, 0);
 }
 
