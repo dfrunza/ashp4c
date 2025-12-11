@@ -18,10 +18,10 @@ void BuiltinMethodsPass::visit_p4program(Ast* p4program)
 void BuiltinMethodsPass::visit_declarationList(Ast* decl_list)
 {
   assert(decl_list->kind == AstEnum::declarationList);
-  Tree<Ast>* tree;
-
-  for (tree = decl_list->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&decl_list->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_declaration(Ast::owner_of(tree));
   }
 }
@@ -64,10 +64,10 @@ void BuiltinMethodsPass::visit_name(Ast* name)
 void BuiltinMethodsPass::visit_parameterList(Ast* params)
 {
   assert(params->kind == AstEnum::parameterList);
-  Tree<Ast>* tree;
-
-  for (tree = params->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&params->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_parameter(Ast::owner_of(tree));
   }
 }
@@ -140,10 +140,10 @@ void BuiltinMethodsPass::visit_parserTypeDeclaration(Ast* type_decl)
 void BuiltinMethodsPass::visit_parserLocalElements(Ast* local_elements)
 {
   assert(local_elements->kind == AstEnum::parserLocalElements);
-  Tree<Ast>* tree;
-
-  for (tree = local_elements->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&local_elements->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_parserLocalElement(Ast::owner_of(tree));
   }
 }
@@ -161,10 +161,10 @@ void BuiltinMethodsPass::visit_parserLocalElement(Ast* local_element)
 void BuiltinMethodsPass::visit_parserStates(Ast* states)
 {
   assert(states->kind == AstEnum::parserStates);
-  Tree<Ast>* tree;
-
-  for (tree = states->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&states->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_parserState(Ast::owner_of(tree));
   }
 }
@@ -180,10 +180,10 @@ void BuiltinMethodsPass::visit_parserState(Ast* state)
 void BuiltinMethodsPass::visit_parserStatements(Ast* stmts)
 {
   assert(stmts->kind == AstEnum::parserStatements);
-  Tree<Ast>* tree;
-
-  for (tree = stmts->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&stmts->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_parserStatement(Ast::owner_of(tree));
   }
 }
@@ -238,10 +238,10 @@ void BuiltinMethodsPass::visit_selectExpression(Ast* select_expr)
 void BuiltinMethodsPass::visit_selectCaseList(Ast* case_list)
 {
   assert(case_list->kind == AstEnum::selectCaseList);
-  Tree<Ast>* tree;
-
-  for (tree = case_list->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&case_list->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_selectCase(Ast::owner_of(tree));
   }
 }
@@ -284,10 +284,10 @@ void BuiltinMethodsPass::visit_simpleKeysetExpression(Ast* simple_expr)
 void BuiltinMethodsPass::visit_simpleExpressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::simpleExpressionList);
-  Tree<Ast>* tree;
-
-  for (tree = expr_list->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&expr_list->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_simpleKeysetExpression(Ast::owner_of(tree));
   }
 }
@@ -335,10 +335,10 @@ void BuiltinMethodsPass::visit_controlTypeDeclaration(Ast* type_decl)
 void BuiltinMethodsPass::visit_controlLocalDeclarations(Ast* local_decls)
 {
   assert(local_decls->kind == AstEnum::controlLocalDeclarations);
-  Tree<Ast>* tree;
-
-  for (tree = local_decls->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&local_decls->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_controlLocalDeclaration(Ast::owner_of(tree));
   }
 }
@@ -379,10 +379,10 @@ void BuiltinMethodsPass::visit_externTypeDeclaration(Ast* type_decl)
 void BuiltinMethodsPass::visit_methodPrototypes(Ast* protos)
 {
   assert(protos->kind == AstEnum::methodPrototypes);
-  Tree<Ast>* tree;
-
-  for (tree = protos->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&protos->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_functionPrototype(Ast::owner_of(tree));
   }
 }
@@ -517,10 +517,10 @@ void BuiltinMethodsPass::visit_typeArg(Ast* type_arg)
 void BuiltinMethodsPass::visit_typeArgumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AstEnum::typeArgumentList);
-  Tree<Ast>* tree;
-
-  for (tree = arg_list->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&arg_list->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_typeArg(Ast::owner_of(tree));
   }
 }
@@ -579,10 +579,10 @@ void BuiltinMethodsPass::visit_structTypeDeclaration(Ast* struct_decl)
 void BuiltinMethodsPass::visit_structFieldList(Ast* field_list)
 {
   assert(field_list->kind == AstEnum::structFieldList);
-  Tree<Ast>* tree;
-
-  for (tree = field_list->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&field_list->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_structField(Ast::owner_of(tree));
   }
 }
@@ -616,10 +616,10 @@ void BuiltinMethodsPass::visit_matchKindDeclaration(Ast* match_decl)
 void BuiltinMethodsPass::visit_identifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AstEnum::identifierList);
-  Tree<Ast>* tree;
-
-  for (tree = ident_list->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&ident_list->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_name(Ast::owner_of(tree));
   }
 }
@@ -627,10 +627,10 @@ void BuiltinMethodsPass::visit_identifierList(Ast* ident_list)
 void BuiltinMethodsPass::visit_specifiedIdentifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AstEnum::specifiedIdentifierList);
-  Tree<Ast>* tree;
-
-  for (tree = ident_list->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&ident_list->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_specifiedIdentifier(Ast::owner_of(tree));
   }
 }
@@ -746,10 +746,10 @@ void BuiltinMethodsPass::visit_blockStatement(Ast* block_stmt)
 void BuiltinMethodsPass::visit_statementOrDeclList(Ast* stmt_list)
 {
   assert(stmt_list->kind == AstEnum::statementOrDeclList);
-  Tree<Ast>* tree;
-
-  for (tree = stmt_list->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&stmt_list->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_statementOrDeclaration(Ast::owner_of(tree));
   }
 }
@@ -764,10 +764,10 @@ void BuiltinMethodsPass::visit_switchStatement(Ast* switch_stmt)
 void BuiltinMethodsPass::visit_switchCases(Ast* switch_cases)
 {
   assert(switch_cases->kind == AstEnum::switchCases);
-  Tree<Ast>* tree;
-
-  for (tree = switch_cases->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&switch_cases->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_switchCase(Ast::owner_of(tree));
   }
 }
@@ -839,10 +839,10 @@ void BuiltinMethodsPass::visit_tableDeclaration(Ast* table_decl)
 void BuiltinMethodsPass::visit_tablePropertyList(Ast* prop_list)
 {
   assert(prop_list->kind == AstEnum::tablePropertyList);
-  Tree<Ast>* tree;
-
-  for (tree = prop_list->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&prop_list->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_tableProperty(Ast::owner_of(tree));
   }
 }
@@ -874,10 +874,10 @@ void BuiltinMethodsPass::visit_keyProperty(Ast* key_prop)
 void BuiltinMethodsPass::visit_keyElementList(Ast* element_list)
 {
   assert(element_list->kind == AstEnum::keyElementList);
-  Tree<Ast>* tree;
-
-  for (tree = element_list->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&element_list->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_keyElement(Ast::owner_of(tree));
   }
 }
@@ -898,10 +898,10 @@ void BuiltinMethodsPass::visit_actionsProperty(Ast* actions_prop)
 void BuiltinMethodsPass::visit_actionList(Ast* action_list)
 {
   assert(action_list->kind == AstEnum::actionList);
-  Tree<Ast>* tree;
-
-  for (tree = action_list->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&action_list->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_actionRef(Ast::owner_of(tree));
   }
 }
@@ -947,10 +947,10 @@ void BuiltinMethodsPass::visit_functionDeclaration(Ast* func_decl)
 void BuiltinMethodsPass::visit_argumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AstEnum::argumentList);
-  Tree<Ast>* tree;
-
-  for (tree = arg_list->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&arg_list->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_argument(Ast::owner_of(tree));
   }
 }
@@ -968,10 +968,10 @@ void BuiltinMethodsPass::visit_argument(Ast* arg)
 void BuiltinMethodsPass::visit_expressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::expressionList);
-  Tree<Ast>* tree;
-
-  for (tree = expr_list->tree.first_child;
-       tree != 0; tree = tree->right_sibling) {
+  TreeIterator<Ast> it = {};
+  it.begin(&expr_list->tree);
+  for (Tree<Ast>* tree = it.next();
+       tree != 0; tree = it.next()) {
     visit_expression(Ast::owner_of(tree));
   }
 }

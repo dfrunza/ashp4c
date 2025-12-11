@@ -221,7 +221,6 @@ void DeclaredTypePass::visit_declarationList(Ast* decl_list)
 {
   assert(decl_list->kind == AstEnum::declarationList);
   TreeIterator<Ast> it = {};
-
   it.begin(&decl_list->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -396,7 +395,6 @@ void DeclaredTypePass::visit_parserLocalElements(Ast* local_elements)
 {
   assert(local_elements->kind == AstEnum::parserLocalElements);
   TreeIterator<Ast> it = {};
-
   it.begin(&local_elements->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -418,7 +416,6 @@ void DeclaredTypePass::visit_parserStates(Ast* states)
 {
   assert(states->kind == AstEnum::parserStates);
   TreeIterator<Ast> it = {};
-
   it.begin(&states->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -449,7 +446,6 @@ void DeclaredTypePass::visit_parserStatements(Ast* stmts)
 {
   assert(stmts->kind == AstEnum::parserStatements);
   TreeIterator<Ast> it = {};
-
   it.begin(&stmts->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -508,7 +504,6 @@ void DeclaredTypePass::visit_selectCaseList(Ast* case_list)
 {
   assert(case_list->kind == AstEnum::selectCaseList);
   TreeIterator<Ast> it = {};
-
   it.begin(&case_list->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -554,7 +549,6 @@ void DeclaredTypePass::visit_simpleExpressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::simpleExpressionList);
   TreeIterator<Ast> it = {};
-
   it.begin(&expr_list->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -604,7 +598,6 @@ void DeclaredTypePass::visit_controlLocalDeclarations(Ast* local_decls)
 {
   assert(local_decls->kind == AstEnum::controlLocalDeclarations);
   TreeIterator<Ast> it = {};
-
   it.begin(&local_decls->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -1125,8 +1118,8 @@ void DeclaredTypePass::visit_identifierList(Ast* ident_list, Type* enum_ty, Type
   NameDeclaration* name_decl;
   Type* name_ty;
   int j;
-  TreeIterator<Ast> it = {};
 
+  TreeIterator<Ast> it = {};
   it.begin(&ident_list->tree);
   j = *i;
   for (Tree<Ast>* tree = it.next();
@@ -1308,7 +1301,6 @@ void DeclaredTypePass::visit_statementOrDeclList(Ast* stmt_list)
 {
   assert(stmt_list->kind == AstEnum::statementOrDeclList);
   TreeIterator<Ast> it = {};
-
   it.begin(&stmt_list->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -1327,7 +1319,6 @@ void DeclaredTypePass::visit_switchCases(Ast* switch_cases)
 {
   assert(switch_cases->kind == AstEnum::switchCases);
   TreeIterator<Ast> it = {};
-
   it.begin(&switch_cases->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -1393,7 +1384,6 @@ void DeclaredTypePass::visit_tablePropertyList(Ast* prop_list)
 {
   assert(prop_list->kind == AstEnum::tablePropertyList);
   TreeIterator<Ast> it = {};
-
   it.begin(&prop_list->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -1429,7 +1419,6 @@ void DeclaredTypePass::visit_keyElementList(Ast* element_list)
 {
   assert(element_list->kind == AstEnum::keyElementList);
   TreeIterator<Ast> it = {};
-
   it.begin(&element_list->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -1453,7 +1442,6 @@ void DeclaredTypePass::visit_actionList(Ast* action_list)
 {
   assert(action_list->kind == AstEnum::actionList);
   TreeIterator<Ast> it = {};
-
   it.begin(&action_list->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -1521,7 +1509,6 @@ void DeclaredTypePass::visit_argumentList(Ast* args)
 {
   assert(args->kind == AstEnum::argumentList);
   TreeIterator<Ast> it = {};
-
   it.begin(&args->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
@@ -1541,7 +1528,6 @@ void DeclaredTypePass::visit_expressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::expressionList);
   TreeIterator<Ast> it = {};
-
   it.begin(&expr_list->tree);
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
