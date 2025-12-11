@@ -1151,7 +1151,7 @@ void DeclaredTypePass::visit_specifiedIdentifierList(Ast* ident_list, Type* enum
 
   it.begin(&ident_list->tree);
   for (Tree<Ast>* tree = it.next();
-       tree != 0; tree = tree->right_sibling) {
+       tree != 0; tree = it.next()) {
     visit_specifiedIdentifier(Ast::owner_of(tree), enum_ty);
     idents_ty->product.count += 1;
   }
@@ -1162,7 +1162,7 @@ void DeclaredTypePass::visit_specifiedIdentifierList(Ast* ident_list, Type* enum
   it.begin(&ident_list->tree);
   i = 0;
   for (Tree<Ast>* tree = it.next();
-       tree != 0; tree = tree->right_sibling) {
+       tree != 0; tree = it.next()) {
     idents_ty->product.members[i] = type_env->lookup(Ast::owner_of(tree), 0);
     i += 1;
   }
