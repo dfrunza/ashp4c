@@ -68,12 +68,12 @@ Token* Parser::next_token()
   }
   if (token->klass == TokenClass::IDENTIFIER) {
     NameEntry* name_entry = current_scope->lookup(token->lexeme, NameSpace::KEYWORD | NameSpace::TYPE);
-    NameDeclaration* name_decl = name_entry->ns[(int)NameSpace::KEYWORD >> 1];
+    NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::KEYWORD);
     if (name_decl) {
       token->klass = name_decl->token_class;
       return token;
     }
-    name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
+    name_decl = name_entry->get_declarations(NameSpace::TYPE);
     if (name_decl) {
       token->klass = TokenClass::TYPE_IDENTIFIER;
       return token;

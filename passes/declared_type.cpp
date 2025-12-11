@@ -32,7 +32,7 @@ void DeclaredTypePass::define_builtin_types()
 
   for (int i = 0; i < sizeof(base_types) / sizeof(base_types[0]); i++) {
     NameEntry* name_entry = root_scope->lookup(base_types[i], NameSpace::TYPE);
-    NameDeclaration* name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
+    NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::TYPE);
     type_env->insert(name_decl->ast, name_decl->type, 0);
   }
 
@@ -160,7 +160,7 @@ void DeclaredTypePass::do_pass()
     if (ty->ty_former == TypeEnum::NAMEREF) {
       Ast* name = ty->nameref.name;
       NameEntry* name_entry = ty->nameref.scope->lookup(name->name.strname, NameSpace::TYPE);
-      NameDeclaration* name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
+      NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::TYPE);
       if (name_decl) {
         Type* ref_ty = type_env->lookup(name_decl->ast, 0);
         assert(ref_ty);

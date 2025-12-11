@@ -85,13 +85,13 @@ void PotentialTypePass::visit_name(Ast* name, PotentialType* potential_args)
   potype_map->insert(name, tau, 0);
   Scope* scope = scope_map->lookup(name, 0);
   NameEntry* name_entry = scope->lookup(name->name.strname, NameSpace::VAR | NameSpace::TYPE);
-  NameDeclaration* name_decl = name_entry->ns[(int)NameSpace::VAR >> 1];
+  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::VAR);
   if (name_decl) {
     Type* ty = type_env->lookup(name_decl->ast, 0);
     *name_ty->append() = ty->actual_type();
     assert(!name_decl->next_in_scope);
   }
-  name_decl = name_entry->ns[(int)NameSpace::TYPE >> 1];
+  name_decl = name_entry->get_declarations(NameSpace::TYPE);
   for(; name_decl != 0; name_decl = name_decl->next_in_scope) {
     Type* ty = type_env->lookup(name_decl->ast, 0);
     *name_ty->append() = ty->actual_type();
