@@ -58,9 +58,7 @@ void Arena::reserve_memory(int amount)
 PageBlock* PageBlock::find_block_first_fit(int requested_memory_amount)
 {
   PageBlock* result = 0;
-  PageBlock* b;
-
-  b = block_freelist_head;
+  PageBlock* b = block_freelist_head;
   while (b) {
     if ((b->memory_end - b->memory_begin) >= requested_memory_amount) {
       result = b;
@@ -151,9 +149,7 @@ PageBlock* PageBlock::block_insert_and_coalesce(PageBlock* new_block)
 
 PageBlock* PageBlock::get_new_block_struct()
 {
-  PageBlock* block;
-
-  block = recycled_block_structs;
+  PageBlock* block = recycled_block_structs;
   if (block) {
     recycled_block_structs = block->next_block;
   } else {
@@ -165,16 +161,14 @@ PageBlock* PageBlock::get_new_block_struct()
 
 void Arena::grow(uint32_t size)
 {
-  PageBlock* free_block, *alloc_block;
   uint8_t* alloc_memory_begin = 0, *alloc_memory_end = 0;
-  int size_in_page_multiples;
 
-  free_block = PageBlock::find_block_first_fit(size);
+  PageBlock* free_block = PageBlock::find_block_first_fit(size);
   if (!free_block) {
     printf("\nOut of memory.\n");
     exit(1);
   }
-  size_in_page_multiples = (size + page_size - 1) & ~(page_size - 1);
+  int size_in_page_multiples = (size + page_size - 1) & ~(page_size - 1);
   if (size_in_page_multiples < (free_block->memory_end - free_block->memory_begin)) {
     alloc_memory_begin = free_block->memory_begin;
     alloc_memory_end = alloc_memory_begin + size_in_page_multiples;
@@ -192,7 +186,7 @@ void Arena::grow(uint32_t size)
   memory_avail = alloc_memory_begin;
   memory_limit = alloc_memory_end;
 
-  alloc_block = PageBlock::get_new_block_struct();
+  PageBlock* alloc_block = PageBlock::get_new_block_struct();
   alloc_block->memory_begin = alloc_memory_begin;
   alloc_block->memory_end = alloc_memory_end;
   owned_pages = owned_pages->block_insert_and_coalesce(alloc_block);
@@ -200,9 +194,7 @@ void Arena::grow(uint32_t size)
 
 void Arena::free()
 {
-  PageBlock* p, *next_block;
-
-  p = owned_pages;
+  PageBlock* p = owned_pages;
   while (p) {
     if (ZMEM_ON_FREE) {
       memset(p->memory_begin, 0, p->memory_end - p->memory_begin);
@@ -211,10 +203,9 @@ void Arena::free()
       perror("mprotect");
       exit(1);
     }
-    next_block = p->next_block;
+    PageBlock* next_block = p->next_block;
     block_freelist_head = block_freelist_head->block_insert_and_coalesce(p);
     p = next_block;
   }
   memset(this, 0, sizeof(Arena));
 }
-

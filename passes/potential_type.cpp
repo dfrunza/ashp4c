@@ -305,7 +305,7 @@ void PotentialTypePass::visit_selectCaseList(Ast* case_list)
     tau->product.count += 1;
   }
   if (tau->product.count > 0) {
-    tau->product.members = storage->allocate<PotentialType *>(tau->product.count);
+    tau->product.members = storage->allocate<PotentialType*>(tau->product.count);
   }
 
   i = 0;
@@ -366,7 +366,7 @@ void PotentialTypePass::visit_simpleKeysetExpression(Ast* simple_expr)
   tau->kind = PotentialTypeEnum::PRODUCT;
   tau->set.members.storage = storage;
   tau->product.count = 1;
-  tau->product.members = storage->allocate<PotentialType *>(tau->product.count);
+  tau->product.members = storage->allocate<PotentialType*>(tau->product.count);
   tau->product.members[0] = potype_map->lookup(simple_expr->simpleKeysetExpression.expr, 0);
   potype_map->insert(simple_expr, tau, 0);
 }
@@ -388,7 +388,7 @@ void PotentialTypePass::visit_simpleExpressionList(Ast* expr_list)
     tau->product.count += 1;
   }
   if (tau->product.count > 0) {
-    tau->product.members = storage->allocate<PotentialType *>(tau->product.count);
+    tau->product.members = storage->allocate<PotentialType*>(tau->product.count);
   }
 
   int i = 0;
@@ -1074,7 +1074,7 @@ void PotentialTypePass::visit_argumentList(Ast* args)
     tau->product.count += 1;
   }
   if (tau->product.count > 0) {
-    tau->product.members = storage->allocate<PotentialType *>(tau->product.count);
+    tau->product.members = storage->allocate<PotentialType*>(tau->product.count);
   }
 
   int i = 0;
@@ -1118,7 +1118,7 @@ void PotentialTypePass::visit_expressionList(Ast* expr_list)
     tau->product.count += 1;
   }
   if (tau->product.count > 0) {
-    tau->product.members = storage->allocate<PotentialType *>(tau->product.count);
+    tau->product.members = storage->allocate<PotentialType*>(tau->product.count);
   }
 
   int i = 0;

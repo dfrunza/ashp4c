@@ -282,7 +282,7 @@ void SelectTypePass::visit_simpleKeysetExpression(Ast* simple_expr, Type* requir
     simple_ty->ty_former = TypeEnum::PRODUCT;
     simple_ty->ast = simple_expr;
     simple_ty->product.count = 1;
-    simple_ty->product.members = storage->allocate<Type *>(simple_ty->product.count);
+    simple_ty->product.members = storage->allocate<Type*>(simple_ty->product.count);
     simple_ty->product.members[0] = type_env->lookup(simple_expr->simpleKeysetExpression.expr, 0);
     type_env->insert(simple_expr, simple_ty, 0);
   }
@@ -304,7 +304,7 @@ void SelectTypePass::visit_simpleExpressionList(Ast* expr_list, Type* required_t
     list_ty->product.count += 1;
   }
   if (list_ty->product.count > 0) {
-    list_ty->product.members = storage->allocate<Type *>(list_ty->product.count);
+    list_ty->product.members = storage->allocate<Type*>(list_ty->product.count);
   }
 
   int i = 0;
@@ -984,7 +984,7 @@ void SelectTypePass::visit_expressionList(Ast* expr_list, Type* required_ty)
     list_ty->product.count += 1;
   }
   if (list_ty->product.count > 0) {
-    list_ty->product.members = storage->allocate<Type *>(list_ty->product.count);
+    list_ty->product.members = storage->allocate<Type*>(list_ty->product.count);
   }
 
   int i = 0;

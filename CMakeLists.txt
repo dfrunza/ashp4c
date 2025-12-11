@@ -21,10 +21,8 @@ add_executable(ashp4c
         ast_visitor.h
         basic.cpp
         basic.h
-        command_line.cpp
         cstring.cpp
         cstring.h
-        token.cpp
         token.h
         lexer.cpp
         lexer.h
@@ -32,12 +30,10 @@ add_executable(ashp4c
         namespace.h
         parser.cpp
         parser.h
-        scope.cpp
         scope.h
         strmap.h
         type.cpp
         type.h
-        type_checker.cpp
         type_checker.h
         passes/builtin_methods.cpp
         passes/builtin_methods.h
