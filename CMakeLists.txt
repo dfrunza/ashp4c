@@ -30,6 +30,7 @@ add_executable(ashp4c
         namespace.h
         parser.cpp
         parser.h
+        scope.cpp
         scope.h
         strmap.h
         type.cpp

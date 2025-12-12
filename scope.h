@@ -2,9 +2,8 @@
 #include <namespace.h>
 #include <strmap.h>
 
-static NameEntry NULL_ENTRY = {};
-
 struct Scope {
+  static NameEntry NULL_ENTRY;
   int scope_level;
   Scope* parent_scope;
   Strmap<NameEntry> name_table;
