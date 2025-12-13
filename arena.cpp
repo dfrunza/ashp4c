@@ -44,7 +44,7 @@ PageBlock* PageBlock::find_first_fit(int size)
       result = b;
       break;
     }
-    b = b->next_block;
+    b = PageBlock::owner_of(b->list.next);
   }
   return result;
 }
@@ -52,7 +52,7 @@ PageBlock* PageBlock::find_first_fit(int size)
 void PageBlock::recycle()
 {
   memset(this, 0, sizeof(PageBlock));
-  this->next_block = memory.recycled_blocks;
+  this->list.next = &memory.recycled_blocks->list;
   memory.recycled_blocks = this;
 }
 
@@ -60,7 +60,7 @@ PageBlock* PageBlock::new_block()
 {
   PageBlock* block = memory.recycled_blocks;
   if (block) {
-    memory.recycled_blocks = block->next_block;
+    memory.recycled_blocks = PageBlock::owner_of(block->list.next);
   } else {
     block = memory.block_storage.allocate<PageBlock>();
   }
@@ -96,22 +96,22 @@ PageBlock* PageBlock::insert_and_coalesce(PageBlock* new_block)
       left_neighbour = p;
       break;
     }
-    p = p->next_block;
+    p = PageBlock::owner_of(p->list.next);
   }
 
   /* Insert the 'new_block' into the list. */
   if (left_neighbour) {
-    right_neighbour = left_neighbour->next_block;
-    left_neighbour->next_block = new_block;
-    new_block->prev_block = left_neighbour;
-    new_block->next_block = right_neighbour;
+    right_neighbour = PageBlock::owner_of(left_neighbour->list.next);
+    left_neighbour->list.next = &new_block->list;
+    new_block->list.prev = &left_neighbour->list;
+    new_block->list.next = &right_neighbour->list;
     if (right_neighbour) {
-      right_neighbour->prev_block = new_block;
+      right_neighbour->list.prev = &new_block->list;
     }
   } else {
-    new_block->next_block = this;
-    prev_block = new_block;
-    right_neighbour = new_block->next_block;
+    new_block->list.next = &this->list;
+    this->list.prev = &new_block->list;
+    right_neighbour = PageBlock::owner_of(new_block->list.next);
     merged_list = new_block;
   }
 
@@ -125,22 +125,22 @@ PageBlock* PageBlock::insert_and_coalesce(PageBlock* new_block)
   }
   if (stitch_op == (BlockStitch::LEFT | BlockStitch::RIGHT)) {
     left_neighbour->memory_end = right_neighbour->memory_end;
-    left_neighbour->next_block = right_neighbour->next_block;
-    if (right_neighbour->next_block) {
-      right_neighbour->next_block->prev_block = left_neighbour;
+    left_neighbour->list.next= right_neighbour->list.next;
+    if (right_neighbour->list.next) {
+      right_neighbour->list.next->prev = &left_neighbour->list;
     }
     right_neighbour->recycle();
   } else if (stitch_op == BlockStitch::LEFT) {
     left_neighbour->memory_end = new_block->memory_end;
-    left_neighbour->next_block = right_neighbour;
+    left_neighbour->list.next= &right_neighbour->list;
     if (right_neighbour) {
-      right_neighbour->prev_block = left_neighbour;
+      right_neighbour->list.prev = &left_neighbour->list;
     }
   } else if (stitch_op == BlockStitch::RIGHT) {
     right_neighbour->memory_begin = new_block->memory_begin;
-    right_neighbour->prev_block = left_neighbour;
+    right_neighbour->list.prev= &left_neighbour->list;
     if (left_neighbour) {
-      left_neighbour->next_block = right_neighbour;
+      left_neighbour->list.next = &right_neighbour->list;
     } else {
       merged_list = right_neighbour;
     }
@@ -195,7 +195,7 @@ void Arena::free()
       perror("mprotect");
       exit(1);
     }
-    PageBlock* next_block = p->next_block;
+    PageBlock* next_block = PageBlock::owner_of(p->list.next);
     memory.block_freelist = memory.block_freelist->insert_and_coalesce(p);
     p = next_block;
   }

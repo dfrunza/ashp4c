@@ -2,13 +2,13 @@
 #include <stdint.h>
 #include <memory.h>
 #include <basic.h>
+#include <list.h>
 
 #define ZMEM_ON_FREE  0
 #define ZMEM_ON_ALLOC 1
 
 struct PageBlock {
-  PageBlock* next_block;
-  PageBlock* prev_block;
+  List<PageBlock> list;
   uint8_t* memory_begin;
   uint8_t* memory_end;
 
@@ -16,6 +16,11 @@ struct PageBlock {
   static PageBlock* new_block();
   void recycle();
   PageBlock* insert_and_coalesce(PageBlock* new_block);
+
+  static inline PageBlock* owner_of(List<PageBlock>* list)
+  {
+    return ::owner_of(list, &PageBlock::list);
+  }
 };
 
 struct Arena {

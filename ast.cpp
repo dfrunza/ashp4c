@@ -153,11 +153,11 @@ Ast* Ast::clone(Arena* storage)
   clone->line_no = line_no;
   clone->column_no = column_no;
   if (tree.first_child) {
-    child_clone = tree.first_child->owner_of(&Ast::tree)->clone(storage);
+    child_clone = Ast::owner_of(tree.first_child)->clone(storage);
     clone->tree.first_child = &child_clone->tree;
   }
   if (tree.right_sibling) {
-    sibling_clone = tree.right_sibling->owner_of(&Ast::tree)->clone(storage);
+    sibling_clone = Ast::owner_of(tree.right_sibling)->clone(storage);
     clone->tree.right_sibling = &sibling_clone->tree;
   }
 

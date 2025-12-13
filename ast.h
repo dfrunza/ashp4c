@@ -200,12 +200,6 @@ template<class T>
 struct Tree {
   Tree* first_child;
   Tree* right_sibling;
-
-  T* owner_of(const Tree T::*member)
-  {
-    T* o = ::owner_of(this, member);
-    return o;
-  }
 };
 
 template<class T>
@@ -746,6 +740,6 @@ struct Ast {
 
   static inline Ast* owner_of(Tree<Ast>* tree)
   {
-    return tree->owner_of(&Ast::tree);
+    return ::owner_of(tree, &Ast::tree);
   }
 };

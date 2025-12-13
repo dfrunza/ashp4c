@@ -36,6 +36,8 @@ add_executable(ashp4c
         type.cpp
         type.h
         type_checker.h
+        list.h
+        namespace.cpp
         passes/builtin_methods.cpp
         passes/builtin_methods.h
         passes/declared_type.cpp
@@ -46,5 +48,4 @@ add_executable(ashp4c
         passes/potential_type.h
         passes/scope_hierarchy.cpp
         passes/scope_hierarchy.h
-        passes/select_type.cpp
-        namespace.cpp)
+        passes/select_type.cpp)
