@@ -1,94 +1,7 @@
 #include <memory.h>
-#include <stdio.h>
 #include <basic.h>
 #include <cstring.h>
 #include <lexer.h>
-
-void SourceText::read_source(char* filename)
-{
-  FILE* f_stream = fopen(filename, "rb");
-  if (!f_stream) {
-    error("Could not open file '%s'.", filename);
-  }
-  fseek(f_stream, 0, SEEK_END);
-  int text_size = ftell(f_stream);
-  fseek(f_stream, 0, SEEK_SET);
-  char* text = storage->allocate<char>(text_size + 1);
-  fread(text, sizeof(char), text_size, f_stream);
-  text[text_size] = '\0';
-  fclose(f_stream);
-  this->text = text;
-  this->text_size = text_size;
-  this->filename = filename;
-}
-
-char Lexer::lookahead_char(int pos)
-{
-  char* char_pos = lexeme->end + pos;
-  assert(char_pos >= (char*)0 && char_pos <= (text + text_size));
-  return *char_pos;
-}
-
-char Lexer::advance_char(int pos)
-{
-  char* char_pos = lexeme->end + pos;
-  assert(char_pos >= (char*)0 && char_pos <= (text + text_size));
-  lexeme->end = char_pos;
-  return *char_pos;
-}
-
-char Lexer::retract_char()
-{
-  char result = *(--lexeme->end);
-  assert(lexeme->end >= (char*)0);
-  return result;
-}
-
-void Lexer::advance_lexeme()
-{
-  lexeme->start = ++lexeme->end;
-  assert(lexeme->start <= (text + text_size));
-}
-
-void Lexeme::copy_to(char* dest)
-{
-  char* src = start;
-  do {
-    if (*src == '\\') {
-      src++;
-      if (*src == 'n') {
-        *dest++ = '\n';
-        src++;
-      } else if (*src == 'r') {
-        *dest++ = '\r';
-        src++;
-      } else if (*src == 't') {
-        *dest++ = '\t';
-        src++;
-      } else {
-        *dest++ = *src++;
-      }
-    } else {
-      *dest++ = *src++;
-    }
-  }
-  while (src <= end);
-}
-
-int Lexeme::len()
-{
-  int result = end - start + 1;
-  return result;
-}
-
-char* Lexeme::to_cstring(Arena* storage)
-{
-  int len = this->len();
-  char* string = storage->allocate<char>(len + 1);  // +1 the NULL terminator
-  copy_to(string);
-  string[len] = '\0';
-  return string;
-}
 
 static int digit_to_integer(char c, int base)
 {
@@ -127,7 +40,7 @@ static int parse_integer(char* str, int base)
   return result;
 }
 
-void Lexer::token_install_integer(Token* token, Lexeme* lexeme, int base)
+void Lexer::to_integer_token(Token* token, Lexeme* lexeme, int base)
 {
   char* string = lexeme->to_cstring(storage);
   if (cstring::is_digit(*string, base) || *string == '_') {
@@ -637,7 +550,7 @@ void Lexer::next_token(Token* token)
           lexeme[1].end = lexeme->end;
           token->klass = TokenClass::INTEGER_LITERAL;
           token->integer.is_signed = 1;
-          token_install_integer(token, &lexeme[1], 10);
+          to_integer_token(token, &lexeme[1], 10);
           token->lexeme = lexeme->to_cstring(storage);
           token->column_no = lexeme->start - line_start + 1;
           advance_lexeme();
@@ -657,7 +570,7 @@ void Lexer::next_token(Token* token)
         lexeme[1].end = lexeme->end;
         token->klass = TokenClass::INTEGER_LITERAL;
         token->integer.is_signed = 1;
-        token_install_integer(token, &lexeme[1], 16);
+        to_integer_token(token, &lexeme[1], 16);
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -676,7 +589,7 @@ void Lexer::next_token(Token* token)
         lexeme[1].end = lexeme->end;
         token->klass = TokenClass::INTEGER_LITERAL;
         token->integer.is_signed = 1;
-        token_install_integer(token, &lexeme[1], 8);
+        to_integer_token(token, &lexeme[1], 8);
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -695,7 +608,7 @@ void Lexer::next_token(Token* token)
         lexeme[1].end = lexeme->end;
         token->klass = TokenClass::INTEGER_LITERAL;
         token->integer.is_signed = 1;
-        token_install_integer(token, &lexeme[1], 2);
+        to_integer_token(token, &lexeme[1], 2);
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -733,7 +646,7 @@ void Lexer::next_token(Token* token)
         } while (cstring::is_digit(c, 16) || c == '_');
         retract_char();
         lexeme[1].end = lexeme->end;
-        token_install_integer(token, &lexeme[1], 16);
+        to_integer_token(token, &lexeme[1], 16);
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -750,7 +663,7 @@ void Lexer::next_token(Token* token)
         } while (cstring::is_digit(c, 8) || c == '_');
         retract_char();
         lexeme[1].end = lexeme->end;
-        token_install_integer(token, &lexeme[1], 8);
+        to_integer_token(token, &lexeme[1], 8);
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -767,7 +680,7 @@ void Lexer::next_token(Token* token)
         } while (cstring::is_digit(c, 2) || c == '_');
         retract_char();
         lexeme[1].end = lexeme->end;
-        token_install_integer(token, &lexeme[1], 2);
+        to_integer_token(token, &lexeme[1], 2);
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -784,7 +697,7 @@ void Lexer::next_token(Token* token)
         } while (cstring::is_digit(c, 10));
         retract_char();
         lexeme[1].end = lexeme->end;
-        token_install_integer(token, &lexeme[1], 10);
+        to_integer_token(token, &lexeme[1], 10);
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -835,4 +748,3 @@ void Lexer::tokenize(SourceText* source_text)
     *tokens->append() = token;
   }
 }
-
