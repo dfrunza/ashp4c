@@ -20,8 +20,8 @@ struct PageBlock {
 
 struct Arena {
   PageBlock* owned_pages;
-  void* memory_avail;
-  void* memory_limit;
+  uint8_t* memory_avail;
+  uint8_t* memory_limit;
 
   void free();
   void grow(uint32_t size);
@@ -31,11 +31,11 @@ struct Arena {
   {
     assert(count > 0);
 
-    uint8_t* user_memory = (uint8_t*)memory_avail;
+    uint8_t* user_memory = memory_avail;
     int size = sizeof(T) * count;
-    if (user_memory + size >= (uint8_t*)memory_limit) {
+    if (user_memory + size >= memory_limit) {
       grow(size);
-      user_memory = (uint8_t*)memory_avail;
+      user_memory = memory_avail;
     }
     memory_avail = user_memory + size;
     if (ZMEM_ON_ALLOC) {
