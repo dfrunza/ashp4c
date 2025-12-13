@@ -10,35 +10,35 @@ static Memory memory = {};
 void Memory::reserve(int amount)
 {
   memory.page_size = getpagesize();
-  memory.total_page_count = ceil(amount / memory.page_size);
-  memory.page_memory_start = (uint8_t*)mmap(0, memory.total_page_count * memory.page_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-  if (memory.page_memory_start == MAP_FAILED) {
+  memory.page_count = ceil(amount / memory.page_size);
+  memory.page_memory = (uint8_t*)mmap(0, memory.page_count * memory.page_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  if (memory.page_memory == MAP_FAILED) {
     perror("mmap");
     exit(1);
   }
-  if (mprotect(memory.page_memory_start, 1 * memory.page_size, PROT_READ | PROT_WRITE) != 0) {
+  if (mprotect(memory.page_memory, 1 * memory.page_size, PROT_READ | PROT_WRITE) != 0) {
     perror("mprotect");
     exit(1);
   }
-  memory.first_block = (PageBlock*)memory.page_memory_start;
+  memory.first_block = (PageBlock*)memory.page_memory;
   memset(memory.first_block, 0, sizeof(PageBlock));
-  memory.first_block->memory_begin = (uint8_t*)memory.page_memory_start;
+  memory.first_block->memory_begin = (uint8_t*)memory.page_memory;
   memory.first_block->memory_end = memory.first_block->memory_begin + (1 * memory.page_size);
 
-  memory.block_freelist_head = memory.first_block + 1;
-  memset(memory.block_freelist_head, 0, sizeof(PageBlock));
-  memory.block_freelist_head->memory_begin = memory.first_block->memory_end;
-  memory.block_freelist_head->memory_end = memory.block_freelist_head->memory_begin + ((memory.total_page_count - 1) * memory.page_size);
+  memory.block_freelist = memory.first_block + 1;
+  memset(memory.block_freelist, 0, sizeof(PageBlock));
+  memory.block_freelist->memory_begin = memory.first_block->memory_end;
+  memory.block_freelist->memory_end = memory.block_freelist->memory_begin + ((memory.page_count - 1) * memory.page_size);
 
-  memory.storage.owned_pages = memory.first_block;
-  memory.storage.memory_avail = memory.first_block->memory_begin + 2 * sizeof(PageBlock);
-  memory.storage.memory_limit = memory.first_block->memory_end;
+  memory.block_storage.owned_pages = memory.first_block;
+  memory.block_storage.memory_avail = memory.first_block->memory_begin + 2 * sizeof(PageBlock);
+  memory.block_storage.memory_limit = memory.first_block->memory_end;
 }
 
 PageBlock* PageBlock::find_first_fit(int size)
 {
   PageBlock* result = 0;
-  PageBlock* b = memory.block_freelist_head;
+  PageBlock* b = memory.block_freelist;
   while (b) {
     if ((b->memory_end - b->memory_begin) >= size) {
       result = b;
@@ -52,17 +52,17 @@ PageBlock* PageBlock::find_first_fit(int size)
 void PageBlock::recycle()
 {
   memset(this, 0, sizeof(PageBlock));
-  this->next_block = memory.recycled_block_structs;
-  memory.recycled_block_structs = this;
+  this->next_block = memory.recycled_blocks;
+  memory.recycled_blocks = this;
 }
 
 PageBlock* PageBlock::new_block()
 {
-  PageBlock* block = memory.recycled_block_structs;
+  PageBlock* block = memory.recycled_blocks;
   if (block) {
-    memory.recycled_block_structs = block->next_block;
+    memory.recycled_blocks = block->next_block;
   } else {
-    block = memory.storage.allocate<PageBlock>();
+    block = memory.block_storage.allocate<PageBlock>();
   }
   memset(block, 0, sizeof(PageBlock));
   return block;
@@ -196,7 +196,7 @@ void Arena::free()
       exit(1);
     }
     PageBlock* next_block = p->next_block;
-    memory.block_freelist_head = memory.block_freelist_head->insert_and_coalesce(p);
+    memory.block_freelist = memory.block_freelist->insert_and_coalesce(p);
     p = next_block;
   }
   memset(this, 0, sizeof(Arena));

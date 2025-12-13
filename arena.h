@@ -48,12 +48,12 @@ struct Arena {
 struct Memory
 {
   int page_size;
-  int total_page_count;
-  uint8_t* page_memory_start;
-  Arena storage;
+  int page_count;
+  uint8_t* page_memory;
+  Arena block_storage;
   PageBlock* first_block;
-  PageBlock* block_freelist_head;
-  PageBlock* recycled_block_structs;
+  PageBlock* block_freelist;
+  PageBlock* recycled_blocks;
 
   static void reserve(int amount);
 };
