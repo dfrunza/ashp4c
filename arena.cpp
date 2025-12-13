@@ -1,64 +1,44 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <memory.h>
 #include <math.h>
-#include <basic.h>
 #include <arena.h>
 
-static int page_size = 0;
-static int total_page_count = 0;
-static void* page_memory_start = 0;
-static Arena storage = {};
-static PageBlock* first_block = 0;
-static PageBlock* block_freelist_head = 0;
-static PageBlock* recycled_block_structs = 0;
+static Memory memory = {};
 
-enum class BlockStitch : int {
-  NONE  = 0,
-  LEFT  = 1 << 1,
-  RIGHT = 1 << 2,
-};
-inline BlockStitch operator | (BlockStitch lhs, BlockStitch rhs) {
-  return (BlockStitch)((int)lhs | (int)rhs);
-}
-inline BlockStitch operator & (BlockStitch lhs, BlockStitch rhs) {
-  return (BlockStitch)((int)lhs & (int)rhs);
-}
-
-void Arena::reserve_memory(int amount)
+void Memory::reserve_memory(int amount)
 {
-  page_size = getpagesize();
-  total_page_count = ceil(amount / page_size);
-  page_memory_start = mmap(0, total_page_count * page_size, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-  if (page_memory_start == MAP_FAILED) {
+  memory.page_size = getpagesize();
+  memory.total_page_count = ceil(amount / memory.page_size);
+  memory.page_memory_start = (uint8_t*)mmap(0, memory.total_page_count * memory.page_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  if (memory.page_memory_start == MAP_FAILED) {
     perror("mmap");
     exit(1);
   }
-  if (mprotect(page_memory_start, 1 * page_size, PROT_READ|PROT_WRITE) != 0) {
+  if (mprotect(memory.page_memory_start, 1 * memory.page_size, PROT_READ | PROT_WRITE) != 0) {
     perror("mprotect");
     exit(1);
   }
-  first_block = (PageBlock*)page_memory_start;
-  memset(first_block, 0, sizeof(PageBlock));
-  first_block->memory_begin = (uint8_t*)page_memory_start;
-  first_block->memory_end = first_block->memory_begin + (1 * page_size);
+  memory.first_block = (PageBlock*)memory.page_memory_start;
+  memset(memory.first_block, 0, sizeof(PageBlock));
+  memory.first_block->memory_begin = (uint8_t*)memory.page_memory_start;
+  memory.first_block->memory_end = memory.first_block->memory_begin + (1 * memory.page_size);
 
-  block_freelist_head = first_block + 1;
-  memset(block_freelist_head, 0, sizeof(PageBlock));
-  block_freelist_head->memory_begin = first_block->memory_end;
-  block_freelist_head->memory_end = block_freelist_head->memory_begin + ((total_page_count - 1) * page_size);
+  memory.block_freelist_head = memory.first_block + 1;
+  memset(memory.block_freelist_head, 0, sizeof(PageBlock));
+  memory.block_freelist_head->memory_begin = memory.first_block->memory_end;
+  memory.block_freelist_head->memory_end = memory.block_freelist_head->memory_begin + ((memory.total_page_count - 1) * memory.page_size);
 
-  storage.owned_pages = first_block;
-  storage.memory_avail = first_block->memory_begin + 2*sizeof(PageBlock);
-  storage.memory_limit = first_block->memory_end;
+  memory.storage.owned_pages = memory.first_block;
+  memory.storage.memory_avail = memory.first_block->memory_begin + 2 * sizeof(PageBlock);
+  memory.storage.memory_limit = memory.first_block->memory_end;
 }
 
 PageBlock* PageBlock::find_block_first_fit(int requested_memory_amount)
 {
   PageBlock* result = 0;
-  PageBlock* b = block_freelist_head;
+  PageBlock* b = memory.block_freelist_head;
   while (b) {
     if ((b->memory_end - b->memory_begin) >= requested_memory_amount) {
       result = b;
@@ -72,8 +52,32 @@ PageBlock* PageBlock::find_block_first_fit(int requested_memory_amount)
 void PageBlock::recycle_block_struct()
 {
   memset(this, 0, sizeof(PageBlock));
-  next_block = recycled_block_structs;
-  recycled_block_structs = this;
+  this->next_block = memory.recycled_block_structs;
+  memory.recycled_block_structs = this;
+}
+
+PageBlock* PageBlock::get_new_block_struct()
+{
+  PageBlock* block = memory.recycled_block_structs;
+  if (block) {
+    memory.recycled_block_structs = block->next_block;
+  } else {
+    block = memory.storage.allocate<PageBlock>();
+  }
+  memset(block, 0, sizeof(PageBlock));
+  return block;
+}
+
+enum class BlockStitch : int {
+  NONE  = 0,
+  LEFT  = 1 << 1,
+  RIGHT = 1 << 2,
+};
+inline BlockStitch operator | (BlockStitch lhs, BlockStitch rhs) {
+  return (BlockStitch)((int)lhs | (int)rhs);
+}
+inline BlockStitch operator & (BlockStitch lhs, BlockStitch rhs) {
+  return (BlockStitch)((int)lhs & (int)rhs);
 }
 
 PageBlock* PageBlock::block_insert_and_coalesce(PageBlock* new_block)
@@ -147,18 +151,6 @@ PageBlock* PageBlock::block_insert_and_coalesce(PageBlock* new_block)
   return merged_list;
 }
 
-PageBlock* PageBlock::get_new_block_struct()
-{
-  PageBlock* block = recycled_block_structs;
-  if (block) {
-    recycled_block_structs = block->next_block;
-  } else {
-    block = storage.allocate<PageBlock>();
-  }
-  memset(block, 0, sizeof(PageBlock));
-  return block;
-}
-
 void Arena::grow(uint32_t size)
 {
   uint8_t* alloc_memory_begin = 0, *alloc_memory_end = 0;
@@ -168,7 +160,7 @@ void Arena::grow(uint32_t size)
     printf("\nOut of memory.\n");
     exit(1);
   }
-  int size_in_page_multiples = (size + page_size - 1) & ~(page_size - 1);
+  int size_in_page_multiples = (size + memory.page_size - 1) & ~(memory.page_size - 1);
   if (size_in_page_multiples < (free_block->memory_end - free_block->memory_begin)) {
     alloc_memory_begin = free_block->memory_begin;
     alloc_memory_end = alloc_memory_begin + size_in_page_multiples;
@@ -204,7 +196,7 @@ void Arena::free()
       exit(1);
     }
     PageBlock* next_block = p->next_block;
-    block_freelist_head = block_freelist_head->block_insert_and_coalesce(p);
+    memory.block_freelist_head = memory.block_freelist_head->block_insert_and_coalesce(p);
     p = next_block;
   }
   memset(this, 0, sizeof(Arena));

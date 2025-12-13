@@ -23,7 +23,6 @@ struct Arena {
   void* memory_avail;
   void* memory_limit;
 
-  static void reserve_memory(int amount);
   void free();
   void grow(uint32_t size);
 
@@ -44,4 +43,17 @@ struct Arena {
     }
     return (T*) user_memory;
   }
+};
+
+struct Memory
+{
+  int page_size;
+  int total_page_count;
+  uint8_t* page_memory_start;
+  Arena storage;
+  PageBlock* first_block;
+  PageBlock* block_freelist_head;
+  PageBlock* recycled_block_structs;
+
+  static void reserve_memory(int amount);
 };
