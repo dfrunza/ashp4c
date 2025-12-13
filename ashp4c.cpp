@@ -15,7 +15,7 @@ int main(int arg_count, char* args[])
 {
   Arena storage = {}, scratch_storage = {};
 
-  Memory::reserve_memory(500*KILOBYTE);
+  Memory::reserve(500 * KILOBYTE);
 
   CommandLineArg* cmdline_arg = CommandLineArg::parse_cmdline_args(&storage, arg_count, args);
   CommandLineArg* filename = cmdline_arg->find_unnamed_arg();

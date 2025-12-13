@@ -7,7 +7,7 @@
 
 static Memory memory = {};
 
-void Memory::reserve_memory(int amount)
+void Memory::reserve(int amount)
 {
   memory.page_size = getpagesize();
   memory.total_page_count = ceil(amount / memory.page_size);
@@ -35,12 +35,12 @@ void Memory::reserve_memory(int amount)
   memory.storage.memory_limit = memory.first_block->memory_end;
 }
 
-PageBlock* PageBlock::find_block_first_fit(int requested_memory_amount)
+PageBlock* PageBlock::find_first_fit(int size)
 {
   PageBlock* result = 0;
   PageBlock* b = memory.block_freelist_head;
   while (b) {
-    if ((b->memory_end - b->memory_begin) >= requested_memory_amount) {
+    if ((b->memory_end - b->memory_begin) >= size) {
       result = b;
       break;
     }
@@ -49,14 +49,14 @@ PageBlock* PageBlock::find_block_first_fit(int requested_memory_amount)
   return result;
 }
 
-void PageBlock::recycle_block_struct()
+void PageBlock::recycle()
 {
   memset(this, 0, sizeof(PageBlock));
   this->next_block = memory.recycled_block_structs;
   memory.recycled_block_structs = this;
 }
 
-PageBlock* PageBlock::get_new_block_struct()
+PageBlock* PageBlock::new_block()
 {
   PageBlock* block = memory.recycled_block_structs;
   if (block) {
@@ -80,7 +80,7 @@ inline BlockStitch operator & (BlockStitch lhs, BlockStitch rhs) {
   return (BlockStitch)((int)lhs & (int)rhs);
 }
 
-PageBlock* PageBlock::block_insert_and_coalesce(PageBlock* new_block)
+PageBlock* PageBlock::insert_and_coalesce(PageBlock* new_block)
 {
   if (!this) {
     return new_block;
@@ -129,7 +129,7 @@ PageBlock* PageBlock::block_insert_and_coalesce(PageBlock* new_block)
     if (right_neighbour->next_block) {
       right_neighbour->next_block->prev_block = left_neighbour;
     }
-    right_neighbour->recycle_block_struct();
+    right_neighbour->recycle();
   } else if (stitch_op == BlockStitch::LEFT) {
     left_neighbour->memory_end = new_block->memory_end;
     left_neighbour->next_block = right_neighbour;
@@ -146,7 +146,7 @@ PageBlock* PageBlock::block_insert_and_coalesce(PageBlock* new_block)
     }
   }
   if (stitch_op != BlockStitch::NONE) {
-    new_block->recycle_block_struct();
+    new_block->recycle();
   }
   return merged_list;
 }
@@ -155,7 +155,7 @@ void Arena::grow(uint32_t size)
 {
   uint8_t* alloc_memory_begin = 0, *alloc_memory_end = 0;
 
-  PageBlock* free_block = PageBlock::find_block_first_fit(size);
+  PageBlock* free_block = PageBlock::find_first_fit(size);
   if (!free_block) {
     printf("\nOut of memory.\n");
     exit(1);
@@ -178,10 +178,10 @@ void Arena::grow(uint32_t size)
   memory_avail = alloc_memory_begin;
   memory_limit = alloc_memory_end;
 
-  PageBlock* alloc_block = PageBlock::get_new_block_struct();
+  PageBlock* alloc_block = PageBlock::new_block();
   alloc_block->memory_begin = alloc_memory_begin;
   alloc_block->memory_end = alloc_memory_end;
-  owned_pages = owned_pages->block_insert_and_coalesce(alloc_block);
+  owned_pages = owned_pages->insert_and_coalesce(alloc_block);
 }
 
 void Arena::free()
@@ -196,7 +196,7 @@ void Arena::free()
       exit(1);
     }
     PageBlock* next_block = p->next_block;
-    memory.block_freelist_head = memory.block_freelist_head->block_insert_and_coalesce(p);
+    memory.block_freelist_head = memory.block_freelist_head->insert_and_coalesce(p);
     p = next_block;
   }
   memset(this, 0, sizeof(Arena));
