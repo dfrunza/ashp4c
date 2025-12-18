@@ -134,7 +134,7 @@ void BuiltinMethodsPass::visit_parserTypeDeclaration(Ast* type_decl)
   method->functionPrototype.name = name;
 
   Ast* method_protos = type_decl->parserTypeDeclaration.method_protos;
-  TreeCtor<Ast> tree_ctor = {};
+  TreeConstructor<Ast> tree_ctor = {};
   tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 
@@ -331,7 +331,7 @@ void BuiltinMethodsPass::visit_controlTypeDeclaration(Ast* type_decl)
   method->functionPrototype.name = name;
 
   Ast* method_protos = type_decl->controlTypeDeclaration.method_protos;
-  TreeCtor<Ast> tree_ctor = {};
+  TreeConstructor<Ast> tree_ctor = {};
   tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 
@@ -838,7 +838,7 @@ void BuiltinMethodsPass::visit_tableDeclaration(Ast* table_decl)
   method->functionPrototype.name = name;
 
   Ast* method_protos = table_decl->tableDeclaration.method_protos;
-  TreeCtor<Ast> tree_ctor = {};
+  TreeConstructor<Ast> tree_ctor = {};
   tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 

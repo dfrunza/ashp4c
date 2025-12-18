@@ -203,7 +203,7 @@ struct Tree {
 };
 
 template<class T>
-struct TreeCtor {
+struct TreeConstructor {
   Tree<T>* last_sibling;
 
   void append_node(Tree<T>* tree, Tree<T>* node) {
@@ -223,14 +223,14 @@ struct TreeIterator {
 
   void begin(Tree<T>* root)
   {
-    this->tree = root->first_child;
+    tree = root->first_child;
   }
 
   Tree<T>* next()
   {
-    Tree<T>* result = this->tree;
-    if (this->tree) {
-      this->tree = tree->right_sibling;
+    Tree<T>* result = tree;
+    if (tree) {
+      tree = tree->right_sibling;
     }
     return result;
   }
