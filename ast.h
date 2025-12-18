@@ -244,7 +244,7 @@ struct Ast {
 
   union {
 
-    /** PROGRAM **/
+/** PROGRAM **/
 
     struct {
       Ast* decl_list;
@@ -282,7 +282,7 @@ struct Ast {
       Ast* args;
     } instantiation;
 
-    /** PARSER **/
+/** PARSER **/
 
     struct {
       Ast* proto;
@@ -360,7 +360,7 @@ struct Ast {
     struct {
     } simpleExpressionList;
 
-    /** CONTROL **/
+/** CONTROL **/
 
     struct {
       Ast* proto;
@@ -382,7 +382,7 @@ struct Ast {
       Ast* decl;
     } controlLocalDeclaration;
 
-    /** EXTERN **/
+/** EXTERN **/
 
     struct {
       Ast* decl;
@@ -402,7 +402,7 @@ struct Ast {
       Ast* params;
     } functionPrototype;
 
-    /** TYPES **/
+/** TYPES **/
 
     struct {
       Ast* type;
@@ -524,7 +524,7 @@ struct Ast {
       Ast* name;
     } typedefDeclaration;
 
-    /** STATEMENTS **/
+/** STATEMENTS **/
 
     struct {
       Ast* lhs_expr;
@@ -586,7 +586,7 @@ struct Ast {
       Ast* stmt;
     } statementOrDeclaration;
 
-    /** TABLES **/
+/** TABLES **/
 
     struct {
       Ast* name;
@@ -651,7 +651,7 @@ struct Ast {
       Ast* stmt;
     } actionDeclaration;
 
-    /** VARIABLES **/
+/** VARIABLES **/
 
     struct {
       Ast* type;
@@ -660,7 +660,7 @@ struct Ast {
       bool is_const;
     } variableDeclaration;
 
-    /** EXPRESSIONS **/
+/** EXPRESSIONS **/
 
     struct {
       Ast* proto;
@@ -741,6 +741,13 @@ struct Ast {
     return ::owner_of(tree, &Ast::tree);
   }
 
+  static Ast* create(Arena* storage, enum AstEnum kind)
+  {
+    Ast* ast = storage->allocate<Ast>();
+    ast->kind = kind;
+    return ast;
+  }
+
   Ast* clone(Arena* storage)
   {
     Ast* clone, *sibling_clone, *child_clone;
@@ -783,7 +790,7 @@ struct Ast {
       clone->instantiation.type = instantiation.type->clone(storage);
       clone->instantiation.args = instantiation.args->clone(storage);
     }
-      /** PARSER **/
+    /** PARSER **/
     else if (kind == AstEnum::parserDeclaration) {
       clone->parserDeclaration.proto = parserDeclaration.proto->clone(storage);
       clone->parserDeclaration.ctor_params = parserDeclaration.ctor_params->clone(storage);
@@ -834,7 +841,7 @@ struct Ast {
     } else if (kind == AstEnum::tupleType) {
       clone->tupleType.type_args = tupleType.type_args->clone(storage);
     }
-      /** CONTROL **/
+    /** CONTROL **/
     else if (kind == AstEnum::controlDeclaration) {
       clone->controlDeclaration.proto = controlDeclaration.proto->clone(storage);
       clone->controlDeclaration.ctor_params = controlDeclaration.ctor_params->clone(storage);
@@ -849,7 +856,7 @@ struct Ast {
     } else if (kind == AstEnum::controlLocalDeclaration) {
       clone->controlLocalDeclaration.decl = controlLocalDeclaration.decl->clone(storage);
     }
-      /** EXTERN **/
+    /** EXTERN **/
     else if (kind == AstEnum::externDeclaration) {
       clone->externDeclaration.decl = externDeclaration.decl->clone(storage);
     } else if (kind == AstEnum::externTypeDeclaration) {
@@ -862,7 +869,7 @@ struct Ast {
       clone->functionPrototype.name = functionPrototype.name->clone(storage);
       clone->functionPrototype.params = functionPrototype.params->clone(storage);
     }
-      /** TYPES **/
+    /** TYPES **/
     else if (kind == AstEnum::typeRef) {
       clone->typeRef.type = typeRef.type->clone(storage);
     } else if (kind == AstEnum::tupleType) {
@@ -932,7 +939,7 @@ struct Ast {
       clone->typedefDeclaration.type_ref = typedefDeclaration.type_ref->clone(storage);
       clone->typedefDeclaration.name = typedefDeclaration.name->clone(storage);
     }
-      /** STATEMENTS **/
+    /** STATEMENTS **/
     else if (kind == AstEnum::assignmentStatement) {
       clone->assignmentStatement.lhs_expr = assignmentStatement.lhs_expr->clone(storage);
       clone->assignmentStatement.rhs_expr = assignmentStatement.rhs_expr->clone(storage);
@@ -968,7 +975,7 @@ struct Ast {
     } else if (kind == AstEnum::switchLabel) {
       clone->switchLabel.label = switchLabel.label->clone(storage);
     }
-      /** TABLES **/
+    /** TABLES **/
     else if (kind == AstEnum::tableDeclaration) {
       clone->tableDeclaration.name = tableDeclaration.name->clone(storage);
       clone->tableDeclaration.prop_list = tableDeclaration.prop_list->clone(storage);
@@ -1010,14 +1017,14 @@ struct Ast {
       clone->actionDeclaration.params = actionDeclaration.params->clone(storage);
       clone->actionDeclaration.stmt = actionDeclaration.stmt->clone(storage);
     }
-      /** VARIABLES **/
+    /** VARIABLES **/
     else if (kind == AstEnum::variableDeclaration) {
       clone->variableDeclaration.type = variableDeclaration.type->clone(storage);
       clone->variableDeclaration.name = variableDeclaration.name->clone(storage);
       clone->variableDeclaration.init_expr = variableDeclaration.init_expr->clone(storage);
       clone->variableDeclaration.is_const = variableDeclaration.is_const;
     }
-      /** EXPRESSIONS **/
+    /** EXPRESSIONS **/
     else if (kind == AstEnum::functionDeclaration) {
       clone->functionDeclaration.proto = functionDeclaration.proto->clone(storage);
       clone->functionDeclaration.stmt = functionDeclaration.stmt->clone(storage);

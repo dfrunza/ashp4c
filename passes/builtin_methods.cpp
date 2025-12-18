@@ -113,23 +113,19 @@ void BuiltinMethodsPass::visit_parserDeclaration(Ast* parser_decl)
 void BuiltinMethodsPass::visit_parserTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::parserTypeDeclaration);
-  Ast* return_type = storage->allocate<Ast>();
-  return_type->kind = AstEnum::baseTypeVoid;
+  Ast* return_type = Ast::create(storage, AstEnum::baseTypeVoid);
   return_type->name.strname = "void";
 
-  Ast* type_ref = storage->allocate<Ast>();
-  type_ref->kind = AstEnum::typeRef;
+  Ast* type_ref = Ast::create(storage, AstEnum::typeRef);
   type_ref->typeRef.type = return_type;
 
-  Ast* method = storage->allocate<Ast>();
-  method->kind = AstEnum::functionPrototype;
+  Ast* method = Ast::create(storage, AstEnum::functionPrototype);
   method->line_no = type_decl->line_no;
   method->column_no = type_decl->column_no;
   method->functionPrototype.return_type = type_ref;
   method->functionPrototype.params = type_decl->parserTypeDeclaration.params->clone(storage);
 
-  Ast* name = storage->allocate<Ast>();
-  name->kind = AstEnum::name;
+  Ast* name = Ast::create(storage, AstEnum::name);
   name->name.strname = "apply";
   method->functionPrototype.name = name;
 
@@ -310,23 +306,19 @@ void BuiltinMethodsPass::visit_controlTypeDeclaration(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::controlTypeDeclaration);
 
-  Ast* return_type = storage->allocate<Ast>();
-  return_type->kind = AstEnum::baseTypeVoid;
+  Ast* return_type = Ast::create(storage, AstEnum::baseTypeVoid);
   return_type->name.strname = "void";
 
-  Ast* type_ref = storage->allocate<Ast>();
-  type_ref->kind = AstEnum::typeRef;
+  Ast* type_ref = Ast::create(storage, AstEnum::typeRef);
   type_ref->typeRef.type = return_type;
 
-  Ast* method = storage->allocate<Ast>();
-  method->kind = AstEnum::functionPrototype;
+  Ast* method = Ast::create(storage, AstEnum::functionPrototype);
   method->line_no = type_decl->line_no;
   method->column_no = type_decl->column_no;
   method->functionPrototype.return_type = type_ref;
   method->functionPrototype.params = type_decl->controlTypeDeclaration.params->clone(storage);
 
-  Ast* name = storage->allocate<Ast>();
-  name->kind = AstEnum::name;
+  Ast* name = Ast::create(storage, AstEnum::name);
   name->name.strname = "apply";
   method->functionPrototype.name = name;
 
@@ -812,28 +804,23 @@ void BuiltinMethodsPass::visit_tableDeclaration(Ast* table_decl)
 {
   assert(table_decl->kind == AstEnum::tableDeclaration);
 
-  Ast* return_type = storage->allocate<Ast>();
-  return_type->kind = AstEnum::baseTypeVoid;
+  Ast* return_type = Ast::create(storage, AstEnum::baseTypeVoid);
   return_type->name.strname = "void";
 
-  Ast* type_ref = storage->allocate<Ast>();
-  type_ref->kind = AstEnum::typeRef;
+  Ast* type_ref = Ast::create(storage, AstEnum::typeRef);
   type_ref->typeRef.type = return_type;
 
-  Ast* method = storage->allocate<Ast>();
-  method->kind = AstEnum::functionPrototype;
+  Ast* method = Ast::create(storage, AstEnum::functionPrototype);
   method->line_no = table_decl->line_no;
   method->column_no = table_decl->column_no;
   method->functionPrototype.return_type = type_ref;
 
-  Ast* params = storage->allocate<Ast>();
-  params->kind = AstEnum::parameterList;
+  Ast* params = Ast::create(storage, AstEnum::parameterList);
   params->line_no = table_decl->line_no;
   params->column_no = table_decl->column_no;
   method->functionPrototype.params = params;
 
-  Ast* name = storage->allocate<Ast>();
-  name->kind = AstEnum::name;
+  Ast* name = Ast::create(storage, AstEnum::name);
   name->name.strname = "apply";
   method->functionPrototype.name = name;
 

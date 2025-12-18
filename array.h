@@ -94,7 +94,6 @@ struct Array {
 
   T* append()
   {
-
     if (elem_count >= capacity) {
       extend();
     }
