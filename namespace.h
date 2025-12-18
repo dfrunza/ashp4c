@@ -2,9 +2,6 @@
 #include <lexer.h>
 #include <type.h>
 
-struct NameEntry;
-struct NameDeclaration;
-
 enum class NameSpace : int {
   VAR = 1 << 0,
   TYPE = 1 << 1,
