@@ -28,6 +28,13 @@ struct NameDeclaration {
     Ast* ast;
     enum TokenClass token_class;
   };
+
+  static NameDeclaration* create(Arena* storage, char* strname)
+  {
+    NameDeclaration* name_decl = storage->allocate<NameDeclaration>();
+    name_decl->strname = strname;
+    return name_decl;
+  }
 };
 
 struct NameEntry {

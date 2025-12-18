@@ -80,10 +80,10 @@ inline BlockStitch operator & (BlockStitch lhs, BlockStitch rhs) {
   return (BlockStitch)((int)lhs & (int)rhs);
 }
 
-PageBlock* PageBlock::insert_and_coalesce(PageBlock* new_block)
+PageBlock* PageBlock::insert_and_coalesce(PageBlock* block)
 {
   if (!this) {
-    return new_block;
+    return block;
   }
 
   PageBlock* left_neighbour = 0, *right_neighbour = 0;
@@ -92,7 +92,7 @@ PageBlock* PageBlock::insert_and_coalesce(PageBlock* new_block)
 
   while (p) {
     /* Find the left neighbour of 'new_block' in the ordered list of blocks. */
-    if (p->memory_begin <= new_block->memory_begin) {
+    if (p->memory_begin <= block->memory_begin) {
       left_neighbour = p;
       break;
     }
@@ -102,25 +102,25 @@ PageBlock* PageBlock::insert_and_coalesce(PageBlock* new_block)
   /* Insert the 'new_block' into the list. */
   if (left_neighbour) {
     right_neighbour = PageBlock::owner_of(left_neighbour->list.next);
-    left_neighbour->list.next = &new_block->list;
-    new_block->list.prev = &left_neighbour->list;
-    new_block->list.next = &right_neighbour->list;
+    left_neighbour->list.next = &block->list;
+    block->list.prev = &left_neighbour->list;
+    block->list.next = &right_neighbour->list;
     if (right_neighbour) {
-      right_neighbour->list.prev = &new_block->list;
+      right_neighbour->list.prev = &block->list;
     }
   } else {
-    new_block->list.next = &this->list;
-    this->list.prev = &new_block->list;
-    right_neighbour = PageBlock::owner_of(new_block->list.next);
-    merged_list = new_block;
+    block->list.next = &this->list;
+    this->list.prev = &block->list;
+    right_neighbour = PageBlock::owner_of(block->list.next);
+    merged_list = block;
   }
 
   /* Coalesce adjacent blocks. */
   enum BlockStitch stitch_op = BlockStitch::NONE;
-  if (left_neighbour && (left_neighbour->memory_end == new_block->memory_begin)) {
+  if (left_neighbour && (left_neighbour->memory_end == block->memory_begin)) {
     stitch_op = (stitch_op | BlockStitch::LEFT);
   }
-  if (right_neighbour && (right_neighbour->memory_begin == new_block->memory_end)) {
+  if (right_neighbour && (right_neighbour->memory_begin == block->memory_end)) {
     stitch_op = (stitch_op | BlockStitch::RIGHT);
   }
   if (stitch_op == (BlockStitch::LEFT | BlockStitch::RIGHT)) {
@@ -131,13 +131,13 @@ PageBlock* PageBlock::insert_and_coalesce(PageBlock* new_block)
     }
     right_neighbour->recycle();
   } else if (stitch_op == BlockStitch::LEFT) {
-    left_neighbour->memory_end = new_block->memory_end;
+    left_neighbour->memory_end = block->memory_end;
     left_neighbour->list.next= &right_neighbour->list;
     if (right_neighbour) {
       right_neighbour->list.prev = &left_neighbour->list;
     }
   } else if (stitch_op == BlockStitch::RIGHT) {
-    right_neighbour->memory_begin = new_block->memory_begin;
+    right_neighbour->memory_begin = block->memory_begin;
     right_neighbour->list.prev= &left_neighbour->list;
     if (left_neighbour) {
       left_neighbour->list.next = &right_neighbour->list;
@@ -146,7 +146,7 @@ PageBlock* PageBlock::insert_and_coalesce(PageBlock* new_block)
     }
   }
   if (stitch_op != BlockStitch::NONE) {
-    new_block->recycle();
+    block->recycle();
   }
   return merged_list;
 }

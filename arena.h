@@ -15,7 +15,7 @@ struct PageBlock {
   static PageBlock* find_first_fit(int size);
   static PageBlock* new_block();
   void recycle();
-  PageBlock* insert_and_coalesce(PageBlock* new_block);
+  PageBlock* insert_and_coalesce(PageBlock* block);
 
   static inline PageBlock* owner_of(List<PageBlock>* list)
   {

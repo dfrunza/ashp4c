@@ -59,8 +59,7 @@ struct Scope {
   {
     assert((int)ns > 0);
 
-    NameDeclaration* name_decl = storage->allocate<NameDeclaration>();
-    name_decl->strname = strname;
+    NameDeclaration* name_decl = NameDeclaration::create(storage, strname);
     StrmapEntry<NameEntry>* he = name_table.insert(strname, (NameEntry*)0, 1);
     if (he->value == 0) {
       he->value = storage->allocate<NameEntry>();
