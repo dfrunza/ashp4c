@@ -206,6 +206,11 @@ template<class T>
 struct TreeConstructor {
   Tree<T>* last_sibling;
 
+  TreeConstructor()
+  {
+    this->last_sibling = 0;
+  }
+
   void append_node(Tree<T>* tree, Tree<T>* node) {
       Tree<T>* first_child = tree->first_child;
       if (first_child) {
@@ -220,6 +225,16 @@ struct TreeConstructor {
 template<class T>
 struct TreeIterator {
   Tree<T>* tree;
+
+  TreeIterator()
+  {
+    this->tree = 0;
+  }
+
+  TreeIterator(Tree<T>* root)
+  {
+    begin(root);
+  }
 
   void begin(Tree<T>* root)
   {
