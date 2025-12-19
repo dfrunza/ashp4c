@@ -44,7 +44,7 @@ PageBlock* PageBlock::find_first_fit(int size)
       result = b;
       break;
     }
-    b = PageBlock::owner_of(b->list.next);
+    b = PageBlock::owner_of(b->link.next);
   }
   return result;
 }
@@ -52,7 +52,7 @@ PageBlock* PageBlock::find_first_fit(int size)
 void PageBlock::recycle()
 {
   memset(this, 0, sizeof(PageBlock));
-  this->list.next = &memory.recycled_blocks->list;
+  this->link.next = &memory.recycled_blocks->link;
   memory.recycled_blocks = this;
 }
 
@@ -60,7 +60,7 @@ PageBlock* PageBlock::new_block()
 {
   PageBlock* block = memory.recycled_blocks;
   if (block) {
-    memory.recycled_blocks = PageBlock::owner_of(block->list.next);
+    memory.recycled_blocks = PageBlock::owner_of(block->link.next);
   } else {
     block = memory.block_storage.allocate<PageBlock>();
   }
@@ -91,28 +91,22 @@ PageBlock* PageBlock::insert_and_coalesce(PageBlock* block)
   PageBlock* p = this;
 
   while (p) {
-    /* Find the left neighbour of 'new_block' in the ordered list of blocks. */
+    /* Find the left neighbour of block in the ordered list of blocks. */
     if (p->memory_begin <= block->memory_begin) {
       left_neighbour = p;
       break;
     }
-    p = PageBlock::owner_of(p->list.next);
+    p = PageBlock::owner_of(p->link.next);
   }
 
-  /* Insert the 'new_block' into the list. */
+  /* Insert the block into the list. */
   if (left_neighbour) {
-    right_neighbour = PageBlock::owner_of(left_neighbour->list.next);
-    left_neighbour->list.next = &block->list;
-    list.insert_in_between(&left_neighbour->list, &left_neighbour->list);
-//    block->list.prev = &left_neighbour->list;
-//    block->list.next = &right_neighbour->list;
-//    if (right_neighbour) {
-//      right_neighbour->list.prev = &block->list;
-//    }
+    right_neighbour = PageBlock::owner_of(left_neighbour->link.next);
+    left_neighbour->link.next = &block->link;
+    this->link.insert_in_between(&left_neighbour->link, &right_neighbour->link);
   } else {
-    block->list.next = &this->list;
-    this->list.prev = &block->list;
-    right_neighbour = PageBlock::owner_of(block->list.next);
+    block->link.insert_before(&this->link);
+    right_neighbour = PageBlock::owner_of(block->link.next);
     merged_list = block;
   }
 
@@ -124,24 +118,25 @@ PageBlock* PageBlock::insert_and_coalesce(PageBlock* block)
   if (right_neighbour && (right_neighbour->memory_begin == block->memory_end)) {
     stitch_op = (stitch_op | BlockStitch::RIGHT);
   }
+
   if (stitch_op == (BlockStitch::LEFT | BlockStitch::RIGHT)) {
     left_neighbour->memory_end = right_neighbour->memory_end;
-    left_neighbour->list.next= right_neighbour->list.next;
-    if (right_neighbour->list.next) {
-      right_neighbour->list.next->prev = &left_neighbour->list;
+    left_neighbour->link.next= right_neighbour->link.next;
+    if (right_neighbour->link.next) {
+      right_neighbour->link.next->prev = &left_neighbour->link;
     }
     right_neighbour->recycle();
   } else if (stitch_op == BlockStitch::LEFT) {
     left_neighbour->memory_end = block->memory_end;
-    left_neighbour->list.next= &right_neighbour->list;
+    left_neighbour->link.next= &right_neighbour->link;
     if (right_neighbour) {
-      right_neighbour->list.prev = &left_neighbour->list;
+      right_neighbour->link.prev = &left_neighbour->link;
     }
   } else if (stitch_op == BlockStitch::RIGHT) {
     right_neighbour->memory_begin = block->memory_begin;
-    right_neighbour->list.prev= &left_neighbour->list;
+    right_neighbour->link.prev= &left_neighbour->link;
     if (left_neighbour) {
-      left_neighbour->list.next = &right_neighbour->list;
+      left_neighbour->link.next = &right_neighbour->link;
     } else {
       merged_list = right_neighbour;
     }
@@ -196,7 +191,7 @@ void Arena::free()
       perror("mprotect");
       exit(1);
     }
-    PageBlock* next_block = PageBlock::owner_of(p->list.next);
+    PageBlock* next_block = PageBlock::owner_of(p->link.next);
     memory.block_freelist = memory.block_freelist->insert_and_coalesce(p);
     p = next_block;
   }

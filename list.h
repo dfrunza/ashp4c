@@ -6,13 +6,19 @@ struct List
 
   void insert_in_between(List* left, List* right)
   {
-    prev = left;
-    next = right;
+    this->prev = left;
+    this->next = right;
     if (right) {
       right->prev = this;
     }
     if (left) {
       left->next = this;
     }
+  }
+
+  void insert_before(List* link)
+  {
+    this->next = link;
+    link->prev = this;
   }
 };

@@ -8,7 +8,7 @@
 #define ZMEM_ON_ALLOC 1
 
 struct PageBlock {
-  List<PageBlock> list;
+  List<PageBlock> link;
   uint8_t* memory_begin;
   uint8_t* memory_end;
 
@@ -19,7 +19,7 @@ struct PageBlock {
 
   static inline PageBlock* owner_of(List<PageBlock>* list)
   {
-    return ::owner_of(list, &PageBlock::list);
+    return ::owner_of(list, &PageBlock::link);
   }
 };
 
