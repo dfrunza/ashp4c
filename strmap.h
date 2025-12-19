@@ -80,8 +80,7 @@ struct Strmap {
       printf("\nMaximum capacity has been reached.\n");
       exit(1);
     }
-    StrmapIterator<V> it = {};
-    it.begin(this);
+    StrmapIterator<V> it(this);
     StrmapEntry<V>* first_entry = it.next();
     StrmapEntry<V>* last_entry = first_entry;
     int entry_count = first_entry ? 1 : 0;
@@ -198,6 +197,18 @@ struct StrmapIterator {
   Strmap<V>* strmap;
   StrmapEntry<V>* entry;
   int i;
+
+  StrmapIterator()
+  {
+    strmap = 0;
+    entry = 0;
+    i = 0;
+  }
+
+  StrmapIterator(Strmap<V>* strmap)
+  {
+    begin(strmap);
+  }
 
   void begin(Strmap<V>* strmap)
   {

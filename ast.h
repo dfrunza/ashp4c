@@ -208,7 +208,7 @@ struct TreeConstructor {
 
   TreeConstructor()
   {
-    this->last_sibling = 0;
+    last_sibling = 0;
   }
 
   void append_node(Tree<T>* tree, Tree<T>* node) {
@@ -228,7 +228,7 @@ struct TreeIterator {
 
   TreeIterator()
   {
-    this->tree = 0;
+    tree = 0;
   }
 
   TreeIterator(Tree<T>* root)
