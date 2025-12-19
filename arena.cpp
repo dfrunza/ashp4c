@@ -103,11 +103,12 @@ PageBlock* PageBlock::insert_and_coalesce(PageBlock* block)
   if (left_neighbour) {
     right_neighbour = PageBlock::owner_of(left_neighbour->list.next);
     left_neighbour->list.next = &block->list;
-    block->list.prev = &left_neighbour->list;
-    block->list.next = &right_neighbour->list;
-    if (right_neighbour) {
-      right_neighbour->list.prev = &block->list;
-    }
+    list.insert_in_between(&left_neighbour->list, &left_neighbour->list);
+//    block->list.prev = &left_neighbour->list;
+//    block->list.next = &right_neighbour->list;
+//    if (right_neighbour) {
+//      right_neighbour->list.prev = &block->list;
+//    }
   } else {
     block->list.next = &this->list;
     this->list.prev = &block->list;
