@@ -32,7 +32,7 @@ struct Map {
   }
 
   MapEntry<K,V>* insert_entry(MapEntry<K,V>** branch, MapEntry<K,V>* entry,
-                              K* key, V* value, bool return_if_found)
+      K* key, V* value, bool return_if_found)
   {
     if (!entry) {
       entry = storage->allocate<MapEntry<K,V>>();

@@ -13,6 +13,10 @@ struct PotentialType {
   union {
     struct {
       Map<Type, void> members;
+
+      void add(Type* ty) {
+        members.insert(ty, 0, 0);
+      };
     } set;
 
     struct {
