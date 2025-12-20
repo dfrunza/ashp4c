@@ -33,77 +33,108 @@ enum class TypeEnum : int {
 };
 char* TypeEnum_to_string(enum TypeEnum type);
 
+struct Type;
+
+struct Type_Basic {
+  int size;
+};
+
+struct Type_Typedef {
+  Type* ref;
+};
+
+struct Type_Struct {
+  Type* fields;
+  int field_count;
+  int i;
+};
+
+struct Type_Enum {
+  Type* fields;
+  int field_count;
+  int i;
+};
+
+struct Type_Function {
+  Type* params;
+  Type* return_;
+};
+
+struct Type_Extern {
+  Type* methods;
+  Type* ctors;
+};
+
+struct Type_Parser {
+  Type* params;
+  Type* ctor_params;
+  Type* methods;
+};
+
+struct Type_Control {
+  Type* params;
+  Type* ctor_params;
+  Type* methods;
+};
+
+struct Type_Table {
+  Type* methods;
+};
+
+struct Type_Package {
+  Type* params;
+};
+
+struct Type_HeaderStack {
+  Type* element;
+  int size;
+};
+
+struct Type_Field {
+  Type* type;
+};
+
+struct Type_Nameref {
+  Ast* name;
+  struct Scope* scope;
+};
+
+struct Type_Type {
+  Type* type;
+};
+
+struct Type_Tuple {
+  Type* left;
+  Type* right;
+}; /* 2-tuple */
+
+struct Type_Product {
+  Type** members;
+  int count;
+};
+
 struct Type {
   enum TypeEnum ty_former;
   char* strname;
   Ast* ast;
 
   union {
-    struct {
-      int size;
-    } basic;
-
-    struct {
-      Type* ref;
-    } typedef_;
-
-    struct {
-      Type* fields;
-      int field_count;
-      int i;
-    } struct_, enum_;
-
-    struct {
-      Type* params;
-      Type* return_;
-    } function;
-
-    struct {
-      Type* methods;
-      Type* ctors;
-    } extern_;
-
-    struct {
-      Type* params;
-      Type* ctor_params;
-      Type* methods;
-    } parser, control;
-
-    struct {
-      Type* methods;
-    } table;
-
-    struct {
-      Type* params;
-    } package;
-
-    struct {
-      Type* element;
-      int size;
-    } header_stack;
-
-    struct {
-      Type* type;
-    } field;
-
-    struct {
-      Ast* name;
-      struct Scope* scope;
-    } nameref;
-
-    struct {
-      Type* type;
-    } type;
-
-    struct {
-      Type* left;
-      Type* right;
-    } tuple; /* 2-tuple */
-
-    struct {
-      Type** members;
-      int count;
-    } product;
+    struct Type_Basic basic;
+    struct Type_Typedef typedef_;
+    struct Type_Struct struct_;
+    struct Type_Enum enum_;
+    struct Type_Function function;
+    struct Type_Extern extern_;
+    struct Type_Parser parser;
+    struct Type_Control control;
+    struct Type_Table table;
+    struct Type_Package package;
+    struct Type_HeaderStack header_stack;
+    struct Type_Field field;
+    struct Type_Nameref nameref;
+    struct Type_Type type;
+    struct Type_Tuple tuple;
+    struct Type_Product product;
   };
 
   Type* actual_type()

@@ -197,6 +197,502 @@ inline ParamDirection operator & (ParamDirection lhs, ParamDirection rhs) {
   return (ParamDirection)((int)lhs & (int)rhs);
 }
 
+struct Ast;
+
+/** PROGRAM **/
+
+struct Ast_p4program {
+  Ast* decl_list;
+};
+
+struct Ast_declarationList {
+};
+
+struct Ast_declaration {
+  Ast* decl;
+};
+
+struct Ast_name {
+  char* strname;
+};
+
+struct Ast_parameterList {
+};
+
+struct Ast_parameter {
+  enum ParamDirection direction;
+  Ast* name;
+  Ast* type;
+  Ast* init_expr;
+};
+
+struct Ast_packageTypeDeclaration {
+  Ast* name;
+  Ast* params;
+};
+
+struct Ast_instantiation {
+  Ast* name;
+  Ast* type;
+  Ast* args;
+};
+
+/** PARSER **/
+
+struct Ast_parserDeclaration {
+  Ast* proto;
+  Ast* ctor_params;
+  Ast* local_elements;
+  Ast* states;
+};
+
+struct Ast_parserTypeDeclaration {
+  Ast* name;
+  Ast* params;
+  Ast* method_protos;
+};
+
+struct Ast_parserLocalElements {
+};
+
+struct Ast_parserLocalElement {
+  Ast* element;
+};
+
+struct Ast_parserStates {
+};
+
+struct Ast_parserState {
+  Ast* name;
+  Ast* stmt_list;
+  Ast* transition_stmt;
+};
+
+struct Ast_parserStatements {
+};
+
+struct Ast_parserStatement {
+  Ast* stmt;
+};
+
+struct Ast_parserBlockStatement {
+  Ast* stmt_list;
+};
+
+struct Ast_transitionStatement {
+  Ast* stmt;
+};
+
+struct Ast_stateExpression {
+  Ast* expr;
+};
+
+struct Ast_selectExpression {
+  Ast* expr_list;
+  Ast* case_list;
+};
+
+struct Ast_selectCaseList {
+};
+
+struct Ast_selectCase {
+  Ast* keyset_expr;
+  Ast* name;
+};
+
+struct Ast_keysetExpression {
+  Ast* expr;
+};
+
+struct Ast_tupleKeysetExpression {
+  Ast* expr_list;
+};
+
+struct Ast_simpleKeysetExpression {
+  Ast* expr;
+};
+
+struct Ast_simpleExpressionList {
+};
+
+/** CONTROL **/
+
+struct Ast_controlDeclaration {
+  Ast* proto;
+  Ast* ctor_params;
+  Ast* local_decls;
+  Ast* apply_stmt;
+};
+
+struct Ast_controlTypeDeclaration {
+  Ast* name;
+  Ast* params;
+  Ast* method_protos;
+};
+
+struct Ast_controlLocalDeclarations {
+};
+
+struct Ast_controlLocalDeclaration {
+  Ast* decl;
+};
+
+/** EXTERN **/
+
+struct Ast_externDeclaration {
+  Ast* decl;
+};
+
+struct Ast_externTypeDeclaration {
+  Ast* name;
+  Ast* method_protos;
+};
+
+struct Ast_methodPrototypes {
+};
+
+struct Ast_functionPrototype {
+  Ast* return_type;
+  Ast* name;
+  Ast* params;
+};
+
+/** TYPES **/
+
+struct Ast_typeRef {
+  Ast* type;
+};
+
+struct Ast_tupleType {
+  Ast* type_args;
+};
+
+struct Ast_headerStackType {
+  Ast* type;
+  Ast* stack_expr;
+};
+
+struct Ast_baseTypeBoolean {
+  Ast* name;
+};
+
+struct Ast_baseTypeInteger {
+  Ast* name;
+  Ast* size;
+};
+
+struct Ast_baseTypeBit {
+  Ast* name;
+  Ast* size;
+};
+
+struct Ast_baseTypeVarbit {
+  Ast* name;
+  Ast* size;
+};
+
+struct Ast_baseTypeString {
+  Ast* name;
+};
+
+struct Ast_baseTypeVoid {
+  Ast* name;
+};
+
+struct Ast_baseTypeError {
+  Ast* name;
+};
+
+struct Ast_integerTypeSize {
+  Ast* size;
+};
+
+struct Ast_realTypeArg {
+  Ast* arg;
+};
+
+struct Ast_typeArg {
+  Ast* arg;
+};
+
+struct Ast_typeArgumentList {
+};
+
+struct Ast_typeDeclaration {
+  Ast* decl;
+};
+
+struct Ast_derivedTypeDeclaration {
+  Ast* decl;
+};
+
+struct Ast_headerTypeDeclaration {
+  Ast* name;
+  Ast* fields;
+};
+
+struct Ast_headerUnionDeclaration {
+  Ast* name;
+  Ast* fields;
+};
+
+struct Ast_structTypeDeclaration {
+  Ast* name;
+  Ast* fields;
+};
+
+struct Ast_structFieldList {
+};
+
+struct Ast_structField {
+  Ast* type;
+  Ast* name;
+};
+
+struct Ast_enumDeclaration {
+  Ast* type_size;
+  Ast* name;
+  Ast* fields;
+};
+
+struct Ast_errorDeclaration {
+  Ast* fields;
+};
+
+struct Ast_matchKindDeclaration {
+  Ast* fields;
+};
+
+struct Ast_identifierList {
+};
+
+struct Ast_specifiedIdentifierList {
+};
+
+struct Ast_specifiedIdentifier {
+  Ast* name;
+  Ast* init_expr;
+};
+
+struct Ast_typedefDeclaration {
+  Ast* type_ref;
+  Ast* name;
+};
+
+/** STATEMENTS **/
+
+struct Ast_assignmentStatement {
+  Ast* lhs_expr;
+  Ast* rhs_expr;
+};
+
+struct Ast_functionCall {
+  Ast* lhs_expr;
+  Ast* args;
+};
+
+struct Ast_returnStatement {
+  Ast* expr;
+};
+
+struct Ast_exitStatement {
+};
+
+struct Ast_conditionalStatement {
+  Ast* cond_expr;
+  Ast* stmt;
+  Ast* else_stmt;
+};
+
+struct Ast_directApplication {
+  Ast* name;
+  Ast* args;
+};
+
+struct Ast_statement {
+  Ast* stmt;
+};
+
+struct Ast_blockStatement {
+  Ast* stmt_list;
+};
+
+struct Ast_statementOrDeclList {
+};
+
+struct Ast_switchStatement {
+  Ast* expr;
+  Ast* switch_cases;
+};
+
+struct Ast_switchCases {
+};
+
+struct Ast_switchCase {
+  Ast* label;
+  Ast* stmt;
+};
+
+struct Ast_switchLabel {
+  Ast* label;
+};
+
+struct Ast_statementOrDeclaration {
+  Ast* stmt;
+};
+
+/** TABLES **/
+
+struct Ast_tableDeclaration {
+  Ast* name;
+  Ast* prop_list;
+  Ast* method_protos;
+};
+
+struct Ast_tablePropertyList {
+};
+
+struct Ast_tableProperty {
+  Ast* prop;
+};
+
+struct Ast_keyProperty {
+  Ast* keyelem_list;
+};
+
+struct Ast_keyElementList {
+};
+
+struct Ast_keyElement {
+  Ast* expr;
+  Ast* match;
+};
+
+struct Ast_actionsProperty {
+  Ast* action_list;
+};
+
+struct Ast_actionList {
+};
+
+struct Ast_actionRef {
+  Ast* name;
+  Ast* args;
+};
+
+#if 0
+struct Ast_entriesProperty {
+  Ast* entries_list;
+};
+
+struct Ast_entriesList {
+};
+
+struct Ast_entry {
+  Ast* keyset;
+  Ast* action;
+};
+
+struct Ast_simpleProperty {
+  Ast* name;
+  Ast* init_expr;
+  bool is_const;
+};
+#endif
+
+struct Ast_actionDeclaration {
+  Ast* name;
+  Ast* params;
+  Ast* stmt;
+};
+
+/** VARIABLES **/
+
+struct Ast_variableDeclaration {
+  Ast* type;
+  Ast* name;
+  Ast* init_expr;
+  bool is_const;
+};
+
+/** EXPRESSIONS **/
+
+struct Ast_functionDeclaration {
+  Ast* proto;
+  Ast* stmt;
+};
+
+struct Ast_argumentList {
+};
+
+struct Ast_argument {
+  Ast* arg;
+};
+
+struct Ast_expressionList {
+};
+
+struct Ast_lvalueExpression {
+  Ast* expr;
+};
+
+struct Ast_expression {
+  Ast* expr;
+};
+
+struct Ast_castExpression {
+  Ast* type;
+  Ast* expr;
+};
+
+struct Ast_unaryExpression {
+  enum AstOperator op;
+  char* strname;
+  Ast* operand;
+};
+
+struct Ast_binaryExpression {
+  enum AstOperator op;
+  char* strname;
+  Ast* left_operand;
+  Ast* right_operand;
+};
+
+struct Ast_memberSelector {
+  Ast* lhs_expr;
+  Ast* name;
+};
+
+struct Ast_arraySubscript {
+  Ast* lhs_expr;
+  Ast* index_expr;
+};
+
+struct Ast_indexExpression {
+  Ast* start_index;
+  Ast* end_index;
+};
+
+struct Ast_integerLiteral {
+  bool is_signed;
+  int value;
+  int width;
+};
+
+struct Ast_booleanLiteral {
+  bool value;
+};
+
+struct Ast_stringLiteral {
+  char* value;
+};
+
+struct Ast_default {
+};
+
+struct Ast_dontcare {
+};
+
 struct Ast {
   enum AstEnum kind;
   int line_no;
@@ -204,497 +700,125 @@ struct Ast {
   Tree<Ast> tree;
 
   union {
-
 /** PROGRAM **/
-
-    struct {
-      Ast* decl_list;
-    } p4program;
-
-    struct {
-    } declarationList;
-
-    struct {
-      Ast* decl;
-    } declaration;
-
-    struct {
-      char* strname;
-    } name;
-
-    struct {
-    } parameterList;
-
-    struct {
-      enum ParamDirection direction;
-      Ast* name;
-      Ast* type;
-      Ast* init_expr;
-    } parameter;
-
-    struct {
-      Ast* name;
-      Ast* params;
-    } packageTypeDeclaration;
-
-    struct {
-      Ast* name;
-      Ast* type;
-      Ast* args;
-    } instantiation;
-
+    struct Ast_p4program p4program;
+    struct Ast_declarationList declarationList;
+    struct Ast_declaration declaration;
+    struct Ast_name name;
+    struct Ast_parameterList parameterList;
+    struct Ast_parameter parameter;
+    struct Ast_packageTypeDeclaration packageTypeDeclaration;
+    struct Ast_instantiation instantiation;
 /** PARSER **/
-
-    struct {
-      Ast* proto;
-      Ast* ctor_params;
-      Ast* local_elements;
-      Ast* states;
-    } parserDeclaration;
-
-    struct {
-      Ast* name;
-      Ast* params;
-      Ast* method_protos;
-    } parserTypeDeclaration;
-
-    struct {
-    } parserLocalElements;
-
-    struct {
-      Ast* element;
-    } parserLocalElement;
-
-    struct {
-    } parserStates;
-
-    struct {
-      Ast* name;
-      Ast* stmt_list;
-      Ast* transition_stmt;
-    } parserState;
-
-    struct {
-    } parserStatements;
-
-    struct {
-      Ast* stmt;
-    } parserStatement;
-
-    struct {
-      Ast* stmt_list;
-    } parserBlockStatement;
-
-    struct {
-      Ast* stmt;
-    } transitionStatement;
-
-    struct {
-      Ast* expr;
-    } stateExpression;
-
-    struct {
-      Ast* expr_list;
-      Ast* case_list;
-    } selectExpression;
-
-    struct {
-    } selectCaseList;
-
-    struct {
-      Ast* keyset_expr;
-      Ast* name;
-    } selectCase;
-
-    struct {
-      Ast* expr;
-    } keysetExpression;
-
-    struct {
-      Ast* expr_list;
-    } tupleKeysetExpression;
-
-    struct {
-      Ast* expr;
-    } simpleKeysetExpression;
-
-    struct {
-    } simpleExpressionList;
-
+    struct Ast_parserDeclaration parserDeclaration;
+    struct Ast_parserTypeDeclaration parserTypeDeclaration;
+    struct Ast_parserLocalElements parserLocalElements;
+    struct Ast_parserLocalElement parserLocalElement;
+    struct Ast_parserStates parserStates;
+    struct Ast_parserState parserState;
+    struct Ast_parserStatements parserStatements;
+    struct Ast_parserStatement parserStatement;
+    struct Ast_parserBlockStatement parserBlockStatement;
+    struct Ast_transitionStatement transitionStatement;
+    struct Ast_stateExpression stateExpression;
+    struct Ast_selectExpression selectExpression;
+    struct Ast_selectCaseList selectCaseList;
+    struct Ast_selectCase selectCase;
+    struct Ast_keysetExpression keysetExpression;
+    struct Ast_tupleKeysetExpression tupleKeysetExpression;
+    struct Ast_simpleKeysetExpression simpleKeysetExpression;
+    struct Ast_simpleExpressionList simpleExpressionList;
 /** CONTROL **/
-
-    struct {
-      Ast* proto;
-      Ast* ctor_params;
-      Ast* local_decls;
-      Ast* apply_stmt;
-    } controlDeclaration;
-
-    struct {
-      Ast* name;
-      Ast* params;
-      Ast* method_protos;
-    } controlTypeDeclaration;
-
-    struct {
-    } controlLocalDeclarations;
-
-    struct {
-      Ast* decl;
-    } controlLocalDeclaration;
-
+    struct Ast_controlDeclaration controlDeclaration;
+    struct Ast_controlTypeDeclaration controlTypeDeclaration;
+    struct Ast_controlLocalDeclarations controlLocalDeclarations;
+    struct Ast_controlLocalDeclaration controlLocalDeclaration;
 /** EXTERN **/
-
-    struct {
-      Ast* decl;
-    } externDeclaration;
-
-    struct {
-      Ast* name;
-      Ast* method_protos;
-    } externTypeDeclaration;
-
-    struct {
-    } methodPrototypes;
-
-    struct {
-      Ast* return_type;
-      Ast* name;
-      Ast* params;
-    } functionPrototype;
-
+    struct Ast_externDeclaration externDeclaration;
+    struct Ast_externTypeDeclaration externTypeDeclaration;
+    struct Ast_methodPrototypes methodPrototypes;
+    struct Ast_functionPrototype functionPrototype;
 /** TYPES **/
-
-    struct {
-      Ast* type;
-    } typeRef;
-
-    struct {
-      Ast* type_args;
-    } tupleType;
-
-    struct {
-      Ast* type;
-      Ast* stack_expr;
-    } headerStackType;
-
-    struct {
-      Ast* name;
-    } baseTypeBoolean;
-
-    struct {
-      Ast* name;
-      Ast* size;
-    } baseTypeInteger;
-
-    struct {
-      Ast* name;
-      Ast* size;
-    } baseTypeBit;
-
-    struct {
-      Ast* name;
-      Ast* size;
-    } baseTypeVarbit;
-
-    struct {
-      Ast* name;
-    } baseTypeString;
-
-    struct {
-      Ast* name;
-    } baseTypeVoid;
-
-    struct {
-      Ast* name;
-    } baseTypeError;
-
-    struct {
-      Ast* size;
-    } integerTypeSize;
-
-    struct {
-      Ast* arg;
-    } realTypeArg;
-
-    struct {
-      Ast* arg;
-    } typeArg;
-
-    struct {
-    } typeArgumentList;
-
-    struct {
-      Ast* decl;
-    } typeDeclaration;
-
-    struct {
-      Ast* decl;
-    } derivedTypeDeclaration;
-
-    struct {
-      Ast* name;
-      Ast* fields;
-    } headerTypeDeclaration;
-
-    struct {
-      Ast* name;
-      Ast* fields;
-    } headerUnionDeclaration;
-
-    struct {
-      Ast* name;
-      Ast* fields;
-    } structTypeDeclaration;
-
-    struct {
-    } structFieldList;
-
-    struct {
-      Ast* type;
-      Ast* name;
-    } structField;
-
-    struct {
-      Ast* type_size;
-      Ast* name;
-      Ast* fields;
-    } enumDeclaration;
-
-    struct {
-      Ast* fields;
-    } errorDeclaration;
-
-    struct {
-      Ast* fields;
-    } matchKindDeclaration;
-
-    struct {
-    } identifierList;
-
-    struct {
-    } specifiedIdentifierList;
-
-    struct {
-      Ast* name;
-      Ast* init_expr;
-    } specifiedIdentifier;
-
-    struct {
-      Ast* type_ref;
-      Ast* name;
-    } typedefDeclaration;
-
+    struct Ast_typeRef typeRef;
+    struct Ast_tupleType tupleType;
+    struct Ast_headerStackType headerStackType;
+    struct Ast_baseTypeBoolean baseTypeBoolean;
+    struct Ast_baseTypeInteger baseTypeInteger;
+    struct Ast_baseTypeBit baseTypeBit;
+    struct Ast_baseTypeVarbit baseTypeVarbit;
+    struct Ast_baseTypeString baseTypeString;
+    struct Ast_baseTypeVoid baseTypeVoid;
+    struct Ast_baseTypeError baseTypeError;
+    struct Ast_integerTypeSize integerTypeSize;
+    struct Ast_realTypeArg realTypeArg;
+    struct Ast_typeArg typeArg;
+    struct Ast_typeArgumentList typeArgumentList;
+    struct Ast_typeDeclaration typeDeclaration;
+    struct Ast_derivedTypeDeclaration derivedTypeDeclaration;
+    struct Ast_headerTypeDeclaration headerTypeDeclaration;
+    struct Ast_headerUnionDeclaration headerUnionDeclaration;
+    struct Ast_structTypeDeclaration structTypeDeclaration;
+    struct Ast_structFieldList structFieldList;
+    struct Ast_structField structField;
+    struct Ast_enumDeclaration enumDeclaration;
+    struct Ast_errorDeclaration errorDeclaration;
+    struct Ast_matchKindDeclaration matchKindDeclaration;
+    struct Ast_identifierList identifierList;
+    struct Ast_specifiedIdentifierList specifiedIdentifierList;
+    struct Ast_specifiedIdentifier specifiedIdentifier;
+    struct Ast_typedefDeclaration typedefDeclaration;
 /** STATEMENTS **/
-
-    struct {
-      Ast* lhs_expr;
-      Ast* rhs_expr;
-    } assignmentStatement;
-
-    struct {
-      Ast* lhs_expr;
-      Ast* args;
-    } functionCall;
-
-    struct {
-      Ast* expr;
-    } returnStatement;
-
-    struct {
-    } exitStatement;
-
-    struct {
-      Ast* cond_expr;
-      Ast* stmt;
-      Ast* else_stmt;
-    } conditionalStatement;
-
-    struct {
-      Ast* name;
-      Ast* args;
-    } directApplication;
-
-    struct {
-      Ast* stmt;
-    } statement;
-
-    struct {
-      Ast* stmt_list;
-    } blockStatement;
-
-    struct {
-    } statementOrDeclList;
-
-    struct {
-      Ast* expr;
-      Ast* switch_cases;
-    } switchStatement;
-
-    struct {
-    } switchCases;
-
-    struct {
-      Ast* label;
-      Ast* stmt;
-    } switchCase;
-
-    struct {
-      Ast* label;
-    } switchLabel;
-
-    struct {
-      Ast* stmt;
-    } statementOrDeclaration;
-
+    struct Ast_assignmentStatement assignmentStatement;
+    struct Ast_functionCall functionCall;
+    struct Ast_returnStatement returnStatement;
+    struct Ast_exitStatement exitStatement;
+    struct Ast_conditionalStatement conditionalStatement;
+    struct Ast_directApplication directApplication;
+    struct Ast_statement statement;
+    struct Ast_blockStatement blockStatement;
+    struct Ast_statementOrDeclList statementOrDeclList;
+    struct Ast_switchStatement switchStatement;
+    struct Ast_switchCases switchCases;
+    struct Ast_switchCase switchCase;
+    struct Ast_switchLabel switchLabel;
+    struct Ast_statementOrDeclaration statementOrDeclaration;
 /** TABLES **/
-
-    struct {
-      Ast* name;
-      Ast* prop_list;
-      Ast* method_protos;
-    } tableDeclaration;
-
-    struct {
-    } tablePropertyList;
-
-    struct {
-      Ast* prop;
-    } tableProperty;
-
-    struct {
-      Ast* keyelem_list;
-    } keyProperty;
-
-    struct {
-    } keyElementList;
-
-    struct {
-      Ast* expr;
-      Ast* match;
-    } keyElement;
-
-    struct {
-      Ast* action_list;
-    } actionsProperty;
-
-    struct {
-    } actionList;
-
-    struct {
-      Ast* name;
-      Ast* args;
-    } actionRef;
-
+    struct Ast_tableDeclaration tableDeclaration;
+    struct Ast_tablePropertyList tablePropertyList;
+    struct Ast_tableProperty tableProperty;
+    struct Ast_keyProperty keyProperty;
+    struct Ast_keyElementList keyElementList;
+    struct Ast_keyElement keyElement;
+    struct Ast_actionsProperty actionsProperty;
+    struct Ast_actionList actionList;
+    struct Ast_actionRef actionRef;
 #if 0
-    struct {
-      Ast* entries_list;
-    } entriesProperty;
-
-    struct {
-    } entriesList;
-
-    struct {
-      Ast* keyset;
-      Ast* action;
-    } entry;
-
-    struct {
-      Ast* name;
-      Ast* init_expr;
-      bool is_const;
-    } simpleProperty;
+    struct Ast_entriesProperty entriesProperty;
+    struct Ast_entriesList entriesList;
+    struct Ast_entry entry;
+    struct Ast_simpleProperty simpleProperty;
 #endif
-
-    struct {
-      Ast* name;
-      Ast* params;
-      Ast* stmt;
-    } actionDeclaration;
-
+    struct Ast_actionDeclaration actionDeclaration;
 /** VARIABLES **/
-
-    struct {
-      Ast* type;
-      Ast* name;
-      Ast* init_expr;
-      bool is_const;
-    } variableDeclaration;
-
+    struct Ast_variableDeclaration variableDeclaration;
 /** EXPRESSIONS **/
-
-    struct {
-      Ast* proto;
-      Ast* stmt;
-    } functionDeclaration;
-
-    struct {
-    } argumentList;
-
-    struct {
-      Ast* arg;
-    } argument;
-
-    struct {
-    } expressionList;
-
-    struct {
-      Ast* expr;
-    } lvalueExpression;
-
-    struct {
-      Ast* expr;
-    } expression;
-
-    struct {
-      Ast* type;
-      Ast* expr;
-    } castExpression;
-
-    struct {
-      enum AstOperator op;
-      char* strname;
-      Ast* operand;
-    } unaryExpression;
-
-    struct {
-      enum AstOperator op;
-      char* strname;
-      Ast* left_operand;
-      Ast* right_operand;
-    } binaryExpression;
-
-    struct {
-      Ast* lhs_expr;
-      Ast* name;
-    } memberSelector;
-
-    struct {
-      Ast* lhs_expr;
-      Ast* index_expr;
-    } arraySubscript;
-
-    struct {
-      Ast* start_index;
-      Ast* end_index;
-    } indexExpression;
-
-    struct {
-      bool is_signed;
-      int value;
-      int width;
-    } integerLiteral;
-
-    struct {
-      bool value;
-    } booleanLiteral;
-
-    struct {
-      char* value;
-    } stringLiteral;
-
-    struct {
-    } default_, dontcare;
+    struct Ast_functionDeclaration functionDeclaration;
+    struct Ast_argumentList argumentList;
+    struct Ast_argument argument;
+    struct Ast_expressionList expressionList;
+    struct Ast_lvalueExpression lvalueExpression;
+    struct Ast_expression expression;
+    struct Ast_castExpression castExpression;
+    struct Ast_unaryExpression unaryExpression;
+    struct Ast_binaryExpression binaryExpression;
+    struct Ast_memberSelector memberSelector;
+    struct Ast_arraySubscript arraySubscript;
+    struct Ast_indexExpression indexExpression;
+    struct Ast_integerLiteral integerLiteral;
+    struct Ast_booleanLiteral booleanLiteral;
+    struct Ast_stringLiteral stringLiteral;
+    struct Ast_default default_;
+    struct Ast_dontcare dontcare;
   };
 
   static inline Ast* owner_of(Tree<Ast>* tree)
