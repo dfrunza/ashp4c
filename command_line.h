@@ -7,7 +7,7 @@ struct CommandLineArg {
   char* value;
   CommandLineArg* next_arg;
 
-  static CommandLineArg* parse_cmdline_args(Arena* storage, int arg_count, char* args[])
+  static CommandLineArg* parse_cmdline(Arena* storage, int arg_count, char* args[])
   {
     CommandLineArg* arg_list = 0;
     CommandLineArg sentinel_arg = {};

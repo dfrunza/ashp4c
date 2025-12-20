@@ -17,7 +17,7 @@ int main(int arg_count, char* args[])
 
   Memory::reserve(500 * KILOBYTE);
 
-  CommandLineArg* cmdline_arg = CommandLineArg::parse_cmdline_args(&storage, arg_count, args);
+  CommandLineArg* cmdline_arg = CommandLineArg::parse_cmdline(&storage, arg_count, args);
   CommandLineArg* filename = cmdline_arg->find_unnamed_arg();
   if (!filename) {
     printf("<filename> is required.\n");
