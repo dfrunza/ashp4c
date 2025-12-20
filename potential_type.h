@@ -30,7 +30,7 @@ struct PotentialType_Product {
 
   PotentialType* get(int i)
   {
-    assert(i > 0 && i < arity);
+    assert(i >= 0 && i < arity);
     return members[i];
   }
 
