@@ -21,7 +21,7 @@ struct TypeChecker {
   bool match_params(PotentialType* potential_args, Type* params_ty)
   {
     int i = 0;
-    if (params_ty->product.count != potential_args->product.count) return 0;
+    if (params_ty->product.count != potential_args->product.arity) return 0;
     for (i = 0; i < params_ty->product.count; i++) {
       if (!match_type(potential_args->product.members[i],
                       params_ty->product.members[i])) break;

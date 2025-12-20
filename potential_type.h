@@ -13,11 +13,34 @@ struct PotentialType {
   union {
     struct {
       Map<Type, void> members;
+
+      void add(Type* ty) {
+        members.insert(ty, 0, 0);
+      };
     } set;
 
     struct {
       PotentialType** members;
-      int count;
+      int arity;
+
+      void create(Arena* storage, int arity) {
+        this->arity = arity;
+        if (arity > 0) {
+          members = storage->allocate<PotentialType*>(arity);
+        }
+      }
+
+      PotentialType* get(int i)
+      {
+        assert(i > 0 && i < arity);
+        return members[i];
+      }
+
+      void set(int i, PotentialType* potype)
+      {
+        assert(i >= 0 && i < arity);
+        members[i] = potype;
+      }
     } product;
   };
 
@@ -27,6 +50,9 @@ struct PotentialType {
     potype->kind = kind;
     if (potype->kind == PotentialTypeEnum::SET) {
       potype->set.members.storage = storage;
+    } else if (potype->kind == PotentialTypeEnum::PRODUCT) {
+      potype->product.members = 0;
+      potype->product.arity = 0;
     }
     return potype;
   }
