@@ -30,7 +30,7 @@ struct TypeChecker {
   }
 
   void collect_matching_member(PotentialType* tau, Type* product_ty,
-                                            char* strname, PotentialType* potential_args)
+        char* strname, PotentialType* potential_args)
   {
     for (int i = 0; i < product_ty->product.count; i++) {
       Type* member_ty = product_ty->product.members[i];

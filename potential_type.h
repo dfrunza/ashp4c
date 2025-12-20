@@ -20,4 +20,11 @@ struct PotentialType {
       int count;
     } product;
   };
+
+  static PotentialType* create(Arena* storage, enum PotentialTypeEnum kind)
+  {
+    PotentialType* potype = storage->allocate<PotentialType>();
+    potype->kind = kind;
+    return potype;
+  }
 };
