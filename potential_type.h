@@ -25,6 +25,9 @@ struct PotentialType {
   {
     PotentialType* potype = storage->allocate<PotentialType>();
     potype->kind = kind;
+    if (potype->kind == PotentialTypeEnum::SET) {
+      potype->set.members.storage = storage;
+    }
     return potype;
   }
 };
