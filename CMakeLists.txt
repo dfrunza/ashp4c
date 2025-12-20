@@ -36,6 +36,7 @@ add_executable(ashp4c
         type.cpp
         type.h
         type_checker.h
+        tree.h
         list.h
         namespace.cpp
         passes/builtin_methods.cpp
