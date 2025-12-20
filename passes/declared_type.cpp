@@ -151,7 +151,6 @@ void DeclaredTypePass::do_pass()
 {
   type_env = storage->allocate<Map<Ast, Type>>();
   type_env->storage = storage;
-  type_equiv_pairs = Array<Type>::create(storage, 2);
 
   define_builtin_types();
   visit_p4program(p4program);

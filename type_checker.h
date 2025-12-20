@@ -6,6 +6,11 @@
 struct TypeChecker {
   Array<Type>* type_equiv_pairs;
 
+  void init(Arena* storage)
+  {
+    type_equiv_pairs = Array<Type>::create(storage, 2);
+  }
+
   bool match_type(PotentialType* potential_types, Type* required_ty)
   {
     int i = 0;

@@ -70,7 +70,7 @@ int main(int arg_count, char* args[])
   declared_types.do_pass();
 
   TypeChecker type_checker = {};
-  type_checker.type_equiv_pairs = declared_types.type_equiv_pairs;
+  type_checker.init(&storage);
 
   PotentialTypePass potential_types = {};
   potential_types.storage = &storage;
