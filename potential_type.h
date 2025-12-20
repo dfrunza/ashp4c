@@ -36,10 +36,10 @@ struct PotentialType {
         return members[i];
       }
 
-      void set(int i, PotentialType* potype)
+      void set(int i, PotentialType* m)
       {
         assert(i >= 0 && i < arity);
-        members[i] = potype;
+        members[i] = m;
       }
     } product;
   };
