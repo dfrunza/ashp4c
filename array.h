@@ -55,19 +55,11 @@ struct Array {
     Array* array = storage->allocate<Array>();
     storage->allocate<T**>(segment_count);
     array->storage = storage;
-    array->init(array->storage, segment_count);
+    array->element_count = 0;
+    array->capacity = 16;
+    array->elements.segment_count = segment_count;
+    array->elements.segments[0] = storage->allocate<T>(16);
     return array;
-  }
-
-  void init(Arena* storage, int segment_count)
-  {
-    assert(segment_count >= 1);
-
-    this->storage = storage;
-    element_count = 0;
-    capacity = 16;
-    elements.segment_count = segment_count;
-    elements.segments[0] = storage->allocate<T>(16);
   }
 
   void extend()

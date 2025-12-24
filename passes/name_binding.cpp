@@ -74,7 +74,7 @@ void DEBUG_scope_decls(Scope* scope)
   StrmapIterator<NameEntry> it;
 
   printf("Names in scope 0x%x\n\n", scope);
-  it.begin(&scope->name_table);
+  it.begin(scope->name_table);
   StrmapEntry<NameEntry>* he = it.next();
   while (he) {
     NameEntry* name_entry = he->value;

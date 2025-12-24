@@ -50,27 +50,19 @@ struct Strmap {
   int capacity;
   SegmentTable<StrmapEntry<V>*> entries;
 
-  Strmap* create(Arena* storage, int segment_count)
+  static Strmap* create(Arena* storage, int segment_count)
   {
     assert(segment_count >= 1 && segment_count <= 16);
 
     Strmap* strmap = storage->allocate<Strmap>();
     storage->allocate<StrmapEntry<V>*>(segment_count);
     strmap->storage = storage;
-    strmap->init(strmap->storage, segment_count);
+    strmap->entry_count = 0;
+    strmap->capacity = 16;
+    strmap->entries.segment_count = segment_count;
+    strmap->entries.segments[0] = storage->allocate<StrmapEntry<V>*>(16);
+    memset(strmap->entries.segments[0], 0, sizeof(StrmapEntry<V>*) * 16);
     return strmap;
-  }
-
-  void init(Arena* storage, int segment_count)
-  {
-    assert(segment_count >= 1);
-
-    this->storage = storage;
-    entry_count = 0;
-    capacity = 16;
-    entries.segment_count = segment_count;
-    entries.segments[0] = storage->allocate<StrmapEntry<V>*>(16);
-    memset(entries.segments[0], 0, sizeof(StrmapEntry<V>*) * 16);
   }
 
   void grow()
