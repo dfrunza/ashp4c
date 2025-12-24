@@ -81,14 +81,14 @@ void PotentialTypePass::visit_name(Ast* name, PotentialType_Product* potential_a
   PotentialType_Set* tau = PotentialType_Set::create(storage);
   potype_map->insert(name, tau, 0);
   Scope* scope = scope_map->lookup(name, 0);
-  NameEntry* name_entry = scope->lookup(name->name.strname, NameSpace::VAR | NameSpace::TYPE);
-  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::VAR);
+  NameEntry* name_entry = scope->lookup(name->name.strname, NameSpace::Var | NameSpace::Type);
+  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Var);
   if (name_decl) {
     Type* ty = type_env->lookup(name_decl->ast, 0);
     *name_ty->append() = ty->actual_type();
     assert(!name_decl->next_in_scope);
   }
-  name_decl = name_entry->get_declarations(NameSpace::TYPE);
+  name_decl = name_entry->get_declarations(NameSpace::Type);
   for(; name_decl != 0; name_decl = name_decl->next_in_scope) {
     Type* ty = type_env->lookup(name_decl->ast, 0);
     *name_ty->append() = ty->actual_type();
@@ -96,19 +96,19 @@ void PotentialTypePass::visit_name(Ast* name, PotentialType_Product* potential_a
   for (int i = 0; i < name_ty->elem_count; i++) {
     Type* ty = *name_ty->get(i);
     if (potential_args) {
-      if (ty->ty_former == TypeEnum::FUNCTION) {
+      if (ty->ty_former == TypeEnum::Function) {
         if (type_checker->match_params(potential_args, ty->function.params)) {
           tau->add(ty);
         }
-      } else if (ty->ty_former == TypeEnum::PARSER) {
+      } else if (ty->ty_former == TypeEnum::Parser) {
         if (type_checker->match_params(potential_args, ty->parser.ctor_params)) {
           tau->add(ty);
         }
-      } else if (ty->ty_former == TypeEnum::CONTROL) {
+      } else if (ty->ty_former == TypeEnum::Control) {
         if (type_checker->match_params(potential_args, ty->control.ctor_params)) {
           tau->add(ty);
         }
-      } else if (ty->ty_former == TypeEnum::EXTERN) {
+      } else if (ty->ty_former == TypeEnum::Extern) {
         Type* ctors_ty = ty->extern_.ctors;
         for (int j = 0; j < ctors_ty->product.count; j++) {
           ty = ctors_ty->product.members[j];
@@ -1150,7 +1150,7 @@ void PotentialTypePass::visit_binaryExpression(Ast* binary_expr)
 
   PotentialType_Set* tau = PotentialType_Set::create(storage);
   potype_map->insert(binary_expr, tau, 0);
-  for (NameDeclaration* name_decl = root_scope->lookup_builtin(binary_expr->binaryExpression.strname, NameSpace::TYPE);
+  for (NameDeclaration* name_decl = root_scope->lookup_builtin(binary_expr->binaryExpression.strname, NameSpace::Type);
        name_decl != 0; name_decl = name_decl->next_in_scope) {
     Type* ty = name_decl->type;
     if (type_checker->match_params(potential_args, ty->function.params)) {
@@ -1174,19 +1174,19 @@ void PotentialTypePass::visit_memberSelector(Ast* selector, PotentialType_Produc
   PotentialType_Set* tau_lhs = (PotentialType_Set*)potype_map->lookup(selector->memberSelector.lhs_expr, 0);
   for (MapEntry<Type, void>* m = tau_lhs->members.first; m != 0; m = m->next) {
     Type* lhs_ty = m->key->effective_type();
-    if (lhs_ty->ty_former == TypeEnum::EXTERN) {
+    if (lhs_ty->ty_former == TypeEnum::Extern) {
       type_checker->collect_matching_member(tau, lhs_ty->extern_.methods, name->name.strname, potential_args);
-    } else if (lhs_ty->ty_former == TypeEnum::ENUM ||
-               lhs_ty->ty_former == TypeEnum::MATCH_KIND || lhs_ty->ty_former == TypeEnum::ERROR) {
+    } else if (lhs_ty->ty_former == TypeEnum::Enum ||
+               lhs_ty->ty_former == TypeEnum::MatchKind || lhs_ty->ty_former == TypeEnum::Error) {
       type_checker->collect_matching_member(tau, lhs_ty->enum_.fields, name->name.strname, 0);
-    } else if (lhs_ty->ty_former == TypeEnum::STRUCT || lhs_ty->ty_former == TypeEnum::HEADER ||
-               lhs_ty->ty_former == TypeEnum::UNION) {
+    } else if (lhs_ty->ty_former == TypeEnum::Struct || lhs_ty->ty_former == TypeEnum::Header ||
+               lhs_ty->ty_former == TypeEnum::Union) {
       type_checker->collect_matching_member(tau, lhs_ty->struct_.fields, name->name.strname, potential_args);
-    } else if (lhs_ty->ty_former == TypeEnum::STACK) {
+    } else if (lhs_ty->ty_former == TypeEnum::Stack) {
       /* TODO */
-    } else if (lhs_ty->ty_former == TypeEnum::TABLE) {
+    } else if (lhs_ty->ty_former == TypeEnum::Table) {
       type_checker->collect_matching_member(tau, lhs_ty->table.methods, name->name.strname, potential_args);
-    } else if (lhs_ty->ty_former == TypeEnum::PARSER || lhs_ty->ty_former == TypeEnum::CONTROL) {
+    } else if (lhs_ty->ty_former == TypeEnum::Parser || lhs_ty->ty_former == TypeEnum::Control) {
       type_checker->collect_matching_member(tau, lhs_ty->parser.methods, name->name.strname, potential_args);
     }
   }

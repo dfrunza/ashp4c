@@ -69,9 +69,9 @@ PageBlock* PageBlock::new_block()
 }
 
 enum class BlockStitch : int {
-  NONE  = 0,
-  LEFT  = 1 << 1,
-  RIGHT = 1 << 2,
+  None  = 0,
+  Left  = 1 << 1,
+  Right = 1 << 2,
 };
 inline BlockStitch operator | (BlockStitch lhs, BlockStitch rhs) {
   return (BlockStitch)((int)lhs | (int)rhs);
@@ -111,28 +111,28 @@ PageBlock* PageBlock::insert_and_coalesce(PageBlock* block)
   }
 
   /* Coalesce adjacent blocks. */
-  enum BlockStitch stitch_op = BlockStitch::NONE;
+  enum BlockStitch stitch_op = BlockStitch::None;
   if (left_neighbour && (left_neighbour->memory_end == block->memory_begin)) {
-    stitch_op = (stitch_op | BlockStitch::LEFT);
+    stitch_op = (stitch_op | BlockStitch::Left);
   }
   if (right_neighbour && (right_neighbour->memory_begin == block->memory_end)) {
-    stitch_op = (stitch_op | BlockStitch::RIGHT);
+    stitch_op = (stitch_op | BlockStitch::Right);
   }
 
-  if (stitch_op == (BlockStitch::LEFT | BlockStitch::RIGHT)) {
+  if (stitch_op == (BlockStitch::Left | BlockStitch::Right)) {
     left_neighbour->memory_end = right_neighbour->memory_end;
     left_neighbour->link.next= right_neighbour->link.next;
     if (right_neighbour->link.next) {
       right_neighbour->link.next->prev = &left_neighbour->link;
     }
     right_neighbour->recycle();
-  } else if (stitch_op == BlockStitch::LEFT) {
+  } else if (stitch_op == BlockStitch::Left) {
     left_neighbour->memory_end = block->memory_end;
     left_neighbour->link.next= &right_neighbour->link;
     if (right_neighbour) {
       right_neighbour->link.prev = &left_neighbour->link;
     }
-  } else if (stitch_op == BlockStitch::RIGHT) {
+  } else if (stitch_op == BlockStitch::Right) {
     right_neighbour->memory_begin = block->memory_begin;
     right_neighbour->link.prev= &left_neighbour->link;
     if (left_neighbour) {
@@ -141,7 +141,7 @@ PageBlock* PageBlock::insert_and_coalesce(PageBlock* block)
       merged_list = right_neighbour;
     }
   }
-  if (stitch_op != BlockStitch::NONE) {
+  if (stitch_op != BlockStitch::None) {
     block->recycle();
   }
   return merged_list;

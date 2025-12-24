@@ -15,28 +15,28 @@ struct BuiltinType {
 void NameBindingPass::define_builtin_names()
 {
   struct BuiltinName builtin_names[] = {
-    {"void",   NameSpace::TYPE},
-    {"bool",   NameSpace::TYPE},
-    {"int",    NameSpace::TYPE},
-    {"bit",    NameSpace::TYPE},
-    {"varbit", NameSpace::TYPE},
-    {"string", NameSpace::TYPE},
-    {"error",  NameSpace::TYPE},
-    {"match_kind", NameSpace::TYPE},
-    {"_",      NameSpace::TYPE},
-    {"accept", NameSpace::VAR},
-    {"reject", NameSpace::VAR},
+    {"void",   NameSpace::Type},
+    {"bool",   NameSpace::Type},
+    {"int",    NameSpace::Type},
+    {"bit",    NameSpace::Type},
+    {"varbit", NameSpace::Type},
+    {"string", NameSpace::Type},
+    {"error",  NameSpace::Type},
+    {"match_kind", NameSpace::Type},
+    {"_",      NameSpace::Type},
+    {"accept", NameSpace::Var},
+    {"reject", NameSpace::Var},
   };
   struct BuiltinType builtin_types[] = {
-    {"void",       TypeEnum::VOID},
-    {"bool",       TypeEnum::BOOL},
-    {"int",        TypeEnum::INT},
-    {"bit",        TypeEnum::BIT},
-    {"varbit",     TypeEnum::VARBIT},
-    {"string",     TypeEnum::STRING},
-    {"error",      TypeEnum::ERROR},
-    {"match_kind", TypeEnum::MATCH_KIND},
-    {"_",          TypeEnum::ANY},
+    {"void",       TypeEnum::Void},
+    {"bool",       TypeEnum::Bool},
+    {"int",        TypeEnum::Int},
+    {"bit",        TypeEnum::Bit},
+    {"varbit",     TypeEnum::Varbit},
+    {"string",     TypeEnum::String},
+    {"error",      TypeEnum::Error},
+    {"match_kind", TypeEnum::MatchKind},
+    {"_",          TypeEnum::Any},
   };
 
   for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
@@ -47,8 +47,8 @@ void NameBindingPass::define_builtin_names()
   }
 
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
-    NameEntry* name_entry = root_scope->lookup(builtin_types[i].strname, NameSpace::TYPE);
-    NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::TYPE);
+    NameEntry* name_entry = root_scope->lookup(builtin_types[i].strname, NameSpace::Type);
+    NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
     Type* ty = type_array->append();
     ty->ty_former = builtin_types[i].ty_former;
     ty->strname = name_decl->strname;
@@ -58,19 +58,19 @@ void NameBindingPass::define_builtin_names()
 
   Type* ty;
 
-  ty = root_scope->lookup_builtin("error", NameSpace::TYPE)->type;
+  ty = root_scope->lookup_builtin("error", NameSpace::Type)->type;
   ty->enum_.fields = type_array->append();
-  ty->enum_.fields->ty_former = TypeEnum::PRODUCT;
+  ty->enum_.fields->ty_former = TypeEnum::Product;
 
-  ty = root_scope->lookup_builtin("match_kind", NameSpace::TYPE)->type;
+  ty = root_scope->lookup_builtin("match_kind", NameSpace::Type)->type;
   ty->enum_.fields = type_array->append();
-  ty->enum_.fields->ty_former = TypeEnum::PRODUCT;
+  ty->enum_.fields->ty_former = TypeEnum::Product;
 }
 
 void DEBUG_scope_decls(Scope* scope)
 {
   int count = 0;
-  enum NameSpace ns[] = {NameSpace::VAR, NameSpace::TYPE, NameSpace::KEYWORD};
+  enum NameSpace ns[] = {NameSpace::Var, NameSpace::Type, NameSpace::Keyword};
   StrmapIterator<NameEntry> it;
 
   printf("Names in scope 0x%x\n\n", scope);
@@ -81,7 +81,7 @@ void DEBUG_scope_decls(Scope* scope)
     for (int i = 0; i < sizeof(ns) / sizeof(ns[0]); i++) {
       NameDeclaration* decl = name_entry->get_declarations(ns[i]);
       while (decl) {
-        if (ns[i] == NameSpace::KEYWORD) {
+        if (ns[i] == NameSpace::Keyword) {
           printf("%s, %s\n", decl->strname, NameSpace_to_string(ns[i]));
         } else {
           Ast* ast = decl->ast;
@@ -182,7 +182,7 @@ void NameBindingPass::visit_parameter(Ast* param)
   visit_typeRef(param->parameter.type);
   visit_name(param->parameter.name);
   Ast* name = param->parameter.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::VAR);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Var);
   name_decl->ast = param;
   decl_map->insert(param, name_decl, 0);
   if (param->parameter.init_expr) {
@@ -196,7 +196,7 @@ void NameBindingPass::visit_packageTypeDeclaration(Ast* type_decl)
 
   visit_name(type_decl->packageTypeDeclaration.name);
   Ast* name = type_decl->packageTypeDeclaration.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = type_decl;
   decl_map->insert(type_decl, name_decl, 0);
   Scope* prev_scope = current_scope;
@@ -212,7 +212,7 @@ void NameBindingPass::visit_instantiation(Ast* inst)
   visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
   Ast* name = inst->instantiation.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::VAR);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Var);
   name_decl->ast = inst;
   decl_map->insert(inst, name_decl, 0);
 }
@@ -240,7 +240,7 @@ void NameBindingPass::visit_parserTypeDeclaration(Ast* type_decl)
 
   visit_name(type_decl->parserTypeDeclaration.name);
   Ast* name = type_decl->parserTypeDeclaration.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = type_decl;
   decl_map->insert(type_decl, name_decl, 0);
   Scope* prev_scope = current_scope;
@@ -285,7 +285,7 @@ void NameBindingPass::visit_parserState(Ast* state)
   assert(state->kind == AstEnum::parserState);
 
   Ast* name = state->parserState.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::VAR);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Var);
   name_decl->ast = state;
   decl_map->insert(state, name_decl, 0);
   Scope* prev_scope = current_scope;
@@ -434,7 +434,7 @@ void NameBindingPass::visit_controlTypeDeclaration(Ast* type_decl)
 
   visit_name(type_decl->controlTypeDeclaration.name);
   Ast* name = type_decl->controlTypeDeclaration.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = type_decl;
   decl_map->insert(type_decl, name_decl, 0);
   Scope* prev_scope = current_scope;
@@ -485,7 +485,7 @@ void NameBindingPass::visit_externTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AstEnum::externTypeDeclaration);
 
   Ast* name = type_decl->externTypeDeclaration.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = type_decl;
   decl_map->insert(type_decl, name_decl, 0);
   Scope* prev_scope = current_scope;
@@ -510,7 +510,7 @@ void NameBindingPass::visit_functionPrototype(Ast* func_proto)
 
   visit_name(func_proto->functionPrototype.name);
   Ast* name = func_proto->functionPrototype.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = func_proto;
   decl_map->insert(func_proto, name_decl, 0);
   Scope* prev_scope = current_scope;
@@ -567,8 +567,8 @@ void NameBindingPass::visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AstEnum::baseTypeBoolean);
 
-  NameEntry* name_entry = root_scope->lookup("bool", NameSpace::TYPE);
-  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::TYPE);
+  NameEntry* name_entry = root_scope->lookup("bool", NameSpace::Type);
+  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
   decl_map->insert(bool_type, name_decl, 0);
 }
 
@@ -579,8 +579,8 @@ void NameBindingPass::visit_baseTypeInteger(Ast* int_type)
   if (int_type->baseTypeInteger.size) {
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
-  NameEntry* name_entry = root_scope->lookup("int", NameSpace::TYPE);
-  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::TYPE);
+  NameEntry* name_entry = root_scope->lookup("int", NameSpace::Type);
+  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
   decl_map->insert(int_type, name_decl, 0);
 }
 
@@ -591,8 +591,8 @@ void NameBindingPass::visit_baseTypeBit(Ast* bit_type)
   if (bit_type->baseTypeBit.size) {
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
-  NameEntry* name_entry = root_scope->lookup("bit", NameSpace::TYPE);
-  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::TYPE);
+  NameEntry* name_entry = root_scope->lookup("bit", NameSpace::Type);
+  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
   decl_map->insert(bit_type, name_decl, 0);
 }
 
@@ -601,8 +601,8 @@ void NameBindingPass::visit_baseTypeVarbit(Ast* varbit_type)
   assert(varbit_type->kind == AstEnum::baseTypeVarbit);
 
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
-  NameEntry* name_entry = root_scope->lookup("varbit", NameSpace::TYPE);
-  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::TYPE);
+  NameEntry* name_entry = root_scope->lookup("varbit", NameSpace::Type);
+  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
   decl_map->insert(varbit_type, name_decl, 0);
 }
 
@@ -610,8 +610,8 @@ void NameBindingPass::visit_baseTypeString(Ast* str_type)
 {
   assert(str_type->kind == AstEnum::baseTypeString);
 
-  NameEntry* name_entry = root_scope->lookup("string", NameSpace::TYPE);
-  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::TYPE);
+  NameEntry* name_entry = root_scope->lookup("string", NameSpace::Type);
+  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
   decl_map->insert(str_type, name_decl, 0);
 }
 
@@ -619,8 +619,8 @@ void NameBindingPass::visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AstEnum::baseTypeVoid);
 
-  NameEntry* name_entry = root_scope->lookup("void", NameSpace::TYPE);
-  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::TYPE);
+  NameEntry* name_entry = root_scope->lookup("void", NameSpace::Type);
+  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
   decl_map->insert(void_type, name_decl, 0);
 }
 
@@ -628,8 +628,8 @@ void NameBindingPass::visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AstEnum::baseTypeError);
 
-  NameEntry* name_entry = root_scope->lookup("error", NameSpace::TYPE);
-  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::TYPE);
+  NameEntry* name_entry = root_scope->lookup("error", NameSpace::Type);
+  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
   decl_map->insert(error_type, name_decl, 0);
 }
 
@@ -705,7 +705,7 @@ void NameBindingPass::visit_headerTypeDeclaration(Ast* header_decl)
   assert(header_decl->kind == AstEnum::headerTypeDeclaration);
 
   Ast* name = header_decl->headerTypeDeclaration.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = header_decl;
   decl_map->insert(header_decl, name_decl, 0);
   Scope* prev_scope = current_scope;
@@ -719,7 +719,7 @@ void NameBindingPass::visit_headerUnionDeclaration(Ast* union_decl)
   assert(union_decl->kind == AstEnum::headerUnionDeclaration);
 
   Ast* name = union_decl->headerUnionDeclaration.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = union_decl;
   decl_map->insert(union_decl, name_decl, 0);
   Scope* prev_scope = current_scope;
@@ -733,7 +733,7 @@ void NameBindingPass::visit_structTypeDeclaration(Ast* struct_decl)
   assert(struct_decl->kind == AstEnum::structTypeDeclaration);
 
   Ast* name = struct_decl->structTypeDeclaration.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = struct_decl;
   decl_map->insert(struct_decl, name_decl, 0);
   Scope* prev_scope = current_scope;
@@ -758,7 +758,7 @@ void NameBindingPass::visit_structField(Ast* field)
 
   visit_typeRef(field->structField.type);
   Ast* name = field->structField.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = field;
   decl_map->insert(field, name_decl, 0);
 }
@@ -768,7 +768,7 @@ void NameBindingPass::visit_enumDeclaration(Ast* enum_decl)
   assert(enum_decl->kind == AstEnum::enumDeclaration);
 
   Ast* name = enum_decl->enumDeclaration.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = enum_decl;
   decl_map->insert(enum_decl, name_decl, 0);
   Scope* prev_scope = current_scope;
@@ -781,8 +781,8 @@ void NameBindingPass::visit_errorDeclaration(Ast* error_decl)
 {
   assert(error_decl->kind == AstEnum::errorDeclaration);
 
-  NameEntry* name_entry = root_scope->lookup("error", NameSpace::TYPE);
-  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::TYPE);
+  NameEntry* name_entry = root_scope->lookup("error", NameSpace::Type);
+  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
   Type* error_ty = name_decl->type;
   decl_map->insert(error_decl, name_decl, 0);
   Scope* prev_scope = current_scope;
@@ -795,8 +795,8 @@ void NameBindingPass::visit_matchKindDeclaration(Ast* match_decl)
 {
   assert(match_decl->kind == AstEnum::matchKindDeclaration);
 
-  NameEntry* name_entry = root_scope->lookup("match_kind", NameSpace::TYPE);
-  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::TYPE);
+  NameEntry* name_entry = root_scope->lookup("match_kind", NameSpace::Type);
+  NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
   Type* match_kind_ty = name_decl->type;
   decl_map->insert(match_decl, name_decl, 0);
   Scope* prev_scope = current_scope;
@@ -814,7 +814,7 @@ int NameBindingPass::visit_identifierList(Ast* ident_list)
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
     Ast* name = Ast::owner_of(tree);
-    NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+    NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
     name_decl->ast = name;
     decl_map->insert(name, name_decl, 0);
     count += 1;
@@ -837,7 +837,7 @@ void NameBindingPass::visit_specifiedIdentifier(Ast* ident)
   assert(ident->kind == AstEnum::specifiedIdentifier);
 
   Ast* name = ident->specifiedIdentifier.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = ident;
   decl_map->insert(ident, name_decl, 0);
   if (ident->specifiedIdentifier.init_expr) {
@@ -855,7 +855,7 @@ void NameBindingPass::visit_typedefDeclaration(Ast* typedef_decl)
     visit_derivedTypeDeclaration(typedef_decl->typedefDeclaration.type_ref);
   } else assert(0);
   Ast* name = typedef_decl->typedefDeclaration.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = typedef_decl;
   decl_map->insert(typedef_decl, name_decl, 0);
 }
@@ -1017,7 +1017,7 @@ void NameBindingPass::visit_tableDeclaration(Ast* table_decl)
   assert(table_decl->kind == AstEnum::tableDeclaration);
 
   Ast* name = table_decl->tableDeclaration.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = table_decl;
   decl_map->insert(table_decl, name_decl, 0);
   Scope* prev_scope = current_scope;
@@ -1113,7 +1113,7 @@ void NameBindingPass::visit_actionDeclaration(Ast* action_decl)
   assert(action_decl->kind == AstEnum::actionDeclaration);
 
   Ast* name = action_decl->actionDeclaration.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = action_decl;
   decl_map->insert(action_decl, name_decl, 0);
   Scope* prev_scope = current_scope;
@@ -1132,7 +1132,7 @@ void NameBindingPass::visit_variableDeclaration(Ast* var_decl)
   visit_typeRef(var_decl->variableDeclaration.type);
   visit_name(var_decl->variableDeclaration.name);
   Ast* name = var_decl->variableDeclaration.name;
-  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::TYPE);
+  NameDeclaration* name_decl = current_scope->bind_name(storage, name->name.strname, NameSpace::Type);
   name_decl->ast = var_decl;
   decl_map->insert(var_decl, name_decl, 0);
   if (var_decl->variableDeclaration.init_expr) {

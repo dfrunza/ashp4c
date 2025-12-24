@@ -4,34 +4,34 @@
 char* TypeEnum_to_string(enum TypeEnum type)
 {
   switch(type) {
-    case TypeEnum::NONE: return "NONE";
-    case TypeEnum::VOID: return "VOID";
-    case TypeEnum::BOOL: return "BOOL";
-    case TypeEnum::INT: return "INT";
-    case TypeEnum::BIT: return "BIT";
-    case TypeEnum::VARBIT: return "VARBIT";
-    case TypeEnum::STRING: return "STRING";
-    case TypeEnum::ANY: return "ANY";
-    case TypeEnum::ENUM: return "ENUM";
-    case TypeEnum::TYPEDEF: return "TYPEDEF";
-    case TypeEnum::FUNCTION: return "FUNCTION";
-    case TypeEnum::EXTERN: return "EXTERN";
-    case TypeEnum::PACKAGE: return "PACKAGE";
-    case TypeEnum::PARSER: return "PARSER";
-    case TypeEnum::CONTROL: return "CONTROL";
-    case TypeEnum::TABLE: return "TABLE";
-    case TypeEnum::STRUCT: return "STRUCT";
-    case TypeEnum::HEADER: return "HEADER";
-    case TypeEnum::UNION: return "UNION";
-    case TypeEnum::STACK: return "STACK";
-    case TypeEnum::STATE: return "STATE";
-    case TypeEnum::FIELD: return "FIELD";
-    case TypeEnum::ERROR: return "ERROR";
-    case TypeEnum::MATCH_KIND: return "MATCH_KIND";
-    case TypeEnum::NAMEREF: return "NAMEREF";
-    case TypeEnum::TYPE: return "TYPE";
-    case TypeEnum::TUPLE: return "TUPLE";
-    case TypeEnum::PRODUCT: return "TYPE_PRODUCT";
+    case TypeEnum::None: return "NONE";
+    case TypeEnum::Void: return "VOID";
+    case TypeEnum::Bool: return "BOOL";
+    case TypeEnum::Int: return "INT";
+    case TypeEnum::Bit: return "BIT";
+    case TypeEnum::Varbit: return "VARBIT";
+    case TypeEnum::String: return "STRING";
+    case TypeEnum::Any: return "ANY";
+    case TypeEnum::Enum: return "ENUM";
+    case TypeEnum::Typedef: return "TYPEDEF";
+    case TypeEnum::Function: return "FUNCTION";
+    case TypeEnum::Extern: return "EXTERN";
+    case TypeEnum::Package: return "PACKAGE";
+    case TypeEnum::Parser: return "PARSER";
+    case TypeEnum::Control: return "CONTROL";
+    case TypeEnum::Table: return "TABLE";
+    case TypeEnum::Struct: return "STRUCT";
+    case TypeEnum::Header: return "HEADER";
+    case TypeEnum::Union: return "UNION";
+    case TypeEnum::Stack: return "STACK";
+    case TypeEnum::State: return "STATE";
+    case TypeEnum::Field: return "FIELD";
+    case TypeEnum::Error: return "ERROR";
+    case TypeEnum::MatchKind: return "MATCH_KIND";
+    case TypeEnum::Nameref: return "NAMEREF";
+    case TypeEnum::Type: return "TYPE";
+    case TypeEnum::Tuple: return "TUPLE";
+    case TypeEnum::Product: return "TYPE_PRODUCT";
 
     default: return "?";
   }

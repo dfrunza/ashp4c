@@ -2,34 +2,34 @@
 #include <ast.h>
 
 enum class TypeEnum : int {
-  NONE = 0,
-  VOID,
-  BOOL,
-  INT,
-  BIT,
-  VARBIT,
-  STRING,
-  ANY,
-  ENUM,
-  TYPEDEF,
-  FUNCTION,
-  EXTERN,
-  PACKAGE,
-  PARSER,
-  CONTROL,
-  TABLE,
-  STRUCT,
-  HEADER,
-  UNION,
-  STACK,
-  STATE,
-  FIELD,
-  ERROR,
-  MATCH_KIND,
-  NAMEREF,
-  TYPE,
-  TUPLE,
-  PRODUCT,
+  None = 0,
+  Void,
+  Bool,
+  Int,
+  Bit,
+  Varbit,
+  String,
+  Any,
+  Enum,
+  Typedef,
+  Function,
+  Extern,
+  Package,
+  Parser,
+  Control,
+  Table,
+  Struct,
+  Header,
+  Union,
+  Stack,
+  State,
+  Field,
+  Error,
+  MatchKind,
+  Nameref,
+  Type,
+  Tuple,
+  Product,
 };
 char* TypeEnum_to_string(enum TypeEnum type);
 
@@ -140,7 +140,7 @@ struct Type {
   Type* actual_type()
   {
       if (!this) { return 0; }
-      if (ty_former == TypeEnum::TYPE) {
+      if (ty_former == TypeEnum::Type) {
           return type.type;
       }
       return this;
@@ -150,11 +150,11 @@ struct Type {
   {
       Type* applied_ty = actual_type();
       if (!applied_ty) { return 0; }
-      if (ty_former == TypeEnum::FUNCTION) {
+      if (ty_former == TypeEnum::Function) {
           return function.return_->actual_type();
-      } else if (ty_former == TypeEnum::FIELD) {
+      } else if (ty_former == TypeEnum::Field) {
           return field.type->actual_type();
-      } else if (ty_former == TypeEnum::STACK) {
+      } else if (ty_former == TypeEnum::Stack) {
           return header_stack.element->actual_type();
       }
       return applied_ty;

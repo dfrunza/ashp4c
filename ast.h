@@ -152,43 +152,43 @@ enum class AstOperator : int {
 
   /* Arithmetic */
 
-  ADD,
-  SUB,
-  MUL,
-  DIV,
-  NEG,
+  Add,
+  Sub,
+  Mul,
+  Div,
+  Neg,
 
   /* Logical */
 
-  AND,
-  OR,
-  NOT,
+  And,
+  Or,
+  Not,
 
   /* Relational */
 
-  EQ,
-  NEQ,
-  LESS,
-  GREAT,
-  LESS_EQ,
-  GREAT_EQ,
+  Eq,
+  Neq,
+  Less,
+  Great,
+  LessEq,
+  GreatEq,
 
   /* Bitwise */
 
-  BITW_AND,
-  BITW_OR,
-  BITW_XOR,
-  BITW_NOT,
-  BITW_SHL,
-  BITW_SHR,
+  BitwAnd,
+  BitwOr,
+  BitwXor,
+  BitwNot,
+  BitwShl,
+  BitwShr,
 
-  MASK,
+  Mask,
 };
 
 enum class ParamDirection : int {
-  NONE = 0,
-  IN = 1 << 1,
-  OUT = 1 << 2,
+  None = 0,
+  In = 1 << 1,
+  Out = 1 << 2,
 };
 inline ParamDirection operator | (ParamDirection lhs, ParamDirection rhs) {
   return (ParamDirection)((int)lhs | (int)rhs);

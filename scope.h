@@ -37,9 +37,9 @@ struct Scope {
     while (scope) {
       name_entry = scope->name_table.lookup(strname, 0, 0);
       if (name_entry) {
-        if ((ns & NameSpace::VAR) != (NameSpace)0 && name_entry->get_declarations(NameSpace::VAR)) break;
-        if ((ns & NameSpace::TYPE) != (NameSpace)0 && name_entry->get_declarations(NameSpace::TYPE)) break;
-        if ((ns & NameSpace::KEYWORD) != (NameSpace)0 && name_entry->get_declarations(NameSpace::KEYWORD)) break;
+        if ((ns & NameSpace::Var) != (NameSpace)0 && name_entry->get_declarations(NameSpace::Var)) break;
+        if ((ns & NameSpace::Type) != (NameSpace)0 && name_entry->get_declarations(NameSpace::Type)) break;
+        if ((ns & NameSpace::Keyword) != (NameSpace)0 && name_entry->get_declarations(NameSpace::Keyword)) break;
       }
       name_entry = 0;
       scope = scope->parent_scope;
@@ -50,7 +50,7 @@ struct Scope {
 
   NameDeclaration* lookup_builtin(char* strname, enum NameSpace ns)
   {
-    assert (ns == NameSpace::VAR || ns == NameSpace::TYPE);
+    assert (ns == NameSpace::Var || ns == NameSpace::Type);
     NameEntry* name_entry = lookup(strname, ns);
     return name_entry->get_declarations(ns);
   }

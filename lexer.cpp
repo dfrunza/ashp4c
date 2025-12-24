@@ -146,14 +146,14 @@ void Lexer::next_token(Token* token)
 
       case 2:
       {
-        token->klass = TokenClass::END_OF_INPUT;
+        token->klass = TokenClass::EndOfInput;
         token->lexeme = "<end-of-input>";
         state = 0;
       } break;
 
       case 3:
       {
-        token->klass = TokenClass::UNKNOWN;
+        token->klass = TokenClass::Unknown;
         token->lexeme = "<unknown>";
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -162,7 +162,7 @@ void Lexer::next_token(Token* token)
 
       case 4:
       {
-        token->klass = TokenClass::LEXICAL_ERROR;
+        token->klass = TokenClass::LexicalError;
         token->lexeme = "<error>";
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -171,7 +171,7 @@ void Lexer::next_token(Token* token)
 
       case 100:
       {
-        token->klass = TokenClass::SEMICOLON;
+        token->klass = TokenClass::Semicolon;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -182,12 +182,12 @@ void Lexer::next_token(Token* token)
       {
         if (lookahead_char(1) == '=') {
           advance_char(1);
-          token->klass = TokenClass::ANGLE_OPEN_EQUAL;
+          token->klass = TokenClass::AngleOpenEqual;
         } else if (lookahead_char(1) == '<') {
           advance_char(1);
-          token->klass = TokenClass::DOUBLE_ANGLE_OPEN;
+          token->klass = TokenClass::DoubleAngleOpen;
         } else {
-          token->klass = TokenClass::ANGLE_OPEN;
+          token->klass = TokenClass::AngleOpen;
         }
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
@@ -199,12 +199,12 @@ void Lexer::next_token(Token* token)
       {
         if (lookahead_char(1) == '=') {
           advance_char(1);
-          token->klass = TokenClass::ANGLE_CLOSE_EQUAL;
+          token->klass = TokenClass::AngleCloseEqual;
         } else if (lookahead_char(1) == '>') {
           advance_char(1);
-          token->klass = TokenClass::DOUBLE_ANGLE_CLOSE;
+          token->klass = TokenClass::DoubleAngleClose;
         } else {
-          token->klass = TokenClass::ANGLE_CLOSE;
+          token->klass = TokenClass::AngleClose;
         }
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
@@ -218,7 +218,7 @@ void Lexer::next_token(Token* token)
         if (cstring::is_letter(cc) || cstring::is_digit(cc, 10) || cc == '_') {
           state = 500;
         } else {
-          token->klass = TokenClass::DONTCARE;
+          token->klass = TokenClass::Dontcare;
           token->lexeme = lexeme->to_cstring(storage);
           token->column_no = lexeme->start - line_start + 1;
           advance_lexeme();
@@ -228,7 +228,7 @@ void Lexer::next_token(Token* token)
 
       case 104:
       {
-        token->klass = TokenClass::COLON;
+        token->klass = TokenClass::Colon;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -237,7 +237,7 @@ void Lexer::next_token(Token* token)
 
       case 105:
       {
-        token->klass = TokenClass::PARENTH_OPEN;
+        token->klass = TokenClass::ParenthOpen;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -247,7 +247,7 @@ void Lexer::next_token(Token* token)
 
       case 106:
       {
-        token->klass = TokenClass::PARENTH_CLOSE;
+        token->klass = TokenClass::ParenthClose;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -256,7 +256,7 @@ void Lexer::next_token(Token* token)
 
       case 107:
       {
-        token->klass = TokenClass::DOT;
+        token->klass = TokenClass::Dot;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -265,7 +265,7 @@ void Lexer::next_token(Token* token)
 
       case 108:
       {
-        token->klass = TokenClass::BRACE_OPEN;
+        token->klass = TokenClass::BraceOpen;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -274,7 +274,7 @@ void Lexer::next_token(Token* token)
 
       case 109:
       {
-        token->klass = TokenClass::BRACE_CLOSE;
+        token->klass = TokenClass::BraceClose;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -283,7 +283,7 @@ void Lexer::next_token(Token* token)
 
       case 110:
       {
-        token->klass = TokenClass::BRACKET_OPEN;
+        token->klass = TokenClass::BracketOpen;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -292,7 +292,7 @@ void Lexer::next_token(Token* token)
 
       case 111:
       {
-        token->klass = TokenClass::BRACKET_CLOSE;
+        token->klass = TokenClass::BracketClose;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -301,7 +301,7 @@ void Lexer::next_token(Token* token)
 
       case 112:
       {
-        token->klass = TokenClass::COMMA;
+        token->klass = TokenClass::Comma;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -311,10 +311,10 @@ void Lexer::next_token(Token* token)
       case 113:
       {
         Token* prev_token = tokens->get(tokens->elem_count - 1);
-        if (prev_token->klass == TokenClass::PARENTH_OPEN) {
-          token->klass = TokenClass::UNARY_MINUS;
+        if (prev_token->klass == TokenClass::ParenthOpen) {
+          token->klass = TokenClass::UnaryMinus;
         } else {
-          token->klass = TokenClass::MINUS;
+          token->klass = TokenClass::Minus;
         }
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
@@ -324,7 +324,7 @@ void Lexer::next_token(Token* token)
 
       case 114:
       {
-        token->klass = TokenClass::PLUS;
+        token->klass = TokenClass::Plus;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -333,7 +333,7 @@ void Lexer::next_token(Token* token)
 
       case 115:
       {
-        token->klass = TokenClass::STAR;
+        token->klass = TokenClass::Star;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -348,7 +348,7 @@ void Lexer::next_token(Token* token)
         } else if (lookahead_char(1) == '/') {
           state = 311;
         } else {
-          token->klass = TokenClass::SLASH;
+          token->klass = TokenClass::Slash;
           token->lexeme = lexeme->to_cstring(storage);
           token->column_no = lexeme->start - line_start + 1;
           advance_lexeme();
@@ -360,9 +360,9 @@ void Lexer::next_token(Token* token)
       {
         if (lookahead_char(1) == '=') {
           advance_char(1);
-          token->klass = TokenClass::DOUBLE_EQUAL;
+          token->klass = TokenClass::DoubleEqual;
         } else {
-          token->klass = TokenClass::EQUAL;
+          token->klass = TokenClass::Equal;
         }
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
@@ -374,9 +374,9 @@ void Lexer::next_token(Token* token)
       {
         if (lookahead_char(1) == '=') {
           advance_char(1);
-          token->klass = TokenClass::EXCLAMATION_EQUAL;
+          token->klass = TokenClass::ExclamationEqual;
         } else {
-          token->klass = TokenClass::EXCLAMATION;
+          token->klass = TokenClass::Exclamation;
         }
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
@@ -390,12 +390,12 @@ void Lexer::next_token(Token* token)
           advance_char(1);
           if (lookahead_char(1) == '&') {
             advance_char(1);
-            token->klass = TokenClass::TRIPLE_AMPERSAND;
+            token->klass = TokenClass::TripleAmpersand;
           } else {
-            token->klass = TokenClass::DOUBLE_AMPERSAND;
+            token->klass = TokenClass::DoubleAmpersand;
           }
         } else {
-          token->klass = TokenClass::AMPERSAND;
+          token->klass = TokenClass::Ampersand;
         }
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
@@ -407,9 +407,9 @@ void Lexer::next_token(Token* token)
       {
         if (lookahead_char(1) == '|') {
           advance_char(1);
-          token->klass = TokenClass::DOUBLE_PIPE;
+          token->klass = TokenClass::DoublePipe;
         } else {
-          token->klass = TokenClass::PIPE;
+          token->klass = TokenClass::Pipe;
         }
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
@@ -419,7 +419,7 @@ void Lexer::next_token(Token* token)
 
       case 121:
       {
-        token->klass = TokenClass::CIRCUMFLEX;
+        token->klass = TokenClass::Circumflex;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -428,7 +428,7 @@ void Lexer::next_token(Token* token)
 
       case 122:
       {
-        token->klass = TokenClass::TILDA;
+        token->klass = TokenClass::Tilda;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -447,7 +447,7 @@ void Lexer::next_token(Token* token)
           }
         } while (c != '"');
 
-        token->klass = TokenClass::STRING_LITERAL;
+        token->klass = TokenClass::StringLiteral;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -483,7 +483,7 @@ void Lexer::next_token(Token* token)
 
         if (lookahead_char(1) == '/') {
           advance_char(1);
-          token->klass = TokenClass::COMMENT;
+          token->klass = TokenClass::Comment;
           token->lexeme = lexeme->to_cstring(storage);
           advance_lexeme();
           line_start = lexeme->start;
@@ -500,7 +500,7 @@ void Lexer::next_token(Token* token)
         } while (c != '\n' && c != '\r');
 
         line_no += 1;
-        token->klass = TokenClass::COMMENT;
+        token->klass = TokenClass::Comment;
         token->lexeme = lexeme->to_cstring(storage);
         advance_lexeme();
         line_start = lexeme->start;
@@ -537,7 +537,7 @@ void Lexer::next_token(Token* token)
           c = advance_char(1);
         } while (cstring::is_digit(c, 10));
         if (c == 'w' || c == 's') {
-          token->klass = TokenClass::INTEGER_LITERAL;
+          token->klass = TokenClass::IntegerLiteral;
           if (c == 's') {
             token->integer.is_signed = 1;
           }
@@ -548,7 +548,7 @@ void Lexer::next_token(Token* token)
         } else {
           retract_char();
           lexeme[1].end = lexeme->end;
-          token->klass = TokenClass::INTEGER_LITERAL;
+          token->klass = TokenClass::IntegerLiteral;
           token->integer.is_signed = 1;
           to_integer_token(token, &lexeme[1], 10);
           token->lexeme = lexeme->to_cstring(storage);
@@ -568,7 +568,7 @@ void Lexer::next_token(Token* token)
         } while (cstring::is_digit(c, 16) || c == '_');
         retract_char();
         lexeme[1].end = lexeme->end;
-        token->klass = TokenClass::INTEGER_LITERAL;
+        token->klass = TokenClass::IntegerLiteral;
         token->integer.is_signed = 1;
         to_integer_token(token, &lexeme[1], 16);
         token->lexeme = lexeme->to_cstring(storage);
@@ -587,7 +587,7 @@ void Lexer::next_token(Token* token)
         } while (cstring::is_digit(c, 8) || c == '_');
         retract_char();
         lexeme[1].end = lexeme->end;
-        token->klass = TokenClass::INTEGER_LITERAL;
+        token->klass = TokenClass::IntegerLiteral;
         token->integer.is_signed = 1;
         to_integer_token(token, &lexeme[1], 8);
         token->lexeme = lexeme->to_cstring(storage);
@@ -606,7 +606,7 @@ void Lexer::next_token(Token* token)
         } while (cstring::is_digit(c, 2) || c == '_');
         retract_char();
         lexeme[1].end = lexeme->end;
-        token->klass = TokenClass::INTEGER_LITERAL;
+        token->klass = TokenClass::IntegerLiteral;
         token->integer.is_signed = 1;
         to_integer_token(token, &lexeme[1], 2);
         token->lexeme = lexeme->to_cstring(storage);
@@ -710,7 +710,7 @@ void Lexer::next_token(Token* token)
           c = advance_char(1);
         } while (cstring::is_letter(c) || cstring::is_digit(c, 10) || c == '_');
         retract_char();
-        token->klass = TokenClass::IDENTIFIER;
+        token->klass = TokenClass::Identifier;
         token->lexeme = lexeme->to_cstring(storage);
         token->column_no = lexeme->start - line_start + 1;
         advance_lexeme();
@@ -732,16 +732,16 @@ void Lexer::tokenize(SourceText* source_text)
   line_start = text;
   line_no = 1;
 
-  token.klass = TokenClass::START_OF_INPUT;
+  token.klass = TokenClass::StartOfInput;
   tokens = Array<Token>::create(storage, 7);
   *tokens->append() = token;
 
   next_token(&token);
   *tokens->append() = token;
-  while (token.klass != TokenClass::END_OF_INPUT) {
-    if (token.klass == TokenClass::UNKNOWN) {
+  while (token.klass != TokenClass::EndOfInput) {
+    if (token.klass == TokenClass::Unknown) {
       error("%s:%d:%d: error: unknown token.", filename, token.line_no, token.column_no);
-    } else if (token.klass == TokenClass::LEXICAL_ERROR) {
+    } else if (token.klass == TokenClass::LexicalError) {
       error("%s:%d:%d: error: lexical error.", filename, token.line_no, token.column_no);
     }
     next_token(&token);

@@ -3,9 +3,9 @@
 #include <type.h>
 
 enum class NameSpace : int {
-  VAR = 1 << 0,
-  TYPE = 1 << 1,
-  KEYWORD = 1 << 2,
+  Var = 1 << 0,
+  Type = 1 << 1,
+  Keyword = 1 << 2,
 };
 #define NameSpace_COUNT 3
 inline NameSpace operator | (NameSpace lhs, NameSpace rhs) {

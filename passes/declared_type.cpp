@@ -31,85 +31,85 @@ void DeclaredTypePass::define_builtin_types()
   };
 
   for (int i = 0; i < sizeof(base_types) / sizeof(base_types[0]); i++) {
-    NameEntry* name_entry = root_scope->lookup(base_types[i], NameSpace::TYPE);
-    NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::TYPE);
+    NameEntry* name_entry = root_scope->lookup(base_types[i], NameSpace::Type);
+    NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
     type_env->insert(name_decl->ast, name_decl->type, 0);
   }
 
   Ast* ast;
   Type* ty;
 
-  ast = root_scope->lookup_builtin("accept", NameSpace::VAR)->ast;
+  ast = root_scope->lookup_builtin("accept", NameSpace::Var)->ast;
   ty = type_array->append();
-  ty->ty_former = TypeEnum::STATE;
+  ty->ty_former = TypeEnum::State;
   type_env->insert(ast, ty, 0);
 
-  ast = root_scope->lookup_builtin("reject", NameSpace::VAR)->ast;
+  ast = root_scope->lookup_builtin("reject", NameSpace::Var)->ast;
   ty = type_array->append();
-  ty->ty_former = TypeEnum::STATE;
+  ty->ty_former = TypeEnum::State;
   type_env->insert(ast, ty, 0);
 
   for (int i = 0; i < sizeof(arithmetic_ops) / sizeof(arithmetic_ops[0]); i++) {
     Type* ty = type_array->append();
     ty->strname = arithmetic_ops[i];
-    ty->ty_former = TypeEnum::FUNCTION;
+    ty->ty_former = TypeEnum::Function;
     Type* params_ty = type_array->append();
-    params_ty->ty_former = TypeEnum::PRODUCT;
+    params_ty->ty_former = TypeEnum::Product;
     params_ty->product.count = 2;
     params_ty->product.members = storage->allocate<Type*>(params_ty->product.count);
-    params_ty->product.members[0] = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
-    params_ty->product.members[1] = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
+    params_ty->product.members[0] = root_scope->lookup_builtin("int", NameSpace::Type)->type;
+    params_ty->product.members[1] = root_scope->lookup_builtin("int", NameSpace::Type)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
-    NameDeclaration* name_decl = root_scope->bind_name(storage, ty->strname, NameSpace::TYPE);
+    ty->function.return_ = root_scope->lookup_builtin("int", NameSpace::Type)->type;
+    NameDeclaration* name_decl = root_scope->bind_name(storage, ty->strname, NameSpace::Type);
     name_decl->type = ty;
   }
 
   for (int i = 0; i < sizeof(logical_ops) / sizeof(logical_ops[0]); i++) {
     Type* ty = type_array->append();
     ty->strname = logical_ops[i];
-    ty->ty_former = TypeEnum::FUNCTION;
+    ty->ty_former = TypeEnum::Function;
     Type* params_ty = type_array->append();
-    params_ty->ty_former = TypeEnum::PRODUCT;
+    params_ty->ty_former = TypeEnum::Product;
     params_ty->product.count = 2;
     params_ty->product.members = storage->allocate<Type*>(params_ty->product.count);
-    params_ty->product.members[0] = root_scope->lookup_builtin("bool", NameSpace::TYPE)->type;
-    params_ty->product.members[1] = root_scope->lookup_builtin("bool", NameSpace::TYPE)->type;
+    params_ty->product.members[0] = root_scope->lookup_builtin("bool", NameSpace::Type)->type;
+    params_ty->product.members[1] = root_scope->lookup_builtin("bool", NameSpace::Type)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = root_scope->lookup_builtin("bool", NameSpace::TYPE)->type;
-    NameDeclaration* name_decl = root_scope->bind_name(storage, ty->strname, NameSpace::TYPE);
+    ty->function.return_ = root_scope->lookup_builtin("bool", NameSpace::Type)->type;
+    NameDeclaration* name_decl = root_scope->bind_name(storage, ty->strname, NameSpace::Type);
     name_decl->type = ty;
   }
 
   for (int i = 0; i < sizeof(relational_ops) / sizeof(relational_ops[0]); i++) {
     Type* ty = type_array->append();
     ty->strname = relational_ops[i];
-    ty->ty_former = TypeEnum::FUNCTION;
+    ty->ty_former = TypeEnum::Function;
     Type* params_ty = type_array->append();
-    params_ty->ty_former = TypeEnum::PRODUCT;
+    params_ty->ty_former = TypeEnum::Product;
     params_ty->product.count = 2;
     params_ty->product.members = storage->allocate<Type*>(params_ty->product.count);
-    params_ty->product.members[0] = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
-    params_ty->product.members[1] = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
+    params_ty->product.members[0] = root_scope->lookup_builtin("int", NameSpace::Type)->type;
+    params_ty->product.members[1] = root_scope->lookup_builtin("int", NameSpace::Type)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = root_scope->lookup_builtin("bool", NameSpace::TYPE)->type;
-    NameDeclaration* name_decl = root_scope->bind_name(storage, ty->strname, NameSpace::TYPE);
+    ty->function.return_ = root_scope->lookup_builtin("bool", NameSpace::Type)->type;
+    NameDeclaration* name_decl = root_scope->bind_name(storage, ty->strname, NameSpace::Type);
     name_decl->type = ty;
   }
 
   for (int i = 0; i < sizeof(bitwise_ops) / sizeof(bitwise_ops[0]); i++) {
     Type* ty = type_array->append();
     ty->strname = bitwise_ops[i];
-    ty->ty_former = TypeEnum::FUNCTION;
+    ty->ty_former = TypeEnum::Function;
     Type* params_ty = type_array->append();
-    params_ty->ty_former = TypeEnum::PRODUCT;
+    params_ty->ty_former = TypeEnum::Product;
     params_ty->product.count = 2;
     params_ty->product.members = storage->allocate<Type*>(params_ty->product.count);
-    params_ty->product.members[0] = root_scope->lookup_builtin("bit", NameSpace::TYPE)->type;
-    params_ty->product.members[1] = root_scope->lookup_builtin("bit", NameSpace::TYPE)->type;
+    params_ty->product.members[0] = root_scope->lookup_builtin("bit", NameSpace::Type)->type;
+    params_ty->product.members[1] = root_scope->lookup_builtin("bit", NameSpace::Type)->type;
     ty->function.params = params_ty;
-    ty->function.return_ = root_scope->lookup_builtin("bit", NameSpace::TYPE)->type;
-    NameDeclaration* name_decl = root_scope->bind_name(storage, ty->strname, NameSpace::TYPE);
+    ty->function.return_ = root_scope->lookup_builtin("bit", NameSpace::Type)->type;
+    NameDeclaration* name_decl = root_scope->bind_name(storage, ty->strname, NameSpace::Type);
     name_decl->type = ty;
   }
 }
@@ -156,15 +156,15 @@ void DeclaredTypePass::do_pass()
   visit_p4program(p4program);
   for (int i = 0; i < type_array->elem_count; i++) {
     Type* ty = type_array->get(i);
-    if (ty->ty_former == TypeEnum::NAMEREF) {
+    if (ty->ty_former == TypeEnum::Nameref) {
       Ast* name = ty->nameref.name;
-      NameEntry* name_entry = ty->nameref.scope->lookup(name->name.strname, NameSpace::TYPE);
-      NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::TYPE);
+      NameEntry* name_entry = ty->nameref.scope->lookup(name->name.strname, NameSpace::Type);
+      NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
       if (name_decl) {
         Type* ref_ty = type_env->lookup(name_decl->ast, 0);
         assert(ref_ty);
         name_decl->type = ref_ty;
-        ty->ty_former = TypeEnum::TYPE;
+        ty->ty_former = TypeEnum::Type;
         ty->type.type = ref_ty;
         if (name_decl->next_in_scope) {
           error("%s:%d:%d: error: ambiguous type reference `%s`.",
@@ -177,24 +177,24 @@ void DeclaredTypePass::do_pass()
 
   for (int i = 0; i < type_array->elem_count; i++) {
     Type* ty = type_array->get(i);
-    if (ty->ty_former == TypeEnum::TYPEDEF) {
+    if (ty->ty_former == TypeEnum::Typedef) {
       Type* ref_ty = ty->typedef_.ref->actual_type();
-      while (ref_ty->ty_former == TypeEnum::TYPEDEF) {
+      while (ref_ty->ty_former == TypeEnum::Typedef) {
         ref_ty = ref_ty->typedef_.ref->actual_type();
       }
-      ty->ty_former = TypeEnum::TYPE;
+      ty->ty_former = TypeEnum::Type;
       ty->type.type = ref_ty;
     }
   }
 
   for (int i = 0; i < type_array->elem_count; i++) {
     Type* ty = type_array->get(i);
-    if (ty->ty_former == TypeEnum::TYPE) {
+    if (ty->ty_former == TypeEnum::Type) {
       Type* ref_ty = ty->type.type->actual_type();
-      while (ref_ty->ty_former == TypeEnum::TYPE) {
+      while (ref_ty->ty_former == TypeEnum::Type) {
         ref_ty = ref_ty->type.type->actual_type();
       }
-      ty->ty_former = TypeEnum::TYPE;
+      ty->ty_former = TypeEnum::Type;
       ty->type.type = ref_ty;
     }
   }
@@ -252,7 +252,7 @@ void DeclaredTypePass::visit_name(Ast* name)
 {
   assert(name->kind == AstEnum::name);
   Type* name_ty = type_array->append();
-  name_ty->ty_former = TypeEnum::NAMEREF;
+  name_ty->ty_former = TypeEnum::Nameref;
   name_ty->strname = name->name.strname;
   name_ty->ast = name;
   name_ty->nameref.name = name;
@@ -266,7 +266,7 @@ void DeclaredTypePass::visit_parameterList(Ast* params)
   TreeIterator<Ast> it;
 
   Type* params_ty = type_array->append();
-  params_ty->ty_former = TypeEnum::PRODUCT;
+  params_ty->ty_former = TypeEnum::Product;
   params_ty->ast = params;
 
   it.begin(&params->tree);
@@ -311,7 +311,7 @@ void DeclaredTypePass::visit_packageTypeDeclaration(Ast* type_decl)
   visit_parameterList(type_decl->packageTypeDeclaration.params);
   Ast* name = type_decl->packageTypeDeclaration.name;
   Type* package_ty = type_array->append();
-  package_ty->ty_former = TypeEnum::PACKAGE;
+  package_ty->ty_former = TypeEnum::Package;
   package_ty->strname = name->name.strname;
   package_ty->ast = type_decl;
   package_ty->package.params = type_env->lookup(type_decl->packageTypeDeclaration.params, 0);
@@ -355,7 +355,7 @@ void DeclaredTypePass::visit_parserTypeDeclaration(Ast* type_decl)
   visit_parameterList(type_decl->parserTypeDeclaration.params);
   Ast* name = type_decl->parserTypeDeclaration.name;
   Type* parser_ty = type_array->append();
-  parser_ty->ty_former = TypeEnum::PARSER;
+  parser_ty->ty_former = TypeEnum::Parser;
   parser_ty->strname = name->name.strname;
   parser_ty->ast = type_decl;
   parser_ty->parser.params = type_env->lookup(type_decl->parserTypeDeclaration.params, 0);
@@ -403,7 +403,7 @@ void DeclaredTypePass::visit_parserState(Ast* state)
 
   Ast* name = state->parserState.name;
   Type* state_ty = type_array->append();
-  state_ty->ty_former = TypeEnum::STATE;
+  state_ty->ty_former = TypeEnum::State;
   state_ty->strname = name->name.strname;
   state_ty->ast = state;
   visit_parserStatements(state->parserState.stmt_list);
@@ -546,7 +546,7 @@ void DeclaredTypePass::visit_controlTypeDeclaration(Ast* type_decl)
   visit_parameterList(type_decl->controlTypeDeclaration.params);
   Ast* name = type_decl->controlTypeDeclaration.name;
   Type* control_ty = type_array->append();
-  control_ty->ty_former = TypeEnum::CONTROL;
+  control_ty->ty_former = TypeEnum::Control;
   control_ty->strname = name->name.strname;
   control_ty->ast = type_decl;
   control_ty->control.params = type_env->lookup(type_decl->packageTypeDeclaration.params, 0);
@@ -600,7 +600,7 @@ void DeclaredTypePass::visit_externTypeDeclaration(Ast* type_decl)
 
   Ast* name = type_decl->externTypeDeclaration.name;
   Type* extern_ty = type_array->append();
-  extern_ty->ty_former = TypeEnum::EXTERN;
+  extern_ty->ty_former = TypeEnum::Extern;
   extern_ty->strname = name->name.strname;
   extern_ty->ast = type_decl;
   type_env->insert(type_decl, extern_ty, 0);
@@ -608,7 +608,7 @@ void DeclaredTypePass::visit_externTypeDeclaration(Ast* type_decl)
   Type* methods_ty = type_env->lookup(type_decl->externTypeDeclaration.method_protos, 0);
   extern_ty->extern_.methods = methods_ty;
   Type* ctors_ty = type_array->append();
-  ctors_ty->ty_former = TypeEnum::PRODUCT;
+  ctors_ty->ty_former = TypeEnum::Product;
   ctors_ty->ast = type_decl;
   for (int i = 0; i < methods_ty->product.count; i++) {
     if (cstring::match(methods_ty->product.members[i]->strname, name->name.strname)) {
@@ -634,7 +634,7 @@ void DeclaredTypePass::visit_methodPrototypes(Ast* protos, Type* ctor_ty, char* 
   TreeIterator<Ast> it;
 
   Type* methods_ty = type_array->append();
-  methods_ty->ty_former = TypeEnum::PRODUCT;
+  methods_ty->ty_former = TypeEnum::Product;
   methods_ty->ast = protos;
 
   it.begin(&protos->tree);
@@ -668,7 +668,7 @@ void DeclaredTypePass::visit_functionPrototype(Ast* func_proto, Type* ctor_ty, c
   visit_parameterList(func_proto->functionPrototype.params);
   Ast* name = func_proto->functionPrototype.name;
   Type* func_ty = type_array->append();
-  func_ty->ty_former = TypeEnum::FUNCTION;
+  func_ty->ty_former = TypeEnum::Function;
   func_ty->strname = name->name.strname;
   func_ty->ast = func_proto;
   func_ty->function.params = type_env->lookup(func_proto->functionPrototype.params, 0);
@@ -730,7 +730,7 @@ void DeclaredTypePass::visit_headerStackType(Ast* type_decl)
   visit_typeRef(type_decl->headerStackType.type);
   visit_expression(type_decl->headerStackType.stack_expr);
   Type* stack_ty = type_array->append();
-  stack_ty->ty_former = TypeEnum::STACK;
+  stack_ty->ty_former = TypeEnum::Stack;
   stack_ty->ast = type_decl;
   type_env->insert(type_decl, stack_ty, 0);
   stack_ty->header_stack.element = type_env->lookup(type_decl->headerStackType.type, 0);
@@ -831,7 +831,7 @@ void DeclaredTypePass::visit_typeArgumentList(Ast* args)
   TreeIterator<Ast> it;
 
   Type* args_ty = type_array->append();
-  args_ty->ty_former = TypeEnum::PRODUCT;
+  args_ty->ty_former = TypeEnum::Product;
   args_ty->ast = args;
 
   it.begin(&args->tree);
@@ -898,7 +898,7 @@ void DeclaredTypePass::visit_headerTypeDeclaration(Ast* header_decl)
   visit_structFieldList(header_decl->headerTypeDeclaration.fields);
   Ast* name = header_decl->headerTypeDeclaration.name;
   Type* header_ty = type_array->append();
-  header_ty->ty_former = TypeEnum::HEADER;
+  header_ty->ty_former = TypeEnum::Header;
   header_ty->strname = name->name.strname;
   header_ty->ast = header_decl;
   type_env->insert(header_decl, header_ty, 0);
@@ -914,7 +914,7 @@ void DeclaredTypePass::visit_headerUnionDeclaration(Ast* union_decl)
   visit_structFieldList(union_decl->headerUnionDeclaration.fields);
   Ast* name = union_decl->headerUnionDeclaration.name;
   Type* union_ty = type_array->append();
-  union_ty->ty_former = TypeEnum::UNION;
+  union_ty->ty_former = TypeEnum::Union;
   union_ty->strname = name->name.strname;
   union_ty->ast = union_decl;
   type_env->insert(union_decl, union_ty, 0);
@@ -930,7 +930,7 @@ void DeclaredTypePass::visit_structTypeDeclaration(Ast* struct_decl)
   visit_structFieldList(struct_decl->structTypeDeclaration.fields);
   Ast* name = struct_decl->structTypeDeclaration.name;
   Type* struct_ty = type_array->append();
-  struct_ty->ty_former = TypeEnum::STRUCT;
+  struct_ty->ty_former = TypeEnum::Struct;
   struct_ty->strname = name->name.strname;
   struct_ty->ast = struct_decl;
   type_env->insert(struct_decl, struct_ty, 0);
@@ -945,7 +945,7 @@ void DeclaredTypePass::visit_structFieldList(Ast* fields)
   TreeIterator<Ast> it;
 
   Type* fields_ty = type_array->append();
-  fields_ty->ty_former = TypeEnum::PRODUCT;
+  fields_ty->ty_former = TypeEnum::Product;
   fields_ty->ast = fields;
 
   it.begin(&fields->tree);
@@ -976,7 +976,7 @@ void DeclaredTypePass::visit_structField(Ast* field)
   visit_typeRef(field->structField.type);
   Ast* name = field->structField.name;
   Type* field_ty = type_array->append();
-  field_ty->ty_former = TypeEnum::FIELD;
+  field_ty->ty_former = TypeEnum::Field;
   field_ty->strname = name->name.strname;
   field_ty->ast = field;
   field_ty->field.type = type_env->lookup(field->structField.type, 0);
@@ -991,7 +991,7 @@ void DeclaredTypePass::visit_enumDeclaration(Ast* enum_decl)
 
   Ast* name = enum_decl->enumDeclaration.name;
   Type* enum_ty = type_array->append();
-  enum_ty->ty_former = TypeEnum::ENUM;
+  enum_ty->ty_former = TypeEnum::Enum;
   enum_ty->strname = name->name.strname;
   enum_ty->ast = enum_decl;
   type_env->insert(enum_decl, enum_ty, 0);
@@ -1005,7 +1005,7 @@ void DeclaredTypePass::visit_errorDeclaration(Ast* error_decl)
 {
   assert(error_decl->kind == AstEnum::errorDeclaration);
 
-  Type* error_ty = root_scope->lookup_builtin("error", NameSpace::TYPE)->type;
+  Type* error_ty = root_scope->lookup_builtin("error", NameSpace::Type)->type;
   Type* fields_ty = error_ty->enum_.fields;
   if (error_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = error_ty->enum_.field_count;
@@ -1019,7 +1019,7 @@ void DeclaredTypePass::visit_matchKindDeclaration(Ast* match_decl)
 {
   assert(match_decl->kind == AstEnum::matchKindDeclaration);
 
-  Type* match_kind_ty = root_scope->lookup_builtin("match_kind", NameSpace::TYPE)->type;
+  Type* match_kind_ty = root_scope->lookup_builtin("match_kind", NameSpace::Type)->type;
   Type* fields_ty = match_kind_ty->enum_.fields;
   if (match_kind_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = match_kind_ty->enum_.field_count;
@@ -1038,7 +1038,7 @@ void DeclaredTypePass::visit_identifierList(Ast* ident_list, Type* enum_ty, Type
   for (Tree<Ast>* tree = it.next();
        tree != 0; tree = it.next()) {
     Type* name_ty = type_array->append();
-    name_ty->ty_former = TypeEnum::FIELD;
+    name_ty->ty_former = TypeEnum::Field;
     name_ty->strname = Ast::owner_of(tree)->name.strname;
     name_ty->ast = Ast::owner_of(tree);
     name_ty->field.type = enum_ty;
@@ -1057,7 +1057,7 @@ void DeclaredTypePass::visit_specifiedIdentifierList(Ast* ident_list, Type* enum
   TreeIterator<Ast> it;
 
   Type* idents_ty = type_array->append();
-  idents_ty->ty_former = TypeEnum::PRODUCT;
+  idents_ty->ty_former = TypeEnum::Product;
   idents_ty->ast = ident_list;
 
   it.begin(&ident_list->tree);
@@ -1087,7 +1087,7 @@ void DeclaredTypePass::visit_specifiedIdentifier(Ast* ident, Type* enum_ty)
 
   Ast* name = ident->specifiedIdentifier.name;
   Type* ident_ty = type_array->append();
-  ident_ty->ty_former = TypeEnum::FIELD;
+  ident_ty->ty_former = TypeEnum::Field;
   ident_ty->strname = name->name.strname;
   ident_ty->ast = ident;
   ident_ty->field.type = enum_ty;
@@ -1107,7 +1107,7 @@ void DeclaredTypePass::visit_typedefDeclaration(Ast* typedef_decl)
   } else assert(0);
   Ast* name = typedef_decl->typedefDeclaration.name;
   Type* typedef_ty = type_array->append();
-  typedef_ty->ty_former = TypeEnum::TYPEDEF;
+  typedef_ty->ty_former = TypeEnum::Typedef;
   typedef_ty->strname = name->name.strname;
   typedef_ty->ast = typedef_decl;
   type_env->insert(typedef_decl, typedef_ty, 0);
@@ -1269,7 +1269,7 @@ void DeclaredTypePass::visit_tableDeclaration(Ast* table_decl)
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
   Ast* name = table_decl->tableDeclaration.name;
   Type* table_ty = type_array->append();
-  table_ty->ty_former = TypeEnum::TABLE;
+  table_ty->ty_former = TypeEnum::Table;
   table_ty->strname = name->name.strname;
   table_ty->ast = table_decl;
   type_env->insert(table_decl, table_ty, 0);
@@ -1362,12 +1362,12 @@ void DeclaredTypePass::visit_actionDeclaration(Ast* action_decl)
   visit_blockStatement(action_decl->actionDeclaration.stmt);
   Ast* name = action_decl->actionDeclaration.name;
   Type* action_ty = type_array->append();
-  action_ty->ty_former = TypeEnum::FUNCTION;
+  action_ty->ty_former = TypeEnum::Function;
   action_ty->strname = name->name.strname;
   action_ty->ast = action_decl;
   action_ty->function.params = type_env->lookup(action_decl->actionDeclaration.params, 0);
   type_env->insert(action_decl, action_ty, 0);
-  action_ty->function.return_ = root_scope->lookup_builtin("void", NameSpace::TYPE)->type;
+  action_ty->function.return_ = root_scope->lookup_builtin("void", NameSpace::Type)->type;
   NameDeclaration* name_decl = decl_map->lookup(action_decl, 0);
   name_decl->type = action_ty;
 }
@@ -1518,7 +1518,7 @@ void DeclaredTypePass::visit_indexExpression(Ast* index_expr)
   if (index_expr->indexExpression.end_index) {
     visit_expression(index_expr->indexExpression.end_index);
   }
-  Type* ty = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
+  Type* ty = root_scope->lookup_builtin("int", NameSpace::Type)->type;
   type_env->insert(index_expr, ty, 0);
 }
 
@@ -1526,7 +1526,7 @@ void DeclaredTypePass::visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AstEnum::booleanLiteral);
 
-  Type* ty = root_scope->lookup_builtin("bool", NameSpace::TYPE)->type;
+  Type* ty = root_scope->lookup_builtin("bool", NameSpace::Type)->type;
   type_env->insert(bool_literal, ty, 0);
 }
 
@@ -1534,7 +1534,7 @@ void DeclaredTypePass::visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AstEnum::integerLiteral);
 
-  Type* ty = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
+  Type* ty = root_scope->lookup_builtin("int", NameSpace::Type)->type;
   type_env->insert(int_literal, ty, 0);
 }
 
@@ -1542,7 +1542,7 @@ void DeclaredTypePass::visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AstEnum::stringLiteral);
 
-  Type* ty = root_scope->lookup_builtin("string", NameSpace::TYPE)->type;
+  Type* ty = root_scope->lookup_builtin("string", NameSpace::Type)->type;
   type_env->insert(str_literal, ty, 0);
 }
 
@@ -1550,7 +1550,7 @@ void DeclaredTypePass::visit_default(Ast* default_)
 {
   assert(default_->kind == AstEnum::default_);
 
-  Type* ty = root_scope->lookup_builtin("_", NameSpace::TYPE)->type;
+  Type* ty = root_scope->lookup_builtin("_", NameSpace::Type)->type;
   type_env->insert(default_, ty, 0);
 }
 
@@ -1558,7 +1558,7 @@ void DeclaredTypePass::visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AstEnum::dontcare);
 
-  Type* ty = root_scope->lookup_builtin("_", NameSpace::TYPE)->type;
+  Type* ty = root_scope->lookup_builtin("_", NameSpace::Type)->type;
   type_env->insert(dontcare, ty, 0);
 }
 

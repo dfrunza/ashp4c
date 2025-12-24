@@ -4,9 +4,9 @@
 char* NameSpace_to_string(enum NameSpace ns)
 {
   switch (ns) {
-    case NameSpace::VAR: return "VAR";
-    case NameSpace::TYPE: return "TYPE";
-    case NameSpace::KEYWORD: return "KEYWORD";
+    case NameSpace::Var: return "VAR";
+    case NameSpace::Type: return "TYPE";
+    case NameSpace::Keyword: return "KEYWORD";
 
     default: return "?";
   }

@@ -273,7 +273,7 @@ void SelectTypePass::visit_simpleKeysetExpression(Ast* simple_expr, Type* requir
       visit_dontcare(simple_expr->simpleKeysetExpression.expr);
     } else assert(0);
     Type* simple_ty = type_array->append();
-    simple_ty->ty_former = TypeEnum::PRODUCT;
+    simple_ty->ty_former = TypeEnum::Product;
     simple_ty->ast = simple_expr;
     simple_ty->product.count = 1;
     simple_ty->product.members = storage->allocate<Type*>(simple_ty->product.count);
@@ -288,7 +288,7 @@ void SelectTypePass::visit_simpleExpressionList(Ast* expr_list, Type* required_t
   TreeIterator<Ast> it;
 
   Type* list_ty = type_array->append();
-  list_ty->ty_former = TypeEnum::PRODUCT;
+  list_ty->ty_former = TypeEnum::Product;
   list_ty->ast = expr_list;
 
   it.begin(&expr_list->tree);
@@ -433,7 +433,7 @@ void SelectTypePass::visit_headerStackType(Ast* type_decl)
 {
   assert(type_decl->kind == AstEnum::headerStackType);
 
-  Type* index_ty = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
+  Type* index_ty = root_scope->lookup_builtin("int", NameSpace::Type)->type;
   visit_expression(type_decl->headerStackType.stack_expr, index_ty);
 }
 
@@ -441,7 +441,7 @@ void SelectTypePass::visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AstEnum::baseTypeBoolean);
 
-  Type* bool_ty = root_scope->lookup_builtin("bool", NameSpace::TYPE)->type;
+  Type* bool_ty = root_scope->lookup_builtin("bool", NameSpace::Type)->type;
   type_env->insert(bool_type, bool_ty, 0);
 }
 
@@ -452,7 +452,7 @@ void SelectTypePass::visit_baseTypeInteger(Ast* int_type)
   if (int_type->baseTypeInteger.size) {
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
-  Type* int_ty = root_scope->lookup_builtin("int", NameSpace::TYPE)->type;
+  Type* int_ty = root_scope->lookup_builtin("int", NameSpace::Type)->type;
   type_env->insert(int_type, int_ty, 0);
 }
 
@@ -463,7 +463,7 @@ void SelectTypePass::visit_baseTypeBit(Ast* bit_type)
   if (bit_type->baseTypeBit.size) {
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
-  Type* bit_ty = root_scope->lookup_builtin("bit", NameSpace::TYPE)->type;
+  Type* bit_ty = root_scope->lookup_builtin("bit", NameSpace::Type)->type;
   type_env->insert(bit_type, bit_ty, 0);
 }
 
@@ -471,7 +471,7 @@ void SelectTypePass::visit_baseTypeVarbit(Ast* varbit_type)
 {
   assert(varbit_type->kind == AstEnum::baseTypeVarbit);
 
-  Type* varbit_ty = root_scope->lookup_builtin("varbit", NameSpace::TYPE)->type;
+  Type* varbit_ty = root_scope->lookup_builtin("varbit", NameSpace::Type)->type;
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
   type_env->insert(varbit_type, varbit_ty, 0);
 }
@@ -480,7 +480,7 @@ void SelectTypePass::visit_baseTypeString(Ast* string_type)
 {
   assert(string_type->kind == AstEnum::baseTypeString);
 
-  Type* string_ty = root_scope->lookup_builtin("string", NameSpace::TYPE)->type;
+  Type* string_ty = root_scope->lookup_builtin("string", NameSpace::Type)->type;
   type_env->insert(string_type, string_ty, 0);
 }
 
@@ -488,7 +488,7 @@ void SelectTypePass::visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AstEnum::baseTypeVoid);
 
-  Type* void_ty = root_scope->lookup_builtin("void", NameSpace::TYPE)->type;
+  Type* void_ty = root_scope->lookup_builtin("void", NameSpace::Type)->type;
   type_env->insert(void_type, void_ty, 0);
 }
 
@@ -496,7 +496,7 @@ void SelectTypePass::visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AstEnum::baseTypeError);
 
-  Type* error_ty = root_scope->lookup_builtin("error", NameSpace::TYPE)->type;
+  Type* error_ty = root_scope->lookup_builtin("error", NameSpace::Type)->type;
   type_env->insert(error_type, error_ty, 0);
 }
 
@@ -957,7 +957,7 @@ void SelectTypePass::visit_expressionList(Ast* expr_list, Type* required_ty)
   TreeIterator<Ast> it;
 
   Type* list_ty = type_array->append();
-  list_ty->ty_former = TypeEnum::PRODUCT;
+  list_ty->ty_former = TypeEnum::Product;
   list_ty->ast = expr_list;
 
   it.begin(&expr_list->tree);
