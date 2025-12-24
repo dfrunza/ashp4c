@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 project(ashp4c)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS
     "-g3 -ggdb \
     -fpermissive -fms-extensions \
@@ -38,7 +38,9 @@ add_executable(ashp4c
         type_checker.h
         tree.h
         list.h
+        potential_type.h
         namespace.cpp
+        potential_type.cpp
         passes/builtin_methods.cpp
         passes/builtin_methods.h
         passes/declared_type.cpp

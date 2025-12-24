@@ -11,10 +11,12 @@ struct TypeChecker {
     type_equiv_pairs = Array<Type>::create(storage, 2);
   }
 
-  bool match_type(PotentialType* potential_types, Type* required_ty)
+  bool match_type(PotentialType_Set* potential_types, Type* required_ty)
   {
+    assert(potential_types->kind == PotentialTypeEnum::Set);
+
     int i = 0;
-    for (MapEntry<Type, void>* m = potential_types->set.members.first; m != 0; m = m->next) {
+    for (MapEntry<Type, void>* m = potential_types->members.first; m != 0; m = m->next) {
       Type* ty = m->key->effective_type();
       if (type_equiv(ty, required_ty->actual_type())) {
         i += 1;
@@ -23,29 +25,36 @@ struct TypeChecker {
     return (i == 1);
   }
 
-  bool match_params(PotentialType* potential_args, Type* params_ty)
+  bool match_params(PotentialType_Product* potential_args, Type* params_ty)
   {
+    assert(potential_args->kind == PotentialTypeEnum::Product);
+
     int i = 0;
-    if (params_ty->product.count != potential_args->product.arity) return 0;
+    if (params_ty->product.count != potential_args->arity) return 0;
     for (i = 0; i < params_ty->product.count; i++) {
-      if (!match_type(potential_args->product.members[i],
+      if (!match_type((PotentialType_Set*)potential_args->members[i],
                       params_ty->product.members[i])) break;
     }
     return (i == params_ty->product.count);
   }
 
-  void collect_matching_member(PotentialType* tau, Type* product_ty,
-        char* strname, PotentialType* potential_args)
+  void collect_matching_member(PotentialType_Set* tau, Type* product_ty,
+        char* strname, PotentialType_Product* potential_args)
   {
+    assert(tau->kind == PotentialTypeEnum::Set);
+    if (potential_args) { // FIXME:
+      assert(potential_args->kind == PotentialTypeEnum::Product);
+    }
+
     for (int i = 0; i < product_ty->product.count; i++) {
       Type* member_ty = product_ty->product.members[i];
       if (cstring::match(member_ty->strname, strname)) {
         if (member_ty->ty_former == TypeEnum::FUNCTION) {
           if (match_params(potential_args, member_ty->function.params)) {
-            tau->set.members.insert(member_ty, 0, 1);
+            tau->members.insert(member_ty, 0, 1);
           }
         } else {
-          tau->set.members.insert(member_ty, 0, 1);
+          tau->members.insert(member_ty, 0, 1);
         }
       }
     }

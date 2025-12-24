@@ -1,31 +1,49 @@
 #pragma once
 #include <map.h>
+#include <type.h>
 
 enum class PotentialTypeEnum : int {
-  NONE = 0,
-  SET,
-  PRODUCT,
+  None = 0,
+  Set,
+  Product,
 };
 
-struct PotentialType;
+struct PotentialType {
+  enum PotentialTypeEnum kind;
+  size_t size;
+};
 
-struct PotentialType_Set {
+struct PotentialType_Set: PotentialType {
   Map<Type, void> members;
+
+  static PotentialType_Set* create(Arena* storage)
+  {
+    PotentialType_Set* object = storage->allocate<PotentialType_Set>();
+    object->kind = PotentialTypeEnum::Set;
+    object->size = sizeof(PotentialType_Set);
+    object->members.storage = storage;
+    return object;
+  }
 
   void add(Type* ty) {
     members.insert(ty, 0, 0);
   };
 };
 
-struct PotentialType_Product {
+struct PotentialType_Product: PotentialType {
   PotentialType** members;
   int arity;
 
-  void create(Arena* storage, int arity) {
-    this->arity = arity;
+  static PotentialType_Product* create(Arena* storage, int arity) {
+    PotentialType_Product* object = storage->allocate<PotentialType_Product>();
+    object->kind = PotentialTypeEnum::Product;
+    object->size = sizeof(PotentialType_Product);
+    object->arity = arity;
+    object->members = 0;
     if (arity > 0) {
-      members = storage->allocate<PotentialType*>(arity);
+      object->members = storage->allocate<PotentialType*>(arity);
     }
+    return object;
   }
 
   PotentialType* get(int i)
@@ -38,27 +56,5 @@ struct PotentialType_Product {
   {
     assert(i >= 0 && i < arity);
     members[i] = m;
-  }
-};
-
-struct PotentialType {
-  enum PotentialTypeEnum kind;
-
-  union {
-    PotentialType_Set set;
-    PotentialType_Product product;
-  };
-
-  static PotentialType* create(Arena* storage, enum PotentialTypeEnum kind)
-  {
-    PotentialType* potype = storage->allocate<PotentialType>();
-    potype->kind = kind;
-    if (potype->kind == PotentialTypeEnum::SET) {
-      potype->set.members.storage = storage;
-    } else if (potype->kind == PotentialTypeEnum::PRODUCT) {
-      potype->product.members = 0;
-      potype->product.arity = 0;
-    }
-    return potype;
   }
 };

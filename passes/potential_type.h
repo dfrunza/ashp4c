@@ -24,7 +24,7 @@ struct PotentialTypePass {
   void visit_p4program(Ast* p4program);
   void visit_declarationList(Ast* decl_list);
   void visit_declaration(Ast* decl);
-  void visit_name(Ast* name, PotentialType* potential_args);
+  void visit_name(Ast* name, PotentialType_Product* potential_args);
   void visit_parameterList(Ast* params);
   void visit_parameter(Ast* param);
   void visit_packageTypeDeclaration(Ast* package_decl);
@@ -140,12 +140,12 @@ struct PotentialTypePass {
   void visit_argumentList(Ast* args);
   void visit_argument(Ast* arg);
   void visit_expressionList(Ast* expr_list);
-  void visit_lvalueExpression(Ast* lvalue_expr, PotentialType* potential_args);
-  void visit_expression(Ast* expr, PotentialType* potential_args);
+  void visit_lvalueExpression(Ast* lvalue_expr, PotentialType_Product* potential_args);
+  void visit_expression(Ast* expr, PotentialType_Product* potential_args);
   void visit_castExpression(Ast* cast_expr);
   void visit_unaryExpression(Ast* unary_expr);
   void visit_binaryExpression(Ast* binary_expr);
-  void visit_memberSelector(Ast* selector, PotentialType* potential_args);
+  void visit_memberSelector(Ast* selector, PotentialType_Product* potential_args);
   void visit_arraySubscript(Ast* subscript);
   void visit_indexExpression(Ast* index_expr);
   void visit_booleanLiteral(Ast* bool_literal);
