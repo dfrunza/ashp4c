@@ -135,7 +135,7 @@ void DEBUG_print_type_env(Map<Ast, Type>* env)
 
 void DEBUG_print_type_array(Array<Type>* type_array)
 {
-  for (int i = 0; i < type_array->elem_count; i++) {
+  for (int i = 0; i < type_array->element_count; i++) {
     Type* ty = type_array->get(i);
     ty = ty->actual_type();
 
@@ -154,7 +154,7 @@ void DeclaredTypePass::do_pass()
 
   define_builtin_types();
   visit_p4program(p4program);
-  for (int i = 0; i < type_array->elem_count; i++) {
+  for (int i = 0; i < type_array->element_count; i++) {
     Type* ty = type_array->get(i);
     if (ty->kind == TypeEnum::Nameref) {
       Ast* name = ty->nameref.name;
@@ -175,7 +175,7 @@ void DeclaredTypePass::do_pass()
     }
   }
 
-  for (int i = 0; i < type_array->elem_count; i++) {
+  for (int i = 0; i < type_array->element_count; i++) {
     Type* ty = type_array->get(i);
     if (ty->kind == TypeEnum::Typedef) {
       Type* ref_ty = ty->typedef_.ref->actual_type();
@@ -187,7 +187,7 @@ void DeclaredTypePass::do_pass()
     }
   }
 
-  for (int i = 0; i < type_array->elem_count; i++) {
+  for (int i = 0; i < type_array->element_count; i++) {
     Type* ty = type_array->get(i);
     if (ty->kind == TypeEnum::Type) {
       Type* ref_ty = ty->type.type->actual_type();

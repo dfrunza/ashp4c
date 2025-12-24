@@ -58,7 +58,7 @@ void Parser::define_keywords(Scope* scope)
 
 Token* Parser::next_token()
 {
-  assert(token_at < tokens->elem_count);
+  assert(token_at < tokens->element_count);
 
   prev_token = token;
   prev_token_at = token_at;

@@ -42,7 +42,7 @@ struct TypeChecker {
         char* strname, PotentialType_Product* potential_args)
   {
     assert(tau->kind == PotentialTypeEnum::Set);
-    if (potential_args) { // FIXME:
+    if (potential_args) { // FIXME
       assert(potential_args->kind == PotentialTypeEnum::Product);
     }
 
@@ -75,7 +75,7 @@ struct TypeChecker {
     right = right->actual_type();
     if (left == right) return 1;
 
-    for (i = 0; i < type_equiv_pairs->elem_count; i++) {
+    for (i = 0; i < type_equiv_pairs->element_count; i++) {
       type_pair = type_equiv_pairs->get(i);
       assert(type_pair->kind == TypeEnum::Tuple);
       if ((left == type_pair->tuple.left || left == type_pair->tuple.right) &&
@@ -175,7 +175,7 @@ struct TypeChecker {
 
   bool type_equiv(Type* left, Type* right)
   {
-    this->type_equiv_pairs->elem_count = 0;
+    this->type_equiv_pairs->element_count = 0;
     return structural_type_equiv(left, right);
   }
 };

@@ -74,10 +74,10 @@ void PotentialTypePass::visit_declaration(Ast* decl)
 void PotentialTypePass::visit_name(Ast* name, PotentialType_Product* potential_args)
 {
   assert(name->kind == AstEnum::name);
-  static Array<Type*>* name_ty;
+  static Array<Type*>* name_ty; // FIXME
 
   if (!name_ty) name_ty = Array<Type*>::create(storage, 1);
-  name_ty->elem_count = 0;
+  name_ty->element_count = 0;
   PotentialType_Set* tau = PotentialType_Set::create(storage);
   potype_map->insert(name, tau, 0);
   Scope* scope = scope_map->lookup(name, 0);
@@ -93,7 +93,7 @@ void PotentialTypePass::visit_name(Ast* name, PotentialType_Product* potential_a
     Type* ty = type_env->lookup(name_decl->ast, 0);
     *name_ty->append() = ty->actual_type();
   }
-  for (int i = 0; i < name_ty->elem_count; i++) {
+  for (int i = 0; i < name_ty->element_count; i++) {
     Type* ty = *name_ty->get(i);
     if (potential_args) {
       if (ty->kind == TypeEnum::Function) {

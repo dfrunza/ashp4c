@@ -44,9 +44,9 @@ struct SegmentTable {
 template<class T>
 struct Array {
   Arena* storage;
-  int elem_count;
+  int element_count;
   int capacity;
-  SegmentTable<T> data;
+  SegmentTable<T> elements;
 
   static Array* create(Arena* storage, int segment_count)
   {
@@ -64,41 +64,41 @@ struct Array {
     assert(segment_count >= 1);
 
     this->storage = storage;
-    elem_count = 0;
+    element_count = 0;
     capacity = 16;
-    data.segment_count = segment_count;
-    data.segments[0] = storage->allocate<T>(16);
+    elements.segment_count = segment_count;
+    elements.segments[0] = storage->allocate<T>(16);
   }
 
   void extend()
   {
-    assert(elem_count >= capacity);
+    assert(element_count >= capacity);
 
     int last_segment = floor(log2(capacity/16 + 1));
-    if (last_segment >= data.segment_count) {
+    if (last_segment >= elements.segment_count) {
       printf("\nMaximum array capacity has been reached.\n");
       exit(1);
     }
     int segment_capacity = 16 * (1 << last_segment);
-    data.segments[last_segment] = storage->allocate<T>(segment_capacity);
+    elements.segments[last_segment] = storage->allocate<T>(segment_capacity);
     capacity = 16 * ((1 << (last_segment + 1)) - 1);
   }
 
   T* get(int i)
   {
-    assert(i >= 0 && i < elem_count);
+    assert(i >= 0 && i < element_count);
 
-    T* elem_slot = data.locate_cell(i);
+    T* elem_slot = elements.locate_cell(i);
     return elem_slot;
   }
 
   T* append()
   {
-    if (elem_count >= capacity) {
+    if (element_count >= capacity) {
       extend();
     }
-    T* elem_slot = data.locate_cell(elem_count);
-    elem_count += 1;
+    T* elem_slot = elements.locate_cell(element_count);
+    element_count += 1;
     return elem_slot;
   }
 };
