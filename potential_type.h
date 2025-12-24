@@ -8,21 +8,14 @@ enum class PotentialTypeEnum : int {
   Product,
 };
 
-struct PotentialType {
-  enum PotentialTypeEnum kind;
-  size_t size;
-};
+struct PotentialType;
 
-struct PotentialType_Set: PotentialType {
+struct PotentialType_Set {
   Map<Type, void> members;
 
-  static PotentialType_Set* create(Arena* storage)
+  void create(Arena* storage)
   {
-    PotentialType_Set* object = storage->allocate<PotentialType_Set>();
-    object->kind = PotentialTypeEnum::Set;
-    object->size = sizeof(PotentialType_Set);
-    object->members.storage = storage;
-    return object;
+    members.storage = storage;
   }
 
   void add(Type* ty) {
@@ -30,20 +23,16 @@ struct PotentialType_Set: PotentialType {
   };
 };
 
-struct PotentialType_Product: PotentialType {
+struct PotentialType_Product {
   PotentialType** members;
   int arity;
 
-  static PotentialType_Product* create(Arena* storage, int arity) {
-    PotentialType_Product* object = storage->allocate<PotentialType_Product>();
-    object->kind = PotentialTypeEnum::Product;
-    object->size = sizeof(PotentialType_Product);
-    object->arity = arity;
-    object->members = 0;
+  void create(Arena* storage, int arity) {
+    this->arity = arity;
+    members = 0;
     if (arity > 0) {
-      object->members = storage->allocate<PotentialType*>(arity);
+      members = storage->allocate<PotentialType*>(arity);
     }
-    return object;
   }
 
   PotentialType* get(int i)
@@ -56,5 +45,21 @@ struct PotentialType_Product: PotentialType {
   {
     assert(i >= 0 && i < arity);
     members[i] = m;
+  }
+};
+
+struct PotentialType {
+  enum PotentialTypeEnum kind;
+
+  union {
+    PotentialType_Set set;
+    PotentialType_Product product;
+  };
+
+  static PotentialType* create(Arena* storage, enum PotentialTypeEnum kind)
+  {
+    PotentialType* potype = storage->allocate<PotentialType>();
+    potype->kind = kind;
+    return potype;
   }
 };

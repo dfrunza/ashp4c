@@ -58,8 +58,10 @@ void SelectTypePass::visit_name(Ast* name, Type* required_ty)
 {
   assert(name->kind == AstEnum::name);
 
-  PotentialType_Set* name_tau = (PotentialType_Set*)potype_map->lookup(name, 0);
-  if (name_tau->members.count() != 1) {
+  PotentialType* name_tau = potype_map->lookup(name, 0);
+  assert(name_tau->kind == PotentialTypeEnum::Set);
+
+  if (name_tau->set.members.count() != 1) {
     error("%s:%d:%d: error: failed type check.",
         source_file, name->line_no, name->column_no);
   }
@@ -68,11 +70,11 @@ void SelectTypePass::visit_name(Ast* name, Type* required_ty)
       error("%s:%d:%d: error: failed type check.",
           source_file, name->line_no, name->column_no);
     } else {
-      Type* name_ty = name_tau->members.first->key;
+      Type* name_ty = name_tau->set.members.first->key;
       type_env->insert(name, name_ty->effective_type(), 0);
     }
   } else {
-      Type* name_ty = name_tau->members.first->key;
+      Type* name_ty = name_tau->set.members.first->key;
       type_env->insert(name, name_ty->effective_type(), 0);
   }
 }
@@ -678,8 +680,11 @@ void SelectTypePass::visit_functionCall(Ast* func_call, Type* required_ty)
     visit_lvalueExpression(func_call->functionCall.lhs_expr, required_ty);
   } else assert(0);
   visit_argumentList(func_call->functionCall.args, 0);
-  PotentialType_Set* func_tau = (PotentialType_Set*)potype_map->lookup(func_call, 0);
-  if (func_tau->members.count() != 1) {
+
+  PotentialType* func_tau = potype_map->lookup(func_call, 0);
+  assert(func_tau->kind == PotentialTypeEnum::Set);
+
+  if (func_tau->set.members.count() != 1) {
     error("%s:%d:%d: error: failed type check.",
         source_file, func_call->line_no, func_call->column_no);
   }
@@ -688,11 +693,11 @@ void SelectTypePass::visit_functionCall(Ast* func_call, Type* required_ty)
       error("%s:%d:%d: error: failed type check.",
             source_file, func_call->line_no, func_call->column_no);
     } else {
-      Type* func_ty = func_tau->members.first->key;
+      Type* func_ty = func_tau->set.members.first->key;
       type_env->insert(func_call, func_ty->effective_type(), 0);
     }
   } else {
-    Type* func_ty = func_tau->members.first->key;
+    Type* func_ty = func_tau->set.members.first->key;
     type_env->insert(func_call, func_ty->effective_type(), 0);
   }
 }
@@ -1055,8 +1060,11 @@ void SelectTypePass::visit_binaryExpression(Ast* binary_expr, Type* required_ty)
 
   visit_expression(binary_expr->binaryExpression.left_operand, required_ty);
   visit_expression(binary_expr->binaryExpression.right_operand, required_ty);
-  PotentialType_Set* op_tau = (PotentialType_Set*)potype_map->lookup(binary_expr, 0);
-  if (op_tau->members.count() != 1) {
+
+  PotentialType* op_tau = potype_map->lookup(binary_expr, 0);
+  assert(op_tau->kind == PotentialTypeEnum::Set);
+
+  if (op_tau->set.members.count() != 1) {
     error("%s:%d:%d: error: failed type check.",
         source_file, binary_expr->line_no, binary_expr->column_no);
   }
@@ -1065,11 +1073,11 @@ void SelectTypePass::visit_binaryExpression(Ast* binary_expr, Type* required_ty)
       error("%s:%d:%d: error: failed type check.",
             source_file, binary_expr->line_no, binary_expr->column_no);
     } else {
-      Type* op_ty = op_tau->members.first->key;
+      Type* op_ty = op_tau->set.members.first->key;
       type_env->insert(binary_expr, op_ty->effective_type(), 0);
     }
   } else {
-    Type* op_ty = op_tau->members.first->key;
+    Type* op_ty = op_tau->set.members.first->key;
     type_env->insert(binary_expr, op_ty->effective_type(), 0);
   }
 }
@@ -1083,8 +1091,11 @@ void SelectTypePass::visit_memberSelector(Ast* selector, Type* required_ty)
   } else if (selector->memberSelector.lhs_expr->kind == AstEnum::lvalueExpression) {
     visit_lvalueExpression(selector->memberSelector.lhs_expr, 0);
   } else assert(0);
-  PotentialType_Set* selector_tau = (PotentialType_Set*)potype_map->lookup(selector, 0);
-  if (selector_tau->members.count() != 1) {
+
+  PotentialType* selector_tau = potype_map->lookup(selector, 0);
+  assert(selector_tau->kind == PotentialTypeEnum::Set);
+
+  if (selector_tau->set.members.count() != 1) {
     error("%s:%d:%d: error: failed type check.",
         source_file, selector->line_no, selector->column_no);
   }
@@ -1093,11 +1104,11 @@ void SelectTypePass::visit_memberSelector(Ast* selector, Type* required_ty)
       error("%s:%d:%d: error: failed type check.",
             source_file, selector->line_no, selector->column_no);
     } else {
-      Type* selector_ty = selector_tau->members.first->key;
+      Type* selector_ty = selector_tau->set.members.first->key;
       type_env->insert(selector, selector_ty->effective_type(), 0);
     }
   } else {
-    Type* selector_ty = selector_tau->members.first->key;
+    Type* selector_ty = selector_tau->set.members.first->key;
     type_env->insert(selector, selector_ty->effective_type(), 0);
   }
 }
