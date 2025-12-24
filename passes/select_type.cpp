@@ -273,7 +273,7 @@ void SelectTypePass::visit_simpleKeysetExpression(Ast* simple_expr, Type* requir
       visit_dontcare(simple_expr->simpleKeysetExpression.expr);
     } else assert(0);
     Type* simple_ty = type_array->append();
-    simple_ty->ty_former = TypeEnum::Product;
+    simple_ty->kind = TypeEnum::Product;
     simple_ty->ast = simple_expr;
     simple_ty->product.count = 1;
     simple_ty->product.members = storage->allocate<Type*>(simple_ty->product.count);
@@ -288,7 +288,7 @@ void SelectTypePass::visit_simpleExpressionList(Ast* expr_list, Type* required_t
   TreeIterator<Ast> it;
 
   Type* list_ty = type_array->append();
-  list_ty->ty_former = TypeEnum::Product;
+  list_ty->kind = TypeEnum::Product;
   list_ty->ast = expr_list;
 
   it.begin(&expr_list->tree);
@@ -957,7 +957,7 @@ void SelectTypePass::visit_expressionList(Ast* expr_list, Type* required_ty)
   TreeIterator<Ast> it;
 
   Type* list_ty = type_array->append();
-  list_ty->ty_former = TypeEnum::Product;
+  list_ty->kind = TypeEnum::Product;
   list_ty->ast = expr_list;
 
   it.begin(&expr_list->tree);

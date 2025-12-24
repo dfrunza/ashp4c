@@ -50,7 +50,7 @@ void NameBindingPass::define_builtin_names()
     NameEntry* name_entry = root_scope->lookup(builtin_types[i].strname, NameSpace::Type);
     NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
     Type* ty = type_array->append();
-    ty->ty_former = builtin_types[i].ty_former;
+    ty->kind = builtin_types[i].ty_former;
     ty->strname = name_decl->strname;
     ty->ast = name_decl->ast;
     name_decl->type = ty;
@@ -60,11 +60,11 @@ void NameBindingPass::define_builtin_names()
 
   ty = root_scope->lookup_builtin("error", NameSpace::Type)->type;
   ty->enum_.fields = type_array->append();
-  ty->enum_.fields->ty_former = TypeEnum::Product;
+  ty->enum_.fields->kind = TypeEnum::Product;
 
   ty = root_scope->lookup_builtin("match_kind", NameSpace::Type)->type;
   ty->enum_.fields = type_array->append();
-  ty->enum_.fields->ty_former = TypeEnum::Product;
+  ty->enum_.fields->kind = TypeEnum::Product;
 }
 
 void DEBUG_scope_decls(Scope* scope)

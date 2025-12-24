@@ -49,7 +49,7 @@ struct TypeChecker {
     for (int i = 0; i < product_ty->product.count; i++) {
       Type* member_ty = product_ty->product.members[i];
       if (cstring::match(member_ty->strname, strname)) {
-        if (member_ty->ty_former == TypeEnum::Function) {
+        if (member_ty->kind == TypeEnum::Function) {
           if (match_params(potential_args, member_ty->function.params)) {
             tau->members.insert(member_ty, 0, 1);
           }
@@ -77,7 +77,7 @@ struct TypeChecker {
 
     for (i = 0; i < type_equiv_pairs->elem_count; i++) {
       type_pair = type_equiv_pairs->get(i);
-      assert(type_pair->ty_former == TypeEnum::Tuple);
+      assert(type_pair->kind == TypeEnum::Tuple);
       if ((left == type_pair->tuple.left || left == type_pair->tuple.right) &&
           (right == type_pair->tuple.left || right == type_pair->tuple.right)) {
         return 1;
@@ -85,36 +85,36 @@ struct TypeChecker {
     }
 
     type_pair = type_equiv_pairs->append();
-    type_pair->ty_former = TypeEnum::Tuple;
+    type_pair->kind = TypeEnum::Tuple;
     type_pair->tuple.left = left;
     type_pair->tuple.right = right;
 
-    if (left->ty_former == TypeEnum::Void || left->ty_former == TypeEnum::String ||
-        left->ty_former == TypeEnum::Bool || left->ty_former == TypeEnum::Int ||
-        left->ty_former == TypeEnum::Bit || left->ty_former == TypeEnum::Varbit) {
-      if (right->ty_former == left->ty_former) {
+    if (left->kind == TypeEnum::Void || left->kind == TypeEnum::String ||
+        left->kind == TypeEnum::Bool || left->kind == TypeEnum::Int ||
+        left->kind == TypeEnum::Bit || left->kind == TypeEnum::Varbit) {
+      if (right->kind == left->kind) {
         return 1;
       }
       return 0;
-    } else if (left->ty_former == TypeEnum::Any) {
+    } else if (left->kind == TypeEnum::Any) {
       return 1;
-    } else if (left->ty_former == TypeEnum::Enum) {
-      if (right->ty_former == left->ty_former) {
+    } else if (left->kind == TypeEnum::Enum) {
+      if (right->kind == left->kind) {
         return cstring::match(left->strname, right->strname);
       }
       return 0;
-    } else if (left->ty_former == TypeEnum::Extern) {
-      if (right->ty_former == left->ty_former) {
+    } else if (left->kind == TypeEnum::Extern) {
+      if (right->kind == left->kind) {
         return cstring::match(left->strname, right->strname);
       }
       return 0;
-    } else if (left->ty_former == TypeEnum::Table) {
-      if (right->ty_former == left->ty_former) {
+    } else if (left->kind == TypeEnum::Table) {
+      if (right->kind == left->kind) {
         return cstring::match(left->strname, right->strname);
       }
       return 0;
-    } else if (left->ty_former == TypeEnum::Product) {
-      if (right->ty_former == left->ty_former) {
+    } else if (left->kind == TypeEnum::Product) {
+      if (right->kind == left->kind) {
         if (left->product.count != right->product.count) {
           return 0;
         }
@@ -126,8 +126,8 @@ struct TypeChecker {
         return 1;
       }
       return 0;
-    } else if (left->ty_former == TypeEnum::Function) {
-      if (right->ty_former == left->ty_former) {
+    } else if (left->kind == TypeEnum::Function) {
+      if (right->kind == left->kind) {
         if (!structural_type_equiv(left->function.return_, right->function.return_)) {
           return 0;
         }
@@ -137,33 +137,33 @@ struct TypeChecker {
         return 1;
       }
       return 0;
-    } else if (left->ty_former == TypeEnum::Package) {
-      if (right->ty_former == left->ty_former) {
+    } else if (left->kind == TypeEnum::Package) {
+      if (right->kind == left->kind) {
         return structural_type_equiv(left->package.params, right->package.params);
       }
       return 0;
-    } else if (left->ty_former == TypeEnum::Parser) {
-      if (right->ty_former == left->ty_former) {
+    } else if (left->kind == TypeEnum::Parser) {
+      if (right->kind == left->kind) {
         return structural_type_equiv(left->parser.params, right->parser.params);
       }
       return 0;
-    } else if (left->ty_former == TypeEnum::Control) {
-      if (right->ty_former == left->ty_former) {
+    } else if (left->kind == TypeEnum::Control) {
+      if (right->kind == left->kind) {
         return structural_type_equiv(left->control.params, right->control.params);
       }
       return 0;
-    } else if (left->ty_former == TypeEnum::Struct) {
-      if (right->ty_former == left->ty_former) {
+    } else if (left->kind == TypeEnum::Struct) {
+      if (right->kind == left->kind) {
         return structural_type_equiv(left->struct_.fields, right->struct_.fields);
       }
       return 0;
-    } else if (left->ty_former == TypeEnum::Header) {
-      if (right->ty_former == left->ty_former) {
+    } else if (left->kind == TypeEnum::Header) {
+      if (right->kind == left->kind) {
         return structural_type_equiv(left->struct_.fields, right->struct_.fields);
       }
       return 0;
-    } else if (left->ty_former == TypeEnum::Stack) {
-      if (right->ty_former == left->ty_former) {
+    } else if (left->kind == TypeEnum::Stack) {
+      if (right->kind == left->kind) {
         return structural_type_equiv(left->header_stack.element, right->header_stack.element);
       }
       return 0;
