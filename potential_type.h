@@ -13,11 +13,6 @@ struct PotentialType;
 struct PotentialType_Set {
   Map<Type, void> members;
 
-  void create(Arena* storage)
-  {
-    members.storage = storage;
-  }
-
   void add(Type* ty) {
     members.insert(ty, 0, 0);
   };
@@ -26,14 +21,6 @@ struct PotentialType_Set {
 struct PotentialType_Product {
   PotentialType** members;
   int arity;
-
-  void create(Arena* storage, int arity) {
-    this->arity = arity;
-    members = 0;
-    if (arity > 0) {
-      members = storage->allocate<PotentialType*>(arity);
-    }
-  }
 
   PotentialType* get(int i)
   {
@@ -56,10 +43,23 @@ struct PotentialType {
     PotentialType_Product product;
   };
 
-  static PotentialType* create(Arena* storage, enum PotentialTypeEnum kind)
+  static PotentialType* create_set(Arena* storage)
   {
     PotentialType* potype = storage->allocate<PotentialType>();
-    potype->kind = kind;
+    potype->kind = PotentialTypeEnum::Set;
+    potype->set.members.storage = storage;
+    return potype;
+  }
+
+  static PotentialType* create_product(Arena* storage, int arity)
+  {
+    PotentialType* potype = storage->allocate<PotentialType>();
+    potype->kind = PotentialTypeEnum::Product;
+    potype->product.arity = arity;
+    potype->product.members = 0;
+    if (potype->product.arity > 0) {
+      potype->product.members = storage->allocate<PotentialType*>(arity);
+    }
     return potype;
   }
 };
