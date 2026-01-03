@@ -56,16 +56,3 @@ void* Array::append()
   element_count += 1;
   return elem_slot;
 }
-
-#if 0
-#include <strmap.h>
-#include <namespace.h>
-template struct SegmentTable<StrmapEntry<NameEntry>*>;
-
-#include <type.h>
-template struct Array<Type>;
-template struct Array<Type*>;
-
-#include <token.h>
-template struct Array<Token>;
-#endif

@@ -8,7 +8,7 @@
 #define ZMEM_ON_ALLOC 1
 
 struct PageBlock {
-  List<PageBlock> link;
+  List link;
   uint8_t* memory_begin;
   uint8_t* memory_end;
 
@@ -16,7 +16,7 @@ struct PageBlock {
   static PageBlock* new_block();
   void recycle();
   PageBlock* insert_and_coalesce(PageBlock* block);
-  static PageBlock* owner_of(List<PageBlock>* list);
+  static PageBlock* owner_of(List* list);
 };
 
 struct Arena {

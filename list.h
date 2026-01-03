@@ -1,6 +1,5 @@
 #pragma once
 
-template<class T>
 struct List
 {
   List* next;

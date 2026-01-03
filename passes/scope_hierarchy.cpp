@@ -4,7 +4,7 @@
 void ScopeHierarchyPass::do_pass()
 {
   current_scope = root_scope;
-  scope_map = (Map<Ast, Scope>*)storage->allocate(sizeof(Map<Ast, Scope>), 1);
+  scope_map = (Map*)storage->allocate(sizeof(Map), 1);
   scope_map->storage = storage;
   visit_p4program(p4program);
   assert(current_scope == root_scope);
@@ -19,7 +19,7 @@ void ScopeHierarchyPass::visit_p4program(Ast* p4program)
   Scope* scope = Scope::create(storage, 3);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(p4program, current_scope, 0);
+  MapEntry* m = scope_map->insert(p4program, current_scope, 0);
   assert(m);
   visit_declarationList(p4program->p4program.decl_list);
   current_scope = prev_scope;
@@ -64,8 +64,8 @@ void ScopeHierarchyPass::visit_declaration(Ast* decl)
   } else if (decl->declaration.decl->kind == AstEnum::instantiation) {
     visit_instantiation(decl->declaration.decl);
   } else assert(0);
-  Scope* scope = scope_map->lookup(decl->declaration.decl, 0);
-  MapEntry<Ast, Scope>* m = scope_map->insert(decl, scope, 0);
+  Scope* scope = (Scope*)scope_map->lookup(decl->declaration.decl, 0);
+  MapEntry* m = scope_map->insert(decl, scope, 0);
   assert(m);
 }
 
@@ -100,7 +100,7 @@ void ScopeHierarchyPass::visit_packageTypeDeclaration(Ast* type_decl)
   Scope* scope = Scope::create(storage, 2);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(type_decl, current_scope, 0);
+  MapEntry* m = scope_map->insert(type_decl, current_scope, 0);
   assert(m);
   visit_parameterList(type_decl->packageTypeDeclaration.params);
   current_scope = prev_scope;
@@ -121,8 +121,8 @@ void ScopeHierarchyPass::visit_parserDeclaration(Ast* parser_decl)
 
   visit_typeDeclaration(parser_decl->parserDeclaration.proto);
   Scope* prev_scope = current_scope;
-  current_scope = scope_map->lookup(parser_decl->parserDeclaration.proto, 0);
-  MapEntry<Ast, Scope>* m = scope_map->insert(parser_decl, current_scope, 0);
+  current_scope = (Scope*)scope_map->lookup(parser_decl->parserDeclaration.proto, 0);
+  MapEntry* m = scope_map->insert(parser_decl, current_scope, 0);
   assert(m);
   if (parser_decl->parserDeclaration.ctor_params) {
     visit_parameterList(parser_decl->parserDeclaration.ctor_params);
@@ -139,7 +139,7 @@ void ScopeHierarchyPass::visit_parserTypeDeclaration(Ast* type_decl)
   Scope* scope = Scope::create(storage, 2);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(type_decl, current_scope, 0);
+  MapEntry* m = scope_map->insert(type_decl, current_scope, 0);
   assert(m);
   visit_parameterList(type_decl->parserTypeDeclaration.params);
   visit_methodPrototypes(type_decl->parserTypeDeclaration.method_protos);
@@ -183,7 +183,7 @@ void ScopeHierarchyPass::visit_parserState(Ast* state)
   Scope* scope = Scope::create(storage, 3);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(state, current_scope, 0);
+  MapEntry* m = scope_map->insert(state, current_scope, 0);
   assert(m);
   visit_parserStatements(state->parserState.stmt_list);
   visit_transitionStatement(state->parserState.transition_stmt);
@@ -226,7 +226,7 @@ void ScopeHierarchyPass::visit_parserBlockStatement(Ast* block_stmt)
   Scope* scope = Scope::create(storage, 3);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(block_stmt, current_scope, 0);
+  MapEntry* m = scope_map->insert(block_stmt, current_scope, 0);
   assert(m);
   visit_parserStatements(block_stmt->parserBlockStatement.stmt_list);
   current_scope = prev_scope;
@@ -317,8 +317,8 @@ void ScopeHierarchyPass::visit_controlDeclaration(Ast* control_decl)
 
   visit_typeDeclaration(control_decl->controlDeclaration.proto);
   Scope* prev_scope = current_scope;
-  current_scope = scope_map->lookup(control_decl->controlDeclaration.proto, 0);
-  MapEntry<Ast, Scope>* m = scope_map->insert(control_decl, current_scope, 0);
+  current_scope = (Scope*)scope_map->lookup(control_decl->controlDeclaration.proto, 0);
+  MapEntry* m = scope_map->insert(control_decl, current_scope, 0);
   assert(m);
   if (control_decl->controlDeclaration.ctor_params) {
     visit_parameterList(control_decl->controlDeclaration.ctor_params);
@@ -335,7 +335,7 @@ void ScopeHierarchyPass::visit_controlTypeDeclaration(Ast* type_decl)
   Scope* scope = Scope::create(storage, 2);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(type_decl, scope, 0);
+  MapEntry* m = scope_map->insert(type_decl, scope, 0);
   assert(m);
   visit_parameterList(type_decl->controlTypeDeclaration.params);
   visit_methodPrototypes(type_decl->controlTypeDeclaration.method_protos);
@@ -377,8 +377,8 @@ void ScopeHierarchyPass::visit_externDeclaration(Ast* extern_decl)
   } else if (extern_decl->externDeclaration.decl->kind == AstEnum::functionPrototype) {
     visit_functionPrototype(extern_decl->externDeclaration.decl);
   } else assert(0);
-  Scope* scope = scope_map->lookup(extern_decl->externDeclaration.decl, 0);
-  MapEntry<Ast, Scope>* m = scope_map->insert(extern_decl, scope, 0);
+  Scope* scope = (Scope*)scope_map->lookup(extern_decl->externDeclaration.decl, 0);
+  MapEntry* m = scope_map->insert(extern_decl, scope, 0);
   assert(m);
 }
 
@@ -389,7 +389,7 @@ void ScopeHierarchyPass::visit_externTypeDeclaration(Ast* type_decl)
   Scope* scope = Scope::create(storage, 2);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(type_decl, current_scope, 0);
+  MapEntry* m = scope_map->insert(type_decl, current_scope, 0);
   assert(m);
   visit_methodPrototypes(type_decl->externTypeDeclaration.method_protos);
   current_scope = prev_scope;
@@ -415,7 +415,7 @@ void ScopeHierarchyPass::visit_functionPrototype(Ast* func_proto)
   Scope* scope = Scope::create(storage, 2);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(func_proto, current_scope, 0);
+  MapEntry* m = scope_map->insert(func_proto, current_scope, 0);
   assert(m);
   visit_parameterList(func_proto->functionPrototype.params);
   current_scope = prev_scope;
@@ -556,8 +556,8 @@ void ScopeHierarchyPass::visit_typeDeclaration(Ast* type_decl)
   } else if (type_decl->typeDeclaration.decl->kind == AstEnum::packageTypeDeclaration) {
     visit_packageTypeDeclaration(type_decl->typeDeclaration.decl);
   } else assert(0);
-  Scope* scope = scope_map->lookup(type_decl->typeDeclaration.decl, 0);
-  MapEntry<Ast, Scope>* m = scope_map->insert(type_decl, scope, 0);
+  Scope* scope = (Scope*)scope_map->lookup(type_decl->typeDeclaration.decl, 0);
+  MapEntry* m = scope_map->insert(type_decl, scope, 0);
   assert(m);
 }
 
@@ -574,8 +574,8 @@ void ScopeHierarchyPass::visit_derivedTypeDeclaration(Ast* type_decl)
   } else if (type_decl->derivedTypeDeclaration.decl->kind == AstEnum::enumDeclaration) {
     visit_enumDeclaration(type_decl->derivedTypeDeclaration.decl);
   } else assert(0);
-  Scope* scope = scope_map->lookup(type_decl->derivedTypeDeclaration.decl, 0);
-  MapEntry<Ast, Scope>* m = scope_map->insert(type_decl, scope, 0);
+  Scope* scope = (Scope*)scope_map->lookup(type_decl->derivedTypeDeclaration.decl, 0);
+  MapEntry* m = scope_map->insert(type_decl, scope, 0);
   assert(m);
 }
 
@@ -586,7 +586,7 @@ void ScopeHierarchyPass::visit_headerTypeDeclaration(Ast* header_decl)
   Scope* scope = Scope::create(storage, 3);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(header_decl, scope, 0);
+  MapEntry* m = scope_map->insert(header_decl, scope, 0);
   assert(m);
   visit_structFieldList(header_decl->headerTypeDeclaration.fields);
   current_scope = prev_scope;
@@ -599,7 +599,7 @@ void ScopeHierarchyPass::visit_headerUnionDeclaration(Ast* union_decl)
   Scope* scope = Scope::create(storage, 3);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(union_decl, scope, 0);
+  MapEntry* m = scope_map->insert(union_decl, scope, 0);
   assert(m);
   visit_structFieldList(union_decl->headerUnionDeclaration.fields);
   current_scope = prev_scope;
@@ -612,7 +612,7 @@ void ScopeHierarchyPass::visit_structTypeDeclaration(Ast* struct_decl)
   Scope* scope = Scope::create(storage, 3);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(struct_decl, scope, 0);
+  MapEntry* m = scope_map->insert(struct_decl, scope, 0);
   assert(m);
   visit_structFieldList(struct_decl->structTypeDeclaration.fields);
   current_scope = prev_scope;
@@ -641,7 +641,7 @@ void ScopeHierarchyPass::visit_enumDeclaration(Ast* enum_decl)
   Scope* scope = Scope::create(storage, 3);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(enum_decl, scope, 0);
+  MapEntry* m = scope_map->insert(enum_decl, scope, 0);
   assert(m);
   visit_specifiedIdentifierList(enum_decl->enumDeclaration.fields);
   current_scope = prev_scope;
@@ -654,7 +654,7 @@ void ScopeHierarchyPass::visit_errorDeclaration(Ast* error_decl)
   Scope* scope = Scope::create(storage, 3);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(error_decl, scope, 0);
+  MapEntry* m = scope_map->insert(error_decl, scope, 0);
   assert(m);
   visit_identifierList(error_decl->errorDeclaration.fields);
   current_scope = prev_scope;
@@ -667,7 +667,7 @@ void ScopeHierarchyPass::visit_matchKindDeclaration(Ast* match_decl)
   Scope* scope = Scope::create(storage, 3);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(match_decl, scope, 0);
+  MapEntry* m = scope_map->insert(match_decl, scope, 0);
   assert(m);
   visit_identifierList(match_decl->matchKindDeclaration.fields);
   current_scope = prev_scope;
@@ -787,7 +787,7 @@ void ScopeHierarchyPass::visit_statement(Ast* stmt)
     Scope* scope = Scope::create(storage, 3);
     Scope* prev_scope = current_scope;
     current_scope = scope->push(current_scope);
-    MapEntry<Ast, Scope>* m = scope_map->insert(stmt, current_scope, 0);
+    MapEntry* m = scope_map->insert(stmt, current_scope, 0);
     assert(m);
     visit_blockStatement(stmt->statement.stmt);
     current_scope = prev_scope;
@@ -873,7 +873,7 @@ void ScopeHierarchyPass::visit_tableDeclaration(Ast* table_decl)
   Scope* scope = Scope::create(storage, 3);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(table_decl, scope, 0);
+  MapEntry* m = scope_map->insert(table_decl, scope, 0);
   assert(m);
   visit_tablePropertyList(table_decl->tableDeclaration.prop_list);
   visit_methodPrototypes(table_decl->tableDeclaration.method_protos);
@@ -961,7 +961,7 @@ void ScopeHierarchyPass::visit_actionDeclaration(Ast* action_decl)
   Scope* scope = Scope::create(storage, 2);
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
-  MapEntry<Ast, Scope>* m = scope_map->insert(action_decl, current_scope, 0);
+  MapEntry* m = scope_map->insert(action_decl, current_scope, 0);
   assert(m);
   visit_parameterList(action_decl->actionDeclaration.params);
   visit_blockStatement(action_decl->actionDeclaration.stmt);
@@ -987,8 +987,8 @@ void ScopeHierarchyPass::visit_functionDeclaration(Ast* func_decl)
 
   visit_functionPrototype(func_decl->functionDeclaration.proto);
   Scope* prev_scope = current_scope;
-  current_scope = scope_map->lookup(func_decl->functionDeclaration.proto, 0);
-  MapEntry<Ast, Scope>* m = scope_map->insert(func_decl, current_scope, 0);
+  current_scope = (Scope*)scope_map->lookup(func_decl->functionDeclaration.proto, 0);
+  MapEntry* m = scope_map->insert(func_decl, current_scope, 0);
   assert(m);
   visit_blockStatement(func_decl->functionDeclaration.stmt);
   current_scope = prev_scope;

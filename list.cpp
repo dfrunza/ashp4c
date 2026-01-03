@@ -1,7 +1,6 @@
 #include <list.h>
 
-template<class T>
-void List<T>::insert_between(List<T>* left, List<T>* right)
+void List::insert_between(List* left, List* right)
 {
   this->prev = left;
   this->next = right;
@@ -13,12 +12,8 @@ void List<T>::insert_between(List<T>* left, List<T>* right)
   }
 }
 
-template<class T>
-void List<T>::insert_before(List<T>* link)
+void List::insert_before(List* link)
 {
   this->next = link;
   link->prev = this;
 }
-
-#include <arena.h>
-template struct List<PageBlock>;

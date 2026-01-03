@@ -11,8 +11,8 @@ bool TypeChecker::match_type(PotentialType* potential_types, Type* required_ty)
   assert(potential_types->kind == PotentialTypeEnum::Set);
 
   int i = 0;
-  for (MapEntry<Type, void>* m = potential_types->set.members.first; m != 0; m = m->next) {
-    Type* ty = m->key->effective_type();
+  for (MapEntry* m = potential_types->set.members.first; m != 0; m = m->next) {
+    Type* ty = ((Type*)m->key)->effective_type();
     if (type_equiv(ty, required_ty->actual_type())) {
       i += 1;
     }

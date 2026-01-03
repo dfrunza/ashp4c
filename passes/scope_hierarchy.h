@@ -8,7 +8,7 @@ struct ScopeHierarchyPass {
   Ast* p4program;
   Scope* root_scope;
   Scope* current_scope;
-  Map<Ast, Scope>* scope_map;
+  Map* scope_map;
 
 /** PROGRAM **/
 

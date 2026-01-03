@@ -11,7 +11,7 @@ enum class PotentialTypeEnum : int {
 struct PotentialType;
 
 struct PotentialType_Set {
-  Map<Type, void> members;
+  Map members;
 
   static PotentialType* create(Arena* storage);
   void add(Type* ty);

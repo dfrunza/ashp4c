@@ -119,7 +119,7 @@ PageBlock* PageBlock::insert_and_coalesce(PageBlock* block)
   return merged_list;
 }
 
-PageBlock* PageBlock::owner_of(List<PageBlock>* list)
+PageBlock* PageBlock::owner_of(List* list)
 {
   return ::owner_of(list, &PageBlock::link);
 }
