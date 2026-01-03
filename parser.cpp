@@ -202,7 +202,7 @@ Ast* Parser::parse_declarationList()
   Ast* decls = Ast::create(storage, AstEnum::declarationList, token->line_no, token->column_no);
   if (token->is_declaration()) {
     Ast* ast = parse_declaration();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&decls->tree, &ast->tree);
     while (token->is_declaration() || token->klass == TokenClass::Semicolon) {
       if (token->is_declaration()) {
@@ -310,7 +310,7 @@ Ast* Parser::parse_parameterList()
   Ast* params = Ast::create(storage, AstEnum::parameterList, token->line_no, token->column_no);
   if (token->is_parameter()) {
     Ast* ast = parse_parameter();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&params->tree, &ast->tree);
     while (token->klass == TokenClass::Comma) {
       next_token();
@@ -466,7 +466,7 @@ Ast* Parser::parse_parserLocalElements()
   Ast* elems = Ast::create(storage, AstEnum::parserLocalElements, token->line_no, token->column_no);
   if (token->is_parserLocalElement()) {
     Ast* ast = parse_parserLocalElement();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&elems->tree, &ast->tree);
     while (token->is_parserLocalElement()) {
       ast = parse_parserLocalElement();
@@ -534,7 +534,7 @@ Ast* Parser::parse_parserStates()
   Ast* states = Ast::create(storage, AstEnum::parserStates, token->line_no, token->column_no);
   if (token->klass == TokenClass::State) {
     Ast* ast = parse_parserState();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&states->tree, &ast->tree);
     while (token->klass == TokenClass::State) {
       ast = parse_parserState();
@@ -572,7 +572,7 @@ Ast* Parser::parse_parserStatements()
   Ast* stmts = Ast::create(storage, AstEnum::parserStatements, token->line_no, token->column_no);
   if (token->is_parserStatement()) {
     Ast* ast = parse_parserStatement();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&stmts->tree, &ast->tree);
     while (token->is_parserStatement()) {
       ast = parse_parserStatement();
@@ -702,7 +702,7 @@ Ast* Parser::parse_selectCaseList()
   Ast* cases = Ast::create(storage, AstEnum::selectCaseList, token->line_no, token->column_no);
   if (token->is_selectCase()) {
     Ast* ast = parse_selectCase();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&cases->tree, &ast->tree);
     while (token->is_selectCase()) {
       ast = parse_selectCase();
@@ -775,7 +775,7 @@ Ast* Parser::parse_simpleExpressionList()
   Ast* exprs = Ast::create(storage, AstEnum::simpleExpressionList, token->line_no, token->column_no);
   if (token->is_expression()) {
     Ast* ast = parse_simpleKeysetExpression();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&exprs->tree, &ast->tree);
     while (token->klass == TokenClass::Comma) {
       next_token();
@@ -903,7 +903,7 @@ Ast* Parser::parse_controlLocalDeclarations()
   Ast* decls = Ast::create(storage, AstEnum::controlLocalDeclarations, token->line_no, token->column_no);
   if (token->is_controlLocalDeclaration()) {
     Ast* ast = parse_controlLocalDeclaration();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&decls->tree, &ast->tree);
     while (token->is_controlLocalDeclaration()) {
       ast = parse_controlLocalDeclaration();
@@ -966,7 +966,7 @@ Ast* Parser::parse_methodPrototypes()
   Ast* protos = Ast::create(storage, AstEnum::methodPrototypes, token->line_no, token->column_no);
   if (token->is_methodPrototype()) {
     Ast* ast = parse_methodPrototype();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&protos->tree, &ast->tree);
     while (token->is_methodPrototype()) {
       ast = parse_methodPrototype();
@@ -1305,7 +1305,7 @@ Ast* Parser::parse_typeArgumentList()
   Ast* args = Ast::create(storage, AstEnum::typeArgumentList, token->line_no, token->column_no);
   if (token->is_typeArg()) {
     Ast* ast = parse_typeArg();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&args->tree, &ast->tree);
     while (token->klass == TokenClass::Comma) {
       next_token();
@@ -1455,7 +1455,7 @@ Ast* Parser::parse_structFieldList()
   Ast* fields = Ast::create(storage, AstEnum::structFieldList, token->line_no, token->column_no);
   if (token->is_structField()) {
     Ast* ast = parse_structField();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&fields->tree, &ast->tree);
     while (token->is_structField()) {
       ast = parse_structField();
@@ -1586,7 +1586,7 @@ Ast* Parser::parse_identifierList()
   Ast* ids = Ast::create(storage, AstEnum::identifierList, token->line_no, token->column_no);
   if (token->is_name()) {
     Ast* ast = parse_name();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&ids->tree, &ast->tree);
     while (token->klass == TokenClass::Comma) {
       next_token();
@@ -1602,7 +1602,7 @@ Ast* Parser::parse_specifiedIdentifierList()
   Ast* ids = Ast::create(storage, AstEnum::specifiedIdentifierList, token->line_no, token->column_no);
   if (token->is_specifiedIdentifier()) {
     Ast* ast = parse_specifiedIdentifier();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&ids->tree, &ast->tree);
     while (token->klass == TokenClass::Comma) {
       next_token();
@@ -1861,7 +1861,7 @@ Ast* Parser::parse_statementOrDeclList()
   Ast* stmts = Ast::create(storage, AstEnum::statementOrDeclList, token->line_no, token->column_no);
   if (token->is_statementOrDeclaration()) {
     Ast* ast = parse_statementOrDeclaration();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&stmts->tree, &ast->tree);
     while (token->is_statementOrDeclaration()) {
       ast = parse_statementOrDeclaration();
@@ -1906,7 +1906,7 @@ Ast* Parser::parse_switchCases()
   Ast* cases = Ast::create(storage, AstEnum::switchCases, token->line_no, token->column_no);
   if (token->is_switchLabel()) {
     Ast* ast = parse_switchCase();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&cases->tree, &ast->tree);
     while (token->is_switchLabel()) {
       ast = parse_switchCase();
@@ -2017,7 +2017,7 @@ Ast* Parser::parse_tablePropertyList()
   Ast* props = Ast::create(storage, AstEnum::tablePropertyList, token->line_no, token->column_no);
   if (token->is_tableProperty()) {
     Ast* ast = parse_tableProperty();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&props->tree, &ast->tree);
     while (token->is_tableProperty()) {
       ast = parse_tableProperty();
@@ -2137,7 +2137,7 @@ Ast* Parser::parse_keyElementList()
   Ast* elems = Ast::create(storage, AstEnum::keyElementList, token->line_no, token->column_no);
   if (token->is_expression()) {
     Ast* ast = parse_keyElement();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&elems->tree, &ast->tree);
     while (token->is_expression()) {
       ast = parse_keyElement();
@@ -2173,7 +2173,7 @@ Ast* Parser::parse_actionList()
   Ast* actions = Ast::create(storage, AstEnum::actionList, token->line_no, token->column_no);
   if (token->is_actionRef()) {
     Ast* ast = parse_actionRef();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&actions->tree, &ast->tree);
     if (token->klass == TokenClass::Semicolon) {
       next_token();
@@ -2220,7 +2220,7 @@ Ast* Parser::parse_actionRef()
 Ast* Parser::parse_entriesList()
 {
   Ast* entries, *ast;
-  TreeCtor<Ast> tree_ctor = {0};
+  TreeCtor tree_ctor = {0};
 
   entries = (Ast*)storage->malloc(sizeof(Ast));
   entries->kind = AstEnum::entriesList;
@@ -2350,7 +2350,7 @@ Ast* Parser::parse_argumentList()
   Ast* args = Ast::create(storage, AstEnum::argumentList, token->line_no, token->column_no);
   if (token->is_argument()) {
     Ast* ast = parse_argument();
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&args->tree, &ast->tree);
     while (token->klass == TokenClass::Comma) {
       next_token();
@@ -2385,7 +2385,7 @@ Ast* Parser::parse_expressionList()
   Ast* exprs = Ast::create(storage, AstEnum::expressionList, token->line_no, token->column_no);
   if (token->is_expression()) {
     Ast* ast = parse_expression(1);
-    TreeConstructor<Ast> tree_ctor = {};
+    TreeConstructor tree_ctor = {};
     tree_ctor.append_node(&exprs->tree, &ast->tree);
     while (token->klass == TokenClass::Comma) {
       next_token();

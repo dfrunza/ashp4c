@@ -143,7 +143,7 @@ char* AstEnum_to_string(enum AstEnum ast)
   return 0;
 }
 
-Ast* Ast::owner_of(Tree<Ast>* tree)
+Ast* Ast::owner_of(Tree* tree)
 {
   return ::owner_of(tree, &Ast::tree);
 }

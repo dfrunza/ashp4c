@@ -697,7 +697,7 @@ struct Ast {
   enum AstEnum kind;
   int line_no;
   int column_no;
-  Tree<Ast> tree;
+  Tree tree;
 
   union {
 /** PROGRAM **/
@@ -821,7 +821,7 @@ struct Ast {
     struct Ast_dontcare dontcare;
   };
 
-  static Ast* owner_of(Tree<Ast>* tree);
+  static Ast* owner_of(Tree* tree);
   static Ast* create(Arena* storage, enum AstEnum kind, int line_no, int column_no);
   Ast* clone(Arena* storage);
 };

@@ -18,8 +18,8 @@ void BuiltinMethodsPass::visit_p4program(Ast* p4program)
 void BuiltinMethodsPass::visit_declarationList(Ast* decl_list)
 {
   assert(decl_list->kind == AstEnum::declarationList);
-  TreeIterator<Ast> it(&decl_list->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&decl_list->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_declaration(Ast::owner_of(tree));
   }
@@ -63,8 +63,8 @@ void BuiltinMethodsPass::visit_name(Ast* name)
 void BuiltinMethodsPass::visit_parameterList(Ast* params)
 {
   assert(params->kind == AstEnum::parameterList);
-  TreeIterator<Ast> it(&params->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&params->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_parameter(Ast::owner_of(tree));
   }
@@ -126,15 +126,15 @@ void BuiltinMethodsPass::visit_parserTypeDeclaration(Ast* type_decl)
   method->functionPrototype.name = name;
 
   Ast* method_protos = type_decl->parserTypeDeclaration.method_protos;
-  TreeConstructor<Ast> tree_ctor;
+  TreeConstructor tree_ctor;
   tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 
 void BuiltinMethodsPass::visit_parserLocalElements(Ast* local_elements)
 {
   assert(local_elements->kind == AstEnum::parserLocalElements);
-  TreeIterator<Ast> it(&local_elements->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&local_elements->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_parserLocalElement(Ast::owner_of(tree));
   }
@@ -153,8 +153,8 @@ void BuiltinMethodsPass::visit_parserLocalElement(Ast* local_element)
 void BuiltinMethodsPass::visit_parserStates(Ast* states)
 {
   assert(states->kind == AstEnum::parserStates);
-  TreeIterator<Ast> it(&states->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&states->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_parserState(Ast::owner_of(tree));
   }
@@ -171,8 +171,8 @@ void BuiltinMethodsPass::visit_parserState(Ast* state)
 void BuiltinMethodsPass::visit_parserStatements(Ast* stmts)
 {
   assert(stmts->kind == AstEnum::parserStatements);
-  TreeIterator<Ast> it(&stmts->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&stmts->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_parserStatement(Ast::owner_of(tree));
   }
@@ -228,8 +228,8 @@ void BuiltinMethodsPass::visit_selectExpression(Ast* select_expr)
 void BuiltinMethodsPass::visit_selectCaseList(Ast* case_list)
 {
   assert(case_list->kind == AstEnum::selectCaseList);
-  TreeIterator<Ast> it(&case_list->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&case_list->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_selectCase(Ast::owner_of(tree));
   }
@@ -273,8 +273,8 @@ void BuiltinMethodsPass::visit_simpleKeysetExpression(Ast* simple_expr)
 void BuiltinMethodsPass::visit_simpleExpressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::simpleExpressionList);
-  TreeIterator<Ast> it(&expr_list->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&expr_list->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_simpleKeysetExpression(Ast::owner_of(tree));
   }
@@ -312,15 +312,15 @@ void BuiltinMethodsPass::visit_controlTypeDeclaration(Ast* type_decl)
   method->functionPrototype.name = name;
 
   Ast* method_protos = type_decl->controlTypeDeclaration.method_protos;
-  TreeConstructor<Ast> tree_ctor;
+  TreeConstructor tree_ctor;
   tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 
 void BuiltinMethodsPass::visit_controlLocalDeclarations(Ast* local_decls)
 {
   assert(local_decls->kind == AstEnum::controlLocalDeclarations);
-  TreeIterator<Ast> it(&local_decls->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&local_decls->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_controlLocalDeclaration(Ast::owner_of(tree));
   }
@@ -362,8 +362,8 @@ void BuiltinMethodsPass::visit_externTypeDeclaration(Ast* type_decl)
 void BuiltinMethodsPass::visit_methodPrototypes(Ast* protos)
 {
   assert(protos->kind == AstEnum::methodPrototypes);
-  TreeIterator<Ast> it(&protos->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&protos->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_functionPrototype(Ast::owner_of(tree));
   }
@@ -499,8 +499,8 @@ void BuiltinMethodsPass::visit_typeArg(Ast* type_arg)
 void BuiltinMethodsPass::visit_typeArgumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AstEnum::typeArgumentList);
-  TreeIterator<Ast> it(&arg_list->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&arg_list->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_typeArg(Ast::owner_of(tree));
   }
@@ -560,8 +560,8 @@ void BuiltinMethodsPass::visit_structTypeDeclaration(Ast* struct_decl)
 void BuiltinMethodsPass::visit_structFieldList(Ast* field_list)
 {
   assert(field_list->kind == AstEnum::structFieldList);
-  TreeIterator<Ast> it(&field_list->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&field_list->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_structField(Ast::owner_of(tree));
   }
@@ -596,8 +596,8 @@ void BuiltinMethodsPass::visit_matchKindDeclaration(Ast* match_decl)
 void BuiltinMethodsPass::visit_identifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AstEnum::identifierList);
-  TreeIterator<Ast> it(&ident_list->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&ident_list->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_name(Ast::owner_of(tree));
   }
@@ -606,8 +606,8 @@ void BuiltinMethodsPass::visit_identifierList(Ast* ident_list)
 void BuiltinMethodsPass::visit_specifiedIdentifierList(Ast* ident_list)
 {
   assert(ident_list->kind == AstEnum::specifiedIdentifierList);
-  TreeIterator<Ast> it(&ident_list->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&ident_list->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_specifiedIdentifier(Ast::owner_of(tree));
   }
@@ -724,8 +724,8 @@ void BuiltinMethodsPass::visit_blockStatement(Ast* block_stmt)
 void BuiltinMethodsPass::visit_statementOrDeclList(Ast* stmt_list)
 {
   assert(stmt_list->kind == AstEnum::statementOrDeclList);
-  TreeIterator<Ast> it(&stmt_list->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&stmt_list->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_statementOrDeclaration(Ast::owner_of(tree));
   }
@@ -741,8 +741,8 @@ void BuiltinMethodsPass::visit_switchStatement(Ast* switch_stmt)
 void BuiltinMethodsPass::visit_switchCases(Ast* switch_cases)
 {
   assert(switch_cases->kind == AstEnum::switchCases);
-  TreeIterator<Ast> it(&switch_cases->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&switch_cases->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_switchCase(Ast::owner_of(tree));
   }
@@ -802,15 +802,15 @@ void BuiltinMethodsPass::visit_tableDeclaration(Ast* table_decl)
   method->functionPrototype.name = name;
 
   Ast* method_protos = table_decl->tableDeclaration.method_protos;
-  TreeConstructor<Ast> tree_ctor;
+  TreeConstructor tree_ctor;
   tree_ctor.append_node(&method_protos->tree, &method->tree);
 }
 
 void BuiltinMethodsPass::visit_tablePropertyList(Ast* prop_list)
 {
   assert(prop_list->kind == AstEnum::tablePropertyList);
-  TreeIterator<Ast> it(&prop_list->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&prop_list->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_tableProperty(Ast::owner_of(tree));
   }
@@ -843,8 +843,8 @@ void BuiltinMethodsPass::visit_keyProperty(Ast* key_prop)
 void BuiltinMethodsPass::visit_keyElementList(Ast* element_list)
 {
   assert(element_list->kind == AstEnum::keyElementList);
-  TreeIterator<Ast> it(&element_list->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&element_list->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_keyElement(Ast::owner_of(tree));
   }
@@ -866,8 +866,8 @@ void BuiltinMethodsPass::visit_actionsProperty(Ast* actions_prop)
 void BuiltinMethodsPass::visit_actionList(Ast* action_list)
 {
   assert(action_list->kind == AstEnum::actionList);
-  TreeIterator<Ast> it(&action_list->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&action_list->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_actionRef(Ast::owner_of(tree));
   }
@@ -914,8 +914,8 @@ void BuiltinMethodsPass::visit_functionDeclaration(Ast* func_decl)
 void BuiltinMethodsPass::visit_argumentList(Ast* arg_list)
 {
   assert(arg_list->kind == AstEnum::argumentList);
-  TreeIterator<Ast> it(&arg_list->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&arg_list->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_argument(Ast::owner_of(tree));
   }
@@ -934,8 +934,8 @@ void BuiltinMethodsPass::visit_argument(Ast* arg)
 void BuiltinMethodsPass::visit_expressionList(Ast* expr_list)
 {
   assert(expr_list->kind == AstEnum::expressionList);
-  TreeIterator<Ast> it(&expr_list->tree);
-  for (Tree<Ast>* tree = it.next();
+  TreeIterator it(&expr_list->tree);
+  for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_expression(Ast::owner_of(tree));
   }
