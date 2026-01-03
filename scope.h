@@ -6,7 +6,7 @@ struct Scope {
   static NameEntry NULL_ENTRY;
   int scope_level;
   Scope* parent_scope;
-  Strmap<NameEntry>* name_table;
+  Strmap* name_table;
 
   static Scope* create(Arena* storage, int segment_count);
   Scope* push(Scope* parent_scope);
