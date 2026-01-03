@@ -13,16 +13,20 @@ include_directories(.)
 add_executable(ashp4c
         arena.cpp
         arena.h
+        array.cpp
         array.h
         ashp4c.cpp
         ast.cpp
         ast.h
         ast_visitor.cpp
         ast_visitor.h
+        command_line.cpp
+        command_line.h
         basic.cpp
         basic.h
         cstring.cpp
         cstring.h
+        token.cpp
         token.h
         lexer.cpp
         lexer.h
@@ -35,6 +39,7 @@ add_executable(ashp4c
         strmap.h
         type.cpp
         type.h
+        type_checker.cpp
         type_checker.h
         tree.h
         list.h

@@ -137,26 +137,6 @@ struct Type {
     struct Type_Product product;
   };
 
-  Type* actual_type()
-  {
-      if (!this) { return 0; }
-      if (kind == TypeEnum::Type) {
-          return type.type;
-      }
-      return this;
-  }
-
-  Type* effective_type()
-  {
-      Type* applied_ty = actual_type();
-      if (!applied_ty) { return 0; }
-      if (kind == TypeEnum::Function) {
-          return function.return_->actual_type();
-      } else if (kind == TypeEnum::Field) {
-          return field.type->actual_type();
-      } else if (kind == TypeEnum::Stack) {
-          return header_stack.element->actual_type();
-      }
-      return applied_ty;
-  }
+  Type* actual_type();
+  Type* effective_type();
 };

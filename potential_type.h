@@ -14,10 +14,7 @@ struct PotentialType_Set {
   Map<Type, void> members;
 
   static PotentialType* create(Arena* storage);
-
-  void add(Type* ty) {
-    members.insert(ty, 0, 0);
-  };
+  void add(Type* ty);
 };
 
 struct PotentialType_Product {
@@ -25,18 +22,8 @@ struct PotentialType_Product {
   int arity;
 
   static PotentialType* create(Arena* storage, int arity);
-
-  PotentialType* get(int i)
-  {
-    assert(i >= 0 && i < arity);
-    return members[i];
-  }
-
-  void set(int i, PotentialType* m)
-  {
-    assert(i >= 0 && i < arity);
-    members[i] = m;
-  }
+  PotentialType* get(int i);
+  void set(int i, PotentialType* m);
 };
 
 struct PotentialType {
