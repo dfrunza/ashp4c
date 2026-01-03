@@ -42,6 +42,7 @@ add_executable(ashp4c
         type_checker.cpp
         type_checker.h
         tree.h
+        list.cpp
         list.h
         potential_type.h
         namespace.cpp

@@ -14,4 +14,3 @@ struct TypeChecker {
   bool structural_type_equiv(Type* left, Type* right);
   bool type_equiv(Type* left, Type* right);
 };
-

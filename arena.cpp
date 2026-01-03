@@ -75,7 +75,7 @@ PageBlock* PageBlock::insert_and_coalesce(PageBlock* block)
   if (left_neighbour) {
     right_neighbour = PageBlock::owner_of(left_neighbour->link.next);
     left_neighbour->link.next = &block->link;
-    this->link.insert_in_between(&left_neighbour->link, &right_neighbour->link);
+    this->link.insert_between(&left_neighbour->link, &right_neighbour->link);
   } else {
     block->link.insert_before(&this->link);
     right_neighbour = PageBlock::owner_of(block->link.next);
