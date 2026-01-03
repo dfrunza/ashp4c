@@ -71,7 +71,7 @@ void Strmap::grow()
   for (StrmapEntry* entry = first_entry; entry != 0; ) {
     StrmapEntry* next_entry = entry->next_entry;
     uint32_t h = hash_key(entry->key, 4 + (last_segment + 1), capacity);
-    StrmapEntry** entry_slot = (StrmapEntry**)entries.locate_cell(h);
+    StrmapEntry** entry_slot = (StrmapEntry**) entries.locate(h);
     entry->next_entry = *entry_slot;
     *entry_slot = entry;
     entry = next_entry;
@@ -82,7 +82,7 @@ void* Strmap::lookup(char* key, StrmapEntry** entry_/*out*/, StrmapBucket* bucke
 {
   int last_segment = floor(log2(capacity/16));
   uint32_t h = hash_key(key, 4 + (last_segment + 1), capacity);
-  StrmapEntry** entry_slot = (StrmapEntry**)entries.locate_cell(h);
+  StrmapEntry** entry_slot = (StrmapEntry**) entries.locate(h);
   StrmapEntry*entry = *entry_slot;
   while (entry) {
     if (cstring::match(entry->key, key)) {
@@ -114,7 +114,7 @@ StrmapEntry* Strmap::insert(char* key, void* value, bool return_if_found)
     grow();
     bucket.last_segment = floor(log2(capacity/16));
     bucket.h = hash_key(key, 4 + (bucket.last_segment + 1), capacity);
-    bucket.entry_slot = (StrmapEntry**)entries.locate_cell(bucket.h);
+    bucket.entry_slot = (StrmapEntry**) entries.locate(bucket.h);
   }
   entry = (StrmapEntry*)storage->allocate(sizeof(StrmapEntry), 1);
   entry->key = key;
@@ -133,7 +133,7 @@ void Strmap::DEBUG_occupancy()
       max_bucket_length = 0;
 
   for (int i = 0; i < capacity; i++) {
-    StrmapEntry** entry_slot = (StrmapEntry**)entries.locate_cell(i);
+    StrmapEntry** entry_slot = (StrmapEntry**) entries.locate(i);
     StrmapEntry* entry = *entry_slot;
     entry_count = 0;
     if (entry) {
@@ -189,7 +189,7 @@ StrmapEntry* StrmapIterator::next()
   }
   i++;
   while (i < strmap->capacity) {
-    StrmapEntry** entry_slot = (StrmapEntry**)strmap->entries.locate_cell(i);
+    StrmapEntry** entry_slot = (StrmapEntry**) strmap->entries.locate(i);
     entry = *entry_slot;
     if (entry) {
       this->entry = entry;

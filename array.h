@@ -27,19 +27,19 @@
  * C(n) = (2^n - 1)*16
  **/
 
-struct SegmentTable {
+struct ArrayElements {
   int segment_count;
   int element_size;
   void* segments[];
 
-  void* locate_cell(int i);
+  void* locate(int i);
 };
 
 struct Array {
   Arena* storage;
   int element_count;
   int capacity;
-  SegmentTable elements;
+  ArrayElements elements;
 
   static Array* create(Arena* storage, int size, int segment_count);
   void extend();

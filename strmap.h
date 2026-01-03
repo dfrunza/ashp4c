@@ -19,7 +19,7 @@ struct Strmap {
   Arena* storage;
   int entry_count;
   int capacity;
-  SegmentTable entries;
+  ArrayElements entries;
 
   static Strmap* create(Arena* storage, int segment_count);
   void grow();

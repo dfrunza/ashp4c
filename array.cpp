@@ -1,6 +1,6 @@
 #include <array.h>
 
-void* SegmentTable::locate_cell(int i)
+void* ArrayElements::locate(int i)
 {
   int segment_index = floor(log2(i/16 + 1));
   int element_offset = i - 16 * ((1 << segment_index) - 1);
@@ -43,7 +43,7 @@ void* Array::get(int i)
 {
   assert(i >= 0 && i < element_count);
 
-  void* elem_slot = elements.locate_cell(i);
+  void* elem_slot = elements.locate(i);
   return elem_slot;
 }
 
@@ -52,7 +52,7 @@ void* Array::append()
   if (element_count >= capacity) {
     extend();
   }
-  void* elem_slot = elements.locate_cell(element_count);
+  void* elem_slot = elements.locate(element_count);
   element_count += 1;
   return elem_slot;
 }
