@@ -15,14 +15,20 @@ Array* Array::create(Arena* storage, int size, int segment_count)
   Array* array = (Array*)storage->allocate(sizeof(Array), 1);
   storage->allocate(sizeof(void**), segment_count);
   array->storage = storage;
-  array->element_count = 0;
-  array->capacity = 16;
-  array->elements.segment_count = segment_count;
-  array->elements.element_size = size;
-  array->elements.segments[0] = storage->allocate(size, 16);
-  // TODO
-  // memset(array->elements.segments[0], 0, sizeof(size) * 16);
+  array->create(size, segment_count);
   return array;
+}
+
+void Array::create(int size, int segment_count)
+{
+  assert(segment_count >= 1 && segment_count <= 16);
+
+  element_count = 0;
+  capacity = 16;
+  elements.segment_count = segment_count;
+  elements.element_size = size;
+  elements.segments[0] = storage->allocate(size, 16);
+  memset(elements.segments[0], 0, sizeof(size) * 16);
 }
 
 void Array::extend()
