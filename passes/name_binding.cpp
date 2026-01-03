@@ -40,7 +40,7 @@ void NameBindingPass::define_builtin_names()
   };
 
   for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
-    Ast* name = Ast::create(storage, AstEnum::name);
+    Ast* name = Ast::create(storage, AstEnum::name, 0, 0);
     name->name.strname = builtin_names[i].strname;
     NameDeclaration* name_decl = root_scope->bind_name(storage, name->name.strname, builtin_names[i].ns);
     name_decl->ast = name;

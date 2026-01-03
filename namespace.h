@@ -39,13 +39,13 @@ struct NameEntry {
 
   NameDeclaration* get_declarations(enum NameSpace ns)
   {
-    NameDeclaration* decls = this->declarations[(int)ns >> 1];
+    NameDeclaration* decls = declarations[(int)ns >> 1];
     return decls;
   }
 
   void new_declaration(NameDeclaration* name_decl, enum NameSpace ns)
   {
-    name_decl->next_in_scope = this->declarations[(int)ns >> 1];
-    this->declarations[(int)ns >> 1] = name_decl;
+    name_decl->next_in_scope = declarations[(int)ns >> 1];
+    declarations[(int)ns >> 1] = name_decl;
   }
 };

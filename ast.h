@@ -826,10 +826,12 @@ struct Ast {
     return ::owner_of(tree, &Ast::tree);
   }
 
-  static Ast* create(Arena* storage, enum AstEnum kind)
+  static Ast* create(Arena* storage, enum AstEnum kind, int line_no, int column_no)
   {
     Ast* ast = storage->allocate<Ast>();
     ast->kind = kind;
+    ast->line_no = line_no;
+    ast->column_no = column_no;
     return ast;
   }
 
