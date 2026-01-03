@@ -54,7 +54,7 @@ struct Strmap {
   {
     assert(segment_count >= 1 && segment_count <= 16);
 
-    Strmap* strmap = storage->allocate<Strmap>();
+    Strmap* strmap = storage->allocate<Strmap>(1);
     storage->allocate<StrmapEntry<V>*>(segment_count);
     strmap->storage = storage;
     strmap->entry_count = 0;
@@ -142,7 +142,7 @@ struct Strmap {
       bucket.h = hash_key(key, 4 + (bucket.last_segment + 1), capacity);
       bucket.entry_slot = entries.locate_cell(bucket.h);
     }
-    entry = storage->allocate<StrmapEntry<V>>();
+    entry = storage->allocate<StrmapEntry<V>>(1);
     entry->key = key;
     entry->value = value;
     entry->next_entry = *bucket.entry_slot;

@@ -35,7 +35,7 @@ struct Map {
       K* key, V* value, bool return_if_found)
   {
     if (!entry) {
-      entry = storage->allocate<MapEntry<K,V>>();
+      entry = storage->allocate<MapEntry<K,V>>(1);
       *branch = entry;
       entry->key = key;
       entry->value = value;

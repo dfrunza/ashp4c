@@ -99,7 +99,7 @@ void DEBUG_scope_decls(Scope* scope)
 void NameBindingPass::do_pass()
 {
   current_scope = root_scope;
-  decl_map = storage->allocate<Map<Ast, NameDeclaration>>();
+  decl_map = storage->allocate<Map<Ast, NameDeclaration>>(1);
   decl_map->storage = storage;
   type_array = Array<Type>::create(storage, 5);
   define_builtin_names();

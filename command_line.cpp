@@ -12,7 +12,7 @@ CommandLineArg* CommandLineArg::parse_cmdline(Arena* storage, int arg_count, cha
   CommandLineArg* prev_arg = &sentinel_arg;
   int i = 1;
   while (i < arg_count) {
-    CommandLineArg* cmdline_arg = storage->allocate<CommandLineArg>();
+    CommandLineArg* cmdline_arg = storage->allocate<CommandLineArg>(1);
     if (cstring::start_with(args[i], "-")) {
       raw_arg = args[i] + 1;  /* skip the `-` prefix */
       cmdline_arg->name = raw_arg;

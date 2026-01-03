@@ -5,7 +5,7 @@ Array<T>* Array<T>::create(Arena* storage, int segment_count)
 {
   assert(segment_count >= 1 && segment_count <= 16);
 
-  Array* array = storage->allocate<Array>();
+  Array* array = storage->allocate<Array>(1);
   storage->allocate<T**>(segment_count);
   array->storage = storage;
   array->element_count = 0;
@@ -51,8 +51,8 @@ T* Array<T>::append()
 }
 
 #include <type.h>
-template class Array<Type>;
-template class Array<Type*>;
+template struct Array<Type>;
+template struct Array<Type*>;
 
 #include <token.h>
-template class Array<Token>;
+template struct Array<Token>;

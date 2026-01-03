@@ -2,7 +2,7 @@
 
 PotentialType* PotentialType_Set::create(Arena* storage)
 {
-  PotentialType* potype = storage->allocate<PotentialType>();
+  PotentialType* potype = storage->allocate<PotentialType>(1);
   potype->kind = PotentialTypeEnum::Set;
   potype->set.members.storage = storage;
   return potype;
@@ -14,7 +14,7 @@ void PotentialType_Set::add(Type* ty) {
 
 PotentialType* PotentialType_Product::create(Arena* storage, int arity)
 {
-  PotentialType* potype = storage->allocate<PotentialType>();
+  PotentialType* potype = storage->allocate<PotentialType>(1);
   potype->kind = PotentialTypeEnum::Product;
   potype->product.arity = arity;
   potype->product.members = 0;

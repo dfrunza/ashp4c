@@ -5,7 +5,7 @@ NameEntry Scope::NULL_ENTRY = {};
 Scope* Scope::create(Arena* storage, int segment_count)
 {
   assert(segment_count >= 1 && segment_count <= 16);
-  Scope* scope = storage->allocate<Scope>();
+  Scope* scope = storage->allocate<Scope>(1);
   scope->name_table = Strmap<NameEntry>::create(storage, segment_count);
   return scope;
 }
@@ -55,7 +55,7 @@ NameDeclaration* Scope::bind_name(Arena* storage, char* strname, enum NameSpace 
   NameDeclaration* name_decl = NameDeclaration::create(storage, strname);
   StrmapEntry<NameEntry>* he = name_table->insert(strname, (NameEntry*)0, 1);
   if (he->value == 0) {
-    he->value = storage->allocate<NameEntry>();
+    he->value = storage->allocate<NameEntry>(1);
   }
   NameEntry* name_entry = he->value;
   name_entry->new_declaration(name_decl, ns);

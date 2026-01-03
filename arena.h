@@ -16,11 +16,7 @@ struct PageBlock {
   static PageBlock* new_block();
   void recycle();
   PageBlock* insert_and_coalesce(PageBlock* block);
-
-  static inline PageBlock* owner_of(List<PageBlock>* list)
-  {
-    return ::owner_of(list, &PageBlock::link);
-  }
+  static PageBlock* owner_of(List<PageBlock>* list);
 };
 
 struct Arena {
@@ -28,26 +24,11 @@ struct Arena {
   uint8_t* memory_avail;
   uint8_t* memory_limit;
 
-  void free();
   void grow(uint32_t size);
+  void free();
 
   template<class T>
-  T* allocate(int count = 1)
-  {
-    assert(count > 0);
-
-    uint8_t* user_memory = memory_avail;
-    int size = sizeof(T) * count;
-    if (user_memory + size >= memory_limit) {
-      grow(size);
-      user_memory = memory_avail;
-    }
-    memory_avail = user_memory + size;
-    if (ZMEM_ON_ALLOC) {
-      memset(user_memory, 0, size);
-    }
-    return (T*) user_memory;
-  }
+  T* allocate(int count);
 };
 
 struct Memory

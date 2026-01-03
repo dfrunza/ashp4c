@@ -18,7 +18,7 @@ static void DEBUG_print_potential_types(PotentialType_Set* tau)
 
 void PotentialTypePass::do_pass()
 {
-  potype_map = storage->allocate<Map<Ast, PotentialType>>();
+  potype_map = storage->allocate<Map<Ast, PotentialType>>(1);
   potype_map->storage = storage;
   visit_p4program(p4program);
 }

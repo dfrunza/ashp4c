@@ -7,34 +7,6 @@
 
 static Memory memory = {};
 
-void Memory::reserve(int amount)
-{
-  memory.page_size = getpagesize();
-  memory.page_count = ceil(amount / memory.page_size);
-  memory.page_memory = (uint8_t*)mmap(0, memory.page_count * memory.page_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-  if (memory.page_memory == MAP_FAILED) {
-    perror("mmap");
-    exit(1);
-  }
-  if (mprotect(memory.page_memory, 1 * memory.page_size, PROT_READ | PROT_WRITE) != 0) {
-    perror("mprotect");
-    exit(1);
-  }
-  memory.first_block = (PageBlock*)memory.page_memory;
-  memset(memory.first_block, 0, sizeof(PageBlock));
-  memory.first_block->memory_begin = (uint8_t*)memory.page_memory;
-  memory.first_block->memory_end = memory.first_block->memory_begin + (1 * memory.page_size);
-
-  memory.block_freelist = memory.first_block + 1;
-  memset(memory.block_freelist, 0, sizeof(PageBlock));
-  memory.block_freelist->memory_begin = memory.first_block->memory_end;
-  memory.block_freelist->memory_end = memory.block_freelist->memory_begin + ((memory.page_count - 1) * memory.page_size);
-
-  memory.block_storage.owned_pages = memory.first_block;
-  memory.block_storage.memory_avail = memory.first_block->memory_begin + 2 * sizeof(PageBlock);
-  memory.block_storage.memory_limit = memory.first_block->memory_end;
-}
-
 PageBlock* PageBlock::find_first_fit(int size)
 {
   PageBlock* result = 0;
@@ -62,7 +34,7 @@ PageBlock* PageBlock::new_block()
   if (block) {
     memory.recycled_blocks = PageBlock::owner_of(block->link.next);
   } else {
-    block = memory.block_storage.allocate<PageBlock>();
+    block = memory.block_storage.allocate<PageBlock>(1);
   }
   memset(block, 0, sizeof(PageBlock));
   return block;
@@ -147,6 +119,11 @@ PageBlock* PageBlock::insert_and_coalesce(PageBlock* block)
   return merged_list;
 }
 
+PageBlock* PageBlock::owner_of(List<PageBlock>* list)
+{
+  return ::owner_of(list, &PageBlock::link);
+}
+
 void Arena::grow(uint32_t size)
 {
   uint8_t* alloc_memory_begin = 0, *alloc_memory_end = 0;
@@ -197,3 +174,106 @@ void Arena::free()
   }
   memset(this, 0, sizeof(Arena));
 }
+
+template<class T>
+T* Arena::allocate(int count)
+{
+  assert(count > 0);
+
+  uint8_t* user_memory = memory_avail;
+  int size = sizeof(T) * count;
+  if (user_memory + size >= memory_limit) {
+    grow(size);
+    user_memory = memory_avail;
+  }
+  memory_avail = user_memory + size;
+  if (ZMEM_ON_ALLOC) {
+    memset(user_memory, 0, size);
+  }
+  return (T*) user_memory;
+}
+
+void Memory::reserve(int amount)
+{
+  memory.page_size = getpagesize();
+  memory.page_count = ceil(amount / memory.page_size);
+  memory.page_memory = (uint8_t*)mmap(0, memory.page_count * memory.page_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  if (memory.page_memory == MAP_FAILED) {
+    perror("mmap");
+    exit(1);
+  }
+  if (mprotect(memory.page_memory, 1 * memory.page_size, PROT_READ | PROT_WRITE) != 0) {
+    perror("mprotect");
+    exit(1);
+  }
+  memory.first_block = (PageBlock*)memory.page_memory;
+  memset(memory.first_block, 0, sizeof(PageBlock));
+  memory.first_block->memory_begin = (uint8_t*)memory.page_memory;
+  memory.first_block->memory_end = memory.first_block->memory_begin + (1 * memory.page_size);
+
+  memory.block_freelist = memory.first_block + 1;
+  memset(memory.block_freelist, 0, sizeof(PageBlock));
+  memory.block_freelist->memory_begin = memory.first_block->memory_end;
+  memory.block_freelist->memory_end = memory.block_freelist->memory_begin + ((memory.page_count - 1) * memory.page_size);
+
+  memory.block_storage.owned_pages = memory.first_block;
+  memory.block_storage.memory_avail = memory.first_block->memory_begin + 2 * sizeof(PageBlock);
+  memory.block_storage.memory_limit = memory.first_block->memory_end;
+}
+
+#include <command_line.h>
+template CommandLineArg* Arena::allocate<CommandLineArg>(int);
+
+#include <array.h>
+#include <token.h>
+template Token* Arena::allocate<Token>(int);
+template Array<Token>* Arena::allocate<Array<Token>>(int);
+template Token*** Arena::allocate<Token**>(int);
+
+#include <lexer.h>
+template char* Arena::allocate<char>(int);
+
+#include <ast.h>
+template Ast* Arena::allocate<Ast>(int);
+
+#include <scope.h>
+template Scope* Arena::allocate<Scope>(int);
+template NameEntry* Arena::allocate<NameEntry>(int);
+
+#include <strmap.h>
+template Strmap<NameEntry>* Arena::allocate<Strmap<NameEntry>>(int);
+template StrmapEntry<NameEntry>* Arena::allocate<StrmapEntry<NameEntry>>(int);
+template StrmapEntry<NameEntry>** Arena::allocate<StrmapEntry<NameEntry>*>(int);
+
+#include <map.h>
+#include <potential_type.h>
+template MapEntry<Type, void>* Arena::allocate<MapEntry<Type, void>>(int);
+template MapEntry<Ast, Type>* Arena::allocate<MapEntry<Ast, Type>>(int);
+template MapEntry<Ast, Scope>* Arena::allocate<MapEntry<Ast, Scope>>(int);
+template MapEntry<Ast, NameDeclaration>* Arena::allocate<MapEntry<Ast, NameDeclaration> >(int);
+template MapEntry<Ast, PotentialType>* Arena::allocate<MapEntry<Ast, PotentialType>>(int);
+
+#include <type.h>
+template Type* Arena::allocate<Type>(int);
+template Array<Type>* Arena::allocate<Array<Type>>(int);
+template Array<Type*>* Arena::allocate<Array<Type*>>(int);
+template Type** Arena::allocate<Type*>(int);
+template Type*** Arena::allocate<Type**>(int);
+template Type**** Arena::allocate<Type***>(int);
+
+#include <namespace.h>
+template NameDeclaration* Arena::allocate<NameDeclaration>(int);
+
+#include <potential_type.h>
+template PotentialType* Arena::allocate<PotentialType>(int);
+template PotentialType** Arena::allocate<PotentialType*>(int);
+template Map<Ast, PotentialType>* Arena::allocate<Map<Ast, PotentialType>>(int);
+
+#include <passes/declared_type.h>
+template Map<Ast, Type>* Arena::allocate<Map<Ast, Type>>(int);
+
+#include <passes/name_binding.h>
+template Map<Ast, NameDeclaration>* Arena::allocate<Map<Ast, NameDeclaration>>(int);
+
+#include <passes/scope_hierarchy.h>
+template Map<Ast, Scope>* Arena::allocate<Map<Ast, Scope>>(int);

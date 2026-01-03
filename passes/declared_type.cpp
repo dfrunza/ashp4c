@@ -149,7 +149,7 @@ void DEBUG_print_type_array(Array<Type>* type_array)
 
 void DeclaredTypePass::do_pass()
 {
-  type_env = storage->allocate<Map<Ast, Type>>();
+  type_env = storage->allocate<Map<Ast, Type>>(1);
   type_env->storage = storage;
 
   define_builtin_types();
