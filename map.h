@@ -13,10 +13,10 @@ struct MapEntry {
 template<class K, class V>
 struct Map {
   Arena* storage;
-  MapEntry<K,V>* first;
-  MapEntry<K,V>* root;
+  MapEntry<K, V>* first;
+  MapEntry<K, V>* root;
 
-  MapEntry<K,V>* search_entry(MapEntry<K,V>* entry, K* key)
+  MapEntry<K, V>* search_entry(MapEntry<K, V>* entry, K* key)
   {
     if (!entry) {
       return 0;
@@ -31,11 +31,11 @@ struct Map {
     return 0;
   }
 
-  MapEntry<K,V>* insert_entry(MapEntry<K,V>** branch, MapEntry<K,V>* entry,
+  MapEntry<K, V>* insert_entry(MapEntry<K, V>** branch, MapEntry<K, V>* entry,
       K* key, V* value, bool return_if_found)
   {
     if (!entry) {
-      entry = storage->allocate<MapEntry<K,V>>(1);
+      entry = storage->allocate<MapEntry<K, V>>(1);
       *branch = entry;
       entry->key = key;
       entry->value = value;
@@ -57,17 +57,17 @@ struct Map {
     return 0;
   }
 
-  V* lookup(K* key, MapEntry<K,V>** entry)
+  V* lookup(K* key, MapEntry<K, V>** entry)
   {
 
-    MapEntry<K,V>* m = search_entry(root, key);
+    MapEntry<K, V>* m = search_entry(root, key);
     V* value = 0;
     if (m) { value = m->value; }
     if (entry) { *entry = m; }
     return value;
   }
 
-  MapEntry<K,V>* insert(K* key, V* value, bool return_if_found)
+  MapEntry<K, V>* insert(K* key, V* value, bool return_if_found)
   {
     return insert_entry(&root, root, key, value, return_if_found);
   }
@@ -75,7 +75,7 @@ struct Map {
   int count()
   {
     int c = 0;
-    for (MapEntry<K,V>*  m = first; m != 0; m = m->next) {
+    for (MapEntry<K, V>*  m = first; m != 0; m = m->next) {
       c += 1;
     }
     return c;
