@@ -1,6 +1,15 @@
 #include <array.h>
 
 template<class T>
+T* SegmentTable<T>::locate_cell(int i)
+{
+  int segment_index = floor(log2(i/16 + 1));
+  int elem_offset = i - 16 * ((1 << segment_index) - 1);
+  T* elem_slot = segments[segment_index] + elem_offset;
+  return elem_slot;
+}
+
+template<class T>
 Array<T>* Array<T>::create(Arena* storage, int segment_count)
 {
   assert(segment_count >= 1 && segment_count <= 16);
@@ -49,6 +58,10 @@ T* Array<T>::append()
   element_count += 1;
   return elem_slot;
 }
+
+#include <strmap.h>
+#include <namespace.h>
+template struct SegmentTable<StrmapEntry<NameEntry>*>;
 
 #include <type.h>
 template struct Array<Type>;

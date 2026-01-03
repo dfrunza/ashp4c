@@ -32,13 +32,7 @@ struct SegmentTable {
   int segment_count;
   T* segments[];
 
-  T* locate_cell(int i)
-  {
-    int segment_index = floor(log2(i/16 + 1));
-    int elem_offset = i - 16 * ((1 << segment_index) - 1);
-    T* elem_slot = segments[segment_index] + elem_offset;
-    return elem_slot;
-  }
+  T* locate_cell(int i);
 };
 
 template<class T>
