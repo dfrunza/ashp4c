@@ -175,12 +175,12 @@ void Arena::free()
   memset(this, 0, sizeof(Arena));
 }
 
-void* Arena::allocate(size_t size, int count)
+void* Arena::allocate(int size, int count)
 {
   assert(count > 0);
 
   uint8_t* user_memory = memory_avail;
-  size_t total_size = size * count;
+  int total_size = size * count;
   if (user_memory + total_size >= memory_limit) {
     grow(total_size);
     user_memory = memory_avail;
@@ -219,62 +219,3 @@ void Memory::reserve(int amount)
   memory.block_storage.memory_avail = memory.first_block->memory_begin + 2 * sizeof(PageBlock);
   memory.block_storage.memory_limit = memory.first_block->memory_end;
 }
-
-#if 0
-#include <command_line.h>
-template CommandLineArg* Arena::allocate<CommandLineArg>(int);
-
-#include <array.h>
-#include <token.h>
-template Token* Arena::allocate<Token>(int);
-template Array<Token>* Arena::allocate<Array<Token>>(int);
-template Token*** Arena::allocate<Token**>(int);
-
-#include <lexer.h>
-template char* Arena::allocate<char>(int);
-
-#include <ast.h>
-template Ast* Arena::allocate<Ast>(int);
-
-#include <scope.h>
-template Scope* Arena::allocate<Scope>(int);
-template NameEntry* Arena::allocate<NameEntry>(int);
-
-#include <strmap.h>
-template Strmap<NameEntry>* Arena::allocate<Strmap<NameEntry>>(int);
-template StrmapEntry<NameEntry>* Arena::allocate<StrmapEntry<NameEntry>>(int);
-template StrmapEntry<NameEntry>** Arena::allocate<StrmapEntry<NameEntry>*>(int);
-
-#include <map.h>
-#include <potential_type.h>
-template MapEntry<Type, void>* Arena::allocate<MapEntry<Type, void>>(int);
-template MapEntry<Ast, Type>* Arena::allocate<MapEntry<Ast, Type>>(int);
-template MapEntry<Ast, Scope>* Arena::allocate<MapEntry<Ast, Scope>>(int);
-template MapEntry<Ast, NameDeclaration>* Arena::allocate<MapEntry<Ast, NameDeclaration> >(int);
-template MapEntry<Ast, PotentialType>* Arena::allocate<MapEntry<Ast, PotentialType>>(int);
-
-#include <type.h>
-template Type* Arena::allocate<Type>(int);
-template Array<Type>* Arena::allocate<Array<Type>>(int);
-template Array<Type*>* Arena::allocate<Array<Type*>>(int);
-template Type** Arena::allocate<Type*>(int);
-template Type*** Arena::allocate<Type**>(int);
-template Type**** Arena::allocate<Type***>(int);
-
-#include <namespace.h>
-template NameDeclaration* Arena::allocate<NameDeclaration>(int);
-
-#include <potential_type.h>
-template PotentialType* Arena::allocate<PotentialType>(int);
-template PotentialType** Arena::allocate<PotentialType*>(int);
-template Map<Ast, PotentialType>* Arena::allocate<Map<Ast, PotentialType>>(int);
-
-#include <passes/declared_type.h>
-template Map<Ast, Type>* Arena::allocate<Map<Ast, Type>>(int);
-
-#include <passes/name_binding.h>
-template Map<Ast, NameDeclaration>* Arena::allocate<Map<Ast, NameDeclaration>>(int);
-
-#include <passes/scope_hierarchy.h>
-template Map<Ast, Scope>* Arena::allocate<Map<Ast, Scope>>(int);
-#endif

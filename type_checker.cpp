@@ -3,7 +3,7 @@
 
 void TypeChecker::init(Arena* storage)
 {
-  type_equiv_pairs = Array<Type>::create(storage, 2);
+  type_equiv_pairs = Array::create(storage, sizeof(Type), 2);
 }
 
 bool TypeChecker::match_type(PotentialType* potential_types, Type* required_ty)
@@ -69,7 +69,7 @@ bool TypeChecker::structural_type_equiv(Type* left, Type* right)
   if (left == right) return 1;
 
   for (i = 0; i < type_equiv_pairs->element_count; i++) {
-    type_pair = type_equiv_pairs->get(i);
+    type_pair = (Type*)type_equiv_pairs->get(i);
     assert(type_pair->kind == TypeEnum::Tuple);
     if ((left == type_pair->tuple.left || left == type_pair->tuple.right) &&
         (right == type_pair->tuple.left || right == type_pair->tuple.right)) {
@@ -77,7 +77,7 @@ bool TypeChecker::structural_type_equiv(Type* left, Type* right)
     }
   }
 
-  type_pair = type_equiv_pairs->append();
+  type_pair = (Type*)type_equiv_pairs->append();
   type_pair->kind = TypeEnum::Tuple;
   type_pair->tuple.left = left;
   type_pair->tuple.right = right;

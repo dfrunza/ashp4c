@@ -27,23 +27,22 @@
  * C(n) = (2^n - 1)*16
  **/
 
-template<class T>
 struct SegmentTable {
   int segment_count;
-  T* segments[];
+  int element_size;
+  void* segments[];
 
-  T* locate_cell(int i);
+  void* locate_cell(int i);
 };
 
-template<class T>
 struct Array {
   Arena* storage;
   int element_count;
   int capacity;
-  SegmentTable<T> elements;
+  SegmentTable elements;
 
-  static Array* create(Arena* storage, int segment_count);
+  static Array* create(Arena* storage, int size, int segment_count);
   void extend();
-  T* get(int i);
-  T* append();
+  void* get(int i);
+  void* append();
 };

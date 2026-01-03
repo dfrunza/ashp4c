@@ -396,7 +396,7 @@ void Lexer::next_token(Token* token)
 
       case 113:
       {
-        Token* prev_token = tokens->get(tokens->element_count - 1);
+        Token* prev_token = (Token*)tokens->get(tokens->element_count - 1);
         if (prev_token->klass == TokenClass::ParenthOpen) {
           token->klass = TokenClass::UnaryMinus;
         } else {
@@ -819,11 +819,11 @@ void Lexer::tokenize(SourceText* source_text)
   line_no = 1;
 
   token.klass = TokenClass::StartOfInput;
-  tokens = Array<Token>::create(storage, 7);
-  *tokens->append() = token;
+  tokens = Array::create(storage, sizeof(Token), 7);
+  *(Token*)tokens->append() = token;
 
   next_token(&token);
-  *tokens->append() = token;
+  *(Token*)tokens->append() = token;
   while (token.klass != TokenClass::EndOfInput) {
     if (token.klass == TokenClass::Unknown) {
       error("%s:%d:%d: error: unknown token.", filename, token.line_no, token.column_no);
@@ -831,6 +831,6 @@ void Lexer::tokenize(SourceText* source_text)
       error("%s:%d:%d: error: lexical error.", filename, token.line_no, token.column_no);
     }
     next_token(&token);
-    *tokens->append() = token;
+    *(Token*)tokens->append() = token;
   }
 }

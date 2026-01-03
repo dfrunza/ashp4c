@@ -12,7 +12,7 @@ struct SelectTypePass {
   Scope* root_scope;
   Map<Ast, Scope>* scope_map;
   Map<Ast, NameDeclaration>* decl_map;
-  Array<Type>* type_array;
+  Array* type_array;
   Map<Ast, Type>* type_env;
   TypeChecker* type_checker;
   Map<Ast, PotentialType>* potype_map;

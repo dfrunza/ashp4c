@@ -75,9 +75,9 @@ void PotentialTypePass::visit_name(Ast* name, PotentialType* potential_args)
 {
   assert(name->kind == AstEnum::name);
   if (potential_args) assert(potential_args->kind == PotentialTypeEnum::Product);
-  static Array<Type*>* name_ty; // FIXME
+  static Array* name_ty; // FIXME
 
-  if (!name_ty) name_ty = Array<Type*>::create(storage, 1);
+  if (!name_ty) name_ty = Array::create(storage, sizeof(Type*), 1);
   name_ty->element_count = 0;
   PotentialType* tau = PotentialType_Set::create(storage);
   potype_map->insert(name, tau, 0);
@@ -86,16 +86,16 @@ void PotentialTypePass::visit_name(Ast* name, PotentialType* potential_args)
   NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Var);
   if (name_decl) {
     Type* ty = type_env->lookup(name_decl->ast, 0);
-    *name_ty->append() = ty->actual_type();
+    *(Type**)name_ty->append() = ty->actual_type();
     assert(!name_decl->next_in_scope);
   }
   name_decl = name_entry->get_declarations(NameSpace::Type);
   for(; name_decl != 0; name_decl = name_decl->next_in_scope) {
     Type* ty = type_env->lookup(name_decl->ast, 0);
-    *name_ty->append() = ty->actual_type();
+    *(Type**)name_ty->append() = ty->actual_type();
   }
   for (int i = 0; i < name_ty->element_count; i++) {
-    Type* ty = *name_ty->get(i);
+    Type* ty = *(Type**)name_ty->get(i);
     if (potential_args) {
       if (ty->kind == TypeEnum::Function) {
         if (type_checker->match_params(potential_args, ty->function.params)) {

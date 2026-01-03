@@ -12,7 +12,7 @@ struct NameBindingPass {
   Scope* current_scope;
   Map<Ast, Scope>* scope_map;
   Map<Ast, NameDeclaration>* decl_map;
-  Array<Type>* type_array;
+  Array* type_array;
 
 /** PROGRAM **/
 

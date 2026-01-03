@@ -49,7 +49,7 @@ void NameBindingPass::define_builtin_names()
   for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
     NameEntry* name_entry = root_scope->lookup(builtin_types[i].strname, NameSpace::Type);
     NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
-    Type* ty = type_array->append();
+    Type* ty = (Type*)type_array->append();
     ty->kind = builtin_types[i].ty_former;
     ty->strname = name_decl->strname;
     ty->ast = name_decl->ast;
@@ -59,11 +59,11 @@ void NameBindingPass::define_builtin_names()
   Type* ty;
 
   ty = root_scope->lookup_builtin("error", NameSpace::Type)->type;
-  ty->enum_.fields = type_array->append();
+  ty->enum_.fields = (Type*)type_array->append();
   ty->enum_.fields->kind = TypeEnum::Product;
 
   ty = root_scope->lookup_builtin("match_kind", NameSpace::Type)->type;
-  ty->enum_.fields = type_array->append();
+  ty->enum_.fields = (Type*)type_array->append();
   ty->enum_.fields->kind = TypeEnum::Product;
 }
 
@@ -101,7 +101,7 @@ void NameBindingPass::do_pass()
   current_scope = root_scope;
   decl_map = (Map<Ast, NameDeclaration>*)storage->allocate(sizeof(Map<Ast, NameDeclaration>), 1);
   decl_map->storage = storage;
-  type_array = Array<Type>::create(storage, 5);
+  type_array = Array::create(storage, sizeof(Type), 5);
   define_builtin_names();
   visit_p4program(p4program);
   assert(current_scope == root_scope);

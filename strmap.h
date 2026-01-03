@@ -48,7 +48,7 @@ struct Strmap {
   Arena* storage;
   int entry_count;
   int capacity;
-  SegmentTable<StrmapEntry<V>*> entries;
+  SegmentTable entries;
 
   static Strmap* create(Arena* storage, int segment_count)
   {
@@ -60,6 +60,7 @@ struct Strmap {
     strmap->entry_count = 0;
     strmap->capacity = 16;
     strmap->entries.segment_count = segment_count;
+    strmap->entries.element_size = sizeof(StrmapEntry<V>*);
     strmap->entries.segments[0] = (StrmapEntry<V>**)storage->allocate(sizeof(StrmapEntry<V>*), 16);
     memset(strmap->entries.segments[0], 0, sizeof(StrmapEntry<V>*) * 16);
     return strmap;
@@ -89,14 +90,14 @@ struct Strmap {
     for (int i = 0; i <= last_segment; i++) {
       segment_capacity = 16 * (1 << i);
       for (int j = 0; j < segment_capacity; j ++) {
-        StrmapEntry<V>** segment = entries.segments[i];
+        StrmapEntry<V>** segment = (StrmapEntry<V>**)entries.segments[i];
         segment[j] = 0;
       }
     }
     for (StrmapEntry<V>* entry = first_entry; entry != 0; ) {
       StrmapEntry<V>* next_entry = entry->next_entry;
       uint32_t h = hash_key(entry->key, 4 + (last_segment + 1), capacity);
-      StrmapEntry<V>** entry_slot = entries.locate_cell(h);
+      StrmapEntry<V>** entry_slot = (StrmapEntry<V>**)entries.locate_cell(h);
       entry->next_entry = *entry_slot;
       *entry_slot = entry;
       entry = next_entry;
@@ -105,10 +106,9 @@ struct Strmap {
 
   V* lookup(char* key, StrmapEntry<V>** entry_/*out*/, StrmapBucket<V>* bucket/*out*/)
   {
-
     int last_segment = floor(log2(capacity/16));
     uint32_t h = hash_key(key, 4 + (last_segment + 1), capacity);
-    StrmapEntry<V>** entry_slot = entries.locate_cell(h);
+    StrmapEntry<V>** entry_slot = (StrmapEntry<V>**)entries.locate_cell(h);
     StrmapEntry<V>*entry = *entry_slot;
     while (entry) {
       if (cstring::match(entry->key, key)) {
@@ -140,7 +140,7 @@ struct Strmap {
       grow();
       bucket.last_segment = floor(log2(capacity/16));
       bucket.h = hash_key(key, 4 + (bucket.last_segment + 1), capacity);
-      bucket.entry_slot = entries.locate_cell(bucket.h);
+      bucket.entry_slot = (StrmapEntry<V>**)entries.locate_cell(bucket.h);
     }
     entry = (StrmapEntry<V>*)storage->allocate(sizeof(StrmapEntry<V>), 1);
     entry->key = key;
@@ -222,7 +222,7 @@ struct StrmapIterator {
     }
     i++;
     while (i < strmap->capacity) {
-      StrmapEntry<V>** entry_slot = strmap->entries.locate_cell(i);
+      StrmapEntry<V>** entry_slot = (StrmapEntry<V>**)strmap->entries.locate_cell(i);
       entry = *entry_slot;
       if (entry) {
         this->entry = entry;

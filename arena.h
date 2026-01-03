@@ -26,7 +26,7 @@ struct Arena {
 
   void grow(uint32_t size);
   void free();
-  void* allocate(size_t size, int count);
+  void* allocate(int size, int count);
 };
 
 struct Memory
