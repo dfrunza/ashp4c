@@ -150,7 +150,7 @@ Ast* Ast::owner_of(Tree<Ast>* tree)
 
 Ast* Ast::create(Arena* storage, enum AstEnum kind, int line_no, int column_no)
 {
-  Ast* ast = storage->allocate<Ast>(1);
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
   ast->kind = kind;
   ast->line_no = line_no;
   ast->column_no = column_no;
@@ -162,7 +162,7 @@ Ast* Ast::clone(Arena* storage)
   Ast* clone, *sibling_clone, *child_clone;
 
   if (this == 0) return (Ast*)0;
-  clone = storage->allocate<Ast>(1);
+  clone = (Ast*)storage->allocate(sizeof(Ast), 1);
   clone->kind = kind;
   clone->line_no = line_no;
   clone->column_no = column_no;

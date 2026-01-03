@@ -34,7 +34,7 @@ PageBlock* PageBlock::new_block()
   if (block) {
     memory.recycled_blocks = PageBlock::owner_of(block->link.next);
   } else {
-    block = memory.block_storage.allocate<PageBlock>(1);
+    block = (PageBlock*)memory.block_storage.allocate(sizeof(PageBlock), 1);
   }
   memset(block, 0, sizeof(PageBlock));
   return block;
@@ -175,22 +175,21 @@ void Arena::free()
   memset(this, 0, sizeof(Arena));
 }
 
-template<class T>
-T* Arena::allocate(int count)
+void* Arena::allocate(size_t size, int count)
 {
   assert(count > 0);
 
   uint8_t* user_memory = memory_avail;
-  int size = sizeof(T) * count;
-  if (user_memory + size >= memory_limit) {
-    grow(size);
+  size_t total_size = size * count;
+  if (user_memory + total_size >= memory_limit) {
+    grow(total_size);
     user_memory = memory_avail;
   }
-  memory_avail = user_memory + size;
+  memory_avail = user_memory + total_size;
   if (ZMEM_ON_ALLOC) {
-    memset(user_memory, 0, size);
+    memset(user_memory, 0, total_size);
   }
-  return (T*) user_memory;
+  return user_memory;
 }
 
 void Memory::reserve(int amount)
@@ -221,6 +220,7 @@ void Memory::reserve(int amount)
   memory.block_storage.memory_limit = memory.first_block->memory_end;
 }
 
+#if 0
 #include <command_line.h>
 template CommandLineArg* Arena::allocate<CommandLineArg>(int);
 
@@ -277,3 +277,4 @@ template Map<Ast, NameDeclaration>* Arena::allocate<Map<Ast, NameDeclaration>>(i
 
 #include <passes/scope_hierarchy.h>
 template Map<Ast, Scope>* Arena::allocate<Map<Ast, Scope>>(int);
+#endif

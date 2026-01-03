@@ -54,13 +54,13 @@ struct Strmap {
   {
     assert(segment_count >= 1 && segment_count <= 16);
 
-    Strmap* strmap = storage->allocate<Strmap>(1);
-    storage->allocate<StrmapEntry<V>*>(segment_count);
+    Strmap* strmap = (Strmap*)storage->allocate(sizeof(Strmap), 1);
+    storage->allocate(sizeof(StrmapEntry<V>*), segment_count);
     strmap->storage = storage;
     strmap->entry_count = 0;
     strmap->capacity = 16;
     strmap->entries.segment_count = segment_count;
-    strmap->entries.segments[0] = storage->allocate<StrmapEntry<V>*>(16);
+    strmap->entries.segments[0] = (StrmapEntry<V>**)storage->allocate(sizeof(StrmapEntry<V>*), 16);
     memset(strmap->entries.segments[0], 0, sizeof(StrmapEntry<V>*) * 16);
     return strmap;
   }
@@ -84,7 +84,7 @@ struct Strmap {
     }
     assert(entry_count == this->entry_count);
     int segment_capacity = 16 * (1 << last_segment);
-    entries.segments[last_segment] = storage->allocate<StrmapEntry<V>*>(segment_capacity);
+    entries.segments[last_segment] = (StrmapEntry<V>**)storage->allocate(sizeof(StrmapEntry<V>*), segment_capacity);
     capacity = 16 * ((1 << (last_segment + 1)) - 1);
     for (int i = 0; i <= last_segment; i++) {
       segment_capacity = 16 * (1 << i);
@@ -142,7 +142,7 @@ struct Strmap {
       bucket.h = hash_key(key, 4 + (bucket.last_segment + 1), capacity);
       bucket.entry_slot = entries.locate_cell(bucket.h);
     }
-    entry = storage->allocate<StrmapEntry<V>>(1);
+    entry = (StrmapEntry<V>*)storage->allocate(sizeof(StrmapEntry<V>), 1);
     entry->key = key;
     entry->value = value;
     entry->next_entry = *bucket.entry_slot;

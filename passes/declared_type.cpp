@@ -56,7 +56,7 @@ void DeclaredTypePass::define_builtin_types()
     Type* params_ty = type_array->append();
     params_ty->kind = TypeEnum::Product;
     params_ty->product.count = 2;
-    params_ty->product.members = storage->allocate<Type*>(params_ty->product.count);
+    params_ty->product.members = (Type**)storage->allocate(sizeof(Type*), params_ty->product.count);
     params_ty->product.members[0] = root_scope->lookup_builtin("int", NameSpace::Type)->type;
     params_ty->product.members[1] = root_scope->lookup_builtin("int", NameSpace::Type)->type;
     ty->function.params = params_ty;
@@ -72,7 +72,7 @@ void DeclaredTypePass::define_builtin_types()
     Type* params_ty = type_array->append();
     params_ty->kind = TypeEnum::Product;
     params_ty->product.count = 2;
-    params_ty->product.members = storage->allocate<Type*>(params_ty->product.count);
+    params_ty->product.members = (Type**)storage->allocate(sizeof(Type*), params_ty->product.count);
     params_ty->product.members[0] = root_scope->lookup_builtin("bool", NameSpace::Type)->type;
     params_ty->product.members[1] = root_scope->lookup_builtin("bool", NameSpace::Type)->type;
     ty->function.params = params_ty;
@@ -88,7 +88,7 @@ void DeclaredTypePass::define_builtin_types()
     Type* params_ty = type_array->append();
     params_ty->kind = TypeEnum::Product;
     params_ty->product.count = 2;
-    params_ty->product.members = storage->allocate<Type*>(params_ty->product.count);
+    params_ty->product.members = (Type**)storage->allocate(sizeof(Type*), params_ty->product.count);
     params_ty->product.members[0] = root_scope->lookup_builtin("int", NameSpace::Type)->type;
     params_ty->product.members[1] = root_scope->lookup_builtin("int", NameSpace::Type)->type;
     ty->function.params = params_ty;
@@ -104,7 +104,7 @@ void DeclaredTypePass::define_builtin_types()
     Type* params_ty = type_array->append();
     params_ty->kind = TypeEnum::Product;
     params_ty->product.count = 2;
-    params_ty->product.members = storage->allocate<Type*>(params_ty->product.count);
+    params_ty->product.members = (Type**)storage->allocate(sizeof(Type*), params_ty->product.count);
     params_ty->product.members[0] = root_scope->lookup_builtin("bit", NameSpace::Type)->type;
     params_ty->product.members[1] = root_scope->lookup_builtin("bit", NameSpace::Type)->type;
     ty->function.params = params_ty;
@@ -149,7 +149,7 @@ void DEBUG_print_type_array(Array<Type>* type_array)
 
 void DeclaredTypePass::do_pass()
 {
-  type_env = storage->allocate<Map<Ast, Type>>(1);
+  type_env = (Map<Ast, Type>*)storage->allocate(sizeof(Map<Ast, Type>), 1);
   type_env->storage = storage;
 
   define_builtin_types();
@@ -276,7 +276,7 @@ void DeclaredTypePass::visit_parameterList(Ast* params)
     params_ty->product.count += 1;
   }
   if (params_ty->product.count > 0) {
-    params_ty->product.members = storage->allocate<Type*>(params_ty->product.count);
+    params_ty->product.members = (Type**)storage->allocate(sizeof(Type*), params_ty->product.count);
   }
 
   it.begin(&params->tree);
@@ -616,7 +616,7 @@ void DeclaredTypePass::visit_externTypeDeclaration(Ast* type_decl)
     }
   }
   if (ctors_ty->product.count > 0) {
-    ctors_ty->product.members = storage->allocate<Type*>(ctors_ty->product.count);
+    ctors_ty->product.members = (Type**)storage->allocate(sizeof(Type*), ctors_ty->product.count);
   }
   for (int i = 0; i < methods_ty->product.count; i++) {
     if (cstring::match(methods_ty->product.members[i]->strname, name->name.strname)) {
@@ -644,7 +644,7 @@ void DeclaredTypePass::visit_methodPrototypes(Ast* protos, Type* ctor_ty, char* 
     methods_ty->product.count += 1;
   }
   if (methods_ty->product.count > 0) {
-    methods_ty->product.members = storage->allocate<Type*>(methods_ty->product.count);
+    methods_ty->product.members = (Type**)storage->allocate(sizeof(Type*), methods_ty->product.count);
   }
 
   it.begin(&protos->tree);
@@ -841,7 +841,7 @@ void DeclaredTypePass::visit_typeArgumentList(Ast* args)
     args_ty->product.count += 1;
   }
   if (args_ty->product.count > 0) {
-    args_ty->product.members = storage->allocate<Type*>(args_ty->product.count);
+    args_ty->product.members = (Type**)storage->allocate(sizeof(Type*), args_ty->product.count);
   }
 
   it.begin(&args->tree);
@@ -955,7 +955,7 @@ void DeclaredTypePass::visit_structFieldList(Ast* fields)
     fields_ty->product.count += 1;
   }
   if (fields_ty->product.count > 0) {
-    fields_ty->product.members = storage->allocate<Type*>(fields_ty->product.count);
+    fields_ty->product.members = (Type**)storage->allocate(sizeof(Type*), fields_ty->product.count);
   }
 
   it.begin(&fields->tree);
@@ -1009,7 +1009,7 @@ void DeclaredTypePass::visit_errorDeclaration(Ast* error_decl)
   Type* fields_ty = error_ty->enum_.fields;
   if (error_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = error_ty->enum_.field_count;
-    fields_ty->product.members = storage->allocate<Type*>(fields_ty->product.count);
+    fields_ty->product.members = (Type**)storage->allocate(sizeof(Type*), fields_ty->product.count);
   }
   visit_identifierList(error_decl->errorDeclaration.fields, error_ty,
       error_ty->enum_.fields, &error_ty->enum_.i);
@@ -1023,7 +1023,7 @@ void DeclaredTypePass::visit_matchKindDeclaration(Ast* match_decl)
   Type* fields_ty = match_kind_ty->enum_.fields;
   if (match_kind_ty->enum_.field_count > 0 && fields_ty->product.members == 0) {
     fields_ty->product.count = match_kind_ty->enum_.field_count;
-    fields_ty->product.members = storage->allocate<Type*>(fields_ty->product.count);
+    fields_ty->product.members = (Type**)storage->allocate(sizeof(Type*), fields_ty->product.count);
   }
   visit_identifierList(match_decl->matchKindDeclaration.fields, match_kind_ty,
       match_kind_ty->enum_.fields, &match_kind_ty->enum_.i);
@@ -1067,7 +1067,7 @@ void DeclaredTypePass::visit_specifiedIdentifierList(Ast* ident_list, Type* enum
     idents_ty->product.count += 1;
   }
   if (idents_ty->product.count > 0) {
-    idents_ty->product.members = storage->allocate<Type*>(idents_ty->product.count);
+    idents_ty->product.members = (Type**)storage->allocate(sizeof(Type*), idents_ty->product.count);
   }
 
   it.begin(&ident_list->tree);

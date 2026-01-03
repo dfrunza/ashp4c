@@ -11,4 +11,3 @@ struct CommandLineArg {
   CommandLineArg* find_named_arg(char* name);
   CommandLineArg* find_unnamed_arg();
 };
-

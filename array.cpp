@@ -14,13 +14,13 @@ Array<T>* Array<T>::create(Arena* storage, int segment_count)
 {
   assert(segment_count >= 1 && segment_count <= 16);
 
-  Array* array = storage->allocate<Array>(1);
-  storage->allocate<T**>(segment_count);
+  Array* array = (Array*)storage->allocate(sizeof(Array), 1);
+  storage->allocate(sizeof(T**), segment_count);
   array->storage = storage;
   array->element_count = 0;
   array->capacity = 16;
   array->elements.segment_count = segment_count;
-  array->elements.segments[0] = storage->allocate<T>(16);
+  array->elements.segments[0] = (T*)storage->allocate(sizeof(T), 16);
   return array;
 }
 
@@ -35,7 +35,7 @@ void Array<T>::extend()
     exit(1);
   }
   int segment_capacity = 16 * (1 << last_segment);
-  elements.segments[last_segment] = storage->allocate<T>(segment_capacity);
+  elements.segments[last_segment] = (T*)storage->allocate(sizeof(T), segment_capacity);
   capacity = 16 * ((1 << (last_segment + 1)) - 1);
 }
 

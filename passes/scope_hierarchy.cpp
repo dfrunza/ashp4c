@@ -4,7 +4,7 @@
 void ScopeHierarchyPass::do_pass()
 {
   current_scope = root_scope;
-  scope_map = storage->allocate<Map<Ast, Scope>>(1);
+  scope_map = (Map<Ast, Scope>*)storage->allocate(sizeof(Map<Ast, Scope>), 1);
   scope_map->storage = storage;
   visit_p4program(p4program);
   assert(current_scope == root_scope);
