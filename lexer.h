@@ -1,7 +1,7 @@
 #pragma once
-#include <arena.h>
-#include <array.h>
-#include <token.h>
+#include "arena.h"
+#include "array.h"
+#include "token.h"
 
 struct SourceText {
   Arena* storage;

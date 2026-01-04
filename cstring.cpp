@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <basic.h>
-#include <cstring.h>
+#include "basic.h"
+#include "cstring.h"
 
 namespace cstring {
   bool is_letter(char c) {

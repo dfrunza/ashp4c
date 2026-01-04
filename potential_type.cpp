@@ -1,4 +1,4 @@
-#include <potential_type.h>
+#include "potential_type.h"
 
 PotentialType* PotentialType_Set::create(Arena* storage)
 {

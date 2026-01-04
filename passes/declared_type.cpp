@@ -1,8 +1,8 @@
 #include <stdio.h>
-#include <basic.h>
-#include <cstring.h>
-#include <type_checker.h>
-#include <passes/declared_type.h>
+#include "basic.h"
+#include "cstring.h"
+#include "type_checker.h"
+#include "passes/declared_type.h"
 
 void DeclaredTypePass::define_builtin_types()
 {
@@ -41,20 +41,19 @@ void DeclaredTypePass::define_builtin_types()
 
   ast = root_scope->lookup_builtin("accept", NameSpace::Var)->ast;
   ty = (Type*)type_array->append();
-  ty->kind = TypeEnum::State;
+  ty->create(TypeEnum::State, 0);
   type_env->insert(ast, ty, 0);
 
   ast = root_scope->lookup_builtin("reject", NameSpace::Var)->ast;
   ty = (Type*)type_array->append();
-  ty->kind = TypeEnum::State;
+  ty->create(TypeEnum::State, 0);
   type_env->insert(ast, ty, 0);
 
   for (int i = 0; i < sizeof(arithmetic_ops) / sizeof(arithmetic_ops[0]); i++) {
     Type* ty = (Type*)type_array->append();
-    ty->strname = arithmetic_ops[i];
-    ty->kind = TypeEnum::Function;
+    ty->create(TypeEnum::Function, arithmetic_ops[i]);
     Type* params_ty = (Type*)type_array->append();
-    params_ty->kind = TypeEnum::Product;
+    params_ty->create(TypeEnum::Product, 0);
     params_ty->product.count = 2;
     params_ty->product.members = (Type**)storage->allocate(sizeof(Type*), params_ty->product.count);
     params_ty->product.members[0] = root_scope->lookup_builtin("int", NameSpace::Type)->type;
@@ -154,6 +153,7 @@ void DeclaredTypePass::do_pass()
 
   define_builtin_types();
   visit_p4program(p4program);
+
   for (int i = 0; i < type_array->element_count; i++) {
     Type* ty = (Type*)type_array->get(i);
     if (ty->kind == TypeEnum::Nameref) {

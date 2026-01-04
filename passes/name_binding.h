@@ -1,17 +1,17 @@
 #pragma once
-#include <arena.h>
-#include <array.h>
-#include <ast.h>
-#include <scope.h>
-#include <map.h>
+#include "arena.h"
+#include "array.h"
+#include "ast.h"
+#include "scope.h"
+#include "map.h"
 
 struct NameBindingPass {
   Arena* storage;
   Ast* p4program;
   Scope* root_scope;
   Scope* current_scope;
-  Map* scope_map;  // <Ast, Scope>
-  Map* decl_map;  // <Ast, NameDeclaration>
+  Map* scope_map;
+  Map* decl_map;
   Array* type_array;
 
 /** PROGRAM **/

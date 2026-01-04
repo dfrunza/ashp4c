@@ -1,9 +1,9 @@
 #include <unistd.h>
 #include <sys/mman.h>
 #include <stdio.h>
-#include <memory.h>
 #include <math.h>
-#include <arena.h>
+#include "memory.h"
+#include "arena.h"
 
 static Memory memory = {};
 

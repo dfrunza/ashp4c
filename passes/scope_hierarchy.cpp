@@ -1,5 +1,5 @@
-#include <basic.h>
-#include <passes/scope_hierarchy.h>
+#include "basic.h"
+#include "passes/scope_hierarchy.h"
 
 void ScopeHierarchyPass::do_pass()
 {

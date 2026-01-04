@@ -1,7 +1,7 @@
 #pragma once
-#include <array.h>
-#include <type.h>
-#include <potential_type.h>
+#include "array.h"
+#include "type.h"
+#include "potential_type.h"
 
 struct TypeChecker {
   Array* type_equiv_pairs;

@@ -1,5 +1,5 @@
-#include <basic.h>
-#include <passes/select_type.h>
+#include "basic.h"
+#include "passes/select_type.h"
 
 void SelectTypePass::do_pass()
 {

@@ -1,5 +1,5 @@
-#include <cstring.h>
-#include <type_checker.h>
+#include "cstring.h"
+#include "type_checker.h"
 
 void TypeChecker::init(Arena* storage)
 {

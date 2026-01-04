@@ -1,7 +1,7 @@
-#include <memory.h>
-#include <basic.h>
-#include <cstring.h>
-#include <lexer.h>
+#include "memory.h"
+#include "basic.h"
+#include "cstring.h"
+#include "lexer.h"
 
 static int digit_to_integer(char c, int base)
 {

@@ -1,4 +1,4 @@
-#include <scope.h>
+#include "scope.h"
 
 NameEntry Scope::NULL_ENTRY = {};
 

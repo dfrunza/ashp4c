@@ -1,9 +1,9 @@
 #pragma once
-#include <arena.h>
-#include <map.h>
-#include <scope.h>
-#include <ast.h>
-#include <type_checker.h>
+#include "arena.h"
+#include "map.h"
+#include "scope.h"
+#include "ast.h"
+#include "type_checker.h"
 
 struct SelectTypePass {
   Arena* storage;

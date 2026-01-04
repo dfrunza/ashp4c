@@ -1,6 +1,6 @@
 #pragma once
-#include <namespace.h>
-#include <strmap.h>
+#include "namespace.h"
+#include "strmap.h"
 
 struct Scope {
   static NameEntry NULL_ENTRY;

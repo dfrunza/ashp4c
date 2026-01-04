@@ -1,5 +1,5 @@
-#include <basic.h>
-#include <type.h>
+#include "basic.h"
+#include "type.h"
 
 char* TypeEnum_to_string(enum TypeEnum type)
 {
@@ -31,12 +31,18 @@ char* TypeEnum_to_string(enum TypeEnum type)
     case TypeEnum::Nameref: return "NAMEREF";
     case TypeEnum::Type: return "TYPE";
     case TypeEnum::Tuple: return "TUPLE";
-    case TypeEnum::Product: return "TYPE_PRODUCT";
+    case TypeEnum::Product: return "PRODUCT";
 
     default: return "?";
   }
   assert(0);
   return 0;
+}
+
+void Type::create(enum TypeEnum kind, char* strname)
+{
+  this->kind = kind;
+  this->strname = strname;
 }
 
 Type* Type::actual_type()

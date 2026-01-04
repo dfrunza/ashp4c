@@ -1,11 +1,11 @@
 #pragma once
-#include <arena.h>
-#include <array.h>
-#include <map.h>
-#include <ast.h>
-#include <scope.h>
-#include <potential_type.h>
-#include <type_checker.h>
+#include "arena.h"
+#include "array.h"
+#include "map.h"
+#include "ast.h"
+#include "scope.h"
+#include "potential_type.h"
+#include "type_checker.h"
 
 struct PotentialTypePass {
   Arena* storage;

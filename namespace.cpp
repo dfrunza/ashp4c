@@ -1,5 +1,5 @@
-#include <basic.h>
-#include <namespace.h>
+#include "basic.h"
+#include "namespace.h"
 
 char* NameSpace_to_string(enum NameSpace ns)
 {

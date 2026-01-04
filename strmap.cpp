@@ -88,7 +88,7 @@ void* Strmap::lookup(char* key, StrmapEntry** entry_/*out*/, StrmapBucket* bucke
   int last_segment = floor(log2(capacity/16));
   uint32_t h = hash_key(key, 4 + (last_segment + 1), capacity);
   StrmapEntry** entry_slot = (StrmapEntry**) entries.locate(h);
-  StrmapEntry*entry = *entry_slot;
+  StrmapEntry* entry = *entry_slot;
   while (entry) {
     if (cstring::match(entry->key, key)) {
       break;

@@ -1,8 +1,8 @@
 #pragma once
 #include <stdint.h>
 #include <memory.h>
-#include <basic.h>
-#include <list.h>
+#include "basic.h"
+#include "list.h"
 
 #define ZMEM_ON_FREE  0
 #define ZMEM_ON_ALLOC 1

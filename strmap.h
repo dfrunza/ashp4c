@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
-#include <arena.h>
-#include <array.h>
+#include "arena.h"
+#include "array.h"
 
 struct StrmapEntry {
   char* key;

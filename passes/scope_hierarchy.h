@@ -1,7 +1,8 @@
-#include <arena.h>
-#include <ast.h>
-#include <scope.h>
-#include <map.h>
+#pragma once
+#include "arena.h"
+#include "ast.h"
+#include "scope.h"
+#include "map.h"
 
 struct ScopeHierarchyPass {
   Arena* storage;

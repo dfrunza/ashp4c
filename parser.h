@@ -1,8 +1,8 @@
 #pragma once
-#include <arena.h>
-#include <array.h>
-#include <lexer.h>
-#include <scope.h>
+#include "arena.h"
+#include "array.h"
+#include "lexer.h"
+#include "scope.h"
 
 struct Parser {
   Arena* storage;

@@ -1,7 +1,7 @@
 #pragma once
-#include <arena.h>
-#include <tree.h>
-#include <ast.h>
+#include "arena.h"
+#include "tree.h"
+#include "ast.h"
 
 enum class AstEnum {
   none = 0,

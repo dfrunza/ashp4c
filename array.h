@@ -3,9 +3,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
-#include <basic.h>
-#include <array.h>
-#include <arena.h>
+#include "basic.h"
+#include "array.h"
+#include "arena.h"
 
 /**
  * n  ...  segment count

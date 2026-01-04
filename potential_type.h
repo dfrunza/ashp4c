@@ -1,6 +1,6 @@
 #pragma once
-#include <map.h>
-#include <type.h>
+#include "map.h"
+#include "type.h"
 
 enum class PotentialTypeEnum : int {
   None = 0,

@@ -1,5 +1,6 @@
 #pragma once
-#include <ast.h>
+#include "ast.h"
+#include "array.h"
 
 enum class TypeEnum : int {
   None = 0,
@@ -137,6 +138,7 @@ struct Type {
     struct Type_Product product;
   };
 
+  void create(enum TypeEnum kind, char* strname);
   Type* actual_type();
   Type* effective_type();
 };

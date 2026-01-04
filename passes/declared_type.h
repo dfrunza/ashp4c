@@ -1,8 +1,8 @@
 #pragma once
-#include <arena.h>
-#include <ast.h>
-#include <map.h>
-#include <scope.h>
+#include "arena.h"
+#include "ast.h"
+#include "map.h"
+#include "scope.h"
 
 struct DeclaredTypePass {
   Arena* storage;
