@@ -112,6 +112,10 @@ struct Type_Tuple {
 struct Type_Product {
   Type** members;
   int count;
+
+  void create(Arena* storage, int count);
+  void set(int i, Type* ty);
+  Type* get(int i);
 };
 
 struct Type {

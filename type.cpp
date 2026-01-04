@@ -67,3 +67,21 @@ Type* Type::effective_type()
   }
   return applied_ty;
 }
+
+void Type_Product::create(Arena* storage, int count)
+{
+  this->count = count;
+  members = (Type**)storage->allocate(sizeof(Type*), count);
+}
+
+void Type_Product::set(int i, Type* ty)
+{
+  assert(i >= 0 && i < count);
+  members[i] = ty;
+}
+
+Type* Type_Product::get(int i)
+{
+  assert(i >= 0 && i < count);
+  return members[i];
+}

@@ -268,18 +268,17 @@ void SelectTypePass::visit_simpleKeysetExpression(Ast* simple_expr, Type* requir
         source_file, simple_expr->line_no, simple_expr->column_no);
   } else {
     if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::expression) {
-      visit_expression(simple_expr->simpleKeysetExpression.expr, required_ty->product.members[0]);
+      visit_expression(simple_expr->simpleKeysetExpression.expr, required_ty->product.get(0));
     } else if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::default_) {
       visit_default(simple_expr->simpleKeysetExpression.expr);
     } else if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::dontcare) {
       visit_dontcare(simple_expr->simpleKeysetExpression.expr);
     } else assert(0);
     Type* simple_ty = (Type*)type_array->append();
-    simple_ty->kind = TypeEnum::Product;
+    simple_ty->create(TypeEnum::Product, 0);
     simple_ty->ast = simple_expr;
-    simple_ty->product.count = 1;
-    simple_ty->product.members = (Type**)storage->allocate(sizeof(Type*), simple_ty->product.count);
-    simple_ty->product.members[0] = (Type*)type_env->lookup(simple_expr->simpleKeysetExpression.expr, 0);
+    simple_ty->product.create(storage, 1);
+    simple_ty->product.set(0, (Type*)type_env->lookup(simple_expr->simpleKeysetExpression.expr, 0));
     type_env->insert(simple_expr, simple_ty, 0);
   }
 }
@@ -290,7 +289,7 @@ void SelectTypePass::visit_simpleExpressionList(Ast* expr_list, Type* required_t
   TreeIterator it;
 
   Type* list_ty = (Type*)type_array->append();
-  list_ty->kind = TypeEnum::Product;
+  list_ty->create(TypeEnum::Product, 0);
   list_ty->ast = expr_list;
 
   it.begin(&expr_list->tree);
@@ -300,14 +299,14 @@ void SelectTypePass::visit_simpleExpressionList(Ast* expr_list, Type* required_t
     list_ty->product.count += 1;
   }
   if (list_ty->product.count > 0) {
-    list_ty->product.members = (Type**)storage->allocate(sizeof(Type*), list_ty->product.count);
+    list_ty->product.create(storage, list_ty->product.count);
   }
 
   int i = 0;
   it.begin(&expr_list->tree);
   for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
-    list_ty->product.members[i] = (Type*)type_env->lookup(Ast::owner_of(tree), 0);
+    list_ty->product.set(i, (Type*)type_env->lookup(Ast::owner_of(tree), 0));
     i += 1;
   }
   assert(i == list_ty->product.count);
@@ -962,7 +961,7 @@ void SelectTypePass::visit_expressionList(Ast* expr_list, Type* required_ty)
   TreeIterator it;
 
   Type* list_ty = (Type*)type_array->append();
-  list_ty->kind = TypeEnum::Product;
+  list_ty->create(TypeEnum::Product, 0);
   list_ty->ast = expr_list;
 
   it.begin(&expr_list->tree);
@@ -972,14 +971,14 @@ void SelectTypePass::visit_expressionList(Ast* expr_list, Type* required_ty)
     list_ty->product.count += 1;
   }
   if (list_ty->product.count > 0) {
-    list_ty->product.members = (Type**)storage->allocate(sizeof(Type*), list_ty->product.count);
+    list_ty->product.create(storage, list_ty->product.count);
   }
 
   int i = 0;
   it.begin(&expr_list->tree);
   for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
-    list_ty->product.members[i] = (Type*)type_env->lookup(Ast::owner_of(tree), 0);
+    list_ty->product.set(i, (Type*)type_env->lookup(Ast::owner_of(tree), 0));
     i += 1;
   }
   assert(i == list_ty->product.count);

@@ -112,7 +112,7 @@ void PotentialTypePass::visit_name(Ast* name, PotentialType* potential_args)
       } else if (ty->kind == TypeEnum::Extern) {
         Type* ctors_ty = ty->extern_.ctors;
         for (int j = 0; j < ctors_ty->product.count; j++) {
-          ty = ctors_ty->product.members[j];
+          ty = ctors_ty->product.get(j);
           if (type_checker->match_params(potential_args, ty->function.params)) {
             tau->set.add(ty);
           }

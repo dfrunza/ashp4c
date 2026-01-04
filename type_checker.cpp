@@ -27,8 +27,7 @@ bool TypeChecker::match_params(PotentialType* potential_args, Type* params_ty)
   int i = 0;
   if (params_ty->product.count != potential_args->product.arity) return 0;
   for (i = 0; i < params_ty->product.count; i++) {
-    if (!match_type(potential_args->product.members[i],
-                    params_ty->product.members[i])) break;
+    if (!match_type(potential_args->product.get(i), params_ty->product.get(i))) break;
   }
   return (i == params_ty->product.count);
 }
@@ -39,7 +38,7 @@ void TypeChecker::collect_matching_member(PotentialType* tau, Type* product_ty,
   assert(tau->kind == PotentialTypeEnum::Set);
 
   for (int i = 0; i < product_ty->product.count; i++) {
-    Type* member_ty = product_ty->product.members[i];
+    Type* member_ty = product_ty->product.get(i);
     if (cstring::match(member_ty->strname, strname)) {
       if (member_ty->kind == TypeEnum::Function) {
         assert(potential_args->kind == PotentialTypeEnum::Product);
@@ -112,7 +111,7 @@ bool TypeChecker::structural_type_equiv(Type* left, Type* right)
         return 0;
       }
       for (int i = 0; i < left->product.count; i++) {
-        if (!structural_type_equiv(left->product.members[i], left->product.members[i])) {
+        if (!structural_type_equiv(left->product.get(i), left->product.get(i))) {
           return 0;
         }
       }
