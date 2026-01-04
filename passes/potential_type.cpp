@@ -79,7 +79,8 @@ void PotentialTypePass::visit_name(Ast* name, PotentialType* potential_args)
 
   if (!name_ty) name_ty = Array::create(storage, sizeof(Type*), 1);
   name_ty->element_count = 0;
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(name, tau, 0);
   Scope* scope = (Scope*)scope_map->lookup(name, 0);
   NameEntry* name_entry = scope->lookup(name->name.strname, NameSpace::Var | NameSpace::Type);
@@ -153,7 +154,8 @@ void PotentialTypePass::visit_instantiation(Ast* inst)
 {
   assert(inst->kind == AstEnum::instantiation);
 
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(inst, tau, 0);
   visit_typeRef(inst->instantiation.type);
   visit_argumentList(inst->instantiation.args);
@@ -292,7 +294,8 @@ void PotentialTypePass::visit_selectCaseList(Ast* case_list)
     visit_selectCase(Ast::owner_of(tree));
     i += 1;
   }
-  PotentialType* tau = PotentialType_Product::create(storage, i);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Product);
+  tau->product.create(storage, i);
   potype_map->insert(case_list, tau, 0);
 
   i = 0;
@@ -349,7 +352,8 @@ void PotentialTypePass::visit_simpleKeysetExpression(Ast* simple_expr)
   } else if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::dontcare) {
     visit_dontcare(simple_expr->simpleKeysetExpression.expr);
   } else assert(0);
-  PotentialType* tau = PotentialType_Product::create(storage, 1);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Product);
+  tau->product.create(storage, 1);
   tau->product.set(0, (PotentialType*)potype_map->lookup(simple_expr->simpleKeysetExpression.expr, 0));
   potype_map->insert(simple_expr, tau, 0);
 }
@@ -367,7 +371,8 @@ void PotentialTypePass::visit_simpleExpressionList(Ast* expr_list)
     visit_simpleKeysetExpression(Ast::owner_of(tree));
     i += 1;
   }
-  PotentialType* tau = PotentialType_Product::create(storage, i);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Product);
+  tau->product.create(storage, i);
   potype_map->insert(expr_list, tau, 0);
 
   i = 0;
@@ -508,7 +513,8 @@ void PotentialTypePass::visit_headerStackType(Ast* type_decl)
 
   visit_typeRef(type_decl->headerStackType.type);
   visit_expression(type_decl->headerStackType.stack_expr, 0);
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(type_decl, tau, 0);
   tau->set.add((Type*)type_env->lookup(type_decl, 0));
 }
@@ -517,7 +523,8 @@ void PotentialTypePass::visit_baseTypeBoolean(Ast* bool_type)
 {
   assert(bool_type->kind == AstEnum::baseTypeBoolean);
 
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(bool_type, tau, 0);
   tau->set.add((Type*)type_env->lookup(bool_type, 0));
 }
@@ -529,7 +536,8 @@ void PotentialTypePass::visit_baseTypeInteger(Ast* int_type)
   if (int_type->baseTypeInteger.size) {
     visit_integerTypeSize(int_type->baseTypeInteger.size);
   }
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(int_type, tau, 0);
   tau->set.add((Type*)type_env->lookup(int_type, 0));
 }
@@ -541,7 +549,8 @@ void PotentialTypePass::visit_baseTypeBit(Ast* bit_type)
   if (bit_type->baseTypeBit.size) {
     visit_integerTypeSize(bit_type->baseTypeBit.size);
   }
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(bit_type, tau, 0);
   tau->set.add((Type*)type_env->lookup(bit_type, 0));
 }
@@ -551,7 +560,8 @@ void PotentialTypePass::visit_baseTypeVarbit(Ast* varbit_type)
   assert(varbit_type->kind == AstEnum::baseTypeVarbit);
 
   visit_integerTypeSize(varbit_type->baseTypeVarbit.size);
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(varbit_type, tau, 0);
   tau->set.add((Type*)type_env->lookup(varbit_type, 0));
 }
@@ -560,7 +570,8 @@ void PotentialTypePass::visit_baseTypeString(Ast* str_type)
 {
   assert(str_type->kind == AstEnum::baseTypeString);
 
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(str_type, tau, 0);
   tau->set.add((Type*)type_env->lookup(str_type, 0));
 }
@@ -569,7 +580,8 @@ void PotentialTypePass::visit_baseTypeVoid(Ast* void_type)
 {
   assert(void_type->kind == AstEnum::baseTypeVoid);
 
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(void_type, tau, 0);
   tau->set.add((Type*)type_env->lookup(void_type, 0));
 }
@@ -578,7 +590,8 @@ void PotentialTypePass::visit_baseTypeError(Ast* error_type)
 {
   assert(error_type->kind == AstEnum::baseTypeError);
 
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(error_type, tau, 0);
   tau->set.add((Type*)type_env->lookup(error_type, 0));
 }
@@ -587,7 +600,8 @@ void PotentialTypePass::visit_integerTypeSize(Ast* type_size)
 {
   assert(type_size->kind == AstEnum::integerTypeSize);
 
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(type_size, tau, 0);
   tau->set.add((Type*)type_env->lookup(type_size, 0));
 }
@@ -990,7 +1004,8 @@ void PotentialTypePass::visit_variableDeclaration(Ast* var_decl)
   assert(var_decl->kind == AstEnum::variableDeclaration);
 
   visit_typeRef(var_decl->variableDeclaration.type);
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(var_decl, tau, 0);
   if (var_decl->variableDeclaration.init_expr) {
     visit_expression(var_decl->variableDeclaration.init_expr, 0);
@@ -1022,7 +1037,8 @@ void PotentialTypePass::visit_argumentList(Ast* args)
     i += 1;
   }
 
-  PotentialType* tau = PotentialType_Product::create(storage, i);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Product);
+  tau->product.create(storage, i);
   potype_map->insert(args, tau, 0);
 
   i = 0;
@@ -1063,7 +1079,8 @@ void PotentialTypePass::visit_expressionList(Ast* expr_list)
     i += 1;
   }
 
-  PotentialType* tau = PotentialType_Product::create(storage, i);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Product);
+  tau->product.create(storage, i);
   potype_map->insert(expr_list, tau, 0);
 
   i = 0;
@@ -1147,13 +1164,15 @@ void PotentialTypePass::visit_binaryExpression(Ast* binary_expr)
 {
   assert(binary_expr->kind == AstEnum::binaryExpression);
 
-  PotentialType* potential_args = PotentialType_Product::create(storage, 2);
+  PotentialType* potential_args = PotentialType::create(storage, PotentialTypeEnum::Product);
+  potential_args->product.create(storage, 2);
   visit_expression(binary_expr->binaryExpression.left_operand, 0);
   visit_expression(binary_expr->binaryExpression.right_operand, 0);
   potential_args->product.set(0, (PotentialType*)potype_map->lookup(binary_expr->binaryExpression.left_operand, 0));
   potential_args->product.set(1, (PotentialType*)potype_map->lookup(binary_expr->binaryExpression.right_operand, 0));
 
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(binary_expr, tau, 0);
   for (NameDeclaration* name_decl = root_scope->lookup_builtin(binary_expr->binaryExpression.strname, NameSpace::Type);
        name_decl != 0; name_decl = name_decl->next_in_scope) {
@@ -1168,7 +1187,8 @@ void PotentialTypePass::visit_memberSelector(Ast* selector, PotentialType* poten
 {
   assert(selector->kind == AstEnum::memberSelector);
 
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(selector, tau, 0);
   if (selector->memberSelector.lhs_expr->kind == AstEnum::expression) {
     visit_expression(selector->memberSelector.lhs_expr, 0);
@@ -1222,7 +1242,8 @@ void PotentialTypePass::visit_indexExpression(Ast* index_expr)
   if (index_expr->indexExpression.end_index) {
     visit_expression(index_expr->indexExpression.end_index, 0);
   }
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(index_expr, tau, 0);
   tau->set.add((Type*)type_env->lookup(index_expr, 0));
 }
@@ -1231,7 +1252,8 @@ void PotentialTypePass::visit_booleanLiteral(Ast* bool_literal)
 {
   assert(bool_literal->kind == AstEnum::booleanLiteral);
 
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(bool_literal, tau, 0);
   tau->set.add((Type*)type_env->lookup(bool_literal, 0));
 }
@@ -1240,7 +1262,8 @@ void PotentialTypePass::visit_integerLiteral(Ast* int_literal)
 {
   assert(int_literal->kind == AstEnum::integerLiteral);
 
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(int_literal, tau, 0);
   tau->set.add((Type*)type_env->lookup(int_literal, 0));
 }
@@ -1249,7 +1272,8 @@ void PotentialTypePass::visit_stringLiteral(Ast* str_literal)
 {
   assert(str_literal->kind == AstEnum::stringLiteral);
 
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(str_literal, tau, 0);
   tau->set.add((Type*)type_env->lookup(str_literal, 0));
 }
@@ -1258,7 +1282,8 @@ void PotentialTypePass::visit_default(Ast* default_)
 {
   assert(default_->kind == AstEnum::default_);
 
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(default_, tau, 0);
   tau->set.add((Type*)type_env->lookup(default_, 0));
 }
@@ -1267,7 +1292,8 @@ void PotentialTypePass::visit_dontcare(Ast* dontcare)
 {
   assert(dontcare->kind == AstEnum::dontcare);
 
-  PotentialType* tau = PotentialType_Set::create(storage);
+  PotentialType* tau = PotentialType::create(storage, PotentialTypeEnum::Set);
+  tau->set.create(storage);
   potype_map->insert(dontcare, tau, 0);
   tau->set.add((Type*)type_env->lookup(dontcare, 0));
 }
