@@ -15,11 +15,11 @@ Array* Array::create(Arena* storage, int size, int segment_count)
   Array* array = (Array*)storage->allocate(sizeof(Array), 1);
   storage->allocate(sizeof(void**), segment_count);
   array->storage = storage;
-  array->create(size, segment_count);
+  array->init(size, segment_count);
   return array;
 }
 
-void Array::create(int size, int segment_count)
+void Array::init(int size, int segment_count)
 {
   assert(segment_count >= 1 && segment_count <= 16);
 

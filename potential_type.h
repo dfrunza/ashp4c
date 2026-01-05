@@ -13,7 +13,7 @@ struct PotentialType;
 struct PotentialType_Set {
   Map members;
 
-  void create(Arena* storage);
+  void init(Arena* storage);
   void add(Type* ty);
 };
 
@@ -21,7 +21,7 @@ struct PotentialType_Product {
   PotentialType** members;
   int arity;
 
-  void create(Arena* storage, int arity);
+  void init(Arena* storage, int arity);
   PotentialType* get(int i);
   void set(int i, PotentialType* m);
 };

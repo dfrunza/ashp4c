@@ -275,9 +275,9 @@ void SelectTypePass::visit_simpleKeysetExpression(Ast* simple_expr, Type* requir
       visit_dontcare(simple_expr->simpleKeysetExpression.expr);
     } else assert(0);
     Type* simple_ty = (Type*)type_array->append();
-    simple_ty->create(TypeEnum::Product, 0);
+    simple_ty->init(TypeEnum::Product, 0);
     simple_ty->ast = simple_expr;
-    simple_ty->product.create(storage, 1);
+    simple_ty->product.init(storage, 1);
     simple_ty->product.set(0, (Type*)type_env->lookup(simple_expr->simpleKeysetExpression.expr, 0));
     type_env->insert(simple_expr, simple_ty, 0);
   }
@@ -289,7 +289,7 @@ void SelectTypePass::visit_simpleExpressionList(Ast* expr_list, Type* required_t
   TreeIterator it;
 
   Type* list_ty = (Type*)type_array->append();
-  list_ty->create(TypeEnum::Product, 0);
+  list_ty->init(TypeEnum::Product, 0);
   list_ty->ast = expr_list;
 
   it.begin(&expr_list->tree);
@@ -299,7 +299,7 @@ void SelectTypePass::visit_simpleExpressionList(Ast* expr_list, Type* required_t
     list_ty->product.count += 1;
   }
   if (list_ty->product.count > 0) {
-    list_ty->product.create(storage, list_ty->product.count);
+    list_ty->product.init(storage, list_ty->product.count);
   }
 
   int i = 0;
@@ -961,7 +961,7 @@ void SelectTypePass::visit_expressionList(Ast* expr_list, Type* required_ty)
   TreeIterator it;
 
   Type* list_ty = (Type*)type_array->append();
-  list_ty->create(TypeEnum::Product, 0);
+  list_ty->init(TypeEnum::Product, 0);
   list_ty->ast = expr_list;
 
   it.begin(&expr_list->tree);
@@ -971,7 +971,7 @@ void SelectTypePass::visit_expressionList(Ast* expr_list, Type* required_ty)
     list_ty->product.count += 1;
   }
   if (list_ty->product.count > 0) {
-    list_ty->product.create(storage, list_ty->product.count);
+    list_ty->product.init(storage, list_ty->product.count);
   }
 
   int i = 0;

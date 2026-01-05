@@ -113,7 +113,7 @@ struct Type_Product {
   Type** members;
   int count;
 
-  void create(Arena* storage, int count);
+  void init(Arena* storage, int count);
   void set(int i, Type* ty);
   Type* get(int i);
 };
@@ -142,7 +142,7 @@ struct Type {
     struct Type_Product product;
   };
 
-  void create(enum TypeEnum kind, char* strname);
+  void init(enum TypeEnum kind, char* strname);
   Type* actual_type();
   Type* effective_type();
 };

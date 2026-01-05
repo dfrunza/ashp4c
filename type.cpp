@@ -39,7 +39,7 @@ char* TypeEnum_to_string(enum TypeEnum type)
   return 0;
 }
 
-void Type::create(enum TypeEnum kind, char* strname)
+void Type::init(enum TypeEnum kind, char* strname)
 {
   this->kind = kind;
   this->strname = strname;
@@ -68,7 +68,7 @@ Type* Type::effective_type()
   return applied_ty;
 }
 
-void Type_Product::create(Arena* storage, int count)
+void Type_Product::init(Arena* storage, int count)
 {
   this->count = count;
   members = (Type**)storage->allocate(sizeof(Type*), count);

@@ -31,11 +31,11 @@ Strmap* Strmap::create(Arena* storage, int segment_count)
   Strmap* strmap = (Strmap*)storage->allocate(sizeof(Strmap), 1);
   storage->allocate(sizeof(StrmapEntry*), segment_count);
   strmap->storage = storage;
-  strmap->create(segment_count);
+  strmap->init(segment_count);
   return strmap;
 }
 
-void Strmap::create(int segment_count)
+void Strmap::init(int segment_count)
 {
   entry_count = 0;
   capacity = 16;

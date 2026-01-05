@@ -7,7 +7,7 @@ PotentialType* PotentialType::create(Arena* storage, enum PotentialTypeEnum kind
   return potype;
 }
 
-void PotentialType_Set::create(Arena* storage)
+void PotentialType_Set::init(Arena* storage)
 {
   members.storage = storage;
 }
@@ -16,7 +16,7 @@ void PotentialType_Set::add(Type* ty) {
   members.insert(ty, 0, 0);
 };
 
-void PotentialType_Product::create(Arena* storage, int arity)
+void PotentialType_Product::init(Arena* storage, int arity)
 {
   this->arity = arity;
   members = 0;

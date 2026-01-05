@@ -42,7 +42,7 @@ struct Array {
   ArrayElements elements;
 
   static Array* create(Arena* storage, int size, int segment_count);
-  void create(int size, int segment_count);
+  void init(int size, int segment_count);
   void extend();
   void* get(int i);
   void* append();
