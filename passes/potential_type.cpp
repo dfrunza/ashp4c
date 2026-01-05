@@ -77,7 +77,10 @@ void PotentialTypePass::visit_name(Ast* name, PotentialType* potential_args)
   if (potential_args) assert(potential_args->kind == PotentialTypeEnum::Product);
   static Array* name_ty; // FIXME
 
-  if (!name_ty) name_ty = Array::allocate(storage, sizeof(Type *), 1);
+  if (!name_ty) {
+    name_ty = Array::allocate(storage, 1);
+    name_ty->init(sizeof(Type*));
+  }
   name_ty->element_count = 0;
   PotentialType* tau = PotentialType::allocate(storage, PotentialTypeEnum::Set);
   tau->set.init(storage);

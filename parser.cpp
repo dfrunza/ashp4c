@@ -168,6 +168,7 @@ enum AstOperator token_to_binop(Token* token)
 void Parser::parse()
 {
   root_scope = Scope::allocate(storage, 5);
+  root_scope->init();
   current_scope = root_scope;
 
   define_keywords(root_scope);
@@ -188,6 +189,7 @@ Ast* Parser::parse_p4program()
     next_token(); /* empty declaration */
   }
   Scope* scope = Scope::allocate(storage, 6);
+  scope->init();
   current_scope = scope->push(current_scope);
   p4program->p4program.decl_list = parse_declarationList();
   current_scope = current_scope->pop();

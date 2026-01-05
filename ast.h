@@ -823,7 +823,6 @@ struct Ast {
 
   static Ast* owner_of(Tree* tree);
   static Ast* allocate(Arena* storage);
-  Ast(enum AstEnum kind, int line_no, int column_no);
   void init(enum AstEnum kind, int line_no, int column_no);
   Ast* clone(Arena* storage);
 };

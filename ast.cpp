@@ -154,11 +154,6 @@ Ast* Ast::allocate(Arena* storage)
   return ast;
 }
 
-Ast::Ast(enum AstEnum kind, int line_no, int column_no)
-{
-  init(kind, line_no, column_no);
-}
-
 void Ast::init(enum AstEnum kind, int line_no, int column_no)
 {
   this->kind = kind;

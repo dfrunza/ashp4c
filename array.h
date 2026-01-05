@@ -41,8 +41,8 @@ struct Array {
   int capacity;
   ArrayElements elements;
 
-  static Array* allocate(Arena* storage, int size, int segment_count);
-  void init(int size, int segment_count);
+  static Array* allocate(Arena* storage, int segment_count);
+  void init(int element_size);
   void extend();
   void* get(int i);
   void* append();

@@ -14,11 +14,15 @@ char* NameSpace_to_string(enum NameSpace ns)
   return 0;
 }
 
-NameDeclaration* NameDeclaration::allocate(Arena* storage, char* strname)
+NameDeclaration* NameDeclaration::allocate(Arena* storage)
 {
   NameDeclaration* name_decl = (NameDeclaration*)storage->allocate(sizeof(NameDeclaration), 1);
-  name_decl->strname = strname;
   return name_decl;
+}
+
+void NameDeclaration::init(char* strname)
+{
+  this->strname = strname;
 }
 
 NameDeclaration* NameEntry::get_declarations(enum NameSpace ns)

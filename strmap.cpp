@@ -31,18 +31,17 @@ Strmap* Strmap::allocate(Arena* storage, int segment_count)
   Strmap* strmap = (Strmap*)storage->allocate(sizeof(Strmap), 1);
   storage->allocate(sizeof(StrmapEntry*), segment_count);
   strmap->storage = storage;
-  strmap->init(segment_count);
+  strmap->entries.element_size = sizeof(StrmapEntry*);
+  strmap->entries.segment_count = segment_count;
+  strmap->entries.segments[0] = (StrmapEntry**)storage->allocate(sizeof(StrmapEntry*), 16);
+  memset(strmap->entries.segments[0], 0, sizeof(StrmapEntry*) * 16);
   return strmap;
 }
 
-void Strmap::init(int segment_count)
+void Strmap::init()
 {
   entry_count = 0;
   capacity = 16;
-  entries.segment_count = segment_count;
-  entries.element_size = sizeof(StrmapEntry*);
-  entries.segments[0] = (StrmapEntry**)storage->allocate(sizeof(StrmapEntry*), 16);
-  memset(entries.segments[0], 0, sizeof(StrmapEntry*) * 16);
 }
 
 void Strmap::grow()

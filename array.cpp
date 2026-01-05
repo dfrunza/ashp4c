@@ -8,27 +8,24 @@ void* ArrayElements::locate(int i)
   return element_slot;
 }
 
-Array* Array::allocate(Arena* storage, int size, int segment_count)
+Array* Array::allocate(Arena* storage, int segment_count)
 {
   assert(segment_count >= 1 && segment_count <= 16);
 
   Array* array = (Array*)storage->allocate(sizeof(Array), 1);
   storage->allocate(sizeof(void**), segment_count);
   array->storage = storage;
-  array->init(size, segment_count);
+  array->elements.segment_count = segment_count;
   return array;
 }
 
-void Array::init(int size, int segment_count)
+void Array::init(int element_size)
 {
-  assert(segment_count >= 1 && segment_count <= 16);
-
   element_count = 0;
   capacity = 16;
-  elements.segment_count = segment_count;
-  elements.element_size = size;
-  elements.segments[0] = storage->allocate(size, 16);
-  memset(elements.segments[0], 0, sizeof(size) * 16);
+  elements.element_size = element_size;
+  elements.segments[0] = storage->allocate(element_size, 16);
+  memset(elements.segments[0], 0, sizeof(element_size) * 16);
 }
 
 void Array::extend()

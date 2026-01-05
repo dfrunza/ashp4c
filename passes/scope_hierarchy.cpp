@@ -17,6 +17,7 @@ void ScopeHierarchyPass::visit_p4program(Ast* p4program)
   assert(p4program->kind == AstEnum::p4program);
 
   Scope* scope = Scope::allocate(storage, 3);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(p4program, current_scope, 0);
@@ -98,6 +99,7 @@ void ScopeHierarchyPass::visit_packageTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AstEnum::packageTypeDeclaration);
 
   Scope* scope = Scope::allocate(storage, 2);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(type_decl, current_scope, 0);
@@ -137,6 +139,7 @@ void ScopeHierarchyPass::visit_parserTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AstEnum::parserTypeDeclaration);
 
   Scope* scope = Scope::allocate(storage, 2);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(type_decl, current_scope, 0);
@@ -181,6 +184,7 @@ void ScopeHierarchyPass::visit_parserState(Ast* state)
   assert(state->kind == AstEnum::parserState);
 
   Scope* scope = Scope::allocate(storage, 3);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(state, current_scope, 0);
@@ -224,6 +228,7 @@ void ScopeHierarchyPass::visit_parserBlockStatement(Ast* block_stmt)
   assert(block_stmt->kind == AstEnum::parserBlockStatement);
 
   Scope* scope = Scope::allocate(storage, 3);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(block_stmt, current_scope, 0);
@@ -333,6 +338,7 @@ void ScopeHierarchyPass::visit_controlTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AstEnum::controlTypeDeclaration);
 
   Scope* scope = Scope::allocate(storage, 2);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(type_decl, scope, 0);
@@ -387,6 +393,7 @@ void ScopeHierarchyPass::visit_externTypeDeclaration(Ast* type_decl)
   assert(type_decl->kind == AstEnum::externTypeDeclaration);
 
   Scope* scope = Scope::allocate(storage, 2);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(type_decl, current_scope, 0);
@@ -413,6 +420,7 @@ void ScopeHierarchyPass::visit_functionPrototype(Ast* func_proto)
     visit_typeRef(func_proto->functionPrototype.return_type);
   }
   Scope* scope = Scope::allocate(storage, 2);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(func_proto, current_scope, 0);
@@ -584,6 +592,7 @@ void ScopeHierarchyPass::visit_headerTypeDeclaration(Ast* header_decl)
   assert(header_decl->kind == AstEnum::headerTypeDeclaration);
 
   Scope* scope = Scope::allocate(storage, 3);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(header_decl, scope, 0);
@@ -597,6 +606,7 @@ void ScopeHierarchyPass::visit_headerUnionDeclaration(Ast* union_decl)
   assert(union_decl->kind == AstEnum::headerUnionDeclaration);
 
   Scope* scope = Scope::allocate(storage, 3);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(union_decl, scope, 0);
@@ -610,6 +620,7 @@ void ScopeHierarchyPass::visit_structTypeDeclaration(Ast* struct_decl)
   assert(struct_decl->kind == AstEnum::structTypeDeclaration);
 
   Scope* scope = Scope::allocate(storage, 3);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(struct_decl, scope, 0);
@@ -639,6 +650,7 @@ void ScopeHierarchyPass::visit_enumDeclaration(Ast* enum_decl)
   assert(enum_decl->kind == AstEnum::enumDeclaration);
 
   Scope* scope = Scope::allocate(storage, 3);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(enum_decl, scope, 0);
@@ -652,6 +664,7 @@ void ScopeHierarchyPass::visit_errorDeclaration(Ast* error_decl)
   assert(error_decl->kind == AstEnum::errorDeclaration);
 
   Scope* scope = Scope::allocate(storage, 3);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(error_decl, scope, 0);
@@ -665,6 +678,7 @@ void ScopeHierarchyPass::visit_matchKindDeclaration(Ast* match_decl)
   assert(match_decl->kind == AstEnum::matchKindDeclaration);
 
   Scope* scope = Scope::allocate(storage, 3);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(match_decl, scope, 0);
@@ -785,6 +799,7 @@ void ScopeHierarchyPass::visit_statement(Ast* stmt)
     ;
   } else if (stmt->statement.stmt->kind == AstEnum::blockStatement) {
     Scope* scope = Scope::allocate(storage, 3);
+    scope->init();
     Scope* prev_scope = current_scope;
     current_scope = scope->push(current_scope);
     MapEntry* m = scope_map->insert(stmt, current_scope, 0);
@@ -871,6 +886,7 @@ void ScopeHierarchyPass::visit_tableDeclaration(Ast* table_decl)
   assert(table_decl->kind == AstEnum::tableDeclaration);
 
   Scope* scope = Scope::allocate(storage, 3);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(table_decl, scope, 0);
@@ -959,6 +975,7 @@ void ScopeHierarchyPass::visit_actionDeclaration(Ast* action_decl)
   assert(action_decl->kind == AstEnum::actionDeclaration);
 
   Scope* scope = Scope::allocate(storage, 2);
+  scope->init();
   Scope* prev_scope = current_scope;
   current_scope = scope->push(current_scope);
   MapEntry* m = scope_map->insert(action_decl, current_scope, 0);
