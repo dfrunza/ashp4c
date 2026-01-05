@@ -50,7 +50,7 @@ void Parser::define_keywords(Scope* scope)
     {"header_union", TokenClass::Union},
   };
 
-  for (int i = 0; i < sizeof(keywords)/sizeof(keywords[0]); i++) {
+  for (int i = 0; i < sizeof(keywords) / sizeof(keywords[0]); i++) {
     NameDeclaration* name_decl = scope->bind_name(storage, keywords[i].strname, NameSpace::Keyword);
     name_decl->token_class = keywords[i].token_class;
   }
