@@ -148,19 +148,6 @@ Ast* Ast::owner_of(Tree* tree)
   return ::owner_of(tree, &Ast::tree);
 }
 
-Ast* Ast::allocate(Arena* storage)
-{
-  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
-  return ast;
-}
-
-void Ast::init(enum AstEnum kind, int line_no, int column_no)
-{
-  this->kind = kind;
-  this->line_no = line_no;
-  this->column_no = column_no;
-}
-
 Ast* Ast::clone(Arena* storage)
 {
   Ast* clone, *sibling_clone, *child_clone;
@@ -488,4 +475,739 @@ Ast* Ast::clone(Arena* storage)
   }
   else assert(0);
   return clone;
+}
+
+Ast* Ast_p4program::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::p4program;
+  return ast;
+}
+
+Ast* Ast_declarationList::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::declarationList;
+  return ast;
+}
+
+Ast* Ast_declaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::declaration;
+  return ast;
+}
+
+Ast* Ast_name::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::name;
+  return ast;
+}
+
+Ast* Ast_parameterList::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::parameterList;
+  return ast;
+}
+
+Ast* Ast_parameter::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::parameter;
+  return ast;
+}
+
+Ast* Ast_packageTypeDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::packageTypeDeclaration;
+  return ast;
+}
+
+Ast* Ast_instantiation::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::instantiation;
+  return ast;
+}
+
+Ast* Ast_parserDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::parserDeclaration;
+  return ast;
+}
+
+Ast* Ast_parserTypeDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::parserTypeDeclaration;
+  return ast;
+}
+
+Ast* Ast_parserLocalElements::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::parserLocalElements;
+  return ast;
+}
+
+Ast* Ast_parserLocalElement::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::parserLocalElement;
+  return ast;
+}
+
+Ast* Ast_parserStates::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::parserStates;
+  return ast;
+}
+
+Ast* Ast_parserState::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::parserState;
+  return ast;
+}
+
+Ast* Ast_parserStatements::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::parserStatements;
+  return ast;
+}
+
+Ast* Ast_parserStatement::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::parserStatement;
+  return ast;
+}
+
+Ast* Ast_parserBlockStatement::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::parserBlockStatement;
+  return ast;
+}
+
+Ast* Ast_transitionStatement::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::transitionStatement;
+  return ast;
+}
+
+Ast* Ast_stateExpression::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::stateExpression;
+  return ast;
+}
+
+Ast* Ast_selectExpression::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::selectExpression;
+  return ast;
+}
+
+Ast* Ast_selectCaseList::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::selectCaseList;
+  return ast;
+}
+
+Ast* Ast_selectCase::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::selectCase;
+  return ast;
+}
+
+Ast* Ast_keysetExpression::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::keysetExpression;
+  return ast;
+}
+
+Ast* Ast_tupleKeysetExpression::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::tupleKeysetExpression;
+  return ast;
+}
+
+Ast* Ast_simpleKeysetExpression::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::simpleKeysetExpression;
+  return ast;
+}
+
+Ast* Ast_simpleExpressionList::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::simpleExpressionList;
+  return ast;
+}
+
+Ast* Ast_controlDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::controlDeclaration;
+  return ast;
+}
+
+Ast* Ast_controlTypeDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::controlTypeDeclaration;
+  return ast;
+}
+
+Ast* Ast_controlLocalDeclarations::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::controlLocalDeclarations;
+  return ast;
+}
+
+Ast* Ast_controlLocalDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::controlLocalDeclaration;
+  return ast;
+}
+
+Ast* Ast_externDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::externDeclaration;
+  return ast;
+}
+
+Ast* Ast_externTypeDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::externTypeDeclaration;
+  return ast;
+}
+
+Ast* Ast_methodPrototypes::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::methodPrototypes;
+  return ast;
+}
+
+Ast* Ast_functionPrototype::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::functionPrototype;
+  return ast;
+}
+
+Ast* Ast_typeRef::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::typeRef;
+  return ast;
+}
+
+Ast* Ast_tupleType::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::tupleType;
+  return ast;
+}
+
+Ast* Ast_headerStackType::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::headerStackType;
+  return ast;
+}
+
+Ast* Ast_baseTypeBoolean::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::baseTypeBoolean;
+  return ast;
+}
+
+Ast* Ast_baseTypeInteger::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::baseTypeInteger;
+  return ast;
+}
+
+Ast* Ast_baseTypeBit::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::baseTypeBit;
+  return ast;
+}
+
+Ast* Ast_baseTypeVarbit::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::baseTypeVarbit;
+  return ast;
+}
+
+Ast* Ast_baseTypeString::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::baseTypeString;
+  return ast;
+}
+
+Ast* Ast_baseTypeVoid::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::baseTypeVoid;
+  return ast;
+}
+
+Ast* Ast_baseTypeError::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::baseTypeError;
+  return ast;
+}
+
+Ast* Ast_integerTypeSize::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::integerTypeSize;
+  return ast;
+}
+
+Ast* Ast_realTypeArg::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::realTypeArg;
+  return ast;
+}
+
+Ast* Ast_typeArg::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::typeArg;
+  return ast;
+}
+
+Ast* Ast_typeArgumentList::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::typeArgumentList;
+  return ast;
+}
+
+Ast* Ast_typeDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::typeDeclaration;
+  return ast;
+}
+
+Ast* Ast_derivedTypeDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::derivedTypeDeclaration;
+  return ast;
+}
+
+Ast* Ast_headerTypeDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::headerTypeDeclaration;
+  return ast;
+}
+
+Ast* Ast_headerUnionDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::headerUnionDeclaration;
+  return ast;
+}
+
+Ast* Ast_structTypeDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::structTypeDeclaration;
+  return ast;
+}
+
+Ast* Ast_structFieldList::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::structFieldList;
+  return ast;
+}
+
+Ast* Ast_structField::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::structField;
+  return ast;
+}
+
+Ast* Ast_enumDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::enumDeclaration;
+  return ast;
+}
+
+Ast* Ast_errorDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::errorDeclaration;
+  return ast;
+}
+
+Ast* Ast_matchKindDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::matchKindDeclaration;
+  return ast;
+}
+
+Ast* Ast_identifierList::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::identifierList;
+  return ast;
+}
+
+Ast* Ast_specifiedIdentifierList::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::specifiedIdentifierList;
+  return ast;
+}
+
+Ast* Ast_specifiedIdentifier::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::specifiedIdentifier;
+  return ast;
+}
+
+Ast* Ast_typedefDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::typedefDeclaration;
+  return ast;
+}
+
+Ast* Ast_assignmentStatement::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::assignmentStatement;
+  return ast;
+}
+
+Ast* Ast_emptyStatement::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::emptyStatement;
+  return ast;
+}
+
+Ast* Ast_functionCall::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::functionCall;
+  return ast;
+}
+
+Ast* Ast_returnStatement::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::returnStatement;
+  return ast;
+}
+
+Ast* Ast_exitStatement::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::exitStatement;
+  return ast;
+}
+
+Ast* Ast_conditionalStatement::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::conditionalStatement;
+  return ast;
+}
+
+Ast* Ast_directApplication::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::directApplication;
+  return ast;
+}
+
+Ast* Ast_statement::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::statement;
+  return ast;
+}
+
+Ast* Ast_blockStatement::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::blockStatement;
+  return ast;
+}
+
+Ast* Ast_statementOrDeclList::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::statementOrDeclList;
+  return ast;
+}
+
+Ast* Ast_switchStatement::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::switchStatement;
+  return ast;
+}
+
+Ast* Ast_switchCases::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::switchCases;
+  return ast;
+}
+
+Ast* Ast_switchCase::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::switchCase;
+  return ast;
+}
+
+Ast* Ast_switchLabel::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::switchLabel;
+  return ast;
+}
+
+Ast* Ast_statementOrDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::statementOrDeclaration;
+  return ast;
+}
+
+Ast* Ast_tableDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::tableDeclaration;
+  return ast;
+}
+
+Ast* Ast_tablePropertyList::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::tablePropertyList;
+  return ast;
+}
+
+Ast* Ast_tableProperty::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::tableProperty;
+  return ast;
+}
+
+Ast* Ast_keyProperty::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::keyProperty;
+  return ast;
+}
+
+Ast* Ast_keyElementList::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::keyElementList;
+  return ast;
+}
+
+Ast* Ast_keyElement::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::keyElement;
+  return ast;
+}
+
+Ast* Ast_actionsProperty::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::actionsProperty;
+  return ast;
+}
+
+Ast* Ast_actionList::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::actionList;
+  return ast;
+}
+
+Ast* Ast_actionRef::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::actionRef;
+  return ast;
+}
+
+Ast* Ast_actionDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::actionDeclaration;
+  return ast;
+}
+
+Ast* Ast_variableDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::variableDeclaration;
+  return ast;
+}
+
+Ast* Ast_functionDeclaration::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::functionDeclaration;
+  return ast;
+}
+
+Ast* Ast_argumentList::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::argumentList;
+  return ast;
+}
+
+Ast* Ast_argument::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::argument;
+  return ast;
+}
+
+Ast* Ast_expressionList::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::expressionList;
+  return ast;
+}
+
+Ast* Ast_lvalueExpression::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::lvalueExpression;
+  return ast;
+}
+
+Ast* Ast_expression::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::expression;
+  return ast;
+}
+
+Ast* Ast_castExpression::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::castExpression;
+  return ast;
+}
+
+Ast* Ast_unaryExpression::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::unaryExpression;
+  return ast;
+}
+
+Ast* Ast_binaryExpression::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::binaryExpression;
+  return ast;
+}
+
+Ast* Ast_memberSelector::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::memberSelector;
+  return ast;
+}
+
+Ast* Ast_arraySubscript::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::arraySubscript;
+  return ast;
+}
+
+Ast* Ast_indexExpression::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::indexExpression;
+  return ast;
+}
+
+Ast* Ast_integerLiteral::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::integerLiteral;
+  return ast;
+}
+
+Ast* Ast_booleanLiteral::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::booleanLiteral;
+  return ast;
+}
+
+Ast* Ast_stringLiteral::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::stringLiteral;
+  return ast;
+}
+
+Ast* Ast_default::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::default_;
+  return ast;
+}
+
+Ast* Ast_dontcare::allocate(Arena* storage)
+{
+  Ast* ast = (Ast*)storage->allocate(sizeof(Ast), 1);
+  ast->kind = AstEnum::dontcare;
+  return ast;
 }
