@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "basic.h"
+#include "adt/basic.h"
 #include "command_line.h"
-#include "lexer.h"
-#include "parser.h"
-#include "passes/drypass.h"
-#include "passes/builtin_methods.h"
-#include "passes/scope_hierarchy.h"
-#include "passes/name_binding.h"
-#include "passes/declared_type.h"
-#include "passes/potential_type.h"
-#include "passes/select_type.h"
+#include "frontend/lexer.h"
+#include "frontend/parser.h"
+#include "midend/passes/drypass.h"
+#include "midend/passes/builtin_methods.h"
+#include "midend/passes/scope_hierarchy.h"
+#include "midend/passes/name_binding.h"
+#include "midend/passes/declared_type.h"
+#include "midend/passes/potential_type.h"
+#include "midend/passes/select_type.h"
 
 int main(int arg_count, char* args[])
 {

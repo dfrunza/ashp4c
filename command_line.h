@@ -1,6 +1,6 @@
 #pragma once
-#include "cstring.h"
-#include "arena.h"
+#include "adt/cstring.h"
+#include "memory/arena.h"
 
 struct CommandLineArg {
   char* name;
