@@ -14,7 +14,7 @@ char* NameSpace_to_string(enum NameSpace ns)
   return 0;
 }
 
-NameDeclaration* NameDeclaration::create(Arena* storage, char* strname)
+NameDeclaration* NameDeclaration::allocate(Arena* storage, char* strname)
 {
   NameDeclaration* name_decl = (NameDeclaration*)storage->allocate(sizeof(NameDeclaration), 1);
   name_decl->strname = strname;

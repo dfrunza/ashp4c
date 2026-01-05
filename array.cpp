@@ -8,7 +8,7 @@ void* ArrayElements::locate(int i)
   return element_slot;
 }
 
-Array* Array::create(Arena* storage, int size, int segment_count)
+Array* Array::allocate(Arena* storage, int size, int segment_count)
 {
   assert(segment_count >= 1 && segment_count <= 16);
 

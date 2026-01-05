@@ -1,6 +1,6 @@
 #include "potential_type.h"
 
-PotentialType* PotentialType::create(Arena* storage, enum PotentialTypeEnum kind)
+PotentialType* PotentialType::allocate(Arena* storage, enum PotentialTypeEnum kind)
 {
   PotentialType* potype = (PotentialType*)storage->allocate(sizeof(PotentialType), 1);
   potype->kind = kind;

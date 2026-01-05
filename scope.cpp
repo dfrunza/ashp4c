@@ -2,11 +2,11 @@
 
 NameEntry Scope::NULL_ENTRY = {};
 
-Scope* Scope::create(Arena* storage, int segment_count)
+Scope* Scope::allocate(Arena* storage, int segment_count)
 {
   assert(segment_count >= 1 && segment_count <= 16);
   Scope* scope = (Scope*)storage->allocate(sizeof(Scope), 1);
-  scope->name_table = Strmap::create(storage, segment_count);
+  scope->name_table = Strmap::allocate(storage, segment_count);
   return scope;
 }
 
@@ -52,7 +52,7 @@ NameDeclaration* Scope::bind_name(Arena* storage, char* strname, enum NameSpace 
 {
   assert((int)ns > 0);
 
-  NameDeclaration* name_decl = NameDeclaration::create(storage, strname);
+  NameDeclaration* name_decl = NameDeclaration::allocate(storage, strname);
   StrmapEntry* he = name_table->insert(strname, (NameEntry*)0, 1);
   if (he->value == 0) {
     he->value = (NameEntry*)storage->allocate(sizeof(NameEntry), 1);

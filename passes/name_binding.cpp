@@ -40,7 +40,8 @@ void NameBindingPass::define_builtin_names()
   };
 
   for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
-    Ast* name = Ast::create(storage, AstEnum::name, 0, 0);
+    Ast* name = Ast::allocate(storage);
+    name->init(AstEnum::name, 0, 0);
     name->name.strname = builtin_names[i].strname;
     NameDeclaration* name_decl = root_scope->bind_name(storage, name->name.strname, builtin_names[i].ns);
     name_decl->ast = name;
@@ -100,7 +101,7 @@ void NameBindingPass::do_pass()
   current_scope = root_scope;
   decl_map = (Map*)storage->allocate(sizeof(Map), 1);
   decl_map->storage = storage;
-  type_array = Array::create(storage, sizeof(Type), 5);
+  type_array = Array::allocate(storage, sizeof(Type), 5);
   define_builtin_names();
   visit_p4program(p4program);
   assert(current_scope == root_scope);

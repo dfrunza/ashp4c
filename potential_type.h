@@ -34,5 +34,5 @@ struct PotentialType {
     PotentialType_Product product;
   };
 
-  static PotentialType* create(Arena* storage, enum PotentialTypeEnum kind);
+  static PotentialType* allocate(Arena* storage, enum PotentialTypeEnum kind);
 };

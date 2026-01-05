@@ -24,7 +24,7 @@ static uint32_t hash_key(char* key, int m, int capacity)
   return h;
 }
 
-Strmap* Strmap::create(Arena* storage, int segment_count)
+Strmap* Strmap::allocate(Arena* storage, int segment_count)
 {
   assert(segment_count >= 1 && segment_count <= 16);
 

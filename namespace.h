@@ -26,7 +26,7 @@ struct NameDeclaration {
     enum TokenClass token_class;
   };
 
-  static NameDeclaration* create(Arena* storage, char* strname);
+  static NameDeclaration* allocate(Arena* storage, char* strname);
 };
 
 struct NameEntry {
