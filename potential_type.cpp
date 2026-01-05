@@ -1,28 +1,27 @@
 #include "potential_type.h"
 
-PotentialType* PotentialType::allocate(Arena* storage, enum PotentialTypeEnum kind)
+PotentialType* PotentialType_Set::allocate(Arena* storage)
 {
   PotentialType* potype = (PotentialType*)storage->allocate(sizeof(PotentialType), 1);
-  potype->kind = kind;
+  potype->kind = PotentialTypeEnum::Set;
+  potype->set.members.storage = storage;
   return potype;
-}
-
-void PotentialType_Set::init(Arena* storage)
-{
-  members.storage = storage;
 }
 
 void PotentialType_Set::add(Type* ty) {
   members.insert(ty, 0, 0);
 };
 
-void PotentialType_Product::init(Arena* storage, int arity)
+PotentialType* PotentialType_Product::allocate(Arena* storage, int arity)
 {
-  this->arity = arity;
-  members = 0;
+  PotentialType* potype = (PotentialType*)storage->allocate(sizeof(PotentialType), 1);
+  potype->kind = PotentialTypeEnum::Product;
+  potype->product.arity = arity;
+  potype->product.members = 0;
   if (arity > 0) {
-    members = (PotentialType**)storage->allocate(sizeof(PotentialType*), arity);
+    potype->product.members = (PotentialType**)storage->allocate(sizeof(PotentialType*), arity);
   }
+  return potype;
 }
 
 PotentialType* PotentialType_Product::get(int i)

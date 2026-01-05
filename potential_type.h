@@ -13,7 +13,7 @@ struct PotentialType;
 struct PotentialType_Set {
   Map members;
 
-  void init(Arena* storage);
+  static PotentialType* allocate(Arena* storage);
   void add(Type* ty);
 };
 
@@ -21,7 +21,7 @@ struct PotentialType_Product {
   PotentialType** members;
   int arity;
 
-  void init(Arena* storage, int arity);
+  static PotentialType* allocate(Arena* storage, int arity);
   PotentialType* get(int i);
   void set(int i, PotentialType* m);
 };
@@ -33,6 +33,4 @@ struct PotentialType {
     PotentialType_Set set;
     PotentialType_Product product;
   };
-
-  static PotentialType* allocate(Arena* storage, enum PotentialTypeEnum kind);
 };
