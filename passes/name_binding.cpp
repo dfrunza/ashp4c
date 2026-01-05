@@ -24,9 +24,11 @@ void NameBindingPass::define_builtin_names()
     {"error",  NameSpace::Type},
     {"match_kind", NameSpace::Type},
     {"_",      NameSpace::Type},
+
     {"accept", NameSpace::Var},
     {"reject", NameSpace::Var},
   };
+
   struct BuiltinType builtin_types[] = {
     {"void",       TypeEnum::Void},
     {"bool",       TypeEnum::Bool},
@@ -34,12 +36,13 @@ void NameBindingPass::define_builtin_names()
     {"bit",        TypeEnum::Bit},
     {"varbit",     TypeEnum::Varbit},
     {"string",     TypeEnum::String},
+    {"_",          TypeEnum::Any},
+
     {"error",      TypeEnum::Error},
     {"match_kind", TypeEnum::MatchKind},
-    {"_",          TypeEnum::Any},
   };
 
-  for (int i = 0; i < sizeof(builtin_names)/sizeof(builtin_names[0]); i++) {
+  for (int i = 0; i < sizeof(builtin_names) / sizeof(builtin_names[0]); i++) {
     Ast* name = Ast::allocate(storage);
     name->init(AstEnum::name, 0, 0);
     name->name.strname = builtin_names[i].strname;
@@ -47,24 +50,25 @@ void NameBindingPass::define_builtin_names()
     name_decl->ast = name;
   }
 
-  for (int i = 0; i < sizeof(builtin_types)/sizeof(builtin_types[0]); i++) {
+  for (int i = 0; i < sizeof(builtin_types) / sizeof(builtin_types[0]); i++) {
     NameEntry* name_entry = root_scope->lookup(builtin_types[i].strname, NameSpace::Type);
     NameDeclaration* name_decl = name_entry->get_declarations(NameSpace::Type);
-    Type* ty = (Type*)type_array->append();
-    ty->init(builtin_types[i].kind, name_decl->strname);
+    Type* ty = 0;
+
+    if (builtin_types[i].kind == TypeEnum::Void || builtin_types[i].kind == TypeEnum::Bool ||
+        builtin_types[i].kind == TypeEnum::Int || builtin_types[i].kind == TypeEnum::Bit ||
+        builtin_types[i].kind == TypeEnum::Varbit || builtin_types[i].kind == TypeEnum::String ||
+        builtin_types[i].kind == TypeEnum::Any) {
+      ty = Type_Basic::append(type_array, builtin_types[i].kind);
+    } else if (builtin_types[i].kind == TypeEnum::Error || builtin_types[i].kind == TypeEnum::MatchKind) {
+      ty = Type_Enum::append(type_array);
+      ty->enum_.fields = Type_Product::append(type_array, storage, 0);
+    } else assert(0);
+
+    ty->strname = name_decl->strname;
     ty->ast = name_decl->ast;
     name_decl->type = ty;
   }
-
-  Type* ty;
-
-  ty = root_scope->lookup_builtin("error", NameSpace::Type)->type;
-  ty->enum_.fields = (Type*)type_array->append();
-  ty->enum_.fields->init(TypeEnum::Product, 0);
-
-  ty = root_scope->lookup_builtin("match_kind", NameSpace::Type)->type;
-  ty->enum_.fields = (Type*)type_array->append();
-  ty->enum_.fields->init(TypeEnum::Product, 0);
 }
 
 void DEBUG_scope_decls(Scope* scope)

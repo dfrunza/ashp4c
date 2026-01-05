@@ -155,7 +155,7 @@ bool TypeChecker::structural_type_equiv(Type* left, Type* right)
       return structural_type_equiv(left->struct_.fields, right->struct_.fields);
     }
     return 0;
-  } else if (left->kind == TypeEnum::Stack) {
+  } else if (left->kind == TypeEnum::HeaderStack) {
     if (right->kind == left->kind) {
       return structural_type_equiv(left->header_stack.element, right->header_stack.element);
     }

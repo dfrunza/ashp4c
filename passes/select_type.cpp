@@ -274,10 +274,8 @@ void SelectTypePass::visit_simpleKeysetExpression(Ast* simple_expr, Type* requir
     } else if (simple_expr->simpleKeysetExpression.expr->kind == AstEnum::dontcare) {
       visit_dontcare(simple_expr->simpleKeysetExpression.expr);
     } else assert(0);
-    Type* simple_ty = (Type*)type_array->append();
-    simple_ty->init(TypeEnum::Product, 0);
+    Type* simple_ty = Type_Product::append(type_array, storage, 1);
     simple_ty->ast = simple_expr;
-    simple_ty->product.init(storage, 1);
     simple_ty->product.set(0, (Type*)type_env->lookup(simple_expr->simpleKeysetExpression.expr, 0));
     type_env->insert(simple_expr, simple_ty, 0);
   }
@@ -288,19 +286,16 @@ void SelectTypePass::visit_simpleExpressionList(Ast* expr_list, Type* required_t
   assert(expr_list->kind == AstEnum::simpleExpressionList);
   TreeIterator it;
 
-  Type* list_ty = (Type*)type_array->append();
-  list_ty->init(TypeEnum::Product, 0);
-  list_ty->ast = expr_list;
-
   it.begin(&expr_list->tree);
+  int count = 0;
   for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_simpleKeysetExpression(Ast::owner_of(tree), required_ty);
-    list_ty->product.count += 1;
+    count += 1;
   }
-  if (list_ty->product.count > 0) {
-    list_ty->product.init(storage, list_ty->product.count);
-  }
+
+  Type* list_ty = Type_Product::append(type_array, storage, count);
+  list_ty->ast = expr_list;
 
   int i = 0;
   it.begin(&expr_list->tree);
@@ -960,19 +955,16 @@ void SelectTypePass::visit_expressionList(Ast* expr_list, Type* required_ty)
   assert(expr_list->kind == AstEnum::expressionList);
   TreeIterator it;
 
-  Type* list_ty = (Type*)type_array->append();
-  list_ty->init(TypeEnum::Product, 0);
-  list_ty->ast = expr_list;
-
   it.begin(&expr_list->tree);
+  int count = 0;
   for (Tree* tree = it.next();
        tree != 0; tree = it.next()) {
     visit_expression(Ast::owner_of(tree), required_ty);
-    list_ty->product.count += 1;
+    count += 1;
   }
-  if (list_ty->product.count > 0) {
-    list_ty->product.init(storage, list_ty->product.count);
-  }
+
+  Type* list_ty = Type_Product::append(type_array, storage, count);
+  list_ty->ast = expr_list;
 
   int i = 0;
   it.begin(&expr_list->tree);

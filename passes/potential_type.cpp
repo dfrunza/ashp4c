@@ -1193,7 +1193,7 @@ void PotentialTypePass::visit_memberSelector(Ast* selector, PotentialType* poten
     } else if (lhs_ty->kind == TypeEnum::Struct || lhs_ty->kind == TypeEnum::Header ||
                lhs_ty->kind == TypeEnum::Union) {
       type_checker->collect_matching_member(tau, lhs_ty->struct_.fields, name->name.strname, potential_args);
-    } else if (lhs_ty->kind == TypeEnum::Stack) {
+    } else if (lhs_ty->kind == TypeEnum::HeaderStack) {
       /* TODO */
     } else if (lhs_ty->kind == TypeEnum::Table) {
       type_checker->collect_matching_member(tau, lhs_ty->table.methods, name->name.strname, potential_args);
