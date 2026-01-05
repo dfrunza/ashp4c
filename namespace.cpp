@@ -20,11 +20,6 @@ NameDeclaration* NameDeclaration::allocate(Arena* storage)
   return name_decl;
 }
 
-void NameDeclaration::init(char* strname)
-{
-  this->strname = strname;
-}
-
 NameDeclaration* NameEntry::get_declarations(enum NameSpace ns)
 {
   NameDeclaration* decls = declarations[(int)ns >> 1];

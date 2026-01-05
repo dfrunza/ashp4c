@@ -71,7 +71,7 @@ int main(int arg_count, char* args[])
   declared_types.do_pass();
 
   TypeChecker type_checker = {};
-  type_checker.init(&storage);
+  type_checker.allocate(&storage);
 
   PotentialTypePass potential_types = {};
   potential_types.storage = &storage;

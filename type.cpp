@@ -39,14 +39,6 @@ char* TypeEnum_to_string(enum TypeEnum type)
   return 0;
 }
 
-#if 0
-void Type::init(enum TypeEnum kind, char* strname)
-{
-  this->kind = kind;
-  this->strname = strname;
-}
-#endif
-
 Type* Type::actual_type()
 {
   if (!this) { return 0; }

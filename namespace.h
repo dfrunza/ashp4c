@@ -27,7 +27,6 @@ struct NameDeclaration {
   };
 
   static NameDeclaration* allocate(Arena* storage);
-  void init(char* strname);
 };
 
 struct NameEntry {

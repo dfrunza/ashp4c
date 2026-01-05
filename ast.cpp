@@ -106,7 +106,7 @@ char* AstEnum_to_string(enum AstEnum ast)
     case AstEnum::actionList: return "actionList";
     case AstEnum::actionRef: return "actionRef";
 #if 0
-      case AstEnum::entriesProperty: return "entriesProperty";
+    case AstEnum::entriesProperty: return "entriesProperty";
     case AstEnum::entriesList: return "entriesList";
     case AstEnum::entry: return "entry";
     case AstEnum::simpleProperty: return "simpleProperty";

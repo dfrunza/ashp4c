@@ -78,8 +78,7 @@ void PotentialTypePass::visit_name(Ast* name, PotentialType* potential_args)
   static Array* name_ty; // FIXME
 
   if (!name_ty) {
-    name_ty = Array::allocate(storage, 1);
-    name_ty->init(sizeof(Type*));
+    name_ty = Array::allocate(storage, sizeof(Type*), 1);
   }
   name_ty->element_count = 0;
   PotentialType* tau = PotentialType_Set::allocate(storage);

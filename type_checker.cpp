@@ -1,10 +1,9 @@
 #include "cstring.h"
 #include "type_checker.h"
 
-void TypeChecker::init(Arena* storage)
+void TypeChecker::allocate(Arena* storage)
 {
-  type_equiv_pairs = Array::allocate(storage, 2);
-  type_equiv_pairs->init(sizeof(Type));
+  type_equiv_pairs = Array::allocate(storage, sizeof(Type), 2);
 }
 
 bool TypeChecker::match_type(PotentialType* potential_types, Type* required_ty)

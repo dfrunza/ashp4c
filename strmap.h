@@ -22,7 +22,6 @@ struct Strmap {
   ArrayElements entries;
 
   static Strmap* allocate(Arena* storage, int segment_count);
-  void init();
   void grow();
   void* lookup(char* key, StrmapEntry** entry_/*out*/, StrmapBucket* bucket/*out*/);
   StrmapEntry* insert(char* key, void* value, bool return_if_found);

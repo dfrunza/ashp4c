@@ -9,7 +9,6 @@ struct Scope {
   Strmap* name_table;
 
   static Scope* allocate(Arena* storage, int segment_count);
-  void init();
   Scope* push(Scope* parent_scope);
   Scope* pop();
   NameEntry* lookup(char* strname, enum NameSpace ns);

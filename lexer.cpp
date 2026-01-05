@@ -819,8 +819,7 @@ void Lexer::tokenize(SourceText* source_text)
   line_no = 1;
 
   token.klass = TokenClass::StartOfInput;
-  tokens = Array::allocate(storage, 7);
-  tokens->init(sizeof(Token));
+  tokens = Array::allocate(storage, sizeof(Token), 7);
   *(Token*)tokens->append() = token;
 
   next_token(&token);

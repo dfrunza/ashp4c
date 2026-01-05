@@ -6,7 +6,7 @@
 struct TypeChecker {
   Array* type_equiv_pairs;
 
-  void init(Arena* storage);
+  void allocate(Arena* storage);
   bool match_type(PotentialType* potential_types, Type* required_ty);
   bool match_params(PotentialType* potential_args, Type* params_ty);
   void collect_matching_member(PotentialType* tau, Type* product_ty,
