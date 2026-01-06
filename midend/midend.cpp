@@ -1,28 +1,19 @@
 #include "midend/midend.h"
-#include "midend/passes/builtin_methods.h"
-#include "midend/passes/scope_hierarchy.h"
-#include "midend/passes/name_binding.h"
-#include "midend/passes/declared_type.h"
-#include "midend/passes/potential_type.h"
-#include "midend/passes/select_type.h"
 
 void Midend::do_analysis(Arena* storage, Arena* scratch,
        SourceText* source_text, Frontend* frontend) {
   type_checker.allocate(storage);
 
-  BuiltinMethodsPass builtin_methods = {};
   builtin_methods.storage = storage;
   builtin_methods.p4program = frontend->p4program;
   builtin_methods.do_pass();
 
-  ScopeHierarchyPass scope_hierarchy = {};
   scope_hierarchy.storage = storage;
   scope_hierarchy.p4program = frontend->p4program;
   scope_hierarchy.root_scope = frontend->root_scope;
   scope_hierarchy.do_pass();
   scope_map = scope_hierarchy.scope_map;
 
-  NameBindingPass name_binding = {};
   name_binding.storage = storage;
   name_binding.p4program = frontend->p4program;
   name_binding.root_scope = frontend->root_scope;
@@ -31,7 +22,6 @@ void Midend::do_analysis(Arena* storage, Arena* scratch,
   decl_map = name_binding.decl_map;
   type_array = name_binding.type_array;
 
-  DeclaredTypePass declared_types = {};
   declared_types.storage = storage;
   declared_types.source_file = source_text->filename;
   declared_types.p4program = frontend->p4program;
@@ -42,7 +32,6 @@ void Midend::do_analysis(Arena* storage, Arena* scratch,
   declared_types.do_pass();
   type_env = declared_types.type_env;
 
-  PotentialTypePass potential_types = {};
   potential_types.storage = storage;
   potential_types.source_file = source_text->filename;
   potential_types.p4program = frontend->p4program;
@@ -53,7 +42,6 @@ void Midend::do_analysis(Arena* storage, Arena* scratch,
   potential_types.do_pass();
   potype_map = potential_types.potype_map;
 
-  SelectTypePass select_type = {};
   select_type.storage = storage;
   select_type.source_file = source_text->filename;
   select_type.p4program = frontend->p4program;

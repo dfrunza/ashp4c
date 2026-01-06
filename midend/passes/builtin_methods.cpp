@@ -2,9 +2,9 @@
 #include "frontend/ast.h"
 #include "midend/passes/builtin_methods.h"
 
-void BuiltinMethodsPass::do_pass(Ast* ast)
+void BuiltinMethodsPass::do_pass()
 {
-  visit_p4program(ast);
+  visit_p4program(p4program);
 }
 
 /** PROGRAM **/

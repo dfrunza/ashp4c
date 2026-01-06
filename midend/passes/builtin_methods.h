@@ -3,7 +3,6 @@
 #include "memory/arena.h"
 #include "frontend/ast.h"
 #include "frontend/frontend.h"
-#include "midend/midend.h"
 
 struct BuiltinMethodsPass {
   /* in */

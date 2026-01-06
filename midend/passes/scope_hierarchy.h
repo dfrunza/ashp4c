@@ -1,9 +1,9 @@
 #pragma once
 
 #include "memory/arena.h"
+#include "adt/map.h"
 #include "frontend/ast.h"
 #include "frontend/scope.h"
-#include "adt/map.h"
 
 struct ScopeHierarchyPass {
   /* in */
