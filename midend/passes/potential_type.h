@@ -9,15 +9,16 @@
 #include "midend/type_checker.h"
 
 struct PotentialTypePass {
+  /* in */
   Arena* storage;
   char* source_file;
   Ast* p4program;
   Scope* root_scope;
   Map* scope_map;
-  Map* decl_map;
-  Array* type_array;
   Map* type_env;
   TypeChecker* type_checker;
+
+  /* out */
   Map* potype_map;
 
 /** PROGRAM **/

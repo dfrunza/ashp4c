@@ -6,6 +6,7 @@
 #include "frontend/scope.h"
 
 struct DeclaredTypePass {
+  /* in */
   Arena* storage;
   char* source_file;
   Ast* p4program;
@@ -13,6 +14,8 @@ struct DeclaredTypePass {
   Map* scope_map;
   Map* decl_map;
   Array* type_array;
+
+  /* out */
   Map* type_env;
 
 /** PROGRAM **/

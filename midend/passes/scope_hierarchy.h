@@ -6,11 +6,16 @@
 #include "adt/map.h"
 
 struct ScopeHierarchyPass {
+  /* in */
   Arena* storage;
   Ast* p4program;
   Scope* root_scope;
-  Scope* current_scope;
+
+  /* out */
   Map* scope_map;
+
+  /* local */
+  Scope* current_scope;
 
 /** PROGRAM **/
 
