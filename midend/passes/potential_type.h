@@ -19,7 +19,7 @@ struct PotentialTypePass {
   TypeChecker* type_checker;
 
   /* out */
-  Map* potype_map;
+  Map* po_type_map;
 
 /** PROGRAM **/
 

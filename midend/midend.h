@@ -17,7 +17,7 @@ struct Midend {
   Map* decl_map;
   Array* type_array;
   Map* type_env;
-  Map* potype_map;
+  Map* po_type_map;
 
   BuiltinMethodsPass builtin_methods;
   ScopeHierarchyPass scope_hierarchy;

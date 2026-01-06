@@ -2,10 +2,10 @@
 
 PotentialType* PotentialType_Set::allocate(Arena* storage)
 {
-  PotentialType* potype = (PotentialType*)storage->allocate(sizeof(PotentialType), 1);
-  potype->kind = PotentialTypeEnum::Set;
-  potype->set.members.storage = storage;
-  return potype;
+  PotentialType* po_type = (PotentialType*)storage->allocate(sizeof(PotentialType), 1);
+  po_type->kind = PotentialTypeEnum::Set;
+  po_type->set.members.storage = storage;
+  return po_type;
 }
 
 void PotentialType_Set::add(Type* ty) {
@@ -14,14 +14,14 @@ void PotentialType_Set::add(Type* ty) {
 
 PotentialType* PotentialType_Product::allocate(Arena* storage, int arity)
 {
-  PotentialType* potype = (PotentialType*)storage->allocate(sizeof(PotentialType), 1);
-  potype->kind = PotentialTypeEnum::Product;
-  potype->product.arity = arity;
-  potype->product.members = 0;
+  PotentialType* po_type = (PotentialType*)storage->allocate(sizeof(PotentialType), 1);
+  po_type->kind = PotentialTypeEnum::Product;
+  po_type->product.arity = arity;
+  po_type->product.members = 0;
   if (arity > 0) {
-    potype->product.members = (PotentialType**)storage->allocate(sizeof(PotentialType*), arity);
+    po_type->product.members = (PotentialType**)storage->allocate(sizeof(PotentialType*), arity);
   }
-  return potype;
+  return po_type;
 }
 
 PotentialType* PotentialType_Product::get(int i)

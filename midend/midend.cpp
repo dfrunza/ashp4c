@@ -40,7 +40,7 @@ void Midend::do_analysis(Arena* storage, Arena* scratch,
   potential_types.type_env = type_env;
   potential_types.type_checker = &type_checker;
   potential_types.do_pass();
-  potype_map = potential_types.potype_map;
+  po_type_map = potential_types.po_type_map;
 
   select_type.storage = storage;
   select_type.source_file = source_text->filename;
@@ -49,7 +49,7 @@ void Midend::do_analysis(Arena* storage, Arena* scratch,
   select_type.scope_map = scope_map;
   select_type.type_array = type_array;
   select_type.type_env = type_env;
-  select_type.potype_map = potype_map;
+  select_type.po_type_map = po_type_map;
   select_type.type_checker = &type_checker;
   select_type.do_pass();
 

@@ -58,7 +58,7 @@ void SelectTypePass::visit_name(Ast* name, Type* required_ty)
 {
   assert(name->kind == AstEnum::name);
 
-  PotentialType* name_tau = (PotentialType*)potype_map->lookup(name, 0);
+  PotentialType* name_tau = (PotentialType*)po_type_map->lookup(name, 0);
   assert(name_tau->kind == PotentialTypeEnum::Set);
 
   if (name_tau->set.members.count() != 1) {
@@ -675,7 +675,7 @@ void SelectTypePass::visit_functionCall(Ast* func_call, Type* required_ty)
   } else assert(0);
   visit_argumentList(func_call->functionCall.args, 0);
 
-  PotentialType* func_tau = (PotentialType*)potype_map->lookup(func_call, 0);
+  PotentialType* func_tau = (PotentialType*)po_type_map->lookup(func_call, 0);
   assert(func_tau->kind == PotentialTypeEnum::Set);
 
   if (func_tau->set.members.count() != 1) {
@@ -1052,7 +1052,7 @@ void SelectTypePass::visit_binaryExpression(Ast* binary_expr, Type* required_ty)
   visit_expression(binary_expr->binaryExpression.left_operand, required_ty);
   visit_expression(binary_expr->binaryExpression.right_operand, required_ty);
 
-  PotentialType* op_tau = (PotentialType*)potype_map->lookup(binary_expr, 0);
+  PotentialType* op_tau = (PotentialType*)po_type_map->lookup(binary_expr, 0);
   assert(op_tau->kind == PotentialTypeEnum::Set);
 
   if (op_tau->set.members.count() != 1) {
@@ -1083,7 +1083,7 @@ void SelectTypePass::visit_memberSelector(Ast* selector, Type* required_ty)
     visit_lvalueExpression(selector->memberSelector.lhs_expr, 0);
   } else assert(0);
 
-  PotentialType* selector_tau = (PotentialType*)potype_map->lookup(selector, 0);
+  PotentialType* selector_tau = (PotentialType*)po_type_map->lookup(selector, 0);
   assert(selector_tau->kind == PotentialTypeEnum::Set);
 
   if (selector_tau->set.members.count() != 1) {

@@ -16,7 +16,7 @@ struct SelectTypePass {
   Array* type_array;
   Map* type_env;
   TypeChecker* type_checker;
-  Map* potype_map;
+  Map* po_type_map;
 
 /** PROGRAM **/
 
