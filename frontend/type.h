@@ -22,7 +22,7 @@ enum class TypeEnum : int {
   Table,
   Struct,
   Header,
-  Union,
+  HeaderUnion,
   HeaderStack,
   State,
   Field,

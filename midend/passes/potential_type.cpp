@@ -1190,7 +1190,7 @@ void PotentialTypePass::visit_memberSelector(Ast* selector, PotentialType* poten
                lhs_ty->kind == TypeEnum::MatchKind || lhs_ty->kind == TypeEnum::Error) {
       type_checker->collect_matching_member(tau, lhs_ty->enum_.fields, name->name.strname, 0);
     } else if (lhs_ty->kind == TypeEnum::Struct || lhs_ty->kind == TypeEnum::Header ||
-               lhs_ty->kind == TypeEnum::Union) {
+               lhs_ty->kind == TypeEnum::HeaderUnion) {
       type_checker->collect_matching_member(tau, lhs_ty->struct_.fields, name->name.strname, potential_args);
     } else if (lhs_ty->kind == TypeEnum::HeaderStack) {
       /* TODO */

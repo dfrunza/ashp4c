@@ -22,7 +22,7 @@ char* TypeEnum_to_string(enum TypeEnum type)
     case TypeEnum::Table: return "TABLE";
     case TypeEnum::Struct: return "STRUCT";
     case TypeEnum::Header: return "HEADER";
-    case TypeEnum::Union: return "UNION";
+    case TypeEnum::HeaderUnion: return "UNION";
     case TypeEnum::HeaderStack: return "HEADER_STACK";
     case TypeEnum::State: return "STATE";
     case TypeEnum::Field: return "FIELD";

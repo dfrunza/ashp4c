@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "adt/basic.h"
 #include "command_line.h"
 #include "frontend/frontend.h"
 #include "midend/midend.h"
@@ -9,7 +8,7 @@ int main(int arg_count, char* args[])
 {
   Arena storage = {}, scratch = {};
 
-  Memory::reserve(500 * KILOBYTE);
+  Memory::reserve(600 * KILOBYTE);
 
   CommandLineArg* cmdline_arg = CommandLineArg::parse_cmdline(&storage, arg_count, args);
   CommandLineArg* filename = cmdline_arg->find_unnamed_arg();
