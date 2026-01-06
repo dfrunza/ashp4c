@@ -1,5 +1,5 @@
 #include "adt/basic.h"
-#include "parser.h"
+#include "frontend/parser.h"
 
 struct Keyword {
   char* strname;
@@ -165,7 +165,7 @@ enum AstOperator token_to_binop(Token* token)
   }
 }
 
-void Parser::parse()
+Ast* Parser::parse()
 {
   root_scope = Scope::allocate(storage, 5);
   current_scope = root_scope;
@@ -176,6 +176,7 @@ void Parser::parse()
   next_token();
   p4program = parse_p4program();
   assert(current_scope == root_scope);
+  return p4program;
 }
 
 /** PROGRAM **/

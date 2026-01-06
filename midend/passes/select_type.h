@@ -1,4 +1,5 @@
 #pragma once
+
 #include "memory/arena.h"
 #include "adt/map.h"
 #include "frontend/scope.h"

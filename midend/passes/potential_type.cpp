@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "adt/basic.h"
-#include "potential_type.h"
+#include "midend/passes/potential_type.h"
 
 static void DEBUG_print_potential_types(PotentialType_Set* tau)
 {

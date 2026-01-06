@@ -1,6 +1,7 @@
 #pragma once
-#include "lexer.h"
-#include "type.h"
+
+#include "frontend/lexer.h"
+#include "frontend/type.h"
 
 enum class NameSpace : int {
   Var = 1 << 0,

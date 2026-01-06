@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "adt/basic.h"
-#include "name_binding.h"
+#include "midend/passes/name_binding.h"
 
 struct BuiltinName {
   char* strname;

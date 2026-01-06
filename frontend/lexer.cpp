@@ -1,7 +1,7 @@
-#include "memory.h"
+#include <memory.h>
 #include "adt/basic.h"
 #include "adt/cstring.h"
-#include "lexer.h"
+#include "frontend/lexer.h"
 
 static int digit_to_integer(char c, int base)
 {
@@ -40,7 +40,7 @@ static int parse_integer(char* str, int base)
   return result;
 }
 
-void SourceText::read_source(char* filename)
+void SourceText::read_source(Arena* storage, Arena* scratch, char* filename)
 {
   FILE* f_stream = fopen(filename, "rb");
   if (!f_stream) {

@@ -1,4 +1,5 @@
 #pragma once
+
 #include "frontend/ast.h"
 
 struct AstVisitor {

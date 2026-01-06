@@ -1,7 +1,8 @@
 #pragma once
+
 #include "memory/arena.h"
 #include "adt/tree.h"
-#include "ast.h"
+#include "frontend/ast.h"
 
 enum class AstEnum {
   none = 0,

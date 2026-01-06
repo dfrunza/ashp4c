@@ -1,14 +1,17 @@
 #pragma once
+
 #include "memory/arena.h"
 #include "adt/array.h"
-#include "lexer.h"
-#include "scope.h"
+#include "frontend/lexer.h"
+#include "frontend/scope.h"
 
 struct Parser {
   Arena* storage;
-  Ast* p4program;
   char* source_file;
   Array* tokens;
+
+  Ast* p4program;
+
   int token_at;
   int prev_token_at;
   Token* token;
@@ -140,8 +143,8 @@ struct Parser {
   Ast* parse_boolean();
   Ast* parse_string();
 
-  void parse();
   Token* next_token();
   Token* peek_token();
   void define_keywords(Scope* scope);
+  Ast* parse();
 };

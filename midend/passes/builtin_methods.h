@@ -1,5 +1,7 @@
 #pragma once
+
 #include "memory/arena.h"
+#include "frontend/ast.h"
 
 struct BuiltinMethodsPass {
   Arena* storage;

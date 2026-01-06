@@ -1,4 +1,4 @@
-#include "potential_type.h"
+#include "midend/potential_type.h"
 
 PotentialType* PotentialType_Set::allocate(Arena* storage)
 {

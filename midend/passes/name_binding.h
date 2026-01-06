@@ -1,9 +1,10 @@
 #pragma once
+
 #include "memory/arena.h"
+#include "adt/map.h"
 #include "adt/array.h"
 #include "frontend/ast.h"
 #include "frontend/scope.h"
-#include "adt/map.h"
 
 struct NameBindingPass {
   Arena* storage;

@@ -1,10 +1,11 @@
 #pragma once
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
-#include "basic.h"
-#include "array.h"
+#include "adt/basic.h"
+#include "adt/array.h"
 #include "memory/arena.h"
 
 /**

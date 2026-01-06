@@ -1,6 +1,6 @@
 #include "adt/basic.h"
 #include "frontend/ast.h"
-#include "builtin_methods.h"
+#include "midend/passes/builtin_methods.h"
 
 void BuiltinMethodsPass::do_pass(Ast* ast)
 {

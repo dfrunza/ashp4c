@@ -1,4 +1,5 @@
 #pragma once
+
 #include "memory/arena.h"
 
 struct MapEntry {

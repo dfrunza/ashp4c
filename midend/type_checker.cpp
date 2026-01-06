@@ -1,5 +1,5 @@
 #include "adt/cstring.h"
-#include "type_checker.h"
+#include "midend/type_checker.h"
 
 void TypeChecker::allocate(Arena* storage)
 {

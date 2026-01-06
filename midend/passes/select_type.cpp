@@ -1,5 +1,5 @@
 #include "adt/basic.h"
-#include "select_type.h"
+#include "midend/passes/select_type.h"
 
 void SelectTypePass::do_pass()
 {

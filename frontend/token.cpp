@@ -1,4 +1,4 @@
-#include "token.h"
+#include "frontend/token.h"
 
 bool Token::is_nonTypeName()
 {

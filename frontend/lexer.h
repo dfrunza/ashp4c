@@ -1,15 +1,15 @@
 #pragma once
+
 #include "memory/arena.h"
 #include "adt/array.h"
-#include "token.h"
+#include "frontend/token.h"
 
 struct SourceText {
-  Arena* storage;
   char* text;
   int text_size;
   char* filename;
 
-  void read_source(char* filename);
+  void read_source(Arena* storage, Arena* scratch, char* filename);
 };
 
 struct Lexeme {

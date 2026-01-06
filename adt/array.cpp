@@ -1,4 +1,4 @@
-#include "array.h"
+#include "adt/array.h"
 
 void* ArrayElements::locate(int i)
 {

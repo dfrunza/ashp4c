@@ -1,5 +1,5 @@
 #include "adt/basic.h"
-#include "scope_hierarchy.h"
+#include "midend/passes/scope_hierarchy.h"
 
 void ScopeHierarchyPass::do_pass()
 {

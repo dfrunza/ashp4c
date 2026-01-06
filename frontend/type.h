@@ -1,6 +1,7 @@
 #pragma once
-#include "ast.h"
+
 #include "adt/array.h"
+#include "frontend/ast.h"
 
 enum class TypeEnum : int {
   None = 0,

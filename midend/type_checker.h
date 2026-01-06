@@ -1,7 +1,8 @@
 #pragma once
+
 #include "adt/array.h"
 #include "frontend/type.h"
-#include "potential_type.h"
+#include "midend/potential_type.h"
 
 struct TypeChecker {
   Array* type_equiv_pairs;

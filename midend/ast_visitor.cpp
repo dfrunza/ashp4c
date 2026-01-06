@@ -1,5 +1,5 @@
 #include "adt/basic.h"
-#include "ast_visitor.h"
+#include "midend/ast_visitor.h"
 
 /** PROGRAM **/
 

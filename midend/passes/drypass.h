@@ -1,4 +1,5 @@
 #pragma once
+
 #include "frontend/ast.h"
 #include "midend/ast_visitor.h"
 

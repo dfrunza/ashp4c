@@ -1,7 +1,8 @@
 #pragma once
+
 #include "memory/arena.h"
-#include "frontend/ast.h"
 #include "adt/map.h"
+#include "frontend/ast.h"
 #include "frontend/scope.h"
 
 struct DeclaredTypePass {

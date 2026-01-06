@@ -30,13 +30,14 @@ add_executable(ashp4c
         adt/list.h
         memory/arena.cpp
         memory/arena.h
+        frontend/frontend.cpp
+        frontend/frontend.h
         frontend/ast.cpp
         frontend/ast.h
         frontend/token.cpp
         frontend/token.h
         frontend/lexer.cpp
         frontend/lexer.h
-        frontend/namespace.h
         frontend/parser.cpp
         frontend/parser.h
         frontend/scope.cpp
@@ -44,12 +45,15 @@ add_executable(ashp4c
         frontend/type.cpp
         frontend/type.h
         frontend/namespace.cpp
+        frontend/namespace.h
         midend/ast_visitor.cpp
         midend/ast_visitor.h
         midend/potential_type.cpp
         midend/potential_type.h
         midend/type_checker.cpp
         midend/type_checker.h
+        midend/midend.h
+        midend/midend.cpp
         midend/passes/builtin_methods.cpp
         midend/passes/builtin_methods.h
         midend/passes/declared_type.cpp
@@ -61,4 +65,6 @@ add_executable(ashp4c
         midend/passes/potential_type.h
         midend/passes/scope_hierarchy.cpp
         midend/passes/scope_hierarchy.h
-        midend/passes/select_type.cpp)
+        midend/passes/select_type.cpp
+        midend/passes/select_type.h
+)

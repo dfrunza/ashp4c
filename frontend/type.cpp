@@ -1,5 +1,5 @@
 #include "adt/basic.h"
-#include "type.h"
+#include "frontend/type.h"
 
 char* TypeEnum_to_string(enum TypeEnum type)
 {
